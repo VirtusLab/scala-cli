@@ -36,25 +36,9 @@ object Run extends CaseApp[RunOptions] {
     exitOnError: Boolean
   ): Unit = {
 
-    val mainClassOpt = {
-      val foundMainClasses = build.foundMainClasses()
-      val defaultMainClassOpt = build.sources.mainClass
-        .filter(name => foundMainClasses.contains(name))
-      def foundMainClassOpt =
-        if (foundMainClasses.length == 1) foundMainClasses.headOption
-        else {
-          System.err.println("Found several main classes:")
-          for (name <- foundMainClasses)
-            System.err.println(s"  $name")
-          System.err.println("Please specify which one to use with --main-class")
-          None
-        }
-      def fromOptions = options.mainClass.filter(_.nonEmpty) // trim it too?
-
-      defaultMainClassOpt
-        .orElse(fromOptions)
-        .orElse(foundMainClassOpt)
-    }
+    val mainClassOpt =
+      options.mainClass.filter(_.nonEmpty) // trim it too?
+        .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
 
     for (mainClass <- mainClassOpt) {
       val retCode =

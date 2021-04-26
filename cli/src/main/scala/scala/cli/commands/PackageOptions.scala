@@ -11,7 +11,9 @@ final case class PackageOptions(
   @Name("f")
     force: Boolean = false,
   includeDependencies: Boolean = true,
-  library: Boolean = false
+  library: Boolean = false,
+  @Name("M")
+    mainClass: Option[String] = None
 ) {
   import PackageOptions.PackageType
   def packageType: PackageType =

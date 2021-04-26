@@ -55,13 +55,14 @@ object Package extends CaseApp[PackageOptions] {
 
     alreadyExistsCheck()
 
+    lazy val mainClassOpt =
+      options.mainClass.filter(_.nonEmpty) // trim it too?
+        .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
+    def mainClass() = mainClassOpt.getOrElse(sys.error("No main class"))
+
     options.packageType match {
       case PackageOptions.PackageType.Bootstrap =>
-        build.sources.mainClass match {
-          case None => ???
-          case Some(mainClass) =>
-            bootstrap(build, destPath, mainClass, () => alreadyExistsCheck())
-        }
+        bootstrap(build, destPath, mainClass(), () => alreadyExistsCheck())
       case PackageOptions.PackageType.LibraryJar =>
         val content = libraryJar(build)
         alreadyExistsCheck()
@@ -70,24 +71,14 @@ object Package extends CaseApp[PackageOptions] {
         else os.write(destPath0, content)
 
       case PackageOptions.PackageType.Js =>
-
-        val mainClass = build.sources.mainClass.getOrElse {
-          ???
-        }
-
-        linkJs(build, mainClass, destPath)
+        linkJs(build, mainClass(), destPath)
 
       case PackageOptions.PackageType.Native =>
-
-        val mainClass = build.sources.mainClass.getOrElse {
-          ???
-        }
-
         val nativeOptions = options.shared.scalaNativeOptionsIKnowWhatImDoing
         val workDir = options.shared.nativeWorkDir
         val logger = options.shared.scalaNativeLogger
 
-        buildNative(build, mainClass, destPath, nativeOptions, workDir, logger)
+        buildNative(build, mainClass(), destPath, nativeOptions, workDir, logger)
     }
 
     if (options.shared.verbosity >= 0)

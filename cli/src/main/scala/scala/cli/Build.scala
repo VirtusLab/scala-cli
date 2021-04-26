@@ -25,6 +25,24 @@ final case class Build(
     output +: artifacts.classPath
   def foundMainClasses(): Seq[String] =
     MainClass.find(os.Path(output))
+  def retainedMainClassOpt(warnIfSeveral: Boolean = false): Option[String] = {
+    lazy val foundMainClasses0 = foundMainClasses()
+    val defaultMainClassOpt = sources.mainClass
+      .filter(name => foundMainClasses0.contains(name))
+    def foundMainClassOpt =
+      if (foundMainClasses0.length == 1) foundMainClasses0.headOption
+      else {
+        if (warnIfSeveral) {
+          System.err.println("Found several main classes:")
+          for (name <- foundMainClasses0)
+            System.err.println(s"  $name")
+          System.err.println("Please specify which one to use with --main-class")
+        }
+        None
+      }
+
+    defaultMainClassOpt.orElse(foundMainClassOpt)
+  }
 }
 
 object Build {
