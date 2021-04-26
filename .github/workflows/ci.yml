@@ -1,0 +1,107 @@
+name: CI
+on:
+  push:
+    branches:
+    - master
+    tags:
+    - "v*"
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Running into https://github.com/oracle/graal/issues/3171 on windows-latest / windows-2019
+        OS: ["ubuntu-latest", "macos-latest", "windows-2016"]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: coursier/cache-action@v6
+    - uses: laughedelic/coursier-setup@v1
+      with:
+        jvm: 8
+    - name: Publish stubs locally
+      run: ./mill -i stubs.publishLocal
+    - name: Setup (Windows only)
+      if: runner.os == 'Windows'
+      shell: bash
+      run: echo '-Xmx1g' > .mill-jvm-opts
+    - name: Test (Windows only)
+      if: runner.os == 'Windows'
+      shell: cmd
+      # Change \2017\ to \2019\ on windows-latest / windows-2019
+      run: |
+        @call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        if %errorlevel% neq 0 exit /b %errorlevel%
+        mill -i __.test
+    - name: Test (Linux / macOS)
+      if: runner.os != 'Windows'
+      run: ./mill -i __.test
+    - name: Copy artifacts
+      run: ./mill -i copyLauncher artifacts/
+    - uses: actions/upload-artifact@v2.2.3
+      with:
+        name: launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+
+  publish:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: coursier/cache-action@v6
+    - uses: laughedelic/coursier-setup@v1
+      with:
+        jvm: 8
+    - run: .github/scripts/gpg-setup.sh
+      env:
+        PGP_SECRET: ${{ secrets.PGP_SECRET }}
+    - name: Release
+      run: ./mill -i publishSonatype __.publishArtifacts
+      env:
+        PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
+        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+
+  launchers:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: coursier/cache-action@v6
+    - uses: laughedelic/coursier-setup@v1
+      with:
+        jvm: 8
+    - uses: actions/download-artifact@v2
+      with:
+        name: launchers
+        path: artifacts/
+    - run: ./mill -i uploadLaunchers artifacts/
+      env:
+        UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  website:
+    needs: [publish, launchers]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+    - run: |
+        git config --global user.name "gh-actions"
+        git config --global user.email "actions@github.com"
+        cd website
+        yarn install
+        yarn build
+        yarn deploy
+      env:
+        GIT_USER: VirtusLab
+        DEPLOYMENT_BRANCH: gh-pages
+        GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
