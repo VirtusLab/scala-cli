@@ -66,10 +66,11 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
     val cp = runClasspath().map(_.path)
     val mainClass0 = mainClass().getOrElse(sys.error("Don't know what main class to use"))
     val dest = T.ctx().dest / "scala"
+    val actualDest = T.ctx().dest / s"scala$extension"
 
     generateNativeImage(graalVmVersion, cp, mainClass0, dest)
 
-    PathRef(dest)
+    PathRef(actualDest)
   }
 
   def runWithAssistedConfig(args: String*) = T.command {
