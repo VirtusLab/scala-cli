@@ -1,20 +1,16 @@
 package scala.cli
 
 import java.nio.file.Paths
-import ammonite.util.Printer
-import ammonite.interp.DependencyLoader
-import ammonite.runtime.Storage
-import ammonite.interp.script.ScriptProcessor
-import ammonite.compiler.Parsers
-import ammonite.util.Util
-import ammonite.util.Name
-import ammonite.compiler.iface.CodeWrapper
+
+import ammonite.util.{Name, Util}
+import scala.cli.internal.CodeWrapper
 
 final case class Sources(
   paths: Seq[String],
   inMemory: Seq[(String, String)],
   mainClass: Option[String],
-  dependencies: Seq[coursierapi.Dependency]
+  dependencies: Seq[coursierapi.Dependency],
+  resourceDirs: Seq[os.Path]
 ) {
 
   def generateSources(generatedSrcRoot: os.Path): Seq[os.Path] = {
@@ -37,27 +33,11 @@ final case class Sources(
 
     generated.map(generatedSrcRoot / _)
   }
-
-  def checkPlatformDependencies(platformSuffix: String, scalaVersion: String, scalaBinaryVersion: String): Sources = {
-
-    def updateDependency(dep: coursierapi.Dependency): coursierapi.Dependency = {
-      val substitute =
-        if (dep.getModule.getName.endsWith("_" + scalaVersion)) {
-          val mod = coursierapi.Module.of(dep.getModule.getOrganization, ???, dep.getModule.getAttributes)
-          coursierapi.Dependency.of(dep).withModule(mod)
-        }
-      ???
-
-    }
-
-    this
-  }
 }
 
 object Sources {
 
-  private def check(path: os.Path): Unit = {
-    System.err.println(s"check($path)")
+  private def process(path: os.Path): Option[(Seq[String], String)] = {
     val content = os.read(path)
 
     import fastparse._
@@ -65,156 +45,187 @@ object Sources {
     import scala.cli.internal.ScalaParse._
 
     val res = parse(content, Header(_))
-    pprint.log(res)
 
-    val indices = res.fold((_, _, _) => Nil, (value, _) => value)
+    val indicesOrFailingIdx0 = res.fold((_, idx, _) => Left(idx), (value, _) => Right(value))
 
-    for ((start, end) <- indices) {
-      val code = content.substring(start, end)
-        // .trim // meh
-      pprint.log(code)
-      val importRes = parse(code, ImportSplitter(_))
-      pprint.log(importRes)
-      if (importRes.isSuccess) {
-        val trees = importRes.get.value
-        for (tree <- trees) {
-          val subImportStr = code.substring(tree.start, tree.end)
-          pprint.log(subImportStr)
-        }
-      }
-    }
-
-    val endIdx = res.fold((_, idx, _) => Left(idx), (_, idx) => Right(idx))
-    pprint.log(endIdx)
-
-    endIdx match {
+    val indicesOrErrorMsg = indicesOrFailingIdx0 match {
       case Left(failingIdx) =>
         val newCode = content.take(failingIdx)
-        pprint.log(newCode)
         val res1 = parse(newCode, Header(_))
-        pprint.log(res1)
-      case Right(endIdx0) =>
-        val retainedCode = content.take(endIdx0)
-        pprint.log(retainedCode)
+        res1 match {
+          case f: Parsed.Failure =>
+            val msg = formatFastparseError(path.relativeTo(os.pwd).toString, content, f)
+            Left(msg)
+          case s: Parsed.Success[Seq[(Int, Int)]] =>
+            Right(s.value)
+        }
+      case Right(ind) =>
+        Right(ind)
+    }
+
+    // TODO Report error if indicesOrErrorMsg.isLeft?
+
+    val importTrees = indicesOrErrorMsg.right.toSeq.iterator.flatMap(_.iterator).flatMap {
+      case (start, end) =>
+        val code = content.substring(start, end)
+          // .trim // meh
+        val importRes = parse(code, ImportSplitter(_))
+        importRes.fold((_, _, _) => Iterator.empty, (trees, _) => trees.iterator).map { tree =>
+          tree.copy(start = start + tree.start, end = start + tree.end)
+        }
+    }.toVector
+
+    val dependencyTrees = importTrees.filter(_.prefix.headOption.contains("$ivy"))
+
+    if (dependencyTrees.isEmpty) None
+    else {
+      // replace statements like
+      //   import $ivy.`foo`,
+      // by
+      //   import $ivy.$   ,
+      // Ideally, we should just wipe those statements, and take care of keeping 'import' and ','
+      // for standard imports.
+      val buf = content.toCharArray
+      for (t <- dependencyTrees) {
+        val substitute = (t.prefix(0) + ".$").padTo(t.end - t.start, ' ')
+        assert(substitute.length == (t.end - t.start))
+        System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
+      }
+      val newCode = new String(buf)
+      Some((dependencyTrees.map(_.prefix.drop(1).mkString(".")), newCode))
+    }
+  }
+
+  private def parseDependency(str: String, platformSuffix: String, scalaVersion: String, scalaBinaryVersion: String): coursierapi.Dependency = {
+
+    val splitted = str.split(":", -1)
+    // TODO Move that logic elsewhere (in coursier? coursier-interface?)
+    splitted match {
+      case Array(org, "", name, ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
+        coursierapi.Dependency.of(org, name + "_" + scalaBinaryVersion, ver)
+      case Array(org, "", "", name, ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
+        coursierapi.Dependency.of(org, name + "_" + scalaVersion, ver)
+      case Array(org, "", name, "", ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
+        coursierapi.Dependency.of(org, name + platformSuffix + "_" + scalaBinaryVersion, ver)
+      case Array(org, "", "", name, "", ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
+        coursierapi.Dependency.of(org, name + platformSuffix + "_" + scalaVersion, ver)
+      case Array(org, name, ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
+        coursierapi.Dependency.of(org, name, ver)
+      case _ =>
+        pprint.log(str)
+        pprint.log(splitted)
+        ???
     }
   }
 
   def apply(
-    root: os.Path,
+    inputRoot: os.Path,
     inputs: Inputs,
     codeWrapper: CodeWrapper,
-    scalaVersion: String
+    platformSuffix: String,
+    scalaVersion: String,
+    scalaBinaryVersion: String
   ): Sources = {
 
-    val printer = Printer(System.out, System.err, System.out, println, println, println)
+    def scriptData(script: Inputs.Script) = {
 
-    val dependencyLoader = new DependencyLoader(
-      printer,
-      Storage.InMemory(),
-      Nil,
-      verboseOutput = false
-    )
+      val scriptPath = os.Path(inputRoot.toNIO.resolve(script.path).toAbsolutePath.normalize)
 
-    val processor = ScriptProcessor(
-      Parsers,
-      codeWrapper,
-      dependencyLoader,
-      Nil
-    )
+      val root = script.relativeTo
+        .map(inputRoot.toNIO.resolve(_).toAbsolutePath.normalize)
+        .map(os.Path(_))
+        .getOrElse(inputRoot)
+      val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, scriptPath.relativeTo(root))
 
-    def scriptData(path: String) = {
-
-      val scriptPath = os.Path(root.toNIO.resolve(path).toAbsolutePath.normalize)
-
-      val codeSource = {
-        val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, scriptPath.relativeTo(root))
-        Util.CodeSource(
-          wrapper,
-          pkg,
-          Seq(Name("ammonite"), Name("$file")), // kind of meh, required by an assertion in the CodeSource body
-          Some(scriptPath)
-        )
+      val (deps, updatedCode) = process(scriptPath) match {
+        case None => (Nil, os.read(scriptPath))
+        case Some((deps, updatedCode)) => (deps, updatedCode)
       }
 
-      // check(scriptPath)
-
-      val script0 = processor.load(os.read(scriptPath), codeSource)
-      val wrapperName = codeSource.wrapperName
-      val block = script0.blocks.head
-      // TODO Add support for platform dependencies
-      // TODO Remove the removeSpuriousSuffixes stuff once we can pass scalaVersions to ScriptProcessor
-      val scriptDependencies = script0.dependencies.dependencies
-        .map(removeSpuriousSuffixes(scala.util.Properties.versionNumberString, scalaVersion))
       val (code, _, _) = codeWrapper.wrapCode(
-        codeSource,
-        wrapperName,
-        block.statements.mkString(""),
-        "",
-        script0.dependencyImports,
-        "",
-        markScript = true
+        Seq(Name("ammonite"), Name("$file")) ++ pkg,
+        wrapper,
+        updatedCode
       )
-      ScriptData(wrapperName.raw, code, scriptDependencies)
-    }
 
-    // TODO Get dependencies from .scala files
+      val deps0 = deps.map(parseDependency(_, platformSuffix, scalaVersion, scalaBinaryVersion))
+
+      ScriptData(wrapper.raw, code, deps0)
+    }
 
     val fromDirectories = inputs.elements
       .collect {
         case d: Inputs.Directory =>
-          val dir = os.Path(Paths.get(d.path).normalize.toAbsolutePath)
+          val dir = os.FilePath(d.path).resolveFrom(inputs.cwd)
           os.walk.stream(dir)
+            .filter { p =>
+              !p.relativeTo(dir).segments.exists(_.startsWith("."))
+            }
+            .filter(os.isFile(_))
             .collect {
-              case p if os.isFile(p) && (p.last.endsWith(".scala") || p.last.endsWith(".sc")) =>
-                if (p.last.endsWith(".scala"))
-                  Inputs.ScalaFile(p.relativeTo(root).toString)
-                else
-                  Inputs.Script(p.relativeTo(root).toString)
+              case p if p.last.endsWith(".java") =>
+                Inputs.JavaFile(p.relativeTo(inputRoot).toString)
+              case p if p.last.endsWith(".scala") =>
+                Inputs.ScalaFile(p.relativeTo(inputRoot).toString)
+              case p if p.last.endsWith(".sc") =>
+                Inputs.Script(p.relativeTo(inputRoot).toString, Some(d.path))
             }
             .toVector
       }
       .flatten
 
-    val scalaFilePaths = (inputs.elements.iterator ++ fromDirectories.iterator)
+    val scalaFilePathsOrCode = (inputs.elements.iterator ++ fromDirectories.iterator)
       .collect {
-        case f: Inputs.ScalaFile => f.path
+        case f: Inputs.ScalaFile =>
+          process(os.Path(inputRoot.toNIO.resolve(f.path).toAbsolutePath)) match {
+            case None => Iterator(Right(f.path))
+            case Some((deps, updatedCode)) =>
+              // TODO Ensure f.path is relative, splitting might have issues on Windows
+              Iterator(Left((deps, f.path.stripSuffix(".scala").split("/").mkString("."), updatedCode)))
+          }
+      }
+      .flatten
+      .toVector
+
+    val javaFilePaths = (inputs.elements.iterator ++ fromDirectories.iterator)
+      .collect {
+        case f: Inputs.JavaFile => f.path
       }
       .toVector
 
+    val scalaFilePaths = scalaFilePathsOrCode.collect { case Right(v) => v }
+    val inMemoryScalaFiles = scalaFilePathsOrCode.collect {
+      case Left((deps, relPath, updatedCode)) =>
+        (relPath, updatedCode)
+    }
+
+    val scalaFilesDependencies = scalaFilePathsOrCode
+      .collect {
+        case Left((deps, _, _)) => deps
+      }
+      .flatten
+      .map(str => parseDependency(str, platformSuffix, scalaVersion, scalaBinaryVersion))
+
     val headScriptDataOpt = inputs.elements.headOption.collect {
-      case s: Inputs.Script => scriptData(s.path)
+      case s: Inputs.Script => scriptData(s)
     }
     def otherScriptsData = (inputs.elements.iterator.drop(1) ++ fromDirectories.iterator).collect {
-      case s: Inputs.Script => scriptData(s.path)
+      case s: Inputs.Script => scriptData(s)
     }
     val allScriptData = (headScriptDataOpt.iterator ++ otherScriptsData).toVector
 
     Sources(
-      paths = scalaFilePaths,
-      inMemory = allScriptData.map(script => script.className -> script.code),
+      paths = javaFilePaths ++ scalaFilePaths,
+      inMemory = inMemoryScalaFiles ++ allScriptData.map(script => script.className -> script.code),
       mainClass = headScriptDataOpt.map(_.className),
-      dependencies = allScriptData.flatMap(_.dependencies).distinct
+      dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
+      resourceDirs = inputs.elements.collect {
+        case r: Inputs.ResourceDirectory =>
+          os.FilePath(r.path).resolveFrom(inputs.cwd)
+      }
     )
   }
 
   private final case class ScriptData(className: String, code: String, dependencies: Seq[coursierapi.Dependency])
 
-  private def mapBinarySuffix(from: String, to: String): coursierapi.Dependency => coursierapi.Dependency =
-    if (from == to) identity
-    else
-      dep =>
-        if (dep.getModule.getName.endsWith(from)) {
-          val origModule = dep.getModule
-          val updatedModule = coursierapi.Module.of(origModule.getOrganization, origModule.getName.stripSuffix(from) + to)
-          dep.withModule(updatedModule)
-        } else
-          dep
-  private def removeSpuriousSuffixes(from: String, to: String): coursierapi.Dependency => coursierapi.Dependency =
-    if (from == to) identity
-    else {
-      def binaryVersion(v: String) = v.split('.').take(2).mkString(".") // meh
-      val f1 = mapBinarySuffix("_" + from, "_" + to)
-      val f2 = mapBinarySuffix("_" + binaryVersion(from), "_" + binaryVersion(to))
-      dep => f1(f2(dep))
-    }
 }

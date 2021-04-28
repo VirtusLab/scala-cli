@@ -5,7 +5,11 @@ import caseapp.core.help.Help
 
 final case class CompileOptions(
   @Recurse
-    shared: SharedOptions
+    shared: SharedOptions,
+  @Name("p")
+  @Name("classpath")
+  @HelpMessage("Print resulting class path")
+    classPath: Boolean = false
 )
 
 object CompileOptions {

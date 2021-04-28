@@ -2,7 +2,7 @@ package scala.cli.tests
 
 import scala.util.Properties
 
-class DefaultTests extends munit.FunSuite {
+class RunTests extends munit.FunSuite {
 
   lazy val canRunJs = !TestUtil.isNativeCli || !Properties.isWin
   lazy val canRunNative = !Properties.isWin

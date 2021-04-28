@@ -7,14 +7,14 @@ import scala.cli.{Build, Inputs, ReplArtifacts, Runner}
 object Repl extends CaseApp[ReplOptions] {
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all) match {
+    val inputs = Inputs(args.all, os.pwd) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
       case Right(i) => i
     }
 
-    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger)
+    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
 
     val replArtifacts = ReplArtifacts(
       options.shared.scalaVersion,
@@ -33,9 +33,10 @@ object Repl extends CaseApp[ReplOptions] {
     //       compiler for completion, but not to the main compiler for actual compilation).
 
     Runner.run(
-      build.artifacts.javaHome,
+      build.artifacts.javaHome.toIO,
       (build.output +: replArtifacts.replClassPath).map(_.toFile),
       ammoniteMainClass,
+      Nil,
       options.shared.logger,
       allowExecve = true
     )

@@ -19,5 +19,5 @@ final class ScalaJsLinkerSubst {
     ) {
         throw new RuntimeException("Scala.JS linking unsupported on Windows");
     }
-    
+
 }

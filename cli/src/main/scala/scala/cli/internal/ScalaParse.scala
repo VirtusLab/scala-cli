@@ -8,8 +8,25 @@ object ScalaParse {
 
   import Scala._
 
+  // from https://github.com/com-lihaoyi/Ammonite/blob/0f0d597f04e62e86cbf76d3bd16deb6965331470/amm/compiler/src/main/scala/ammonite/compiler/Parsers.scala#L162-L176
+  def formatFastparseError(fileName: String, rawCode: String, f: Parsed.Failure) = {
+
+    val newLine = System.lineSeparator()
+    val lineColIndex = f.extra.input.prettyIndex(f.index)
+    val expected = f.trace().failure.label
+      val locationString = {
+        val (first, last) = rawCode.splitAt(f.index)
+        val lastSnippet = last.split(newLine).headOption.getOrElse("")
+        val firstSnippet = first.reverse
+          .split(newLine.reverse)
+          .lift(0).getOrElse("").reverse
+        firstSnippet + lastSnippet + newLine + (" " * firstSnippet.length) + "^"
+      }
+    s"$fileName:$lineColIndex expected $expected$newLine$locationString"
+  }
+
   def Header[_: P]: P[Seq[(Int, Int)]] = {
-    def PkgAsEmptyList = P( Pkg ).map(_ => List.empty[(Int, Int)])
+    def PkgAsEmptyList = P( TopPkgSeq ).map(_ => List.empty[(Int, Int)])
     def ImportStartEnd = P( Index ~ Import ~ Index ).map(List(_))
     def TopStat = P( PkgAsEmptyList | ImportStartEnd )
     P( Semis.? ~ TopStat.repX(0, Semis) )

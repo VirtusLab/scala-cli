@@ -1,4 +1,4 @@
-package scala.cli
+package scala.cli.internal
 
 import org.objectweb.asm
 
@@ -11,7 +11,7 @@ object MainClass {
     private var nameOpt = Option.empty[String]
     def found: Boolean = foundMainClass
     override def visit(version: Int, access: Int, name: String, signature: String, superName: String, interfaces: Array[String]): Unit = {
-      nameOpt = Some(name)
+      nameOpt = Some(name.replace('/', '.'))
     }
     override def visitMethod(access: Int, name: String, descriptor: String, signature: String, exceptions: Array[String]): asm.MethodVisitor = {
       def isStatic = (access & asm.Opcodes.ACC_STATIC) != 0

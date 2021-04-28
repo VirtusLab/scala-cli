@@ -8,7 +8,12 @@ final case class RunOptions(
     shared: SharedOptions,
   @Name("M")
     mainClass: Option[String] = None
-)
+) {
+  def retainedMainClass: Option[String] =
+    // TODO Warn if users passed a main class along with --jmh
+    if (shared.enableJmh) Some("org.openjdk.jmh.Main")
+    else mainClass
+}
 
 object RunOptions {
   implicit val parser = Parser[RunOptions]

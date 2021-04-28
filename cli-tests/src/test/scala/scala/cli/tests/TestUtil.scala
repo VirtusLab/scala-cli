@@ -16,10 +16,8 @@ object TestUtil {
       Seq("java", "-Xmx512m", "-jar", path)
   }
 
-  def output(root: os.Path)(command: os.Shellable*): String = {
-    val res = os.proc(command: _*)
-      .call(cwd = root)
-    assert(res.exitCode == 0)
+  def output(root: os.Path, check: Boolean = true)(command: os.Shellable*): String = {
+    val res = os.proc(command: _*).call(cwd = root, check = check)
     val rawOutput = new String(res.out.bytes, Charset.defaultCharset())
     rawOutput
       .linesIterator
@@ -27,15 +25,14 @@ object TestUtil {
       .mkString("\n")
   }
 
-  def run(root: os.Path)(command: os.Shellable*): Unit = {
-    val res = os.proc(command: _*).call(
+  def run(root: os.Path, check: Boolean = true)(command: os.Shellable*): os.CommandResult =
+    os.proc(command: _*).call(
       cwd = root,
       stdin = os.Inherit,
       stdout = os.Inherit,
-      stderr = os.Inherit
+      stderr = os.Inherit,
+      check = check
     )
-    assert(res.exitCode == 0)
-  }
 
   def fromPath(app: String): Option[String] = {
 

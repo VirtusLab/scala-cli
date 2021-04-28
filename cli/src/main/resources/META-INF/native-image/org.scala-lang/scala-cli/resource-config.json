@@ -1,0 +1,9 @@
+{
+  "resources":{
+  "includes":[
+    {"pattern":"\\QMETA-INF/services/java.nio.file.spi.FileSystemProvider\\E"}, 
+    {"pattern":"\\Qlibrary.properties\\E"}, 
+    {"pattern":"\\Qnative/x86_64/libswoval-files0.dylib\\E"}
+  ]},
+  "bundles":[]
+}

@@ -3,9 +3,6 @@ package scala.cli.commands
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
-import org.scalajs.linker.interface.{ESFeatures, LinkerOutput, ModuleInitializer, ModuleKind, Semantics, StandardConfig}
-import org.scalajs.linker.{PathIRContainer, PathOutputFile, StandardImpl}
-import org.scalajs.logging.{Level, ScalaConsoleLogger}
 import scala.cli.{Build, Inputs}
 import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
@@ -23,7 +20,7 @@ import scala.cli.internal.ScalaJsLinker
 object Package extends CaseApp[PackageOptions] {
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all) match {
+    val inputs = Inputs(args.all, os.pwd) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -32,7 +29,7 @@ object Package extends CaseApp[PackageOptions] {
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
-    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger)
+    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
@@ -71,17 +68,17 @@ object Package extends CaseApp[PackageOptions] {
         else os.write(destPath0, content)
 
       case PackageOptions.PackageType.Js =>
-        linkJs(build, mainClass(), destPath)
+        linkJs(build, destPath, Some(mainClass()), addTestInitializer = false)
 
       case PackageOptions.PackageType.Native =>
         val nativeOptions = options.shared.scalaNativeOptionsIKnowWhatImDoing
-        val workDir = options.shared.nativeWorkDir
+        val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
         val logger = options.shared.scalaNativeLogger
 
         buildNative(build, mainClass(), destPath, nativeOptions, workDir, logger)
     }
 
-    if (options.shared.verbosity >= 0)
+    if (options.shared.logging.verbosity >= 0)
       System.err.println(s"Wrote $dest")
   }
 
@@ -174,10 +171,10 @@ object Package extends CaseApp[PackageOptions] {
     }
   }
 
-  def linkJs(build: Build, mainClass: String, dest: Path): Unit =
+  def linkJs(build: Build, dest: Path, mainClassOpt: Option[String], addTestInitializer: Boolean): Unit =
     withLibraryJar(build, dest.getFileName.toString.stripSuffix(".jar")) { mainJar =>
       val classPath = mainJar +: build.artifacts.classPath
-      (new ScalaJsLinker).link(classPath.toArray, mainClass, dest)
+      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt, addTestInitializer, dest)
     }
 
   def buildNative(

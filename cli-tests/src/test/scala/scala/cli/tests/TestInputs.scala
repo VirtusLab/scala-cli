@@ -1,5 +1,6 @@
 package scala.cli.tests
 
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 
 final case class TestInputs(
@@ -21,6 +22,11 @@ object TestInputs {
   private def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
     val tmpDir = os.temp.dir(prefix = prefix)
     try f(tmpDir)
-    finally os.remove.all(tmpDir)
+    finally {
+      try os.remove.all(tmpDir)
+      catch {
+        case _: IOException =>
+      }
+    }
   }
 }

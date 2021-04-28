@@ -29,11 +29,6 @@ def generateNativeImage(
       System.err.println(s"Warning: $nativeImage not found, and not installed by 'gu install native-image'")
   }
 
-  val swovalLibraryName =
-    if (Properties.isWin) "swoval-files0.dll"
-    else if (Properties.isMac) "libswoval-files0.dylib"
-    else "libswoval-files0.so"
-
   val finalCp =
     if (Properties.isWin) {
       import java.util.jar.Attributes
@@ -61,14 +56,13 @@ def generateNativeImage(
     "--initialize-at-build-time=scala.runtime.StructuralCallSite",
     "--initialize-at-build-time=scala.runtime.EmptyMethodCache",
     "--initialize-at-build-time=scala.collection.immutable.VM",
-    "-H:IncludeResources=library.properties",
+    "--initialize-at-build-time=com.google.common.jimfs.SystemJimfsFileSystemProvider",
     "-H:IncludeResources=amm-dependencies.txt",
     "-H:IncludeResources=bootstrap.*.jar",
     "-H:IncludeResources=coursier/coursier.properties",
     "-H:IncludeResources=coursier/launcher/coursier.properties",
     "-H:IncludeResources=coursier/launcher/.*.bat",
     "-H:IncludeResources=org/scalajs/linker/backend/emitter/.*.sjsir",
-    "-H:IncludeResources=native/x86_64/libswoval-files0.dylib",
     "--allow-incomplete-classpath",
     "--report-unsupported-elements-at-runtime",
     "-H:+ReportExceptionStackTraces",

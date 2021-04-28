@@ -1,108 +1,61 @@
 package scala.cli.tests
 
 import scala.cli.{Build, Inputs}
+import scala.cli.tests.TestUtil._
 import scala.util.Properties
 
 class BuildTests extends munit.FunSuite {
 
+  val defaultOptions = Build.Options(
+    scalaVersion = "2.13.5",
+    scalaBinaryVersion = "2.13"
+  )
+
   test("simple") {
     val testInputs = TestInputs(
-      files = Seq(
-        os.rel / "simple.sc" ->
-          """val n = 2
-            |println(s"n=$n")
-            |""".stripMargin
-      )
+      os.rel / "simple.sc" ->
+        """val n = 2
+          |println(s"n=$n")
+          |""".stripMargin
     )
-    val expectedCompilerOutput = Set(
-      "simple.class",
-      "simple$.class"
-    )
-    testInputs.withInputs { (root, inputs) =>
-      val options = Build.Options(
-        scalaVersion = "2.13.5",
-        scalaBinaryVersion = "2.13"
+    testInputs.withBuild(defaultOptions) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class"
       )
-      val build = Build.build(inputs, options, TestLogger())
-      val generated = os.walk(os.Path(build.output))
-        .filter(os.isFile(_))
-        .map(_.relativeTo(os.Path(build.output)))
-      assert(generated.map(_.toString).toSet == expectedCompilerOutput)
     }
   }
 
   test("simple JS") {
     val testInputs = TestInputs(
-      files = Seq(
-        os.rel / "simple.sc" ->
-          """val n = 2
-            |println(s"n=$n")
-            |""".stripMargin
-      )
+      os.rel / "simple.sc" ->
+        """val n = 2
+          |println(s"n=$n")
+          |""".stripMargin
     )
-    val expectedCompilerOutput = Set(
-      "simple.class",
-      "simple$.class",
-      "simple.sjsir",
-      "simple$.sjsir"
-    )
-    val scalaVersion = "2.13.5"
-    val scalaBinaryVersion = "2.13"
-    testInputs.withInputs { (root, inputs) =>
-      val options = Build.Options(
-        scalaVersion = scalaVersion,
-        scalaBinaryVersion = scalaBinaryVersion,
-        scalaJsOptions = Some(Build.scalaJsOptions(scalaVersion, scalaBinaryVersion))
-      )
-      val build = Build.build(inputs, options, TestLogger())
-      val generated = os.walk(os.Path(build.output))
-        .filter(os.isFile(_))
-        .map(_.relativeTo(os.Path(build.output)))
-      assert(
-        generated.map(_.toString).toSet == expectedCompilerOutput,
-        {
-          pprint.log(generated)
-          pprint.log(expectedCompilerOutput)
-          ""
-        }
+    testInputs.withBuild(defaultOptions.enableJs) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class",
+        "simple.sjsir",
+        "simple$.sjsir"
       )
     }
   }
 
   def simpleNativeTest(): Unit = {
     val testInputs = TestInputs(
-      files = Seq(
-        os.rel / "simple.sc" ->
-          """val n = 2
-            |println(s"n=$n")
-            |""".stripMargin
-      )
+      os.rel / "simple.sc" ->
+        """val n = 2
+          |println(s"n=$n")
+          |""".stripMargin
     )
-    val expectedCompilerOutput = Set(
-      "simple.class",
-      "simple$.class",
-      // "simple.nir", // not sure why Scala Native doesn't generate this one.
-      "simple$.nir"
-    )
-    val scalaVersion = "2.13.5"
-    val scalaBinaryVersion = "2.13"
-    testInputs.withInputs { (root, inputs) =>
-      val options = Build.Options(
-        scalaVersion = scalaVersion,
-        scalaBinaryVersion = scalaBinaryVersion,
-        scalaNativeOptions = Some(Build.scalaNativeOptions(scalaVersion, scalaBinaryVersion))
-      )
-      val build = Build.build(inputs, options, TestLogger())
-      val generated = os.walk(os.Path(build.output))
-        .filter(os.isFile(_))
-        .map(_.relativeTo(os.Path(build.output)))
-      assert(
-        generated.map(_.toString).toSet == expectedCompilerOutput,
-        {
-          pprint.log(generated)
-          pprint.log(expectedCompilerOutput)
-          ""
-        }
+    testInputs.withBuild(defaultOptions.enableNative) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class",
+        // "simple.nir", // not sure why Scala Native doesn't generate this one.
+        "simple$.nir"
       )
     }
   }
@@ -110,4 +63,40 @@ class BuildTests extends munit.FunSuite {
     test("simple native") {
       simpleNativeTest()
     }
+
+  test("dependencies") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """import $ivy.`com.lihaoyi::geny:0.6.5`
+          |import geny.Generator
+          |val g = Generator("Hel", "lo")
+          |println(g.mkString)
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class"
+      )
+    }
+  }
+
+  test("several dependencies") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """import $ivy.`com.lihaoyi::geny:0.6.5`
+          |import $ivy.`com.lihaoyi::pprint:0.6.4`
+          |import geny.Generator
+          |val g = Generator("Hel", "lo")
+          |pprint.log(g)
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class"
+      )
+    }
+  }
+
 }

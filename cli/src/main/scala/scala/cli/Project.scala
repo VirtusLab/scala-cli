@@ -1,6 +1,6 @@
 package scala.cli
 
-import bloop.config.{Config => BloopConfig, ConfigCodecs => BloopCodecs}
+import _root_.bloop.config.{Config => BloopConfig, ConfigCodecs => BloopCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonToArray}
 
 import java.nio.file.{Path, Paths}
@@ -8,20 +8,21 @@ import java.util.Arrays
 
 final case class Project(
   workspace: os.Path,
-  javaHome: String,
+  javaHome: os.Path,
   scalaCompiler: ScalaCompiler,
   scalaJsOptions: Option[Project.ScalaJsOptions],
   scalaNativeOptions: Option[Project.ScalaNativeOptions],
   projectName: String,
   classPath: Seq[Path],
-  sources: Seq[os.Path]
+  sources: Seq[os.Path],
+  resourceDirs: Seq[os.Path]
 ) {
 
   import Project._
 
   def bloopProject: BloopConfig.Project = {
     val platform = (scalaJsOptions, scalaNativeOptions) match {
-      case (None, None) => bloopJvmPlatform(Paths.get(javaHome))
+      case (None, None) => bloopJvmPlatform(javaHome.toNIO)
       case (Some(jsOptions), _) => bloopJsPlatform(jsOptions)
       case (_, Some(nativeOptions)) => bloopNativePlatform(nativeOptions)
     }
@@ -39,9 +40,10 @@ final case class Project(
       workspaceDir = Some(workspace.toNIO),
       classpath = classPath.toList,
       sources = sources.iterator.map(_.toNIO).toList,
-      resources = None,
+      resources = Some(resourceDirs).filter(_.nonEmpty).map(_.iterator.map(_.toNIO).toList),
       platform = Some(platform),
-      `scala` = Some(scalaConfig)
+      `scala` = Some(scalaConfig),
+      java = Some(BloopConfig.Java(Nil))
     )
   }
 

@@ -2,13 +2,13 @@ package scala.cli.tests
 
 import java.nio.charset.StandardCharsets
 
-import scala.cli.Inputs
+import scala.cli.{Build, Inputs}
 import scala.util.control.NonFatal
 import scala.util.Properties
 
 final case class TestInputs(
   files: Seq[(os.RelPath, String)],
-  inputArgs: Seq[String] = Nil
+  inputArgs: Seq[String]
 ) {
   def withInputs[T](f: (os.Path, Inputs) => T): T =
     TestInputs.withTmpDir("scala-cli-tests-") { tmpDir =>
@@ -23,9 +23,17 @@ final case class TestInputs(
         case Right(inputs) => f(tmpDir, inputs)
       }
     }
+
+  def withBuild[T](options: Build.Options)(f: (os.Path, Inputs, Build) => T): T = withInputs { (root, inputs) =>
+    val build = Build.build(inputs, options, TestLogger(), root)
+    f(root, inputs, build)
+  }
 }
 
 object TestInputs {
+
+  def apply(files: (os.RelPath, String)*): TestInputs =
+    TestInputs(files, Nil)
 
   private def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
     val tmpDir = os.temp.dir(prefix = prefix)

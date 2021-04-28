@@ -1,9 +1,8 @@
-package scala.cli
+package scala.cli.internal
 
-import ammonite.compiler.iface.CodeWrapper
 import ammonite.compiler.Parsers
-import ammonite.util._
-import ammonite.util.Util.{CodeSource, newLine, normalizeNewlines}
+import ammonite.util.Name
+import ammonite.util.Util.{encodeScalaSourcePath, newLine, normalizeNewlines}
 
 object CustomCodeClassWrapper extends CodeWrapper{
   /*
@@ -29,20 +28,16 @@ object CustomCodeClassWrapper extends CodeWrapper{
   override val wrapperPath: Seq[Name] = Seq(Name("instance"))
   def apply(
     code: String,
-    source: CodeSource,
-    imports: Imports,
-    printCode: String,
+    pkgName: Seq[Name],
     indexedWrapperName: Name,
     extraCode: String
   ) = {
     val isObjDef = Parsers.isObjDef(code)
-    val pkgName = source.pkgName.drop(2)
-    val packageDirective = if (pkgName.isEmpty) "" else s"package ${Util.encodeScalaSourcePath(pkgName)}" + "\n"
+    val pkgName0 = pkgName.drop(2)
+    val packageDirective = if (pkgName0.isEmpty) "" else s"package ${encodeScalaSourcePath(pkgName0)}" + "\n"
 
     if (isObjDef) {
       val top = normalizeNewlines(s"""$packageDirective
-
-$imports
 
 object ${indexedWrapperName.backticked}{
   val instance: Helper.type = Helper
@@ -52,7 +47,7 @@ object ${indexedWrapperName.backticked}{
 """
       )
 
-      val bottom = normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = { $printCode }
+      val bottom = normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = {}
   override def toString = "${indexedWrapperName.encoded}"
   $extraCode
 }}
@@ -61,54 +56,54 @@ object ${indexedWrapperName.backticked}{
       (top, bottom, userCodeNestingLevel)
     } else {
 
-      val (reworkedImports, reqVals) = {
+      // val (reworkedImports, reqVals) = {
+//
+      //   val (l, reqVals0) = imports
+      //     .value
+      //     .map { data =>
+      //       val prefix = Seq(Name("_root_"), Name("ammonite"), Name("$sess"))
+      //       if (data.prefix.startsWith(prefix) && data.prefix.endsWith(wrapperPath)) {
+      //         val name = data.prefix.drop(prefix.length).dropRight(wrapperPath.length).last
+      //         (data.copy(prefix = Seq(name)), Seq(name -> data.prefix))
+      //       } else
+      //         (data, Nil)
+      //     }
+      //     .unzip
+//
+      //   (Imports(l), reqVals0.flatten)
+      // }
 
-        val (l, reqVals0) = imports
-          .value
-          .map { data =>
-            val prefix = Seq(Name("_root_"), Name("ammonite"), Name("$sess"))
-            if (data.prefix.startsWith(prefix) && data.prefix.endsWith(wrapperPath)) {
-              val name = data.prefix.drop(prefix.length).dropRight(wrapperPath.length).last
-              (data.copy(prefix = Seq(name)), Seq(name -> data.prefix))
-            } else
-              (data, Nil)
-          }
-          .unzip
+      // val requiredVals = reqVals
+      //   .distinct
+      //   .groupBy(_._1)
+      //   .mapValues(_.map(_._2))
+      //   .toVector
+      //   .sortBy(_._1.raw)
+      //   .collect {
+      //     case (key, Seq(path)) =>
+      //       /*
+      //        * Via __amm_usedThings, that itself relies on the *-tree.txt resources generated
+      //        * via the AmmonitePlugin, we can know whether the current command uses things from
+      //        * each of the previous ones, and null-ify the references to those that are unused.
+      //        * That way, the unused commands don't prevent serializing this command.
+      //        */
+      //       val encoded = encodeScalaSourcePath(path)
+      //       s"final val ${key.backticked}: $encoded.type = " +
+      //         s"if (__amm_usedThings($tq${key.raw}$tq)) $encoded else null$newLine"
+      //     case (key, values) =>
+      //       throw new Exception(
+      //         "Should not happen - several required values with the same name " +
+      //           s"(name: $key, values: $values)"
+      //       )
+      //   }
+      //   .mkString
 
-        (Imports(l), reqVals0.flatten)
-      }
-
-      val requiredVals = reqVals
-        .distinct
-        .groupBy(_._1)
-        .mapValues(_.map(_._2))
-        .toVector
-        .sortBy(_._1.raw)
-        .collect {
-          case (key, Seq(path)) =>
-            /*
-             * Via __amm_usedThings, that itself relies on the *-tree.txt resources generated
-             * via the AmmonitePlugin, we can know whether the current command uses things from
-             * each of the previous ones, and null-ify the references to those that are unused.
-             * That way, the unused commands don't prevent serializing this command.
-             */
-            val encoded = Util.encodeScalaSourcePath(path)
-            s"final val ${key.backticked}: $encoded.type = " +
-              s"if (__amm_usedThings($tq${key.raw}$tq)) $encoded else null$newLine"
-          case (key, values) =>
-            throw new Exception(
-              "Should not happen - several required values with the same name " +
-                s"(name: $key, values: $values)"
-            )
-        }
-        .mkString
-
-      val usedThingsSet =
-        if (reqVals.isEmpty) ""
+      val usedThingsSet = ""
+        /*if (reqVals.isEmpty) ""
         else
           s"""
   @_root_.scala.transient private val __amm_usedThings =
-    _root_.ammonite.repl.ReplBridge.value.usedEarlierDefinitions.toSet"""
+    _root_.ammonite.repl.ReplBridge.value.usedEarlierDefinitions.toSet"""*/
 
         val top = normalizeNewlines(s"""$packageDirective
 
@@ -123,13 +118,11 @@ final class ${indexedWrapperName.backticked} extends _root_.java.io.Serializable
 $usedThingsSet
 
   override def toString = $q${indexedWrapperName.encoded}$q
-$requiredVals
-$reworkedImports
 
 final class Helper extends _root_.java.io.Serializable{\n"""
     )
 
-      val bottom = normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = { $printCode }
+      val bottom = normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = {}
   override def toString = "${indexedWrapperName.encoded}"
   $extraCode
 }}

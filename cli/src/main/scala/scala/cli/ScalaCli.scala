@@ -19,6 +19,8 @@ object ScalaCli {
         Package.main(args.tail)
       case Some("run") =>
         Run.main(args.tail)
+      case Some("test") =>
+        Test.main(args.tail)
       case _ =>
         Run.main(args)
     }

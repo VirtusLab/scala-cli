@@ -11,7 +11,7 @@ import java.nio.file.Path
 import scala.collection.JavaConverters._
 
 final case class Artifacts(
-  javaHome: String,
+  javaHome: os.Path,
   compilerDependencies: Seq[coursierapi.Dependency],
   compilerArtifacts: Seq[(String, Path)],
   compilerPlugins: Seq[(coursierapi.Dependency, String, Path)],
@@ -35,12 +35,19 @@ object Artifacts {
     compilerPlugins: Seq[coursierapi.Dependency],
     dependencies: Seq[coursierapi.Dependency],
     extraJars: Seq[Path],
-    addStubs: Boolean
+    addStubs: Boolean,
+    addJvmRunner: Boolean,
+    addJvmTestRunner: Boolean,
+    addJsTestBridge: Option[String],
+    addJmhDependencies: Option[String]
   ): Artifacts = {
 
-    val javaHome0 = javaHomeOpt
-      .orElse(if (jvmIdOpt.isEmpty) sys.props.get("java.home") else None)
-      .getOrElse(javaHome(jvmIdOpt))
+    // expecting Java home to be an absolute path (os.Path will throw else)
+    val javaHome0 = os.Path(
+      javaHomeOpt
+        .orElse(if (jvmIdOpt.isEmpty) sys.props.get("java.home") else None)
+        .getOrElse(javaHome(jvmIdOpt))
+    )
 
     val compilerDependencies =
       if (scalaVersion.startsWith("3."))
@@ -52,8 +59,28 @@ object Artifacts {
           dependency("org.scala-lang", "scala-compiler", scalaVersion)
         )
 
+    val jvmRunnerDependencies =
+      if (addJvmRunner) Seq(dependency(Constants.runnerOrganization, Constants.runnerModuleName + "_" + scalaBinaryVersion, Constants.runnerVersion))
+      else Nil
+    val jvmTestRunnerDependencies =
+      if (addJvmTestRunner) Seq(dependency(Constants.testRunnerOrganization, Constants.testRunnerModuleName + "_" + scalaBinaryVersion, Constants.testRunnerVersion))
+      else Nil
+    val jsTestBridgeDependencies = addJsTestBridge.toSeq.map { scalaJsVersion =>
+      dependency("org.scala-js", "scalajs-test-bridge" + "_" + scalaBinaryVersion, scalaJsVersion)
+    }
+
+    val jmhDependencies = addJmhDependencies.toSeq.map { version =>
+      dependency("org.openjdk.jmh", "jmh-generator-bytecode", version)
+    }
+
+    val updatedDependencies = dependencies ++
+      jvmRunnerDependencies ++
+      jvmTestRunnerDependencies ++
+      jsTestBridgeDependencies ++
+      jmhDependencies
+
     val compilerArtifacts = artifacts(compilerDependencies)
-    val artifacts0 = artifacts(dependencies)
+    val artifacts0 = artifacts(updatedDependencies)
 
     val extraStubsJars =
       if (addStubs)
@@ -72,7 +99,7 @@ object Artifacts {
       compilerDependencies,
       compilerArtifacts,
       compilerPlugins0,
-      dependencies,
+      updatedDependencies,
       artifacts0,
       extraJars ++ extraStubsJars
     )

@@ -1,9 +1,9 @@
 package scala.cli.commands
 
-import ammonite.compiler.iface.CodeWrapper
 import caseapp._
 import caseapp.core.help.Help
-import scala.cli.{Build, CustomCodeClassWrapper, CustomCodeWrapper, Logger, Project}
+import scala.cli.{Build, Project}
+import scala.cli.internal.{CodeWrapper, CustomCodeClassWrapper, CustomCodeWrapper}
 import scala.scalanative.{build => sn}
 
 // TODO Add support for a --watch option
@@ -11,10 +11,8 @@ import scala.scalanative.{build => sn}
 // TODO Add support for a --js option
 
 final case class SharedOptions(
-  @Name("v")
-    verbose: Int @@ Counter = Tag.of(0),
-  @Name("q")
-    quiet: Boolean = false,
+  @Recurse
+    logging: LoggingOptions = LoggingOptions(),
   @Name("scala")
   @Name("S")
     scalaVersion: String = SharedOptions.defaultScalaVersion,
@@ -25,7 +23,9 @@ final case class SharedOptions(
   js: Boolean = false,
   native: Boolean = false,
   @Name("w")
-    watch: Boolean = false
+    watch: Boolean = false,
+  jmh: Option[Boolean] = None,
+  jmhVersion: Option[String] = None
 ) {
 
   lazy val scalaBinaryVersion =
@@ -34,31 +34,15 @@ final case class SharedOptions(
     else if (scalaVersion.startsWith("3.")) "3"
     else scalaVersion.split('.').take(2).mkString(".")
 
-  lazy val verbosity = Tag.unwrap(verbose) - (if (quiet) 1 else 0)
+  def enableJmh: Boolean = jmh.getOrElse(jmhVersion.nonEmpty)
 
-  lazy val logger: Logger =
-    new Logger {
-      def log(message: => String): Unit =
-        if (verbosity >= 1)
-          System.err.println(message)
-      def log(message: => String, debugMessage: => String): Unit =
-        if (verbosity >= 2)
-          System.err.println(debugMessage)
-        else if (verbosity >= 1)
-          System.err.println(message)
-      def debug(message: => String): Unit =
-        if (verbosity >= 2)
-          System.err.println(message)
-    }
+  def logger = logging.logger
 
   lazy val codeWrapper: CodeWrapper =
     if (classWrap) CustomCodeClassWrapper
     else CustomCodeWrapper
 
-  def projectName = "project"
-
-  def root = os.pwd
-  def nativeWorkDir = os.pwd / ".scala" / projectName / "native"
+  def nativeWorkDir(root: os.Path, projectName: String) = root / ".scala" / projectName / "native"
 
   def scalaJsOptions: Option[Build.ScalaJsOptions] =
     if (js) Some(scalaJsOptionsIKnowWhatImDoing)
@@ -89,7 +73,10 @@ final case class SharedOptions(
       scalaNativeOptions = scalaNativeOptions,
       javaHomeOpt = javaHome.filter(_.nonEmpty),
       jvmIdOpt = jvm.filter(_.nonEmpty),
-      projectName = projectName
+      addJmhDependencies =
+        if (enableJmh) jmhVersion.orElse(Some("1.29"))
+        else None,
+      runJmh = enableJmh
     )
 }
 

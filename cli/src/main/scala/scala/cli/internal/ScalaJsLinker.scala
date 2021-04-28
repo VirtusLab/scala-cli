@@ -3,6 +3,7 @@ package scala.cli.internal
 import org.scalajs.linker.interface.{ESFeatures, LinkerOutput, ModuleInitializer, ModuleKind, Semantics, StandardConfig}
 import org.scalajs.linker.{PathIRContainer, PathOutputFile, StandardImpl}
 import org.scalajs.logging.{Level, ScalaConsoleLogger}
+import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
 import java.nio.file.Path
 import java.net.URI
@@ -11,7 +12,8 @@ final class ScalaJsLinker {
 
   def link(
     classPath: Array[Path],
-    mainClass: String,
+    mainClassOpt: Option[String],
+    addTestInitializer: Boolean,
     dest: Path
   ): Unit = {
 
@@ -19,7 +21,7 @@ final class ScalaJsLinker {
 
     val config = StandardConfig()
       .withSemantics(Semantics.Defaults)
-      .withModuleKind(ModuleKind.NoModule)
+      .withModuleKind(ModuleKind.CommonJSModule)
       .withESFeatures(ESFeatures.Defaults)
       .withCheckIR(false)
       .withOptimizer(true)
@@ -43,9 +45,14 @@ final class ScalaJsLinker {
 
     val cache = StandardImpl.irFileCache().newCache
 
-    val moduleInitializers = Seq(
+    val mainInitializers = mainClassOpt.toSeq.map { mainClass =>
       ModuleInitializer.mainMethodWithArgs(mainClass, "main")
-    )
+    }
+    val testInitializers =
+      if (addTestInitializer) Seq(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
+      else Nil
+
+    val moduleInitializers = mainInitializers ++ testInitializers
 
     val logger = new ScalaConsoleLogger(Level.Info)
 
