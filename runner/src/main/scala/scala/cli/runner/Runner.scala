@@ -9,8 +9,10 @@ object Runner {
   @annotation.tailrec
   def printCause(ex: Throwable, causedStackTrace: Array[StackTraceElement], loader: ClassLoader): Unit =
     if (ex != null) {
-      System.err.println(s"Caused by: $ex")
-      printStackTrace(ex.getStackTrace, causedStackTrace, loader)
+      if (!Stacktrace.print(ex, "Caused by: ")) {
+        System.err.println(s"Caused by: $ex")
+        printStackTrace(ex.getStackTrace, causedStackTrace, loader)
+      }
       printCause(ex.getCause, ex.getStackTrace, loader)
     }
   def printStackTrace(trace: Array[StackTraceElement], loader: ClassLoader): Unit =
@@ -43,8 +45,10 @@ object Runner {
   def printException(ex: Throwable, loader: ClassLoader): Unit = {
     val q = "\""
     val threadName = Thread.currentThread().getName
-    System.err.println(s"Exception in thread $q$threadName$q $ex")
-    printStackTrace(ex.getStackTrace, loader)
+    if (!Stacktrace.print(ex, "")) {
+      System.err.println(s"Exception in thread $q$threadName$q $ex")
+      printStackTrace(ex.getStackTrace, loader)
+    }
     printCause(ex.getCause, ex.getStackTrace, loader)
   }
   def main(args: Array[String]): Unit = {

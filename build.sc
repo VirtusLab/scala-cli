@@ -201,6 +201,11 @@ trait JvmTests extends CliTests {
 
 class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
   def mainClass = Some("scala.cli.runner.Runner")
+  def ivyDeps =
+    if (crossScalaVersion == "3.0.0-RC2")
+      Agg(Deps.stacktraceBuddy)
+    else
+      Agg.empty[mill.scalalib.Dep]
 }
 
 class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {

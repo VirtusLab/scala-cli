@@ -3,9 +3,10 @@ import mill._, scalalib._
 object Scala {
   def scala212 = "2.12.13"
   def scala213 = "2.13.5"
+  def scala3Extras = Seq("3.0.0-RC2")
   def scala3 = "3.0.0-RC3"
   val allScala2 = Seq(scala213, scala212)
-  val all = allScala2 ++ Seq(scala3)
+  val all = allScala2 ++ scala3Extras ++ Seq(scala3)
 }
 
 object Deps {
@@ -36,6 +37,7 @@ object Deps {
   def scalaJsTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${Versions.scalaJs}"
   def scalaparse = ivy"com.lihaoyi::scalaparse:2.3.2"
   def snailgun = ivy"me.vican.jorge::snailgun-cli:0.4.0"
+  def stacktraceBuddy = ivy"com.virtuslab::stacktracebuddy:0.1.0"
   def svm = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def svmSubs = ivy"org.scalameta::svm-subs:20.2.0"
   def swoval = ivy"com.swoval:file-tree-views:2.1.5"
