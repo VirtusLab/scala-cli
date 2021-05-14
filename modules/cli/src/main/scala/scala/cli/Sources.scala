@@ -19,7 +19,7 @@ final case class Sources(
         val components = className.split('.')
         val pkg = components.init
         val simpleName = components.last
-        val srcDest = os.rel / "main" / "scala" / pkg / s"$simpleName.scala"
+        val srcDest = os.rel / pkg / s"$simpleName.scala"
         os.write.over(generatedSrcRoot / srcDest, code.getBytes("UTF-8"), createFolders = true)
         (reportingPath, srcDest, topWrapperLen)
       }
