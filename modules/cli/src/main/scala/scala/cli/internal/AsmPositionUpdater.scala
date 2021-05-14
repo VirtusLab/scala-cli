@@ -2,6 +2,8 @@ package scala.cli.internal
 
 import org.objectweb.asm
 
+import scala.cli.Logger
+
 object AsmPositionUpdater {
 
   private class LineNumberTableMethodVisitor(lineShift: Int, delegate: asm.MethodVisitor) extends asm.MethodVisitor(asm.Opcodes.ASM5, delegate) {
@@ -29,7 +31,11 @@ object AsmPositionUpdater {
     }
   }
 
-  def postProcess(mappings: Map[String, (String, Int)], output: os.Path): Unit = {
+  def postProcess(
+    mappings: Map[String, (String, Int)],
+    output: os.Path,
+    logger: Logger
+  ): Unit = {
     os.walk(output)
       .iterator
       .filter(os.isFile(_))
@@ -47,7 +53,7 @@ object AsmPositionUpdater {
           is.close()
         }
         for (b <- updateByteCodeOpt) {
-          System.err.println(s"Overwriting ${path.relativeTo(os.pwd)}")
+          logger.debug(s"Overwriting ${path.relativeTo(os.pwd)}")
           os.write.over(path, b)
         }
       }

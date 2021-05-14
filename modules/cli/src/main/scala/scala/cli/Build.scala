@@ -344,7 +344,7 @@ object Build {
           (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
       }
       .toMap
-    AsmPositionUpdater.postProcess(mappings, os.Path(outputPath.toAbsolutePath))
+    AsmPositionUpdater.postProcess(mappings, os.Path(outputPath.toAbsolutePath), logger)
 
     Build(inputs, options, sources, artifacts, project, outputPath)
   }
