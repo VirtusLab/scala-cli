@@ -144,19 +144,27 @@ class TestTests extends munit.FunSuite {
     }
   }
 
-  test("successful test JS") {
+  def successfulJsTest(): Unit =
     successfulTestInputs.fromRoot { root =>
       val output = TestUtil.output(root)(TestUtil.cli, "test", ".", "--js")
       expect(output.contains("Hello from tests"))
     }
-  }
 
-  test("successful test native") {
+  if (TestUtil.canRunJs)
+    test("successful test JS") {
+      successfulJsTest()
+    }
+
+  def successfulNativeTest(): Unit =
     successfulTestInputs.fromRoot { root =>
       val output = TestUtil.output(root)(TestUtil.cli, "test", ".", "--native")
       expect(output.contains("Hello from tests"))
     }
-  }
+
+  if (TestUtil.canRunNative)
+    test("successful test native") {
+      successfulNativeTest()
+    }
 
   test("failing test") {
     failingTestInputs.fromRoot { root =>
@@ -165,19 +173,27 @@ class TestTests extends munit.FunSuite {
     }
   }
 
-  test("failing test JS") {
+  def failingJsTest(): Unit =
     failingTestInputs.fromRoot { root =>
       val output = TestUtil.output(root, check = false)(TestUtil.cli, "test", ".", "--js")
       expect(output.contains("Hello from tests"))
     }
-  }
 
-  test("failing test native") {
+  if (TestUtil.canRunJs)
+    test("failing test JS") {
+      failingJsTest()
+    }
+
+  def failingNativeTest(): Unit =
     failingTestInputs.fromRoot { root =>
       val output = TestUtil.output(root, check = false)(TestUtil.cli, "test", ".", "--native")
       expect(output.contains("Hello from tests"))
     }
-  }
+
+  if (TestUtil.canRunNative)
+    test("failing test native") {
+      failingNativeTest()
+    }
 
   test("failing test return code") {
     failingTestInputs.fromRoot { root =>
@@ -193,19 +209,27 @@ class TestTests extends munit.FunSuite {
     }
   }
 
-  test("utest JS") {
+  def utestJs(): Unit =
     successfulUtestJsInputs.fromRoot { root =>
       val output = TestUtil.output(root)(TestUtil.cli, "test", ".", "--js")
       expect(output.contains("Hello from tests"))
     }
-  }
 
-  test("utest native") {
+  if (TestUtil.canRunJs)
+    test("utest JS") {
+      utestJs()
+    }
+
+  def utestNative(): Unit =
     successfulUtestNativeInputs.fromRoot { root =>
       val output = TestUtil.output(root)(TestUtil.cli, "test", ".", "--native")
       expect(output.contains("Hello from tests"))
     }
-  }
+
+  if (TestUtil.canRunNative)
+    test("utest native") {
+      utestNative()
+    }
 
   test("junit") {
     successfulJunitInputs.fromRoot { root =>

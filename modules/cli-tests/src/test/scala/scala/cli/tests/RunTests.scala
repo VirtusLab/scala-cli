@@ -4,9 +4,6 @@ import scala.util.Properties
 
 class RunTests extends munit.FunSuite {
 
-  lazy val canRunJs = !TestUtil.isNativeCli || !Properties.isWin
-  lazy val canRunNative = !Properties.isWin
-
   def simpleScriptTest(ignoreErrors: Boolean = false): Unit = {
     val fileName = "simple.sc"
     val message = "Hello"
@@ -52,7 +49,7 @@ class RunTests extends munit.FunSuite {
     }
   }
 
-  if (canRunJs)
+  if (TestUtil.canRunJs)
     test("simple script JS") {
       simpleJsTest()
     }
@@ -80,7 +77,7 @@ class RunTests extends munit.FunSuite {
     }
   }
 
-  if (canRunNative)
+  if (TestUtil.canRunNative)
     test("simple script native") {
       simpleNativeTests()
     }
@@ -123,7 +120,7 @@ class RunTests extends munit.FunSuite {
     }
   }
 
-  if (canRunJs)
+  if (TestUtil.canRunJs)
     test("Multiple scripts JS") {
       multipleScriptsJs()
     }
@@ -151,7 +148,7 @@ class RunTests extends munit.FunSuite {
     }
   }
 
-  if (canRunNative)
+  if (TestUtil.canRunNative)
     test("Multiple scripts native") {
       multipleScriptsNative()
     }
@@ -195,7 +192,7 @@ class RunTests extends munit.FunSuite {
     }
   }
 
-  if (canRunJs)
+  if (TestUtil.canRunJs)
     test("Directory JS") {
       directoryJs()
     }
@@ -223,7 +220,7 @@ class RunTests extends munit.FunSuite {
     }
   }
 
-  if (canRunNative)
+  if (TestUtil.canRunNative)
     test("Directory native") {
       directoryNative()
     }
