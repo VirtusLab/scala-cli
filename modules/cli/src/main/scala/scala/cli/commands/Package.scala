@@ -174,7 +174,7 @@ object Package extends CaseApp[PackageOptions] {
   def linkJs(build: Build, dest: Path, mainClassOpt: Option[String], addTestInitializer: Boolean): Unit =
     withLibraryJar(build, dest.getFileName.toString.stripSuffix(".jar")) { mainJar =>
       val classPath = mainJar +: build.artifacts.classPath
-      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt, addTestInitializer, dest)
+      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt.orNull, addTestInitializer, dest)
     }
 
   def buildNative(

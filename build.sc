@@ -169,7 +169,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
       Deps.expecty,
       Deps.munit
     )
-    def testFrameworks = Seq("munit.Framework")
+    def testFramework = "munit.Framework"
   }
 }
 
@@ -188,7 +188,7 @@ trait CliTests extends SbtModule with ScalaCliPublishModule {
       Deps.osLib,
       Deps.pprint
     )
-    def testFrameworks = Seq("munit.Framework")
+    def testFramework = "munit.Framework"
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI" -> testLauncher().path.toString,
       "IS_NATIVE_SCALA_CLI" -> isNative().toString
@@ -316,4 +316,16 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
     else ("v" + ver, false)
   }
   upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
+}
+
+def publishStubs = T {
+  val javaModules = Seq(
+    stubs
+  )
+  val crossModules = for {
+    sv <- Scala.all
+    proj <- Seq(runner, `test-runner`, `line-modifier-plugin`)
+  } yield proj(sv)
+  val tasks = (javaModules ++ crossModules).map(_.publishLocal())
+  define.Task.sequence(tasks)
 }

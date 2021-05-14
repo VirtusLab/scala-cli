@@ -16,6 +16,9 @@ object TestUtil {
       Seq("java", "-Xmx512m", "-jar", path)
   }
 
+  lazy val canRunJs = !isNativeCli || !Properties.isWin
+  lazy val canRunNative = !Properties.isWin
+
   def output(root: os.Path, check: Boolean = true)(command: os.Shellable*): String = {
     val res = os.proc(command: _*).call(cwd = root, check = check)
     val rawOutput = new String(res.out.bytes, Charset.defaultCharset())
