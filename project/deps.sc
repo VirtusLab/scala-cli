@@ -12,6 +12,7 @@ object Scala {
 object Deps {
   object Versions {
     def coursier = "2.0.16"
+    def coursierInterface = "1.0.4"
     def scalaJs = "1.5.1"
     def scalaNative = "0.4.0"
   }
@@ -21,7 +22,8 @@ object Deps {
   def bloopgun = ivy"ch.epfl.scala::bloopgun:1.4.8"
   def bsp4j = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   def caseApp = ivy"com.github.alexarchambault::case-app:2.0.5"
-  def coursierInterface = ivy"io.get-coursier:interface:1.0.3"
+  def coursierInterface = ivy"io.get-coursier:interface:${Versions.coursierInterface}"
+  def coursierInterfaceSvmSubs = ivy"io.get-coursier:interface-svm-subs:${Versions.coursierInterface}"
   def coursierJvm = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.15.1"

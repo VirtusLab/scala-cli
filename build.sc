@@ -39,6 +39,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
     Deps.bloopConfig,
     Deps.bsp4j,
     Deps.caseApp,
+    Deps.coursierInterfaceSvmSubs,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections")),
