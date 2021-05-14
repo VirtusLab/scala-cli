@@ -11,13 +11,19 @@ import mill._, scalalib.{publish => _, _}
 import scala.util.Properties
 
 
-object cli extends Cross[Cli](defaultCliScalaVersion)
-object `jvm-tests` extends JvmTests
+// Tell mill modules are under modules/
+implicit def millModuleBasePath: define.BasePath =
+  define.BasePath(super.millModuleBasePath.value / "modules")
+
+
+object cli            extends Cross[Cli](defaultCliScalaVersion)
+object `jvm-tests`    extends JvmTests
 object `native-tests` extends NativeTests
-object stubs extends JavaModule with ScalaCliPublishModule
-object runner extends Cross[Runner](Scala.all: _*)
-object `test-runner` extends Cross[TestRunner](Scala.all: _*)
-object bloopgun extends Cross[Bloopgun](Scala.allScala2: _*)
+object stubs          extends JavaModule with ScalaCliPublishModule
+object runner         extends Cross[Runner](Scala.all: _*)
+object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
+object bloopgun       extends Cross[Bloopgun](Scala.allScala2: _*)
+
 
 def defaultCliScalaVersion = Scala.scala212
 
