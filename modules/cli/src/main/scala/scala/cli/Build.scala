@@ -292,8 +292,8 @@ object Build {
       if (options.addLineModifierPlugin) {
         val lengths = generatedSources
           .map {
-            case (path, len) =>
-              s"$path=$len"
+            case (path, reportingPath, len) =>
+              s"$path->$reportingPath=$len"
           }
           .mkString(";")
         Seq(s"-P:linemodifier:topWrapperLengths=$lengths")

@@ -1,5 +1,6 @@
 package scala.cli.plugin
 
+import scala.reflect.io.AbstractFile
 import scala.tools.nsc._
 import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 import scala.tools.nsc.reporters.Reporter
@@ -12,7 +13,7 @@ class LineModifierPlugin(val global: Global) extends Plugin { plugin =>
   val name = "linemodifier"
   val description = ""
 
-  private var topWrapperLengths = Map.empty[String, Int]
+  private var topWrapperLengths = Map.empty[String, (String, Int)]
 
   override def init(options: List[String], error: String => Unit): Boolean = {
 
@@ -24,7 +25,12 @@ class LineModifierPlugin(val global: Global) extends Plugin { plugin =>
           .filter(_.nonEmpty)
           .map(_.split("=", 2))
           .collect {
-            case Array(path, len) => path -> len.toInt
+            case Array(pathMap, len) =>
+              (pathMap.split("->", 2), len)
+          }
+          .collect {
+            case (Array(path, reportingPath), len) =>
+              (path, (reportingPath, len.toInt))
           }
       } else
         sys.error(s"Unrecognized line modifier plugin option: $opt")
@@ -55,7 +61,7 @@ class LineModifierPlugin(val global: Global) extends Plugin { plugin =>
 
 object LineModifierPlugin {
 
-  def lineNumberCorrector(global: Global, topWrapperLengths: Map[String, Int])
+  def lineNumberCorrector(global: Global, topWrapperLengths: Map[String, (String, Int)])
       : global.Transformer { def apply(unit: global.CompilationUnit): global.Tree } =
     new global.Transformer {
 
@@ -69,12 +75,13 @@ object LineModifierPlugin {
         val paramsOpts = cache.getOrElse(
           path,
           {
-            val value = topWrapperLengths.get(path).map { len =>
-              val trimmedSource = new BatchSourceFile(
-                tree.pos.source.file,
-                tree.pos.source.content.drop(len)
-              )
-              (trimmedSource, len)
+            val value = topWrapperLengths.get(path).map {
+              case (reportingPath, len) =>
+                val trimmedSource = new BatchSourceFile(
+                  AbstractFile.getFile(reportingPath),
+                  tree.pos.source.content.drop(len)
+                )
+                (trimmedSource, len)
             }
             cache += path -> value
             value

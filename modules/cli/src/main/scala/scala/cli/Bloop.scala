@@ -1,6 +1,6 @@
 package scala.cli
 
-import java.io.{ByteArrayInputStream, InputStream, IOException, PrintStream}
+import java.io.{ByteArrayInputStream, File, InputStream, IOException, PrintStream}
 import java.net.{ConnectException, Socket, URI}
 import java.nio.file.{Path, Paths}
 import java.util.concurrent.Executors
@@ -34,7 +34,12 @@ object Bloop {
       val col = (diag.getRange.getStart.getCharacter + 1).toString + ":"
       val msgIt = diag.getMessage.linesIterator
 
-      println(s"$prefix$path:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
+      val path0 = {
+        val p = os.FilePath(path).resolveFrom(os.pwd)
+        if (p.startsWith(os.pwd)) "." + File.separator + p.relativeTo(os.pwd).toString
+        else p.toString
+      }
+      println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       for (line <- msgIt)
         println(prefix + line)
       for (code <- Option(diag.getCode))

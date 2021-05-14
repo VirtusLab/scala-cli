@@ -7,24 +7,24 @@ import scala.cli.internal.CodeWrapper
 
 final case class Sources(
   paths: Seq[String],
-  inMemory: Seq[(String, String, Int)],
+  inMemory: Seq[(os.Path, String, String, Int)],
   mainClass: Option[String],
   dependencies: Seq[coursierapi.Dependency],
   resourceDirs: Seq[os.Path]
 ) {
 
-  def generateSources(generatedSrcRoot: os.Path): Seq[(os.Path, Int)] = {
+  def generateSources(generatedSrcRoot: os.Path): Seq[(os.Path, os.Path, Int)] = {
     val generated =
-      for ((className, code, topWrapperLen) <- inMemory) yield {
+      for ((reportingPath, className, code, topWrapperLen) <- inMemory) yield {
         val components = className.split('.')
         val pkg = components.init
         val simpleName = components.last
         val srcDest = os.rel / "main" / "scala" / pkg / s"$simpleName.scala"
         os.write.over(generatedSrcRoot / srcDest, code.getBytes("UTF-8"), createFolders = true)
-        (srcDest, topWrapperLen)
+        (reportingPath, srcDest, topWrapperLen)
       }
 
-    val generatedSet = generated.map(_._1).toSet
+    val generatedSet = generated.map(_._2).toSet
     if (os.isDir(generatedSrcRoot))
       os.walk(generatedSrcRoot)
         .filter(os.isFile(_))
@@ -32,8 +32,8 @@ final case class Sources(
         .foreach(os.remove(_))
 
     generated.map {
-      case (path, topWrapperLen) =>
-        (generatedSrcRoot / path, topWrapperLen)
+      case (reportingPath, path, topWrapperLen) =>
+        (generatedSrcRoot / path, reportingPath, topWrapperLen)
     }
   }
 }
@@ -153,7 +153,7 @@ object Sources {
 
       val deps0 = deps.map(parseDependency(_, platformSuffix, scalaVersion, scalaBinaryVersion))
 
-      ScriptData(wrapper.raw, code, deps0, topWrapperLen)
+      ScriptData(scriptPath, wrapper.raw, code, deps0, topWrapperLen)
     }
 
     val fromDirectories = inputs.elements
@@ -180,11 +180,12 @@ object Sources {
     val scalaFilePathsOrCode = (inputs.elements.iterator ++ fromDirectories.iterator)
       .collect {
         case f: Inputs.ScalaFile =>
-          process(os.Path(inputRoot.toNIO.resolve(f.path).toAbsolutePath)) match {
+          val originalPath = os.Path(inputRoot.toNIO.resolve(f.path).toAbsolutePath)
+          process(originalPath) match {
             case None => Iterator(Right(f.path))
             case Some((deps, updatedCode)) =>
               // TODO Ensure f.path is relative, splitting might have issues on Windows
-              Iterator(Left((deps, f.path.stripSuffix(".scala").split("/").mkString("."), updatedCode)))
+              Iterator(Left((originalPath, deps, f.path.stripSuffix(".scala").split("/").mkString("."), updatedCode)))
           }
       }
       .flatten
@@ -198,13 +199,13 @@ object Sources {
 
     val scalaFilePaths = scalaFilePathsOrCode.collect { case Right(v) => v }
     val inMemoryScalaFiles = scalaFilePathsOrCode.collect {
-      case Left((deps, relPath, updatedCode)) =>
-        (relPath, updatedCode, 0)
+      case Left((originalPath, deps, relPath, updatedCode)) =>
+        (originalPath, relPath, updatedCode, 0)
     }
 
     val scalaFilesDependencies = scalaFilePathsOrCode
       .collect {
-        case Left((deps, _, _)) => deps
+        case Left((_, deps, _, _)) => deps
       }
       .flatten
       .map(str => parseDependency(str, platformSuffix, scalaVersion, scalaBinaryVersion))
@@ -219,7 +220,7 @@ object Sources {
 
     Sources(
       paths = javaFilePaths ++ scalaFilePaths,
-      inMemory = inMemoryScalaFiles ++ allScriptData.map(script => (script.className, script.code, script.topWrapperLen)),
+      inMemory = inMemoryScalaFiles ++ allScriptData.map(script => (script.reportingPath, script.className, script.code, script.topWrapperLen)),
       mainClass = headScriptDataOpt.map(_.className),
       dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
       resourceDirs = inputs.elements.collect {
@@ -230,6 +231,7 @@ object Sources {
   }
 
   private final case class ScriptData(
+    reportingPath: os.Path,
     className: String,
     code: String,
     dependencies: Seq[coursierapi.Dependency],
