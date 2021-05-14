@@ -30,8 +30,8 @@ object Bloop {
       val reset = Console.RESET
       val prefix = if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR) s"[${red}error$reset] " else s"[${yellow}warn$reset] "
 
-      val line = diag.getRange.getStart.getLine.toString + ":"
-      val col = diag.getRange.getStart.getCharacter.toString + ":"
+      val line = (diag.getRange.getStart.getLine + 1).toString + ":"
+      val col = (diag.getRange.getStart.getCharacter + 1).toString + ":"
       val msgIt = diag.getMessage.linesIterator
 
       println(s"$prefix$path:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
@@ -86,8 +86,13 @@ object Bloop {
             printDiagnostic(Paths.get(new URI(params.getTextDocument.getUri)).toString, diag)
 
         def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
-          // println("onBuildLogMessage")
-          // pprint.log(params)
+          val prefix = params.getType match {
+            case bsp4j.MessageType.ERROR       => "Error: "
+            case bsp4j.MessageType.WARNING     => "Warning: "
+            case bsp4j.MessageType.INFORMATION => ""
+            case bsp4j.MessageType.LOG         => "" // discard those by default?
+          }
+          System.err.println(prefix + params.getMessage)
         }
         def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit = {
           // println("onBuildShowMessage")
