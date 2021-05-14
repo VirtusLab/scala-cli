@@ -443,10 +443,7 @@ object Build {
         )
       )
       val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = false), logger, cwd)
-      val updatedInputs = jmhInputs
-      val updatedBuild = jmhBuild
-      val forcedMainClassOpt = Some("org.openjdk.jmh.Main")
-      Some(updatedBuild)
+      Some(jmhBuild)
     }
     else None
   }
