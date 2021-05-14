@@ -2,7 +2,7 @@ package scala.cli
 
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
-import scala.cli.internal.{CodeWrapper, Constants, CustomCodeWrapper, MainClass, Util}
+import scala.cli.internal.{AsmPositionUpdater, CodeWrapper, Constants, CustomCodeWrapper, MainClass, Util}
 
 import java.io.IOException
 import java.lang.{Boolean => JBoolean}
@@ -243,7 +243,8 @@ object Build {
     logger: Logger
   ): Build = {
 
-    val generatedSources = sources.generateSources(options.generatedSrcRoot(inputs.workspace, inputs.projectName))
+    val generatedSrcRoot = options.generatedSrcRoot(inputs.workspace, inputs.projectName)
+    val generatedSources = sources.generateSources(generatedSrcRoot)
     val allSources =
       sources.paths.map(p => os.Path(sourceRoot.toNIO.resolve(p).toAbsolutePath)) ++
         generatedSources.map(_._1)
@@ -330,6 +331,20 @@ object Build {
       inputs.projectName,
       logger
     )
+
+    // TODO Disable post-processing altogether when options.addLineModifierPlugin is true
+    // (needs source gen to use the exact same names as the original file)
+    // TODO Write classes to a separate directory during post-processing
+    val mappings = generatedSources
+      .map {
+        case (path, reportingPath, len) =>
+          val lineShift =
+            if (options.addLineModifierPlugin) 0
+            else -os.read(path).take(len).count(_ == '\n') // charset?
+          (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
+      }
+      .toMap
+    AsmPositionUpdater.postProcess(mappings, os.Path(outputPath.toAbsolutePath))
 
     Build(inputs, options, sources, artifacts, project, outputPath)
   }
