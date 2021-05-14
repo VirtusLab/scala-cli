@@ -44,9 +44,9 @@ object AsmPositionUpdater {
         val is = os.read.inputStream(path)
         val updateByteCodeOpt = try {
           val reader = new asm.ClassReader(is)
-          val writer = new asm.ClassWriter(reader, asm.ClassWriter.COMPUTE_FRAMES | asm.ClassWriter.COMPUTE_MAXS)
+          val writer = new asm.ClassWriter(reader, 0)
           val checker = new LineNumberTableClassVisitor(mappings, writer)
-          reader.accept(checker, asm.ClassReader.EXPAND_FRAMES)
+          reader.accept(checker, 0)
           if (checker.mappedStuff) Some(writer.toByteArray)
           else None
         } finally {
