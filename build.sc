@@ -169,7 +169,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
       Deps.expecty,
       Deps.munit
     )
-    def testFrameworks = Seq("munit.Framework")
+    def testFramework = "munit.Framework"
   }
 }
 
@@ -188,7 +188,7 @@ trait CliTests extends SbtModule with ScalaCliPublishModule {
       Deps.osLib,
       Deps.pprint
     )
-    def testFrameworks = Seq("munit.Framework")
+    def testFramework = "munit.Framework"
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI" -> testLauncher().path.toString,
       "IS_NATIVE_SCALA_CLI" -> isNative().toString
