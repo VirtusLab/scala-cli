@@ -126,7 +126,7 @@ object Build {
     addTestRunnerDependencyOpt: Option[Boolean] = None,
     addJmhDependencies: Option[String] = None,
     runJmh: Boolean = false,
-    addLineModifierPlugin: Boolean = true
+    addLineModifierPluginOpt: Option[Boolean] = None
   ) {
     def generatedSrcRoot(root: os.Path, projectName: String) = generatedSrcRootOpt.getOrElse {
       root / ".scala" / ".bloop" / projectName / ".src_generated"
@@ -137,6 +137,10 @@ object Build {
       scalaJsOptions.isEmpty && scalaNativeOptions.isEmpty && addRunnerDependencyOpt.getOrElse(true)
     def addTestRunnerDependency: Boolean =
       addTestRunnerDependencyOpt.getOrElse(false)
+    def addLineModifierPlugin: Boolean =
+      addLineModifierPluginOpt.getOrElse {
+        scalaVersion.startsWith("2.")
+      }
   }
 
   def build(

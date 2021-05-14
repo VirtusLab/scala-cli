@@ -32,6 +32,7 @@ object Deps {
   def nativeTools = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def osLib = ivy"com.lihaoyi::os-lib:0.7.5"
   def pprint = ivy"com.lihaoyi::pprint:0.6.4"
+  def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
   def scalaJsEnvNodeJs = ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
   def scalaJsLinker = ivy"org.scala-js::scalajs-linker:${Versions.scalaJs}"

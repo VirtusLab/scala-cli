@@ -23,7 +23,7 @@ object stubs                  extends JavaModule with ScalaCliPublishModule
 object runner                 extends Cross[Runner](Scala.all: _*)
 object `test-runner`          extends Cross[TestRunner](Scala.all: _*)
 object bloopgun               extends Cross[Bloopgun](Scala.allScala2: _*)
-object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.allScala2: _*)
+object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.all: _*)
 
 
 def defaultCliScalaVersion = Scala.scala212
@@ -255,7 +255,7 @@ class LineModifierPlugin(val crossScalaVersion: String) extends CrossSbtModule w
     if (crossScalaVersion.startsWith("2."))
       Agg(Deps.scalac(crossScalaVersion))
     else
-      Agg.empty[Dep]
+      Agg(Deps.scala3Compiler(crossScalaVersion))
 }
 
 
