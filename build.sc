@@ -16,13 +16,14 @@ implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
 
-object cli            extends Cross[Cli](defaultCliScalaVersion)
-object `jvm-tests`    extends JvmTests
-object `native-tests` extends NativeTests
-object stubs          extends JavaModule with ScalaCliPublishModule
-object runner         extends Cross[Runner](Scala.all: _*)
-object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
-object bloopgun       extends Cross[Bloopgun](Scala.allScala2: _*)
+object cli                    extends Cross[Cli](defaultCliScalaVersion)
+object `jvm-tests`            extends JvmTests
+object `native-tests`         extends NativeTests
+object stubs                  extends JavaModule with ScalaCliPublishModule
+object runner                 extends Cross[Runner](Scala.all: _*)
+object `test-runner`          extends Cross[TestRunner](Scala.all: _*)
+object bloopgun               extends Cross[Bloopgun](Scala.allScala2: _*)
+object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.allScala2: _*)
 
 
 def defaultCliScalaVersion = Scala.scala212
@@ -85,6 +86,10 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
          |  def runnerModuleName = "${runner(defaultCliScalaVersion).artifactName()}"
          |  def runnerVersion = "${runner(defaultCliScalaVersion).publishVersion()}"
          |  def runnerMainClass = "${runner(defaultCliScalaVersion).mainClass().getOrElse(sys.error("No main class defined for runner"))}"
+         |
+         |  def lineModifierPluginOrganization = "${`line-modifier-plugin`(defaultCliScalaVersion).pomSettings().organization}"
+         |  def lineModifierPluginModuleName = "${`line-modifier-plugin`(defaultCliScalaVersion).artifactName()}"
+         |  def lineModifierPluginVersion = "${`line-modifier-plugin`(defaultCliScalaVersion).publishVersion()}"
          |}
          |""".stripMargin
     os.write(dest, code)
@@ -211,7 +216,7 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
   //   if (crossScalaVersion == "3.0.0-RC2")
   //     Agg(Deps.stacktraceBuddy)
   //   else
-  //     Agg.empty[mill.scalalib.Dep]
+  //     Agg.empty[Dep]
 }
 
 class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
@@ -243,6 +248,14 @@ class Bloopgun(val crossScalaVersion: String) extends CrossSbtModule with ScalaC
     PathRef(dest)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
+}
+
+class LineModifierPlugin(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
+  def compileIvyDeps =
+    if (crossScalaVersion.startsWith("2."))
+      Agg(Deps.scalac(crossScalaVersion))
+    else
+      Agg.empty[Dep]
 }
 
 

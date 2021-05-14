@@ -2,7 +2,7 @@ package scala.cli
 
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
-import scala.cli.internal.{CodeWrapper, CustomCodeWrapper, MainClass, Util}
+import scala.cli.internal.{CodeWrapper, Constants, CustomCodeWrapper, MainClass, Util}
 
 import java.io.IOException
 import java.lang.{Boolean => JBoolean}
@@ -125,7 +125,8 @@ object Build {
     addRunnerDependencyOpt: Option[Boolean] = None,
     addTestRunnerDependencyOpt: Option[Boolean] = None,
     addJmhDependencies: Option[String] = None,
-    runJmh: Boolean = false
+    runJmh: Boolean = false,
+    addLineModifierPlugin: Boolean = true
   ) {
     def generatedSrcRoot(root: os.Path, projectName: String) = generatedSrcRootOpt.getOrElse {
       root / ".scala" / ".bloop" / projectName / ".src_generated"
@@ -238,9 +239,10 @@ object Build {
     logger: Logger
   ): Build = {
 
+    val generatedSources = sources.generateSources(options.generatedSrcRoot(inputs.workspace, inputs.projectName))
     val allSources =
       sources.paths.map(p => os.Path(sourceRoot.toNIO.resolve(p).toAbsolutePath)) ++
-        sources.generateSources(options.generatedSrcRoot(inputs.workspace, inputs.projectName))
+        generatedSources.map(_._1)
     val allScalaSources = allSources
 
     val scalaLibraryDependencies =
@@ -255,13 +257,23 @@ object Build {
         options.scalaNativeOptions.map(_.nativeDependencies).getOrElse(Nil) ++
         scalaLibraryDependencies
 
+    val extraPlugins =
+      if (options.addLineModifierPlugin)
+        Seq(coursierapi.Dependency.of(
+          Constants.lineModifierPluginOrganization,
+          Constants.lineModifierPluginModuleName + "_" + options.scalaBinaryVersion,
+          Constants.lineModifierPluginVersion
+        ))
+      else Nil
+
     val artifacts = Artifacts(
       options.javaHomeOpt.filter(_.nonEmpty),
       options.jvmIdOpt,
       options.scalaVersion,
       options.scalaBinaryVersion,
       options.scalaJsOptions.map(_.compilerPlugins).getOrElse(Nil) ++
-        options.scalaNativeOptions.map(_.compilerPlugins).getOrElse(Nil),
+        options.scalaNativeOptions.map(_.compilerPlugins).getOrElse(Nil) ++
+        extraPlugins,
       allDependencies,
       options.stubsJarOpt.toSeq ++ options.testRunnerJarsOpt.getOrElse(Nil),
       addStubs = options.addStubsDependency,
@@ -275,10 +287,23 @@ object Build {
       case (_, _, path) =>
         s"-Xplugin:${path.toAbsolutePath}"
     }
+
+    val extraScalacOptions =
+      if (options.addLineModifierPlugin) {
+        val lengths = generatedSources
+          .map {
+            case (path, len) =>
+              s"$path=$len"
+          }
+          .mkString(";")
+        Seq(s"-P:linemodifier:topWrapperLengths=$lengths")
+      }
+      else Nil
+
     val scalaCompiler = ScalaCompiler(
             scalaVersion = options.scalaVersion,
       scalaBinaryVersion = options.scalaBinaryVersion,
-           scalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-feature") ++ pluginScalacOptions,
+           scalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-feature") ++ pluginScalacOptions ++ extraScalacOptions,
        compilerClassPath = artifacts.compilerClassPath
     )
 

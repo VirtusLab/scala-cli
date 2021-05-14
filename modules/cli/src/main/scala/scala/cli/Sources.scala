@@ -7,31 +7,34 @@ import scala.cli.internal.CodeWrapper
 
 final case class Sources(
   paths: Seq[String],
-  inMemory: Seq[(String, String)],
+  inMemory: Seq[(String, String, Int)],
   mainClass: Option[String],
   dependencies: Seq[coursierapi.Dependency],
   resourceDirs: Seq[os.Path]
 ) {
 
-  def generateSources(generatedSrcRoot: os.Path): Seq[os.Path] = {
+  def generateSources(generatedSrcRoot: os.Path): Seq[(os.Path, Int)] = {
     val generated =
-      for ((className, code) <- inMemory) yield {
+      for ((className, code, topWrapperLen) <- inMemory) yield {
         val components = className.split('.')
         val pkg = components.init
         val simpleName = components.last
         val srcDest = os.rel / "main" / "scala" / pkg / s"$simpleName.scala"
         os.write.over(generatedSrcRoot / srcDest, code.getBytes("UTF-8"), createFolders = true)
-        srcDest
+        (srcDest, topWrapperLen)
       }
 
-    val generatedSet = generated.toSet
+    val generatedSet = generated.map(_._1).toSet
     if (os.isDir(generatedSrcRoot))
       os.walk(generatedSrcRoot)
         .filter(os.isFile(_))
         .filter(p => !generatedSet(p.relativeTo(generatedSrcRoot)))
         .foreach(os.remove(_))
 
-    generated.map(generatedSrcRoot / _)
+    generated.map {
+      case (path, topWrapperLen) =>
+        (generatedSrcRoot / path, topWrapperLen)
+    }
   }
 }
 
@@ -127,7 +130,7 @@ object Sources {
     scalaBinaryVersion: String
   ): Sources = {
 
-    def scriptData(script: Inputs.Script) = {
+    def scriptData(script: Inputs.Script): ScriptData = {
 
       val scriptPath = os.Path(inputRoot.toNIO.resolve(script.path).toAbsolutePath.normalize)
 
@@ -142,7 +145,7 @@ object Sources {
         case Some((deps, updatedCode)) => (deps, updatedCode)
       }
 
-      val (code, _, _) = codeWrapper.wrapCode(
+      val (code, topWrapperLen, _) = codeWrapper.wrapCode(
         Seq(Name("ammonite"), Name("$file")) ++ pkg,
         wrapper,
         updatedCode
@@ -150,7 +153,7 @@ object Sources {
 
       val deps0 = deps.map(parseDependency(_, platformSuffix, scalaVersion, scalaBinaryVersion))
 
-      ScriptData(wrapper.raw, code, deps0)
+      ScriptData(wrapper.raw, code, deps0, topWrapperLen)
     }
 
     val fromDirectories = inputs.elements
@@ -196,7 +199,7 @@ object Sources {
     val scalaFilePaths = scalaFilePathsOrCode.collect { case Right(v) => v }
     val inMemoryScalaFiles = scalaFilePathsOrCode.collect {
       case Left((deps, relPath, updatedCode)) =>
-        (relPath, updatedCode)
+        (relPath, updatedCode, 0)
     }
 
     val scalaFilesDependencies = scalaFilePathsOrCode
@@ -216,7 +219,7 @@ object Sources {
 
     Sources(
       paths = javaFilePaths ++ scalaFilePaths,
-      inMemory = inMemoryScalaFiles ++ allScriptData.map(script => script.className -> script.code),
+      inMemory = inMemoryScalaFiles ++ allScriptData.map(script => (script.className, script.code, script.topWrapperLen)),
       mainClass = headScriptDataOpt.map(_.className),
       dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
       resourceDirs = inputs.elements.collect {
@@ -226,6 +229,11 @@ object Sources {
     )
   }
 
-  private final case class ScriptData(className: String, code: String, dependencies: Seq[coursierapi.Dependency])
+  private final case class ScriptData(
+    className: String,
+    code: String,
+    dependencies: Seq[coursierapi.Dependency],
+    topWrapperLen: Int
+  )
 
 }
