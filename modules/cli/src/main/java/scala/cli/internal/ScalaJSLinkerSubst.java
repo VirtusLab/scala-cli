@@ -14,7 +14,8 @@ final class ScalaJsLinkerSubst {
     @Substitute
     void link(
         Path[] classPath,
-        String mainClass,
+        String mainClassOrNull,
+        boolean addTestInitializer,
         Path dest
     ) {
         throw new RuntimeException("Scala.JS linking unsupported on Windows");

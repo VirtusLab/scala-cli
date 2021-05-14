@@ -12,7 +12,7 @@ final class ScalaJsLinker {
 
   def link(
     classPath: Array[Path],
-    mainClassOpt: Option[String],
+    mainClassOrNull: String,
     addTestInitializer: Boolean,
     dest: Path
   ): Unit = {
@@ -45,7 +45,7 @@ final class ScalaJsLinker {
 
     val cache = StandardImpl.irFileCache().newCache
 
-    val mainInitializers = mainClassOpt.toSeq.map { mainClass =>
+    val mainInitializers = Option(mainClassOrNull).toSeq.map { mainClass =>
       ModuleInitializer.mainMethodWithArgs(mainClass, "main")
     }
     val testInitializers =
