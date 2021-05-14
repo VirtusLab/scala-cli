@@ -22,7 +22,7 @@ jobs:
       with:
         jvm: 8
     - name: Publish stubs locally
-      run: ./mill -i stubs.publishLocal
+      run: ./mill -i publishStubs
     - name: Setup (Windows only)
       if: runner.os == 'Windows'
       shell: bash

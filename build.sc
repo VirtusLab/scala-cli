@@ -317,3 +317,15 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
   }
   upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
 }
+
+def publishStubs = T {
+  val javaModules = Seq(
+    stubs
+  )
+  val crossModules = for {
+    sv <- Scala.all
+    proj <- Seq(runner, `test-runner`, `line-modifier-plugin`)
+  } yield proj(sv)
+  val tasks = (javaModules ++ crossModules).map(_.publishLocal())
+  define.Task.sequence(tasks)
+}
