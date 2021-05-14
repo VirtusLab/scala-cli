@@ -50,6 +50,11 @@ Then run the command "Metals: Connect to build server".
 $ ./mill -i show 'cli[2.12.13].nativeImage'
 ```
 
+This prints the path to the generated native image.
+The file named `scala` at the root of the project should also
+be a link to it. (Note that the link is committed and is always there,
+whether the files it points at exists or not.)
+
 ### Website commands
 
 #### Generate the website once
