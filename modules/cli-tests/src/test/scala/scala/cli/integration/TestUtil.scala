@@ -1,4 +1,4 @@
-package scala.cli.tests
+package scala.cli.integration
 
 import java.io.File
 import java.nio.charset.Charset

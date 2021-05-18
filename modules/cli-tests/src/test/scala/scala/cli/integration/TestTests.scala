@@ -1,4 +1,4 @@
-package scala.cli.tests
+package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 

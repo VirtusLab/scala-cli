@@ -9,13 +9,12 @@ import java.math.BigInteger
 final case class Inputs(
   head: Inputs.Element,
   tail: Seq[Inputs.Element],
+  mainClassElement: Option[Inputs.Element],
   workspace: os.Path,
-  cwd: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean
 ) {
   lazy val elements: Seq[Inputs.Element] = head +: tail
-  def paths: Seq[String] = elements.map(_.path)
 
   private lazy val inputsHash = {
     val root0 = workspace.toNIO
@@ -27,8 +26,7 @@ final case class Inputs(
         case _: Inputs.ScalaFile => "scala:"
         case _: Inputs.Script => "sc:"
       }
-      val absPath = root0.resolve(elem.path).toAbsolutePath.normalize
-      Iterator(prefix, absPath, "\n")
+      Iterator(prefix, elem.path.toString, "\n")
     }
     val md = MessageDigest.getInstance("SHA-1")
     md.update(it.mkString.getBytes(StandardCharsets.UTF_8))
@@ -38,7 +36,7 @@ final case class Inputs(
   }
   lazy val projectName = {
     val needsSuffix = mayAppendHash && (elements match {
-      case Seq(d: Inputs.Directory) => os.FilePath(d.path).resolveFrom(cwd) != workspace
+      case Seq(d: Inputs.Directory) => d.path != workspace
       case _ => true
     })
     if (needsSuffix) baseProjectName + "-" + inputsHash
@@ -49,17 +47,29 @@ final case class Inputs(
 object Inputs {
 
   sealed abstract class Element extends Product with Serializable {
-    def path: String
+    def path: os.Path
   }
 
-  sealed trait SingleFile extends Element
+  sealed trait SingleFile extends Element {
+    def relativeTo: Option[os.Path]
+    def withRelativeTo(newRelativeTo: Option[os.Path]): SingleFile
+  }
   sealed trait Compiled extends Element
 
-  final case class Script(path: String, relativeTo: Option[String]) extends SingleFile with Compiled
-  final case class ScalaFile(path: String) extends SingleFile with Compiled
-  final case class JavaFile(path: String) extends SingleFile with Compiled
-  final case class Directory(path: String) extends Compiled
-  final case class ResourceDirectory(path: String) extends Element
+  final case class Script(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled {
+    def withRelativeTo(newRelativeTo: Option[os.Path]): Script =
+      copy(relativeTo = newRelativeTo)
+  }
+  final case class ScalaFile(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled {
+    def withRelativeTo(newRelativeTo: Option[os.Path]): ScalaFile =
+      copy(relativeTo = newRelativeTo)
+  }
+  final case class JavaFile(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled {
+    def withRelativeTo(newRelativeTo: Option[os.Path]): JavaFile =
+      copy(relativeTo = newRelativeTo)
+  }
+  final case class Directory(path: os.Path) extends Compiled
+  final case class ResourceDirectory(path: os.Path) extends Element
 
   def apply(
     args: Seq[String],
@@ -70,10 +80,11 @@ object Inputs {
       Left("No inputs provided.")
     else {
       val validatedArgs = args.map { arg =>
-        if (arg.endsWith(".sc")) Right(Script(arg, None))
-        else if (arg.endsWith(".scala")) Right(ScalaFile(arg))
-        else if (arg.endsWith(".java")) Right(JavaFile(arg))
-        else if (os.isDir(os.FilePath(arg).resolveFrom(cwd))) Right(Directory(arg))
+        val path = os.Path(arg, cwd)
+        if (arg.endsWith(".sc")) Right(Script(path, None))
+        else if (arg.endsWith(".scala")) Right(ScalaFile(path, None))
+        else if (arg.endsWith(".java")) Right(JavaFile(path, None))
+        else if (os.isDir(path)) Right(Directory(path))
         else Left(arg)
       }
       val invalid = validatedArgs.collect {
@@ -92,18 +103,37 @@ object Inputs {
         val dirCount = validElems.count { case _: Directory => true; case _ => false }
 
         val errorOpt = (hasFiles, dirCount) match {
-          case (true, n) if n >= 1 => Some("Directories and single files cannot be specified at the same time for now.")
           case (_, n) if n >= 2 => Some("Only single directories are accepted as input for now.")
           case _ => None
         }
 
         errorOpt match {
           case None =>
-            val workspace = validElems.head match {
-              case d: Directory => os.FilePath(d.path).resolveFrom(cwd)
-              case e => os.FilePath(e.path).resolveFrom(cwd) / os.up
+            val workspace = validElems
+              .collectFirst {
+                case d: Directory => d.path
+              }
+              .getOrElse {
+                val elem = validElems.head
+                assert(elem.isInstanceOf[SingleFile])
+                elem.asInstanceOf[SingleFile].path / os.up
+              }
+            val allDirs = validElems.collect { case d: Directory => d.path }
+            def updateSingleFile(f: SingleFile): SingleFile =
+              if (f.relativeTo.isEmpty && f.path.relativeTo(workspace).ups != 0) f.withRelativeTo(Some(f.path / os.up))
+              else f
+            val updatedElems = validElems.flatMap {
+              case d: Directory => Seq(d)
+              case f: SingleFile =>
+                val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
+                if (isInDir) Nil
+                else Seq(updateSingleFile(f))
             }
-            Right(Inputs(validElems.head, validElems.tail, workspace, cwd, baseProjectName, mayAppendHash = true))
+            val mainClassElemOpt = validElems
+              .collectFirst {
+                case f: SingleFile => updateSingleFile(f)
+              }
+            Right(Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = true))
           case Some(err) => Left(err)
         }
       } else

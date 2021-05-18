@@ -24,8 +24,9 @@ object ReplArtifacts {
     ammoniteVersion: String,
     dependencies: Seq[coursierapi.Dependency]
   ): ReplArtifacts = {
+    val localRepoOpt = LocalRepo.localRepo()
     val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion, scalaVersion)
-    val replArtifacts = Artifacts.artifacts(allDeps)
+    val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq)
     ReplArtifacts(replArtifacts)
   }
 

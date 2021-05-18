@@ -20,12 +20,12 @@ final case class Build(
   sources: Sources,
   artifacts: Artifacts,
   project: Project,
-  output: Path
+  output: os.Path
 ) {
   def fullClassPath: Seq[Path] =
-    Seq(output) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
+    Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
   def foundMainClasses(): Seq[String] =
-    MainClass.find(os.Path(output))
+    MainClass.find(output)
   def retainedMainClassOpt(warnIfSeveral: Boolean = false): Option[String] = {
     lazy val foundMainClasses0 = foundMainClasses()
     val defaultMainClassOpt = sources.mainClass
@@ -205,12 +205,10 @@ object Build {
         }
         val eventFilter: PathWatchers.Event => Boolean = elem match {
           case d: Inputs.Directory =>
-            val dir = os.FilePath(d.path).resolveFrom(cwd)
-
             // Filtering event for directories, to ignore those related to the .bloop directory in particular
             event =>
               val p = os.Path(event.getTypedPath.getPath.toAbsolutePath)
-              val relPath = p.relativeTo(dir)
+              val relPath = p.relativeTo(d.path)
               val isHidden = relPath.segments.exists(_.startsWith("."))
               def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
               !isHidden && isScalaFile
@@ -218,7 +216,7 @@ object Build {
         }
 
         val watcher0 = watcher.newWatcher()
-        watcher0.register(os.FilePath(elem.path).resolveFrom(cwd).toNIO, depth)
+        watcher0.register(elem.path.toNIO, depth)
         watcher0.addObserver {
           onChangeBufferedObserver { event =>
             if (eventFilter(event))
@@ -245,9 +243,7 @@ object Build {
 
     val generatedSrcRoot = options.generatedSrcRoot(inputs.workspace, inputs.projectName)
     val generatedSources = sources.generateSources(generatedSrcRoot)
-    val allSources =
-      sources.paths.map(p => os.Path(sourceRoot.toNIO.resolve(p).toAbsolutePath)) ++
-        generatedSources.map(_._1)
+    val allSources = sources.paths ++ generatedSources.map(_._1)
     val allScalaSources = allSources
 
     val scalaLibraryDependencies =
@@ -344,7 +340,7 @@ object Build {
           (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
       }
       .toMap
-    AsmPositionUpdater.postProcess(mappings, os.Path(outputPath.toAbsolutePath), logger)
+    AsmPositionUpdater.postProcess(mappings, outputPath, logger)
 
     Build(inputs, options, sources, artifacts, project, outputPath)
   }
@@ -406,7 +402,7 @@ object Build {
         case _: Inputs.ResourceDirectory => Int.MaxValue
         case _ => -1
       }
-      watcher.register(os.FilePath(elem.path).resolveFrom(inputs.cwd).toNIO, depth) match {
+      watcher.register(elem.path.toNIO, depth) match {
         case l: com.swoval.functional.Either.Left[IOException, JBoolean] => throw l.getValue
         case _ =>
       }
@@ -438,8 +434,8 @@ object Build {
         baseProjectName = jmhProjectName,
         mayAppendHash = false, // hash of the underlying project if needed is already in jmhProjectName
         tail = inputs.tail ++ Seq(
-          Inputs.Directory(jmhSourceDir.toString),
-          Inputs.ResourceDirectory(jmhResourceDir.toString)
+          Inputs.Directory(jmhSourceDir),
+          Inputs.ResourceDirectory(jmhResourceDir)
         )
       )
       val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = false), logger, cwd)

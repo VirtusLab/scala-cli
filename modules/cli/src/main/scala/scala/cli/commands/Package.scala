@@ -7,7 +7,7 @@ import scala.cli.{Build, Inputs}
 import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayOutputStream, File}
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 import java.nio.file.attribute.FileTime
@@ -42,11 +42,14 @@ object Package extends CaseApp[PackageOptions] {
       .filter(_.nonEmpty)
       .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1) + extension))
       .getOrElse("package.jar")
-    val destPath = Paths.get(dest)
+    val destPath = os.Path(dest, os.pwd)
+    val printableDest =
+      if (destPath.startsWith(os.pwd)) "." + File.separator + destPath.relativeTo(os.pwd).toString
+      else destPath.toString
 
     def alreadyExistsCheck(): Unit =
-      if (!options.force && Files.exists(destPath)) {
-        System.err.println(s"Error: $dest already exists. Pass -f or --force to force erasing it.")
+      if (!options.force && os.exists(destPath)) {
+        System.err.println(s"Error: $printableDest already exists. Pass -f or --force to force erasing it.")
         sys.exit(1)
       }
 
@@ -63,9 +66,8 @@ object Package extends CaseApp[PackageOptions] {
       case PackageOptions.PackageType.LibraryJar =>
         val content = libraryJar(build)
         alreadyExistsCheck()
-        val destPath0 = os.Path(destPath.toAbsolutePath)
-        if (options.force) os.write.over(destPath0, content)
-        else os.write(destPath0, content)
+        if (options.force) os.write.over(destPath, content)
+        else os.write(destPath, content)
 
       case PackageOptions.PackageType.Js =>
         linkJs(build, destPath, Some(mainClass()), addTestInitializer = false)
@@ -84,8 +86,6 @@ object Package extends CaseApp[PackageOptions] {
 
   private def libraryJar(build: Build): Array[Byte] = {
 
-    val outputDir = os.Path(build.output)
-
     val baos = new ByteArrayOutputStream
 
     val manifest = new java.util.jar.Manifest
@@ -97,8 +97,8 @@ object Package extends CaseApp[PackageOptions] {
 
     try {
       zos = new JarOutputStream(baos, manifest)
-      for (path <- os.walk(outputDir) if os.isFile(path)) {
-        val name = path.relativeTo(outputDir).toString
+      for (path <- os.walk(build.output) if os.isFile(path)) {
+        val name = path.relativeTo(build.output).toString
         val lastModified = os.mtime(path)
         val ent = new ZipEntry(name)
         ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
@@ -118,12 +118,11 @@ object Package extends CaseApp[PackageOptions] {
     baos.toByteArray
   }
 
-  private def bootstrap(build: Build, destPath: Path, mainClass: String, alreadyExistsCheck: () => Unit): Unit = {
-    val outputDir = os.Path(build.output)
-    val byteCodeZipEntries = os.walk(outputDir)
+  private def bootstrap(build: Build, destPath: os.Path, mainClass: String, alreadyExistsCheck: () => Unit): Unit = {
+    val byteCodeZipEntries = os.walk(build.output)
       .filter(os.isFile(_))
       .map { path =>
-        val name = path.relativeTo(outputDir).toString
+        val name = path.relativeTo(build.output).toString
         val content = os.read.bytes(path)
         val lastModified = os.mtime(path)
         val ent = new ZipEntry(name)
@@ -133,7 +132,7 @@ object Package extends CaseApp[PackageOptions] {
       }
 
     // TODO Generate that in memory
-    val tmpJar = Files.createTempFile(destPath.getFileName.toString.stripSuffix(".jar"), ".jar")
+    val tmpJar = Files.createTempFile(destPath.last.stripSuffix(".jar"), ".jar")
     val tmpJarParams = Parameters.Assembly()
       .withExtraZipEntries(byteCodeZipEntries)
       .withMainClass(mainClass)
@@ -145,7 +144,7 @@ object Package extends CaseApp[PackageOptions] {
       case (url, _) =>
         ClassPathEntry.Url(url)
     }
-    val byteCodeEntry = ClassPathEntry.Resource(s"${destPath.getFileName}-content.jar", 0L, tmpJarContent)
+    val byteCodeEntry = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
 
     val allEntries = Seq(byteCodeEntry) ++ dependencyEntries
     val loaderContent = coursier.launcher.ClassLoaderContent(allEntries)
@@ -157,7 +156,7 @@ object Package extends CaseApp[PackageOptions] {
       .withPreamble(preamble)
 
     alreadyExistsCheck()
-    BootstrapGenerator.generate(params, destPath)
+    BootstrapGenerator.generate(params, destPath.toNIO)
   }
 
   def withLibraryJar[T](build: Build, fileName: String = "library")(f: Path => T): T = {
@@ -171,16 +170,16 @@ object Package extends CaseApp[PackageOptions] {
     }
   }
 
-  def linkJs(build: Build, dest: Path, mainClassOpt: Option[String], addTestInitializer: Boolean): Unit =
-    withLibraryJar(build, dest.getFileName.toString.stripSuffix(".jar")) { mainJar =>
+  def linkJs(build: Build, dest: os.Path, mainClassOpt: Option[String], addTestInitializer: Boolean): Unit =
+    withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
       val classPath = mainJar +: build.artifacts.classPath
-      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt.orNull, addTestInitializer, dest)
+      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt.orNull, addTestInitializer, dest.toNIO)
     }
 
   def buildNative(
     build: Build,
     mainClass: String,
-    dest: Path,
+    dest: os.Path,
     nativeOptions: Build.ScalaNativeOptions,
     nativeWorkDir: os.Path,
     nativeLogger: sn.Logger
@@ -197,7 +196,7 @@ object Package extends CaseApp[PackageOptions] {
 
     os.makeDir.all(nativeWorkDir)
 
-    withLibraryJar(build, dest.getFileName.toString.stripSuffix(".jar")) { mainJar =>
+    withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
       val config = sn.Config.empty
         .withCompilerConfig(nativeConfig)
         .withMainClass(mainClass + "$")
@@ -206,7 +205,7 @@ object Package extends CaseApp[PackageOptions] {
         .withLogger(nativeLogger)
 
       Scope { implicit scope =>
-        sn.Build.build(config, dest)
+        sn.Build.build(config, dest.toNIO)
       }
     }
   }

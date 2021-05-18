@@ -6,8 +6,8 @@ import ammonite.util.{Name, Util}
 import scala.cli.internal.CodeWrapper
 
 final case class Sources(
-  paths: Seq[String],
-  inMemory: Seq[(os.Path, String, String, Int)],
+  paths: Seq[os.Path],
+  inMemory: Seq[(os.Path, os.RelPath, String, Int)],
   mainClass: Option[String],
   dependencies: Seq[coursierapi.Dependency],
   resourceDirs: Seq[os.Path]
@@ -15,13 +15,9 @@ final case class Sources(
 
   def generateSources(generatedSrcRoot: os.Path): Seq[(os.Path, os.Path, Int)] = {
     val generated =
-      for ((reportingPath, className, code, topWrapperLen) <- inMemory) yield {
-        val components = className.split('.')
-        val pkg = components.init
-        val simpleName = components.last
-        val srcDest = os.rel / pkg / s"$simpleName.scala"
-        os.write.over(generatedSrcRoot / srcDest, code.getBytes("UTF-8"), createFolders = true)
-        (reportingPath, srcDest, topWrapperLen)
+      for ((reportingPath, relPath, code, topWrapperLen) <- inMemory) yield {
+        os.write.over(generatedSrcRoot / relPath, code.getBytes("UTF-8"), createFolders = true)
+        (reportingPath, relPath, topWrapperLen)
       }
 
     val generatedSet = generated.map(_._2).toSet
@@ -132,46 +128,41 @@ object Sources {
 
     def scriptData(script: Inputs.Script): ScriptData = {
 
-      val scriptPath = os.Path(inputRoot.toNIO.resolve(script.path).toAbsolutePath.normalize)
+      val root = script.relativeTo.getOrElse(inputs.workspace)
+      val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, script.path.relativeTo(root))
 
-      val root = script.relativeTo
-        .map(inputRoot.toNIO.resolve(_).toAbsolutePath.normalize)
-        .map(os.Path(_))
-        .getOrElse(inputRoot)
-      val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, scriptPath.relativeTo(root))
-
-      val (deps, updatedCode) = process(scriptPath) match {
-        case None => (Nil, os.read(scriptPath))
+      val (deps, updatedCode) = process(script.path) match {
+        case None => (Nil, os.read(script.path))
         case Some((deps, updatedCode)) => (deps, updatedCode)
       }
 
       val (code, topWrapperLen, _) = codeWrapper.wrapCode(
-        Seq(Name("ammonite"), Name("$file")) ++ pkg,
+        pkg,
         wrapper,
         updatedCode
       )
 
       val deps0 = deps.map(parseDependency(_, platformSuffix, scalaVersion, scalaBinaryVersion))
 
-      ScriptData(scriptPath, wrapper.raw, code, deps0, topWrapperLen)
+      val className = (pkg :+ wrapper).map(_.raw).mkString(".")
+      ScriptData(script.path, className, code, deps0, topWrapperLen)
     }
 
     val fromDirectories = inputs.elements
       .collect {
         case d: Inputs.Directory =>
-          val dir = os.FilePath(d.path).resolveFrom(inputs.cwd)
-          os.walk.stream(dir)
+          os.walk.stream(d.path)
             .filter { p =>
-              !p.relativeTo(dir).segments.exists(_.startsWith("."))
+              !p.relativeTo(d.path).segments.exists(_.startsWith("."))
             }
             .filter(os.isFile(_))
             .collect {
               case p if p.last.endsWith(".java") =>
-                Inputs.JavaFile(p.relativeTo(inputRoot).toString)
+                Inputs.JavaFile(p, Some(d.path))
               case p if p.last.endsWith(".scala") =>
-                Inputs.ScalaFile(p.relativeTo(inputRoot).toString)
+                Inputs.ScalaFile(p, Some(d.path))
               case p if p.last.endsWith(".sc") =>
-                Inputs.Script(p.relativeTo(inputRoot).toString, Some(d.path))
+                Inputs.Script(p, Some(d.path))
             }
             .toVector
       }
@@ -180,12 +171,11 @@ object Sources {
     val scalaFilePathsOrCode = (inputs.elements.iterator ++ fromDirectories.iterator)
       .collect {
         case f: Inputs.ScalaFile =>
-          val originalPath = os.Path(inputRoot.toNIO.resolve(f.path).toAbsolutePath)
-          process(originalPath) match {
+          process(f.path) match {
             case None => Iterator(Right(f.path))
             case Some((deps, updatedCode)) =>
-              // TODO Ensure f.path is relative, splitting might have issues on Windows
-              Iterator(Left((originalPath, deps, f.path.stripSuffix(".scala").split("/").mkString("."), updatedCode)))
+              val relPath = f.path.relativeTo(f.relativeTo.getOrElse(inputs.workspace))
+              Iterator(Left((f.path, deps, relPath, updatedCode)))
           }
       }
       .flatten
@@ -210,22 +200,26 @@ object Sources {
       .flatten
       .map(str => parseDependency(str, platformSuffix, scalaVersion, scalaBinaryVersion))
 
-    val headScriptDataOpt = inputs.elements.headOption.collect {
-      case s: Inputs.Script => scriptData(s)
+    val mainClassOpt = inputs.mainClassElement.collect {
+      case s: Inputs.ScalaFile if s.path.last.endsWith(".scala") => // TODO ignore case for the suffix?
+        val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, s.path.relativeTo(s.relativeTo.getOrElse(inputs.workspace)))
+        (pkg :+ wrapper).map(_.raw).mkString(".")
+      case s: Inputs.Script =>
+        scriptData(s).className
     }
-    def otherScriptsData = (inputs.elements.iterator.drop(1) ++ fromDirectories.iterator).collect {
-      case s: Inputs.Script => scriptData(s)
-    }
-    val allScriptData = (headScriptDataOpt.iterator ++ otherScriptsData).toVector
+    val allScriptData = (inputs.elements.iterator ++ fromDirectories.iterator)
+      .collect {
+        case s: Inputs.Script => scriptData(s)
+      }
+      .toVector
 
     Sources(
       paths = javaFilePaths ++ scalaFilePaths,
-      inMemory = inMemoryScalaFiles ++ allScriptData.map(script => (script.reportingPath, script.className, script.code, script.topWrapperLen)),
-      mainClass = headScriptDataOpt.map(_.className),
+      inMemory = inMemoryScalaFiles ++ allScriptData.map(script => (script.reportingPath, script.relPath, script.code, script.topWrapperLen)),
+      mainClass = mainClassOpt,
       dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
       resourceDirs = inputs.elements.collect {
-        case r: Inputs.ResourceDirectory =>
-          os.FilePath(r.path).resolveFrom(inputs.cwd)
+        case r: Inputs.ResourceDirectory => r.path
       }
     )
   }
@@ -236,6 +230,11 @@ object Sources {
     code: String,
     dependencies: Seq[coursierapi.Dependency],
     topWrapperLen: Int
-  )
+  ) {
+    def relPath: os.RelPath = {
+      val components = className.split('.')
+      os.rel / components.init.toSeq / s"${components.last}.scala"
+    }
+  }
 
 }

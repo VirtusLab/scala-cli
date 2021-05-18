@@ -23,7 +23,7 @@ object Bloop {
   private def emptyInputStream: InputStream =
     new ByteArrayInputStream(Array.emptyByteArray)
 
-  private def printDiagnostic(path: String, diag: bsp4j.Diagnostic): Unit =
+  private def printDiagnostic(path: os.Path, diag: bsp4j.Diagnostic): Unit =
     if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR || diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING) {
       val red = Console.RED
       val yellow = Console.YELLOW
@@ -34,11 +34,9 @@ object Bloop {
       val col = (diag.getRange.getStart.getCharacter + 1).toString + ":"
       val msgIt = diag.getMessage.linesIterator
 
-      val path0 = {
-        val p = os.FilePath(path).resolveFrom(os.pwd)
-        if (p.startsWith(os.pwd)) "." + File.separator + p.relativeTo(os.pwd).toString
-        else p.toString
-      }
+      val path0 =
+        if (path.startsWith(os.pwd)) "." + File.separator + path.relativeTo(os.pwd).toString
+        else path.toString
       println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       for (line <- msgIt)
         println(prefix + line)
@@ -55,7 +53,7 @@ object Bloop {
     bloopVersion: String = Constants.bloopVersion,
     stdout: PrintStream = System.out,
     stderr: PrintStream = System.err
-  ): Path = {
+  ): os.Path = {
 
     val config = bloopgun.BloopgunConfig.default
     val bloopgunLogger: bloopgun.BloopgunLogger =
@@ -88,7 +86,7 @@ object Bloop {
         def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit =
           // if (params.getBuildTarget == ???)
           for (diag <- params.getDiagnostics.asScala)
-            printDiagnostic(Paths.get(new URI(params.getTextDocument.getUri)).toString, diag)
+            printDiagnostic(os.Path(Paths.get(new URI(params.getTextDocument.getUri)).toAbsolutePath), diag)
 
         def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
           val prefix = params.getType match {
@@ -198,7 +196,7 @@ object Bloop {
       sys.error("Compilation failed")
     }
 
-    Paths.get(new URI(scalacOptions.getClassDirectory))
+    os.Path(Paths.get(new URI(scalacOptions.getClassDirectory)).toAbsolutePath)
   }
 
 }

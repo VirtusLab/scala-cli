@@ -6,7 +6,8 @@ def generateNativeImage(
   graalVmVersion: String,
   classPath: Seq[os.Path],
   mainClass: String,
-  dest: os.Path
+  dest: os.Path,
+  includeResources: Seq[String]
 ): Unit = {
 
   val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
@@ -62,7 +63,10 @@ def generateNativeImage(
     "-H:IncludeResources=coursier/coursier.properties",
     "-H:IncludeResources=coursier/launcher/coursier.properties",
     "-H:IncludeResources=coursier/launcher/.*.bat",
-    "-H:IncludeResources=org/scalajs/linker/backend/emitter/.*.sjsir",
+    "-H:IncludeResources=org/scalajs/linker/backend/emitter/.*.sjsir"
+  ) ++
+  includeResources.map(r => s"-H:IncludeResources=$r") ++
+  Seq(
     "--allow-incomplete-classpath",
     "--report-unsupported-elements-at-runtime",
     "-H:+ReportExceptionStackTraces",

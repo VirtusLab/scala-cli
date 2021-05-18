@@ -1,4 +1,6 @@
-package scala.cli.tests
+package scala.cli.integration
+
+import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
@@ -225,4 +227,54 @@ class RunTests extends munit.FunSuite {
       directoryNative()
     }
 
+  test("sub-directory") {
+    val fileName = "script.sc"
+    val expectedClassName = fileName.stripSuffix(".sc") + "$"
+    val scriptPath = os.rel / "something" / fileName
+    val inputs = TestInputs(
+      Seq(
+        scriptPath ->
+         s"""println(getClass.getName)
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, scriptPath.toString)
+        .call(cwd = root)
+        .out.text
+        .trim
+      expect(output == expectedClassName)
+    }
+  }
+
+  test("sub-directory and script") {
+    val fileName = "script.sc"
+    val expectedClassName = fileName.stripSuffix(".sc") + "$"
+    val scriptPath = os.rel / "something" / fileName
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "dir" / "Messages.scala" ->
+         s"""object Messages {
+            |  def msg = "Hello"
+            |}
+            |""".stripMargin,
+        os.rel / "dir" / "Print.scala" ->
+         s"""object Print {
+            |  def main(args: Array[String]): Unit =
+            |    println(Messages.msg)
+            |}
+            |""".stripMargin,
+        scriptPath ->
+         s"""println(getClass.getName)
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "dir", scriptPath.toString)
+        .call(cwd = root)
+        .out.text
+        .trim
+      expect(output == expectedClassName)
+    }
+  }
 }

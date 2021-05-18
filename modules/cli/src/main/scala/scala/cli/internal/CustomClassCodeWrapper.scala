@@ -33,8 +33,7 @@ object CustomCodeClassWrapper extends CodeWrapper{
     extraCode: String
   ) = {
     val isObjDef = Parsers.isObjDef(code)
-    val pkgName0 = pkgName.drop(2)
-    val packageDirective = if (pkgName0.isEmpty) "" else s"package ${encodeScalaSourcePath(pkgName0)}" + "\n"
+    val packageDirective = if (pkgName.isEmpty) "" else s"package ${encodeScalaSourcePath(pkgName)}" + "\n"
 
     if (isObjDef) {
       val top = normalizeNewlines(s"""$packageDirective
