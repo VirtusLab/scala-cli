@@ -20,7 +20,7 @@ implicit def millModuleBasePath: define.BasePath =
 object cli                    extends Cross[Cli](defaultCliScalaVersion)
 object `jvm-tests`            extends JvmTests
 object `native-tests`         extends NativeTests
-object stubs                  extends JavaModule with ScalaCliPublishModule
+object stubs                  extends JavaModule with ScalaCliPublishModule with PublishLocalNoFluff
 object runner                 extends Cross[Runner](Scala.all: _*)
 object `test-runner`          extends Cross[TestRunner](Scala.all: _*)
 object bloopgun               extends Cross[Bloopgun](Scala.allScala2: _*)
@@ -223,7 +223,41 @@ trait JvmTests extends CliTests {
   def testLauncher = cli(defaultCliScalaVersion).launcher()
 }
 
-class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
+trait PublishLocalNoFluff extends PublishModule {
+  def emptyZip = T{
+    import java.io._
+    import java.util.zip._
+    val dest = T.dest / "empty.zip"
+    val baos = new ByteArrayOutputStream
+    val zos = new ZipOutputStream(baos)
+    zos.finish()
+    zos.close()
+    os.write(dest, baos.toByteArray)
+    PathRef(dest)
+  }
+  // adapted from https://github.com/com-lihaoyi/mill/blob/fea79f0515dda1def83500f0f49993e93338c3de/scalalib/src/PublishModule.scala#L70-L85
+  // writes empty zips as source and doc JARs
+  def publishLocalNoFluff(localIvyRepo: String = null): define.Command[Unit] = T.command {
+
+    import mill.scalalib.publish.LocalIvyPublisher
+    val publisher = localIvyRepo match {
+      case null => LocalIvyPublisher
+      case repo => new LocalIvyPublisher(os.Path(repo, os.pwd))
+    }
+
+    publisher.publish(
+      jar = jar().path,
+      sourcesJar = emptyZip().path,
+      docJar = emptyZip().path,
+      pom = pom().path,
+      ivy = ivy().path,
+      artifact = artifactMetadata(),
+      extras = extraPublish()
+    )
+  }
+}
+
+class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
   def mainClass = Some("scala.cli.runner.Runner")
   // def ivyDeps =
   //   if (crossScalaVersion == "3.0.0-RC2")
@@ -232,7 +266,7 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
   //     Agg.empty[Dep]
 }
 
-class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
+class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
   def ivyDeps = Agg(
     Deps.asm,
     Deps.testInterface
@@ -263,7 +297,7 @@ class Bloopgun(val crossScalaVersion: String) extends CrossSbtModule with ScalaC
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 }
 
-class LineModifierPlugin(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
+class LineModifierPlugin(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
   def compileIvyDeps =
     if (crossScalaVersion.startsWith("2."))
       Agg(Deps.scalac(crossScalaVersion))
@@ -342,13 +376,13 @@ private def stubsModules = {
 }
 
 def publishStubs = T{
-  val tasks = stubsModules.map(_.publishLocal())
+  val tasks = stubsModules.map(_.publishLocalNoFluff())
   define.Task.sequence(tasks)
 }
 
 def localRepo = T{
   val repoRoot = os.rel / "out" / "repo"
-  val tasks = stubsModules.map(_.publishLocal(repoRoot.toString))
+  val tasks = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
   define.Task.sequence(tasks).map(_ => repoRoot.toString)
 }
 
@@ -367,8 +401,6 @@ def localRepoZip = T{
     os.walk(repoDir0).filter(_ != repoDir0).foreach { p =>
       val isDir = os.isDir(p)
       val name = p.relativeTo(repoDir0).toString + (if (isDir) "/" else "")
-      pprint.log(isDir)
-      pprint.log(name)
       val entry = new ZipEntry(name)
       entry.setTime(os.mtime(p))
       zos.putNextEntry(entry)
