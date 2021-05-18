@@ -137,7 +137,7 @@ object Sources {
       }
 
       val (code, topWrapperLen, _) = codeWrapper.wrapCode(
-        Seq(Name("ammonite"), Name("$file")) ++ pkg,
+        pkg,
         wrapper,
         updatedCode
       )
