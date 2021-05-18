@@ -5,10 +5,14 @@ import scala.cli.Build
 object TestUtil {
 
   implicit class TestBuildOps(private val build: Build) extends AnyVal {
+    private def successfulBuild: Build.Successful =
+      build.successfulOpt.getOrElse {
+        sys.error("Compilation failed")
+      }
     def generated(): Seq[os.RelPath] =
-      os.walk(build.output)
+      os.walk(successfulBuild.output)
         .filter(os.isFile(_))
-        .map(_.relativeTo(build.output))
+        .map(_.relativeTo(successfulBuild.output))
     def assertGeneratedEquals(expected: String*): Unit = {
       val generated0 = generated()
       assert(

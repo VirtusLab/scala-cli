@@ -29,7 +29,14 @@ object Package extends CaseApp[PackageOptions] {
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
+    // TODO Add watch mode
+
     val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
+
+    val successfulBuild = build.successfulOpt.getOrElse {
+      System.err.println("Compilation failed")
+      sys.exit(1)
+    }
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
@@ -57,34 +64,34 @@ object Package extends CaseApp[PackageOptions] {
 
     lazy val mainClassOpt =
       options.mainClass.filter(_.nonEmpty) // trim it too?
-        .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
+        .orElse(successfulBuild.retainedMainClassOpt(warnIfSeveral = true))
     def mainClass() = mainClassOpt.getOrElse(sys.error("No main class"))
 
     options.packageType match {
       case PackageOptions.PackageType.Bootstrap =>
-        bootstrap(build, destPath, mainClass(), () => alreadyExistsCheck())
+        bootstrap(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
       case PackageOptions.PackageType.LibraryJar =>
-        val content = libraryJar(build)
+        val content = libraryJar(successfulBuild)
         alreadyExistsCheck()
         if (options.force) os.write.over(destPath, content)
         else os.write(destPath, content)
 
       case PackageOptions.PackageType.Js =>
-        linkJs(build, destPath, Some(mainClass()), addTestInitializer = false)
+        linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false)
 
       case PackageOptions.PackageType.Native =>
         val nativeOptions = options.shared.scalaNativeOptionsIKnowWhatImDoing
         val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
         val logger = options.shared.scalaNativeLogger
 
-        buildNative(build, mainClass(), destPath, nativeOptions, workDir, logger)
+        buildNative(successfulBuild, mainClass(), destPath, nativeOptions, workDir, logger)
     }
 
     if (options.shared.logging.verbosity >= 0)
       System.err.println(s"Wrote $dest")
   }
 
-  private def libraryJar(build: Build): Array[Byte] = {
+  private def libraryJar(build: Build.Successful): Array[Byte] = {
 
     val baos = new ByteArrayOutputStream
 
@@ -118,7 +125,7 @@ object Package extends CaseApp[PackageOptions] {
     baos.toByteArray
   }
 
-  private def bootstrap(build: Build, destPath: os.Path, mainClass: String, alreadyExistsCheck: () => Unit): Unit = {
+  private def bootstrap(build: Build.Successful, destPath: os.Path, mainClass: String, alreadyExistsCheck: () => Unit): Unit = {
     val byteCodeZipEntries = os.walk(build.output)
       .filter(os.isFile(_))
       .map { path =>
@@ -159,7 +166,7 @@ object Package extends CaseApp[PackageOptions] {
     BootstrapGenerator.generate(params, destPath.toNIO)
   }
 
-  def withLibraryJar[T](build: Build, fileName: String = "library")(f: Path => T): T = {
+  def withLibraryJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {
     val mainJarContent = libraryJar(build)
     val mainJar = Files.createTempFile(fileName.stripSuffix(".jar"), ".jar")
     try {
@@ -170,14 +177,14 @@ object Package extends CaseApp[PackageOptions] {
     }
   }
 
-  def linkJs(build: Build, dest: os.Path, mainClassOpt: Option[String], addTestInitializer: Boolean): Unit =
+  def linkJs(build: Build.Successful, dest: os.Path, mainClassOpt: Option[String], addTestInitializer: Boolean): Unit =
     withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
       val classPath = mainJar +: build.artifacts.classPath
       (new ScalaJsLinker).link(classPath.toArray, mainClassOpt.orNull, addTestInitializer, dest.toNIO)
     }
 
   def buildNative(
-    build: Build,
+    build: Build.Successful,
     mainClass: String,
     dest: os.Path,
     nativeOptions: Build.ScalaNativeOptions,

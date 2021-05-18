@@ -14,44 +14,71 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.scalanative.{build => sn}
 import scala.util.control.NonFatal
 
-final case class Build(
-  inputs: Inputs,
-  options: Build.Options,
-  sources: Sources,
-  artifacts: Artifacts,
-  project: Project,
-  output: os.Path
-) {
-  def fullClassPath: Seq[Path] =
-    Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
-  def foundMainClasses(): Seq[String] =
-    MainClass.find(output)
-  def retainedMainClassOpt(warnIfSeveral: Boolean = false): Option[String] = {
-    lazy val foundMainClasses0 = foundMainClasses()
-    val defaultMainClassOpt = sources.mainClass
-      .filter(name => foundMainClasses0.contains(name))
-    def foundMainClassOpt =
-      if (foundMainClasses0.isEmpty) {
-        val msg = "No main class found"
-        System.err.println(msg)
-        sys.error(msg)
-      }
-      else if (foundMainClasses0.length == 1) foundMainClasses0.headOption
-      else {
-        if (warnIfSeveral) {
-          System.err.println("Found several main classes:")
-          for (name <- foundMainClasses0)
-            System.err.println(s"  $name")
-          System.err.println("Please specify which one to use with --main-class")
-        }
-        None
-      }
+trait Build {
+  def inputs: Inputs
+  def options: Build.Options
+  def sources: Sources
+  def artifacts: Artifacts
+  def project: Project
+  def outputOpt: Option[os.Path]
+  def success: Boolean
 
-    defaultMainClassOpt.orElse(foundMainClassOpt)
-  }
+  def successfulOpt: Option[Build.Successful]
 }
 
 object Build {
+
+  final case class Successful(
+    inputs: Inputs,
+    options: Build.Options,
+    sources: Sources,
+    artifacts: Artifacts,
+    project: Project,
+    output: os.Path
+  ) extends Build {
+    def success: Boolean = true
+    def successfulOpt: Some[this.type] = Some(this)
+    def outputOpt: Some[os.Path] = Some(output)
+    def fullClassPath: Seq[Path] =
+      Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
+    def foundMainClasses(): Seq[String] =
+      MainClass.find(output)
+    def retainedMainClassOpt(warnIfSeveral: Boolean = false): Option[String] = {
+      lazy val foundMainClasses0 = foundMainClasses()
+      val defaultMainClassOpt = sources.mainClass
+        .filter(name => foundMainClasses0.contains(name))
+      def foundMainClassOpt =
+        if (foundMainClasses0.isEmpty) {
+          val msg = "No main class found"
+          System.err.println(msg)
+          sys.error(msg)
+        }
+        else if (foundMainClasses0.length == 1) foundMainClasses0.headOption
+        else {
+          if (warnIfSeveral) {
+            System.err.println("Found several main classes:")
+            for (name <- foundMainClasses0)
+              System.err.println(s"  $name")
+            System.err.println("Please specify which one to use with --main-class")
+          }
+          None
+        }
+
+      defaultMainClassOpt.orElse(foundMainClassOpt)
+    }
+  }
+
+  final case class Failed(
+    inputs: Inputs,
+    options: Build.Options,
+    sources: Sources,
+    artifacts: Artifacts,
+    project: Project
+  ) extends Build {
+    def success: Boolean = false
+    def successfulOpt: None.type = None
+    def outputOpt: None.type = None
+  }
 
   final case class ScalaJsOptions(
     platformSuffix: String,
@@ -161,12 +188,13 @@ object Build {
     )
     val build0 = buildOnce(cwd, inputs, sources, options, logger)
 
-    if (options.runJmh)
-      jmhBuild(inputs, build0, logger, cwd).getOrElse {
-        sys.error("JMH build failed") // suppress stack trace?
-      }
-    else
-      build0
+    build0 match {
+      case successful: Successful if options.runJmh =>
+        jmhBuild(inputs, successful, logger, cwd).getOrElse {
+          sys.error("JMH build failed") // suppress stack trace?
+        }
+      case _ => build0
+    }
   }
 
   def watch(
@@ -321,29 +349,36 @@ object Build {
             resourceDirs = sources.resourceDirs
     )
 
-    project.writeBloopFile()
+    project.writeBloopFile(logger)
 
-    val outputPath = Bloop.compile(
+    val outputPathOpt = Bloop.compile(
       inputs.workspace,
       inputs.projectName,
       logger
     )
 
-    // TODO Disable post-processing altogether when options.addLineModifierPlugin is true
-    // (needs source gen to use the exact same names as the original file)
-    // TODO Write classes to a separate directory during post-processing
-    val mappings = generatedSources
-      .map {
-        case (path, reportingPath, len) =>
-          val lineShift =
-            if (options.addLineModifierPlugin) 0
-            else -os.read(path).take(len).count(_ == '\n') // charset?
-          (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
-      }
-      .toMap
-    AsmPositionUpdater.postProcess(mappings, outputPath, logger)
+    for (outputPath <- outputPathOpt) {
+      // TODO Disable post-processing altogether when options.addLineModifierPlugin is true
+      // (needs source gen to use the exact same names as the original file)
+      // TODO Write classes to a separate directory during post-processing
+      val mappings = generatedSources
+        .map {
+          case (path, reportingPath, len) =>
+            val lineShift =
+              if (options.addLineModifierPlugin) 0
+              else -os.read(path).take(len).count(_ == '\n') // charset?
+            (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
+        }
+        .toMap
+      AsmPositionUpdater.postProcess(mappings, outputPath, logger)
+    }
 
-    Build(inputs, options, sources, artifacts, project, outputPath)
+    outputPathOpt match {
+      case Some(outputPath) =>
+        Successful(inputs, options, sources, artifacts, project, outputPath)
+      case None =>
+        Failed(inputs, options, sources, artifacts, project)
+    }
   }
 
   private def onChangeBufferedObserver(onEvent: PathWatchers.Event => Unit): Observer[PathWatchers.Event] =
@@ -409,7 +444,7 @@ object Build {
       }
     }
 
-  def jmhBuild(inputs: Inputs, build: Build, logger: Logger, cwd: os.Path) = {
+  def jmhBuild(inputs: Inputs, build: Build.Successful, logger: Logger, cwd: os.Path) = {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir = inputs.workspace / ".scala" / ".bloop" / jmhProjectName
     os.remove.all(jmhOutputDir)

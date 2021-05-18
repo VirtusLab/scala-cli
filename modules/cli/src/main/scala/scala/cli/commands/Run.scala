@@ -21,7 +21,7 @@ object Run extends CaseApp[RunOptions] {
       case Right(i) => i
     }
 
-    def maybeRun(build: Build, allowTerminate: Boolean): Unit =
+    def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
       maybeRunOnce(
         options,
         inputs.workspace,
@@ -34,14 +34,23 @@ object Run extends CaseApp[RunOptions] {
       )
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
-        maybeRun(build, allowTerminate = false)
+      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
+        case s: Build.Successful =>
+          maybeRun(s, allowTerminate = false)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
       val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
-      maybeRun(build, allowTerminate = true)
+      build match {
+        case s: Build.Successful =>
+          maybeRun(s, allowTerminate = true)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
+          sys.exit(1)
+      }
     }
   }
 
@@ -49,7 +58,7 @@ object Run extends CaseApp[RunOptions] {
     options: RunOptions,
     root: os.Path,
     projectName: String,
-    build: Build,
+    build: Build.Successful,
     args: Seq[String],
     allowExecve: Boolean,
     exitOnError: Boolean,
@@ -80,7 +89,7 @@ object Run extends CaseApp[RunOptions] {
     options: SharedOptions,
     root: os.Path,
     projectName: String,
-    build: Build,
+    build: Build.Successful,
     mainClass: String,
     args: Seq[String],
     allowExecve: Boolean,
@@ -138,7 +147,7 @@ object Run extends CaseApp[RunOptions] {
 
 
   def withLinkedJs[T](
-    build: Build,
+    build: Build.Successful,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean
   )(f: os.Path => T): T = {
@@ -153,7 +162,7 @@ object Run extends CaseApp[RunOptions] {
   }
 
   def withNativeLauncher[T](
-    build: Build,
+    build: Build.Successful,
     mainClass: String,
     options: Build.ScalaNativeOptions,
     workDir: os.Path,

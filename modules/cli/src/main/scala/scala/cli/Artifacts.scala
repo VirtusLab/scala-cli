@@ -82,22 +82,23 @@ object Artifacts {
       jsTestBridgeDependencies ++
       jmhDependencies
 
-    val compilerArtifacts = artifacts(compilerDependencies, localRepoOpt.toSeq, logger.coursierInterfaceLogger)
-    val artifacts0 = artifacts(updatedDependencies, localRepoOpt.toSeq, logger.coursierInterfaceLogger)
+    val compilerArtifacts = artifacts(compilerDependencies, localRepoOpt.toSeq, logger)
+    val artifacts0 = artifacts(updatedDependencies, localRepoOpt.toSeq, logger)
 
     val extraStubsJars =
       if (addStubs)
         artifacts(
           Seq(dependency(Constants.stubsOrganization, Constants.stubsModuleName, Constants.stubsVersion)),
           localRepoOpt.toSeq,
-          logger.coursierInterfaceLogger
+          logger
         ).map(_._2)
       else
         Nil
 
     val compilerPlugins0 = compilerPlugins.flatMap { dep =>
-      val dep0 = dep.withTransitive(false) // mutable API? :~
-      artifacts(Seq(dep0), localRepoOpt.toSeq, logger.coursierInterfaceLogger)
+      val dep0 = coursierapi.Dependency.of(dep)
+        .withTransitive(false) // mutable API? :~
+      artifacts(Seq(dep0), localRepoOpt.toSeq, logger)
         .map { case (url, path) => (dep0, url, path) }
     }
 
@@ -133,12 +134,13 @@ object Artifacts {
   private[cli] def artifacts(
     dependencies: Seq[coursierapi.Dependency],
     extraRepositories: Seq[coursierapi.Repository],
-    logger: coursierapi.Logger
-  ): Seq[(String, Path)] =
+    logger: Logger
+  ): Seq[(String, Path)] = {
+    logger.debug(s"Fetching $dependencies" + (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories"))
     // FIXME Many parameters that we could allow to customize here
-    coursierapi.Fetch.create()
+    val result = coursierapi.Fetch.create()
       .addDependencies(dependencies: _*)
-      .withCache(coursierapi.Cache.create().withLogger(logger))
+      .withCache(coursierapi.Cache.create().withLogger(logger.coursierInterfaceLogger))
       .addRepositories(extraRepositories: _*)
       .fetchResult()
       .getArtifacts()
@@ -146,5 +148,8 @@ object Artifacts {
       .iterator
       .map(e => (e.getKey.getUrl, e.getValue.toPath))
       .toList
+    logger.debug((Seq(s"Found ${result.length} artifacts:") ++ result.map("  " + _._2) ++ Seq("")).mkString(System.lineSeparator()))
+    result
+  }
 
 }

@@ -27,7 +27,7 @@ object ReplArtifacts {
   ): ReplArtifacts = {
     val localRepoOpt = LocalRepo.localRepo()
     val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion, scalaVersion)
-    val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, logger.coursierInterfaceLogger)
+    val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, logger)
     ReplArtifacts(replArtifacts)
   }
 

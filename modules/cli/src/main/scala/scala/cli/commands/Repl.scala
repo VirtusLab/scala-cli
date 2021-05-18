@@ -14,7 +14,14 @@ object Repl extends CaseApp[ReplOptions] {
       case Right(i) => i
     }
 
+    // TODO Add watch support?
+
     val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
+
+    val successfulBuild = build.successfulOpt.getOrElse {
+      System.err.println("Compilation failed")
+      sys.exit(1)
+    }
 
     val replArtifacts = ReplArtifacts(
       options.shared.scalaVersion,
@@ -35,7 +42,7 @@ object Repl extends CaseApp[ReplOptions] {
 
     Runner.run(
       build.artifacts.javaHome.toIO,
-      build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
+      successfulBuild.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
       ammoniteMainClass,
       Nil,
       options.shared.logger,

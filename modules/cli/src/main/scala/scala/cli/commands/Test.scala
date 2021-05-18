@@ -20,14 +20,23 @@ object Test extends CaseApp[TestOptions] {
       addTestRunnerDependencyOpt = Some(true)
     )
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
-        testOnce(options.shared, inputs.workspace, inputs.projectName, build, allowExecve = false, exitOnError = false)
+      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
+        case s: Build.Successful =>
+          testOnce(options.shared, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
       val build = Build.build(inputs, buildOptions, options.shared.logger, os.pwd)
-      testOnce(options.shared, inputs.workspace, inputs.projectName, build, allowExecve = true, exitOnError = true)
+      build match {
+        case s: Build.Successful =>
+          testOnce(options.shared, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
+          sys.exit(1)
+      }
     }
   }
 
@@ -35,7 +44,7 @@ object Test extends CaseApp[TestOptions] {
     options: SharedOptions,
     root: os.Path,
     projectName: String,
-    build: Build,
+    build: Build.Successful,
     allowExecve: Boolean,
     exitOnError: Boolean
   ): Unit = {

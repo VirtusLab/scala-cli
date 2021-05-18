@@ -18,10 +18,11 @@ object Compile extends CaseApp[CompileOptions] {
     }
 
     def postBuild(build: Build): Unit =
-      if (options.classPath) {
-        val cp = build.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
-        println(cp)
-      }
+      if (options.classPath)
+        for (s <- build.successfulOpt) {
+          val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
+          println(cp)
+        }
 
     if (options.shared.watch) {
       val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>

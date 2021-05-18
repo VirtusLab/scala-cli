@@ -50,14 +50,21 @@ object Bloop {
     workspace: os.Path,
     projectName: String,
     logger: Logger,
-    bloopVersion: String = Constants.bloopVersion,
-    stdout: PrintStream = System.out,
-    stderr: PrintStream = System.err
-  ): os.Path = {
+    bloopVersion: String = Constants.bloopVersion
+  ): Option[os.Path] = {
 
     val config = bloopgun.BloopgunConfig.default
     val bloopgunLogger = logger.bloopgunLogger
-    if (!bloopgun.Bloopgun.check(config, bloopgunLogger)) {
+
+    val isBloopRunning = bloopgun.Bloopgun.check(config, bloopgunLogger)
+
+    logger.debug(
+      if (isBloopRunning) s"Bloop is running on ${config.host}:${config.port}"
+      else s"No bloop daemon found on ${config.host}:${config.port}"
+    )
+
+    if (!isBloopRunning) {
+      logger.debug(s"Starting bloop server version ${config.version}")
       val serverStartedFuture = bloopgun.Bloopgun.startServer(
         config,
         Executors.newSingleThreadScheduledExecutor(ThreadUtil.daemonThreadFactory()),
@@ -67,6 +74,7 @@ object Bloop {
       )
 
       Await.result(serverStartedFuture, Duration.Inf)
+      logger.debug("Bloop server started")
     }
 
     val client: bsp4j.BuildClient =
@@ -77,12 +85,15 @@ object Bloop {
         val gray = "\u001b[90m"
         val reset = Console.RESET
 
-        def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit =
+        def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit = {
+          logger.debug("Received onBuildPublishDiagnostics from bloop: " + pprint.tokenize(params).map(_.render).mkString)
           // if (params.getBuildTarget == ???)
           for (diag <- params.getDiagnostics.asScala)
             printDiagnostic(os.Path(Paths.get(new URI(params.getTextDocument.getUri)).toAbsolutePath), diag)
+        }
 
         def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
+          logger.debug("Received onBuildLogMessage from bloop: " + pprint.tokenize(params).map(_.render).mkString)
           val prefix = params.getType match {
             case bsp4j.MessageType.ERROR       => "Error: "
             case bsp4j.MessageType.WARNING     => "Warning: "
@@ -91,49 +102,52 @@ object Bloop {
           }
           System.err.println(prefix + params.getMessage)
         }
-        def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit = {
-          // println("onBuildShowMessage")
-          // pprint.log(params)
-        }
+        def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
+          logger.debug("Received onBuildShowMessage from bloop: " + pprint.tokenize(params).map(_.render).mkString)
 
-        def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit = {}
+        def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit =
+          logger.debug("Received onBuildTargetDidChange from bloop: " + pprint.tokenize(params).map(_.render).mkString)
 
-        def onBuildTaskStart(params: bsp4j.TaskStartParams): Unit =
+        def onBuildTaskStart(params: bsp4j.TaskStartParams): Unit = {
+          logger.debug("Received onBuildTaskStart from bloop: " + pprint.tokenize(params).map(_.render).mkString)
           for (msg <- Option(params.getMessage) if !msg.contains(" no-op compilation")) {
             printedStart = true
             System.err.println(gray + msg + reset)
           }
-        def onBuildTaskProgress(params: bsp4j.TaskProgressParams): Unit = {
-          // println("onBuildTaskProgress")
-          // pprint.log(params)
         }
-        def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit =
+        def onBuildTaskProgress(params: bsp4j.TaskProgressParams): Unit =
+          logger.debug("Received onBuildTaskProgress from bloop: " + pprint.tokenize(params).map(_.render).mkString)
+        def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit = {
+          logger.debug("Received onBuildTaskFinish from bloop: " + pprint.tokenize(params).map(_.render).mkString)
           if (printedStart)
             for (msg <- Option(params.getMessage))
               System.err.println(gray + msg + reset)
+        }
 
         override def onConnectWithServer(server: bsp4j.BuildServer): Unit = {}
       }
 
+    logger.debug("Opening BSP connection with bloop")
     val conn = bloopgun.Bloopgun.bsp(
       config,
       (workspace / ".scala").toNIO,
       bloopgunLogger
     )
+    logger.debug(s"Bloop BSP connection waiting at ${conn.address}")
 
     val s = {
       @tailrec
       def create(stopAt: Long): Socket = {
         val maybeSocket =
-          try Some(conn.openSocket())
+          try Right(conn.openSocket())
           catch {
-            case _: ConnectException => None
+            case e: ConnectException => Left(e)
           }
         maybeSocket match {
-          case Some(socket) => socket
-          case None =>
+          case Right(socket) => socket
+          case Left(e) =>
             if (System.currentTimeMillis() >= stopAt)
-              throw new IOException(s"Can't connect to ${conn.address}")
+              throw new IOException(s"Can't connect to ${conn.address}", e)
             else {
               Thread.sleep(100L)
               create(stopAt)
@@ -143,6 +157,8 @@ object Bloop {
 
       create(System.currentTimeMillis() + 5000L)
     }
+
+    logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
     val ec = Executors.newFixedThreadPool(4, ThreadUtil.daemonThreadFactory())
     val launcher = new jsonrpc.Launcher.Builder[FullBuildServer]()
@@ -164,33 +180,43 @@ object Bloop {
       (workspace / ".scala").toNIO.toUri.toASCIIString,
       new bsp4j.BuildClientCapabilities(List("scala", "java").asJava)
     )
+    logger.debug("Sending buildInitialize BSP command to Bloop")
     server.buildInitialize(initParams).get()
 
     server.onBuildInitialized()
 
+    logger.debug("Listing BSP build targets")
     val results = server.workspaceBuildTargets().get()
     val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
 
-    val buildTarget = buildTargetOpt.getOrElse(???)
+    val buildTarget = buildTargetOpt.getOrElse {
+      throw new Exception(
+        s"Expected to find project '$projectName' in build targets (only got ${results.getTargets.asScala.map("'" + _.getDisplayName + "'").mkString(", ")})"
+      )
+    }
 
+    logger.debug(s"Compiling $projectName with Bloop")
     val compileRes = server.buildTargetCompile(
       new bsp4j.CompileParams(List(buildTarget.getId).asJava)
     ).get()
 
+    logger.debug(s"Getting scalac options of $projectName with Bloop")
     val scalacOptionsResp = server.buildTargetScalacOptions(
       new bsp4j.ScalacOptionsParams(List(buildTarget.getId).asJava)
     ).get()
 
     val scalacOptions = scalacOptionsResp.getItems.asScala
       .find(_.getTarget == buildTarget.getId)
-      .getOrElse(???)
+      .getOrElse {
+        throw new Exception(
+          s"Expected to find build target '${buildTarget.getId}' in scalac options (only got ${scalacOptionsResp.getItems.asScala.map("'" + _.getTarget + "'").mkString(", ")})"
+        )
+      }
 
     val success = compileRes.getStatusCode == bsp4j.StatusCode.OK
-    if (!success) {
-      sys.error("Compilation failed")
-    }
-
-    os.Path(Paths.get(new URI(scalacOptions.getClassDirectory)).toAbsolutePath)
+    logger.debug(if (success) "Compilation succeeded" else "Compilation failed")
+    if (success) Some(os.Path(Paths.get(new URI(scalacOptions.getClassDirectory)).toAbsolutePath))
+    else None
   }
 
 }
