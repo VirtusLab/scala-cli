@@ -21,8 +21,6 @@ jobs:
     - uses: laughedelic/coursier-setup@v1
       with:
         jvm: 8
-    - name: Publish stubs locally
-      run: ./mill -i publishStubs
     - name: Setup (Windows only)
       if: runner.os == 'Windows'
       shell: bash
@@ -47,26 +45,6 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  publish:
-    needs: test
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: coursier/cache-action@v6
-    - uses: laughedelic/coursier-setup@v1
-      with:
-        jvm: 8
-    - run: .github/scripts/gpg-setup.sh
-      env:
-        PGP_SECRET: ${{ secrets.PGP_SECRET }}
-    - name: Release
-      run: ./mill -i publishSonatype __.publishArtifacts
-      env:
-        PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
-        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-
   launchers:
     needs: test
     if: github.event_name == 'push'
@@ -86,7 +64,7 @@ jobs:
         UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   website:
-    needs: [publish, launchers]
+    needs: launchers
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
