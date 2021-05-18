@@ -6,6 +6,7 @@ import $file.project.nativeimage, nativeimage.generateNativeImage
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.cs
 
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib.{publish => _, _}
 
 import scala.util.Properties
@@ -91,6 +92,9 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
          |  def lineModifierPluginOrganization = "${`line-modifier-plugin`(defaultCliScalaVersion).pomSettings().organization}"
          |  def lineModifierPluginModuleName = "${`line-modifier-plugin`(defaultCliScalaVersion).artifactName()}"
          |  def lineModifierPluginVersion = "${`line-modifier-plugin`(defaultCliScalaVersion).publishVersion()}"
+         |
+         |  def localRepoResourcePath = "$localRepoResourcePath"
+         |  def localRepoVersion = "${VcsVersion.vcsState().format()}"
          |}
          |""".stripMargin
     os.write(dest, code)
@@ -104,7 +108,9 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
     val dest = T.ctx().dest / "scala"
     val actualDest = T.ctx().dest / s"scala$extension"
 
-    generateNativeImage(graalVmVersion, cp, mainClass0, dest)
+    val localRepoJar0 = localRepoJar().path
+
+    generateNativeImage(graalVmVersion, cp :+ localRepoJar0, mainClass0, dest, Seq(localRepoResourcePath))
 
     PathRef(actualDest)
   }
@@ -142,6 +148,10 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
     )
   }
 
+  def runClasspath = T{
+    super.runClasspath() ++ Seq(localRepoJar())
+  }
+
   def launcher = T{
     import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
     import scala.util.Properties.isWin
@@ -150,10 +160,12 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
 
     val dest = T.ctx().dest / (if (isWin) "launcher.bat" else "launcher")
 
+    val localRepoJar0 = localRepoJar().path
+
     val preamble = Preamble()
       .withOsKind(isWin)
       .callsItself(isWin)
-    val entries = cp.map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
+    val entries = (cp :+ localRepoJar0).map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
     val loaderContent = coursier.launcher.ClassLoaderContent(entries)
     val params = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
       .withDeterministic(true)
@@ -318,7 +330,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
   upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
 }
 
-def publishStubs = T {
+private def stubsModules = {
   val javaModules = Seq(
     stubs
   )
@@ -326,6 +338,81 @@ def publishStubs = T {
     sv <- Scala.all
     proj <- Seq(runner, `test-runner`, `line-modifier-plugin`)
   } yield proj(sv)
-  val tasks = (javaModules ++ crossModules).map(_.publishLocal())
+  javaModules ++ crossModules
+}
+
+def publishStubs = T{
+  val tasks = stubsModules.map(_.publishLocal())
   define.Task.sequence(tasks)
+}
+
+def localRepo = T{
+  val repoRoot = os.rel / "out" / "repo"
+  val tasks = stubsModules.map(_.publishLocal(repoRoot.toString))
+  define.Task.sequence(tasks).map(_ => repoRoot.toString)
+}
+
+def localRepoZip = T{
+  val repoDir = localRepo()
+  val dest = T.dest / "repo.zip"
+
+  import java.io._
+  import java.util.zip._
+  val repoDir0 = os.Path(repoDir, os.pwd)
+  var fos: FileOutputStream = null
+  var zos: ZipOutputStream = null
+  try {
+    fos = new FileOutputStream(dest.toIO)
+    zos = new ZipOutputStream(new BufferedOutputStream(fos))
+    os.walk(repoDir0).filter(_ != repoDir0).foreach { p =>
+      val isDir = os.isDir(p)
+      val name = p.relativeTo(repoDir0).toString + (if (isDir) "/" else "")
+      pprint.log(isDir)
+      pprint.log(name)
+      val entry = new ZipEntry(name)
+      entry.setTime(os.mtime(p))
+      zos.putNextEntry(entry)
+      if (!isDir) {
+        zos.write(os.read.bytes(p))
+        zos.flush()
+      }
+      zos.closeEntry()
+    }
+    zos.finish()
+  } finally {
+    if (zos != null) zos.close()
+    if (fos != null) fos.close()
+  }
+
+  PathRef(dest)
+}
+
+def localRepoResourcePath = "local-repo.zip"
+
+def localRepoJar = T{
+  val zip = localRepoZip().path
+  val dest = T.dest / "repo.jar"
+
+  import java.io._
+  import java.util.zip._
+  var fos: FileOutputStream = null
+  var zos: ZipOutputStream = null
+  try {
+    fos = new FileOutputStream(dest.toIO)
+    zos = new ZipOutputStream(new BufferedOutputStream(fos))
+
+    val entry = new ZipEntry(localRepoResourcePath)
+    entry.setTime(os.mtime(zip))
+    zos.putNextEntry(entry)
+    zos.write(os.read.bytes(zip))
+    zos.flush()
+    zos.closeEntry()
+
+    zos.finish()
+  } finally {
+    if (zos != null) zos.close()
+    if (fos != null) fos.close()
+  }
+
+  PathRef(dest)
 }

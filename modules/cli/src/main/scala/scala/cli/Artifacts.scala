@@ -42,6 +42,8 @@ object Artifacts {
     addJmhDependencies: Option[String]
   ): Artifacts = {
 
+    val localRepoOpt = LocalRepo.localRepo()
+
     // expecting Java home to be an absolute path (os.Path will throw else)
     val javaHome0 = os.Path(
       javaHomeOpt
@@ -79,18 +81,18 @@ object Artifacts {
       jsTestBridgeDependencies ++
       jmhDependencies
 
-    val compilerArtifacts = artifacts(compilerDependencies)
-    val artifacts0 = artifacts(updatedDependencies)
+    val compilerArtifacts = artifacts(compilerDependencies, localRepoOpt.toSeq)
+    val artifacts0 = artifacts(updatedDependencies, localRepoOpt.toSeq)
 
     val extraStubsJars =
       if (addStubs)
-        artifacts(Seq(dependency(Constants.stubsOrganization, Constants.stubsModuleName, Constants.stubsVersion))).map(_._2)
+        artifacts(Seq(dependency(Constants.stubsOrganization, Constants.stubsModuleName, Constants.stubsVersion)), localRepoOpt.toSeq).map(_._2)
       else
         Nil
 
     val compilerPlugins0 = compilerPlugins.flatMap { dep =>
       val dep0 = dep.withTransitive(false) // mutable API? :~
-      artifacts(Seq(dep0))
+      artifacts(Seq(dep0), localRepoOpt.toSeq)
         .map { case (url, path) => (dep0, url, path) }
     }
 
@@ -123,11 +125,12 @@ object Artifacts {
     home.getAbsolutePath
   }
 
-  private[cli] def artifacts(dependencies: Seq[coursierapi.Dependency]): Seq[(String, Path)] =
+  private[cli] def artifacts(dependencies: Seq[coursierapi.Dependency], extraRepositories: Seq[coursierapi.Repository]): Seq[(String, Path)] =
     // FIXME Many parameters that we could allow to customize here
     coursierapi.Fetch.create()
       .addDependencies(dependencies: _*)
       .withCache(coursierapi.Cache.create().withLogger(coursierapi.Logger.progressBars()))
+      .addRepositories(extraRepositories: _*)
       .fetchResult()
       .getArtifacts()
       .asScala
