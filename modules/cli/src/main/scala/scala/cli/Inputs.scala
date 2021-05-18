@@ -80,7 +80,7 @@ object Inputs {
       Left("No inputs provided.")
     else {
       val validatedArgs = args.map { arg =>
-        val path = os.FilePath(arg).resolveFrom(cwd)
+        val path = os.Path(arg, cwd)
         if (arg.endsWith(".sc")) Right(Script(path, None))
         else if (arg.endsWith(".scala")) Right(ScalaFile(path, None))
         else if (arg.endsWith(".java")) Right(JavaFile(path, None))
