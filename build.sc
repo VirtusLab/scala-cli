@@ -25,7 +25,7 @@ object `test-runner`          extends Cross[TestRunner](Scala.all: _*)
 object bloopgun               extends Cross[Bloopgun](Scala.allScala2: _*)
 object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.all: _*)
 
-
+// We should be able to switch to 2.13.x when bumping the scala-native version
 def defaultCliScalaVersion = Scala.scala212
 
 class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
