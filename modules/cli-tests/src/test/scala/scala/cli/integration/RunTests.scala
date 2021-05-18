@@ -20,7 +20,7 @@ class RunTests extends munit.FunSuite {
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, fileName).call(cwd = root).out.text.trim
       if (!ignoreErrors)
-        assert(output == message, s"got '$output', expected '$message'")
+        expect(output == message)
     }
   }
 
@@ -47,7 +47,7 @@ class RunTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, fileName, "--js").call(cwd = root).out.text.trim
-      assert(output == message)
+      expect(output == message)
     }
   }
 
@@ -75,7 +75,7 @@ class RunTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, fileName, "--native").call(cwd = root).out.text.trim
-      assert(output == message)
+      expect(output == message)
     }
   }
 
@@ -98,7 +98,7 @@ class RunTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "print.sc", "messages.sc").call(cwd = root).out.text.trim
-      assert(output == message, s"got '$output', expected '$message'")
+      expect(output == message)
     }
   }
 
@@ -118,7 +118,7 @@ class RunTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "print.sc", "messages.sc", "--js").call(cwd = root).out.text.trim
-      assert(output == message, s"got '$output', expected '$message'")
+      expect(output == message)
     }
   }
 
@@ -146,7 +146,7 @@ class RunTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "print.sc", "messages.sc", "--native").call(cwd = root).out.text.trim
-      assert(output == message, s"got '$output', expected '$message'")
+      expect(output == message)
     }
   }
 
@@ -170,7 +170,7 @@ class RunTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "dir", "--main-class", "print").call(cwd = root).out.text.trim
-      assert(output == message, s"got '$output', expected '$message'")
+      expect(output == message)
     }
   }
 
@@ -225,7 +225,7 @@ class RunTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "dir", "--js", "--main-class", "print").call(cwd = root).out.text.trim
-      assert(output == message, s"got '$output', expected '$message'")
+      expect(output == message)
     }
   }
 
@@ -253,7 +253,7 @@ class RunTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "dir", "--native", "--main-class", "print").call(cwd = root).out.text.trim
-      assert(output == message, s"got '$output', expected '$message'")
+      expect(output == message)
     }
   }
 

@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import java.nio.file.Files
 
+import com.eed3si9n.expecty.Expecty.expect
+
 import scala.util.Properties
 
 class PackageTests extends munit.FunSuite {
@@ -30,11 +32,11 @@ class PackageTests extends munit.FunSuite {
       )
 
       val launcher = root / launcherName
-      assert(os.isFile(launcher))
-      assert(Files.isExecutable(launcher.toNIO))
+      expect(os.isFile(launcher))
+      expect(Files.isExecutable(launcher.toNIO))
 
       val output = os.proc(launcher.toString).call(cwd = root).out.text.trim
-      assert(output == message)
+      expect(output == message)
     }
   }
 
@@ -89,11 +91,11 @@ class PackageTests extends munit.FunSuite {
       )
 
       val launcher = root / destName
-      assert(os.isFile(launcher))
+      expect(os.isFile(launcher))
 
       val nodePath = TestUtil.fromPath("node").getOrElse("node")
       val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.text.trim
-      assert(output == message)
+      expect(output == message)
     }
   }
 
@@ -131,11 +133,11 @@ class PackageTests extends munit.FunSuite {
       )
 
       val launcher = root / destName
-      assert(os.isFile(launcher))
-      assert(Files.isExecutable(launcher.toNIO))
+      expect(os.isFile(launcher))
+      expect(Files.isExecutable(launcher.toNIO))
 
       val output = os.proc(launcher.toString).call(cwd = root).out.text.trim
-      assert(output == message)
+      expect(output == message)
     }
   }
 
