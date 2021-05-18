@@ -210,7 +210,8 @@ object Build {
               val relPath = p.relativeTo(d.path)
               val isHidden = relPath.segments.exists(_.startsWith("."))
               def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
-              !isHidden && isScalaFile
+              def isJavaFile = relPath.last.endsWith(".java")
+              !isHidden && (isScalaFile || isJavaFile)
           case _ => _ => true
         }
 
