@@ -22,7 +22,7 @@ object ScalaCli {
       case Some("test") =>
         Test.main(args.tail)
       case _ =>
-        Run.main(args)
+        Default.main(args)
     }
   }
 }

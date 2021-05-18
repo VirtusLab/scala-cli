@@ -9,7 +9,7 @@ import scala.cli.internal.Constants
 object Test extends CaseApp[TestOptions] {
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, os.pwd) match {
+    val inputs = Inputs(args.all, os.pwd, defaultInputs = Some(Inputs.default())) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)

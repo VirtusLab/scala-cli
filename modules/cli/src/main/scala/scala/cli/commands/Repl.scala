@@ -7,7 +7,7 @@ import scala.cli.{Build, Inputs, ReplArtifacts, Runner}
 object Repl extends CaseApp[ReplOptions] {
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, os.pwd) match {
+    val inputs = Inputs(args.all, os.pwd, defaultInputs = Some(Inputs.default())) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)

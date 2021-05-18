@@ -152,8 +152,7 @@ object Build {
     val maybePlatformSuffix =
       options.scalaJsOptions.map(_.platformSuffix)
         .orElse(options.scalaNativeOptions.map(_.platformSuffix))
-    val sources = Sources(
-      cwd,
+    val sources = Sources.forInputs(
       inputs,
       options.codeWrapper,
       maybePlatformSuffix.getOrElse(""),

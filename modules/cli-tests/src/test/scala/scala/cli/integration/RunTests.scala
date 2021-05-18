@@ -174,6 +174,41 @@ class RunTests extends munit.FunSuite {
     }
   }
 
+  test("Current directory as default") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "dir" / "messages.sc" ->
+         s"""def msg = "$message"
+            |""".stripMargin,
+        os.rel / "dir" / "print.sc" ->
+         s"""println(messages.msg)
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "run", "--main-class", "print").call(cwd = root / "dir").out.text.trim
+      expect(output == message)
+    }
+  }
+
+  test("No default input when no explicit command is passed") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "dir" / "print.sc" ->
+         s"""println("Foo")
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "--main-class", "print")
+        .call(cwd = root / "dir", check = false, mergeErrIntoOut = true)
+      val output = res.out.text.trim
+      expect(res.exitCode != 0)
+      expect(output.contains("No inputs provided"))
+    }
+  }
+
   def directoryJs(): Unit = {
     val message = "Hello"
     val inputs = TestInputs(

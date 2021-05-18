@@ -9,9 +9,12 @@ import scala.scalanative.{build => sn}
 import java.nio.file.{Files, Path}
 
 object Run extends CaseApp[RunOptions] {
-  def run(options: RunOptions, args: RemainingArgs): Unit = {
+  def run(options: RunOptions, args: RemainingArgs): Unit =
+    run(options, args, Some(Inputs.default()))
 
-    val inputs = Inputs(args.remaining, os.pwd) match {
+  def run(options: RunOptions, args: RemainingArgs, defaultInputs: Option[Inputs]): Unit = {
+
+    val inputs = Inputs(args.remaining, os.pwd, defaultInputs = defaultInputs) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)

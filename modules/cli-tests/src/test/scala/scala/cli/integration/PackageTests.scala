@@ -38,6 +38,34 @@ class PackageTests extends munit.FunSuite {
     }
   }
 
+  test("current directory as default input") {
+    val fileName = "simple.sc"
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+         s"""val msg = "$message"
+            |println(msg)
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
+
+      val launcher = root / "package.jar"
+      expect(os.isFile(launcher))
+      expect(Files.isExecutable(launcher.toNIO))
+
+      val output = os.proc(launcher.toString).call(cwd = root).out.text.trim
+      expect(output == message)
+    }
+  }
+
   def simpleJsTest(): Unit = {
     val fileName = "simple.sc"
     val message = "Hello"

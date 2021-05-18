@@ -144,6 +144,13 @@ class TestTests extends munit.FunSuite {
     }
   }
 
+  test("current directory as default input") {
+    successfulTestInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test").call(cwd = root).out.text
+      expect(output.contains("Hello from tests"))
+    }
+  }
+
   def successfulJsTest(): Unit =
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", ".", "--js").call(cwd = root).out.text
