@@ -247,4 +247,34 @@ class RunTests extends munit.FunSuite {
     }
   }
 
+  test("sub-directory and script") {
+    val fileName = "script.sc"
+    val expectedClassName = fileName.stripSuffix(".sc") + "$"
+    val scriptPath = os.rel / "something" / fileName
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "dir" / "Messages.scala" ->
+         s"""object Messages {
+            |  def msg = "Hello"
+            |}
+            |""".stripMargin,
+        os.rel / "dir" / "Print.scala" ->
+         s"""object Print {
+            |  def main(args: Array[String]): Unit =
+            |    println(Messages.msg)
+            |}
+            |""".stripMargin,
+        scriptPath ->
+         s"""println(getClass.getName)
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "dir", scriptPath.toString)
+        .call(cwd = root)
+        .out.text
+        .trim
+      expect(output == expectedClassName)
+    }
+  }
 }

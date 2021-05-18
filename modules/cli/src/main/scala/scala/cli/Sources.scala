@@ -144,7 +144,8 @@ object Sources {
 
       val deps0 = deps.map(parseDependency(_, platformSuffix, scalaVersion, scalaBinaryVersion))
 
-      ScriptData(script.path, wrapper.raw, code, deps0, topWrapperLen)
+      val className = (pkg :+ wrapper).map(_.raw).mkString(".")
+      ScriptData(script.path, className, code, deps0, topWrapperLen)
     }
 
     val fromDirectories = inputs.elements
@@ -199,18 +200,23 @@ object Sources {
       .flatten
       .map(str => parseDependency(str, platformSuffix, scalaVersion, scalaBinaryVersion))
 
-    val headScriptDataOpt = inputs.elements.headOption.collect {
-      case s: Inputs.Script => scriptData(s)
+    val mainClassOpt = inputs.mainClassElement.collect {
+      case s: Inputs.ScalaFile if s.path.last.endsWith(".scala") => // TODO ignore case for the suffix?
+        val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, s.path.relativeTo(s.relativeTo.getOrElse(inputs.workspace)))
+        (pkg :+ wrapper).map(_.raw).mkString(".")
+      case s: Inputs.Script =>
+        scriptData(s).className
     }
-    def otherScriptsData = (inputs.elements.iterator.drop(1) ++ fromDirectories.iterator).collect {
-      case s: Inputs.Script => scriptData(s)
-    }
-    val allScriptData = (headScriptDataOpt.iterator ++ otherScriptsData).toVector
+    val allScriptData = (inputs.elements.iterator ++ fromDirectories.iterator)
+      .collect {
+        case s: Inputs.Script => scriptData(s)
+      }
+      .toVector
 
     Sources(
       paths = javaFilePaths ++ scalaFilePaths,
       inMemory = inMemoryScalaFiles ++ allScriptData.map(script => (script.reportingPath, script.relPath, script.code, script.topWrapperLen)),
-      mainClass = headScriptDataOpt.map(_.className),
+      mainClass = mainClassOpt,
       dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
       resourceDirs = inputs.elements.collect {
         case r: Inputs.ResourceDirectory => r.path

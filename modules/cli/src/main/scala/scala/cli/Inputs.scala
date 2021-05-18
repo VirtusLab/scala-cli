@@ -9,6 +9,7 @@ import java.math.BigInteger
 final case class Inputs(
   head: Inputs.Element,
   tail: Seq[Inputs.Element],
+  mainClassElement: Option[Inputs.Element],
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean
@@ -49,12 +50,24 @@ object Inputs {
     def path: os.Path
   }
 
-  sealed trait SingleFile extends Element
+  sealed trait SingleFile extends Element {
+    def relativeTo: Option[os.Path]
+    def withRelativeTo(newRelativeTo: Option[os.Path]): SingleFile
+  }
   sealed trait Compiled extends Element
 
-  final case class Script(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled
-  final case class ScalaFile(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled
-  final case class JavaFile(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled
+  final case class Script(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled {
+    def withRelativeTo(newRelativeTo: Option[os.Path]): Script =
+      copy(relativeTo = newRelativeTo)
+  }
+  final case class ScalaFile(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled {
+    def withRelativeTo(newRelativeTo: Option[os.Path]): ScalaFile =
+      copy(relativeTo = newRelativeTo)
+  }
+  final case class JavaFile(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled {
+    def withRelativeTo(newRelativeTo: Option[os.Path]): JavaFile =
+      copy(relativeTo = newRelativeTo)
+  }
   final case class Directory(path: os.Path) extends Compiled
   final case class ResourceDirectory(path: os.Path) extends Element
 
@@ -90,7 +103,6 @@ object Inputs {
         val dirCount = validElems.count { case _: Directory => true; case _ => false }
 
         val errorOpt = (hasFiles, dirCount) match {
-          case (true, n) if n >= 1 => Some("Directories and single files cannot be specified at the same time for now.")
           case (_, n) if n >= 2 => Some("Only single directories are accepted as input for now.")
           case _ => None
         }
@@ -117,7 +129,11 @@ object Inputs {
                 if (isInDir) Nil
                 else Seq(updateSingleFile(f))
             }
-            Right(Inputs(updatedElems.head, updatedElems.tail, workspace, baseProjectName, mayAppendHash = true))
+            val mainClassElemOpt = validElems
+              .collectFirst {
+                case f: SingleFile => updateSingleFile(f)
+              }
+            Right(Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = true))
           case Some(err) => Left(err)
         }
       } else
