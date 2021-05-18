@@ -6,9 +6,9 @@ object TestUtil {
 
   implicit class TestBuildOps(private val build: Build) extends AnyVal {
     def generated(): Seq[os.RelPath] =
-      os.walk(os.Path(build.output))
+      os.walk(build.output)
         .filter(os.isFile(_))
-        .map(_.relativeTo(os.Path(build.output)))
+        .map(_.relativeTo(build.output))
     def assertGeneratedEquals(expected: String*): Unit = {
       val generated0 = generated()
       assert(

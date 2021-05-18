@@ -88,7 +88,7 @@ object Run extends CaseApp[RunOptions] {
       if (options.js)
         withLinkedJs(build, Some(mainClass), addTestInitializer = false) { js =>
           Runner.runJs(
-            js.toFile,
+            js.toIO,
             args,
             options.logger,
             allowExecve = allowExecve
@@ -103,7 +103,7 @@ object Run extends CaseApp[RunOptions] {
           options.scalaNativeLogger
         ) { launcher =>
           Runner.runNative(
-            launcher.toFile,
+            launcher.toIO,
             args,
             options.logger,
             allowExecve = allowExecve
@@ -138,13 +138,14 @@ object Run extends CaseApp[RunOptions] {
     build: Build,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean
-  )(f: Path => T): T = {
-    val dest = Files.createTempFile("main", ".js")
+  )(f: os.Path => T): T = {
+    val dest = os.temp(prefix = "main", suffix = ".js")
     try {
       Package.linkJs(build, dest, mainClassOpt, addTestInitializer)
       f(dest)
     } finally {
-      Files.deleteIfExists(dest)
+      if (os.exists(dest))
+        os.remove(dest)
     }
   }
 
@@ -154,13 +155,14 @@ object Run extends CaseApp[RunOptions] {
     options: Build.ScalaNativeOptions,
     workDir: os.Path,
     logger: sn.Logger
-  )(f: Path => T): T = {
-    val dest = Files.createTempFile("main", ".js")
+  )(f: os.Path => T): T = {
+    val dest = os.temp(prefix = "main", suffix = ".js")
     try {
       Package.buildNative(build, mainClass, dest, options, workDir, logger)
       f(dest)
     } finally {
-      Files.deleteIfExists(dest)
+      if (os.exists(dest))
+        os.remove(dest)
     }
   }
 

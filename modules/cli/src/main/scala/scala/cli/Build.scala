@@ -20,12 +20,12 @@ final case class Build(
   sources: Sources,
   artifacts: Artifacts,
   project: Project,
-  output: Path
+  output: os.Path
 ) {
   def fullClassPath: Seq[Path] =
-    Seq(output) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
+    Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
   def foundMainClasses(): Seq[String] =
-    MainClass.find(os.Path(output))
+    MainClass.find(output)
   def retainedMainClassOpt(warnIfSeveral: Boolean = false): Option[String] = {
     lazy val foundMainClasses0 = foundMainClasses()
     val defaultMainClassOpt = sources.mainClass
@@ -340,7 +340,7 @@ object Build {
           (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
       }
       .toMap
-    AsmPositionUpdater.postProcess(mappings, os.Path(outputPath.toAbsolutePath), logger)
+    AsmPositionUpdater.postProcess(mappings, outputPath, logger)
 
     Build(inputs, options, sources, artifacts, project, outputPath)
   }

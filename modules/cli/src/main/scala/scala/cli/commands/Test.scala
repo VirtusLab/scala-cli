@@ -45,7 +45,7 @@ object Test extends CaseApp[TestOptions] {
         Run.withLinkedJs(build, None, addTestInitializer = true) { js =>
           Runner.testJs(
             build.fullClassPath,
-            js.toFile
+            js.toIO
           )
         }
       else if (options.native)
@@ -58,7 +58,7 @@ object Test extends CaseApp[TestOptions] {
         ) { launcher =>
           Runner.testNative(
             build.fullClassPath,
-            launcher.toFile,
+            launcher.toIO,
             options.logger,
             options.scalaNativeLogger
           )

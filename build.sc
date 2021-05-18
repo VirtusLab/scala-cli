@@ -342,14 +342,14 @@ def extension =
   else ""
 
 def copyLauncher(directory: String = "artifacts") = T.command {
-  val path = os.Path(java.nio.file.Paths.get(directory).toAbsolutePath)
+  val path = os.Path(directory, os.pwd)
   val nativeLauncher = cli(defaultCliScalaVersion).nativeImage().path
   val name = s"scala-$platformSuffix$extension"
   os.copy(nativeLauncher, path / name, createFolders = true, replaceExisting = true)
 }
 
 def uploadLaunchers(directory: String = "artifacts") = T.command {
-  val path = os.Path(java.nio.file.Paths.get(directory).toAbsolutePath)
+  val path = os.Path(directory, os.pwd)
   val launchers = os.list(path).filter(os.isFile(_)).map { path =>
     path.toNIO -> path.last
   }
