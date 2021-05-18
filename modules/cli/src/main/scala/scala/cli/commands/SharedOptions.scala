@@ -25,7 +25,10 @@ final case class SharedOptions(
   @Name("w")
     watch: Boolean = false,
   jmh: Option[Boolean] = None,
-  jmhVersion: Option[String] = None
+  jmhVersion: Option[String] = None,
+  scalaLibrary: Option[Boolean] = None,
+  java: Option[Boolean] = None,
+  runner: Option[Boolean] = None
 ) {
 
   lazy val scalaBinaryVersion =
@@ -76,7 +79,9 @@ final case class SharedOptions(
       addJmhDependencies =
         if (enableJmh) jmhVersion.orElse(Some("1.29"))
         else None,
-      runJmh = enableJmh
+      runJmh = enableJmh,
+      addScalaLibrary = scalaLibrary.getOrElse(!java.getOrElse(false)),
+      addRunnerDependencyOpt = runner
     )
 }
 

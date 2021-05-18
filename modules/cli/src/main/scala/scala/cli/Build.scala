@@ -153,7 +153,8 @@ object Build {
     addTestRunnerDependencyOpt: Option[Boolean] = None,
     addJmhDependencies: Option[String] = None,
     runJmh: Boolean = false,
-    addLineModifierPluginOpt: Option[Boolean] = None
+    addLineModifierPluginOpt: Option[Boolean] = None,
+    addScalaLibrary: Boolean = true
   ) {
     def generatedSrcRoot(root: os.Path, projectName: String) = generatedSrcRootOpt.getOrElse {
       root / ".scala" / ".bloop" / projectName / ".src_generated"
@@ -275,10 +276,15 @@ object Build {
     val allScalaSources = allSources
 
     val scalaLibraryDependencies =
-      if (options.scalaVersion.startsWith("3."))
-        Seq(coursierapi.Dependency.of("org.scala-lang", "scala3-library_" + options.scalaBinaryVersion, options.scalaVersion))
-      else
-        Seq(coursierapi.Dependency.of("org.scala-lang", "scala-library", options.scalaVersion))
+      if (options.addScalaLibrary) {
+        val lib =
+          if (options.scalaVersion.startsWith("3."))
+            coursierapi.Dependency.of("org.scala-lang", "scala3-library_" + options.scalaBinaryVersion, options.scalaVersion)
+          else
+            coursierapi.Dependency.of("org.scala-lang", "scala-library", options.scalaVersion)
+        Seq(lib)
+      }
+      else Nil
 
     val allDependencies =
       sources.dependencies ++
