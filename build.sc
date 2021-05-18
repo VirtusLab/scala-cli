@@ -182,6 +182,9 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
       Deps.munit
     )
     def testFramework = "munit.Framework"
+    def runClasspath = T{
+      super.runClasspath() ++ Seq(localRepoJar())
+    }
   }
 }
 
