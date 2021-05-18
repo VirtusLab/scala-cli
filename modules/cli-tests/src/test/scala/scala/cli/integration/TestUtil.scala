@@ -1,7 +1,6 @@
 package scala.cli.integration
 
 import java.io.File
-import java.nio.charset.Charset
 
 import scala.util.Properties
 
@@ -18,24 +17,6 @@ object TestUtil {
 
   lazy val canRunJs = !isNativeCli || !Properties.isWin
   lazy val canRunNative = !Properties.isWin
-
-  def output(root: os.Path, check: Boolean = true)(command: os.Shellable*): String = {
-    val res = os.proc(command: _*).call(cwd = root, check = check)
-    val rawOutput = new String(res.out.bytes, Charset.defaultCharset())
-    rawOutput
-      .linesIterator
-      .filter(line => !line.startsWith("Compiling ") && !line.startsWith("Compiled "))
-      .mkString("\n")
-  }
-
-  def run(root: os.Path, check: Boolean = true)(command: os.Shellable*): os.CommandResult =
-    os.proc(command: _*).call(
-      cwd = root,
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit,
-      check = check
-    )
 
   def fromPath(app: String): Option[String] = {
 

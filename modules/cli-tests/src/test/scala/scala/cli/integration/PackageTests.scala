@@ -22,13 +22,18 @@ class PackageTests extends munit.FunSuite {
       fileName.stripSuffix(".sc") + ext
     }
     inputs.fromRoot { root =>
-      TestUtil.run(root)(TestUtil.cli, "package", fileName)
+      os.proc(TestUtil.cli, "package", fileName).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
 
       val launcher = root / launcherName
       assert(os.isFile(launcher))
       assert(Files.isExecutable(launcher.toNIO))
 
-      val output = TestUtil.output(root)(launcher.toString)
+      val output = os.proc(launcher.toString).call(cwd = root).out.text.trim
       assert(output == message)
     }
   }
@@ -48,13 +53,18 @@ class PackageTests extends munit.FunSuite {
     )
     val destName = fileName.stripSuffix(".sc") + ".js"
     inputs.fromRoot { root =>
-      TestUtil.run(root)(TestUtil.cli, "package", fileName, "--js")
+      os.proc(TestUtil.cli, "package", fileName, "--js").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
 
       val launcher = root / destName
       assert(os.isFile(launcher))
 
       val nodePath = TestUtil.fromPath("node").getOrElse("node")
-      val output = TestUtil.output(root)(nodePath, launcher.toString)
+      val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.text.trim
       assert(output == message)
     }
   }
@@ -85,13 +95,18 @@ class PackageTests extends munit.FunSuite {
       fileName.stripSuffix(".sc") + ext
     }
     inputs.fromRoot { root =>
-      TestUtil.run(root)(TestUtil.cli, "package", fileName, "--native")
+      os.proc(TestUtil.cli, "package", fileName, "--native").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
 
       val launcher = root / destName
       assert(os.isFile(launcher))
       assert(Files.isExecutable(launcher.toNIO))
 
-      val output = TestUtil.output(root)(launcher.toString)
+      val output = os.proc(launcher.toString).call(cwd = root).out.text.trim
       assert(output == message)
     }
   }
