@@ -22,11 +22,12 @@ object ReplArtifacts {
   def apply(
     scalaVersion: String,
     ammoniteVersion: String,
-    dependencies: Seq[coursierapi.Dependency]
+    dependencies: Seq[coursierapi.Dependency],
+    logger: Logger
   ): ReplArtifacts = {
     val localRepoOpt = LocalRepo.localRepo()
     val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion, scalaVersion)
-    val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq)
+    val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, logger.coursierInterfaceLogger)
     ReplArtifacts(replArtifacts)
   }
 

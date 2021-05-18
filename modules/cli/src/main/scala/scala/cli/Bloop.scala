@@ -56,13 +56,7 @@ object Bloop {
   ): os.Path = {
 
     val config = bloopgun.BloopgunConfig.default
-    val bloopgunLogger: bloopgun.BloopgunLogger =
-      new bloopgun.BloopgunLogger {
-        def debug(msg: => String): Unit =
-          logger.debug(msg)
-        def error(msg: => String, ex: Throwable): Unit =
-          logger.log(s"Error: $msg ($ex)")
-      }
+    val bloopgunLogger = logger.bloopgunLogger
     if (!bloopgun.Bloopgun.check(config, bloopgunLogger)) {
       val serverStartedFuture = bloopgun.Bloopgun.startServer(
         config,

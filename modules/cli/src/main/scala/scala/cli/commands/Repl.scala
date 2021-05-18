@@ -19,7 +19,8 @@ object Repl extends CaseApp[ReplOptions] {
     val replArtifacts = ReplArtifacts(
       options.shared.scalaVersion,
       options.ammoniteVersion,
-      build.artifacts.dependencies
+      build.artifacts.dependencies,
+      options.shared.logger
     )
 
     // TODO Warn if some entries of build.artifacts.classPath were evicted in replArtifacts.replClassPath

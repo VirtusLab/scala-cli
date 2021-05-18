@@ -39,7 +39,8 @@ object Artifacts {
     addJvmRunner: Boolean,
     addJvmTestRunner: Boolean,
     addJsTestBridge: Option[String],
-    addJmhDependencies: Option[String]
+    addJmhDependencies: Option[String],
+    logger: Logger
   ): Artifacts = {
 
     val localRepoOpt = LocalRepo.localRepo()
@@ -81,18 +82,22 @@ object Artifacts {
       jsTestBridgeDependencies ++
       jmhDependencies
 
-    val compilerArtifacts = artifacts(compilerDependencies, localRepoOpt.toSeq)
-    val artifacts0 = artifacts(updatedDependencies, localRepoOpt.toSeq)
+    val compilerArtifacts = artifacts(compilerDependencies, localRepoOpt.toSeq, logger.coursierInterfaceLogger)
+    val artifacts0 = artifacts(updatedDependencies, localRepoOpt.toSeq, logger.coursierInterfaceLogger)
 
     val extraStubsJars =
       if (addStubs)
-        artifacts(Seq(dependency(Constants.stubsOrganization, Constants.stubsModuleName, Constants.stubsVersion)), localRepoOpt.toSeq).map(_._2)
+        artifacts(
+          Seq(dependency(Constants.stubsOrganization, Constants.stubsModuleName, Constants.stubsVersion)),
+          localRepoOpt.toSeq,
+          logger.coursierInterfaceLogger
+        ).map(_._2)
       else
         Nil
 
     val compilerPlugins0 = compilerPlugins.flatMap { dep =>
       val dep0 = dep.withTransitive(false) // mutable API? :~
-      artifacts(Seq(dep0), localRepoOpt.toSeq)
+      artifacts(Seq(dep0), localRepoOpt.toSeq, logger.coursierInterfaceLogger)
         .map { case (url, path) => (dep0, url, path) }
     }
 
@@ -125,11 +130,15 @@ object Artifacts {
     home.getAbsolutePath
   }
 
-  private[cli] def artifacts(dependencies: Seq[coursierapi.Dependency], extraRepositories: Seq[coursierapi.Repository]): Seq[(String, Path)] =
+  private[cli] def artifacts(
+    dependencies: Seq[coursierapi.Dependency],
+    extraRepositories: Seq[coursierapi.Repository],
+    logger: coursierapi.Logger
+  ): Seq[(String, Path)] =
     // FIXME Many parameters that we could allow to customize here
     coursierapi.Fetch.create()
       .addDependencies(dependencies: _*)
-      .withCache(coursierapi.Cache.create().withLogger(coursierapi.Logger.progressBars()))
+      .withCache(coursierapi.Cache.create().withLogger(logger))
       .addRepositories(extraRepositories: _*)
       .fetchResult()
       .getArtifacts()

@@ -281,7 +281,8 @@ object Build {
       addJvmRunner = options.addRunnerDependency,
       addJvmTestRunner = options.scalaJsOptions.isEmpty && options.scalaNativeOptions.isEmpty && options.addTestRunnerDependency,
       addJsTestBridge = if (options.addTestRunnerDependency) options.scalaJsOptions.map(_.version) else None,
-      addJmhDependencies = options.addJmhDependencies
+      addJmhDependencies = options.addJmhDependencies,
+      logger = logger
     )
 
     val pluginScalacOptions = artifacts.compilerPlugins.map {

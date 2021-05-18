@@ -1,7 +1,9 @@
 package scala.cli.commands
 
 import caseapp._
-
+import coursier.cache.loggers.RefreshLogger
+import coursier.cache.CacheLogger
+import scala.cli.bloop.bloopgun
 import scala.cli.Logger
 
 final case class LoggingOptions(
@@ -14,18 +16,35 @@ final case class LoggingOptions(
   lazy val verbosity = Tag.unwrap(verbose) - (if (quiet) 1 else 0)
 
   lazy val logger: Logger =
-    new Logger {
-      def log(message: => String): Unit =
+    new Logger { logger =>
+      def log(message: => String) =
         if (verbosity >= 1)
           System.err.println(message)
-      def log(message: => String, debugMessage: => String): Unit =
+      def log(message: => String, debugMessage: => String) =
         if (verbosity >= 2)
           System.err.println(debugMessage)
         else if (verbosity >= 1)
           System.err.println(message)
-      def debug(message: => String): Unit =
+      def debug(message: => String) =
         if (verbosity >= 2)
           System.err.println(message)
+
+      def withCoursierLogger[T](f: CacheLogger => T) = {
+        val logger = RefreshLogger.create()
+        logger.use(f(logger))
+      }
+      def coursierInterfaceLogger =
+        coursierapi.Logger.progressBars()
+
+      def bloopgunLogger =
+        new bloopgun.BloopgunLogger {
+          def debug(msg: => String) =
+            logger.debug(msg)
+          def error(msg: => String, ex: Throwable) =
+            logger.log(s"Error: $msg ($ex)")
+          def coursierInterfaceLogger =
+            logger.coursierInterfaceLogger
+        }
     }
 
 }
