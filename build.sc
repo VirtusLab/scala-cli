@@ -155,7 +155,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
   def launcher = T{
     import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
     import scala.util.Properties.isWin
-    val cp = (jar() +: upstreamAssemblyClasspath().toSeq).map(_.path)
+    val cp = (runClasspath() ++ transitiveJars()).map(_.path).toSeq.filter(os.exists(_)).filter(!os.isDir(_))
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
 
     val dest = T.ctx().dest / (if (isWin) "launcher.bat" else "launcher")
@@ -166,6 +166,49 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
       .withOsKind(isWin)
       .callsItself(isWin)
     val entries = (cp :+ localRepoJar0).map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
+    val loaderContent = coursier.launcher.ClassLoaderContent(entries)
+    val params = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
+      .withDeterministic(true)
+      .withPreamble(preamble)
+
+    BootstrapGenerator.generate(params, dest.toNIO)
+
+    PathRef(dest)
+  }
+
+  def standaloneLauncher = T{
+
+    val cachePath = os.Path(coursier.cache.FileCache().location, os.pwd)
+    def urlOf(path: os.Path): Option[String] = {
+      if (path.startsWith(cachePath)) {
+        val segments = path.relativeTo(cachePath).segments
+        val url = segments.head + "://" + segments.tail.mkString("/")
+        Some(url)
+      }
+      else None
+    }
+
+    import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
+    import scala.util.Properties.isWin
+    val cp = (runClasspath() ++ transitiveJars()).map(_.path).toSeq.filter(os.exists(_)).filter(!os.isDir(_))
+    val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
+
+    val dest = T.ctx().dest / (if (isWin) "launcher.bat" else "launcher")
+
+    val localRepoJar0 = localRepoJar().path
+
+    val preamble = Preamble()
+      .withOsKind(isWin)
+      .callsItself(isWin)
+    val entries = (cp :+ localRepoJar0).map { path =>
+      urlOf(path) match {
+        case None =>
+          val content = os.read.bytes(path)
+          val name = path.last
+          ClassPathEntry.Resource(name, os.mtime(path), content)
+        case Some(url) => ClassPathEntry.Url(url)
+      }
+    }
     val loaderContent = coursier.launcher.ClassLoaderContent(entries)
     val params = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
       .withDeterministic(true)

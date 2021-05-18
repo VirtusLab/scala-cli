@@ -40,6 +40,12 @@ trait ScalaCliPublishModule extends PublishModule {
         .getOrElse(state.format())
         .stripPrefix("v")
   }
+
+  def transitiveJars: T[Agg[PathRef]] = T{
+    mill.define.Target.traverse(this +: moduleDeps)(m =>
+      T.task{m.jar()}
+    )()
+  }
 }
 
 def publishSonatype(

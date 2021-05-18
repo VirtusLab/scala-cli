@@ -55,6 +55,30 @@ The file named `scala` at the root of the project should also
 be a link to it. (Note that the link is committed and is always there,
 whether the files it points at exists or not.)
 
+#### Generate a JVM launcher
+
+```text
+$ ./mill -i show 'cli[2.12.13].launcher'
+```
+
+This prints the path to the generated launcher. This launcher is a JAR,
+that directly re-uses the class directories of the modules of the project
+(so that cleaning up those classes will break the launcher). If this is a
+problem (if you wish to run the launcher on another machine or from a
+Docker image for example), use a native launcher (see above) or a standalone
+JVM one (see below).
+
+#### Generate a standalone JVM launcher
+
+```text
+$ ./mill -i show 'cli[2.12.13].standaloneLauncher'
+```
+
+This prints the path to the generated launcher. This launcher is a JAR,
+that embeds JARs of the scala-cli modules, and downloads their dependencies
+from Maven Central upon first launch (using the coursier cache, just like
+a coursier bootstrap).
+
 ### Website commands
 
 #### Generate the website once
