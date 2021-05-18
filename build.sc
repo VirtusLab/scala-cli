@@ -245,7 +245,7 @@ trait PublishLocalNoFluff extends PublishModule {
     import mill.scalalib.publish.LocalIvyPublisher
     val publisher = localIvyRepo match {
       case null => LocalIvyPublisher
-      case repo => new LocalIvyPublisher(os.Path(repo, os.pwd))
+      case repo => new LocalIvyPublisher(os.Path(repo.replace("{VERSION}", publishVersion()), os.pwd))
     }
 
     publisher.publish(
@@ -384,18 +384,21 @@ def publishStubs = T{
 }
 
 def localRepo = T{
-  val repoRoot = os.rel / "out" / "repo"
+  val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
   val tasks = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
   define.Task.sequence(tasks).map(_ => repoRoot.toString)
 }
 
 def localRepoZip = T{
+  val ver = runner(defaultCliScalaVersion).publishVersion()
   val repoDir = localRepo()
-  val dest = T.dest / "repo.zip"
+  val destDir = T.dest / ver / "repo.zip"
+  val dest = destDir / "repo.zip"
 
   import java.io._
   import java.util.zip._
-  val repoDir0 = os.Path(repoDir, os.pwd)
+  val repoDir0 = os.Path(repoDir.replace("{VERSION}", ver), os.pwd)
+  os.makeDir.all(destDir)
   var fos: FileOutputStream = null
   var zos: ZipOutputStream = null
   try {
