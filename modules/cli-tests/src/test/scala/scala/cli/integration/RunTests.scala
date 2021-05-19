@@ -312,4 +312,77 @@ class RunTests extends munit.FunSuite {
       expect(output == expectedClassName)
     }
   }
+
+  test("stack traces") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Throws.scala" ->
+         s"""object Throws {
+            |  def something(): String =
+            |    sys.error("nope")
+            |  def main(args: Array[String]): Unit =
+            |    try something()
+            |    catch {
+            |      case e: Exception =>
+            |        throw new Exception("Caught exception during processing", e)
+            |    }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", "--java-prop", "scala.colored-stack-traces=false")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
+      val tab = "\t"
+      val expectedLines =
+       s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+          |${tab}at Throws$$.main(Throws.scala:8)
+          |${tab}at Throws.main(Throws.scala)
+          |Caused by: java.lang.RuntimeException: nope
+          |${tab}at scala.sys.package$$.error(package.scala:30)
+          |${tab}at Throws$$.something(Throws.scala:3)
+          |${tab}at Throws$$.main(Throws.scala:5)
+          |${tab}... 1 more
+          |""".stripMargin.linesIterator.toVector
+      expect(exceptionLines == expectedLines)
+    }
+  }
+
+  test("stack traces in script") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "throws.sc" ->
+         s"""def something(): String =
+            |  sys.error("nope")
+            |try something()
+            |catch {
+            |  case e: Exception =>
+            |    throw new Exception("Caught exception during processing", e)
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", "--java-prop", "scala.colored-stack-traces=false")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
+      val tab = "\t"
+      val expectedLines =
+       s"""Exception in thread "main" java.lang.ExceptionInInitializerError
+          |${tab}at throws.main(throws.sc)
+          |Caused by: java.lang.Exception: Caught exception during processing
+          |${tab}at throws$$.<init>(throws.sc:6)
+          |${tab}at throws$$.<clinit>(throws.sc)
+          |${tab}... 1 more
+          |Caused by: java.lang.RuntimeException: nope
+          |${tab}at scala.sys.package$$.error(package.scala:30)
+          |${tab}at throws$$.something(throws.sc:2)
+          |${tab}at throws$$.<init>(throws.sc:3)
+          |${tab}... 2 more
+          |""".stripMargin.linesIterator.toVector
+      expect(exceptionLines == expectedLines)
+    }
+  }
+
 }
