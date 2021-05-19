@@ -73,7 +73,7 @@ object Run extends CaseApp[RunOptions] {
         if (jvmRunner) (Constants.runnerMainClass, mainClass +: args)
         else (mainClass, args)
       runOnce(
-        options.shared,
+        options,
         root,
         projectName,
         build,
@@ -86,7 +86,7 @@ object Run extends CaseApp[RunOptions] {
   }
 
   def runOnce(
-    options: SharedOptions,
+    options: RunOptions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
@@ -97,37 +97,38 @@ object Run extends CaseApp[RunOptions] {
   ): Boolean = {
 
     val retCode =
-      if (options.js)
+      if (options.shared.js)
         withLinkedJs(build, Some(mainClass), addTestInitializer = false) { js =>
           Runner.runJs(
             js.toIO,
             args,
-            options.logger,
+            options.shared.logger,
             allowExecve = allowExecve
           )
         }
-      else if (options.native)
+      else if (options.shared.native)
         withNativeLauncher(
           build,
           mainClass,
-          options.scalaNativeOptionsIKnowWhatImDoing,
-          options.nativeWorkDir(root, projectName),
-          options.scalaNativeLogger
+          options.shared.scalaNativeOptionsIKnowWhatImDoing,
+          options.shared.nativeWorkDir(root, projectName),
+          options.shared.scalaNativeLogger
         ) { launcher =>
           Runner.runNative(
             launcher.toIO,
             args,
-            options.logger,
+            options.shared.logger,
             allowExecve = allowExecve
           )
         }
       else
         Runner.run(
           build.artifacts.javaHome.toIO,
+          options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           mainClass,
           args,
-          options.logger,
+          options.shared.logger,
           allowExecve = allowExecve
         )
 

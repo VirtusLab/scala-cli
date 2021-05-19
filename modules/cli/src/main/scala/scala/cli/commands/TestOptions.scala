@@ -5,7 +5,9 @@ import caseapp.core.help.Help
 
 final case class TestOptions(
   @Recurse
-    shared: SharedOptions
+    shared: SharedOptions,
+  @Recurse
+    sharedJava: SharedJavaOptions = SharedJavaOptions()
 )
 
 object TestOptions {

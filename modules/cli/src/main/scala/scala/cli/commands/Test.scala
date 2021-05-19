@@ -22,7 +22,7 @@ object Test extends CaseApp[TestOptions] {
     if (options.shared.watch) {
       val watcher = Build.watch(inputs, buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
-          testOnce(options.shared, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
+          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
       }
@@ -32,7 +32,7 @@ object Test extends CaseApp[TestOptions] {
       val build = Build.build(inputs, buildOptions, options.shared.logger, os.pwd)
       build match {
         case s: Build.Successful =>
-          testOnce(options.shared, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
+          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -41,7 +41,7 @@ object Test extends CaseApp[TestOptions] {
   }
 
   private def testOnce(
-    options: SharedOptions,
+    options: TestOptions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
@@ -50,35 +50,36 @@ object Test extends CaseApp[TestOptions] {
   ): Unit = {
 
     val retCode =
-      if (options.js)
+      if (options.shared.js)
         Run.withLinkedJs(build, None, addTestInitializer = true) { js =>
           Runner.testJs(
             build.fullClassPath,
             js.toIO
           )
         }
-      else if (options.native)
+      else if (options.shared.native)
         Run.withNativeLauncher(
           build,
           "scala.scalanative.testinterface.TestMain",
-          options.scalaNativeOptionsIKnowWhatImDoing,
-          options.nativeWorkDir(root, projectName),
-          options.scalaNativeLogger
+          options.shared.scalaNativeOptionsIKnowWhatImDoing,
+          options.shared.nativeWorkDir(root, projectName),
+          options.shared.scalaNativeLogger
         ) { launcher =>
           Runner.testNative(
             build.fullClassPath,
             launcher.toIO,
-            options.logger,
-            options.scalaNativeLogger
+            options.shared.logger,
+            options.shared.scalaNativeLogger
           )
         }
       else
         Runner.run(
           build.artifacts.javaHome.toIO,
+          options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,
           Nil,
-          options.logger,
+          options.shared.logger,
           allowExecve = allowExecve
         )
 

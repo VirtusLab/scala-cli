@@ -6,7 +6,9 @@ import caseapp.core.help.Help
 final case class ReplOptions(
   @Recurse
     shared: SharedOptions,
-  ammonite: Option[String] = None
+  ammonite: Option[String] = None,
+  @Recurse
+    sharedJava: SharedJavaOptions = SharedJavaOptions()
 ) {
   def ammoniteVersion: String =
     ammonite.getOrElse {

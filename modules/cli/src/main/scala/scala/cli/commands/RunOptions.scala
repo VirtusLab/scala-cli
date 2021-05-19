@@ -7,7 +7,9 @@ final case class RunOptions(
   @Recurse
     shared: SharedOptions,
   @Name("M")
-    mainClass: Option[String] = None
+    mainClass: Option[String] = None,
+  @Recurse
+    sharedJava: SharedJavaOptions = SharedJavaOptions()
 ) {
   def retainedMainClass: Option[String] =
     // TODO Warn if users passed a main class along with --jmh

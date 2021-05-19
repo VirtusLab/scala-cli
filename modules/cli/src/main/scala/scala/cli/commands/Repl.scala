@@ -42,6 +42,7 @@ object Repl extends CaseApp[ReplOptions] {
 
     Runner.run(
       build.artifacts.javaHome.toIO,
+      options.sharedJava.allJavaOpts,
       successfulBuild.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
       ammoniteMainClass,
       Nil,

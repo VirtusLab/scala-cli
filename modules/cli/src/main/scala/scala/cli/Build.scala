@@ -458,6 +458,7 @@ object Build {
     val jmhResourceDir = jmhOutputDir / "resources"
     val retCode = Runner.run(
       build.artifacts.javaHome.toIO,
+      Nil,
       build.fullClassPath.map(_.toFile),
       "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
       Seq(build.output.toString, jmhSourceDir.toString, jmhResourceDir.toString, "default"),
