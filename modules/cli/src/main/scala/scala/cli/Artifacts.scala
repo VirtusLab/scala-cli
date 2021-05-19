@@ -76,20 +76,27 @@ object Artifacts {
       dependency("org.openjdk.jmh", "jmh-generator-bytecode", version)
     }
 
+    val extraRepositories =
+      if ((jvmRunnerDependencies ++ jvmTestRunnerDependencies).exists(_.getVersion.endsWith("SNAPSHOT")))
+        Seq(coursierapi.MavenRepository.of(coursier.Repositories.sonatype("snapshots").root))
+      else Nil
+
+    val allExtraRepositories = extraRepositories ++ localRepoOpt.toSeq
+
     val updatedDependencies = dependencies ++
       jvmRunnerDependencies ++
       jvmTestRunnerDependencies ++
       jsTestBridgeDependencies ++
       jmhDependencies
 
-    val compilerArtifacts = artifacts(compilerDependencies, localRepoOpt.toSeq, logger)
-    val artifacts0 = artifacts(updatedDependencies, localRepoOpt.toSeq, logger)
+    val compilerArtifacts = artifacts(compilerDependencies, allExtraRepositories, logger)
+    val artifacts0 = artifacts(updatedDependencies, allExtraRepositories, logger)
 
     val extraStubsJars =
       if (addStubs)
         artifacts(
           Seq(dependency(Constants.stubsOrganization, Constants.stubsModuleName, Constants.stubsVersion)),
-          localRepoOpt.toSeq,
+          allExtraRepositories,
           logger
         ).map(_._2)
       else
@@ -98,7 +105,7 @@ object Artifacts {
     val compilerPlugins0 = compilerPlugins.flatMap { dep =>
       val dep0 = coursierapi.Dependency.of(dep)
         .withTransitive(false) // mutable API? :~
-      artifacts(Seq(dep0), localRepoOpt.toSeq, logger)
+      artifacts(Seq(dep0), allExtraRepositories, logger)
         .map { case (url, path) => (dep0, url, path) }
     }
 

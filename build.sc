@@ -306,11 +306,25 @@ trait PublishLocalNoFluff extends PublishModule {
 
 class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
   def mainClass = Some("scala.cli.runner.Runner")
-  // def ivyDeps =
-  //   if (crossScalaVersion == "3.0.0-RC2")
-  //     Agg(Deps.stacktraceBuddy)
-  //   else
-  //     Agg.empty[Dep]
+  def ivyDeps =
+    if (crossScalaVersion.startsWith("3.") && !crossScalaVersion.contains("-RC"))
+      Agg(Deps.prettyStacktraces)
+    else
+      Agg.empty[Dep]
+  def repositories = super.repositories ++ Seq(
+    coursier.Repositories.sonatype("snapshots")
+  )
+  def sources = T.sources {
+    val scala3DirNames =
+      if (crossScalaVersion.startsWith("3.")) {
+        val name =
+          if (crossScalaVersion.contains("-RC")) "scala-3-unstable"
+          else "scala-3-stable"
+        Seq(name)
+      } else Nil
+    val extraDirs = scala3DirNames.map(name => PathRef(millSourcePath / "src" / "main" / name))
+    super.sources() ++ extraDirs
+  }
 }
 
 class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
