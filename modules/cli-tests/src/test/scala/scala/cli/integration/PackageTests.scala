@@ -59,7 +59,9 @@ class PackageTests extends munit.FunSuite {
         stderr = os.Inherit
       )
 
-      val launcher = root / "package.jar"
+      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val launcher = root / outputName
+
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 

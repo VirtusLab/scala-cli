@@ -45,10 +45,15 @@ object Package extends CaseApp[PackageOptions] {
       else if (options.packageType == PackageOptions.PackageType.Js) ".js"
       else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) ".exe" else ".bat")
       else ""
+    def defaultName =
+      if (options.packageType == PackageOptions.PackageType.LibraryJar) "library.jar"
+      else if (options.packageType == PackageOptions.PackageType.Js) "app.js"
+      else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) "app.exe" else "app.bat")
+      else "app"
     val dest = options.output
       .filter(_.nonEmpty)
       .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1) + extension))
-      .getOrElse("package.jar")
+      .getOrElse(defaultName)
     val destPath = os.Path(dest, os.pwd)
     val printableDest =
       if (destPath.startsWith(os.pwd)) "." + File.separator + destPath.relativeTo(os.pwd).toString
