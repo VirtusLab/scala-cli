@@ -284,7 +284,7 @@ trait PublishLocalNoFluff extends PublishModule {
   }
   // adapted from https://github.com/com-lihaoyi/mill/blob/fea79f0515dda1def83500f0f49993e93338c3de/scalalib/src/PublishModule.scala#L70-L85
   // writes empty zips as source and doc JARs
-  def publishLocalNoFluff(localIvyRepo: String = null): define.Command[Unit] = T.command {
+  def publishLocalNoFluff(localIvyRepo: String = null): define.Command[PathRef] = T.command {
 
     import mill.scalalib.publish.LocalIvyPublisher
     val publisher = localIvyRepo match {
@@ -301,6 +301,8 @@ trait PublishLocalNoFluff extends PublishModule {
       artifact = artifactMetadata(),
       extras = extraPublish()
     )
+
+    jar()
   }
 }
 
@@ -444,27 +446,27 @@ def publishStubs = T{
 def localRepo = T{
   val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
   val tasks = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
-  define.Task.sequence(tasks).map(_ => repoRoot.toString)
+  define.Task.sequence(tasks)
 }
 
 def localRepoZip = T{
   val ver = runner(defaultCliScalaVersion).publishVersion()
-  val repoDir = localRepo()
+  val something = localRepo()
+  val repoDir = os.pwd / "out" / "repo" / ver
   val destDir = T.dest / ver / "repo.zip"
   val dest = destDir / "repo.zip"
 
   import java.io._
   import java.util.zip._
-  val repoDir0 = os.Path(repoDir.replace("{VERSION}", ver), os.pwd)
   os.makeDir.all(destDir)
   var fos: FileOutputStream = null
   var zos: ZipOutputStream = null
   try {
     fos = new FileOutputStream(dest.toIO)
     zos = new ZipOutputStream(new BufferedOutputStream(fos))
-    os.walk(repoDir0).filter(_ != repoDir0).foreach { p =>
+    os.walk(repoDir).filter(_ != repoDir).foreach { p =>
       val isDir = os.isDir(p)
-      val name = p.relativeTo(repoDir0).toString + (if (isDir) "/" else "")
+      val name = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")
       val entry = new ZipEntry(name)
       entry.setTime(os.mtime(p))
       zos.putNextEntry(entry)
