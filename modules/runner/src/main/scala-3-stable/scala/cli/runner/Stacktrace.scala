@@ -1,6 +1,5 @@
 package scala.cli.runner
 
-import org.virtuslab.stacktraces.core.Stacktraces
 import org.virtuslab.stacktraces.printer.PrettyExceptionPrinter
 
 object Stacktrace {
