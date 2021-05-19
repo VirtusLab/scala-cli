@@ -113,6 +113,42 @@
   "allDeclaredFields": true
 },
 {
+  "name":"ch.epfl.scala.bsp4j.LogMessageParams",
+  "allDeclaredConstructors" : true,
+  "allDeclaredMethods": true,
+  "allDeclaredFields": true
+},
+{
+  "name":"ch.epfl.scala.bsp4j.MessageType",
+  "allDeclaredConstructors" : true,
+  "allDeclaredMethods": true,
+  "allDeclaredFields": true
+},
+{
+  "name":"ch.epfl.scala.bsp4j.ShowMessageParams",
+  "allDeclaredConstructors" : true,
+  "allDeclaredMethods": true,
+  "allDeclaredFields": true
+},
+{
+  "name":"ch.epfl.scala.bsp4j.DidChangeBuildTarget",
+  "allDeclaredConstructors" : true,
+  "allDeclaredMethods": true,
+  "allDeclaredFields": true
+},
+{
+  "name":"ch.epfl.scala.bsp4j.BuildTargetEvent",
+  "allDeclaredConstructors" : true,
+  "allDeclaredMethods": true,
+  "allDeclaredFields": true
+},
+{
+  "name":"ch.epfl.scala.bsp4j.BuildTargetEventKind",
+  "allDeclaredConstructors" : true,
+  "allDeclaredMethods": true,
+  "allDeclaredFields": true
+},
+{
   "name":"ch.epfl.scala.bsp4j.PublishDiagnosticsParams",
   "allDeclaredConstructors" : true,
   "allDeclaredMethods": true,
