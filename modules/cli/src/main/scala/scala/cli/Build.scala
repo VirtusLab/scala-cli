@@ -13,6 +13,8 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.scalanative.{build => sn}
 import scala.util.control.NonFatal
+import scala.cli.tastylib.TastyData
+import java.util.Arrays
 
 trait Build {
   def inputs: Inputs
@@ -447,6 +449,43 @@ object Build {
             )
             os.remove(semDbFile)
           }
+        }
+
+        if (options.scalaVersion.startsWith("3.")) {
+          val updatedPaths = generatedSources
+            .map {
+              case (path, originalSource, offset) =>
+                val fromSourceRoot = path.relativeTo(inputs.workspace)
+                val actual = originalSource.relativeTo(inputs.workspace)
+                fromSourceRoot.toString -> actual.toString
+            }
+            .toMap
+
+          if (updatedPaths.nonEmpty)
+            os.walk(classesDir)
+              .filter(os.isFile(_))
+              .filter(_.last.endsWith(".tasty")) // make that case-insensitive just in case?
+              .foreach { f =>
+                logger.debug(s"Reading TASTy file $f")
+                val content = os.read.bytes(f)
+                val data = TastyData.read(content)
+                logger.debug(s"Parsed TASTy file $f")
+                var updatedOne = false
+                val updatedData = data.mapNames { n =>
+                  updatedPaths.get(n) match {
+                    case Some(newName) =>
+                      updatedOne = true
+                      newName
+                    case None =>
+                      n
+                  }
+                }
+                if (updatedOne) {
+                  logger.debug(s"Overwriting ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd) else f}")
+                  val updatedContent = TastyData.write(updatedData)
+                  os.write.over(f, updatedContent)
+                }
+              }
         }
       } else
         logger.debug("Custom generated source directory used, not moving semantic DBs around")

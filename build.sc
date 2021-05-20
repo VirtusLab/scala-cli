@@ -25,6 +25,7 @@ object runner                 extends Cross[Runner](Scala.all: _*)
 object `test-runner`          extends Cross[TestRunner](Scala.all: _*)
 object bloopgun               extends Cross[Bloopgun](Scala.allScala2: _*)
 object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.all: _*)
+object `tasty-lib`            extends Cross[TastyLib](Scala.all: _*)
 
 // We should be able to switch to 2.13.x when bumping the scala-native version
 def defaultCliScalaVersion = Scala.scala212
@@ -32,6 +33,7 @@ def defaultCliScalaVersion = Scala.scala212
 class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
   def moduleDeps = Seq(
     bloopgun(),
+    `tasty-lib`(),
     `test-runner`()
   )
   def ivyDeps = Agg(
@@ -372,6 +374,8 @@ class LineModifierPlugin(val crossScalaVersion: String) extends CrossSbtModule w
     else
       Agg(Deps.scala3Compiler(crossScalaVersion))
 }
+
+class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
 
 
 def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) =

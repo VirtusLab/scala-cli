@@ -6,6 +6,7 @@ import scala.cli.{Build, Inputs}
 import scala.cli.tests.TestUtil._
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
+import scala.cli.tastylib.TastyData
 
 class BuildTests extends munit.FunSuite {
 
@@ -69,6 +70,28 @@ class BuildTests extends munit.FunSuite {
       val doc = TextDocuments.parseFrom(semDb)
       val uris = doc.documents.map(_.uri)
       expect(uris == Seq("simple.sc"))
+    }
+  }
+
+  test("TASTy") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """val n = 2
+          |println(s"n=$n")
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultScala3Options.copy(generateSemanticDbs = true)) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class",
+        "simple.tasty",
+        "META-INF/semanticdb/simple.sc.semanticdb"
+      )
+
+      val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
+      val tastyData = TastyData.read(os.read.bytes(outputDir / "simple.tasty"))
+      val names = tastyData.names.simpleNames
+      expect(names.exists(_ == "simple.sc"))
     }
   }
 
