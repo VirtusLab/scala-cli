@@ -81,11 +81,6 @@ object Bloopgun {
     * Starts a thread to read output from the nailgun connection, and another one
     * to pass input to it.
     *
-    * @param host
-    * @param port
-    * @param in
-    * @param out
-    * @param err
     * @param logger
     * @return A [[BspConnection]] object, that can be used to close the connection.
     */
