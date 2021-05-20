@@ -28,4 +28,6 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
 
   def bloopgunLogger: bloopgun.BloopgunLogger =
     bloopgun.BloopgunLogger.nop
+  def bloopBspStderr = None
+  def bloopBspStdout = None
 }

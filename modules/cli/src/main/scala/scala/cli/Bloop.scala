@@ -52,7 +52,10 @@ object Bloop {
     bloopVersion: String = Constants.bloopVersion
   ): Option[os.Path] = {
 
-    val config = bloopgun.BloopgunConfig.default
+    val config = bloopgun.BloopgunConfig.default.copy(
+      bspStdout = logger.bloopBspStdout,
+      bspStderr = logger.bloopBspStderr
+    )
     val bloopgunLogger = logger.bloopgunLogger
 
     val isBloopRunning = bloopgun.Bloopgun.check(config, bloopgunLogger)

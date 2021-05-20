@@ -39,12 +39,19 @@ final case class LoggingOptions(
       def bloopgunLogger =
         new bloopgun.BloopgunLogger {
           def debug(msg: => String) =
-            logger.debug(msg)
+            if (verbosity >= 3)
+              logger.debug(msg)
           def error(msg: => String, ex: Throwable) =
             logger.log(s"Error: $msg ($ex)")
           def coursierInterfaceLogger =
             logger.coursierInterfaceLogger
         }
+      def bloopBspStdout =
+        if (verbosity >= 2) Some(System.err)
+        else None
+      def bloopBspStderr =
+        if (verbosity >= 2) Some(System.err)
+        else None
     }
 
 }
