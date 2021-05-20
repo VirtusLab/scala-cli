@@ -24,6 +24,7 @@ trait ScalaCliPublishModule extends PublishModule {
     val state = VcsVersion.vcsState()
     if (state.commitsSinceLastTag > 0) {
       val versionOrEmpty = state.lastTag
+        .filter(_ != "latest")
         .map(_.stripPrefix("v"))
         .map { tag =>
           val idx = tag.lastIndexOf(".")
@@ -39,6 +40,12 @@ trait ScalaCliPublishModule extends PublishModule {
         .lastTag
         .getOrElse(state.format())
         .stripPrefix("v")
+  }
+
+  def transitiveJars: T[Agg[PathRef]] = T{
+    mill.define.Target.traverse(this +: moduleDeps)(m =>
+      T.task{m.jar()}
+    )()
   }
 }
 

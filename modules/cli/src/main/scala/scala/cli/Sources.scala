@@ -53,7 +53,7 @@ object Sources {
         val res1 = parse(newCode, Header(_))
         res1 match {
           case f: Parsed.Failure =>
-            val msg = formatFastparseError(path.relativeTo(os.pwd).toString, content, f)
+            val msg = formatFastparseError(path.relativeTo(Os.pwd).toString, content, f)
             Left(msg)
           case s: Parsed.Success[Seq[(Int, Int)]] =>
             Right(s.value)
@@ -117,8 +117,36 @@ object Sources {
     }
   }
 
-  def apply(
-    inputRoot: os.Path,
+  private def scriptData(
+    workspace: os.Path,
+    codeWrapper: CodeWrapper,
+    script: Inputs.Script,
+    platformSuffix: String,
+    scalaVersion: String,
+    scalaBinaryVersion: String
+  ): ScriptData = {
+
+    val root = script.relativeTo.getOrElse(workspace)
+    val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, script.path.relativeTo(root))
+
+    val (deps, updatedCode) = process(script.path) match {
+      case None => (Nil, os.read(script.path))
+      case Some((deps, updatedCode)) => (deps, updatedCode)
+    }
+
+    val (code, topWrapperLen, _) = codeWrapper.wrapCode(
+      pkg,
+      wrapper,
+      updatedCode
+    )
+
+    val deps0 = deps.map(parseDependency(_, platformSuffix, scalaVersion, scalaBinaryVersion))
+
+    val className = (pkg :+ wrapper).map(_.raw).mkString(".")
+    ScriptData(script.path, className, code, deps0, topWrapperLen)
+  }
+
+  def forInputs(
     inputs: Inputs,
     codeWrapper: CodeWrapper,
     platformSuffix: String,
@@ -126,59 +154,39 @@ object Sources {
     scalaBinaryVersion: String
   ): Sources = {
 
-    def scriptData(script: Inputs.Script): ScriptData = {
-
-      val root = script.relativeTo.getOrElse(inputs.workspace)
-      val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, script.path.relativeTo(root))
-
-      val (deps, updatedCode) = process(script.path) match {
-        case None => (Nil, os.read(script.path))
-        case Some((deps, updatedCode)) => (deps, updatedCode)
-      }
-
-      val (code, topWrapperLen, _) = codeWrapper.wrapCode(
-        pkg,
-        wrapper,
-        updatedCode
-      )
-
-      val deps0 = deps.map(parseDependency(_, platformSuffix, scalaVersion, scalaBinaryVersion))
-
-      val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-      ScriptData(script.path, className, code, deps0, topWrapperLen)
-    }
-
     val fromDirectories = inputs.elements
       .collect {
-        case d: Inputs.Directory =>
-          os.walk.stream(d.path)
-            .filter { p =>
-              !p.relativeTo(d.path).segments.exists(_.startsWith("."))
-            }
-            .filter(os.isFile(_))
-            .collect {
-              case p if p.last.endsWith(".java") =>
-                Inputs.JavaFile(p, Some(d.path))
-              case p if p.last.endsWith(".scala") =>
-                Inputs.ScalaFile(p, Some(d.path))
-              case p if p.last.endsWith(".sc") =>
-                Inputs.Script(p, Some(d.path))
-            }
-            .toVector
+        case d: Inputs.Directory => d
       }
-      .flatten
+      .flatMap { d =>
+        os.walk.stream(d.path)
+          .filter { p =>
+            !p.relativeTo(d.path).segments.exists(_.startsWith("."))
+          }
+          .filter(os.isFile(_))
+          .collect {
+            case p if p.last.endsWith(".java") =>
+              Inputs.JavaFile(p, Some(d.path))
+            case p if p.last.endsWith(".scala") =>
+              Inputs.ScalaFile(p, Some(d.path))
+            case p if p.last.endsWith(".sc") =>
+              Inputs.Script(p, Some(d.path))
+          }
+          .toVector
+      }
 
     val scalaFilePathsOrCode = (inputs.elements.iterator ++ fromDirectories.iterator)
       .collect {
-        case f: Inputs.ScalaFile =>
-          process(f.path) match {
-            case None => Iterator(Right(f.path))
-            case Some((deps, updatedCode)) =>
-              val relPath = f.path.relativeTo(f.relativeTo.getOrElse(inputs.workspace))
-              Iterator(Left((f.path, deps, relPath, updatedCode)))
-          }
+        case f: Inputs.ScalaFile => f
       }
-      .flatten
+      .flatMap { f =>
+        process(f.path) match {
+          case None => Iterator(Right(f.path))
+          case Some((deps, updatedCode)) =>
+            val relPath = f.path.relativeTo(f.relativeTo.getOrElse(inputs.workspace))
+            Iterator(Left((f.path, deps, relPath, updatedCode)))
+        }
+      }
       .toVector
 
     val javaFilePaths = (inputs.elements.iterator ++ fromDirectories.iterator)
@@ -205,11 +213,12 @@ object Sources {
         val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, s.path.relativeTo(s.relativeTo.getOrElse(inputs.workspace)))
         (pkg :+ wrapper).map(_.raw).mkString(".")
       case s: Inputs.Script =>
-        scriptData(s).className
+        scriptData(inputs.workspace, codeWrapper, s, platformSuffix, scalaVersion, scalaBinaryVersion).className
     }
+
     val allScriptData = (inputs.elements.iterator ++ fromDirectories.iterator)
       .collect {
-        case s: Inputs.Script => scriptData(s)
+        case s: Inputs.Script => scriptData(inputs.workspace, codeWrapper, s, platformSuffix, scalaVersion, scalaBinaryVersion)
       }
       .toVector
 

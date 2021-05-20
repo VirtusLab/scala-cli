@@ -11,6 +11,8 @@ object ScalaCli {
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
 
     args.headOption match {
+      case Some("about") =>
+        About.main(args.tail)
       case Some("compile") =>
         Compile.main(args.tail)
       case Some("repl") | Some("console") =>
@@ -22,7 +24,7 @@ object ScalaCli {
       case Some("test") =>
         Test.main(args.tail)
       case _ =>
-        Run.main(args)
+        Default.main(args)
     }
   }
 }

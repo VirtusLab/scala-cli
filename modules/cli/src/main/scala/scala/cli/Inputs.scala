@@ -71,72 +71,90 @@ object Inputs {
   final case class Directory(path: os.Path) extends Compiled
   final case class ResourceDirectory(path: os.Path) extends Element
 
+  private def forValidatedElems(
+    validElems: Seq[Compiled],
+    baseProjectName: String
+  ): Inputs = {
+
+    val hasFiles = validElems.exists { case _: SingleFile => true; case _ => false }
+    val dirCount = validElems.count { case _: Directory => true; case _ => false }
+
+    val workspace = validElems
+      .collectFirst {
+        case d: Directory => d.path
+      }
+      .getOrElse {
+        val elem = validElems.head
+        assert(elem.isInstanceOf[SingleFile])
+        elem.asInstanceOf[SingleFile].path / os.up
+      }
+    val allDirs = validElems.collect { case d: Directory => d.path }
+    def updateSingleFile(f: SingleFile): SingleFile =
+      if (f.relativeTo.isEmpty && f.path.relativeTo(workspace).ups != 0) f.withRelativeTo(Some(f.path / os.up))
+      else f
+    val updatedElems = validElems.flatMap {
+      case d: Directory => Seq(d)
+      case f: SingleFile =>
+        val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
+        if (isInDir) Nil
+        else Seq(updateSingleFile(f))
+    }
+    val mainClassElemOpt = validElems
+      .collectFirst {
+        case f: SingleFile => updateSingleFile(f)
+      }
+    Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = true)
+  }
+
+  private def forNonEmptyArgs(
+    args: Seq[String],
+    cwd: os.Path,
+    baseProjectName: String
+  ): Either[String, Inputs] = {
+    val validatedArgs = args.map { arg =>
+      val path = os.Path(arg, cwd)
+      if (arg.endsWith(".sc")) Right(Script(path, None))
+      else if (arg.endsWith(".scala")) Right(ScalaFile(path, None))
+      else if (arg.endsWith(".java")) Right(JavaFile(path, None))
+      else if (os.isDir(path)) Right(Directory(path))
+      else {
+        val msg =
+          if (os.exists(path)) s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
+          else s"$arg: not found"
+        Left(msg)
+      }
+    }
+    val invalid = validatedArgs.collect {
+      case Left(msg) => msg
+    }
+    if (invalid.isEmpty) {
+      val validElems = validatedArgs.collect {
+        case Right(elem) => elem
+      }
+
+      Right(forValidatedElems(validElems, baseProjectName))
+    } else
+      Left(invalid.mkString(System.lineSeparator()))
+  }
+
   def apply(
     args: Seq[String],
     cwd: os.Path,
-    baseProjectName: String = "project"
+    baseProjectName: String = "project",
+    defaultInputs: Option[Inputs] = None
   ): Either[String, Inputs] =
     if (args.isEmpty)
-      Left("No inputs provided.")
-    else {
-      val validatedArgs = args.map { arg =>
-        val path = os.Path(arg, cwd)
-        if (arg.endsWith(".sc")) Right(Script(path, None))
-        else if (arg.endsWith(".scala")) Right(ScalaFile(path, None))
-        else if (arg.endsWith(".java")) Right(JavaFile(path, None))
-        else if (os.isDir(path)) Right(Directory(path))
-        else Left(arg)
-      }
-      val invalid = validatedArgs.collect {
-        case Left(msg) => msg
-      }
-      if (invalid.isEmpty) {
-        val validElems = validatedArgs.collect {
-          case Right(elem) => elem
-        }
+      defaultInputs.toRight("No inputs provided (expected files with .scala or .sc extensions, and / or directories).")
+    else
+      forNonEmptyArgs(args, cwd, baseProjectName)
 
-        // FIXME We should allow for different roots, depending on the files
-        //       so that users could pass things like 'shared/src/main/scala jvm/src/main/scala'.
-        //       In the mean time, we don't accept single files alongside a directory, or several directories.
-
-        val hasFiles = validElems.exists { case _: SingleFile => true; case _ => false }
-        val dirCount = validElems.count { case _: Directory => true; case _ => false }
-
-        val errorOpt = (hasFiles, dirCount) match {
-          case (_, n) if n >= 2 => Some("Only single directories are accepted as input for now.")
-          case _ => None
-        }
-
-        errorOpt match {
-          case None =>
-            val workspace = validElems
-              .collectFirst {
-                case d: Directory => d.path
-              }
-              .getOrElse {
-                val elem = validElems.head
-                assert(elem.isInstanceOf[SingleFile])
-                elem.asInstanceOf[SingleFile].path / os.up
-              }
-            val allDirs = validElems.collect { case d: Directory => d.path }
-            def updateSingleFile(f: SingleFile): SingleFile =
-              if (f.relativeTo.isEmpty && f.path.relativeTo(workspace).ups != 0) f.withRelativeTo(Some(f.path / os.up))
-              else f
-            val updatedElems = validElems.flatMap {
-              case d: Directory => Seq(d)
-              case f: SingleFile =>
-                val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
-                if (isInDir) Nil
-                else Seq(updateSingleFile(f))
-            }
-            val mainClassElemOpt = validElems
-              .collectFirst {
-                case f: SingleFile => updateSingleFile(f)
-              }
-            Right(Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = true))
-          case Some(err) => Left(err)
-        }
-      } else
-        Left("Invalid input(s): " + invalid.mkString(", "))
-    }
+  def default(cwd: os.Path = Os.pwd): Inputs =
+    Inputs(
+      head = Directory(cwd),
+      tail = Nil,
+      mainClassElement = None,
+      workspace = cwd,
+      baseProjectName = "project",
+      mayAppendHash = true
+    )
 }

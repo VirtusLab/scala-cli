@@ -15,6 +15,7 @@ object Runner {
 
   def run(
     javaHome: File,
+    javaArgs: Seq[String],
     classPath: Seq[File],
     mainClass: String,
     args: Seq[String],
@@ -25,11 +26,14 @@ object Runner {
     import logger.{log, debug}
 
     val javaPath = new File(javaHome, "bin/java")
-    val command = Seq(
-      javaPath.toString,
-      "-cp", classPath.iterator.map(_.getAbsolutePath).mkString(File.pathSeparator),
-      mainClass
-    ) ++ args
+    val command =
+      Seq(javaPath.toString) ++
+      javaArgs ++
+      Seq(
+        "-cp", classPath.iterator.map(_.getAbsolutePath).mkString(File.pathSeparator),
+        mainClass
+      ) ++
+      args
 
     log(
       s"Running ${command.mkString(" ")}",

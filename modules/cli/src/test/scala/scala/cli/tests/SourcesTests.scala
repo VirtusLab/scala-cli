@@ -29,8 +29,8 @@ class SourcesTests extends munit.FunSuite {
       coursierapi.Dependency.of("org2", "name2_" + scalaBinaryVersion, "2.2"),
       coursierapi.Dependency.of("org3", "name3_" + scalaVersion, "3.3")
     )
-    testInputs.withInputs { (root, inputs) =>
-      val sources = Sources(root, inputs, CustomCodeWrapper, "", scalaVersion, scalaBinaryVersion)
+    testInputs.withInputs { (_, inputs) =>
+      val sources = Sources.forInputs(inputs, CustomCodeWrapper, "", scalaVersion, scalaBinaryVersion)
 
       expect(sources.dependencies == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -55,8 +55,8 @@ class SourcesTests extends munit.FunSuite {
       coursierapi.Dependency.of("org2", "name2_" + scalaBinaryVersion, "2.2"),
       coursierapi.Dependency.of("org3", "name3_" + scalaVersion, "3.3")
     )
-    testInputs.withInputs { (root, inputs) =>
-      val sources = Sources(root, inputs, CustomCodeWrapper, "", scalaVersion, scalaBinaryVersion)
+    testInputs.withInputs { (_, inputs) =>
+      val sources = Sources.forInputs(inputs, CustomCodeWrapper, "", scalaVersion, scalaBinaryVersion)
 
       expect(sources.dependencies == expectedDeps)
       expect(sources.paths.isEmpty)

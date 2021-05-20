@@ -3,13 +3,15 @@ package scala.cli.commands
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
 
-import scala.cli.{Build, Inputs, Runner}
+import scala.cli.{Build, Inputs, Os, Runner}
 import scala.cli.internal.Constants
 
 object Test extends CaseApp[TestOptions] {
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, os.pwd) match {
+    val pwd = Os.pwd
+
+    val inputs = Inputs(args.all, pwd, defaultInputs = Some(Inputs.default())) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -20,56 +22,66 @@ object Test extends CaseApp[TestOptions] {
       addTestRunnerDependencyOpt = Some(true)
     )
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
-        testOnce(options.shared, inputs.workspace, inputs.projectName, build, allowExecve = false, exitOnError = false)
+      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
+        case s: Build.Successful =>
+          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, options.shared.logger, os.pwd)
-      testOnce(options.shared, inputs.workspace, inputs.projectName, build, allowExecve = true, exitOnError = true)
+      val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
+      build match {
+        case s: Build.Successful =>
+          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
+          sys.exit(1)
+      }
     }
   }
 
   private def testOnce(
-    options: SharedOptions,
+    options: TestOptions,
     root: os.Path,
     projectName: String,
-    build: Build,
+    build: Build.Successful,
     allowExecve: Boolean,
     exitOnError: Boolean
   ): Unit = {
 
     val retCode =
-      if (options.js)
+      if (options.shared.js)
         Run.withLinkedJs(build, None, addTestInitializer = true) { js =>
           Runner.testJs(
             build.fullClassPath,
             js.toIO
           )
         }
-      else if (options.native)
+      else if (options.shared.native)
         Run.withNativeLauncher(
           build,
           "scala.scalanative.testinterface.TestMain",
-          options.scalaNativeOptionsIKnowWhatImDoing,
-          options.nativeWorkDir(root, projectName),
-          options.scalaNativeLogger
+          options.shared.scalaNativeOptionsIKnowWhatImDoing,
+          options.shared.nativeWorkDir(root, projectName),
+          options.shared.scalaNativeLogger
         ) { launcher =>
           Runner.testNative(
             build.fullClassPath,
             launcher.toIO,
-            options.logger,
-            options.scalaNativeLogger
+            options.shared.logger,
+            options.shared.scalaNativeLogger
           )
         }
       else
         Runner.run(
           build.artifacts.javaHome.toIO,
+          options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,
           Nil,
-          options.logger,
+          options.shared.logger,
           allowExecve = allowExecve
         )
 

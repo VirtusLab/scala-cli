@@ -2,23 +2,29 @@ package scala.cli.commands
 
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
-import scala.cli.{Build, Inputs, Runner}
+import scala.cli.{Build, Inputs, Os, Runner}
 import scala.cli.internal.Constants
 import scala.scalanative.{build => sn}
 
 import java.nio.file.{Files, Path}
 
 object Run extends CaseApp[RunOptions] {
-  def run(options: RunOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.remaining, os.pwd) match {
+  def run(options: RunOptions, args: RemainingArgs): Unit =
+    run(options, args, Some(Inputs.default()))
+
+  def run(options: RunOptions, args: RemainingArgs, defaultInputs: Option[Inputs]): Unit = {
+
+    val pwd = Os.pwd
+
+    val inputs = Inputs(args.remaining, pwd, defaultInputs = defaultInputs) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
       case Right(i) => i
     }
 
-    def maybeRun(build: Build, allowTerminate: Boolean): Unit =
+    def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
       maybeRunOnce(
         options,
         inputs.workspace,
@@ -31,14 +37,23 @@ object Run extends CaseApp[RunOptions] {
       )
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
-        maybeRun(build, allowTerminate = false)
+      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
+        case s: Build.Successful =>
+          maybeRun(s, allowTerminate = false)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
-      maybeRun(build, allowTerminate = true)
+      val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, pwd)
+      build match {
+        case s: Build.Successful =>
+          maybeRun(s, allowTerminate = true)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
+          sys.exit(1)
+      }
     }
   }
 
@@ -46,7 +61,7 @@ object Run extends CaseApp[RunOptions] {
     options: RunOptions,
     root: os.Path,
     projectName: String,
-    build: Build,
+    build: Build.Successful,
     args: Seq[String],
     allowExecve: Boolean,
     exitOnError: Boolean,
@@ -61,7 +76,7 @@ object Run extends CaseApp[RunOptions] {
         if (jvmRunner) (Constants.runnerMainClass, mainClass +: args)
         else (mainClass, args)
       runOnce(
-        options.shared,
+        options,
         root,
         projectName,
         build,
@@ -74,10 +89,10 @@ object Run extends CaseApp[RunOptions] {
   }
 
   def runOnce(
-    options: SharedOptions,
+    options: RunOptions,
     root: os.Path,
     projectName: String,
-    build: Build,
+    build: Build.Successful,
     mainClass: String,
     args: Seq[String],
     allowExecve: Boolean,
@@ -85,37 +100,38 @@ object Run extends CaseApp[RunOptions] {
   ): Boolean = {
 
     val retCode =
-      if (options.js)
+      if (options.shared.js)
         withLinkedJs(build, Some(mainClass), addTestInitializer = false) { js =>
           Runner.runJs(
             js.toIO,
             args,
-            options.logger,
+            options.shared.logger,
             allowExecve = allowExecve
           )
         }
-      else if (options.native)
+      else if (options.shared.native)
         withNativeLauncher(
           build,
           mainClass,
-          options.scalaNativeOptionsIKnowWhatImDoing,
-          options.nativeWorkDir(root, projectName),
-          options.scalaNativeLogger
+          options.shared.scalaNativeOptionsIKnowWhatImDoing,
+          options.shared.nativeWorkDir(root, projectName),
+          options.shared.scalaNativeLogger
         ) { launcher =>
           Runner.runNative(
             launcher.toIO,
             args,
-            options.logger,
+            options.shared.logger,
             allowExecve = allowExecve
           )
         }
       else
         Runner.run(
           build.artifacts.javaHome.toIO,
+          options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           mainClass,
           args,
-          options.logger,
+          options.shared.logger,
           allowExecve = allowExecve
         )
 
@@ -135,7 +151,7 @@ object Run extends CaseApp[RunOptions] {
 
 
   def withLinkedJs[T](
-    build: Build,
+    build: Build.Successful,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean
   )(f: os.Path => T): T = {
@@ -150,7 +166,7 @@ object Run extends CaseApp[RunOptions] {
   }
 
   def withNativeLauncher[T](
-    build: Build,
+    build: Build.Successful,
     mainClass: String,
     options: Build.ScalaNativeOptions,
     workDir: os.Path,

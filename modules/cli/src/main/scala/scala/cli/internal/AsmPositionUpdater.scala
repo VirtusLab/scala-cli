@@ -2,7 +2,7 @@ package scala.cli.internal
 
 import org.objectweb.asm
 
-import scala.cli.Logger
+import scala.cli.{Logger, Os}
 
 object AsmPositionUpdater {
 
@@ -53,7 +53,7 @@ object AsmPositionUpdater {
           is.close()
         }
         for (b <- updateByteCodeOpt) {
-          logger.debug(s"Overwriting ${path.relativeTo(os.pwd)}")
+          logger.debug(s"Overwriting ${path.relativeTo(Os.pwd)}")
           os.write.over(path, b)
         }
       }

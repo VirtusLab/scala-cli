@@ -139,14 +139,21 @@ class TestTests extends munit.FunSuite {
 
   test("successful test") {
     successfulTestInputs.fromRoot { root =>
-      val output = TestUtil.output(root)(TestUtil.cli, "test", ".")
+      val output = os.proc(TestUtil.cli, "test", ".").call(cwd = root).out.text
+      expect(output.contains("Hello from tests"))
+    }
+  }
+
+  test("current directory as default input") {
+    successfulTestInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test").call(cwd = root).out.text
       expect(output.contains("Hello from tests"))
     }
   }
 
   def successfulJsTest(): Unit =
     successfulTestInputs.fromRoot { root =>
-      val output = TestUtil.output(root)(TestUtil.cli, "test", ".", "--js")
+      val output = os.proc(TestUtil.cli, "test", ".", "--js").call(cwd = root).out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -157,7 +164,7 @@ class TestTests extends munit.FunSuite {
 
   def successfulNativeTest(): Unit =
     successfulTestInputs.fromRoot { root =>
-      val output = TestUtil.output(root)(TestUtil.cli, "test", ".", "--native")
+      val output = os.proc(TestUtil.cli, "test", ".", "--native").call(cwd = root).out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -168,14 +175,14 @@ class TestTests extends munit.FunSuite {
 
   test("failing test") {
     failingTestInputs.fromRoot { root =>
-      val output = TestUtil.output(root, check = false)(TestUtil.cli, "test", ".")
+      val output = os.proc(TestUtil.cli, "test", ".").call(cwd = root, check = false).out.text
       expect(output.contains("Hello from tests"))
     }
   }
 
   def failingJsTest(): Unit =
     failingTestInputs.fromRoot { root =>
-      val output = TestUtil.output(root, check = false)(TestUtil.cli, "test", ".", "--js")
+      val output = os.proc(TestUtil.cli, "test", ".", "--js").call(cwd = root, check = false).out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -186,7 +193,7 @@ class TestTests extends munit.FunSuite {
 
   def failingNativeTest(): Unit =
     failingTestInputs.fromRoot { root =>
-      val output = TestUtil.output(root, check = false)(TestUtil.cli, "test", ".", "--native")
+      val output = os.proc(TestUtil.cli, "test", ".", "--native").call(cwd = root, check = false).out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -197,21 +204,27 @@ class TestTests extends munit.FunSuite {
 
   test("failing test return code") {
     failingTestInputs.fromRoot { root =>
-      val res = TestUtil.run(root, check = false)(TestUtil.cli, "test", ".")
+      val res = os.proc(TestUtil.cli, "test", ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = false
+      )
       expect(res.exitCode == 1)
     }
   }
 
   test("utest") {
     successfulUtestInputs.fromRoot { root =>
-      val output = TestUtil.output(root)(TestUtil.cli, "test", ".")
+      val output = os.proc(TestUtil.cli, "test", ".").call(cwd = root).out.text
       expect(output.contains("Hello from tests"))
     }
   }
 
   def utestJs(): Unit =
     successfulUtestJsInputs.fromRoot { root =>
-      val output = TestUtil.output(root)(TestUtil.cli, "test", ".", "--js")
+      val output = os.proc(TestUtil.cli, "test", ".", "--js").call(cwd = root).out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -222,7 +235,7 @@ class TestTests extends munit.FunSuite {
 
   def utestNative(): Unit =
     successfulUtestNativeInputs.fromRoot { root =>
-      val output = TestUtil.output(root)(TestUtil.cli, "test", ".", "--native")
+      val output = os.proc(TestUtil.cli, "test", ".", "--native").call(cwd = root).out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -233,14 +246,14 @@ class TestTests extends munit.FunSuite {
 
   test("junit") {
     successfulJunitInputs.fromRoot { root =>
-      val output = TestUtil.output(root)(TestUtil.cli, "test", ".")
+      val output = os.proc(TestUtil.cli, "test", ".").call(cwd = root).out.text
       expect(output.contains("Hello from tests"))
     }
   }
 
   test("several tests") {
     severalTestsInputs.fromRoot { root =>
-      val output = TestUtil.output(root)(TestUtil.cli, "test", ".")
+      val output = os.proc(TestUtil.cli, "test", ".").call(cwd = root).out.text
       expect(output.contains("Hello from tests1"))
       expect(output.contains("Hello from tests2"))
     }

@@ -18,9 +18,9 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output0 = TestUtil.output(root)(TestUtil.cli, fileName)
+      val output = os.proc(TestUtil.cli, fileName).call(cwd = root).out.text.trim
       if (!ignoreErrors)
-        assert(output0 == message, s"got '$output0', expected '$message'")
+        expect(output == message)
     }
   }
 
@@ -46,8 +46,8 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output0 = TestUtil.output(root)(TestUtil.cli, fileName, "--js")
-      assert(output0 == message)
+      val output = os.proc(TestUtil.cli, fileName, "--js").call(cwd = root).out.text.trim
+      expect(output == message)
     }
   }
 
@@ -74,8 +74,8 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output0 = TestUtil.output(root)(TestUtil.cli, fileName, "--native")
-      assert(output0 == message)
+      val output = os.proc(TestUtil.cli, fileName, "--native").call(cwd = root).out.text.trim
+      expect(output == message)
     }
   }
 
@@ -97,8 +97,8 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output0 = TestUtil.output(root)(TestUtil.cli, "print.sc", "messages.sc")
-      assert(output0 == message, s"got '$output0', expected '$message'")
+      val output = os.proc(TestUtil.cli, "print.sc", "messages.sc").call(cwd = root).out.text.trim
+      expect(output == message)
     }
   }
 
@@ -117,8 +117,8 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output0 = TestUtil.output(root)(TestUtil.cli, "print.sc", "messages.sc", "--js")
-      assert(output0 == message, s"got '$output0', expected '$message'")
+      val output = os.proc(TestUtil.cli, "print.sc", "messages.sc", "--js").call(cwd = root).out.text.trim
+      expect(output == message)
     }
   }
 
@@ -145,8 +145,8 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output0 = TestUtil.output(root)(TestUtil.cli, "print.sc", "messages.sc", "--native")
-      assert(output0 == message, s"got '$output0', expected '$message'")
+      val output = os.proc(TestUtil.cli, "print.sc", "messages.sc", "--native").call(cwd = root).out.text.trim
+      expect(output == message)
     }
   }
 
@@ -169,8 +169,43 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output0 = TestUtil.output(root)(TestUtil.cli, "dir", "--main-class", "print")
-      assert(output0 == message, s"got '$output0', expected '$message'")
+      val output = os.proc(TestUtil.cli, "dir", "--main-class", "print").call(cwd = root).out.text.trim
+      expect(output == message)
+    }
+  }
+
+  test("Current directory as default") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "dir" / "messages.sc" ->
+         s"""def msg = "$message"
+            |""".stripMargin,
+        os.rel / "dir" / "print.sc" ->
+         s"""println(messages.msg)
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "run", "--main-class", "print").call(cwd = root / "dir").out.text.trim
+      expect(output == message)
+    }
+  }
+
+  test("No default input when no explicit command is passed") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "dir" / "print.sc" ->
+         s"""println("Foo")
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "--main-class", "print")
+        .call(cwd = root / "dir", check = false, mergeErrIntoOut = true)
+      val output = res.out.text.trim
+      expect(res.exitCode != 0)
+      expect(output.contains("No inputs provided"))
     }
   }
 
@@ -189,8 +224,8 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output0 = TestUtil.output(root)(TestUtil.cli, "dir", "--js", "--main-class", "print")
-      assert(output0 == message, s"got '$output0', expected '$message'")
+      val output = os.proc(TestUtil.cli, "dir", "--js", "--main-class", "print").call(cwd = root).out.text.trim
+      expect(output == message)
     }
   }
 
@@ -217,8 +252,8 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output0 = TestUtil.output(root)(TestUtil.cli, "dir", "--native", "--main-class", "print")
-      assert(output0 == message, s"got '$output0', expected '$message'")
+      val output = os.proc(TestUtil.cli, "dir", "--native", "--main-class", "print").call(cwd = root).out.text.trim
+      expect(output == message)
     }
   }
 
@@ -277,4 +312,77 @@ class RunTests extends munit.FunSuite {
       expect(output == expectedClassName)
     }
   }
+
+  test("stack traces") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Throws.scala" ->
+         s"""object Throws {
+            |  def something(): String =
+            |    sys.error("nope")
+            |  def main(args: Array[String]): Unit =
+            |    try something()
+            |    catch {
+            |      case e: Exception =>
+            |        throw new Exception("Caught exception during processing", e)
+            |    }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", "--java-prop", "scala.colored-stack-traces=false")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
+      val tab = "\t"
+      val expectedLines =
+       s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+          |${tab}at Throws$$.main(Throws.scala:8)
+          |${tab}at Throws.main(Throws.scala)
+          |Caused by: java.lang.RuntimeException: nope
+          |${tab}at scala.sys.package$$.error(package.scala:30)
+          |${tab}at Throws$$.something(Throws.scala:3)
+          |${tab}at Throws$$.main(Throws.scala:5)
+          |${tab}... 1 more
+          |""".stripMargin.linesIterator.toVector
+      expect(exceptionLines == expectedLines)
+    }
+  }
+
+  test("stack traces in script") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "throws.sc" ->
+         s"""def something(): String =
+            |  sys.error("nope")
+            |try something()
+            |catch {
+            |  case e: Exception =>
+            |    throw new Exception("Caught exception during processing", e)
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", "--java-prop", "scala.colored-stack-traces=false")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
+      val tab = "\t"
+      val expectedLines =
+       s"""Exception in thread "main" java.lang.ExceptionInInitializerError
+          |${tab}at throws.main(throws.sc)
+          |Caused by: java.lang.Exception: Caught exception during processing
+          |${tab}at throws$$.<init>(throws.sc:6)
+          |${tab}at throws$$.<clinit>(throws.sc)
+          |${tab}... 1 more
+          |Caused by: java.lang.RuntimeException: nope
+          |${tab}at scala.sys.package$$.error(package.scala:30)
+          |${tab}at throws$$.something(throws.sc:2)
+          |${tab}at throws$$.<init>(throws.sc:3)
+          |${tab}... 2 more
+          |""".stripMargin.linesIterator.toVector
+      expect(exceptionLines == expectedLines)
+    }
+  }
+
 }

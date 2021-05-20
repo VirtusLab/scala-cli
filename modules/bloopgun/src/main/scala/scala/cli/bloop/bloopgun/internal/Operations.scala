@@ -48,10 +48,12 @@ object Operations {
 
   def bloopClassPath(
     module: coursierapi.Module,
-    version: String
+    version: String,
+    logger: coursierapi.Logger
   ): Seq[Path] =
     coursierapi.Fetch.create()
       .addDependencies(coursierapi.Dependency.of(module, version))
+      .withCache(coursierapi.Cache.create().withLogger(logger))
       .fetch()
       .asScala
       .toVector

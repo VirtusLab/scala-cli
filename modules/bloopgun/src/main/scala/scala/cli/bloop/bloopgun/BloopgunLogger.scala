@@ -12,6 +12,7 @@ trait BloopgunLogger {
         error(s"Error running $name", e)
     }
   }
+  def coursierInterfaceLogger: coursierapi.Logger
 }
 
 object BloopgunLogger {
@@ -19,5 +20,6 @@ object BloopgunLogger {
     new BloopgunLogger {
       def debug(msg: => String): Unit = {}
       def error(msg: => String, ex: Throwable): Unit = {}
+      def coursierInterfaceLogger = coursierapi.Logger.nop()
     }
 }

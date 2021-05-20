@@ -80,6 +80,6 @@ jobs:
         yarn build
         yarn deploy
       env:
-        GIT_USER: VirtusLab
+        GIT_USER: VirtuslabRnD
         DEPLOYMENT_BRANCH: gh-pages
         GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
