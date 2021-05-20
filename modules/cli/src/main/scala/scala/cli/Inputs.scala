@@ -148,7 +148,7 @@ object Inputs {
     else
       forNonEmptyArgs(args, cwd, baseProjectName)
 
-  def default(cwd: os.Path = os.pwd): Inputs =
+  def default(cwd: os.Path = Os.pwd): Inputs =
     Inputs(
       head = Directory(cwd),
       tail = Nil,

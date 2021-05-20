@@ -34,7 +34,7 @@ object Bloop {
       val msgIt = diag.getMessage.linesIterator
 
       val path0 =
-        if (path.startsWith(os.pwd)) "." + File.separator + path.relativeTo(os.pwd).toString
+        if (path.startsWith(Os.pwd)) "." + File.separator + path.relativeTo(Os.pwd).toString
         else path.toString
       println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       for (line <- msgIt)

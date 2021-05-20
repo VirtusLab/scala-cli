@@ -2,12 +2,12 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.cli.Inputs
+import scala.cli.{Inputs, Os}
 
 object Clean extends CaseApp[CleanOptions] {
   def run(options: CleanOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, os.pwd, defaultInputs = Some(Inputs.default())) match {
+    val inputs = Inputs(args.all, Os.pwd, defaultInputs = Some(Inputs.default())) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)

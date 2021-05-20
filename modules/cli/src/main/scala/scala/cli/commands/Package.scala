@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
-import scala.cli.{Build, Inputs}
+import scala.cli.{Build, Inputs, Os}
 import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
 
@@ -20,7 +20,9 @@ import scala.cli.internal.ScalaJsLinker
 object Package extends CaseApp[PackageOptions] {
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, os.pwd, defaultInputs = Some(Inputs.default())) match {
+    val pwd = Os.pwd
+
+    val inputs = Inputs(args.all, pwd, defaultInputs = Some(Inputs.default())) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -31,7 +33,7 @@ object Package extends CaseApp[PackageOptions] {
 
     // TODO Add watch mode
 
-    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
+    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
@@ -54,9 +56,9 @@ object Package extends CaseApp[PackageOptions] {
       .filter(_.nonEmpty)
       .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1) + extension))
       .getOrElse(defaultName)
-    val destPath = os.Path(dest, os.pwd)
+    val destPath = os.Path(dest, pwd)
     val printableDest =
-      if (destPath.startsWith(os.pwd)) "." + File.separator + destPath.relativeTo(os.pwd).toString
+      if (destPath.startsWith(pwd)) "." + File.separator + destPath.relativeTo(pwd).toString
       else destPath.toString
 
     def alreadyExistsCheck(): Unit =

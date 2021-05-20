@@ -5,12 +5,12 @@ import caseapp.core.RemainingArgs
 
 import java.io.File
 
-import scala.cli.{Build, Inputs}
+import scala.cli.{Build, Inputs, Os}
 
 object Compile extends CaseApp[CompileOptions] {
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, os.pwd) match {
+    val inputs = Inputs(args.all, Os.pwd) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -25,13 +25,13 @@ object Compile extends CaseApp[CompileOptions] {
         }
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
+      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
         postBuild(build)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
+      val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, Os.pwd)
       postBuild(build)
     }
   }

@@ -2,12 +2,12 @@ package scala.cli.commands
 
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
-import scala.cli.{Build, Inputs, ReplArtifacts, Runner}
+import scala.cli.{Build, Inputs, Os, ReplArtifacts, Runner}
 
 object Repl extends CaseApp[ReplOptions] {
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, os.pwd, defaultInputs = Some(Inputs.default())) match {
+    val inputs = Inputs(args.all, Os.pwd, defaultInputs = Some(Inputs.default())) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -16,7 +16,7 @@ object Repl extends CaseApp[ReplOptions] {
 
     // TODO Add watch support?
 
-    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
+    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, Os.pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")

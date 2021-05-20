@@ -3,13 +3,15 @@ package scala.cli.commands
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
 
-import scala.cli.{Build, Inputs, Runner}
+import scala.cli.{Build, Inputs, Os, Runner}
 import scala.cli.internal.Constants
 
 object Test extends CaseApp[TestOptions] {
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, os.pwd, defaultInputs = Some(Inputs.default())) match {
+    val pwd = Os.pwd
+
+    val inputs = Inputs(args.all, pwd, defaultInputs = Some(Inputs.default())) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -20,7 +22,7 @@ object Test extends CaseApp[TestOptions] {
       addTestRunnerDependencyOpt = Some(true)
     )
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
@@ -29,7 +31,7 @@ object Test extends CaseApp[TestOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, options.shared.logger, os.pwd)
+      val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
       build match {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)

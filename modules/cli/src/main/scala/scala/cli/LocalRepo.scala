@@ -20,7 +20,7 @@ object LocalRepo {
     if (archiveUrl == null) None
     else {
       val projDirs = ProjectDirectories.from(null, null, "ScalaCli")
-      val cacheDir = os.Path(projDirs.cacheDir, os.pwd)
+      val cacheDir = os.Path(projDirs.cacheDir, Os.pwd)
       val repoDir = cacheDir / "local-repo" / version
       val tmpRepoDir = repoDir / os.up / s".$version.tmp"
       val repo = coursierapi.IvyRepository.of(repoDir.toNIO.toUri + "/[defaultPattern]")

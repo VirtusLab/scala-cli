@@ -2,19 +2,22 @@ package scala.cli.commands
 
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
-import scala.cli.{Build, Inputs, Runner}
+import scala.cli.{Build, Inputs, Os, Runner}
 import scala.cli.internal.Constants
 import scala.scalanative.{build => sn}
 
 import java.nio.file.{Files, Path}
 
 object Run extends CaseApp[RunOptions] {
+
   def run(options: RunOptions, args: RemainingArgs): Unit =
     run(options, args, Some(Inputs.default()))
 
   def run(options: RunOptions, args: RemainingArgs, defaultInputs: Option[Inputs]): Unit = {
 
-    val inputs = Inputs(args.remaining, os.pwd, defaultInputs = defaultInputs) match {
+    val pwd = Os.pwd
+
+    val inputs = Inputs(args.remaining, pwd, defaultInputs = defaultInputs) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -34,7 +37,7 @@ object Run extends CaseApp[RunOptions] {
       )
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = false)
         case f: Build.Failed =>
@@ -43,7 +46,7 @@ object Run extends CaseApp[RunOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, os.pwd)
+      val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, pwd)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)

@@ -53,7 +53,7 @@ object Sources {
         val res1 = parse(newCode, Header(_))
         res1 match {
           case f: Parsed.Failure =>
-            val msg = formatFastparseError(path.relativeTo(os.pwd).toString, content, f)
+            val msg = formatFastparseError(path.relativeTo(Os.pwd).toString, content, f)
             Left(msg)
           case s: Parsed.Success[Seq[(Int, Int)]] =>
             Right(s.value)
