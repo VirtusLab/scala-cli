@@ -7,7 +7,7 @@ import scala.cli.internal.{AsmPositionUpdater, CodeWrapper, Constants, CustomCod
 import java.io.IOException
 import java.lang.{Boolean => JBoolean}
 import java.nio.file.{Path, Paths}
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
+import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -221,7 +221,7 @@ object Build {
 
     val watcher = new Watcher(
       ListBuffer(),
-      coursier.cache.internal.ThreadUtil.fixedScheduledThreadPool(1), // FIXME Tweak thread names?
+      Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("scala-cli-file-watcher")),
       run()
     )
 

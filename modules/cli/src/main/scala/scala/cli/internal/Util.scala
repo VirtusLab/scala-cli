@@ -1,6 +1,8 @@
 package scala.cli.internal
 
 import java.io.PrintStream
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.atomic.AtomicInteger
 
 object Util {
 
@@ -11,4 +13,16 @@ object Util {
         out.println(s"  $l")
       printException(t.getCause, out)
     }
+
+  def daemonThreadFactory(prefix: String): ThreadFactory =
+    new ThreadFactory {
+      val counter = new AtomicInteger
+      def threadNumber() = counter.incrementAndGet()
+      def newThread(r: Runnable) =
+        new Thread(r, s"$prefix-thread-${threadNumber()}") {
+          setDaemon(true)
+          setPriority(Thread.NORM_PRIORITY)
+        }
+    }
+
 }

@@ -6,12 +6,11 @@ import java.nio.file.{Path, Paths}
 import java.util.concurrent.Executors
 
 import ch.epfl.scala.bsp4j
-import coursier.cache.internal.ThreadUtil
 import org.eclipse.lsp4j.jsonrpc
 
 import scala.annotation.tailrec
 import scala.cli.bloop.bloopgun
-import scala.cli.internal.Constants
+import scala.cli.internal.{Constants, Util}
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, DurationInt}
@@ -67,7 +66,7 @@ object Bloop {
       logger.debug(s"Starting bloop server version ${config.version}")
       val serverStartedFuture = bloopgun.Bloopgun.startServer(
         config,
-        Executors.newSingleThreadScheduledExecutor(ThreadUtil.daemonThreadFactory()),
+        Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("scala-cli-bloopgun")),
         100.millis,
         1.minute,
         bloopgunLogger
@@ -160,7 +159,7 @@ object Bloop {
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
-    val ec = Executors.newFixedThreadPool(4, ThreadUtil.daemonThreadFactory())
+    val ec = Executors.newFixedThreadPool(4, Util.daemonThreadFactory("scala-cli-bsp-jsonrpc"))
     val launcher = new jsonrpc.Launcher.Builder[FullBuildServer]()
       .setExecutorService(ec)
       .setInput(s.getInputStream)
