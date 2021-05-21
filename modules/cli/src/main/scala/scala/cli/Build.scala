@@ -324,7 +324,7 @@ object Build {
         s"-Xplugin:${path.toAbsolutePath}"
     }
 
-    val extraScalacOptions =
+    val lineModifierScalacOptions =
       if (options.addLineModifierPlugin) {
         val lengths = generatedSources
           .map {
@@ -336,10 +336,19 @@ object Build {
       }
       else Nil
 
+    val sourceRootScalacOptions =
+      if (options.scalaVersion.startsWith("2.")) Nil
+      else Seq("-sourceroot", inputs.workspace.toString)
+
+    val scalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-feature") ++
+      pluginScalacOptions ++
+      lineModifierScalacOptions ++
+      sourceRootScalacOptions
+
     val scalaCompiler = ScalaCompiler(
             scalaVersion = options.scalaVersion,
       scalaBinaryVersion = options.scalaBinaryVersion,
-           scalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-feature") ++ pluginScalacOptions ++ extraScalacOptions,
+           scalacOptions = scalacOptions,
        compilerClassPath = artifacts.compilerClassPath
     )
 

@@ -3,6 +3,7 @@
 import $ivy.`com.softwaremill.sttp.client::core:2.0.0-RC6`
 import $ivy.`com.lihaoyi::ujson:0.9.5`
 
+import java.io._
 import java.nio.ByteBuffer
 import java.nio.charset.{MalformedInputException, StandardCharsets}
 import java.nio.file.{Files, Path}
@@ -139,5 +140,44 @@ def upload(
         .post(uri)
         .send()
     }
+  }
+}
+
+def readInto(is: InputStream, os: OutputStream): Unit = {
+  val buf = Array.ofDim[Byte](1024 * 1024)
+  var read = -1
+  while ({
+    read = is.read(buf)
+    read >= 0
+  }) os.write(buf, 0, read)
+}
+
+def writeInZip(name: String, file: os.Path, zip: os.Path): Unit = {
+  import java.nio.file.attribute.FileTime
+  import java.util.zip._
+
+  os.makeDir.all(zip / os.up)
+
+  var fis: InputStream = null
+  var fos: FileOutputStream = null
+  var zos: ZipOutputStream = null
+
+  try {
+    fis = os.read.inputStream(file)
+    fos = new FileOutputStream(zip.toIO)
+    zos = new ZipOutputStream(new BufferedOutputStream(fos))
+
+    val ent = new ZipEntry(name)
+    ent.setLastModifiedTime(FileTime.fromMillis(os.mtime(file)))
+    ent.setSize(os.size(file))
+    zos.putNextEntry(ent)
+    readInto(fis, zos)
+    zos.closeEntry()
+
+    zos.finish()
+  } finally {
+    if (zos != null) zos.close()
+    if (fos != null) fos.close()
+    if (fis != null) fis.close()
   }
 }
