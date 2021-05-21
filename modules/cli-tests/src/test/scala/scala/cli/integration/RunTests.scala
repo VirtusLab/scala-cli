@@ -209,6 +209,43 @@ class RunTests extends munit.FunSuite {
     }
   }
 
+  test("Pass arguments") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Test.scala" ->
+         s"""object Test {
+            |  def main(args: Array[String]): Unit = {
+            |    println(args(0))
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+    val message = "Hello"
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "run", "--", message).call(cwd = root).out.text.trim
+      expect(output == message)
+    }
+  }
+
+  test("Pass arguments - Scala 3") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Test.scala" ->
+         s"""object Test:
+            |  def main(args: Array[String]): Unit =
+            |    val message = args(0)
+            |    println(message)
+            |""".stripMargin
+      )
+    )
+    val message = "Hello"
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "run", "--scala", "3.0.0", "--", message).call(cwd = root).out.text.trim
+      expect(output == message)
+    }
+  }
+
   def directoryJs(): Unit = {
     val message = "Hello"
     val inputs = TestInputs(
@@ -380,6 +417,43 @@ class RunTests extends munit.FunSuite {
           |${tab}at throws$$.something(throws.sc:2)
           |${tab}at throws$$.<init>(throws.sc:3)
           |${tab}... 2 more
+          |""".stripMargin.linesIterator.toVector
+      expect(exceptionLines == expectedLines)
+    }
+  }
+
+  test("stack traces in script in Scala 3") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "throws.sc" ->
+         s"""def something(): String =
+            |  val message = "nope"
+            |  sys.error(message)
+            |
+            |try something()
+            |catch {
+            |  case e: Exception =>
+            |    throw new Exception("Caught exception during processing", e)
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", "--scala", "3.0.0", "--runner=false")
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
+      val tab = "\t"
+      val expectedLines =
+       s"""Exception in thread "main" java.lang.ExceptionInInitializerError
+          |${tab}at throws.main(throws.sc)
+          |Caused by: java.lang.Exception: Caught exception during processing
+          |${tab}at throws$$.<clinit>(throws.sc:8)
+          |${tab}... 1 more
+          |Caused by: java.lang.RuntimeException: nope
+          |${tab}at scala.sys.package$$.error(package.scala:27)
+          |${tab}at throws$$.something(throws.sc:3)
+          |${tab}at throws$$.<clinit>(throws.sc:5)
+          |${tab}... 1 more
           |""".stripMargin.linesIterator.toVector
       expect(exceptionLines == expectedLines)
     }
