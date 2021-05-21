@@ -8,6 +8,7 @@ import java.util.Arrays
 
 final case class Project(
   workspace: os.Path,
+  classesDir: os.Path,
   javaHome: os.Path,
   scalaCompiler: ScalaCompiler,
   scalaJsOptions: Option[Project.ScalaJsOptions],
@@ -34,7 +35,7 @@ final case class Project(
       projectName,
       workspace.toNIO,
       (workspace / ".scala" / ".bloop" / projectName).toNIO,
-      (workspace / ".scala" / ".bloop" / projectName / s"scala-${scalaCompiler.scalaBinaryVersion}" / "classes").toNIO
+      classesDir.toNIO
     )
     .copy(
       workspaceDir = Some(workspace.toNIO),

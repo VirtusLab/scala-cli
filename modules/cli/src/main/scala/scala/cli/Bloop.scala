@@ -9,6 +9,7 @@ import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
 import scala.annotation.tailrec
+import scala.cli.bloop.bloop4j.BloopExtraBuildParams
 import scala.cli.bloop.bloopgun
 import scala.cli.internal.{Constants, Util}
 import scala.collection.JavaConverters._
@@ -47,10 +48,11 @@ object Bloop {
 
   def compile(
     workspace: os.Path,
+    classesDir: os.Path,
     projectName: String,
     logger: Logger,
     bloopVersion: String = Constants.bloopVersion
-  ): Option[os.Path] = {
+  ): Boolean = {
 
     val config = bloopgun.BloopgunConfig.default.copy(
       bspStdout = logger.bloopBspStdout,
@@ -182,6 +184,10 @@ object Bloop {
       (workspace / ".scala").toNIO.toUri.toASCIIString,
       new bsp4j.BuildClientCapabilities(List("scala", "java").asJava)
     )
+    val bloopExtraParams = new BloopExtraBuildParams()
+    bloopExtraParams.setClientClassesRootDir(classesDir.toNIO.toUri.toASCIIString)
+    bloopExtraParams.setOwnsBuildFiles(true)
+    initParams.setData(bloopExtraParams)
     logger.debug("Sending buildInitialize BSP command to Bloop")
     server.buildInitialize(initParams).get()
 
@@ -217,8 +223,7 @@ object Bloop {
 
     val success = compileRes.getStatusCode == bsp4j.StatusCode.OK
     logger.debug(if (success) "Compilation succeeded" else "Compilation failed")
-    if (success) Some(os.Path(Paths.get(new URI(scalacOptions.getClassDirectory)).toAbsolutePath))
-    else None
+    success
   }
 
 }

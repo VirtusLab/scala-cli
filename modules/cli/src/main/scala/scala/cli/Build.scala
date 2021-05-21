@@ -156,8 +156,10 @@ object Build {
     addLineModifierPluginOpt: Option[Boolean] = None,
     addScalaLibrary: Boolean = true
   ) {
+    def classesDir(root: os.Path, projectName: String): os.Path =
+      root / ".scala" / projectName / s"scala-$scalaVersion" / "classes"
     def generatedSrcRoot(root: os.Path, projectName: String) = generatedSrcRootOpt.getOrElse {
-      root / ".scala" / ".bloop" / projectName / ".src_generated"
+      root / ".scala" / projectName / s"scala-$scalaVersion" / "src_generated"
     }
     def addStubsDependency: Boolean =
       addStubsDependencyOpt.getOrElse(stubsJarOpt.isEmpty)
@@ -275,6 +277,8 @@ object Build {
     val allSources = sources.paths ++ generatedSources.map(_._1)
     val allScalaSources = allSources
 
+    val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
+
     val scalaLibraryDependencies =
       if (options.addScalaLibrary) {
         val lib =
@@ -354,6 +358,7 @@ object Build {
 
     val project = Project(
                workspace = inputs.workspace,
+              classesDir = classesDir,
                 javaHome = artifacts.javaHome,
            scalaCompiler = scalaCompiler,
           scalaJsOptions = options.scalaJsOptions.map(_.config),
@@ -366,13 +371,14 @@ object Build {
 
     project.writeBloopFile(logger)
 
-    val outputPathOpt = Bloop.compile(
+    val success = Bloop.compile(
       inputs.workspace,
+      classesDir,
       inputs.projectName,
       logger
     )
 
-    for (outputPath <- outputPathOpt) {
+    if (success) {
       // TODO Disable post-processing altogether when options.addLineModifierPlugin is true
       // (needs source gen to use the exact same names as the original file)
       // TODO Write classes to a separate directory during post-processing
@@ -385,15 +391,12 @@ object Build {
             (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
         }
         .toMap
-      AsmPositionUpdater.postProcess(mappings, outputPath, logger)
-    }
+      AsmPositionUpdater.postProcess(mappings, classesDir, logger)
 
-    outputPathOpt match {
-      case Some(outputPath) =>
-        Successful(inputs, options, sources, artifacts, project, outputPath)
-      case None =>
-        Failed(inputs, options, sources, artifacts, project)
+      Successful(inputs, options, sources, artifacts, project, classesDir)
     }
+    else
+      Failed(inputs, options, sources, artifacts, project)
   }
 
   private def onChangeBufferedObserver(onEvent: PathWatchers.Event => Unit): Observer[PathWatchers.Event] =
@@ -461,7 +464,7 @@ object Build {
 
   def jmhBuild(inputs: Inputs, build: Build.Successful, logger: Logger, cwd: os.Path) = {
     val jmhProjectName = inputs.projectName + "_jmh"
-    val jmhOutputDir = inputs.workspace / ".scala" / ".bloop" / jmhProjectName
+    val jmhOutputDir = inputs.workspace / ".scala" / jmhProjectName
     os.remove.all(jmhOutputDir)
     val jmhSourceDir = jmhOutputDir / "sources"
     val jmhResourceDir = jmhOutputDir / "resources"
