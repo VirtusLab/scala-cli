@@ -1,7 +1,10 @@
 package scala.cli.tests
 
+import com.eed3si9n.expecty.Expecty.expect
+
 import scala.cli.{Build, Inputs}
 import scala.cli.tests.TestUtil._
+import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 
 class BuildTests extends munit.FunSuite {
@@ -44,6 +47,28 @@ class BuildTests extends munit.FunSuite {
         "simple$.class",
         "simple.tasty"
       )
+    }
+  }
+
+  test("semantic DB") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """val n = 2
+          |println(s"n=$n")
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions.copy(generateSemanticDbs = true)) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class",
+        "META-INF/semanticdb/simple.sc.semanticdb"
+      )
+
+      val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
+      val semDb = os.read.bytes(outputDir / "META-INF" / "semanticdb" / "simple.sc.semanticdb")
+      val doc = TextDocuments.parseFrom(semDb)
+      val uris = doc.documents.map(_.uri)
+      expect(uris == Seq("simple.sc"))
     }
   }
 

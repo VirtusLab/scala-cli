@@ -2,7 +2,7 @@ package scala.cli
 
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
-import scala.cli.internal.{AsmPositionUpdater, CodeWrapper, Constants, CustomCodeWrapper, MainClass, Util}
+import scala.cli.internal.{AsmPositionUpdater, CodeWrapper, Constants, CustomCodeWrapper, LineConversion, MainClass, SemanticdbProcessor, Util}
 
 import java.io.IOException
 import java.lang.{Boolean => JBoolean}
@@ -154,13 +154,16 @@ object Build {
     addJmhDependencies: Option[String] = None,
     runJmh: Boolean = false,
     addLineModifierPluginOpt: Option[Boolean] = None,
-    addScalaLibrary: Boolean = true
+    addScalaLibrary: Boolean = true,
+    generateSemanticDbs: Boolean = false
   ) {
     def classesDir(root: os.Path, projectName: String): os.Path =
       root / ".scala" / projectName / s"scala-$scalaVersion" / "classes"
     def generatedSrcRoot(root: os.Path, projectName: String) = generatedSrcRootOpt.getOrElse {
-      root / ".scala" / projectName / s"scala-$scalaVersion" / "src_generated"
+      defaultGeneratedSrcRoot(root, projectName)
     }
+    def defaultGeneratedSrcRoot(root: os.Path, projectName: String) =
+      root / ".scala" / projectName / s"scala-$scalaVersion" / "src_generated"
     def addStubsDependency: Boolean =
       addStubsDependencyOpt.getOrElse(stubsJarOpt.isEmpty)
     def addRunnerDependency: Boolean =
@@ -296,12 +299,21 @@ object Build {
         options.scalaNativeOptions.map(_.nativeDependencies).getOrElse(Nil) ++
         scalaLibraryDependencies
 
-    val extraPlugins =
+    val lineModifierPlugins =
       if (options.addLineModifierPlugin)
         Seq(coursierapi.Dependency.of(
           Constants.lineModifierPluginOrganization,
           Constants.lineModifierPluginModuleName + "_" + options.scalaBinaryVersion,
           Constants.lineModifierPluginVersion
+        ))
+      else Nil
+
+    val semanticDbPlugins =
+      if (options.generateSemanticDbs && options.scalaVersion.startsWith("2."))
+        Seq(coursierapi.Dependency.of(
+          Constants.semanticDbPluginOrganization,
+          Constants.semanticDbPluginModuleName + "_" + options.scalaVersion,
+          Constants.semanticDbPluginVersion
         ))
       else Nil
 
@@ -312,7 +324,8 @@ object Build {
       options.scalaBinaryVersion,
       options.scalaJsOptions.map(_.compilerPlugins).getOrElse(Nil) ++
         options.scalaNativeOptions.map(_.compilerPlugins).getOrElse(Nil) ++
-        extraPlugins,
+        lineModifierPlugins ++
+        semanticDbPlugins,
       allDependencies,
       options.stubsJarOpt.toSeq ++ options.testRunnerJarsOpt.getOrElse(Nil),
       addStubs = options.addStubsDependency,
@@ -340,6 +353,24 @@ object Build {
       }
       else Nil
 
+    val semanticDbScalacOptions =
+      if (options.generateSemanticDbs) {
+        if (options.scalaVersion.startsWith("2."))
+          Seq(
+            "-Yrangepos",
+            "-P:semanticdb:failures:warning",
+            "-P:semanticdb:synthetics:on",
+            s"-P:semanticdb:sourceroot:${inputs.workspace}",
+            s"-P:semanticdb:targetroot:${classesDir}"
+          )
+        else
+          Seq(
+            "-Xsemanticdb",
+            "-semanticdb-target", classesDir.toString
+          )
+      }
+      else Nil
+
     val sourceRootScalacOptions =
       if (options.scalaVersion.startsWith("2.")) Nil
       else Seq("-sourceroot", inputs.workspace.toString)
@@ -347,6 +378,7 @@ object Build {
     val scalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-feature") ++
       pluginScalacOptions ++
       lineModifierScalacOptions ++
+      semanticDbScalacOptions ++
       sourceRootScalacOptions
 
     val scalaCompiler = ScalaCompiler(
@@ -382,6 +414,7 @@ object Build {
       // TODO Disable post-processing altogether when options.addLineModifierPlugin is true
       // (needs source gen to use the exact same names as the original file)
       // TODO Write classes to a separate directory during post-processing
+      logger.debug("Post-processing class files of pre-processed sources")
       val mappings = generatedSources
         .map {
           case (path, reportingPath, len) =>
@@ -392,6 +425,31 @@ object Build {
         }
         .toMap
       AsmPositionUpdater.postProcess(mappings, classesDir, logger)
+
+      if (generatedSrcRoot == options.defaultGeneratedSrcRoot(inputs.workspace, inputs.projectName)) {
+        logger.debug("Moving semantic DBs around")
+        val semDbRoot = classesDir / "META-INF" / "semanticdb"
+        for ((path, originalSource, offset) <- generatedSources) {
+          val fromSourceRoot = path.relativeTo(inputs.workspace)
+          val actual = originalSource.relativeTo(inputs.workspace)
+
+          val semDbFile = semDbRoot / fromSourceRoot.segments.take(fromSourceRoot.segments.length - 1) / s"${fromSourceRoot.last}.semanticdb"
+          if (os.exists(semDbFile)) {
+            val finalSemDbFile = semDbRoot / actual.segments.take(actual.segments.length - 1) / s"${actual.last}.semanticdb"
+            SemanticdbProcessor.postProcess(
+              os.read(originalSource),
+              originalSource.relativeTo(inputs.workspace),
+              None,
+              if (offset == 0) n => Some(n)
+              else LineConversion.scalaLineToScLine(os.read(originalSource), os.read(path), offset),
+              semDbFile,
+              finalSemDbFile
+            )
+            os.remove(semDbFile)
+          }
+        }
+      } else
+        logger.debug("Custom generated source directory used, not moving semantic DBs around")
 
       Successful(inputs, options, sources, artifacts, project, classesDir)
     }

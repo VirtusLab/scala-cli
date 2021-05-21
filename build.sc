@@ -52,6 +52,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinker,
     Deps.scalaJsTestAdapter,
+    Deps.scalametaTrees,
     Deps.scalaparse,
     Deps.svmSubs,
     Deps.swoval
@@ -93,6 +94,10 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
          |  def lineModifierPluginOrganization = "${`line-modifier-plugin`(defaultCliScalaVersion).pomSettings().organization}"
          |  def lineModifierPluginModuleName = "${`line-modifier-plugin`(defaultCliScalaVersion).artifactName()}"
          |  def lineModifierPluginVersion = "${`line-modifier-plugin`(defaultCliScalaVersion).publishVersion()}"
+         |
+         |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
+         |  def semanticDbPluginModuleName = "semanticdb-scalac"
+         |  def semanticDbPluginVersion = "${Deps.scalametaTrees.dep.version}"
          |
          |  def localRepoResourcePath = "$localRepoResourcePath"
          |  def localRepoVersion = "${VcsVersion.vcsState().format()}"

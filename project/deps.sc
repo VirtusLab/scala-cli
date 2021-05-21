@@ -40,6 +40,7 @@ object Deps {
   def scalaJsEnvNodeJs = ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
   def scalaJsLinker = ivy"org.scala-js::scalajs-linker:${Versions.scalaJs}"
   def scalaJsTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${Versions.scalaJs}"
+  def scalametaTrees = ivy"org.scalameta::trees:4.4.18"
   def scalaparse = ivy"com.lihaoyi::scalaparse:2.3.2"
   def snailgun = ivy"me.vican.jorge::snailgun-cli:0.4.0"
   def svm = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"

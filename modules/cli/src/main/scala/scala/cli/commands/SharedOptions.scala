@@ -28,7 +28,8 @@ final case class SharedOptions(
   jmhVersion: Option[String] = None,
   scalaLibrary: Option[Boolean] = None,
   java: Option[Boolean] = None,
-  runner: Option[Boolean] = None
+  runner: Option[Boolean] = None,
+  semanticDb: Boolean = false
 ) {
 
   lazy val scalaBinaryVersion =
@@ -81,7 +82,8 @@ final case class SharedOptions(
         else None,
       runJmh = enableJmh,
       addScalaLibrary = scalaLibrary.getOrElse(!java.getOrElse(false)),
-      addRunnerDependencyOpt = runner
+      addRunnerDependencyOpt = runner,
+      generateSemanticDbs = semanticDb
     )
 }
 
