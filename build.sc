@@ -1,7 +1,7 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.0.16`
 import $file.project.deps, deps.{Deps, Scala, graalVmVersion}
-import $file.project.ghreleaseassets, ghreleaseassets.upload
+import $file.project.ghreleaseassets, ghreleaseassets.{upload, writeInZip}
 import $file.project.nativeimage, nativeimage.generateNativeImage
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.cs
@@ -408,7 +408,18 @@ def copyLauncher(directory: String = "artifacts") = T.command {
   val path = os.Path(directory, os.pwd)
   val nativeLauncher = cli(defaultCliScalaVersion).nativeImage().path
   val name = s"scala-$platformSuffix$extension"
-  os.copy(nativeLauncher, path / name, createFolders = true, replaceExisting = true)
+  if (Properties.isWin)
+    writeInZip(name, nativeLauncher, path / s"scala-$platformSuffix.zip")
+  else {
+    val dest = path / name
+    os.copy(nativeLauncher, dest, createFolders = true, replaceExisting = true)
+    os.proc("gzip", "-v", dest.toString).call(
+      stdin = os.Inherit,
+      stdout = os.Inherit,
+      stderr = os.Inherit
+    )
+  }
+  ()
 }
 
 def uploadLaunchers(directory: String = "artifacts") = T.command {
