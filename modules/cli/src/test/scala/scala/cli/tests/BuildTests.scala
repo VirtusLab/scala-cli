@@ -11,6 +11,11 @@ class BuildTests extends munit.FunSuite {
     scalaBinaryVersion = "2.13"
   )
 
+  val defaultScala3Options = defaultOptions.copy(
+    scalaVersion = "3.0.0",
+    scalaBinaryVersion = "3"
+  )
+
   test("simple") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
@@ -22,6 +27,22 @@ class BuildTests extends munit.FunSuite {
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class"
+      )
+    }
+  }
+
+  test("scala 3") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """val n = 2
+          |println(s"n=$n")
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultScala3Options) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class",
+        "simple.tasty"
       )
     }
   }
