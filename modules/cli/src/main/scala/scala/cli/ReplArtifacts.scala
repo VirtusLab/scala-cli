@@ -2,6 +2,10 @@ package scala.cli
 
 import java.nio.file.Path
 
+import dependency._
+
+import scala.cli.internal.Util.ScalaDependencyOps
+
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, Path)]
 ) {
@@ -20,19 +24,19 @@ object ReplArtifacts {
   //     val contextClassLoader = classOf[ammonite.repl.api.ReplAPI].getClassLoader
   // so that only the first loader is exposed to users in Ammonite.
   def apply(
-    scalaVersion: String,
+    scalaParams: ScalaParameters,
     ammoniteVersion: String,
     dependencies: Seq[coursierapi.Dependency],
     logger: Logger
   ): ReplArtifacts = {
     val localRepoOpt = LocalRepo.localRepo()
-    val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion, scalaVersion)
+    val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion, scalaParams)
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, logger)
     ReplArtifacts(replArtifacts)
   }
 
-  private def ammoniteDependencies(ammoniteVersion: String, scalaVersion: String): Seq[coursierapi.Dependency] =
+  private def ammoniteDependencies(ammoniteVersion: String, scalaParams: ScalaParameters): Seq[coursierapi.Dependency] =
     Seq(
-      coursierapi.Dependency.of("com.lihaoyi", s"ammonite_$scalaVersion", ammoniteVersion)
+      dep"com.lihaoyi:::ammonite:$ammoniteVersion".toApi(scalaParams)
     )
 }

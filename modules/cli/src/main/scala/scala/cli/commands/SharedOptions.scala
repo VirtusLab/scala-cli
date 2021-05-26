@@ -5,6 +5,9 @@ import caseapp.core.help.Help
 import scala.cli.{Build, Project}
 import scala.cli.internal.{CodeWrapper, CustomCodeClassWrapper, CustomCodeWrapper}
 import scala.scalanative.{build => sn}
+import dependency.ScalaVersion
+import dependency.ScalaParameters
+import scala.cli.internal.Constants
 
 // TODO Add support for a --watch option
 
@@ -32,11 +35,15 @@ final case class SharedOptions(
   semanticDb: Boolean = false
 ) {
 
-  lazy val scalaBinaryVersion =
-    // FIXME Many cases are probably missing, see how mill does it.
-    if (scalaVersion.contains("-RC") || scalaVersion.contains("-M")) scalaVersion
-    else if (scalaVersion.startsWith("3.")) "3"
-    else scalaVersion.split('.').take(2).mkString(".")
+  lazy val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
+
+  lazy val scalaParams = ScalaParameters(
+    scalaVersion,
+    ScalaVersion.binary(scalaVersion),
+    if (js) Some("sjs" + ScalaVersion.jsBinary(Constants.scalaJsVersion))
+    else if (native) Some("native" + ScalaVersion.nativeBinary(Constants.scalaNativeVersion))
+    else None
+  )
 
   def enableJmh: Boolean = jmh.getOrElse(jmhVersion.nonEmpty)
 

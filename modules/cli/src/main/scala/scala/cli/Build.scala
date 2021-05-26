@@ -2,7 +2,10 @@ package scala.cli
 
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
+import dependency._
 import scala.cli.internal.{AsmPositionUpdater, CodeWrapper, Constants, CustomCodeWrapper, LineConversion, MainClass, SemanticdbProcessor, Util}
+import scala.cli.internal.Constants._
+import scala.cli.internal.Util.{DependencyOps, ScalaDependencyOps}
 
 import java.io.IOException
 import java.lang.{Boolean => JBoolean}
@@ -14,7 +17,6 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.scalanative.{build => sn}
 import scala.util.control.NonFatal
 import scala.cli.tastylib.TastyData
-import java.util.Arrays
 
 trait Build {
   def inputs: Inputs
@@ -92,15 +94,17 @@ object Build {
   }
 
   def scalaJsOptions(scalaVersion: String, scalaBinaryVersion: String): ScalaJsOptions = {
-    val version = scala.cli.internal.Constants.scalaJsVersion
-    val platformSuffix = "_sjs" + version.split('.').take(if (version.startsWith("0.")) 2 else 1).mkString(".") // meh
-    val jsDeps = Seq(
-      coursierapi.Dependency.of("org.scala-js", "scalajs-library_" + scalaBinaryVersion, version)
-    )
+    val version = Constants.scalaJsVersion
+    val platformSuffix = "sjs" + ScalaVersion.jsBinary(version).getOrElse(version)
+    val params = ScalaParameters(scalaVersion, scalaBinaryVersion, Some(platformSuffix))
     ScalaJsOptions(
       platformSuffix = platformSuffix,
-      jsDependencies = jsDeps,
-      compilerPlugins = Seq(coursierapi.Dependency.of("org.scala-js", "scalajs-compiler_" + scalaVersion, version)),
+      jsDependencies = Seq(
+        dep"org.scala-js::scalajs-library:$version".toApi(params)
+      ),
+      compilerPlugins = Seq(
+        dep"org.scala-js:::scalajs-compiler:$version".toApi(params)
+      ),
       config = Project.ScalaJsOptions(
         version = version,
         mode = "debug"
@@ -118,15 +122,15 @@ object Build {
   }
 
   def scalaNativeOptions(scalaVersion: String, scalaBinaryVersion: String): ScalaNativeOptions = {
-    val version = scala.cli.internal.Constants.scalaNativeVersion
-    val platformSuffix = "_native" + version.split('.').take(2).mkString(".") // meh
+    val version = Constants.scalaNativeVersion
+    val platformSuffix = "native" + ScalaVersion.nativeBinary(version).getOrElse(version)
+    val params = ScalaParameters(scalaVersion, scalaBinaryVersion, Some(platformSuffix))
     val nativeDeps = Seq("nativelib", "javalib", "auxlib", "scalalib")
-      .map(_ + platformSuffix + "_" + scalaBinaryVersion)
-      .map(name => coursierapi.Dependency.of("org.scala-native", name, version))
+      .map(name => dep"org.scala-native::$name::$version".toApi(params))
     Build.ScalaNativeOptions(
       platformSuffix = platformSuffix,
       nativeDependencies = nativeDeps,
-      compilerPlugins = Seq(coursierapi.Dependency.of("org.scala-native", "nscplugin_" + scalaVersion, version)),
+      compilerPlugins = Seq(dep"org.scala-native:::nscplugin:$version".toApi(params)),
       config = Project.ScalaNativeOptions(
                version = version,
                   mode = "debug",
@@ -284,13 +288,14 @@ object Build {
 
     val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
 
+    val params = ScalaParameters(options.scalaVersion, options.scalaBinaryVersion)
     val scalaLibraryDependencies =
       if (options.addScalaLibrary) {
         val lib =
           if (options.scalaVersion.startsWith("3."))
-            coursierapi.Dependency.of("org.scala-lang", "scala3-library_" + options.scalaBinaryVersion, options.scalaVersion)
+            dep"org.scala-lang::scala3-library:${options.scalaVersion}".toApi(params)
           else
-            coursierapi.Dependency.of("org.scala-lang", "scala-library", options.scalaVersion)
+            dep"org.scala-lang:scala-library:${options.scalaVersion}".toApi
         Seq(lib)
       }
       else Nil
@@ -303,20 +308,16 @@ object Build {
 
     val lineModifierPlugins =
       if (options.addLineModifierPlugin)
-        Seq(coursierapi.Dependency.of(
-          Constants.lineModifierPluginOrganization,
-          Constants.lineModifierPluginModuleName + "_" + options.scalaBinaryVersion,
-          Constants.lineModifierPluginVersion
-        ))
+        Seq(
+          dep"$lineModifierPluginOrganization::$lineModifierPluginModuleName:$lineModifierPluginVersion".toApi(params)
+        )
       else Nil
 
     val semanticDbPlugins =
       if (options.generateSemanticDbs && options.scalaVersion.startsWith("2."))
-        Seq(coursierapi.Dependency.of(
-          Constants.semanticDbPluginOrganization,
-          Constants.semanticDbPluginModuleName + "_" + options.scalaVersion,
-          Constants.semanticDbPluginVersion
-        ))
+        Seq(
+          dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion".toApi(params)
+        )
       else Nil
 
     val artifacts = Artifacts(

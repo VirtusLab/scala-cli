@@ -47,6 +47,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections")),
     Deps.coursierLauncher,
+    Deps.dependency,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.nativeTestRunner,

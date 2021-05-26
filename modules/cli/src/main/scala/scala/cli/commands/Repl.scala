@@ -24,7 +24,7 @@ object Repl extends CaseApp[ReplOptions] {
     }
 
     val replArtifacts = ReplArtifacts(
-      options.shared.scalaVersion,
+      options.shared.scalaParams,
       options.ammoniteVersion,
       build.artifacts.dependencies,
       options.shared.logger
