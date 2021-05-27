@@ -10,13 +10,14 @@ import scala.cli.internal.Util.{DependencyOps, ScalaDependencyOps}
 import java.io.IOException
 import java.lang.{Boolean => JBoolean}
 import java.nio.file.{Path, Paths}
-import java.util.concurrent.{Executors, ScheduledExecutorService, ScheduledFuture}
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.scalanative.{build => sn}
 import scala.util.control.NonFatal
 import scala.cli.tastylib.TastyData
+import java.util.concurrent.ExecutorService
 
 trait Build {
   def inputs: Inputs
@@ -185,6 +186,7 @@ object Build {
   def build(
     inputs: Inputs,
     options: Options,
+    threads: BuildThreads,
     logger: Logger,
     cwd: os.Path
   ): Build = {
@@ -198,16 +200,24 @@ object Build {
       options.scalaVersion,
       options.scalaBinaryVersion
     )
-    val build0 = buildOnce(cwd, inputs, sources, options, logger)
+    val build0 = buildOnce(cwd, inputs, sources, options, threads, logger)
 
     build0 match {
       case successful: Successful if options.runJmh =>
-        jmhBuild(inputs, successful, logger, cwd).getOrElse {
+        jmhBuild(inputs, successful, threads, logger, cwd).getOrElse {
           sys.error("JMH build failed") // suppress stack trace?
         }
       case _ => build0
     }
   }
+
+  def build(
+    inputs: Inputs,
+    options: Options,
+    logger: Logger,
+    cwd: os.Path
+  ): Build =
+    build(inputs, options, BuildThreads.create(), logger, cwd)
 
   def watch(
     inputs: Inputs,
@@ -217,9 +227,11 @@ object Build {
     postAction: () => Unit = () => ()
   )(action: Build => Unit): Watcher = {
 
+    val threads = BuildThreads.create()
+
     def run() = {
       try {
-        val build0 = build(inputs, options, logger, cwd)
+        val build0 = build(inputs, options, threads, logger, cwd)
         action(build0)
       } catch {
         case NonFatal(e) =>
@@ -230,11 +242,7 @@ object Build {
 
     run()
 
-    val watcher = new Watcher(
-      ListBuffer(),
-      Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("scala-cli-file-watcher")),
-      run()
-    )
+    val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run())
 
     try {
       for (elem <- inputs.elements) {
@@ -278,6 +286,7 @@ object Build {
     inputs: Inputs,
     sources: Sources,
     options: Options,
+    threads: BuildThreads,
     logger: Logger
   ): Build = {
 
@@ -410,6 +419,7 @@ object Build {
       inputs.workspace,
       classesDir,
       inputs.projectName,
+      threads.bloop,
       logger
     )
 
@@ -560,7 +570,13 @@ object Build {
       }
     }
 
-  def jmhBuild(inputs: Inputs, build: Build.Successful, logger: Logger, cwd: os.Path) = {
+  def jmhBuild(
+    inputs: Inputs,
+    build: Build.Successful,
+    threads: BuildThreads,
+    logger: Logger,
+    cwd: os.Path
+  ) = {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir = inputs.workspace / ".scala" / jmhProjectName
     os.remove.all(jmhOutputDir)
@@ -591,7 +607,7 @@ object Build {
           Inputs.ResourceDirectory(jmhResourceDir)
         )
       )
-      val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = false), logger, cwd)
+      val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = false), threads, logger, cwd)
       Some(jmhBuild)
     }
     else None

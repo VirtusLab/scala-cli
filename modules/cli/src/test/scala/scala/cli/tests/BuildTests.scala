@@ -1,8 +1,9 @@
 package scala.cli.tests
 
 import com.eed3si9n.expecty.Expecty.expect
+import dependency.ScalaVersion
 
-import scala.cli.{Build, Inputs}
+import scala.cli.{Build, BuildThreads, Inputs}
 import scala.cli.tests.TestUtil._
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
@@ -10,14 +11,21 @@ import scala.cli.tastylib.TastyData
 
 class BuildTests extends munit.FunSuite {
 
+  val buildThreads = BuildThreads.create()
+
+  override def afterAll(): Unit =
+    buildThreads.shutdown()
+
+  def sv2 = "2.13.5"
   val defaultOptions = Build.Options(
-    scalaVersion = "2.13.5",
-    scalaBinaryVersion = "2.13"
+    scalaVersion = sv2,
+    scalaBinaryVersion = ScalaVersion.binary(sv2)
   )
 
+  def sv3 = "3.0.0"
   val defaultScala3Options = defaultOptions.copy(
-    scalaVersion = "3.0.0",
-    scalaBinaryVersion = "3"
+    scalaVersion = sv3,
+    scalaBinaryVersion = ScalaVersion.binary(sv3)
   )
 
   test("simple") {
@@ -27,7 +35,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions, buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class"
@@ -42,7 +50,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultScala3Options) { (root, inputs, build) =>
+    testInputs.withBuild(defaultScala3Options, buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -58,7 +66,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.copy(generateSemanticDbs = true)) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions.copy(generateSemanticDbs = true), buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -80,7 +88,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultScala3Options.copy(generateSemanticDbs = true)) { (root, inputs, build) =>
+    testInputs.withBuild(defaultScala3Options.copy(generateSemanticDbs = true), buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -102,7 +110,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.enableJs) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions.enableJs, buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -119,7 +127,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.enableNative) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions.enableNative, buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -142,7 +150,7 @@ class BuildTests extends munit.FunSuite {
           |println(g.mkString)
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions, buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class"
@@ -160,7 +168,7 @@ class BuildTests extends munit.FunSuite {
           |pprint.log(g)
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions, buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class"
