@@ -245,7 +245,7 @@
   "allDeclaredFields": true
 },
 {
-  "name":"scala.cli.Bloop$BloopBuildClient",
+  "name":"scala.cli.BloopBuildClient",
   "allDeclaredConstructors" : true,
   "allDeclaredMethods": true,
   "allDeclaredFields": true

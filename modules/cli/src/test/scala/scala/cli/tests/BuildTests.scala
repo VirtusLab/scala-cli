@@ -1,5 +1,6 @@
 package scala.cli.tests
 
+import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 import dependency.ScalaVersion
 
@@ -173,6 +174,56 @@ class BuildTests extends munit.FunSuite {
         "simple.class",
         "simple$.class"
       )
+    }
+  }
+
+  test("diagnostics") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """val n = 2
+          |println(s"n=$n")
+          |zz
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions.copy(keepDiagnostics = true), buildThreads) { (root, inputs, build) =>
+      val expectedDiag = {
+        val start = new bsp4j.Position(2, 0)
+        val end = new bsp4j.Position(2, 2)
+        val range = new bsp4j.Range(start, end)
+        val d = new bsp4j.Diagnostic(range, "not found: value zz")
+        d.setCode("zz")
+        d.setSource("bloop")
+        d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
+        d
+      }
+      val diagnostics = build.diagnostics
+      val expected = Some(Seq((root / "simple.sc") -> expectedDiag))
+      expect(diagnostics == expected)
+    }
+  }
+
+  test("diagnostics Scala 3") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """val n = 2
+          |println(s"n=$n")
+          |zz
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultScala3Options.copy(keepDiagnostics = true), buildThreads) { (root, inputs, build) =>
+      val expectedDiag = {
+        val start = new bsp4j.Position(2, 0)
+        val end = new bsp4j.Position(2, 0) // would have expected (2, 2) here :|
+        val range = new bsp4j.Range(start, end)
+        val d = new bsp4j.Diagnostic(range, "Not found: zz")
+        d.setCode("zz")
+        d.setSource("bloop")
+        d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
+        d
+      }
+      val diagnostics = build.diagnostics
+      val expected = Some(Seq((root / "simple.sc") -> expectedDiag))
+      expect(diagnostics == expected)
     }
   }
 

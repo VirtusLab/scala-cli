@@ -23,29 +23,6 @@ object Bloop {
   private def emptyInputStream: InputStream =
     new ByteArrayInputStream(Array.emptyByteArray)
 
-  private def printDiagnostic(path: os.Path, diag: bsp4j.Diagnostic): Unit =
-    if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR || diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING) {
-      val red = Console.RED
-      val yellow = Console.YELLOW
-      val reset = Console.RESET
-      val prefix = if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR) s"[${red}error$reset] " else s"[${yellow}warn$reset] "
-
-      val line = (diag.getRange.getStart.getLine + 1).toString + ":"
-      val col = (diag.getRange.getStart.getCharacter + 1).toString + ":"
-      val msgIt = diag.getMessage.linesIterator
-
-      val path0 =
-        if (path.startsWith(Os.pwd)) "." + File.separator + path.relativeTo(Os.pwd).toString
-        else path.toString
-      println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
-      for (line <- msgIt)
-        println(prefix + line)
-      for (code <- Option(diag.getCode))
-        code.linesIterator.map(prefix + _).foreach(println(_))
-      if (diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine && diag.getRange.getStart.getCharacter != null && diag.getRange.getEnd.getCharacter != null)
-        println(prefix + " " * diag.getRange.getStart.getCharacter + "^" * (diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter + 1))
-    }
-
   private def ensureBloopRunning(
     config: bloopgun.BloopgunConfig,
     startServerChecksPool: ScheduledExecutorService,
@@ -109,6 +86,7 @@ object Bloop {
     workspace: os.Path,
     classesDir: os.Path,
     projectName: String,
+    buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
     logger: Logger,
     bloopVersion: String = Constants.bloopVersion
@@ -122,8 +100,6 @@ object Bloop {
     ensureBloopRunning(config, threads.startServerChecks, logger)
 
     val bloopgunLogger = logger.bloopgunLogger
-
-    val client = new BloopBuildClient(logger)
 
     logger.debug("Opening BSP connection with bloop")
     val conn = bloopgun.Bloopgun.bsp(
@@ -142,10 +118,10 @@ object Bloop {
       .setInput(socket.getInputStream)
       .setOutput(socket.getOutputStream)
       .setRemoteInterface(classOf[FullBuildServer])
-      .setLocalService(client)
+      .setLocalService(buildClient)
       .create()
     val server = launcher.getRemoteProxy
-    client.onConnectWithServer(server)
+    buildClient.onConnectWithServer(server)
 
     val f = launcher.startListening()
 
@@ -196,57 +172,6 @@ object Bloop {
     val success = compileRes.getStatusCode == bsp4j.StatusCode.OK
     logger.debug(if (success) "Compilation succeeded" else "Compilation failed")
     success
-  }
-
-  private class BloopBuildClient(
-    logger: Logger
-  ) extends bsp4j.BuildClient {
-
-    var printedStart = false
-
-    val gray = "\u001b[90m"
-    val reset = Console.RESET
-
-    def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit = {
-      logger.debug("Received onBuildPublishDiagnostics from bloop: " + pprint.tokenize(params).map(_.render).mkString)
-      // if (params.getBuildTarget == ???)
-      for (diag <- params.getDiagnostics.asScala)
-        printDiagnostic(os.Path(Paths.get(new URI(params.getTextDocument.getUri)).toAbsolutePath), diag)
-    }
-
-    def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
-      logger.debug("Received onBuildLogMessage from bloop: " + pprint.tokenize(params).map(_.render).mkString)
-      val prefix = params.getType match {
-        case bsp4j.MessageType.ERROR       => "Error: "
-        case bsp4j.MessageType.WARNING     => "Warning: "
-        case bsp4j.MessageType.INFORMATION => ""
-        case bsp4j.MessageType.LOG         => "" // discard those by default?
-      }
-      System.err.println(prefix + params.getMessage)
-    }
-    def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
-      logger.debug("Received onBuildShowMessage from bloop: " + pprint.tokenize(params).map(_.render).mkString)
-
-    def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit =
-      logger.debug("Received onBuildTargetDidChange from bloop: " + pprint.tokenize(params).map(_.render).mkString)
-
-    def onBuildTaskStart(params: bsp4j.TaskStartParams): Unit = {
-      logger.debug("Received onBuildTaskStart from bloop: " + pprint.tokenize(params).map(_.render).mkString)
-      for (msg <- Option(params.getMessage) if !msg.contains(" no-op compilation")) {
-        printedStart = true
-        System.err.println(gray + msg + reset)
-      }
-    }
-    def onBuildTaskProgress(params: bsp4j.TaskProgressParams): Unit =
-      logger.debug("Received onBuildTaskProgress from bloop: " + pprint.tokenize(params).map(_.render).mkString)
-    def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit = {
-      logger.debug("Received onBuildTaskFinish from bloop: " + pprint.tokenize(params).map(_.render).mkString)
-      if (printedStart)
-        for (msg <- Option(params.getMessage))
-          System.err.println(gray + msg + reset)
-    }
-
-    override def onConnectWithServer(server: bsp4j.BuildServer): Unit = {}
   }
 
 }

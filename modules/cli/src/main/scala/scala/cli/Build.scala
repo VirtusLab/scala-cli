@@ -1,23 +1,23 @@
 package scala.cli
 
+import ch.epfl.scala.bsp4j
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
 import dependency._
 import scala.cli.internal.{AsmPositionUpdater, CodeWrapper, Constants, CustomCodeWrapper, LineConversion, MainClass, SemanticdbProcessor, Util}
 import scala.cli.internal.Constants._
 import scala.cli.internal.Util.{DependencyOps, ScalaDependencyOps}
+import scala.cli.tastylib.TastyData
 
 import java.io.IOException
 import java.lang.{Boolean => JBoolean}
 import java.nio.file.{Path, Paths}
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.scalanative.{build => sn}
 import scala.util.control.NonFatal
-import scala.cli.tastylib.TastyData
-import java.util.concurrent.ExecutorService
 
 trait Build {
   def inputs: Inputs
@@ -27,6 +27,7 @@ trait Build {
   def project: Project
   def outputOpt: Option[os.Path]
   def success: Boolean
+  def diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]]
 
   def successfulOpt: Option[Build.Successful]
 }
@@ -39,7 +40,8 @@ object Build {
     sources: Sources,
     artifacts: Artifacts,
     project: Project,
-    output: os.Path
+    output: os.Path,
+    diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]]
   ) extends Build {
     def success: Boolean = true
     def successfulOpt: Some[this.type] = Some(this)
@@ -78,7 +80,8 @@ object Build {
     options: Build.Options,
     sources: Sources,
     artifacts: Artifacts,
-    project: Project
+    project: Project,
+    diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]]
   ) extends Build {
     def success: Boolean = false
     def successfulOpt: None.type = None
@@ -162,7 +165,8 @@ object Build {
     runJmh: Boolean = false,
     addLineModifierPluginOpt: Option[Boolean] = None,
     addScalaLibrary: Boolean = true,
-    generateSemanticDbs: Boolean = false
+    generateSemanticDbs: Boolean = false,
+    keepDiagnostics: Boolean = false
   ) {
     def classesDir(root: os.Path, projectName: String): os.Path =
       root / ".scala" / projectName / s"scala-$scalaVersion" / "classes"
@@ -179,7 +183,7 @@ object Build {
       addTestRunnerDependencyOpt.getOrElse(false)
     def addLineModifierPlugin: Boolean =
       addLineModifierPluginOpt.getOrElse {
-        scalaVersion.startsWith("2.")
+        false
       }
   }
 
@@ -415,10 +419,26 @@ object Build {
 
     project.writeBloopFile(logger)
 
+    val diagnosticMappings = generatedSources
+      .map {
+        case (path, reportingPath, len) =>
+          val lineShift =
+            if (options.addLineModifierPlugin) 0
+            else -os.read(path).take(len).count(_ == '\n') // charset?
+          (path, (reportingPath, lineShift))
+      }
+      .toMap
+    val buildClient = new BloopBuildClient(
+      logger,
+      diagnosticMappings,
+      keepDiagnostics = options.keepDiagnostics
+    )
+
     val success = Bloop.compile(
       inputs.workspace,
       classesDir,
       inputs.projectName,
+      buildClient,
       threads.bloop,
       logger
     )
@@ -501,10 +521,10 @@ object Build {
       } else
         logger.debug("Custom generated source directory used, not moving semantic DBs around")
 
-      Successful(inputs, options, sources, artifacts, project, classesDir)
+      Successful(inputs, options, sources, artifacts, project, classesDir, buildClient.diagnostics)
     }
     else
-      Failed(inputs, options, sources, artifacts, project)
+      Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)
   }
 
   private def onChangeBufferedObserver(onEvent: PathWatchers.Event => Unit): Observer[PathWatchers.Event] =
