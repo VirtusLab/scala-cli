@@ -125,7 +125,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
   }
 
   def runWithAssistedConfig(args: String*) = T.command {
-    val cp = (jar() +: upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
+    val cp = (Seq(jar(), localRepoJar()) ++ upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
@@ -147,7 +147,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
   }
 
   def runFromJars(args: String*) = T.command {
-    val cp = (jar() +: upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
+    val cp = (Seq(jar(), localRepoJar()) ++ upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val command = Seq("java", "-cp", cp, mainClass0) ++ args
     os.proc(command.map(x => x: os.Shellable): _*).call(
