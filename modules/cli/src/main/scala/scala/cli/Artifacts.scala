@@ -1,14 +1,16 @@
 package scala.cli
 
-import coursierapi.Dependency.{of => dependency}
 import coursier.cache.FileCache
 import coursier.cache.loggers.RefreshLogger
 import coursier.jvm.{JvmCache, JavaHome, JvmIndex}
+import _root_.dependency._
 import scala.cli.internal.Constants
+import scala.cli.internal.Constants._
 
 import java.nio.file.Path
 
 import scala.collection.JavaConverters._
+import scala.cli.internal.Util.{DependencyOps, ScalaDependencyOps}
 
 final case class Artifacts(
   javaHome: os.Path,
@@ -52,28 +54,30 @@ object Artifacts {
         .getOrElse(javaHome(jvmIdOpt))
     )
 
+    val params = ScalaParameters(scalaVersion, scalaBinaryVersion)
+
     val compilerDependencies =
       if (scalaVersion.startsWith("3."))
         Seq(
-          dependency("org.scala-lang", "scala3-compiler_" + scalaBinaryVersion, scalaVersion)
+          dep"org.scala-lang::scala3-compiler:$scalaVersion".toApi(params)
         )
       else
         Seq(
-          dependency("org.scala-lang", "scala-compiler", scalaVersion)
+          dep"org.scala-lang:scala-compiler:$scalaVersion".toApi
         )
 
     val jvmRunnerDependencies =
-      if (addJvmRunner) Seq(dependency(Constants.runnerOrganization, Constants.runnerModuleName + "_" + scalaBinaryVersion, Constants.runnerVersion))
+      if (addJvmRunner) Seq(dep"$runnerOrganization::$runnerModuleName:$runnerVersion".toApi(params))
       else Nil
     val jvmTestRunnerDependencies =
-      if (addJvmTestRunner) Seq(dependency(Constants.testRunnerOrganization, Constants.testRunnerModuleName + "_" + scalaBinaryVersion, Constants.testRunnerVersion))
+      if (addJvmTestRunner) Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion".toApi(params))
       else Nil
     val jsTestBridgeDependencies = addJsTestBridge.toSeq.map { scalaJsVersion =>
-      dependency("org.scala-js", "scalajs-test-bridge" + "_" + scalaBinaryVersion, scalaJsVersion)
+      dep"org.scala-js::scalajs-test-bridge:$scalaJsVersion".toApi(params)
     }
 
     val jmhDependencies = addJmhDependencies.toSeq.map { version =>
-      dependency("org.openjdk.jmh", "jmh-generator-bytecode", version)
+      dep"org.openjdk.jmh:jmh-generator-bytecode:$version".toApi
     }
 
     val extraRepositories =
@@ -95,7 +99,7 @@ object Artifacts {
     val extraStubsJars =
       if (addStubs)
         artifacts(
-          Seq(dependency(Constants.stubsOrganization, Constants.stubsModuleName, Constants.stubsVersion)),
+          Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion".toApi),
           allExtraRepositories,
           logger
         ).map(_._2)

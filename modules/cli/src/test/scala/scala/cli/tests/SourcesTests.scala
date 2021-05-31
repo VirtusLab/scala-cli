@@ -1,15 +1,18 @@
 package scala.cli.tests
 
 import com.eed3si9n.expecty.Expecty.expect
+import dependency._
 
 import scala.cli.Sources
 import scala.cli.internal.CustomCodeWrapper
+import scala.cli.internal.Util._
 import scala.cli.tests.TestUtil._
 
 class SourcesTests extends munit.FunSuite {
 
   def scalaVersion = "2.13.5"
-  def scalaBinaryVersion = "2.13"
+  def scalaParams = ScalaParameters(scalaVersion)
+  def scalaBinaryVersion = scalaParams.scalaBinaryVersion
 
   test("dependencies in .scala") {
     val testInputs = TestInputs(
@@ -25,9 +28,9 @@ class SourcesTests extends munit.FunSuite {
           |""".stripMargin
     )
     val expectedDeps = Seq(
-      coursierapi.Dependency.of("org1", "name1", "1.1"),
-      coursierapi.Dependency.of("org2", "name2_" + scalaBinaryVersion, "2.2"),
-      coursierapi.Dependency.of("org3", "name3_" + scalaVersion, "3.3")
+      dep"org1:name1:1.1".toApi,
+      dep"org2::name2:2.2".toApi(scalaParams),
+      dep"org3:::name3:3.3".toApi(scalaParams)
     )
     testInputs.withInputs { (_, inputs) =>
       val sources = Sources.forInputs(inputs, CustomCodeWrapper, "", scalaVersion, scalaBinaryVersion)
@@ -51,9 +54,9 @@ class SourcesTests extends munit.FunSuite {
           |""".stripMargin
     )
     val expectedDeps = Seq(
-      coursierapi.Dependency.of("org1", "name1", "1.1"),
-      coursierapi.Dependency.of("org2", "name2_" + scalaBinaryVersion, "2.2"),
-      coursierapi.Dependency.of("org3", "name3_" + scalaVersion, "3.3")
+      dep"org1:name1:1.1".toApi,
+      dep"org2::name2:2.2".toApi(scalaParams),
+      dep"org3:::name3:3.3".toApi(scalaParams)
     )
     testInputs.withInputs { (_, inputs) =>
       val sources = Sources.forInputs(inputs, CustomCodeWrapper, "", scalaVersion, scalaBinaryVersion)

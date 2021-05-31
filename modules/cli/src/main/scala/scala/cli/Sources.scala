@@ -3,7 +3,11 @@ package scala.cli
 import java.nio.file.Paths
 
 import ammonite.util.{Name, Util}
+import dependency.parser.DependencyParser
+import dependency.ScalaParameters
+
 import scala.cli.internal.CodeWrapper
+import scala.cli.internal.Util.DependencyOps
 
 final case class Sources(
   paths: Seq[os.Path],
@@ -96,25 +100,12 @@ object Sources {
   }
 
   private def parseDependency(str: String, platformSuffix: String, scalaVersion: String, scalaBinaryVersion: String): coursierapi.Dependency = {
-
-    val splitted = str.split(":", -1)
-    // TODO Move that logic elsewhere (in coursier? coursier-interface?)
-    splitted match {
-      case Array(org, "", name, ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
-        coursierapi.Dependency.of(org, name + "_" + scalaBinaryVersion, ver)
-      case Array(org, "", "", name, ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
-        coursierapi.Dependency.of(org, name + "_" + scalaVersion, ver)
-      case Array(org, "", name, "", ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
-        coursierapi.Dependency.of(org, name + platformSuffix + "_" + scalaBinaryVersion, ver)
-      case Array(org, "", "", name, "", ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
-        coursierapi.Dependency.of(org, name + platformSuffix + "_" + scalaVersion, ver)
-      case Array(org, name, ver) if org.nonEmpty && name.nonEmpty && ver.nonEmpty =>
-        coursierapi.Dependency.of(org, name, ver)
-      case _ =>
-        pprint.log(str)
-        pprint.log(splitted)
-        ???
+    val anyDep = DependencyParser.parse(str) match {
+      case Left(msg) => sys.error(s"Malformed dependency '$str': $msg")
+      case Right(dep) => dep
     }
+    val params = ScalaParameters(scalaVersion, scalaBinaryVersion, Some(platformSuffix).filter(_.nonEmpty))
+    anyDep.applyParams(params).toApi
   }
 
   private def scriptData(

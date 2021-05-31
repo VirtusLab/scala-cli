@@ -1,8 +1,9 @@
 package scala.cli.tests
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.ExecutorService
 
-import scala.cli.{Build, Inputs}
+import scala.cli.{Build, BuildThreads, Inputs}
 import scala.util.control.NonFatal
 import scala.util.Properties
 
@@ -24,8 +25,8 @@ final case class TestInputs(
       }
     }
 
-  def withBuild[T](options: Build.Options)(f: (os.Path, Inputs, Build) => T): T = withInputs { (root, inputs) =>
-    val build = Build.build(inputs, options, TestLogger(), root)
+  def withBuild[T](options: Build.Options, buildThreads: BuildThreads)(f: (os.Path, Inputs, Build) => T): T = withInputs { (root, inputs) =>
+    val build = Build.build(inputs, options, buildThreads, TestLogger(), root)
     f(root, inputs, build)
   }
 }

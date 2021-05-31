@@ -4,7 +4,7 @@ import org.junit.Test
 class MyTests {
 
   @Test
-  def foo() {
+  def foo(): Unit = {
     assert(2 + 2 == 4)
   }
 }

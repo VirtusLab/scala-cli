@@ -25,6 +25,7 @@ object runner                 extends Cross[Runner](Scala.all: _*)
 object `test-runner`          extends Cross[TestRunner](Scala.all: _*)
 object bloopgun               extends Cross[Bloopgun](Scala.allScala2: _*)
 object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.all: _*)
+object `tasty-lib`            extends Cross[TastyLib](Scala.all: _*)
 
 // We should be able to switch to 2.13.x when bumping the scala-native version
 def defaultCliScalaVersion = Scala.scala212
@@ -32,6 +33,7 @@ def defaultCliScalaVersion = Scala.scala212
 class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
   def moduleDeps = Seq(
     bloopgun(),
+    `tasty-lib`(),
     `test-runner`()
   )
   def ivyDeps = Agg(
@@ -45,6 +47,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections")),
     Deps.coursierLauncher,
+    Deps.dependency,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.nativeTestRunner,
@@ -52,6 +55,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinker,
     Deps.scalaJsTestAdapter,
+    Deps.scalametaTrees,
     Deps.scalaparse,
     Deps.svmSubs,
     Deps.swoval
@@ -94,6 +98,10 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
          |  def lineModifierPluginModuleName = "${`line-modifier-plugin`(defaultCliScalaVersion).artifactName()}"
          |  def lineModifierPluginVersion = "${`line-modifier-plugin`(defaultCliScalaVersion).publishVersion()}"
          |
+         |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
+         |  def semanticDbPluginModuleName = "semanticdb-scalac"
+         |  def semanticDbPluginVersion = "${Deps.scalametaTrees.dep.version}"
+         |
          |  def localRepoResourcePath = "$localRepoResourcePath"
          |  def localRepoVersion = "${VcsVersion.vcsState().format()}"
          |}
@@ -117,7 +125,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
   }
 
   def runWithAssistedConfig(args: String*) = T.command {
-    val cp = (jar() +: upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
+    val cp = (Seq(jar(), localRepoJar()) ++ upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
@@ -139,7 +147,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
   }
 
   def runFromJars(args: String*) = T.command {
-    val cp = (jar() +: upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
+    val cp = (Seq(jar(), localRepoJar()) ++ upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val command = Seq("java", "-cp", cp, mainClass0) ++ args
     os.proc(command.map(x => x: os.Shellable): _*).call(
@@ -367,6 +375,8 @@ class LineModifierPlugin(val crossScalaVersion: String) extends CrossSbtModule w
     else
       Agg(Deps.scala3Compiler(crossScalaVersion))
 }
+
+class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
 
 
 def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) =
