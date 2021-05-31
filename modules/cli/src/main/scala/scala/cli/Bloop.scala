@@ -156,19 +156,6 @@ object Bloop {
       new bsp4j.CompileParams(List(buildTarget.getId).asJava)
     ).get()
 
-    logger.debug(s"Getting scalac options of $projectName with Bloop")
-    val scalacOptionsResp = server.buildTargetScalacOptions(
-      new bsp4j.ScalacOptionsParams(List(buildTarget.getId).asJava)
-    ).get()
-
-    val scalacOptions = scalacOptionsResp.getItems.asScala
-      .find(_.getTarget == buildTarget.getId)
-      .getOrElse {
-        throw new Exception(
-          s"Expected to find build target '${buildTarget.getId}' in scalac options (only got ${scalacOptionsResp.getItems.asScala.map("'" + _.getTarget + "'").mkString(", ")})"
-        )
-      }
-
     val success = compileRes.getStatusCode == bsp4j.StatusCode.OK
     logger.debug(if (success) "Compilation succeeded" else "Compilation failed")
     success
