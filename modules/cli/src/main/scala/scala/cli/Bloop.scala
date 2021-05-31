@@ -156,6 +156,11 @@ object Bloop {
       new bsp4j.CompileParams(List(buildTarget.getId).asJava)
     ).get()
 
+    // Close the jsonrpc thread listening to input messages
+    // First line makes jsonrpc discard the closed connection exception.
+    f.cancel(true)
+    socket.close()
+
     val success = compileRes.getStatusCode == bsp4j.StatusCode.OK
     logger.debug(if (success) "Compilation succeeded" else "Compilation failed")
     success
