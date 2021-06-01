@@ -1,5 +1,7 @@
 package scala.cli.bloop.bloopgun
 
+import java.io.OutputStream
+
 import scala.util.control.NonFatal
 
 trait BloopgunLogger {
@@ -13,13 +15,17 @@ trait BloopgunLogger {
     }
   }
   def coursierInterfaceLogger: coursierapi.Logger
+  def bloopBspStdout: Option[OutputStream]
+  def bloopBspStderr: Option[OutputStream]
 }
 
 object BloopgunLogger {
   def nop: BloopgunLogger =
     new BloopgunLogger {
-      def debug(msg: => String): Unit = {}
-      def error(msg: => String, ex: Throwable): Unit = {}
+      def debug(msg: => String) = {}
+      def error(msg: => String, ex: Throwable) = {}
       def coursierInterfaceLogger = coursierapi.Logger.nop()
+      def bloopBspStdout = None
+      def bloopBspStderr = None
     }
 }

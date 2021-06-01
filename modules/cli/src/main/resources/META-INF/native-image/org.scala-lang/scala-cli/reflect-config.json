@@ -251,7 +251,7 @@
   "allDeclaredFields": true
 },
 {
-  "name":"scala.cli.FullBuildServer",
+  "name":"scala.cli.bloop.BuildServer",
   "allDeclaredConstructors" : true,
   "allDeclaredMethods": true,
   "allDeclaredFields": true

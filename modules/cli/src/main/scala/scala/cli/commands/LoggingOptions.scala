@@ -45,13 +45,13 @@ final case class LoggingOptions(
             logger.log(s"Error: $msg ($ex)")
           def coursierInterfaceLogger =
             logger.coursierInterfaceLogger
+          def bloopBspStdout =
+            if (verbosity >= 2) Some(System.err)
+            else None
+          def bloopBspStderr =
+            if (verbosity >= 2) Some(System.err)
+            else None
         }
-      def bloopBspStdout =
-        if (verbosity >= 2) Some(System.err)
-        else None
-      def bloopBspStderr =
-        if (verbosity >= 2) Some(System.err)
-        else None
     }
 
 }

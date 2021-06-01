@@ -1,3 +1,3 @@
 [
-  ["scala.cli.FullBuildServer","org.eclipse.lsp4j.jsonrpc.Endpoint"]
+  ["scala.cli.bloop.BuildServer","org.eclipse.lsp4j.jsonrpc.Endpoint"]
 ]

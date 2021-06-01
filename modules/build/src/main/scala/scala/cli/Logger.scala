@@ -1,7 +1,5 @@
 package scala.cli
 
-import java.io.OutputStream
-
 import coursier.cache.CacheLogger
 import scala.cli.bloop.bloopgun
 
@@ -15,6 +13,4 @@ trait Logger {
   def coursierInterfaceLogger: coursierapi.Logger
 
   def bloopgunLogger: bloopgun.BloopgunLogger
-  def bloopBspStdout: Option[OutputStream]
-  def bloopBspStderr: Option[OutputStream]
 }

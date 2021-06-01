@@ -5,7 +5,7 @@ import java.util.concurrent.{Executors, ScheduledExecutorService}
 import scala.cli.internal.Util
 
 final case class BuildThreads(
-  bloop: BloopThreads,
+  bloop: scala.cli.bloop.BloopThreads,
   fileWatcher: ScheduledExecutorService
 ) {
   def shutdown(): Unit = {
@@ -16,7 +16,7 @@ final case class BuildThreads(
 
 object BuildThreads {
   def create(): BuildThreads = {
-    val bloop = BloopThreads.create()
+    val bloop = scala.cli.bloop.BloopThreads.create()
     val fileWatcher = Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("scala-cli-file-watcher"))
     BuildThreads(bloop, fileWatcher)
   }
