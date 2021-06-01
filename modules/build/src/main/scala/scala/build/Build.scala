@@ -639,6 +639,10 @@ object Build {
       }
     }
 
+  private def printable(path: os.Path): String =
+    if (path.startsWith(os.pwd)) path.relativeTo(os.pwd).toString
+    else path.toString
+
   private def jmhBuild(
     inputs: Inputs,
     build: Build.Successful,
@@ -653,12 +657,13 @@ object Build {
     os.remove.all(jmhOutputDir)
     val jmhSourceDir = jmhOutputDir / "sources"
     val jmhResourceDir = jmhOutputDir / "resources"
+
     val retCode = Runner.run(
       build.artifacts.javaHome.toIO,
       Nil,
       build.fullClassPath.map(_.toFile),
       "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
-      Seq(build.output.toString, jmhSourceDir.toString, jmhResourceDir.toString, "default"),
+      Seq(printable(build.output), printable(jmhSourceDir), printable(jmhResourceDir), "default"),
       logger,
       allowExecve = false
     )
