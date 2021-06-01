@@ -300,6 +300,7 @@ trait HasTests extends SbtModule {
       Deps.munit
     )
     def testFramework = "munit.Framework"
+    def forkArgs = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
   }
 }
 

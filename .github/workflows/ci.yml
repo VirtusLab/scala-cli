@@ -21,10 +21,6 @@ jobs:
     - uses: laughedelic/coursier-setup@v1
       with:
         jvm: 8
-    - name: Setup (Windows only)
-      if: runner.os == 'Windows'
-      shell: bash
-      run: echo '-Xmx1g' > .mill-jvm-opts
     - name: Test (Windows only)
       if: runner.os == 'Windows'
       shell: cmd
