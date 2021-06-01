@@ -11,7 +11,7 @@
 #### Running the CLI from sources
 
 ```text
-$ ./mill -i 'cli[2.12.13].run' …arguments…
+$ ./mill -i 'cli.run' …arguments…
 ```
 
 #### Run tests with the JVM launcher
@@ -47,7 +47,7 @@ Then run the command "Metals: Connect to build server".
 #### Generate a native launcher
 
 ```text
-$ ./mill -i show 'cli[2.12.13].nativeImage'
+$ ./mill -i show 'cli.nativeImage'
 ```
 
 This prints the path to the generated native image.
@@ -58,7 +58,7 @@ whether the files it points at exists or not.)
 #### Generate a JVM launcher
 
 ```text
-$ ./mill -i show 'cli[2.12.13].launcher'
+$ ./mill -i show 'cli.launcher'
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,
@@ -71,7 +71,7 @@ JVM one (see below).
 #### Generate a standalone JVM launcher
 
 ```text
-$ ./mill -i show 'cli[2.12.13].standaloneLauncher'
+$ ./mill -i show 'cli.standaloneLauncher'
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,

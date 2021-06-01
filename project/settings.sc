@@ -152,7 +152,7 @@ def platformSuffix: String = {
 
 def localRepoResourcePath = "local-repo.zip"
 
-trait CliLaunchers extends CrossSbtModule {
+trait CliLaunchers extends SbtModule {
 
   def localRepoJar: T[PathRef]
   def graalVmVersion: String

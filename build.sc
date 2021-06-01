@@ -16,7 +16,8 @@ implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
 
-object cli                    extends Cross[Cli](defaultCliScalaVersion)
+object cli                    extends Cli
+object build                  extends Cross[Build](defaultScalaVersion)
 object stubs                  extends JavaModule with ScalaCliPublishModule with PublishLocalNoFluff
 object runner                 extends Cross[Runner](Scala.all: _*)
 object `test-runner`          extends Cross[TestRunner](Scala.all: _*)
@@ -31,9 +32,9 @@ object integration extends Module {
 
 
 // We should be able to switch to 2.13.x when bumping the scala-native version
-def defaultCliScalaVersion = Scala.scala212
+def defaultScalaVersion = Scala.scala212
 
-class Cli(val crossScalaVersion: String) extends CrossSbtModule with CliLaunchers with ScalaCliPublishModule with HasTests {
+class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with HasTests {
   def moduleDeps = Seq(
     bloopgun(),
     `tasty-lib`(),
@@ -44,8 +45,6 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with CliLauncher
     Deps.asm,
     Deps.bloopConfig,
     Deps.bsp4j,
-    Deps.caseApp,
-    Deps.coursierInterfaceSvmSubs,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections")),
@@ -60,13 +59,8 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with CliLauncher
     Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
     Deps.scalaparse,
-    Deps.svmSubs,
     Deps.swoval
   )
-  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
-    Deps.svm
-  )
-  def mainClass = Some("scala.cli.ScalaCli")
 
   def constantsFile = T{
     val dest = T.dest / "Constants.scala"
@@ -87,19 +81,19 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with CliLauncher
          |  def stubsModuleName = "${stubs.artifactName()}"
          |  def stubsVersion = "${stubs.publishVersion()}"
          |
-         |  def testRunnerOrganization = "${`test-runner`(defaultCliScalaVersion).pomSettings().organization}"
-         |  def testRunnerModuleName = "${`test-runner`(defaultCliScalaVersion).artifactName()}"
-         |  def testRunnerVersion = "${`test-runner`(defaultCliScalaVersion).publishVersion()}"
-         |  def testRunnerMainClass = "${`test-runner`(defaultCliScalaVersion).mainClass().getOrElse(sys.error("No main class defined for test-runner"))}"
+         |  def testRunnerOrganization = "${`test-runner`(defaultScalaVersion).pomSettings().organization}"
+         |  def testRunnerModuleName = "${`test-runner`(defaultScalaVersion).artifactName()}"
+         |  def testRunnerVersion = "${`test-runner`(defaultScalaVersion).publishVersion()}"
+         |  def testRunnerMainClass = "${`test-runner`(defaultScalaVersion).mainClass().getOrElse(sys.error("No main class defined for test-runner"))}"
          |
-         |  def runnerOrganization = "${runner(defaultCliScalaVersion).pomSettings().organization}"
-         |  def runnerModuleName = "${runner(defaultCliScalaVersion).artifactName()}"
-         |  def runnerVersion = "${runner(defaultCliScalaVersion).publishVersion()}"
-         |  def runnerMainClass = "${runner(defaultCliScalaVersion).mainClass().getOrElse(sys.error("No main class defined for runner"))}"
+         |  def runnerOrganization = "${runner(defaultScalaVersion).pomSettings().organization}"
+         |  def runnerModuleName = "${runner(defaultScalaVersion).artifactName()}"
+         |  def runnerVersion = "${runner(defaultScalaVersion).publishVersion()}"
+         |  def runnerMainClass = "${runner(defaultScalaVersion).mainClass().getOrElse(sys.error("No main class defined for runner"))}"
          |
-         |  def lineModifierPluginOrganization = "${`line-modifier-plugin`(defaultCliScalaVersion).pomSettings().organization}"
-         |  def lineModifierPluginModuleName = "${`line-modifier-plugin`(defaultCliScalaVersion).artifactName()}"
-         |  def lineModifierPluginVersion = "${`line-modifier-plugin`(defaultCliScalaVersion).publishVersion()}"
+         |  def lineModifierPluginOrganization = "${`line-modifier-plugin`(defaultScalaVersion).pomSettings().organization}"
+         |  def lineModifierPluginModuleName = "${`line-modifier-plugin`(defaultScalaVersion).artifactName()}"
+         |  def lineModifierPluginVersion = "${`line-modifier-plugin`(defaultScalaVersion).publishVersion()}"
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
@@ -114,14 +108,34 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with CliLauncher
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
-  def localRepoJar = `local-repo`.localRepoJar()
-  def graalVmVersion = deps.graalVmVersion
+  def localRepoJar = T{
+    `local-repo`.localRepoJar()
+  }
 
   object test extends Tests {
     def runClasspath = T{
       super.runClasspath() ++ Seq(localRepoJar())
     }
   }
+}
+
+trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule {
+  def scalaVersion = defaultScalaVersion
+  def moduleDeps = Seq(
+    build(defaultScalaVersion)
+  )
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.caseApp,
+    Deps.coursierInterfaceSvmSubs,
+    Deps.svmSubs
+  )
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.svm
+  )
+  def mainClass = Some("scala.cli.ScalaCli")
+
+  def localRepoJar = `local-repo`.localRepoJar()
+  def graalVmVersion = deps.graalVmVersion
 }
 
 trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests {
@@ -151,12 +165,12 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests 
 }
 
 trait NativeIntegration extends CliIntegration {
-  def testLauncher = cli(defaultCliScalaVersion).nativeImage()
+  def testLauncher = cli.nativeImage()
   def isNative = true
 }
 
 trait JvmIntegration extends CliIntegration {
-  def testLauncher = cli(defaultCliScalaVersion).launcher()
+  def testLauncher = cli.launcher()
 }
 
 class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
@@ -234,7 +248,7 @@ object `local-repo` extends LocalRepo {
     } yield proj(sv)
     javaModules ++ crossModules
   }
-  def version = runner(defaultCliScalaVersion).publishVersion()
+  def version = runner(defaultScalaVersion).publishVersion()
 }
 
 
@@ -248,11 +262,11 @@ def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = T.comma
 }
 
 def copyLauncher(directory: String = "artifacts") = T.command {
-  val nativeLauncher = cli(defaultCliScalaVersion).nativeImage().path
+  val nativeLauncher = cli.nativeImage().path
   ghreleaseassets.copyLauncher(nativeLauncher, directory)
 }
 
 def uploadLaunchers(directory: String = "artifacts") = T.command {
-  val version = cli(defaultCliScalaVersion).publishVersion()
+  val version = cli.publishVersion()
   ghreleaseassets.uploadLaunchers(version, directory)
 }

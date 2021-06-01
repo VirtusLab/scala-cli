@@ -5,12 +5,14 @@
 Modules live under `modules/`. Each sub-directory there has a
 corresponding mill module definition in `build.sc` (but for `integration`).
 
-Most of the code currently lives in the `cli` module. This is the module that gets
+Most of the code currently lives in the `build` module.
+
+The `cli` module depends on `build`, gets
 packaged as a native-image executable, and distributed as `scala` binary.
 
 The other modules are either:
 - integration tests
-- utility modules, that `cli` either:
+- utility modules, that `build` either:
   - depends on
   - fetches at run-time.
 
@@ -27,12 +29,12 @@ These are:
 ## Tests
 
 The tests live either in:
-- `cli`: unit tests
+- `build`: unit tests
 - `integration`: integration tests
 
 Run unit tests with
 ```
-$ ./mill 'cli[2.12.13].test'
+$ ./mill 'build[_].test'
 ```
 
 Run integration tests with a JVM-based `scala` with
