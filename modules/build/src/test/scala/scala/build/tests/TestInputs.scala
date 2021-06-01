@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutorService
 
 import scala.build.{Build, BuildThreads, Inputs}
 import scala.util.control.NonFatal
-import scala.util.Properties
+import scala.util.{Properties, Try}
 
 final case class TestInputs(
   files: Seq[(os.RelPath, String)],
@@ -42,7 +42,9 @@ object TestInputs {
     finally {
       try os.remove.all(tmpDir)
       catch {
-        case _: java.nio.file.FileSystemException if Properties.isWin =>
+        case ex: java.nio.file.FileSystemException =>
+          System.err.println(s"Could not remove $tmpDir ($ex), will try to remove it upon JVM shutdown.")
+          System.err.println(s"find $tmpDir = '${Try(os.walk(tmpDir))}'")
           Runtime.getRuntime.addShutdownHook(
             new Thread("remove-tmp-dir-windows") {
               setDaemon(true)
