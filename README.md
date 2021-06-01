@@ -17,13 +17,13 @@ $ ./mill -i 'cli[2.12.13].run' …arguments…
 #### Run tests with the JVM launcher
 
 ```text
-$ ./mill jvm-tests.test
+$ ./mill integration.jvm.test
 ```
 
 Filter test suites with
 ```text
-$ ./mill jvm-tests.test scala.cli.DefaultTests
-$ ./mill jvm-tests.test 'scala.cli.DefaultTests.Multiple scripts*'
+$ ./mill integration.jvm.test scala.cli.DefaultTests
+$ ./mill integration.jvm.test 'scala.cli.DefaultTests.Multiple scripts*'
 ```
 
 #### Run tests with the native launcher
@@ -31,7 +31,7 @@ $ ./mill jvm-tests.test 'scala.cli.DefaultTests.Multiple scripts*'
 (generating the launcher can take several minutes)
 
 ```text
-$ ./mill native-tests.test
+$ ./mill integration.native.test
 ```
 
 #### Generate Metals configuration files

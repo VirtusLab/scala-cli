@@ -5,6 +5,8 @@ import $file.project.ghreleaseassets
 import $file.project.publish, publish.ScalaCliPublishModule
 import $file.project.settings, settings.{CliLaunchers, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath}
 
+import java.io.File
+
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib.{publish => _, _}
 
@@ -15,14 +17,18 @@ implicit def millModuleBasePath: define.BasePath =
 
 
 object cli                    extends Cross[Cli](defaultCliScalaVersion)
-object `jvm-tests`            extends JvmTests
-object `native-tests`         extends NativeTests
 object stubs                  extends JavaModule with ScalaCliPublishModule with PublishLocalNoFluff
 object runner                 extends Cross[Runner](Scala.all: _*)
 object `test-runner`          extends Cross[TestRunner](Scala.all: _*)
 object bloopgun               extends Cross[Bloopgun](Scala.allScala2: _*)
 object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.all: _*)
 object `tasty-lib`            extends Cross[TastyLib](Scala.all: _*)
+
+object integration extends Module {
+  object jvm    extends JvmIntegration
+  object native extends NativeIntegration
+}
+
 
 // We should be able to switch to 2.13.x when bumping the scala-native version
 def defaultCliScalaVersion = Scala.scala212
@@ -118,7 +124,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with CliLauncher
   }
 }
 
-trait CliTests extends SbtModule with ScalaCliPublishModule with HasTests {
+trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests {
   def scalaVersion = sv
   def testLauncher: T[PathRef]
   def isNative = T{ false }
@@ -136,20 +142,20 @@ trait CliTests extends SbtModule with ScalaCliPublishModule with HasTests {
       "IS_NATIVE_SCALA_CLI" -> isNative().toString
     )
     def sources = T.sources {
-      val name = mainArtifactName()
+      val name = mainArtifactName().stripPrefix("integration-")
       super.sources().map { ref =>
-        PathRef(os.Path(ref.path.toString.replace(name, "cli-tests")))
+        PathRef(os.Path(ref.path.toString.replace(File.separator + name + File.separator, File.separator)))
       }
     }
   }
 }
 
-trait NativeTests extends CliTests {
+trait NativeIntegration extends CliIntegration {
   def testLauncher = cli(defaultCliScalaVersion).nativeImage()
   def isNative = true
 }
 
-trait JvmTests extends CliTests {
+trait JvmIntegration extends CliIntegration {
   def testLauncher = cli(defaultCliScalaVersion).launcher()
 }
 
