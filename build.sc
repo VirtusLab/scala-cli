@@ -17,13 +17,13 @@ implicit def millModuleBasePath: define.BasePath =
 
 
 object cli                    extends Cli
-object build                  extends Cross[Build](defaultScalaVersion)
+object build                  extends Cross[Build]             (defaultScalaVersion)
 object stubs                  extends JavaModule with ScalaCliPublishModule with PublishLocalNoFluff
-object runner                 extends Cross[Runner](Scala.all: _*)
-object `test-runner`          extends Cross[TestRunner](Scala.all: _*)
-object bloopgun               extends Cross[Bloopgun](Scala.allScala2: _*)
+object runner                 extends Cross[Runner]            (Scala.all: _*)
+object `test-runner`          extends Cross[TestRunner]        (Scala.all: _*)
+object bloopgun               extends Cross[Bloopgun]          (Scala.allScala2: _*)
 object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.all: _*)
-object `tasty-lib`            extends Cross[TastyLib](Scala.all: _*)
+object `tasty-lib`            extends Cross[TastyLib]          (Scala.all: _*)
 
 object integration extends Module {
   object jvm    extends JvmIntegration
