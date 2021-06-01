@@ -33,6 +33,21 @@ lazy val cs: String =
   else
     "cs"
 
+lazy val vcvarsCandidates = Option(System.getenv("VCVARSALL")) ++ Seq(
+  """C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat""",
+  """C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat""",
+  """C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat""",
+  """C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"""
+)
+
+def vcvarsOpt: Option[os.Path] =
+  vcvarsCandidates
+    .iterator
+    .map(os.Path(_, os.pwd))
+    .filter(os.exists(_))
+    .toStream
+    .headOption
+
 def generateNativeImage(
   graalVmVersion: String,
   classPath: Seq[os.Path],
@@ -109,18 +124,29 @@ def generateNativeImage(
   )
 
   val finalCommand =
-    if (Properties.isWin) {
-      // chcp 437 sometimes needed, see https://github.com/oracle/graal/issues/2522
-
-      val vcvarsall = """"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat""""
-      val script =
-       s"""chcp 437
-          |@call $vcvarsall
-          |@call ${command.mkString(" ")}
-          |""".stripMargin
-      val scriptPath = os.temp(script.getBytes, prefix = "run-native-image", suffix = ".bat")
-      Seq(scriptPath.toString)
-    } else
+    if (Properties.isWin)
+      vcvarsOpt match {
+        case None =>
+          System.err.println(s"Warning: vcvarsall script not found in predefined locations:")
+          for (loc <- vcvarsCandidates)
+            System.err.println(s"  $loc")
+          command
+        case Some(vcvars) =>
+          // chcp 437 sometimes needed, see https://github.com/oracle/graal/issues/2522
+          val escapedCommand = command.map {
+            case s if s.contains(" ") => "\"" + s + "\""
+            case s => s
+          }
+          val script =
+           s"""chcp 437
+              |@call "$vcvars"
+              |if %errorlevel% neq 0 exit /b %errorlevel%
+              |@call ${escapedCommand.mkString(" ")}
+              |""".stripMargin
+          val scriptPath = os.temp(script.getBytes, prefix = "run-native-image", suffix = ".bat")
+          Seq(scriptPath.toString)
+      }
+    else
       command
 
   val res = os.proc(finalCommand.map(x => x: os.Shellable): _*).call(

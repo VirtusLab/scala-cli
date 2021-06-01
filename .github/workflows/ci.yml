@@ -21,16 +21,7 @@ jobs:
     - uses: laughedelic/coursier-setup@v1
       with:
         jvm: 8
-    - name: Test (Windows only)
-      if: runner.os == 'Windows'
-      shell: cmd
-      # Change \2017\ to \2019\ on windows-latest / windows-2019
-      run: |
-        @call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        if %errorlevel% neq 0 exit /b %errorlevel%
-        mill -i __.test
-    - name: Test (Linux / macOS)
-      if: runner.os != 'Windows'
+    - name: Test
       run: ./mill -i __.test
     - name: Copy artifacts
       run: ./mill -i copyLauncher artifacts/
