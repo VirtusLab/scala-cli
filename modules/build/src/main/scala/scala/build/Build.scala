@@ -187,12 +187,14 @@ object Build {
       }
   }
 
-  def build(
+  private def build(
     inputs: Inputs,
     options: Options,
     threads: BuildThreads,
     logger: Logger,
-    cwd: os.Path
+    cwd: os.Path,
+    buildClient: BloopBuildClient,
+    bloopServer: bloop.BloopServer
   ): Build = {
     val maybePlatformSuffix =
       options.scalaJsOptions.map(_.platformSuffix)
@@ -204,14 +206,48 @@ object Build {
       options.scalaVersion,
       options.scalaBinaryVersion
     )
-    val build0 = buildOnce(cwd, inputs, sources, options, threads, logger)
+    val build0 = buildOnce(cwd, inputs, sources, options, threads, logger, buildClient, bloopServer)
 
     build0 match {
       case successful: Successful if options.runJmh =>
-        jmhBuild(inputs, successful, threads, logger, cwd).getOrElse {
+        jmhBuild(inputs, successful, threads, logger, cwd, buildClient, bloopServer).getOrElse {
           sys.error("JMH build failed") // suppress stack trace?
         }
       case _ => build0
+    }
+  }
+
+  def build(
+    inputs: Inputs,
+    options: Options,
+    threads: BuildThreads,
+    logger: Logger,
+    cwd: os.Path
+  ): Build = {
+
+    val buildClient = new BloopBuildClient(
+      logger,
+      keepDiagnostics = options.keepDiagnostics
+    )
+    val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
+    bloop.BloopServer.withBuildServer(
+      "scala-cli",
+      Constants.version,
+      inputs.workspace.toNIO,
+      classesDir.toNIO,
+      buildClient,
+      threads.bloop,
+      logger.bloopgunLogger
+    ) { bloopServer =>
+      build(
+        inputs,
+        options,
+        threads,
+        logger,
+        cwd,
+        buildClient,
+        bloopServer
+      )
     }
   }
 
@@ -231,11 +267,25 @@ object Build {
     postAction: () => Unit = () => ()
   )(action: Build => Unit): Watcher = {
 
+    val buildClient = new BloopBuildClient(
+      logger,
+      keepDiagnostics = options.keepDiagnostics
+    )
     val threads = BuildThreads.create()
+    val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
+    val bloopServer = bloop.BloopServer.buildServer(
+      "scala-cli",
+      Constants.version,
+      inputs.workspace.toNIO,
+      classesDir.toNIO,
+      buildClient,
+      threads.bloop,
+      logger.bloopgunLogger
+    )
 
     def run() = {
       try {
-        val build0 = build(inputs, options, threads, logger, cwd)
+        val build0 = build(inputs, options, threads, logger, cwd, buildClient, bloopServer)
         action(build0)
       } catch {
         case NonFatal(e) =>
@@ -246,7 +296,7 @@ object Build {
 
     run()
 
-    val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run())
+    val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), bloopServer.shutdown())
 
     try {
       for (elem <- inputs.elements) {
@@ -291,7 +341,9 @@ object Build {
     sources: Sources,
     options: Options,
     threads: BuildThreads,
-    logger: Logger
+    logger: Logger,
+    buildClient: BloopBuildClient,
+    bloopServer: bloop.BloopServer
   ): Build = {
 
     val generatedSrcRoot = options.generatedSrcRoot(inputs.workspace, inputs.projectName)
@@ -428,18 +480,13 @@ object Build {
           (path, (reportingPath, lineShift))
       }
       .toMap
-    val buildClient = new BloopBuildClient(
-      logger,
-      diagnosticMappings,
-      keepDiagnostics = options.keepDiagnostics
-    )
 
+    buildClient.clear()
+    buildClient.generatedSources = diagnosticMappings
     val success = Bloop.compile(
-      inputs.workspace,
-      classesDir,
       inputs.projectName,
       buildClient,
-      threads.bloop,
+      bloopServer,
       logger
     )
 
@@ -548,7 +595,8 @@ object Build {
   final class Watcher(
     val watchers: ListBuffer[PathWatcher[PathWatchers.Event]],
     val scheduler: ScheduledExecutorService,
-    onChange: => Unit
+    onChange: => Unit,
+    onDispose: => Unit
   ) {
     def newWatcher(): PathWatcher[PathWatchers.Event] = {
       val w = PathWatchers.get(true)
@@ -556,6 +604,7 @@ object Build {
       w
     }
     def dispose(): Unit = {
+      onDispose
       watchers.foreach(_.close())
       scheduler.shutdown()
     }
@@ -590,12 +639,14 @@ object Build {
       }
     }
 
-  def jmhBuild(
+  private def jmhBuild(
     inputs: Inputs,
     build: Build.Successful,
     threads: BuildThreads,
     logger: Logger,
-    cwd: os.Path
+    cwd: os.Path,
+    buildClient: BloopBuildClient,
+    bloopServer: bloop.BloopServer
   ) = {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir = inputs.workspace / ".scala" / jmhProjectName
@@ -627,7 +678,7 @@ object Build {
           Inputs.ResourceDirectory(jmhResourceDir)
         )
       )
-      val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = false), threads, logger, cwd)
+      val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = false), threads, logger, cwd, buildClient, bloopServer)
       Some(jmhBuild)
     }
     else None

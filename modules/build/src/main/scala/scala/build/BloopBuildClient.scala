@@ -11,8 +11,8 @@ import scala.collection.mutable
 
 class BloopBuildClient(
   logger: Logger,
-  generatedSources: Map[os.Path, (os.Path, Int)],
-  keepDiagnostics: Boolean = false
+  keepDiagnostics: Boolean = false,
+  var generatedSources: Map[os.Path, (os.Path, Int)] = Map()
 ) extends bsp4j.BuildClient {
 
   protected var printedStart = false
@@ -112,4 +112,10 @@ class BloopBuildClient(
   }
 
   override def onConnectWithServer(server: bsp4j.BuildServer): Unit = {}
+
+  def clear(): Unit = {
+    generatedSources = Map()
+    diagnostics0.clear()
+    printedStart = false
+  }
 }

@@ -18,8 +18,6 @@ import scala.build.bloop.bloopgun.BloopgunLogger
 
 trait BloopServer {
   def server: BuildServer
-  def listeningFuture: JFuture[Void]
-  def socket: Socket
 
   def shutdown(): Unit
 }
@@ -158,6 +156,37 @@ object BloopServer {
 
     server.onBuildInitialized()
     BloopServerImpl(server, f, socket)
+  }
+
+  def withBuildServer[T](
+    clientName: String,
+    clientVersion: String,
+    workspace: Path,
+    classesDir: Path,
+    buildClient: bsp4j.BuildClient,
+    threads: BloopThreads,
+    logger: BloopgunLogger,
+    period: FiniteDuration = 100.milliseconds,
+    timeout: FiniteDuration = 5.seconds
+  )(f: BloopServer => T): T = {
+    var server: BloopServer = null
+    try {
+      server = buildServer(
+        clientName,
+        clientVersion,
+        workspace,
+        classesDir,
+        buildClient,
+        threads,
+        logger,
+        period,
+        timeout
+      )
+      f(server)
+    } finally {
+      if (server != null)
+        server.shutdown()
+    }
   }
 
 }

@@ -71,7 +71,6 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def version = "${publishVersion()}"
          |  def detailedVersion = "${VcsVersion.vcsState().format()}"
          |
-         |  def bloopVersion = "${Deps.bloopConfig.dep.version}"
          |  def scalaJsVersion = "${Deps.scalaJsLinker.dep.version}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
          |
