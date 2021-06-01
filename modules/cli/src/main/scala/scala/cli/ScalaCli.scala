@@ -13,6 +13,8 @@ object ScalaCli {
     args.headOption match {
       case Some("about") =>
         About.main(args.tail)
+      case Some("clean") =>
+        Clean.main(args.tail)
       case Some("compile") =>
         Compile.main(args.tail)
       case Some("repl") | Some("console") =>
