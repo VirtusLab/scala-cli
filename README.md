@@ -44,6 +44,21 @@ Then run the command "Metals: Connect to build server".
 
 (Recommended over the Metals import project functionality.)
 
+Whenever the build is updated, just do these two steps again.
+
+#### Generate IntelliJ configuration files
+
+```text
+$ ./mill mill.scalalib.GenIdea/idea
+```
+
+Then open the scala-cli directory in IntelliJ.
+
+(Recommended over the IntelliJ import project functionality.)
+
+Whenever the build is updated, run the command above again. IntelliJ
+should then pick up the new changes.
+
 #### Generate a native launcher
 
 ```text
