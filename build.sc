@@ -1,15 +1,12 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.0.16`
-import $file.project.deps, deps.{Deps, Scala, graalVmVersion}
-import $file.project.ghreleaseassets, ghreleaseassets.{upload, writeInZip}
-import $file.project.nativeimage, nativeimage.generateNativeImage
-import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
-import $file.project.settings, settings.cs
+import $file.project.deps, deps.{Deps, Scala}
+import $file.project.ghreleaseassets
+import $file.project.publish, publish.ScalaCliPublishModule
+import $file.project.settings, settings.{CliLaunchers, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath}
 
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib.{publish => _, _}
-
-import scala.util.Properties
 
 
 // Tell mill modules are under modules/
@@ -30,13 +27,13 @@ object `tasty-lib`            extends Cross[TastyLib](Scala.all: _*)
 // We should be able to switch to 2.13.x when bumping the scala-native version
 def defaultCliScalaVersion = Scala.scala212
 
-class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
+class Cli(val crossScalaVersion: String) extends CrossSbtModule with CliLaunchers with ScalaCliPublishModule with HasTests {
   def moduleDeps = Seq(
     bloopgun(),
     `tasty-lib`(),
     `test-runner`()
   )
-  def ivyDeps = Agg(
+  def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.ammCompiler,
     Deps.asm,
     Deps.bloopConfig,
@@ -60,7 +57,7 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
     Deps.svmSubs,
     Deps.swoval
   )
-  def compileIvyDeps = Agg(
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
   )
   def mainClass = Some("scala.cli.ScalaCli")
@@ -111,136 +108,17 @@ class Cli(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPub
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
-  def nativeImage = T{
-    val cp = runClasspath().map(_.path)
-    val mainClass0 = mainClass().getOrElse(sys.error("Don't know what main class to use"))
-    val dest = T.ctx().dest / "scala"
-    val actualDest = T.ctx().dest / s"scala$extension"
-
-    val localRepoJar0 = localRepoJar().path
-
-    generateNativeImage(graalVmVersion, cp :+ localRepoJar0, mainClass0, dest, Seq(localRepoResourcePath))
-
-    PathRef(actualDest)
-  }
-
-  def runWithAssistedConfig(args: String*) = T.command {
-    val cp = (Seq(jar(), localRepoJar()) ++ upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
-    val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
-    val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
-      import sys.process._
-      Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", "cs").!!.trim
-    }
-    val outputDir = T.ctx().dest / "config"
-    val command = Seq(
-      s"$graalVmHome/bin/java",
-      s"-agentlib:native-image-agent=config-output-dir=$outputDir",
-      "-cp", cp,
-      mainClass0
-    ) ++ args
-    os.proc(command.map(x => x: os.Shellable): _*).call(
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
-    )
-    T.log.outputStream.println(s"Config generated in ${outputDir.relativeTo(os.pwd)}")
-  }
-
-  def runFromJars(args: String*) = T.command {
-    val cp = (Seq(jar(), localRepoJar()) ++ upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
-    val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
-    val command = Seq("java", "-cp", cp, mainClass0) ++ args
-    os.proc(command.map(x => x: os.Shellable): _*).call(
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
-    )
-  }
-
-  def runClasspath = T{
-    super.runClasspath() ++ Seq(localRepoJar())
-  }
-
-  def launcher = T{
-    import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
-    import scala.util.Properties.isWin
-    val cp = (runClasspath() ++ transitiveJars()).map(_.path).toSeq.filter(os.exists(_)).filter(!os.isDir(_))
-    val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
-
-    val dest = T.ctx().dest / (if (isWin) "launcher.bat" else "launcher")
-
-    val localRepoJar0 = localRepoJar().path
-
-    val preamble = Preamble()
-      .withOsKind(isWin)
-      .callsItself(isWin)
-    val entries = (cp :+ localRepoJar0).map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
-    val loaderContent = coursier.launcher.ClassLoaderContent(entries)
-    val params = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
-      .withDeterministic(true)
-      .withPreamble(preamble)
-
-    BootstrapGenerator.generate(params, dest.toNIO)
-
-    PathRef(dest)
-  }
-
-  def standaloneLauncher = T{
-
-    val cachePath = os.Path(coursier.cache.FileCache().location, os.pwd)
-    def urlOf(path: os.Path): Option[String] = {
-      if (path.startsWith(cachePath)) {
-        val segments = path.relativeTo(cachePath).segments
-        val url = segments.head + "://" + segments.tail.mkString("/")
-        Some(url)
-      }
-      else None
-    }
-
-    import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
-    import scala.util.Properties.isWin
-    val cp = (runClasspath() ++ transitiveJars()).map(_.path).toSeq.filter(os.exists(_)).filter(!os.isDir(_))
-    val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
-
-    val dest = T.ctx().dest / (if (isWin) "launcher.bat" else "launcher")
-
-    val localRepoJar0 = localRepoJar().path
-
-    val preamble = Preamble()
-      .withOsKind(isWin)
-      .callsItself(isWin)
-    val entries = (cp :+ localRepoJar0).map { path =>
-      urlOf(path) match {
-        case None =>
-          val content = os.read.bytes(path)
-          val name = path.last
-          ClassPathEntry.Resource(name, os.mtime(path), content)
-        case Some(url) => ClassPathEntry.Url(url)
-      }
-    }
-    val loaderContent = coursier.launcher.ClassLoaderContent(entries)
-    val params = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
-      .withDeterministic(true)
-      .withPreamble(preamble)
-
-    BootstrapGenerator.generate(params, dest.toNIO)
-
-    PathRef(dest)
-  }
+  def localRepoJar = `local-repo`.localRepoJar()
+  def graalVmVersion = deps.graalVmVersion
 
   object test extends Tests {
-    def ivyDeps = Agg(
-      Deps.expecty,
-      Deps.munit
-    )
-    def testFramework = "munit.Framework"
     def runClasspath = T{
       super.runClasspath() ++ Seq(localRepoJar())
     }
   }
 }
 
-trait CliTests extends SbtModule with ScalaCliPublishModule {
+trait CliTests extends SbtModule with ScalaCliPublishModule with HasTests {
   def scalaVersion = sv
   def testLauncher: T[PathRef]
   def isNative = T{ false }
@@ -249,13 +127,10 @@ trait CliTests extends SbtModule with ScalaCliPublishModule {
 
   private def mainArtifactName = T{ artifactName() }
   object test extends Tests {
-    def ivyDeps = Agg(
-      Deps.expecty,
-      Deps.munit,
+    def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.osLib,
       Deps.pprint
     )
-    def testFramework = "munit.Framework"
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI" -> testLauncher().path.toString,
       "IS_NATIVE_SCALA_CLI" -> isNative().toString
@@ -276,42 +151,6 @@ trait NativeTests extends CliTests {
 
 trait JvmTests extends CliTests {
   def testLauncher = cli(defaultCliScalaVersion).launcher()
-}
-
-trait PublishLocalNoFluff extends PublishModule {
-  def emptyZip = T{
-    import java.io._
-    import java.util.zip._
-    val dest = T.dest / "empty.zip"
-    val baos = new ByteArrayOutputStream
-    val zos = new ZipOutputStream(baos)
-    zos.finish()
-    zos.close()
-    os.write(dest, baos.toByteArray)
-    PathRef(dest)
-  }
-  // adapted from https://github.com/com-lihaoyi/mill/blob/fea79f0515dda1def83500f0f49993e93338c3de/scalalib/src/PublishModule.scala#L70-L85
-  // writes empty zips as source and doc JARs
-  def publishLocalNoFluff(localIvyRepo: String = null): define.Command[PathRef] = T.command {
-
-    import mill.scalalib.publish.LocalIvyPublisher
-    val publisher = localIvyRepo match {
-      case null => LocalIvyPublisher
-      case repo => new LocalIvyPublisher(os.Path(repo.replace("{VERSION}", publishVersion()), os.pwd))
-    }
-
-    publisher.publish(
-      jar = jar().path,
-      sourcesJar = emptyZip().path,
-      docJar = emptyZip().path,
-      pom = pom().path,
-      ivy = ivy().path,
-      artifact = artifactMetadata(),
-      extras = extraPublish()
-    )
-
-    jar()
-  }
 }
 
 class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
@@ -338,7 +177,7 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
 }
 
 class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
-  def ivyDeps = Agg(
+  def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.testInterface
   )
@@ -346,7 +185,7 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
 }
 
 class Bloopgun(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
-  def ivyDeps = Agg(
+  def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.coursierInterface,
     Deps.snailgun
   )
@@ -378,160 +217,36 @@ class LineModifierPlugin(val crossScalaVersion: String) extends CrossSbtModule w
 
 class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
 
-
-def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) =
-  T.command {
-    import scala.concurrent.duration._
-    val timeout = 10.minutes
-    val credentials = sys.env("SONATYPE_USERNAME") + ":" + sys.env("SONATYPE_PASSWORD")
-    val pgpPassword = sys.env("PGP_PASSWORD")
-    val data = define.Task.sequence(tasks.value)()
-
-    publish.publishSonatype(
-      credentials = credentials,
-      pgpPassword = pgpPassword,
-      data = data,
-      timeout = timeout,
-      log = T.ctx().log
+object `local-repo` extends LocalRepo {
+  def stubsModules = {
+    val javaModules = Seq(
+      stubs
     )
+    val crossModules = for {
+      sv <- Scala.all
+      proj <- Seq(runner, `test-runner`, `line-modifier-plugin`)
+    } yield proj(sv)
+    javaModules ++ crossModules
   }
-
-
-def platformSuffix = {
-  val arch = sys.props("os.arch").toLowerCase(java.util.Locale.ROOT) match {
-    case "amd64" => "x86_64"
-    case other => other
-  }
-  val os =
-    if (Properties.isWin) "pc-win32"
-    else if (Properties.isLinux) "pc-linux"
-    else if (Properties.isMac) "apple-darwin"
-    else sys.error(s"Unrecognized OS: ${sys.props("os.name")}")
-  s"$arch-$os"
+  def version = runner(defaultCliScalaVersion).publishVersion()
 }
 
-def extension =
-  if (Properties.isWin) ".exe"
-  else ""
+
+// Helper CI commands
+
+def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = T.command {
+  publish.publishSonatype(
+    data = define.Task.sequence(tasks.value)(),
+    log = T.ctx().log
+  )
+}
 
 def copyLauncher(directory: String = "artifacts") = T.command {
-  val path = os.Path(directory, os.pwd)
   val nativeLauncher = cli(defaultCliScalaVersion).nativeImage().path
-  val name = s"scala-$platformSuffix$extension"
-  if (Properties.isWin)
-    writeInZip(name, nativeLauncher, path / s"scala-$platformSuffix.zip")
-  else {
-    val dest = path / name
-    os.copy(nativeLauncher, dest, createFolders = true, replaceExisting = true)
-    os.proc("gzip", "-v", dest.toString).call(
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
-    )
-  }
-  ()
+  ghreleaseassets.copyLauncher(nativeLauncher, directory)
 }
 
 def uploadLaunchers(directory: String = "artifacts") = T.command {
-  val path = os.Path(directory, os.pwd)
-  val launchers = os.list(path).filter(os.isFile(_)).map { path =>
-    path.toNIO -> path.last
-  }
-  val ghToken = Option(System.getenv("UPLOAD_GH_TOKEN")).getOrElse {
-    sys.error("UPLOAD_GH_TOKEN not set")
-  }
-  val (tag, overwriteAssets) = {
-    val ver = cli(defaultCliScalaVersion).publishVersion()
-    if (ver.endsWith("-SNAPSHOT")) ("latest", true)
-    else ("v" + ver, false)
-  }
-  upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
-}
-
-private def stubsModules = {
-  val javaModules = Seq(
-    stubs
-  )
-  val crossModules = for {
-    sv <- Scala.all
-    proj <- Seq(runner, `test-runner`, `line-modifier-plugin`)
-  } yield proj(sv)
-  javaModules ++ crossModules
-}
-
-def publishStubs = T{
-  val tasks = stubsModules.map(_.publishLocalNoFluff())
-  define.Task.sequence(tasks)
-}
-
-def localRepo = T{
-  val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
-  val tasks = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
-  define.Task.sequence(tasks)
-}
-
-def localRepoZip = T{
-  val ver = runner(defaultCliScalaVersion).publishVersion()
-  val something = localRepo()
-  val repoDir = os.pwd / "out" / "repo" / ver
-  val destDir = T.dest / ver / "repo.zip"
-  val dest = destDir / "repo.zip"
-
-  import java.io._
-  import java.util.zip._
-  os.makeDir.all(destDir)
-  var fos: FileOutputStream = null
-  var zos: ZipOutputStream = null
-  try {
-    fos = new FileOutputStream(dest.toIO)
-    zos = new ZipOutputStream(new BufferedOutputStream(fos))
-    os.walk(repoDir).filter(_ != repoDir).foreach { p =>
-      val isDir = os.isDir(p)
-      val name = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")
-      val entry = new ZipEntry(name)
-      entry.setTime(os.mtime(p))
-      zos.putNextEntry(entry)
-      if (!isDir) {
-        zos.write(os.read.bytes(p))
-        zos.flush()
-      }
-      zos.closeEntry()
-    }
-    zos.finish()
-  } finally {
-    if (zos != null) zos.close()
-    if (fos != null) fos.close()
-  }
-
-  PathRef(dest)
-}
-
-def localRepoResourcePath = "local-repo.zip"
-
-def localRepoJar = T{
-  val zip = localRepoZip().path
-  val dest = T.dest / "repo.jar"
-
-  import java.io._
-  import java.util.zip._
-  var fos: FileOutputStream = null
-  var zos: ZipOutputStream = null
-  try {
-    fos = new FileOutputStream(dest.toIO)
-    zos = new ZipOutputStream(new BufferedOutputStream(fos))
-
-    val entry = new ZipEntry(localRepoResourcePath)
-    entry.setTime(os.mtime(zip))
-    zos.putNextEntry(entry)
-    zos.write(os.read.bytes(zip))
-    zos.flush()
-    zos.closeEntry()
-
-    zos.finish()
-  } finally {
-    if (zos != null) zos.close()
-    if (fos != null) fos.close()
-  }
-
-  PathRef(dest)
+  val version = cli(defaultCliScalaVersion).publishVersion()
+  ghreleaseassets.uploadLaunchers(version, directory)
 }

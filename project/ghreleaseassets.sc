@@ -3,6 +3,9 @@
 import $ivy.`com.softwaremill.sttp.client::core:2.0.0-RC6`
 import $ivy.`com.lihaoyi::ujson:0.9.5`
 
+import $file.publish, publish.{ghOrg, ghName}
+import $file.settings, settings.{platformExtension, platformSuffix}
+
 import java.io._
 import java.nio.ByteBuffer
 import java.nio.charset.{MalformedInputException, StandardCharsets}
@@ -12,6 +15,7 @@ import java.util.zip.{ZipException, ZipFile}
 import sttp.client.quick._
 
 import scala.util.control.NonFatal
+import scala.util.Properties
 
 private def contentType(path: Path): String = {
 
@@ -180,4 +184,40 @@ def writeInZip(name: String, file: os.Path, zip: os.Path): Unit = {
     if (fos != null) fos.close()
     if (fis != null) fis.close()
   }
+}
+
+def copyLauncher(
+  nativeLauncher: os.Path,
+  directory: String
+): Unit = {
+  val path = os.Path(directory, os.pwd)
+  val name = s"scala-$platformSuffix$platformExtension"
+  if (Properties.isWin)
+    writeInZip(name, nativeLauncher, path / s"scala-$platformSuffix.zip")
+  else {
+    val dest = path / name
+    os.copy(nativeLauncher, dest, createFolders = true, replaceExisting = true)
+    os.proc("gzip", "-v", dest.toString).call(
+      stdin = os.Inherit,
+      stdout = os.Inherit,
+      stderr = os.Inherit
+    )
+  }
+}
+
+def uploadLaunchers(
+  version: String,
+  directory: String
+): Unit = {
+  val path = os.Path(directory, os.pwd)
+  val launchers = os.list(path).filter(os.isFile(_)).map { path =>
+    path.toNIO -> path.last
+  }
+  val ghToken = Option(System.getenv("UPLOAD_GH_TOKEN")).getOrElse {
+    sys.error("UPLOAD_GH_TOKEN not set")
+  }
+  val (tag, overwriteAssets) =
+    if (version.endsWith("-SNAPSHOT")) ("latest", true)
+    else ("v" + version, false)
+  upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
 }
