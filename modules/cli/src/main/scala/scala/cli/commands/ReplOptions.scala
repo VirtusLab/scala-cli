@@ -12,7 +12,7 @@ final case class ReplOptions(
 ) {
   def ammoniteVersion: String =
     ammonite.getOrElse {
-      "2.3.8-58-aa8b2ab1" // TODO Get via scala.cli.internal.Constants
+      "2.3.8-58-aa8b2ab1" // TODO Get via scala.build.internal.Constants
     }
 }
 

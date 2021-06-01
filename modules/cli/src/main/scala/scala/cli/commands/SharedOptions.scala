@@ -2,12 +2,12 @@ package scala.cli.commands
 
 import caseapp._
 import caseapp.core.help.Help
-import scala.cli.{Build, Project}
-import scala.cli.internal.{CodeWrapper, CustomCodeClassWrapper, CustomCodeWrapper}
+import scala.build.{Build, Project}
+import scala.build.internal.{CodeWrapper, CustomCodeClassWrapper, CustomCodeWrapper}
 import scala.scalanative.{build => sn}
 import dependency.ScalaVersion
 import dependency.ScalaParameters
-import scala.cli.internal.Constants
+import scala.build.internal.Constants
 
 // TODO Add support for a --watch option
 

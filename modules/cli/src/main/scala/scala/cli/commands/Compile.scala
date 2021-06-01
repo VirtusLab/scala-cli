@@ -5,7 +5,7 @@ import caseapp.core.RemainingArgs
 
 import java.io.File
 
-import scala.cli.{Build, Inputs, Os}
+import scala.build.{Build, Inputs, Os}
 
 object Compile extends CaseApp[CompileOptions] {
   def run(options: CompileOptions, args: RemainingArgs): Unit = {

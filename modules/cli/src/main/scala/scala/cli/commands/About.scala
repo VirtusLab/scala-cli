@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import scala.cli.internal.Constants
+import scala.build.internal.Constants
 
 object About extends CaseApp[AboutOptions] {
   def run(options: AboutOptions, args: RemainingArgs): Unit = {

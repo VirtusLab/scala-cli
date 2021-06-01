@@ -7,7 +7,7 @@ import org.graalvm.nativeimage.Platforms;
 
 import java.nio.file.Path;
 
-@TargetClass(className = "scala.cli.internal.ScalaJsLinker")
+@TargetClass(className = "scala.build.internal.ScalaJsLinker")
 @Platforms({Platform.WINDOWS.class})
 final class ScalaJsLinkerSubst {
 
