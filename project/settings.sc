@@ -157,10 +157,20 @@ trait CliLaunchers extends SbtModule {
   def localRepoJar: T[PathRef]
   def graalVmVersion: String
 
-  def transitiveJars: T[Agg[PathRef]] = T{
-    mill.define.Target.traverse(this +: moduleDeps)(m =>
-      T.task{m.jar()}
-    )()
+  def transitiveJars: T[Agg[PathRef]] = {
+
+    def allModuleDeps(todo: List[JavaModule]): List[JavaModule] =
+      todo match {
+        case Nil => Nil
+        case h :: t =>
+          h :: allModuleDeps(h.moduleDeps.toList ::: t)
+      }
+
+    T{
+      mill.define.Target.traverse(allModuleDeps(this :: Nil).distinct)(m =>
+        T.task{m.jar()}
+      )()
+    }
   }
 
   def nativeImage = T{
@@ -177,7 +187,7 @@ trait CliLaunchers extends SbtModule {
   }
 
   def runWithAssistedConfig(args: String*) = T.command {
-    val cp = (Seq(jar(), localRepoJar()) ++ upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
+    val cp = jarClassPath().map(_.path).mkString(java.io.File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
@@ -199,7 +209,7 @@ trait CliLaunchers extends SbtModule {
   }
 
   def runFromJars(args: String*) = T.command {
-    val cp = (Seq(jar(), localRepoJar()) ++ upstreamAssemblyClasspath().toSeq).map(_.path).mkString(java.io.File.pathSeparator)
+    val cp = jarClassPath().map(_.path).mkString(java.io.File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val command = Seq("java", "-cp", cp, mainClass0) ++ args
     os.proc(command.map(x => x: os.Shellable): _*).call(
@@ -213,20 +223,23 @@ trait CliLaunchers extends SbtModule {
     super.runClasspath() ++ Seq(localRepoJar())
   }
 
+  def jarClassPath = T{
+    val cp = runClasspath() ++ transitiveJars()
+    cp.filter(ref => os.exists(ref.path) && !os.isDir(ref.path))
+  }
+
   def launcher = T{
     import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
     import scala.util.Properties.isWin
-    val cp = (runClasspath() ++ transitiveJars()).map(_.path).toSeq.filter(os.exists(_)).filter(!os.isDir(_))
+    val cp = jarClassPath().map(_.path)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
 
     val dest = T.ctx().dest / (if (isWin) "launcher.bat" else "launcher")
 
-    val localRepoJar0 = localRepoJar().path
-
     val preamble = Preamble()
       .withOsKind(isWin)
       .callsItself(isWin)
-    val entries = (cp :+ localRepoJar0).map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
+    val entries = cp.map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
     val loaderContent = coursier.launcher.ClassLoaderContent(entries)
     val params = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
       .withDeterministic(true)
@@ -251,17 +264,15 @@ trait CliLaunchers extends SbtModule {
 
     import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
     import scala.util.Properties.isWin
-    val cp = (runClasspath() ++ transitiveJars()).map(_.path).toSeq.filter(os.exists(_)).filter(!os.isDir(_))
+    val cp = jarClassPath().map(_.path)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
 
     val dest = T.ctx().dest / (if (isWin) "launcher.bat" else "launcher")
 
-    val localRepoJar0 = localRepoJar().path
-
     val preamble = Preamble()
       .withOsKind(isWin)
       .callsItself(isWin)
-    val entries = (cp :+ localRepoJar0).map { path =>
+    val entries = cp.map { path =>
       urlOf(path) match {
         case None =>
           val content = os.read.bytes(path)
