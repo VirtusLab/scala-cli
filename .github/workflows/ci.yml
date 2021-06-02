@@ -27,9 +27,14 @@ jobs:
       run: ./mill -i integration.jvm.test
     - name: Native integration tests
       run: ./mill -i integration.native.test
+      # native-image generation often gets stuck or runs out of memory
+      # on the current GitHub actions Windows runners
+      if: runner.os != 'Windows'
     - name: Copy artifacts
+      if: runner.os != 'Windows'
       run: ./mill -i copyLauncher artifacts/
     - uses: actions/upload-artifact@v2.2.3
+      if: runner.os != 'Windows'
       with:
         name: launchers
         path: artifacts/
