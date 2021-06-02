@@ -21,8 +21,12 @@ jobs:
     - uses: laughedelic/coursier-setup@v1
       with:
         jvm: 8
-    - name: Test
-      run: ./mill -i __.test
+    - name: Unit tests
+      run: ./mill -i unitTests
+    - name: JVM integration tests
+      run: ./mill -i integration.jvm.test
+    - name: Native integration tests
+      run: ./mill -i integration.native.test
     - name: Copy artifacts
       run: ./mill -i copyLauncher artifacts/
     - uses: actions/upload-artifact@v2.2.3

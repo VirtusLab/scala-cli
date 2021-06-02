@@ -269,3 +269,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
   val version = cli.publishVersion()
   ghreleaseassets.uploadLaunchers(version, directory)
 }
+
+def unitTests() = T.command {
+  build(defaultScalaVersion).test.test()
+}
