@@ -90,9 +90,21 @@ def generateNativeImage(
     } else
       classPath.map(_.toIO.getAbsolutePath).mkString(File.pathSeparator)
 
+  val extraArgs =
+    if (Properties.isWin)
+      Seq(
+        "--no-server",
+        "-J-Xmx6g",
+        "--verbose"
+      )
+    else Nil
+
   val command = Seq(
     nativeImage,
-    "--no-fallback",
+    "--no-fallback"
+  ) ++
+  extraArgs ++
+  Seq(
     "--enable-url-protocols=https",
     "--initialize-at-build-time=scala.Symbol",
     "--initialize-at-build-time=scala.Symbol$",
