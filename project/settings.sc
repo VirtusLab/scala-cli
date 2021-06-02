@@ -58,7 +58,7 @@ def generateNativeImage(
 
   val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
     import sys.process._
-    Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", "cs").!!.trim
+    Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", "https://github.com/coursier/jvm-index/raw/master/index.json").!!.trim
   }
 
   val ext = if (Properties.isWin) ".cmd" else ""
