@@ -1,12 +1,15 @@
 package scala.cli.commands
 
+import java.io.{ByteArrayOutputStream, InputStream}
+import java.nio.file.{Files, Path}
+
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
-import scala.build.{Build, Inputs, Os, Runner}
+import scala.build.{Build, Inputs, Logger, Os, Runner}
 import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
-import java.nio.file.{Files, Path}
+import scala.util.Properties
 
 object Run extends CaseApp[RunOptions] {
 
@@ -17,7 +20,7 @@ object Run extends CaseApp[RunOptions] {
 
     val pwd = Os.pwd
 
-    val inputs = Inputs(args.remaining, pwd, defaultInputs = defaultInputs) match {
+    val inputs = Inputs(args.remaining, pwd, defaultInputs = defaultInputs, stdinOpt = readStdin(logger = options.shared.logger), acceptFds = !Properties.isWin) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -181,5 +184,26 @@ object Run extends CaseApp[RunOptions] {
         os.remove(dest)
     }
   }
+
+  def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
+    if (in == null) {
+      logger.debug("No stdin available")
+      None
+    } else {
+      logger.debug("Reading stdin")
+      val baos = new ByteArrayOutputStream
+      val buf = Array.ofDim[Byte](16*1024)
+      var read = -1
+      while ({
+        read = in.read(buf)
+        read >= 0
+      }) {
+        if (read > 0)
+          baos.write(buf, 0, read)
+      }
+      val result = baos.toByteArray
+      logger.debug(s"Done reading stdin (${result.length} B)")
+      Some(result)
+    }
 
 }

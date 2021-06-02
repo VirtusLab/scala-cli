@@ -318,7 +318,11 @@ object Build {
         }
 
         val watcher0 = watcher.newWatcher()
-        watcher0.register(elem.path.toNIO, depth)
+        elem match {
+          case d: Inputs.OnDisk =>
+            watcher0.register(d.path.toNIO, depth)
+          case _: Inputs.Virtual =>
+        }
         watcher0.addObserver {
           onChangeBufferedObserver { event =>
             if (eventFilter(event))
@@ -627,16 +631,18 @@ object Build {
   }
 
   private def registerInputs(watcher: PathWatcher[PathWatchers.Event], inputs: Inputs): Unit =
-    for (elem <- inputs.elements) {
-      val depth = elem match {
-        case _: Inputs.Directory => Int.MaxValue
-        case _: Inputs.ResourceDirectory => Int.MaxValue
-        case _ => -1
-      }
-      watcher.register(elem.path.toNIO, depth) match {
-        case l: com.swoval.functional.Either.Left[IOException, JBoolean] => throw l.getValue
-        case _ =>
-      }
+    inputs.elements.foreach  {
+      case elem: Inputs.OnDisk =>
+        val depth = elem match {
+          case _: Inputs.Directory => Int.MaxValue
+          case _: Inputs.ResourceDirectory => Int.MaxValue
+          case _ => -1
+        }
+        watcher.register(elem.path.toNIO, depth) match {
+          case l: com.swoval.functional.Either.Left[IOException, JBoolean] => throw l.getValue
+          case _ =>
+        }
+      case _: Inputs.Virtual =>
     }
 
   private def printable(path: os.Path): String =
