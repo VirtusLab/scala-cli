@@ -78,19 +78,17 @@ def generateNativeImage(
 
   val finalCp =
     if (Properties.isWin) {
-      import java.util.jar.Attributes
-      import java.util.jar.JarOutputStream
-      import java.util.jar.Manifest
+      import java.util.jar._
       val manifest = new Manifest
       val attributes = manifest.getMainAttributes
       attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
       attributes.put(Attributes.Name.CLASS_PATH, classPath.map(_.toIO.getAbsolutePath).mkString(" "))
-      val jarFile = java.io.File.createTempFile("classpathJar", ".jar")
+      val jarFile = File.createTempFile("classpathJar", ".jar")
       val jos = new JarOutputStream(new java.io.FileOutputStream(jarFile), manifest)
       jos.close()
       jarFile.getAbsolutePath
     } else
-      classPath.map(_.toIO.getAbsolutePath).mkString(java.io.File.pathSeparator)
+      classPath.map(_.toIO.getAbsolutePath).mkString(File.pathSeparator)
 
   val command = Seq(
     nativeImage,
@@ -213,7 +211,7 @@ trait CliLaunchers extends SbtModule {
   }
 
   def runWithAssistedConfig(args: String*) = T.command {
-    val cp = jarClassPath().map(_.path).mkString(java.io.File.pathSeparator)
+    val cp = jarClassPath().map(_.path).mkString(File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
@@ -235,7 +233,7 @@ trait CliLaunchers extends SbtModule {
   }
 
   def runFromJars(args: String*) = T.command {
-    val cp = jarClassPath().map(_.path).mkString(java.io.File.pathSeparator)
+    val cp = jarClassPath().map(_.path).mkString(File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val command = Seq("java", "-cp", cp, mainClass0) ++ args
     os.proc(command.map(x => x: os.Shellable): _*).call(
