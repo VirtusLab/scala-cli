@@ -24,6 +24,12 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Specify which main class to run")
   @ValueDescription("main-class")
+  @Name("d")
+    debian: Boolean = false,
+  @Name("w")
+    windows: Boolean = false,
+  @Name("b")
+    homebrew: Boolean = false,
   @Name("M")
     mainClass: Option[String] = None
 ) {
@@ -36,6 +42,15 @@ final case class PackageOptions(
 
   def buildOptions(scalaVersions: ScalaVersions): Build.Options =
     shared.buildOptions(scalaVersions, enableJmh = false, jmhVersion = None)
+
+  import PackageOptions.NativePackagerType
+  def nativePackager: Option[NativePackagerType] = {
+    if (debian) Some(NativePackagerType.Debian)
+    else if (windows) Some(NativePackagerType.Windows)
+    else if (homebrew) Some(NativePackagerType.Homebrew)
+    else None
+  }
+
 }
 
 object PackageOptions {
@@ -46,6 +61,13 @@ object PackageOptions {
     case object LibraryJar extends PackageType
     case object Js extends PackageType
     case object Native extends PackageType
+  }
+
+  sealed abstract class NativePackagerType extends Product with Serializable
+  case object NativePackagerType {
+    case object Debian extends NativePackagerType
+    case object Windows extends NativePackagerType
+    case object Homebrew extends NativePackagerType
   }
 
   implicit val parser = Parser[PackageOptions]

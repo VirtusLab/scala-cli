@@ -40,6 +40,14 @@ $ ./mill integration.jvm.test 'scala.cli.integration.RunTests.Multiple scripts'
 $ ./mill integration.native.test
 ```
 
+#### Generate Debian package
+
+This will generate the debian package to my-app.deb (Debian file name should be specified by command line)
+
+```text
+$ ./mill -i 'cli.run' package foo/Foo.scala ..arguments... --debian
+```
+
 #### Generate Metals configuration files
 
 ```text

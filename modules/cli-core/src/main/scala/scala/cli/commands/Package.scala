@@ -7,14 +7,17 @@ import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
 
 import java.io.{ByteArrayOutputStream, File}
-import java.net.URI
-import java.nio.file.{Files, Path, Paths}
 import java.nio.file.attribute.FileTime
-import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
+import java.nio.file.{Files, Path}
+import java.util.jar.{JarOutputStream, Attributes => JarAttributes}
 import java.util.zip.{ZipEntry, ZipOutputStream}
-
-import scala.util.Properties
 import scala.build.internal.ScalaJsLinker
+import scala.build.{Build, Inputs, Logger, Os}
+import scala.cli.commands.PackageOptions.NativePackagerType
+import scala.cli.commands.packager.debian.DebianPackage
+import scala.scalanative.util.Scope
+import scala.scalanative.{build => sn}
+import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
   override def group = "Main"
@@ -97,8 +100,34 @@ object Package extends ScalaCommand[PackageOptions] {
         buildNative(successfulBuild, mainClass(), destPath, nativeOptions, workDir, logger)
     }
 
+    buildNativePackage(options.nativePackager, destPath, mainClass(), () => alreadyExistsCheck(), options.shared.logger)
+
     if (options.shared.logging.verbosity >= 0)
       System.err.println(s"Wrote $dest")
+  }
+
+  private def buildNativePackage(
+      nativePackager: Option[NativePackagerType],
+      destPath: os.Path,
+      mainClass: String,
+      alreadyExistsCheck: () => Unit,
+      logger: Logger
+  ) = {
+    import NativePackagerType._
+    nativePackager match {
+      case Some(Debian) =>  buildDebianPackage(destPath).run(logger)
+      case Some(Windows)  => ???
+      case Some(Homebrew) => ???
+      case None           => ()
+    }
+  }
+
+  private def buildDebianPackage(sourceAppPath: os.Path) = {
+    val debianPackageName = "my-app"
+    DebianPackage(
+      packageName = debianPackageName,
+      sourceAppPath = sourceAppPath,
+    )
   }
 
   private def libraryJar(build: Build.Successful): Array[Byte] = {
