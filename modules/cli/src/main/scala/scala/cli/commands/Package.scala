@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
-import scala.cli.{Build, Inputs, Os}
+import scala.build.{Build, Inputs, Os}
 import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
 
@@ -15,7 +15,7 @@ import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.util.Properties
-import scala.cli.internal.ScalaJsLinker
+import scala.build.internal.ScalaJsLinker
 
 object Package extends CaseApp[PackageOptions] {
   def run(options: PackageOptions, args: RemainingArgs): Unit = {

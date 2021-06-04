@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.cli.{Inputs, Os}
+import scala.build.{Inputs, Os}
 
 object Clean extends CaseApp[CleanOptions] {
   def run(options: CleanOptions, args: RemainingArgs): Unit = {

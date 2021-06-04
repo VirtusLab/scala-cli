@@ -245,19 +245,19 @@
   "allDeclaredFields": true
 },
 {
-  "name":"scala.cli.BloopBuildClient",
+  "name":"scala.build.BloopBuildClient",
   "allDeclaredConstructors" : true,
   "allDeclaredMethods": true,
   "allDeclaredFields": true
 },
 {
-  "name":"scala.cli.FullBuildServer",
+  "name":"scala.build.bloop.BuildServer",
   "allDeclaredConstructors" : true,
   "allDeclaredMethods": true,
   "allDeclaredFields": true
 },
 {
-  "name":"scala.cli.bloop.bloop4j.BloopExtraBuildParams",
+  "name":"scala.build.bloop.bloop4j.BloopExtraBuildParams",
   "allDeclaredConstructors" : true,
   "allDeclaredMethods": true,
   "allDeclaredFields": true

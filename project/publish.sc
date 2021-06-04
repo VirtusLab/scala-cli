@@ -3,7 +3,7 @@ import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 def ghOrg = "VirtuslabRnD"
 def ghName = "scala-cli"
@@ -41,21 +41,16 @@ trait ScalaCliPublishModule extends PublishModule {
         .getOrElse(state.format())
         .stripPrefix("v")
   }
-
-  def transitiveJars: T[Agg[PathRef]] = T{
-    mill.define.Target.traverse(this +: moduleDeps)(m =>
-      T.task{m.jar()}
-    )()
-  }
 }
 
 def publishSonatype(
-  credentials: String,
-  pgpPassword: String,
   data: Seq[PublishModule.PublishData],
-  timeout: Duration,
   log: mill.api.Logger
 ): Unit = {
+
+  val credentials = sys.env("SONATYPE_USERNAME") + ":" + sys.env("SONATYPE_PASSWORD")
+  val pgpPassword = sys.env("PGP_PASSWORD")
+  val timeout = 10.minutes
 
   val artifacts = data.map {
     case PublishModule.PublishData(a, s) =>

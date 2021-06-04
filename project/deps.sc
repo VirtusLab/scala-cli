@@ -50,4 +50,4 @@ object Deps {
   def testInterface = ivy"org.scala-sbt:test-interface:1.0"
 }
 
-def graalVmVersion = "20.3.1.2"
+def graalVmVersion = "21.1.0"

@@ -2,8 +2,8 @@ package scala.cli.commands
 
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
-import scala.cli.{Build, Inputs, Os, Runner}
-import scala.cli.internal.Constants
+import scala.build.{Build, Inputs, Os, Runner}
+import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
 import java.nio.file.{Files, Path}

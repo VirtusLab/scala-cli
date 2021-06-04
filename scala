@@ -11,6 +11,6 @@ if [ "$(uname)" = "Darwin" ]; then
   fi
 fi
 DIR="$(dirname "$("$READLINK" -f "${BASH_SOURCE[0]}")")"
-LAUNCHER="$DIR/out/cli/2.12.13/nativeImage/dest/scala"
+LAUNCHER="$DIR/out/cli/nativeImage/dest/scala"
 
 exec "$LAUNCHER" "$@"

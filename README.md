@@ -11,19 +11,19 @@
 #### Running the CLI from sources
 
 ```text
-$ ./mill -i 'cli[2.12.13].run' …arguments…
+$ ./mill -i 'cli.run' …arguments…
 ```
 
 #### Run tests with the JVM launcher
 
 ```text
-$ ./mill jvm-tests.test
+$ ./mill integration.jvm.test
 ```
 
 Filter test suites with
 ```text
-$ ./mill jvm-tests.test scala.cli.DefaultTests
-$ ./mill jvm-tests.test 'scala.cli.DefaultTests.Multiple scripts*'
+$ ./mill integration.jvm.test scala.cli.DefaultTests
+$ ./mill integration.jvm.test 'scala.cli.DefaultTests.Multiple scripts*'
 ```
 
 #### Run tests with the native launcher
@@ -31,7 +31,7 @@ $ ./mill jvm-tests.test 'scala.cli.DefaultTests.Multiple scripts*'
 (generating the launcher can take several minutes)
 
 ```text
-$ ./mill native-tests.test
+$ ./mill integration.native.test
 ```
 
 #### Generate Metals configuration files
@@ -44,10 +44,25 @@ Then run the command "Metals: Connect to build server".
 
 (Recommended over the Metals import project functionality.)
 
+Whenever the build is updated, just do these two steps again.
+
+#### Generate IntelliJ configuration files
+
+```text
+$ ./mill mill.scalalib.GenIdea/idea
+```
+
+Then open the scala-cli directory in IntelliJ.
+
+(Recommended over the IntelliJ import project functionality.)
+
+Whenever the build is updated, run the command above again. IntelliJ
+should then pick up the new changes.
+
 #### Generate a native launcher
 
 ```text
-$ ./mill -i show 'cli[2.12.13].nativeImage'
+$ ./mill -i show 'cli.nativeImage'
 ```
 
 This prints the path to the generated native image.
@@ -58,7 +73,7 @@ whether the files it points at exists or not.)
 #### Generate a JVM launcher
 
 ```text
-$ ./mill -i show 'cli[2.12.13].launcher'
+$ ./mill -i show 'cli.launcher'
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,
@@ -71,7 +86,7 @@ JVM one (see below).
 #### Generate a standalone JVM launcher
 
 ```text
-$ ./mill -i show 'cli[2.12.13].standaloneLauncher'
+$ ./mill -i show 'cli.standaloneLauncher'
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,

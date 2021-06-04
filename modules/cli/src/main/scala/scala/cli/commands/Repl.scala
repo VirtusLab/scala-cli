@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
-import scala.cli.{Build, Inputs, Os, ReplArtifacts, Runner}
+import scala.build.{Build, Inputs, Os, ReplArtifacts, Runner}
 
 object Repl extends CaseApp[ReplOptions] {
   def run(options: ReplOptions, args: RemainingArgs): Unit = {

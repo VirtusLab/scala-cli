@@ -3,8 +3,8 @@ package scala.cli.commands
 import caseapp._
 import coursier.cache.loggers.RefreshLogger
 import coursier.cache.CacheLogger
-import scala.cli.bloop.bloopgun
-import scala.cli.Logger
+import scala.build.bloop.bloopgun
+import scala.build.Logger
 
 final case class LoggingOptions(
   @Name("v")
@@ -45,13 +45,13 @@ final case class LoggingOptions(
             logger.log(s"Error: $msg ($ex)")
           def coursierInterfaceLogger =
             logger.coursierInterfaceLogger
+          def bloopBspStdout =
+            if (verbosity >= 2) Some(System.err)
+            else None
+          def bloopBspStderr =
+            if (verbosity >= 2) Some(System.err)
+            else None
         }
-      def bloopBspStdout =
-        if (verbosity >= 2) Some(System.err)
-        else None
-      def bloopBspStderr =
-        if (verbosity >= 2) Some(System.err)
-        else None
     }
 
 }
