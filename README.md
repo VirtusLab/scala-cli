@@ -14,7 +14,13 @@
 $ ./mill -i cli.run …arguments…
 ```
 
-#### Run tests with the JVM launcher
+#### Run unit tests
+
+```text
+$ ./mill 'build[_].test'
+```
+
+#### Run integration tests with the JVM launcher
 
 ```text
 $ ./mill integration.jvm.test
@@ -22,11 +28,11 @@ $ ./mill integration.jvm.test
 
 Filter test suites with
 ```text
-$ ./mill integration.jvm.test scala.cli.DefaultTests
-$ ./mill integration.jvm.test 'scala.cli.DefaultTests.Multiple scripts*'
+$ ./mill integration.jvm.test 'scala.cli.integration.RunTests.*'
+$ ./mill integration.jvm.test 'scala.cli.integration.RunTests.Multiple scripts'
 ```
 
-#### Run tests with the native launcher
+#### Run integration tests with the native launcher
 
 (generating the launcher can take several minutes)
 
