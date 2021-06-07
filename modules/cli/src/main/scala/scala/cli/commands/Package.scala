@@ -16,7 +16,8 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.util.Properties
 import scala.build.internal.ScalaJsLinker
 
-object Package extends Command[PackageOptions] {
+object Package extends ScalaCommand[PackageOptions] {
+  override def group = "Main"
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
 
     val pwd = Os.pwd
@@ -32,7 +33,7 @@ object Package extends Command[PackageOptions] {
 
     // TODO Add watch mode
 
-    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, pwd)
+    val build = Build.build(inputs, options.buildOptions, options.shared.logger, pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")

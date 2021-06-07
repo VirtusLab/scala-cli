@@ -3,7 +3,8 @@ package scala.cli.commands
 import caseapp._
 import scala.build.{Build, Inputs, Os, ReplArtifacts, Runner}
 
-object Repl extends Command[ReplOptions] {
+object Repl extends ScalaCommand[ReplOptions] {
+  override def group = "Main"
   override def names = List(
     List("console"),
     List("repl")
@@ -19,7 +20,7 @@ object Repl extends Command[ReplOptions] {
 
     // TODO Add watch support?
 
-    val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, Os.pwd)
+    val build = Build.build(inputs, options.buildOptions, options.shared.logger, Os.pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")

@@ -4,7 +4,8 @@ import caseapp._
 
 import scala.build.{Inputs, Os}
 
-object Clean extends Command[CleanOptions] {
+object Clean extends ScalaCommand[CleanOptions] {
+  override def group = "Main"
   def run(options: CleanOptions, args: RemainingArgs): Unit = {
 
     val inputs = Inputs(args.all, Os.pwd, defaultInputs = Some(Inputs.default())) match {

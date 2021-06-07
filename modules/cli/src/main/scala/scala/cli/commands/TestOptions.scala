@@ -3,12 +3,18 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
+import scala.build.Build
+
+@HelpMessage("Compile and test Scala code")
 final case class TestOptions(
   @Recurse
-    shared: SharedOptions,
+    shared: SharedOptions = SharedOptions(),
   @Recurse
     sharedJava: SharedJavaOptions = SharedJavaOptions()
-)
+) {
+  def buildOptions: Build.Options =
+    shared.buildOptions(enableJmh = false, jmhVersion = None)
+}
 
 object TestOptions {
   implicit val parser = Parser[TestOptions]

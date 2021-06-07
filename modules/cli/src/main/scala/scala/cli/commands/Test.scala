@@ -5,7 +5,8 @@ import caseapp._
 import scala.build.{Build, Inputs, Os, Runner}
 import scala.build.internal.Constants
 
-object Test extends Command[TestOptions] {
+object Test extends ScalaCommand[TestOptions] {
+  override def group = "Main"
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
     val pwd = Os.pwd
@@ -17,7 +18,7 @@ object Test extends Command[TestOptions] {
       case Right(i) => i
     }
 
-    val buildOptions = options.shared.buildOptions.copy(
+    val buildOptions = options.buildOptions.copy(
       addTestRunnerDependencyOpt = Some(true)
     )
     if (options.shared.watch) {

@@ -6,7 +6,8 @@ import java.io.File
 
 import scala.build.{Build, Inputs, Os}
 
-object Compile extends Command[CompileOptions] {
+object Compile extends ScalaCommand[CompileOptions] {
+  override def group = "Main"
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
 
     val inputs = Inputs(args.all, Os.pwd) match {
@@ -24,13 +25,13 @@ object Compile extends Command[CompileOptions] {
         }
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
+      val watcher = Build.watch(inputs, options.buildOptions, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
         postBuild(build)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, Os.pwd)
+      val build = Build.build(inputs, options.buildOptions, options.shared.logger, Os.pwd)
       postBuild(build)
     }
   }

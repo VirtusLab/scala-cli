@@ -2,15 +2,24 @@ package scala.cli.commands
 
 import caseapp._
 import caseapp.core.help.Help
+import scala.build.Build
 
+@HelpMessage("Compile Scala code")
 final case class CompileOptions(
   @Recurse
-    shared: SharedOptions,
+    shared: SharedOptions = SharedOptions(),
+  @Recurse
+    benchmarking: BenchmarkingOptions = BenchmarkingOptions(),
+
   @Name("p")
   @Name("classpath")
   @HelpMessage("Print resulting class path")
     classPath: Boolean = false
-)
+) {
+
+  def buildOptions: Build.Options =
+    shared.buildOptions(benchmarking.enableJmh, benchmarking.jmhVersion)
+}
 
 object CompileOptions {
   implicit val parser = Parser[CompileOptions]

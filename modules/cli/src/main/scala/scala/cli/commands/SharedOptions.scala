@@ -9,30 +9,53 @@ import dependency.ScalaVersion
 import dependency.ScalaParameters
 import scala.build.internal.Constants
 
-// TODO Add support for a --watch option
-
-// TODO Add support for a --js option
-
 final case class SharedOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+
+  @Group("Scala")
+  @HelpMessage("Set Scala version")
+  @ValueDescription("version")
   @Name("scala")
   @Name("S")
     scalaVersion: String = SharedOptions.defaultScalaVersion,
-  javaHome: Option[String] = None,
+
+  @Group("Java")
+  @HelpMessage("Set Java home")
+  @ValueDescription("path")
+    javaHome: Option[String] = None,
+
+  @Group("Java")
+  @HelpMessage("Use a specific JVM, such as 14, adopt:11, or graalvm:21, or system")
+  @ValueDescription("jvm-name")
   @Name("j")
     jvm: Option[String] = None,
-  classWrap: Boolean = false,
-  js: Boolean = false,
-  native: Boolean = false,
+
+  @Hidden
+    classWrap: Boolean = false,
+
+  @Group("Scala")
+  @HelpMessage("Enable Scala.JS")
+    js: Boolean = false,
+  @Group("Scala")
+  @HelpMessage("Enable Scala Native")
+    native: Boolean = false,
+
+  @HelpMessage("Watch sources for changes")
   @Name("w")
     watch: Boolean = false,
-  jmh: Option[Boolean] = None,
-  jmhVersion: Option[String] = None,
-  scalaLibrary: Option[Boolean] = None,
-  java: Option[Boolean] = None,
-  runner: Option[Boolean] = None,
-  semanticDb: Boolean = false
+
+  @Group("Scala")
+  @Hidden
+    scalaLibrary: Option[Boolean] = None,
+  @Group("Java")
+  @Hidden
+    java: Option[Boolean] = None,
+  @Hidden
+    runner: Option[Boolean] = None,
+
+  @HelpMessage("Generate SemanticDBs")
+    semanticDb: Boolean = false
 ) {
 
   lazy val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
@@ -44,8 +67,6 @@ final case class SharedOptions(
     else if (native) Some("native" + ScalaVersion.nativeBinary(Constants.scalaNativeVersion))
     else None
   )
-
-  def enableJmh: Boolean = jmh.getOrElse(jmhVersion.nonEmpty)
 
   def logger = logging.logger
 
@@ -75,7 +96,7 @@ final case class SharedOptions(
       def error(msg: String) = logger.log(msg)
     }
 
-  def buildOptions: Build.Options =
+  def buildOptions(enableJmh: Boolean, jmhVersion: Option[String]): Build.Options =
     Build.Options(
       scalaVersion = scalaVersion,
       scalaBinaryVersion = scalaBinaryVersion,

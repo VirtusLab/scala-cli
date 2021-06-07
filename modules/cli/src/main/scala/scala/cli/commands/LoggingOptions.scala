@@ -7,8 +7,12 @@ import scala.build.bloop.bloopgun
 import scala.build.Logger
 
 final case class LoggingOptions(
+  @Group("Logging")
+  @HelpMessage("Increase verbosity (can be specified multiple times)")
   @Name("v")
     verbose: Int @@ Counter = Tag.of(0),
+  @Group("Logging")
+  @HelpMessage("Decrease verbosity")
   @Name("q")
     quiet: Boolean = false
 ) {

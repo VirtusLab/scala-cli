@@ -23,6 +23,8 @@ object ScalaCli extends CommandsEntryPoint {
   override def enableCompleteCommand = true
   override def enableCompletionsCommand = true
 
+  override def helpFormat = Default.helpFormat
+
   override def main(args: Array[String]): Unit = {
 
     if (Properties.isWin && System.console() != null)

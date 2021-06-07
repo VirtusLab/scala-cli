@@ -3,15 +3,27 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
+import scala.build.Build
+
+@HelpMessage("Compile and package Scala code")
 final case class PackageOptions(
   @Recurse
-    shared: SharedOptions,
+    shared: SharedOptions = SharedOptions(),
+
+  @Group("Package")
+  @HelpMessage("Set destination path")
   @Name("o")
     output: Option[String] = None,
+  @Group("Package")
+  @HelpMessage("Overwrite destination file if it exists")
   @Name("f")
     force: Boolean = false,
-  includeDependencies: Boolean = true,
-  library: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Generate a library JAR rather than an executable JAR")
+    library: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Specify which main class to run")
+  @ValueDescription("main-class")
   @Name("M")
     mainClass: Option[String] = None
 ) {
@@ -21,6 +33,9 @@ final case class PackageOptions(
     else if (shared.js) PackageType.Js
     else if (shared.native) PackageType.Native
     else PackageType.Bootstrap
+
+  def buildOptions: Build.Options =
+    shared.buildOptions(enableJmh = false, jmhVersion = None)
 }
 
 object PackageOptions {

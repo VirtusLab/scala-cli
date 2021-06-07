@@ -1,19 +1,27 @@
 package scala.cli.commands
 
 import caseapp._
-import caseapp.core.help.Help
 
+import scala.build.Build
+
+@HelpMessage("Fire-up a Scala REPL")
 final case class ReplOptions(
   @Recurse
-    shared: SharedOptions,
-  ammonite: Option[String] = None,
+    shared: SharedOptions = SharedOptions(),
   @Recurse
-    sharedJava: SharedJavaOptions = SharedJavaOptions()
+    sharedJava: SharedJavaOptions = SharedJavaOptions(),
+
+  @Group("Repl")
+  @HelpMessage("Set Ammonite version")
+    ammonite: Option[String] = None
 ) {
   def ammoniteVersion: String =
     ammonite.getOrElse {
       "2.3.8-58-aa8b2ab1" // TODO Get via scala.build.internal.Constants
     }
+
+  def buildOptions: Build.Options =
+    shared.buildOptions(enableJmh = false, jmhVersion = None)
 }
 
 object ReplOptions {

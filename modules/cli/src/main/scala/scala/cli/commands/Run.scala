@@ -10,7 +10,8 @@ import scala.scalanative.{build => sn}
 
 import scala.util.Properties
 
-object Run extends Command[RunOptions] {
+object Run extends ScalaCommand[RunOptions] {
+  override def group = "Main"
 
   def run(options: RunOptions, args: RemainingArgs): Unit =
     run(options, args, Some(Inputs.default()))
@@ -39,7 +40,7 @@ object Run extends Command[RunOptions] {
       )
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, options.shared.buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, options.buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = false)
         case f: Build.Failed =>
@@ -48,7 +49,7 @@ object Run extends Command[RunOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, options.shared.buildOptions, options.shared.logger, pwd)
+      val build = Build.build(inputs, options.buildOptions, options.shared.logger, pwd)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)
