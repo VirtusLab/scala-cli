@@ -4,7 +4,7 @@ import caseapp._
 
 import scala.build.{Inputs, Os}
 
-object Clean extends CaseApp[CleanOptions] {
+object Clean extends Command[CleanOptions] {
   def run(options: CleanOptions, args: RemainingArgs): Unit = {
 
     val inputs = Inputs(args.all, Os.pwd, defaultInputs = Some(Inputs.default())) match {

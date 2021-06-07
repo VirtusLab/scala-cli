@@ -1,12 +1,11 @@
 package scala.cli.commands
 
-import caseapp.core.app.CaseApp
-import caseapp.core.RemainingArgs
+import caseapp._
 
 import scala.build.{Build, Inputs, Os, Runner}
 import scala.build.internal.Constants
 
-object Test extends CaseApp[TestOptions] {
+object Test extends Command[TestOptions] {
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
     val pwd = Os.pwd

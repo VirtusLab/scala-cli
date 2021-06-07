@@ -3,15 +3,14 @@ package scala.cli.commands
 import java.io.{ByteArrayOutputStream, InputStream}
 import java.nio.file.{Files, Path}
 
-import caseapp.core.app.CaseApp
-import caseapp.core.RemainingArgs
+import caseapp._
 import scala.build.{Build, Inputs, Logger, Os, Runner}
 import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
 import scala.util.Properties
 
-object Run extends CaseApp[RunOptions] {
+object Run extends Command[RunOptions] {
 
   def run(options: RunOptions, args: RemainingArgs): Unit =
     run(options, args, Some(Inputs.default()))

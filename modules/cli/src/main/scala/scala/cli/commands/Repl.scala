@@ -1,10 +1,13 @@
 package scala.cli.commands
 
-import caseapp.core.app.CaseApp
-import caseapp.core.RemainingArgs
+import caseapp._
 import scala.build.{Build, Inputs, Os, ReplArtifacts, Runner}
 
-object Repl extends CaseApp[ReplOptions] {
+object Repl extends Command[ReplOptions] {
+  override def names = List(
+    List("console"),
+    List("repl")
+  )
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
 
     val inputs = Inputs(args.all, Os.pwd, defaultInputs = Some(Inputs.default())) match {

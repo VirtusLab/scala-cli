@@ -1,13 +1,12 @@
 package scala.cli.commands
 
-import caseapp.core.app.CaseApp
-import caseapp.core.RemainingArgs
+import caseapp._
 
 import java.io.File
 
 import scala.build.{Build, Inputs, Os}
 
-object Compile extends CaseApp[CompileOptions] {
+object Compile extends Command[CompileOptions] {
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
 
     val inputs = Inputs(args.all, Os.pwd) match {

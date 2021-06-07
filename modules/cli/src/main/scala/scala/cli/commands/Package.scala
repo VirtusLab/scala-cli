@@ -1,7 +1,6 @@
 package scala.cli.commands
 
-import caseapp.core.app.CaseApp
-import caseapp.core.RemainingArgs
+import caseapp._
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
 import scala.build.{Build, Inputs, Os}
 import scala.scalanative.{build => sn}
@@ -17,7 +16,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.util.Properties
 import scala.build.internal.ScalaJsLinker
 
-object Package extends CaseApp[PackageOptions] {
+object Package extends Command[PackageOptions] {
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
 
     val pwd = Os.pwd
