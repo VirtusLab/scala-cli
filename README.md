@@ -11,7 +11,7 @@
 #### Running the CLI from sources
 
 ```text
-$ ./mill -i 'cli.run' …arguments…
+$ ./mill -i cli.run …arguments…
 ```
 
 #### Run tests with the JVM launcher
@@ -62,7 +62,7 @@ should then pick up the new changes.
 #### Generate a native launcher
 
 ```text
-$ ./mill -i show 'cli.nativeImage'
+$ ./mill -i show cli.nativeImage
 ```
 
 This prints the path to the generated native image.
@@ -73,7 +73,7 @@ whether the files it points at exists or not.)
 #### Generate a JVM launcher
 
 ```text
-$ ./mill -i show 'cli.launcher'
+$ ./mill -i show cli.launcher
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,
@@ -86,7 +86,7 @@ JVM one (see below).
 #### Generate a standalone JVM launcher
 
 ```text
-$ ./mill -i show 'cli.standaloneLauncher'
+$ ./mill -i show cli.standaloneLauncher
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,
