@@ -16,6 +16,28 @@ final case class Inputs(
 ) {
   lazy val elements: Seq[Inputs.Element] = head +: tail
 
+  def sourceFiles(): Seq[Inputs.SingleFile] =
+    elements.flatMap {
+      case f: Inputs.SingleFile => Seq(f)
+      case d: Inputs.Directory =>
+        os.walk.stream(d.path)
+          .filter { p =>
+            !p.relativeTo(d.path).segments.exists(_.startsWith("."))
+          }
+          .filter(os.isFile(_))
+          .collect {
+            case p if p.last.endsWith(".java") =>
+              Inputs.JavaFile(p, Some(d.path))
+            case p if p.last.endsWith(".scala") =>
+              Inputs.ScalaFile(p, Some(d.path))
+            case p if p.last.endsWith(".sc") =>
+              Inputs.Script(p, Some(d.path))
+          }
+          .toVector
+      case _: Inputs.ResourceDirectory =>
+        Nil
+    }
+
   private lazy val inputsHash = {
     val root0 = workspace.toNIO
     val it = elements.iterator.flatMap { elem =>
@@ -55,12 +77,13 @@ object Inputs {
     def withRelativeTo(newRelativeTo: Option[os.Path]): SingleFile
   }
   sealed trait Compiled extends Element
+  sealed trait AnyScalaFile extends Compiled
 
-  final case class Script(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled {
+  final case class Script(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with AnyScalaFile {
     def withRelativeTo(newRelativeTo: Option[os.Path]): Script =
       copy(relativeTo = newRelativeTo)
   }
-  final case class ScalaFile(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with Compiled {
+  final case class ScalaFile(path: os.Path, relativeTo: Option[os.Path]) extends SingleFile with AnyScalaFile {
     def withRelativeTo(newRelativeTo: Option[os.Path]): ScalaFile =
       copy(relativeTo = newRelativeTo)
   }

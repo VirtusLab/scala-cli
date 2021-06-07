@@ -145,28 +145,10 @@ object Sources {
     scalaBinaryVersion: String
   ): Sources = {
 
-    val fromDirectories = inputs.elements
-      .collect {
-        case d: Inputs.Directory => d
-      }
-      .flatMap { d =>
-        os.walk.stream(d.path)
-          .filter { p =>
-            !p.relativeTo(d.path).segments.exists(_.startsWith("."))
-          }
-          .filter(os.isFile(_))
-          .collect {
-            case p if p.last.endsWith(".java") =>
-              Inputs.JavaFile(p, Some(d.path))
-            case p if p.last.endsWith(".scala") =>
-              Inputs.ScalaFile(p, Some(d.path))
-            case p if p.last.endsWith(".sc") =>
-              Inputs.Script(p, Some(d.path))
-          }
-          .toVector
-      }
+    val sourceFiles = inputs.sourceFiles()
 
-    val scalaFilePathsOrCode = (inputs.elements.iterator ++ fromDirectories.iterator)
+    val scalaFilePathsOrCode = sourceFiles
+      .iterator
       .collect {
         case f: Inputs.ScalaFile => f
       }
@@ -180,7 +162,8 @@ object Sources {
       }
       .toVector
 
-    val javaFilePaths = (inputs.elements.iterator ++ fromDirectories.iterator)
+    val javaFilePaths = sourceFiles
+      .iterator
       .collect {
         case f: Inputs.JavaFile => f.path
       }
@@ -207,7 +190,8 @@ object Sources {
         scriptData(inputs.workspace, codeWrapper, s, platformSuffix, scalaVersion, scalaBinaryVersion).className
     }
 
-    val allScriptData = (inputs.elements.iterator ++ fromDirectories.iterator)
+    val allScriptData = sourceFiles
+      .iterator
       .collect {
         case s: Inputs.Script => scriptData(inputs.workspace, codeWrapper, s, platformSuffix, scalaVersion, scalaBinaryVersion)
       }
