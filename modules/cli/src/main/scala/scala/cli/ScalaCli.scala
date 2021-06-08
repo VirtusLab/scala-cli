@@ -14,6 +14,7 @@ object ScalaCli extends CommandsEntryPoint {
     About,
     Clean,
     Compile,
+    InstallCompletions,
     Repl,
     Package,
     Run,
