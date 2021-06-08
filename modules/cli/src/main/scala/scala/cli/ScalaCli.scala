@@ -3,11 +3,12 @@ package scala.cli
 import caseapp.core.app.CommandsEntryPoint
 
 import scala.cli.commands._
+import scala.cli.internal.Argv0
 import scala.util.Properties
 
 object ScalaCli extends CommandsEntryPoint {
 
-  def progName = "scala"
+  lazy val progName = (new Argv0).get("scala")
   override def description = "Compile, run, package Scala code."
   val commands = Seq(
     About,
