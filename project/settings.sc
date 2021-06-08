@@ -33,6 +33,9 @@ lazy val cs: String =
   else
     "cs"
 
+// should be the default index in the upcoming coursier release (> 2.0.16)
+def jvmIndex = "https://github.com/coursier/jvm-index/raw/master/index.json"
+
 lazy val vcvarsCandidates = Option(System.getenv("VCVARSALL")) ++ Seq(
   """C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat""",
   """C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat""",
@@ -58,7 +61,7 @@ def generateNativeImage(
 
   val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
     import sys.process._
-    Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", "https://github.com/coursier/jvm-index/raw/master/index.json").!!.trim
+    Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", jvmIndex).!!.trim
   }
 
   val ext = if (Properties.isWin) ".cmd" else ""
@@ -227,7 +230,7 @@ trait CliLaunchers extends SbtModule {
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
-      Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", "cs").!!.trim
+      Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", jvmIndex).!!.trim
     }
     val outputDir = T.ctx().dest / "config"
     val command = Seq(
