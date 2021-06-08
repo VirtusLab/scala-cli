@@ -15,6 +15,7 @@ import scala.build.internal.ScalaJsLinker
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.commands.PackageOptions.NativePackagerType
 import scala.cli.commands.packager.debian.DebianPackage
+import scala.cli.commands.packager.dmg.DmgPackage
 import scala.scalanative.util.Scope
 import scala.scalanative.{build => sn}
 import scala.util.Properties
@@ -80,6 +81,9 @@ object Package extends ScalaCommand[PackageOptions] {
         .orElse(successfulBuild.retainedMainClassOpt(warnIfSeveral = true))
     def mainClass() = mainClassOpt.getOrElse(sys.error("No main class"))
 
+    successfulBuild.artifacts.artifacts.foreach( x => println(x._2))
+    println(mainClass())
+
     options.packageType match {
       case PackageOptions.PackageType.Bootstrap =>
         bootstrap(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
@@ -108,24 +112,31 @@ object Package extends ScalaCommand[PackageOptions] {
 
   private def buildNativePackage(
       nativePackager: Option[NativePackagerType],
-      destPath: os.Path,
+      sourceAppPath: os.Path,
       mainClass: String,
       alreadyExistsCheck: () => Unit,
       logger: Logger
   ) = {
     import NativePackagerType._
+    val packageName = "foo"
     nativePackager match {
-      case Some(Debian) =>  buildDebianPackage(destPath).run(logger)
-      case Some(Windows)  => ???
-      case Some(Homebrew) => ???
-      case None           => ()
+      case Some(Debian) =>  buildDebianPackage(sourceAppPath, packageName).run(logger)
+      case Some(Windows) => ???
+      case Some(DMG) => buildDmgPackage(sourceAppPath, packageName).run(logger)
+      case None  => ()
     }
   }
 
-  private def buildDebianPackage(sourceAppPath: os.Path) = {
-    val debianPackageName = "my-app"
+  private def buildDmgPackage(sourceAppPath: os.Path, packageName: String) = {
+    DmgPackage(
+      packageName = packageName,
+      sourceAppPath = sourceAppPath
+    )
+  }
+
+  private def buildDebianPackage(sourceAppPath: os.Path, packageName: String) = {
     DebianPackage(
-      packageName = debianPackageName,
+      packageName = packageName,
       sourceAppPath = sourceAppPath,
     )
   }
