@@ -132,6 +132,36 @@ object Package extends ScalaCommand[PackageOptions] {
     baos.toByteArray
   }
 
+  private def sourceJar(build: Build.Successful): Array[Byte] = {
+
+    val baos = new ByteArrayOutputStream
+    var zos: ZipOutputStream = null
+
+    def paths = build.sources.paths.iterator ++ build.sources.inMemory.iterator.map(t => (t._1, t._2))
+
+    try {
+      zos = new ZipOutputStream(baos)
+      for ((path, relPath) <- paths) {
+        val name = relPath.toString
+        val lastModified = os.mtime(path)
+        val ent = new ZipEntry(name)
+        ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
+
+        val content = os.read.bytes(path)
+        ent.setSize(content.length)
+
+        zos.putNextEntry(ent)
+        zos.write(content)
+        zos.closeEntry()
+      }
+    } finally {
+      if (zos != null)
+        zos.close()
+    }
+
+    baos.toByteArray
+  }
+
   private def bootstrap(build: Build.Successful, destPath: os.Path, mainClass: String, alreadyExistsCheck: () => Unit): Unit = {
     val byteCodeZipEntries = os.walk(build.output)
       .filter(os.isFile(_))
@@ -181,6 +211,17 @@ object Package extends ScalaCommand[PackageOptions] {
       f(mainJar)
     } finally {
       Files.deleteIfExists(mainJar)
+    }
+  }
+
+  def withSourceJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {
+    val jarContent = sourceJar(build)
+    val jar = Files.createTempFile(fileName.stripSuffix(".jar"), "-sources.jar")
+    try {
+      Files.write(jar, jarContent)
+      f(jar)
+    } finally {
+      Files.deleteIfExists(jar)
     }
   }
 
