@@ -166,7 +166,8 @@ object Build {
     addLineModifierPluginOpt: Option[Boolean] = None,
     addScalaLibrary: Boolean = true,
     generateSemanticDbs: Boolean = false,
-    keepDiagnostics: Boolean = false
+    keepDiagnostics: Boolean = false,
+    fetchSources: Boolean = false
   ) {
     def classesDir(root: os.Path, projectName: String): os.Path =
       root / ".scala" / projectName / s"scala-$scalaVersion" / "classes"
@@ -400,6 +401,7 @@ object Build {
         semanticDbPlugins,
       allDependencies,
       options.stubsJarOpt.toSeq ++ options.testRunnerJarsOpt.getOrElse(Nil),
+      fetchSources = options.fetchSources,
       addStubs = options.addStubsDependency,
       addJvmRunner = options.addRunnerDependency,
       addJvmTestRunner = options.scalaJsOptions.isEmpty && options.scalaNativeOptions.isEmpty && options.addTestRunnerDependency,

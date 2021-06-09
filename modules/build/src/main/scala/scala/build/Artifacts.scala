@@ -19,6 +19,7 @@ final case class Artifacts(
   compilerPlugins: Seq[(coursierapi.Dependency, String, Path)],
   dependencies: Seq[coursierapi.Dependency],
   artifacts: Seq[(String, Path)],
+  sourceArtifacts: Seq[(String, Path)],
   extraJars: Seq[Path]
 ) {
   lazy val compilerClassPath: Seq[Path] =
@@ -37,6 +38,7 @@ object Artifacts {
     compilerPlugins: Seq[coursierapi.Dependency],
     dependencies: Seq[coursierapi.Dependency],
     extraJars: Seq[Path],
+    fetchSources: Boolean,
     addStubs: Boolean,
     addJvmRunner: Boolean,
     addJvmTestRunner: Boolean,
@@ -96,6 +98,10 @@ object Artifacts {
     val compilerArtifacts = artifacts(compilerDependencies, allExtraRepositories, logger)
     val artifacts0 = artifacts(updatedDependencies, allExtraRepositories, logger)
 
+    val sourceArtifacts =
+      if (fetchSources) artifacts(updatedDependencies, allExtraRepositories, logger, classifiersOpt = Some(Set("sources")))
+      else Nil
+
     val extraStubsJars =
       if (addStubs)
         artifacts(
@@ -120,6 +126,7 @@ object Artifacts {
       compilerPlugins0,
       updatedDependencies,
       artifacts0,
+      sourceArtifacts,
       extraJars ++ extraStubsJars
     )
   }
@@ -145,14 +152,18 @@ object Artifacts {
   private[build] def artifacts(
     dependencies: Seq[coursierapi.Dependency],
     extraRepositories: Seq[coursierapi.Repository],
-    logger: Logger
+    logger: Logger,
+    classifiersOpt: Option[Set[String]] = None
   ): Seq[(String, Path)] = {
     logger.debug(s"Fetching $dependencies" + (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories"))
     // FIXME Many parameters that we could allow to customize here
-    val result = coursierapi.Fetch.create()
+    val fetcher = coursierapi.Fetch.create()
       .addDependencies(dependencies: _*)
       .withCache(coursierapi.Cache.create().withLogger(logger.coursierInterfaceLogger))
       .addRepositories(extraRepositories: _*)
+    for (classifiers <- classifiersOpt)
+      fetcher.withClassifiers(classifiers.asJava)
+    val result = fetcher
       .fetchResult()
       .getArtifacts()
       .asScala
