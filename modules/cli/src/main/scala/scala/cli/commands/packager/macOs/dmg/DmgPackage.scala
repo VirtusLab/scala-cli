@@ -1,34 +1,36 @@
-package scala.cli.commands.packager.dmg
+package scala.cli.commands.packager.macOs.dmg
 
 import scala.build.Logger
 import scala.cli.commands.packager.NativePackager
 import scala.sys.process._
 
-case class DmgPackage(packageName: String, sourceAppPath: os.Path)
+case class DmgPackage( sourceAppPath: os.Path, packageName: String)
   extends NativePackager {
 
-  private val dmgAppPath = sourceAppPath / os.RelPath("../") / s"$packageName.app"
+  private val tempPackageName = s"$packageName-temp"
+  private val basePath = sourceAppPath / os.RelPath("../")
+  private val dmgAppPath = basePath / s"$packageName.app"
   private val contentPath = dmgAppPath / "Contents"
   private val macOsPath = contentPath / "MacOS"
-  private val mountpointPath = sourceAppPath / os.RelPath("../") / "mountpoint"
+  private val mountpointPath = basePath / "mountpoint"
 
   override def run(logger: Logger): Unit = {
-    s"hdiutil create -megabytes 100  -fs HFS+ -volname $packageName  $packageName".! match {
+    s"hdiutil create -megabytes 100  -fs HFS+ -volname $tempPackageName  $tempPackageName".! match {
       case 0 => ()
       case errorCode =>
         System.err.println(
-          s"Error creating disk image, exit code: ${errorCode}"
+          s"Error creating disk image, exit code: $errorCode"
         )
     }
 
     createAppDirectory()
     createInfoPlist()
 
-    s"hdiutil attach ${packageName}.dmg -readwrite -mountpoint  mountpoint/".! match {
+    s"hdiutil attach $tempPackageName.dmg -readwrite -mountpoint  mountpoint/".! match {
       case 0 => ()
       case errorCode =>
         System.err.println(
-          s"Error attaching mountpoint, exit code: ${errorCode}"
+          s"Error attaching mountpoint, exit code: $errorCode"
         )
     }
 
@@ -38,12 +40,20 @@ case class DmgPackage(packageName: String, sourceAppPath: os.Path)
       case 0 => ()
       case errorCode =>
         System.err.println(
-          s"Error detaching mountpoint, exit code: ${errorCode}"
+          s"Error detaching mountpoint, exit code: $errorCode"
         )
     }
 
-//    os.remove.all(dmgAppPath)
+    s"hdiutil convert $tempPackageName.dmg -format UDZO -o $packageName.dmg".! match {
+      case 0 => ()
+      case errorCode =>
+        System.err.println(
+          s"Error converting, exit code: $errorCode"
+        )
+    }
 
+    os.remove(basePath / s"$tempPackageName.dmg")
+    os.remove.all(dmgAppPath)
   }
 
   private def copyAppDirectory() = {
@@ -59,11 +69,7 @@ case class DmgPackage(packageName: String, sourceAppPath: os.Path)
                     |	<key>CFBundleExecutable</key>
                     |	<string>$packageName</string>
                     |	<key>CFBundleIdentifier</key>
-                    |	<string>com.example.yours</string>
-                    |	<key>NSHighResolutionCapable</key>
-                    |	<true/>
-                    |	<key>LSUIElement</key>
-                    |	<true/>
+                    |	<string>com.example.$packageName</string>
                     |</dict>
                     |</plist>""".stripMargin
 
