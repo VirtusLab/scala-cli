@@ -124,6 +124,8 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.coursierInterfaceSvmSubs,
+    Deps.metabrowseServer,
+    Deps.slf4jNop,
     Deps.svmSubs
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(

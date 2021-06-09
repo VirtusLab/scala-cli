@@ -12,6 +12,7 @@ object ScalaCli extends CommandsEntryPoint {
   override def description = "Compile, run, package Scala code."
   val commands = Seq(
     About,
+    Metabrowse,
     Clean,
     Compile,
     InstallCompletions,

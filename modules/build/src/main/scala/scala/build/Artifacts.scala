@@ -26,6 +26,8 @@ final case class Artifacts(
     compilerArtifacts.map(_._2)
   lazy val classPath: Seq[Path] =
     artifacts.map(_._2) ++ extraJars
+  lazy val sourcePath: Seq[Path] =
+    sourceArtifacts.map(_._2)
 }
 
 object Artifacts {
