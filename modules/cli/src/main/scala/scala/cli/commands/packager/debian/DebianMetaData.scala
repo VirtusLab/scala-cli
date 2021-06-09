@@ -6,7 +6,7 @@ case class DebianMetaData(
     depends: Seq[String] = Seq.empty
 ) {
 
-  def generateMetaContent(): String = {
+  def generateContent(): String = {
     s"""Package: ${debianInfo.packageName}
     |Version: ${debianInfo.version}
     |Maintainer: ${debianInfo.maintainer}

@@ -6,10 +6,10 @@ import scala.build.Logger
 import scala.cli.commands.packager.NativePackager
 import scala.sys.process._
 
-case class DebianPackage(packageName: String, sourceAppPath: os.Path)
+case class DebianPackage(sourceAppPath: os.Path, packageName: String)
     extends NativePackager {
 
-  private val debianBasePath = sourceAppPath / os.RelPath("../") / packageName
+  private val debianBasePath = basePath / packageName
   private val usrDirectory = debianBasePath / "usr"
   private val packageInfo = buildDebianInfo()
   private val metaData = buildDebianMetaData(packageInfo)
@@ -19,13 +19,13 @@ case class DebianPackage(packageName: String, sourceAppPath: os.Path)
     createScriptFile
     copyExecutableFile
 
-    logger.log(s"Starting build debian package to ${packageName} destination")
-    println(s"Starting build debian package to ${packageName} destination")
-    s"dpkg -b ./${packageName}".! match {
+    logger.log(s"Starting build debian package to $packageName destination")
+    println(s"Starting build debian package to $packageName destination")
+    s"dpkg -b ./$packageName".! match {
       case 0 => ()
       case errorCode =>
         System.err.println(
-          s"Error building debian package, exit code: ${errorCode}"
+          s"Error building debian package, exit code: $errorCode"
         )
     }
   }
@@ -55,7 +55,7 @@ case class DebianPackage(packageName: String, sourceAppPath: os.Path)
     os.makeDir.all(mainDebianDirectory)
     os.write(
       mainDebianDirectory / "control",
-      metaData.generateMetaContent()
+      metaData.generateContent()
     )
   }
 
@@ -66,7 +66,7 @@ case class DebianPackage(packageName: String, sourceAppPath: os.Path)
     os.write(
       launchScriptFile,
       s"""#!/bin/bash
-        |/usr/share/scala/${packageName}
+        |/usr/share/scala/$packageName
         |""".stripMargin,
       PermSet.fromString("rwxrwxr-x")
     )

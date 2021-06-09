@@ -15,7 +15,8 @@ import scala.build.internal.ScalaJsLinker
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.commands.PackageOptions.NativePackagerType
 import scala.cli.commands.packager.debian.DebianPackage
-import scala.cli.commands.packager.dmg.DmgPackage
+import scala.cli.commands.packager.macOs.dmg.DmgPackage
+import scala.cli.commands.packager.macOs.pkg.PkgPackage
 import scala.scalanative.util.Scope
 import scala.scalanative.{build => sn}
 import scala.util.Properties
@@ -104,7 +105,9 @@ object Package extends ScalaCommand[PackageOptions] {
         buildNative(successfulBuild, mainClass(), destPath, nativeOptions, workDir, logger)
     }
 
-    buildNativePackage(options.nativePackager, destPath, mainClass(), () => alreadyExistsCheck(), options.shared.logger)
+    val nativePackageName = options.nativePackageName.getOrElse(defaultName)
+
+    buildNativePackage(options.nativePackager, destPath, nativePackageName, options.shared.logger)
 
     if (options.shared.logging.verbosity >= 0)
       System.err.println(s"Wrote $dest")
@@ -113,32 +116,17 @@ object Package extends ScalaCommand[PackageOptions] {
   private def buildNativePackage(
       nativePackager: Option[NativePackagerType],
       sourceAppPath: os.Path,
-      mainClass: String,
-      alreadyExistsCheck: () => Unit,
+      packageName: String,
       logger: Logger
   ) = {
     import NativePackagerType._
-    val packageName = "foo"
     nativePackager match {
-      case Some(Debian) =>  buildDebianPackage(sourceAppPath, packageName).run(logger)
+      case Some(Debian) =>  DebianPackage(sourceAppPath, packageName).run(logger)
       case Some(Windows) => ???
-      case Some(DMG) => buildDmgPackage(sourceAppPath, packageName).run(logger)
+      case Some(Dmg) => DmgPackage(sourceAppPath, packageName).run(logger)
+      case Some(Pkg) => PkgPackage(sourceAppPath, packageName).run(logger)
       case None  => ()
     }
-  }
-
-  private def buildDmgPackage(sourceAppPath: os.Path, packageName: String) = {
-    DmgPackage(
-      packageName = packageName,
-      sourceAppPath = sourceAppPath
-    )
-  }
-
-  private def buildDebianPackage(sourceAppPath: os.Path, packageName: String) = {
-    DebianPackage(
-      packageName = packageName,
-      sourceAppPath = sourceAppPath,
-    )
   }
 
   private def libraryJar(build: Build.Successful): Array[Byte] = {

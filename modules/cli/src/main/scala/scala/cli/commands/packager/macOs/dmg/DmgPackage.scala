@@ -1,21 +1,17 @@
 package scala.cli.commands.packager.macOs.dmg
 
 import scala.build.Logger
-import scala.cli.commands.packager.NativePackager
+import scala.cli.commands.packager.macOs.MacOsNativePackager
 import scala.sys.process._
 
 case class DmgPackage( sourceAppPath: os.Path, packageName: String)
-  extends NativePackager {
+  extends MacOsNativePackager {
 
-  private val tempPackageName = s"$packageName-temp"
-  private val basePath = sourceAppPath / os.RelPath("../")
-  private val dmgAppPath = basePath / s"$packageName.app"
-  private val contentPath = dmgAppPath / "Contents"
-  private val macOsPath = contentPath / "MacOS"
+  private val tmpPackageName = s"$packageName-tmp"
   private val mountpointPath = basePath / "mountpoint"
 
   override def run(logger: Logger): Unit = {
-    s"hdiutil create -megabytes 100  -fs HFS+ -volname $tempPackageName  $tempPackageName".! match {
+    s"hdiutil create -megabytes 100  -fs HFS+ -volname $tmpPackageName  $tmpPackageName".! match {
       case 0 => ()
       case errorCode =>
         System.err.println(
@@ -26,7 +22,7 @@ case class DmgPackage( sourceAppPath: os.Path, packageName: String)
     createAppDirectory()
     createInfoPlist()
 
-    s"hdiutil attach $tempPackageName.dmg -readwrite -mountpoint  mountpoint/".! match {
+    s"hdiutil attach $tmpPackageName.dmg -readwrite -mountpoint  mountpoint/".! match {
       case 0 => ()
       case errorCode =>
         System.err.println(
@@ -44,7 +40,7 @@ case class DmgPackage( sourceAppPath: os.Path, packageName: String)
         )
     }
 
-    s"hdiutil convert $tempPackageName.dmg -format UDZO -o $packageName.dmg".! match {
+    s"hdiutil convert $tmpPackageName.dmg -format UDZO -o $packageName.dmg".! match {
       case 0 => ()
       case errorCode =>
         System.err.println(
@@ -52,32 +48,17 @@ case class DmgPackage( sourceAppPath: os.Path, packageName: String)
         )
     }
 
-    os.remove(basePath / s"$tempPackageName.dmg")
-    os.remove.all(dmgAppPath)
+    postInstallClean()
+  }
+
+  private def postInstallClean() = {
+    os.remove(basePath / s"$tmpPackageName.dmg")
+    os.remove.all(macOsAppPath)
   }
 
   private def copyAppDirectory() = {
-    os.copy(dmgAppPath, mountpointPath / s"$packageName.app")
+    os.copy(macOsAppPath, mountpointPath / s"$packageName.app")
     os.symlink(mountpointPath / "Applications", os.root / "Applications" )
   }
 
-  private def createInfoPlist() = {
-    val content = s"""<?xml version="1.0" encoding="UTF-8"?>
-                    |<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-                    |<plist version="1.0">
-                    |<dict>
-                    |	<key>CFBundleExecutable</key>
-                    |	<string>$packageName</string>
-                    |	<key>CFBundleIdentifier</key>
-                    |	<string>com.example.$packageName</string>
-                    |</dict>
-                    |</plist>""".stripMargin
-
-    os.write(contentPath / "Info.plist", content)
-  }
-
-  private def createAppDirectory() = {
-    os.makeDir.all(macOsPath)
-    os.copy(sourceAppPath, macOsPath / packageName)
-  }
 }

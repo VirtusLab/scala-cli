@@ -28,6 +28,8 @@ final case class PackageOptions(
   msi: Boolean = false,
   dmg: Boolean = false,
   pkg: Boolean = false,
+  @Name("n")
+    nativePackageName: Option[String] = None,
   @Name("M")
     mainClass: Option[String] = None
 ) {
@@ -45,7 +47,8 @@ final case class PackageOptions(
   def nativePackager: Option[NativePackagerType] = {
     if (debian) Some(NativePackagerType.Debian)
     else if (msi) Some(NativePackagerType.Windows)
-    else if (dmg) Some(NativePackagerType.DMG)
+    else if (dmg) Some(NativePackagerType.Dmg)
+    else if (pkg) Some(NativePackagerType.Pkg)
     else None
   }
 
@@ -65,7 +68,8 @@ object PackageOptions {
   case object NativePackagerType {
     case object Debian extends NativePackagerType
     case object Windows extends NativePackagerType
-    case object DMG extends NativePackagerType
+    case object Dmg extends NativePackagerType
+    case object Pkg extends NativePackagerType
   }
 
   implicit val parser = Parser[PackageOptions]
