@@ -352,7 +352,7 @@ object Build {
 
     val generatedSrcRoot = options.generatedSrcRoot(inputs.workspace, inputs.projectName)
     val generatedSources = sources.generateSources(generatedSrcRoot)
-    val allSources = sources.paths ++ generatedSources.map(_._1)
+    val allSources = sources.paths.map(_._1) ++ generatedSources.map(_._1)
     val allScalaSources = allSources
 
     val classesDir = options.classesDir(inputs.workspace, inputs.projectName)

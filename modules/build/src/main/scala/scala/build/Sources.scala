@@ -11,7 +11,7 @@ import scala.build.internal.CodeWrapper
 import scala.build.internal.Util.DependencyOps
 
 final case class Sources(
-  paths: Seq[os.Path],
+  paths: Seq[(os.Path, os.RelPath)],
   inMemory: Seq[(os.Path, os.RelPath, String, Int)],
   mainClass: Option[String],
   dependencies: Seq[coursierapi.Dependency],
@@ -185,7 +185,10 @@ object Sources {
       }
       .flatMap { f =>
         process(f.path) match {
-          case None => Iterator(Right(f.path))
+          case None =>
+            val root = f.relativeTo.getOrElse(inputs.workspace)
+            val relPath = if (f.path.startsWith(root)) f.path.relativeTo(root) else os.rel / f.path.last
+            Iterator(Right((f.path, relPath)))
           case Some((deps, updatedCode)) =>
             val relPath = f.path.relativeTo(f.relativeTo.getOrElse(inputs.workspace))
             Iterator(Left((f.path, deps, relPath, updatedCode)))
@@ -207,7 +210,9 @@ object Sources {
     val javaFilePaths = sourceFiles
       .iterator
       .collect {
-        case f: Inputs.JavaFile => f.path
+        case f: Inputs.JavaFile =>
+          val root = f.relativeTo.getOrElse(inputs.workspace)
+          (f.path, if (f.path.startsWith(root)) f.path.relativeTo(root) else os.rel / f.path.last)
       }
       .toVector
 
