@@ -3,11 +3,10 @@ package scala.build
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 
-import ammonite.util.{Name, Util}
 import dependency.parser.DependencyParser
 import dependency.ScalaParameters
 
-import scala.build.internal.CodeWrapper
+import scala.build.internal.{AmmUtil, CodeWrapper, Name}
 import scala.build.internal.Util.DependencyOps
 
 final case class Sources(
@@ -125,7 +124,7 @@ object Sources {
   ): ScriptData = {
 
     val root = script.relativeTo.getOrElse(workspace)
-    val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, script.path.relativeTo(root))
+    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, script.path.relativeTo(root))
 
     val (deps, updatedCode) = process(script.path).getOrElse((Nil, os.read(script.path)))
 
@@ -150,7 +149,7 @@ object Sources {
     scalaBinaryVersion: String
   ): ScriptData = {
 
-    val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, os.rel / "stdin.sc")
+    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, os.rel / "stdin.sc")
 
     val content = new String(script.content, StandardCharsets.UTF_8)
     val (deps, updatedCode) = process(content, "<stdin>").getOrElse((Nil, content))
@@ -241,7 +240,7 @@ object Sources {
 
     val mainClassOpt = inputs.mainClassElement.collect {
       case s: Inputs.ScalaFile if s.path.last.endsWith(".scala") => // TODO ignore case for the suffix?
-        val (pkg, wrapper) = Util.pathToPackageWrapper(Nil, s.path.relativeTo(s.relativeTo.getOrElse(inputs.workspace)))
+        val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, s.path.relativeTo(s.relativeTo.getOrElse(inputs.workspace)))
         (pkg :+ wrapper).map(_.raw).mkString(".")
       case s: Inputs.Script =>
         scriptData(inputs.workspace, codeWrapper, s, platformSuffix, scalaVersion, scalaBinaryVersion).className

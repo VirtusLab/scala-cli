@@ -16,7 +16,6 @@ object Deps {
     def scalaJs = "1.5.1"
     def scalaNative = "0.4.0"
   }
-  def ammCompiler = ivy"com.lihaoyi:::ammonite-compiler:2.3.8-58-aa8b2ab1"
   def asm = ivy"org.ow2.asm:asm:9.1"
   def bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.8"
   def bloopgun = ivy"ch.epfl.scala::bloopgun:1.4.8"

@@ -41,7 +41,6 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     `test-runner`()
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.ammCompiler,
     Deps.asm,
     Deps.bloopConfig,
     Deps.coursierJvm
@@ -53,6 +52,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     Deps.jniUtils,
     Deps.nativeTestRunner,
     Deps.nativeTools,
+    Deps.osLib,
+    Deps.pprint,
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinker,
     Deps.scalaJsTestAdapter,
