@@ -6,7 +6,7 @@ import scala.util.Properties
 
 class NativePackagerTests extends munit.FunSuite{
 
-  val helloWorldFileName = "HelloWorld.scala"
+  val helloWorldFileName = "HelloWorldScalaCli.scala"
   val message = "Hello, world!"
   val helloWorldTestInputs = TestInputs(
     Seq(
@@ -25,19 +25,33 @@ class NativePackagerTests extends munit.FunSuite{
 
       helloWorldTestInputs.fromRoot { root =>
 
-        val launcherName = helloWorldFileName.stripSuffix(".scala")
-
-        os.proc(TestUtil.cli, "package", helloWorldFileName, "--pkg", "-n", launcherName).call(
+        val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase
+        val pkgAppFile = s"$appName.pkg"
+        os.proc(TestUtil.cli, "package", helloWorldFileName, "--pkg", "-n", appName).call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit,
           stderr = os.Inherit
         )
 
-        val launcher = root / s"$launcherName.pkg"
-        expect(os.isFile(launcher))
+        val pkgAppPath = root / pkgAppFile
+        expect(os.isFile(pkgAppPath))
+
+        if( TestUtil.isCI) {
+          os.proc("installer", "-pkg", pkgAppFile, "-target", "CurrentUserHomeDirectory").call(
+            cwd = root,
+            stdin = os.Inherit,
+            stdout = os.Inherit,
+            stderr = os.Inherit
+          )
+
+          val output = os.proc(s"/Users/runner/Applications/$appName.app/Contents/MacOS/$appName").call(cwd = os.root).out.text.trim
+
+          expect(output == message)
+        }
       }
     }
+
 
     test("building dmg package") {
 
