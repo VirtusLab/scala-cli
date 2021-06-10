@@ -1,7 +1,7 @@
 {
   "resources":{
   "includes":[
-    {"pattern":"\\Qmetabrowse-assets.zip\\E"},
+    {"pattern":"\\Qmetabrowse/server/assets/\\E.*"},
     {"pattern":"\\Qio/undertow/version.properties\\E"},
     {"pattern":"\\Qorg/jboss/threads/Version.properties\\E"},
     {"pattern":"\\Qorg/xnio/Version.properties\\E"},
