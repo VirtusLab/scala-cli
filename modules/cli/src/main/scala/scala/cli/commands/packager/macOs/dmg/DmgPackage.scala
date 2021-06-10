@@ -2,7 +2,6 @@ package scala.cli.commands.packager.macOs.dmg
 
 import scala.build.Logger
 import scala.cli.commands.packager.macOs.MacOsNativePackager
-import scala.sys.process._
 
 case class DmgPackage( sourceAppPath: os.Path, packageName: String)
   extends MacOsNativePackager {
@@ -11,42 +10,20 @@ case class DmgPackage( sourceAppPath: os.Path, packageName: String)
   private val mountpointPath = basePath / "mountpoint"
 
   override def run(logger: Logger): Unit = {
-    s"hdiutil create -megabytes 100  -fs HFS+ -volname $tmpPackageName  $tmpPackageName".! match {
-      case 0 => ()
-      case errorCode =>
-        System.err.println(
-          s"Error creating disk image, exit code: $errorCode"
-        )
-    }
+
+    os.proc("hdiutil", "create", "-megabytes", "100",  "-fs", "HFS+", "-volname", tmpPackageName,  tmpPackageName)
+      .call(cwd = basePath)
 
     createAppDirectory()
     createInfoPlist()
 
-    s"hdiutil attach $tmpPackageName.dmg -readwrite -mountpoint  mountpoint/".! match {
-      case 0 => ()
-      case errorCode =>
-        System.err.println(
-          s"Error attaching mountpoint, exit code: $errorCode"
-        )
-    }
+    os.proc("hdiutil","attach", s"$tmpPackageName.dmg", "-readwrite","-mountpoint",  "mountpoint/")
+      .call(cwd = basePath)
 
     copyAppDirectory()
 
-    s"hdiutil detach mountpoint/".! match {
-      case 0 => ()
-      case errorCode =>
-        System.err.println(
-          s"Error detaching mountpoint, exit code: $errorCode"
-        )
-    }
-
-    s"hdiutil convert $tmpPackageName.dmg -format UDZO -o $packageName.dmg".! match {
-      case 0 => ()
-      case errorCode =>
-        System.err.println(
-          s"Error converting, exit code: $errorCode"
-        )
-    }
+    os.proc("hdiutil", "detach", "mountpoint/").call(cwd = basePath)
+    os.proc("hdiutil", "convert", s"$tmpPackageName.dmg", "-format", "UDZO", "-o", s"$packageName.dmg").call(cwd = basePath)
 
     postInstallClean()
   }

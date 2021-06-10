@@ -4,7 +4,6 @@ import os.PermSet
 
 import scala.build.Logger
 import scala.cli.commands.packager.NativePackager
-import scala.sys.process._
 
 case class DebianPackage(sourceAppPath: os.Path, packageName: String)
     extends NativePackager {
@@ -20,14 +19,8 @@ case class DebianPackage(sourceAppPath: os.Path, packageName: String)
     copyExecutableFile
 
     logger.log(s"Starting build debian package to $packageName destination")
-    println(s"Starting build debian package to $packageName destination")
-    s"dpkg -b ./$packageName".! match {
-      case 0 => ()
-      case errorCode =>
-        System.err.println(
-          s"Error building debian package, exit code: $errorCode"
-        )
-    }
+
+    os.proc("dpkg", "-b", s"./$packageName").call(cwd = basePath)
   }
 
   private def buildDebianMetaData(info: DebianPackageInfo): DebianMetaData =

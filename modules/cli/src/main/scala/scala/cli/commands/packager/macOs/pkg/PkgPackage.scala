@@ -4,7 +4,6 @@ import os.PermSet
 
 import scala.build.Logger
 import scala.cli.commands.packager.macOs.MacOsNativePackager
-import scala.sys.process._
 
 case class PkgPackage (sourceAppPath: os.Path, packageName: String)
   extends MacOsNativePackager {
@@ -17,13 +16,8 @@ case class PkgPackage (sourceAppPath: os.Path, packageName: String)
     createInfoPlist()
     createScriptFile()
 
-    s"pkgbuild --install-location /Applications --component $packageName.app  ./$packageName.pkg --scripts $scriptsPath".! match {
-      case 0 => ()
-      case errorCode =>
-        System.err.println(
-          s"Error detaching mountpoint, exit code: $errorCode"
-        )
-    }
+    os.proc("pkgbuild", "--install-location", "/Applications", "--component", s"$packageName.app",  s"$packageName.pkg", "--scripts", scriptsPath)
+      .call(cwd = basePath)
 
     postInstallClean()
   }
