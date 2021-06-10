@@ -18,13 +18,14 @@ object Test extends ScalaCommand[TestOptions] {
       case Right(i) => i
     }
 
-    val buildOptions = options.buildOptions.copy(
+    val scalaVersions = options.shared.computeScalaVersions()
+    val buildOptions = options.buildOptions(scalaVersions).copy(
       addTestRunnerDependencyOpt = Some(true)
     )
     if (options.shared.watch) {
       val watcher = Build.watch(inputs, buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
-          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
+          testOnce(options, scalaVersions, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
       }
@@ -34,7 +35,7 @@ object Test extends ScalaCommand[TestOptions] {
       val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
       build match {
         case s: Build.Successful =>
-          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
+          testOnce(options, scalaVersions, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -44,6 +45,7 @@ object Test extends ScalaCommand[TestOptions] {
 
   private def testOnce(
     options: TestOptions,
+    scalaVersions: ScalaVersions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
@@ -63,7 +65,7 @@ object Test extends ScalaCommand[TestOptions] {
         Run.withNativeLauncher(
           build,
           "scala.scalanative.testinterface.TestMain",
-          options.shared.scalaNativeOptionsIKnowWhatImDoing,
+          options.shared.scalaNativeOptionsIKnowWhatImDoing(scalaVersions),
           options.shared.nativeWorkDir(root, projectName),
           options.shared.scalaNativeLogger
         ) { launcher =>

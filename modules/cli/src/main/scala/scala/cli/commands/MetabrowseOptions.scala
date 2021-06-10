@@ -19,8 +19,8 @@ final case class MetabrowseOptions(
     port: Int = 4000
 ) {
 
-  def buildOptions: Build.Options =
-    shared.buildOptions(enableJmh = false, jmhVersion = None)
+  def buildOptions(scalaVersions: ScalaVersions): Build.Options =
+    shared.buildOptions(scalaVersions, enableJmh = false, jmhVersion = None)
       .copy(
         fetchSources = true,
         generateSemanticDbs = true

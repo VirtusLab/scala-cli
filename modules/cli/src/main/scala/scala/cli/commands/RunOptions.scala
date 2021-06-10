@@ -25,8 +25,8 @@ final case class RunOptions(
     if (benchmarking.enableJmh) Some("org.openjdk.jmh.Main")
     else mainClass
 
-  def buildOptions: Build.Options =
-    shared.buildOptions(benchmarking.enableJmh, benchmarking.jmhVersion)
+  def buildOptions(scalaVersions: ScalaVersions): Build.Options =
+    shared.buildOptions(scalaVersions, benchmarking.enableJmh, benchmarking.jmhVersion)
 }
 
 object RunOptions {

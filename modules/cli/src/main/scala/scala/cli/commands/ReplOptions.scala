@@ -20,8 +20,8 @@ final case class ReplOptions(
       "2.3.8-58-aa8b2ab1" // TODO Get via scala.build.internal.Constants
     }
 
-  def buildOptions: Build.Options =
-    shared.buildOptions(enableJmh = false, jmhVersion = None)
+  def buildOptions(scalaVersions: ScalaVersions): Build.Options =
+    shared.buildOptions(scalaVersions, enableJmh = false, jmhVersion = None)
 }
 
 object ReplOptions {

@@ -34,8 +34,8 @@ final case class PackageOptions(
     else if (shared.native) PackageType.Native
     else PackageType.Bootstrap
 
-  def buildOptions: Build.Options =
-    shared.buildOptions(enableJmh = false, jmhVersion = None)
+  def buildOptions(scalaVersions: ScalaVersions): Build.Options =
+    shared.buildOptions(scalaVersions, enableJmh = false, jmhVersion = None)
 }
 
 object PackageOptions {

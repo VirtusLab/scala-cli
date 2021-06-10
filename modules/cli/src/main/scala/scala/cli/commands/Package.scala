@@ -33,7 +33,10 @@ object Package extends ScalaCommand[PackageOptions] {
 
     // TODO Add watch mode
 
-    val build = Build.build(inputs, options.buildOptions, options.shared.logger, pwd)
+    val scalaVersions = options.shared.computeScalaVersions()
+    val buildOptions = options.buildOptions(scalaVersions)
+
+    val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
@@ -87,7 +90,7 @@ object Package extends ScalaCommand[PackageOptions] {
         linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false)
 
       case PackageOptions.PackageType.Native =>
-        val nativeOptions = options.shared.scalaNativeOptionsIKnowWhatImDoing
+        val nativeOptions = options.shared.scalaNativeOptionsIKnowWhatImDoing(scalaVersions)
         val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
         val logger = options.shared.scalaNativeLogger
 

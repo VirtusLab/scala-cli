@@ -487,4 +487,47 @@ class RunTests extends munit.FunSuite {
       fd()
     }
 
+  val printScalaVersionInputs = TestInputs(
+    Seq(
+      os.rel / "print.sc" ->
+       s"""println(scala.util.Properties.versionNumberString)
+          |""".stripMargin
+    )
+  )
+  val printScalaVersionInputs3 = TestInputs(
+    Seq(
+      os.rel / "print.sc" ->
+       s"""def printStuff(): Unit =
+          |  val toPrint = scala.util.Properties.versionNumberString
+          |  println(toPrint)
+          |printStuff()
+          |""".stripMargin
+    )
+  )
+  test("Scala version 2.12") {
+    printScalaVersionInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, ".", "--scala", "2.12").call(cwd = root).out.text.trim
+      assert(output.startsWith("2.12."))
+    }
+  }
+  test("Scala version 2.13") {
+    printScalaVersionInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, ".", "--scala", "2.13").call(cwd = root).out.text.trim
+      assert(output.startsWith("2.13."))
+    }
+  }
+  test("Scala version 2") {
+    printScalaVersionInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, ".", "--scala", "2").call(cwd = root).out.text.trim
+      assert(output.startsWith("2.13."))
+    }
+  }
+  test("Scala version 3") {
+    printScalaVersionInputs3.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, ".", "--scala", "3").call(cwd = root).out.text.trim
+      // Scala 3.0 uses the 2.13 standard library
+      assert(output.startsWith("2.13."))
+    }
+  }
+
 }

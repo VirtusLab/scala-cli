@@ -20,7 +20,10 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     // TODO Add watch support?
 
-    val build = Build.build(inputs, options.buildOptions, options.shared.logger, Os.pwd)
+    val scalaVersions = options.shared.computeScalaVersions()
+    val buildOptions = options.buildOptions(scalaVersions)
+
+    val build = Build.build(inputs, buildOptions, options.shared.logger, Os.pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
@@ -28,7 +31,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     }
 
     val replArtifacts = ReplArtifacts(
-      options.shared.scalaParams,
+      options.shared.scalaParams(scalaVersions),
       options.ammoniteVersion,
       build.artifacts.dependencies,
       options.shared.logger

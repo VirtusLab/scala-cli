@@ -27,9 +27,13 @@ object Run extends ScalaCommand[RunOptions] {
       case Right(i) => i
     }
 
+    val scalaVersions = options.shared.computeScalaVersions()
+    val buildOptions = options.buildOptions(scalaVersions)
+
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
       maybeRunOnce(
         options,
+        scalaVersions,
         inputs.workspace,
         inputs.projectName,
         build,
@@ -40,7 +44,7 @@ object Run extends ScalaCommand[RunOptions] {
       )
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, options.buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = false)
         case f: Build.Failed =>
@@ -49,7 +53,7 @@ object Run extends ScalaCommand[RunOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, options.buildOptions, options.shared.logger, pwd)
+      val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)
@@ -62,6 +66,7 @@ object Run extends ScalaCommand[RunOptions] {
 
   def maybeRunOnce(
     options: RunOptions,
+    scalaVersions: ScalaVersions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
@@ -80,6 +85,7 @@ object Run extends ScalaCommand[RunOptions] {
         else (mainClass, args)
       runOnce(
         options,
+        scalaVersions,
         root,
         projectName,
         build,
@@ -93,6 +99,7 @@ object Run extends ScalaCommand[RunOptions] {
 
   def runOnce(
     options: RunOptions,
+    scalaVersions: ScalaVersions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
@@ -116,7 +123,7 @@ object Run extends ScalaCommand[RunOptions] {
         withNativeLauncher(
           build,
           mainClass,
-          options.shared.scalaNativeOptionsIKnowWhatImDoing,
+          options.shared.scalaNativeOptionsIKnowWhatImDoing(scalaVersions),
           options.shared.nativeWorkDir(root, projectName),
           options.shared.scalaNativeLogger
         ) { launcher =>

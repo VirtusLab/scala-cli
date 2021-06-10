@@ -28,7 +28,10 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val logger = options.shared.logger
 
-    val build = Build.build(inputs, options.buildOptions, logger, Os.pwd)
+    val scalaVersions = options.shared.computeScalaVersions()
+    val buildOptions = options.buildOptions(scalaVersions)
+
+    val build = Build.build(inputs, buildOptions, logger, Os.pwd)
 
     val successfulBuild = build match {
       case f: Build.Failed =>

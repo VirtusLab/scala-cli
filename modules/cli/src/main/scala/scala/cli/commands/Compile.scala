@@ -24,14 +24,17 @@ object Compile extends ScalaCommand[CompileOptions] {
           println(cp)
         }
 
+    val scalaVersions = options.shared.computeScalaVersions()
+    val buildOptions = options.buildOptions(scalaVersions)
+
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, options.buildOptions, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
+      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
         postBuild(build)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, options.buildOptions, options.shared.logger, Os.pwd)
+      val build = Build.build(inputs, buildOptions, options.shared.logger, Os.pwd)
       postBuild(build)
     }
   }
