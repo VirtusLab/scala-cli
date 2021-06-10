@@ -14,17 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         # Running into https://github.com/oracle/graal/issues/3171 on windows-latest / windows-2019
-        OS: ["ubuntu-latest", "macos-latest", "windows-2016"]
+        OS: ["ubuntu-latest"]
     steps:
     - uses: actions/checkout@v2
     - uses: coursier/cache-action@v6
     - uses: laughedelic/coursier-setup@v1
       with:
         jvm: 8
-    - name: Unit tests
-      run: ./mill -i unitTests
-    - name: JVM integration tests
-      run: ./mill -i integration.jvm.test
     - name: Native integration tests
       run: ./mill -i integration.native.test
       # native-image generation often gets stuck or runs out of memory
