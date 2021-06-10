@@ -1,5 +1,7 @@
 package scala.cli.commands
 
+import java.io.File
+
 import caseapp._
 import caseapp.core.help.Help
 import scala.build.{Build, Project}
@@ -30,6 +32,14 @@ final case class SharedOptions(
   @ValueDescription("jvm-name")
   @Name("j")
     jvm: Option[String] = None,
+
+  @Group("Java")
+  @HelpMessage("Add extra JARs in the class path")
+  @ValueDescription("paths")
+  @Name("jar")
+  @Name("jars")
+  @Name("extraJar")
+    extraJars: List[String] = Nil,
 
   @Hidden
     classWrap: Boolean = false,
@@ -111,7 +121,8 @@ final case class SharedOptions(
       runJmh = enableJmh,
       addScalaLibrary = scalaLibrary.getOrElse(!java.getOrElse(false)),
       addRunnerDependencyOpt = runner,
-      generateSemanticDbs = semanticDb
+      generateSemanticDbs = semanticDb,
+      extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd))
     )
 }
 
