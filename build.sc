@@ -10,6 +10,8 @@ import java.io.File
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib.{publish => _, _}
 
+import scala.util.Properties
+
 
 // Tell mill modules are under modules/
 implicit def millModuleBasePath: define.BasePath =
@@ -133,6 +135,9 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule {
     Deps.svm
   )
   def mainClass = Some("scala.cli.ScalaCli")
+  def nativeImageMainClass =
+    if (Properties.isWin || Properties.isLinux) "scala.cli.ScalaCliLight"
+    else "scala.cli.ScalaCli"
 
   def localRepoJar = `local-repo`.localRepoJar()
   def graalVmVersion = deps.graalVmVersion

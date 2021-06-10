@@ -196,6 +196,10 @@ trait CliLaunchers extends SbtModule {
   def localRepoJar: T[PathRef]
   def graalVmVersion: String
 
+  def nativeImageMainClass = T{
+    mainClass().getOrElse(sys.error("Don't know what main class to use"))
+  }
+
   def transitiveJars: T[Agg[PathRef]] = {
 
     def allModuleDeps(todo: List[JavaModule]): List[JavaModule] =
@@ -270,7 +274,7 @@ trait CliLaunchers extends SbtModule {
 
   def nativeImage = T{
     val cp = nativeImageClassPath().map(_.path)
-    val mainClass0 = mainClass().getOrElse(sys.error("Don't know what main class to use"))
+    val mainClass0 = nativeImageMainClass()
     val dest = T.ctx().dest / "scala"
     val actualDest = T.ctx().dest / s"scala$platformExtension"
 
