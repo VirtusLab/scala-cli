@@ -19,6 +19,7 @@ implicit def millModuleBasePath: define.BasePath =
 
 
 object cli                    extends Cli
+object `cli-core`             extends CliCore
 object build                  extends Cross[Build]             (defaultScalaVersion)
 object stubs                  extends JavaModule with ScalaCliPublishModule with PublishLocalNoFluff
 object runner                 extends Cross[Runner]            (Scala.all: _*)
@@ -122,27 +123,40 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
 trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with HasTests {
   def scalaVersion = defaultScalaVersion
   def moduleDeps = Seq(
-    build(defaultScalaVersion)
+    `cli-core`
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.caseApp,
-    Deps.coursierInterfaceSvmSubs,
     Deps.metabrowseServer,
-    Deps.slf4jNop,
-    Deps.svmSubs
+    Deps.slf4jNop
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
   )
   def mainClass = Some("scala.cli.ScalaCli")
-  def nativeImageMainClass =
-    if (Properties.isWin || Properties.isLinux) "scala.cli.ScalaCliLight"
-    else "scala.cli.ScalaCli"
 
   def localRepoJar = `local-repo`.localRepoJar()
   def graalVmVersion = deps.graalVmVersion
 
   object test extends Tests
+}
+
+trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule {
+  def scalaVersion = defaultScalaVersion
+  def moduleDeps = Seq(
+    build(defaultScalaVersion)
+  )
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.caseApp,
+    Deps.coursierInterfaceSvmSubs,
+    Deps.svmSubs
+  )
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.svm
+  )
+  def mainClass = Some("scala.cli.ScalaCliCore")
+
+  def localRepoJar = `local-repo`.localRepoJar()
+  def graalVmVersion = deps.graalVmVersion
 }
 
 trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests {

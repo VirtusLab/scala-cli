@@ -2,7 +2,8 @@ package scala.cli
 
 import scala.cli.commands._
 
-object ScalaCliLight extends ScalaCliBase {
+object ScalaCliCore extends ScalaCliBase {
+  def actualDefaultCommand = DefaultCore
   val commands = Seq(
     About,
     Clean,
