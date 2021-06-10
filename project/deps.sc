@@ -29,7 +29,7 @@ object Deps {
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.15.1"
   def jimfs = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.2.1"
-  def metabrowseServer = ivy"org.scalameta::metabrowse-server:0.2.4"
+  def metabrowseServer = ivy"org.scalameta::metabrowse-server:0.2.5"
   def munit = ivy"org.scalameta::munit:0.7.25"
   def nativeTestRunner = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools = ivy"org.scala-native::tools:${Versions.scalaNative}"
