@@ -329,6 +329,11 @@ def copyLauncher(directory: String = "artifacts") = T.command {
   ghreleaseassets.copyLauncher(nativeLauncher, directory)
 }
 
+def copyCoreLauncher(directory: String = "artifacts") = T.command {
+  val nativeLauncher = `cli-core`.nativeImage().path
+  ghreleaseassets.copyLauncher(nativeLauncher, directory)
+}
+
 def uploadLaunchers(directory: String = "artifacts") = T.command {
   val version = cli.publishVersion()
   ghreleaseassets.uploadLaunchers(version, directory)
