@@ -119,7 +119,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
   }
 }
 
-trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule {
+trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with HasTests {
   def scalaVersion = defaultScalaVersion
   def moduleDeps = Seq(
     build(defaultScalaVersion)
@@ -141,6 +141,8 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule {
 
   def localRepoJar = `local-repo`.localRepoJar()
   def graalVmVersion = deps.graalVmVersion
+
+  object test extends Tests
 }
 
 trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests {
