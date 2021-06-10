@@ -392,15 +392,15 @@ object Build {
       else Nil
 
     val artifacts = Artifacts(
-      options.javaHomeOpt.filter(_.nonEmpty),
-      options.jvmIdOpt,
-      options.scalaVersion,
-      options.scalaBinaryVersion,
-      options.scalaJsOptions.map(_.compilerPlugins).getOrElse(Nil) ++
+      javaHomeOpt = options.javaHomeOpt.filter(_.nonEmpty),
+      jvmIdOpt = options.jvmIdOpt,
+      scalaVersion = options.scalaVersion,
+      scalaBinaryVersion = options.scalaBinaryVersion,
+      compilerPlugins = options.scalaJsOptions.map(_.compilerPlugins).getOrElse(Nil) ++
         options.scalaNativeOptions.map(_.compilerPlugins).getOrElse(Nil) ++
         lineModifierPlugins ++
         semanticDbPlugins,
-      allDependencies,
+      dependencies = allDependencies,
       extraJars = options.extraJars.map(_.toNIO) ++ options.stubsJarOpt.toSeq ++ options.testRunnerJarsOpt.getOrElse(Nil),
       fetchSources = options.fetchSources,
       addStubs = options.addStubsDependency,
