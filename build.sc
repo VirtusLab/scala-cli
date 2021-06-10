@@ -28,9 +28,30 @@ object bloopgun               extends Cross[Bloopgun]          (Scala.allScala2:
 object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.all: _*)
 object `tasty-lib`            extends Cross[TastyLib]          (Scala.all: _*)
 
+object `integration-core` extends Module {
+  object jvm    extends JvmIntegrationCore {
+    object test extends Tests
+  }
+  object native extends NativeIntegrationCore {
+    object test extends Tests
+  }
+}
+
 object integration extends Module {
-  object jvm    extends JvmIntegration
-  object native extends NativeIntegration
+  object jvm    extends JvmIntegration {
+    object test extends Tests {
+      def sources = T.sources {
+        super.sources() ++ `integration-core`.jvm.test.sources()
+      }
+    }
+  }
+  object native extends NativeIntegration {
+    object test extends Tests {
+      def sources = T.sources {
+        super.sources() ++ `integration-core`.native.test.sources()
+      }
+    }
+  }
 }
 
 
@@ -159,15 +180,17 @@ trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule {
   def graalVmVersion = deps.graalVmVersion
 }
 
-trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests {
+trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTests {
   def scalaVersion = sv
   def testLauncher: T[PathRef]
   def isNative = T{ false }
 
   def sv = Scala.scala213
 
+  def prefix: String
+
   private def mainArtifactName = T{ artifactName() }
-  object test extends Tests {
+  trait Tests extends super.Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.osLib,
       Deps.pprint
@@ -177,12 +200,20 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests 
       "IS_NATIVE_SCALA_CLI" -> isNative().toString
     )
     def sources = T.sources {
-      val name = mainArtifactName().stripPrefix("integration-")
+      val name = mainArtifactName().stripPrefix(prefix)
       super.sources().map { ref =>
         PathRef(os.Path(ref.path.toString.replace(File.separator + name + File.separator, File.separator)))
       }
     }
   }
+}
+
+trait CliIntegration extends CliIntegrationBase {
+  def prefix = "integration-"
+}
+
+trait CliIntegrationCore extends CliIntegration {
+  def prefix = "integration-core-"
 }
 
 trait NativeIntegration extends CliIntegration {
@@ -192,6 +223,15 @@ trait NativeIntegration extends CliIntegration {
 
 trait JvmIntegration extends CliIntegration {
   def testLauncher = cli.launcher()
+}
+
+trait NativeIntegrationCore extends CliIntegrationCore {
+  def testLauncher = `cli-core`.nativeImage()
+  def isNative = true
+}
+
+trait JvmIntegrationCore extends CliIntegrationCore {
+  def testLauncher = `cli-core`.launcher()
 }
 
 class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
