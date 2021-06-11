@@ -14,9 +14,6 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.build.internal.ScalaJsLinker
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.commands.PackageOptions.NativePackagerType
-import scala.cli.commands.packager.debian.DebianPackage
-import scala.cli.commands.packager.macOs.dmg.DmgPackage
-import scala.cli.commands.packager.macOs.pkg.PkgPackage
 import scala.scalanative.util.Scope
 import scala.scalanative.{build => sn}
 import scala.util.Properties
@@ -121,10 +118,10 @@ object Package extends ScalaCommand[PackageOptions] {
   ) = {
     import NativePackagerType._
     nativePackager match {
-      case Some(Debian) =>  DebianPackage(sourceAppPath, packageName).run(logger)
+      case Some(Debian) =>  DebianPackage(sourceAppPath, BuildOptions(packageName)).build()
       case Some(Windows) => ???
-      case Some(Dmg) => DmgPackage(sourceAppPath, packageName).run(logger)
-      case Some(Pkg) => PkgPackage(sourceAppPath, packageName).run(logger)
+      case Some(Dmg) => DmgPackage(sourceAppPath, BuildOptions(packageName)).build()
+      case Some(Pkg) => PkgPackage(sourceAppPath, BuildOptions(packageName)).build()
       case None  => ()
     }
   }
