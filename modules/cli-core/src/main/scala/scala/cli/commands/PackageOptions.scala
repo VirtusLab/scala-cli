@@ -45,8 +45,8 @@ final case class PackageOptions(
   import PackageOptions.PackageType
   def packageType: PackageType = 
     if (library) PackageType.LibraryJar
-    else if (shared.js) PackageType.Js
-    else if (shared.native) PackageType.Native
+    else if (shared.js.js) PackageType.Js
+    else if (shared.native.native) PackageType.Native
     else if (debian)  PackageType.Debian
     else if (dmg) PackageType.Dmg
     else if (pkg) PackageType.Pkg
@@ -55,8 +55,7 @@ final case class PackageOptions(
     else PackageType.Bootstrap
 
   def buildOptions(scalaVersions: ScalaVersions): Build.Options =
-    shared.buildOptions(scalaVersions, enableJmh = false, jmhVersion = None)
-
+    shared.buildOptions(scalaVersions, enableJmh = None, jmhVersion = None)
 }
 
 object PackageOptions {

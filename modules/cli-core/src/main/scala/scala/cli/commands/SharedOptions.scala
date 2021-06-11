@@ -13,6 +13,10 @@ import scala.scalanative.{build => sn}
 final case class SharedOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    js: ScalaJsOptions = ScalaJsOptions(),
+  @Recurse
+    native: ScalaNativeOptions = ScalaNativeOptions(),
 
   @Group("Scala")
   @HelpMessage("Set Scala version")
@@ -50,13 +54,6 @@ final case class SharedOptions(
   @Hidden
     classWrap: Boolean = false,
 
-  @Group("Scala")
-  @HelpMessage("Enable Scala.JS")
-    js: Boolean = false,
-  @Group("Scala")
-  @HelpMessage("Enable Scala Native")
-    native: Boolean = false,
-
   @HelpMessage("Watch sources for changes")
   @Name("w")
     watch: Boolean = false,
@@ -71,7 +68,9 @@ final case class SharedOptions(
     runner: Option[Boolean] = None,
 
   @HelpMessage("Generate SemanticDBs")
-    semanticDb: Boolean = false
+    semanticDb: Option[Boolean] = None,
+  @Hidden
+    addStubs: Option[Boolean] = None
 ) {
 
   def computeScalaVersions(): ScalaVersions = {
@@ -116,30 +115,19 @@ final case class SharedOptions(
     ScalaParameters(
       scalaVersions.version,
       scalaVersions.binaryVersion,
-      if (js) Some("sjs" + ScalaVersion.jsBinary(Constants.scalaJsVersion))
-      else if (native) Some("native" + ScalaVersion.nativeBinary(Constants.scalaNativeVersion))
+      if (js.js) Some("sjs" + ScalaVersion.jsBinary(js.finalVersion))
+      else if (native.native) Some("native" + ScalaVersion.nativeBinary(native.finalVersion))
       else None
     )
 
   def logger = logging.logger
 
-  lazy val codeWrapper: CodeWrapper =
-    if (classWrap) CustomCodeClassWrapper
-    else CustomCodeWrapper
+  private def codeWrapper: Option[CodeWrapper] =
+    if (classWrap) Some(CustomCodeClassWrapper)
+    else None
 
   def nativeWorkDir(root: os.Path, projectName: String) = root / ".scala" / projectName / "native"
 
-  def scalaJsOptions(scalaVersions: ScalaVersions): Option[Build.ScalaJsOptions] =
-    if (js) Some(scalaJsOptionsIKnowWhatImDoing(scalaVersions))
-    else None
-  def scalaJsOptionsIKnowWhatImDoing(scalaVersions: ScalaVersions): Build.ScalaJsOptions =
-    Build.scalaJsOptions(scalaVersions.version, scalaVersions.binaryVersion)
-
-  def scalaNativeOptions(scalaVersions: ScalaVersions): Option[Build.ScalaNativeOptions] =
-    if (native) Some(scalaNativeOptionsIKnowWhatImDoing(scalaVersions))
-    else None
-  def scalaNativeOptionsIKnowWhatImDoing(scalaVersions: ScalaVersions): Build.ScalaNativeOptions =
-    Build.scalaNativeOptions(scalaVersions.version, scalaVersions.binaryVersion)
   def scalaNativeLogger: sn.Logger =
     new sn.Logger {
       def trace(msg: Throwable) = ()
@@ -149,20 +137,21 @@ final case class SharedOptions(
       def error(msg: String) = logger.log(msg)
     }
 
-  def buildOptions(scalaVersions: ScalaVersions, enableJmh: Boolean, jmhVersion: Option[String]): Build.Options =
+  def buildOptions(scalaVersions: ScalaVersions, enableJmh: Option[Boolean], jmhVersion: Option[String]): Build.Options =
     Build.Options(
       scalaVersion = scalaVersions.version,
       scalaBinaryVersion = scalaVersions.binaryVersion,
       codeWrapper = codeWrapper,
-      scalaJsOptions = scalaJsOptions(scalaVersions),
-      scalaNativeOptions = scalaNativeOptions(scalaVersions),
+      scalaJsOptions = js.buildOptions(scalaVersions),
+      scalaNativeOptions = native.buildOptions(scalaVersions),
       javaHomeOpt = javaHome.filter(_.nonEmpty),
       jvmIdOpt = jvm.filter(_.nonEmpty),
+      addStubsDependencyOpt = addStubs,
       addJmhDependencies =
-        if (enableJmh) jmhVersion.orElse(Some("1.29"))
+        if (enableJmh.getOrElse(false)) jmhVersion.orElse(Some(Constants.jmhVersion))
         else None,
       runJmh = enableJmh,
-      addScalaLibrary = scalaLibrary.getOrElse(!java.getOrElse(false)),
+      addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
       addRunnerDependencyOpt = runner,
       generateSemanticDbs = semanticDb,
       extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd))

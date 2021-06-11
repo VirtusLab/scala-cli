@@ -11,8 +11,8 @@ final case class Project(
   classesDir: os.Path,
   javaHome: os.Path,
   scalaCompiler: ScalaCompiler,
-  scalaJsOptions: Option[Project.ScalaJsOptions],
-  scalaNativeOptions: Option[Project.ScalaNativeOptions],
+  scalaJsOptions: Option[BloopConfig.JsConfig],
+  scalaNativeOptions: Option[BloopConfig.NativeConfig],
   projectName: String,
   classPath: Seq[Path],
   sources: Seq[os.Path],
@@ -24,8 +24,8 @@ final case class Project(
   def bloopProject: BloopConfig.Project = {
     val platform = (scalaJsOptions, scalaNativeOptions) match {
       case (None, None) => bloopJvmPlatform(javaHome.toNIO)
-      case (Some(jsOptions), _) => bloopJsPlatform(jsOptions)
-      case (_, Some(nativeOptions)) => bloopNativePlatform(nativeOptions)
+      case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
+      case (_, Some(nativeConfig)) => BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
     }
     val scalaConfig = bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler.scalaVersion).copy(
       options = scalaCompiler.scalacOptions.toList,
@@ -69,21 +69,6 @@ final case class Project(
 
 object Project {
 
-  final case class ScalaJsOptions(
-    version: String,
-    mode: String
-  )
-
-  final case class ScalaNativeOptions(
-    version: String,
-    mode: String,
-    gc: String,
-    clang: Path,
-    clangpp: Path,
-    linkingOptions: Seq[String],
-    compileOptions: Seq[String]
-  )
-
   private def baseBloopProject(name: String, directory: Path, out: Path, classesDir: Path): BloopConfig.Project =
     BloopConfig.Project(
       name = name,
@@ -112,46 +97,6 @@ object Project {
       runtimeConfig = None,
       classpath = None,
       resources = None
-    )
-  private def bloopJsConfig(config: ScalaJsOptions): BloopConfig.JsConfig =
-    BloopConfig.JsConfig(
-           version = config.version,
-              mode = if (config.mode == "release") BloopConfig.LinkerMode.Release else BloopConfig.LinkerMode.Debug,
-              kind = BloopConfig.ModuleKindJS.CommonJSModule,
-    emitSourceMaps = false,
-             jsdom = None,
-            output = None,
-          nodePath = None,
-         toolchain = Nil
-    )
-  private def bloopNativeConfig(config: ScalaNativeOptions): BloopConfig.NativeConfig =
-    BloopConfig.NativeConfig(
-           version = config.version,
-                     // there are more modes than bloop allows, but that setting here shouldn't end up being used anyway
-              mode = if (config.mode == "release") BloopConfig.LinkerMode.Release else BloopConfig.LinkerMode.Debug,
-                gc = config.gc,
-      targetTriple = None,
-             clang = config.clang,
-           clangpp = config.clangpp,
-         toolchain = Nil,
-           options = BloopConfig.NativeOptions(
-               linker = config.linkingOptions.toList,
-             compiler = config.compileOptions.toList
-           ),
-         linkStubs = false,
-             check = false,
-              dump = false,
-            output = None
-    )
-  private def bloopJsPlatform(config: ScalaJsOptions): BloopConfig.Platform.Js =
-    BloopConfig.Platform.Js(
-      config = bloopJsConfig(config),
-      mainClass = None
-    )
-  private def bloopNativePlatform(config: ScalaNativeOptions): BloopConfig.Platform.Native =
-    BloopConfig.Platform.Native(
-      config = bloopNativeConfig(config),
-      mainClass = None
     )
   private def bloopScalaConfig(organization: String, name: String, version: String): BloopConfig.Scala =
     BloopConfig.Scala(

@@ -18,7 +18,7 @@ final case class CompileOptions(
 ) {
 
   def buildOptions(scalaVersions: ScalaVersions): Build.Options =
-    shared.buildOptions(scalaVersions, benchmarking.enableJmh, benchmarking.jmhVersion)
+    shared.buildOptions(scalaVersions, benchmarking.jmh, benchmarking.jmhVersion)
 }
 
 object CompileOptions {

@@ -21,7 +21,7 @@ final case class ReplOptions(
     }
 
   def buildOptions(scalaVersions: ScalaVersions): Build.Options =
-    shared.buildOptions(scalaVersions, enableJmh = false, jmhVersion = None)
+    shared.buildOptions(scalaVersions, enableJmh = None, jmhVersion = None)
 }
 
 object ReplOptions {

@@ -9,6 +9,7 @@ import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
 import scala.util.Properties
+import org.scalajs.linker.interface.StandardConfig
 
 object Run extends ScalaCommand[RunOptions] {
   override def group = "Main"
@@ -76,7 +77,8 @@ object Run extends ScalaCommand[RunOptions] {
     jvmRunner: Boolean
   ): Unit = {
 
-    val mainClassOpt = options.retainedMainClass.filter(_.nonEmpty) // trim it too?
+    val mainClassOpt = options.mainClass.filter(_.nonEmpty) // trim it too?
+      .orElse(if (build.options.runJmh.getOrElse(false)) Some("org.openjdk.jmh.Main") else None)
       .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
 
     for (mainClass <- mainClassOpt) {
@@ -110,8 +112,8 @@ object Run extends ScalaCommand[RunOptions] {
   ): Boolean = {
 
     val retCode =
-      if (options.shared.js)
-        withLinkedJs(build, Some(mainClass), addTestInitializer = false) { js =>
+      if (options.shared.js.js)
+        withLinkedJs(build, Some(mainClass), addTestInitializer = false, options.shared.js.config) { js =>
           Runner.runJs(
             js.toIO,
             args,
@@ -119,11 +121,11 @@ object Run extends ScalaCommand[RunOptions] {
             allowExecve = allowExecve
           )
         }
-      else if (options.shared.native)
+      else if (options.shared.native.native)
         withNativeLauncher(
           build,
           mainClass,
-          options.shared.scalaNativeOptionsIKnowWhatImDoing(scalaVersions),
+          options.shared.native.config,
           options.shared.nativeWorkDir(root, projectName),
           options.shared.scalaNativeLogger
         ) { launcher =>
@@ -163,11 +165,12 @@ object Run extends ScalaCommand[RunOptions] {
   def withLinkedJs[T](
     build: Build.Successful,
     mainClassOpt: Option[String],
-    addTestInitializer: Boolean
+    addTestInitializer: Boolean,
+    config: StandardConfig
   )(f: os.Path => T): T = {
     val dest = os.temp(prefix = "main", suffix = ".js")
     try {
-      Package.linkJs(build, dest, mainClassOpt, addTestInitializer)
+      Package.linkJs(build, dest, mainClassOpt, addTestInitializer, config)
       f(dest)
     } finally {
       if (os.exists(dest))
@@ -178,13 +181,13 @@ object Run extends ScalaCommand[RunOptions] {
   def withNativeLauncher[T](
     build: Build.Successful,
     mainClass: String,
-    options: Build.ScalaNativeOptions,
+    config: sn.NativeConfig,
     workDir: os.Path,
     logger: sn.Logger
   )(f: os.Path => T): T = {
     val dest = os.temp(prefix = "main", suffix = ".js")
     try {
-      Package.buildNative(build, mainClass, dest, options, workDir, logger)
+      Package.buildNative(build, mainClass, dest, config, workDir, logger)
       f(dest)
     } finally {
       if (os.exists(dest))

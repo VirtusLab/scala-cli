@@ -14,25 +14,13 @@ final class ScalaJsLinker {
     classPath: Array[Path],
     mainClassOrNull: String,
     addTestInitializer: Boolean,
+    config: ScalaJsConfig,
     dest: Path
   ): Unit = {
 
     // adapted from https://github.com/scala-js/scala-js-cli/blob/729824848e25961a3d9a1cfe6ac0260745033148/src/main/scala/org/scalajs/cli/Scalajsld.scala#L158-L193
 
-    val config = StandardConfig()
-      .withSemantics(Semantics.Defaults)
-      .withModuleKind(ModuleKind.CommonJSModule)
-      .withESFeatures(ESFeatures.Defaults)
-      .withCheckIR(false)
-      .withOptimizer(true)
-      .withParallel(true)
-      .withSourceMap(false)
-      .withRelativizeSourceMapBase(None)
-      .withClosureCompiler(false)
-      .withPrettyPrint(false)
-      .withBatchMode(true)
-
-    val linker = StandardImpl.linker(config)
+    val linker = StandardImpl.linker(config.config)
 
     def relURI(f: Path) =
       new URI(null, null, f.getFileName.toString, null)

@@ -119,6 +119,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |
          |  def localRepoResourcePath = "$localRepoResourcePath"
          |  def localRepoVersion = "${VcsVersion.vcsState().format()}"
+         |
+         |  def jmhVersion = "1.29"
          |}
          |""".stripMargin
     os.write(dest, code)

@@ -8,16 +8,18 @@ import packager.mac.pkg.PkgPackage
 import packager.deb.DebianPackage
 import packager.rpm.RedHatPackage
 import packager.windows.WindowsPackage
+import org.scalajs.linker.interface.StandardConfig
+import scala.build.{Build, Inputs, Os}
+import scala.build.internal.{ScalaJsConfig, ScalaJsLinker}
+import scala.scalanative.{build => sn}
+import scala.scalanative.util.Scope
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.file.attribute.FileTime
 import java.nio.file.{Files, Path}
 import java.util.jar.{JarOutputStream, Attributes => JarAttributes}
 import java.util.zip.{ZipEntry, ZipOutputStream}
-import scala.build.internal.ScalaJsLinker
-import scala.build.{Build, Inputs, Os}
-import scala.scalanative.util.Scope
-import scala.scalanative.{build => sn}
+
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
@@ -101,14 +103,14 @@ object Package extends ScalaCommand[PackageOptions] {
         else os.write(destPath, content)
 
       case PackageOptions.PackageType.Js =>
-        linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false)
+        linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false, options.shared.js.config)
 
       case PackageOptions.PackageType.Native =>
-        val nativeOptions = options.shared.scalaNativeOptionsIKnowWhatImDoing(scalaVersions)
+        val config = options.shared.native.config
         val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
         val logger = options.shared.scalaNativeLogger
 
-        buildNative(successfulBuild, mainClass(), destPath, nativeOptions, workDir, logger)
+        buildNative(successfulBuild, mainClass(), destPath, config, workDir, logger)
 
       case nativePackagerType: PackageOptions.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
@@ -258,29 +260,26 @@ object Package extends ScalaCommand[PackageOptions] {
     }
   }
 
-  def linkJs(build: Build.Successful, dest: os.Path, mainClassOpt: Option[String], addTestInitializer: Boolean): Unit =
+  def linkJs(
+    build: Build.Successful,
+    dest: os.Path,
+    mainClassOpt: Option[String],
+    addTestInitializer: Boolean,
+    config: StandardConfig
+  ): Unit =
     withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
       val classPath = mainJar +: build.artifacts.classPath
-      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt.orNull, addTestInitializer, dest.toNIO)
+      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt.orNull, addTestInitializer, new ScalaJsConfig(config), dest.toNIO)
     }
 
   def buildNative(
     build: Build.Successful,
     mainClass: String,
     dest: os.Path,
-    nativeOptions: Build.ScalaNativeOptions,
+    nativeConfig: sn.NativeConfig,
     nativeWorkDir: os.Path,
     nativeLogger: sn.Logger
   ): Unit = {
-
-    val nativeConfig = sn.NativeConfig.empty
-      .withGC(if (nativeOptions.config.gc == "default") sn.GC.default else sn.GC(nativeOptions.config.gc))
-      .withMode(sn.Mode(nativeOptions.config.mode))
-      .withLinkStubs(false)
-      .withClang(nativeOptions.config.clang)
-      .withClangPP(nativeOptions.config.clangpp)
-      .withLinkingOptions(nativeOptions.config.linkingOptions)
-      .withCompileOptions(nativeOptions.config.compileOptions)
 
     os.makeDir.all(nativeWorkDir)
 

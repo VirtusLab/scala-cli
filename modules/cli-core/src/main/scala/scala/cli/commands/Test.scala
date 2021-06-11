@@ -54,18 +54,18 @@ object Test extends ScalaCommand[TestOptions] {
   ): Unit = {
 
     val retCode =
-      if (options.shared.js)
-        Run.withLinkedJs(build, None, addTestInitializer = true) { js =>
+      if (options.shared.js.js)
+        Run.withLinkedJs(build, None, addTestInitializer = true, options.shared.js.config) { js =>
           Runner.testJs(
             build.fullClassPath,
             js.toIO
           )
         }
-      else if (options.shared.native)
+      else if (options.shared.native.native)
         Run.withNativeLauncher(
           build,
           "scala.scalanative.testinterface.TestMain",
-          options.shared.scalaNativeOptionsIKnowWhatImDoing(scalaVersions),
+          options.shared.native.config,
           options.shared.nativeWorkDir(root, projectName),
           options.shared.scalaNativeLogger
         ) { launcher =>

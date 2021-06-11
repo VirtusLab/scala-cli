@@ -79,7 +79,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.copy(generateSemanticDbs = true), buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions.copy(generateSemanticDbs = Some(true)), buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -101,7 +101,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultScala3Options.copy(generateSemanticDbs = true), buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultScala3Options.copy(generateSemanticDbs = Some(true)), buildThreads) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
