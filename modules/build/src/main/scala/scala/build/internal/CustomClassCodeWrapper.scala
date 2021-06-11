@@ -1,9 +1,5 @@
 package scala.build.internal
 
-import ammonite.compiler.Parsers
-import ammonite.util.Name
-import ammonite.util.Util.{encodeScalaSourcePath, newLine, normalizeNewlines}
-
 object CustomCodeClassWrapper extends CodeWrapper{
   /*
    * The goal of this code wrapper is that the user code:
@@ -32,28 +28,28 @@ object CustomCodeClassWrapper extends CodeWrapper{
     indexedWrapperName: Name,
     extraCode: String
   ) = {
-    val isObjDef = Parsers.isObjDef(code)
-    val packageDirective = if (pkgName.isEmpty) "" else s"package ${encodeScalaSourcePath(pkgName)}" + "\n"
+//     val isObjDef = Parsers.isObjDef(code)
+    val packageDirective = if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
 
-    if (isObjDef) {
-      val top = normalizeNewlines(s"""$packageDirective
-
-object ${indexedWrapperName.backticked}{
-  val instance: Helper.type = Helper
-  def main(args: _root_.scala.Array[_root_.java.lang.String]): _root_.scala.Unit = instance.$$main()
-
-  object Helper extends _root_.java.io.Serializable {
-"""
-      )
-
-      val bottom = normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = {}
-  override def toString = "${indexedWrapperName.encoded}"
-  $extraCode
-}}
-""")
-
-      (top, bottom, userCodeNestingLevel)
-    } else {
+//     if (isObjDef) {
+//       val top = AmmUtil.normalizeNewlines(s"""$packageDirective
+//
+// object ${indexedWrapperName.backticked}{
+//   val instance: Helper.type = Helper
+//   def main(args: _root_.scala.Array[_root_.java.lang.String]): _root_.scala.Unit = instance.$$main()
+//
+//   object Helper extends _root_.java.io.Serializable {
+// """
+//       )
+//
+//       val bottom = AmmUtil.normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = {}
+//   override def toString = "${indexedWrapperName.encoded}"
+//   $extraCode
+// }}
+// """)
+//
+//       (top, bottom, userCodeNestingLevel)
+//     } else {
 
       // val (reworkedImports, reqVals) = {
 //
@@ -104,7 +100,7 @@ object ${indexedWrapperName.backticked}{
   @_root_.scala.transient private val __amm_usedThings =
     _root_.ammonite.repl.ReplBridge.value.usedEarlierDefinitions.toSet"""*/
 
-        val top = normalizeNewlines(s"""$packageDirective
+        val top = AmmUtil.normalizeNewlines(s"""$packageDirective
 
 object ${indexedWrapperName.backticked}{
   val wrapper = new ${indexedWrapperName.backticked}
@@ -121,13 +117,13 @@ $usedThingsSet
 final class Helper extends _root_.java.io.Serializable{\n"""
     )
 
-      val bottom = normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = {}
+      val bottom = AmmUtil.normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = {}
   override def toString = "${indexedWrapperName.encoded}"
   $extraCode
 }}
 """)
 
       (top, bottom, userCodeNestingLevel)
-    }
+//    }
   }
 }

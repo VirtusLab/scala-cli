@@ -1,8 +1,8 @@
 import mill._, scalalib._
 
 object Scala {
-  def scala212 = "2.12.13"
-  def scala213 = "2.13.5"
+  def scala212 = "2.12.14"
+  def scala213 = "2.13.6"
   def scala3Extras = Seq("3.0.0-RC2", "3.0.0-RC3")
   def scala3 = "3.0.0"
   val allScala2 = Seq(scala213, scala212)
@@ -16,12 +16,11 @@ object Deps {
     def scalaJs = "1.5.1"
     def scalaNative = "0.4.0"
   }
-  def ammCompiler = ivy"com.lihaoyi:::ammonite-compiler:2.3.8-58-aa8b2ab1"
   def asm = ivy"org.ow2.asm:asm:9.1"
   def bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.8"
   def bloopgun = ivy"ch.epfl.scala::bloopgun:1.4.8"
   def bsp4j = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
-  def caseApp = ivy"com.github.alexarchambault::case-app:2.0.5"
+  def caseApp = ivy"com.github.alexarchambault::case-app:2.1.0-M2"
   def coursierInterface = ivy"io.get-coursier:interface:${Versions.coursierInterface}"
   def coursierInterfaceSvmSubs = ivy"io.get-coursier:interface-svm-subs:${Versions.coursierInterface}"
   def coursierJvm = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
@@ -30,6 +29,7 @@ object Deps {
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.15.1"
   def jimfs = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.2.1"
+  def metabrowseServer = ivy"org.scalameta::metabrowse-server:0.2.4"
   def munit = ivy"org.scalameta::munit:0.7.25"
   def nativeTestRunner = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools = ivy"org.scala-native::tools:${Versions.scalaNative}"
@@ -41,8 +41,9 @@ object Deps {
   def scalaJsEnvNodeJs = ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
   def scalaJsLinker = ivy"org.scala-js::scalajs-linker:${Versions.scalaJs}"
   def scalaJsTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${Versions.scalaJs}"
-  def scalametaTrees = ivy"org.scalameta::trees:4.4.18"
+  def scalametaTrees = ivy"org.scalameta::trees:4.4.21"
   def scalaparse = ivy"com.lihaoyi::scalaparse:2.3.2"
+  def slf4jNop = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   def snailgun = ivy"me.vican.jorge::snailgun-cli:0.4.0"
   def svm = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def svmSubs = ivy"org.scalameta::svm-subs:20.2.0"

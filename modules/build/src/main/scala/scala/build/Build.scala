@@ -166,7 +166,9 @@ object Build {
     addLineModifierPluginOpt: Option[Boolean] = None,
     addScalaLibrary: Boolean = true,
     generateSemanticDbs: Boolean = false,
-    keepDiagnostics: Boolean = false
+    keepDiagnostics: Boolean = false,
+    fetchSources: Boolean = false,
+    extraJars: Seq[os.Path] = Nil
   ) {
     def classesDir(root: os.Path, projectName: String): os.Path =
       root / ".scala" / projectName / s"scala-$scalaVersion" / "classes"
@@ -318,7 +320,11 @@ object Build {
         }
 
         val watcher0 = watcher.newWatcher()
-        watcher0.register(elem.path.toNIO, depth)
+        elem match {
+          case d: Inputs.OnDisk =>
+            watcher0.register(d.path.toNIO, depth)
+          case _: Inputs.Virtual =>
+        }
         watcher0.addObserver {
           onChangeBufferedObserver { event =>
             if (eventFilter(event))
@@ -348,7 +354,7 @@ object Build {
 
     val generatedSrcRoot = options.generatedSrcRoot(inputs.workspace, inputs.projectName)
     val generatedSources = sources.generateSources(generatedSrcRoot)
-    val allSources = sources.paths ++ generatedSources.map(_._1)
+    val allSources = sources.paths.map(_._1) ++ generatedSources.map(_._1)
     val allScalaSources = allSources
 
     val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
@@ -386,16 +392,17 @@ object Build {
       else Nil
 
     val artifacts = Artifacts(
-      options.javaHomeOpt.filter(_.nonEmpty),
-      options.jvmIdOpt,
-      options.scalaVersion,
-      options.scalaBinaryVersion,
-      options.scalaJsOptions.map(_.compilerPlugins).getOrElse(Nil) ++
+      javaHomeOpt = options.javaHomeOpt.filter(_.nonEmpty),
+      jvmIdOpt = options.jvmIdOpt,
+      scalaVersion = options.scalaVersion,
+      scalaBinaryVersion = options.scalaBinaryVersion,
+      compilerPlugins = options.scalaJsOptions.map(_.compilerPlugins).getOrElse(Nil) ++
         options.scalaNativeOptions.map(_.compilerPlugins).getOrElse(Nil) ++
         lineModifierPlugins ++
         semanticDbPlugins,
-      allDependencies,
-      options.stubsJarOpt.toSeq ++ options.testRunnerJarsOpt.getOrElse(Nil),
+      dependencies = allDependencies,
+      extraJars = options.extraJars.map(_.toNIO) ++ options.stubsJarOpt.toSeq ++ options.testRunnerJarsOpt.getOrElse(Nil),
+      fetchSources = options.fetchSources,
       addStubs = options.addStubsDependency,
       addJvmRunner = options.addRunnerDependency,
       addJvmTestRunner = options.scalaJsOptions.isEmpty && options.scalaNativeOptions.isEmpty && options.addTestRunnerDependency,
@@ -627,16 +634,18 @@ object Build {
   }
 
   private def registerInputs(watcher: PathWatcher[PathWatchers.Event], inputs: Inputs): Unit =
-    for (elem <- inputs.elements) {
-      val depth = elem match {
-        case _: Inputs.Directory => Int.MaxValue
-        case _: Inputs.ResourceDirectory => Int.MaxValue
-        case _ => -1
-      }
-      watcher.register(elem.path.toNIO, depth) match {
-        case l: com.swoval.functional.Either.Left[IOException, JBoolean] => throw l.getValue
-        case _ =>
-      }
+    inputs.elements.foreach  {
+      case elem: Inputs.OnDisk =>
+        val depth = elem match {
+          case _: Inputs.Directory => Int.MaxValue
+          case _: Inputs.ResourceDirectory => Int.MaxValue
+          case _ => -1
+        }
+        watcher.register(elem.path.toNIO, depth) match {
+          case l: com.swoval.functional.Either.Left[IOException, JBoolean] => throw l.getValue
+          case _ =>
+        }
+      case _: Inputs.Virtual =>
     }
 
   private def printable(path: os.Path): String =

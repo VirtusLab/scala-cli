@@ -1,5 +1,7 @@
 package scala.build.tests
 
+import java.io.IOException
+
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 import dependency.ScalaVersion
@@ -29,7 +31,7 @@ class BuildTests extends munit.FunSuite {
     scalaBinaryVersion = ScalaVersion.binary(sv3)
   )
 
-  test("simple") {
+  def simple(checkResults: Boolean = true): Unit = {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
         """val n = 2
@@ -37,11 +39,21 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
     testInputs.withBuild(defaultOptions, buildThreads) { (root, inputs, build) =>
-      build.assertGeneratedEquals(
-        "simple.class",
-        "simple$.class"
-      )
+      if (checkResults)
+        build.assertGeneratedEquals(
+          "simple.class",
+          "simple$.class"
+        )
     }
+  }
+
+  try simple(checkResults = false)
+  catch {
+    case _: IOException => // ignored
+  }
+
+  test("simple") {
+    simple()
   }
 
   test("scala 3") {

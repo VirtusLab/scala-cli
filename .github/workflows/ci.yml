@@ -27,12 +27,18 @@ jobs:
       run: ./mill -i integration.jvm.test
     - name: Native integration tests
       run: ./mill -i integration.native.test
-      # native-image generation often gets stuck or runs out of memory
-      # on the current GitHub actions Windows runners
-      if: runner.os != 'Windows'
+      if: runner.os == 'macOS'
+    - name: Native core integration tests
+      run: ./mill -i integration-core.native.test
+      # not enough memory on the Linux and Windows runners,
+      # only creating a native image with the core commands
+      if: runner.os == 'Linux' # || runner.os == 'Windows'
     - name: Copy artifacts
-      if: runner.os != 'Windows'
       run: ./mill -i copyLauncher artifacts/
+      if: runner.os == 'macOS'
+    - name: Copy core artifacts
+      run: ./mill -i copyCoreLauncher artifacts/
+      if: runner.os == 'Linux' # || runner.os == 'Windows'
     - uses: actions/upload-artifact@v2.2.3
       if: runner.os != 'Windows'
       with:

@@ -1,8 +1,5 @@
 package scala.build.internal
 
-import ammonite.util.Name
-import ammonite.util.Util.{encodeScalaSourcePath, normalizeNewlines}
-
 object CustomCodeWrapper extends CodeWrapper{
   private val userCodeNestingLevel = 1
   def apply(
@@ -11,12 +8,12 @@ object CustomCodeWrapper extends CodeWrapper{
     indexedWrapperName: Name,
     extraCode: String
   ) = {
-    val packageDirective = if (pkgName.isEmpty) "" else s"package ${encodeScalaSourcePath(pkgName)}" + "\n"
-    val top = normalizeNewlines(s"""$packageDirective
+    val packageDirective = if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
+    val top = AmmUtil.normalizeNewlines(s"""$packageDirective
 
 object ${indexedWrapperName.backticked}{\n"""
       )
-      val bottom = normalizeNewlines(s"""\ndef main(args: _root_.scala.Array[String]) = {}
+      val bottom = AmmUtil.normalizeNewlines(s"""\ndef main(args: _root_.scala.Array[String]) = {}
   $extraCode
 }
 """)

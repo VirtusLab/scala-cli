@@ -1,8 +1,7 @@
 package scala.build.internal
 
-import scalaparse._
-
 import fastparse._, ScalaWhitespace._
+import scalaparse._
 
 object ScalaParse {
 
@@ -37,7 +36,7 @@ object ScalaParse {
   private def `_`[_: P] = scalaparse.Scala.`_`
 
 
-  def ImportSplitter[_: P]: P[Seq[ammonite.util.ImportTree]] = {
+  def ImportSplitter[_: P]: P[Seq[ImportTree]] = {
     def IdParser = P( (Id | `_` ).! ).map(
       s => if (s(0) == '`') s.drop(1).dropRight(1) else s
     )
@@ -48,13 +47,13 @@ object ScalaParse {
     )
     def Prefix = P( IdParser.rep(1, sep = ".") )
     def Suffix = P( "." ~/ (BulkImport | Selectors) )
-    def ImportExpr: P[ammonite.util.ImportTree] = {
+    def ImportExpr: P[ImportTree] = {
       // Manually use `WL0` parser here, instead of relying on WhitespaceApi, as
       // we do not want the whitespace to be consumed even if the WL0 parser parses
       // to the end of the input (which is the default behavior for WhitespaceApi)
       P( Index ~~ Prefix ~~ (WL0 ~~ Suffix).? ~~ Index).map{
         case (start, idSeq, selectors, end) =>
-          ammonite.util.ImportTree(idSeq, selectors, start, end)
+          ImportTree(idSeq, selectors, start, end)
       }
     }
     P( `import` ~/ ImportExpr.rep(1, sep = ","./) )

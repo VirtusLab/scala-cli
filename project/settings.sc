@@ -33,6 +33,9 @@ lazy val cs: String =
   else
     "cs"
 
+// should be the default index in the upcoming coursier release (> 2.0.16)
+def jvmIndex = "https://github.com/coursier/jvm-index/raw/master/index.json"
+
 lazy val vcvarsCandidates = Option(System.getenv("VCVARSALL")) ++ Seq(
   """C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat""",
   """C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat""",
@@ -58,7 +61,7 @@ def generateNativeImage(
 
   val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
     import sys.process._
-    Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", "https://github.com/coursier/jvm-index/raw/master/index.json").!!.trim
+    Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", jvmIndex).!!.trim
   }
 
   val ext = if (Properties.isWin) ".cmd" else ""
@@ -193,6 +196,10 @@ trait CliLaunchers extends SbtModule {
   def localRepoJar: T[PathRef]
   def graalVmVersion: String
 
+  def nativeImageMainClass = T{
+    mainClass().getOrElse(sys.error("Don't know what main class to use"))
+  }
+
   def transitiveJars: T[Agg[PathRef]] = {
 
     def allModuleDeps(todo: List[JavaModule]): List[JavaModule] =
@@ -209,9 +216,65 @@ trait CliLaunchers extends SbtModule {
     }
   }
 
+  def nativeImageClassPath = T{
+    import java.io._
+    import java.util.zip._
+    import scala.collection.JavaConverters._
+    val dir = T.dest / "patched-jars"
+    val toRemove = "org/eclipse/lsp4j/util/Preconditions.class"
+    runClasspath().map { ref =>
+      if (ref.path.last.startsWith("bsp4j-")) {
+        var zf: ZipFile = null
+        try {
+          zf = new ZipFile(ref.path.toIO)
+          val ent = zf.getEntry(toRemove)
+          if (ent == null) ref
+          else {
+            os.makeDir.all(dir)
+            val dest = dir / (ref.path.last.stripSuffix(".jar") + "-patched.jar")
+            var fos: FileOutputStream = null
+            var zos: ZipOutputStream = null
+            try {
+            fos = new FileOutputStream(dest.toIO)
+            zos = new ZipOutputStream(fos)
+            val buf = Array.ofDim[Byte](64*1024)
+            for (ent <- zf.entries.asScala if ent.getName != toRemove) {
+              zos.putNextEntry(ent)
+              var is: InputStream = null
+              try {
+                is = zf.getInputStream(ent)
+                var read = -1
+                while ({
+                  read = is.read(buf)
+                  read >= 0
+                }) {
+                  if (read > 0)
+                    zos.write(buf, 0, read)
+                }
+              } finally {
+                if (is != null)
+                  is.close()
+              }
+            }
+            zos.finish()
+            } finally {
+              if (zos != null) zos.close()
+              if (fos != null) fos.close()
+            }
+            PathRef(dest)
+          }
+        } finally {
+          if (zf != null)
+            zf.close()
+        }
+      }
+      else ref
+    }
+  }
+
   def nativeImage = T{
-    val cp = runClasspath().map(_.path)
-    val mainClass0 = mainClass().getOrElse(sys.error("Don't know what main class to use"))
+    val cp = nativeImageClassPath().map(_.path)
+    val mainClass0 = nativeImageMainClass()
     val dest = T.ctx().dest / "scala"
     val actualDest = T.ctx().dest / s"scala$platformExtension"
 
@@ -227,7 +290,7 @@ trait CliLaunchers extends SbtModule {
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
-      Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", "cs").!!.trim
+      Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", jvmIndex).!!.trim
     }
     val outputDir = T.ctx().dest / "config"
     val command = Seq(

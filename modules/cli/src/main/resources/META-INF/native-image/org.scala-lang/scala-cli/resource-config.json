@@ -1,9 +1,11 @@
 {
   "resources":{
   "includes":[
-    {"pattern":"\\QMETA-INF/services/java.nio.file.spi.FileSystemProvider\\E"}, 
-    {"pattern":"\\Qlibrary.properties\\E"}, 
-    {"pattern":"\\Qnative/x86_64/libswoval-files0.dylib\\E"}
+    {"pattern":"\\Qmetabrowse-assets.zip\\E"},
+    {"pattern":"\\Qio/undertow/version.properties\\E"},
+    {"pattern":"\\Qorg/jboss/threads/Version.properties\\E"},
+    {"pattern":"\\Qorg/xnio/Version.properties\\E"},
+    {"pattern":"\\Qorg/xnio/nio/Version.properties\\E"}
   ]},
   "bundles":[]
 }

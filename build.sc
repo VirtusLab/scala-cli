@@ -10,6 +10,8 @@ import java.io.File
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib.{publish => _, _}
 
+import scala.util.Properties
+
 
 // Tell mill modules are under modules/
 implicit def millModuleBasePath: define.BasePath =
@@ -17,6 +19,7 @@ implicit def millModuleBasePath: define.BasePath =
 
 
 object cli                    extends Cli
+object `cli-core`             extends CliCore
 object build                  extends Cross[Build]             (defaultScalaVersion)
 object stubs                  extends JavaModule with ScalaCliPublishModule with PublishLocalNoFluff
 object runner                 extends Cross[Runner]            (Scala.all: _*)
@@ -25,9 +28,30 @@ object bloopgun               extends Cross[Bloopgun]          (Scala.allScala2:
 object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.all: _*)
 object `tasty-lib`            extends Cross[TastyLib]          (Scala.all: _*)
 
+object `integration-core` extends Module {
+  object jvm    extends JvmIntegrationCore {
+    object test extends Tests
+  }
+  object native extends NativeIntegrationCore {
+    object test extends Tests
+  }
+}
+
 object integration extends Module {
-  object jvm    extends JvmIntegration
-  object native extends NativeIntegration
+  object jvm    extends JvmIntegration {
+    object test extends Tests {
+      def sources = T.sources {
+        super.sources() ++ `integration-core`.jvm.test.sources()
+      }
+    }
+  }
+  object native extends NativeIntegration {
+    object test extends Tests {
+      def sources = T.sources {
+        super.sources() ++ `integration-core`.native.test.sources()
+      }
+    }
+  }
 }
 
 
@@ -41,7 +65,6 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     `test-runner`()
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.ammCompiler,
     Deps.asm,
     Deps.bloopConfig,
     Deps.coursierJvm
@@ -53,6 +76,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     Deps.jniUtils,
     Deps.nativeTestRunner,
     Deps.nativeTools,
+    Deps.osLib,
+    Deps.pprint,
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinker,
     Deps.scalaJsTestAdapter,
@@ -116,7 +141,27 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
   }
 }
 
-trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule {
+trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with HasTests {
+  def scalaVersion = defaultScalaVersion
+  def moduleDeps = Seq(
+    `cli-core`
+  )
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.metabrowseServer,
+    Deps.slf4jNop
+  )
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.svm
+  )
+  def mainClass = Some("scala.cli.ScalaCli")
+
+  def localRepoJar = `local-repo`.localRepoJar()
+  def graalVmVersion = deps.graalVmVersion
+
+  object test extends Tests
+}
+
+trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule {
   def scalaVersion = defaultScalaVersion
   def moduleDeps = Seq(
     build(defaultScalaVersion)
@@ -129,21 +174,23 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule {
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
   )
-  def mainClass = Some("scala.cli.ScalaCli")
+  def mainClass = Some("scala.cli.ScalaCliCore")
 
   def localRepoJar = `local-repo`.localRepoJar()
   def graalVmVersion = deps.graalVmVersion
 }
 
-trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests {
+trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTests {
   def scalaVersion = sv
   def testLauncher: T[PathRef]
   def isNative = T{ false }
 
   def sv = Scala.scala213
 
+  def prefix: String
+
   private def mainArtifactName = T{ artifactName() }
-  object test extends Tests {
+  trait Tests extends super.Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.osLib,
       Deps.pprint
@@ -153,12 +200,20 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests 
       "IS_NATIVE_SCALA_CLI" -> isNative().toString
     )
     def sources = T.sources {
-      val name = mainArtifactName().stripPrefix("integration-")
+      val name = mainArtifactName().stripPrefix(prefix)
       super.sources().map { ref =>
         PathRef(os.Path(ref.path.toString.replace(File.separator + name + File.separator, File.separator)))
       }
     }
   }
+}
+
+trait CliIntegration extends CliIntegrationBase {
+  def prefix = "integration-"
+}
+
+trait CliIntegrationCore extends CliIntegration {
+  def prefix = "integration-core-"
 }
 
 trait NativeIntegration extends CliIntegration {
@@ -168,6 +223,15 @@ trait NativeIntegration extends CliIntegration {
 
 trait JvmIntegration extends CliIntegration {
   def testLauncher = cli.launcher()
+}
+
+trait NativeIntegrationCore extends CliIntegrationCore {
+  def testLauncher = `cli-core`.nativeImage()
+  def isNative = true
+}
+
+trait JvmIntegrationCore extends CliIntegrationCore {
+  def testLauncher = `cli-core`.launcher()
 }
 
 class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
@@ -262,6 +326,11 @@ def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = T.comma
 
 def copyLauncher(directory: String = "artifacts") = T.command {
   val nativeLauncher = cli.nativeImage().path
+  ghreleaseassets.copyLauncher(nativeLauncher, directory)
+}
+
+def copyCoreLauncher(directory: String = "artifacts") = T.command {
+  val nativeLauncher = `cli-core`.nativeImage().path
   ghreleaseassets.copyLauncher(nativeLauncher, directory)
 }
 

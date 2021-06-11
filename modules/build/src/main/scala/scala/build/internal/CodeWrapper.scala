@@ -1,7 +1,5 @@
 package scala.build.internal
 
-import ammonite.util.Name
-
 abstract class CodeWrapper {
   def wrapperPath: Seq[Name] = Nil
   def apply(

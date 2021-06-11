@@ -1,8 +1,5 @@
 package scala.cli.commands
 
-import caseapp._
+import scala.cli.ScalaCli
 
-object Default extends CaseApp[RunOptions] {
-  def run(options: RunOptions, args: RemainingArgs): Unit =
-    Run.run(options, args, defaultInputs = None)
-}
+object Default extends DefaultBase(ScalaCli.help.help(ScalaCli.helpFormat))

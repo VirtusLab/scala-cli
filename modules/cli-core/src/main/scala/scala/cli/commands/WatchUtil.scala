@@ -1,0 +1,23 @@
+package scala.cli.commands
+
+object WatchUtil {
+
+  lazy val isDevMode: Boolean =
+    Option(getClass.getProtectionDomain.getCodeSource)
+      .exists(_.getLocation.toExternalForm.endsWith("classes/"))
+
+  def printWaitMessage(message: String): Unit = {
+    // Both short cuts actually always work, but Ctrl+C also exits mill in mill watch mode.
+    val shortCut = if (isDevMode) "Ctrl+D" else "Ctrl+C"
+    val gray = "\u001b[90m"
+    val reset = Console.RESET
+    System.err.println(s"${gray}$message, press $shortCut to exit.$reset")
+  }
+
+  def printWatchMessage(): Unit =
+    printWaitMessage("Watching sources")
+
+  def waitForCtrlC(): Unit =
+    while (System.in.read() != -1) {}
+
+}
