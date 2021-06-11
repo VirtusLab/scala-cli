@@ -476,7 +476,13 @@ object Build {
             resourceDirs = sources.resourceDirs
     )
 
-    project.writeBloopFile(logger)
+    if (project.writeBloopFile(logger) && os.isDir(classesDir)) {
+      logger.debug(s"Clearing $classesDir")
+      os.list(classesDir).foreach { p =>
+        logger.debug(s"Removing $p")
+        os.remove.all(p)
+      }
+    }
 
     val diagnosticMappings = generatedSources
       .map {
