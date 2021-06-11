@@ -12,8 +12,8 @@ final case class TestOptions(
   @Recurse
     sharedJava: SharedJavaOptions = SharedJavaOptions()
 ) {
-  def buildOptions(scalaVersions: ScalaVersions): Build.Options =
-    shared.buildOptions(scalaVersions, enableJmh = None, jmhVersion = None)
+  def buildOptions: Build.Options =
+    shared.buildOptions(enableJmh = None, jmhVersion = None)
 }
 
 object TestOptions {

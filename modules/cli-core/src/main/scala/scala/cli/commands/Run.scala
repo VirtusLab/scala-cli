@@ -28,13 +28,11 @@ object Run extends ScalaCommand[RunOptions] {
       case Right(i) => i
     }
 
-    val scalaVersions = options.shared.computeScalaVersions()
-    val buildOptions = options.buildOptions(scalaVersions)
+    val buildOptions = options.buildOptions
 
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
       maybeRunOnce(
         options,
-        scalaVersions,
         inputs.workspace,
         inputs.projectName,
         build,
@@ -67,7 +65,6 @@ object Run extends ScalaCommand[RunOptions] {
 
   def maybeRunOnce(
     options: RunOptions,
-    scalaVersions: ScalaVersions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
@@ -87,7 +84,6 @@ object Run extends ScalaCommand[RunOptions] {
         else (mainClass, args)
       runOnce(
         options,
-        scalaVersions,
         root,
         projectName,
         build,
@@ -101,7 +97,6 @@ object Run extends ScalaCommand[RunOptions] {
 
   def runOnce(
     options: RunOptions,
-    scalaVersions: ScalaVersions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,

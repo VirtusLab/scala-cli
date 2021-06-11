@@ -77,8 +77,8 @@ final case class ScalaNativeOptions(
               dump = false,
             output = None
     )
-  def buildOptions(scalaVersions: ScalaVersions): Option[Build.ScalaNativeOptions] =
-    if (native) Some(Build.scalaNativeOptions(scalaVersions.version, scalaVersions.binaryVersion, bloopConfig))
+  def buildOptions: Option[Build.ScalaNativeOptions] =
+    if (native) Some(Build.scalaNativeOptions(bloopConfig))
     else None
 
   def config: sn.NativeConfig =

@@ -4,7 +4,6 @@ import java.io.IOException
 
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
-import dependency.ScalaVersion
 
 import scala.build.{Build, BuildThreads, Inputs}
 import scala.build.tests.TestUtil._
@@ -21,14 +20,14 @@ class BuildTests extends munit.FunSuite {
 
   def sv2 = "2.13.5"
   val defaultOptions = Build.Options(
-    scalaVersion = sv2,
-    scalaBinaryVersion = ScalaVersion.binary(sv2)
+    scalaVersion = Some(sv2),
+    scalaBinaryVersion = None
   )
 
   def sv3 = "3.0.0"
   val defaultScala3Options = defaultOptions.copy(
-    scalaVersion = sv3,
-    scalaBinaryVersion = ScalaVersion.binary(sv3)
+    scalaVersion = Some(sv3),
+    scalaBinaryVersion = None
   )
 
   def simple(checkResults: Boolean = true): Unit = {

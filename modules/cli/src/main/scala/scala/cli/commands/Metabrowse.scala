@@ -33,8 +33,6 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val logger = options.shared.logger
 
-    val scalaVersions = options.shared.computeScalaVersions()
-
     val extraJars =
       if (options.addRtJar.getOrElse(isNativeImage)) {
 
@@ -64,17 +62,17 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       }
       else Nil
 
-    if (scalaVersions.version != Properties.versionNumberString && options.shared.logging.verbosity >= 0)
-      System.err.println(s"Warning: browse command should only work with Scala version ${Properties.versionNumberString}")
-
     val buildOptions = {
-      val baseOptions = options.buildOptions(scalaVersions)
+      val baseOptions = options.buildOptions
       baseOptions.copy(
         extraJars = extraJars ++ baseOptions.extraJars
       )
     }
 
     val build = Build.build(inputs, buildOptions, logger, Os.pwd)
+
+    if (build.artifacts.params.scalaVersion != Properties.versionNumberString && options.shared.logging.verbosity >= 0)
+      System.err.println(s"Warning: browse command should only work with Scala version ${Properties.versionNumberString}")
 
     val successfulBuild = build match {
       case f: Build.Failed =>

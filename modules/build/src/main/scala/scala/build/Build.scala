@@ -91,22 +91,21 @@ object Build {
 
   final case class ScalaJsOptions(
     platformSuffix: String,
-    jsDependencies: Seq[coursierapi.Dependency],
-    compilerPlugins: Seq[coursierapi.Dependency],
+    jsDependencies: Seq[AnyDependency],
+    compilerPlugins: Seq[AnyDependency],
     config: BloopConfig.JsConfig
   )
 
-  def scalaJsOptions(scalaVersion: String, scalaBinaryVersion: String, config: BloopConfig.JsConfig): ScalaJsOptions = {
+  def scalaJsOptions(config: BloopConfig.JsConfig): ScalaJsOptions = {
     val version = config.version
     val platformSuffix = "sjs" + ScalaVersion.jsBinary(version).getOrElse(version)
-    val params = ScalaParameters(scalaVersion, scalaBinaryVersion, Some(platformSuffix))
     ScalaJsOptions(
       platformSuffix = platformSuffix,
       jsDependencies = Seq(
-        dep"org.scala-js::scalajs-library:$version".toApi(params)
+        dep"org.scala-js::scalajs-library:$version"
       ),
       compilerPlugins = Seq(
-        dep"org.scala-js:::scalajs-compiler:$version".toApi(params)
+        dep"org.scala-js:::scalajs-compiler:$version"
       ),
       config = config
     )
@@ -114,28 +113,27 @@ object Build {
 
   final case class ScalaNativeOptions(
     platformSuffix: String,
-    nativeDependencies: Seq[coursierapi.Dependency],
-    compilerPlugins: Seq[coursierapi.Dependency],
+    nativeDependencies: Seq[AnyDependency],
+    compilerPlugins: Seq[AnyDependency],
     config: BloopConfig.NativeConfig
   )
 
-  def scalaNativeOptions(scalaVersion: String, scalaBinaryVersion: String, config: BloopConfig.NativeConfig): ScalaNativeOptions = {
+  def scalaNativeOptions(config: BloopConfig.NativeConfig): ScalaNativeOptions = {
     val version = config.version
     val platformSuffix = "native" + ScalaVersion.nativeBinary(version).getOrElse(version)
-    val params = ScalaParameters(scalaVersion, scalaBinaryVersion, Some(platformSuffix))
     val nativeDeps = Seq("nativelib", "javalib", "auxlib", "scalalib")
-      .map(name => dep"org.scala-native::$name::$version".toApi(params))
+      .map(name => dep"org.scala-native::$name::$version")
     Build.ScalaNativeOptions(
       platformSuffix = platformSuffix,
       nativeDependencies = nativeDeps,
-      compilerPlugins = Seq(dep"org.scala-native:::nscplugin:$version".toApi(params)),
+      compilerPlugins = Seq(dep"org.scala-native:::nscplugin:$version"),
       config = config
     )
   }
 
   final case class Options(
-    scalaVersion: String,
-    scalaBinaryVersion: String,
+    scalaVersion: Option[String],
+    scalaBinaryVersion: Option[String],
     codeWrapper: Option[CodeWrapper] = None,
     scalaJsOptions: Option[ScalaJsOptions] = None,
     scalaNativeOptions: Option[ScalaNativeOptions] = None,
@@ -164,35 +162,36 @@ object Build {
       scalaJsOptions.isEmpty && scalaNativeOptions.isEmpty && addRunnerDependencyOpt.getOrElse(true)
     def addTestRunnerDependency: Boolean =
       addTestRunnerDependencyOpt.getOrElse(false)
-    lazy val params = ScalaParameters(scalaVersion, scalaBinaryVersion)
 
-    def scalaLibraryDependencies: Seq[coursierapi.Dependency] =
+    // lazy val params = ScalaParameters(scalaVersion, scalaBinaryVersion)
+
+    def scalaLibraryDependencies(params: ScalaParameters): Seq[AnyDependency] =
       if (addScalaLibrary.getOrElse(true)) {
         val lib =
-          if (scalaVersion.startsWith("3."))
-            dep"org.scala-lang::scala3-library:${scalaVersion}".toApi(params)
+          if (params.scalaVersion.startsWith("3."))
+            dep"org.scala-lang::scala3-library:${params.scalaVersion}"
           else
-            dep"org.scala-lang:scala-library:${scalaVersion}".toApi
+            dep"org.scala-lang:scala-library:${params.scalaVersion}"
         Seq(lib)
       }
       else Nil
 
-    def dependencies: Seq[coursierapi.Dependency] =
+    def dependencies(params: ScalaParameters): Seq[AnyDependency] =
       scalaJsOptions.map(_.jsDependencies).getOrElse(Nil) ++
         scalaNativeOptions.map(_.nativeDependencies).getOrElse(Nil) ++
-        scalaLibraryDependencies
+        scalaLibraryDependencies(params)
 
-    def semanticDbPlugins: Seq[coursierapi.Dependency] =
-      if (generateSemanticDbs.getOrElse(false) && scalaVersion.startsWith("2."))
+    def semanticDbPlugins(params: ScalaParameters): Seq[AnyDependency] =
+      if (generateSemanticDbs.getOrElse(false) && params.scalaVersion.startsWith("2."))
         Seq(
-          dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion".toApi(params)
+          dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
         )
       else Nil
 
-    def compilerPlugins: Seq[coursierapi.Dependency] =
+    def compilerPlugins(params: ScalaParameters): Seq[AnyDependency] =
       scalaJsOptions.map(_.compilerPlugins).getOrElse(Nil) ++
         scalaNativeOptions.map(_.compilerPlugins).getOrElse(Nil) ++
-        semanticDbPlugins
+        semanticDbPlugins(params)
 
     def allExtraJars: Seq[Path] =
       extraJars.map(_.toNIO)
@@ -200,14 +199,13 @@ object Build {
     def addJvmTestRunner: Boolean = scalaJsOptions.isEmpty && scalaNativeOptions.isEmpty && addTestRunnerDependency
     def addJsTestBridge: Option[String] = if (addTestRunnerDependency) scalaJsOptions.map(_.config.version) else None
 
-    def artifacts(userDependencies: Seq[coursierapi.Dependency], logger: Logger): Artifacts =
+    def artifacts(params: ScalaParameters, userDependencies: Seq[AnyDependency], logger: Logger): Artifacts =
       Artifacts(
         javaHomeOpt = javaHomeOpt.filter(_.nonEmpty),
         jvmIdOpt = jvmIdOpt,
-        scalaVersion = scalaVersion,
-        scalaBinaryVersion = scalaBinaryVersion,
-        compilerPlugins = compilerPlugins,
-        dependencies = userDependencies ++ dependencies,
+        params = params,
+        compilerPlugins = compilerPlugins(params).map(_.toApi(params)),
+        dependencies = userDependencies ++ dependencies(params),
         extraJars = allExtraJars,
         fetchSources = fetchSources.getOrElse(false),
         addStubs = addStubsDependency,
@@ -220,6 +218,47 @@ object Build {
 
   }
 
+  private def computeScalaVersions(scalaVersion: Option[String], scalaBinaryVersion: Option[String]): (String, String) = {
+    import coursier.core.Version
+    lazy val allVersions = {
+      import coursier._
+      import scala.concurrent.ExecutionContext.{global => ec}
+      val modules = {
+        def scala2 = mod"org.scala-lang:scala-library"
+        // No unstable, that *ought* not to be a problem down-the-line…?
+        def scala3 = mod"org.scala-lang:scala3-library_3"
+        if (scalaVersion.contains("2") || scalaVersion.exists(_.startsWith("2."))) Seq(scala2)
+        else if (scalaVersion.contains("3") || scalaVersion.exists(_.startsWith("3."))) Seq(scala3)
+        else Seq(scala2, scala3)
+      }
+      def isStable(v: String): Boolean =
+        !v.endsWith("-NIGHTLY") && !v.contains("-RC")
+      def moduleVersions(mod: Module): Seq[String] = {
+        val res = Versions()
+          .withModule(mod)
+          .result()
+          .unsafeRun()(ec)
+        res.versions.available.filter(isStable)
+      }
+      modules.flatMap(moduleVersions).distinct
+    }
+    val sv = scalaVersion match {
+      case None => scala.util.Properties.versionNumberString
+      case Some(sv0) =>
+        if (Util.isFullScalaVersion(sv0)) sv0
+        else {
+          val prefix = if (sv0.endsWith(".")) sv0 else sv0 + "."
+          val matchingVersions = allVersions.filter(_.startsWith(prefix))
+          if (matchingVersions.isEmpty)
+            sys.error(s"Cannot find matching Scala version for '$sv0'")
+          else
+            matchingVersions.map(Version(_)).max.repr
+        }
+    }
+    val sbv = scalaBinaryVersion.getOrElse(ScalaVersion.binary(sv))
+    (sv, sbv)
+  }
+
   private def build(
     inputs: Inputs,
     options: Options,
@@ -229,17 +268,21 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ): Build = {
-    val maybePlatformSuffix =
-      options.scalaJsOptions.map(_.platformSuffix)
-        .orElse(options.scalaNativeOptions.map(_.platformSuffix))
     val sources = Sources.forInputs(
       inputs,
-      options.codeWrapper.getOrElse(CustomCodeWrapper),
-      maybePlatformSuffix.getOrElse(""),
-      options.scalaVersion,
-      options.scalaBinaryVersion
+      options.codeWrapper.getOrElse(CustomCodeWrapper)
     )
-    val build0 = buildOnce(cwd, inputs, sources, options, threads, logger, buildClient, bloopServer)
+
+    val params = {
+      // at some point, we'll likely get a default Scala version from sources above
+      val (scalaVersion, scalaBinaryVersion) = computeScalaVersions(options.scalaVersion, options.scalaBinaryVersion)
+      val maybePlatformSuffix =
+        options.scalaJsOptions.map(_.platformSuffix)
+          .orElse(options.scalaNativeOptions.map(_.platformSuffix))
+      ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
+    }
+
+    val build0 = buildOnce(cwd, inputs, params, sources, options, threads, logger, buildClient, bloopServer)
 
     build0 match {
       case successful: Successful if options.runJmh.getOrElse(false) =>
@@ -375,6 +418,7 @@ object Build {
   private def buildOnce(
     sourceRoot: os.Path,
     inputs: Inputs,
+    params: ScalaParameters,
     sources: Sources,
     options: Options,
     threads: BuildThreads,
@@ -389,7 +433,7 @@ object Build {
 
     val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
 
-    val artifacts = options.artifacts(sources.dependencies, logger)
+    val artifacts = options.artifacts(params, sources.dependencies, logger)
 
     val pluginScalacOptions = artifacts.compilerPlugins.map {
       case (_, _, path) =>
@@ -398,7 +442,7 @@ object Build {
 
     val semanticDbScalacOptions =
       if (options.generateSemanticDbs.getOrElse(false)) {
-        if (options.scalaVersion.startsWith("2."))
+        if (params.scalaVersion.startsWith("2."))
           Seq(
             "-Yrangepos",
             "-P:semanticdb:failures:warning",
@@ -415,7 +459,7 @@ object Build {
       else Nil
 
     val sourceRootScalacOptions =
-      if (options.scalaVersion.startsWith("2.")) Nil
+      if (params.scalaVersion.startsWith("2.")) Nil
       else Seq("-sourceroot", inputs.workspace.toString)
 
     val scalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-feature") ++
@@ -424,8 +468,8 @@ object Build {
       sourceRootScalacOptions
 
     val scalaCompiler = ScalaCompiler(
-            scalaVersion = options.scalaVersion,
-      scalaBinaryVersion = options.scalaBinaryVersion,
+            scalaVersion = params.scalaVersion,
+      scalaBinaryVersion = params.scalaBinaryVersion,
            scalacOptions = scalacOptions,
        compilerClassPath = artifacts.compilerClassPath
     )
@@ -476,7 +520,7 @@ object Build {
         logger,
         inputs.workspace,
         updateSemanticDbs = generatedSrcRoot == options.defaultGeneratedSrcRoot(inputs.workspace, inputs.projectName),
-        updateTasty = options.scalaVersion.startsWith("3.")
+        updateTasty = params.scalaVersion.startsWith("3.")
       )
 
       Successful(inputs, options, sources, artifacts, project, classesDir, buildClient.diagnostics)

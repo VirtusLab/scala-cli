@@ -33,7 +33,7 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3".toApi(scalaParams)
     )
     testInputs.withInputs { (_, inputs) =>
-      val sources = Sources.forInputs(inputs, CustomCodeWrapper, "", scalaVersion, scalaBinaryVersion)
+      val sources = Sources.forInputs(inputs, CustomCodeWrapper)
 
       expect(sources.dependencies == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -59,7 +59,7 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3".toApi(scalaParams)
     )
     testInputs.withInputs { (_, inputs) =>
-      val sources = Sources.forInputs(inputs, CustomCodeWrapper, "", scalaVersion, scalaBinaryVersion)
+      val sources = Sources.forInputs(inputs, CustomCodeWrapper)
 
       expect(sources.dependencies == expectedDeps)
       expect(sources.paths.isEmpty)

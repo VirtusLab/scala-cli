@@ -20,7 +20,8 @@ final case class Artifacts(
   dependencies: Seq[coursierapi.Dependency],
   artifacts: Seq[(String, Path)],
   sourceArtifacts: Seq[(String, Path)],
-  extraJars: Seq[Path]
+  extraJars: Seq[Path],
+  params: ScalaParameters
 ) {
   lazy val compilerClassPath: Seq[Path] =
     compilerArtifacts.map(_._2)
@@ -35,10 +36,9 @@ object Artifacts {
   def apply(
     javaHomeOpt: Option[String],
     jvmIdOpt: Option[String],
-    scalaVersion: String,
-    scalaBinaryVersion: String,
+    params: ScalaParameters,
     compilerPlugins: Seq[coursierapi.Dependency],
-    dependencies: Seq[coursierapi.Dependency],
+    dependencies: Seq[AnyDependency],
     extraJars: Seq[Path],
     fetchSources: Boolean,
     addStubs: Boolean,
@@ -58,16 +58,14 @@ object Artifacts {
         .getOrElse(javaHome(jvmIdOpt))
     )
 
-    val params = ScalaParameters(scalaVersion, scalaBinaryVersion)
-
     val compilerDependencies =
-      if (scalaVersion.startsWith("3."))
+      if (params.scalaVersion.startsWith("3."))
         Seq(
-          dep"org.scala-lang::scala3-compiler:$scalaVersion".toApi(params)
+          dep"org.scala-lang::scala3-compiler:${params.scalaVersion}".toApi(params)
         )
       else
         Seq(
-          dep"org.scala-lang:scala-compiler:$scalaVersion".toApi
+          dep"org.scala-lang:scala-compiler:${params.scalaVersion}".toApi
         )
 
     val jvmRunnerDependencies =
@@ -91,7 +89,7 @@ object Artifacts {
 
     val allExtraRepositories = extraRepositories ++ localRepoOpt.toSeq
 
-    val updatedDependencies = dependencies ++
+    val updatedDependencies = dependencies.map(_.toApi(params)) ++
       jvmRunnerDependencies ++
       jvmTestRunnerDependencies ++
       jsTestBridgeDependencies ++
@@ -129,7 +127,8 @@ object Artifacts {
       updatedDependencies,
       artifacts0,
       sourceArtifacts,
-      extraJars ++ extraStubsJars
+      extraJars ++ extraStubsJars,
+      params
     )
   }
 

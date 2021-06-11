@@ -22,7 +22,7 @@ final case class MetabrowseOptions(
     port: Int = 4000
 ) {
 
-  def buildOptions(scalaVersions: ScalaVersions): Build.Options =
-    shared.buildOptions(scalaVersions, enableJmh = None, jmhVersion = None)
+  def buildOptions: Build.Options =
+    shared.buildOptions(enableJmh = None, jmhVersion = None)
       .copy(fetchSources = Some(true))
 }

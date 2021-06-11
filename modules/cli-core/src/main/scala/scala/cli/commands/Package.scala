@@ -39,8 +39,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     // TODO Add watch mode
 
-    val scalaVersions = options.shared.computeScalaVersions()
-    val buildOptions = options.buildOptions(scalaVersions)
+    val buildOptions = options.buildOptions
 
     val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
 

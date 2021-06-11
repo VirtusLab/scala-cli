@@ -49,8 +49,8 @@ final case class ScalaJsOptions(
       case ModuleKind.NoModule => "nomodule"
     }
 
-  def buildOptions(scalaVersions: ScalaVersions): Option[Build.ScalaJsOptions] =
-    if (js) Some(Build.scalaJsOptions(scalaVersions.version, scalaVersions.binaryVersion, bloopConfig))
+  def buildOptions: Option[Build.ScalaJsOptions] =
+    if (js) Some(Build.scalaJsOptions(bloopConfig))
     else None
 
   def bloopConfig: BloopConfig.JsConfig = {

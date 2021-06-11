@@ -20,8 +20,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     // TODO Add watch support?
 
-    val scalaVersions = options.shared.computeScalaVersions()
-    val buildOptions = options.buildOptions(scalaVersions)
+    val buildOptions = options.buildOptions
 
     val build = Build.build(inputs, buildOptions, options.shared.logger, Os.pwd)
 
@@ -31,7 +30,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     }
 
     val replArtifacts = ReplArtifacts(
-      options.shared.scalaParams(scalaVersions),
+      build.artifacts.params,
       options.ammoniteVersion,
       build.artifacts.dependencies,
       options.shared.logger

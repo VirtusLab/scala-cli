@@ -42,7 +42,7 @@ object TestUtil {
          toolchain = Nil
       )
       options.copy(
-        scalaJsOptions = Some(Build.scalaJsOptions(options.scalaVersion, options.scalaBinaryVersion, config))
+        scalaJsOptions = Some(Build.scalaJsOptions(config))
       )
     }
     def enableNative = {
@@ -64,7 +64,7 @@ object TestUtil {
             output = None
       )
       options.copy(
-        scalaNativeOptions = Some(Build.scalaNativeOptions(options.scalaVersion, options.scalaBinaryVersion, config))
+        scalaNativeOptions = Some(Build.scalaNativeOptions(config))
       )
     }
   }

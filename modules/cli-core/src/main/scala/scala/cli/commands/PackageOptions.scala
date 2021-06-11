@@ -54,8 +54,8 @@ final case class PackageOptions(
     else if (msi) PackageType.Msi
     else PackageType.Bootstrap
 
-  def buildOptions(scalaVersions: ScalaVersions): Build.Options =
-    shared.buildOptions(scalaVersions, enableJmh = None, jmhVersion = None)
+  def buildOptions: Build.Options =
+    shared.buildOptions(enableJmh = None, jmhVersion = None)
 }
 
 object PackageOptions {

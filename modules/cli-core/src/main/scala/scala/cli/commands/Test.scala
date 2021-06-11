@@ -18,14 +18,13 @@ object Test extends ScalaCommand[TestOptions] {
       case Right(i) => i
     }
 
-    val scalaVersions = options.shared.computeScalaVersions()
-    val buildOptions = options.buildOptions(scalaVersions).copy(
+    val buildOptions = options.buildOptions.copy(
       addTestRunnerDependencyOpt = Some(true)
     )
     if (options.shared.watch) {
       val watcher = Build.watch(inputs, buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
-          testOnce(options, scalaVersions, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
+          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
       }
@@ -35,7 +34,7 @@ object Test extends ScalaCommand[TestOptions] {
       val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
       build match {
         case s: Build.Successful =>
-          testOnce(options, scalaVersions, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
+          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -45,7 +44,6 @@ object Test extends ScalaCommand[TestOptions] {
 
   private def testOnce(
     options: TestOptions,
-    scalaVersions: ScalaVersions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,

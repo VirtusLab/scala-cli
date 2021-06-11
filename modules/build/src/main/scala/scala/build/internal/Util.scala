@@ -44,9 +44,11 @@ object Util {
       apiDep
     }
   }
-  implicit class ScalaDependencyOps(private val dep: dependency.ScalaDependency) extends AnyVal {
+  implicit class ScalaDependencyOps(private val dep: dependency.AnyDependency) extends AnyVal {
     def toApi(params: dependency.ScalaParameters): coursierapi.Dependency =
       dep.applyParams(params).toApi
   }
 
+  def isFullScalaVersion(sv: String): Boolean =
+    sv.count(_ == '.') >= 2 && !sv.endsWith(".")
 }

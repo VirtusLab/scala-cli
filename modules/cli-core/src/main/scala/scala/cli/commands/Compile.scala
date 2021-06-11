@@ -24,8 +24,7 @@ object Compile extends ScalaCommand[CompileOptions] {
           println(cp)
         }
 
-    val scalaVersions = options.shared.computeScalaVersions()
-    val buildOptions = options.buildOptions(scalaVersions)
+    val buildOptions = options.buildOptions
 
     if (options.shared.watch) {
       val watcher = Build.watch(inputs, buildOptions, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
