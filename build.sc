@@ -25,7 +25,6 @@ object stubs                  extends JavaModule with ScalaCliPublishModule with
 object runner                 extends Cross[Runner]            (Scala.all: _*)
 object `test-runner`          extends Cross[TestRunner]        (Scala.all: _*)
 object bloopgun               extends Cross[Bloopgun]          (Scala.allScala2: _*)
-object `line-modifier-plugin` extends Cross[LineModifierPlugin](Scala.all: _*)
 object `tasty-lib`            extends Cross[TastyLib]          (Scala.all: _*)
 
 object `integration-core` extends Module {
@@ -113,10 +112,6 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def runnerModuleName = "${runner(defaultScalaVersion).artifactName()}"
          |  def runnerVersion = "${runner(defaultScalaVersion).publishVersion()}"
          |  def runnerMainClass = "${runner(defaultScalaVersion).mainClass().getOrElse(sys.error("No main class defined for runner"))}"
-         |
-         |  def lineModifierPluginOrganization = "${`line-modifier-plugin`(defaultScalaVersion).pomSettings().organization}"
-         |  def lineModifierPluginModuleName = "${`line-modifier-plugin`(defaultScalaVersion).artifactName()}"
-         |  def lineModifierPluginVersion = "${`line-modifier-plugin`(defaultScalaVersion).publishVersion()}"
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
@@ -291,14 +286,6 @@ class Bloopgun(val crossScalaVersion: String) extends CrossSbtModule with ScalaC
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 }
 
-class LineModifierPlugin(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
-  def compileIvyDeps =
-    if (crossScalaVersion.startsWith("2."))
-      Agg(Deps.scalac(crossScalaVersion))
-    else
-      Agg(Deps.scala3Compiler(crossScalaVersion))
-}
-
 class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
 
 object `local-repo` extends LocalRepo {
@@ -308,7 +295,7 @@ object `local-repo` extends LocalRepo {
     )
     val crossModules = for {
       sv <- Scala.all
-      proj <- Seq(runner, `test-runner`, `line-modifier-plugin`)
+      proj <- Seq(runner, `test-runner`)
     } yield proj(sv)
     javaModules ++ crossModules
   }

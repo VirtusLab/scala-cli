@@ -20,7 +20,6 @@ The other modules are either:
 
 These are:
 - `bloopgun`: starts a Bloop server if needed, connects to it via nailgun, opens a BSP server to it, …
-- `line-modifier-plugin`: Scala 2 compiler plugin to adjust line numbers in diagnostics and stack traces (adapted from Ammonite, about to be removed)
 - `runner`: simple app that starts a main class, catches any exception it throws and pretty-prints it.
 - `stubs`: empty classes, so that lines such as `import $ivy.$`, left after full blown `import $ivy`s are processed, compile fine (about to be removed?)
 - `test-runner`: finds test frameworks, test suites, and runs them

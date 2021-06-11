@@ -163,7 +163,6 @@ object Build {
     addTestRunnerDependencyOpt: Option[Boolean] = None,
     addJmhDependencies: Option[String] = None,
     runJmh: Boolean = false,
-    addLineModifierPluginOpt: Option[Boolean] = None,
     addScalaLibrary: Boolean = true,
     generateSemanticDbs: Boolean = false,
     keepDiagnostics: Boolean = false,
@@ -183,10 +182,6 @@ object Build {
       scalaJsOptions.isEmpty && scalaNativeOptions.isEmpty && addRunnerDependencyOpt.getOrElse(true)
     def addTestRunnerDependency: Boolean =
       addTestRunnerDependencyOpt.getOrElse(false)
-    def addLineModifierPlugin: Boolean =
-      addLineModifierPluginOpt.getOrElse {
-        false
-      }
   }
 
   private def build(
@@ -377,13 +372,6 @@ object Build {
         options.scalaNativeOptions.map(_.nativeDependencies).getOrElse(Nil) ++
         scalaLibraryDependencies
 
-    val lineModifierPlugins =
-      if (options.addLineModifierPlugin)
-        Seq(
-          dep"$lineModifierPluginOrganization::$lineModifierPluginModuleName:$lineModifierPluginVersion".toApi(params)
-        )
-      else Nil
-
     val semanticDbPlugins =
       if (options.generateSemanticDbs && options.scalaVersion.startsWith("2."))
         Seq(
@@ -398,7 +386,6 @@ object Build {
       scalaBinaryVersion = options.scalaBinaryVersion,
       compilerPlugins = options.scalaJsOptions.map(_.compilerPlugins).getOrElse(Nil) ++
         options.scalaNativeOptions.map(_.compilerPlugins).getOrElse(Nil) ++
-        lineModifierPlugins ++
         semanticDbPlugins,
       dependencies = allDependencies,
       extraJars = options.extraJars.map(_.toNIO) ++ options.stubsJarOpt.toSeq ++ options.testRunnerJarsOpt.getOrElse(Nil),
@@ -415,18 +402,6 @@ object Build {
       case (_, _, path) =>
         s"-Xplugin:${path.toAbsolutePath}"
     }
-
-    val lineModifierScalacOptions =
-      if (options.addLineModifierPlugin) {
-        val lengths = generatedSources
-          .map {
-            case (path, reportingPath, len) =>
-              s"$path->$reportingPath=$len"
-          }
-          .mkString(";")
-        Seq(s"-P:linemodifier:topWrapperLengths=$lengths")
-      }
-      else Nil
 
     val semanticDbScalacOptions =
       if (options.generateSemanticDbs) {
@@ -452,7 +427,6 @@ object Build {
 
     val scalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-feature") ++
       pluginScalacOptions ++
-      lineModifierScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions
 
@@ -487,9 +461,7 @@ object Build {
     val diagnosticMappings = generatedSources
       .map {
         case (path, reportingPath, len) =>
-          val lineShift =
-            if (options.addLineModifierPlugin) 0
-            else -os.read(path).take(len).count(_ == '\n') // charset?
+          val lineShift = -os.read(path).take(len).count(_ == '\n') // charset?
           (path, (reportingPath, lineShift))
       }
       .toMap
@@ -504,16 +476,12 @@ object Build {
     )
 
     if (success) {
-      // TODO Disable post-processing altogether when options.addLineModifierPlugin is true
-      // (needs source gen to use the exact same names as the original file)
       // TODO Write classes to a separate directory during post-processing
       logger.debug("Post-processing class files of pre-processed sources")
       val mappings = generatedSources
         .map {
           case (path, reportingPath, len) =>
-            val lineShift =
-              if (options.addLineModifierPlugin) 0
-              else -os.read(path).take(len).count(_ == '\n') // charset?
+            val lineShift = -os.read(path).take(len).count(_ == '\n') // charset?
             (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
         }
         .toMap
