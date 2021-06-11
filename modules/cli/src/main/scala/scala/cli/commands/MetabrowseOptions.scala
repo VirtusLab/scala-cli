@@ -9,6 +9,9 @@ final case class MetabrowseOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
 
+  @HelpMessage("Download and add rt.jar in the class path")
+    addRtJar: Option[Boolean] = None,
+
   @Group("Metabrowse server")
   @HelpMessage("Bind to host")
   @Name("H")

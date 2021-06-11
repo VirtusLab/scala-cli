@@ -7,6 +7,7 @@ import caseapp._
 import metabrowse.server.{MetabrowseServer, Sourcepath}
 
 import scala.build.{Build, Inputs, Logger, Os}
+import scala.concurrent.ExecutionContext.{global => ec}
 import scala.util.Properties
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
@@ -15,6 +16,9 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     List("browse"),
     List("metabrowse")
   )
+
+  def isNativeImage = sys.props.contains("org.graalvm.nativeimage.imagecode")
+
   def run(options: MetabrowseOptions, args: RemainingArgs): Unit = {
 
     // silence undertow logging
@@ -31,10 +35,44 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val scalaVersions = options.shared.computeScalaVersions()
 
+    val extraJars =
+      if (options.addRtJar.getOrElse(isNativeImage)) {
+
+        val fromJavaHomeOpt = options.shared.javaHome.filter(_.nonEmpty)
+          .orElse(Option(System.getenv("JAVA_HOME")))
+          .map(os.Path(_, os.pwd))
+          .map(_ / "jre" / "lib" / "rt.jar")
+          .filter(os.isFile(_))
+
+        def download = {
+          val f = coursier.jvm.JavaHome()
+            .get(options.shared.jvm.filter(_.nonEmpty).getOrElse("8"))
+            .unsafeRun()(ec)
+          val javaHome = os.Path(f, os.pwd)
+          val rtJar = javaHome / "jre" / "lib" / "rt.jar"
+          if (os.isFile(rtJar)) Some(rtJar)
+          else None
+        }
+
+        val rtJarOpt = fromJavaHomeOpt
+          .orElse(download)
+
+        if (rtJarOpt.isEmpty && isNativeImage && options.shared.logging.verbosity >= 0)
+          System.err.println("Warning: could not get rt.jar")
+
+        rtJarOpt.toSeq
+      }
+      else Nil
+
     if (scalaVersions.version != Properties.versionNumberString && options.shared.logging.verbosity >= 0)
       System.err.println(s"Warning: browse command should only work with Scala version ${Properties.versionNumberString}")
 
-    val buildOptions = options.buildOptions(scalaVersions)
+    val buildOptions = {
+      val baseOptions = options.buildOptions(scalaVersions)
+      baseOptions.copy(
+        extraJars = extraJars ++ baseOptions.extraJars
+      )
+    }
 
     val build = Build.build(inputs, buildOptions, logger, Os.pwd)
 
