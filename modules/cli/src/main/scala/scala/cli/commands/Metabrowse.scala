@@ -7,6 +7,7 @@ import caseapp._
 import metabrowse.server.{MetabrowseServer, Sourcepath}
 
 import scala.build.{Build, Inputs, Logger, Os}
+import scala.util.Properties
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
   override def group = "Miscellaneous"
@@ -29,6 +30,10 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val logger = options.shared.logger
 
     val scalaVersions = options.shared.computeScalaVersions()
+
+    if (scalaVersions.version != Properties.versionNumberString && options.shared.logging.verbosity >= 0)
+      System.err.println(s"Warning: browse command should only work with Scala version ${Properties.versionNumberString}")
+
     val buildOptions = options.buildOptions(scalaVersions)
 
     val build = Build.build(inputs, buildOptions, logger, Os.pwd)
