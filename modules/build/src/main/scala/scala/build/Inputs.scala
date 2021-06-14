@@ -27,11 +27,11 @@ final case class Inputs(
           .filter(os.isFile(_))
           .collect {
             case p if p.last.endsWith(".java") =>
-              Inputs.JavaFile(p, Some(d.path))
+              Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
             case p if p.last.endsWith(".scala") =>
-              Inputs.ScalaFile(p, Some(d.path))
+              Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
             case p if p.last.endsWith(".sc") =>
-              Inputs.Script(p, Some(d.path))
+              Inputs.Script(d.path, p.subRelativeTo(d.path))
           }
           .toVector
       case _: Inputs.ResourceDirectory =>
@@ -91,24 +91,18 @@ object Inputs {
     def source: String
   }
 
-  sealed trait SingleFile extends OnDisk {
-    def relativeTo: Option[os.Path]
-    def withRelativeTo(newRelativeTo: Option[os.Path]): SingleFile
-  }
+  sealed trait SingleFile extends OnDisk
   sealed trait Compiled extends Element
   sealed trait AnyScalaFile extends Compiled
 
-  final case class Script(path: os.Path, relativeTo: Option[os.Path]) extends OnDisk with SingleFile with AnyScalaFile {
-    def withRelativeTo(newRelativeTo: Option[os.Path]): Script =
-      copy(relativeTo = newRelativeTo)
+  final case class Script(base: os.Path, subPath: os.SubPath) extends OnDisk with SingleFile with AnyScalaFile {
+    lazy val path = base / subPath
   }
-  final case class ScalaFile(path: os.Path, relativeTo: Option[os.Path]) extends OnDisk with SingleFile with AnyScalaFile {
-    def withRelativeTo(newRelativeTo: Option[os.Path]): ScalaFile =
-      copy(relativeTo = newRelativeTo)
+  final case class ScalaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SingleFile with AnyScalaFile {
+    lazy val path = base / subPath
   }
-  final case class JavaFile(path: os.Path, relativeTo: Option[os.Path]) extends OnDisk with SingleFile with Compiled {
-    def withRelativeTo(newRelativeTo: Option[os.Path]): JavaFile =
-      copy(relativeTo = newRelativeTo)
+  final case class JavaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SingleFile with Compiled {
+    lazy val path = base / subPath
   }
   final case class Directory(path: os.Path) extends OnDisk with Compiled
   final case class ResourceDirectory(path: os.Path) extends OnDisk
@@ -138,20 +132,16 @@ object Inputs {
         }
       }
     val allDirs = validElems.collect { case d: Directory => d.path }
-    def updateSingleFile(f: SingleFile): SingleFile =
-      if (f.relativeTo.isEmpty && f.path.relativeTo(workspace).ups != 0) f.withRelativeTo(Some(f.path / os.up))
-      else f
-    val updatedElems = validElems.flatMap {
-      case d: Directory => Seq(d)
+    val updatedElems = validElems.filter {
       case f: SingleFile =>
         val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
-        if (isInDir) Nil
-        else Seq(updateSingleFile(f))
-      case v: Virtual => Seq(v)
+        !isInDir
+      case _: Directory => true
+      case _: Virtual => true
     }
     val mainClassElemOpt = validElems
       .collectFirst {
-        case f: SingleFile => updateSingleFile(f)
+        case f: SingleFile => f
       }
     Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = true)
   }
@@ -165,12 +155,14 @@ object Inputs {
   ): Either[String, Inputs] = {
     val validatedArgs = args.map { arg =>
       val path = os.Path(arg, cwd)
+      val dir = path / os.up
+      val subPath = path.subRelativeTo(dir)
       lazy val stdinOpt0 = stdinOpt
       if ((arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty) Right(VirtualScalaFile(stdinOpt0.get, "stdin"))
       else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) Right(VirtualScript(stdinOpt0.get, "stdin"))
-      else if (arg.endsWith(".sc")) Right(Script(path, None))
-      else if (arg.endsWith(".scala")) Right(ScalaFile(path, None))
-      else if (arg.endsWith(".java")) Right(JavaFile(path, None))
+      else if (arg.endsWith(".sc")) Right(Script(dir, subPath))
+      else if (arg.endsWith(".scala")) Right(ScalaFile(dir, subPath))
+      else if (arg.endsWith(".java")) Right(JavaFile(dir, subPath))
       else if (os.isDir(path)) Right(Directory(path))
       else if (acceptFds && arg.startsWith("/dev/fd/")) {
         val content = os.read.bytes(os.Path(arg, cwd))

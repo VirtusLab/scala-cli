@@ -117,8 +117,7 @@ object Sources {
     script: Inputs.Script
   ): ScriptData = {
 
-    val root = script.relativeTo.getOrElse(workspace)
-    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, script.path.relativeTo(root))
+    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, script.subPath)
 
     val (deps, updatedCode) = process(script.path).getOrElse((Nil, os.read(script.path)))
 
@@ -173,12 +172,9 @@ object Sources {
       .flatMap { f =>
         process(f.path) match {
           case None =>
-            val root = f.relativeTo.getOrElse(inputs.workspace)
-            val relPath = if (f.path.startsWith(root)) f.path.relativeTo(root) else os.rel / f.path.last
-            Iterator(Right((f.path, relPath)))
+            Iterator(Right(f.path))
           case Some((deps, updatedCode)) =>
-            val relPath = f.path.relativeTo(f.relativeTo.getOrElse(inputs.workspace))
-            Iterator(Left((f.path, deps, relPath, updatedCode)))
+            Iterator(Left((f.path, deps, f.path.relativeTo(inputs.workspace), updatedCode)))
         }
       }
       .toVector
@@ -198,8 +194,7 @@ object Sources {
       .iterator
       .collect {
         case f: Inputs.JavaFile =>
-          val root = f.relativeTo.getOrElse(inputs.workspace)
-          (f.path, if (f.path.startsWith(root)) f.path.relativeTo(root) else os.rel / f.path.last)
+          f.path
       }
       .toVector
 
@@ -228,7 +223,7 @@ object Sources {
 
     val mainClassOpt = inputs.mainClassElement.collect {
       case s: Inputs.ScalaFile if s.path.last.endsWith(".scala") => // TODO ignore case for the suffix?
-        val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, s.path.relativeTo(s.relativeTo.getOrElse(inputs.workspace)))
+        val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, s.subPath)
         (pkg :+ wrapper).map(_.raw).mkString(".")
       case s: Inputs.Script =>
         scriptData(inputs.workspace, codeWrapper, s).className
@@ -250,7 +245,7 @@ object Sources {
         }
 
     Sources(
-      paths = javaFilePaths ++ scalaFilePaths,
+      paths = (javaFilePaths ++ scalaFilePaths).map(p => (p, p.relativeTo(inputs.workspace))),
       inMemory = inMemoryScalaFiles ++ allScriptData.map(script => (script.reportingPath, script.relPath, script.code, script.topWrapperLen)),
       mainClass = mainClassOpt,
       dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
