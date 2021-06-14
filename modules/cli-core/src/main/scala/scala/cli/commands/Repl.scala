@@ -11,7 +11,8 @@ object Repl extends ScalaCommand[ReplOptions] {
   )
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, Os.pwd, defaultInputs = Some(Inputs.default())) match {
+    val directories = options.shared.directories.directories
+    val inputs = Inputs(args.all, Os.pwd, directories, defaultInputs = Some(Inputs.default())) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -33,7 +34,8 @@ object Repl extends ScalaCommand[ReplOptions] {
       build.artifacts.params,
       options.ammoniteVersion,
       build.artifacts.dependencies,
-      options.shared.logger
+      options.shared.logger,
+      directories
     )
 
     // TODO Warn if some entries of build.artifacts.classPath were evicted in replArtifacts.replClassPath

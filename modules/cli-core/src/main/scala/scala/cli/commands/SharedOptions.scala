@@ -16,6 +16,9 @@ final case class SharedOptions(
   @Recurse
     native: ScalaNativeOptions = ScalaNativeOptions(),
 
+  @Recurse
+    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
+
   @Group("Scala")
   @HelpMessage("Set Scala version")
   @ValueDescription("version")
@@ -106,7 +109,7 @@ final case class SharedOptions(
       addRunnerDependencyOpt = runner,
       generateSemanticDbs = semanticDb,
       extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
-      extraRepositories = LocalRepo.localRepo().toSeq
+      extraRepositories = LocalRepo.localRepo(directories.directories.localRepoDir).toSeq
     )
 }
 

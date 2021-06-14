@@ -191,6 +191,7 @@ object Inputs {
   def apply(
     args: Seq[String],
     cwd: os.Path,
+    directories: Directories,
     baseProjectName: String = "project",
     defaultInputs: Option[Inputs] = None,
     stdinOpt: => Option[Array[Byte]] = None,

@@ -5,7 +5,6 @@ import java.util.Arrays
 
 import caseapp._
 import caseapp.core.complete.{Bash, Zsh}
-import coursier.cache.shaded.dirs.dev.dirs.ProjectDirectories
 
 import scala.cli.internal.ProfileFileUpdater
 
@@ -19,11 +18,7 @@ object InstallCompletions extends Command[InstallCompletionsOptions] {
     lazy val completionsDir =
       options.directory
         .map(os.Path(_, os.pwd))
-        .getOrElse {
-          // TODO When bumping the coursier version, pass the 4th argument too (more stable Windows env var stuff)
-          val projDirs = ProjectDirectories.from(null, null, "ScalaCli")
-          os.Path(projDirs.dataLocalDir, os.pwd) / "completions"
-        }
+        .getOrElse(options.directories.directories.completionsDir)
 
     val logger = options.logging.logger
 

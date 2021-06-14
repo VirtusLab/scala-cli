@@ -24,7 +24,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     // silence undertow logging
     sys.props("org.jboss.logging.provider") = "slf4j"
 
-    val inputs = Inputs(args.all, Os.pwd) match {
+    val inputs = Inputs(args.all, Os.pwd, options.shared.directories.directories) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)

@@ -10,7 +10,7 @@ object Compile extends ScalaCommand[CompileOptions] {
   override def group = "Main"
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, Os.pwd) match {
+    val inputs = Inputs(args.all, Os.pwd, options.shared.directories.directories) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)

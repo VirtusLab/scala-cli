@@ -5,6 +5,8 @@ import caseapp._
 final case class InstallCompletionsOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
 
   format: String,
 

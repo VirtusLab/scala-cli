@@ -27,9 +27,10 @@ object ReplArtifacts {
     scalaParams: ScalaParameters,
     ammoniteVersion: String,
     dependencies: Seq[coursierapi.Dependency],
-    logger: Logger
+    logger: Logger,
+    directories: Directories
   ): ReplArtifacts = {
-    val localRepoOpt = LocalRepo.localRepo()
+    val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
     val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion, scalaParams)
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, logger)
     ReplArtifacts(replArtifacts)

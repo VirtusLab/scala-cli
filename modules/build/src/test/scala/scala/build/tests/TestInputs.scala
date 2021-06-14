@@ -3,7 +3,7 @@ package scala.build.tests
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
 
-import scala.build.{Build, BuildThreads, Inputs}
+import scala.build.{Build, BuildThreads, Directories, Inputs}
 import scala.util.control.NonFatal
 import scala.util.{Properties, Try}
 
@@ -19,7 +19,7 @@ final case class TestInputs(
       }
 
       val inputArgs0 = if (inputArgs.isEmpty) files.map(_._1.toString) else inputArgs
-      Inputs(inputArgs0, tmpDir) match {
+      Inputs(inputArgs0, tmpDir, Directories.under(tmpDir / ".data")) match {
         case Left(err) => sys.error(err)
         case Right(inputs) => f(tmpDir, inputs)
       }

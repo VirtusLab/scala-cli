@@ -21,7 +21,7 @@ object Run extends ScalaCommand[RunOptions] {
 
     val pwd = Os.pwd
 
-    val inputs = Inputs(args.remaining, pwd, defaultInputs = defaultInputs, stdinOpt = readStdin(logger = options.shared.logger), acceptFds = !Properties.isWin) match {
+    val inputs = Inputs(args.remaining, pwd, options.shared.directories.directories, defaultInputs = defaultInputs, stdinOpt = readStdin(logger = options.shared.logger), acceptFds = !Properties.isWin) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)

@@ -5,7 +5,7 @@ import java.io.IOException
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.{Build, BuildThreads, Inputs, LocalRepo}
+import scala.build.{Build, BuildThreads, Directories, Inputs, LocalRepo}
 import scala.build.tests.TestUtil._
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
@@ -15,14 +15,19 @@ class BuildTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
 
-  override def afterAll(): Unit =
+  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories = Directories.under(extraRepoTmpDir)
+
+  override def afterAll(): Unit = {
+    os.remove.all(extraRepoTmpDir)
     buildThreads.shutdown()
+  }
 
   def sv2 = "2.13.5"
   val defaultOptions = Build.Options(
     scalaVersion = Some(sv2),
     scalaBinaryVersion = None,
-    extraRepositories = LocalRepo.localRepo().toSeq
+    extraRepositories = LocalRepo.localRepo(directories.localRepoDir).toSeq
   )
 
   def sv3 = "3.0.0"

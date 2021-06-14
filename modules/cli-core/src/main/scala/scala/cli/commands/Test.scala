@@ -11,7 +11,7 @@ object Test extends ScalaCommand[TestOptions] {
 
     val pwd = Os.pwd
 
-    val inputs = Inputs(args.all, pwd, defaultInputs = Some(Inputs.default())) match {
+    val inputs = Inputs(args.all, pwd, options.shared.directories.directories, defaultInputs = Some(Inputs.default())) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
