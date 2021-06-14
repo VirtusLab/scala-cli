@@ -4,8 +4,6 @@ import java.nio.file.Path
 
 import dependency._
 
-import scala.build.internal.Util.ScalaDependencyOps
-
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, Path)]
 ) {
@@ -26,18 +24,18 @@ object ReplArtifacts {
   def apply(
     scalaParams: ScalaParameters,
     ammoniteVersion: String,
-    dependencies: Seq[coursierapi.Dependency],
+    dependencies: Seq[AnyDependency],
     logger: Logger,
     directories: Directories
   ): ReplArtifacts = {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
-    val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion, scalaParams)
-    val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, logger)
+    val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion)
+    val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
     ReplArtifacts(replArtifacts)
   }
 
-  private def ammoniteDependencies(ammoniteVersion: String, scalaParams: ScalaParameters): Seq[coursierapi.Dependency] =
+  private def ammoniteDependencies(ammoniteVersion: String): Seq[AnyDependency] =
     Seq(
-      dep"com.lihaoyi:::ammonite:$ammoniteVersion".toApi(scalaParams)
+      dep"com.lihaoyi:::ammonite:$ammoniteVersion"
     )
 }

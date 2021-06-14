@@ -11,11 +11,12 @@ import scala.build.tests.TestUtil._
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 import scala.build.tastylib.TastyData
+import scala.build.Logger
 
 class BuildTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
-  val bloopConfig = bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath())
+  val bloopConfig = bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath(Logger.nop))
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories = Directories.under(extraRepoTmpDir)

@@ -28,9 +28,9 @@ class SourcesTests extends munit.FunSuite {
           |""".stripMargin
     )
     val expectedDeps = Seq(
-      dep"org1:name1:1.1".toApi,
-      dep"org2::name2:2.2".toApi(scalaParams),
-      dep"org3:::name3:3.3".toApi(scalaParams)
+      dep"org1:name1:1.1",
+      dep"org2::name2:2.2",
+      dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
       val sources = Sources.forInputs(inputs, CustomCodeWrapper)
@@ -54,9 +54,9 @@ class SourcesTests extends munit.FunSuite {
           |""".stripMargin
     )
     val expectedDeps = Seq(
-      dep"org1:name1:1.1".toApi,
-      dep"org2::name2:2.2".toApi(scalaParams),
-      dep"org3:::name3:3.3".toApi(scalaParams)
+      dep"org1:name1:1.1",
+      dep"org2::name2:2.2",
+      dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
       val sources = Sources.forInputs(inputs, CustomCodeWrapper)

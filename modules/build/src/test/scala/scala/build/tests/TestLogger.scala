@@ -19,12 +19,8 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
     if (debug)
       System.err.println(s)
 
-  def withCoursierLogger[T](f: CacheLogger => T): T = {
-    val logger = RefreshLogger.create(new FallbackRefreshDisplay)
-    logger.use(f(logger))
-  }
-  def coursierInterfaceLogger: coursierapi.Logger =
-    coursierapi.Logger.progressBars() // meh
+  def coursierLogger: CacheLogger =
+    RefreshLogger.create(new FallbackRefreshDisplay)
 
   def bloopgunLogger: bloopgun.BloopgunLogger =
     bloopgun.BloopgunLogger.nop

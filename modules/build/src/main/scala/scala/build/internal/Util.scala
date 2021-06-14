@@ -29,24 +29,25 @@ object Util {
         }
     }
 
-  implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
-    def toApi: coursierapi.Dependency = {
-      val apiMod = coursierapi.Module.of(dep.organization, dep.name, dep.attributes.asJava)
-      val apiDep = coursierapi.Dependency.of(apiMod, dep.version)
+  private implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
+    def toCs: coursier.Dependency = {
+      val mod = coursier.Module(coursier.Organization(dep.organization), coursier.ModuleName(dep.name), dep.attributes)
+      var dep0 = coursier.Dependency(mod, dep.version)
       if (dep.exclude.nonEmpty)
-        apiDep.withExclusion(dep.exclude.toSet[dependency.Module].map(mod => new SimpleEntry(mod.organization, mod.name): Entry[String, String]).asJava)
+        dep0 = dep0.withExclusions(dep.exclude.toSet[dependency.Module].map(mod => (coursier.Organization(mod.organization), coursier.ModuleName(mod.name))))
       for (clOpt <- dep.userParams.get("classifier"); cl <- clOpt)
-        apiDep.withClassifier(cl)
+        dep0 = dep0.withConfiguration(coursier.core.Configuration(cl))
       for (_ <- dep.userParams.get("intransitive"))
-        apiDep.withTransitive(true)
-      for (tpeOpt <- dep.userParams.get("type"); tpe <- tpeOpt)
-        apiDep.withType(tpe)
-      apiDep
+        dep0 = dep0.withTransitive(true)
+      // FIXME
+      // for (tpeOpt <- dep.userParams.get("type"); tpe <- tpeOpt)
+      //   dep0 = dep0.withType(tpe)
+      dep0
     }
   }
   implicit class ScalaDependencyOps(private val dep: dependency.AnyDependency) extends AnyVal {
-    def toApi(params: dependency.ScalaParameters): coursierapi.Dependency =
-      dep.applyParams(params).toApi
+    def toCs(params: dependency.ScalaParameters): coursier.Dependency =
+      dep.applyParams(params).toCs
   }
 
   def isFullScalaVersion(sv: String): Boolean =

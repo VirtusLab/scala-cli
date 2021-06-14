@@ -66,7 +66,6 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.bloopConfig,
-    Deps.coursierInterface,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections")),
@@ -167,7 +166,6 @@ trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule {
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
-    Deps.coursierInterfaceSvmSubs,
     Deps.svmSubs
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(

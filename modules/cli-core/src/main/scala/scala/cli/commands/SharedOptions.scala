@@ -115,7 +115,7 @@ final case class SharedOptions(
     )
 
   def bloopgunConfig: bloopgun.BloopgunConfig =
-    bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath())
+    bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath(logging.logger))
 }
 
 object SharedOptions {

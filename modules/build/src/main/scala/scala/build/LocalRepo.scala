@@ -16,14 +16,14 @@ object LocalRepo {
   def localRepo(
     baseDir: os.Path,
     loader: ClassLoader = Thread.currentThread().getContextClassLoader
-  ): Option[coursierapi.Repository] = {
+  ): Option[String] = {
     val archiveUrl = loader.getResource(resourcePath)
 
     if (archiveUrl == null) None
     else {
       val repoDir = baseDir / version
       val tmpRepoDir = repoDir / os.up / s".$version.tmp"
-      val repo = coursierapi.IvyRepository.of(repoDir.toNIO.toUri + "/[defaultPattern]")
+      val repo = "ivy:" + repoDir.toNIO.toUri.toASCIIString + "/[defaultPattern]"
       if (!os.exists(repoDir))
         withLock((repoDir / os.up).toNIO, version) {
           os.remove.all(tmpRepoDir)

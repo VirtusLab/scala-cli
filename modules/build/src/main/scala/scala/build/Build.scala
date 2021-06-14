@@ -8,7 +8,6 @@ import dependency._
 import scala.build.bloop.bloopgun
 import scala.build.internal.{AsmPositionUpdater, CodeWrapper, Constants, CustomCodeWrapper, LineConversion, MainClass, SemanticdbProcessor, Util}
 import scala.build.internal.Constants._
-import scala.build.internal.Util.{DependencyOps, ScalaDependencyOps}
 import scala.build.tastylib.TastyData
 
 import java.io.IOException
@@ -152,7 +151,7 @@ object Build {
     generateSemanticDbs: Option[Boolean] = None,
     keepDiagnostics: Boolean = false,
     fetchSources: Option[Boolean] = None,
-    extraRepositories: Seq[coursierapi.Repository] = Nil,
+    extraRepositories: Seq[String] = Nil,
     extraJars: Seq[os.Path] = Nil
   ) {
     def classesDir(root: os.Path, projectName: String): os.Path =
@@ -209,7 +208,7 @@ object Build {
         javaHomeOpt = javaHomeOpt.filter(_.nonEmpty),
         jvmIdOpt = jvmIdOpt,
         params = params,
-        compilerPlugins = compilerPlugins(params).map(_.toApi(params)),
+        compilerPlugins = compilerPlugins(params),
         dependencies = userDependencies ++ dependencies(params),
         extraJars = allExtraJars,
         fetchSources = fetchSources.getOrElse(false),

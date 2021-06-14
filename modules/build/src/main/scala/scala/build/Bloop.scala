@@ -12,6 +12,7 @@ import dependency.DependencyLike
 import dependency.ScalaParameters
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.util.Properties
+import dependency.AnyDependency
 import dependency.ScalaVersion
 
 object Bloop {
@@ -44,17 +45,13 @@ object Bloop {
   }
 
   def bloopClassPath(
-    dep: coursierapi.Dependency,
-    logger: coursierapi.Logger
+    dep: AnyDependency,
+    params: ScalaParameters,
+    logger: Logger
   ): Seq[File] =
-    coursierapi.Fetch.create()
-      .addDependencies(dep)
-      .withCache(coursierapi.Cache.create().withLogger(logger))
-      .fetch()
-      .asScala
-      .toVector
+    Artifacts.artifacts(Seq(dep), Nil, params, logger).map(_._2.toFile)
 
-  def bloopClassPath(): Seq[File] = {
+  def bloopClassPath(logger: Logger): Seq[File] = {
     val moduleStr = BloopgunConfig.defaultModule
     val mod = ModuleParser.parse(moduleStr) match {
       case Left(err) => sys.error(s"Error parsing default bloop module '$moduleStr'")
@@ -63,7 +60,7 @@ object Bloop {
     val dep = DependencyLike(mod, BloopgunConfig.defaultVersion)
     val sv = Properties.versionNumberString
     val sbv = ScalaVersion.binary(sv)
-    val dep0 = dep.toApi(ScalaParameters(sv, sbv))
-    bloopClassPath(dep0, coursierapi.Logger.nop())
+    val params = ScalaParameters(sv, sbv)
+    bloopClassPath(dep, params, logger)
   }
 }
