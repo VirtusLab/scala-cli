@@ -51,7 +51,7 @@ final case class Project(
   def bloopFile: BloopConfig.File =
     BloopConfig.File(BloopConfig.File.LatestVersion, bloopProject)
 
-  def writeBloopFile(logger: Logger): os.Path = {
+  def writeBloopFile(logger: Logger): Boolean = {
     val bloopFileContent = writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
     val dest = workspace / ".scala" / ".bloop" / s"$projectName.json"
     val doWrite = !os.isFile(dest) || {
@@ -63,7 +63,7 @@ final case class Project(
       os.write.over(dest, bloopFileContent, createFolders = true)
     } else
       logger.debug(s"Bloop project in $dest doesn't need updating")
-    dest
+    doWrite
   }
 }
 
