@@ -12,7 +12,10 @@ import scala.build.tastylib.TastyData
 
 import java.io.IOException
 import java.lang.{Boolean => JBoolean}
+import java.math.BigInteger
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
+import java.security.MessageDigest
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
 
 import scala.collection.mutable.ListBuffer
@@ -152,11 +155,11 @@ object Build {
     extraJars: Seq[os.Path] = Nil
   ) {
     def classesDir(root: os.Path, projectName: String): os.Path =
-      root / ".scala" / projectName / s"scala-$scalaVersion" / "classes"
+      root / ".scala" / projectName / "classes"
     def generatedSrcRoot(root: os.Path, projectName: String) =
       defaultGeneratedSrcRoot(root, projectName)
     def defaultGeneratedSrcRoot(root: os.Path, projectName: String) =
-      root / ".scala" / projectName / s"scala-$scalaVersion" / "src_generated"
+      root / ".scala" / projectName / "src_generated"
     def addStubsDependency: Boolean =
       addStubsDependencyOpt.getOrElse(true)
     def addRunnerDependency: Boolean =
@@ -218,6 +221,72 @@ object Build {
         logger = logger
       )
 
+    lazy val hash: Option[String] = {
+      val md = MessageDigest.getInstance("SHA-1")
+
+      var hasAnyOverride = false
+
+      def update(s: String): Unit = {
+        val bytes = s.getBytes(StandardCharsets.UTF_8)
+        if (bytes.length > 0) {
+          hasAnyOverride = true
+          md.update(bytes)
+        }
+      }
+      for (sv <- scalaVersion)
+        update("scalaVersion=" + sv + "\n")
+      for (sbv <- scalaBinaryVersion)
+        update("scalaBinaryVersion=" + sbv + "\n")
+      for (wrapper <- codeWrapper)
+        // kind of meh to use wrapper.toString here…
+        update("codeWrapper=" + wrapper.toString + "\n")
+      for (jsOpts <- scalaJsOptions) {
+        update("js=" + jsOpts.config.version + "\n")
+        update("js.suffix=" + jsOpts.platformSuffix + "\n")
+        for (plugin <- jsOpts.compilerPlugins)
+          update("js.compilerPlugin+=" + plugin.render + "\n")
+        for (dep <- jsOpts.jsDependencies)
+          update("js.jsDeps+=" + dep.render + "\n")
+      }
+      for (nativeOpts <- scalaNativeOptions) {
+        update("native=" + nativeOpts.config.version + "\n")
+        update("native.suffix=" + nativeOpts.platformSuffix + "\n")
+        for (plugin <- nativeOpts.compilerPlugins)
+          update("native.compilerPlugin+=" + plugin.render + "\n")
+        for (dep <- nativeOpts.nativeDependencies)
+          update("native.nativeDeps+=" + dep.render + "\n")
+      }
+
+      for (home <- javaHomeOpt)
+        update("javaHome=" + home + "\n")
+      for (id <- jvmIdOpt)
+        update("jvmId=" + id + "\n")
+
+      for (add <- addStubsDependencyOpt)
+        update("addStubsDependency=" + add.toString + "\n")
+      for (add <- addRunnerDependencyOpt)
+        update("addRunnerDependency=" + add.toString + "\n")
+      for (add <- addTestRunnerDependencyOpt)
+        update("addTestRunnerDependency=" + add.toString + "\n")
+
+      for (dep <- addJmhDependencies)
+        update("addJmhDependencies=" + dep + "\n")
+      for (add <- addScalaLibrary)
+        update("addScalaLibrary=" + add.toString + "\n")
+      for (generate <- generateSemanticDbs)
+        update("generateSemanticDbs=" + generate.toString + "\n")
+
+      for (jar <- extraJars)
+        update("jars+=" + jar.toString + "\n")
+
+      if (hasAnyOverride) {
+        val digest = md.digest()
+        val calculatedSum = new BigInteger(1, digest)
+        val hash = String.format(s"%040x", calculatedSum).take(10)
+        Some(hash)
+      }
+      else None
+    }
   }
 
   private def computeScalaVersions(scalaVersion: Option[String], scalaBinaryVersion: Option[String]): (String, String) = {
@@ -270,25 +339,33 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ): Build = {
+
     val sources = Sources.forInputs(
       inputs,
       options.codeWrapper.getOrElse(CustomCodeWrapper)
     )
 
+    // at some point, we'll allow to override some options from sources here
+    val options0 = options
+
+    // If some options are manually overridden, append a hash of the options to the project name
+    val inputs0 = inputs.copy(
+      baseProjectName = inputs.baseProjectName + options.hash.map("_" + _).getOrElse("")
+    )
+
     val params = {
-      // at some point, we'll likely get a default Scala version from sources above
-      val (scalaVersion, scalaBinaryVersion) = computeScalaVersions(options.scalaVersion, options.scalaBinaryVersion)
+      val (scalaVersion, scalaBinaryVersion) = computeScalaVersions(options0.scalaVersion, options0.scalaBinaryVersion)
       val maybePlatformSuffix =
-        options.scalaJsOptions.map(_.platformSuffix)
-          .orElse(options.scalaNativeOptions.map(_.platformSuffix))
+        options0.scalaJsOptions.map(_.platformSuffix)
+          .orElse(options0.scalaNativeOptions.map(_.platformSuffix))
       ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
     }
 
-    val build0 = buildOnce(cwd, inputs, params, sources, options, threads, logger, buildClient, bloopServer)
+    val build0 = buildOnce(cwd, inputs0, params, sources, options0, threads, logger, buildClient, bloopServer)
 
     build0 match {
-      case successful: Successful if options.runJmh.getOrElse(false) =>
-        jmhBuild(inputs, successful, threads, logger, cwd, buildClient, bloopServer).getOrElse {
+      case successful: Successful if options0.runJmh.getOrElse(false) =>
+        jmhBuild(inputs0, successful, threads, logger, cwd, buildClient, bloopServer).getOrElse {
           sys.error("JMH build failed") // suppress stack trace?
         }
       case _ => build0
