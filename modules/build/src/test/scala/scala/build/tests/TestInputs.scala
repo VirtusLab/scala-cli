@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
 
 import scala.build.{Build, BuildThreads, Directories, Inputs}
+import scala.build.bloop.bloopgun
 import scala.util.control.NonFatal
 import scala.util.{Properties, Try}
 
@@ -25,8 +26,8 @@ final case class TestInputs(
       }
     }
 
-  def withBuild[T](options: Build.Options, buildThreads: BuildThreads)(f: (os.Path, Inputs, Build) => T): T = withInputs { (root, inputs) =>
-    val build = Build.build(inputs, options, buildThreads, TestLogger(), root)
+  def withBuild[T](options: Build.Options, buildThreads: BuildThreads, bloopConfig: bloopgun.BloopgunConfig)(f: (os.Path, Inputs, Build) => T): T = withInputs { (root, inputs) =>
+    val build = Build.build(inputs, options, buildThreads, bloopConfig, TestLogger(), root)
     f(root, inputs, build)
   }
 }

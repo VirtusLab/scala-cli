@@ -21,8 +21,10 @@ object Test extends ScalaCommand[TestOptions] {
     val buildOptions = options.buildOptions.copy(
       addTestRunnerDependencyOpt = Some(true)
     )
+    val bloopgunConfig = options.shared.bloopgunConfig
+
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
@@ -31,7 +33,7 @@ object Test extends ScalaCommand[TestOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
+      val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, pwd)
       build match {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)

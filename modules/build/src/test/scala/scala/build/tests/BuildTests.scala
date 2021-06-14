@@ -5,7 +5,8 @@ import java.io.IOException
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.{Build, BuildThreads, Directories, Inputs, LocalRepo}
+import scala.build.bloop.bloopgun
+import scala.build.{Bloop, Build, BuildThreads, Directories, Inputs, LocalRepo}
 import scala.build.tests.TestUtil._
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
@@ -14,6 +15,7 @@ import scala.build.tastylib.TastyData
 class BuildTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
+  val bloopConfig = bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath())
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories = Directories.under(extraRepoTmpDir)
@@ -43,7 +45,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
       if (checkResults)
         build.assertGeneratedEquals(
           "simple.class",
@@ -68,7 +70,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultScala3Options, buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultScala3Options, buildThreads, bloopConfig) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -84,7 +86,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.copy(generateSemanticDbs = Some(true)), buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions.copy(generateSemanticDbs = Some(true)), buildThreads, bloopConfig) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -106,7 +108,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultScala3Options.copy(generateSemanticDbs = Some(true)), buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultScala3Options.copy(generateSemanticDbs = Some(true)), buildThreads, bloopConfig) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -128,7 +130,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.enableJs, buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions.enableJs, buildThreads, bloopConfig) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -145,7 +147,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.enableNative, buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions.enableNative, buildThreads, bloopConfig) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -168,7 +170,7 @@ class BuildTests extends munit.FunSuite {
           |println(g.mkString)
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class"
@@ -186,7 +188,7 @@ class BuildTests extends munit.FunSuite {
           |pprint.log(g)
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class"
@@ -202,7 +204,7 @@ class BuildTests extends munit.FunSuite {
           |zz
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.copy(keepDiagnostics = true), buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultOptions.copy(keepDiagnostics = true), buildThreads, bloopConfig) { (root, inputs, build) =>
       val expectedDiag = {
         val start = new bsp4j.Position(2, 0)
         val end = new bsp4j.Position(2, 2)
@@ -227,7 +229,7 @@ class BuildTests extends munit.FunSuite {
           |zz
           |""".stripMargin
     )
-    testInputs.withBuild(defaultScala3Options.copy(keepDiagnostics = true), buildThreads) { (root, inputs, build) =>
+    testInputs.withBuild(defaultScala3Options.copy(keepDiagnostics = true), buildThreads, bloopConfig) { (root, inputs, build) =>
       val expectedDiag = {
         val start = new bsp4j.Position(2, 0)
         val end = new bsp4j.Position(2, 0) // would have expected (2, 2) here :|

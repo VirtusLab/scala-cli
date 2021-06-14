@@ -5,6 +5,7 @@ import ch.epfl.scala.bsp4j
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
 import dependency._
+import scala.build.bloop.bloopgun
 import scala.build.internal.{AsmPositionUpdater, CodeWrapper, Constants, CustomCodeWrapper, LineConversion, MainClass, SemanticdbProcessor, Util}
 import scala.build.internal.Constants._
 import scala.build.internal.Util.{DependencyOps, ScalaDependencyOps}
@@ -376,6 +377,7 @@ object Build {
     inputs: Inputs,
     options: Options,
     threads: BuildThreads,
+    bloopConfig: bloopgun.BloopgunConfig,
     logger: Logger,
     cwd: os.Path
   ): Build = {
@@ -386,6 +388,7 @@ object Build {
     )
     val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
     bloop.BloopServer.withBuildServer(
+      bloopConfig,
       "scala-cli",
       Constants.version,
       inputs.workspace.toNIO,
@@ -409,14 +412,16 @@ object Build {
   def build(
     inputs: Inputs,
     options: Options,
+    bloopConfig: bloopgun.BloopgunConfig,
     logger: Logger,
     cwd: os.Path
   ): Build =
-    build(inputs, options, BuildThreads.create(), logger, cwd)
+    build(inputs, options, BuildThreads.create(), bloopConfig, logger, cwd)
 
   def watch(
     inputs: Inputs,
     options: Options,
+    bloopConfig: bloopgun.BloopgunConfig,
     logger: Logger,
     cwd: os.Path,
     postAction: () => Unit = () => ()
@@ -429,6 +434,7 @@ object Build {
     val threads = BuildThreads.create()
     val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
     val bloopServer = bloop.BloopServer.buildServer(
+      bloopConfig,
       "scala-cli",
       Constants.version,
       inputs.workspace.toNIO,

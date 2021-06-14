@@ -66,6 +66,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.bloopConfig,
+    Deps.coursierInterface,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections")),
@@ -266,7 +267,6 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
 class Bloopgun(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
-    Deps.coursierInterface,
     Deps.snailgun
   )
   def mainClass = Some("scala.build.bloop.bloopgun.Bloopgun")

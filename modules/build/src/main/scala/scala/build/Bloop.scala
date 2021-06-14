@@ -3,6 +3,16 @@ package scala.build
 import ch.epfl.scala.bsp4j
 
 import scala.collection.JavaConverters._
+import java.io.File
+import java.nio.file.Path
+import scala.build.bloop.bloopgun.BloopgunConfig
+import dependency.parser.ModuleParser
+import dependency.Dependency
+import dependency.DependencyLike
+import dependency.ScalaParameters
+import scala.build.internal.Util.ScalaDependencyOps
+import scala.util.Properties
+import dependency.ScalaVersion
 
 object Bloop {
 
@@ -33,4 +43,27 @@ object Bloop {
     success
   }
 
+  def bloopClassPath(
+    dep: coursierapi.Dependency,
+    logger: coursierapi.Logger
+  ): Seq[File] =
+    coursierapi.Fetch.create()
+      .addDependencies(dep)
+      .withCache(coursierapi.Cache.create().withLogger(logger))
+      .fetch()
+      .asScala
+      .toVector
+
+  def bloopClassPath(): Seq[File] = {
+    val moduleStr = BloopgunConfig.defaultModule
+    val mod = ModuleParser.parse(moduleStr) match {
+      case Left(err) => sys.error(s"Error parsing default bloop module '$moduleStr'")
+      case Right(mod) => mod
+    }
+    val dep = DependencyLike(mod, BloopgunConfig.defaultVersion)
+    val sv = Properties.versionNumberString
+    val sbv = ScalaVersion.binary(sv)
+    val dep0 = dep.toApi(ScalaParameters(sv, sbv))
+    bloopClassPath(dep0, coursierapi.Logger.nop())
+  }
 }

@@ -30,13 +30,6 @@ object Bloopgun {
       logger
     )
 
-  def bloopClassPath(config: BloopgunConfig): Seq[Path] =
-    Operations.bloopClassPath(
-      config.module,
-      config.version,
-      coursierapi.Logger.nop()
-    )
-
   /**
     * Starts a new bloop server.
     *
@@ -58,9 +51,7 @@ object Bloopgun {
     logger: BloopgunLogger
   ): Future[Unit] = {
 
-    val classPath = config.classPath.map(_.map(_.toPath)).getOrElse {
-      Operations.bloopClassPath(config.module, config.version, logger.coursierInterfaceLogger)
-    }
+    val classPath = config.classPath().map(_.toPath)
 
     Operations.startServer(
       config.host,

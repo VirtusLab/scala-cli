@@ -4,9 +4,11 @@ import java.io.File
 
 import caseapp._
 import caseapp.core.help.Help
+import scala.build.bloop.bloopgun
 import scala.build.{Build, LocalRepo}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.scalanative.{build => sn}
+import scala.build.Bloop
 
 final case class SharedOptions(
   @Recurse
@@ -111,6 +113,9 @@ final case class SharedOptions(
       extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
       extraRepositories = LocalRepo.localRepo(directories.directories.localRepoDir).toSeq
     )
+
+  def bloopgunConfig: bloopgun.BloopgunConfig =
+    bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath())
 }
 
 object SharedOptions {
