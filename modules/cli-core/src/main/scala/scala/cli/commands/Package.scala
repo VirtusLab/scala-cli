@@ -2,9 +2,10 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
-import scala.build.{Build, Inputs, Os}
-import scala.scalanative.{build => sn}
-import scala.scalanative.util.Scope
+import packager.BuildSettings
+import packager.centOS.dmg.DmgPackage
+import packager.centOS.pkg.PkgPackage
+import packager.dmg.DebianPackage
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.file.attribute.FileTime
@@ -116,12 +117,13 @@ object Package extends ScalaCommand[PackageOptions] {
       packageName: String,
       logger: Logger
   ) = {
+    val pwd = os.pwd
     import NativePackagerType._
     nativePackager match {
-      case Some(Debian) =>  DebianPackage(sourceAppPath, BuildOptions(packageName)).build()
+      case Some(Debian) =>  DebianPackage(sourceAppPath, BuildSettings(outputPath = os.Path(packageName, pwd))).build()
       case Some(Windows) => ???
-      case Some(Dmg) => DmgPackage(sourceAppPath, BuildOptions(packageName)).build()
-      case Some(Pkg) => PkgPackage(sourceAppPath, BuildOptions(packageName)).build()
+      case Some(Dmg) => DmgPackage(sourceAppPath, BuildSettings(outputPath = os.Path(packageName, pwd))).build()
+      case Some(Pkg) => PkgPackage(sourceAppPath, BuildSettings(outputPath = os.Path(packageName, pwd))).build()
       case None  => ()
     }
   }

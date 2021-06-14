@@ -27,7 +27,7 @@ class NativePackagerTests extends munit.FunSuite{
 
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase
         val pkgAppFile = s"$appName.pkg"
-        os.proc(TestUtil.cli, "package", helloWorldFileName, "--pkg", "-n", appName).call(
+        os.proc(TestUtil.cli, "package", helloWorldFileName, "--pkg", "-n", pkgAppFile).call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit,

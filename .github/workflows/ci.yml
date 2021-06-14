@@ -28,6 +28,15 @@ jobs:
     - name: Native integration tests
       run: ./mill -i integration.native.test
       if: runner.os == 'macOS'
+    - name: Build scala-cli native image
+      run: ./mill -i show cli-core.nativeImage
+      if: runner.os == 'Linux'
+    - name: Build deb package for scala-cli
+      run: cs launch org.virtuslab::scala-packager-cli:0.1.3 -- --source-app-path ./out/cli-core/nativeImage/dest/scala --output scala-cli.deb --debian
+      if: runner.os == 'Linux'
+    - name: Copy deb package to artifacts
+      run: mkdir artifacts && cp ./scala-cli.deb artifacts/scala-cli.deb
+      if: runner.os == 'Linux'
     - name: Native core integration tests
       run: ./mill -i integration-core.native.test
       # not enough memory on the Linux and Windows runners,
