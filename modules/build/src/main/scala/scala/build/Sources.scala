@@ -111,11 +111,7 @@ object Sources {
       case Right(dep) => dep
     }
 
-  private def scriptData(
-    workspace: os.Path,
-    codeWrapper: CodeWrapper,
-    script: Inputs.Script
-  ): ScriptData = {
+  private def scriptData(codeWrapper: CodeWrapper, script: Inputs.Script): ScriptData = {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, script.subPath)
 
@@ -133,11 +129,7 @@ object Sources {
     ScriptData(script.path, className, code, deps0, topWrapperLen)
   }
 
-  private def virtualScriptData(
-    workspace: os.Path,
-    codeWrapper: CodeWrapper,
-    script: Inputs.VirtualScript
-  ): ScriptData = {
+  private def virtualScriptData(codeWrapper: CodeWrapper, script: Inputs.VirtualScript): ScriptData = {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, os.rel / "stdin.sc")
 
@@ -226,7 +218,7 @@ object Sources {
         val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, s.subPath)
         (pkg :+ wrapper).map(_.raw).mkString(".")
       case s: Inputs.Script =>
-        scriptData(inputs.workspace, codeWrapper, s).className
+        scriptData(codeWrapper, s).className
     }
 
     val allScriptData =
@@ -234,14 +226,14 @@ object Sources {
         .iterator
         .collect {
           case s: Inputs.Script =>
-            scriptData(inputs.workspace, codeWrapper, s)
+            scriptData(codeWrapper, s)
         }
         .toVector ++
       virtualSourceFiles
         .iterator
         .collect {
           case s: Inputs.VirtualScript =>
-            virtualScriptData(inputs.workspace, codeWrapper, s)
+            virtualScriptData(codeWrapper, s)
         }
 
     Sources(
