@@ -148,6 +148,7 @@ object Build {
     generateSemanticDbs: Option[Boolean] = None,
     keepDiagnostics: Boolean = false,
     fetchSources: Option[Boolean] = None,
+    extraRepositories: Seq[coursierapi.Repository] = Nil,
     extraJars: Seq[os.Path] = Nil
   ) {
     def classesDir(root: os.Path, projectName: String): os.Path =
@@ -213,6 +214,7 @@ object Build {
         addJvmTestRunner = addJvmTestRunner,
         addJsTestBridge = addJsTestBridge,
         addJmhDependencies = addJmhDependencies,
+        extraRepositories = extraRepositories,
         logger = logger
       )
 

@@ -5,7 +5,7 @@ import java.io.IOException
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.{Build, BuildThreads, Inputs}
+import scala.build.{Build, BuildThreads, Inputs, LocalRepo}
 import scala.build.tests.TestUtil._
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
@@ -21,7 +21,8 @@ class BuildTests extends munit.FunSuite {
   def sv2 = "2.13.5"
   val defaultOptions = Build.Options(
     scalaVersion = Some(sv2),
-    scalaBinaryVersion = None
+    scalaBinaryVersion = None,
+    extraRepositories = LocalRepo.localRepo().toSeq
   )
 
   def sv3 = "3.0.0"

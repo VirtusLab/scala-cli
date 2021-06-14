@@ -4,7 +4,7 @@ import java.io.File
 
 import caseapp._
 import caseapp.core.help.Help
-import scala.build.Build
+import scala.build.{Build, LocalRepo}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.scalanative.{build => sn}
 
@@ -105,7 +105,8 @@ final case class SharedOptions(
       addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
       addRunnerDependencyOpt = runner,
       generateSemanticDbs = semanticDb,
-      extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd))
+      extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
+      extraRepositories = LocalRepo.localRepo().toSeq
     )
 }
 

@@ -46,10 +46,9 @@ object Artifacts {
     addJvmTestRunner: Boolean,
     addJsTestBridge: Option[String],
     addJmhDependencies: Option[String],
+    extraRepositories: Seq[coursierapi.Repository],
     logger: Logger
   ): Artifacts = {
-
-    val localRepoOpt = LocalRepo.localRepo()
 
     // expecting Java home to be an absolute path (os.Path will throw else)
     val javaHome0 = os.Path(
@@ -82,12 +81,12 @@ object Artifacts {
       dep"org.openjdk.jmh:jmh-generator-bytecode:$version".toApi
     }
 
-    val extraRepositories =
+    val maybeSnapshotRepo =
       if ((jvmRunnerDependencies ++ jvmTestRunnerDependencies).exists(_.getVersion.endsWith("SNAPSHOT")))
         Seq(coursierapi.MavenRepository.of(coursier.Repositories.sonatype("snapshots").root))
       else Nil
 
-    val allExtraRepositories = extraRepositories ++ localRepoOpt.toSeq
+    val allExtraRepositories = maybeSnapshotRepo ++ extraRepositories
 
     val updatedDependencies = dependencies.map(_.toApi(params)) ++
       jvmRunnerDependencies ++
