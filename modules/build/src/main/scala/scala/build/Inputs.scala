@@ -48,27 +48,8 @@ final case class Inputs(
         Nil
     }
 
-  private lazy val inputsHash = {
-    val root0 = workspace.toNIO
-    val it = elements.iterator.flatMap {
-      case elem: Inputs.OnDisk =>
-        val prefix = elem match {
-          case _: Inputs.Directory => "dir:"
-          case _: Inputs.ResourceDirectory => "resource-dir:"
-          case _: Inputs.JavaFile => "java:"
-          case _: Inputs.ScalaFile => "scala:"
-          case _: Inputs.Script => "sc:"
-        }
-        Iterator(prefix, elem.path.toString, "\n")
-      case v: Inputs.Virtual =>
-        Iterator("virtual:", v.source)
-    }
-    val md = MessageDigest.getInstance("SHA-1")
-    md.update(it.mkString.getBytes(StandardCharsets.UTF_8))
-    val digest = md.digest()
-    val calculatedSum = new BigInteger(1, digest)
-    String.format(s"%040x", calculatedSum).take(10)
-  }
+  private lazy val inputsHash: String =
+    Inputs.inputsHash(elements)
   lazy val projectName = {
     val needsSuffix = mayAppendHash && (elements match {
       case Seq(d: Inputs.Directory) => d.path != workspace
@@ -110,9 +91,32 @@ object Inputs {
   final case class VirtualScript(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
   final case class VirtualScalaFile(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
 
+  private def inputsHash(elements: Seq[Element]): String = {
+    def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
+    val it = elements.iterator.flatMap {
+      case elem: Inputs.OnDisk =>
+        val prefix = elem match {
+          case _: Inputs.Directory => "dir:"
+          case _: Inputs.ResourceDirectory => "resource-dir:"
+          case _: Inputs.JavaFile => "java:"
+          case _: Inputs.ScalaFile => "scala:"
+          case _: Inputs.Script => "sc:"
+        }
+        Iterator(prefix, elem.path.toString, "\n").map(bytes)
+      case v: Inputs.Virtual =>
+        Iterator(bytes("virtual:"), v.content, bytes("\n"))
+    }
+    val md = MessageDigest.getInstance("SHA-1")
+    it.foreach(md.update(_))
+    val digest = md.digest()
+    val calculatedSum = new BigInteger(1, digest)
+    String.format(s"%040x", calculatedSum).take(10)
+  }
+
   private def forValidatedElems(
     validElems: Seq[Compiled],
-    baseProjectName: String
+    baseProjectName: String,
+    directories: Directories
   ): Inputs = {
 
     assert(validElems.nonEmpty)
@@ -120,14 +124,18 @@ object Inputs {
     val hasFiles = validElems.exists { case _: SingleFile => true; case _ => false }
     val dirCount = validElems.count { case _: Directory => true; case _ => false }
 
-    val workspace = validElems
+    val (workspace, needsHash) = validElems
       .collectFirst {
-        case d: Directory => d.path
+        case d: Directory => (d.path, true)
       }
       .getOrElse {
         validElems.head match {
-          case elem: SingleFile => elem.path / os.up
-          case _: Virtual => os.pwd
+          case elem: SingleFile => (elem.path / os.up, true)
+          case _: Virtual =>
+            val hash0 = inputsHash(validElems)
+            val dir = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
+            os.makeDir.all(dir)
+            (dir, false)
           case _: Directory => sys.error("Can't happen")
         }
       }
@@ -143,12 +151,13 @@ object Inputs {
       .collectFirst {
         case f: SingleFile => f
       }
-    Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = true)
+    Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = needsHash)
   }
 
   private def forNonEmptyArgs(
     args: Seq[String],
     cwd: os.Path,
+    directories: Directories,
     baseProjectName: String,
     stdinOpt: => Option[Array[Byte]],
     acceptFds: Boolean
@@ -183,7 +192,7 @@ object Inputs {
       }
       assert(validElems.nonEmpty)
 
-      Right(forValidatedElems(validElems, baseProjectName))
+      Right(forValidatedElems(validElems, baseProjectName, directories))
     } else
       Left(invalid.mkString(System.lineSeparator()))
   }
@@ -200,7 +209,7 @@ object Inputs {
     if (args.isEmpty)
       defaultInputs.toRight("No inputs provided (expected files with .scala or .sc extensions, and / or directories).")
     else
-      forNonEmptyArgs(args, cwd, baseProjectName, stdinOpt, acceptFds)
+      forNonEmptyArgs(args, cwd, directories, baseProjectName, stdinOpt, acceptFds)
 
   def default(cwd: os.Path = Os.pwd): Inputs =
     Inputs(

@@ -5,22 +5,27 @@ import coursier.cache.shaded.dirs.dev.dirs.ProjectDirectories
 trait Directories {
   def localRepoDir: os.Path
   def completionsDir: os.Path
+  def virtualProjectsDir: os.Path
 }
 
 object Directories {
 
   final case class OsLocations(projDirs: ProjectDirectories) extends Directories {
-    def localRepoDir: os.Path =
+    lazy val localRepoDir: os.Path =
       os.Path(projDirs.cacheDir, Os.pwd) / "local-repo"
-    def completionsDir: os.Path =
+    lazy val completionsDir: os.Path =
       os.Path(projDirs.dataLocalDir, Os.pwd) / "completions"
+    lazy val virtualProjectsDir: os.Path =
+      os.Path(projDirs.cacheDir, Os.pwd) / "virtual-projects"
   }
 
   final case class SubDir(dir: os.Path) extends Directories {
-    def localRepoDir: os.Path =
+    lazy val localRepoDir: os.Path =
       dir / "cache" / "local-repo"
-    def completionsDir: os.Path =
+    lazy val completionsDir: os.Path =
       dir / "data-local" / "completions"
+    lazy val virtualProjectsDir: os.Path =
+      dir / "cache" / "virtual-projects"
   }
 
   def default(): Directories =
