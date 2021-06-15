@@ -48,9 +48,9 @@ Build native packagers:
 
 (generating native packager for specified format)
 ```text
-$ ./mill -i 'cli.run' package ..arguments... --debian --output-package-path 'path.deb'
-$ ./mill -i 'cli.run' package ..arguments... --dmg --output-package-path 'path.dmg'
-$ ./mill -i 'cli.run' package ..arguments... --pkg --output-package-path 'path.pkg'
+$ ./mill -i cli.run package ..arguments... --debian --output-package-path 'path.deb'
+$ ./mill -i cli.run package ..arguments... --dmg --output-package-path 'path.dmg'
+$ ./mill -i cli.run package ..arguments... --pkg --output-package-path 'path.pkg'
 ```
 
 #### Generate Metals configuration files
