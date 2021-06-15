@@ -8,8 +8,6 @@ import scala.build.Build
 final case class CompileOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
-  @Recurse
-    benchmarking: BenchmarkingOptions = BenchmarkingOptions(),
 
   @Name("p")
   @Name("classpath")
@@ -18,7 +16,7 @@ final case class CompileOptions(
 ) {
 
   def buildOptions: Build.Options =
-    shared.buildOptions(benchmarking.jmh, benchmarking.jmhVersion)
+    shared.buildOptions(jmhOptions = None, jmhVersion = None)
 }
 
 object CompileOptions {

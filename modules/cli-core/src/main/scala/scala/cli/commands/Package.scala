@@ -40,7 +40,7 @@ object Package extends ScalaCommand[PackageOptions] {
     // TODO Add watch mode
 
     val buildOptions = options.buildOptions
-    val bloopgunConfig = options.shared.bloopgunConfig
+    val bloopgunConfig = options.shared.bloopgunConfig()
 
     val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, pwd)
 

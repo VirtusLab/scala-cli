@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.cache.CacheLogger
-import coursier.cache.loggers.RefreshLogger
+import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
 import scala.build.bloop.bloopgun
 import scala.build.Logger
 
@@ -14,7 +14,10 @@ final case class LoggingOptions(
   @Group("Logging")
   @HelpMessage("Decrease verbosity")
   @Name("q")
-    quiet: Boolean = false
+    quiet: Boolean = false,
+  @Group("Logging")
+  @HelpMessage("Use progress bars")
+    progress: Option[Boolean] = None
 ) {
 
   lazy val verbosity = Tag.unwrap(verbose) - (if (quiet) 1 else 0)
@@ -34,7 +37,12 @@ final case class LoggingOptions(
           System.err.println(message)
 
       def coursierLogger =
-        RefreshLogger.create()
+        if (quiet)
+          CacheLogger.nop
+        else if (progress.getOrElse(coursier.paths.Util.useAnsiOutput()))
+          RefreshLogger.create(ProgressBarRefreshDisplay.create())
+        else
+          RefreshLogger.create(new FallbackRefreshDisplay)
 
       def bloopgunLogger =
         new bloopgun.BloopgunLogger {

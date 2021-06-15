@@ -146,7 +146,7 @@ object Build {
     addRunnerDependencyOpt: Option[Boolean] = None,
     addTestRunnerDependencyOpt: Option[Boolean] = None,
     addJmhDependencies: Option[String] = None,
-    runJmh: Option[Boolean] = None,
+    runJmh: Option[RunJmhOptions] = None,
     addScalaLibrary: Option[Boolean] = None,
     generateSemanticDbs: Option[Boolean] = None,
     keepDiagnostics: Boolean = false,
@@ -330,6 +330,11 @@ object Build {
     (sv, sbv)
   }
 
+  final case class RunJmhOptions(
+    preprocess: Boolean,
+    javaCommand: String
+  )
+
   private def build(
     inputs: Inputs,
     options: Options,
@@ -364,9 +369,13 @@ object Build {
     val build0 = buildOnce(cwd, inputs0, params, sources, options0, threads, logger, buildClient, bloopServer)
 
     build0 match {
-      case successful: Successful if options0.runJmh.getOrElse(false) =>
-        jmhBuild(inputs0, successful, threads, logger, cwd, buildClient, bloopServer).getOrElse {
-          sys.error("JMH build failed") // suppress stack trace?
+      case successful: Successful =>
+        options0.runJmh match {
+          case Some(runJmhOptions) if runJmhOptions.preprocess =>
+            jmhBuild(inputs0, successful, threads, logger, cwd, runJmhOptions.javaCommand, buildClient, bloopServer).getOrElse {
+              sys.error("JMH build failed") // suppress stack trace?
+            }
+          case _ => build0
         }
       case _ => build0
     }
@@ -561,7 +570,6 @@ object Build {
     val project = Project(
                workspace = inputs.workspace,
               classesDir = classesDir,
-                javaHome = artifacts.javaHome,
            scalaCompiler = scalaCompiler,
           scalaJsOptions = options.scalaJsOptions.map(_.config),
       scalaNativeOptions = options.scalaNativeOptions.map(_.config),
@@ -774,6 +782,7 @@ object Build {
     threads: BuildThreads,
     logger: Logger,
     cwd: os.Path,
+    javaCommand: String,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ) = {
@@ -784,7 +793,7 @@ object Build {
     val jmhResourceDir = jmhOutputDir / "resources"
 
     val retCode = Runner.run(
-      build.artifacts.javaHome.toIO,
+      javaCommand,
       Nil,
       build.fullClassPath.map(_.toFile),
       "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
@@ -808,7 +817,7 @@ object Build {
           Inputs.ResourceDirectory(jmhResourceDir)
         )
       )
-      val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = Some(false)), threads, logger, cwd, buildClient, bloopServer)
+      val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = build.options.runJmh.map(_.copy(preprocess = false))), threads, logger, cwd, buildClient, bloopServer)
       Some(jmhBuild)
     }
     else None

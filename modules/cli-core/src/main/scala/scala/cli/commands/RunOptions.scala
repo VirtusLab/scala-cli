@@ -19,10 +19,7 @@ final case class RunOptions(
   @ValueDescription("main-class")
   @Name("M")
     mainClass: Option[String] = None
-) {
-  def buildOptions: Build.Options =
-    shared.buildOptions(benchmarking.jmh, benchmarking.jmhVersion)
-}
+)
 
 object RunOptions {
   implicit val parser = Parser[RunOptions]

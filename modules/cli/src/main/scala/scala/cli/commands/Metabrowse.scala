@@ -36,27 +36,14 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val extraJars =
       if (options.addRtJar.getOrElse(isNativeImage)) {
 
-        val fromJavaHomeOpt = options.shared.javaHome.filter(_.nonEmpty)
-          .orElse(Option(System.getenv("JAVA_HOME")))
-          .map(os.Path(_, os.pwd))
-          .map(_ / "jre" / "lib" / "rt.jar")
-          .filter(os.isFile(_))
+        val rtJarLocation = options.shared.javaHomeLocation() / "jre" / "lib" / "rt.jar"
 
-        def download = {
-          val f = coursier.jvm.JavaHome()
-            .get(options.shared.jvm.filter(_.nonEmpty).getOrElse("8"))
-            .unsafeRun()(ec)
-          val javaHome = os.Path(f, os.pwd)
-          val rtJar = javaHome / "jre" / "lib" / "rt.jar"
-          if (os.isFile(rtJar)) Some(rtJar)
+        val rtJarOpt =
+          if (os.isFile(rtJarLocation)) Some(rtJarLocation)
           else None
-        }
-
-        val rtJarOpt = fromJavaHomeOpt
-          .orElse(download)
 
         if (rtJarOpt.isEmpty && isNativeImage && options.shared.logging.verbosity >= 0)
-          System.err.println("Warning: could not get rt.jar")
+          System.err.println(s"Warning: could not find $rtJarLocation")
 
         rtJarOpt.toSeq
       }
@@ -68,7 +55,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         extraJars = extraJars ++ baseOptions.extraJars
       )
     }
-    val bloopgunConfig = options.shared.bloopgunConfig
+    val bloopgunConfig = options.shared.bloopgunConfig()
 
     val build = Build.build(inputs, buildOptions, bloopgunConfig, logger, Os.pwd)
 

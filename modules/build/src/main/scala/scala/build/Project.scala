@@ -9,7 +9,6 @@ import java.util.Arrays
 final case class Project(
   workspace: os.Path,
   classesDir: os.Path,
-  javaHome: os.Path,
   scalaCompiler: ScalaCompiler,
   scalaJsOptions: Option[BloopConfig.JsConfig],
   scalaNativeOptions: Option[BloopConfig.NativeConfig],
@@ -23,7 +22,7 @@ final case class Project(
 
   def bloopProject: BloopConfig.Project = {
     val platform = (scalaJsOptions, scalaNativeOptions) match {
-      case (None, None) => bloopJvmPlatform(javaHome.toNIO)
+      case (None, None) => bloopJvmPlatform
       case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
       case (_, Some(nativeConfig)) => BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
     }
@@ -90,9 +89,9 @@ object Project {
       resolution = None,
       tags = None
     )
-  private def bloopJvmPlatform(javaHome: Path): BloopConfig.Platform.Jvm =
+  private def bloopJvmPlatform: BloopConfig.Platform.Jvm =
     BloopConfig.Platform.Jvm(
-      config = BloopConfig.JvmConfig(Some(javaHome), Nil),
+      config = BloopConfig.JvmConfig(None, Nil),
       mainClass = None,
       runtimeConfig = None,
       classpath = None,

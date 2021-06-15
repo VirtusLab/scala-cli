@@ -14,7 +14,6 @@ import scala.build.internal.Util.ScalaDependencyOps
 import scala.collection.JavaConverters._
 
 final case class Artifacts(
-  javaHome: os.Path,
   compilerDependencies: Seq[AnyDependency],
   compilerArtifacts: Seq[(String, Path)],
   compilerPlugins: Seq[(AnyDependency, String, Path)],
@@ -50,13 +49,6 @@ object Artifacts {
     extraRepositories: Seq[String],
     logger: Logger
   ): Artifacts = {
-
-    // expecting Java home to be an absolute path (os.Path will throw else)
-    val javaHome0 = os.Path(
-      javaHomeOpt
-        .orElse(if (jvmIdOpt.isEmpty) sys.props.get("java.home") else None)
-        .getOrElse(javaHome(jvmIdOpt))
-    )
 
     val compilerDependencies =
       if (params.scalaVersion.startsWith("3."))
@@ -120,7 +112,6 @@ object Artifacts {
     }
 
     Artifacts(
-      javaHome0,
       compilerDependencies,
       compilerArtifacts,
       compilerPlugins0,
@@ -130,24 +121,6 @@ object Artifacts {
       extraJars ++ extraStubsJars,
       params
     )
-  }
-
-  private def javaHome(idOpt: Option[String]): String = {
-    import scala.concurrent.Await
-    import scala.concurrent.duration.Duration
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val cache = FileCache().withLogger(RefreshLogger.create())
-    // FIXME JavaHome has many parameters that we may want to allow to customize
-    val homeHandler = JavaHome()
-      .withCache(Some(
-        JvmCache().withCache(cache).withIndex(JvmIndex.coursierIndexUrl)
-      ))
-    val homeTask = idOpt match {
-      case None => homeHandler.default()
-      case Some(jvm) => homeHandler.get(jvm)
-    }
-    val home = Await.result(homeTask.future(), Duration.Inf)
-    home.getAbsolutePath
   }
 
   private[build] def artifacts(

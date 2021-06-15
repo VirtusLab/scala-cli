@@ -22,7 +22,9 @@ object Repl extends ScalaCommand[ReplOptions] {
     // TODO Add watch support?
 
     val buildOptions = options.buildOptions
-    val bloopgunConfig = options.shared.bloopgunConfig
+    val bloopgunConfig = options.shared.bloopgunConfig()
+
+    val javaCommand = options.shared.javaCommand()
 
     val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
 
@@ -50,7 +52,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     //       compiler for completion, but not to the main compiler for actual compilation).
 
     Runner.run(
-      build.artifacts.javaHome.toIO,
+      javaCommand,
       options.sharedJava.allJavaOpts,
       successfulBuild.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
       ammoniteMainClass,

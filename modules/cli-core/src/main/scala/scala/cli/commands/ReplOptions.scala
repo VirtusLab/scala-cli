@@ -21,7 +21,7 @@ final case class ReplOptions(
     }
 
   def buildOptions: Build.Options =
-    shared.buildOptions(enableJmh = None, jmhVersion = None)
+    shared.buildOptions(jmhOptions = None, jmhVersion = None)
 }
 
 object ReplOptions {

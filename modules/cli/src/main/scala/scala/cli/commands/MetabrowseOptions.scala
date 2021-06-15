@@ -23,6 +23,6 @@ final case class MetabrowseOptions(
 ) {
 
   def buildOptions: Build.Options =
-    shared.buildOptions(enableJmh = None, jmhVersion = None)
+    shared.buildOptions(jmhOptions = None, jmhVersion = None)
       .copy(fetchSources = Some(true))
 }

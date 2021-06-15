@@ -14,7 +14,7 @@ import sbt.testing.Framework
 object Runner {
 
   def run(
-    javaHome: File,
+    javaCommand: String,
     javaArgs: Seq[String],
     classPath: Seq[File],
     mainClass: String,
@@ -25,9 +25,8 @@ object Runner {
 
     import logger.{log, debug}
 
-    val javaPath = new File(javaHome, "bin/java")
     val command =
-      Seq(javaPath.toString) ++
+      Seq(javaCommand) ++
       javaArgs ++
       Seq(
         "-cp", classPath.iterator.map(_.getAbsolutePath).mkString(File.pathSeparator),

@@ -4,11 +4,14 @@ import java.io.File
 
 import caseapp._
 import caseapp.core.help.Help
+import coursier.cache.FileCache
+import coursier.jvm.{JavaHome, JvmCache}
+
 import scala.build.bloop.bloopgun
-import scala.build.{Build, LocalRepo}
+import scala.build.{Bloop, Build, LocalRepo, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.scalanative.{build => sn}
-import scala.build.Bloop
+import scala.util.Properties
 
 final case class SharedOptions(
   @Recurse
@@ -93,7 +96,7 @@ final case class SharedOptions(
       def error(msg: String) = logger.log(msg)
     }
 
-  def buildOptions(enableJmh: Option[Boolean], jmhVersion: Option[String]): Build.Options =
+  def buildOptions(jmhOptions: Option[Build.RunJmhOptions], jmhVersion: Option[String]): Build.Options =
     Build.Options(
       scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
       scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
@@ -104,9 +107,9 @@ final case class SharedOptions(
       jvmIdOpt = jvm.filter(_.nonEmpty),
       addStubsDependencyOpt = addStubs,
       addJmhDependencies =
-        if (enableJmh.getOrElse(false)) jmhVersion.orElse(Some(Constants.jmhVersion))
+        if (jmhOptions.nonEmpty) jmhVersion.orElse(Some(Constants.jmhVersion))
         else None,
-      runJmh = enableJmh,
+      runJmh = jmhOptions,
       addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
       addRunnerDependencyOpt = runner,
       generateSemanticDbs = semanticDb,
@@ -114,8 +117,41 @@ final case class SharedOptions(
       extraRepositories = LocalRepo.localRepo(directories.directories.localRepoDir).toSeq
     )
 
-  def bloopgunConfig: bloopgun.BloopgunConfig =
-    bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath(logging.logger))
+  // This might download a JVM if --jvm … is passed or no system JVM is installed
+  private lazy val javaCommand0: String = {
+    val javaHomeOpt = javaHome.filter(_.nonEmpty)
+      .orElse(if (jvm.isEmpty) sys.props.get("java.home") else None)
+      .map(os.Path(_, Os.pwd))
+      .orElse {
+        implicit val ec = coursierCache.ec
+        val (id, path) = javaHomeManager.getWithRetainedId(jvm.getOrElse(JavaHome.defaultId)).unsafeRun()
+        if (id == JavaHome.systemId) None
+        else Some(os.Path(path))
+      }
+    val ext = if (Properties.isWin) ".exe" else ""
+
+    javaHomeOpt.fold("java")(javaHome => (javaHome / "bin" / s"java$ext").toString)
+  }
+
+  def javaHomeLocation(): os.Path = {
+    implicit val ec = coursierCache.ec
+    val path = javaHomeManager.get(jvm.getOrElse(JavaHome.defaultId)).unsafeRun()
+    os.Path(path)
+  }
+
+  def javaCommand(): String = javaCommand0
+
+  // This might download a JVM if --jvm … is passed or no system JVM is installed
+  def bloopgunConfig(): bloopgun.BloopgunConfig =
+    bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath(logging.logger)).copy(
+      javaPath = javaCommand()
+    )
+
+  def coursierCache = FileCache().withLogger(logging.logger.coursierLogger)
+  def javaHomeManager = {
+    val jvmCache = JvmCache().withCache(coursierCache)
+    JavaHome().withCache(jvmCache)
+  }
 }
 
 object SharedOptions {

@@ -21,7 +21,7 @@ object Test extends ScalaCommand[TestOptions] {
     val buildOptions = options.buildOptions.copy(
       addTestRunnerDependencyOpt = Some(true)
     )
-    val bloopgunConfig = options.shared.bloopgunConfig
+    val bloopgunConfig = options.shared.bloopgunConfig()
 
     if (options.shared.watch) {
       val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
@@ -78,7 +78,7 @@ object Test extends ScalaCommand[TestOptions] {
         }
       else
         Runner.run(
-          build.artifacts.javaHome.toIO,
+          options.shared.javaCommand(),
           options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,

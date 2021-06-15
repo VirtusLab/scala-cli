@@ -25,7 +25,7 @@ object Compile extends ScalaCommand[CompileOptions] {
         }
 
     val buildOptions = options.buildOptions
-    val bloopgunConfig = options.shared.bloopgunConfig
+    val bloopgunConfig = options.shared.bloopgunConfig()
 
     if (options.shared.watch) {
       val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>

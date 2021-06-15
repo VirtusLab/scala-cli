@@ -28,8 +28,11 @@ object Run extends ScalaCommand[RunOptions] {
       case Right(i) => i
     }
 
-    val buildOptions = options.buildOptions
-    val bloopgunConfig = options.shared.bloopgunConfig
+    val buildOptions = options.shared.buildOptions(
+      jmhOptions = options.benchmarking.jmh.filter(identity).map(_ => Build.RunJmhOptions(preprocess = true, options.shared.javaCommand())),
+      jmhVersion = options.benchmarking.jmhVersion
+    )
+    val bloopgunConfig = options.shared.bloopgunConfig()
 
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
       maybeRunOnce(
@@ -76,7 +79,7 @@ object Run extends ScalaCommand[RunOptions] {
   ): Unit = {
 
     val mainClassOpt = options.mainClass.filter(_.nonEmpty) // trim it too?
-      .orElse(if (build.options.runJmh.getOrElse(false)) Some("org.openjdk.jmh.Main") else None)
+      .orElse(if (build.options.runJmh.fold(false)(!_.preprocess)) Some("org.openjdk.jmh.Main") else None)
       .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
 
     for (mainClass <- mainClassOpt) {
@@ -134,7 +137,7 @@ object Run extends ScalaCommand[RunOptions] {
         }
       else
         Runner.run(
-          build.artifacts.javaHome.toIO,
+          options.shared.javaCommand(),
           options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           mainClass,
