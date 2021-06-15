@@ -13,7 +13,7 @@ import java.nio.file.{Files, Path}
 import java.util.jar.{JarOutputStream, Attributes => JarAttributes}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.build.internal.ScalaJsLinker
-import scala.build.{Build, Inputs, Logger, Os}
+import scala.build.{Build, Inputs, Os}
 import scala.cli.commands.PackageOptions.NativePackagerType
 import scala.scalanative.util.Scope
 import scala.scalanative.{build => sn}
@@ -80,9 +80,6 @@ object Package extends ScalaCommand[PackageOptions] {
         .orElse(successfulBuild.retainedMainClassOpt(warnIfSeveral = true))
     def mainClass() = mainClassOpt.getOrElse(sys.error("No main class"))
 
-    successfulBuild.artifacts.artifacts.foreach( x => println(x._2))
-    println(mainClass())
-
     options.packageType match {
       case PackageOptions.PackageType.Bootstrap =>
         bootstrap(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
@@ -103,27 +100,24 @@ object Package extends ScalaCommand[PackageOptions] {
         buildNative(successfulBuild, mainClass(), destPath, nativeOptions, workDir, logger)
     }
 
-    val nativePackageName = options.nativePackageName.getOrElse(defaultName)
-
-    buildNativePackage(options.nativePackager, destPath, nativePackageName, options.shared.logger)
+    buildNativePackage(options, destPath)
 
     if (options.shared.logging.verbosity >= 0)
       System.err.println(s"Wrote $dest")
   }
 
-  private def buildNativePackage(
-      nativePackager: Option[NativePackagerType],
-      sourceAppPath: os.Path,
-      packageName: String,
-      logger: Logger
-  ) = {
-    val pwd = os.pwd
+  private def buildNativePackage(options: PackageOptions, sourceAppPath: os.Path) = {
+
+    def resolveNativePackagePath(nativePackagerType: NativePackagerType): os.Path =
+      os.Path(options.outputPackagePath.getOrElse(nativePackagerType.defaultNativePackageName), Os.pwd)
+
+    val force = options.force
+
     import NativePackagerType._
-    nativePackager match {
-      case Some(Debian) =>  DebianPackage(sourceAppPath, BuildSettings(outputPath = os.Path(packageName, pwd))).build()
-      case Some(Windows) => ???
-      case Some(Dmg) => DmgPackage(sourceAppPath, BuildSettings(outputPath = os.Path(packageName, pwd))).build()
-      case Some(Pkg) => PkgPackage(sourceAppPath, BuildSettings(outputPath = os.Path(packageName, pwd))).build()
+    options.nativePackager match {
+      case Some(Debian) =>  DebianPackage(sourceAppPath, BuildSettings(force = force, outputPath = resolveNativePackagePath(Debian))).build()
+      case Some(Dmg) => DmgPackage(sourceAppPath, BuildSettings(force = force, outputPath = resolveNativePackagePath(Dmg))).build()
+      case Some(Pkg) => PkgPackage(sourceAppPath, BuildSettings(force = force, outputPath = resolveNativePackagePath(Pkg))).build()
       case None  => ()
     }
   }

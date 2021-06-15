@@ -24,14 +24,20 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Specify which main class to run")
   @ValueDescription("main-class")
-  debian: Boolean = false,
-  msi: Boolean = false,
-  dmg: Boolean = false,
-  pkg: Boolean = false,
-  @Name("n")
-    nativePackageName: Option[String] = None,
   @Name("M")
-    mainClass: Option[String] = None
+    mainClass: Option[String] = None,
+  @Group("Package")
+  @HelpMessage("Build debian package, available only on linux")
+    debian: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Build dmg package, available only on centOS")
+    dmg: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Build pkg package, available only on centOS")
+    pkg: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Set destination path for native package")
+    outputPackagePath: Option[String] = None,
 ) {
   import PackageOptions.PackageType
   def packageType: PackageType =
@@ -46,7 +52,6 @@ final case class PackageOptions(
   import PackageOptions.NativePackagerType
   def nativePackager: Option[NativePackagerType] = {
     if (debian) Some(NativePackagerType.Debian)
-    else if (msi) Some(NativePackagerType.Windows)
     else if (dmg) Some(NativePackagerType.Dmg)
     else if (pkg) Some(NativePackagerType.Pkg)
     else None
@@ -64,12 +69,19 @@ object PackageOptions {
     case object Native extends PackageType
   }
 
-  sealed abstract class NativePackagerType extends Product with Serializable
+  sealed abstract class NativePackagerType extends Product with Serializable {
+    def defaultNativePackageName: String
+  }
   case object NativePackagerType {
-    case object Debian extends NativePackagerType
-    case object Windows extends NativePackagerType
-    case object Dmg extends NativePackagerType
-    case object Pkg extends NativePackagerType
+    case object Debian extends NativePackagerType {
+      override def defaultNativePackageName: String = "app.deb"
+    }
+    case object Dmg extends NativePackagerType {
+      override def defaultNativePackageName: String = "app.dmg"
+    }
+    case object Pkg extends NativePackagerType {
+      override def defaultNativePackageName: String = "app.pkg"
+    }
   }
 
   implicit val parser = Parser[PackageOptions]
