@@ -27,7 +27,7 @@ class NativePackagerTests extends munit.FunSuite{
 
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase
         val pkgAppFile = s"$appName.pkg"
-        os.proc(TestUtil.cli, "package", helloWorldFileName, "--pkg", "--output-package-path", pkgAppFile).call(
+        os.proc(TestUtil.cli, "package", helloWorldFileName, "--pkg", "--output", pkgAppFile).call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit,
@@ -37,7 +37,7 @@ class NativePackagerTests extends munit.FunSuite{
         val pkgAppPath = root / pkgAppFile
         expect(os.isFile(pkgAppPath))
 
-        if (TestUtil.isCI) {
+        if(TestUtil.isCI) {
           os.proc("installer", "-pkg", pkgAppFile, "-target", "CurrentUserHomeDirectory").call(
             cwd = root,
             stdin = os.Inherit,
@@ -47,7 +47,6 @@ class NativePackagerTests extends munit.FunSuite{
 
           val home = sys.props("user.home")
           val output = os.proc(s"$home/Applications/$appName.app/Contents/MacOS/$appName").call(cwd = os.root).out.text.trim
-
           expect(output == message)
         }
       }
@@ -60,7 +59,7 @@ class NativePackagerTests extends munit.FunSuite{
 
         val launcherName = helloWorldFileName.stripSuffix(".scala")
 
-        os.proc(TestUtil.cli, "package", helloWorldFileName, "--dmg", "--output-package-path", launcherName).call(
+        os.proc(TestUtil.cli, "package", helloWorldFileName, "--dmg", "--output", launcherName).call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit,

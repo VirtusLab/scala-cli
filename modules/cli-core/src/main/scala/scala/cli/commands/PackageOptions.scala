@@ -35,53 +35,35 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Build pkg package, available only on centOS")
     pkg: Boolean = false,
-  @Group("Package")
-  @HelpMessage("Set destination path for native package")
-    outputPackagePath: Option[String] = None,
 ) {
   import PackageOptions.PackageType
-  def packageType: PackageType =
+  def packageType: PackageType = {
     if (library) PackageType.LibraryJar
     else if (shared.js) PackageType.Js
     else if (shared.native) PackageType.Native
+    else if (debian)  PackageType.Debian
+    else if (dmg) PackageType.Dmg
+    else if (pkg) PackageType.Pkg
     else PackageType.Bootstrap
+  }
 
   def buildOptions(scalaVersions: ScalaVersions): Build.Options =
     shared.buildOptions(scalaVersions, enableJmh = false, jmhVersion = None)
-
-  import PackageOptions.NativePackagerType
-  def nativePackager: Option[NativePackagerType] = {
-    if (debian) Some(NativePackagerType.Debian)
-    else if (dmg) Some(NativePackagerType.Dmg)
-    else if (pkg) Some(NativePackagerType.Pkg)
-    else None
-  }
 
 }
 
 object PackageOptions {
 
   sealed abstract class PackageType extends Product with Serializable
+  sealed abstract class NativePackagerType extends PackageType
   object PackageType {
     case object Bootstrap extends PackageType
     case object LibraryJar extends PackageType
     case object Js extends PackageType
     case object Native extends PackageType
-  }
-
-  sealed abstract class NativePackagerType extends Product with Serializable {
-    def defaultNativePackageName: String
-  }
-  case object NativePackagerType {
-    case object Debian extends NativePackagerType {
-      override def defaultNativePackageName: String = "app.deb"
-    }
-    case object Dmg extends NativePackagerType {
-      override def defaultNativePackageName: String = "app.dmg"
-    }
-    case object Pkg extends NativePackagerType {
-      override def defaultNativePackageName: String = "app.pkg"
-    }
+    case object Debian extends NativePackagerType
+    case object Dmg extends NativePackagerType
+    case object Pkg extends NativePackagerType
   }
 
   implicit val parser = Parser[PackageOptions]

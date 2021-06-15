@@ -82,9 +82,9 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     Deps.scalaJsLinker,
     Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
+    Deps.scalaPackager,
     Deps.scalaparse,
-    Deps.swoval,
-    Deps.scalaPackager
+    Deps.swoval
   )
 
   def constantsFile = T{

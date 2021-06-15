@@ -14,7 +14,6 @@ import java.util.jar.{JarOutputStream, Attributes => JarAttributes}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.build.internal.ScalaJsLinker
 import scala.build.{Build, Inputs, Os}
-import scala.cli.commands.PackageOptions.NativePackagerType
 import scala.scalanative.util.Scope
 import scala.scalanative.{build => sn}
 import scala.util.Properties
@@ -51,11 +50,17 @@ object Package extends ScalaCommand[PackageOptions] {
     def extension =
       if (options.packageType == PackageOptions.PackageType.LibraryJar) ".jar"
       else if (options.packageType == PackageOptions.PackageType.Js) ".js"
+      else if (options.packageType == PackageOptions.PackageType.Debian) ".deb"
+      else if (options.packageType == PackageOptions.PackageType.Dmg) ".dmg"
+      else if (options.packageType == PackageOptions.PackageType.Pkg) ".pkg"
       else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) ".exe" else ".bat")
       else ""
     def defaultName =
       if (options.packageType == PackageOptions.PackageType.LibraryJar) "library.jar"
       else if (options.packageType == PackageOptions.PackageType.Js) "app.js"
+      else if (options.packageType == PackageOptions.PackageType.Debian) "app.deb"
+      else if (options.packageType == PackageOptions.PackageType.Dmg) "app.dmg"
+      else if (options.packageType == PackageOptions.PackageType.Pkg) "app.pkg"
       else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) "app.exe" else "app.bat")
       else "app"
     val dest = options.output
@@ -98,28 +103,22 @@ object Package extends ScalaCommand[PackageOptions] {
         val logger = options.shared.scalaNativeLogger
 
         buildNative(successfulBuild, mainClass(), destPath, nativeOptions, workDir, logger)
-    }
 
-    buildNativePackage(options, destPath)
+      case nativePackagerType: PackageOptions.NativePackagerType =>
+        val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
+        bootstrap(successfulBuild, bootstrapPath, mainClass(), () => alreadyExistsCheck())
+        nativePackagerType match {
+          case PackageOptions.PackageType.Debian =>
+            DebianPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+          case PackageOptions.PackageType.Dmg =>
+            DmgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+          case PackageOptions.PackageType.Pkg =>
+            PkgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+        }
+    }
 
     if (options.shared.logging.verbosity >= 0)
       System.err.println(s"Wrote $dest")
-  }
-
-  private def buildNativePackage(options: PackageOptions, sourceAppPath: os.Path) = {
-
-    def resolveNativePackagePath(nativePackagerType: NativePackagerType): os.Path =
-      os.Path(options.outputPackagePath.getOrElse(nativePackagerType.defaultNativePackageName), Os.pwd)
-
-    val force = options.force
-
-    import NativePackagerType._
-    options.nativePackager match {
-      case Some(Debian) =>  DebianPackage(sourceAppPath, BuildSettings(force = force, outputPath = resolveNativePackagePath(Debian))).build()
-      case Some(Dmg) => DmgPackage(sourceAppPath, BuildSettings(force = force, outputPath = resolveNativePackagePath(Dmg))).build()
-      case Some(Pkg) => PkgPackage(sourceAppPath, BuildSettings(force = force, outputPath = resolveNativePackagePath(Pkg))).build()
-      case None  => ()
-    }
   }
 
   private def libraryJar(build: Build.Successful): Array[Byte] = {
