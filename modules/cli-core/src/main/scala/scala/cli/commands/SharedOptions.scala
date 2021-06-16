@@ -5,7 +5,6 @@ import java.io.File
 import caseapp._
 import caseapp.core.help.Help
 import coursier.cache.FileCache
-import coursier.jvm.{JavaHome, JvmCache}
 
 import scala.build.bloop.bloopgun
 import scala.build.{Bloop, BuildOptions, LocalRepo, Os}
@@ -123,44 +122,17 @@ final case class SharedOptions(
       addRunnerDependencyOpt = runner,
       generateSemanticDbs = semanticDb,
       extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
-      extraRepositories = LocalRepo.localRepo(directories.directories.localRepoDir).toSeq
+      extraRepositories = LocalRepo.localRepo(directories.directories.localRepoDir).toSeq,
+      cache = Some(coursierCache)
     )
-
-  // This might download a JVM if --jvm … is passed or no system JVM is installed
-  private lazy val javaCommand0: String = {
-    val javaHomeOpt = javaHome.filter(_.nonEmpty)
-      .orElse(if (jvm.isEmpty) sys.props.get("java.home") else None)
-      .map(os.Path(_, Os.pwd))
-      .orElse {
-        implicit val ec = coursierCache.ec
-        val (id, path) = javaHomeManager.getWithRetainedId(jvm.getOrElse(JavaHome.defaultId)).unsafeRun()
-        if (id == JavaHome.systemId) None
-        else Some(os.Path(path))
-      }
-    val ext = if (Properties.isWin) ".exe" else ""
-
-    javaHomeOpt.fold("java")(javaHome => (javaHome / "bin" / s"java$ext").toString)
-  }
-
-  def javaHomeLocation(): os.Path = {
-    implicit val ec = coursierCache.ec
-    val path = javaHomeManager.get(jvm.getOrElse(JavaHome.defaultId)).unsafeRun()
-    os.Path(path)
-  }
-
-  def javaCommand(): String = javaCommand0
 
   // This might download a JVM if --jvm … is passed or no system JVM is installed
   def bloopgunConfig(): bloopgun.BloopgunConfig =
     bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath(logging.logger)).copy(
-      javaPath = javaCommand()
+      javaPath = buildOptions(None, None).javaCommand()
     )
 
-  def coursierCache = FileCache().withLogger(logging.logger.coursierLogger)
-  def javaHomeManager = {
-    val jvmCache = JvmCache().withCache(coursierCache)
-    JavaHome().withCache(jvmCache)
-  }
+  lazy val coursierCache = FileCache().withLogger(logging.logger.coursierLogger)
 
   def inputsOrExit(args: RemainingArgs, defaultInputs: Option[Inputs] = None): Inputs =
     Inputs(args.remaining, Os.pwd, directories.directories, defaultInputs = defaultInputs, stdinOpt = SharedOptions.readStdin(logger = logger), acceptFds = !Properties.isWin) match {

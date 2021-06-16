@@ -167,10 +167,8 @@ object Sources {
         val source = ConfigSource.string(os.read(f))
         source.load[ConfigFormat] match {
           case Left(err) =>
-            pprint.log(err)
-            Nil
+            sys.error(s"Parsing $f:" + err.prettyPrint(indentLevel = 2))
           case Right(conf) =>
-            pprint.log(conf)
             Seq(conf.buildOptions)
         }
       }

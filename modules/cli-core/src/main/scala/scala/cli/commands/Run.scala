@@ -20,7 +20,7 @@ object Run extends ScalaCommand[RunOptions] {
     val inputs = options.shared.inputsOrExit(args, defaultInputs)
 
     val buildOptions = options.shared.buildOptions(
-      jmhOptions = options.benchmarking.jmh.filter(identity).map(_ => BuildOptions.RunJmhOptions(preprocess = true, options.shared.javaCommand())),
+      jmhOptions = options.benchmarking.jmh.filter(identity).map(_ => BuildOptions.RunJmhOptions(preprocess = true)),
       jmhVersion = options.benchmarking.jmhVersion
     )
     val bloopgunConfig = options.shared.bloopgunConfig()
@@ -102,8 +102,9 @@ object Run extends ScalaCommand[RunOptions] {
   ): Boolean = {
 
     val retCode =
-      if (options.shared.js.js)
-        withLinkedJs(build, Some(mainClass), addTestInitializer = false, options.shared.js.config) { js =>
+      if (options.shared.js.js) {
+        val linkerConfig = build.options.scalaJsOptions.linkerConfig
+        withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
           Runner.runJs(
             js.toIO,
             args,
@@ -111,11 +112,11 @@ object Run extends ScalaCommand[RunOptions] {
             allowExecve = allowExecve
           )
         }
-      else if (options.shared.native.native)
+      } else if (options.shared.native.native)
         withNativeLauncher(
           build,
           mainClass,
-          options.shared.native.config,
+          build.options.scalaNativeOptions.config.getOrElse(???),
           options.shared.nativeWorkDir(root, projectName),
           options.shared.scalaNativeLogger
         ) { launcher =>
@@ -128,7 +129,7 @@ object Run extends ScalaCommand[RunOptions] {
         }
       else
         Runner.run(
-          options.shared.javaCommand(),
+          build.options.javaCommand(),
           options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           mainClass,

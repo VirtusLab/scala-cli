@@ -96,10 +96,11 @@ object Package extends ScalaCommand[PackageOptions] {
         else os.write(destPath, content)
 
       case PackageOptions.PackageType.Js =>
-        linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false, options.shared.js.config)
+        val linkerConfig = successfulBuild.options.scalaJsOptions.linkerConfig
+        linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
 
       case PackageOptions.PackageType.Native =>
-        val config = options.shared.native.config
+        val config = successfulBuild.options.scalaNativeOptions.config.getOrElse(???)
         val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
         val logger = options.shared.scalaNativeLogger
 

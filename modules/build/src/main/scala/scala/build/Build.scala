@@ -88,34 +88,6 @@ object Build {
     def outputOpt: None.type = None
   }
 
-  def scalaJsOptions(config: BloopConfig.JsConfig): BuildOptions.ScalaJsOptions = {
-    val version = config.version
-    val platformSuffix = "sjs" + ScalaVersion.jsBinary(version).getOrElse(version)
-    BuildOptions.ScalaJsOptions(
-      platformSuffix = platformSuffix,
-      jsDependencies = Seq(
-        dep"org.scala-js::scalajs-library:$version"
-      ),
-      compilerPlugins = Seq(
-        dep"org.scala-js:::scalajs-compiler:$version"
-      ),
-      config = config
-    )
-  }
-
-  def scalaNativeOptions(config: BloopConfig.NativeConfig): BuildOptions.ScalaNativeOptions = {
-    val version = config.version
-    val platformSuffix = "native" + ScalaVersion.nativeBinary(version).getOrElse(version)
-    val nativeDeps = Seq("nativelib", "javalib", "auxlib", "scalalib")
-      .map(name => dep"org.scala-native::$name::$version")
-    BuildOptions.ScalaNativeOptions(
-      platformSuffix = platformSuffix,
-      nativeDependencies = nativeDeps,
-      compilerPlugins = Seq(dep"org.scala-native:::nscplugin:$version"),
-      config = config
-    )
-  }
-
   private def computeScalaVersions(scalaVersion: Option[String], scalaBinaryVersion: Option[String]): (String, String) = {
     import coursier.core.Version
     lazy val allVersions = {
@@ -182,8 +154,8 @@ object Build {
     val params = {
       val (scalaVersion, scalaBinaryVersion) = computeScalaVersions(options0.scalaVersion, options0.scalaBinaryVersion)
       val maybePlatformSuffix =
-        options0.scalaJsOptions.map(_.platformSuffix)
-          .orElse(options0.scalaNativeOptions.map(_.platformSuffix))
+        options0.scalaJsOptions.platformSuffix
+          .orElse(options0.scalaNativeOptions.platformSuffix)
       ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
     }
 
@@ -193,7 +165,7 @@ object Build {
       case successful: Successful =>
         options0.runJmh match {
           case Some(runJmhOptions) if runJmhOptions.preprocess =>
-            jmhBuild(inputs0, successful, threads, logger, cwd, runJmhOptions.javaCommand, buildClient, bloopServer).getOrElse {
+            jmhBuild(inputs0, successful, threads, logger, cwd, successful.options.javaCommand(), buildClient, bloopServer).getOrElse {
               sys.error("JMH build failed") // suppress stack trace?
             }
           case _ => build0
@@ -401,8 +373,8 @@ object Build {
                workspace = inputs.workspace,
               classesDir = classesDir0,
            scalaCompiler = scalaCompiler,
-          scalaJsOptions = options.scalaJsOptions.map(_.config),
-      scalaNativeOptions = options.scalaNativeOptions.map(_.config),
+          scalaJsOptions = options.scalaJsOptions.config,
+      scalaNativeOptions = options.scalaNativeOptions.bloopConfig,
              projectName = inputs.projectName,
                classPath = artifacts.classPath,
                  sources = allSources,

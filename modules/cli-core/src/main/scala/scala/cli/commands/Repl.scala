@@ -18,8 +18,6 @@ object Repl extends ScalaCommand[ReplOptions] {
     val buildOptions = options.buildOptions
     val bloopgunConfig = options.shared.bloopgunConfig()
 
-    val javaCommand = options.shared.javaCommand()
-
     val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
@@ -46,7 +44,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     //       compiler for completion, but not to the main compiler for actual compilation).
 
     Runner.run(
-      javaCommand,
+      successfulBuild.options.javaCommand(),
       options.sharedJava.allJavaOpts,
       successfulBuild.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
       ammoniteMainClass,

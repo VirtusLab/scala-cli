@@ -38,57 +38,18 @@ final case class ScalaNativeOptions(
 
 ) {
 
-  def finalVersion = nativeVersion.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
-
-  private def gc: sn.GC =
-    nativeGc.map(_.trim).filter(_.nonEmpty) match {
-      case Some("default") | None => sn.GC.default
-      case Some(other) => sn.GC(other)
-    }
-  private def mode: sn.Mode =
-    nativeMode.map(_.trim).filter(_.nonEmpty) match {
-      case Some("default") | None => sn.Discover.mode()
-      case Some(other) => sn.Mode(other)
-    }
-
-  private def clang = nativeClang.filter(_.nonEmpty).map(Paths.get(_)).getOrElse(sn.Discover.clang())
-  private def clangpp = nativeClangpp.filter(_.nonEmpty).map(Paths.get(_)).getOrElse(sn.Discover.clangpp())
-  private def linkingOptions =
-    nativeLinking ++ (if (nativeLinkingDefaults) sn.Discover.linkingOptions() else Nil)
-  private def compileOptions =
-    nativeCompile ++ (if (nativeCompileDefaults) sn.Discover.compileOptions() else Nil)
-
-  def bloopConfig: BloopConfig.NativeConfig =
-    BloopConfig.NativeConfig(
-           version = finalVersion,
-                     // there are more modes than bloop allows, but that setting here shouldn't end up being used anyway
-              mode = if (mode.name == "release") BloopConfig.LinkerMode.Release else BloopConfig.LinkerMode.Debug,
-                gc = gc.name,
-      targetTriple = None,
-             clang = clang,
-           clangpp = clangpp,
-         toolchain = Nil,
-           options = BloopConfig.NativeOptions(
-               linker = linkingOptions,
-             compiler = compileOptions
-           ),
-         linkStubs = false,
-             check = false,
-              dump = false,
-            output = None
+  def buildOptions: BuildOptions.ScalaNativeOptions =
+    BuildOptions.ScalaNativeOptions(
+      native,
+      nativeVersion,
+      nativeMode,
+      nativeGc,
+      nativeClang,
+      nativeClangpp,
+      nativeLinking,
+      nativeLinkingDefaults,
+      nativeCompile,
+      nativeCompileDefaults
     )
-  def buildOptions: Option[BuildOptions.ScalaNativeOptions] =
-    if (native) Some(Build.scalaNativeOptions(bloopConfig))
-    else None
-
-  def config: sn.NativeConfig =
-    sn.NativeConfig.empty
-      .withGC(gc)
-      .withMode(mode)
-      .withLinkStubs(false)
-      .withClang(clang)
-      .withClangPP(clangpp)
-      .withLinkingOptions(linkingOptions)
-      .withCompileOptions(compileOptions)
 
 }
