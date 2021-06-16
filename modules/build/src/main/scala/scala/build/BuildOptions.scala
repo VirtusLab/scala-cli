@@ -31,12 +31,6 @@ final case class BuildOptions(
            extraRepositories: Seq[String]                = Nil,
                    extraJars: Seq[os.Path]               = Nil
 ) {
-  def classesDir(root: os.Path, projectName: String): os.Path =
-    root / ".scala" / projectName / "classes"
-  def generatedSrcRoot(root: os.Path, projectName: String) =
-    defaultGeneratedSrcRoot(root, projectName)
-  def defaultGeneratedSrcRoot(root: os.Path, projectName: String) =
-    root / ".scala" / projectName / "src_generated"
   def addStubsDependency: Boolean =
     addStubsDependencyOpt.getOrElse(true)
   def addRunnerDependency: Boolean =

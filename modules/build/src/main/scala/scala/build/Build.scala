@@ -203,6 +203,14 @@ object Build {
     }
   }
 
+  private def classesDir(root: os.Path, projectName: String): os.Path =
+    root / ".scala" / projectName / "classes"
+
+  private def generatedSrcRoot(root: os.Path, projectName: String) =
+    defaultGeneratedSrcRoot(root, projectName)
+  private def defaultGeneratedSrcRoot(root: os.Path, projectName: String) =
+    root / ".scala" / projectName / "src_generated"
+
   def build(
     inputs: Inputs,
     options: BuildOptions,
@@ -216,13 +224,13 @@ object Build {
       logger,
       keepDiagnostics = options.keepDiagnostics
     )
-    val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
+    val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
     bloop.BloopServer.withBuildServer(
       bloopConfig,
       "scala-cli",
       Constants.version,
       inputs.workspace.toNIO,
-      classesDir.toNIO,
+      classesDir0.toNIO,
       buildClient,
       threads.bloop,
       logger.bloopgunLogger
@@ -262,13 +270,13 @@ object Build {
       keepDiagnostics = options.keepDiagnostics
     )
     val threads = BuildThreads.create()
-    val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
+    val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
     val bloopServer = bloop.BloopServer.buildServer(
       bloopConfig,
       "scala-cli",
       Constants.version,
       inputs.workspace.toNIO,
-      classesDir.toNIO,
+      classesDir0.toNIO,
       buildClient,
       threads.bloop,
       logger.bloopgunLogger
@@ -342,11 +350,11 @@ object Build {
     bloopServer: bloop.BloopServer
   ): Build = {
 
-    val generatedSrcRoot = options.generatedSrcRoot(inputs.workspace, inputs.projectName)
-    val generatedSources = sources.generateSources(generatedSrcRoot)
+    val generatedSrcRoot0 = generatedSrcRoot(inputs.workspace, inputs.projectName)
+    val generatedSources = sources.generateSources(generatedSrcRoot0)
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_._1)
 
-    val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
+    val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
 
     val artifacts = options.artifacts(params, sources.dependencies, logger)
 
@@ -363,12 +371,12 @@ object Build {
             "-P:semanticdb:failures:warning",
             "-P:semanticdb:synthetics:on",
             s"-P:semanticdb:sourceroot:${inputs.workspace}",
-            s"-P:semanticdb:targetroot:${classesDir}"
+            s"-P:semanticdb:targetroot:${classesDir0}"
           )
         else
           Seq(
             "-Xsemanticdb",
-            "-semanticdb-target", classesDir.toString
+            "-semanticdb-target", classesDir0.toString
           )
       }
       else Nil
@@ -391,7 +399,7 @@ object Build {
 
     val project = Project(
                workspace = inputs.workspace,
-              classesDir = classesDir,
+              classesDir = classesDir0,
            scalaCompiler = scalaCompiler,
           scalaJsOptions = options.scalaJsOptions.map(_.config),
       scalaNativeOptions = options.scalaNativeOptions.map(_.config),
@@ -401,9 +409,9 @@ object Build {
             resourceDirs = sources.resourceDirs
     )
 
-    if (project.writeBloopFile(logger) && os.isDir(classesDir)) {
-      logger.debug(s"Clearing $classesDir")
-      os.list(classesDir).foreach { p =>
+    if (project.writeBloopFile(logger) && os.isDir(classesDir0)) {
+      logger.debug(s"Clearing $classesDir0")
+      os.list(classesDir0).foreach { p =>
         logger.debug(s"Removing $p")
         os.remove.all(p)
       }
@@ -429,15 +437,15 @@ object Build {
     if (success) {
       postProcess(
         generatedSources,
-        generatedSrcRoot,
-        classesDir,
+        generatedSrcRoot0,
+        classesDir0,
         logger,
         inputs.workspace,
-        updateSemanticDbs = generatedSrcRoot == options.defaultGeneratedSrcRoot(inputs.workspace, inputs.projectName),
+        updateSemanticDbs = generatedSrcRoot0 == defaultGeneratedSrcRoot(inputs.workspace, inputs.projectName),
         updateTasty = params.scalaVersion.startsWith("3.")
       )
 
-      Successful(inputs, options, sources, artifacts, project, classesDir, buildClient.diagnostics)
+      Successful(inputs, options, sources, artifacts, project, classesDir0, buildClient.diagnostics)
     }
     else
       Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)
