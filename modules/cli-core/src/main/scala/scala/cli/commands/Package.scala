@@ -3,8 +3,8 @@ package scala.cli.commands
 import caseapp._
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
 import packager.BuildSettings
-import packager.macOS.dmg.DmgPackage
-import packager.macOS.pkg.PkgPackage
+import packager.mac.dmg.DmgPackage
+import packager.mac.pkg.PkgPackage
 import packager.deb.DebianPackage
 
 import java.io.{ByteArrayOutputStream, File}
