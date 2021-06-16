@@ -1,14 +1,12 @@
 package scala.cli.commands
 
-import java.io.{ByteArrayOutputStream, InputStream}
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 
 import caseapp._
 import scala.build.{Build, BuildOptions, Inputs, Logger, Os, Runner}
 import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
-import scala.util.Properties
 import org.scalajs.linker.interface.StandardConfig
 
 object Run extends ScalaCommand[RunOptions] {
@@ -19,14 +17,7 @@ object Run extends ScalaCommand[RunOptions] {
 
   def run(options: RunOptions, args: RemainingArgs, defaultInputs: Option[Inputs]): Unit = {
 
-    val pwd = Os.pwd
-
-    val inputs = Inputs(args.remaining, pwd, options.shared.directories.directories, defaultInputs = defaultInputs, stdinOpt = readStdin(logger = options.shared.logger), acceptFds = !Properties.isWin) match {
-      case Left(message) =>
-        System.err.println(message)
-        sys.exit(1)
-      case Right(i) => i
-    }
+    val inputs = options.shared.inputsOrExit(args, defaultInputs)
 
     val buildOptions = options.shared.buildOptions(
       jmhOptions = options.benchmarking.jmh.filter(identity).map(_ => BuildOptions.RunJmhOptions(preprocess = true, options.shared.javaCommand())),
@@ -47,7 +38,7 @@ object Run extends ScalaCommand[RunOptions] {
       )
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = false)
         case f: Build.Failed =>
@@ -56,7 +47,7 @@ object Run extends ScalaCommand[RunOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, pwd)
+      val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)
@@ -193,26 +184,4 @@ object Run extends ScalaCommand[RunOptions] {
         os.remove(dest)
     }
   }
-
-  def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
-    if (in == null) {
-      logger.debug("No stdin available")
-      None
-    } else {
-      logger.debug("Reading stdin")
-      val baos = new ByteArrayOutputStream
-      val buf = Array.ofDim[Byte](16*1024)
-      var read = -1
-      while ({
-        read = in.read(buf)
-        read >= 0
-      }) {
-        if (read > 0)
-          baos.write(buf, 0, read)
-      }
-      val result = baos.toByteArray
-      logger.debug(s"Done reading stdin (${result.length} B)")
-      Some(result)
-    }
-
 }

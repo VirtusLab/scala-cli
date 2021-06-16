@@ -8,13 +8,16 @@ import dependency.{AnyDependency, ScalaParameters}
 
 import scala.build.internal.{AmmUtil, CodeWrapper, Name}
 import scala.build.internal.Util.DependencyOps
+import pureconfig.ConfigSource
+import scala.build.config.ConfigFormat
 
 final case class Sources(
   paths: Seq[(os.Path, os.RelPath)],
   inMemory: Seq[(os.Path, os.RelPath, String, Int)],
   mainClass: Option[String],
   dependencies: Seq[AnyDependency],
-  resourceDirs: Seq[os.Path]
+  resourceDirs: Seq[os.Path],
+  buildOptions: BuildOptions
 ) {
 
   def generateSources(generatedSrcRoot: os.Path): Seq[(os.Path, os.Path, Int)] = {
@@ -153,10 +156,29 @@ object Sources {
     codeWrapper: CodeWrapper
   ): Sources = {
 
-    val sourceFiles = inputs.sourceFiles()
+    val singleFiles = inputs.singleFiles()
     val virtualSourceFiles = inputs.virtualSourceFiles()
 
-    val scalaFilePathsOrCode = sourceFiles
+    val configFiles = singleFiles.collect {
+      case c: Inputs.ConfigFile => c.path
+    }
+    val configOptions = configFiles.flatMap { f =>
+      if (os.isFile(f)) {
+        val source = ConfigSource.string(os.read(f))
+        source.load[ConfigFormat] match {
+          case Left(err) =>
+            pprint.log(err)
+            Nil
+          case Right(conf) =>
+            pprint.log(conf)
+            Seq(conf.buildOptions)
+        }
+      }
+      else Nil
+    }
+    val buildOptions = configOptions.foldLeft(BuildOptions())(_.orElse(_))
+
+    val scalaFilePathsOrCode = singleFiles
       .iterator
       .collect {
         case f: Inputs.ScalaFile => f
@@ -182,7 +204,7 @@ object Sources {
         (os.pwd / "<stdin>", deps, os.rel / "stdin.scala", updatedContent)
     }
 
-    val javaFilePaths = sourceFiles
+    val javaFilePaths = singleFiles
       .iterator
       .collect {
         case f: Inputs.JavaFile =>
@@ -222,7 +244,7 @@ object Sources {
     }
 
     val allScriptData =
-      sourceFiles
+      singleFiles
         .iterator
         .collect {
           case s: Inputs.Script =>
@@ -243,7 +265,8 @@ object Sources {
       dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
       resourceDirs = inputs.elements.collect {
         case r: Inputs.ResourceDirectory => r.path
-      }
+      },
+      buildOptions = buildOptions
     )
   }
 

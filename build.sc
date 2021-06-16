@@ -77,6 +77,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     Deps.nativeTools,
     Deps.osLib,
     Deps.pprint,
+    Deps.pureconfig,
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinker,
     Deps.scalaJsTestAdapter,

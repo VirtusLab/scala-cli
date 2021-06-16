@@ -9,14 +9,7 @@ object Test extends ScalaCommand[TestOptions] {
   override def group = "Main"
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
-    val pwd = Os.pwd
-
-    val inputs = Inputs(args.all, pwd, options.shared.directories.directories, defaultInputs = Some(Inputs.default())) match {
-      case Left(message) =>
-        System.err.println(message)
-        sys.exit(1)
-      case Right(i) => i
-    }
+    val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
 
     val buildOptions = options.buildOptions.copy(
       addTestRunnerDependencyOpt = Some(true)
@@ -24,7 +17,7 @@ object Test extends ScalaCommand[TestOptions] {
     val bloopgunConfig = options.shared.bloopgunConfig()
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
@@ -33,7 +26,7 @@ object Test extends ScalaCommand[TestOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, pwd)
+      val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
       build match {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)

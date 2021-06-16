@@ -12,8 +12,8 @@ import scala.build.internal.CodeWrapper
 import scala.build.internal.Constants._
 
 final case class BuildOptions(
-                scalaVersion: Option[String],
-          scalaBinaryVersion: Option[String],
+                scalaVersion: Option[String]             = None,
+          scalaBinaryVersion: Option[String]             = None,
                  codeWrapper: Option[CodeWrapper]        = None,
               scalaJsOptions: Option[BuildOptions.ScalaJsOptions]     = None,
           scalaNativeOptions: Option[BuildOptions.ScalaNativeOptions] = None,
@@ -160,6 +160,28 @@ final case class BuildOptions(
     }
     else None
   }
+
+  def orElse(other: BuildOptions): BuildOptions =
+    BuildOptions(
+                scalaVersion = scalaVersion.orElse(other.scalaVersion),
+          scalaBinaryVersion = scalaBinaryVersion.orElse(other.scalaBinaryVersion),
+                 codeWrapper = codeWrapper.orElse(other.codeWrapper),
+              scalaJsOptions = scalaJsOptions.orElse(other.scalaJsOptions),
+          scalaNativeOptions = scalaNativeOptions.orElse(other.scalaNativeOptions),
+                 javaHomeOpt = javaHomeOpt.orElse(other.javaHomeOpt),
+                    jvmIdOpt = jvmIdOpt.orElse(other.jvmIdOpt),
+       addStubsDependencyOpt = addStubsDependencyOpt.orElse(other.addStubsDependencyOpt),
+      addRunnerDependencyOpt = addRunnerDependencyOpt.orElse(other.addRunnerDependencyOpt),
+  addTestRunnerDependencyOpt = addTestRunnerDependencyOpt.orElse(other.addTestRunnerDependencyOpt),
+          addJmhDependencies = addJmhDependencies.orElse(other.addJmhDependencies),
+                      runJmh = runJmh.orElse(other.runJmh),
+             addScalaLibrary = addScalaLibrary.orElse(other.addScalaLibrary),
+         generateSemanticDbs = generateSemanticDbs.orElse(other.generateSemanticDbs),
+           extraRepositories = extraRepositories ++ other.extraRepositories,
+                   extraJars = extraJars ++ other.extraJars,
+                fetchSources = fetchSources.orElse(other.fetchSources),
+             keepDiagnostics = keepDiagnostics || other.keepDiagnostics
+    )
 }
 
 object BuildOptions {

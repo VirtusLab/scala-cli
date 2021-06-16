@@ -12,6 +12,10 @@ import scala.build.{Bloop, BuildOptions, LocalRepo, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.scalanative.{build => sn}
 import scala.util.Properties
+import scala.build.Inputs
+import java.io.InputStream
+import scala.build.Logger
+import java.io.ByteArrayOutputStream
 
 final case class SharedOptions(
   @Recurse
@@ -72,6 +76,11 @@ final case class SharedOptions(
     java: Option[Boolean] = None,
   @Hidden
     runner: Option[Boolean] = None,
+
+  @HelpMessage("Pass configuration files")
+  @Name("conf")
+  @Name("C")
+    config: List[String] = Nil,
 
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
@@ -152,9 +161,41 @@ final case class SharedOptions(
     val jvmCache = JvmCache().withCache(coursierCache)
     JavaHome().withCache(jvmCache)
   }
+
+  def inputsOrExit(args: RemainingArgs, defaultInputs: Option[Inputs] = None): Inputs =
+    Inputs(args.remaining, Os.pwd, directories.directories, defaultInputs = defaultInputs, stdinOpt = SharedOptions.readStdin(logger = logger), acceptFds = !Properties.isWin) match {
+      case Left(message) =>
+        System.err.println(message)
+        sys.exit(1)
+      case Right(i) =>
+        val configFiles = config.map(os.Path(_, Os.pwd)).map(Inputs.ConfigFile(_))
+        i.add(configFiles)
+    }
 }
 
 object SharedOptions {
   implicit val parser = Parser[SharedOptions]
   implicit val help = Help[SharedOptions]
+
+  def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
+    if (in == null) {
+      logger.debug("No stdin available")
+      None
+    } else {
+      logger.debug("Reading stdin")
+      val baos = new ByteArrayOutputStream
+      val buf = Array.ofDim[Byte](16*1024)
+      var read = -1
+      while ({
+        read = in.read(buf)
+        read >= 0
+      }) {
+        if (read > 0)
+          baos.write(buf, 0, read)
+      }
+      val result = baos.toByteArray
+      logger.debug(s"Done reading stdin (${result.length} B)")
+      Some(result)
+    }
+
 }

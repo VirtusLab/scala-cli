@@ -16,7 +16,7 @@ final case class Inputs(
 ) {
   lazy val elements: Seq[Inputs.Element] = head +: tail
 
-  def sourceFiles(): Seq[Inputs.SingleFile] =
+  def singleFiles(): Seq[Inputs.SingleFile] =
     elements.flatMap {
       case f: Inputs.SingleFile => Seq(f)
       case d: Inputs.Directory =>
@@ -32,12 +32,19 @@ final case class Inputs(
               Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
             case p if p.last.endsWith(".sc") =>
               Inputs.Script(d.path, p.subRelativeTo(d.path))
+            case p if p.last == "scala.conf" || p.last.endsWith(".scala.conf") =>
+              Inputs.ConfigFile(p)
           }
           .toVector
       case _: Inputs.ResourceDirectory =>
         Nil
       case _: Inputs.Virtual =>
         Nil
+    }
+
+  def sourceFiles(): Seq[Inputs.SourceFile] =
+    singleFiles.collect {
+      case f: Inputs.SourceFile => f
     }
 
   def virtualSourceFiles(): Seq[Inputs.Virtual] =
@@ -58,6 +65,10 @@ final case class Inputs(
     if (needsSuffix) baseProjectName + "-" + inputsHash
     else baseProjectName
   }
+
+  def add(elements: Seq[Inputs.Element]): Inputs =
+    if (elements.isEmpty) this
+    else copy(tail = tail ++ elements)
 }
 
 object Inputs {
@@ -73,20 +84,23 @@ object Inputs {
   }
 
   sealed trait SingleFile extends OnDisk
+  sealed trait SourceFile extends SingleFile
   sealed trait Compiled extends Element
   sealed trait AnyScalaFile extends Compiled
 
-  final case class Script(base: os.Path, subPath: os.SubPath) extends OnDisk with SingleFile with AnyScalaFile {
+  final case class Script(base: os.Path, subPath: os.SubPath) extends OnDisk with SourceFile with AnyScalaFile {
     lazy val path = base / subPath
   }
-  final case class ScalaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SingleFile with AnyScalaFile {
+  final case class ScalaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SourceFile with AnyScalaFile {
     lazy val path = base / subPath
   }
-  final case class JavaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SingleFile with Compiled {
+  final case class JavaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SourceFile with Compiled {
     lazy val path = base / subPath
   }
   final case class Directory(path: os.Path) extends OnDisk with Compiled
   final case class ResourceDirectory(path: os.Path) extends OnDisk
+
+  final case class ConfigFile(path: os.Path) extends SingleFile
 
   final case class VirtualScript(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
   final case class VirtualScalaFile(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
@@ -101,6 +115,7 @@ object Inputs {
           case _: Inputs.JavaFile => "java:"
           case _: Inputs.ScalaFile => "scala:"
           case _: Inputs.Script => "sc:"
+          case _: Inputs.ConfigFile => "config:"
         }
         Iterator(prefix, elem.path.toString, "\n").map(bytes)
       case v: Inputs.Virtual =>
@@ -121,16 +136,13 @@ object Inputs {
 
     assert(validElems.nonEmpty)
 
-    val hasFiles = validElems.exists { case _: SingleFile => true; case _ => false }
-    val dirCount = validElems.count { case _: Directory => true; case _ => false }
-
     val (workspace, needsHash) = validElems
       .collectFirst {
         case d: Directory => (d.path, true)
       }
       .getOrElse {
         validElems.head match {
-          case elem: SingleFile => (elem.path / os.up, true)
+          case elem: SourceFile => (elem.path / os.up, true)
           case _: Virtual =>
             val hash0 = inputsHash(validElems)
             val dir = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
@@ -141,7 +153,7 @@ object Inputs {
       }
     val allDirs = validElems.collect { case d: Directory => d.path }
     val updatedElems = validElems.filter {
-      case f: SingleFile =>
+      case f: SourceFile =>
         val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
         !isInDir
       case _: Directory => true
@@ -149,7 +161,7 @@ object Inputs {
     }
     val mainClassElemOpt = validElems
       .collectFirst {
-        case f: SingleFile => f
+        case f: SourceFile => f
       }
     Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = needsHash)
   }

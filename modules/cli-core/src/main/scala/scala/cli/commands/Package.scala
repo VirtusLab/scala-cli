@@ -26,14 +26,7 @@ object Package extends ScalaCommand[PackageOptions] {
   override def group = "Main"
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
 
-    val pwd = Os.pwd
-
-    val inputs = Inputs(args.all, pwd, options.shared.directories.directories, defaultInputs = Some(Inputs.default())) match {
-      case Left(message) =>
-        System.err.println(message)
-        sys.exit(1)
-      case Right(i) => i
-    }
+    val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
@@ -42,7 +35,7 @@ object Package extends ScalaCommand[PackageOptions] {
     val buildOptions = options.buildOptions
     val bloopgunConfig = options.shared.bloopgunConfig()
 
-    val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, pwd)
+    val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
@@ -75,9 +68,9 @@ object Package extends ScalaCommand[PackageOptions] {
       .filter(_.nonEmpty)
       .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1) + extension))
       .getOrElse(defaultName)
-    val destPath = os.Path(dest, pwd)
+    val destPath = os.Path(dest, Os.pwd)
     val printableDest =
-      if (destPath.startsWith(pwd)) "." + File.separator + destPath.relativeTo(pwd).toString
+      if (destPath.startsWith(Os.pwd)) "." + File.separator + destPath.relativeTo(Os.pwd).toString
       else destPath.toString
 
     def alreadyExistsCheck(): Unit =

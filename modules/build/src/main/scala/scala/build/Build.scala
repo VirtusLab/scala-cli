@@ -172,8 +172,7 @@ object Build {
       options.codeWrapper.getOrElse(CustomCodeWrapper)
     )
 
-    // at some point, we'll allow to override some options from sources here
-    val options0 = options
+    val options0 = options.orElse(sources.buildOptions)
 
     // If some options are manually overridden, append a hash of the options to the project name
     val inputs0 = inputs.copy(
@@ -312,7 +311,8 @@ object Build {
               val isHidden = relPath.segments.exists(_.startsWith("."))
               def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
               def isJavaFile = relPath.last.endsWith(".java")
-              !isHidden && (isScalaFile || isJavaFile)
+              def isConfFile = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
+              !isHidden && (isScalaFile || isJavaFile || isConfFile)
           case _ => _ => true
         }
 
