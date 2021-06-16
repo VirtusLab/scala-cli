@@ -26,10 +26,12 @@ final case class BuildOptions(
                       runJmh: Option[BuildOptions.RunJmhOptions]      = None,
              addScalaLibrary: Option[Boolean]            = None,
          generateSemanticDbs: Option[Boolean]            = None,
-             keepDiagnostics: Boolean                    = false,
-                fetchSources: Option[Boolean]            = None,
            extraRepositories: Seq[String]                = Nil,
-                   extraJars: Seq[os.Path]               = Nil
+                   extraJars: Seq[os.Path]               = Nil,
+
+  // not customizable from config or source files
+                fetchSources: Option[Boolean]            = None,
+             keepDiagnostics: Boolean                    = false
 ) {
   def addStubsDependency: Boolean =
     addStubsDependencyOpt.getOrElse(true)
