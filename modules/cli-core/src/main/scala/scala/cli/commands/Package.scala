@@ -3,9 +3,9 @@ package scala.cli.commands
 import caseapp._
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
 import packager.BuildSettings
-import packager.centOS.dmg.DmgPackage
-import packager.centOS.pkg.PkgPackage
-import packager.dmg.DebianPackage
+import packager.macOS.dmg.DmgPackage
+import packager.macOS.pkg.PkgPackage
+import packager.deb.DebianPackage
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.file.attribute.FileTime
