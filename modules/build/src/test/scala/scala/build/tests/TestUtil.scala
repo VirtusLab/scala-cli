@@ -1,7 +1,7 @@
 package scala.build.tests
 
 import bloop.config.{Config => BloopConfig}
-import scala.build.{Build, Project}
+import scala.build.{Build, BuildOptions, Project}
 import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
@@ -29,7 +29,7 @@ object TestUtil {
     }
   }
 
-  implicit class TestBuildOptionsOps(private val options: Build.Options) extends AnyVal {
+  implicit class TestBuildOptionsOps(private val options: BuildOptions) extends AnyVal {
     def enableJs = {
       val config = BloopConfig.JsConfig(
            version = Constants.scalaJsVersion,

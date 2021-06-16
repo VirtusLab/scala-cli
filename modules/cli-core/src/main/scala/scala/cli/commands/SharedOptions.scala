@@ -8,7 +8,7 @@ import coursier.cache.FileCache
 import coursier.jvm.{JavaHome, JvmCache}
 
 import scala.build.bloop.bloopgun
-import scala.build.{Bloop, Build, LocalRepo, Os}
+import scala.build.{Bloop, BuildOptions, LocalRepo, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.scalanative.{build => sn}
 import scala.util.Properties
@@ -96,8 +96,8 @@ final case class SharedOptions(
       def error(msg: String) = logger.log(msg)
     }
 
-  def buildOptions(jmhOptions: Option[Build.RunJmhOptions], jmhVersion: Option[String]): Build.Options =
-    Build.Options(
+  def buildOptions(jmhOptions: Option[BuildOptions.RunJmhOptions], jmhVersion: Option[String]): BuildOptions =
+    BuildOptions(
       scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
       scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
       codeWrapper = codeWrapper,

@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
-import scala.build.Build
+import scala.build.BuildOptions
 
 @HelpMessage("Compile and package Scala code")
 final case class PackageOptions(
@@ -54,7 +54,7 @@ final case class PackageOptions(
     else if (msi) PackageType.Msi
     else PackageType.Bootstrap
 
-  def buildOptions: Build.Options =
+  def buildOptions: BuildOptions =
     shared.buildOptions(jmhOptions = None, jmhVersion = None)
 }
 

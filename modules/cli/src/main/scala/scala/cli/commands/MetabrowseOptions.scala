@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.Build
+import scala.build.BuildOptions
 
 @HelpMessage("Browse Scala code and its dependencies in the browser")
 final case class MetabrowseOptions(
@@ -22,7 +22,7 @@ final case class MetabrowseOptions(
     port: Int = 4000
 ) {
 
-  def buildOptions: Build.Options =
+  def buildOptions: BuildOptions =
     shared.buildOptions(jmhOptions = None, jmhVersion = None)
       .copy(fetchSources = Some(true))
 }

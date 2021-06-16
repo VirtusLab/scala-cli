@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import caseapp.core.help.Help
-import scala.build.Build
+import scala.build.BuildOptions
 
 @HelpMessage("Compile Scala code")
 final case class CompileOptions(
@@ -15,7 +15,7 @@ final case class CompileOptions(
     classPath: Boolean = false
 ) {
 
-  def buildOptions: Build.Options =
+  def buildOptions: BuildOptions =
     shared.buildOptions(jmhOptions = None, jmhVersion = None)
 }
 

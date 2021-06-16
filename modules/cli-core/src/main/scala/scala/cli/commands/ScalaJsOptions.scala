@@ -4,7 +4,7 @@ import java.util.Locale
 
 import bloop.config.{Config => BloopConfig}
 import caseapp._
-import scala.build.{Build, Project}
+import scala.build.{Build, BuildOptions, Project}
 import scala.build.internal.Constants
 import org.scalajs.linker.interface.StandardConfig
 import org.scalajs.linker.interface.Semantics
@@ -49,7 +49,7 @@ final case class ScalaJsOptions(
       case ModuleKind.NoModule => "nomodule"
     }
 
-  def buildOptions: Option[Build.ScalaJsOptions] =
+  def buildOptions: Option[BuildOptions.ScalaJsOptions] =
     if (js) Some(Build.scalaJsOptions(bloopConfig))
     else None
 

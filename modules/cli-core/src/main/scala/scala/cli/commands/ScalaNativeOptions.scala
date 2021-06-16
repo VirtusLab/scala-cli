@@ -4,7 +4,7 @@ import bloop.config.{Config => BloopConfig}
 import caseapp._
 import java.nio.file.Paths
 
-import scala.build.{Build, Project}
+import scala.build.{Build, BuildOptions, Project}
 import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
@@ -77,7 +77,7 @@ final case class ScalaNativeOptions(
               dump = false,
             output = None
     )
-  def buildOptions: Option[Build.ScalaNativeOptions] =
+  def buildOptions: Option[BuildOptions.ScalaNativeOptions] =
     if (native) Some(Build.scalaNativeOptions(bloopConfig))
     else None
 

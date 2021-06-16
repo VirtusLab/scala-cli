@@ -4,7 +4,7 @@ import java.io.{ByteArrayOutputStream, InputStream}
 import java.nio.file.{Files, Path}
 
 import caseapp._
-import scala.build.{Build, Inputs, Logger, Os, Runner}
+import scala.build.{Build, BuildOptions, Inputs, Logger, Os, Runner}
 import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
@@ -29,7 +29,7 @@ object Run extends ScalaCommand[RunOptions] {
     }
 
     val buildOptions = options.shared.buildOptions(
-      jmhOptions = options.benchmarking.jmh.filter(identity).map(_ => Build.RunJmhOptions(preprocess = true, options.shared.javaCommand())),
+      jmhOptions = options.benchmarking.jmh.filter(identity).map(_ => BuildOptions.RunJmhOptions(preprocess = true, options.shared.javaCommand())),
       jmhVersion = options.benchmarking.jmhVersion
     )
     val bloopgunConfig = options.shared.bloopgunConfig()

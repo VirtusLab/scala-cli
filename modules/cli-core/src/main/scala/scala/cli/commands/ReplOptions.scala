@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.Build
+import scala.build.BuildOptions
 
 @HelpMessage("Fire-up a Scala REPL")
 final case class ReplOptions(
@@ -20,7 +20,7 @@ final case class ReplOptions(
       "2.3.8-58-aa8b2ab1" // TODO Get via scala.build.internal.Constants
     }
 
-  def buildOptions: Build.Options =
+  def buildOptions: BuildOptions =
     shared.buildOptions(jmhOptions = None, jmhVersion = None)
 }
 

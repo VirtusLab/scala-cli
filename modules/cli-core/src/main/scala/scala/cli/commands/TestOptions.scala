@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
-import scala.build.Build
+import scala.build.BuildOptions
 
 @HelpMessage("Compile and test Scala code")
 final case class TestOptions(
@@ -12,7 +12,7 @@ final case class TestOptions(
   @Recurse
     sharedJava: SharedJavaOptions = SharedJavaOptions()
 ) {
-  def buildOptions: Build.Options =
+  def buildOptions: BuildOptions =
     shared.buildOptions(jmhOptions = None, jmhVersion = None)
 }
 

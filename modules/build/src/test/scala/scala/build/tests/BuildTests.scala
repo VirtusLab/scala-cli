@@ -6,7 +6,7 @@ import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.bloop.bloopgun
-import scala.build.{Bloop, Build, BuildThreads, Directories, Inputs, LocalRepo}
+import scala.build.{Bloop, Build, BuildOptions, BuildThreads, Directories, Inputs, LocalRepo}
 import scala.build.tests.TestUtil._
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
@@ -27,7 +27,7 @@ class BuildTests extends munit.FunSuite {
   }
 
   def sv2 = "2.13.5"
-  val defaultOptions = Build.Options(
+  val defaultOptions = BuildOptions(
     scalaVersion = Some(sv2),
     scalaBinaryVersion = None,
     extraRepositories = LocalRepo.localRepo(directories.localRepoDir).toSeq
