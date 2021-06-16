@@ -37,7 +37,7 @@ final case class PackageOptions(
     pkg: Boolean = false,
 ) {
   import PackageOptions.PackageType
-  def packageType: PackageType = {
+  def packageType: PackageType = 
     if (library) PackageType.LibraryJar
     else if (shared.js) PackageType.Js
     else if (shared.native) PackageType.Native
@@ -45,7 +45,6 @@ final case class PackageOptions(
     else if (dmg) PackageType.Dmg
     else if (pkg) PackageType.Pkg
     else PackageType.Bootstrap
-  }
 
   def buildOptions(scalaVersions: ScalaVersions): Build.Options =
     shared.buildOptions(scalaVersions, enableJmh = false, jmhVersion = None)

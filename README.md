@@ -44,7 +44,7 @@ $ ./mill integration.native.test
 
 Build native packagers:
 * `debian` for linux
-* `dmg` and `pkg` for centOS
+* `dmg` and `pkg` for macOS
 
 (generating native packager for specified format)
 ```text
