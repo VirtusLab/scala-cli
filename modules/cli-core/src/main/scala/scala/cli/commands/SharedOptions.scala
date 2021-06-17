@@ -114,7 +114,8 @@ final case class SharedOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
-        addScalaLibrary = scalaLibrary.orElse(java.map(!_))
+        addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
+        generateSemanticDbs = semanticDb
       ),
       scriptOptions = ScriptOptions(
         codeWrapper = codeWrapper
@@ -145,7 +146,6 @@ final case class SharedOptions(
           }
         }
       ),
-      generateSemanticDbs = semanticDb,
       internal = InternalOptions(
         cache = Some(coursierCache),
         localRepository = LocalRepo.localRepo(directories.directories.localRepoDir)

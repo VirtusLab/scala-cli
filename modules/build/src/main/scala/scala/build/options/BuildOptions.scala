@@ -23,7 +23,6 @@ final case class BuildOptions(
                   jmhOptions: JmhOptions                  = JmhOptions(),
             classPathOptions: ClassPathOptions            = ClassPathOptions(),
                scriptOptions: ScriptOptions               = ScriptOptions(),
-         generateSemanticDbs: Option[Boolean]             = None,
                     internal: InternalOptions             = InternalOptions()
 ) {
   def addRunnerDependency: Boolean =
@@ -47,7 +46,7 @@ final case class BuildOptions(
       classPathOptions.extraDependencies
 
   private def semanticDbPlugins(params: ScalaParameters): Seq[AnyDependency] =
-    if (generateSemanticDbs.getOrElse(false) && params.scalaVersion.startsWith("2."))
+    if (scalaOptions.generateSemanticDbs.getOrElse(false) && params.scalaVersion.startsWith("2."))
       Seq(
         dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
       )
@@ -137,9 +136,6 @@ final case class BuildOptions(
     classPathOptions.addHashData(update)
     scriptOptions.addHashData(update)
 
-    for (generate <- generateSemanticDbs)
-      update("generateSemanticDbs=" + generate.toString + "\n")
-
     if (hasAnyOverride) {
       val digest = md.digest()
       val calculatedSum = new BigInteger(1, digest)
@@ -157,7 +153,6 @@ final case class BuildOptions(
                  javaOptions = javaOptions.orElse(other.javaOptions),
         internalDependencies = internalDependencies.orElse(other.internalDependencies),
                   jmhOptions = jmhOptions.orElse(other.jmhOptions),
-         generateSemanticDbs = generateSemanticDbs.orElse(other.generateSemanticDbs),
             classPathOptions = classPathOptions.orElse(other.classPathOptions),
                scriptOptions = scriptOptions.orElse(other.scriptOptions),
                     internal = internal.orElse(other.internal)

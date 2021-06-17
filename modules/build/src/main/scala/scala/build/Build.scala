@@ -339,7 +339,7 @@ object Build {
     }
 
     val semanticDbScalacOptions =
-      if (options.generateSemanticDbs.getOrElse(false)) {
+      if (options.scalaOptions.generateSemanticDbs.getOrElse(false)) {
         if (params.scalaVersion.startsWith("2."))
           Seq(
             "-Yrangepos",

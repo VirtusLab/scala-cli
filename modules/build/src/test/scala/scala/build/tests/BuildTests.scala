@@ -95,7 +95,12 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.copy(generateSemanticDbs = Some(true)), buildThreads, bloopConfig) { (root, inputs, build) =>
+    val buildOptions = defaultOptions.copy(
+      scalaOptions = defaultOptions.scalaOptions.copy(
+        generateSemanticDbs = Some(true)
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
@@ -117,7 +122,12 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultScala3Options.copy(generateSemanticDbs = Some(true)), buildThreads, bloopConfig) { (root, inputs, build) =>
+    val buildOptions = defaultScala3Options.copy(
+      scalaOptions = defaultScala3Options.scalaOptions.copy(
+        generateSemanticDbs = Some(true)
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
       build.assertGeneratedEquals(
         "simple.class",
         "simple$.class",
