@@ -7,8 +7,9 @@ import caseapp.core.help.Help
 import coursier.cache.FileCache
 
 import scala.build.bloop.bloopgun
-import scala.build.{Bloop, BuildOptions, LocalRepo, Os}
+import scala.build.{Bloop, LocalRepo, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
+import scala.build.options.{BuildOptions, ClassPathOptions, InternalDependenciesOptions, InternalOptions, JavaOptions, JmhOptions, ScalaOptions, ScriptOptions}
 import scala.scalanative.{build => sn}
 import scala.util.Properties
 import scala.build.Inputs
@@ -104,32 +105,46 @@ final case class SharedOptions(
       def error(msg: String) = logger.log(msg)
     }
 
-  def buildOptions(jmhOptions: Option[BuildOptions.RunJmhOptions], jmhVersion: Option[String]): BuildOptions =
+  def buildOptions(enableJmh: Boolean, jmhVersion: Option[String]): BuildOptions =
     BuildOptions(
-      scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
-      scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
-      codeWrapper = codeWrapper,
+      scalaOptions = ScalaOptions(
+        scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
+        scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
+        addScalaLibrary = scalaLibrary.orElse(java.map(!_))
+      ),
+      scriptOptions = ScriptOptions(
+        codeWrapper = codeWrapper
+      ),
       scalaJsOptions = js.buildOptions,
       scalaNativeOptions = native.buildOptions,
-      javaHomeOpt = javaHome.filter(_.nonEmpty),
-      jvmIdOpt = jvm.filter(_.nonEmpty),
-      addStubsDependencyOpt = addStubs,
-      addJmhDependencies =
-        if (jmhOptions.nonEmpty) jmhVersion.orElse(Some(Constants.jmhVersion))
-        else None,
-      runJmh = jmhOptions,
-      addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
-      addRunnerDependencyOpt = runner,
+      javaOptions = JavaOptions(
+        javaHomeOpt = javaHome.filter(_.nonEmpty),
+        jvmIdOpt = jvm.filter(_.nonEmpty),
+      ),
+      internalDependencies = InternalDependenciesOptions(
+        addStubsDependencyOpt = addStubs,
+        addRunnerDependencyOpt = runner
+      ),
+      jmhOptions = JmhOptions(
+        addJmhDependencies =
+          if (enableJmh) jmhVersion.orElse(Some(Constants.jmhVersion))
+          else None,
+        runJmh = if (enableJmh) Some(true) else None,
+      ),
+      classPathOptions = ClassPathOptions(
+        extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
+        extraRepositories = LocalRepo.localRepo(directories.directories.localRepoDir).toSeq,
+      ),
       generateSemanticDbs = semanticDb,
-      extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
-      extraRepositories = LocalRepo.localRepo(directories.directories.localRepoDir).toSeq,
-      cache = Some(coursierCache)
+      internal = InternalOptions(
+        cache = Some(coursierCache)
+      )
     )
 
   // This might download a JVM if --jvm … is passed or no system JVM is installed
   def bloopgunConfig(): bloopgun.BloopgunConfig =
     bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath(logging.logger)).copy(
-      javaPath = buildOptions(None, None).javaCommand()
+      javaPath = buildOptions(false, None).javaCommand()
     )
 
   lazy val coursierCache = FileCache().withLogger(logging.logger.coursierLogger)

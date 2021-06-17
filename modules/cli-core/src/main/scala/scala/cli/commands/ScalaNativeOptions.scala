@@ -1,12 +1,8 @@
 package scala.cli.commands
 
-import bloop.config.{Config => BloopConfig}
 import caseapp._
-import java.nio.file.Paths
 
-import scala.build.{Build, BuildOptions, Project}
-import scala.build.internal.Constants
-import scala.scalanative.{build => sn}
+import scala.build.options
 
 final case class ScalaNativeOptions(
 
@@ -38,8 +34,8 @@ final case class ScalaNativeOptions(
 
 ) {
 
-  def buildOptions: BuildOptions.ScalaNativeOptions =
-    BuildOptions.ScalaNativeOptions(
+  def buildOptions: options.ScalaNativeOptions =
+    options.ScalaNativeOptions(
       native,
       nativeVersion,
       nativeMode,

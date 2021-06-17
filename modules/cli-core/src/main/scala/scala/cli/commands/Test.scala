@@ -12,7 +12,9 @@ object Test extends ScalaCommand[TestOptions] {
     val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
 
     val buildOptions = options.buildOptions.copy(
-      addTestRunnerDependencyOpt = Some(true)
+      internalDependencies = options.buildOptions.internalDependencies.copy(
+        addTestRunnerDependencyOpt = Some(true)
+      )
     )
     val bloopgunConfig = options.shared.bloopgunConfig()
 

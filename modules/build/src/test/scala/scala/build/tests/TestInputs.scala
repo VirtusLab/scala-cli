@@ -3,8 +3,9 @@ package scala.build.tests
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
 
-import scala.build.{Build, BuildOptions, BuildThreads, Directories, Inputs}
+import scala.build.{Build, BuildThreads, Directories, Inputs}
 import scala.build.bloop.bloopgun
+import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
 import scala.util.{Properties, Try}
 

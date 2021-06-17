@@ -3,7 +3,10 @@ package scala.build.config
 import pureconfig.ConfigReader
 import pureconfig.generic.semiauto._
 
-import scala.build.{Build, BuildOptions}
+import scala.build.Build
+import scala.build.options.BuildOptions
+import scala.build.options.ScalaOptions
+import scala.build.options.JavaOptions
 
 final case class ConfigFormat(
   scala: ConfigFormat.Scala = ConfigFormat.Scala(),
@@ -13,10 +16,14 @@ final case class ConfigFormat(
 ) {
   def buildOptions: BuildOptions =
     BuildOptions(
-      scalaVersion = scala.version,
-      scalaBinaryVersion = scala.binaryVersion,
-      javaHomeOpt = javaHome,
-      jvmIdOpt = jvm
+      scalaOptions = ScalaOptions(
+        scalaVersion = scala.version,
+        scalaBinaryVersion = scala.binaryVersion
+      ),
+      javaOptions = JavaOptions(
+        javaHomeOpt = javaHome,
+        jvmIdOpt = jvm
+      )
     )
 }
 

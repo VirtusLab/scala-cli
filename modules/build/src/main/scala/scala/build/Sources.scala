@@ -8,6 +8,7 @@ import dependency.{AnyDependency, ScalaParameters}
 
 import scala.build.internal.{AmmUtil, CodeWrapper, Name}
 import scala.build.internal.Util.DependencyOps
+import scala.build.options.BuildOptions
 import pureconfig.ConfigSource
 import scala.build.config.ConfigFormat
 

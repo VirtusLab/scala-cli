@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import scala.build.BuildOptions
+import scala.build.options
 
 final case class ScalaJsOptions(
 
@@ -25,8 +25,8 @@ final case class ScalaJsOptions(
 
 ) {
 
-  def buildOptions: BuildOptions.ScalaJsOptions =
-    BuildOptions.ScalaJsOptions(
+  def buildOptions: options.ScalaJsOptions =
+    options.ScalaJsOptions(
       enable = js,
       version = jsVersion,
       mode = jsMode,

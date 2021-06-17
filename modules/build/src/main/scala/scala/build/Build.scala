@@ -7,6 +7,7 @@ import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
 import dependency._
 import scala.build.bloop.bloopgun
 import scala.build.internal.{AsmPositionUpdater, Constants, CustomCodeWrapper, LineConversion, MainClass, SemanticdbProcessor, Util}
+import scala.build.options.BuildOptions
 import scala.build.tastylib.TastyData
 
 import java.io.IOException
@@ -141,7 +142,7 @@ object Build {
 
     val sources = Sources.forInputs(
       inputs,
-      options.codeWrapper.getOrElse(CustomCodeWrapper)
+      options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
     )
 
     val options0 = options.orElse(sources.buildOptions)
@@ -152,7 +153,7 @@ object Build {
     )
 
     val params = {
-      val (scalaVersion, scalaBinaryVersion) = computeScalaVersions(options0.scalaVersion, options0.scalaBinaryVersion)
+      val (scalaVersion, scalaBinaryVersion) = computeScalaVersions(options0.scalaOptions.scalaVersion, options0.scalaOptions.scalaBinaryVersion)
       val maybePlatformSuffix =
         options0.scalaJsOptions.platformSuffix
           .orElse(options0.scalaNativeOptions.platformSuffix)
@@ -163,13 +164,12 @@ object Build {
 
     build0 match {
       case successful: Successful =>
-        options0.runJmh match {
-          case Some(runJmhOptions) if runJmhOptions.preprocess =>
-            jmhBuild(inputs0, successful, threads, logger, cwd, successful.options.javaCommand(), buildClient, bloopServer).getOrElse {
-              sys.error("JMH build failed") // suppress stack trace?
-            }
-          case _ => build0
-        }
+        if (options0.jmhOptions.runJmh.getOrElse(false))
+          jmhBuild(inputs0, successful, threads, logger, cwd, successful.options.javaCommand(), buildClient, bloopServer).getOrElse {
+            sys.error("JMH build failed") // suppress stack trace?
+          }
+        else
+          build0
       case _ => build0
     }
   }
@@ -193,7 +193,7 @@ object Build {
 
     val buildClient = new BloopBuildClient(
       logger,
-      keepDiagnostics = options.keepDiagnostics
+      keepDiagnostics = options.internal.keepDiagnostics
     )
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
     bloop.BloopServer.withBuildServer(
@@ -238,7 +238,7 @@ object Build {
 
     val buildClient = new BloopBuildClient(
       logger,
-      keepDiagnostics = options.keepDiagnostics
+      keepDiagnostics = options.internal.keepDiagnostics
     )
     val threads = BuildThreads.create()
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
@@ -619,7 +619,12 @@ object Build {
           Inputs.ResourceDirectory(jmhResourceDir)
         )
       )
-      val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = build.options.runJmh.map(_.copy(preprocess = false))), threads, logger, cwd, buildClient, bloopServer)
+      val updatedOptions = build.options.copy(
+        jmhOptions = build.options.jmhOptions.copy(
+          runJmh = build.options.jmhOptions.runJmh.map(_ => false)
+        )
+      )
+      val jmhBuild = Build.build(jmhInputs, updatedOptions, threads, logger, cwd, buildClient, bloopServer)
       Some(jmhBuild)
     }
     else None

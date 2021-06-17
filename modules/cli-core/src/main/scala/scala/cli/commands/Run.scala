@@ -3,8 +3,9 @@ package scala.cli.commands
 import java.nio.file.Path
 
 import caseapp._
-import scala.build.{Build, BuildOptions, Inputs, Logger, Os, Runner}
+import scala.build.{Build, Inputs, Logger, Os, Runner}
 import scala.build.internal.Constants
+import scala.build.options.BuildOptions
 import scala.scalanative.{build => sn}
 
 import org.scalajs.linker.interface.StandardConfig
@@ -20,7 +21,7 @@ object Run extends ScalaCommand[RunOptions] {
     val inputs = options.shared.inputsOrExit(args, defaultInputs)
 
     val buildOptions = options.shared.buildOptions(
-      jmhOptions = options.benchmarking.jmh.filter(identity).map(_ => BuildOptions.RunJmhOptions(preprocess = true)),
+      enableJmh = options.benchmarking.jmh.contains(true),
       jmhVersion = options.benchmarking.jmhVersion
     )
     val bloopgunConfig = options.shared.bloopgunConfig()
@@ -70,7 +71,7 @@ object Run extends ScalaCommand[RunOptions] {
   ): Unit = {
 
     val mainClassOpt = options.mainClass.filter(_.nonEmpty) // trim it too?
-      .orElse(if (build.options.runJmh.fold(false)(!_.preprocess)) Some("org.openjdk.jmh.Main") else None)
+      .orElse(if (build.options.jmhOptions.runJmh.contains(false)) Some("org.openjdk.jmh.Main") else None)
       .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
 
     for (mainClass <- mainClassOpt) {

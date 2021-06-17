@@ -6,7 +6,8 @@ import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.bloop.bloopgun
-import scala.build.{Bloop, Build, BuildOptions, BuildThreads, Directories, Inputs, LocalRepo}
+import scala.build.{Bloop, Build, BuildThreads, Directories, Inputs, LocalRepo}
+import scala.build.options.{BuildOptions, ClassPathOptions, ScalaOptions}
 import scala.build.tests.TestUtil._
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
@@ -28,15 +29,21 @@ class BuildTests extends munit.FunSuite {
 
   def sv2 = "2.13.5"
   val defaultOptions = BuildOptions(
-    scalaVersion = Some(sv2),
-    scalaBinaryVersion = None,
-    extraRepositories = LocalRepo.localRepo(directories.localRepoDir).toSeq
+    scalaOptions = ScalaOptions(
+      scalaVersion = Some(sv2),
+      scalaBinaryVersion = None,
+    ),
+    classPathOptions = ClassPathOptions(
+      extraRepositories = LocalRepo.localRepo(directories.localRepoDir).toSeq
+    )
   )
 
   def sv3 = "3.0.0"
   val defaultScala3Options = defaultOptions.copy(
-    scalaVersion = Some(sv3),
-    scalaBinaryVersion = None
+    scalaOptions = defaultOptions.scalaOptions.copy(
+      scalaVersion = Some(sv3),
+      scalaBinaryVersion = None
+    )
   )
 
   def simple(checkResults: Boolean = true): Unit = {
@@ -205,7 +212,12 @@ class BuildTests extends munit.FunSuite {
           |zz
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.copy(keepDiagnostics = true), buildThreads, bloopConfig) { (root, inputs, build) =>
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
       val expectedDiag = {
         val start = new bsp4j.Position(2, 0)
         val end = new bsp4j.Position(2, 2)
@@ -230,7 +242,12 @@ class BuildTests extends munit.FunSuite {
           |zz
           |""".stripMargin
     )
-    testInputs.withBuild(defaultScala3Options.copy(keepDiagnostics = true), buildThreads, bloopConfig) { (root, inputs, build) =>
+    val buildOptions = defaultScala3Options.copy(
+      internal = defaultScala3Options.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
       val expectedDiag = {
         val start = new bsp4j.Position(2, 0)
         val end = new bsp4j.Position(2, 0) // would have expected (2, 2) here :|
