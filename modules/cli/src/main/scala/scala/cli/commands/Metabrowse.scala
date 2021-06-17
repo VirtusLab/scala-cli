@@ -17,6 +17,8 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     List("metabrowse")
   )
 
+  override def sharedOptions(options: MetabrowseOptions) = Some(options.shared)
+
   def isNativeImage = sys.props.contains("org.graalvm.nativeimage.imagecode")
 
   def run(options: MetabrowseOptions, args: RemainingArgs): Unit = {

@@ -7,6 +7,7 @@ import scala.build.internal.Constants
 
 object Test extends ScalaCommand[TestOptions] {
   override def group = "Main"
+  override def sharedOptions(options: TestOptions) = Some(options.shared)
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
     val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))

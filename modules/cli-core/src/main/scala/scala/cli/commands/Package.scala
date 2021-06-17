@@ -24,6 +24,7 @@ import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
   override def group = "Main"
+  override def sharedOptions(options: PackageOptions) = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
 
     val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))

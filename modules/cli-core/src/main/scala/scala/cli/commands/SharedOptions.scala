@@ -45,6 +45,12 @@ final case class SharedOptions(
   @Name("scalaBin")
   @Name("B")
     scalaBinaryVersion: Option[String] = None,
+  @Group("Scala")
+  @HelpMessage("Add scalac option")
+  @ValueDescription("option")
+  @Name("scala-opt")
+  @Name("O")
+    scalacOption: List[String] = Nil,
 
   @Group("Java")
   @HelpMessage("Set Java home")
@@ -109,13 +115,14 @@ final case class SharedOptions(
       def error(msg: String) = logger.log(msg)
     }
 
-  def buildOptions(enableJmh: Boolean, jmhVersion: Option[String]): BuildOptions =
+  def buildOptions(enableJmh: Boolean, jmhVersion: Option[String], ignoreErrors: Boolean = false): BuildOptions =
     BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
-        generateSemanticDbs = semanticDb
+        generateSemanticDbs = semanticDb,
+        scalacOptions = scalacOption.filter(_.nonEmpty)
       ),
       scriptOptions = ScriptOptions(
         codeWrapper = codeWrapper
@@ -139,10 +146,12 @@ final case class SharedOptions(
       classPathOptions = ClassPathOptions(
         extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
-        extraDependencies = dependencies.dependency.map(_.trim).filter(_.nonEmpty).map { depStr =>
+        extraDependencies = dependencies.dependency.map(_.trim).filter(_.nonEmpty).flatMap { depStr =>
           DependencyParser.parse(depStr) match {
-            case Left(err) => sys.error(s"Error parsing dependency '$depStr': $err")
-            case Right(dep) => dep
+            case Left(err) =>
+              if (ignoreErrors) Nil
+              else sys.error(s"Error parsing dependency '$depStr': $err")
+            case Right(dep) => Seq(dep)
           }
         }
       ),

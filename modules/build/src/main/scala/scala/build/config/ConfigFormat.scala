@@ -19,7 +19,8 @@ final case class ConfigFormat(
     BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = scala.version,
-        scalaBinaryVersion = scala.binaryVersion
+        scalaBinaryVersion = scala.binaryVersion,
+        scalacOptions = scala.options
       ),
       javaOptions = JavaOptions(
         javaHomeOpt = java.home,

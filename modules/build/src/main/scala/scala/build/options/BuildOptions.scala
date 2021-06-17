@@ -9,6 +9,7 @@ import java.security.MessageDigest
 
 import scala.build.{Artifacts, Logger, Os}
 import scala.build.internal.Constants._
+import scala.build.internal.Util
 import coursier.cache.FileCache
 import coursier.jvm.JvmCache
 import coursier.jvm.JavaHome
@@ -25,6 +26,7 @@ final case class BuildOptions(
                scriptOptions: ScriptOptions               = ScriptOptions(),
                     internal: InternalOptions             = InternalOptions()
 ) {
+
   def addRunnerDependency: Boolean =
     !scalaJsOptions.enable && !scalaNativeOptions.enable && internalDependencies.addRunnerDependencyOpt.getOrElse(true)
 
@@ -96,6 +98,55 @@ final case class BuildOptions(
 
   private def finalRepositories: Seq[String] =
     classPathOptions.extraRepositories ++ internal.localRepository.toSeq
+
+  private def computeScalaVersions(scalaVersion: Option[String], scalaBinaryVersion: Option[String]): (String, String) = {
+    import coursier.core.Version
+    lazy val allVersions = {
+      import coursier._
+      import scala.concurrent.ExecutionContext.{global => ec}
+      val modules = {
+        def scala2 = mod"org.scala-lang:scala-library"
+        // No unstable, that *ought* not to be a problem down-the-line…?
+        def scala3 = mod"org.scala-lang:scala3-library_3"
+        if (scalaVersion.contains("2") || scalaVersion.exists(_.startsWith("2."))) Seq(scala2)
+        else if (scalaVersion.contains("3") || scalaVersion.exists(_.startsWith("3."))) Seq(scala3)
+        else Seq(scala2, scala3)
+      }
+      def isStable(v: String): Boolean =
+        !v.endsWith("-NIGHTLY") && !v.contains("-RC")
+      def moduleVersions(mod: Module): Seq[String] = {
+        val res = Versions()
+          .withModule(mod)
+          .result()
+          .unsafeRun()(ec)
+        res.versions.available.filter(isStable)
+      }
+      modules.flatMap(moduleVersions).distinct
+    }
+    val sv = scalaVersion match {
+      case None => scala.util.Properties.versionNumberString
+      case Some(sv0) =>
+        if (Util.isFullScalaVersion(sv0)) sv0
+        else {
+          val prefix = if (sv0.endsWith(".")) sv0 else sv0 + "."
+          val matchingVersions = allVersions.filter(_.startsWith(prefix))
+          if (matchingVersions.isEmpty)
+            sys.error(s"Cannot find matching Scala version for '$sv0'")
+          else
+            matchingVersions.map(Version(_)).max.repr
+        }
+    }
+    val sbv = scalaBinaryVersion.getOrElse(ScalaVersion.binary(sv))
+    (sv, sbv)
+  }
+
+  def scalaParams: ScalaParameters = {
+    val (scalaVersion, scalaBinaryVersion) = computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion)
+    val maybePlatformSuffix =
+      scalaJsOptions.platformSuffix
+        .orElse(scalaNativeOptions.platformSuffix)
+    ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
+  }
 
   def artifacts(params: ScalaParameters, userDependencies: Seq[AnyDependency], logger: Logger): Artifacts =
     Artifacts(

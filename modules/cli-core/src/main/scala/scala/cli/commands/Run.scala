@@ -13,6 +13,8 @@ import org.scalajs.linker.interface.StandardConfig
 object Run extends ScalaCommand[RunOptions] {
   override def group = "Main"
 
+  override def sharedOptions(options: RunOptions) = Some(options.shared)
+
   def run(options: RunOptions, args: RemainingArgs): Unit =
     run(options, args, Some(Inputs.default()))
 
