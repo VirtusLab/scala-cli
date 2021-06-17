@@ -16,6 +16,7 @@ import scala.build.Inputs
 import java.io.InputStream
 import scala.build.Logger
 import java.io.ByteArrayOutputStream
+import dependency.parser.DependencyParser
 
 final case class SharedOptions(
   @Recurse
@@ -27,6 +28,9 @@ final case class SharedOptions(
 
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
+
+  @Recurse
+    dependencies: SharedDependencyOptions = SharedDependencyOptions(),
 
   @Group("Scala")
   @HelpMessage("Set Scala version")
@@ -133,11 +137,18 @@ final case class SharedOptions(
       ),
       classPathOptions = ClassPathOptions(
         extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
-        extraRepositories = LocalRepo.localRepo(directories.directories.localRepoDir).toSeq,
+        extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
+        extraDependencies = dependencies.dependency.map(_.trim).filter(_.nonEmpty).map { depStr =>
+          DependencyParser.parse(depStr) match {
+            case Left(err) => sys.error(s"Error parsing dependency '$depStr': $err")
+            case Right(dep) => dep
+          }
+        }
       ),
       generateSemanticDbs = semanticDb,
       internal = InternalOptions(
-        cache = Some(coursierCache)
+        cache = Some(coursierCache),
+        localRepository = LocalRepo.localRepo(directories.directories.localRepoDir)
       )
     )
 

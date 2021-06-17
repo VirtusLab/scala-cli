@@ -15,16 +15,16 @@ import coursier.jvm.JavaHome
 import scala.util.Properties
 
 final case class BuildOptions(
-                scalaOptions: ScalaOptions               = ScalaOptions(),
-              scalaJsOptions: ScalaJsOptions = ScalaJsOptions(),
-          scalaNativeOptions: ScalaNativeOptions = ScalaNativeOptions(),
+                scalaOptions: ScalaOptions                = ScalaOptions(),
+              scalaJsOptions: ScalaJsOptions              = ScalaJsOptions(),
+          scalaNativeOptions: ScalaNativeOptions          = ScalaNativeOptions(),
         internalDependencies: InternalDependenciesOptions = InternalDependenciesOptions(),
-                 javaOptions: JavaOptions                = JavaOptions(),
-                  jmhOptions: JmhOptions                 = JmhOptions(),
-            classPathOptions: ClassPathOptions           = ClassPathOptions(),
-               scriptOptions: ScriptOptions              = ScriptOptions(),
-         generateSemanticDbs: Option[Boolean]            = None,
-                    internal: InternalOptions            = InternalOptions()
+                 javaOptions: JavaOptions                 = JavaOptions(),
+                  jmhOptions: JmhOptions                  = JmhOptions(),
+            classPathOptions: ClassPathOptions            = ClassPathOptions(),
+               scriptOptions: ScriptOptions               = ScriptOptions(),
+         generateSemanticDbs: Option[Boolean]             = None,
+                    internal: InternalOptions             = InternalOptions()
 ) {
   def addRunnerDependency: Boolean =
     !scalaJsOptions.enable && !scalaNativeOptions.enable && internalDependencies.addRunnerDependencyOpt.getOrElse(true)
@@ -43,7 +43,8 @@ final case class BuildOptions(
   def dependencies(params: ScalaParameters): Seq[AnyDependency] =
     scalaJsOptions.jsDependencies ++
       scalaNativeOptions.nativeDependencies ++
-      scalaLibraryDependencies(params)
+      scalaLibraryDependencies(params) ++
+      classPathOptions.extraDependencies
 
   private def semanticDbPlugins(params: ScalaParameters): Seq[AnyDependency] =
     if (generateSemanticDbs.getOrElse(false) && params.scalaVersion.startsWith("2."))
@@ -94,6 +95,9 @@ final case class BuildOptions(
     JavaHome().withCache(jvmCache)
   }
 
+  private def finalRepositories: Seq[String] =
+    classPathOptions.extraRepositories ++ internal.localRepository.toSeq
+
   def artifacts(params: ScalaParameters, userDependencies: Seq[AnyDependency], logger: Logger): Artifacts =
     Artifacts(
              javaHomeOpt = javaOptions.javaHomeOpt.filter(_.nonEmpty),
@@ -108,7 +112,7 @@ final case class BuildOptions(
         addJvmTestRunner = addJvmTestRunner,
          addJsTestBridge = addJsTestBridge,
       addJmhDependencies = jmhOptions.addJmhDependencies,
-       extraRepositories = classPathOptions.extraRepositories,
+       extraRepositories = finalRepositories,
                   logger = logger
     )
 

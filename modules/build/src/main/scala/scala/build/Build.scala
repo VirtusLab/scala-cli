@@ -146,10 +146,13 @@ object Build {
     )
 
     val options0 = options.orElse(sources.buildOptions)
-
     // If some options are manually overridden, append a hash of the options to the project name
+    // Using options, not options0 - only the command-line options are taken into account. No hash is
+    // appended for options from the sources.
+    val optionsHash = options.hash
+
     val inputs0 = inputs.copy(
-      baseProjectName = inputs.baseProjectName + options.hash.map("_" + _).getOrElse("")
+      baseProjectName = inputs.baseProjectName + optionsHash.map("_" + _).getOrElse("")
     )
 
     val params = {

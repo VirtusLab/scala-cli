@@ -6,13 +6,14 @@ import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.bloop.bloopgun
-import scala.build.{Bloop, Build, BuildThreads, Directories, Inputs, LocalRepo}
-import scala.build.options.{BuildOptions, ClassPathOptions, ScalaOptions}
+import scala.build.{Bloop, Build, BuildThreads, Directories, Inputs}
+import scala.build.options.{BuildOptions, ClassPathOptions, InternalOptions, ScalaOptions}
 import scala.build.tests.TestUtil._
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 import scala.build.tastylib.TastyData
 import scala.build.Logger
+import scala.build.LocalRepo
 
 class BuildTests extends munit.FunSuite {
 
@@ -33,8 +34,8 @@ class BuildTests extends munit.FunSuite {
       scalaVersion = Some(sv2),
       scalaBinaryVersion = None,
     ),
-    classPathOptions = ClassPathOptions(
-      extraRepositories = LocalRepo.localRepo(directories.localRepoDir).toSeq
+    internal = InternalOptions(
+      localRepository = LocalRepo.localRepo(directories.localRepoDir)
     )
   )
 
