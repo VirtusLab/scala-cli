@@ -9,10 +9,10 @@ import scala.build.options.ScalaOptions
 import scala.build.options.JavaOptions
 
 final case class ConfigFormat(
-  scala: ConfigFormat.Scala = ConfigFormat.Scala(),
-  scalaJs: ConfigFormat.ScalaJs = ConfigFormat.ScalaJs(),
-  javaHome: Option[String] = None,
-  jvm: Option[String] = None
+  scala: Scala = Scala(),
+  scalaJs: ScalaJs = ScalaJs(),
+  jvm: Option[String] = None,
+  java: Java = Java()
 ) {
   def buildOptions: BuildOptions =
     BuildOptions(
@@ -21,30 +21,12 @@ final case class ConfigFormat(
         scalaBinaryVersion = scala.binaryVersion
       ),
       javaOptions = JavaOptions(
-        javaHomeOpt = javaHome,
+        javaHomeOpt = java.home,
         jvmIdOpt = jvm
       )
     )
 }
 
 object ConfigFormat {
-
-  final case class Scala(
-    version: Option[String] = None,
-    binaryVersion: Option[String] = None,
-    platform: Option[String] = None
-  )
-  object Scala {
-    implicit val reader: ConfigReader[Scala] = deriveReader
-  }
-
-  final case class ScalaJs(
-    version: Option[String] = None,
-    suffix: Option[String] = None
-  )
-  object ScalaJs {
-    implicit val reader: ConfigReader[ScalaJs] = deriveReader
-  }
-
   implicit val reader: ConfigReader[ConfigFormat] = deriveReader
 }
