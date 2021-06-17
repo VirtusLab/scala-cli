@@ -36,6 +36,12 @@ jobs:
     - name: Build linux packages for scala-cli
       run: .github/scripts/generate-packages-linux.sh
       if: runner.os == 'Linux'
+    - name: Build macOS packages for scala-cli
+      run: .github/scripts/generate-packages-mac.sh
+      if: runner.os == 'macOS'
+    - name: Build Windows packages for scala-cli
+      run: .github/scripts/generate-packages-win.sh
+      if: runner.os == 'Windows'
     - name: Copy artifacts
       run: ./mill -i copyLauncher artifacts/
       if: runner.os == 'macOS'

@@ -33,6 +33,12 @@ final case class PackageOptions(
   @HelpMessage("Build dmg package, available only on centOS")
     dmg: Boolean = false,
   @Group("Package")
+  @HelpMessage("Build rpm package, available only on linux")
+    rpm: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Build msi package, available only on windows")
+    msi: Boolean = false,
+  @Group("Package")
   @HelpMessage("Build pkg package, available only on centOS")
     pkg: Boolean = false,
 ) {
@@ -44,6 +50,8 @@ final case class PackageOptions(
     else if (debian)  PackageType.Debian
     else if (dmg) PackageType.Dmg
     else if (pkg) PackageType.Pkg
+    else if (rpm) PackageType.Rpm
+    else if (msi) PackageType.Msi
     else PackageType.Bootstrap
 
   def buildOptions(scalaVersions: ScalaVersions): Build.Options =
@@ -63,6 +71,8 @@ object PackageOptions {
     case object Debian extends NativePackagerType
     case object Dmg extends NativePackagerType
     case object Pkg extends NativePackagerType
+    case object Rpm extends NativePackagerType
+    case object Msi extends NativePackagerType
   }
 
   implicit val parser = Parser[PackageOptions]

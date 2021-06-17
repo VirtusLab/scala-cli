@@ -6,6 +6,8 @@ import packager.BuildSettings
 import packager.mac.dmg.DmgPackage
 import packager.mac.pkg.PkgPackage
 import packager.deb.DebianPackage
+import packager.rpm.RedHatPackage
+import packager.windows.WindowsPackage
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.file.attribute.FileTime
@@ -53,6 +55,8 @@ object Package extends ScalaCommand[PackageOptions] {
       else if (options.packageType == PackageOptions.PackageType.Debian) ".deb"
       else if (options.packageType == PackageOptions.PackageType.Dmg) ".dmg"
       else if (options.packageType == PackageOptions.PackageType.Pkg) ".pkg"
+      else if (options.packageType == PackageOptions.PackageType.Rpm) ".rpm"
+      else if (options.packageType == PackageOptions.PackageType.Msi) ".msi"
       else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) ".exe" else ".bat")
       else ""
     def defaultName =
@@ -61,6 +65,8 @@ object Package extends ScalaCommand[PackageOptions] {
       else if (options.packageType == PackageOptions.PackageType.Debian) "app.deb"
       else if (options.packageType == PackageOptions.PackageType.Dmg) "app.dmg"
       else if (options.packageType == PackageOptions.PackageType.Pkg) "app.pkg"
+      else if (options.packageType == PackageOptions.PackageType.Rpm) "app.rpm"
+      else if (options.packageType == PackageOptions.PackageType.Msi) "app.msi"
       else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) "app.exe" else "app.bat")
       else "app"
     val dest = options.output
@@ -114,6 +120,10 @@ object Package extends ScalaCommand[PackageOptions] {
             DmgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
           case PackageOptions.PackageType.Pkg =>
             PkgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+          case PackageOptions.PackageType.Rpm =>
+            RedHatPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+          case PackageOptions.PackageType.Msi =>
+            WindowsPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
         }
     }
 

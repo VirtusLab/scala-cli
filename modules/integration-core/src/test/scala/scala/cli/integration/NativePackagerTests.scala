@@ -37,7 +37,7 @@ class NativePackagerTests extends munit.FunSuite{
         val pkgAppPath = root / pkgAppFile
         expect(os.isFile(pkgAppPath))
 
-        if(TestUtil.isCI) {
+        if (TestUtil.isCI) {
           os.proc("installer", "-pkg", pkgAppFile, "-target", "CurrentUserHomeDirectory").call(
             cwd = root,
             stdin = os.Inherit,
@@ -67,6 +67,76 @@ class NativePackagerTests extends munit.FunSuite{
         )
 
         val launcher = root / s"$launcherName.dmg"
+        expect(os.isFile(launcher))
+
+        if (TestUtil.isCI) {
+          os.proc("hdiutil", "attach", launcher).call(
+            cwd = root,
+            stdin = os.Inherit,
+            stdout = os.Inherit,
+            stderr = os.Inherit
+          )
+
+          val output = os.proc(s"/Volumes/$launcherName/$launcherName.app/Contents/MacOS/$launcherName").call(cwd = os.root).out.text.trim
+          expect(output == message)
+
+          os.proc("hdiutil", "detach", s"/Volumes/$launcherName").call(
+            cwd = root,
+            stdin = os.Inherit,
+            stdout = os.Inherit,
+            stderr = os.Inherit
+          )
+        }
+      }
+    }
+  }
+
+  if ( Properties.isLinux) {
+
+    test("building deb package") {
+
+      helloWorldTestInputs.fromRoot { root =>
+
+        val launcherName = helloWorldFileName.stripSuffix(".scala")
+
+        os.proc(TestUtil.cli, "package", helloWorldFileName, "--debian", "--output", s"$launcherName.deb").call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit
+        )
+
+        val launcher = root / s"$launcherName.deb"
+        expect(os.isFile(launcher))
+
+        if (TestUtil.isCI) {
+          os.proc("dpkg", "-x", launcher, root).call(
+            cwd = root,
+            stdin = os.Inherit,
+            stdout = os.Inherit,
+            stderr = os.Inherit
+          )
+
+          val output = os.proc(s"$root/usr/share/scala/$launcherName").call(cwd = os.root).out.text.trim
+          expect(output == message)
+        }
+      }
+    }
+
+    test("building rpm package") {
+
+      helloWorldTestInputs.fromRoot { root =>
+
+        val launcherName = helloWorldFileName.stripSuffix(".scala")
+
+        os.proc(TestUtil.cli, "package", helloWorldFileName, "--rpm", "--output", s"$launcherName.rpm").call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit
+        )
+
+        val launcher = root / s"$launcherName.rpm"
         expect(os.isFile(launcher))
       }
     }
