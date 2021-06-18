@@ -41,24 +41,25 @@ object TestInputs {
   private def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
     val tmpDir = os.temp.dir(prefix = prefix)
     try f(tmpDir)
-    finally {
-      try os.remove.all(tmpDir)
-      catch {
-        case ex: java.nio.file.FileSystemException =>
-          System.err.println(s"Could not remove $tmpDir ($ex), will try to remove it upon JVM shutdown.")
-          System.err.println(s"find $tmpDir = '${Try(os.walk(tmpDir))}'")
-          Runtime.getRuntime.addShutdownHook(
-            new Thread("remove-tmp-dir-windows") {
-              setDaemon(true)
-              override def run() =
-                try os.remove.all(tmpDir)
-                catch {
-                  case NonFatal(e) =>
-                    System.err.println(s"Could not remove temporary directory $tmpDir, ignoring it.")
-                }
-            }
-          )
-      }
-    }
+    finally tryRemoveAll(tmpDir)
   }
+
+  def tryRemoveAll(f: os.Path): Unit =
+    try os.remove.all(f)
+    catch {
+      case ex: java.nio.file.FileSystemException =>
+        System.err.println(s"Could not remove $f ($ex), will try to remove it upon JVM shutdown.")
+        System.err.println(s"find $f = '${Try(os.walk(f))}'")
+        Runtime.getRuntime.addShutdownHook(
+          new Thread("remove-dir-windows") {
+            setDaemon(true)
+            override def run() =
+              try os.remove.all(f)
+              catch {
+                case NonFatal(e) =>
+                  System.err.println(s"Could not remove $f, ignoring it.")
+              }
+          }
+        )
+    }
 }

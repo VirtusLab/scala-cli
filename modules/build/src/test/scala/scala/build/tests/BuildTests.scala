@@ -24,7 +24,7 @@ class BuildTests extends munit.FunSuite {
   val directories = Directories.under(extraRepoTmpDir)
 
   override def afterAll(): Unit = {
-    os.remove.all(extraRepoTmpDir)
+    TestInputs.tryRemoveAll(extraRepoTmpDir)
     buildThreads.shutdown()
   }
 
