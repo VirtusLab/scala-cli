@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp._
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
-import scala.build.bloop.bloopgun
+import scala.build.blooprifle.BloopRifleLogger
 import scala.build.Logger
 
 final case class LoggingOptions(
@@ -44,8 +44,8 @@ final case class LoggingOptions(
         else
           RefreshLogger.create(new FallbackRefreshDisplay)
 
-      def bloopgunLogger =
-        new bloopgun.BloopgunLogger {
+      def bloopRifleLogger =
+        new BloopRifleLogger {
           def debug(msg: => String) =
             if (verbosity >= 3)
               logger.debug(msg)

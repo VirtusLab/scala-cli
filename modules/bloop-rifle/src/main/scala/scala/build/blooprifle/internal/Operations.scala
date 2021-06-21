@@ -1,4 +1,4 @@
-package scala.build.bloop.bloopgun.internal
+package scala.build.blooprifle.internal
 
 import java.io.{File, InputStream, OutputStream}
 import java.net.{ConnectException, InetSocketAddress}
@@ -6,7 +6,7 @@ import java.nio.file.{Path, Paths}
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
-import scala.build.bloop.bloopgun.{BloopgunLogger, BspConnection}
+import scala.build.blooprifle.{BloopRifleLogger, BspConnection}
 import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -30,7 +30,7 @@ object Operations {
   def check(
     host: String,
     port: Int,
-    logger: BloopgunLogger
+    logger: BloopRifleLogger
   ): Boolean =
     // inspired by https://github.com/scalacenter/bloop/blob/cbddb8baaf639a4e08ee630f1ebc559dc70255a8/bloopgun/src/main/scala/bloop/bloopgun/core/Shell.scala#L174-L202
     Util.withSocket { socket =>
@@ -67,7 +67,7 @@ object Operations {
     scheduler: ScheduledExecutorService,
     waitInterval: FiniteDuration,
     timeout: Duration,
-    logger: BloopgunLogger
+    logger: BloopRifleLogger
   ): Future[Unit] = {
 
     val command =
@@ -143,7 +143,7 @@ object Operations {
     in: InputStream,
     out: OutputStream,
     err: OutputStream,
-    logger: BloopgunLogger
+    logger: BloopRifleLogger
   ): BspConnection = {
 
     val nailgunLogger: SnailgunLogger =
@@ -161,7 +161,7 @@ object Operations {
     val streams = Streams(in, out, err)
 
     val promise = Promise[Int]()
-    val threadName = "bloopgun-nailgun-out"
+    val threadName = "bloop-rifle-nailgun-out"
     val runnable: Runnable = logger.runnable(threadName) { () =>
       val maybeRetCode = Try {
         nailgunClient.run(

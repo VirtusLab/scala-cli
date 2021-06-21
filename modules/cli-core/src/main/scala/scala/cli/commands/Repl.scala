@@ -17,9 +17,9 @@ object Repl extends ScalaCommand[ReplOptions] {
     // TODO Add watch support?
 
     val buildOptions = options.buildOptions
-    val bloopgunConfig = options.shared.bloopgunConfig()
+    val bloopRifleConfig = options.shared.bloopRifleConfig()
 
-    val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
+    val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")

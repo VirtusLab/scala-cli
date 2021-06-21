@@ -17,10 +17,10 @@ object Test extends ScalaCommand[TestOptions] {
         addTestRunnerDependencyOpt = Some(true)
       )
     )
-    val bloopgunConfig = options.shared.bloopgunConfig()
+    val bloopRifleConfig = options.shared.bloopRifleConfig()
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
@@ -29,7 +29,7 @@ object Test extends ScalaCommand[TestOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
+      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd)
       build match {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)

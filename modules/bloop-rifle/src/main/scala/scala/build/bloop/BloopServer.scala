@@ -10,11 +10,11 @@ import org.eclipse.lsp4j.jsonrpc
 
 import scala.annotation.tailrec
 import scala.build.bloop.bloop4j.BloopExtraBuildParams
-import scala.build.bloop.bloopgun.internal.Constants
+import scala.build.blooprifle.internal.Constants
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
-import scala.build.bloop.bloopgun.BloopgunLogger
+import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, BspConnection}
 
 trait BloopServer {
   def server: BuildServer
@@ -41,12 +41,12 @@ object BloopServer {
     new ByteArrayInputStream(Array.emptyByteArray)
 
   private def ensureBloopRunning(
-    config: bloopgun.BloopgunConfig,
+    config: BloopRifleConfig,
     startServerChecksPool: ScheduledExecutorService,
-    logger: BloopgunLogger
+    logger: BloopRifleLogger
   ): Unit = {
 
-    val isBloopRunning = bloopgun.Bloopgun.check(config, logger)
+    val isBloopRunning = BloopRifle.check(config, logger)
 
     logger.debug(
       if (isBloopRunning) s"Bloop is running on ${config.host}:${config.port}"
@@ -55,7 +55,7 @@ object BloopServer {
 
     if (!isBloopRunning) {
       logger.debug("Starting bloop server")
-      val serverStartedFuture = bloopgun.Bloopgun.startServer(
+      val serverStartedFuture = BloopRifle.startServer(
         config,
         startServerChecksPool,
         100.millis,
@@ -70,7 +70,7 @@ object BloopServer {
   }
 
   private def connect(
-    conn: bloopgun.BspConnection,
+    conn: BspConnection,
     period: FiniteDuration = 100.milliseconds,
     timeout: FiniteDuration = 5.seconds
   ): Socket = {
@@ -98,14 +98,14 @@ object BloopServer {
   }
 
   def buildServer(
-    config: bloopgun.BloopgunConfig,
+    config: BloopRifleConfig,
     clientName: String,
     clientVersion: String,
     workspace: Path,
     classesDir: Path,
     buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
-    logger: BloopgunLogger,
+    logger: BloopRifleLogger,
     period: FiniteDuration = 100.milliseconds,
     timeout: FiniteDuration = 5.seconds
   ): BloopServer = {
@@ -113,7 +113,7 @@ object BloopServer {
     ensureBloopRunning(config, threads.startServerChecks, logger)
 
     logger.debug("Opening BSP connection with bloop")
-    val conn = bloopgun.Bloopgun.bsp(
+    val conn = BloopRifle.bsp(
       config,
       workspace.resolve(".scala"),
       logger
@@ -155,14 +155,14 @@ object BloopServer {
   }
 
   def withBuildServer[T](
-    config: bloopgun.BloopgunConfig,
+    config: BloopRifleConfig,
     clientName: String,
     clientVersion: String,
     workspace: Path,
     classesDir: Path,
     buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
-    logger: BloopgunLogger,
+    logger: BloopRifleLogger,
     period: FiniteDuration = 100.milliseconds,
     timeout: FiniteDuration = 5.seconds
   )(f: BloopServer => T): T = {

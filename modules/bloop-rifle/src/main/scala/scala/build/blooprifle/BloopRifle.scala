@@ -1,16 +1,16 @@
-package scala.build.bloop.bloopgun
+package scala.build.blooprifle
 
 import java.io.{FileOutputStream, InputStream, OutputStream}
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 
-import scala.build.bloop.bloopgun.internal.{Operations, Util}
+import scala.build.blooprifle.internal.{Operations, Util}
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.control.NonFatal
 
-object Bloopgun {
+object BloopRifle {
 
   /**
     * Checks whether a bloop server is running at this host / port.
@@ -21,8 +21,8 @@ object Bloopgun {
     * @return Whether a server is running or not.
     */
   def check(
-    config: BloopgunConfig,
-    logger: BloopgunLogger
+    config: BloopRifleConfig,
+    logger: BloopRifleLogger
   ): Boolean =
     Operations.check(
       config.host,
@@ -44,11 +44,11 @@ object Bloopgun {
     * @return A future, that gets completed when the server is done starting (and can thus be used).
     */
   def startServer(
-    config: BloopgunConfig,
+    config: BloopRifleConfig,
     scheduler: ScheduledExecutorService,
     waitInterval: FiniteDuration,
     timeout: Duration,
-    logger: BloopgunLogger
+    logger: BloopRifleLogger
   ): Future[Unit] = {
 
     val classPath = config.classPath().map(_.toPath)
@@ -76,9 +76,9 @@ object Bloopgun {
     * @return A [[BspConnection]] object, that can be used to close the connection.
     */
   def bsp(
-    config: BloopgunConfig,
+    config: BloopRifleConfig,
     workingDir: Path,
-    logger: BloopgunLogger
+    logger: BloopRifleLogger
   ): BspConnection = {
 
     val bspPort = config.bspPort.getOrElse {

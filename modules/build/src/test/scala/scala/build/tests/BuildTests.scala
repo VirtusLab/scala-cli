@@ -5,7 +5,7 @@ import java.io.IOException
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.bloop.bloopgun
+import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Bloop, Build, BuildThreads, Directories, Inputs}
 import scala.build.options.{BuildOptions, ClassPathOptions, InternalOptions, ScalaOptions}
 import scala.build.tests.TestUtil._
@@ -18,7 +18,7 @@ import scala.build.LocalRepo
 class BuildTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
-  val bloopConfig = bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath(Logger.nop))
+  val bloopConfig = BloopRifleConfig.default(() => Bloop.bloopClassPath(Logger.nop))
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories = Directories.under(extraRepoTmpDir)

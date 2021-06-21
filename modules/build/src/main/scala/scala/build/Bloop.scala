@@ -5,7 +5,7 @@ import ch.epfl.scala.bsp4j
 import scala.collection.JavaConverters._
 import java.io.File
 import java.nio.file.Path
-import scala.build.bloop.bloopgun.BloopgunConfig
+import scala.build.blooprifle.BloopRifleConfig
 import dependency.parser.ModuleParser
 import dependency.Dependency
 import dependency.DependencyLike
@@ -52,12 +52,12 @@ object Bloop {
     Artifacts.artifacts(Seq(dep), Nil, params, logger).map(_._2.toFile)
 
   def bloopClassPath(logger: Logger): Seq[File] = {
-    val moduleStr = BloopgunConfig.defaultModule
+    val moduleStr = BloopRifleConfig.defaultModule
     val mod = ModuleParser.parse(moduleStr) match {
       case Left(err) => sys.error(s"Error parsing default bloop module '$moduleStr'")
       case Right(mod) => mod
     }
-    val dep = DependencyLike(mod, BloopgunConfig.defaultVersion)
+    val dep = DependencyLike(mod, BloopRifleConfig.defaultVersion)
     val sv = Properties.versionNumberString
     val sbv = ScalaVersion.binary(sv)
     val params = ScalaParameters(sv, sbv)

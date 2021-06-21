@@ -6,7 +6,7 @@ import caseapp._
 import caseapp.core.help.Help
 import coursier.cache.FileCache
 
-import scala.build.bloop.bloopgun
+import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Bloop, LocalRepo, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.build.options.{BuildOptions, ClassPathOptions, InternalDependenciesOptions, InternalOptions, JavaOptions, JmhOptions, ScalaOptions, ScriptOptions}
@@ -162,8 +162,8 @@ final case class SharedOptions(
     )
 
   // This might download a JVM if --jvm … is passed or no system JVM is installed
-  def bloopgunConfig(): bloopgun.BloopgunConfig =
-    bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath(logging.logger)).copy(
+  def bloopRifleConfig(): BloopRifleConfig =
+    BloopRifleConfig.default(() => Bloop.bloopClassPath(logging.logger)).copy(
       javaPath = buildOptions(false, None).javaCommand()
     )
 

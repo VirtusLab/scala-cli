@@ -19,7 +19,7 @@ The other modules are either:
 ## Utility modules
 
 These are:
-- `bloopgun`: starts a Bloop server if needed, connects to it via nailgun, opens a BSP server to it, …
+- `bloop-rifle`: starts a Bloop server if needed, connects to it via nailgun, opens a BSP server to it, …
 - `runner`: simple app that starts a main class, catches any exception it throws and pretty-prints it.
 - `stubs`: empty classes, so that lines such as `import $ivy.$`, left after full blown `import $ivy`s are processed, compile fine (about to be removed?)
 - `test-runner`: finds test frameworks, test suites, and runs them
