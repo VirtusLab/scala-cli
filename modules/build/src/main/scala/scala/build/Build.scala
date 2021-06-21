@@ -1,12 +1,13 @@
 package scala.build
 
+import _root_.bloop.config.{Config => BloopConfig}
 import ch.epfl.scala.bsp4j
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
 import dependency._
-import scala.build.internal.{AsmPositionUpdater, CodeWrapper, Constants, CustomCodeWrapper, LineConversion, MainClass, SemanticdbProcessor, Util}
-import scala.build.internal.Constants._
-import scala.build.internal.Util.{DependencyOps, ScalaDependencyOps}
+import scala.build.bloop.bloopgun
+import scala.build.internal.{AsmPositionUpdater, Constants, CustomCodeWrapper, LineConversion, MainClass, SemanticdbProcessor, Util}
+import scala.build.options.BuildOptions
 import scala.build.tastylib.TastyData
 
 import java.io.IOException
@@ -21,7 +22,7 @@ import scala.util.control.NonFatal
 
 trait Build {
   def inputs: Inputs
-  def options: Build.Options
+  def options: BuildOptions
   def sources: Sources
   def artifacts: Artifacts
   def project: Project
@@ -36,7 +37,7 @@ object Build {
 
   final case class Successful(
     inputs: Inputs,
-    options: Build.Options,
+    options: BuildOptions,
     sources: Sources,
     artifacts: Artifacts,
     project: Project,
@@ -77,7 +78,7 @@ object Build {
 
   final case class Failed(
     inputs: Inputs,
-    options: Build.Options,
+    options: BuildOptions,
     sources: Sources,
     artifacts: Artifacts,
     project: Project,
@@ -88,155 +89,75 @@ object Build {
     def outputOpt: None.type = None
   }
 
-  final case class ScalaJsOptions(
-    platformSuffix: String,
-    jsDependencies: Seq[coursierapi.Dependency],
-    compilerPlugins: Seq[coursierapi.Dependency],
-    config: Project.ScalaJsOptions
-  ) {
-    def version: String = config.version
-  }
-
-  def scalaJsOptions(scalaVersion: String, scalaBinaryVersion: String): ScalaJsOptions = {
-    val version = Constants.scalaJsVersion
-    val platformSuffix = "sjs" + ScalaVersion.jsBinary(version).getOrElse(version)
-    val params = ScalaParameters(scalaVersion, scalaBinaryVersion, Some(platformSuffix))
-    ScalaJsOptions(
-      platformSuffix = platformSuffix,
-      jsDependencies = Seq(
-        dep"org.scala-js::scalajs-library:$version".toApi(params)
-      ),
-      compilerPlugins = Seq(
-        dep"org.scala-js:::scalajs-compiler:$version".toApi(params)
-      ),
-      config = Project.ScalaJsOptions(
-        version = version,
-        mode = "debug"
-      )
-    )
-  }
-
-  final case class ScalaNativeOptions(
-    platformSuffix: String,
-    nativeDependencies: Seq[coursierapi.Dependency],
-    compilerPlugins: Seq[coursierapi.Dependency],
-    config: Project.ScalaNativeOptions
-  ) {
-    def version: String = config.version
-  }
-
-  def scalaNativeOptions(scalaVersion: String, scalaBinaryVersion: String): ScalaNativeOptions = {
-    val version = Constants.scalaNativeVersion
-    val platformSuffix = "native" + ScalaVersion.nativeBinary(version).getOrElse(version)
-    val params = ScalaParameters(scalaVersion, scalaBinaryVersion, Some(platformSuffix))
-    val nativeDeps = Seq("nativelib", "javalib", "auxlib", "scalalib")
-      .map(name => dep"org.scala-native::$name::$version".toApi(params))
-    Build.ScalaNativeOptions(
-      platformSuffix = platformSuffix,
-      nativeDependencies = nativeDeps,
-      compilerPlugins = Seq(dep"org.scala-native:::nscplugin:$version".toApi(params)),
-      config = Project.ScalaNativeOptions(
-               version = version,
-                  mode = "debug",
-                    gc = "default",
-                 clang = sn.Discover.clang(),
-               clangpp = sn.Discover.clangpp(),
-        linkingOptions = sn.Discover.linkingOptions(),
-        compileOptions = sn.Discover.compileOptions()
-      )
-    )
-  }
-
-  final case class Options(
-    scalaVersion: String,
-    scalaBinaryVersion: String,
-    generatedSrcRootOpt: Option[os.Path] = None,
-    codeWrapper: CodeWrapper = CustomCodeWrapper,
-    scalaJsOptions: Option[ScalaJsOptions] = None,
-    scalaNativeOptions: Option[ScalaNativeOptions] = None,
-    javaHomeOpt: Option[String] = None,
-    jvmIdOpt: Option[String] = None,
-    stubsJarOpt: Option[Path] = None,
-    addStubsDependencyOpt: Option[Boolean] = None,
-    testRunnerJarsOpt: Option[Seq[Path]] = None,
-    addRunnerDependencyOpt: Option[Boolean] = None,
-    addTestRunnerDependencyOpt: Option[Boolean] = None,
-    addJmhDependencies: Option[String] = None,
-    runJmh: Boolean = false,
-    addLineModifierPluginOpt: Option[Boolean] = None,
-    addScalaLibrary: Boolean = true,
-    generateSemanticDbs: Boolean = false,
-    keepDiagnostics: Boolean = false,
-    fetchSources: Boolean = false,
-    extraJars: Seq[os.Path] = Nil
-  ) {
-    def classesDir(root: os.Path, projectName: String): os.Path =
-      root / ".scala" / projectName / s"scala-$scalaVersion" / "classes"
-    def generatedSrcRoot(root: os.Path, projectName: String) = generatedSrcRootOpt.getOrElse {
-      defaultGeneratedSrcRoot(root, projectName)
-    }
-    def defaultGeneratedSrcRoot(root: os.Path, projectName: String) =
-      root / ".scala" / projectName / s"scala-$scalaVersion" / "src_generated"
-    def addStubsDependency: Boolean =
-      addStubsDependencyOpt.getOrElse(stubsJarOpt.isEmpty)
-    def addRunnerDependency: Boolean =
-      scalaJsOptions.isEmpty && scalaNativeOptions.isEmpty && addRunnerDependencyOpt.getOrElse(true)
-    def addTestRunnerDependency: Boolean =
-      addTestRunnerDependencyOpt.getOrElse(false)
-    def addLineModifierPlugin: Boolean =
-      addLineModifierPluginOpt.getOrElse {
-        false
-      }
-  }
-
   private def build(
     inputs: Inputs,
-    options: Options,
+    options: BuildOptions,
     threads: BuildThreads,
     logger: Logger,
     cwd: os.Path,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ): Build = {
-    val maybePlatformSuffix =
-      options.scalaJsOptions.map(_.platformSuffix)
-        .orElse(options.scalaNativeOptions.map(_.platformSuffix))
+
     val sources = Sources.forInputs(
       inputs,
-      options.codeWrapper,
-      maybePlatformSuffix.getOrElse(""),
-      options.scalaVersion,
-      options.scalaBinaryVersion
+      options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
     )
-    val build0 = buildOnce(cwd, inputs, sources, options, threads, logger, buildClient, bloopServer)
+
+    val options0 = options.orElse(sources.buildOptions)
+    // If some options are manually overridden, append a hash of the options to the project name
+    // Using options, not options0 - only the command-line options are taken into account. No hash is
+    // appended for options from the sources.
+    val optionsHash = options.hash
+
+    val inputs0 = inputs.copy(
+      baseProjectName = inputs.baseProjectName + optionsHash.map("_" + _).getOrElse("")
+    )
+
+    val params = options0.scalaParams
+
+    val build0 = buildOnce(cwd, inputs0, params, sources, options0, threads, logger, buildClient, bloopServer)
 
     build0 match {
-      case successful: Successful if options.runJmh =>
-        jmhBuild(inputs, successful, threads, logger, cwd, buildClient, bloopServer).getOrElse {
-          sys.error("JMH build failed") // suppress stack trace?
-        }
+      case successful: Successful =>
+        if (options0.jmhOptions.runJmh.getOrElse(false))
+          jmhBuild(inputs0, successful, threads, logger, cwd, successful.options.javaCommand(), buildClient, bloopServer).getOrElse {
+            sys.error("JMH build failed") // suppress stack trace?
+          }
+        else
+          build0
       case _ => build0
     }
   }
 
+  private def classesDir(root: os.Path, projectName: String): os.Path =
+    root / ".scala" / projectName / "classes"
+
+  private def generatedSrcRoot(root: os.Path, projectName: String) =
+    defaultGeneratedSrcRoot(root, projectName)
+  private def defaultGeneratedSrcRoot(root: os.Path, projectName: String) =
+    root / ".scala" / projectName / "src_generated"
+
   def build(
     inputs: Inputs,
-    options: Options,
+    options: BuildOptions,
     threads: BuildThreads,
+    bloopConfig: bloopgun.BloopgunConfig,
     logger: Logger,
     cwd: os.Path
   ): Build = {
 
     val buildClient = new BloopBuildClient(
       logger,
-      keepDiagnostics = options.keepDiagnostics
+      keepDiagnostics = options.internal.keepDiagnostics
     )
-    val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
+    val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
     bloop.BloopServer.withBuildServer(
+      bloopConfig,
       "scala-cli",
       Constants.version,
       inputs.workspace.toNIO,
-      classesDir.toNIO,
+      classesDir0.toNIO,
       buildClient,
       threads.bloop,
       logger.bloopgunLogger
@@ -255,15 +176,17 @@ object Build {
 
   def build(
     inputs: Inputs,
-    options: Options,
+    options: BuildOptions,
+    bloopConfig: bloopgun.BloopgunConfig,
     logger: Logger,
     cwd: os.Path
   ): Build =
-    build(inputs, options, BuildThreads.create(), logger, cwd)
+    build(inputs, options, BuildThreads.create(), bloopConfig, logger, cwd)
 
   def watch(
     inputs: Inputs,
-    options: Options,
+    options: BuildOptions,
+    bloopConfig: bloopgun.BloopgunConfig,
     logger: Logger,
     cwd: os.Path,
     postAction: () => Unit = () => ()
@@ -271,15 +194,16 @@ object Build {
 
     val buildClient = new BloopBuildClient(
       logger,
-      keepDiagnostics = options.keepDiagnostics
+      keepDiagnostics = options.internal.keepDiagnostics
     )
     val threads = BuildThreads.create()
-    val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
+    val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
     val bloopServer = bloop.BloopServer.buildServer(
+      bloopConfig,
       "scala-cli",
       Constants.version,
       inputs.workspace.toNIO,
-      classesDir.toNIO,
+      classesDir0.toNIO,
       buildClient,
       threads.bloop,
       logger.bloopgunLogger
@@ -315,7 +239,8 @@ object Build {
               val isHidden = relPath.segments.exists(_.startsWith("."))
               def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
               def isJavaFile = relPath.last.endsWith(".java")
-              !isHidden && (isScalaFile || isJavaFile)
+              def isConfFile = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
+              !isHidden && (isScalaFile || isJavaFile || isConfFile)
           case _ => _ => true
         }
 
@@ -344,141 +269,77 @@ object Build {
   private def buildOnce(
     sourceRoot: os.Path,
     inputs: Inputs,
+    params: ScalaParameters,
     sources: Sources,
-    options: Options,
+    options: BuildOptions,
     threads: BuildThreads,
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ): Build = {
 
-    val generatedSrcRoot = options.generatedSrcRoot(inputs.workspace, inputs.projectName)
-    val generatedSources = sources.generateSources(generatedSrcRoot)
+    val generatedSrcRoot0 = generatedSrcRoot(inputs.workspace, inputs.projectName)
+    val generatedSources = sources.generateSources(generatedSrcRoot0)
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_._1)
-    val allScalaSources = allSources
 
-    val classesDir = options.classesDir(inputs.workspace, inputs.projectName)
+    val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
 
-    val params = ScalaParameters(options.scalaVersion, options.scalaBinaryVersion)
-    val scalaLibraryDependencies =
-      if (options.addScalaLibrary) {
-        val lib =
-          if (options.scalaVersion.startsWith("3."))
-            dep"org.scala-lang::scala3-library:${options.scalaVersion}".toApi(params)
-          else
-            dep"org.scala-lang:scala-library:${options.scalaVersion}".toApi
-        Seq(lib)
-      }
-      else Nil
-
-    val allDependencies =
-      sources.dependencies ++
-        options.scalaJsOptions.map(_.jsDependencies).getOrElse(Nil) ++
-        options.scalaNativeOptions.map(_.nativeDependencies).getOrElse(Nil) ++
-        scalaLibraryDependencies
-
-    val lineModifierPlugins =
-      if (options.addLineModifierPlugin)
-        Seq(
-          dep"$lineModifierPluginOrganization::$lineModifierPluginModuleName:$lineModifierPluginVersion".toApi(params)
-        )
-      else Nil
-
-    val semanticDbPlugins =
-      if (options.generateSemanticDbs && options.scalaVersion.startsWith("2."))
-        Seq(
-          dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion".toApi(params)
-        )
-      else Nil
-
-    val artifacts = Artifacts(
-      javaHomeOpt = options.javaHomeOpt.filter(_.nonEmpty),
-      jvmIdOpt = options.jvmIdOpt,
-      scalaVersion = options.scalaVersion,
-      scalaBinaryVersion = options.scalaBinaryVersion,
-      compilerPlugins = options.scalaJsOptions.map(_.compilerPlugins).getOrElse(Nil) ++
-        options.scalaNativeOptions.map(_.compilerPlugins).getOrElse(Nil) ++
-        lineModifierPlugins ++
-        semanticDbPlugins,
-      dependencies = allDependencies,
-      extraJars = options.extraJars.map(_.toNIO) ++ options.stubsJarOpt.toSeq ++ options.testRunnerJarsOpt.getOrElse(Nil),
-      fetchSources = options.fetchSources,
-      addStubs = options.addStubsDependency,
-      addJvmRunner = options.addRunnerDependency,
-      addJvmTestRunner = options.scalaJsOptions.isEmpty && options.scalaNativeOptions.isEmpty && options.addTestRunnerDependency,
-      addJsTestBridge = if (options.addTestRunnerDependency) options.scalaJsOptions.map(_.version) else None,
-      addJmhDependencies = options.addJmhDependencies,
-      logger = logger
-    )
+    val artifacts = options.artifacts(params, sources.dependencies, logger)
 
     val pluginScalacOptions = artifacts.compilerPlugins.map {
       case (_, _, path) =>
         s"-Xplugin:${path.toAbsolutePath}"
     }
 
-    val lineModifierScalacOptions =
-      if (options.addLineModifierPlugin) {
-        val lengths = generatedSources
-          .map {
-            case (path, reportingPath, len) =>
-              s"$path->$reportingPath=$len"
-          }
-          .mkString(";")
-        Seq(s"-P:linemodifier:topWrapperLengths=$lengths")
-      }
-      else Nil
-
     val semanticDbScalacOptions =
-      if (options.generateSemanticDbs) {
-        if (options.scalaVersion.startsWith("2."))
+      if (options.scalaOptions.generateSemanticDbs.getOrElse(false)) {
+        if (params.scalaVersion.startsWith("2."))
           Seq(
             "-Yrangepos",
             "-P:semanticdb:failures:warning",
             "-P:semanticdb:synthetics:on",
             s"-P:semanticdb:sourceroot:${inputs.workspace}",
-            s"-P:semanticdb:targetroot:${classesDir}"
+            s"-P:semanticdb:targetroot:${classesDir0}"
           )
         else
           Seq(
             "-Xsemanticdb",
-            "-semanticdb-target", classesDir.toString
+            "-semanticdb-target", classesDir0.toString
           )
       }
       else Nil
 
     val sourceRootScalacOptions =
-      if (options.scalaVersion.startsWith("2.")) Nil
+      if (params.scalaVersion.startsWith("2.")) Nil
       else Seq("-sourceroot", inputs.workspace.toString)
 
-    val scalacOptions = Seq("-encoding", "UTF-8", "-deprecation", "-feature") ++
+    val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
-      lineModifierScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions
 
     val scalaCompiler = ScalaCompiler(
-            scalaVersion = options.scalaVersion,
-      scalaBinaryVersion = options.scalaBinaryVersion,
+            scalaVersion = params.scalaVersion,
+      scalaBinaryVersion = params.scalaBinaryVersion,
            scalacOptions = scalacOptions,
        compilerClassPath = artifacts.compilerClassPath
     )
 
     val project = Project(
                workspace = inputs.workspace,
-              classesDir = classesDir,
-                javaHome = artifacts.javaHome,
+              classesDir = classesDir0,
            scalaCompiler = scalaCompiler,
-          scalaJsOptions = options.scalaJsOptions.map(_.config),
-      scalaNativeOptions = options.scalaNativeOptions.map(_.config),
+          scalaJsOptions = options.scalaJsOptions.config,
+      scalaNativeOptions = options.scalaNativeOptions.bloopConfig,
              projectName = inputs.projectName,
                classPath = artifacts.classPath,
-                 sources = allScalaSources,
+                 sources = allSources,
             resourceDirs = sources.resourceDirs
     )
 
-    if (project.writeBloopFile(logger) && os.isDir(classesDir)) {
-      logger.debug(s"Clearing $classesDir")
-      os.list(classesDir).foreach { p =>
+    if (project.writeBloopFile(logger) && os.isDir(classesDir0)) {
+      logger.debug(s"Clearing $classesDir0")
+      os.list(classesDir0).foreach { p =>
         logger.debug(s"Removing $p")
         os.remove.all(p)
       }
@@ -487,9 +348,7 @@ object Build {
     val diagnosticMappings = generatedSources
       .map {
         case (path, reportingPath, len) =>
-          val lineShift =
-            if (options.addLineModifierPlugin) 0
-            else -os.read(path).take(len).count(_ == '\n') // charset?
+          val lineShift = -os.read(path).take(len).count(_ == '\n') // charset?
           (path, (reportingPath, lineShift))
       }
       .toMap
@@ -504,34 +363,56 @@ object Build {
     )
 
     if (success) {
-      // TODO Disable post-processing altogether when options.addLineModifierPlugin is true
-      // (needs source gen to use the exact same names as the original file)
+      postProcess(
+        generatedSources,
+        generatedSrcRoot0,
+        classesDir0,
+        logger,
+        inputs.workspace,
+        updateSemanticDbs = generatedSrcRoot0 == defaultGeneratedSrcRoot(inputs.workspace, inputs.projectName),
+        updateTasty = params.scalaVersion.startsWith("3.")
+      )
+
+      Successful(inputs, options, sources, artifacts, project, classesDir0, buildClient.diagnostics)
+    }
+    else
+      Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)
+  }
+
+  private def postProcess(
+    generatedSources: Seq[(os.Path, os.Path, Int)],
+    generatedSrcRoot: os.Path,
+    classesDir: os.Path,
+    logger: Logger,
+    workspace: os.Path,
+    updateSemanticDbs: Boolean,
+    updateTasty: Boolean
+  ): Unit = {
+
       // TODO Write classes to a separate directory during post-processing
       logger.debug("Post-processing class files of pre-processed sources")
       val mappings = generatedSources
         .map {
           case (path, reportingPath, len) =>
-            val lineShift =
-              if (options.addLineModifierPlugin) 0
-              else -os.read(path).take(len).count(_ == '\n') // charset?
+            val lineShift = -os.read(path).take(len).count(_ == '\n') // charset?
             (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
         }
         .toMap
       AsmPositionUpdater.postProcess(mappings, classesDir, logger)
 
-      if (generatedSrcRoot == options.defaultGeneratedSrcRoot(inputs.workspace, inputs.projectName)) {
+      if (updateSemanticDbs) {
         logger.debug("Moving semantic DBs around")
         val semDbRoot = classesDir / "META-INF" / "semanticdb"
         for ((path, originalSource, offset) <- generatedSources) {
-          val fromSourceRoot = path.relativeTo(inputs.workspace)
-          val actual = originalSource.relativeTo(inputs.workspace)
+          val fromSourceRoot = path.relativeTo(workspace)
+          val actual = originalSource.relativeTo(workspace)
 
           val semDbFile = semDbRoot / fromSourceRoot.segments.take(fromSourceRoot.segments.length - 1) / s"${fromSourceRoot.last}.semanticdb"
           if (os.exists(semDbFile)) {
             val finalSemDbFile = semDbRoot / actual.segments.take(actual.segments.length - 1) / s"${actual.last}.semanticdb"
             SemanticdbProcessor.postProcess(
               os.read(originalSource),
-              originalSource.relativeTo(inputs.workspace),
+              originalSource.relativeTo(workspace),
               None,
               if (offset == 0) n => Some(n)
               else LineConversion.scalaLineToScLine(os.read(originalSource), os.read(path), offset),
@@ -542,12 +423,12 @@ object Build {
           }
         }
 
-        if (options.scalaVersion.startsWith("3.")) {
+        if (updateTasty) {
           val updatedPaths = generatedSources
             .map {
               case (path, originalSource, offset) =>
-                val fromSourceRoot = path.relativeTo(inputs.workspace)
-                val actual = originalSource.relativeTo(inputs.workspace)
+                val fromSourceRoot = path.relativeTo(workspace)
+                val actual = originalSource.relativeTo(workspace)
                 fromSourceRoot.toString -> actual.toString
             }
             .toMap
@@ -580,11 +461,6 @@ object Build {
         }
       } else
         logger.debug("Custom generated source directory used, not moving semantic DBs around")
-
-      Successful(inputs, options, sources, artifacts, project, classesDir, buildClient.diagnostics)
-    }
-    else
-      Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)
   }
 
   private def onChangeBufferedObserver(onEvent: PathWatchers.Event => Unit): Observer[PathWatchers.Event] =
@@ -664,6 +540,7 @@ object Build {
     threads: BuildThreads,
     logger: Logger,
     cwd: os.Path,
+    javaCommand: String,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ) = {
@@ -674,7 +551,7 @@ object Build {
     val jmhResourceDir = jmhOutputDir / "resources"
 
     val retCode = Runner.run(
-      build.artifacts.javaHome.toIO,
+      javaCommand,
       Nil,
       build.fullClassPath.map(_.toFile),
       "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
@@ -698,7 +575,12 @@ object Build {
           Inputs.ResourceDirectory(jmhResourceDir)
         )
       )
-      val jmhBuild = Build.build(jmhInputs, build.options.copy(runJmh = false), threads, logger, cwd, buildClient, bloopServer)
+      val updatedOptions = build.options.copy(
+        jmhOptions = build.options.jmhOptions.copy(
+          runJmh = build.options.jmhOptions.runJmh.map(_ => false)
+        )
+      )
+      val jmhBuild = Build.build(jmhInputs, updatedOptions, threads, logger, cwd, buildClient, bloopServer)
       Some(jmhBuild)
     }
     else None

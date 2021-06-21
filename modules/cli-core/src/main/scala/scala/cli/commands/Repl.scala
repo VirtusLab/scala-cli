@@ -9,21 +9,17 @@ object Repl extends ScalaCommand[ReplOptions] {
     List("console"),
     List("repl")
   )
+  override def sharedOptions(options: ReplOptions) = Some(options.shared)
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, Os.pwd, defaultInputs = Some(Inputs.default())) match {
-      case Left(message) =>
-        System.err.println(message)
-        sys.exit(1)
-      case Right(i) => i
-    }
+    val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
 
     // TODO Add watch support?
 
-    val scalaVersions = options.shared.computeScalaVersions()
-    val buildOptions = options.buildOptions(scalaVersions)
+    val buildOptions = options.buildOptions
+    val bloopgunConfig = options.shared.bloopgunConfig()
 
-    val build = Build.build(inputs, buildOptions, options.shared.logger, Os.pwd)
+    val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
@@ -31,10 +27,11 @@ object Repl extends ScalaCommand[ReplOptions] {
     }
 
     val replArtifacts = ReplArtifacts(
-      options.shared.scalaParams(scalaVersions),
+      build.artifacts.params,
       options.ammoniteVersion,
       build.artifacts.dependencies,
-      options.shared.logger
+      options.shared.logger,
+      options.shared.directories.directories
     )
 
     // TODO Warn if some entries of build.artifacts.classPath were evicted in replArtifacts.replClassPath
@@ -48,7 +45,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     //       compiler for completion, but not to the main compiler for actual compilation).
 
     Runner.run(
-      build.artifacts.javaHome.toIO,
+      successfulBuild.options.javaCommand(),
       options.sharedJava.allJavaOpts,
       successfulBuild.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
       ammoniteMainClass,

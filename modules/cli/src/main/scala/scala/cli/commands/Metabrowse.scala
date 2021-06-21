@@ -17,6 +17,8 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     List("metabrowse")
   )
 
+  override def sharedOptions(options: MetabrowseOptions) = Some(options.shared)
+
   def isNativeImage = sys.props.contains("org.graalvm.nativeimage.imagecode")
 
   def run(options: MetabrowseOptions, args: RemainingArgs): Unit = {
@@ -24,57 +26,16 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     // silence undertow logging
     sys.props("org.jboss.logging.provider") = "slf4j"
 
-    val inputs = Inputs(args.all, Os.pwd) match {
-      case Left(message) =>
-        System.err.println(message)
-        sys.exit(1)
-      case Right(i) => i
-    }
+    val inputs = options.shared.inputsOrExit(args)
 
     val logger = options.shared.logger
 
-    val scalaVersions = options.shared.computeScalaVersions()
+    val bloopgunConfig = options.shared.bloopgunConfig()
 
-    val extraJars =
-      if (options.addRtJar.getOrElse(isNativeImage)) {
+    val build = Build.build(inputs, options.buildOptions, bloopgunConfig, logger, Os.pwd)
 
-        val fromJavaHomeOpt = options.shared.javaHome.filter(_.nonEmpty)
-          .orElse(Option(System.getenv("JAVA_HOME")))
-          .map(os.Path(_, os.pwd))
-          .map(_ / "jre" / "lib" / "rt.jar")
-          .filter(os.isFile(_))
-
-        def download = {
-          val f = coursier.jvm.JavaHome()
-            .get(options.shared.jvm.filter(_.nonEmpty).getOrElse("8"))
-            .unsafeRun()(ec)
-          val javaHome = os.Path(f, os.pwd)
-          val rtJar = javaHome / "jre" / "lib" / "rt.jar"
-          if (os.isFile(rtJar)) Some(rtJar)
-          else None
-        }
-
-        val rtJarOpt = fromJavaHomeOpt
-          .orElse(download)
-
-        if (rtJarOpt.isEmpty && isNativeImage && options.shared.logging.verbosity >= 0)
-          System.err.println("Warning: could not get rt.jar")
-
-        rtJarOpt.toSeq
-      }
-      else Nil
-
-    if (scalaVersions.version != Properties.versionNumberString && options.shared.logging.verbosity >= 0)
+    if (build.artifacts.params.scalaVersion != Properties.versionNumberString && options.shared.logging.verbosity >= 0)
       System.err.println(s"Warning: browse command should only work with Scala version ${Properties.versionNumberString}")
-
-    val buildOptions = {
-      val baseOptions = options.buildOptions(scalaVersions)
-      baseOptions.copy(
-        extraJars = extraJars ++ baseOptions.extraJars
-      )
-    }
-
-    val build = Build.build(inputs, buildOptions, logger, Os.pwd)
 
     val successfulBuild = build match {
       case f: Build.Failed =>
@@ -98,7 +59,23 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     sourceJar: Path
   ): Unit = {
 
-    val classPath = jar :: successfulBuild.artifacts.classPath.toList
+    val extraJars =
+      if (options.addRtJar.getOrElse(isNativeImage)) {
+
+        val rtJarLocation = successfulBuild.options.javaHomeLocation() / "jre" / "lib" / "rt.jar"
+
+        val rtJarOpt =
+          if (os.isFile(rtJarLocation)) Some(rtJarLocation.toNIO)
+          else None
+
+        if (rtJarOpt.isEmpty && isNativeImage && options.shared.logging.verbosity >= 0)
+          System.err.println(s"Warning: could not find $rtJarLocation")
+
+        rtJarOpt.toSeq
+      }
+      else Nil
+
+    val classPath = jar :: (successfulBuild.artifacts.classPath ++ extraJars).toList
     val sources = sourceJar :: successfulBuild.artifacts.sourcePath.toList
 
     logger.debug {

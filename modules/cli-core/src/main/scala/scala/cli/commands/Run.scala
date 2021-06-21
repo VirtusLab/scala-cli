@@ -1,39 +1,36 @@
 package scala.cli.commands
 
-import java.io.{ByteArrayOutputStream, InputStream}
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 
 import caseapp._
 import scala.build.{Build, Inputs, Logger, Os, Runner}
 import scala.build.internal.Constants
+import scala.build.options.BuildOptions
 import scala.scalanative.{build => sn}
 
-import scala.util.Properties
+import org.scalajs.linker.interface.StandardConfig
 
 object Run extends ScalaCommand[RunOptions] {
   override def group = "Main"
+
+  override def sharedOptions(options: RunOptions) = Some(options.shared)
 
   def run(options: RunOptions, args: RemainingArgs): Unit =
     run(options, args, Some(Inputs.default()))
 
   def run(options: RunOptions, args: RemainingArgs, defaultInputs: Option[Inputs]): Unit = {
 
-    val pwd = Os.pwd
+    val inputs = options.shared.inputsOrExit(args, defaultInputs)
 
-    val inputs = Inputs(args.remaining, pwd, defaultInputs = defaultInputs, stdinOpt = readStdin(logger = options.shared.logger), acceptFds = !Properties.isWin) match {
-      case Left(message) =>
-        System.err.println(message)
-        sys.exit(1)
-      case Right(i) => i
-    }
-
-    val scalaVersions = options.shared.computeScalaVersions()
-    val buildOptions = options.buildOptions(scalaVersions)
+    val buildOptions = options.shared.buildOptions(
+      enableJmh = options.benchmarking.jmh.contains(true),
+      jmhVersion = options.benchmarking.jmhVersion
+    )
+    val bloopgunConfig = options.shared.bloopgunConfig()
 
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
       maybeRunOnce(
         options,
-        scalaVersions,
         inputs.workspace,
         inputs.projectName,
         build,
@@ -44,7 +41,7 @@ object Run extends ScalaCommand[RunOptions] {
       )
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = false)
         case f: Build.Failed =>
@@ -53,7 +50,7 @@ object Run extends ScalaCommand[RunOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
+      val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)
@@ -66,7 +63,6 @@ object Run extends ScalaCommand[RunOptions] {
 
   def maybeRunOnce(
     options: RunOptions,
-    scalaVersions: ScalaVersions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
@@ -76,7 +72,8 @@ object Run extends ScalaCommand[RunOptions] {
     jvmRunner: Boolean
   ): Unit = {
 
-    val mainClassOpt = options.retainedMainClass.filter(_.nonEmpty) // trim it too?
+    val mainClassOpt = options.mainClass.filter(_.nonEmpty) // trim it too?
+      .orElse(if (build.options.jmhOptions.runJmh.contains(false)) Some("org.openjdk.jmh.Main") else None)
       .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
 
     for (mainClass <- mainClassOpt) {
@@ -85,7 +82,6 @@ object Run extends ScalaCommand[RunOptions] {
         else (mainClass, args)
       runOnce(
         options,
-        scalaVersions,
         root,
         projectName,
         build,
@@ -99,7 +95,6 @@ object Run extends ScalaCommand[RunOptions] {
 
   def runOnce(
     options: RunOptions,
-    scalaVersions: ScalaVersions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
@@ -110,8 +105,9 @@ object Run extends ScalaCommand[RunOptions] {
   ): Boolean = {
 
     val retCode =
-      if (options.shared.js)
-        withLinkedJs(build, Some(mainClass), addTestInitializer = false) { js =>
+      if (options.shared.js.js) {
+        val linkerConfig = build.options.scalaJsOptions.linkerConfig
+        withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
           Runner.runJs(
             js.toIO,
             args,
@@ -119,11 +115,11 @@ object Run extends ScalaCommand[RunOptions] {
             allowExecve = allowExecve
           )
         }
-      else if (options.shared.native)
+      } else if (options.shared.native.native)
         withNativeLauncher(
           build,
           mainClass,
-          options.shared.scalaNativeOptionsIKnowWhatImDoing(scalaVersions),
+          build.options.scalaNativeOptions.config.getOrElse(???),
           options.shared.nativeWorkDir(root, projectName),
           options.shared.scalaNativeLogger
         ) { launcher =>
@@ -136,7 +132,7 @@ object Run extends ScalaCommand[RunOptions] {
         }
       else
         Runner.run(
-          build.artifacts.javaHome.toIO,
+          build.options.javaCommand(),
           options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           mainClass,
@@ -163,11 +159,12 @@ object Run extends ScalaCommand[RunOptions] {
   def withLinkedJs[T](
     build: Build.Successful,
     mainClassOpt: Option[String],
-    addTestInitializer: Boolean
+    addTestInitializer: Boolean,
+    config: StandardConfig
   )(f: os.Path => T): T = {
     val dest = os.temp(prefix = "main", suffix = ".js")
     try {
-      Package.linkJs(build, dest, mainClassOpt, addTestInitializer)
+      Package.linkJs(build, dest, mainClassOpt, addTestInitializer, config)
       f(dest)
     } finally {
       if (os.exists(dest))
@@ -178,39 +175,17 @@ object Run extends ScalaCommand[RunOptions] {
   def withNativeLauncher[T](
     build: Build.Successful,
     mainClass: String,
-    options: Build.ScalaNativeOptions,
+    config: sn.NativeConfig,
     workDir: os.Path,
     logger: sn.Logger
   )(f: os.Path => T): T = {
     val dest = os.temp(prefix = "main", suffix = ".js")
     try {
-      Package.buildNative(build, mainClass, dest, options, workDir, logger)
+      Package.buildNative(build, mainClass, dest, config, workDir, logger)
       f(dest)
     } finally {
       if (os.exists(dest))
         os.remove(dest)
     }
   }
-
-  def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
-    if (in == null) {
-      logger.debug("No stdin available")
-      None
-    } else {
-      logger.debug("Reading stdin")
-      val baos = new ByteArrayOutputStream
-      val buf = Array.ofDim[Byte](16*1024)
-      var read = -1
-      while ({
-        read = in.read(buf)
-        read >= 0
-      }) {
-        if (read > 0)
-          baos.write(buf, 0, read)
-      }
-      val result = baos.toByteArray
-      logger.debug(s"Done reading stdin (${result.length} B)")
-      Some(result)
-    }
-
 }

@@ -7,35 +7,32 @@ import scala.build.internal.Constants
 
 object Test extends ScalaCommand[TestOptions] {
   override def group = "Main"
+  override def sharedOptions(options: TestOptions) = Some(options.shared)
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
-    val pwd = Os.pwd
+    val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
 
-    val inputs = Inputs(args.all, pwd, defaultInputs = Some(Inputs.default())) match {
-      case Left(message) =>
-        System.err.println(message)
-        sys.exit(1)
-      case Right(i) => i
-    }
-
-    val scalaVersions = options.shared.computeScalaVersions()
-    val buildOptions = options.buildOptions(scalaVersions).copy(
-      addTestRunnerDependencyOpt = Some(true)
+    val buildOptions = options.buildOptions.copy(
+      internalDependencies = options.buildOptions.internalDependencies.copy(
+        addTestRunnerDependencyOpt = Some(true)
+      )
     )
+    val bloopgunConfig = options.shared.bloopgunConfig()
+
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, options.shared.logger, pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
-          testOnce(options, scalaVersions, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
+          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
+      val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
       build match {
         case s: Build.Successful =>
-          testOnce(options, scalaVersions, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
+          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -45,7 +42,6 @@ object Test extends ScalaCommand[TestOptions] {
 
   private def testOnce(
     options: TestOptions,
-    scalaVersions: ScalaVersions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
@@ -54,18 +50,19 @@ object Test extends ScalaCommand[TestOptions] {
   ): Unit = {
 
     val retCode =
-      if (options.shared.js)
-        Run.withLinkedJs(build, None, addTestInitializer = true) { js =>
+      if (options.shared.js.js) {
+        val linkerConfig = build.options.scalaJsOptions.linkerConfig
+        Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig) { js =>
           Runner.testJs(
             build.fullClassPath,
             js.toIO
           )
         }
-      else if (options.shared.native)
+      } else if (options.shared.native.native)
         Run.withNativeLauncher(
           build,
           "scala.scalanative.testinterface.TestMain",
-          options.shared.scalaNativeOptionsIKnowWhatImDoing(scalaVersions),
+          build.options.scalaNativeOptions.config.getOrElse(???),
           options.shared.nativeWorkDir(root, projectName),
           options.shared.scalaNativeLogger
         ) { launcher =>
@@ -78,7 +75,7 @@ object Test extends ScalaCommand[TestOptions] {
         }
       else
         Runner.run(
-          build.artifacts.javaHome.toIO,
+          build.options.javaCommand(),
           options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,

@@ -1,6 +1,6 @@
 package scala.build.internal
 
-object CustomCodeClassWrapper extends CodeWrapper{
+case object CustomCodeClassWrapper extends CodeWrapper{
   /*
    * The goal of this code wrapper is that the user code:
    * - should be in a class rather than a singleton,

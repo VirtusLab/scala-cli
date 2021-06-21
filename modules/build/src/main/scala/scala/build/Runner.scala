@@ -10,11 +10,12 @@ import scala.cli.testrunner.{AsmTestRunner, TestRunner}
 import scala.scalanative.{build => sn}
 import scala.util.Properties
 import sbt.testing.Framework
+import java.util.Locale
 
 object Runner {
 
   def run(
-    javaHome: File,
+    javaCommand: String,
     javaArgs: Seq[String],
     classPath: Seq[File],
     mainClass: String,
@@ -25,9 +26,8 @@ object Runner {
 
     import logger.{log, debug}
 
-    val javaPath = new File(javaHome, "bin/java")
     val command =
-      Seq(javaPath.toString) ++
+      Seq(javaCommand) ++
       javaArgs ++
       Seq(
         "-cp", classPath.iterator.map(_.getAbsolutePath).mkString(File.pathSeparator),
@@ -42,7 +42,7 @@ object Runner {
 
     if (allowExecve && Execve.available()) {
       debug("execve available")
-      Execve.execve(command.head, "java" +: command.tail.toArray, sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" })
+      Execve.execve(findInPath(command.head).fold(command.head)(_.toString), "java" +: command.tail.toArray, sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" })
       sys.error("should not happen")
     } else
       new ProcessBuilder(command: _*)
@@ -51,17 +51,31 @@ object Runner {
         .waitFor()
   }
 
-  private def findInPath(app: String): Option[Path] =
-    if (Properties.isWin)
-      None
-    else
-      Option(System.getenv("PATH"))
-        .iterator
-        .flatMap(_.split(File.pathSeparator).iterator)
-        .map(Paths.get(_).resolve(app))
-        .filter(Files.isExecutable(_))
-        .toStream
-        .headOption
+  private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =
+    s.length >= suffix.length &&
+      s.regionMatches(true, s.length - suffix.length, suffix, 0, suffix.length)
+
+  private def findInPath(app: String): Option[Path] = {
+    val asIs = Paths.get(app)
+    if (Paths.get(app).getNameCount >= 2) Some(asIs)
+    else {
+      def pathEntries =
+        Option(System.getenv("PATH"))
+          .iterator
+          .flatMap(_.split(File.pathSeparator).iterator)
+      def pathSep =
+        if (Properties.isWin) Option(System.getenv("PATHEXT")).iterator.flatMap(_.split(File.pathSeparator).iterator)
+        else Iterator("")
+      def matches = for {
+        dir <- pathEntries
+        ext <- pathSep
+        app0 = if (endsWithCaseInsensitive(app, ext)) app else app + ext
+        path = Paths.get(dir).resolve(app0)
+        if Files.isExecutable(path)
+      } yield path
+      matches.toStream.headOption
+    }
+  }
 
   def runJs(
     entrypoint: File,

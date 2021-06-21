@@ -1,6 +1,6 @@
 package scala.build.internal
 
-object CustomCodeWrapper extends CodeWrapper{
+case object CustomCodeWrapper extends CodeWrapper{
   private val userCodeNestingLevel = 1
   def apply(
     code: String,

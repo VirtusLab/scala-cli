@@ -12,13 +12,11 @@ final case class BloopgunConfig(
   port: Int,
   javaPath: String,
   javaOpts: Seq[String],
-  module: coursierapi.Module,
-  version: String,
-  classPath: Option[Seq[File]],
-  bspPort: Option[Int],
-  bspStdin: Option[InputStream],
-  bspStdout: Option[OutputStream],
-  bspStderr: Option[OutputStream]
+  classPath: () => Seq[File],
+  bspPort: Option[Int] = None,
+  bspStdin: Option[InputStream] = None,
+  bspStdout: Option[OutputStream] = None,
+  bspStderr: Option[OutputStream] = None
 )
 
 object BloopgunConfig {
@@ -58,21 +56,14 @@ object BloopgunConfig {
       .getOrElse(hardCodedDefaultJavaOpts)
   }
 
-  def hardCodedDefaultModule: coursierapi.Module =
-    coursierapi.Module.of("ch.epfl.scala", "bloop-frontend_2.12")
+  def hardCodedDefaultModule: String =
+    "ch.epfl.scala:bloop-frontend_2.12"
   def hardCodedDefaultVersion: String =
     Constants.bloopVersion
 
-  lazy val defaultModule: coursierapi.Module = {
-    def parse(input: String): Option[coursierapi.Module] =
-      Option(input)
-        .filter(_.nonEmpty)
-        .map(_.split(":", 2))
-        .collect {
-          case Array(org, name) => coursierapi.Module.of(org, name)
-        }
-    val fromEnv = Option(System.getenv("BLOOP_MODULE")).flatMap(parse)
-    def fromProps = sys.props.get("bloop.module").flatMap(parse)
+  lazy val defaultModule: String = {
+    val fromEnv = Option(System.getenv("BLOOP_MODULE")).map(_.trim).filter(_.nonEmpty)
+    def fromProps = sys.props.get("bloop.module").map(_.trim).filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
       .getOrElse(hardCodedDefaultModule)
@@ -86,15 +77,13 @@ object BloopgunConfig {
   }
 
 
-  def default: BloopgunConfig =
+  def default(bloopClassPath: () => Seq[File]): BloopgunConfig =
     BloopgunConfig(
       host = defaultHost,
       port = defaultPort,
       javaPath = "java",
       javaOpts = defaultJavaOpts,
-      module = defaultModule,
-      version = defaultVersion,
-      classPath = None,
+      classPath = bloopClassPath,
       bspPort = None,
       bspStdin = None,
       bspStdout = None,

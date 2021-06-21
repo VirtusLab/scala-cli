@@ -16,7 +16,7 @@ final case class Inputs(
 ) {
   lazy val elements: Seq[Inputs.Element] = head +: tail
 
-  def sourceFiles(): Seq[Inputs.SingleFile] =
+  def singleFiles(): Seq[Inputs.SingleFile] =
     elements.flatMap {
       case f: Inputs.SingleFile => Seq(f)
       case d: Inputs.Directory =>
@@ -27,17 +27,24 @@ final case class Inputs(
           .filter(os.isFile(_))
           .collect {
             case p if p.last.endsWith(".java") =>
-              Inputs.JavaFile(p, Some(d.path))
+              Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
             case p if p.last.endsWith(".scala") =>
-              Inputs.ScalaFile(p, Some(d.path))
+              Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
             case p if p.last.endsWith(".sc") =>
-              Inputs.Script(p, Some(d.path))
+              Inputs.Script(d.path, p.subRelativeTo(d.path))
+            case p if p.last == "scala.conf" || p.last.endsWith(".scala.conf") =>
+              Inputs.ConfigFile(p)
           }
           .toVector
       case _: Inputs.ResourceDirectory =>
         Nil
       case _: Inputs.Virtual =>
         Nil
+    }
+
+  def sourceFiles(): Seq[Inputs.SourceFile] =
+    singleFiles.collect {
+      case f: Inputs.SourceFile => f
     }
 
   def virtualSourceFiles(): Seq[Inputs.Virtual] =
@@ -48,27 +55,8 @@ final case class Inputs(
         Nil
     }
 
-  private lazy val inputsHash = {
-    val root0 = workspace.toNIO
-    val it = elements.iterator.flatMap {
-      case elem: Inputs.OnDisk =>
-        val prefix = elem match {
-          case _: Inputs.Directory => "dir:"
-          case _: Inputs.ResourceDirectory => "resource-dir:"
-          case _: Inputs.JavaFile => "java:"
-          case _: Inputs.ScalaFile => "scala:"
-          case _: Inputs.Script => "sc:"
-        }
-        Iterator(prefix, elem.path.toString, "\n")
-      case v: Inputs.Virtual =>
-        Iterator("virtual:", v.source)
-    }
-    val md = MessageDigest.getInstance("SHA-1")
-    md.update(it.mkString.getBytes(StandardCharsets.UTF_8))
-    val digest = md.digest()
-    val calculatedSum = new BigInteger(1, digest)
-    String.format(s"%040x", calculatedSum).take(10)
-  }
+  private lazy val inputsHash: String =
+    Inputs.inputsHash(elements)
   lazy val projectName = {
     val needsSuffix = mayAppendHash && (elements match {
       case Seq(d: Inputs.Directory) => d.path != workspace
@@ -77,6 +65,10 @@ final case class Inputs(
     if (needsSuffix) baseProjectName + "-" + inputsHash
     else baseProjectName
   }
+
+  def add(elements: Seq[Inputs.Element]): Inputs =
+    if (elements.isEmpty) this
+    else copy(tail = tail ++ elements)
 }
 
 object Inputs {
@@ -91,86 +83,107 @@ object Inputs {
     def source: String
   }
 
-  sealed trait SingleFile extends OnDisk {
-    def relativeTo: Option[os.Path]
-    def withRelativeTo(newRelativeTo: Option[os.Path]): SingleFile
-  }
+  sealed trait SingleFile extends OnDisk
+  sealed trait SourceFile extends SingleFile
   sealed trait Compiled extends Element
   sealed trait AnyScalaFile extends Compiled
 
-  final case class Script(path: os.Path, relativeTo: Option[os.Path]) extends OnDisk with SingleFile with AnyScalaFile {
-    def withRelativeTo(newRelativeTo: Option[os.Path]): Script =
-      copy(relativeTo = newRelativeTo)
+  final case class Script(base: os.Path, subPath: os.SubPath) extends OnDisk with SourceFile with AnyScalaFile {
+    lazy val path = base / subPath
   }
-  final case class ScalaFile(path: os.Path, relativeTo: Option[os.Path]) extends OnDisk with SingleFile with AnyScalaFile {
-    def withRelativeTo(newRelativeTo: Option[os.Path]): ScalaFile =
-      copy(relativeTo = newRelativeTo)
+  final case class ScalaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SourceFile with AnyScalaFile {
+    lazy val path = base / subPath
   }
-  final case class JavaFile(path: os.Path, relativeTo: Option[os.Path]) extends OnDisk with SingleFile with Compiled {
-    def withRelativeTo(newRelativeTo: Option[os.Path]): JavaFile =
-      copy(relativeTo = newRelativeTo)
+  final case class JavaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SourceFile with Compiled {
+    lazy val path = base / subPath
   }
   final case class Directory(path: os.Path) extends OnDisk with Compiled
   final case class ResourceDirectory(path: os.Path) extends OnDisk
 
+  final case class ConfigFile(path: os.Path) extends SingleFile
+
   final case class VirtualScript(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
   final case class VirtualScalaFile(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
 
+  private def inputsHash(elements: Seq[Element]): String = {
+    def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
+    val it = elements.iterator.flatMap {
+      case elem: Inputs.OnDisk =>
+        val prefix = elem match {
+          case _: Inputs.Directory => "dir:"
+          case _: Inputs.ResourceDirectory => "resource-dir:"
+          case _: Inputs.JavaFile => "java:"
+          case _: Inputs.ScalaFile => "scala:"
+          case _: Inputs.Script => "sc:"
+          case _: Inputs.ConfigFile => "config:"
+        }
+        Iterator(prefix, elem.path.toString, "\n").map(bytes)
+      case v: Inputs.Virtual =>
+        Iterator(bytes("virtual:"), v.content, bytes("\n"))
+    }
+    val md = MessageDigest.getInstance("SHA-1")
+    it.foreach(md.update(_))
+    val digest = md.digest()
+    val calculatedSum = new BigInteger(1, digest)
+    String.format(s"%040x", calculatedSum).take(10)
+  }
+
   private def forValidatedElems(
     validElems: Seq[Compiled],
-    baseProjectName: String
+    baseProjectName: String,
+    directories: Directories
   ): Inputs = {
 
     assert(validElems.nonEmpty)
 
-    val hasFiles = validElems.exists { case _: SingleFile => true; case _ => false }
-    val dirCount = validElems.count { case _: Directory => true; case _ => false }
-
-    val workspace = validElems
+    val (workspace, needsHash) = validElems
       .collectFirst {
-        case d: Directory => d.path
+        case d: Directory => (d.path, true)
       }
       .getOrElse {
         validElems.head match {
-          case elem: SingleFile => elem.path / os.up
-          case _: Virtual => os.pwd
+          case elem: SourceFile => (elem.path / os.up, true)
+          case _: Virtual =>
+            val hash0 = inputsHash(validElems)
+            val dir = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
+            os.makeDir.all(dir)
+            (dir, false)
           case _: Directory => sys.error("Can't happen")
         }
       }
     val allDirs = validElems.collect { case d: Directory => d.path }
-    def updateSingleFile(f: SingleFile): SingleFile =
-      if (f.relativeTo.isEmpty && f.path.relativeTo(workspace).ups != 0) f.withRelativeTo(Some(f.path / os.up))
-      else f
-    val updatedElems = validElems.flatMap {
-      case d: Directory => Seq(d)
-      case f: SingleFile =>
+    val updatedElems = validElems.filter {
+      case f: SourceFile =>
         val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
-        if (isInDir) Nil
-        else Seq(updateSingleFile(f))
-      case v: Virtual => Seq(v)
+        !isInDir
+      case _: Directory => true
+      case _: Virtual => true
     }
     val mainClassElemOpt = validElems
       .collectFirst {
-        case f: SingleFile => updateSingleFile(f)
+        case f: SourceFile => f
       }
-    Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = true)
+    Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = needsHash)
   }
 
   private def forNonEmptyArgs(
     args: Seq[String],
     cwd: os.Path,
+    directories: Directories,
     baseProjectName: String,
     stdinOpt: => Option[Array[Byte]],
     acceptFds: Boolean
   ): Either[String, Inputs] = {
     val validatedArgs = args.map { arg =>
       val path = os.Path(arg, cwd)
+      val dir = path / os.up
+      val subPath = path.subRelativeTo(dir)
       lazy val stdinOpt0 = stdinOpt
       if ((arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty) Right(VirtualScalaFile(stdinOpt0.get, "stdin"))
       else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) Right(VirtualScript(stdinOpt0.get, "stdin"))
-      else if (arg.endsWith(".sc")) Right(Script(path, None))
-      else if (arg.endsWith(".scala")) Right(ScalaFile(path, None))
-      else if (arg.endsWith(".java")) Right(JavaFile(path, None))
+      else if (arg.endsWith(".sc")) Right(Script(dir, subPath))
+      else if (arg.endsWith(".scala")) Right(ScalaFile(dir, subPath))
+      else if (arg.endsWith(".java")) Right(JavaFile(dir, subPath))
       else if (os.isDir(path)) Right(Directory(path))
       else if (acceptFds && arg.startsWith("/dev/fd/")) {
         val content = os.read.bytes(os.Path(arg, cwd))
@@ -191,7 +204,7 @@ object Inputs {
       }
       assert(validElems.nonEmpty)
 
-      Right(forValidatedElems(validElems, baseProjectName))
+      Right(forValidatedElems(validElems, baseProjectName, directories))
     } else
       Left(invalid.mkString(System.lineSeparator()))
   }
@@ -199,6 +212,7 @@ object Inputs {
   def apply(
     args: Seq[String],
     cwd: os.Path,
+    directories: Directories,
     baseProjectName: String = "project",
     defaultInputs: Option[Inputs] = None,
     stdinOpt: => Option[Array[Byte]] = None,
@@ -207,7 +221,7 @@ object Inputs {
     if (args.isEmpty)
       defaultInputs.toRight("No inputs provided (expected files with .scala or .sc extensions, and / or directories).")
     else
-      forNonEmptyArgs(args, cwd, baseProjectName, stdinOpt, acceptFds)
+      forNonEmptyArgs(args, cwd, directories, baseProjectName, stdinOpt, acceptFds)
 
   def default(cwd: os.Path = Os.pwd): Inputs =
     Inputs(

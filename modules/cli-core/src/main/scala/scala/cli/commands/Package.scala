@@ -8,39 +8,35 @@ import packager.mac.pkg.PkgPackage
 import packager.deb.DebianPackage
 import packager.rpm.RedHatPackage
 import packager.windows.WindowsPackage
+import org.scalajs.linker.interface.StandardConfig
+import scala.build.{Build, Inputs, Os}
+import scala.build.internal.{ScalaJsConfig, ScalaJsLinker}
+import scala.scalanative.{build => sn}
+import scala.scalanative.util.Scope
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.file.attribute.FileTime
 import java.nio.file.{Files, Path}
 import java.util.jar.{JarOutputStream, Attributes => JarAttributes}
 import java.util.zip.{ZipEntry, ZipOutputStream}
-import scala.build.internal.ScalaJsLinker
-import scala.build.{Build, Inputs, Os}
-import scala.scalanative.util.Scope
-import scala.scalanative.{build => sn}
+
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
   override def group = "Main"
+  override def sharedOptions(options: PackageOptions) = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
 
-    val pwd = Os.pwd
-
-    val inputs = Inputs(args.all, pwd, defaultInputs = Some(Inputs.default())) match {
-      case Left(message) =>
-        System.err.println(message)
-        sys.exit(1)
-      case Right(i) => i
-    }
+    val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
     // TODO Add watch mode
 
-    val scalaVersions = options.shared.computeScalaVersions()
-    val buildOptions = options.buildOptions(scalaVersions)
+    val buildOptions = options.buildOptions
+    val bloopgunConfig = options.shared.bloopgunConfig()
 
-    val build = Build.build(inputs, buildOptions, options.shared.logger, pwd)
+    val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
@@ -73,9 +69,9 @@ object Package extends ScalaCommand[PackageOptions] {
       .filter(_.nonEmpty)
       .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1) + extension))
       .getOrElse(defaultName)
-    val destPath = os.Path(dest, pwd)
+    val destPath = os.Path(dest, Os.pwd)
     val printableDest =
-      if (destPath.startsWith(pwd)) "." + File.separator + destPath.relativeTo(pwd).toString
+      if (destPath.startsWith(Os.pwd)) "." + File.separator + destPath.relativeTo(Os.pwd).toString
       else destPath.toString
 
     def alreadyExistsCheck(): Unit =
@@ -101,14 +97,15 @@ object Package extends ScalaCommand[PackageOptions] {
         else os.write(destPath, content)
 
       case PackageOptions.PackageType.Js =>
-        linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false)
+        val linkerConfig = successfulBuild.options.scalaJsOptions.linkerConfig
+        linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
 
       case PackageOptions.PackageType.Native =>
-        val nativeOptions = options.shared.scalaNativeOptionsIKnowWhatImDoing(scalaVersions)
+        val config = successfulBuild.options.scalaNativeOptions.config.getOrElse(???)
         val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
         val logger = options.shared.scalaNativeLogger
 
-        buildNative(successfulBuild, mainClass(), destPath, nativeOptions, workDir, logger)
+        buildNative(successfulBuild, mainClass(), destPath, config, workDir, logger)
 
       case nativePackagerType: PackageOptions.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
@@ -258,29 +255,26 @@ object Package extends ScalaCommand[PackageOptions] {
     }
   }
 
-  def linkJs(build: Build.Successful, dest: os.Path, mainClassOpt: Option[String], addTestInitializer: Boolean): Unit =
+  def linkJs(
+    build: Build.Successful,
+    dest: os.Path,
+    mainClassOpt: Option[String],
+    addTestInitializer: Boolean,
+    config: StandardConfig
+  ): Unit =
     withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
       val classPath = mainJar +: build.artifacts.classPath
-      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt.orNull, addTestInitializer, dest.toNIO)
+      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt.orNull, addTestInitializer, new ScalaJsConfig(config), dest.toNIO)
     }
 
   def buildNative(
     build: Build.Successful,
     mainClass: String,
     dest: os.Path,
-    nativeOptions: Build.ScalaNativeOptions,
+    nativeConfig: sn.NativeConfig,
     nativeWorkDir: os.Path,
     nativeLogger: sn.Logger
   ): Unit = {
-
-    val nativeConfig = sn.NativeConfig.empty
-      .withGC(if (nativeOptions.config.gc == "default") sn.GC.default else sn.GC(nativeOptions.config.gc))
-      .withMode(sn.Mode(nativeOptions.config.mode))
-      .withLinkStubs(false)
-      .withClang(nativeOptions.config.clang)
-      .withClangPP(nativeOptions.config.clangpp)
-      .withLinkingOptions(nativeOptions.config.linkingOptions)
-      .withCompileOptions(nativeOptions.config.compileOptions)
 
     os.makeDir.all(nativeWorkDir)
 

@@ -1,6 +1,5 @@
 package scala.build
 
-import coursier.cache.shaded.dirs.dev.dirs.ProjectDirectories
 import coursier.paths.Util
 import scala.build.internal.Constants
 
@@ -14,16 +13,17 @@ object LocalRepo {
   private def resourcePath = Constants.localRepoResourcePath
   private def version = Constants.localRepoVersion
 
-  def localRepo(loader: ClassLoader = Thread.currentThread().getContextClassLoader): Option[coursierapi.Repository] = {
+  def localRepo(
+    baseDir: os.Path,
+    loader: ClassLoader = Thread.currentThread().getContextClassLoader
+  ): Option[String] = {
     val archiveUrl = loader.getResource(resourcePath)
 
     if (archiveUrl == null) None
     else {
-      val projDirs = ProjectDirectories.from(null, null, "ScalaCli")
-      val cacheDir = os.Path(projDirs.cacheDir, Os.pwd)
-      val repoDir = cacheDir / "local-repo" / version
+      val repoDir = baseDir / version
       val tmpRepoDir = repoDir / os.up / s".$version.tmp"
-      val repo = coursierapi.IvyRepository.of(repoDir.toNIO.toUri + "/[defaultPattern]")
+      val repo = "ivy:" + repoDir.toNIO.toUri.toASCIIString + "/[defaultPattern]"
       if (!os.exists(repoDir))
         withLock((repoDir / os.up).toNIO, version) {
           os.remove.all(tmpRepoDir)

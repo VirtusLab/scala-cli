@@ -4,29 +4,53 @@ import java.io.File
 
 import caseapp._
 import caseapp.core.help.Help
-import dependency.{ScalaParameters, ScalaVersion}
-import scala.build.{Build, Project}
-import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper, CustomCodeWrapper}
-import scala.cli.internal.Util
+import coursier.cache.FileCache
+
+import scala.build.bloop.bloopgun
+import scala.build.{Bloop, LocalRepo, Os}
+import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
+import scala.build.options.{BuildOptions, ClassPathOptions, InternalDependenciesOptions, InternalOptions, JavaOptions, JmhOptions, ScalaOptions, ScriptOptions}
 import scala.scalanative.{build => sn}
+import scala.util.Properties
+import scala.build.Inputs
+import java.io.InputStream
+import scala.build.Logger
+import java.io.ByteArrayOutputStream
+import dependency.parser.DependencyParser
 
 final case class SharedOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    js: ScalaJsOptions = ScalaJsOptions(),
+  @Recurse
+    native: ScalaNativeOptions = ScalaNativeOptions(),
+
+  @Recurse
+    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
+
+  @Recurse
+    dependencies: SharedDependencyOptions = SharedDependencyOptions(),
 
   @Group("Scala")
   @HelpMessage("Set Scala version")
   @ValueDescription("version")
   @Name("scala")
   @Name("S")
-    scalaVersion: String = SharedOptions.defaultScalaVersion,
+    scalaVersion: Option[String] = None,
   @Group("Scala")
   @HelpMessage("Set Scala binary version")
   @ValueDescription("version")
   @Name("scalaBinary")
   @Name("scalaBin")
   @Name("B")
-    scalaBinaryVersion: String = "",
+    scalaBinaryVersion: Option[String] = None,
+  @Group("Scala")
+  @HelpMessage("Add scalac option")
+  @ValueDescription("option")
+  @Name("scala-opt")
+  @Name("O")
+    scalacOption: List[String] = Nil,
 
   @Group("Java")
   @HelpMessage("Set Java home")
@@ -50,13 +74,6 @@ final case class SharedOptions(
   @Hidden
     classWrap: Boolean = false,
 
-  @Group("Scala")
-  @HelpMessage("Enable Scala.JS")
-    js: Boolean = false,
-  @Group("Scala")
-  @HelpMessage("Enable Scala Native")
-    native: Boolean = false,
-
   @HelpMessage("Watch sources for changes")
   @Name("w")
     watch: Boolean = false,
@@ -70,76 +87,25 @@ final case class SharedOptions(
   @Hidden
     runner: Option[Boolean] = None,
 
+  @HelpMessage("Pass configuration files")
+  @Name("conf")
+  @Name("C")
+    config: List[String] = Nil,
+
   @HelpMessage("Generate SemanticDBs")
-    semanticDb: Boolean = false
+    semanticDb: Option[Boolean] = None,
+  @Hidden
+    addStubs: Option[Boolean] = None
 ) {
-
-  def computeScalaVersions(): ScalaVersions = {
-    val sv =
-      if (Util.isFullScalaVersion(scalaVersion)) scalaVersion
-      else {
-        import coursier._
-        import coursier.core.Version
-        import scala.concurrent.ExecutionContext.{global => ec}
-        val modules = {
-          def scala2 = mod"org.scala-lang:scala-library"
-          // No unstable, that *ought* not to be a problem down-the-line…?
-          def scala3 = mod"org.scala-lang:scala3-library_3"
-          if (scalaVersion == "2" || scalaVersion.startsWith("2.")) Seq(scala2)
-          else if (scalaVersion == "3" || scalaVersion.startsWith("3.")) Seq(scala3)
-          else Seq(scala2, scala3)
-        }
-        def isStable(v: String): Boolean =
-          !v.endsWith("-NIGHTLY") && !v.contains("-RC")
-        def moduleVersions(mod: Module): Seq[String] = {
-          val res = Versions()
-            .withModule(mod)
-            .result()
-            .unsafeRun()(ec)
-          res.versions.available.filter(isStable)
-        }
-        val allVersions = modules.flatMap(moduleVersions).distinct
-        val prefix = if (scalaVersion.endsWith(".")) scalaVersion else scalaVersion + "."
-        val matchingVersions = allVersions.filter(_.startsWith(prefix))
-        if (matchingVersions.isEmpty)
-          sys.error(s"Cannot find matching Scala version for '$scalaVersion'")
-        else
-          matchingVersions.map(Version(_)).max.repr
-      }
-    val sbv =
-      if (scalaBinaryVersion.isEmpty) ScalaVersion.binary(sv)
-      else scalaBinaryVersion
-    ScalaVersions(sv, sbv)
-  }
-
-  def scalaParams(scalaVersions: ScalaVersions) =
-    ScalaParameters(
-      scalaVersions.version,
-      scalaVersions.binaryVersion,
-      if (js) Some("sjs" + ScalaVersion.jsBinary(Constants.scalaJsVersion))
-      else if (native) Some("native" + ScalaVersion.nativeBinary(Constants.scalaNativeVersion))
-      else None
-    )
 
   def logger = logging.logger
 
-  lazy val codeWrapper: CodeWrapper =
-    if (classWrap) CustomCodeClassWrapper
-    else CustomCodeWrapper
+  private def codeWrapper: Option[CodeWrapper] =
+    if (classWrap) Some(CustomCodeClassWrapper)
+    else None
 
   def nativeWorkDir(root: os.Path, projectName: String) = root / ".scala" / projectName / "native"
 
-  def scalaJsOptions(scalaVersions: ScalaVersions): Option[Build.ScalaJsOptions] =
-    if (js) Some(scalaJsOptionsIKnowWhatImDoing(scalaVersions))
-    else None
-  def scalaJsOptionsIKnowWhatImDoing(scalaVersions: ScalaVersions): Build.ScalaJsOptions =
-    Build.scalaJsOptions(scalaVersions.version, scalaVersions.binaryVersion)
-
-  def scalaNativeOptions(scalaVersions: ScalaVersions): Option[Build.ScalaNativeOptions] =
-    if (native) Some(scalaNativeOptionsIKnowWhatImDoing(scalaVersions))
-    else None
-  def scalaNativeOptionsIKnowWhatImDoing(scalaVersions: ScalaVersions): Build.ScalaNativeOptions =
-    Build.scalaNativeOptions(scalaVersions.version, scalaVersions.binaryVersion)
   def scalaNativeLogger: sn.Logger =
     new sn.Logger {
       def trace(msg: Throwable) = ()
@@ -149,31 +115,94 @@ final case class SharedOptions(
       def error(msg: String) = logger.log(msg)
     }
 
-  def buildOptions(scalaVersions: ScalaVersions, enableJmh: Boolean, jmhVersion: Option[String]): Build.Options =
-    Build.Options(
-      scalaVersion = scalaVersions.version,
-      scalaBinaryVersion = scalaVersions.binaryVersion,
-      codeWrapper = codeWrapper,
-      scalaJsOptions = scalaJsOptions(scalaVersions),
-      scalaNativeOptions = scalaNativeOptions(scalaVersions),
-      javaHomeOpt = javaHome.filter(_.nonEmpty),
-      jvmIdOpt = jvm.filter(_.nonEmpty),
-      addJmhDependencies =
-        if (enableJmh) jmhVersion.orElse(Some("1.29"))
-        else None,
-      runJmh = enableJmh,
-      addScalaLibrary = scalaLibrary.getOrElse(!java.getOrElse(false)),
-      addRunnerDependencyOpt = runner,
-      generateSemanticDbs = semanticDb,
-      extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd))
+  def buildOptions(enableJmh: Boolean, jmhVersion: Option[String], ignoreErrors: Boolean = false): BuildOptions =
+    BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
+        scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
+        addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
+        generateSemanticDbs = semanticDb,
+        scalacOptions = scalacOption.filter(_.nonEmpty)
+      ),
+      scriptOptions = ScriptOptions(
+        codeWrapper = codeWrapper
+      ),
+      scalaJsOptions = js.buildOptions,
+      scalaNativeOptions = native.buildOptions,
+      javaOptions = JavaOptions(
+        javaHomeOpt = javaHome.filter(_.nonEmpty),
+        jvmIdOpt = jvm.filter(_.nonEmpty),
+      ),
+      internalDependencies = InternalDependenciesOptions(
+        addStubsDependencyOpt = addStubs,
+        addRunnerDependencyOpt = runner
+      ),
+      jmhOptions = JmhOptions(
+        addJmhDependencies =
+          if (enableJmh) jmhVersion.orElse(Some(Constants.jmhVersion))
+          else None,
+        runJmh = if (enableJmh) Some(true) else None,
+      ),
+      classPathOptions = ClassPathOptions(
+        extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
+        extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
+        extraDependencies = dependencies.dependency.map(_.trim).filter(_.nonEmpty).flatMap { depStr =>
+          DependencyParser.parse(depStr) match {
+            case Left(err) =>
+              if (ignoreErrors) Nil
+              else sys.error(s"Error parsing dependency '$depStr': $err")
+            case Right(dep) => Seq(dep)
+          }
+        }
+      ),
+      internal = InternalOptions(
+        cache = Some(coursierCache),
+        localRepository = LocalRepo.localRepo(directories.directories.localRepoDir)
+      )
     )
+
+  // This might download a JVM if --jvm … is passed or no system JVM is installed
+  def bloopgunConfig(): bloopgun.BloopgunConfig =
+    bloopgun.BloopgunConfig.default(() => Bloop.bloopClassPath(logging.logger)).copy(
+      javaPath = buildOptions(false, None).javaCommand()
+    )
+
+  lazy val coursierCache = FileCache().withLogger(logging.logger.coursierLogger)
+
+  def inputsOrExit(args: RemainingArgs, defaultInputs: Option[Inputs] = None): Inputs =
+    Inputs(args.remaining, Os.pwd, directories.directories, defaultInputs = defaultInputs, stdinOpt = SharedOptions.readStdin(logger = logger), acceptFds = !Properties.isWin) match {
+      case Left(message) =>
+        System.err.println(message)
+        sys.exit(1)
+      case Right(i) =>
+        val configFiles = config.map(os.Path(_, Os.pwd)).map(Inputs.ConfigFile(_))
+        i.add(configFiles)
+    }
 }
 
 object SharedOptions {
-
-  def defaultScalaVersion: String =
-    scala.util.Properties.versionNumberString
-
   implicit val parser = Parser[SharedOptions]
   implicit val help = Help[SharedOptions]
+
+  def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
+    if (in == null) {
+      logger.debug("No stdin available")
+      None
+    } else {
+      logger.debug("Reading stdin")
+      val baos = new ByteArrayOutputStream
+      val buf = Array.ofDim[Byte](16*1024)
+      var read = -1
+      while ({
+        read = in.read(buf)
+        read >= 0
+      }) {
+        if (read > 0)
+          baos.write(buf, 0, read)
+      }
+      val result = baos.toByteArray
+      logger.debug(s"Done reading stdin (${result.length} B)")
+      Some(result)
+    }
+
 }

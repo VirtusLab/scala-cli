@@ -8,7 +8,7 @@ object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"
   def run(options: CleanOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, Os.pwd, defaultInputs = Some(Inputs.default())) match {
+    val inputs = Inputs(args.all, Os.pwd, options.directories.directories) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)

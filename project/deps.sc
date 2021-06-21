@@ -12,7 +12,6 @@ object Scala {
 object Deps {
   object Versions {
     def coursier = "2.0.16"
-    def coursierInterface = "1.0.4"
     def scalaJs = "1.5.1"
     def scalaNative = "0.4.0"
   }
@@ -20,9 +19,7 @@ object Deps {
   def bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.8"
   def bloopgun = ivy"ch.epfl.scala::bloopgun:1.4.8"
   def bsp4j = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
-  def caseApp = ivy"com.github.alexarchambault::case-app:2.1.0-M2"
-  def coursierInterface = ivy"io.get-coursier:interface:${Versions.coursierInterface}"
-  def coursierInterfaceSvmSubs = ivy"io.get-coursier:interface-svm-subs:${Versions.coursierInterface}"
+  def caseApp = ivy"com.github.alexarchambault::case-app:2.1.0-M3"
   def coursierJvm = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
   def dependency = ivy"io.get-coursier::dependency:0.2.0"
@@ -36,6 +33,7 @@ object Deps {
   def osLib = ivy"com.lihaoyi::os-lib:0.7.5"
   def pprint = ivy"com.lihaoyi::pprint:0.6.4"
   def prettyStacktraces = ivy"org.virtuslab::pretty-stacktraces:0.0.0+27-b9d69198-SNAPSHOT"
+  def pureconfig = ivy"com.github.pureconfig::pureconfig:0.16.0"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
   def scalaJsEnvNodeJs = ivy"org.scala-js::scalajs-env-nodejs:1.1.1"

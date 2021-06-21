@@ -2,14 +2,12 @@ package scala.cli.commands
 
 import caseapp._
 import caseapp.core.help.Help
-import scala.build.Build
+import scala.build.options.BuildOptions
 
 @HelpMessage("Compile Scala code")
 final case class CompileOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
-  @Recurse
-    benchmarking: BenchmarkingOptions = BenchmarkingOptions(),
 
   @Name("p")
   @Name("classpath")
@@ -17,8 +15,8 @@ final case class CompileOptions(
     classPath: Boolean = false
 ) {
 
-  def buildOptions(scalaVersions: ScalaVersions): Build.Options =
-    shared.buildOptions(scalaVersions, benchmarking.enableJmh, benchmarking.jmhVersion)
+  def buildOptions: BuildOptions =
+    shared.buildOptions(enableJmh = false, jmhVersion = None)
 }
 
 object CompileOptions {

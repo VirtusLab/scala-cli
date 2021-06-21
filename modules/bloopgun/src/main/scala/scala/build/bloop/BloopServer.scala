@@ -54,7 +54,7 @@ object BloopServer {
     )
 
     if (!isBloopRunning) {
-      logger.debug(s"Starting bloop server version ${config.version}")
+      logger.debug("Starting bloop server")
       val serverStartedFuture = bloopgun.Bloopgun.startServer(
         config,
         startServerChecksPool,
@@ -98,6 +98,7 @@ object BloopServer {
   }
 
   def buildServer(
+    config: bloopgun.BloopgunConfig,
     clientName: String,
     clientVersion: String,
     workspace: Path,
@@ -108,11 +109,6 @@ object BloopServer {
     period: FiniteDuration = 100.milliseconds,
     timeout: FiniteDuration = 5.seconds
   ): BloopServer = {
-
-    val config = bloopgun.BloopgunConfig.default.copy(
-      bspStdout = logger.bloopBspStdout,
-      bspStderr = logger.bloopBspStderr
-    )
 
     ensureBloopRunning(config, threads.startServerChecks, logger)
 
@@ -159,6 +155,7 @@ object BloopServer {
   }
 
   def withBuildServer[T](
+    config: bloopgun.BloopgunConfig,
     clientName: String,
     clientVersion: String,
     workspace: Path,
@@ -172,6 +169,7 @@ object BloopServer {
     var server: BloopServer = null
     try {
       server = buildServer(
+        config,
         clientName,
         clientVersion,
         workspace,

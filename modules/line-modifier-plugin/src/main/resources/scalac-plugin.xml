@@ -1,4 +1,0 @@
-<plugin>
-  <name>linemodifier</name>
-  <classname>scala.cli.plugin.LineModifierPlugin</classname>
-</plugin>

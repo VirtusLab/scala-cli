@@ -10,8 +10,4 @@ final case class BenchmarkingOptions(
   @HelpMessage("Set JMH version")
   @ValueDescription("version")
     jmhVersion: Option[String] = None
-) {
-
-  def enableJmh: Boolean = jmh.getOrElse(jmhVersion.nonEmpty)
-
-}
+)

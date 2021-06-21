@@ -11,7 +11,6 @@ import org.graalvm.nativeimage.Platforms;
 
 @TargetClass(className = "scala.reflect.internal.util.AlmostFinalValue")
 @Substitute
-@Platforms({Platform.LINUX.class, Platform.DARWIN.class, Platform.WINDOWS.class})
 final class AlmostFinalValueSubst {
 
   @Substitute
