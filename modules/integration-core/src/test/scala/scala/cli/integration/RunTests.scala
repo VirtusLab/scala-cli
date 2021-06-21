@@ -459,8 +459,14 @@ class RunTests extends munit.FunSuite {
     }
   }
 
+  val emptyInputs = TestInputs(
+    Seq(
+      os.rel / ".placeholder" -> ""
+    )
+  )
+
   def piping(): Unit = {
-    TestInputs(Nil).fromRoot { root =>
+    emptyInputs.fromRoot { root =>
       val cmd = s""" echo 'println("Hello" + " from pipe")' | ${TestUtil.cli.mkString(" ")} _.sc """
       val res = os.proc("bash", "-c", cmd).call(cwd = root)
       val expectedOutput = "Hello from pipe" + System.lineSeparator()
@@ -474,7 +480,7 @@ class RunTests extends munit.FunSuite {
     }
 
   def fd(): Unit = {
-    TestInputs(Nil).fromRoot { root =>
+    emptyInputs.fromRoot { root =>
       val cmd = s""" ${TestUtil.cli.mkString(" ")} <(echo 'println("Hello" + " from fd")') """
       val res = os.proc("bash", "-c", cmd).call(cwd = root)
       val expectedOutput = "Hello from fd" + System.lineSeparator()

@@ -25,7 +25,8 @@ object TestInputs {
     finally {
       try os.remove.all(tmpDir)
       catch {
-        case _: IOException =>
+        case ex: IOException =>
+          System.err.println(s"Ignoring $ex while removing $tmpDir")
       }
     }
   }
