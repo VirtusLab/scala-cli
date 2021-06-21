@@ -43,7 +43,7 @@ object Deps {
   def scalaPackager = ivy"org.virtuslab::scala-packager:0.1.12"
   def scalaparse = ivy"com.lihaoyi::scalaparse:2.3.2"
   def slf4jNop = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
-  def snailgun = ivy"me.vican.jorge::snailgun-cli:0.4.0"
+  def snailgun = ivy"me.vican.jorge::snailgun-core:0.4.0"
   def svm = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def svmSubs = ivy"org.scalameta::svm-subs:20.2.0"
   def swoval = ivy"com.swoval:file-tree-views:2.1.5"
