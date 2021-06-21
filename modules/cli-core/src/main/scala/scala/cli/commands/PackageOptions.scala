@@ -25,27 +25,54 @@ final case class PackageOptions(
   @HelpMessage("Specify which main class to run")
   @ValueDescription("main-class")
   @Name("M")
-    mainClass: Option[String] = None
+    mainClass: Option[String] = None,
+  @Group("Package")
+  @HelpMessage("Build debian package, available only on linux")
+    debian: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Build dmg package, available only on centOS")
+    dmg: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Build rpm package, available only on linux")
+    rpm: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Build msi package, available only on windows")
+    msi: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Build pkg package, available only on centOS")
+    pkg: Boolean = false,
 ) {
   import PackageOptions.PackageType
-  def packageType: PackageType =
+  def packageType: PackageType = 
     if (library) PackageType.LibraryJar
     else if (shared.js) PackageType.Js
     else if (shared.native) PackageType.Native
+    else if (debian)  PackageType.Debian
+    else if (dmg) PackageType.Dmg
+    else if (pkg) PackageType.Pkg
+    else if (rpm) PackageType.Rpm
+    else if (msi) PackageType.Msi
     else PackageType.Bootstrap
 
   def buildOptions(scalaVersions: ScalaVersions): Build.Options =
     shared.buildOptions(scalaVersions, enableJmh = false, jmhVersion = None)
+
 }
 
 object PackageOptions {
 
   sealed abstract class PackageType extends Product with Serializable
+  sealed abstract class NativePackagerType extends PackageType
   object PackageType {
     case object Bootstrap extends PackageType
     case object LibraryJar extends PackageType
     case object Js extends PackageType
     case object Native extends PackageType
+    case object Debian extends NativePackagerType
+    case object Dmg extends NativePackagerType
+    case object Pkg extends NativePackagerType
+    case object Rpm extends NativePackagerType
+    case object Msi extends NativePackagerType
   }
 
   implicit val parser = Parser[PackageOptions]

@@ -2,19 +2,23 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
-import scala.build.{Build, Inputs, Os}
-import scala.scalanative.{build => sn}
-import scala.scalanative.util.Scope
+import packager.BuildSettings
+import packager.mac.dmg.DmgPackage
+import packager.mac.pkg.PkgPackage
+import packager.deb.DebianPackage
+import packager.rpm.RedHatPackage
+import packager.windows.WindowsPackage
 
 import java.io.{ByteArrayOutputStream, File}
-import java.net.URI
-import java.nio.file.{Files, Path, Paths}
 import java.nio.file.attribute.FileTime
-import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
+import java.nio.file.{Files, Path}
+import java.util.jar.{JarOutputStream, Attributes => JarAttributes}
 import java.util.zip.{ZipEntry, ZipOutputStream}
-
-import scala.util.Properties
 import scala.build.internal.ScalaJsLinker
+import scala.build.{Build, Inputs, Os}
+import scala.scalanative.util.Scope
+import scala.scalanative.{build => sn}
+import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
   override def group = "Main"
@@ -48,11 +52,21 @@ object Package extends ScalaCommand[PackageOptions] {
     def extension =
       if (options.packageType == PackageOptions.PackageType.LibraryJar) ".jar"
       else if (options.packageType == PackageOptions.PackageType.Js) ".js"
+      else if (options.packageType == PackageOptions.PackageType.Debian) ".deb"
+      else if (options.packageType == PackageOptions.PackageType.Dmg) ".dmg"
+      else if (options.packageType == PackageOptions.PackageType.Pkg) ".pkg"
+      else if (options.packageType == PackageOptions.PackageType.Rpm) ".rpm"
+      else if (options.packageType == PackageOptions.PackageType.Msi) ".msi"
       else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) ".exe" else ".bat")
       else ""
     def defaultName =
       if (options.packageType == PackageOptions.PackageType.LibraryJar) "library.jar"
       else if (options.packageType == PackageOptions.PackageType.Js) "app.js"
+      else if (options.packageType == PackageOptions.PackageType.Debian) "app.deb"
+      else if (options.packageType == PackageOptions.PackageType.Dmg) "app.dmg"
+      else if (options.packageType == PackageOptions.PackageType.Pkg) "app.pkg"
+      else if (options.packageType == PackageOptions.PackageType.Rpm) "app.rpm"
+      else if (options.packageType == PackageOptions.PackageType.Msi) "app.msi"
       else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) "app.exe" else "app.bat")
       else "app"
     val dest = options.output
@@ -95,6 +109,22 @@ object Package extends ScalaCommand[PackageOptions] {
         val logger = options.shared.scalaNativeLogger
 
         buildNative(successfulBuild, mainClass(), destPath, nativeOptions, workDir, logger)
+
+      case nativePackagerType: PackageOptions.NativePackagerType =>
+        val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
+        bootstrap(successfulBuild, bootstrapPath, mainClass(), () => alreadyExistsCheck())
+        nativePackagerType match {
+          case PackageOptions.PackageType.Debian =>
+            DebianPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+          case PackageOptions.PackageType.Dmg =>
+            DmgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+          case PackageOptions.PackageType.Pkg =>
+            PkgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+          case PackageOptions.PackageType.Rpm =>
+            RedHatPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+          case PackageOptions.PackageType.Msi =>
+            WindowsPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+        }
     }
 
     if (options.shared.logging.verbosity >= 0)

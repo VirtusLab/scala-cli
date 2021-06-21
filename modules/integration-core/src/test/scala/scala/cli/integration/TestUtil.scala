@@ -7,6 +7,7 @@ import scala.util.Properties
 object TestUtil {
 
   val isNativeCli = System.getenv("IS_NATIVE_SCALA_CLI").contains("true")
+  val isCI = System.getenv("CI") != null
   val cli = {
     val path = System.getenv("SCALA_CLI")
     if (isNativeCli)

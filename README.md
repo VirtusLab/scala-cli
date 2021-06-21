@@ -40,6 +40,19 @@ $ ./mill integration.jvm.test 'scala.cli.integration.RunTests.Multiple scripts'
 $ ./mill integration.native.test
 ```
 
+#### Generate native packages
+
+Build native packagers:
+* `debian` for linux
+* `dmg` and `pkg` for macOS
+
+(generating native packager for specified format)
+```text
+$ ./mill -i cli.run package ..arguments... --debian --output 'path.deb'
+$ ./mill -i cli.run package ..arguments... --dmg --output 'path.dmg'
+$ ./mill -i cli.run package ..arguments... --pkg --output 'path.pkg'
+```
+
 #### Generate Metals configuration files
 
 ```text
