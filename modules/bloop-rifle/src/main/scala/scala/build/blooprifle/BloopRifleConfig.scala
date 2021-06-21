@@ -13,7 +13,7 @@ final case class BloopRifleConfig(
   javaPath: String,
   javaOpts: Seq[String],
   classPath: () => Seq[File],
-  bspPort: Option[Int] = None,
+  bspSocketOrPort: Option[() => Either[Int, File]] = None,
   bspStdin: Option[InputStream] = None,
   bspStdout: Option[OutputStream] = None,
   bspStderr: Option[OutputStream] = None
@@ -84,7 +84,7 @@ object BloopRifleConfig {
       javaPath = "java",
       javaOpts = defaultJavaOpts,
       classPath = bloopClassPath,
-      bspPort = None,
+      bspSocketOrPort = None,
       bspStdin = None,
       bspStdout = None,
       bspStderr = None

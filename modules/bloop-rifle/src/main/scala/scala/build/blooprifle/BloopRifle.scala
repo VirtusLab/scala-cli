@@ -1,7 +1,7 @@
 package scala.build.blooprifle
 
 import java.io.{FileOutputStream, InputStream, OutputStream}
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import java.util.concurrent.ScheduledExecutorService
 
 import scala.build.blooprifle.internal.{Operations, Util}
@@ -9,6 +9,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.control.NonFatal
+import scala.util.Properties
 
 object BloopRifle {
 
@@ -81,8 +82,8 @@ object BloopRifle {
     logger: BloopRifleLogger
   ): BspConnection = {
 
-    val bspPort = config.bspPort.getOrElse {
-      Util.randomPort()
+    val bspSocketOrPort = config.bspSocketOrPort.map(_()).getOrElse {
+      Left(Util.randomPort())
     }
 
     val in = config.bspStdin.getOrElse {
@@ -104,7 +105,7 @@ object BloopRifle {
       val conn = Operations.bsp(
         config.host,
         config.port,
-        bspPort,
+        bspSocketOrPort,
         workingDir,
         in,
         out,

@@ -23,6 +23,7 @@ object Deps {
   def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
   def dependency = ivy"io.get-coursier::dependency:0.2.0"
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.15.1"
+  def ipcSocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.4.0"
   def jimfs = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.2.1"
   def metabrowseServer = ivy"org.scalameta::metabrowse-server:0.2.5"

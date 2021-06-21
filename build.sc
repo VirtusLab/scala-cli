@@ -266,6 +266,7 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
 class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
+    Deps.ipcSocket,
     Deps.snailgun
   )
   def mainClass = Some("scala.build.blooprifle.BloopRifle")

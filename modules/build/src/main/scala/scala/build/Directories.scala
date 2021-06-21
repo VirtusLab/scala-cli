@@ -6,6 +6,7 @@ trait Directories {
   def localRepoDir: os.Path
   def completionsDir: os.Path
   def virtualProjectsDir: os.Path
+  def bspSocketDir: os.Path
 }
 
 object Directories {
@@ -17,6 +18,10 @@ object Directories {
       os.Path(projDirs.dataLocalDir, Os.pwd) / "completions"
     lazy val virtualProjectsDir: os.Path =
       os.Path(projDirs.cacheDir, Os.pwd) / "virtual-projects"
+    lazy val bspSocketDir: os.Path =
+      // FIXME I would have preferred to use projDirs.dataLocalDir, but it seems either ipcsocket
+      // or the bloop named socket support, or name sockets in general, aren't fine with it.
+      os.Path(projDirs.cacheDir, Os.pwd) / "bsp-sockets"
   }
 
   final case class SubDir(dir: os.Path) extends Directories {
@@ -26,6 +31,8 @@ object Directories {
       dir / "data-local" / "completions"
     lazy val virtualProjectsDir: os.Path =
       dir / "cache" / "virtual-projects"
+    lazy val bspSocketDir: os.Path =
+      dir / "data-local" / "bsp-sockets"
   }
 
   def default(): Directories =

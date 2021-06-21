@@ -359,7 +359,8 @@ object Build {
       inputs.projectName,
       buildClient,
       bloopServer,
-      logger
+      logger,
+      buildTargetsTimeout = 20.seconds
     )
 
     if (success) {

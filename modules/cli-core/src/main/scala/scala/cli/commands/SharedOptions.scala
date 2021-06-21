@@ -25,6 +25,8 @@ final case class SharedOptions(
     js: ScalaJsOptions = ScalaJsOptions(),
   @Recurse
     native: ScalaNativeOptions = ScalaNativeOptions(),
+  @Recurse
+    compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
 
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
@@ -162,10 +164,22 @@ final case class SharedOptions(
     )
 
   // This might download a JVM if --jvm … is passed or no system JVM is installed
-  def bloopRifleConfig(): BloopRifleConfig =
-    BloopRifleConfig.default(() => Bloop.bloopClassPath(logging.logger)).copy(
-      javaPath = buildOptions(false, None).javaCommand()
+  def bloopRifleConfig(): BloopRifleConfig = {
+    val baseConfig = BloopRifleConfig.default(() => Bloop.bloopClassPath(logging.logger))
+    val portOpt = compilationServer.bloopPort.filter(_ != 0) match {
+      case Some(n) if n < 0 =>
+        Some(scala.build.blooprifle.internal.Util.randomPort())
+      case other => other
+    }
+    baseConfig.copy(
+      host = compilationServer.bloopHost.filter(_.nonEmpty).getOrElse(baseConfig.host),
+      port = portOpt.getOrElse(baseConfig.port),
+      javaPath = buildOptions(false, None).javaCommand(),
+      bspSocketOrPort = compilationServer.defaultBspSocketOrPort(directories.directories),
+      bspStdout = if (logging.verbosity >= 3) Some(System.err) else None,
+      bspStderr = if (logging.verbosity >= 3) Some(System.err) else None
     )
+  }
 
   lazy val coursierCache = FileCache().withLogger(logging.logger.coursierLogger)
 

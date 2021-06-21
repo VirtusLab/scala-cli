@@ -3,7 +3,7 @@ package scala.build.bloop
 import java.io.{ByteArrayInputStream, InputStream, IOException}
 import java.net.{ConnectException, Socket}
 import java.nio.file.Path
-import java.util.concurrent.{Future => JFuture, ScheduledExecutorService}
+import java.util.concurrent.{Future => JFuture, ScheduledExecutorService, TimeoutException}
 
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
@@ -107,7 +107,8 @@ object BloopServer {
     threads: BloopThreads,
     logger: BloopRifleLogger,
     period: FiniteDuration = 100.milliseconds,
-    timeout: FiniteDuration = 5.seconds
+    timeout: FiniteDuration = 5.seconds,
+    initTimeout: FiniteDuration = 10.seconds
   ): BloopServer = {
 
     ensureBloopRunning(config, threads.startServerChecks, logger)
@@ -123,6 +124,13 @@ object BloopServer {
     val socket = connect(conn, period, timeout)
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
+
+    // FIXME As of now, we don't detect when connection gets closed.
+    // For TCP connections, this should be do-able with heartbeat messages
+    // (to be added to BSP?).
+    // For named sockets, the recv system call is supposed to allow to detect
+    // that case, unlike the read system call. But the ipcsocket library that we use
+    // for named sockets relies on read.
 
     val launcher = new jsonrpc.Launcher.Builder[BuildServer]()
       .setExecutorService(threads.jsonrpc)
@@ -148,7 +156,11 @@ object BloopServer {
     bloopExtraParams.setOwnsBuildFiles(true)
     initParams.setData(bloopExtraParams)
     logger.debug("Sending buildInitialize BSP command to Bloop")
-    server.buildInitialize(initParams).get()
+    try server.buildInitialize(initParams).get(initTimeout.length, initTimeout.unit)
+    catch {
+      case ex: TimeoutException =>
+        throw new Exception("Timeout while waiting for buildInitialize response", ex)
+    }
 
     server.onBuildInitialized()
     BloopServerImpl(server, f, socket)
