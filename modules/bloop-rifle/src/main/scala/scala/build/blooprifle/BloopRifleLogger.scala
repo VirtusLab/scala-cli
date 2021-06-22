@@ -16,6 +16,8 @@ trait BloopRifleLogger {
   }
   def bloopBspStdout: Option[OutputStream]
   def bloopBspStderr: Option[OutputStream]
+  def bloopCliInheritStdout: Boolean
+  def bloopCliInheritStderr: Boolean
 }
 
 object BloopRifleLogger {
@@ -25,5 +27,7 @@ object BloopRifleLogger {
       def error(msg: => String, ex: Throwable) = {}
       def bloopBspStdout = None
       def bloopBspStderr = None
+      def bloopCliInheritStdout = false
+      def bloopCliInheritStderr = false
     }
 }

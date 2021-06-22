@@ -57,6 +57,8 @@ final case class LoggingOptions(
           def bloopBspStderr =
             if (verbosity >= 2) Some(System.err)
             else None
+          def bloopCliInheritStdout = verbosity >= 3
+          def bloopCliInheritStderr = verbosity >= 3
         }
     }
 
