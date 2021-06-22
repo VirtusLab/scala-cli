@@ -5,6 +5,7 @@ import java.io.File
 import caseapp._
 import caseapp.core.help.Help
 import coursier.cache.FileCache
+import coursier.util.Artifact
 
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Bloop, LocalRepo, Os}
@@ -183,8 +184,17 @@ final case class SharedOptions(
 
   lazy val coursierCache = FileCache().withLogger(logging.logger.coursierLogger)
 
-  def inputsOrExit(args: RemainingArgs, defaultInputs: Option[Inputs] = None): Inputs =
-    Inputs(args.remaining, Os.pwd, directories.directories, defaultInputs = defaultInputs, stdinOpt = SharedOptions.readStdin(logger = logger), acceptFds = !Properties.isWin) match {
+  def inputsOrExit(args: RemainingArgs, defaultInputs: Option[Inputs] = None): Inputs = {
+    val download: String => Either[String, Array[Byte]] = { url =>
+      val artifact = Artifact(url).withChanging(true)
+      val res = coursierCache.logger.use {
+        coursierCache.file(artifact).run.unsafeRun()(coursierCache.ec)
+      }
+      res
+        .left.map(_.describe)
+        .map(f => os.read.bytes(os.Path(f, Os.pwd)))
+    }
+    Inputs(args.remaining, Os.pwd, directories.directories, defaultInputs = defaultInputs, download = download, stdinOpt = SharedOptions.readStdin(logger = logger), acceptFds = !Properties.isWin) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -192,6 +202,7 @@ final case class SharedOptions(
         val configFiles = config.map(os.Path(_, Os.pwd)).map(Inputs.ConfigFile(_))
         i.add(configFiles)
     }
+  }
 }
 
 object SharedOptions {

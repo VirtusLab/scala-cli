@@ -81,6 +81,11 @@ object Inputs {
   sealed abstract class Virtual extends Element {
     def content: Array[Byte]
     def source: String
+
+    def subPath: os.SubPath = {
+      val idx = source.lastIndexOf('/')
+      os.sub / source.drop(idx + 1)
+    }
   }
 
   sealed trait SingleFile extends OnDisk
@@ -104,6 +109,7 @@ object Inputs {
 
   final case class VirtualScript(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
   final case class VirtualScalaFile(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
+  final case class VirtualJavaFile(content: Array[Byte], source: String) extends Virtual with Compiled
 
   private def inputsHash(elements: Seq[Element]): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
@@ -171,16 +177,23 @@ object Inputs {
     cwd: os.Path,
     directories: Directories,
     baseProjectName: String,
+    download: String => Either[String, Array[Byte]],
     stdinOpt: => Option[Array[Byte]],
     acceptFds: Boolean
   ): Either[String, Inputs] = {
     val validatedArgs = args.map { arg =>
-      val path = os.Path(arg, cwd)
-      val dir = path / os.up
-      val subPath = path.subRelativeTo(dir)
+      lazy val path = os.Path(arg, cwd)
+      lazy val dir = path / os.up
+      lazy val subPath = path.subRelativeTo(dir)
       lazy val stdinOpt0 = stdinOpt
       if ((arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty) Right(VirtualScalaFile(stdinOpt0.get, "stdin"))
       else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) Right(VirtualScript(stdinOpt0.get, "stdin"))
+      else if (arg.contains("://"))
+        download(arg).map { content =>
+          if (arg.endsWith(".scala")) VirtualScalaFile(content, arg)
+          else if (arg.endsWith(".java")) VirtualJavaFile(content, arg)
+          else VirtualScript(content, arg)
+        }
       else if (arg.endsWith(".sc")) Right(Script(dir, subPath))
       else if (arg.endsWith(".scala")) Right(ScalaFile(dir, subPath))
       else if (arg.endsWith(".java")) Right(JavaFile(dir, subPath))
@@ -215,13 +228,14 @@ object Inputs {
     directories: Directories,
     baseProjectName: String = "project",
     defaultInputs: Option[Inputs] = None,
+    download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
     stdinOpt: => Option[Array[Byte]] = None,
     acceptFds: Boolean = false
   ): Either[String, Inputs] =
     if (args.isEmpty)
       defaultInputs.toRight("No inputs provided (expected files with .scala or .sc extensions, and / or directories).")
     else
-      forNonEmptyArgs(args, cwd, directories, baseProjectName, stdinOpt, acceptFds)
+      forNonEmptyArgs(args, cwd, directories, baseProjectName, download, stdinOpt, acceptFds)
 
   def default(cwd: os.Path = Os.pwd): Inputs =
     Inputs(

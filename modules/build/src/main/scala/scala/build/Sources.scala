@@ -192,15 +192,18 @@ object Sources {
       }
       .toVector
 
-    val fromVirtualSources = virtualSourceFiles.map {
+    val virtualSources = virtualSourceFiles.map {
       case v: Inputs.VirtualScalaFile =>
         val content = new String(v.content, StandardCharsets.UTF_8)
         val (deps, updatedContent) = process(content, "<stdin>").getOrElse((Nil, content))
-        (os.pwd / "<stdin>", deps, os.rel / "stdin.scala", updatedContent)
+        (os.pwd / "<stdin>", deps, v.subPath, updatedContent)
       case v: Inputs.VirtualScript =>
         val content = new String(v.content, StandardCharsets.UTF_8)
         val (deps, updatedContent) = process(content, "<stdin>").getOrElse((Nil, content))
-        (os.pwd / "<stdin>", deps, os.rel / "stdin.scala", updatedContent)
+        (os.pwd / "<stdin>", deps, v.subPath, updatedContent)
+      case v: Inputs.VirtualJavaFile =>
+        val content = new String(v.content, StandardCharsets.UTF_8)
+        (os.pwd / "<stdin>", Nil, v.subPath, content)
     }
 
     val javaFilePaths = singleFiles
@@ -212,10 +215,10 @@ object Sources {
       .toVector
 
     val scalaFilePaths = scalaFilePathsOrCode.collect { case Right(v) => v }
-    val inMemoryScalaFiles =
-      fromVirtualSources.map {
+    val inMemorySourceFiles =
+      virtualSources.map {
         case (originalPath, _, relPath, updatedCode) =>
-          (originalPath, relPath, updatedCode, 0)
+          (originalPath, relPath: os.RelPath, updatedCode, 0)
       } ++
       scalaFilePathsOrCode.collect {
         case Left((originalPath, _, relPath, updatedCode)) =>
@@ -224,7 +227,7 @@ object Sources {
 
     val scalaFilesDependencies = {
       val depStrings =
-        fromVirtualSources.flatMap(_._2) ++
+        virtualSources.flatMap(_._2) ++
         scalaFilePathsOrCode
           .collect {
             case Left((_, deps, _, _)) => deps
@@ -259,7 +262,7 @@ object Sources {
 
     Sources(
       paths = (javaFilePaths ++ scalaFilePaths).map(p => (p, p.relativeTo(inputs.workspace))),
-      inMemory = inMemoryScalaFiles ++ allScriptData.map(script => (script.reportingPath, script.relPath, script.code, script.topWrapperLen)),
+      inMemory = inMemorySourceFiles ++ allScriptData.map(script => (script.reportingPath, script.relPath, script.code, script.topWrapperLen)),
       mainClass = mainClassOpt,
       dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
       resourceDirs = inputs.elements.collect {
