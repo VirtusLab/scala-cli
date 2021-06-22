@@ -49,7 +49,7 @@ jobs:
     - name: Copy core artifacts
       run: ./mill -i copyCoreLauncher artifacts/
       if: runner.os == 'Linux' # || runner.os == 'Windows'
-    - uses: actions/upload-artifact@v2.2.3
+    - uses: actions/upload-artifact@v2.2.4
       with:
         name: launchers
         path: artifacts/
