@@ -33,7 +33,7 @@ final case class Project(
     baseBloopProject(
       projectName,
       workspace.toNIO,
-      (workspace / ".scala" / ".bloop" / projectName).toNIO,
+      (workspace / ".bloop" / projectName).toNIO,
       classesDir.toNIO
     )
     .copy(
@@ -52,7 +52,7 @@ final case class Project(
 
   def writeBloopFile(logger: Logger): Boolean = {
     val bloopFileContent = writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
-    val dest = workspace / ".scala" / ".bloop" / s"$projectName.json"
+    val dest = workspace / ".bloop" / s"$projectName.json"
     val doWrite = !os.isFile(dest) || {
       val currentContent = os.read.bytes(dest)
       !Arrays.equals(currentContent, bloopFileContent)

@@ -326,7 +326,7 @@ object Build {
     )
 
     val project = Project(
-               workspace = inputs.workspace,
+               workspace = inputs.workspace / ".scala",
               classesDir = classesDir0,
            scalaCompiler = scalaCompiler,
           scalaJsOptions = options.scalaJsOptions.config,
