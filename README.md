@@ -43,12 +43,13 @@ $ ./mill integration.native.test
 #### Generate native packages
 
 Build native packagers:
-* `debian` for linux
+* `deb` for linux
+* `msi` for windows
 * `dmg` and `pkg` for macOS
 
 (generating native packager for specified format)
 ```text
-$ ./mill -i cli.run package ..arguments... --debian --output 'path.deb'
+$ ./mill -i cli.run package ..arguments... --deb --output 'path.deb'
 $ ./mill -i cli.run package ..arguments... --dmg --output 'path.dmg'
 $ ./mill -i cli.run package ..arguments... --pkg --output 'path.pkg'
 ```

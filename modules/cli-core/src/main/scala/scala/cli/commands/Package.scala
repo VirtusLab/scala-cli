@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
-import packager.BuildSettings
+import packager.config.BuildSettings
 import packager.mac.dmg.DmgPackage
 import packager.mac.pkg.PkgPackage
 import packager.deb.DebianPackage
