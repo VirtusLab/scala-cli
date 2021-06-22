@@ -2,7 +2,6 @@ package scala.build
 
 import coursier.cache.FileCache
 import coursier.cache.loggers.RefreshLogger
-import coursier.jvm.{JvmCache, JavaHome, JvmIndex}
 import coursier.parse.RepositoryParser
 import _root_.dependency._
 import scala.build.internal.Constants

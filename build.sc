@@ -60,8 +60,7 @@ def defaultScalaVersion = Scala.scala212
 class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with HasTests {
   def moduleDeps = Seq(
     `bloop-rifle`(),
-    `tasty-lib`(),
-    `test-runner`()
+    `tasty-lib`()
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
@@ -69,20 +68,13 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections")),
-    Deps.coursierLauncher,
     Deps.dependency,
-    Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
-    Deps.jniUtils,
-    Deps.nativeTestRunner,
+    Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.nativeTools,
     Deps.osLib,
-    Deps.pprint,
     Deps.pureconfig,
-    Deps.scalaJsEnvNodeJs,
-    Deps.scalaJsLinker,
-    Deps.scalaJsTestAdapter,
+    Deps.scalaJsLinkerInterface,
     Deps.scalametaTrees,
-    Deps.scalaPackager,
     Deps.scalaparse,
     Deps.swoval
   )
@@ -134,6 +126,9 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
   }
 
   object test extends Tests {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      Deps.pprint
+    )
     def runClasspath = T{
       super.runClasspath() ++ Seq(localRepoJar())
     }
@@ -163,10 +158,19 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Ha
 trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule {
   def scalaVersion = defaultScalaVersion
   def moduleDeps = Seq(
-    build(defaultScalaVersion)
+    build(defaultScalaVersion),
+    `test-runner`(defaultScalaVersion)
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
+    Deps.coursierLauncher,
+    Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
+    Deps.jniUtils,
+    Deps.nativeTestRunner,
+    Deps.scalaJsEnvNodeJs,
+    Deps.scalaJsLinker,
+    Deps.scalaJsTestAdapter,
+    Deps.scalaPackager,
     Deps.svmSubs
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(

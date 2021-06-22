@@ -66,7 +66,7 @@ class BloopBuildClient(
 
 
   def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit = {
-    logger.debug("Received onBuildPublishDiagnostics from bloop: " + pprint.tokenize(params).map(_.render).mkString)
+    logger.debug("Received onBuildPublishDiagnostics from bloop: " + params)
     for (diag <- params.getDiagnostics.asScala) {
       val path = os.Path(Paths.get(new URI(params.getTextDocument.getUri)).toAbsolutePath)
       val (updatedPath, updatedDiag) = postProcessDiagnostic(path, diag).getOrElse((path, diag))
@@ -77,7 +77,7 @@ class BloopBuildClient(
   }
 
   def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
-    logger.debug("Received onBuildLogMessage from bloop: " + pprint.tokenize(params).map(_.render).mkString)
+    logger.debug("Received onBuildLogMessage from bloop: " + params)
     val prefix = params.getType match {
       case bsp4j.MessageType.ERROR       => "Error: "
       case bsp4j.MessageType.WARNING     => "Warning: "
@@ -88,13 +88,13 @@ class BloopBuildClient(
   }
 
   def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
-    logger.debug("Received onBuildShowMessage from bloop: " + pprint.tokenize(params).map(_.render).mkString)
+    logger.debug("Received onBuildShowMessage from bloop: " + params)
 
   def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit =
-    logger.debug("Received onBuildTargetDidChange from bloop: " + pprint.tokenize(params).map(_.render).mkString)
+    logger.debug("Received onBuildTargetDidChange from bloop: " + params)
 
   def onBuildTaskStart(params: bsp4j.TaskStartParams): Unit = {
-    logger.debug("Received onBuildTaskStart from bloop: " + pprint.tokenize(params).map(_.render).mkString)
+    logger.debug("Received onBuildTaskStart from bloop: " + params)
     for (msg <- Option(params.getMessage) if !msg.contains(" no-op compilation")) {
       printedStart = true
       System.err.println(gray + msg + reset)
@@ -102,10 +102,10 @@ class BloopBuildClient(
   }
 
   def onBuildTaskProgress(params: bsp4j.TaskProgressParams): Unit =
-    logger.debug("Received onBuildTaskProgress from bloop: " + pprint.tokenize(params).map(_.render).mkString)
+    logger.debug("Received onBuildTaskProgress from bloop: " + params)
 
   def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit = {
-    logger.debug("Received onBuildTaskFinish from bloop: " + pprint.tokenize(params).map(_.render).mkString)
+    logger.debug("Received onBuildTaskFinish from bloop: " + params)
     if (printedStart)
       for (msg <- Option(params.getMessage))
         System.err.println(gray + msg + reset)

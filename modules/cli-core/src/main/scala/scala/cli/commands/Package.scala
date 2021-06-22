@@ -10,7 +10,8 @@ import packager.rpm.RedHatPackage
 import packager.windows.WindowsPackage
 import org.scalajs.linker.interface.StandardConfig
 import scala.build.{Build, Inputs, Os}
-import scala.build.internal.{ScalaJsConfig, ScalaJsLinker}
+import scala.build.internal.ScalaJsConfig
+import scala.cli.internal.ScalaJsLinker
 import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
 

@@ -1,4 +1,4 @@
-package scala.build.internal
+package scala.cli.internal
 
 import org.scalajs.linker.interface.{ESFeatures, LinkerOutput, ModuleInitializer, ModuleKind, Semantics, StandardConfig}
 import org.scalajs.linker.{PathIRContainer, PathOutputFile, StandardImpl}
@@ -7,6 +7,8 @@ import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
 import java.nio.file.Path
 import java.net.URI
+
+import scala.build.internal.ScalaJsConfig
 
 final class ScalaJsLinker {
 

@@ -11,8 +11,7 @@ import scala.build.{Artifacts, Logger, Os}
 import scala.build.internal.Constants._
 import scala.build.internal.Util
 import coursier.cache.FileCache
-import coursier.jvm.JvmCache
-import coursier.jvm.JavaHome
+import coursier.jvm.{JvmCache, JavaHome}
 import scala.util.Properties
 
 final case class BuildOptions(

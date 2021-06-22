@@ -10,7 +10,7 @@ import scala.build.internal.{AsmPositionUpdater, Constants, CustomCodeWrapper, L
 import scala.build.options.BuildOptions
 import scala.build.tastylib.TastyData
 
-import java.io.IOException
+import java.io.{File, IOException}
 import java.lang.{Boolean => JBoolean}
 import java.nio.file.{Path, Paths}
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
@@ -551,14 +551,12 @@ object Build {
     val jmhSourceDir = jmhOutputDir / "sources"
     val jmhResourceDir = jmhOutputDir / "resources"
 
-    val retCode = Runner.run(
+    val retCode = run(
       javaCommand,
-      Nil,
       build.fullClassPath.map(_.toFile),
       "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
       Seq(printable(build.output), printable(jmhSourceDir), printable(jmhResourceDir), "default"),
-      logger,
-      allowExecve = false
+      logger
     )
     if (retCode != 0) {
       val red = Console.RED
@@ -585,6 +583,33 @@ object Build {
       Some(jmhBuild)
     }
     else None
+  }
+
+  private def run(
+    javaCommand: String,
+    classPath: Seq[File],
+    mainClass: String,
+    args: Seq[String],
+    logger: Logger
+  ): Int = {
+
+    val command =
+      Seq(javaCommand) ++
+      Seq(
+        "-cp", classPath.iterator.map(_.getAbsolutePath).mkString(File.pathSeparator),
+        mainClass
+      ) ++
+      args
+
+    logger.log(
+      s"Running ${command.mkString(" ")}",
+      "  Running" + System.lineSeparator() + command.iterator.map(_ + System.lineSeparator()).mkString
+    )
+
+    new ProcessBuilder(command: _*)
+      .inheritIO()
+      .start()
+      .waitFor()
   }
 
 }
