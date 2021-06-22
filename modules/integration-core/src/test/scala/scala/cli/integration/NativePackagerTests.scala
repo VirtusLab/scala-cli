@@ -99,7 +99,7 @@ class NativePackagerTests extends munit.FunSuite{
 
         val launcherName = helloWorldFileName.stripSuffix(".scala")
 
-        os.proc(TestUtil.cli, "package", helloWorldFileName, "--debian", "--output", s"$launcherName.deb").call(
+        os.proc(TestUtil.cli, "package", helloWorldFileName, "--deb", "--output", s"$launcherName.deb").call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit,
@@ -137,6 +137,27 @@ class NativePackagerTests extends munit.FunSuite{
         )
 
         val launcher = root / s"$launcherName.rpm"
+        expect(os.isFile(launcher))
+      }
+    }
+  }
+
+  if ( Properties.isWin) {
+
+    test("building msi package") {
+
+      helloWorldTestInputs.fromRoot { root =>
+
+        val launcherName = helloWorldFileName.stripSuffix(".scala")
+
+        os.proc(TestUtil.cli, "package", helloWorldFileName, "--msi", "--output", s"$launcherName.msi").call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit
+        )
+
+        val launcher = root / s"$launcherName.msi"
         expect(os.isFile(launcher))
       }
     }

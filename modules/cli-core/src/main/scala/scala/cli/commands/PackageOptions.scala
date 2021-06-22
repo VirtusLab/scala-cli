@@ -28,7 +28,7 @@ final case class PackageOptions(
     mainClass: Option[String] = None,
   @Group("Package")
   @HelpMessage("Build debian package, available only on linux")
-    debian: Boolean = false,
+    deb: Boolean = false,
   @Group("Package")
   @HelpMessage("Build dmg package, available only on centOS")
     dmg: Boolean = false,
@@ -47,7 +47,7 @@ final case class PackageOptions(
     if (library) PackageType.LibraryJar
     else if (shared.js.js) PackageType.Js
     else if (shared.native.native) PackageType.Native
-    else if (debian)  PackageType.Debian
+    else if (deb)  PackageType.Debian
     else if (dmg) PackageType.Dmg
     else if (pkg) PackageType.Pkg
     else if (rpm) PackageType.Rpm
