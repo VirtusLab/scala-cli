@@ -2,7 +2,7 @@ package scala.build.bloop
 
 import java.io.{ByteArrayInputStream, InputStream, IOException}
 import java.net.{ConnectException, Socket}
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import java.util.concurrent.{Future => JFuture, ScheduledExecutorService, TimeoutException}
 
 import ch.epfl.scala.bsp4j
@@ -114,6 +114,7 @@ object BloopServer {
     ensureBloopRunning(config, threads.startServerChecks, logger)
 
     logger.debug("Opening BSP connection with bloop")
+    Files.createDirectories(workspace.resolve(".scala/.bloop"))
     val conn = BloopRifle.bsp(
       config,
       workspace.resolve(".scala"),
