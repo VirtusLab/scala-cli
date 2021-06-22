@@ -1,23 +1,20 @@
 package scala.cli.commands
 
-import java.io.File
+import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import caseapp._
 import caseapp.core.help.Help
 import coursier.cache.FileCache
 import coursier.util.Artifact
+import dependency.parser.DependencyParser
 
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.{Bloop, LocalRepo, Os}
+import scala.build.{Bloop, Inputs, LocalRepo, Logger, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.build.options.{BuildOptions, ClassPathOptions, InternalDependenciesOptions, InternalOptions, JavaOptions, JmhOptions, ScalaOptions, ScriptOptions}
+import scala.concurrent.duration.Duration
 import scala.scalanative.{build => sn}
 import scala.util.Properties
-import scala.build.Inputs
-import java.io.InputStream
-import scala.build.Logger
-import java.io.ByteArrayOutputStream
-import dependency.parser.DependencyParser
 
 final case class SharedOptions(
   @Recurse
@@ -71,6 +68,11 @@ final case class SharedOptions(
   @Name("jars")
   @Name("extraJar")
     extraJars: List[String] = Nil,
+
+  @Group("Dependency")
+  @HelpMessage("Specify a TTL for changing dependencies, such as snapshots")
+  @ValueDescription("duration|Inf")
+    ttl: Option[String] = None,
 
   @Hidden
     classWrap: Boolean = false,
@@ -176,7 +178,13 @@ final case class SharedOptions(
     )
   }
 
-  lazy val coursierCache = FileCache().withLogger(logging.logger.coursierLogger)
+  lazy val coursierCache = {
+    val baseCache = FileCache()
+    val ttl0 = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_)).orElse(baseCache.ttl)
+    baseCache
+      .withTtl(ttl0)
+      .withLogger(logging.logger.coursierLogger)
+  }
 
   def inputsOrExit(args: RemainingArgs, defaultInputs: Option[Inputs] = None): Inputs = {
     val download: String => Either[String, Array[Byte]] = { url =>
