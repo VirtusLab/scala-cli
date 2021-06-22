@@ -18,7 +18,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, fileName).call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, fileName).call(cwd = root).out.text.trim
       if (!ignoreErrors)
         expect(output == message)
     }
@@ -46,7 +46,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, fileName, "--js").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, fileName, "--js").call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -74,7 +74,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, fileName, "--native").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, fileName, "--native").call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -97,7 +97,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "print.sc", "messages.sc").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, "print.sc", "messages.sc").call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -117,7 +117,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "print.sc", "messages.sc", "--js").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, "print.sc", "messages.sc", "--js").call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -145,7 +145,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "print.sc", "messages.sc", "--native").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, "print.sc", "messages.sc", "--native").call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -169,7 +169,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "dir", "--main-class", "print").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, "dir", "--main-class", "print").call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -187,7 +187,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "run", "--main-class", "print").call(cwd = root / "dir").out.text.trim
+      val output = os.proc(TestUtil.cli, "run", TestUtil.extraOptions, "--main-class", "print").call(cwd = root / "dir").out.text.trim
       expect(output == message)
     }
   }
@@ -201,7 +201,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "--main-class", "print")
+      val res = os.proc(TestUtil.cli, TestUtil.extraOptions, "--main-class", "print")
         .call(cwd = root / "dir", check = false, mergeErrIntoOut = true)
       val output = res.out.text.trim
       expect(res.exitCode != 0)
@@ -223,7 +223,7 @@ class RunTests extends munit.FunSuite {
     )
     val message = "Hello"
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "run", "--", message).call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, "run", TestUtil.extraOptions, "--", message).call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -241,7 +241,7 @@ class RunTests extends munit.FunSuite {
     )
     val message = "Hello"
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "run", "--scala", "3.0.0", "--", message).call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, "run", TestUtil.extraOptions, "--scala", "3.0.0", "--", message).call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -261,7 +261,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "dir", "--js", "--main-class", "print").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, "dir", "--js", "--main-class", "print").call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -289,7 +289,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "dir", "--native", "--main-class", "print").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, "dir", "--native", "--main-class", "print").call(cwd = root).out.text.trim
       expect(output == message)
     }
   }
@@ -311,7 +311,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, scriptPath.toString)
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, scriptPath.toString)
         .call(cwd = root)
         .out.text
         .trim
@@ -342,7 +342,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "dir", scriptPath.toString)
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, "dir", scriptPath.toString)
         .call(cwd = root)
         .out.text
         .trim
@@ -368,7 +368,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", "--java-prop", "scala.colored-stack-traces=false")
+      val res = os.proc(TestUtil.cli, "run", TestUtil.extraOptions, "--java-prop", "scala.colored-stack-traces=false")
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
@@ -401,7 +401,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", "--java-prop", "scala.colored-stack-traces=false")
+      val res = os.proc(TestUtil.cli, "run", TestUtil.extraOptions, "--java-prop", "scala.colored-stack-traces=false")
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
@@ -439,7 +439,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", "--scala", "3.0.0", "--runner=false")
+      val res = os.proc(TestUtil.cli, "run", TestUtil.extraOptions, "--scala", "3.0.0", "--runner=false")
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
@@ -467,7 +467,7 @@ class RunTests extends munit.FunSuite {
 
   def piping(): Unit = {
     emptyInputs.fromRoot { root =>
-      val cmd = s""" echo 'println("Hello" + " from pipe")' | ${TestUtil.cli.mkString(" ")} _.sc """
+      val cmd = s""" echo 'println("Hello" + " from pipe")' | ${TestUtil.cli.mkString(" ")} ${TestUtil.extraOptions.mkString(" ")} _.sc """
       val res = os.proc("bash", "-c", cmd).call(cwd = root)
       val expectedOutput = "Hello from pipe" + System.lineSeparator()
       expect(res.out.text == expectedOutput)
@@ -481,7 +481,7 @@ class RunTests extends munit.FunSuite {
 
   def fd(): Unit = {
     emptyInputs.fromRoot { root =>
-      val cmd = s""" ${TestUtil.cli.mkString(" ")} <(echo 'println("Hello" + " from fd")') """
+      val cmd = s""" ${TestUtil.cli.mkString(" ")} ${TestUtil.extraOptions.mkString(" ")} <(echo 'println("Hello" + " from fd")') """
       val res = os.proc("bash", "-c", cmd).call(cwd = root)
       val expectedOutput = "Hello from fd" + System.lineSeparator()
       expect(res.out.text == expectedOutput)
@@ -512,25 +512,25 @@ class RunTests extends munit.FunSuite {
   )
   test("Scala version 2.12") {
     printScalaVersionInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, ".", "--scala", "2.12").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2.12").call(cwd = root).out.text.trim
       assert(output.startsWith("2.12."))
     }
   }
   test("Scala version 2.13") {
     printScalaVersionInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, ".", "--scala", "2.13").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2.13").call(cwd = root).out.text.trim
       assert(output.startsWith("2.13."))
     }
   }
   test("Scala version 2") {
     printScalaVersionInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, ".", "--scala", "2").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2").call(cwd = root).out.text.trim
       assert(output.startsWith("2.13."))
     }
   }
   test("Scala version 3") {
     printScalaVersionInputs3.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, ".", "--scala", "3").call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "3").call(cwd = root).out.text.trim
       // Scala 3.0 uses the 2.13 standard library
       assert(output.startsWith("2.13."))
     }

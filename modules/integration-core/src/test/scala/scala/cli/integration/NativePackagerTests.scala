@@ -27,7 +27,7 @@ class NativePackagerTests extends munit.FunSuite{
 
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase
         val pkgAppFile = s"$appName.pkg"
-        os.proc(TestUtil.cli, "package", helloWorldFileName, "--pkg", "--output", pkgAppFile).call(
+        os.proc(TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--pkg", "--output", pkgAppFile).call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit,
@@ -59,7 +59,7 @@ class NativePackagerTests extends munit.FunSuite{
 
         val launcherName = helloWorldFileName.stripSuffix(".scala")
 
-        os.proc(TestUtil.cli, "package", helloWorldFileName, "--dmg", "--output", launcherName).call(
+        os.proc(TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--dmg", "--output", launcherName).call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit,
@@ -99,7 +99,7 @@ class NativePackagerTests extends munit.FunSuite{
 
         val launcherName = helloWorldFileName.stripSuffix(".scala")
 
-        os.proc(TestUtil.cli, "package", helloWorldFileName, "--deb", "--output", s"$launcherName.deb").call(
+        os.proc(TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--deb", "--output", s"$launcherName.deb").call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit,
@@ -129,7 +129,7 @@ class NativePackagerTests extends munit.FunSuite{
 
         val launcherName = helloWorldFileName.stripSuffix(".scala")
 
-        os.proc(TestUtil.cli, "package", helloWorldFileName, "--rpm", "--output", s"$launcherName.rpm").call(
+        os.proc(TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--rpm", "--output", s"$launcherName.rpm").call(
           cwd = root,
           stdin = os.Inherit,
           stdout = os.Inherit,
