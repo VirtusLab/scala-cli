@@ -8,6 +8,8 @@ import scala.build.options.BuildOptions
 final case class CompileOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
+  @Recurse
+    watch: SharedWatchOptions = SharedWatchOptions(),
 
   @Name("p")
   @Name("classpath")

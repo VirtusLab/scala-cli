@@ -10,7 +10,9 @@ final case class TestOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
   @Recurse
-    sharedJava: SharedJavaOptions = SharedJavaOptions()
+    sharedJava: SharedJavaOptions = SharedJavaOptions(),
+  @Recurse
+    watch: SharedWatchOptions = SharedWatchOptions()
 ) {
   def buildOptions: BuildOptions =
     shared.buildOptions(enableJmh = false, jmhVersion = None)

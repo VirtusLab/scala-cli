@@ -19,7 +19,7 @@ object Test extends ScalaCommand[TestOptions] {
     )
     val bloopRifleConfig = options.shared.bloopRifleConfig()
 
-    if (options.shared.watch) {
+    if (options.watch.watch) {
       val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)

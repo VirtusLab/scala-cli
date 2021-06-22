@@ -28,10 +28,8 @@ final case class SharedOptions(
     native: ScalaNativeOptions = ScalaNativeOptions(),
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
-
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
-
   @Recurse
     dependencies: SharedDependencyOptions = SharedDependencyOptions(),
 
@@ -76,10 +74,6 @@ final case class SharedOptions(
 
   @Hidden
     classWrap: Boolean = false,
-
-  @HelpMessage("Watch sources for changes")
-  @Name("w")
-    watch: Boolean = false,
 
   @Group("Scala")
   @Hidden
