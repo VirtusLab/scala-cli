@@ -1,4 +1,4 @@
-package scala.build.bloop.bloopgun.internal
+package scala.build.blooprifle.internal
 
 import java.io.{File, InputStream, OutputStream}
 import java.net.{ConnectException, InetSocketAddress}
@@ -6,10 +6,10 @@ import java.nio.file.{Path, Paths}
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
-import scala.build.bloop.bloopgun.{BloopgunLogger, BspConnection}
+import scala.build.blooprifle.{BloopRifleLogger, BspConnection}
 import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.util.{Failure, Success, Try}
 
 import snailgun.TcpClient
@@ -30,7 +30,7 @@ object Operations {
   def check(
     host: String,
     port: Int,
-    logger: BloopgunLogger
+    logger: BloopRifleLogger
   ): Boolean =
     // inspired by https://github.com/scalacenter/bloop/blob/cbddb8baaf639a4e08ee630f1ebc559dc70255a8/bloopgun/src/main/scala/bloop/bloopgun/core/Shell.scala#L174-L202
     Util.withSocket { socket =>
@@ -67,7 +67,7 @@ object Operations {
     scheduler: ScheduledExecutorService,
     waitInterval: FiniteDuration,
     timeout: Duration,
-    logger: BloopgunLogger
+    logger: BloopRifleLogger
   ): Future[Unit] = {
 
     val command =
@@ -83,8 +83,15 @@ object Operations {
     b.redirectInput(ProcessBuilder.Redirect.PIPE)
 
     // https://stackoverflow.com/questions/55628999/java-processbuilder-how-to-suppress-output-instead-of-redirecting-it/55629297#55629297
-    b.redirectOutput(Util.devNull)
-    b.redirectError(Util.devNull)
+    if (logger.bloopCliInheritStdout)
+      b.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+    else
+      b.redirectOutput(Util.devNull)
+
+    if (logger.bloopCliInheritStderr)
+      b.redirectError(ProcessBuilder.Redirect.INHERIT)
+    else
+      b.redirectError(Util.devNull)
 
     val p = b.start()
     p.getOutputStream.close()
@@ -138,12 +145,12 @@ object Operations {
   def bsp(
     host: String,
     port: Int,
-    bspPort: Int,
+    bspSocketOrPort: Either[Int, File],
     workingDir: Path,
     in: InputStream,
     out: OutputStream,
     err: OutputStream,
-    logger: BloopgunLogger
+    logger: BloopRifleLogger
   ): BspConnection = {
 
     val nailgunLogger: SnailgunLogger =
@@ -161,12 +168,16 @@ object Operations {
     val streams = Streams(in, out, err)
 
     val promise = Promise[Int]()
-    val threadName = "bloopgun-nailgun-out"
+    val threadName = "bloop-rifle-nailgun-out"
+    val protocolArgs = bspSocketOrPort match {
+      case Left(bspPort) => Array("--protocol", "tcp", "--host", host, "--port", bspPort.toString)
+      case Right(socket) => Array("--protocol", "local", "--socket", socket.getAbsolutePath)
+    }
     val runnable: Runnable = logger.runnable(threadName) { () =>
       val maybeRetCode = Try {
         nailgunClient.run(
           "bsp",
-          Array("--protocol", "tcp", "--host", host, "--port", bspPort.toString),
+          protocolArgs,
           workingDir,
           sys.env.toMap,
           streams,
@@ -185,8 +196,31 @@ object Operations {
     snailgunThread.start()
 
     new BspConnection {
-      def address = s"$host:$bspPort"
-      def openSocket() = new Socket(host, bspPort)
+      def address = bspSocketOrPort match {
+        case Left(bspPort) => s"$host:$bspPort"
+        case Right(socket) => "local:" + socket.toURI.toASCIIString.stripPrefix("file:")
+      }
+      def openSocket() = bspSocketOrPort match {
+        case Left(bspPort) =>
+          new Socket(host, bspPort)
+        case Right(socket) =>
+          var count = 0
+          val period = 50.millis
+          val maxWait = 10.seconds
+          val maxCount = (maxWait / period).toInt
+          while (!socket.exists() && count < maxCount && closed.value.isEmpty) {
+            logger.debug(s"BSP connection at $socket not found, waiting $period")
+            Thread.sleep(period.toMillis)
+            count += 1
+          }
+          if (socket.exists()) {
+            logger.debug(s"BSP connection at $socket found")
+            new org.scalasbt.ipcsocket.UnixDomainSocket(socket.getAbsolutePath, true)
+          } else if (closed.value.isEmpty)
+            sys.error(s"Timeout while waiting for BSP socket to be created in $socket")
+          else
+            sys.error(s"Bloop BSP connection in $socket was unexpectedly closed or bloop didn't start.")
+      }
       val closed = promise.future
       def stop() = stop0.set(true)
     }

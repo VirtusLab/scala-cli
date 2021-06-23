@@ -1,19 +1,17 @@
 package scala.build
 
 import ch.epfl.scala.bsp4j
+import dependency.{AnyDependency, Dependency, DependencyLike, ScalaParameters, ScalaVersion}
+import dependency.parser.ModuleParser
 
-import scala.collection.JavaConverters._
 import java.io.File
 import java.nio.file.Path
-import scala.build.bloop.bloopgun.BloopgunConfig
-import dependency.parser.ModuleParser
-import dependency.Dependency
-import dependency.DependencyLike
-import dependency.ScalaParameters
+
+import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.Util.ScalaDependencyOps
+import scala.collection.JavaConverters._
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Properties
-import dependency.AnyDependency
-import dependency.ScalaVersion
 
 object Bloop {
 
@@ -21,11 +19,12 @@ object Bloop {
     projectName: String,
     buildClient: bsp4j.BuildClient,
     bloopServer: bloop.BloopServer,
-    logger: Logger
+    logger: Logger,
+    buildTargetsTimeout: FiniteDuration
   ): Boolean = {
 
     logger.debug("Listing BSP build targets")
-    val results = bloopServer.server.workspaceBuildTargets().get()
+    val results = bloopServer.server.workspaceBuildTargets().get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
     val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
 
     val buildTarget = buildTargetOpt.getOrElse {
@@ -52,12 +51,12 @@ object Bloop {
     Artifacts.artifacts(Seq(dep), Nil, params, logger).map(_._2.toFile)
 
   def bloopClassPath(logger: Logger): Seq[File] = {
-    val moduleStr = BloopgunConfig.defaultModule
+    val moduleStr = BloopRifleConfig.defaultModule
     val mod = ModuleParser.parse(moduleStr) match {
       case Left(err) => sys.error(s"Error parsing default bloop module '$moduleStr'")
       case Right(mod) => mod
     }
-    val dep = DependencyLike(mod, BloopgunConfig.defaultVersion)
+    val dep = DependencyLike(mod, BloopRifleConfig.defaultVersion)
     val sv = Properties.versionNumberString
     val sbv = ScalaVersion.binary(sv)
     val params = ScalaParameters(sv, sbv)

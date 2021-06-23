@@ -5,7 +5,7 @@ import ch.epfl.scala.bsp4j
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
 import dependency._
-import scala.build.bloop.bloopgun
+import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.{AsmPositionUpdater, Constants, CustomCodeWrapper, LineConversion, MainClass, SemanticdbProcessor, Util}
 import scala.build.options.BuildOptions
 import scala.build.tastylib.TastyData
@@ -142,7 +142,7 @@ object Build {
     inputs: Inputs,
     options: BuildOptions,
     threads: BuildThreads,
-    bloopConfig: bloopgun.BloopgunConfig,
+    bloopConfig: BloopRifleConfig,
     logger: Logger,
     cwd: os.Path
   ): Build = {
@@ -160,7 +160,7 @@ object Build {
       classesDir0.toNIO,
       buildClient,
       threads.bloop,
-      logger.bloopgunLogger
+      logger.bloopRifleLogger
     ) { bloopServer =>
       build(
         inputs,
@@ -177,7 +177,7 @@ object Build {
   def build(
     inputs: Inputs,
     options: BuildOptions,
-    bloopConfig: bloopgun.BloopgunConfig,
+    bloopConfig: BloopRifleConfig,
     logger: Logger,
     cwd: os.Path
   ): Build =
@@ -186,7 +186,7 @@ object Build {
   def watch(
     inputs: Inputs,
     options: BuildOptions,
-    bloopConfig: bloopgun.BloopgunConfig,
+    bloopConfig: BloopRifleConfig,
     logger: Logger,
     cwd: os.Path,
     postAction: () => Unit = () => ()
@@ -206,7 +206,7 @@ object Build {
       classesDir0.toNIO,
       buildClient,
       threads.bloop,
-      logger.bloopgunLogger
+      logger.bloopRifleLogger
     )
 
     def run() = {
@@ -359,7 +359,8 @@ object Build {
       inputs.projectName,
       buildClient,
       bloopServer,
-      logger
+      logger,
+      buildTargetsTimeout = 20.seconds
     )
 
     if (success) {

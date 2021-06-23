@@ -1,4 +1,4 @@
-package scala.build.bloop.bloopgun.internal
+package scala.build.blooprifle.internal
 
 import java.io.{File, IOException}
 import java.net.{ServerSocket, Socket}

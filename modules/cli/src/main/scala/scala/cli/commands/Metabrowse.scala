@@ -30,9 +30,9 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val logger = options.shared.logger
 
-    val bloopgunConfig = options.shared.bloopgunConfig()
+    val bloopRifleConfig = options.shared.bloopRifleConfig()
 
-    val build = Build.build(inputs, options.buildOptions, bloopgunConfig, logger, Os.pwd)
+    val build = Build.build(inputs, options.buildOptions, bloopRifleConfig, logger, Os.pwd)
 
     if (build.artifacts.params.scalaVersion != Properties.versionNumberString && options.shared.logging.verbosity >= 0)
       System.err.println(s"Warning: browse command should only work with Scala version ${Properties.versionNumberString}")

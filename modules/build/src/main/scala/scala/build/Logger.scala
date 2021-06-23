@@ -1,7 +1,7 @@
 package scala.build
 
 import coursier.cache.CacheLogger
-import scala.build.bloop.bloopgun
+import scala.build.blooprifle.BloopRifleLogger
 
 trait Logger {
   // TODO Use macros for log and debug calls to have zero cost when verbosity <= 0
@@ -11,7 +11,7 @@ trait Logger {
 
   def coursierLogger: coursier.cache.CacheLogger
 
-  def bloopgunLogger: bloopgun.BloopgunLogger
+  def bloopRifleLogger: BloopRifleLogger
 }
 
 object Logger {
@@ -23,8 +23,8 @@ object Logger {
     def coursierLogger: coursier.cache.CacheLogger =
       coursier.cache.CacheLogger.nop
 
-    def bloopgunLogger: bloopgun.BloopgunLogger =
-      bloopgun.BloopgunLogger.nop
+    def bloopRifleLogger: BloopRifleLogger =
+      BloopRifleLogger.nop
   }
   def nop: Logger = new Nop
 }

@@ -3,7 +3,7 @@ package scala.build.tests
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
 
-import scala.build.bloop.bloopgun
+import scala.build.blooprifle.BloopRifleLogger
 import scala.build.Logger
 
 case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logger {
@@ -22,8 +22,10 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
   def coursierLogger: CacheLogger =
     RefreshLogger.create(new FallbackRefreshDisplay)
 
-  def bloopgunLogger: bloopgun.BloopgunLogger =
-    bloopgun.BloopgunLogger.nop
+  def bloopRifleLogger: BloopRifleLogger =
+    BloopRifleLogger.nop
   def bloopBspStderr = None
   def bloopBspStdout = None
+  def bloopCliInheritStdout = false
+  def bloopCliInheritStderr = false
 }

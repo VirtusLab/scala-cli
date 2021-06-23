@@ -15,7 +15,7 @@ final case class BloopThreads(
 object BloopThreads {
   def create(): BloopThreads = {
     val jsonrpc = Executors.newFixedThreadPool(4, daemonThreadFactory("scala-cli-bsp-jsonrpc"))
-    val startServerChecks = Executors.newSingleThreadScheduledExecutor(daemonThreadFactory("scala-cli-bloopgun"))
+    val startServerChecks = Executors.newSingleThreadScheduledExecutor(daemonThreadFactory("scala-cli-bloop-rifle"))
     BloopThreads(jsonrpc, startServerChecks)
   }
 

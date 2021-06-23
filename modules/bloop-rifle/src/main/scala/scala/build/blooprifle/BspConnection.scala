@@ -1,4 +1,4 @@
-package scala.build.bloop.bloopgun
+package scala.build.blooprifle
 
 import java.net.Socket
 

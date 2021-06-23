@@ -26,7 +26,7 @@ object Run extends ScalaCommand[RunOptions] {
       enableJmh = options.benchmarking.jmh.contains(true),
       jmhVersion = options.benchmarking.jmhVersion
     )
-    val bloopgunConfig = options.shared.bloopgunConfig()
+    val bloopRifleConfig = options.shared.bloopRifleConfig()
 
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
       maybeRunOnce(
@@ -41,7 +41,7 @@ object Run extends ScalaCommand[RunOptions] {
       )
 
     if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = false)
         case f: Build.Failed =>
@@ -50,7 +50,7 @@ object Run extends ScalaCommand[RunOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, bloopgunConfig, options.shared.logger, Os.pwd)
+      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)

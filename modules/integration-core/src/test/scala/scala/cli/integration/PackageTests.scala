@@ -24,7 +24,7 @@ class PackageTests extends munit.FunSuite {
       fileName.stripSuffix(".sc") + ext
     }
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", fileName).call(
+      os.proc(TestUtil.cli, "package", TestUtil.extraOptions, fileName).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit,
@@ -52,7 +52,7 @@ class PackageTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package").call(
+      os.proc(TestUtil.cli, "package", TestUtil.extraOptions).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit,
@@ -85,7 +85,7 @@ class PackageTests extends munit.FunSuite {
     )
     val destName = fileName.stripSuffix(".sc") + ".js"
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", fileName, "--js").call(
+      os.proc(TestUtil.cli, "package", TestUtil.extraOptions, fileName, "--js").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit,
@@ -127,7 +127,7 @@ class PackageTests extends munit.FunSuite {
       fileName.stripSuffix(".sc") + ext
     }
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", fileName, "--native").call(
+      os.proc(TestUtil.cli, "package", TestUtil.extraOptions, fileName, "--native").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit,

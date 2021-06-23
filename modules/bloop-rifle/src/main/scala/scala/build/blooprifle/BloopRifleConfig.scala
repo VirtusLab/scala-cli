@@ -1,25 +1,25 @@
-package scala.build.bloop.bloopgun
+package scala.build.blooprifle
 
 import java.io.File
 
-import scala.build.bloop.bloopgun.internal.Constants
+import scala.build.blooprifle.internal.Constants
 import scala.util.Try
 import java.io.InputStream
 import java.io.OutputStream
 
-final case class BloopgunConfig(
+final case class BloopRifleConfig(
   host: String,
   port: Int,
   javaPath: String,
   javaOpts: Seq[String],
   classPath: () => Seq[File],
-  bspPort: Option[Int] = None,
+  bspSocketOrPort: Option[() => Either[Int, File]] = None,
   bspStdin: Option[InputStream] = None,
   bspStdout: Option[OutputStream] = None,
   bspStderr: Option[OutputStream] = None
 )
 
-object BloopgunConfig {
+object BloopRifleConfig {
 
   def hardCodedDefaultHost = "127.0.0.1"
   def hardCodedDefaultPort = 8212
@@ -77,14 +77,14 @@ object BloopgunConfig {
   }
 
 
-  def default(bloopClassPath: () => Seq[File]): BloopgunConfig =
-    BloopgunConfig(
+  def default(bloopClassPath: () => Seq[File]): BloopRifleConfig =
+    BloopRifleConfig(
       host = defaultHost,
       port = defaultPort,
       javaPath = "java",
       javaOpts = defaultJavaOpts,
       classPath = bloopClassPath,
-      bspPort = None,
+      bspSocketOrPort = None,
       bspStdin = None,
       bspStdout = None,
       bspStderr = None

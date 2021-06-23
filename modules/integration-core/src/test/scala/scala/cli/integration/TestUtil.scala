@@ -16,6 +16,8 @@ object TestUtil {
       Seq("java", "-Xmx512m", "-jar", path)
   }
 
+  val extraOptions = List.empty[String]
+
   lazy val canRunJs = !isNativeCli || !Properties.isWin
   lazy val canRunNative = !Properties.isWin
 
