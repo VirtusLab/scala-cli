@@ -18,7 +18,7 @@ class RunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, fileName).call(cwd = root).out.text.trim
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, fileName, "-v", "-v", "-v").call(cwd = root).out.text.trim
       if (!ignoreErrors)
         expect(output == message)
     }
