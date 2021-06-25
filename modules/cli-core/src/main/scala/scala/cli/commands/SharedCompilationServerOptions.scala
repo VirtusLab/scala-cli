@@ -64,8 +64,8 @@ final case class SharedCompilationServerOptions(
     if (Properties.isWin) None
     else
       bloopBspProtocol.filter(_ != "default") match {
-        case Some("tcp") | None => None
-        case Some("local") =>
+        case Some("tcp") => None
+        case Some("local") | None =>
           Some { () =>
             val (socket, deleteOnExit) = bloopBspSocket match {
               case Some(path) =>
