@@ -6,13 +6,19 @@ import java.nio.charset.StandardCharsets
 final case class TestInputs(
   files: Seq[(os.RelPath, String)]
 ) {
+  private def writeIn(dir: os.Path): Unit =
+    for ((relPath, content) <- files) {
+      val path = dir / relPath
+      os.write(path, content.getBytes(StandardCharsets.UTF_8), createFolders = true)
+    }
+  def root(): os.Path = {
+    val tmpDir = TestInputs.tmpDir("scala-cli-tests-")
+    writeIn(tmpDir)
+    tmpDir
+  }
   def fromRoot[T](f: os.Path => T): T =
     TestInputs.withTmpDir("scala-cli-tests-") { tmpDir =>
-      for ((relPath, content) <- files) {
-        val path = tmpDir / relPath
-        os.write(path, content.getBytes(StandardCharsets.UTF_8), createFolders = true)
-      }
-
+      writeIn(tmpDir)
       f(tmpDir)
     }
 }
@@ -30,4 +36,6 @@ object TestInputs {
       }
     }
   }
+  private def tmpDir(prefix: String): os.Path =
+    os.temp.dir(prefix = prefix)
 }

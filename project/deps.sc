@@ -36,6 +36,7 @@ object Deps {
   def prettyStacktraces = ivy"org.virtuslab::pretty-stacktraces:0.0.0+27-b9d69198-SNAPSHOT"
   def pureconfig = ivy"com.github.pureconfig::pureconfig:0.16.0"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
+  def scalaAsync = ivy"org.scala-lang.modules::scala-async:0.10.0"
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
   def scalaJsEnvNodeJs = ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
   def scalaJsLinker = ivy"org.scala-js::scalajs-linker:${Versions.scalaJs}"

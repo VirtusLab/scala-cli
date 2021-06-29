@@ -216,60 +216,71 @@ trait CliLaunchers extends SbtModule {
     }
   }
 
-  def nativeImageClassPath = T{
+  private def stripFile(jar: os.Path, destDir: os.Path, toStrip: String): Option[os.Path] = {
     import java.io._
     import java.util.zip._
     import scala.collection.JavaConverters._
+    var zf: ZipFile = null
+    try {
+      zf = new ZipFile(jar.toIO)
+      val ent = zf.getEntry(toStrip)
+      if (ent == null) None
+      else {
+        os.makeDir.all(destDir)
+        val dest = destDir / (jar.last.stripSuffix(".jar") + "-patched.jar")
+        var fos: FileOutputStream = null
+        var zos: ZipOutputStream = null
+        try {
+          fos = new FileOutputStream(dest.toIO)
+          zos = new ZipOutputStream(fos)
+          val buf = Array.ofDim[Byte](64*1024)
+          for (ent <- zf.entries.asScala if ent.getName != toStrip) {
+            zos.putNextEntry(ent)
+            var is: InputStream = null
+            try {
+              is = zf.getInputStream(ent)
+              var read = -1
+              while ({
+                read = is.read(buf)
+                read >= 0
+              }) {
+                if (read > 0)
+                  zos.write(buf, 0, read)
+              }
+            } finally {
+              if (is != null)
+                is.close()
+            }
+          }
+          zos.finish()
+        } finally {
+          if (zos != null) zos.close()
+          if (fos != null) fos.close()
+        }
+        Some(dest)
+      }
+    } finally {
+      if (zf != null)
+        zf.close()
+    }
+  }
+
+  def stripLsp4jPreconditionsFromBsp4j = T{ false }
+
+  def nativeImageClassPath = T{
     val dir = T.dest / "patched-jars"
     val toRemove = "org/eclipse/lsp4j/util/Preconditions.class"
-    runClasspath().map { ref =>
-      if (ref.path.last.startsWith("bsp4j-")) {
-        var zf: ZipFile = null
-        try {
-          zf = new ZipFile(ref.path.toIO)
-          val ent = zf.getEntry(toRemove)
-          if (ent == null) ref
-          else {
-            os.makeDir.all(dir)
-            val dest = dir / (ref.path.last.stripSuffix(".jar") + "-patched.jar")
-            var fos: FileOutputStream = null
-            var zos: ZipOutputStream = null
-            try {
-            fos = new FileOutputStream(dest.toIO)
-            zos = new ZipOutputStream(fos)
-            val buf = Array.ofDim[Byte](64*1024)
-            for (ent <- zf.entries.asScala if ent.getName != toRemove) {
-              zos.putNextEntry(ent)
-              var is: InputStream = null
-              try {
-                is = zf.getInputStream(ent)
-                var read = -1
-                while ({
-                  read = is.read(buf)
-                  read >= 0
-                }) {
-                  if (read > 0)
-                    zos.write(buf, 0, read)
-                }
-              } finally {
-                if (is != null)
-                  is.close()
-              }
-            }
-            zos.finish()
-            } finally {
-              if (zos != null) zos.close()
-              if (fos != null) fos.close()
-            }
-            PathRef(dest)
-          }
-        } finally {
-          if (zf != null)
-            zf.close()
-        }
+    val baseClassPath = runClasspath()
+
+    if (stripLsp4jPreconditionsFromBsp4j())
+      baseClassPath.map { ref =>
+        if (ref.path.last.startsWith("bsp4j-"))
+          stripFile(ref.path, dir, toRemove).map(PathRef(_)).getOrElse(ref)
+        else
+          ref
       }
-      else ref
-    }
+    else
+      baseClassPath
   }
 
   def nativeImage = T{

@@ -19,7 +19,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     val buildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
 
-    val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd)
+    val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")

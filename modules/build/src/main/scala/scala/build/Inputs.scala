@@ -71,6 +71,9 @@ final case class Inputs(
   def add(elements: Seq[Inputs.Element]): Inputs =
     if (elements.isEmpty) this
     else copy(tail = tail ++ elements)
+
+  def generatedSrcRoot: os.Path =
+    workspace / ".scala" / projectName / "src_generated"
 }
 
 object Inputs {

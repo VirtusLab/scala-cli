@@ -3,6 +3,8 @@ package scala.cli.integration
 import java.io.File
 
 import scala.util.Properties
+import java.util.concurrent.{Executors, ExecutorService, ScheduledExecutorService, ThreadFactory}
+import java.util.concurrent.atomic.AtomicInteger
 
 object TestUtil {
 
@@ -48,4 +50,24 @@ object TestUtil {
       .map(_.getAbsolutePath)
   }
 
+  def threadPool(prefix: String, size: Int): ExecutorService =
+    Executors.newFixedThreadPool(4, daemonThreadFactory(prefix))
+
+  def scheduler(prefix: String): ScheduledExecutorService =
+    Executors.newSingleThreadScheduledExecutor(daemonThreadFactory(prefix))
+
+  private def daemonThreadFactory(prefix: String): ThreadFactory =
+    new ThreadFactory {
+      val counter = new AtomicInteger
+      def threadNumber() = counter.incrementAndGet()
+      def newThread(r: Runnable) =
+        new Thread(r, s"$prefix-thread-${threadNumber()}") {
+          setDaemon(true)
+          setPriority(Thread.NORM_PRIORITY)
+        }
+    }
+
+  def normalizeUri(uri: String): String =
+    if (uri.startsWith("file:///")) "file:/" + uri.stripPrefix("file:///")
+    else uri
 }

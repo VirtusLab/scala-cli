@@ -22,7 +22,7 @@ final case class Sources(
   buildOptions: BuildOptions
 ) {
 
-  def generateSources(generatedSrcRoot: os.Path): Seq[(os.Path, Either[String, os.Path], Int)] = {
+  def generateSources(generatedSrcRoot: os.Path): Seq[GeneratedSource] = {
     val generated =
       for ((reportingPath, relPath, code, topWrapperLen) <- inMemory) yield {
         os.write.over(generatedSrcRoot / relPath, code.getBytes("UTF-8"), createFolders = true)
@@ -38,7 +38,7 @@ final case class Sources(
 
     generated.map {
       case (reportingPath, path, topWrapperLen) =>
-        (generatedSrcRoot / path, reportingPath, topWrapperLen)
+        GeneratedSource(generatedSrcRoot / path, reportingPath, topWrapperLen)
     }
   }
 }

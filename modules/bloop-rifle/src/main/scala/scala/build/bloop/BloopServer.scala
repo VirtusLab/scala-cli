@@ -97,6 +97,33 @@ object BloopServer {
     create(System.currentTimeMillis() + timeout.toMillis)
   }
 
+  def bsp(
+    config: BloopRifleConfig,
+    workspace: Path,
+    threads: BloopThreads,
+    logger: BloopRifleLogger,
+    period: FiniteDuration = 100.milliseconds,
+    timeout: FiniteDuration = 5.seconds
+  ): (BspConnection, Socket) = {
+
+    ensureBloopRunning(config, threads.startServerChecks, logger)
+
+    logger.debug("Opening BSP connection with bloop")
+    Files.createDirectories(workspace.resolve(".scala/.bloop"))
+    val conn = BloopRifle.bsp(
+      config,
+      workspace.resolve(".scala"),
+      logger
+    )
+    logger.debug(s"Bloop BSP connection waiting at ${conn.address}")
+
+    val socket = connect(conn, period, timeout)
+
+    logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
+
+    (conn, socket)
+  }
+
   def buildServer(
     config: BloopRifleConfig,
     clientName: String,
@@ -111,18 +138,7 @@ object BloopServer {
     initTimeout: FiniteDuration = 10.seconds
   ): BloopServer = {
 
-    ensureBloopRunning(config, threads.startServerChecks, logger)
-
-    logger.debug("Opening BSP connection with bloop")
-    Files.createDirectories(workspace.resolve(".scala/.bloop"))
-    val conn = BloopRifle.bsp(
-      config,
-      workspace.resolve(".scala"),
-      logger
-    )
-    logger.debug(s"Bloop BSP connection waiting at ${conn.address}")
-
-    val socket = connect(conn, period, timeout)
+    val (conn, socket) = bsp(config, workspace, threads, logger, period, timeout)
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
