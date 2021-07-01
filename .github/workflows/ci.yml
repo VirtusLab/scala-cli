@@ -56,8 +56,19 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: coursier/cache-action@v6
+    - uses: laughedelic/coursier-setup@v1
+      with:
+        jvm: 8
+    - name: Check native-image config format
+      run: ./mill -i __.checkNativeImageConfFormat
+
   launchers:
-    needs: test
+    needs: [test, format]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:

@@ -1,33 +1,71 @@
 [
-{
-  "name":"com.swoval.files.apple.FileEvent",
-  "methods":[{"name":"<init>","parameterTypes":["java.lang.String","int"] }]
-},
-{
-  "name":"com.swoval.files.apple.FileEventMonitorImpl$WrappedConsumer",
-  "methods":[{"name":"accept","parameterTypes":["java.lang.Object"] }]
-},
-{
-  "name":"java.lang.ClassLoader",
-  "methods":[{"name":"getPlatformClassLoader","parameterTypes":[] }]
-},
-{
-  "name":"java.lang.NoSuchMethodError"
-},
-{
-  "name":"java.lang.String"
-},
-{
-  "name":"sun.management.VMManagementImpl",
-  "fields":[
-    {"name":"compTimeMonitoringSupport"}, 
-    {"name":"currentThreadCpuTimeSupport"}, 
-    {"name":"objectMonitorUsageSupport"}, 
-    {"name":"otherThreadCpuTimeSupport"}, 
-    {"name":"remoteDiagnosticCommandsSupport"}, 
-    {"name":"synchronizerUsageSupport"}, 
-    {"name":"threadAllocatedMemorySupport"}, 
-    {"name":"threadContentionMonitoringSupport"}
-  ]
-}
+  {
+    "name": "com.swoval.files.apple.FileEvent",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "java.lang.String",
+          "int"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.swoval.files.apple.FileEventMonitorImpl$WrappedConsumer",
+    "methods": [
+      {
+        "name": "accept",
+        "parameterTypes": [
+          "java.lang.Object"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "java.lang.ClassLoader",
+    "methods": [
+      {
+        "name": "getPlatformClassLoader",
+        "parameterTypes": [
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name": "java.lang.NoSuchMethodError"
+  },
+  {
+    "name": "java.lang.String"
+  },
+  {
+    "name": "sun.management.VMManagementImpl",
+    "fields": [
+      {
+        "name": "compTimeMonitoringSupport"
+      },
+      {
+        "name": "currentThreadCpuTimeSupport"
+      },
+      {
+        "name": "objectMonitorUsageSupport"
+      },
+      {
+        "name": "otherThreadCpuTimeSupport"
+      },
+      {
+        "name": "remoteDiagnosticCommandsSupport"
+      },
+      {
+        "name": "synchronizerUsageSupport"
+      },
+      {
+        "name": "threadAllocatedMemorySupport"
+      },
+      {
+        "name": "threadContentionMonitoringSupport"
+      }
+    ]
+  }
 ]

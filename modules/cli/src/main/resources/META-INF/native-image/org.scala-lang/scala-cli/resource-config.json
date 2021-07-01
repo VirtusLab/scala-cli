@@ -1,11 +1,24 @@
 {
-  "resources":{
-  "includes":[
-    {"pattern":"\\Qmetabrowse/server/assets/\\E.*"},
-    {"pattern":"\\Qio/undertow/version.properties\\E"},
-    {"pattern":"\\Qorg/jboss/threads/Version.properties\\E"},
-    {"pattern":"\\Qorg/xnio/Version.properties\\E"},
-    {"pattern":"\\Qorg/xnio/nio/Version.properties\\E"}
-  ]},
-  "bundles":[]
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\Qmetabrowse/server/assets/\\E.*"
+      },
+      {
+        "pattern": "\\Qio/undertow/version.properties\\E"
+      },
+      {
+        "pattern": "\\Qorg/jboss/threads/Version.properties\\E"
+      },
+      {
+        "pattern": "\\Qorg/xnio/Version.properties\\E"
+      },
+      {
+        "pattern": "\\Qorg/xnio/nio/Version.properties\\E"
+      }
+    ]
+  },
+  "bundles": [
+    
+  ]
 }

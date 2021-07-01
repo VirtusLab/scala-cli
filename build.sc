@@ -3,7 +3,7 @@ import $ivy.`io.get-coursier::coursier-launcher:2.0.16`
 import $file.project.deps, deps.{Deps, Scala}
 import $file.project.ghreleaseassets
 import $file.project.publish, publish.ScalaCliPublishModule
-import $file.project.settings, settings.{CliLaunchers, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath}
+import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath}
 
 import java.io.File
 
@@ -135,7 +135,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
   }
 }
 
-trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with HasTests {
+trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf with HasTests {
   def scalaVersion = defaultScalaVersion
   def moduleDeps = Seq(
     `cli-core`
@@ -155,7 +155,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Ha
   object test extends Tests
 }
 
-trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule {
+trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf {
   def scalaVersion = defaultScalaVersion
   def moduleDeps = Seq(
     build(defaultScalaVersion),

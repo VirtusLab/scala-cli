@@ -520,3 +520,75 @@ trait LocalRepo extends Module {
   }
 
 }
+
+private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path] = {
+  val sortByName = Set("jni-config.json", "reflect-config.json")
+  val files = Seq("jni-config.json", "proxy-config.json", "reflect-config.json", "resource-config.json")
+  var needsFormatting = List.empty[os.Path]
+  for (name <- files) {
+    val file = dir / name
+    if (os.isFile(file)) {
+      val content = os.read(file)
+      val json = ujson.read(content)
+      val updatedJson =
+        if (name == "reflect-config.json")
+          json.arrOpt.fold(json) { arr =>
+            val values = arr.toVector.groupBy(_("name").str).toVector.sortBy(_._1).map(_._2).map { t =>
+              val entries = t.map(_.obj).reduce(_ ++ _)
+              if (entries.get("allDeclaredFields") == Some(ujson.Bool(true)))
+                entries -= "fields"
+              if (entries.get("allDeclaredMethods") == Some(ujson.Bool(true)))
+                entries -= "methods"
+              ujson.Obj(entries)
+            }
+            ujson.Arr(values: _*)
+          }
+        else if (sortByName(name))
+          json.arrOpt.fold(json) { arr =>
+            val values = arr.toVector.sortBy(_("name").str)
+            ujson.Arr(values: _*)
+          }
+        else
+          json
+      val updatedContent = updatedJson.render(indent = 2)
+      if (updatedContent != content) {
+        needsFormatting = file :: needsFormatting
+        if (format)
+          os.write.over(file, updatedContent)
+      }
+    }
+  }
+  needsFormatting
+}
+
+trait FormatNativeImageConf extends JavaModule {
+  def nativeImageConfDirs = T{
+    resources()
+      .map(_.path)
+      .flatMap { path =>
+        os.walk(path / "META-INF" / "native-image")
+          .filter(_.last.endsWith("-config.json"))
+          .filter(os.isFile(_))
+          .map(_ / os.up)
+      }
+      .distinct
+  }
+  def checkNativeImageConfFormat() = T.command {
+    var needsFormatting = List.empty[os.Path]
+    for (dir <- nativeImageConfDirs())
+      needsFormatting = doFormatNativeImageConf(dir, format = false) ::: needsFormatting
+    if (needsFormatting.nonEmpty) {
+      System.err.println(s"Error: ${needsFormatting.length} file(s) needs formatting:")
+      for (f <- needsFormatting)
+        System.err.println(s"  ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd).toString else f.toString}")
+    }
+    ()
+  }
+  def formatNativeImageConf() = T.command {
+    var formattedCount = 0
+    for (dir <- nativeImageConfDirs())
+      formattedCount += doFormatNativeImageConf(dir, format = true).length
+    System.err.println(s"Formatted $formattedCount file(s).")
+    ()
+  }
+}
