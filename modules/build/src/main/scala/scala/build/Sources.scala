@@ -5,23 +5,24 @@ import java.nio.file.Paths
 
 import dependency.parser.DependencyParser
 import dependency.{AnyDependency, ScalaParameters}
+import pureconfig.ConfigSource
 
+import scala.build.config.ConfigFormat
 import scala.build.internal.{AmmUtil, CodeWrapper, Name}
 import scala.build.internal.Util.DependencyOps
 import scala.build.options.BuildOptions
-import pureconfig.ConfigSource
-import scala.build.config.ConfigFormat
+import scala.util.Properties
 
 final case class Sources(
   paths: Seq[(os.Path, os.RelPath)],
-  inMemory: Seq[(os.Path, os.RelPath, String, Int)],
+  inMemory: Seq[(Either[String, os.Path], os.RelPath, String, Int)],
   mainClass: Option[String],
   dependencies: Seq[AnyDependency],
   resourceDirs: Seq[os.Path],
   buildOptions: BuildOptions
 ) {
 
-  def generateSources(generatedSrcRoot: os.Path): Seq[(os.Path, os.Path, Int)] = {
+  def generateSources(generatedSrcRoot: os.Path): Seq[(os.Path, Either[String, os.Path], Int)] = {
     val generated =
       for ((reportingPath, relPath, code, topWrapperLen) <- inMemory) yield {
         os.write.over(generatedSrcRoot / relPath, code.getBytes("UTF-8"), createFolders = true)
@@ -130,7 +131,7 @@ object Sources {
     val deps0 = deps.map(parseDependency)
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-    ScriptData(script.path, className, code, deps0, topWrapperLen)
+    ScriptData(Right(script.path), className, code, deps0, topWrapperLen)
   }
 
   private def virtualScriptData(codeWrapper: CodeWrapper, script: Inputs.VirtualScript): ScriptData = {
@@ -138,7 +139,7 @@ object Sources {
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, os.rel / "stdin.sc")
 
     val content = new String(script.content, StandardCharsets.UTF_8)
-    val (deps, updatedCode) = process(content, "<stdin>").getOrElse((Nil, content))
+    val (deps, updatedCode) = process(content, script.source).getOrElse((Nil, content))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
@@ -149,7 +150,7 @@ object Sources {
     val deps0 = deps.map(parseDependency)
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-    ScriptData(os.pwd / "<stdin>", className, code, deps0, topWrapperLen)
+    ScriptData(Left(script.source), className, code, deps0, topWrapperLen)
   }
 
   def forInputs(
@@ -195,15 +196,15 @@ object Sources {
     val virtualSources = virtualSourceFiles.map {
       case v: Inputs.VirtualScalaFile =>
         val content = new String(v.content, StandardCharsets.UTF_8)
-        val (deps, updatedContent) = process(content, "<stdin>").getOrElse((Nil, content))
-        (os.pwd / "<stdin>", deps, v.subPath, updatedContent)
+        val (deps, updatedContent) = process(content, v.source).getOrElse((Nil, content))
+        (v.source, deps, v.subPath, updatedContent)
       case v: Inputs.VirtualScript =>
         val content = new String(v.content, StandardCharsets.UTF_8)
-        val (deps, updatedContent) = process(content, "<stdin>").getOrElse((Nil, content))
-        (os.pwd / "<stdin>", deps, v.subPath, updatedContent)
+        val (deps, updatedContent) = process(content, v.source).getOrElse((Nil, content))
+        (v.source, deps, v.subPath, updatedContent)
       case v: Inputs.VirtualJavaFile =>
         val content = new String(v.content, StandardCharsets.UTF_8)
-        (os.pwd / "<stdin>", Nil, v.subPath, content)
+        (v.source, Nil, v.subPath, content)
     }
 
     val javaFilePaths = singleFiles
@@ -218,11 +219,11 @@ object Sources {
     val inMemorySourceFiles =
       virtualSources.map {
         case (originalPath, _, relPath, updatedCode) =>
-          (originalPath, relPath: os.RelPath, updatedCode, 0)
+          (Left(originalPath), relPath: os.RelPath, updatedCode, 0)
       } ++
       scalaFilePathsOrCode.collect {
         case Left((originalPath, _, relPath, updatedCode)) =>
-          (originalPath, relPath, updatedCode, 0)
+          (Right(originalPath), relPath, updatedCode, 0)
       }
 
     val scalaFilesDependencies = {
@@ -273,7 +274,7 @@ object Sources {
   }
 
   private final case class ScriptData(
-    reportingPath: os.Path,
+    reportingPath: Either[String, os.Path],
     className: String,
     code: String,
     dependencies: Seq[AnyDependency],

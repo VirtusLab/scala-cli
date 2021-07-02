@@ -12,20 +12,20 @@ import scala.collection.mutable
 class BloopBuildClient(
   logger: Logger,
   keepDiagnostics: Boolean = false,
-  var generatedSources: Map[os.Path, (os.Path, Int)] = Map()
+  var generatedSources: Map[os.Path, (Either[String, os.Path], Int)] = Map()
 ) extends bsp4j.BuildClient {
 
   protected var printedStart = false
   private val gray = "\u001b[90m"
   private val reset = Console.RESET
 
-  private var diagnostics0 = new mutable.ListBuffer[(os.Path, bsp4j.Diagnostic)]
+  private var diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
 
-  def diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]] =
+  def diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]] =
     if (keepDiagnostics) Some(diagnostics0.result())
     else None
 
-  private def postProcessDiagnostic(path: os.Path, diag: bsp4j.Diagnostic): Option[(os.Path, bsp4j.Diagnostic)] =
+  private def postProcessDiagnostic(path: os.Path, diag: bsp4j.Diagnostic): Option[(Either[String, os.Path], bsp4j.Diagnostic)] =
     generatedSources.get(path).collect {
       case (originalPath, lineOffset) if diag.getRange.getStart.getLine + lineOffset >= 0 && diag.getRange.getEnd.getLine + lineOffset >= 0 =>
         val start = new bsp4j.Position(diag.getRange.getStart.getLine + lineOffset, diag.getRange.getStart.getCharacter)
@@ -41,7 +41,7 @@ class BloopBuildClient(
         (originalPath, updatedDiag)
     }
 
-  def printDiagnostic(path: os.Path, diag: bsp4j.Diagnostic): Unit =
+  def printDiagnostic(path: Either[String, os.Path], diag: bsp4j.Diagnostic): Unit =
     if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR || diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING) {
       val red = Console.RED
       val yellow = Console.YELLOW
@@ -52,9 +52,11 @@ class BloopBuildClient(
       val col = (diag.getRange.getStart.getCharacter + 1).toString + ":"
       val msgIt = diag.getMessage.linesIterator
 
-      val path0 =
-        if (path.startsWith(Os.pwd)) "." + File.separator + path.relativeTo(Os.pwd).toString
-        else path.toString
+      val path0 = path match {
+        case Left(source) => source
+        case Right(p) if p.startsWith(Os.pwd) => "." + File.separator + p.relativeTo(Os.pwd).toString
+        case Right(p) => p.toString
+      }
       println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       for (line <- msgIt)
         println(prefix + line)
@@ -69,7 +71,7 @@ class BloopBuildClient(
     logger.debug("Received onBuildPublishDiagnostics from bloop: " + params)
     for (diag <- params.getDiagnostics.asScala) {
       val path = os.Path(Paths.get(new URI(params.getTextDocument.getUri)).toAbsolutePath)
-      val (updatedPath, updatedDiag) = postProcessDiagnostic(path, diag).getOrElse((path, diag))
+      val (updatedPath, updatedDiag) = postProcessDiagnostic(path, diag).getOrElse((Right(path), diag))
       if (keepDiagnostics)
         diagnostics0 += updatedPath -> updatedDiag
       printDiagnostic(updatedPath, updatedDiag)

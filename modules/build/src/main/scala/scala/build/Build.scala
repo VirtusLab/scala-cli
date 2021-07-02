@@ -28,7 +28,7 @@ trait Build {
   def project: Project
   def outputOpt: Option[os.Path]
   def success: Boolean
-  def diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]]
+  def diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
 
   def successfulOpt: Option[Build.Successful]
 }
@@ -42,7 +42,7 @@ object Build {
     artifacts: Artifacts,
     project: Project,
     output: os.Path,
-    diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]]
+    diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
   ) extends Build {
     def success: Boolean = true
     def successfulOpt: Some[this.type] = Some(this)
@@ -82,7 +82,7 @@ object Build {
     sources: Sources,
     artifacts: Artifacts,
     project: Project,
-    diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]]
+    diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
   ) extends Build {
     def success: Boolean = false
     def successfulOpt: None.type = None
@@ -381,7 +381,7 @@ object Build {
   }
 
   private def postProcess(
-    generatedSources: Seq[(os.Path, os.Path, Int)],
+    generatedSources: Seq[(os.Path, Either[String, os.Path], Int)],
     generatedSrcRoot: os.Path,
     classesDir: os.Path,
     logger: Logger,
@@ -396,7 +396,7 @@ object Build {
         .map {
           case (path, reportingPath, len) =>
             val lineShift = -os.read(path).take(len).count(_ == '\n') // charset?
-            (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
+            (path.relativeTo(generatedSrcRoot).toString, (reportingPath.fold(s => s, _.last), lineShift))
         }
         .toMap
       AsmPositionUpdater.postProcess(mappings, classesDir, logger)
@@ -404,7 +404,7 @@ object Build {
       if (updateSemanticDbs) {
         logger.debug("Moving semantic DBs around")
         val semDbRoot = classesDir / "META-INF" / "semanticdb"
-        for ((path, originalSource, offset) <- generatedSources) {
+        for ((path, Right(originalSource), offset) <- generatedSources) {
           val fromSourceRoot = path.relativeTo(workspace)
           val actual = originalSource.relativeTo(workspace)
 
@@ -426,8 +426,8 @@ object Build {
 
         if (updateTasty) {
           val updatedPaths = generatedSources
-            .map {
-              case (path, originalSource, offset) =>
+            .collect {
+              case (path, Right(originalSource), offset) =>
                 val fromSourceRoot = path.relativeTo(workspace)
                 val actual = originalSource.relativeTo(workspace)
                 fromSourceRoot.toString -> actual.toString

@@ -16,6 +16,7 @@ import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
 
 import java.io.{ByteArrayOutputStream, File}
+import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
 import java.nio.file.{Files, Path}
 import java.util.jar.{JarOutputStream, Attributes => JarAttributes}
@@ -163,22 +164,35 @@ object Package extends ScalaCommand[PackageOptions] {
     baos.toByteArray
   }
 
-  private def sourceJar(build: Build.Successful): Array[Byte] = {
+  private def sourceJar(build: Build.Successful, defaultLastModified: Long): Array[Byte] = {
 
     val baos = new ByteArrayOutputStream
     var zos: ZipOutputStream = null
 
-    def paths = build.sources.paths.iterator ++ build.sources.inMemory.iterator.map(t => (t._1, t._2))
+    def fromSimpleSources = build.sources.paths.iterator.map {
+      case (path, relPath) =>
+        val lastModified = os.mtime(path)
+        val content = os.read.bytes(path)
+        (relPath, content, lastModified)
+    }
+
+    def fromGeneratedSources = build.sources.inMemory.iterator.map {
+      case (Right(path), relPath, _, _) =>
+        val lastModified = os.mtime(path)
+        val content = os.read.bytes(path)
+        (relPath, content, lastModified)
+      case (Left(_), relPath, content, _) =>
+        (relPath, content.getBytes(StandardCharsets.UTF_8), defaultLastModified)
+    }
+
+    def paths = fromSimpleSources ++ fromGeneratedSources
 
     try {
       zos = new ZipOutputStream(baos)
-      for ((path, relPath) <- paths) {
+      for ((relPath, content, lastModified) <- paths) {
         val name = relPath.toString
-        val lastModified = os.mtime(path)
         val ent = new ZipEntry(name)
         ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
-
-        val content = os.read.bytes(path)
         ent.setSize(content.length)
 
         zos.putNextEntry(ent)
@@ -245,8 +259,8 @@ object Package extends ScalaCommand[PackageOptions] {
     }
   }
 
-  def withSourceJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {
-    val jarContent = sourceJar(build)
+  def withSourceJar[T](build: Build.Successful, defaultLastModified: Long, fileName: String = "library")(f: Path => T): T = {
+    val jarContent = sourceJar(build, defaultLastModified)
     val jar = Files.createTempFile(fileName.stripSuffix(".jar"), "-sources.jar")
     try {
       Files.write(jar, jarContent)

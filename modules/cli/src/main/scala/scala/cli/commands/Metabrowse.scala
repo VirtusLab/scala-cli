@@ -45,7 +45,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     }
 
     Package.withLibraryJar(successfulBuild) { jar =>
-      Package.withSourceJar(successfulBuild) { sourceJar =>
+      Package.withSourceJar(successfulBuild, System.currentTimeMillis()) { sourceJar =>
         runServer(options, logger, successfulBuild, jar, sourceJar)
       }
     }

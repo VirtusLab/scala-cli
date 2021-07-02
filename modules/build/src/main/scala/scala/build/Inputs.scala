@@ -6,6 +6,8 @@ import java.security.MessageDigest
 import java.nio.charset.StandardCharsets
 import java.math.BigInteger
 
+import scala.util.Properties
+
 final case class Inputs(
   head: Inputs.Element,
   tail: Seq[Inputs.Element],
@@ -186,8 +188,8 @@ object Inputs {
       lazy val dir = path / os.up
       lazy val subPath = path.subRelativeTo(dir)
       lazy val stdinOpt0 = stdinOpt
-      if ((arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty) Right(VirtualScalaFile(stdinOpt0.get, "stdin"))
-      else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) Right(VirtualScript(stdinOpt0.get, "stdin"))
+      if ((arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty) Right(VirtualScalaFile(stdinOpt0.get, "<stdin>"))
+      else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) Right(VirtualScript(stdinOpt0.get, "<stdin>"))
       else if (arg.contains("://"))
         download(arg).map { content =>
           if (arg.endsWith(".scala")) VirtualScalaFile(content, arg)
