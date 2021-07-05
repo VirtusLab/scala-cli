@@ -85,7 +85,7 @@ final case class SharedCompilationServerOptions(
                     Files.deleteIfExists(socket.toNIO)
                 }
               )
-            Right(socket.toIO)
+            Right(socket.toIO.getCanonicalFile)
           }
         case Some(other) =>
           sys.error(s"Invalid bloop BSP protocol value: '$other' (expected 'tcp', 'local', or 'default')")
