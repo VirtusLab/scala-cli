@@ -314,13 +314,11 @@ object Build {
             "-Yrangepos",
             "-P:semanticdb:failures:warning",
             "-P:semanticdb:synthetics:on",
-            s"-P:semanticdb:sourceroot:${inputs.workspace}",
-            s"-P:semanticdb:targetroot:${classesDir0}"
+            s"-P:semanticdb:sourceroot:${inputs.workspace}"
           )
         else
           Seq(
-            "-Xsemanticdb",
-            "-semanticdb-target", classesDir0.toString
+            "-Xsemanticdb"
           )
       }
       else Nil
