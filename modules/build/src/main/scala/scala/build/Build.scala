@@ -20,6 +20,7 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.scalanative.{build => sn}
 import scala.util.control.NonFatal
 import scala.build.options.BuildOptions
+import scala.annotation.tailrec
 
 trait Build {
   def inputs: Inputs
@@ -423,6 +424,20 @@ object Build {
       Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)
   }
 
+  @tailrec
+  private def deleteSubPathIfEmpty(base: os.Path, subPath: os.SubPath, logger: Logger): Unit =
+    if (subPath.segments.nonEmpty) {
+      val p = base / subPath
+      if (os.isDir(p) && os.list.stream(p).headOption.isEmpty) {
+        try os.remove(p)
+        catch {
+          case e: java.nio.file.FileSystemException =>
+            logger.debug(s"Ignoring $e while cleaning up $p")
+        }
+        deleteSubPathIfEmpty(base, subPath / os.up, logger)
+      }
+    }
+
   def postProcess(
     generatedSources: Seq[GeneratedSource],
     generatedSrcRoot: os.Path,
@@ -450,7 +465,8 @@ object Build {
           val fromSourceRoot = source.generated.relativeTo(workspace)
           val actual = originalSource.relativeTo(workspace)
 
-          val semDbFile = semDbRoot / fromSourceRoot.segments.take(fromSourceRoot.segments.length - 1) / s"${fromSourceRoot.last}.semanticdb"
+          val semDbSubPath = os.sub / fromSourceRoot.segments.take(fromSourceRoot.segments.length - 1) / s"${fromSourceRoot.last}.semanticdb"
+          val semDbFile = semDbRoot / semDbSubPath
           if (os.exists(semDbFile)) {
             val finalSemDbFile = semDbRoot / actual.segments.take(actual.segments.length - 1) / s"${actual.last}.semanticdb"
             SemanticdbProcessor.postProcess(
@@ -463,6 +479,7 @@ object Build {
               finalSemDbFile
             )
             os.remove(semDbFile)
+            deleteSubPathIfEmpty(semDbRoot, semDbSubPath / os.up, logger)
           }
         }
 
