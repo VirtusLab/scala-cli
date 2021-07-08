@@ -216,60 +216,71 @@ trait CliLaunchers extends SbtModule {
     }
   }
 
-  def nativeImageClassPath = T{
+  private def stripFile(jar: os.Path, destDir: os.Path, toStrip: String): Option[os.Path] = {
     import java.io._
     import java.util.zip._
     import scala.collection.JavaConverters._
+    var zf: ZipFile = null
+    try {
+      zf = new ZipFile(jar.toIO)
+      val ent = zf.getEntry(toStrip)
+      if (ent == null) None
+      else {
+        os.makeDir.all(destDir)
+        val dest = destDir / (jar.last.stripSuffix(".jar") + "-patched.jar")
+        var fos: FileOutputStream = null
+        var zos: ZipOutputStream = null
+        try {
+          fos = new FileOutputStream(dest.toIO)
+          zos = new ZipOutputStream(fos)
+          val buf = Array.ofDim[Byte](64*1024)
+          for (ent <- zf.entries.asScala if ent.getName != toStrip) {
+            zos.putNextEntry(ent)
+            var is: InputStream = null
+            try {
+              is = zf.getInputStream(ent)
+              var read = -1
+              while ({
+                read = is.read(buf)
+                read >= 0
+              }) {
+                if (read > 0)
+                  zos.write(buf, 0, read)
+              }
+            } finally {
+              if (is != null)
+                is.close()
+            }
+          }
+          zos.finish()
+        } finally {
+          if (zos != null) zos.close()
+          if (fos != null) fos.close()
+        }
+        Some(dest)
+      }
+    } finally {
+      if (zf != null)
+        zf.close()
+    }
+  }
+
+  def stripLsp4jPreconditionsFromBsp4j = T{ false }
+
+  def nativeImageClassPath = T{
     val dir = T.dest / "patched-jars"
     val toRemove = "org/eclipse/lsp4j/util/Preconditions.class"
-    runClasspath().map { ref =>
-      if (ref.path.last.startsWith("bsp4j-")) {
-        var zf: ZipFile = null
-        try {
-          zf = new ZipFile(ref.path.toIO)
-          val ent = zf.getEntry(toRemove)
-          if (ent == null) ref
-          else {
-            os.makeDir.all(dir)
-            val dest = dir / (ref.path.last.stripSuffix(".jar") + "-patched.jar")
-            var fos: FileOutputStream = null
-            var zos: ZipOutputStream = null
-            try {
-            fos = new FileOutputStream(dest.toIO)
-            zos = new ZipOutputStream(fos)
-            val buf = Array.ofDim[Byte](64*1024)
-            for (ent <- zf.entries.asScala if ent.getName != toRemove) {
-              zos.putNextEntry(ent)
-              var is: InputStream = null
-              try {
-                is = zf.getInputStream(ent)
-                var read = -1
-                while ({
-                  read = is.read(buf)
-                  read >= 0
-                }) {
-                  if (read > 0)
-                    zos.write(buf, 0, read)
-                }
-              } finally {
-                if (is != null)
-                  is.close()
-              }
-            }
-            zos.finish()
-            } finally {
-              if (zos != null) zos.close()
-              if (fos != null) fos.close()
-            }
-            PathRef(dest)
-          }
-        } finally {
-          if (zf != null)
-            zf.close()
-        }
+    val baseClassPath = runClasspath()
+
+    if (stripLsp4jPreconditionsFromBsp4j())
+      baseClassPath.map { ref =>
+        if (ref.path.last.startsWith("bsp4j-"))
+          stripFile(ref.path, dir, toRemove).map(PathRef(_)).getOrElse(ref)
+        else
+          ref
       }
-      else ref
-    }
+    else
+      baseClassPath
   }
 
   def nativeImage = T{
@@ -519,4 +530,76 @@ trait LocalRepo extends Module {
     PathRef(dest)
   }
 
+}
+
+private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path] = {
+  val sortByName = Set("jni-config.json", "reflect-config.json")
+  val files = Seq("jni-config.json", "proxy-config.json", "reflect-config.json", "resource-config.json")
+  var needsFormatting = List.empty[os.Path]
+  for (name <- files) {
+    val file = dir / name
+    if (os.isFile(file)) {
+      val content = os.read(file)
+      val json = ujson.read(content)
+      val updatedJson =
+        if (name == "reflect-config.json")
+          json.arrOpt.fold(json) { arr =>
+            val values = arr.toVector.groupBy(_("name").str).toVector.sortBy(_._1).map(_._2).map { t =>
+              val entries = t.map(_.obj).reduce(_ ++ _)
+              if (entries.get("allDeclaredFields") == Some(ujson.Bool(true)))
+                entries -= "fields"
+              if (entries.get("allDeclaredMethods") == Some(ujson.Bool(true)))
+                entries -= "methods"
+              ujson.Obj(entries)
+            }
+            ujson.Arr(values: _*)
+          }
+        else if (sortByName(name))
+          json.arrOpt.fold(json) { arr =>
+            val values = arr.toVector.sortBy(_("name").str)
+            ujson.Arr(values: _*)
+          }
+        else
+          json
+      val updatedContent = updatedJson.render(indent = 2)
+      if (updatedContent != content) {
+        needsFormatting = file :: needsFormatting
+        if (format)
+          os.write.over(file, updatedContent)
+      }
+    }
+  }
+  needsFormatting
+}
+
+trait FormatNativeImageConf extends JavaModule {
+  def nativeImageConfDirs = T{
+    resources()
+      .map(_.path)
+      .flatMap { path =>
+        os.walk(path / "META-INF" / "native-image")
+          .filter(_.last.endsWith("-config.json"))
+          .filter(os.isFile(_))
+          .map(_ / os.up)
+      }
+      .distinct
+  }
+  def checkNativeImageConfFormat() = T.command {
+    var needsFormatting = List.empty[os.Path]
+    for (dir <- nativeImageConfDirs())
+      needsFormatting = doFormatNativeImageConf(dir, format = false) ::: needsFormatting
+    if (needsFormatting.nonEmpty) {
+      System.err.println(s"Error: ${needsFormatting.length} file(s) needs formatting:")
+      for (f <- needsFormatting)
+        System.err.println(s"  ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd).toString else f.toString}")
+    }
+    ()
+  }
+  def formatNativeImageConf() = T.command {
+    var formattedCount = 0
+    for (dir <- nativeImageConfDirs())
+      formattedCount += doFormatNativeImageConf(dir, format = true).length
+    System.err.println(s"Formatted $formattedCount file(s).")
+    ()
+  }
 }

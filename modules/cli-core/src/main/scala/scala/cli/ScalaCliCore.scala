@@ -6,6 +6,7 @@ object ScalaCliCore extends ScalaCliBase {
   def actualDefaultCommand = DefaultCore
   val commands = Seq(
     About,
+    Bsp,
     Clean,
     Compile,
     InstallCompletions,

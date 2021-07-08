@@ -23,14 +23,14 @@ object Compile extends ScalaCommand[CompileOptions] {
     val buildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
 
-    if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) { build =>
+    if (options.watch.watch) {
+      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, postAction = () => WatchUtil.printWatchMessage()) { build =>
         postBuild(build)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd)
+      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger)
       postBuild(build)
     }
   }

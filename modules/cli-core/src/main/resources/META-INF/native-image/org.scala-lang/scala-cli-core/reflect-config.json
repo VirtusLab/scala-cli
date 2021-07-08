@@ -1,5 +1,649 @@
 [
   {
+    "name": "ch.epfl.scala.bsp4j.BspConnectionDetails",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildClient",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildClientCapabilities",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildServer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildServerCapabilities",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildTarget",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildTargetCapabilities",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildTargetDataKind",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildTargetEvent",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildTargetEventKind",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildTargetIdentifier",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.BuildTargetTag",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.CleanCacheParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.CleanCacheResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.CompileParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.CompileProvider",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.CompileReport",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.CompileResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.CompileTask",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DebugSessionAddress",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DebugSessionParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DebugSessionParamsDataKind",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DependencySourcesItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DependencySourcesParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DependencySourcesResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.Diagnostic",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DiagnosticRelatedInformation",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DiagnosticSeverity",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DidChangeBuildTarget",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.FileChangeType",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.InitializeBuildParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.InitializeBuildResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.InverseSourcesParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.InverseSourcesResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.JvmBuildServer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.JvmBuildTarget",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.JvmEnvironmentItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.JvmRunEnvironmentParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.JvmRunEnvironmentResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.JvmTestEnvironmentParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.JvmTestEnvironmentResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.Location",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.LogMessageParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.MessageType",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.Position",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.PublishDiagnosticsParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.Range",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ResourcesItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ResourcesParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ResourcesResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.RunParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.RunParamsDataKind",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.RunProvider",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.RunResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.SbtBuildTarget",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaBuildServer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaBuildTarget",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaMainClass",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaMainClassesItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaMainClassesParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaMainClassesResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaPlatform",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaTestClassesItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaTestClassesParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaTestClassesResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaTestParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalacOptionsItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalacOptionsParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalacOptionsResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ShowMessageParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.SourceItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.SourceItemKind",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.SourcesItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.SourcesParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.SourcesResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.StatusCode",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TaskDataKind",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TaskFinishParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TaskId",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TaskProgressParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TaskStartParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TestFinish",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TestParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TestParamsDataKind",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TestProvider",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TestReport",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TestResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TestStart",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TestStatus",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TestTask",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.TextDocumentIdentifier",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.WorkspaceBuildTargetsResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "com.google.common.jimfs.SystemJimfsFileSystemProvider",
     "methods": [
       {
@@ -10,256 +654,102 @@
       }
     ]
   },
-{
-  "name":"ch.epfl.scala.bsp4j.BuildClient",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.BuildClientCapabilities",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.BuildServer",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.BuildServerCapabilities",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.BuildTarget",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.BuildTargetCapabilities",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.BuildTargetIdentifier",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.CompileParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.CompileProvider",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.CompileResult",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.Diagnostic",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.DiagnosticRelatedInformation",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.DiagnosticSeverity",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.InitializeBuildParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.InitializeBuildResult",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.Location",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.Position",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.LogMessageParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.MessageType",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.ShowMessageParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.DidChangeBuildTarget",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.BuildTargetEvent",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.BuildTargetEventKind",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.PublishDiagnosticsParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.Range",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.RunProvider",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.ScalaBuildServer",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.ScalacOptionsItem",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.ScalacOptionsParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.ScalacOptionsResult",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.StatusCode",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.TaskFinishParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.TaskId",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.TaskProgressParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.TaskStartParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.TestProvider",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.TextDocumentIdentifier",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"ch.epfl.scala.bsp4j.WorkspaceBuildTargetsResult",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"org.eclipse.lsp4j.jsonrpc.json.adapters.JsonElementTypeAdapter$Factory",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"scala.build.BloopBuildClient",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"scala.build.bloop.BuildServer",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"scala.build.bloop.bloop4j.BloopExtraBuildParams",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-}
+  {
+    "name": "org.eclipse.lsp4j.jsonrpc.json.adapters.JsonElementTypeAdapter$Factory",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.BloopBuildClient",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bloop.BuildServer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bloop.bloop4j.BloopExtraBuildParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.BspClient",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.BspImpl$LoggingBspClient",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.BspServer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.BuildClientForwardStubs",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.BuildServerForwardStubs",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.LoggingBuildClient",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.LoggingBuildServer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.LoggingBuildServerAll",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.LoggingScalaBuildServer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bsp.ScalaBuildServerForwardStubs",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  }
 ]

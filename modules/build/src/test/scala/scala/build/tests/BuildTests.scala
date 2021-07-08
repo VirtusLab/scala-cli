@@ -240,7 +240,7 @@ class BuildTests extends munit.FunSuite {
         d
       }
       val diagnostics = build.diagnostics
-      val expected = Some(Seq((root / "simple.sc") -> expectedDiag))
+      val expected = Some(Seq(Right(root / "simple.sc") -> expectedDiag))
       expect(diagnostics == expected)
     }
   }
@@ -270,7 +270,7 @@ class BuildTests extends munit.FunSuite {
         d
       }
       val diagnostics = build.diagnostics
-      val expected = Some(Seq((root / "simple.sc") -> expectedDiag))
+      val expected = Some(Seq(Right(root / "simple.sc") -> expectedDiag))
       expect(diagnostics == expected)
     }
   }

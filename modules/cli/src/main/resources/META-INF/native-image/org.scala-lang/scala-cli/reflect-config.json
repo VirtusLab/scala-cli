@@ -1,149 +1,212 @@
 [
-{
-  "name":"io.undertow.UndertowLogger_$logger",
-  "methods":[{"name":"<init>","parameterTypes":["org.jboss.logging.Logger"] }]
-},
-{
-  "name":"io.undertow.server.protocol.http.HttpRequestParser$$generated",
-  "methods":[{"name":"<init>","parameterTypes":["org.xnio.OptionMap"] }]
-},
-{
-  "name":"io.undertow.util.Headers",
-  "allDeclaredFields":true
-},
-{
-  "name":"io.undertow.util.HttpString",
-  "fields":[{"name":"hashCode"}]
-},
-{
-  "name":"io.undertow.util.Methods",
-  "allDeclaredFields":true
-},
-{
-  "name":"io.undertow.util.Protocols",
-  "allDeclaredFields":true
-},
-{
-  "name":"java.lang.Boolean",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"java.lang.Byte",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"java.lang.Character",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"java.lang.Double",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"java.lang.Float",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"java.lang.Integer",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"java.lang.Long",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"java.lang.Short",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"java.lang.Void",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-},
-{
-  "name":"org.jboss.threads.EnhancedQueueExecutor$MXBeanImpl",
-  "allPublicConstructors":true
-},
-{
-  "name":"org.jboss.threads.Messages_$logger",
-  "methods":[{"name":"<init>","parameterTypes":["org.jboss.logging.Logger"] }]
-},
-{
-  "name":"org.jboss.threads.management.StandardThreadPoolMXBean",
-  "allPublicMethods":true
-},
-{
-  "name":"org.slf4j.spi.LocationAwareLogger",
-  "allDeclaredMethods":true
-},
-{
-  "name":"org.xnio._private.Messages_$logger",
-  "methods":[{"name":"<init>","parameterTypes":["org.jboss.logging.Logger"] }]
-},
-{
-  "name":"org.xnio.management.XnioProviderMXBean",
-  "allPublicMethods":true
-},
-{
-  "name":"org.xnio.management.XnioServerMXBean",
-  "allPublicMethods":true
-},
-{
-  "name":"org.xnio.management.XnioWorkerMXBean",
-  "allPublicMethods":true
-},
-{
-  "name":"org.xnio.nio.Log_$logger",
-  "methods":[{"name":"<init>","parameterTypes":["org.jboss.logging.Logger"] }]
-},
-{
-  "name":"org.xnio.nio.NioTcpServer$1",
-  "allPublicConstructors":true
-},
-{
-  "name":"org.xnio.nio.NioXnio$3",
-  "allPublicConstructors":true
-},
-{
-  "name":"org.xnio.nio.NioXnioWorker$NioWorkerMetrics",
-  "allPublicConstructors":true
-},
-{
-  "name":"scala.meta.internal.semanticdb.scalac.SemanticdbPlugin",
-  "methods":[{"name":"<init>","parameterTypes":["scala.tools.nsc.Global"] }]
-},
-{
-  "name":"java.lang.Runtime$Version",
-  "methods":[
-    {"name":"major","parameterTypes":[] },
-    {"name":"parse","parameterTypes":["java.lang.String"] }
-  ]
-},
-{
-  "name":"java.lang.invoke.VarHandle",
-  "methods":[{"name":"releaseFence","parameterTypes":[] }]
-},
-{
-  "name":"scala.cli.internal.AlmostFinalValueHelper",
-  "allDeclaredConstructors" : true,
-  "allDeclaredMethods": true,
-  "allDeclaredFields": true
-}
+  {
+    "name": "io.undertow.UndertowLogger_$logger",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "org.jboss.logging.Logger"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "io.undertow.server.protocol.http.HttpRequestParser$$generated",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "org.xnio.OptionMap"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "io.undertow.util.Headers",
+    "allDeclaredFields": true
+  },
+  {
+    "name": "io.undertow.util.HttpString",
+    "fields": [
+      {
+        "name": "hashCode"
+      }
+    ]
+  },
+  {
+    "name": "io.undertow.util.Methods",
+    "allDeclaredFields": true
+  },
+  {
+    "name": "io.undertow.util.Protocols",
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.Boolean",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.Byte",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.Character",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.Double",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.Float",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.Integer",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.Long",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.Runtime$Version",
+    "methods": [
+      {
+        "name": "major",
+        "parameterTypes": [
+          
+        ]
+      },
+      {
+        "name": "parse",
+        "parameterTypes": [
+          "java.lang.String"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "java.lang.Short",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.Void",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "java.lang.invoke.VarHandle",
+    "methods": [
+      {
+        "name": "releaseFence",
+        "parameterTypes": [
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.jboss.threads.EnhancedQueueExecutor$MXBeanImpl",
+    "allPublicConstructors": true
+  },
+  {
+    "name": "org.jboss.threads.Messages_$logger",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "org.jboss.logging.Logger"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.jboss.threads.management.StandardThreadPoolMXBean",
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.slf4j.spi.LocationAwareLogger",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.xnio._private.Messages_$logger",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "org.jboss.logging.Logger"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.xnio.management.XnioProviderMXBean",
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.xnio.management.XnioServerMXBean",
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.xnio.management.XnioWorkerMXBean",
+    "allPublicMethods": true
+  },
+  {
+    "name": "org.xnio.nio.Log_$logger",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "org.jboss.logging.Logger"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.xnio.nio.NioTcpServer$1",
+    "allPublicConstructors": true
+  },
+  {
+    "name": "org.xnio.nio.NioXnio$3",
+    "allPublicConstructors": true
+  },
+  {
+    "name": "org.xnio.nio.NioXnioWorker$NioWorkerMetrics",
+    "allPublicConstructors": true
+  },
+  {
+    "name": "scala.cli.internal.AlmostFinalValueHelper",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.meta.internal.semanticdb.scalac.SemanticdbPlugin",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "scala.tools.nsc.Global"
+        ]
+      }
+    ]
+  }
 ]

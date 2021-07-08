@@ -1,22 +1,20 @@
 package scala.cli.commands
 
-import java.io.File
+import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import caseapp._
 import caseapp.core.help.Help
 import coursier.cache.FileCache
+import coursier.util.Artifact
+import dependency.parser.DependencyParser
 
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.{Bloop, LocalRepo, Os}
+import scala.build.{Bloop, Inputs, LocalRepo, Logger, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.build.options.{BuildOptions, ClassPathOptions, InternalDependenciesOptions, InternalOptions, JavaOptions, JmhOptions, ScalaOptions, ScriptOptions}
+import scala.concurrent.duration.Duration
 import scala.scalanative.{build => sn}
 import scala.util.Properties
-import scala.build.Inputs
-import java.io.InputStream
-import scala.build.Logger
-import java.io.ByteArrayOutputStream
-import dependency.parser.DependencyParser
 
 final case class SharedOptions(
   @Recurse
@@ -27,10 +25,8 @@ final case class SharedOptions(
     native: ScalaNativeOptions = ScalaNativeOptions(),
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
-
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
-
   @Recurse
     dependencies: SharedDependencyOptions = SharedDependencyOptions(),
 
@@ -73,12 +69,13 @@ final case class SharedOptions(
   @Name("extraJar")
     extraJars: List[String] = Nil,
 
+  @Group("Dependency")
+  @HelpMessage("Specify a TTL for changing dependencies, such as snapshots")
+  @ValueDescription("duration|Inf")
+    ttl: Option[String] = None,
+
   @Hidden
     classWrap: Boolean = false,
-
-  @HelpMessage("Watch sources for changes")
-  @Name("w")
-    watch: Boolean = false,
 
   @Group("Scala")
   @Hidden
@@ -181,10 +178,25 @@ final case class SharedOptions(
     )
   }
 
-  lazy val coursierCache = FileCache().withLogger(logging.logger.coursierLogger)
+  lazy val coursierCache = {
+    val baseCache = FileCache()
+    val ttl0 = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_)).orElse(baseCache.ttl)
+    baseCache
+      .withTtl(ttl0)
+      .withLogger(logging.logger.coursierLogger)
+  }
 
-  def inputsOrExit(args: RemainingArgs, defaultInputs: Option[Inputs] = None): Inputs =
-    Inputs(args.remaining, Os.pwd, directories.directories, defaultInputs = defaultInputs, stdinOpt = SharedOptions.readStdin(logger = logger), acceptFds = !Properties.isWin) match {
+  def inputsOrExit(args: RemainingArgs, defaultInputs: Option[Inputs] = None): Inputs = {
+    val download: String => Either[String, Array[Byte]] = { url =>
+      val artifact = Artifact(url).withChanging(true)
+      val res = coursierCache.logger.use {
+        coursierCache.file(artifact).run.unsafeRun()(coursierCache.ec)
+      }
+      res
+        .left.map(_.describe)
+        .map(f => os.read.bytes(os.Path(f, Os.pwd)))
+    }
+    Inputs(args.remaining, Os.pwd, directories.directories, defaultInputs = defaultInputs, download = download, stdinOpt = SharedOptions.readStdin(logger = logger), acceptFds = !Properties.isWin) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -192,6 +204,7 @@ final case class SharedOptions(
         val configFiles = config.map(os.Path(_, Os.pwd)).map(Inputs.ConfigFile(_))
         i.add(configFiles)
     }
+  }
 }
 
 object SharedOptions {

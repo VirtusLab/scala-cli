@@ -38,7 +38,7 @@ object Util {
       for (clOpt <- dep.userParams.get("classifier"); cl <- clOpt)
         dep0 = dep0.withConfiguration(coursier.core.Configuration(cl))
       for (_ <- dep.userParams.get("intransitive"))
-        dep0 = dep0.withTransitive(true)
+        dep0 = dep0.withTransitive(false)
       // FIXME
       // for (tpeOpt <- dep.userParams.get("type"); tpe <- tpeOpt)
       //   dep0 = dep0.withType(tpe)

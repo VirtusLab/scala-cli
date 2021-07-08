@@ -2,7 +2,8 @@ package scala.build
 
 import coursier.cache.FileCache
 import coursier.cache.loggers.RefreshLogger
-import coursier.jvm.{JvmCache, JavaHome, JvmIndex}
+import coursier.core.Classifier
+import coursier.Fetch
 import coursier.parse.RepositoryParser
 import _root_.dependency._
 import scala.build.internal.Constants
@@ -18,11 +19,26 @@ final case class Artifacts(
   compilerArtifacts: Seq[(String, Path)],
   compilerPlugins: Seq[(AnyDependency, String, Path)],
   dependencies: Seq[AnyDependency],
-  artifacts: Seq[(String, Path)],
-  sourceArtifacts: Seq[(String, Path)],
+  detailedArtifacts: Seq[(coursier.Dependency, coursier.core.Publication, coursier.util.Artifact, Path)],
   extraJars: Seq[Path],
   params: ScalaParameters
 ) {
+  lazy val artifacts: Seq[(String, Path)] =
+    detailedArtifacts
+      .iterator
+      .collect {
+        case (dep, pub, a, f) if pub.classifier != Classifier.sources =>
+          (a.url, f)
+      }
+      .toVector
+  lazy val sourceArtifacts: Seq[(String, Path)] =
+    detailedArtifacts
+      .iterator
+      .collect {
+        case (dep, pub, a, f) if pub.classifier == Classifier.sources =>
+          (a.url, f)
+      }
+      .toVector
   lazy val compilerClassPath: Seq[Path] =
     compilerArtifacts.map(_._2)
   lazy val classPath: Seq[Path] =
@@ -88,11 +104,24 @@ object Artifacts {
       jmhDependencies
 
     val compilerArtifacts = artifacts(compilerDependencies, allExtraRepositories, params, logger)
-    val artifacts0 = artifacts(updatedDependencies, allExtraRepositories, params, logger)
 
+    val fetchRes = fetch(
+      updatedDependencies,
+      allExtraRepositories,
+      params,
+      logger,
+      classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty))
+    )
+    val artifacts0 = {
+      val a = fetchRes.fullExtraArtifacts.iterator.collect { case (a, Some(f)) => (None, a.url, f.toPath) }.toVector ++
+        fetchRes.fullDetailedArtifacts.iterator.collect { case (dep, pub, a, Some(f)) if pub.classifier != Classifier.sources => (Some(dep.moduleVersion), a.url, f.toPath) }.toVector
+      a.distinct
+    }
     val sourceArtifacts =
-      if (fetchSources) artifacts(updatedDependencies, allExtraRepositories, params, logger, classifiersOpt = Some(Set("sources")))
-      else Nil
+      if (fetchSources) {
+        val a = fetchRes.fullDetailedArtifacts.iterator.collect { case (dep, pub, a, Some(f)) if pub.classifier == Classifier.sources => (a.url, f.toPath) }.toVector
+        a.distinct
+      } else Nil
 
     val extraStubsJars =
       if (addStubs)
@@ -116,8 +145,7 @@ object Artifacts {
       compilerArtifacts,
       compilerPlugins0,
       updatedDependencies,
-      artifacts0,
-      sourceArtifacts,
+      fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) => (d, p, a, f.toPath) },
       extraJars ++ extraStubsJars,
       params
     )
@@ -130,6 +158,22 @@ object Artifacts {
     logger: Logger,
     classifiersOpt: Option[Set[String]] = None
   ): Seq[(String, Path)] = {
+    val result = fetch(dependencies, extraRepositories, params, logger, classifiersOpt)
+      .artifacts
+      .iterator
+      .map { case (a, f) => (a.url, f.toPath) }
+      .toList
+    logger.debug((Seq(s"Found ${result.length} artifacts:") ++ result.map("  " + _._2) ++ Seq("")).mkString(System.lineSeparator()))
+    result
+  }
+
+  private[build] def fetch(
+    dependencies: Seq[AnyDependency],
+    extraRepositories: Seq[String],
+    params: ScalaParameters,
+    logger: Logger,
+    classifiersOpt: Option[Set[String]]
+  ): Fetch.Result = {
     logger.debug(s"Fetching $dependencies" + (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories"))
 
     val extraRepositories0 = RepositoryParser.repositories(extraRepositories).either match {
@@ -144,16 +188,13 @@ object Artifacts {
       .withCache(cache)
       .addRepositories(extraRepositories0: _*)
       .addDependencies(dependencies.map(_.toCs(params)): _*)
-    for (classifiers <- classifiersOpt)
-      fetcher = fetcher.addClassifiers(classifiers.toSeq.map(coursier.Classifier(_)): _*)
+    for (classifiers <- classifiersOpt) {
+      if (classifiers("_"))
+        fetcher = fetcher.withMainArtifacts()
+      fetcher = fetcher.addClassifiers(classifiers.toSeq.filter(_ != "_").map(coursier.Classifier(_)): _*)
+    }
 
-    val result = fetcher.runResult()
-      .artifacts
-      .iterator
-      .map { case (a, f) => (a.url, f.toPath) }
-      .toList
-    logger.debug((Seq(s"Found ${result.length} artifacts:") ++ result.map("  " + _._2) ++ Seq("")).mkString(System.lineSeparator()))
-    result
+    fetcher.runResult()
   }
 
 }

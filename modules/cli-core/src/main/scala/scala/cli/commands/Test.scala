@@ -19,8 +19,8 @@ object Test extends ScalaCommand[TestOptions] {
     )
     val bloopRifleConfig = options.shared.bloopRifleConfig()
 
-    if (options.shared.watch) {
-      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd, postAction = () => WatchUtil.printWatchMessage()) {
+    if (options.watch.watch) {
+      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
@@ -29,7 +29,7 @@ object Test extends ScalaCommand[TestOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger, Os.pwd)
+      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger)
       build match {
         case s: Build.Successful =>
           testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)

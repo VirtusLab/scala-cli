@@ -2,6 +2,7 @@ package scala.build
 
 import _root_.bloop.config.{Config => BloopConfig, ConfigCodecs => BloopCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonToArray}
+import coursier.core.Classifier
 
 import java.nio.file.{Path, Paths}
 import java.util.Arrays
@@ -15,6 +16,7 @@ final case class Project(
   projectName: String,
   classPath: Seq[Path],
   sources: Seq[os.Path],
+  resolution: Option[BloopConfig.Resolution],
   resourceDirs: Seq[os.Path]
 ) {
 
@@ -33,7 +35,7 @@ final case class Project(
     baseBloopProject(
       projectName,
       workspace.toNIO,
-      (workspace / ".scala" / ".bloop" / projectName).toNIO,
+      (workspace / ".bloop" / projectName).toNIO,
       classesDir.toNIO
     )
     .copy(
@@ -43,7 +45,8 @@ final case class Project(
       resources = Some(resourceDirs).filter(_.nonEmpty).map(_.iterator.map(_.toNIO).toList),
       platform = Some(platform),
       `scala` = Some(scalaConfig),
-      java = Some(BloopConfig.Java(Nil))
+      java = Some(BloopConfig.Java(Nil)),
+      resolution = resolution
     )
   }
 
@@ -52,7 +55,7 @@ final case class Project(
 
   def writeBloopFile(logger: Logger): Boolean = {
     val bloopFileContent = writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
-    val dest = workspace / ".scala" / ".bloop" / s"$projectName.json"
+    val dest = workspace / ".bloop" / s"$projectName.json"
     val doWrite = !os.isFile(dest) || {
       val currentContent = os.read.bytes(dest)
       !Arrays.equals(currentContent, bloopFileContent)
@@ -67,6 +70,26 @@ final case class Project(
 }
 
 object Project {
+
+  def resolution(detailedArtifacts: Seq[(coursier.Dependency, coursier.core.Publication, coursier.util.Artifact, Path)]): BloopConfig.Resolution = {
+    val indices = detailedArtifacts.map(_._1.moduleVersion).zipWithIndex.toMap
+    val modules = detailedArtifacts
+      .groupBy(_._1.moduleVersion)
+      .toVector
+      .sortBy { case (modVer, values) => indices.getOrElse(modVer, Int.MaxValue) }
+      .iterator
+      .map {
+        case ((mod, ver), values) =>
+          val artifacts = values.toList.map {
+            case (dep, pub, art, f) =>
+              val classifier = if (pub.classifier == Classifier.empty) None else Some(pub.classifier.value)
+              BloopConfig.Artifact(pub.name, classifier, None, f)
+          }
+          BloopConfig.Module(mod.organization.value, mod.name.value, ver, None, artifacts)
+      }
+      .toList
+    BloopConfig.Resolution(modules)
+  }
 
   private def baseBloopProject(name: String, directory: Path, out: Path, classesDir: Path): BloopConfig.Project =
     BloopConfig.Project(

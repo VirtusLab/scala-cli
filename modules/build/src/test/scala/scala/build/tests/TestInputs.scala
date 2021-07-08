@@ -28,7 +28,7 @@ final case class TestInputs(
     }
 
   def withBuild[T](options: BuildOptions, buildThreads: BuildThreads, bloopConfig: BloopRifleConfig)(f: (os.Path, Inputs, Build) => T): T = withInputs { (root, inputs) =>
-    val build = Build.build(inputs, options, buildThreads, bloopConfig, TestLogger(), root)
+    val build = Build.build(inputs, options, buildThreads, bloopConfig, TestLogger())
     f(root, inputs, build)
   }
 }

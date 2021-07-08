@@ -60,33 +60,38 @@ final case class SharedCompilationServerOptions(
     dir
   }
 
+  private def bspSocketFile(directories: => Directories): File = {
+    val (socket, deleteOnExit) = bloopBspSocket match {
+      case Some(path) =>
+        (os.Path(path, Os.pwd), false)
+      case None =>
+        val dir = socketDirectory(directories)
+        val fileName = pidOrRandom
+          .map("proc-" + _)
+          .left.map("conn-" + _)
+          .merge
+        (dir / fileName, true)
+    }
+    if (deleteOnExit)
+      Runtime.getRuntime.addShutdownHook(
+        new Thread("delete-bloop-bsp-named-socket") {
+          override def run() =
+            Files.deleteIfExists(socket.toNIO)
+        }
+      )
+    socket.toIO.getCanonicalFile
+  }
+
   def defaultBspSocketOrPort(directories: => Directories): Option[() => Either[Int, File]] =
     if (Properties.isWin) None
     else
       bloopBspProtocol.filter(_ != "default") match {
-        case Some("tcp") | None => None
+        case None =>
+          if (Properties.isLinux) Some(() => Right(bspSocketFile(directories)))
+          else None
+        case Some("tcp") => None
         case Some("local") =>
-          Some { () =>
-            val (socket, deleteOnExit) = bloopBspSocket match {
-              case Some(path) =>
-                (os.Path(path, Os.pwd), false)
-              case None =>
-                val dir = socketDirectory(directories)
-                val fileName = pidOrRandom
-                  .map("proc-" + _)
-                  .left.map("conn-" + _)
-                  .merge
-                (dir / fileName, true)
-            }
-            if (deleteOnExit)
-              Runtime.getRuntime.addShutdownHook(
-                new Thread("delete-bloop-bsp-named-socket") {
-                  override def run() =
-                    Files.deleteIfExists(socket.toNIO)
-                }
-              )
-            Right(socket.toIO)
-          }
+          Some(() => Right(bspSocketFile(directories)))
         case Some(other) =>
           sys.error(s"Invalid bloop BSP protocol value: '$other' (expected 'tcp', 'local', or 'default')")
       }

@@ -1,9 +1,11 @@
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
+
+let isCI = process.env.CI || false;
+
 module.exports = {
   title: 'Scala CLI',
   tagline: 'Your New Shiny Scala Command-Line',
   url: 'https://virtuslab.github.io',
-  baseUrl: '/scala-cli/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
@@ -81,3 +83,9 @@ module.exports = {
     ],
   ],
 };
+
+if (isCI) {
+  module.exports.baseUrl = '/scala-cli/';
+} else {
+  module.exports.baseUrl = '/';
+}

@@ -13,6 +13,8 @@ final case class RunOptions(
     benchmarking: BenchmarkingOptions = BenchmarkingOptions(),
   @Recurse
     sharedJava: SharedJavaOptions = SharedJavaOptions(),
+  @Recurse
+    watch: SharedWatchOptions = SharedWatchOptions(),
 
   @Group("Runner")
   @HelpMessage("Specify which main class to run")

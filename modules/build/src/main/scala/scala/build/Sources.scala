@@ -5,23 +5,24 @@ import java.nio.file.Paths
 
 import dependency.parser.DependencyParser
 import dependency.{AnyDependency, ScalaParameters}
+import pureconfig.ConfigSource
 
+import scala.build.config.ConfigFormat
 import scala.build.internal.{AmmUtil, CodeWrapper, Name}
 import scala.build.internal.Util.DependencyOps
 import scala.build.options.BuildOptions
-import pureconfig.ConfigSource
-import scala.build.config.ConfigFormat
+import scala.util.Properties
 
 final case class Sources(
   paths: Seq[(os.Path, os.RelPath)],
-  inMemory: Seq[(os.Path, os.RelPath, String, Int)],
+  inMemory: Seq[(Either[String, os.Path], os.RelPath, String, Int)],
   mainClass: Option[String],
   dependencies: Seq[AnyDependency],
   resourceDirs: Seq[os.Path],
   buildOptions: BuildOptions
 ) {
 
-  def generateSources(generatedSrcRoot: os.Path): Seq[(os.Path, os.Path, Int)] = {
+  def generateSources(generatedSrcRoot: os.Path): Seq[GeneratedSource] = {
     val generated =
       for ((reportingPath, relPath, code, topWrapperLen) <- inMemory) yield {
         os.write.over(generatedSrcRoot / relPath, code.getBytes("UTF-8"), createFolders = true)
@@ -37,7 +38,7 @@ final case class Sources(
 
     generated.map {
       case (reportingPath, path, topWrapperLen) =>
-        (generatedSrcRoot / path, reportingPath, topWrapperLen)
+        GeneratedSource(generatedSrcRoot / path, reportingPath, topWrapperLen)
     }
   }
 }
@@ -130,7 +131,7 @@ object Sources {
     val deps0 = deps.map(parseDependency)
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-    ScriptData(script.path, className, code, deps0, topWrapperLen)
+    ScriptData(Right(script.path), className, code, deps0, topWrapperLen)
   }
 
   private def virtualScriptData(codeWrapper: CodeWrapper, script: Inputs.VirtualScript): ScriptData = {
@@ -138,7 +139,7 @@ object Sources {
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, os.rel / "stdin.sc")
 
     val content = new String(script.content, StandardCharsets.UTF_8)
-    val (deps, updatedCode) = process(content, "<stdin>").getOrElse((Nil, content))
+    val (deps, updatedCode) = process(content, script.source).getOrElse((Nil, content))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
@@ -149,7 +150,7 @@ object Sources {
     val deps0 = deps.map(parseDependency)
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-    ScriptData(os.pwd / "<stdin>", className, code, deps0, topWrapperLen)
+    ScriptData(Left(script.source), className, code, deps0, topWrapperLen)
   }
 
   def forInputs(
@@ -192,15 +193,18 @@ object Sources {
       }
       .toVector
 
-    val fromVirtualSources = virtualSourceFiles.map {
+    val virtualSources = virtualSourceFiles.map {
       case v: Inputs.VirtualScalaFile =>
         val content = new String(v.content, StandardCharsets.UTF_8)
-        val (deps, updatedContent) = process(content, "<stdin>").getOrElse((Nil, content))
-        (os.pwd / "<stdin>", deps, os.rel / "stdin.scala", updatedContent)
+        val (deps, updatedContent) = process(content, v.source).getOrElse((Nil, content))
+        (v.source, deps, v.subPath, updatedContent)
       case v: Inputs.VirtualScript =>
         val content = new String(v.content, StandardCharsets.UTF_8)
-        val (deps, updatedContent) = process(content, "<stdin>").getOrElse((Nil, content))
-        (os.pwd / "<stdin>", deps, os.rel / "stdin.scala", updatedContent)
+        val (deps, updatedContent) = process(content, v.source).getOrElse((Nil, content))
+        (v.source, deps, v.subPath, updatedContent)
+      case v: Inputs.VirtualJavaFile =>
+        val content = new String(v.content, StandardCharsets.UTF_8)
+        (v.source, Nil, v.subPath, content)
     }
 
     val javaFilePaths = singleFiles
@@ -212,19 +216,19 @@ object Sources {
       .toVector
 
     val scalaFilePaths = scalaFilePathsOrCode.collect { case Right(v) => v }
-    val inMemoryScalaFiles =
-      fromVirtualSources.map {
+    val inMemorySourceFiles =
+      virtualSources.map {
         case (originalPath, _, relPath, updatedCode) =>
-          (originalPath, relPath, updatedCode, 0)
+          (Left(originalPath), relPath: os.RelPath, updatedCode, 0)
       } ++
       scalaFilePathsOrCode.collect {
         case Left((originalPath, _, relPath, updatedCode)) =>
-          (originalPath, relPath, updatedCode, 0)
+          (Right(originalPath), relPath, updatedCode, 0)
       }
 
     val scalaFilesDependencies = {
       val depStrings =
-        fromVirtualSources.flatMap(_._2) ++
+        virtualSources.flatMap(_._2) ++
         scalaFilePathsOrCode
           .collect {
             case Left((_, deps, _, _)) => deps
@@ -259,7 +263,7 @@ object Sources {
 
     Sources(
       paths = (javaFilePaths ++ scalaFilePaths).map(p => (p, p.relativeTo(inputs.workspace))),
-      inMemory = inMemoryScalaFiles ++ allScriptData.map(script => (script.reportingPath, script.relPath, script.code, script.topWrapperLen)),
+      inMemory = inMemorySourceFiles ++ allScriptData.map(script => (script.reportingPath, script.relPath, script.code, script.topWrapperLen)),
       mainClass = mainClassOpt,
       dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
       resourceDirs = inputs.elements.collect {
@@ -270,7 +274,7 @@ object Sources {
   }
 
   private final case class ScriptData(
-    reportingPath: os.Path,
+    reportingPath: Either[String, os.Path],
     className: String,
     code: String,
     dependencies: Seq[AnyDependency],

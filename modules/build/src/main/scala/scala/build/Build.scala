@@ -10,15 +10,17 @@ import scala.build.internal.{AsmPositionUpdater, Constants, CustomCodeWrapper, L
 import scala.build.options.BuildOptions
 import scala.build.tastylib.TastyData
 
-import java.io.IOException
+import java.io.{File, IOException}
 import java.lang.{Boolean => JBoolean}
-import java.nio.file.{Path, Paths}
+import java.nio.file.{FileSystemException, Path, Paths}
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.scalanative.{build => sn}
 import scala.util.control.NonFatal
+import scala.build.options.BuildOptions
+import scala.annotation.tailrec
 
 trait Build {
   def inputs: Inputs
@@ -28,7 +30,7 @@ trait Build {
   def project: Project
   def outputOpt: Option[os.Path]
   def success: Boolean
-  def diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]]
+  def diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
 
   def successfulOpt: Option[Build.Successful]
 }
@@ -42,7 +44,7 @@ object Build {
     artifacts: Artifacts,
     project: Project,
     output: os.Path,
-    diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]]
+    diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
   ) extends Build {
     def success: Boolean = true
     def successfulOpt: Some[this.type] = Some(this)
@@ -82,19 +84,32 @@ object Build {
     sources: Sources,
     artifacts: Artifacts,
     project: Project,
-    diagnostics: Option[Seq[(os.Path, bsp4j.Diagnostic)]]
+    diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
   ) extends Build {
     def success: Boolean = false
     def successfulOpt: None.type = None
     def outputOpt: None.type = None
   }
 
-  private def build(
+  def updateInputs(
+    inputs: Inputs,
+    options: BuildOptions
+  ): Inputs = {
+
+    // If some options are manually overridden, append a hash of the options to the project name
+    // Using options, not options0 - only the command-line options are taken into account. No hash is
+    // appended for options from the sources.
+    val optionsHash = options.hash
+
+    inputs.copy(
+      baseProjectName = inputs.baseProjectName + optionsHash.map("_" + _).getOrElse("")
+    )
+  }
+
+  def build(
     inputs: Inputs,
     options: BuildOptions,
-    threads: BuildThreads,
     logger: Logger,
-    cwd: os.Path,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ): Build = {
@@ -105,23 +120,39 @@ object Build {
     )
 
     val options0 = options.orElse(sources.buildOptions)
-    // If some options are manually overridden, append a hash of the options to the project name
-    // Using options, not options0 - only the command-line options are taken into account. No hash is
-    // appended for options from the sources.
-    val optionsHash = options.hash
+    val inputs0 = updateInputs(inputs, options)
 
-    val inputs0 = inputs.copy(
-      baseProjectName = inputs.baseProjectName + optionsHash.map("_" + _).getOrElse("")
+    val generatedSources = sources.generateSources(inputs0.generatedSrcRoot)
+
+    build(
+      inputs0,
+      sources,
+      inputs0.generatedSrcRoot,
+      generatedSources,
+      options0,
+      logger,
+      buildClient,
+      bloopServer
     )
+  }
 
-    val params = options0.scalaParams
+  def build(
+    inputs: Inputs,
+    sources: Sources,
+    generatedSrcRoot0: os.Path,
+    generatedSources: Seq[GeneratedSource],
+    options: BuildOptions,
+    logger: Logger,
+    buildClient: BloopBuildClient,
+    bloopServer: bloop.BloopServer
+  ): Build = {
 
-    val build0 = buildOnce(cwd, inputs0, params, sources, options0, threads, logger, buildClient, bloopServer)
+    val build0 = buildOnce(inputs, sources, generatedSrcRoot0, generatedSources, options, logger, buildClient, bloopServer)
 
     build0 match {
       case successful: Successful =>
-        if (options0.jmhOptions.runJmh.getOrElse(false))
-          jmhBuild(inputs0, successful, threads, logger, cwd, successful.options.javaCommand(), buildClient, bloopServer).getOrElse {
+        if (options.jmhOptions.runJmh.getOrElse(false))
+          jmhBuild(inputs, successful, logger, successful.options.javaCommand(), buildClient, bloopServer).getOrElse {
             sys.error("JMH build failed") // suppress stack trace?
           }
         else
@@ -130,24 +161,18 @@ object Build {
     }
   }
 
-  private def classesDir(root: os.Path, projectName: String): os.Path =
+  def classesDir(root: os.Path, projectName: String): os.Path =
     root / ".scala" / projectName / "classes"
-
-  private def generatedSrcRoot(root: os.Path, projectName: String) =
-    defaultGeneratedSrcRoot(root, projectName)
-  private def defaultGeneratedSrcRoot(root: os.Path, projectName: String) =
-    root / ".scala" / projectName / "src_generated"
 
   def build(
     inputs: Inputs,
     options: BuildOptions,
     threads: BuildThreads,
     bloopConfig: BloopRifleConfig,
-    logger: Logger,
-    cwd: os.Path
+    logger: Logger
   ): Build = {
 
-    val buildClient = new BloopBuildClient(
+    val buildClient = BloopBuildClient.create(
       logger,
       keepDiagnostics = options.internal.keepDiagnostics
     )
@@ -165,9 +190,7 @@ object Build {
       build(
         inputs,
         options,
-        threads,
         logger,
-        cwd,
         buildClient,
         bloopServer
       )
@@ -178,21 +201,19 @@ object Build {
     inputs: Inputs,
     options: BuildOptions,
     bloopConfig: BloopRifleConfig,
-    logger: Logger,
-    cwd: os.Path
+    logger: Logger
   ): Build =
-    build(inputs, options, BuildThreads.create(), bloopConfig, logger, cwd)
+    build(inputs, options, BuildThreads.create(), bloopConfig, logger)
 
   def watch(
     inputs: Inputs,
     options: BuildOptions,
     bloopConfig: BloopRifleConfig,
     logger: Logger,
-    cwd: os.Path,
     postAction: () => Unit = () => ()
   )(action: Build => Unit): Watcher = {
 
-    val buildClient = new BloopBuildClient(
+    val buildClient = BloopBuildClient.create(
       logger,
       keepDiagnostics = options.internal.keepDiagnostics
     )
@@ -211,7 +232,7 @@ object Build {
 
     def run() = {
       try {
-        val build0 = build(inputs, options, threads, logger, cwd, buildClient, bloopServer)
+        val build0 = build(inputs, options, logger, buildClient, bloopServer)
         action(build0)
       } catch {
         case NonFatal(e) =>
@@ -266,21 +287,17 @@ object Build {
     watcher
   }
 
-  private def buildOnce(
-    sourceRoot: os.Path,
+  def prepareBuild(
     inputs: Inputs,
-    params: ScalaParameters,
     sources: Sources,
+    generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
-    threads: BuildThreads,
     logger: Logger,
-    buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
-  ): Build = {
+    buildClient: BloopBuildClient
+  ): (os.Path, Artifacts, Project, Boolean) = {
 
-    val generatedSrcRoot0 = generatedSrcRoot(inputs.workspace, inputs.projectName)
-    val generatedSources = sources.generateSources(generatedSrcRoot0)
-    val allSources = sources.paths.map(_._1) ++ generatedSources.map(_._1)
+    val params = options.scalaParams
+    val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
 
@@ -298,13 +315,11 @@ object Build {
             "-Yrangepos",
             "-P:semanticdb:failures:warning",
             "-P:semanticdb:synthetics:on",
-            s"-P:semanticdb:sourceroot:${inputs.workspace}",
-            s"-P:semanticdb:targetroot:${classesDir0}"
+            s"-P:semanticdb:sourceroot:${inputs.workspace}"
           )
         else
           Seq(
-            "-Xsemanticdb",
-            "-semanticdb-target", classesDir0.toString
+            "-Xsemanticdb"
           )
       }
       else Nil
@@ -326,35 +341,72 @@ object Build {
     )
 
     val project = Project(
-               workspace = inputs.workspace,
+               workspace = inputs.workspace / ".scala",
               classesDir = classesDir0,
            scalaCompiler = scalaCompiler,
           scalaJsOptions = options.scalaJsOptions.config,
       scalaNativeOptions = options.scalaNativeOptions.bloopConfig,
              projectName = inputs.projectName,
                classPath = artifacts.classPath,
+              resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
                  sources = allSources,
             resourceDirs = sources.resourceDirs
     )
 
-    if (project.writeBloopFile(logger) && os.isDir(classesDir0)) {
+    val updatedBloopConfig = project.writeBloopFile(logger)
+
+    if (updatedBloopConfig && os.isDir(classesDir0)) {
       logger.debug(s"Clearing $classesDir0")
       os.list(classesDir0).foreach { p =>
         logger.debug(s"Removing $p")
-        os.remove.all(p)
+        try os.remove.all(p)
+        catch {
+          case ex: FileSystemException =>
+            logger.debug(s"Ignoring $ex while cleaning up $p")
+        }
       }
     }
 
-    val diagnosticMappings = generatedSources
-      .map {
-        case (path, reportingPath, len) =>
-          val lineShift = -os.read(path).take(len).count(_ == '\n') // charset?
-          (path, (reportingPath, lineShift))
+    buildClient.clear()
+    buildClient.setGeneratedSources(generatedSources)
+
+    (classesDir0, artifacts, project, updatedBloopConfig)
+  }
+
+  def buildOnce(
+    inputs: Inputs,
+    sources: Sources,
+    generatedSrcRoot0: os.Path,
+    generatedSources: Seq[GeneratedSource],
+    options: BuildOptions,
+    logger: Logger,
+    buildClient: BloopBuildClient,
+    bloopServer: bloop.BloopServer
+  ): Build = {
+
+    val (classesDir0, artifacts, project, updatedBloopConfig) = prepareBuild(
+      inputs,
+      sources,
+      generatedSources,
+      options,
+      logger,
+      buildClient
+    )
+
+    if (updatedBloopConfig && os.isDir(classesDir0)) {
+      logger.debug(s"Clearing $classesDir0")
+      os.list(classesDir0).foreach { p =>
+        logger.debug(s"Removing $p")
+        try os.remove.all(p)
+        catch {
+          case ex: FileSystemException =>
+            logger.debug(s"Ignore $ex while removing $p")
+        }
       }
-      .toMap
+    }
 
     buildClient.clear()
-    buildClient.generatedSources = diagnosticMappings
+    buildClient.setGeneratedSources(generatedSources)
     val success = Bloop.compile(
       inputs.projectName,
       buildClient,
@@ -370,8 +422,8 @@ object Build {
         classesDir0,
         logger,
         inputs.workspace,
-        updateSemanticDbs = generatedSrcRoot0 == defaultGeneratedSrcRoot(inputs.workspace, inputs.projectName),
-        updateTasty = params.scalaVersion.startsWith("3.")
+        updateSemanticDbs = true,
+        updateTasty = project.scalaCompiler.scalaVersion.startsWith("3.")
       )
 
       Successful(inputs, options, sources, artifacts, project, classesDir0, buildClient.diagnostics)
@@ -380,8 +432,22 @@ object Build {
       Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)
   }
 
-  private def postProcess(
-    generatedSources: Seq[(os.Path, os.Path, Int)],
+  @tailrec
+  private def deleteSubPathIfEmpty(base: os.Path, subPath: os.SubPath, logger: Logger): Unit =
+    if (subPath.segments.nonEmpty) {
+      val p = base / subPath
+      if (os.isDir(p) && os.list.stream(p).headOption.isEmpty) {
+        try os.remove(p)
+        catch {
+          case e: FileSystemException =>
+            logger.debug(s"Ignoring $e while cleaning up $p")
+        }
+        deleteSubPathIfEmpty(base, subPath / os.up, logger)
+      }
+    }
+
+  def postProcess(
+    generatedSources: Seq[GeneratedSource],
     generatedSrcRoot: os.Path,
     classesDir: os.Path,
     logger: Logger,
@@ -393,10 +459,9 @@ object Build {
       // TODO Write classes to a separate directory during post-processing
       logger.debug("Post-processing class files of pre-processed sources")
       val mappings = generatedSources
-        .map {
-          case (path, reportingPath, len) =>
-            val lineShift = -os.read(path).take(len).count(_ == '\n') // charset?
-            (path.relativeTo(generatedSrcRoot).toString, (reportingPath.last, lineShift))
+        .map { source =>
+          val lineShift = -os.read(source.generated).take(source.topWrapperLen).count(_ == '\n') // charset?
+          (source.generated.relativeTo(generatedSrcRoot).toString, (source.reportingPath.fold(s => s, _.last), lineShift))
         }
         .toMap
       AsmPositionUpdater.postProcess(mappings, classesDir, logger)
@@ -404,33 +469,40 @@ object Build {
       if (updateSemanticDbs) {
         logger.debug("Moving semantic DBs around")
         val semDbRoot = classesDir / "META-INF" / "semanticdb"
-        for ((path, originalSource, offset) <- generatedSources) {
-          val fromSourceRoot = path.relativeTo(workspace)
+        for (source <- generatedSources; originalSource <- source.reportingPath) {
+          val fromSourceRoot = source.generated.relativeTo(workspace)
           val actual = originalSource.relativeTo(workspace)
 
-          val semDbFile = semDbRoot / fromSourceRoot.segments.take(fromSourceRoot.segments.length - 1) / s"${fromSourceRoot.last}.semanticdb"
+          val semDbSubPath = os.sub / fromSourceRoot.segments.take(fromSourceRoot.segments.length - 1) / s"${fromSourceRoot.last}.semanticdb"
+          val semDbFile = semDbRoot / semDbSubPath
           if (os.exists(semDbFile)) {
             val finalSemDbFile = semDbRoot / actual.segments.take(actual.segments.length - 1) / s"${actual.last}.semanticdb"
             SemanticdbProcessor.postProcess(
               os.read(originalSource),
               originalSource.relativeTo(workspace),
               None,
-              if (offset == 0) n => Some(n)
-              else LineConversion.scalaLineToScLine(os.read(originalSource), os.read(path), offset),
+              if (source.topWrapperLen == 0) n => Some(n)
+              else LineConversion.scalaLineToScLine(os.read(originalSource), os.read(source.generated), source.topWrapperLen),
               semDbFile,
               finalSemDbFile
             )
-            os.remove(semDbFile)
+            try os.remove(semDbFile)
+            catch {
+              case ex: FileSystemException =>
+                logger.debug(s"Ignoring $ex while removing $semDbFile")
+            }
+            deleteSubPathIfEmpty(semDbRoot, semDbSubPath / os.up, logger)
           }
         }
 
         if (updateTasty) {
           val updatedPaths = generatedSources
-            .map {
-              case (path, originalSource, offset) =>
-                val fromSourceRoot = path.relativeTo(workspace)
+            .flatMap { source =>
+              source.reportingPath.toOption.toSeq.map { originalSource =>
+                val fromSourceRoot = source.generated.relativeTo(workspace)
                 val actual = originalSource.relativeTo(workspace)
                 fromSourceRoot.toString -> actual.toString
+              }
             }
             .toMap
 
@@ -464,7 +536,7 @@ object Build {
         logger.debug("Custom generated source directory used, not moving semantic DBs around")
   }
 
-  private def onChangeBufferedObserver(onEvent: PathWatchers.Event => Unit): Observer[PathWatchers.Event] =
+  def onChangeBufferedObserver(onEvent: PathWatchers.Event => Unit): Observer[PathWatchers.Event] =
     new Observer[PathWatchers.Event] {
       def onError(t: Throwable): Unit = {
         // TODO Log that properly
@@ -538,9 +610,7 @@ object Build {
   private def jmhBuild(
     inputs: Inputs,
     build: Build.Successful,
-    threads: BuildThreads,
     logger: Logger,
-    cwd: os.Path,
     javaCommand: String,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
@@ -551,14 +621,12 @@ object Build {
     val jmhSourceDir = jmhOutputDir / "sources"
     val jmhResourceDir = jmhOutputDir / "resources"
 
-    val retCode = Runner.run(
+    val retCode = run(
       javaCommand,
-      Nil,
       build.fullClassPath.map(_.toFile),
       "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
       Seq(printable(build.output), printable(jmhSourceDir), printable(jmhResourceDir), "default"),
-      logger,
-      allowExecve = false
+      logger
     )
     if (retCode != 0) {
       val red = Console.RED
@@ -581,10 +649,37 @@ object Build {
           runJmh = build.options.jmhOptions.runJmh.map(_ => false)
         )
       )
-      val jmhBuild = Build.build(jmhInputs, updatedOptions, threads, logger, cwd, buildClient, bloopServer)
+      val jmhBuild = Build.build(jmhInputs, updatedOptions, logger, buildClient, bloopServer)
       Some(jmhBuild)
     }
     else None
+  }
+
+  private def run(
+    javaCommand: String,
+    classPath: Seq[File],
+    mainClass: String,
+    args: Seq[String],
+    logger: Logger
+  ): Int = {
+
+    val command =
+      Seq(javaCommand) ++
+      Seq(
+        "-cp", classPath.iterator.map(_.getAbsolutePath).mkString(File.pathSeparator),
+        mainClass
+      ) ++
+      args
+
+    logger.log(
+      s"Running ${command.mkString(" ")}",
+      "  Running" + System.lineSeparator() + command.iterator.map(_ + System.lineSeparator()).mkString
+    )
+
+    new ProcessBuilder(command: _*)
+      .inheritIO()
+      .start()
+      .waitFor()
   }
 
 }
