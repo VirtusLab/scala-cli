@@ -11,7 +11,7 @@ object Scala {
 
 object Deps {
   object Versions {
-    def coursier = "2.0.16"
+    def coursier = "2.0.16+73-gddc6d9cc9"
     def scalaJs = "1.5.1"
     def scalaNative = "0.4.0"
   }
