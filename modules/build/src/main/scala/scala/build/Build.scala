@@ -12,7 +12,7 @@ import scala.build.tastylib.TastyData
 
 import java.io.{File, IOException}
 import java.lang.{Boolean => JBoolean}
-import java.nio.file.{Path, Paths}
+import java.nio.file.{FileSystemException, Path, Paths}
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
 
 import scala.collection.mutable.ListBuffer
@@ -359,7 +359,11 @@ object Build {
       logger.debug(s"Clearing $classesDir0")
       os.list(classesDir0).foreach { p =>
         logger.debug(s"Removing $p")
-        os.remove.all(p)
+        try os.remove.all(p)
+        catch {
+          case ex: FileSystemException =>
+            logger.debug(s"Ignoring $ex while cleaning up $p")
+        }
       }
     }
 
@@ -393,7 +397,11 @@ object Build {
       logger.debug(s"Clearing $classesDir0")
       os.list(classesDir0).foreach { p =>
         logger.debug(s"Removing $p")
-        os.remove.all(p)
+        try os.remove.all(p)
+        catch {
+          case ex: FileSystemException =>
+            logger.debug(s"Ignore $ex while removing $p")
+        }
       }
     }
 
@@ -431,7 +439,7 @@ object Build {
       if (os.isDir(p) && os.list.stream(p).headOption.isEmpty) {
         try os.remove(p)
         catch {
-          case e: java.nio.file.FileSystemException =>
+          case e: FileSystemException =>
             logger.debug(s"Ignoring $e while cleaning up $p")
         }
         deleteSubPathIfEmpty(base, subPath / os.up, logger)
@@ -478,7 +486,11 @@ object Build {
               semDbFile,
               finalSemDbFile
             )
-            os.remove(semDbFile)
+            try os.remove(semDbFile)
+            catch {
+              case ex: FileSystemException =>
+                logger.debug(s"Ignoring $ex while removing $semDbFile")
+            }
             deleteSubPathIfEmpty(semDbRoot, semDbSubPath / os.up, logger)
           }
         }
