@@ -5,11 +5,11 @@ let isCI = process.env.CI || false;
 module.exports = {
   title: 'Scala CLI',
   tagline: 'Your New Shiny Scala Command-Line',
-  url: 'https://virtuslab.github.io',
+  url: 'https://virtuslabrnd.github.io',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'VirtusLab',
+  organizationName: 'VirtuslabRnD',
   projectName: 'scala-cli',
   themeConfig: {
     navbar: {
@@ -26,7 +26,7 @@ module.exports = {
           label: 'Docs',
         },
         {
-          href: 'https://github.com/VirtusLab/scala-cli',
+          href: 'https://github.com/VirtuslabRnD/scala-cli',
           label: 'GitHub',
           position: 'right',
         },
@@ -49,7 +49,7 @@ module.exports = {
           items: [
             {
               label: 'Gitter',
-              href: 'https://gitter.im/VirtusLab/scala-cli',
+              href: 'https://gitter.im/VirtuslabRnD/scala-cli',
             },
           ],
         },
@@ -58,12 +58,12 @@ module.exports = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/VirtusLab/scala-cli',
+              href: 'https://github.com/VirtuslabRnD/scala-cli',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Scala CLI contributors.`,
+      copyright: `Copyright © 2021 VirtusLab Sp. z. o. o.`,
     },
   },
   presets: [
@@ -74,7 +74,7 @@ module.exports = {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           editUrl:
-            'https://github.com/VirtusLab/scala-cli/edit/master/website/',
+            'https://github.com/VirtuslabRnD/scala-cli/edit/master/website/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
