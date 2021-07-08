@@ -23,7 +23,7 @@ module.exports = {
           type: 'doc',
           docId: 'installation',
           position: 'left',
-          label: 'Docs',
+          label: 'Documentation',
         },
         {
           href: 'https://github.com/VirtuslabRnD/scala-cli',
@@ -36,11 +36,11 @@ module.exports = {
       style: 'dark',
       links: [
         {
-          title: 'Docs',
+          title: 'Documentation',
           items: [
             {
-              label: 'Docs',
-              to: '/docs/installation',
+              label: 'Documentation',
+              to: '/docs/overview',
             },
           ],
         },
