@@ -193,7 +193,7 @@ def copyLauncher(
   val path = os.Path(directory, os.pwd)
   val name = s"scala-$platformSuffix$platformExtension"
   if (Properties.isWin)
-    writeInZip(name, nativeLauncher, path / s"scala-$platformSuffix.zip")
+    writeInZip(s"scala$platformExtension", nativeLauncher, path / s"scala-$platformSuffix.zip")
   else {
     val dest = path / name
     os.copy(nativeLauncher, dest, createFolders = true, replaceExisting = true)
