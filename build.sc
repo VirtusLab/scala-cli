@@ -341,6 +341,15 @@ def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = T.comma
   )
 }
 
+def copyTo(task: mill.main.Tasks[PathRef], dest: os.Path) = T.command {
+  if (task.value.length > 1)
+    sys.error("Expected a single task")
+  val ref = task.value.head()
+  os.makeDir.all(dest / os.up)
+  os.copy.over(ref.path, dest)
+}
+
+
 def copyLauncher(directory: String = "artifacts") = T.command {
   val nativeLauncher = cli.nativeImage().path
   ghreleaseassets.copyLauncher(nativeLauncher, directory)
