@@ -1,16 +1,17 @@
 package scala.build
 
-import java.io.File
+import ch.epfl.scala.bsp4j
+
+import java.io.{File, PrintStream}
 import java.net.URI
 import java.nio.file.Paths
-
-import ch.epfl.scala.bsp4j
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class ConsoleBloopBuildClient(
   logger: Logger,
+  out: PrintStream,
   keepDiagnostics: Boolean = false,
   var generatedSources: Seq[GeneratedSource] = Nil
 ) extends BloopBuildClient {
@@ -64,13 +65,13 @@ class ConsoleBloopBuildClient(
         case Right(p) if p.startsWith(Os.pwd) => "." + File.separator + p.relativeTo(Os.pwd).toString
         case Right(p) => p.toString
       }
-      println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
+      out.println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       for (line <- msgIt)
-        println(prefix + line)
+        out.println(prefix + line)
       for (code <- Option(diag.getCode))
-        code.linesIterator.map(prefix + _).foreach(println(_))
+        code.linesIterator.map(prefix + _).foreach(out.println(_))
       if (diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine && diag.getRange.getStart.getCharacter != null && diag.getRange.getEnd.getCharacter != null)
-        println(prefix + " " * diag.getRange.getStart.getCharacter + "^" * (diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter + 1))
+        out.println(prefix + " " * diag.getRange.getStart.getCharacter + "^" * (diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter + 1))
     }
 
 
@@ -101,7 +102,7 @@ class ConsoleBloopBuildClient(
       case bsp4j.MessageType.INFORMATION => ""
       case bsp4j.MessageType.LOG         => "" // discard those by default?
     }
-    System.err.println(prefix + params.getMessage)
+    out.println(prefix + params.getMessage)
   }
 
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
@@ -114,7 +115,7 @@ class ConsoleBloopBuildClient(
     logger.debug("Received onBuildTaskStart from bloop: " + params)
     for (msg <- Option(params.getMessage) if !msg.contains(" no-op compilation")) {
       printedStart = true
-      System.err.println(gray + msg + reset)
+      out.println(gray + msg + reset)
     }
   }
 
@@ -125,7 +126,7 @@ class ConsoleBloopBuildClient(
     logger.debug("Received onBuildTaskFinish from bloop: " + params)
     if (printedStart)
       for (msg <- Option(params.getMessage))
-        System.err.println(gray + msg + reset)
+        out.println(gray + msg + reset)
   }
 
   override def onConnectWithServer(server: bsp4j.BuildServer): Unit = {}
