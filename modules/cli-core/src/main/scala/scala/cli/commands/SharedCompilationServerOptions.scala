@@ -35,7 +35,7 @@ final case class SharedCompilationServerOptions(
       val r = new Random
       Left(r.nextInt())
     }
-  private def socketDirectory(directories: => Directories): os.Path = {
+  private def socketDirectory(directories: Directories): os.Path = {
     val dir = directories.bspSocketDir
     // Ensuring that whenever dir exists, it has the right permissions
     if (!os.isDir(dir)) {
