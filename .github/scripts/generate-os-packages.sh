@@ -11,7 +11,7 @@ else
 fi
 
 packager() {
-  cs launch org.virtuslab::scala-packager-cli:0.1.12 -- "$@"
+  "$mill" -i packager.run "$@"
 }
 
 launcher() {
