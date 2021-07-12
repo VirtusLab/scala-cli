@@ -4,6 +4,8 @@
 [![Build status](https://github.com/VirtusLab/scala-cli/workflows/CI/badge.svg)](https://github.com/VirtusLab/scala-ci/actions?query=workflow%3ACI)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.alexarchambault.scala-cli/cli_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.alexarchambault.scala-cli/cli_2.12)
 
+Scala-cli is experimental tool to run/compile/test Scala that one day may become new scala. Scala-cli is not a build tool even though it look similar to one.
+
 ## Developer docs
 
 ### Common commands
