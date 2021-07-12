@@ -11,6 +11,7 @@ final case class ConfigFormat(
   scala: Scala = Scala(),
   scalaJs: ScalaJs = ScalaJs(),
   jvm: Option[String] = None,
+  jvmIndex: Option[String] = None,
   java: Java = Java(),
   dependencies: List[String] = Nil,
   repositories: List[String] = Nil,
@@ -27,7 +28,8 @@ final case class ConfigFormat(
       ),
       javaOptions = JavaOptions(
         javaHomeOpt = java.home.map(os.Path(_, Os.pwd)),
-        jvmIdOpt = jvm
+        jvmIdOpt = jvm,
+        jvmIndexOpt = jvmIndex
       ),
       classPathOptions = ClassPathOptions(
         extraDependencies = dependencies.filter(_.nonEmpty).map { depStr =>

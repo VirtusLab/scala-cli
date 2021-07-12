@@ -1,5 +1,7 @@
 package scala.build.options
 
+import coursier.cache.FileCache
+import coursier.jvm.{JvmCache, JvmIndex, JavaHome}
 import dependency._
 
 import java.math.BigInteger
@@ -10,8 +12,6 @@ import java.security.MessageDigest
 import scala.build.{Artifacts, Logger, Os}
 import scala.build.internal.Constants._
 import scala.build.internal.Util
-import coursier.cache.FileCache
-import coursier.jvm.{JvmCache, JavaHome}
 import scala.util.Properties
 
 final case class BuildOptions(
@@ -98,7 +98,9 @@ final case class BuildOptions(
   def javaCommand(): String = javaCommand0
 
   private def javaHomeManager = {
-    val jvmCache = JvmCache().withDefaultIndex.withCache(finalCache)
+    val indexUrl = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
+    val indexTask = JvmIndex.load(finalCache, indexUrl)
+    val jvmCache = JvmCache().withIndex(indexTask).withCache(finalCache)
     JavaHome().withCache(jvmCache)
   }
 

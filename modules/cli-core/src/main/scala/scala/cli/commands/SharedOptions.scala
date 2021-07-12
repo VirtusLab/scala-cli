@@ -60,6 +60,10 @@ final case class SharedOptions(
   @ValueDescription("jvm-name")
   @Name("j")
     jvm: Option[String] = None,
+  @Group("Java")
+  @HelpMessage("JVM index URL")
+  @ValueDescription("url")
+    jvmIndex: Option[String] = None,
 
   @Group("Java")
   @HelpMessage("Add extra JARs in the class path")
@@ -147,6 +151,7 @@ final case class SharedOptions(
       javaOptions = JavaOptions(
         javaHomeOpt = javaHome.filter(_.nonEmpty).map(os.Path(_, Os.pwd)),
         jvmIdOpt = jvm.filter(_.nonEmpty),
+        jvmIndexOpt = jvmIndex.filter(_.nonEmpty)
       ),
       internalDependencies = InternalDependenciesOptions(
         addStubsDependencyOpt = addStubs,
