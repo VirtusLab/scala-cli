@@ -283,17 +283,63 @@ trait CliLaunchers extends SbtModule {
       baseClassPath
   }
 
-  def nativeImage = T{
-    val cp = nativeImageClassPath().map(_.path)
-    val mainClass0 = nativeImageMainClass()
-    val dest = T.ctx().dest / "scala"
-    val actualDest = T.ctx().dest / s"scala$platformExtension"
+  private def doGenerateNativeImage(
+    cp: Seq[os.Path],
+    mainClass0: String,
+    destDir: os.Path,
+    localRepoJar0: os.Path,
+    overwrite: Boolean = true
+  ): os.Path = {
+    val dest = destDir / "scala"
+    val actualDest = destDir / s"scala$platformExtension"
 
-    val localRepoJar0 = localRepoJar().path
+    if (overwrite || !os.isFile(actualDest))
+      generateNativeImage(
+        graalVmVersion,
+        cp :+ localRepoJar0,
+        mainClass0,
+        dest,
+        Seq(localRepoResourcePath)
+      )
 
-    generateNativeImage(graalVmVersion, cp :+ localRepoJar0, mainClass0, dest, Seq(localRepoResourcePath))
+    actualDest
+  }
 
-    PathRef(actualDest)
+  def nativeImage = {
+    val isCI = System.getenv("CI") != null
+    if (isCI)
+      T.persistent {
+        val cp = nativeImageClassPath().map(_.path)
+        val mainClass0 = nativeImageMainClass()
+
+        val localRepoJar0 = localRepoJar().path
+
+        val executable = doGenerateNativeImage(
+          cp,
+          mainClass0,
+          T.ctx().dest,
+          localRepoJar0,
+          overwrite = false
+        )
+
+        PathRef(executable)
+      }
+    else
+      T{
+        val cp = nativeImageClassPath().map(_.path)
+        val mainClass0 = nativeImageMainClass()
+
+        val localRepoJar0 = localRepoJar().path
+
+        val executable = doGenerateNativeImage(
+          cp,
+          mainClass0,
+          T.ctx().dest,
+          localRepoJar0
+        )
+
+        PathRef(executable)
+      }
   }
 
   def runWithAssistedConfig(args: String*) = T.command {
