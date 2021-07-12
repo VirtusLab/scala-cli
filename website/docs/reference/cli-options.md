@@ -281,9 +281,19 @@ Aliases: `--scala-opt`, `-O`
 
 Aliases: `-j`
 
+#### `--jvm-index`
+
 #### `--extra-jars`
 
 Aliases: `--jar`, `--jars`, `--extra-jar`
+
+#### `--extra-compile-only-jars`
+
+Aliases: `--compile-only-jar`, `--compile-only-jars`, `--extra-compile-only-jar`
+
+#### `--extra-source-jars`
+
+Aliases: `--source-jar`, `--source-jars`, `--extra-source-jar`
 
 #### `--ttl`
 
@@ -336,4 +346,8 @@ Available in commands:
 #### `--help`
 
 Aliases: `-h`
+
+#### `--help-full`
+
+Aliases: `--full-help`
 

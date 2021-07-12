@@ -10,6 +10,7 @@ import caseapp.core.complete.CompletionItem
 
 abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T]) extends Command()(parser, help) {
   def sharedOptions(t: T): Option[SharedOptions] = None
+  override def hasFullHelp = true
   override def completer: Completer[T] = {
     val parent = super.completer
     new Completer[T] {
