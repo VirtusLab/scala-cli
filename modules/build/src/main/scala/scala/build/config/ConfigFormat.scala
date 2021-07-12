@@ -1,11 +1,11 @@
 package scala.build.config
 
+import dependency.parser.DependencyParser
 import pureconfig.ConfigReader
 import pureconfig.generic.semiauto._
 
-import scala.build.Build
+import scala.build.{Build, Os}
 import scala.build.options.{BuildOptions, ClassPathOptions, JavaOptions, ScalaOptions}
-import dependency.parser.DependencyParser
 
 final case class ConfigFormat(
   scala: Scala = Scala(),
@@ -13,7 +13,10 @@ final case class ConfigFormat(
   jvm: Option[String] = None,
   java: Java = Java(),
   dependencies: List[String] = Nil,
-  repositories: List[String] = Nil
+  repositories: List[String] = Nil,
+  extraJars: List[String] = Nil,
+  extraCompileOnlyJars: List[String] = Nil,
+  extraSourceJars: List[String] = Nil
 ) {
   def buildOptions: BuildOptions =
     BuildOptions(
@@ -33,7 +36,10 @@ final case class ConfigFormat(
             case Right(dep) => dep
           }
         },
-        extraRepositories = repositories.filter(_.nonEmpty)
+        extraRepositories = repositories.filter(_.nonEmpty),
+        extraJars = extraJars.map(p => os.Path(p, Os.pwd)),
+        extraCompileOnlyJars = extraCompileOnlyJars.map(p => os.Path(p, Os.pwd)),
+        extraSourceJars = extraSourceJars.map(p => os.Path(p, Os.pwd))
       )
     )
 }

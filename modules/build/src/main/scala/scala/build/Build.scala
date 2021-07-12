@@ -347,7 +347,7 @@ object Build {
           scalaJsOptions = options.scalaJsOptions.config,
       scalaNativeOptions = options.scalaNativeOptions.bloopConfig,
              projectName = inputs.projectName,
-               classPath = artifacts.classPath,
+               classPath = artifacts.compileClassPath,
               resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
                  sources = allSources,
             resourceDirs = sources.resourceDirs

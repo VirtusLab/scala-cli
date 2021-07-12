@@ -69,6 +69,22 @@ final case class SharedOptions(
   @Name("extraJar")
     extraJars: List[String] = Nil,
 
+  @Group("Java")
+  @HelpMessage("Add extra JARs in the class path during compilation only")
+  @ValueDescription("paths")
+  @Name("compileOnlyJar")
+  @Name("compileOnlyJars")
+  @Name("extraCompileOnlyJar")
+    extraCompileOnlyJars: List[String] = Nil,
+
+  @Group("Java")
+  @HelpMessage("Add extra source JARs")
+  @ValueDescription("paths")
+  @Name("sourceJar")
+  @Name("sourceJars")
+  @Name("extraSourceJar")
+    extraSourceJars: List[String] = Nil,
+
   @Group("Dependency")
   @HelpMessage("Specify a TTL for changing dependencies, such as snapshots")
   @ValueDescription("duration|Inf")
@@ -144,6 +160,7 @@ final case class SharedOptions(
       ),
       classPathOptions = ClassPathOptions(
         extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
+        extraCompileOnlyJars = extraCompileOnlyJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
         extraDependencies = dependencies.dependency.map(_.trim).filter(_.nonEmpty).flatMap { depStr =>
           DependencyParser.parse(depStr) match {

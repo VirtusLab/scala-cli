@@ -60,6 +60,10 @@ final case class BuildOptions(
 
   def allExtraJars: Seq[Path] =
     classPathOptions.extraJars.map(_.toNIO)
+  def allExtraCompileOnlyJars: Seq[Path] =
+    classPathOptions.extraCompileOnlyJars.map(_.toNIO)
+  def allExtraSourceJars: Seq[Path] =
+    classPathOptions.extraSourceJars.map(_.toNIO)
 
   private def addJvmTestRunner: Boolean = !scalaJsOptions.enable && !scalaNativeOptions.enable && internalDependencies.addTestRunnerDependency
   private def addJsTestBridge: Option[String] = if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion) else None
@@ -153,6 +157,8 @@ final case class BuildOptions(
          compilerPlugins = compilerPlugins(params),
             dependencies = userDependencies ++ dependencies(params),
                extraJars = allExtraJars,
+      extraCompileOnlyJars = allExtraCompileOnlyJars,
+         extraSourceJars = allExtraSourceJars,
             fetchSources = classPathOptions.fetchSources.getOrElse(false),
                 addStubs = internalDependencies.addStubsDependency,
             addJvmRunner = addRunnerDependency,

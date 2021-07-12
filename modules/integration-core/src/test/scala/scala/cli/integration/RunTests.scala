@@ -567,4 +567,32 @@ class RunTests extends munit.FunSuite {
     }
   }
 
+  test("Compile-time only JARs") {
+    val shapelessJar = os.proc("cs", "fetch", "--intransitive", "com.chuusai:shapeless_2.12:2.3.7").call().out.text.trim
+    expect(os.isFile(os.Path(shapelessJar, os.pwd)))
+
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "test.sc" ->
+          """val shapelessFound =
+            |  try Thread.currentThread().getContextClassLoader.loadClass("shapeless.HList") != null
+            |  catch { case _: ClassNotFoundException => false }
+            |println(if (shapelessFound) "Hello with " + "shapeless" else "Hello from " + "test")
+            |""".stripMargin,
+        os.rel / "Other.scala" ->
+          """object Other {
+            |  import shapeless._
+            |  val l = 2 :: "a" :: HNil
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val baseOutput = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--extra-jar", shapelessJar).call(cwd = root).out.text.trim
+      expect(baseOutput == "Hello with shapeless")
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--compile-only-jar", shapelessJar).call(cwd = root).out.text.trim
+      expect(output == "Hello from test")
+    }
+  }
+
 }

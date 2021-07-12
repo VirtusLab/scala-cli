@@ -52,6 +52,7 @@ final class BspImpl(
 
     val generatedSources = sources.generateSources(inputs.generatedSrcRoot)
 
+    actualLocalServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
     actualLocalServer.setGeneratedSources(generatedSources)
 
     val (classesDir0, artifacts, project, buildChanged) = Build.prepareBuild(

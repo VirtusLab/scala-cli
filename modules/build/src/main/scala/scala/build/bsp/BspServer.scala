@@ -19,6 +19,11 @@ class BspServer(
 
   import BspServer._
 
+  private var extraDependencySources: Seq[os.Path] = Nil
+  def setExtraDependencySources(sourceJars: Seq[os.Path]): Unit = {
+    extraDependencySources = sourceJars
+  }
+
   private def maybeUpdateProjectTargetUri(res: b.WorkspaceBuildTargetsResult): Unit =
     for {
       n <- projectNameOpt.iterator
@@ -108,7 +113,18 @@ class BspServer(
     compile(() => super.buildTargetCompile(check(params)))
 
   override def buildTargetDependencySources(params: b.DependencySourcesParams): CompletableFuture[b.DependencySourcesResult] =
-    super.buildTargetDependencySources(check(params))
+    super.buildTargetDependencySources(check(params)).thenApply { res =>
+      val updatedItems = res.getItems.asScala.map {
+        case item if validTarget(item.getTarget) =>
+          val updatedSources = item.getSources.asScala ++ extraDependencySources.map { sourceJar =>
+            sourceJar.toNIO.toUri.toASCIIString
+          }
+          new b.DependencySourcesItem(item.getTarget, updatedSources.asJava)
+        case other => other
+      }
+
+      new b.DependencySourcesResult(updatedItems.asJava)
+    }
 
   override def buildTargetResources(params: b.ResourcesParams): CompletableFuture[b.ResourcesResult] =
     super.buildTargetResources(check(params))
