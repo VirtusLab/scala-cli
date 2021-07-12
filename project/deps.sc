@@ -19,7 +19,7 @@ object Deps {
   def asm = ivy"org.ow2.asm:asm:9.1"
   def bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.8"
   def bsp4j = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
-  def caseApp = ivy"com.github.alexarchambault::case-app:2.1.0-M3"
+  def caseApp = ivy"com.github.alexarchambault::case-app:2.1.0-M4"
   def coursierJvm = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
   def dependency = ivy"io.get-coursier::dependency:0.2.0"

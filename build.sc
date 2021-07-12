@@ -61,6 +61,18 @@ object packager extends ScalaModule {
   def mainClass = Some("cli.PackagerCli")
 }
 
+object `generate-reference-doc` extends SbtModule {
+  def scalaVersion = defaultScalaVersion
+  def moduleDeps = Seq(
+    cli
+  )
+  def ivyDeps = Agg(
+    Deps.caseApp,
+    Deps.munit
+  )
+  def mainClass = Some("scala.cli.doc.GenerateReferenceDoc")
+}
+
 
 // We should be able to switch to 2.13.x when bumping the scala-native version
 def defaultScalaVersion = Scala.scala212

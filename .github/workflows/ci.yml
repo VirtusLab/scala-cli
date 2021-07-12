@@ -60,8 +60,25 @@ jobs:
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
 
+  reference-doc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: coursier/cache-action@v6
+    - uses: laughedelic/coursier-setup@v1
+      with:
+        jvm: 8
+    - name: Check that reference doc is up-to-date
+      run: |
+        ./mill -i generate-reference-doc.run --check || (
+          echo "Reference doc is not up-to-date. Run"
+          echo "  ./mill -i generate-reference-doc.run"
+          echo "to update it, then commit the result."
+          exit 1
+        )
+
   launchers:
-    needs: [test, format]
+    needs: [test, format, reference-doc]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
