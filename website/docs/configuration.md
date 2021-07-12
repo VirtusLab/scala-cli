@@ -8,6 +8,9 @@ sidebar_position: 4
 - in a configuration file
 - some options can also be specified directly in `.scala` and `.sc` files
 
+Parameters on the command-line take precedence over parameters in configuration files or sources.
+That way, you can quickly override parameters from the command-line.
+
 Note that the configuration format and options in `.scala` files are likely
 to evolve and be unified in the near future.
 

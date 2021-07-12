@@ -50,8 +50,6 @@ final case class Artifacts(
 object Artifacts {
 
   def apply(
-    javaHomeOpt: Option[String],
-    jvmIdOpt: Option[String],
     params: ScalaParameters,
     compilerPlugins: Seq[AnyDependency],
     dependencies: Seq[AnyDependency],

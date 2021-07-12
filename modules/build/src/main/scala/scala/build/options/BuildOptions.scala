@@ -149,8 +149,6 @@ final case class BuildOptions(
 
   def artifacts(params: ScalaParameters, userDependencies: Seq[AnyDependency], logger: Logger): Artifacts =
     Artifacts(
-             javaHomeOpt = javaOptions.javaHomeOpt.filter(_.nonEmpty),
-                jvmIdOpt = javaOptions.jvmIdOpt,
                   params = params,
          compilerPlugins = compilerPlugins(params),
             dependencies = userDependencies ++ dependencies(params),

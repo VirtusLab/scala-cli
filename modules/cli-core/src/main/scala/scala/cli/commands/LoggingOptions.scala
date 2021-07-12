@@ -3,6 +3,9 @@ package scala.cli.commands
 import caseapp._
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
+
+import java.io.PrintStream
+
 import scala.build.blooprifle.BloopRifleLogger
 import scala.build.Logger
 
@@ -60,6 +63,9 @@ final case class LoggingOptions(
           def bloopCliInheritStdout = verbosity >= 3
           def bloopCliInheritStderr = verbosity >= 3
         }
+
+      // Allow to disable that?
+      def compilerOutputStream = System.err
     }
 
 }

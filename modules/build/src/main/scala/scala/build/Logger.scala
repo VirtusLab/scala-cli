@@ -1,6 +1,9 @@
 package scala.build
 
 import coursier.cache.CacheLogger
+
+import java.io.{OutputStream, PrintStream}
+
 import scala.build.blooprifle.BloopRifleLogger
 
 trait Logger {
@@ -12,6 +15,8 @@ trait Logger {
   def coursierLogger: coursier.cache.CacheLogger
 
   def bloopRifleLogger: BloopRifleLogger
+
+  def compilerOutputStream: PrintStream
 }
 
 object Logger {
@@ -25,6 +30,14 @@ object Logger {
 
     def bloopRifleLogger: BloopRifleLogger =
       BloopRifleLogger.nop
+
+    def compilerOutputStream: PrintStream =
+      new PrintStream(
+        new OutputStream {
+          override def write(b: Int): Unit = ()
+          override def write(b: Array[Byte], off: Int, len: Int): Unit = ()
+        }
+      )
   }
   def nop: Logger = new Nop
 }

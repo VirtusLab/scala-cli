@@ -14,6 +14,7 @@ object Deps {
     def coursier = "2.0.16+73-gddc6d9cc9"
     def scalaJs = "1.5.1"
     def scalaNative = "0.4.0"
+    def scalaPackager = "0.1.12"
   }
   def asm = ivy"org.ow2.asm:asm:9.1"
   def bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.8"
@@ -43,7 +44,8 @@ object Deps {
   def scalaJsLinkerInterface = ivy"org.scala-js::scalajs-linker-interface:${Versions.scalaJs}"
   def scalaJsTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${Versions.scalaJs}"
   def scalametaTrees = ivy"org.scalameta::trees:4.4.21"
-  def scalaPackager = ivy"org.virtuslab::scala-packager:0.1.12"
+  def scalaPackager = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
+  def scalaPackagerCli = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
   def scalaparse = ivy"com.lihaoyi::scalaparse:2.3.2"
   def slf4jNop = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   def snailgun = ivy"me.vican.jorge::snailgun-core:0.4.0"

@@ -28,4 +28,6 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
   def bloopBspStdout = None
   def bloopCliInheritStdout = false
   def bloopCliInheritStderr = false
+
+  def compilerOutputStream = System.err
 }
