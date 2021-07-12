@@ -72,25 +72,28 @@ final case class BuildOptions(
   private lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
   private lazy val javaCommand0: String = {
-    val javaHomeOpt0 = javaOptions.javaHomeOpt.filter(_.nonEmpty)
-      .orElse(if (javaOptions.jvmIdOpt.isEmpty) sys.props.get("java.home") else None)
-      .map(os.Path(_, Os.pwd))
-      .orElse {
-        implicit val ec = finalCache.ec
-        val (id, path) = javaHomeManager.getWithRetainedId(javaOptions.jvmIdOpt.getOrElse(JavaHome.defaultId)).unsafeRun()
-        if (id == JavaHome.systemId) None
-        else Some(os.Path(path))
-      }
+    val javaHomeOpt0 = javaHomeLocationOpt()
     val ext = if (Properties.isWin) ".exe" else ""
-
     javaHomeOpt0.fold("java")(javaHome => (javaHome / "bin" / s"java$ext").toString)
   }
 
-  def javaHomeLocation(): os.Path = {
-    implicit val ec = finalCache.ec
-    val path = javaHomeManager.get(javaOptions.jvmIdOpt.getOrElse(JavaHome.defaultId)).unsafeRun()
-    os.Path(path)
-  }
+  def javaHomeLocationOpt(): Option[os.Path] =
+    javaOptions.javaHomeOpt
+      .orElse(if (javaOptions.jvmIdOpt.isEmpty) sys.props.get("java.home").map(os.Path(_, Os.pwd)) else None)
+      .orElse {
+        javaOptions.jvmIdOpt.map { jvmId =>
+          implicit val ec = finalCache.ec
+          val path = javaHomeManager.get(jvmId).unsafeRun()
+          os.Path(path)
+        }
+      }
+
+  def javaHomeLocation(): os.Path =
+    javaHomeLocationOpt().getOrElse {
+      implicit val ec = finalCache.ec
+      val path = javaHomeManager.get(JavaHome.defaultId).unsafeRun()
+      os.Path(path)
+    }
 
   def javaCommand(): String = javaCommand0
 

@@ -26,7 +26,7 @@ final case class ConfigFormat(
         scalacOptions = scala.options
       ),
       javaOptions = JavaOptions(
-        javaHomeOpt = java.home,
+        javaHomeOpt = java.home.map(os.Path(_, Os.pwd)),
         jvmIdOpt = jvm
       ),
       classPathOptions = ClassPathOptions(

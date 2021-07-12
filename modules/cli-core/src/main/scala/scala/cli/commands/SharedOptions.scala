@@ -145,7 +145,7 @@ final case class SharedOptions(
       scalaJsOptions = js.buildOptions,
       scalaNativeOptions = native.buildOptions,
       javaOptions = JavaOptions(
-        javaHomeOpt = javaHome.filter(_.nonEmpty),
+        javaHomeOpt = javaHome.filter(_.nonEmpty).map(os.Path(_, Os.pwd)),
         jvmIdOpt = jvm.filter(_.nonEmpty),
       ),
       internalDependencies = InternalDependenciesOptions(

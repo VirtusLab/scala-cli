@@ -1,7 +1,7 @@
 package scala.build.options
 
 final case class JavaOptions(
-  javaHomeOpt: Option[String] = None,
+  javaHomeOpt: Option[os.Path] = None,
   jvmIdOpt: Option[String] = None
 ) {
   def orElse(other: JavaOptions): JavaOptions =

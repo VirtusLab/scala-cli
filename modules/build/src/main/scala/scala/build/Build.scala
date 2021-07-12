@@ -350,7 +350,8 @@ object Build {
                classPath = artifacts.compileClassPath,
               resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
                  sources = allSources,
-            resourceDirs = sources.resourceDirs
+            resourceDirs = sources.resourceDirs,
+             javaHomeOpt = options.javaHomeLocationOpt()
     )
 
     val updatedBloopConfig = project.writeBloopFile(logger)
