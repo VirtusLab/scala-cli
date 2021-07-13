@@ -595,4 +595,23 @@ class RunTests extends munit.FunSuite {
     }
   }
 
+  test("Scala version in config file") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "test.sc" ->
+          """println(scala.util.Properties.versionNumberString)
+            |""".stripMargin,
+        os.rel / "scala.conf" ->
+          """scala {
+            |  version = 2.13.1
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".").call(cwd = root).out.text.trim
+      expect(output == "2.13.1")
+    }
+  }
+
 }
