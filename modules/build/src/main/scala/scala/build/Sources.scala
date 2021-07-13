@@ -89,7 +89,10 @@ object Sources {
         }
     }.toVector
 
-    val dependencyTrees = importTrees.filter(_.prefix.headOption.contains("$ivy"))
+    val dependencyTrees = importTrees.filter { t =>
+      val firstSegmentOpt = t.prefix.headOption
+      firstSegmentOpt.contains("$ivy") || firstSegmentOpt.contains("$dep")
+    }
 
     if (dependencyTrees.isEmpty) None
     else {

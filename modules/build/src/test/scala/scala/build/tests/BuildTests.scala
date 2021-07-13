@@ -181,19 +181,37 @@ class BuildTests extends munit.FunSuite {
     }
 
   test("dependencies") {
-    val testInputs = TestInputs(
-      os.rel / "simple.sc" ->
-        """import $ivy.`com.lihaoyi::geny:0.6.5`
-          |import geny.Generator
-          |val g = Generator("Hel", "lo")
-          |println(g.mkString)
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
-      build.assertGeneratedEquals(
-        "simple.class",
-        "simple$.class"
+    test("$ivy") {
+      val testInputs = TestInputs(
+        os.rel / "simple.sc" ->
+          """import $ivy.`com.lihaoyi::geny:0.6.5`
+            |import geny.Generator
+            |val g = Generator("Hel", "lo")
+            |println(g.mkString)
+            |""".stripMargin
       )
+      testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
+        build.assertGeneratedEquals(
+          "simple.class",
+          "simple$.class"
+        )
+      }
+    }
+    test("$dep") {
+      val testInputs = TestInputs(
+        os.rel / "simple.sc" ->
+          """import $dep.`com.lihaoyi::geny:0.6.5`
+            |import geny.Generator
+            |val g = Generator("Hel", "lo")
+            |println(g.mkString)
+            |""".stripMargin
+      )
+      testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
+        build.assertGeneratedEquals(
+          "simple.class",
+          "simple$.class"
+        )
+      }
     }
   }
 
