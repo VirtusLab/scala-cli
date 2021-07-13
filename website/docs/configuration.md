@@ -22,15 +22,26 @@ $ scala --help
 $ scala package --help
 ```
 
+For example, you can specify the Scala version, or add dependencies, on the command-line:
+```text
+$ scala --scala 3.0.0 Test.scala
+$ scala --dependency org.typelevel::cats-core:2.3.0 Test.scala
+```
+
+The reference documentation lists [all available options](reference/cli-options.md).
+
 ## In `.scala` files
 
 Dependencies can be added right from `.scala` and `.sc` files, using the same
 syntax as Ammonite and Metals worksheets:
 
 ```scala
-import $ivy.`com.lihaoyi::upickle:1.4.0`
+import $dep.`com.lihaoyi::upickle:1.4.0`
+import $ivy.`com.lihaoyi::pprint:0.6.4`
 import ujson._
 ```
+
+Both `import $ivy` and `import $dep` are accepted, and are equivalent.
 
 ## Configuration files
 
