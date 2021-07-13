@@ -1,6 +1,6 @@
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
 
-import de.tobiasroeser.mill.vcs.version.VcsVersion
+import de.tobiasroeser.mill.vcs.version._
 import mill._, scalalib._
 
 import scala.concurrent.duration._
@@ -20,8 +20,7 @@ trait ScalaCliPublishModule extends PublishModule {
       Developer("alexarchambault", "Alex Archambault","https://github.com/alexarchambault")
     )
   )
-  def publishVersion = T{
-    val state = VcsVersion.vcsState()
+  private def computePublishVersion(state: VcsState): String = {
     if (state.commitsSinceLastTag > 0) {
       val versionOrEmpty = state.lastTag
         .filter(_ != "latest")
@@ -40,6 +39,19 @@ trait ScalaCliPublishModule extends PublishModule {
         .lastTag
         .getOrElse(state.format())
         .stripPrefix("v")
+  }
+  def publishVersion = {
+    val isCI = System.getenv("CI") != null
+    if (isCI)
+      T.persistent {
+        val state = VcsVersion.vcsState()
+        computePublishVersion(state)
+      }
+    else
+      T {
+        val state = VcsVersion.vcsState()
+        computePublishVersion(state)
+      }
   }
 }
 
