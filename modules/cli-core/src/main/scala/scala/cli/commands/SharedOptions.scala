@@ -29,6 +29,8 @@ final case class SharedOptions(
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
     dependencies: SharedDependencyOptions = SharedDependencyOptions(),
+  @Recurse
+    scalac: ScalacOptions = ScalacOptions(),
 
   @Group("Scala")
   @HelpMessage("Set Scala version")
@@ -43,12 +45,6 @@ final case class SharedOptions(
   @Name("scalaBin")
   @Name("B")
     scalaBinaryVersion: Option[String] = None,
-  @Group("Scala")
-  @HelpMessage("Add scalac option")
-  @ValueDescription("option")
-  @Name("scala-opt")
-  @Name("O")
-    scalacOption: List[String] = Nil,
 
   @Group("Java")
   @HelpMessage("Set Java home")
@@ -141,7 +137,7 @@ final case class SharedOptions(
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         generateSemanticDbs = semanticDb,
-        scalacOptions = scalacOption.filter(_.nonEmpty)
+        scalacOptions = scalac.scalacOption.filter(_.nonEmpty)
       ),
       scriptOptions = ScriptOptions(
         codeWrapper = codeWrapper

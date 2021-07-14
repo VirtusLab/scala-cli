@@ -339,6 +339,26 @@ Enable Scala Native
 
 #### `--native-compile-defaults`
 
+## Scalac options
+
+Available in commands:
+- [`bsp`](./commands#bsp)
+- [`compile`](./commands#compile)
+- [`browse` / `metabrowse`](./commands#browse)
+- [`package`](./commands#package)
+- [`console` / `repl`](./commands#console)
+- [`run`](./commands#run)
+- [`test`](./commands#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--scalac-option`
+
+Aliases: `--scala-opt`, `-O`, `-P`, `-W`, `-g`, `-X`, `-language`, `-Y`, `-V`, `-target`, `-opt`
+
+Add scalac option
+
 ## Shared options
 
 Available in commands:
@@ -364,12 +384,6 @@ Set Scala version
 Aliases: `--scala-binary`, `--scala-bin`, `-B`
 
 Set Scala binary version
-
-#### `--scalac-option`
-
-Aliases: `--scala-opt`, `-O`
-
-Add scalac option
 
 #### `--java-home`
 
