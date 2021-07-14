@@ -259,4 +259,84 @@ class TestTests extends munit.FunSuite {
     }
   }
 
+  val platforms = {
+    val maybeJs = if (TestUtil.canRunJs) Seq("JS" -> Seq("--js")) else Nil
+    val maybeNative = if (TestUtil.canRunNative) Seq("Native" -> Seq("--native")) else Nil
+    Seq("JVM" -> Nil) ++ maybeJs ++ maybeNative
+  }
+
+  for ((platformName, platformArgs) <- platforms)
+    test(s"test framework arguments $platformName") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "MyTests.scala" ->
+            """import $ivy.`org.scalatest::scalatest::3.2.9`
+              |import org.scalatest._
+              |import org.scalatest.flatspec._
+              |import org.scalatest.matchers._
+              |
+              |class Tests extends AnyFlatSpec with should.Matchers {
+              |  "A thing" should "thing" in {
+              |    assert(2 + 2 == 4)
+              |  }
+              |}
+              |""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        val baseRes = os.proc(TestUtil.cli, "test", TestUtil.extraOptions, platformArgs, ".").call(cwd = root)
+        val baseOutput = baseRes.out.text
+        expect(baseOutput.contains("A thing"))
+        expect(baseOutput.contains("should thing"))
+        val baseShouldThingLine = baseRes.out.lines().find(_.contains("should thing")).getOrElse(???)
+        expect(!baseShouldThingLine.contains("millisecond"))
+
+        val res = os.proc(TestUtil.cli, "test", TestUtil.extraOptions, platformArgs, ".", "--", "-oD").call(cwd = root)
+        val output = res.out.text
+        expect(output.contains("A thing"))
+        expect(output.contains("should thing"))
+        val shouldThingLine = res.out.lines().find(_.contains("should thing")).getOrElse(???)
+        expect(shouldThingLine.contains("millisecond"))
+      }
+    }
+
+  for ((platformName, platformArgs) <- platforms)
+    test(s"custom test framework $platformName") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "MyTests.scala" ->
+            """import $ivy.`com.lihaoyi::utest::0.7.9`, utest._
+              |
+              |object MyTests extends TestSuite {
+              |  val tests = Tests {
+              |    test("foo") {
+              |      assert(2 + 2 == 4)
+              |      println("Hello from " + "tests")
+              |    }
+              |  }
+              |}
+              |""".stripMargin,
+          os.rel / "CustomFramework.scala" ->
+            """package custom
+              |
+              |class CustomFramework extends utest.runner.Framework {
+              |  override def setup(): Unit =
+              |    println("Hello from CustomFramework")
+              |}
+              |""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        val baseRes = os.proc(TestUtil.cli, "test", TestUtil.extraOptions, platformArgs, ".").call(cwd = root)
+        val baseOutput = baseRes.out.text
+        expect(baseOutput.contains("Hello from tests"))
+        expect(!baseOutput.contains("Hello from CustomFramework"))
+
+        val res = os.proc(TestUtil.cli, "test", TestUtil.extraOptions, platformArgs, ".", "--test-framework", "custom.CustomFramework").call(cwd = root)
+        val output = res.out.text
+        expect(output.contains("Hello from tests"))
+        expect(output.contains("Hello from CustomFramework"))
+      }
+    }
+
 }

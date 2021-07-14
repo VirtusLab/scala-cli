@@ -108,6 +108,7 @@ Accepts options:
 - [Scala Native](./cli-options.md#scala-native-options)
 - [Scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
+- [test](./cli-options.md#test-options)
 - [watch](./cli-options.md#watch-options)
 
 ## `browse`

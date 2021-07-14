@@ -12,10 +12,17 @@ final case class TestOptions(
   @Recurse
     sharedJava: SharedJavaOptions = SharedJavaOptions(),
   @Recurse
-    watch: SharedWatchOptions = SharedWatchOptions()
+    watch: SharedWatchOptions = SharedWatchOptions(),
+
+  @Group("Test")
+  @HelpMessage("Test framework to use to run tests")
+  @ValueDescription("class-name")
+    testFramework: Option[String] = None
 ) {
   def buildOptions: BuildOptions =
     shared.buildOptions(enableJmh = false, jmhVersion = None)
+  def testFrameworkOpt: Option[String] =
+    testFramework.map(_.trim).filter(_.nonEmpty)
 }
 
 object TestOptions {

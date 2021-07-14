@@ -441,6 +441,18 @@ Generate SemanticDBs
 
 #### `--add-stubs`
 
+## Test options
+
+Available in commands:
+- [`test`](./commands#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--test-framework`
+
+Test framework to use to run tests
+
 ## Watch options
 
 Available in commands:
