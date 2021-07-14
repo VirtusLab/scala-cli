@@ -203,23 +203,38 @@ object Operations {
       def openSocket() = bspSocketOrPort match {
         case Left(bspPort) =>
           new Socket(host, bspPort)
-        case Right(socket) =>
+        case Right(socketFile) =>
           var count = 0
           val period = 50.millis
           val maxWait = 10.seconds
           val maxCount = (maxWait / period).toInt
-          while (!socket.exists() && count < maxCount && closed.value.isEmpty) {
-            logger.debug(s"BSP connection at $socket not found, waiting $period")
+          var socket: Socket = null
+          while (!socketFile.exists() && socket == null && count < maxCount && closed.value.isEmpty) {
+            logger.debug {
+              if (socketFile.exists())
+                s"BSP connection $socketFile found but not open, waiting $period"
+              else
+                s"BSP connection at $socketFile not found, waiting $period"
+            }
             Thread.sleep(period.toMillis)
+            if (socketFile.exists()) {
+              socket = try {
+                new org.scalasbt.ipcsocket.UnixDomainSocket(socketFile.getAbsolutePath, true)
+              } catch {
+                case e: org.scalasbt.ipcsocket.NativeErrorException if e.returnCode == 111 =>
+                  logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
+                  null
+              }
+            }
             count += 1
           }
-          if (socket.exists()) {
-            logger.debug(s"BSP connection at $socket found")
-            new org.scalasbt.ipcsocket.UnixDomainSocket(socket.getAbsolutePath, true)
+          if (socket != null) {
+            logger.debug(s"BSP connection at $socketFile opened")
+            socket
           } else if (closed.value.isEmpty)
-            sys.error(s"Timeout while waiting for BSP socket to be created in $socket")
+            sys.error(s"Timeout while waiting for BSP socket to be created in $socketFile")
           else
-            sys.error(s"Bloop BSP connection in $socket was unexpectedly closed or bloop didn't start.")
+            sys.error(s"Bloop BSP connection in $socketFile was unexpectedly closed or bloop didn't start.")
       }
       val closed = promise.future
       def stop() = stop0.set(true)
