@@ -30,7 +30,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     val value = l.mkString
       .replace("Scala native", "Scala Native")
       .replace("Scala js", "Scala.JS")
-    if (keepCapitalization || value.startsWith("Scala") || !value.head.isUpper) value
+    if (keepCapitalization || (value.startsWith("Scala") && !value.startsWith("Scalac")) || !value.head.isUpper) value
     else value.head.toLower +: value.tail
   }
 

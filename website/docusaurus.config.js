@@ -4,7 +4,7 @@ let isCI = process.env.CI || false;
 
 module.exports = {
   title: 'Scala CLI',
-  tagline: 'Your New Shiny Scala Command-Line',
+  tagline: 'More featureful Scala Command-Line',
   url: 'https://virtuslabrnd.github.io',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
