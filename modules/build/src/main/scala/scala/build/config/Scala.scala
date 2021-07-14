@@ -1,7 +1,8 @@
 package scala.build.config
 
 import pureconfig.ConfigReader
-import pureconfig.generic.semiauto._
+
+import scala.build.config.reader.DerivedConfigReader
 
 final case class Scala(
   version: Option[String] = None,
@@ -11,5 +12,5 @@ final case class Scala(
 )
 
 object Scala {
-  implicit val reader: ConfigReader[Scala] = deriveReader
+  implicit val reader = DerivedConfigReader[Scala]
 }

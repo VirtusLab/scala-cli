@@ -3,11 +3,14 @@ package scala.cli.doc
 import caseapp._
 import caseapp.core.Arg
 import caseapp.core.parser.ParserWithNameFormatter
+import caseapp.core.util.Formatter
 import munit.internal.difflib.Diff
 
 import java.nio.charset.StandardCharsets
-import java.util.Arrays
+import java.util.{Arrays, Locale}
 
+import scala.build.config.ConfigFormat
+import scala.build.config.reader.DerivedConfigReader
 import scala.cli.ScalaCli
 
 object GenerateReferenceDoc extends CaseApp[Options] {
@@ -19,14 +22,16 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     else actualOrigin.stripPrefix("Shared")
   }
 
-  private def formatOrigin(origin: String): String = {
+  private def formatOrigin(origin: String, keepCapitalization: Boolean = true): String = {
     val l = origin.head :: origin.toList.tail.flatMap { c =>
       if (c.isUpper) " " :: c.toLower :: Nil
       else c :: Nil
     }
-    l.mkString
+    val value = l.mkString
       .replace("Scala native", "Scala Native")
       .replace("Scala js", "Scala.JS")
+    if (keepCapitalization || value.startsWith("Scala") || !value.head.isUpper) value
+    else value.head.toLower +: value.tail
   }
 
   private def prettyPath(path: os.Path): String =
@@ -55,18 +60,17 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     }
   }
 
-  private def cliOptionsContent(allArgs: Seq[Arg]): String = {
+  private def cliOptionsContent(commands: Seq[Command[_]], allArgs: Seq[Arg], nameFormatter: Formatter[Name]): String = {
 
     val argsByOrigin = allArgs.groupBy(arg => cleanUpOrigin(arg.origin.getOrElse("")))
 
     val commandOrigins = for {
-      command <- ScalaCli.commands
+      command <- commands
       origin <- command.finalHelp.args.map(_.origin.getOrElse("")).map(cleanUpOrigin)
     } yield origin -> command
 
     val commandOriginsMap = commandOrigins.groupBy(_._1).map { case (k, v) => (k, v.map(_._2).distinct.sortBy(_.name)) }
 
-    val nameFormatter = ScalaCli.actualDefaultCommand.nameFormatter
     val b = new StringBuilder
 
     b.append(
@@ -94,6 +98,8 @@ object GenerateReferenceDoc extends CaseApp[Options] {
           |
           |$availableIn
           |
+          |<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+          |
           |""".stripMargin
       )
 
@@ -112,13 +118,20 @@ object GenerateReferenceDoc extends CaseApp[Options] {
                |
                |""".stripMargin
           )
+        for (desc <- arg.helpMessage.map(_.message))
+          b.append(
+            s"""$desc
+               |
+               |""".stripMargin
+          )
       }
     }
 
     b.toString
   }
 
-  private def commandsContent(commands: Seq[Command[_]]): String = {
+  private def commandsContent(commands: Seq[Command[_]], allArgs: Seq[Arg]): String = {
+
     val b = new StringBuilder
 
     b.append(
@@ -130,10 +143,16 @@ object GenerateReferenceDoc extends CaseApp[Options] {
         |""".stripMargin
     )
 
-    for (c <- commands) {
+    val (hiddenCommands, mainCommands) = commands.partition(_.hidden)
+
+    def addCommand(c: Command[_], additionalIndentation: Int = 0): Unit = {
+
+      val origins = c.parser0.args.flatMap(_.origin.toSeq).map(cleanUpOrigin).distinct.sorted
+
+      val headerPrefix = "#" * additionalIndentation
       val names = c.names.map(_.mkString(" "))
       b.append(
-        s"""## `${names.head}`
+        s"""${headerPrefix}## `${names.head}`
            |
            |""".stripMargin
       )
@@ -145,6 +164,71 @@ object GenerateReferenceDoc extends CaseApp[Options] {
         }
         b.append("\n")
       }
+
+      for (desc <- c.messages.helpMessage.map(_.message))
+        b.append(
+          s"""$desc
+             |
+             |""".stripMargin
+        )
+
+      if (origins.nonEmpty) {
+        val links = origins.map { origin =>
+          val cleanedUp = formatOrigin(origin, keepCapitalization = false)
+          val linkPart = cleanedUp.split("\\s+").map(_.toLowerCase(Locale.ROOT).filter(_ != '.')).mkString("-")
+          s"[$cleanedUp](./cli-options.md#$linkPart-options)"
+        }
+        b.append(
+          """Accepts options:
+            |""".stripMargin
+        )
+        for (link <- links)
+          b.append(s"- $link\n")
+        b.append("\n")
+      }
+    }
+
+    for (c <- mainCommands.iterator)
+      addCommand(c)
+    b.append(
+      """## Hidden commands
+        |
+        |""".stripMargin
+    )
+    for (c <- hiddenCommands.iterator)
+      addCommand(c, additionalIndentation = 1)
+
+    b.toString
+  }
+
+  private def configContent(reader: DerivedConfigReader[_]): String = {
+    val b = new StringBuilder
+
+    b.append(
+      """---
+        |title: Configuration file
+        |sidebar_position: 2
+        |---
+        |
+        |All fields are optional.
+        |
+        |""".stripMargin
+    )
+
+    for (field <- reader.allFields) {
+      b.append(
+        s"""### `${(field.prefix.iterator ++ Iterator(field.name)).mkString(".")}`
+           |
+           |Type: ${field.mdTypeDescription}
+           |
+           |""".stripMargin
+      )
+      for (desc <- field.description)
+        b.append(
+          s"""$desc
+             |
+             |""".stripMargin
+        )
     }
 
     b.toString
@@ -154,18 +238,11 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
     val commands = ScalaCli.commands
     val allArgs = commands.flatMap(_.finalHelp.args)
+    val nameFormatter = ScalaCli.actualDefaultCommand.nameFormatter
 
-    val argsByOrigin = allArgs.groupBy(arg => cleanUpOrigin(arg.origin.getOrElse("")))
-
-    val commandOrigins = for {
-      command <- ScalaCli.commands
-      origin <- command.finalHelp.args.map(_.origin.getOrElse("")).map(cleanUpOrigin)
-    } yield origin -> command
-
-    val commandOriginsMap = commandOrigins.groupBy(_._1).map { case (k, v) => (k, v.map(_._2).distinct.sortBy(_.name)) }
-
-    val cliOptionsContent0 = cliOptionsContent(allArgs)
-    val commandsContent0 = commandsContent(commands)
+    val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)
+    val commandsContent0 = commandsContent(commands, allArgs)
+    val configContent0 = configContent(ConfigFormat.reader)
 
     if (options.check) {
       val content = Seq(
@@ -190,6 +267,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     } else {
       maybeWrite(options.outputPath / "cli-options.md", cliOptionsContent0)
       maybeWrite(options.outputPath / "commands.md", commandsContent0)
+      maybeWrite(options.outputPath / "configuration-file.md", configContent0)
     }
   }
 }

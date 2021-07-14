@@ -2,9 +2,9 @@ package scala.build.config
 
 import dependency.parser.DependencyParser
 import pureconfig.ConfigReader
-import pureconfig.generic.semiauto._
 
 import scala.build.{Build, Os}
+import scala.build.config.reader.DerivedConfigReader
 import scala.build.options.{BuildOptions, ClassPathOptions, JavaOptions, ScalaOptions}
 
 final case class ConfigFormat(
@@ -47,5 +47,5 @@ final case class ConfigFormat(
 }
 
 object ConfigFormat {
-  implicit val reader: ConfigReader[ConfigFormat] = deriveReader
+  implicit val reader = DerivedConfigReader[ConfigFormat]
 }

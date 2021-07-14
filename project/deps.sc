@@ -35,7 +35,7 @@ object Deps {
   def osLib = ivy"com.lihaoyi::os-lib:0.7.5"
   def pprint = ivy"com.lihaoyi::pprint:0.6.4"
   def prettyStacktraces = ivy"org.virtuslab::pretty-stacktraces:0.0.0+27-b9d69198-SNAPSHOT"
-  def pureconfig = ivy"com.github.pureconfig::pureconfig:0.16.0"
+  def pureconfig = ivy"com.github.pureconfig::pureconfig-generic-base:0.16.0"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalaAsync = ivy"org.scala-lang.modules::scala-async:0.10.0"
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
