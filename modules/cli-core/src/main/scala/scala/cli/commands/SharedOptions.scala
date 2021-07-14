@@ -107,6 +107,7 @@ final case class SharedOptions(
   @Name("C")
     config: List[String] = Nil,
 
+  @Hidden
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
   @Hidden
