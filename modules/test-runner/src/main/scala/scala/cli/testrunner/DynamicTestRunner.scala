@@ -49,8 +49,12 @@ object DynamicTestRunner {
           .iterator
           .asScala
           .filter(_.getFileName.toString.endsWith(".class"))
-          .map(classPathEntry.relativize(_).toString)
-          .map(_.stripSuffix(".class").replace("/", ".")) // don't know of the replace stuff will be fine on Windows
+          .map(classPathEntry.relativize(_))
+          .map { p =>
+            val count = p.getNameCount
+            (0 until count).map(p.getName).mkString(".")
+          }
+          .map(_.stripSuffix(".class"))
           .toVector // fully consume stream before closing it
           .iterator
       } finally {
