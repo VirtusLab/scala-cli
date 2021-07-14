@@ -386,5 +386,6 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 }
 
 def unitTests() = T.command {
-  build(defaultScalaVersion).test.test()
+  build(defaultScalaVersion).test.test()()
+  cli.test.test()()
 }
