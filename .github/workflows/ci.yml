@@ -81,7 +81,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  format:
+  checks:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -91,6 +91,8 @@ jobs:
         jvm: 8
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
+    - name: Check Ammonite availability
+      run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps.'
 
   reference-doc:
     runs-on: ubuntu-latest
@@ -110,7 +112,7 @@ jobs:
         )
 
   launchers:
-    needs: [jvm-tests, native-tests, format, reference-doc]
+    needs: [jvm-tests, native-tests, checks, reference-doc]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:

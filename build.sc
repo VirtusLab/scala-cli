@@ -73,6 +73,18 @@ object `generate-reference-doc` extends SbtModule {
   def mainClass = Some("scala.cli.doc.GenerateReferenceDoc")
 }
 
+object dummy extends Module {
+  // dummy project to get scala steward updates for Ammonite, whose
+  // version is used in the repl command, and ensure Ammonite is available
+  // for all Scala versions we support
+  object amm extends Cross[Amm](Scala.listAll: _*)
+  class Amm(val crossScalaVersion: String) extends CrossScalaModule {
+    def ivyDeps = Agg(
+      Deps.ammonite
+    )
+  }
+}
+
 
 // We should be able to switch to 2.13.x when bumping the scala-native version
 def defaultScalaVersion = Scala.scala212
@@ -146,6 +158,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def localRepoVersion = "${vcsState().format()}"
          |
          |  def jmhVersion = "1.29"
+         |
+         |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |}
          |""".stripMargin
     os.write(dest, code)

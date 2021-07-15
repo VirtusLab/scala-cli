@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 
 @HelpMessage("Fire-up a Scala REPL")
@@ -16,9 +17,7 @@ final case class ReplOptions(
     ammonite: Option[String] = None
 ) {
   def ammoniteVersion: String =
-    ammonite.getOrElse {
-      "2.3.8-58-aa8b2ab1" // TODO Get via scala.build.internal.Constants
-    }
+    ammonite.getOrElse(Constants.ammoniteVersion)
 
   def buildOptions: BuildOptions =
     shared.buildOptions(enableJmh = false, jmhVersion = None)
