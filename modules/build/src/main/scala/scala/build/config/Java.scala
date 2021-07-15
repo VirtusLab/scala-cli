@@ -1,12 +1,14 @@
 package scala.build.config
 
 import pureconfig.ConfigReader
-import pureconfig.generic.semiauto._
+
+import scala.build.config.reader.{DerivedConfigReader, Description}
 
 final case class Java(
-  home: Option[String] = None
+  @Description("Java home")
+    home: Option[String] = None
 )
 
 object Java {
-  implicit val reader: ConfigReader[Java] = deriveReader
+  implicit val reader = DerivedConfigReader[Java]
 }

@@ -17,14 +17,21 @@ final case class Project(
   classPath: Seq[Path],
   sources: Seq[os.Path],
   resolution: Option[BloopConfig.Resolution],
-  resourceDirs: Seq[os.Path]
+  resourceDirs: Seq[os.Path],
+  javaHomeOpt: Option[os.Path]
 ) {
 
   import Project._
 
   def bloopProject: BloopConfig.Project = {
     val platform = (scalaJsOptions, scalaNativeOptions) match {
-      case (None, None) => bloopJvmPlatform
+      case (None, None) =>
+        val baseJvmConf = bloopJvmPlatform
+        baseJvmConf.copy(
+          config = baseJvmConf.config.copy(
+            home = javaHomeOpt.map(_.toNIO).orElse(baseJvmConf.config.home)
+          )
+        )
       case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
       case (_, Some(nativeConfig)) => BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
     }

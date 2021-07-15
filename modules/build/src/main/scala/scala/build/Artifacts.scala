@@ -21,6 +21,8 @@ final case class Artifacts(
   dependencies: Seq[AnyDependency],
   detailedArtifacts: Seq[(coursier.Dependency, coursier.core.Publication, coursier.util.Artifact, Path)],
   extraJars: Seq[Path],
+  extraCompileOnlyJars: Seq[Path],
+  extraSourceJars: Seq[Path],
   params: ScalaParameters
 ) {
   lazy val artifacts: Seq[(String, Path)] =
@@ -43,8 +45,10 @@ final case class Artifacts(
     compilerArtifacts.map(_._2)
   lazy val classPath: Seq[Path] =
     artifacts.map(_._2) ++ extraJars
+  lazy val compileClassPath: Seq[Path] =
+    artifacts.map(_._2) ++ extraJars ++ extraCompileOnlyJars
   lazy val sourcePath: Seq[Path] =
-    sourceArtifacts.map(_._2)
+    sourceArtifacts.map(_._2) ++ extraSourceJars
 }
 
 object Artifacts {
@@ -54,6 +58,8 @@ object Artifacts {
     compilerPlugins: Seq[AnyDependency],
     dependencies: Seq[AnyDependency],
     extraJars: Seq[Path],
+    extraCompileOnlyJars: Seq[Path],
+    extraSourceJars: Seq[Path],
     fetchSources: Boolean,
     addStubs: Boolean,
     addJvmRunner: Boolean,
@@ -145,6 +151,8 @@ object Artifacts {
       updatedDependencies,
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) => (d, p, a, f.toPath) },
       extraJars ++ extraStubsJars,
+      extraCompileOnlyJars,
+      extraSourceJars,
       params
     )
   }

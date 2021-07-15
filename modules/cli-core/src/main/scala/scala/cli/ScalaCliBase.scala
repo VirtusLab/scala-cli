@@ -1,6 +1,7 @@
 package scala.cli
 
 import caseapp.core.app.CommandsEntryPoint
+import caseapp.core.help.RuntimeCommandsHelp
 
 import scala.cli.commands._
 import scala.cli.internal.Argv0
@@ -13,6 +14,14 @@ abstract class ScalaCliBase extends CommandsEntryPoint {
   lazy val progName = (new Argv0).get("scala")
   override def description = "Compile, run, package Scala code."
   final override def defaultCommand = Some(actualDefaultCommand)
+
+  // FIXME Report this in case-app default NameFormatter
+  override lazy val help: RuntimeCommandsHelp = {
+    val parent = super.help
+    parent.withDefaultHelp(
+      parent.defaultHelp.withNameFormatter(actualDefaultCommand.nameFormatter)
+    )
+  }
 
   override def enableCompleteCommand = true
   override def enableCompletionsCommand = true

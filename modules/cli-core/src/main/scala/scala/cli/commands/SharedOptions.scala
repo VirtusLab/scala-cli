@@ -29,6 +29,8 @@ final case class SharedOptions(
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
     dependencies: SharedDependencyOptions = SharedDependencyOptions(),
+  @Recurse
+    scalac: ScalacOptions = ScalacOptions(),
 
   @Group("Scala")
   @HelpMessage("Set Scala version")
@@ -43,12 +45,6 @@ final case class SharedOptions(
   @Name("scalaBin")
   @Name("B")
     scalaBinaryVersion: Option[String] = None,
-  @Group("Scala")
-  @HelpMessage("Add scalac option")
-  @ValueDescription("option")
-  @Name("scala-opt")
-  @Name("O")
-    scalacOption: List[String] = Nil,
 
   @Group("Java")
   @HelpMessage("Set Java home")
@@ -60,6 +56,10 @@ final case class SharedOptions(
   @ValueDescription("jvm-name")
   @Name("j")
     jvm: Option[String] = None,
+  @Group("Java")
+  @HelpMessage("JVM index URL")
+  @ValueDescription("url")
+    jvmIndex: Option[String] = None,
 
   @Group("Java")
   @HelpMessage("Add extra JARs in the class path")
@@ -68,6 +68,22 @@ final case class SharedOptions(
   @Name("jars")
   @Name("extraJar")
     extraJars: List[String] = Nil,
+
+  @Group("Java")
+  @HelpMessage("Add extra JARs in the class path during compilation only")
+  @ValueDescription("paths")
+  @Name("compileOnlyJar")
+  @Name("compileOnlyJars")
+  @Name("extraCompileOnlyJar")
+    extraCompileOnlyJars: List[String] = Nil,
+
+  @Group("Java")
+  @HelpMessage("Add extra source JARs")
+  @ValueDescription("paths")
+  @Name("sourceJar")
+  @Name("sourceJars")
+  @Name("extraSourceJar")
+    extraSourceJars: List[String] = Nil,
 
   @Group("Dependency")
   @HelpMessage("Specify a TTL for changing dependencies, such as snapshots")
@@ -91,6 +107,7 @@ final case class SharedOptions(
   @Name("C")
     config: List[String] = Nil,
 
+  @Hidden
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
   @Hidden
@@ -121,7 +138,7 @@ final case class SharedOptions(
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         generateSemanticDbs = semanticDb,
-        scalacOptions = scalacOption.filter(_.nonEmpty)
+        scalacOptions = scalac.scalacOption.filter(_.nonEmpty)
       ),
       scriptOptions = ScriptOptions(
         codeWrapper = codeWrapper
@@ -129,8 +146,9 @@ final case class SharedOptions(
       scalaJsOptions = js.buildOptions,
       scalaNativeOptions = native.buildOptions,
       javaOptions = JavaOptions(
-        javaHomeOpt = javaHome.filter(_.nonEmpty),
+        javaHomeOpt = javaHome.filter(_.nonEmpty).map(os.Path(_, Os.pwd)),
         jvmIdOpt = jvm.filter(_.nonEmpty),
+        jvmIndexOpt = jvmIndex.filter(_.nonEmpty)
       ),
       internalDependencies = InternalDependenciesOptions(
         addStubsDependencyOpt = addStubs,
@@ -144,6 +162,7 @@ final case class SharedOptions(
       ),
       classPathOptions = ClassPathOptions(
         extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
+        extraCompileOnlyJars = extraCompileOnlyJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
         extraDependencies = dependencies.dependency.map(_.trim).filter(_.nonEmpty).flatMap { depStr =>
           DependencyParser.parse(depStr) match {

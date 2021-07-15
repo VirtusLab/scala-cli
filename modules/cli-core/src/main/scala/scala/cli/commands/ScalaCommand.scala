@@ -1,15 +1,27 @@
 package scala.cli.commands
 
+import caseapp.Name
 import caseapp.core.app.Command
-import caseapp.core.parser.Parser
-import caseapp.core.help.Help
-import caseapp.core.help.HelpFormat
-import caseapp.core.complete.Completer
 import caseapp.core.Arg
-import caseapp.core.complete.CompletionItem
+import caseapp.core.complete.{Completer, CompletionItem}
+import caseapp.core.help.{Help, HelpFormat}
+import caseapp.core.parser.Parser
+import caseapp.core.util.Formatter
 
 abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T]) extends Command()(parser, help) {
   def sharedOptions(t: T): Option[SharedOptions] = None
+  override def hasFullHelp = true
+
+  // FIXME Report this in case-app default NameFormatter
+  override lazy val nameFormatter: Formatter[Name] = {
+    val parent = super.nameFormatter
+    new Formatter[Name] {
+      def format(t: Name): String =
+        if (t.name.startsWith("-")) t.name
+        else parent.format(t)
+    }
+  }
+
   override def completer: Completer[T] = {
     val parent = super.completer
     new Completer[T] {

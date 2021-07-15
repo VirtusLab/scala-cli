@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+
 import scala.util.Properties
 
 class RunTests extends munit.FunSuite {
@@ -564,6 +566,128 @@ class RunTests extends munit.FunSuite {
     emptyInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, TestUtil.extraOptions, escapedUrls(url)).call(cwd = root).out.text.trim
       expect(output == message)
+    }
+  }
+
+  test("Compile-time only JARs") {
+    val shapelessJar = os.proc("cs", "fetch", "--intransitive", "com.chuusai:shapeless_2.12:2.3.7").call().out.text.trim
+    expect(os.isFile(os.Path(shapelessJar, os.pwd)))
+
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "test.sc" ->
+          """val shapelessFound =
+            |  try Thread.currentThread().getContextClassLoader.loadClass("shapeless.HList") != null
+            |  catch { case _: ClassNotFoundException => false }
+            |println(if (shapelessFound) "Hello with " + "shapeless" else "Hello from " + "test")
+            |""".stripMargin,
+        os.rel / "Other.scala" ->
+          """object Other {
+            |  import shapeless._
+            |  val l = 2 :: "a" :: HNil
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val baseOutput = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--extra-jar", shapelessJar).call(cwd = root).out.text.trim
+      expect(baseOutput == "Hello with shapeless")
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--compile-only-jar", shapelessJar).call(cwd = root).out.text.trim
+      expect(output == "Hello from test")
+    }
+  }
+
+  test("Scala version in config file") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "test.sc" ->
+          """println(scala.util.Properties.versionNumberString)
+            |""".stripMargin,
+        os.rel / "scala.conf" ->
+          """scala {
+            |  version = 2.13.1
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".").call(cwd = root).out.text.trim
+      expect(output == "2.13.1")
+    }
+  }
+
+  test("Command-line -X scalac options") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Test.scala" ->
+          """object Test {
+            |  def main(args: Array[String]): Unit = {
+            |    val msg = "Hello"
+            |    val foo = List("Not printed", 2, true, new Object)
+            |    println(msg)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      def run(warnAny: Boolean) =
+        os.proc(TestUtil.cli, TestUtil.extraOptions, ".", if (warnAny) Seq("-Xlint:infer-any") else Nil).call(
+          cwd = root,
+          stderr = os.Pipe
+        )
+
+      val expectedWarning = "a type was inferred to be `Any`; this may indicate a programming error."
+
+      val baseRes = run(warnAny = false)
+      val baseOutput = baseRes.out.text.trim
+      val baseErrOutput = baseRes.err.text
+      expect(baseOutput == "Hello")
+      expect(!baseErrOutput.contains(expectedWarning))
+
+      val res = run(warnAny = true)
+      val output = res.out.text.trim
+      val errOutput = res.err.text
+      expect(output == "Hello")
+      expect(errOutput.contains(expectedWarning))
+    }
+  }
+
+  test("Command-line -Y scalac options") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Delambdafy.scala" ->
+          """object Delambdafy {
+            |  def main(args: Array[String]): Unit = {
+            |    val l = List(0, 1, 2)
+            |    println(l.map(_ + 1).mkString)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      // FIXME We don't really use the run command here, in spite of being in RunTests…
+      def classNames(inlineDelambdafy: Boolean): Seq[String] = {
+        val res = os.proc(TestUtil.cli, "compile", TestUtil.extraOptions, "--class-path", ".", if (inlineDelambdafy) Seq("-Ydelambdafy:inline") else Nil)
+          .call(cwd = root)
+        val cp = res.out.text.trim.split(File.pathSeparator).map(os.Path(_, os.pwd))
+        cp
+          .filter(os.isDir(_))
+          .flatMap(os.list(_))
+          .filter(os.isFile(_))
+          .map(_.last)
+          .filter(_.startsWith("Delambdafy"))
+          .filter(_.endsWith(".class"))
+          .map(_.stripSuffix(".class"))
+      }
+
+      val baseClassNames = classNames(inlineDelambdafy = false)
+      expect(baseClassNames.nonEmpty)
+      expect(!baseClassNames.exists(_.contains("$anonfun$")))
+
+      val classNames0 = classNames(inlineDelambdafy = true)
+      expect(classNames0.exists(_.contains("$anonfun$")))
     }
   }
 

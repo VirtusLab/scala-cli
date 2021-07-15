@@ -1,5 +1,7 @@
 package scala.build.options
 
+import coursier.cache.FileCache
+import coursier.jvm.{JvmCache, JvmIndex, JavaHome}
 import dependency._
 
 import java.math.BigInteger
@@ -10,8 +12,6 @@ import java.security.MessageDigest
 import scala.build.{Artifacts, Logger, Os}
 import scala.build.internal.Constants._
 import scala.build.internal.Util
-import coursier.cache.FileCache
-import coursier.jvm.{JvmCache, JavaHome}
 import scala.util.Properties
 
 final case class BuildOptions(
@@ -60,6 +60,10 @@ final case class BuildOptions(
 
   def allExtraJars: Seq[Path] =
     classPathOptions.extraJars.map(_.toNIO)
+  def allExtraCompileOnlyJars: Seq[Path] =
+    classPathOptions.extraCompileOnlyJars.map(_.toNIO)
+  def allExtraSourceJars: Seq[Path] =
+    classPathOptions.extraSourceJars.map(_.toNIO)
 
   private def addJvmTestRunner: Boolean = !scalaJsOptions.enable && !scalaNativeOptions.enable && internalDependencies.addTestRunnerDependency
   private def addJsTestBridge: Option[String] = if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion) else None
@@ -68,30 +72,35 @@ final case class BuildOptions(
   private lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
   private lazy val javaCommand0: String = {
-    val javaHomeOpt0 = javaOptions.javaHomeOpt.filter(_.nonEmpty)
-      .orElse(if (javaOptions.jvmIdOpt.isEmpty) sys.props.get("java.home") else None)
-      .map(os.Path(_, Os.pwd))
-      .orElse {
-        implicit val ec = finalCache.ec
-        val (id, path) = javaHomeManager.getWithRetainedId(javaOptions.jvmIdOpt.getOrElse(JavaHome.defaultId)).unsafeRun()
-        if (id == JavaHome.systemId) None
-        else Some(os.Path(path))
-      }
+    val javaHomeOpt0 = javaHomeLocationOpt()
     val ext = if (Properties.isWin) ".exe" else ""
-
     javaHomeOpt0.fold("java")(javaHome => (javaHome / "bin" / s"java$ext").toString)
   }
 
-  def javaHomeLocation(): os.Path = {
-    implicit val ec = finalCache.ec
-    val path = javaHomeManager.get(javaOptions.jvmIdOpt.getOrElse(JavaHome.defaultId)).unsafeRun()
-    os.Path(path)
-  }
+  def javaHomeLocationOpt(): Option[os.Path] =
+    javaOptions.javaHomeOpt
+      .orElse(if (javaOptions.jvmIdOpt.isEmpty) sys.props.get("java.home").map(os.Path(_, Os.pwd)) else None)
+      .orElse {
+        javaOptions.jvmIdOpt.map { jvmId =>
+          implicit val ec = finalCache.ec
+          val path = javaHomeManager.get(jvmId).unsafeRun()
+          os.Path(path)
+        }
+      }
+
+  def javaHomeLocation(): os.Path =
+    javaHomeLocationOpt().getOrElse {
+      implicit val ec = finalCache.ec
+      val path = javaHomeManager.get(JavaHome.defaultId).unsafeRun()
+      os.Path(path)
+    }
 
   def javaCommand(): String = javaCommand0
 
   private def javaHomeManager = {
-    val jvmCache = JvmCache().withDefaultIndex.withCache(finalCache)
+    val indexUrl = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
+    val indexTask = JvmIndex.load(finalCache, indexUrl)
+    val jvmCache = JvmCache().withIndex(indexTask).withCache(finalCache)
     JavaHome().withCache(jvmCache)
   }
 
@@ -153,6 +162,8 @@ final case class BuildOptions(
          compilerPlugins = compilerPlugins(params),
             dependencies = userDependencies ++ dependencies(params),
                extraJars = allExtraJars,
+      extraCompileOnlyJars = allExtraCompileOnlyJars,
+         extraSourceJars = allExtraSourceJars,
             fetchSources = classPathOptions.fetchSources.getOrElse(false),
                 addStubs = internalDependencies.addStubsDependency,
             addJvmRunner = addRunnerDependency,

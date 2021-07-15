@@ -22,7 +22,7 @@ object Test extends ScalaCommand[TestOptions] {
     if (options.watch.watch) {
       val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
-          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = false, exitOnError = false)
+          testOnce(options, inputs.workspace, inputs.projectName, s, options.testFrameworkOpt, args.unparsed, allowExecve = false, exitOnError = false)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
       }
@@ -32,7 +32,7 @@ object Test extends ScalaCommand[TestOptions] {
       val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger)
       build match {
         case s: Build.Successful =>
-          testOnce(options, inputs.workspace, inputs.projectName, s, allowExecve = true, exitOnError = true)
+          testOnce(options, inputs.workspace, inputs.projectName, s, options.testFrameworkOpt, args.unparsed, allowExecve = true, exitOnError = true)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -45,6 +45,8 @@ object Test extends ScalaCommand[TestOptions] {
     root: os.Path,
     projectName: String,
     build: Build.Successful,
+    testFrameworkOpt: Option[String],
+    args: Seq[String],
     allowExecve: Boolean,
     exitOnError: Boolean
   ): Unit = {
@@ -55,7 +57,9 @@ object Test extends ScalaCommand[TestOptions] {
         Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig) { js =>
           Runner.testJs(
             build.fullClassPath,
-            js.toIO
+            js.toIO,
+            args,
+            options.testFrameworkOpt
           )
         }
       } else if (options.shared.native.native)
@@ -70,19 +74,24 @@ object Test extends ScalaCommand[TestOptions] {
             build.fullClassPath,
             launcher.toIO,
             options.shared.logger,
+            options.testFrameworkOpt,
+            args,
             options.shared.scalaNativeLogger
           )
         }
-      else
+      else {
+        val extraArgs = testFrameworkOpt.map(fw => s"--test-framework=$fw").toSeq ++ Seq("--") ++ args
+
         Runner.run(
           build.options.javaCommand(),
           options.sharedJava.allJavaOpts,
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,
-          Nil,
+          extraArgs,
           options.shared.logger,
           allowExecve = allowExecve
         )
+      }
 
     if (retCode != 0) {
       if (exitOnError)

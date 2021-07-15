@@ -135,6 +135,7 @@ object Runner {
   private def runTests(
     classPath: Seq[Path],
     framework: Framework,
+    args: Seq[String],
     parentInspector: AsmTestRunner.ParentInspector
   ): Boolean = {
 
@@ -146,7 +147,7 @@ object Runner {
         parentInspector
       ).toArray
 
-    val runner = framework.runner(Array(), Array(), null)
+    val runner = framework.runner(args.toArray, Array(), null)
     val initialTasks = runner.tasks(taskDefs)
     val events = TestRunner.runTasks(initialTasks, System.out)
 
@@ -166,7 +167,9 @@ object Runner {
 
   def testJs(
     classPath: Seq[Path],
-    entrypoint: File
+    entrypoint: File,
+    args: Seq[String],
+    testFrameworkOpt: Option[String]
   ): Int = {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
@@ -185,7 +188,7 @@ object Runner {
     var adapter: TestAdapter = null
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val frameworkName0 = frameworkName(classPath, parentInspector)
+    val frameworkName0 = testFrameworkOpt.getOrElse(frameworkName(classPath, parentInspector))
 
     try {
       adapter = new TestAdapter(jsEnv, inputs, adapterConfig)
@@ -198,7 +201,7 @@ object Runner {
         sys.error("Too many frameworks found by Scala.JS test bridge")
       else {
         val framework = frameworks.head
-        val success = runTests(classPath, framework, parentInspector)
+        val success = runTests(classPath, framework, args, parentInspector)
         if (success) 0 else 1
       }
     } finally {
@@ -211,13 +214,15 @@ object Runner {
     classPath: Seq[Path],
     launcher: File,
     logger: Logger,
+    frameworkNameOpt: Option[String],
+    args: Seq[String],
     nativeLogger: sn.Logger
   ): Int = {
 
     import scala.scalanative.testinterface.adapter.TestAdapter
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val frameworkName0 = frameworkName(classPath, parentInspector)
+    val frameworkName0 = frameworkNameOpt.getOrElse(frameworkName(classPath, parentInspector))
 
     val config = TestAdapter.Config()
       .withBinaryFile(launcher)
@@ -236,7 +241,7 @@ object Runner {
         sys.error("Too many frameworks found by Scala-Native test bridge")
       else {
         val framework = frameworks.head
-        val success = runTests(classPath, framework, parentInspector)
+        val success = runTests(classPath, framework, args, parentInspector)
         if (success) 0 else 1
       }
     } finally {

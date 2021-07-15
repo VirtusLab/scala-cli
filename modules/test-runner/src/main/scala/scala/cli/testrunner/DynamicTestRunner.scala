@@ -7,6 +7,7 @@ import java.util.ServiceLoader
 
 import sbt.testing._
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 
 object DynamicTestRunner {
@@ -48,8 +49,12 @@ object DynamicTestRunner {
           .iterator
           .asScala
           .filter(_.getFileName.toString.endsWith(".class"))
-          .map(classPathEntry.relativize(_).toString)
-          .map(_.stripSuffix(".class").replace("/", ".")) // don't know of the replace stuff will be fine on Windows
+          .map(classPathEntry.relativize(_))
+          .map { p =>
+            val count = p.getNameCount
+            (0 until count).map(p.getName).mkString(".")
+          }
+          .map(_.stripSuffix(".class"))
           .toVector // fully consume stream before closing it
           .iterator
       } finally {
@@ -84,6 +89,16 @@ object DynamicTestRunner {
       .asScala
       .toStream
       .headOption
+
+  def loadFramework(
+    loader: ClassLoader,
+    className: String
+  ): Framework = {
+    val frameworkCls = classOf[Framework]
+    val cls = loader.loadClass(className)
+    val constructor = cls.getConstructor()
+    constructor.newInstance().asInstanceOf[Framework]
+  }
 
   def findFramework(
     classPath: Seq[Path],
@@ -122,9 +137,24 @@ object DynamicTestRunner {
   }
 
   def main(args: Array[String]): Unit = {
+
+    val (testFrameworkOpt, args0) = {
+      @tailrec
+      def parse(testFrameworkOpt: Option[String], reverseTestArgs: List[String], args: List[String]): (Option[String], List[String]) =
+        args match {
+          case Nil => (testFrameworkOpt, reverseTestArgs.reverse)
+          case "--" :: t => (testFrameworkOpt, reverseTestArgs.reverse ::: t)
+          case h :: t if h.startsWith("--test-framework=") => parse(Some(h.stripPrefix("--test-framework=")), reverseTestArgs, t)
+          case h :: t => parse(testFrameworkOpt, h :: reverseTestArgs, t)
+        }
+
+      parse(None, Nil, args.toList)
+    }
+
     val classLoader = Thread.currentThread().getContextClassLoader
     val classPath0 = TestRunner.classPath(classLoader)
-    val framework = findFrameworkService(classLoader)
+    val framework = testFrameworkOpt.map(loadFramework(classLoader, _))
+      .orElse(findFrameworkService(classLoader))
       .orElse(findFramework(classPath0, classLoader, TestRunner.commonTestFrameworks))
       .getOrElse(sys.error("No test framework found"))
     def classes = {
@@ -134,7 +164,7 @@ object DynamicTestRunner {
     val out = System.out
 
     val fingerprints = framework.fingerprints()
-    val runner = framework.runner(Array(), Array(), classLoader)
+    val runner = framework.runner(args0.toArray, Array(), classLoader)
     def clsFingerprints = classes.flatMap { cls =>
       matchFingerprints(classLoader, cls, fingerprints)
         .map((cls, _))

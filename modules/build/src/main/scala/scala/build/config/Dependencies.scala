@@ -1,7 +1,8 @@
 package scala.build.config
 
 import pureconfig.ConfigReader
-import pureconfig.generic.semiauto._
+
+import scala.build.config.reader.DerivedConfigReader
 
 final case class Dependencies(
   dependencies: List[String] = Nil,
@@ -9,5 +10,5 @@ final case class Dependencies(
 )
 
 object Dependencies {
-  implicit val reader: ConfigReader[Dependencies] = deriveReader
+  implicit val reader = DerivedConfigReader[Dependencies]
 }

@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  jvm-tests:
     runs-on: ${{ matrix.OS }}
     strategy:
       fail-fast: false
@@ -25,6 +25,38 @@ jobs:
       run: ./mill -i unitTests
     - name: JVM integration tests
       run: ./mill -i integration.jvm.test
+    - name: Build OS packages
+      run: .github/scripts/generate-os-packages.sh
+      shell: bash
+      if: runner.os == 'Windows'
+    - uses: actions/upload-artifact@v2.2.4
+      if: runner.os == 'Windows'
+      with:
+        name: launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+
+  native-tests:
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      fail-fast: false
+      matrix:
+        OS: ["ubuntu-latest", "macos-latest"]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: coursier/cache-action@v6
+    - uses: laughedelic/coursier-setup@v1
+      with:
+        jvm: 8
+    - name: Generate native launcher
+      run: ./mill -i show cli.nativeImage
+      if: runner.os == 'macOS'
+    - name: Generate core native launcher
+      run: ./mill -i show cli-core.nativeImage
+      # not enough memory on the Linux and Windows runners,
+      # only creating a native image with the core commands
+      if: runner.os == 'Linux'
     - name: Native integration tests
       run: ./mill -i integration.native.test
       if: runner.os == 'macOS'
@@ -32,7 +64,7 @@ jobs:
       run: ./mill -i integration-core.native.test
       # not enough memory on the Linux and Windows runners,
       # only creating a native image with the core commands
-      if: runner.os == 'Linux' # || runner.os == 'Windows'
+      if: runner.os == 'Linux'
     - name: Build OS packages
       run: .github/scripts/generate-os-packages.sh
       shell: bash
@@ -41,7 +73,7 @@ jobs:
       if: runner.os == 'macOS'
     - name: Copy core artifacts
       run: ./mill -i copyCoreLauncher artifacts/
-      if: runner.os == 'Linux' # || runner.os == 'Windows'
+      if: runner.os == 'Linux'
     - uses: actions/upload-artifact@v2.2.4
       with:
         name: launchers
@@ -60,8 +92,25 @@ jobs:
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
 
+  reference-doc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: coursier/cache-action@v6
+    - uses: laughedelic/coursier-setup@v1
+      with:
+        jvm: 8
+    - name: Check that reference doc is up-to-date
+      run: |
+        ./mill -i generate-reference-doc.run --check || (
+          echo "Reference doc is not up-to-date. Run"
+          echo "  ./mill -i generate-reference-doc.run"
+          echo "to update it, then commit the result."
+          exit 1
+        )
+
   launchers:
-    needs: [test, format]
+    needs: [jvm-tests, native-tests, format, reference-doc]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
