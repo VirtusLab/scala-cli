@@ -1,6 +1,6 @@
 ---
 title: Navigate dependencies
-sidebar_position: 14
+sidebar_position: 2
 ---
 
 For now, only on macOS
