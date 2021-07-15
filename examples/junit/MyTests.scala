@@ -1,4 +1,4 @@
-import $ivy.`com.novocode:junit-interface:0.11`
+import $ivy.`com.github.sbt:junit-interface:0.13.2`
 import org.junit.Test
 
 class MyTests {
