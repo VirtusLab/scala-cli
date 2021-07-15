@@ -13,8 +13,9 @@ Manual installation is recommended for now.
 
 Download the launcher from GitHub release assets with
 ```text
-$ sudo curl -fLo /usr/local/bin/scala https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-pc-linux.gz
-$ sudo chmod +x /usr/local/bin/scala
+$ curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-pc-linux.gz | gzip -d > scala
+$ chmod +x scala
+$ sudo mv scala /usr/local/bin/scala
 ```
 
 Check that it runs fine by running its `about` command:
@@ -26,8 +27,9 @@ $ scala about
 
 Download the launcher from GitHub release assets with
 ```text
-$ sudo curl -fLo /usr/local/bin/scala https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-apple-darwin.gz
-$ sudo chmod +x /usr/local/bin/scala
+$ curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-apple-darwin.gz | gzip -d > scala
+$ chmod +x scala
+$ sudo mv scala /usr/local/bin/scala
 ```
 
 Check that it runs fine by running its `about` command:
