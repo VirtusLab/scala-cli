@@ -83,16 +83,20 @@ final case class BuildOptions(
       .orElse {
         javaOptions.jvmIdOpt.map { jvmId =>
           implicit val ec = finalCache.ec
-          val path = javaHomeManager.get(jvmId).unsafeRun()
-          os.Path(path)
+          finalCache.logger.use {
+            val path = javaHomeManager.get(jvmId).unsafeRun()
+            os.Path(path)
+          }
         }
       }
 
   def javaHomeLocation(): os.Path =
     javaHomeLocationOpt().getOrElse {
       implicit val ec = finalCache.ec
-      val path = javaHomeManager.get(JavaHome.defaultId).unsafeRun()
-      os.Path(path)
+      finalCache.logger.use {
+        val path = javaHomeManager.get(JavaHome.defaultId).unsafeRun()
+        os.Path(path)
+      }
     }
 
   def javaCommand(): String = javaCommand0
@@ -123,10 +127,12 @@ final case class BuildOptions(
       def isStable(v: String): Boolean =
         !v.endsWith("-NIGHTLY") && !v.contains("-RC")
       def moduleVersions(mod: Module): Seq[String] = {
-        val res = Versions()
-          .withModule(mod)
-          .result()
-          .unsafeRun()(ec)
+        val res = finalCache.logger.use {
+          Versions()
+            .withModule(mod)
+            .result()
+            .unsafeRun()(ec)
+        }
         res.versions.available.filter(isStable)
       }
       modules.flatMap(moduleVersions).distinct

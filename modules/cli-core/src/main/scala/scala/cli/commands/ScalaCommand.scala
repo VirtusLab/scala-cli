@@ -33,10 +33,12 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T]) extend
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
               val cache = sharedOptions.coursierCache
               sharedOptions.buildOptions(false, None, ignoreErrors = true).scalaOptions.scalaVersion
-              val (fromIndex, completions) = coursier.complete.Complete(cache)
-                .withInput(prefix)
-                .complete()
-                .unsafeRun()(cache.ec)
+              val (fromIndex, completions) = cache.logger.use {
+                coursier.complete.Complete(cache)
+                  .withInput(prefix)
+                  .complete()
+                  .unsafeRun()(cache.ec)
+              }
               if (completions.isEmpty) Nil
               else {
                 val prefix0 = prefix.take(fromIndex)
