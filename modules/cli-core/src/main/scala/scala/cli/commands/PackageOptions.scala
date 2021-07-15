@@ -18,9 +18,14 @@ final case class PackageOptions(
   @HelpMessage("Overwrite destination file if it exists")
   @Name("f")
     force: Boolean = false,
+
   @Group("Package")
   @HelpMessage("Generate a library JAR rather than an executable JAR")
     library: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Generate an assembly JAR")
+    assembly: Boolean = false,
+
   @Group("Package")
   @HelpMessage("Specify which main class to run")
   @ValueDescription("main-class")
@@ -43,8 +48,9 @@ final case class PackageOptions(
     pkg: Boolean = false,
 ) {
   import PackageOptions.PackageType
-  def packageType: PackageType = 
+  def packageType: PackageType =
     if (library) PackageType.LibraryJar
+    else if (assembly) PackageType.Assembly
     else if (shared.js.js) PackageType.Js
     else if (shared.native.native) PackageType.Native
     else if (deb)  PackageType.Debian
@@ -65,6 +71,7 @@ object PackageOptions {
   object PackageType {
     case object Bootstrap extends PackageType
     case object LibraryJar extends PackageType
+    case object Assembly extends PackageType
     case object Js extends PackageType
     case object Native extends PackageType
     case object Debian extends NativePackagerType

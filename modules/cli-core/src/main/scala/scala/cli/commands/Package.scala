@@ -49,6 +49,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     def extension = options.packageType match {
       case PackageOptions.PackageType.LibraryJar => ".jar"
+      case PackageOptions.PackageType.Assembly => ".jar"
       case PackageOptions.PackageType.Js => ".js"
       case PackageOptions.PackageType.Debian => ".deb"
       case PackageOptions.PackageType.Dmg => ".dmg"
@@ -61,6 +62,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     def defaultName = options.packageType match {
       case PackageOptions.PackageType.LibraryJar => "library.jar"
+      case PackageOptions.PackageType.Assembly => "app.jar"
       case PackageOptions.PackageType.Js => "app.js"
       case PackageOptions.PackageType.Debian => "app.deb"
       case PackageOptions.PackageType.Dmg => "app.dmg"
@@ -102,6 +104,8 @@ object Package extends ScalaCommand[PackageOptions] {
         alreadyExistsCheck()
         if (options.force) os.write.over(destPath, content)
         else os.write(destPath, content)
+      case PackageOptions.PackageType.Assembly =>
+        assembly(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
 
       case PackageOptions.PackageType.Js =>
         val linkerConfig = successfulBuild.options.scalaJsOptions.linkerConfig
@@ -251,6 +255,31 @@ object Package extends ScalaCommand[PackageOptions] {
 
     alreadyExistsCheck()
     BootstrapGenerator.generate(params, destPath.toNIO)
+  }
+
+  private def assembly(build: Build.Successful, destPath: os.Path, mainClass: String, alreadyExistsCheck: () => Unit): Unit = {
+    val byteCodeZipEntries = os.walk(build.output)
+      .filter(os.isFile(_))
+      .map { path =>
+        val name = path.relativeTo(build.output).toString
+        val content = os.read.bytes(path)
+        val lastModified = os.mtime(path)
+        val ent = new ZipEntry(name)
+        ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
+        ent.setSize(content.length)
+        (ent, content)
+      }
+
+    val preamble = Preamble()
+      .withOsKind(Properties.isWin)
+      .callsItself(Properties.isWin)
+    val params = Parameters.Assembly()
+      .withExtraZipEntries(byteCodeZipEntries)
+      .withFiles(build.artifacts.artifacts.map(_._2.toFile))
+      .withMainClass(mainClass)
+      .withPreamble(preamble)
+    alreadyExistsCheck()
+    AssemblyGenerator.generate(params, destPath.toNIO)
   }
 
   def withLibraryJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {
