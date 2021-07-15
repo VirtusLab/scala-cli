@@ -10,7 +10,7 @@ import java.io.File
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib.{publish => _, _}
 
-import scala.util.Properties
+import _root_.scala.util.Properties
 
 
 // Tell mill modules are under modules/
@@ -413,4 +413,8 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 def unitTests() = T.command {
   build(defaultScalaVersion).test.test()()
   cli.test.test()()
+}
+
+def scala(args: String*) = T.command {
+  cli.run(args: _*)()
 }
