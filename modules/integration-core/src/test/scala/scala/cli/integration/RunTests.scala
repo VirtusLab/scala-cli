@@ -691,4 +691,30 @@ class RunTests extends munit.FunSuite {
     }
   }
 
+  if (Properties.isLinux && TestUtil.isNativeCli)
+    test("no JVM installed") {
+      val fileName = "simple.sc"
+      val message = "Hello"
+      val inputs = TestInputs(
+        Seq(
+          os.rel / fileName ->
+           s"""val msg = "$message"
+              |println(msg)
+              |""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        os.copy(os.Path(TestUtil.cli.head, os.pwd), root / "scala")
+        val script =
+         s"""#!/usr/bin/env bash
+            |./scala ${TestUtil.extraOptions.mkString(" ") /* meh escaping */} $fileName | tee -a output
+            |""".stripMargin
+        os.write(root / "script.sh", script)
+        os.perms.set(root / "script.sh", "rwxr-xr-x")
+        os.proc("docker", "run", "--rm", "-v", s"${root}:/data", "-w", "/data", "ubuntu:18.04", "/data/script.sh").call(cwd = root)
+        val output = os.read(root / "output").trim
+        expect(output == message)
+      }
+    }
+
 }

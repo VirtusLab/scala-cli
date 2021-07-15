@@ -72,9 +72,9 @@ final case class BuildOptions(
   private lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
   private lazy val javaCommand0: String = {
-    val javaHomeOpt0 = javaHomeLocationOpt()
+    val javaHome = javaHomeLocation()
     val ext = if (Properties.isWin) ".exe" else ""
-    javaHomeOpt0.fold("java")(javaHome => (javaHome / "bin" / s"java$ext").toString)
+    (javaHome / "bin" / s"java$ext").toString
   }
 
   def javaHomeLocationOpt(): Option[os.Path] =
