@@ -47,26 +47,31 @@ object Package extends ScalaCommand[PackageOptions] {
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
-    def extension =
-      if (options.packageType == PackageOptions.PackageType.LibraryJar) ".jar"
-      else if (options.packageType == PackageOptions.PackageType.Js) ".js"
-      else if (options.packageType == PackageOptions.PackageType.Debian) ".deb"
-      else if (options.packageType == PackageOptions.PackageType.Dmg) ".dmg"
-      else if (options.packageType == PackageOptions.PackageType.Pkg) ".pkg"
-      else if (options.packageType == PackageOptions.PackageType.Rpm) ".rpm"
-      else if (options.packageType == PackageOptions.PackageType.Msi) ".msi"
-      else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) ".exe" else ".bat")
-      else ""
-    def defaultName =
-      if (options.packageType == PackageOptions.PackageType.LibraryJar) "library.jar"
-      else if (options.packageType == PackageOptions.PackageType.Js) "app.js"
-      else if (options.packageType == PackageOptions.PackageType.Debian) "app.deb"
-      else if (options.packageType == PackageOptions.PackageType.Dmg) "app.dmg"
-      else if (options.packageType == PackageOptions.PackageType.Pkg) "app.pkg"
-      else if (options.packageType == PackageOptions.PackageType.Rpm) "app.rpm"
-      else if (options.packageType == PackageOptions.PackageType.Msi) "app.msi"
-      else if (Properties.isWin) (if (options.packageType == PackageOptions.PackageType.Native) "app.exe" else "app.bat")
-      else "app"
+    def extension = options.packageType match {
+      case PackageOptions.PackageType.LibraryJar => ".jar"
+      case PackageOptions.PackageType.Js => ".js"
+      case PackageOptions.PackageType.Debian => ".deb"
+      case PackageOptions.PackageType.Dmg => ".dmg"
+      case PackageOptions.PackageType.Pkg => ".pkg"
+      case PackageOptions.PackageType.Rpm => ".rpm"
+      case PackageOptions.PackageType.Msi => ".msi"
+      case PackageOptions.PackageType.Native if Properties.isWin => ".exe"
+      case _ if Properties.isWin => ".bat"
+      case _ => ""
+    }
+    def defaultName = options.packageType match {
+      case PackageOptions.PackageType.LibraryJar => "library.jar"
+      case PackageOptions.PackageType.Js => "app.js"
+      case PackageOptions.PackageType.Debian => "app.deb"
+      case PackageOptions.PackageType.Dmg => "app.dmg"
+      case PackageOptions.PackageType.Pkg => "app.pkg"
+      case PackageOptions.PackageType.Rpm => "app.rpm"
+      case PackageOptions.PackageType.Msi => "app.msi"
+      case PackageOptions.PackageType.Native if Properties.isWin => "app.exe"
+      case _ if Properties.isWin => "app.bat"
+      case _ => "app"
+    }
+
     val dest = options.output
       .filter(_.nonEmpty)
       .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1) + extension))
