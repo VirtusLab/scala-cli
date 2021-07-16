@@ -221,6 +221,10 @@ Overwrite destination file if it exists
 
 Generate a library JAR rather than an executable JAR
 
+#### `--assembly`
+
+Generate an assembly JAR
+
 #### `--main-class`
 
 Aliases: `-M`

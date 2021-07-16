@@ -15,7 +15,7 @@ Accepts options:
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
-- [Scalac](./cli-options.md#scalac-options)
+- [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 
 ## `clean`
@@ -36,7 +36,7 @@ Accepts options:
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
-- [Scalac](./cli-options.md#scalac-options)
+- [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [watch](./cli-options.md#watch-options)
 
@@ -61,7 +61,7 @@ Accepts options:
 - [repl](./cli-options.md#repl-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
-- [Scalac](./cli-options.md#scalac-options)
+- [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 
 ## `package`
@@ -75,7 +75,7 @@ Accepts options:
 - [package](./cli-options.md#package-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
-- [Scalac](./cli-options.md#scalac-options)
+- [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 
 ## `run`
@@ -91,7 +91,7 @@ Accepts options:
 - [run](./cli-options.md#run-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
-- [Scalac](./cli-options.md#scalac-options)
+- [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [watch](./cli-options.md#watch-options)
 
@@ -106,7 +106,7 @@ Accepts options:
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
-- [Scalac](./cli-options.md#scalac-options)
+- [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [test](./cli-options.md#test-options)
 - [watch](./cli-options.md#watch-options)
@@ -125,7 +125,7 @@ Accepts options:
 - [metabrowse](./cli-options.md#metabrowse-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
-- [Scalac](./cli-options.md#scalac-options)
+- [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 
 ## Hidden commands

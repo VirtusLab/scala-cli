@@ -62,3 +62,5 @@ dependencies = [
   "ai.kien::python-native-libs:0.0.0+13-f5d7089a-SNAPSHOT"
 ]
 ```
+
+The reference documentation lists [all available options](reference/configuration-file.md).

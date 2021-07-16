@@ -5,7 +5,14 @@ sidebar_position: 1
 
 The `scala` CLI aims at making it easier to run, test, and package, Scala sources.
 
-…showcase…
+It can:
+- compile Scala code,
+- run it,
+- package it as a JAR or in formats such as deb, rpm, MSI, …,
+- fire up a REPL allowing you to manually run your code,
+- compile and run tests suites,
+
+and many other things.
 
 It supports all major Scala versions, including both Scala 2 and Scala 3 versions.
 
@@ -27,3 +34,6 @@ It supports all 3 major Scala platforms:
 
 but requires Node to be installed for Scala.JS to work fine, and the
 [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) for Scala Native.
+
+The next pages help you install the Scala CLI, and walk you through many of its features. Head on
+to [Installation](./installation.md) next!

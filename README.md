@@ -2,7 +2,7 @@
 # scala-cli
 
 [![Build status](https://github.com/VirtusLab/scala-cli/workflows/CI/badge.svg)](https://github.com/VirtusLab/scala-ci/actions?query=workflow%3ACI)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.alexarchambault.scala-cli/cli_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.alexarchambault.scala-cli/cli_2.12)
+[![Maven Central](https://img.shields.io/maven-central/v/org.virtuslab.scala-cli/cli_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/org.virtuslab.scala-cli/cli_2.12)
 
 ## Developer docs
 
@@ -11,7 +11,7 @@
 #### Running the CLI from sources
 
 ```text
-$ ./mill -i cli.run …arguments…
+$ ./mill -i scala …arguments…
 ```
 
 #### Run unit tests
@@ -49,9 +49,9 @@ Build native packagers:
 
 (generating native packager for specified format)
 ```text
-$ ./mill -i cli.run package ..arguments... --deb --output 'path.deb'
-$ ./mill -i cli.run package ..arguments... --dmg --output 'path.dmg'
-$ ./mill -i cli.run package ..arguments... --pkg --output 'path.pkg'
+$ ./mill -i scala package ..arguments... --deb --output 'path.deb'
+$ ./mill -i scala package ..arguments... --dmg --output 'path.dmg'
+$ ./mill -i scala package ..arguments... --pkg --output 'path.pkg'
 ```
 
 #### Generate Metals configuration files

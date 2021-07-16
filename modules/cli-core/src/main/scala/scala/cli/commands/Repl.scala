@@ -44,6 +44,13 @@ object Repl extends ScalaCommand[ReplOptions] {
     // FIXME Seems Ammonite isn't fully fine with directories as class path (these are passed to the interactive
     //       compiler for completion, but not to the main compiler for actual compilation).
 
+    lazy val rootClasses = os.list(successfulBuild.output)
+      .filter(_.last.endsWith(".class"))
+      .filter(os.isFile(_)) // just in case
+      .map(_.last.stripSuffix(".class"))
+      .sorted
+    if (options.shared.logging.verbosity >= 0 && rootClasses.nonEmpty)
+      System.err.println(s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")}). These will not be accessible from the REPL.")
     Runner.run(
       successfulBuild.options.javaCommand(),
       options.sharedJava.allJavaOpts,

@@ -1,6 +1,7 @@
 package scala.cli.integration
 
 import java.nio.file.Files
+import java.util.zip.ZipFile
 
 import com.eed3si9n.expecty.Expecty.expect
 
@@ -147,5 +148,54 @@ class PackageTests extends munit.FunSuite {
     test("simple native") {
       simpleNativeTest()
     }
+
+  test("assembly") {
+    val fileName = "simple.sc"
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+         s"""import $$ivy.`com.chuusai::shapeless:2.3.7`
+            |import shapeless._
+            |val msgStuff = "$message" :: HNil
+            |println(msgStuff.head)
+            |""".stripMargin
+      )
+    )
+    val launcherName = fileName.stripSuffix(".sc") + ".jar"
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", TestUtil.extraOptions, "--assembly", fileName).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
+
+      val launcher = root / launcherName
+      expect(os.isFile(launcher))
+
+      var zf: ZipFile = null
+      try {
+        zf = new ZipFile(launcher.toIO)
+        expect(zf.getEntry("shapeless/HList.class") != null)
+      } finally {
+        if (zf != null)
+          zf.close()
+      }
+
+      val runnableLauncher =
+        if (Properties.isWin) {
+          val bat = root / "assembly.bat"
+          os.copy(launcher, bat)
+          bat
+        } else {
+          expect(Files.isExecutable(launcher.toNIO))
+          launcher
+        }
+
+      val output = os.proc(runnableLauncher.toString).call(cwd = root).out.text.trim
+      expect(output == message)
+    }
+  }
 
 }

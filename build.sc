@@ -10,7 +10,7 @@ import java.io.File
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib.{publish => _, _}
 
-import scala.util.Properties
+import _root_.scala.util.Properties
 
 
 // Tell mill modules are under modules/
@@ -71,6 +71,18 @@ object `generate-reference-doc` extends SbtModule {
     Deps.munit
   )
   def mainClass = Some("scala.cli.doc.GenerateReferenceDoc")
+}
+
+object dummy extends Module {
+  // dummy project to get scala steward updates for Ammonite, whose
+  // version is used in the repl command, and ensure Ammonite is available
+  // for all Scala versions we support
+  object amm extends Cross[Amm](Scala.listAll: _*)
+  class Amm(val crossScalaVersion: String) extends CrossScalaModule {
+    def ivyDeps = Agg(
+      Deps.ammonite
+    )
+  }
 }
 
 
@@ -146,6 +158,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def localRepoVersion = "${vcsState().format()}"
          |
          |  def jmhVersion = "1.29"
+         |
+         |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |}
          |""".stripMargin
     os.write(dest, code)
@@ -399,4 +413,8 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 def unitTests() = T.command {
   build(defaultScalaVersion).test.test()()
   cli.test.test()()
+}
+
+def scala(args: String*) = T.command {
+  cli.run(args: _*)()
 }
