@@ -427,3 +427,35 @@ def unitTests() = T.command {
 def scala(args: String*) = T.command {
   cli.run(args: _*)()
 }
+
+def tightMemory = Properties.isLinux || Properties.isWin
+
+def defaultNativeImage() =
+  if (tightMemory)
+    T.command {
+      `cli-core`.nativeImage()
+    }
+  else
+    T.command {
+      cli.nativeImage()
+    }
+
+def nativeIntegrationTests() =
+  if (tightMemory)
+    T.command {
+      `integration-core`.native.test.test()()
+    }
+  else
+    T.command {
+      integration.native.test.test()()
+    }
+
+def copyDefaultLauncher(directory: String = "artifacts") =
+  if (tightMemory)
+    T.command {
+      copyCoreLauncher(directory)()
+    }
+  else
+    T.command {
+      copyLauncher(directory)()
+    }

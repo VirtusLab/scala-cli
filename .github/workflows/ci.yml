@@ -50,30 +50,14 @@ jobs:
       with:
         jvm: 8
     - name: Generate native launcher
-      run: ./mill -i show cli.nativeImage
-      if: runner.os == 'macOS'
-    - name: Generate core native launcher
-      run: ./mill -i show cli-core.nativeImage
-      # not enough memory on the Linux and Windows runners,
-      # only creating a native image with the core commands
-      if: runner.os == 'Linux'
+      run: ./mill -i show defaultNativeImage
     - name: Native integration tests
-      run: ./mill -i integration.native.test
-      if: runner.os == 'macOS'
-    - name: Native core integration tests
-      run: ./mill -i integration-core.native.test
-      # not enough memory on the Linux and Windows runners,
-      # only creating a native image with the core commands
-      if: runner.os == 'Linux'
+      run: ./mill -i nativeIntegrationTests
     - name: Build OS packages
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyLauncher artifacts/
-      if: runner.os == 'macOS'
-    - name: Copy core artifacts
-      run: ./mill -i copyCoreLauncher artifacts/
-      if: runner.os == 'Linux'
+      run: ./mill -i copyDefaultLauncher artifacts/
     - uses: actions/upload-artifact@v2.2.4
       with:
         name: launchers
