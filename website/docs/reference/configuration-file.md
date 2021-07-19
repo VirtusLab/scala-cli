@@ -43,6 +43,12 @@ Type: `String`
 
 Java home
 
+### `java.options`
+
+Type: list of `String`
+
+Java options
+
 ### `dependencies`
 
 Type: list of `String`

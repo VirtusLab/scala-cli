@@ -744,4 +744,23 @@ class RunTests extends munit.FunSuite {
       }
     }
 
+  test("Java options in config file") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "simple.sc" ->
+          """val msg = sys.props("test.message")
+            |println(msg)
+            |""".stripMargin,
+        os.rel / "scala.conf" ->
+         s"""java.options = ["-Dtest.message=$message"]
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".").call(cwd = root).out.text.trim
+      expect(output == message)
+    }
+  }
+
 }

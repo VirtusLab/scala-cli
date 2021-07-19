@@ -19,8 +19,14 @@ final case class TestOptions(
   @ValueDescription("class-name")
     testFramework: Option[String] = None
 ) {
-  def buildOptions: BuildOptions =
-    shared.buildOptions(enableJmh = false, jmhVersion = None)
+  def buildOptions: BuildOptions = {
+    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
+    baseOptions.copy(
+      javaOptions = baseOptions.javaOptions.copy(
+        javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
+      )
+    )
+  }
   def testFrameworkOpt: Option[String] =
     testFramework.map(_.trim).filter(_.nonEmpty)
 }

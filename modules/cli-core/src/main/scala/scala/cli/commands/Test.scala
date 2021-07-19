@@ -84,7 +84,7 @@ object Test extends ScalaCommand[TestOptions] {
 
         Runner.run(
           build.options.javaCommand(),
-          options.sharedJava.allJavaOpts,
+          build.options.javaOptions.javaOpts,
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,
           extraArgs,

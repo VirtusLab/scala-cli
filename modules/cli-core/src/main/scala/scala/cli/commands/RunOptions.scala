@@ -4,6 +4,7 @@ import caseapp._
 import caseapp.core.help.Help
 
 import scala.build.Build
+import scala.build.options.BuildOptions
 
 @HelpMessage("Compile and run Scala code")
 final case class RunOptions(
@@ -21,7 +22,20 @@ final case class RunOptions(
   @ValueDescription("main-class")
   @Name("M")
     mainClass: Option[String] = None
-)
+) {
+
+  def buildOptions: BuildOptions = {
+    val baseOptions = shared.buildOptions(
+      enableJmh = benchmarking.jmh.contains(true),
+      jmhVersion = benchmarking.jmhVersion
+    )
+    baseOptions.copy(
+      javaOptions = baseOptions.javaOptions.copy(
+        javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
+      )
+    )
+  }
+}
 
 object RunOptions {
   implicit val parser = Parser[RunOptions]

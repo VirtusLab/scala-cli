@@ -31,7 +31,8 @@ final case class ConfigFormat(
       javaOptions = JavaOptions(
         javaHomeOpt = java.home.map(os.Path(_, Os.pwd)),
         jvmIdOpt = jvm,
-        jvmIndexOpt = jvmIndex
+        jvmIndexOpt = jvmIndex,
+        javaOpts = java.options
       ),
       scalaJsOptions = ScalaJsOptions(
         enable = scala.platform.map(_.toLowerCase(Locale.ROOT)).exists {

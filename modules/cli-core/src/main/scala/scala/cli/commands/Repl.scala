@@ -54,7 +54,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       System.err.println(s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")}). These will not be accessible from the REPL.")
     Runner.run(
       successfulBuild.options.javaCommand(),
-      options.sharedJava.allJavaOpts,
+      successfulBuild.options.javaOptions.javaOpts,
       successfulBuild.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
       ammoniteMainClass,
       Nil,

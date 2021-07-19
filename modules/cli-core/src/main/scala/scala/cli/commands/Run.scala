@@ -22,10 +22,7 @@ object Run extends ScalaCommand[RunOptions] {
 
     val inputs = options.shared.inputsOrExit(args, defaultInputs)
 
-    val buildOptions = options.shared.buildOptions(
-      enableJmh = options.benchmarking.jmh.contains(true),
-      jmhVersion = options.benchmarking.jmhVersion
-    )
+    val buildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
 
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
@@ -133,7 +130,7 @@ object Run extends ScalaCommand[RunOptions] {
       else
         Runner.run(
           build.options.javaCommand(),
-          options.sharedJava.allJavaOpts,
+          build.options.javaOptions.javaOpts,
           build.fullClassPath.map(_.toFile),
           mainClass,
           args,
