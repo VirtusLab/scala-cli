@@ -40,14 +40,25 @@ object Package extends ScalaCommand[PackageOptions] {
     val bloopRifleConfig = options.shared.bloopRifleConfig()
     val logger = options.shared.logger
 
-    val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
-
-    val successfulBuild = build.successfulOpt.getOrElse {
-      System.err.println("Compilation failed")
-      sys.exit(1)
+    if (options.watch.watch) {
+      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) {
+        case s: Build.Successful =>
+          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
+      }
+      try WatchUtil.waitForCtrlC()
+      finally watcher.dispose()
+    } else {
+      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
+      build match {
+        case s: Build.Successful =>
+          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
+          sys.exit(1)
+      }
     }
-
-    doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, successfulBuild)
   }
 
   private def doPackage(

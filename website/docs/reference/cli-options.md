@@ -461,6 +461,7 @@ Test framework to use to run tests
 
 Available in commands:
 - [`compile`](./commands#compile)
+- [`package`](./commands#package)
 - [`run`](./commands#run)
 - [`test`](./commands#test)
 

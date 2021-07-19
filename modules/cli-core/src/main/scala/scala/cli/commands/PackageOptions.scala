@@ -9,6 +9,8 @@ import scala.build.options.{BuildOptions, PackageType}
 final case class PackageOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
+  @Recurse
+    watch: SharedWatchOptions = SharedWatchOptions(),
 
   @Group("Package")
   @HelpMessage("Set destination path")
