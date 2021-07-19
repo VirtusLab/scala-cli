@@ -180,6 +180,11 @@ final case class BuildOptions(
                   logger = logger
     )
 
+  def defaultPackageType: PackageType =
+    if (scalaJsOptions.enable) PackageType.Js
+    else if (scalaNativeOptions.enable) PackageType.Native
+    else PackageType.Bootstrap
+
   lazy val hash: Option[String] = {
     val md = MessageDigest.getInstance("SHA-1")
 

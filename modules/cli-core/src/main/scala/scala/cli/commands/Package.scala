@@ -11,6 +11,7 @@ import packager.windows.WindowsPackage
 import org.scalajs.linker.interface.StandardConfig
 import scala.build.{Build, Inputs, Os}
 import scala.build.internal.ScalaJsConfig
+import scala.build.options.PackageType
 import scala.cli.internal.ScalaJsLinker
 import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
@@ -45,31 +46,33 @@ object Package extends ScalaCommand[PackageOptions] {
       sys.exit(1)
     }
 
+    val packageType = options.packageTypeOpt.getOrElse(build.options.defaultPackageType)
+
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
-    def extension = options.packageType match {
-      case PackageOptions.PackageType.LibraryJar => ".jar"
-      case PackageOptions.PackageType.Assembly => ".jar"
-      case PackageOptions.PackageType.Js => ".js"
-      case PackageOptions.PackageType.Debian => ".deb"
-      case PackageOptions.PackageType.Dmg => ".dmg"
-      case PackageOptions.PackageType.Pkg => ".pkg"
-      case PackageOptions.PackageType.Rpm => ".rpm"
-      case PackageOptions.PackageType.Msi => ".msi"
-      case PackageOptions.PackageType.Native if Properties.isWin => ".exe"
+    def extension = packageType match {
+      case PackageType.LibraryJar => ".jar"
+      case PackageType.Assembly => ".jar"
+      case PackageType.Js => ".js"
+      case PackageType.Debian => ".deb"
+      case PackageType.Dmg => ".dmg"
+      case PackageType.Pkg => ".pkg"
+      case PackageType.Rpm => ".rpm"
+      case PackageType.Msi => ".msi"
+      case PackageType.Native if Properties.isWin => ".exe"
       case _ if Properties.isWin => ".bat"
       case _ => ""
     }
-    def defaultName = options.packageType match {
-      case PackageOptions.PackageType.LibraryJar => "library.jar"
-      case PackageOptions.PackageType.Assembly => "app.jar"
-      case PackageOptions.PackageType.Js => "app.js"
-      case PackageOptions.PackageType.Debian => "app.deb"
-      case PackageOptions.PackageType.Dmg => "app.dmg"
-      case PackageOptions.PackageType.Pkg => "app.pkg"
-      case PackageOptions.PackageType.Rpm => "app.rpm"
-      case PackageOptions.PackageType.Msi => "app.msi"
-      case PackageOptions.PackageType.Native if Properties.isWin => "app.exe"
+    def defaultName = packageType match {
+      case PackageType.LibraryJar => "library.jar"
+      case PackageType.Assembly => "app.jar"
+      case PackageType.Js => "app.js"
+      case PackageType.Debian => "app.deb"
+      case PackageType.Dmg => "app.dmg"
+      case PackageType.Pkg => "app.pkg"
+      case PackageType.Rpm => "app.rpm"
+      case PackageType.Msi => "app.msi"
+      case PackageType.Native if Properties.isWin => "app.exe"
       case _ if Properties.isWin => "app.bat"
       case _ => "app"
     }
@@ -96,41 +99,41 @@ object Package extends ScalaCommand[PackageOptions] {
         .orElse(successfulBuild.retainedMainClassOpt(warnIfSeveral = true))
     def mainClass() = mainClassOpt.getOrElse(sys.error("No main class"))
 
-    options.packageType match {
-      case PackageOptions.PackageType.Bootstrap =>
+    packageType match {
+      case PackageType.Bootstrap =>
         bootstrap(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
-      case PackageOptions.PackageType.LibraryJar =>
+      case PackageType.LibraryJar =>
         val content = libraryJar(successfulBuild)
         alreadyExistsCheck()
         if (options.force) os.write.over(destPath, content)
         else os.write(destPath, content)
-      case PackageOptions.PackageType.Assembly =>
+      case PackageType.Assembly =>
         assembly(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
 
-      case PackageOptions.PackageType.Js =>
+      case PackageType.Js =>
         val linkerConfig = successfulBuild.options.scalaJsOptions.linkerConfig
         linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
 
-      case PackageOptions.PackageType.Native =>
+      case PackageType.Native =>
         val config = successfulBuild.options.scalaNativeOptions.config.getOrElse(???)
         val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
         val logger = options.shared.logger.scalaNativeLogger
 
         buildNative(successfulBuild, mainClass(), destPath, config, workDir, logger)
 
-      case nativePackagerType: PackageOptions.NativePackagerType =>
+      case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
         bootstrap(successfulBuild, bootstrapPath, mainClass(), () => alreadyExistsCheck())
         nativePackagerType match {
-          case PackageOptions.PackageType.Debian =>
+          case PackageType.Debian =>
             DebianPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
-          case PackageOptions.PackageType.Dmg =>
+          case PackageType.Dmg =>
             DmgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
-          case PackageOptions.PackageType.Pkg =>
+          case PackageType.Pkg =>
             PkgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
-          case PackageOptions.PackageType.Rpm =>
+          case PackageType.Rpm =>
             RedHatPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
-          case PackageOptions.PackageType.Msi =>
+          case PackageType.Msi =>
             WindowsPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
         }
     }
