@@ -3,7 +3,7 @@ import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.5`
 import $file.project.deps, deps.{Deps, Docker, Scala}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
-import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath, platformExecutableJarExtension}
+import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasMacroAnnotations, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath, platformExecutableJarExtension}
 
 import java.io.File
 
