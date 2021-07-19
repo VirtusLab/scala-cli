@@ -13,7 +13,6 @@ import scala.build.{Bloop, Inputs, LocalRepo, Logger, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.build.options.{BuildOptions, ClassPathOptions, InternalDependenciesOptions, InternalOptions, JavaOptions, JmhOptions, ScalaOptions, ScriptOptions}
 import scala.concurrent.duration.Duration
-import scala.scalanative.{build => sn}
 import scala.util.Properties
 
 final case class SharedOptions(
@@ -119,17 +118,6 @@ final case class SharedOptions(
   private def codeWrapper: Option[CodeWrapper] =
     if (classWrap) Some(CustomCodeClassWrapper)
     else None
-
-  def nativeWorkDir(root: os.Path, projectName: String) = root / ".scala" / projectName / "native"
-
-  def scalaNativeLogger: sn.Logger =
-    new sn.Logger {
-      def trace(msg: Throwable) = ()
-      def debug(msg: String) = logger.debug(msg)
-      def info(msg: String) = logger.log(msg)
-      def warn(msg: String) = logger.log(msg)
-      def error(msg: String) = logger.log(msg)
-    }
 
   def buildOptions(enableJmh: Boolean, jmhVersion: Option[String], ignoreErrors: Boolean = false): BuildOptions =
     BuildOptions(

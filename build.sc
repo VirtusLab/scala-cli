@@ -9,6 +9,7 @@ import java.io.File
 
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib.{publish => _, _}
+import mill.contrib.bloop.Bloop
 
 import _root_.scala.util.Properties
 
@@ -31,8 +32,11 @@ object `integration-core` extends Module {
   object jvm    extends JvmIntegrationCore {
     object test extends Tests
   }
-  object native extends NativeIntegrationCore {
-    object test extends Tests
+  object native extends NativeIntegrationCore with Bloop.Module {
+    def skipBloop = true
+    object test extends Tests with Bloop.Module {
+      def skipBloop = true
+    }
   }
 }
 
@@ -44,8 +48,10 @@ object integration extends Module {
       }
     }
   }
-  object native extends NativeIntegration {
-    object test extends Tests {
+  object native extends NativeIntegration with Bloop.Module {
+    def skipBloop = true
+    object test extends Tests with Bloop.Module {
+      def skipBloop = true
       def sources = T.sources {
         super.sources() ++ `integration-core`.native.test.sources()
       }
@@ -53,7 +59,8 @@ object integration extends Module {
   }
 }
 
-object packager extends ScalaModule {
+object packager extends ScalaModule with Bloop.Module {
+  def skipBloop = true
   def scalaVersion = Scala.scala213
   def ivyDeps = Agg(
     Deps.scalaPackagerCli
@@ -78,7 +85,8 @@ object dummy extends Module {
   // version is used in the repl command, and ensure Ammonite is available
   // for all Scala versions we support
   object amm extends Cross[Amm](Scala.listAll: _*)
-  class Amm(val crossScalaVersion: String) extends CrossScalaModule {
+  class Amm(val crossScalaVersion: String) extends CrossScalaModule with Bloop.Module {
+    def skipBloop = true
     def ivyDeps = Agg(
       Deps.ammonite
     )
@@ -92,6 +100,7 @@ def defaultScalaVersion = Scala.scala212
 class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with HasTests {
   def moduleDeps = Seq(
     `bloop-rifle`(),
+    `test-runner`(),
     `tasty-lib`()
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
@@ -102,11 +111,14 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
       .exclude(("com.google.collections", "google-collections")),
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
+    Deps.nativeTestRunner,
     Deps.nativeTools,
     Deps.osLib,
     Deps.pprint,
     Deps.pureconfig,
+    Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinkerInterface,
+    Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
     Deps.scalaparse,
     Deps.swoval
@@ -217,10 +229,7 @@ trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule wit
     Deps.coursierLauncher,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
-    Deps.nativeTestRunner,
-    Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinker,
-    Deps.scalaJsTestAdapter,
     Deps.scalaPackager,
     Deps.svmSubs
   )
@@ -332,7 +341,7 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
     Deps.asm,
     Deps.testInterface
   )
-  def mainClass = Some("scala.cli.testrunner.DynamicTestRunner")
+  def mainClass = Some("scala.build.testrunner.DynamicTestRunner")
 }
 
 class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
@@ -418,3 +427,35 @@ def unitTests() = T.command {
 def scala(args: String*) = T.command {
   cli.run(args: _*)()
 }
+
+def tightMemory = Properties.isLinux || Properties.isWin
+
+def defaultNativeImage() =
+  if (tightMemory)
+    T.command {
+      `cli-core`.nativeImage()
+    }
+  else
+    T.command {
+      cli.nativeImage()
+    }
+
+def nativeIntegrationTests() =
+  if (tightMemory)
+    T.command {
+      `integration-core`.native.test.test()()
+    }
+  else
+    T.command {
+      integration.native.test.test()()
+    }
+
+def copyDefaultLauncher(directory: String = "artifacts") =
+  if (tightMemory)
+    T.command {
+      copyCoreLauncher(directory)()
+    }
+  else
+    T.command {
+      copyLauncher(directory)()
+    }

@@ -8,7 +8,7 @@ final case class InstallCompletionsOptions(
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
 
-  format: String,
+  format: Option[String] = None,
 
   rcFile: Option[String] = None,
   directory: Option[String] = None,

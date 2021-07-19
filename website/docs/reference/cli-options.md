@@ -461,6 +461,8 @@ Test framework to use to run tests
 
 Available in commands:
 - [`compile`](./commands#compile)
+- [`package`](./commands#package)
+- [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
 - [`test`](./commands#test)
 
@@ -481,6 +483,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`clean`](./commands#clean)
 - [`compile`](./commands#compile)
+- [`directories`](./commands#directories)
 - [`install completions`](./commands#install-completions)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)

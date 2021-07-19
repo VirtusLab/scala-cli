@@ -70,8 +70,7 @@ def generateNativeImage(
   if (!os.isFile(os.Path(nativeImage))) {
     val ret = os.proc(s"$graalVmHome/bin/gu$ext", "install", "native-image").call(
       stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
+      stdout = os.Inherit
     )
     if (ret.exitCode != 0)
       System.err.println(s"Warning: 'gu install native-image' exited with return code ${ret.exitCode}}")
@@ -164,8 +163,7 @@ def generateNativeImage(
 
   val res = os.proc(finalCommand.map(x => x: os.Shellable): _*).call(
     stdin = os.Inherit,
-    stdout = os.Inherit,
-    stderr = os.Inherit
+    stdout = os.Inherit
   )
   if (res.exitCode != 0)
     sys.error(s"native-image command exited with ${res.exitCode}")
@@ -358,8 +356,7 @@ trait CliLaunchers extends SbtModule {
     ) ++ args
     os.proc(command.map(x => x: os.Shellable): _*).call(
       stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
+      stdout = os.Inherit
     )
     T.log.outputStream.println(s"Config generated in ${outputDir.relativeTo(os.pwd)}")
   }
@@ -370,8 +367,7 @@ trait CliLaunchers extends SbtModule {
     val command = Seq("java", "-cp", cp, mainClass0) ++ args
     os.proc(command.map(x => x: os.Shellable): _*).call(
       stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
+      stdout = os.Inherit
     )
   }
 

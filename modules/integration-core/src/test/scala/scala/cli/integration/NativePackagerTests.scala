@@ -30,8 +30,7 @@ class NativePackagerTests extends munit.FunSuite{
         os.proc(TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--pkg", "--output", pkgAppFile).call(
           cwd = root,
           stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit
+          stdout = os.Inherit
         )
 
         val pkgAppPath = root / pkgAppFile
@@ -41,8 +40,7 @@ class NativePackagerTests extends munit.FunSuite{
           os.proc("installer", "-pkg", pkgAppFile, "-target", "CurrentUserHomeDirectory").call(
             cwd = root,
             stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit
+            stdout = os.Inherit
           )
 
           val home = sys.props("user.home")
@@ -62,8 +60,7 @@ class NativePackagerTests extends munit.FunSuite{
         os.proc(TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--dmg", "--output", launcherName).call(
           cwd = root,
           stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit
+          stdout = os.Inherit
         )
 
         val launcher = root / s"$launcherName.dmg"
@@ -73,8 +70,7 @@ class NativePackagerTests extends munit.FunSuite{
           os.proc("hdiutil", "attach", launcher).call(
             cwd = root,
             stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit
+            stdout = os.Inherit
           )
 
           val output = os.proc(s"/Volumes/$launcherName/$launcherName.app/Contents/MacOS/$launcherName").call(cwd = os.root).out.text.trim
@@ -83,8 +79,7 @@ class NativePackagerTests extends munit.FunSuite{
           os.proc("hdiutil", "detach", s"/Volumes/$launcherName").call(
             cwd = root,
             stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit
+            stdout = os.Inherit
           )
         }
       }
@@ -102,8 +97,7 @@ class NativePackagerTests extends munit.FunSuite{
         os.proc(TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--deb", "--output", s"$launcherName.deb").call(
           cwd = root,
           stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit
+          stdout = os.Inherit
         )
 
         val launcher = root / s"$launcherName.deb"
@@ -113,8 +107,7 @@ class NativePackagerTests extends munit.FunSuite{
           os.proc("dpkg", "-x", launcher, root).call(
             cwd = root,
             stdin = os.Inherit,
-            stdout = os.Inherit,
-            stderr = os.Inherit
+            stdout = os.Inherit
           )
 
           val output = os.proc(s"$root/usr/share/scala/$launcherName").call(cwd = os.root).out.text.trim
@@ -132,8 +125,7 @@ class NativePackagerTests extends munit.FunSuite{
         os.proc(TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--rpm", "--output", s"$launcherName.rpm").call(
           cwd = root,
           stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit
+          stdout = os.Inherit
         )
 
         val launcher = root / s"$launcherName.rpm"
@@ -153,8 +145,7 @@ class NativePackagerTests extends munit.FunSuite{
         os.proc(TestUtil.cli, "package", helloWorldFileName, "--msi", "--output", s"$launcherName.msi").call(
           cwd = root,
           stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Inherit
+          stdout = os.Inherit
         )
 
         val launcher = root / s"$launcherName.msi"

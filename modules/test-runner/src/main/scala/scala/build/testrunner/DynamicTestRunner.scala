@@ -1,4 +1,4 @@
-package scala.cli.testrunner
+package scala.build.testrunner
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier

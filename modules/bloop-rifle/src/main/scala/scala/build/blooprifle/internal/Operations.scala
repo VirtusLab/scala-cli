@@ -1,7 +1,7 @@
 package scala.build.blooprifle.internal
 
-import java.io.{File, InputStream, OutputStream}
-import java.net.{ConnectException, InetSocketAddress}
+import java.io.{File, InputStream, IOException, OutputStream}
+import java.net.{ConnectException, InetSocketAddress, Socket}
 import java.nio.file.{Path, Paths}
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
@@ -12,10 +12,10 @@ import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.util.{Failure, Success, Try}
 
+import org.scalasbt.ipcsocket.NativeErrorException
 import snailgun.TcpClient
 import snailgun.logging.{Logger => SnailgunLogger}
 import snailgun.protocol.Streams
-import java.net.Socket
 
 object Operations {
 
@@ -221,7 +221,10 @@ object Operations {
               socket = try {
                 new org.scalasbt.ipcsocket.UnixDomainSocket(socketFile.getAbsolutePath, true)
               } catch {
-                case e: org.scalasbt.ipcsocket.NativeErrorException if e.returnCode == 111 =>
+                case ex: IOException if ex.getCause.isInstanceOf[NativeErrorException] && ex.getCause.asInstanceOf[NativeErrorException].returnCode == 111 =>
+                  logger.debug(s"Error when connecting to $socketFile: ${ex.getMessage}")
+                  null
+                case e: NativeErrorException if e.returnCode == 111 =>
                   logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
                   null
               }

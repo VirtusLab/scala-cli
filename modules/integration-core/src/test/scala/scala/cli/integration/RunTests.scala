@@ -58,6 +58,32 @@ class RunTests extends munit.FunSuite {
       simpleJsTest()
     }
 
+  def simpleJsViaConfigFileTest(): Unit = {
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "simple.sc" ->
+         s"""import scala.scalajs.js
+            |val console = js.Dynamic.global.console
+            |val msg = "$message"
+            |console.log(msg)
+            |""".stripMargin,
+        os.rel / "scala.conf" ->
+          """scala.platform = "js"
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".").call(cwd = root).out.text.trim
+      expect(output == message)
+    }
+  }
+
+  if (TestUtil.canRunJs)
+    test("simple script JS via config file") {
+      simpleJsViaConfigFileTest()
+    }
+
   def platformNl = if (Properties.isWin) "\\r\\n" else "\\n"
 
   def simpleNativeTests(): Unit = {
@@ -711,10 +737,30 @@ class RunTests extends munit.FunSuite {
             |""".stripMargin
         os.write(root / "script.sh", script)
         os.perms.set(root / "script.sh", "rwxr-xr-x")
-        os.proc("docker", "run", "--rm", "-v", s"${root}:/data", "-w", "/data", "ubuntu:18.04", "/data/script.sh").call(cwd = root)
+        val termOpt = if (System.console() == null) Nil else Seq("-t")
+        os.proc("docker", "run", "--rm", termOpt, "-v", s"${root}:/data", "-w", "/data", "ubuntu:18.04", "/data/script.sh").call(cwd = root)
         val output = os.read(root / "output").trim
         expect(output == message)
       }
     }
+
+  test("Java options in config file") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "simple.sc" ->
+          """val msg = sys.props("test.message")
+            |println(msg)
+            |""".stripMargin,
+        os.rel / "scala.conf" ->
+         s"""java.options = ["-Dtest.message=$message"]
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".").call(cwd = root).out.text.trim
+      expect(output == message)
+    }
+  }
 
 }

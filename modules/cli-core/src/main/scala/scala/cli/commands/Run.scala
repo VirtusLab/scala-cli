@@ -3,8 +3,8 @@ package scala.cli.commands
 import java.nio.file.Path
 
 import caseapp._
-import scala.build.{Build, Inputs, Logger, Os, Runner}
-import scala.build.internal.Constants
+import scala.build.{Build, Inputs, Logger, Os}
+import scala.build.internal.{Constants, Runner}
 import scala.build.options.BuildOptions
 import scala.scalanative.{build => sn}
 
@@ -22,26 +22,24 @@ object Run extends ScalaCommand[RunOptions] {
 
     val inputs = options.shared.inputsOrExit(args, defaultInputs)
 
-    val buildOptions = options.shared.buildOptions(
-      enableJmh = options.benchmarking.jmh.contains(true),
-      jmhVersion = options.benchmarking.jmhVersion
-    )
+    val initialBuildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
+    val logger = options.shared.logger
 
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
       maybeRunOnce(
-        options,
         inputs.workspace,
         inputs.projectName,
         build,
         args.unparsed,
+        logger,
         allowExecve = allowTerminate,
         exitOnError = allowTerminate,
         jvmRunner = build.options.addRunnerDependency
       )
 
     if (options.watch.watch) {
-      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = false)
         case f: Build.Failed =>
@@ -50,7 +48,7 @@ object Run extends ScalaCommand[RunOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger)
+      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)
@@ -61,18 +59,18 @@ object Run extends ScalaCommand[RunOptions] {
     }
   }
 
-  def maybeRunOnce(
-    options: RunOptions,
+  private def maybeRunOnce(
     root: os.Path,
     projectName: String,
     build: Build.Successful,
     args: Seq[String],
+    logger: Logger,
     allowExecve: Boolean,
     exitOnError: Boolean,
     jvmRunner: Boolean
   ): Unit = {
 
-    val mainClassOpt = options.mainClass.filter(_.nonEmpty) // trim it too?
+    val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
       .orElse(if (build.options.jmhOptions.runJmh.contains(false)) Some("org.openjdk.jmh.Main") else None)
       .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
 
@@ -81,63 +79,63 @@ object Run extends ScalaCommand[RunOptions] {
         if (jvmRunner) (Constants.runnerMainClass, mainClass +: args)
         else (mainClass, args)
       runOnce(
-        options,
         root,
         projectName,
         build,
         finalMainClass,
         finalArgs,
+        logger,
         allowExecve,
         exitOnError
       )
     }
   }
 
-  def runOnce(
-    options: RunOptions,
+  private def runOnce(
     root: os.Path,
     projectName: String,
     build: Build.Successful,
     mainClass: String,
     args: Seq[String],
+    logger: Logger,
     allowExecve: Boolean,
     exitOnError: Boolean
   ): Boolean = {
 
     val retCode =
-      if (options.shared.js.js) {
+      if (build.options.scalaJsOptions.enable) {
         val linkerConfig = build.options.scalaJsOptions.linkerConfig
         withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
           Runner.runJs(
             js.toIO,
             args,
-            options.shared.logger,
+            logger,
             allowExecve = allowExecve
           )
         }
-      } else if (options.shared.native.native)
+      } else if (build.options.scalaNativeOptions.enable)
         withNativeLauncher(
           build,
           mainClass,
           build.options.scalaNativeOptions.config.getOrElse(???),
-          options.shared.nativeWorkDir(root, projectName),
-          options.shared.scalaNativeLogger
+          build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
+          logger.scalaNativeLogger
         ) { launcher =>
           Runner.runNative(
             launcher.toIO,
             args,
-            options.shared.logger,
+            logger,
             allowExecve = allowExecve
           )
         }
       else
         Runner.run(
           build.options.javaCommand(),
-          options.sharedJava.allJavaOpts,
+          build.options.javaOptions.javaOpts,
           build.fullClassPath.map(_.toFile),
           mainClass,
           args,
-          options.shared.logger,
+          logger,
           allowExecve = allowExecve
         )
 

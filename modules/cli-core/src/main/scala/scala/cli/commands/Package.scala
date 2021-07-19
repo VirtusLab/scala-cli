@@ -9,8 +9,9 @@ import packager.deb.DebianPackage
 import packager.rpm.RedHatPackage
 import packager.windows.WindowsPackage
 import org.scalajs.linker.interface.StandardConfig
-import scala.build.{Build, Inputs, Os}
+import scala.build.{Build, Inputs, Logger, Os}
 import scala.build.internal.ScalaJsConfig
+import scala.build.options.PackageType
 import scala.cli.internal.ScalaJsLinker
 import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
@@ -35,47 +36,72 @@ object Package extends ScalaCommand[PackageOptions] {
 
     // TODO Add watch mode
 
-    val buildOptions = options.buildOptions
+    val initialBuildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
+    val logger = options.shared.logger
 
-    val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger)
-
-    val successfulBuild = build.successfulOpt.getOrElse {
-      System.err.println("Compilation failed")
-      sys.exit(1)
+    if (options.watch.watch) {
+      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) {
+        case s: Build.Successful =>
+          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
+      }
+      try WatchUtil.waitForCtrlC()
+      finally watcher.dispose()
+    } else {
+      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
+      build match {
+        case s: Build.Successful =>
+          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+        case f: Build.Failed =>
+          System.err.println("Compilation failed")
+          sys.exit(1)
+      }
     }
+  }
+
+  private def doPackage(
+    inputs: Inputs,
+    logger: Logger,
+    outputOpt: Option[String],
+    force: Boolean,
+    build: Build.Successful
+  ): Unit = {
+
+    val packageType = build.options.packageTypeOpt
+      .getOrElse(PackageType.Bootstrap)
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
-    def extension = options.packageType match {
-      case PackageOptions.PackageType.LibraryJar => ".jar"
-      case PackageOptions.PackageType.Assembly => ".jar"
-      case PackageOptions.PackageType.Js => ".js"
-      case PackageOptions.PackageType.Debian => ".deb"
-      case PackageOptions.PackageType.Dmg => ".dmg"
-      case PackageOptions.PackageType.Pkg => ".pkg"
-      case PackageOptions.PackageType.Rpm => ".rpm"
-      case PackageOptions.PackageType.Msi => ".msi"
-      case PackageOptions.PackageType.Native if Properties.isWin => ".exe"
+    def extension = packageType match {
+      case PackageType.LibraryJar => ".jar"
+      case PackageType.Assembly => ".jar"
+      case PackageType.Js => ".js"
+      case PackageType.Debian => ".deb"
+      case PackageType.Dmg => ".dmg"
+      case PackageType.Pkg => ".pkg"
+      case PackageType.Rpm => ".rpm"
+      case PackageType.Msi => ".msi"
+      case PackageType.Native if Properties.isWin => ".exe"
       case _ if Properties.isWin => ".bat"
       case _ => ""
     }
-    def defaultName = options.packageType match {
-      case PackageOptions.PackageType.LibraryJar => "library.jar"
-      case PackageOptions.PackageType.Assembly => "app.jar"
-      case PackageOptions.PackageType.Js => "app.js"
-      case PackageOptions.PackageType.Debian => "app.deb"
-      case PackageOptions.PackageType.Dmg => "app.dmg"
-      case PackageOptions.PackageType.Pkg => "app.pkg"
-      case PackageOptions.PackageType.Rpm => "app.rpm"
-      case PackageOptions.PackageType.Msi => "app.msi"
-      case PackageOptions.PackageType.Native if Properties.isWin => "app.exe"
+    def defaultName = packageType match {
+      case PackageType.LibraryJar => "library.jar"
+      case PackageType.Assembly => "app.jar"
+      case PackageType.Js => "app.js"
+      case PackageType.Debian => "app.deb"
+      case PackageType.Dmg => "app.dmg"
+      case PackageType.Pkg => "app.pkg"
+      case PackageType.Rpm => "app.rpm"
+      case PackageType.Msi => "app.msi"
+      case PackageType.Native if Properties.isWin => "app.exe"
       case _ if Properties.isWin => "app.bat"
       case _ => "app"
     }
 
-    val dest = options.output
-      .filter(_.nonEmpty)
+    val dest = outputOpt
       .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1) + extension))
       .getOrElse(defaultName)
     val destPath = os.Path(dest, Os.pwd)
@@ -84,7 +110,7 @@ object Package extends ScalaCommand[PackageOptions] {
       else destPath.toString
 
     def alreadyExistsCheck(): Unit =
-      if (!options.force && os.exists(destPath)) {
+      if (!force && os.exists(destPath)) {
         System.err.println(s"Error: $printableDest already exists. Pass -f or --force to force erasing it.")
         sys.exit(1)
       }
@@ -92,51 +118,49 @@ object Package extends ScalaCommand[PackageOptions] {
     alreadyExistsCheck()
 
     lazy val mainClassOpt =
-      options.mainClass.filter(_.nonEmpty) // trim it too?
-        .orElse(successfulBuild.retainedMainClassOpt(warnIfSeveral = true))
+      build.options.mainClass
+        .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
     def mainClass() = mainClassOpt.getOrElse(sys.error("No main class"))
 
-    options.packageType match {
-      case PackageOptions.PackageType.Bootstrap =>
-        bootstrap(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
-      case PackageOptions.PackageType.LibraryJar =>
-        val content = libraryJar(successfulBuild)
+    packageType match {
+      case PackageType.Bootstrap =>
+        bootstrap(build, destPath, mainClass(), () => alreadyExistsCheck())
+      case PackageType.LibraryJar =>
+        val content = libraryJar(build)
         alreadyExistsCheck()
-        if (options.force) os.write.over(destPath, content)
+        if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
-      case PackageOptions.PackageType.Assembly =>
-        assembly(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
+      case PackageType.Assembly =>
+        assembly(build, destPath, mainClass(), () => alreadyExistsCheck())
 
-      case PackageOptions.PackageType.Js =>
-        val linkerConfig = successfulBuild.options.scalaJsOptions.linkerConfig
-        linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
+      case PackageType.Js =>
+        val linkerConfig = build.options.scalaJsOptions.linkerConfig
+        linkJs(build, destPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
 
-      case PackageOptions.PackageType.Native =>
-        val config = successfulBuild.options.scalaNativeOptions.config.getOrElse(???)
-        val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
-        val logger = options.shared.scalaNativeLogger
+      case PackageType.Native =>
+        val config = build.options.scalaNativeOptions.config.getOrElse(???)
+        val workDir = build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
 
-        buildNative(successfulBuild, mainClass(), destPath, config, workDir, logger)
+        buildNative(build, mainClass(), destPath, config, workDir, logger.scalaNativeLogger)
 
-      case nativePackagerType: PackageOptions.NativePackagerType =>
+      case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
-        bootstrap(successfulBuild, bootstrapPath, mainClass(), () => alreadyExistsCheck())
+        bootstrap(build, bootstrapPath, mainClass(), () => alreadyExistsCheck())
         nativePackagerType match {
-          case PackageOptions.PackageType.Debian =>
-            DebianPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
-          case PackageOptions.PackageType.Dmg =>
-            DmgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
-          case PackageOptions.PackageType.Pkg =>
-            PkgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
-          case PackageOptions.PackageType.Rpm =>
-            RedHatPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
-          case PackageOptions.PackageType.Msi =>
-            WindowsPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+          case PackageType.Debian =>
+            DebianPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
+          case PackageType.Dmg =>
+            DmgPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
+          case PackageType.Pkg =>
+            PkgPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
+          case PackageType.Rpm =>
+            RedHatPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
+          case PackageType.Msi =>
+            WindowsPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
         }
     }
 
-    if (options.shared.logging.verbosity >= 0)
-      System.err.println(s"Wrote $dest")
+    logger.message(s"Wrote $dest")
   }
 
   private def libraryJar(build: Build.Successful): Array[Byte] = {

@@ -40,6 +40,8 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [watch](./cli-options.md#watch-options)
 
+## `directories`
+
 ## `install completions`
 
 Accepts options:
@@ -63,6 +65,7 @@ Accepts options:
 - [Scala Native](./cli-options.md#scala-native-options)
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
+- [watch](./cli-options.md#watch-options)
 
 ## `package`
 
@@ -77,6 +80,7 @@ Accepts options:
 - [Scala Native](./cli-options.md#scala-native-options)
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
+- [watch](./cli-options.md#watch-options)
 
 ## `run`
 

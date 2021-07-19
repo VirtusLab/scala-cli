@@ -6,7 +6,9 @@ import scala.build.config.reader.{DerivedConfigReader, Description}
 
 final case class Java(
   @Description("Java home")
-    home: Option[String] = None
+    home: Option[String] = None,
+  @Description("Java options")
+    options: List[String] = Nil
 )
 
 object Java {

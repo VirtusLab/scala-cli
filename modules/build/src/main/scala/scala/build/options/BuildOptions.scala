@@ -23,7 +23,11 @@ final case class BuildOptions(
                   jmhOptions: JmhOptions                  = JmhOptions(),
             classPathOptions: ClassPathOptions            = ClassPathOptions(),
                scriptOptions: ScriptOptions               = ScriptOptions(),
-                    internal: InternalOptions             = InternalOptions()
+                    internal: InternalOptions             = InternalOptions(),
+                   mainClass: Option[String]              = None,
+                 testOptions: TestOptions                 = TestOptions(),
+              packageOptions: PackageOptions              = PackageOptions(),
+                 replOptions: ReplOptions                 = ReplOptions()
 ) {
 
   def addRunnerDependency: Boolean =
@@ -180,6 +184,12 @@ final case class BuildOptions(
                   logger = logger
     )
 
+  // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
+  def packageTypeOpt: Option[PackageType] =
+    if (scalaJsOptions.enable) Some(PackageType.Js)
+    else if (scalaNativeOptions.enable) Some(PackageType.Native)
+    else packageOptions.packageTypeOpt
+
   lazy val hash: Option[String] = {
     val md = MessageDigest.getInstance("SHA-1")
 
@@ -200,6 +210,11 @@ final case class BuildOptions(
     jmhOptions.addHashData(update)
     classPathOptions.addHashData(update)
     scriptOptions.addHashData(update)
+    for (m <- mainClass)
+      update("mainClass=" + m + "\n")
+    testOptions.addHashData(update)
+    packageOptions.addHashData(update)
+    replOptions.addHashData(update)
 
     if (hasAnyOverride) {
       val digest = md.digest()
@@ -220,6 +235,10 @@ final case class BuildOptions(
                   jmhOptions = jmhOptions.orElse(other.jmhOptions),
             classPathOptions = classPathOptions.orElse(other.classPathOptions),
                scriptOptions = scriptOptions.orElse(other.scriptOptions),
-                    internal = internal.orElse(other.internal)
+                    internal = internal.orElse(other.internal),
+                    mainClass = mainClass.orElse(other.mainClass),
+                  testOptions = testOptions.orElse(other.testOptions),
+               packageOptions = packageOptions.orElse(other.packageOptions),
+                  replOptions = replOptions.orElse(other.replOptions)
     )
 }
