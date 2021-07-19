@@ -711,7 +711,8 @@ class RunTests extends munit.FunSuite {
             |""".stripMargin
         os.write(root / "script.sh", script)
         os.perms.set(root / "script.sh", "rwxr-xr-x")
-        os.proc("docker", "run", "--rm", "-v", s"${root}:/data", "-w", "/data", "ubuntu:18.04", "/data/script.sh").call(cwd = root)
+        val termOpt = if (System.console() == null) Nil else Seq("-t")
+        os.proc("docker", "run", "--rm", termOpt, "-v", s"${root}:/data", "-w", "/data", "ubuntu:18.04", "/data/script.sh").call(cwd = root)
         val output = os.read(root / "output").trim
         expect(output == message)
       }
