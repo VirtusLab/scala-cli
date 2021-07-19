@@ -10,6 +10,7 @@ object ScalaCliCore extends ScalaCliBase {
     Bsp,
     Clean,
     Compile,
+    Directories,
     InstallCompletions,
     Repl,
     Package,

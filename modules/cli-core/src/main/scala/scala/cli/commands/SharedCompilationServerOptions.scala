@@ -6,7 +6,7 @@ import java.io.File
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
 import java.util.Random
 
-import scala.build.{Directories, Os}
+import scala.build.Os
 import scala.cli.internal.Pid
 import scala.util.Properties
 
@@ -35,7 +35,7 @@ final case class SharedCompilationServerOptions(
       val r = new Random
       Left(r.nextInt())
     }
-  private def socketDirectory(directories: Directories): os.Path = {
+  private def socketDirectory(directories: scala.build.Directories): os.Path = {
     val dir = directories.bspSocketDir
     // Ensuring that whenever dir exists, it has the right permissions
     if (!os.isDir(dir)) {
@@ -60,7 +60,7 @@ final case class SharedCompilationServerOptions(
     dir
   }
 
-  private def bspSocketFile(directories: => Directories): File = {
+  private def bspSocketFile(directories: => scala.build.Directories): File = {
     val (socket, deleteOnExit) = bloopBspSocket match {
       case Some(path) =>
         (os.Path(path, Os.pwd), false)
@@ -82,7 +82,7 @@ final case class SharedCompilationServerOptions(
     socket.toIO.getCanonicalFile
   }
 
-  def defaultBspSocketOrPort(directories: => Directories): Option[() => Either[Int, File]] =
+  def defaultBspSocketOrPort(directories: => scala.build.Directories): Option[() => Either[Int, File]] =
     if (Properties.isWin) None
     else
       bloopBspProtocol.filter(_ != "default") match {

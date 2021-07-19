@@ -40,6 +40,8 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [watch](./cli-options.md#watch-options)
 
+## `directories`
+
 ## `install completions`
 
 Accepts options:

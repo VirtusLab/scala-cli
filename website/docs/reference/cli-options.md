@@ -483,6 +483,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`clean`](./commands#clean)
 - [`compile`](./commands#compile)
+- [`directories`](./commands#directories)
 - [`install completions`](./commands#install-completions)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)

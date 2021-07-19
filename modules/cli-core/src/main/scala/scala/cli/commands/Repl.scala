@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import scala.build.{Build, Directories, Inputs, Logger, Os, ReplArtifacts}
+import scala.build.{Build, Inputs, Logger, Os, ReplArtifacts}
 import scala.build.internal.{Constants, Runner}
 
 object Repl extends ScalaCommand[ReplOptions] {
@@ -52,7 +52,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
   private def runRepl(
     build: Build.Successful,
-    directories: Directories,
+    directories: scala.build.Directories,
     logger: Logger,
     allowExit: Boolean
   ): Unit = {
