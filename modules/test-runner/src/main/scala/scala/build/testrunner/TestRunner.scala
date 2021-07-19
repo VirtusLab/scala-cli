@@ -1,4 +1,4 @@
-package scala.cli.testrunner
+package scala.build.testrunner
 
 import java.io.{File, PrintStream}
 import java.net.URLClassLoader

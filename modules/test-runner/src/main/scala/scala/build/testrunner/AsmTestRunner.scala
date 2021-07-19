@@ -1,4 +1,4 @@
-package scala.cli.testrunner
+package scala.build.testrunner
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, InputStream, PrintStream}
 import java.nio.charset.StandardCharsets

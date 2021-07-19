@@ -341,7 +341,7 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
     Deps.asm,
     Deps.testInterface
   )
-  def mainClass = Some("scala.cli.testrunner.DynamicTestRunner")
+  def mainClass = Some("scala.build.testrunner.DynamicTestRunner")
 }
 
 class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {

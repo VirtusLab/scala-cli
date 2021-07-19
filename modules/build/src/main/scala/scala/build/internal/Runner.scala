@@ -8,7 +8,7 @@ import java.nio.file.{Files, Path, Paths}
 import java.util.Locale
 
 import scala.build.Logger
-import scala.cli.testrunner.{AsmTestRunner, TestRunner}
+import scala.build.testrunner.{AsmTestRunner, TestRunner}
 import scala.scalanative.{build => sn}
 import scala.util.Properties
 
