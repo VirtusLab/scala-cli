@@ -114,7 +114,7 @@ object Package extends ScalaCommand[PackageOptions] {
       case PackageOptions.PackageType.Native =>
         val config = successfulBuild.options.scalaNativeOptions.config.getOrElse(???)
         val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
-        val logger = options.shared.scalaNativeLogger
+        val logger = options.shared.logger.scalaNativeLogger
 
         buildNative(successfulBuild, mainClass(), destPath, config, workDir, logger)
 

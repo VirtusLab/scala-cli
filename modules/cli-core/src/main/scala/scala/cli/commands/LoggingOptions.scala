@@ -8,6 +8,7 @@ import java.io.PrintStream
 
 import scala.build.blooprifle.BloopRifleLogger
 import scala.build.Logger
+import scala.scalanative.{build => sn}
 
 final case class LoggingOptions(
   @Group("Logging")
@@ -62,6 +63,15 @@ final case class LoggingOptions(
             else None
           def bloopCliInheritStdout = verbosity >= 3
           def bloopCliInheritStderr = verbosity >= 3
+        }
+
+      def scalaNativeLogger: sn.Logger =
+        new sn.Logger {
+          def trace(msg: Throwable) = ()
+          def debug(msg: String) = logger.debug(msg)
+          def info(msg: String) = logger.log(msg)
+          def warn(msg: String) = logger.log(msg)
+          def error(msg: String) = logger.log(msg)
         }
 
       // Allow to disable that?

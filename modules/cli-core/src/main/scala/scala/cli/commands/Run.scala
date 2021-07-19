@@ -121,7 +121,7 @@ object Run extends ScalaCommand[RunOptions] {
           mainClass,
           build.options.scalaNativeOptions.config.getOrElse(???),
           options.shared.nativeWorkDir(root, projectName),
-          options.shared.scalaNativeLogger
+          options.shared.logger.scalaNativeLogger
         ) { launcher =>
           Runner.runNative(
             launcher.toIO,

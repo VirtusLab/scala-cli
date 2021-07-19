@@ -68,7 +68,7 @@ object Test extends ScalaCommand[TestOptions] {
           "scala.scalanative.testinterface.TestMain",
           build.options.scalaNativeOptions.config.getOrElse(???),
           options.shared.nativeWorkDir(root, projectName),
-          options.shared.scalaNativeLogger
+          options.shared.logger.scalaNativeLogger
         ) { launcher =>
           Runner.testNative(
             build.fullClassPath,
@@ -76,7 +76,7 @@ object Test extends ScalaCommand[TestOptions] {
             options.shared.logger,
             options.testFrameworkOpt,
             args,
-            options.shared.scalaNativeLogger
+            options.shared.logger.scalaNativeLogger
           )
         }
       else {
