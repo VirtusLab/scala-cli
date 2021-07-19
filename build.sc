@@ -9,6 +9,7 @@ import java.io.File
 
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._, scalalib.{publish => _, _}
+import mill.contrib.bloop.Bloop
 
 import _root_.scala.util.Properties
 
@@ -31,8 +32,11 @@ object `integration-core` extends Module {
   object jvm    extends JvmIntegrationCore {
     object test extends Tests
   }
-  object native extends NativeIntegrationCore {
-    object test extends Tests
+  object native extends NativeIntegrationCore with Bloop.Module {
+    def skipBloop = true
+    object test extends Tests with Bloop.Module {
+      def skipBloop = true
+    }
   }
 }
 
@@ -44,8 +48,10 @@ object integration extends Module {
       }
     }
   }
-  object native extends NativeIntegration {
-    object test extends Tests {
+  object native extends NativeIntegration with Bloop.Module {
+    def skipBloop = true
+    object test extends Tests with Bloop.Module {
+      def skipBloop = true
       def sources = T.sources {
         super.sources() ++ `integration-core`.native.test.sources()
       }
@@ -53,7 +59,8 @@ object integration extends Module {
   }
 }
 
-object packager extends ScalaModule {
+object packager extends ScalaModule with Bloop.Module {
+  def skipBloop = true
   def scalaVersion = Scala.scala213
   def ivyDeps = Agg(
     Deps.scalaPackagerCli
@@ -78,7 +85,8 @@ object dummy extends Module {
   // version is used in the repl command, and ensure Ammonite is available
   // for all Scala versions we support
   object amm extends Cross[Amm](Scala.listAll: _*)
-  class Amm(val crossScalaVersion: String) extends CrossScalaModule {
+  class Amm(val crossScalaVersion: String) extends CrossScalaModule with Bloop.Module {
+    def skipBloop = true
     def ivyDeps = Agg(
       Deps.ammonite
     )
