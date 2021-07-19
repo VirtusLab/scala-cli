@@ -173,6 +173,8 @@ Aliases: `--shell`
 
 #### `--name`
 
+#### `--env`
+
 ## Java options
 
 Available in commands:

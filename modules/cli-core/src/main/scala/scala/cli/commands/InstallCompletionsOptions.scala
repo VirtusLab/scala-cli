@@ -14,5 +14,6 @@ final case class InstallCompletionsOptions(
   rcFile: Option[String] = None,
   directory: Option[String] = None,
   banner: String = "{NAME} completions",
-  name: Option[String] = None
+  name: Option[String] = None,
+  env: Boolean = false
 )
