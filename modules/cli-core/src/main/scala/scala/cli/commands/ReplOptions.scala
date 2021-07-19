@@ -11,19 +11,21 @@ final case class ReplOptions(
     shared: SharedOptions = SharedOptions(),
   @Recurse
     sharedJava: SharedJavaOptions = SharedJavaOptions(),
+  @Recurse
+    watch: SharedWatchOptions = SharedWatchOptions(),
 
   @Group("Repl")
   @HelpMessage("Set Ammonite version")
     ammonite: Option[String] = None
 ) {
-  def ammoniteVersion: String =
-    ammonite.getOrElse(Constants.ammoniteVersion)
-
   def buildOptions: BuildOptions = {
     val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
+      ),
+      replOptions = baseOptions.replOptions.copy(
+        ammoniteVersionOpt = ammonite
       )
     )
   }

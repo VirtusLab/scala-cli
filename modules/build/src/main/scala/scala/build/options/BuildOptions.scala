@@ -26,7 +26,8 @@ final case class BuildOptions(
                     internal: InternalOptions             = InternalOptions(),
                    mainClass: Option[String]              = None,
                  testOptions: TestOptions                 = TestOptions(),
-              packageOptions: PackageOptions              = PackageOptions()
+              packageOptions: PackageOptions              = PackageOptions(),
+                 replOptions: ReplOptions                 = ReplOptions()
 ) {
 
   def addRunnerDependency: Boolean =
@@ -213,6 +214,7 @@ final case class BuildOptions(
       update("mainClass=" + m + "\n")
     testOptions.addHashData(update)
     packageOptions.addHashData(update)
+    replOptions.addHashData(update)
 
     if (hasAnyOverride) {
       val digest = md.digest()
@@ -236,6 +238,7 @@ final case class BuildOptions(
                     internal = internal.orElse(other.internal),
                     mainClass = mainClass.orElse(other.mainClass),
                   testOptions = testOptions.orElse(other.testOptions),
-               packageOptions = packageOptions.orElse(other.packageOptions)
+               packageOptions = packageOptions.orElse(other.packageOptions),
+                  replOptions = replOptions.orElse(other.replOptions)
     )
 }

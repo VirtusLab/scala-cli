@@ -63,6 +63,7 @@ Accepts options:
 - [Scala Native](./cli-options.md#scala-native-options)
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
+- [watch](./cli-options.md#watch-options)
 
 ## `package`
 
