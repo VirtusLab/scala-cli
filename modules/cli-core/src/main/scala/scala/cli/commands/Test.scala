@@ -52,7 +52,7 @@ object Test extends ScalaCommand[TestOptions] {
   ): Unit = {
 
     val retCode =
-      if (options.shared.js.js) {
+      if (build.options.scalaJsOptions.enable) {
         val linkerConfig = build.options.scalaJsOptions.linkerConfig
         Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig) { js =>
           Runner.testJs(
@@ -62,7 +62,7 @@ object Test extends ScalaCommand[TestOptions] {
             options.testFrameworkOpt
           )
         }
-      } else if (options.shared.native.native)
+      } else if (build.options.scalaNativeOptions.enable)
         Run.withNativeLauncher(
           build,
           "scala.scalanative.testinterface.TestMain",

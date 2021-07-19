@@ -58,6 +58,32 @@ class RunTests extends munit.FunSuite {
       simpleJsTest()
     }
 
+  def simpleJsViaConfigFileTest(): Unit = {
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "simple.sc" ->
+         s"""import scala.scalajs.js
+            |val console = js.Dynamic.global.console
+            |val msg = "$message"
+            |console.log(msg)
+            |""".stripMargin,
+        os.rel / "scala.conf" ->
+          """scala.platform = "js"
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".").call(cwd = root).out.text.trim
+      expect(output == message)
+    }
+  }
+
+  if (TestUtil.canRunJs)
+    test("simple script JS via config file") {
+      simpleJsViaConfigFileTest()
+    }
+
   def platformNl = if (Properties.isWin) "\\r\\n" else "\\n"
 
   def simpleNativeTests(): Unit = {

@@ -105,7 +105,7 @@ object Run extends ScalaCommand[RunOptions] {
   ): Boolean = {
 
     val retCode =
-      if (options.shared.js.js) {
+      if (build.options.scalaJsOptions.enable) {
         val linkerConfig = build.options.scalaJsOptions.linkerConfig
         withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
           Runner.runJs(
@@ -115,7 +115,7 @@ object Run extends ScalaCommand[RunOptions] {
             allowExecve = allowExecve
           )
         }
-      } else if (options.shared.native.native)
+      } else if (build.options.scalaNativeOptions.enable)
         withNativeLauncher(
           build,
           mainClass,
