@@ -208,7 +208,6 @@ class TestTests extends munit.FunSuite {
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit,
-        stderr = os.Inherit,
         check = false
       )
       expect(res.exitCode == 1)

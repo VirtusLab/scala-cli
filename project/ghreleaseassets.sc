@@ -199,8 +199,7 @@ def copyLauncher(
     os.copy(nativeLauncher, dest, createFolders = true, replaceExisting = true)
     os.proc("gzip", "-v", dest.toString).call(
       stdin = os.Inherit,
-      stdout = os.Inherit,
-      stderr = os.Inherit
+      stdout = os.Inherit
     )
   }
 }

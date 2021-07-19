@@ -28,8 +28,7 @@ class PackageTests extends munit.FunSuite {
       os.proc(TestUtil.cli, "package", TestUtil.extraOptions, fileName).call(
         cwd = root,
         stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdout = os.Inherit
       )
 
       val launcher = root / launcherName
@@ -56,8 +55,7 @@ class PackageTests extends munit.FunSuite {
       os.proc(TestUtil.cli, "package", TestUtil.extraOptions).call(
         cwd = root,
         stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdout = os.Inherit
       )
 
       val outputName = if (Properties.isWin) "app.bat" else "app"
@@ -89,8 +87,7 @@ class PackageTests extends munit.FunSuite {
       os.proc(TestUtil.cli, "package", TestUtil.extraOptions, fileName, "--js").call(
         cwd = root,
         stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdout = os.Inherit
       )
 
       val launcher = root / destName
@@ -131,8 +128,7 @@ class PackageTests extends munit.FunSuite {
       os.proc(TestUtil.cli, "package", TestUtil.extraOptions, fileName, "--native").call(
         cwd = root,
         stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdout = os.Inherit
       )
 
       val launcher = root / destName
@@ -167,8 +163,7 @@ class PackageTests extends munit.FunSuite {
       os.proc(TestUtil.cli, "package", TestUtil.extraOptions, "--assembly", fileName).call(
         cwd = root,
         stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
+        stdout = os.Inherit
       )
 
       val launcher = root / launcherName
