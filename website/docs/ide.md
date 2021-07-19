@@ -23,7 +23,11 @@ run the command "Create New Integrated Terminal (in Active Workspace)", and type
 $ mkdir -p .vscode
 $ cat > .vscode/settings.json << EOF
 {
-  "metals.serverVersion": "com.github.alexarchambault.tmp.metals:metals_2.12:0.10.4+193-ceb77535-SNAPSHOT"
+  "metals.serverVersion": "com.github.alexarchambault.tmp.metals:metals_2.12:0.10.4+193-06810ef8-SNAPSHOT",
+  "metals.serverProperties": [
+    "-Xmx512m",
+    "-Dmetals.scala-cli.launcher=$(which scala)"
+  ]
 }
 EOF
 ```
@@ -36,7 +40,7 @@ suggest it, run the "Developer: Reload window" command from the command palette.
 Scala CLI support needs to be manually activated for specific files. Open an existing `.scala`
 or `.sc` file,
 or create a new one. Then, with that file opened and focused, run the command
-"Start Scala CLI"
+"Metals: Start Scala CLI server"
 
 
 - enjoy
