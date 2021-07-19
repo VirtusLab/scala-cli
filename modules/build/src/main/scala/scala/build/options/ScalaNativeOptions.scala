@@ -38,28 +38,6 @@ final case class ScalaNativeOptions(
       compileDefaults = compileDefaults || other.compileDefaults
     )
 
-  def addHashData(update: String => Unit): Unit =
-    if (enable) {
-      update("native=" + version.getOrElse("default") + "\n")
-
-      for (value <- version)
-        update("native.version=" + value + "\n")
-      for (value <- modeStr)
-        update("native.modeStr=" + value + "\n")
-      for (value <- gcStr)
-        update("native.gcStr=" + value + "\n")
-      for (value <- clang)
-        update("native.clang=" + value + "\n")
-      for (value <- clangpp)
-        update("native.clangpp=" + value + "\n")
-      for (opt <- linkingOptions)
-        update("native.linkingOptions+=" + opt + "\n")
-      update("native.linkingDefaults=" + linkingDefaults + "\n")
-      for (opt <- compileOptions)
-        update("native.compileOptions+=" + opt + "\n")
-      update("native.compileDefaults=" + compileDefaults + "\n")
-    }
-
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
 
   private def gc: sn.GC =
@@ -131,4 +109,13 @@ final case class ScalaNativeOptions(
     if (enable) Some(configUnsafe)
     else None
 
+}
+
+object ScalaNativeOptions {
+  implicit val hasHashData: HasHashData[ScalaNativeOptions] = {
+    val underlying: HasHashData[ScalaNativeOptions] = HasHashData.derive
+    (prefix, t, update) =>
+      if (t.enable)
+        underlying.add(prefix, t, update)
+  }
 }

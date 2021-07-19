@@ -38,19 +38,6 @@ final case class ScalaJsOptions(
       dom = dom.orElse(other.dom)
     )
 
-  def addHashData(update: String => Unit): Unit =
-    if (enable) {
-      update("js=" + version.getOrElse("default") + "\n")
-      update("js.mode=" + mode + "\n")
-      for (value <- moduleKindStr)
-        update("js.moduleKind=" + value + "\n")
-      for (value <- checkIr)
-        update("js.checkIr=" + value + "\n")
-      update("js.emitSourceMaps=" + emitSourceMaps + "\n")
-      for (value <- dom)
-        update("js.moduleKind=" + value + "\n")
-    }
-
   private def moduleKind: ModuleKind =
     moduleKindStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
       case "commonjs" | "common" => ModuleKind.CommonJSModule
@@ -112,5 +99,14 @@ final case class ScalaJsOptions(
       .withBatchMode(true)
 
     config
+  }
+}
+
+object ScalaJsOptions {
+  implicit val hasHashData: HasHashData[ScalaJsOptions] = {
+    val underlying: HasHashData[ScalaJsOptions] = HasHashData.derive
+    (prefix, t, update) =>
+      if (t.enable)
+        underlying.add(prefix, t, update)
   }
 }

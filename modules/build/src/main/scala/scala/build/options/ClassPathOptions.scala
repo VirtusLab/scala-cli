@@ -19,17 +19,8 @@ final case class ClassPathOptions(
       fetchSources = fetchSources.orElse(other.fetchSources),
       extraDependencies = extraDependencies ++ other.extraDependencies
     )
+}
 
-  def addHashData(update: String => Unit): Unit = {
-    for (repo <- extraRepositories)
-      update("repositories+=" + repo + "\n")
-    for (jar <- extraJars)
-      update("jars+=" + jar.toString + "\n")
-    for (jar <- extraCompileOnlyJars)
-      update("compileOnlyJars+=" + jar.toString + "\n")
-    for (jar <- extraSourceJars)
-      update("sourceJars+=" + jar.toString + "\n")
-    for (dep <- extraDependencies)
-      update("dependencies+=" + dep.render + "\n")
-  }
+object ClassPathOptions {
+  implicit val hasHashData: HasHashData[ClassPathOptions] = HasHashData.derive
 }

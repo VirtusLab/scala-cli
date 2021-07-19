@@ -7,9 +7,8 @@ final case class TestOptions(
     TestOptions(
       frameworkOpt = frameworkOpt.orElse(other.frameworkOpt)
     )
+}
 
-  def addHashData(update: String => Unit): Unit = {
-    for (fw <- frameworkOpt)
-      update("framework+=" + fw + "\n")
-  }
+object TestOptions {
+  implicit val hasHashData: HasHashData[TestOptions] = HasHashData.derive
 }

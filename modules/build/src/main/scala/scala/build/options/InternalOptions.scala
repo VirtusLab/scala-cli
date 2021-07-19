@@ -15,3 +15,7 @@ final case class InternalOptions(
       localRepository = localRepository.orElse(other.localRepository)
     )
 }
+
+object InternalOptions {
+  implicit val hasHashData: HasHashData[InternalOptions] = HasHashData.nop
+}

@@ -195,26 +195,13 @@ final case class BuildOptions(
 
     var hasAnyOverride = false
 
-    def update(s: String): Unit = {
+    BuildOptions.hasHashData.add("", this, s => {
       val bytes = s.getBytes(StandardCharsets.UTF_8)
       if (bytes.length > 0) {
         hasAnyOverride = true
         md.update(bytes)
       }
-    }
-    scalaOptions.addHashData(update)
-    scalaJsOptions.addHashData(update)
-    scalaNativeOptions.addHashData(update)
-    javaOptions.addHashData(update)
-    internalDependencies.addHashData(update)
-    jmhOptions.addHashData(update)
-    classPathOptions.addHashData(update)
-    scriptOptions.addHashData(update)
-    for (m <- mainClass)
-      update("mainClass=" + m + "\n")
-    testOptions.addHashData(update)
-    packageOptions.addHashData(update)
-    replOptions.addHashData(update)
+    })
 
     if (hasAnyOverride) {
       val digest = md.digest()
@@ -241,4 +228,8 @@ final case class BuildOptions(
                packageOptions = packageOptions.orElse(other.packageOptions),
                   replOptions = replOptions.orElse(other.replOptions)
     )
+}
+
+object BuildOptions {
+  implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
 }

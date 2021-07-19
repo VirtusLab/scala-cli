@@ -7,9 +7,8 @@ final case class ReplOptions(
     ReplOptions(
       ammoniteVersionOpt = ammoniteVersionOpt.orElse(other.ammoniteVersionOpt)
     )
+}
 
-  def addHashData(update: String => Unit): Unit = {
-    for (ver <- ammoniteVersionOpt)
-      update("ammoniteVersion+=" + ver + "\n")
-  }
+object ReplOptions {
+  implicit val hasHashData: HasHashData[ReplOptions] = HasHashData.derive
 }
