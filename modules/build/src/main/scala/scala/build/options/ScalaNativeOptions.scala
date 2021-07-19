@@ -24,20 +24,6 @@ final case class ScalaNativeOptions(
   def nativeWorkDir(root: os.Path, projectName: String): os.Path =
     root / ".scala" / projectName / "native"
 
-  def orElse(other: ScalaNativeOptions): ScalaNativeOptions =
-    ScalaNativeOptions(
-      enable = enable || other.enable,
-      version = version.orElse(other.version),
-      modeStr = modeStr.orElse(other.modeStr),
-      gcStr = gcStr.orElse(other.gcStr),
-      clang = clang.orElse(other.clang),
-      clangpp = clangpp.orElse(other.clangpp),
-      linkingOptions = linkingOptions ++ other.linkingOptions,
-      linkingDefaults = linkingDefaults || other.linkingDefaults,
-      compileOptions = compileOptions ++ other.compileOptions,
-      compileDefaults = compileDefaults || other.compileDefaults
-    )
-
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
 
   private def gc: sn.GC =
@@ -118,4 +104,5 @@ object ScalaNativeOptions {
       if (t.enable)
         underlying.add(prefix, t, update)
   }
+  implicit val monoid: ConfigMonoid[ScalaNativeOptions] = ConfigMonoid.derive
 }

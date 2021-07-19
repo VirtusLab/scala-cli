@@ -213,23 +213,10 @@ final case class BuildOptions(
   }
 
   def orElse(other: BuildOptions): BuildOptions =
-    BuildOptions(
-                scalaOptions = scalaOptions.orElse(other.scalaOptions),
-              scalaJsOptions = scalaJsOptions.orElse(other.scalaJsOptions),
-          scalaNativeOptions = scalaNativeOptions.orElse(other.scalaNativeOptions),
-                 javaOptions = javaOptions.orElse(other.javaOptions),
-        internalDependencies = internalDependencies.orElse(other.internalDependencies),
-                  jmhOptions = jmhOptions.orElse(other.jmhOptions),
-            classPathOptions = classPathOptions.orElse(other.classPathOptions),
-               scriptOptions = scriptOptions.orElse(other.scriptOptions),
-                    internal = internal.orElse(other.internal),
-                    mainClass = mainClass.orElse(other.mainClass),
-                  testOptions = testOptions.orElse(other.testOptions),
-               packageOptions = packageOptions.orElse(other.packageOptions),
-                  replOptions = replOptions.orElse(other.replOptions)
-    )
+    BuildOptions.monoid.orElse(this, other)
 }
 
 object BuildOptions {
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
+  implicit val monoid: ConfigMonoid[BuildOptions] = ConfigMonoid.derive
 }

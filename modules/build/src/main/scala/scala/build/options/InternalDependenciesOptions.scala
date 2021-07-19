@@ -9,15 +9,9 @@ final case class InternalDependenciesOptions(
     addStubsDependencyOpt.getOrElse(true)
   def addTestRunnerDependency: Boolean =
     addTestRunnerDependencyOpt.getOrElse(false)
-
-  def orElse(other: InternalDependenciesOptions): InternalDependenciesOptions =
-    InternalDependenciesOptions(
-           addStubsDependencyOpt = addStubsDependencyOpt.orElse(other.addStubsDependencyOpt),
-          addRunnerDependencyOpt = addRunnerDependencyOpt.orElse(other.addRunnerDependencyOpt),
-      addTestRunnerDependencyOpt = addTestRunnerDependencyOpt.orElse(other.addTestRunnerDependencyOpt)
-    )
 }
 
 object InternalDependenciesOptions {
   implicit val hasHashData: HasHashData[InternalDependenciesOptions] = HasHashData.derive
+  implicit val monoid: ConfigMonoid[InternalDependenciesOptions] = ConfigMonoid.derive
 }

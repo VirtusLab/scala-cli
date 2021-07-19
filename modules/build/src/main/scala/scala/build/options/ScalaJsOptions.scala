@@ -27,17 +27,6 @@ final case class ScalaJsOptions(
     if (enable) Seq(dep"org.scala-js:::scalajs-compiler:$finalVersion")
     else Nil
 
-  def orElse(other: ScalaJsOptions): ScalaJsOptions =
-    ScalaJsOptions(
-      enable = enable || other.enable,
-      version = version.orElse(other.version),
-      mode = mode.orElse(other.mode),
-      moduleKindStr = moduleKindStr.orElse(other.moduleKindStr),
-      checkIr = checkIr.orElse(other.checkIr),
-      emitSourceMaps = emitSourceMaps || other.emitSourceMaps,
-      dom = dom.orElse(other.dom)
-    )
-
   private def moduleKind: ModuleKind =
     moduleKindStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
       case "commonjs" | "common" => ModuleKind.CommonJSModule
@@ -109,4 +98,5 @@ object ScalaJsOptions {
       if (t.enable)
         underlying.add(prefix, t, update)
   }
+  implicit val monoid: ConfigMonoid[ScalaJsOptions] = ConfigMonoid.derive
 }
