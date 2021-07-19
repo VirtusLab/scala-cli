@@ -1,7 +1,8 @@
 package scala.cli.commands
 
 import caseapp._
-import scala.build.{Build, Inputs, Os, ReplArtifacts, Runner}
+import scala.build.{Build, Inputs, Os, ReplArtifacts}
+import scala.build.internal.Runner
 
 object Repl extends ScalaCommand[ReplOptions] {
   override def group = "Main"

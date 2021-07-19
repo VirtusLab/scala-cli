@@ -3,8 +3,8 @@ package scala.cli.commands
 import java.nio.file.Path
 
 import caseapp._
-import scala.build.{Build, Inputs, Logger, Os, Runner}
-import scala.build.internal.Constants
+import scala.build.{Build, Inputs, Logger, Os}
+import scala.build.internal.{Constants, Runner}
 import scala.build.options.BuildOptions
 import scala.scalanative.{build => sn}
 

@@ -1,16 +1,16 @@
-package scala.build
+package scala.build.internal
 
 import coursier.jvm.Execve
-import sbt.testing.Status
+import sbt.testing.{Framework, Status}
 
 import java.io.File
 import java.nio.file.{Files, Path, Paths}
+import java.util.Locale
 
+import scala.build.Logger
 import scala.cli.testrunner.{AsmTestRunner, TestRunner}
 import scala.scalanative.{build => sn}
 import scala.util.Properties
-import sbt.testing.Framework
-import java.util.Locale
 
 object Runner {
 

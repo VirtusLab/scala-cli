@@ -100,6 +100,7 @@ def defaultScalaVersion = Scala.scala212
 class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with HasTests {
   def moduleDeps = Seq(
     `bloop-rifle`(),
+    `test-runner`(),
     `tasty-lib`()
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
@@ -110,11 +111,14 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
       .exclude(("com.google.collections", "google-collections")),
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
+    Deps.nativeTestRunner,
     Deps.nativeTools,
     Deps.osLib,
     Deps.pprint,
     Deps.pureconfig,
+    Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinkerInterface,
+    Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
     Deps.scalaparse,
     Deps.swoval
@@ -225,10 +229,7 @@ trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule wit
     Deps.coursierLauncher,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
-    Deps.nativeTestRunner,
-    Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinker,
-    Deps.scalaJsTestAdapter,
     Deps.scalaPackager,
     Deps.svmSubs
   )
