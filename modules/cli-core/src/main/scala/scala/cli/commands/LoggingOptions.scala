@@ -28,6 +28,9 @@ final case class LoggingOptions(
 
   lazy val logger: Logger =
     new Logger { logger =>
+      def message(message: => String) =
+        if (verbosity >= 0)
+          System.err.println(message)
       def log(message: => String) =
         if (verbosity >= 1)
           System.err.println(message)

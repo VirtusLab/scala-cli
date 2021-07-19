@@ -8,6 +8,9 @@ import scala.build.Logger
 import scala.scalanative.{build => sn}
 
 case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logger {
+  def message(message: => String): Unit =
+    if (info)
+      System.err.println(message)
   def log(s: => String): Unit =
     if (info)
       System.err.println(s)

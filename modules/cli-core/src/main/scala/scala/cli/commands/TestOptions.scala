@@ -24,11 +24,15 @@ final case class TestOptions(
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
+      ),
+      testOptions = baseOptions.testOptions.copy(
+        frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty)
+      ),
+      internalDependencies = baseOptions.internalDependencies.copy(
+        addTestRunnerDependencyOpt = Some(true)
       )
     )
   }
-  def testFrameworkOpt: Option[String] =
-    testFramework.map(_.trim).filter(_.nonEmpty)
 }
 
 object TestOptions {

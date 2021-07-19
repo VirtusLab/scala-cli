@@ -9,6 +9,7 @@ import scala.scalanative.{build => sn}
 
 trait Logger {
   // TODO Use macros for log and debug calls to have zero cost when verbosity <= 0
+  def message(message: => String): Unit
   def log(s: => String): Unit
   def log(s: => String, debug: => String): Unit
   def debug(s: => String): Unit
@@ -22,6 +23,7 @@ trait Logger {
 
 object Logger {
   private class Nop extends Logger {
+    def message(message: => String): Unit = ()
     def log(s: => String): Unit = ()
     def log(s: => String, debug: => String): Unit = ()
     def debug(s: => String): Unit = ()

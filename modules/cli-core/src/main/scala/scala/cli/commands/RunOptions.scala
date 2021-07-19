@@ -30,6 +30,7 @@ final case class RunOptions(
       jmhVersion = benchmarking.jmhVersion
     )
     baseOptions.copy(
+      mainClass = mainClass,
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
       )

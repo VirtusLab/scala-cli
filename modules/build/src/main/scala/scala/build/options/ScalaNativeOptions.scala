@@ -21,6 +21,9 @@ final case class ScalaNativeOptions(
   compileDefaults: Boolean = true
 ) {
 
+  def nativeWorkDir(root: os.Path, projectName: String): os.Path =
+    root / ".scala" / projectName / "native"
+
   def orElse(other: ScalaNativeOptions): ScalaNativeOptions =
     ScalaNativeOptions(
       enable = enable || other.enable,

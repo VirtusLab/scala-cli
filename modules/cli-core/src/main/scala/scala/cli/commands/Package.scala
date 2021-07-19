@@ -9,7 +9,7 @@ import packager.deb.DebianPackage
 import packager.rpm.RedHatPackage
 import packager.windows.WindowsPackage
 import org.scalajs.linker.interface.StandardConfig
-import scala.build.{Build, Inputs, Os}
+import scala.build.{Build, Inputs, Logger, Os}
 import scala.build.internal.ScalaJsConfig
 import scala.build.options.PackageType
 import scala.cli.internal.ScalaJsLinker
@@ -36,17 +36,30 @@ object Package extends ScalaCommand[PackageOptions] {
 
     // TODO Add watch mode
 
-    val buildOptions = options.buildOptions
+    val initialBuildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
+    val logger = options.shared.logger
 
-    val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger)
+    val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
       sys.exit(1)
     }
 
-    val packageType = options.packageTypeOpt.getOrElse(build.options.defaultPackageType)
+    doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, successfulBuild)
+  }
+
+  private def doPackage(
+    inputs: Inputs,
+    logger: Logger,
+    outputOpt: Option[String],
+    force: Boolean,
+    build: Build.Successful
+  ): Unit = {
+
+    val packageType = build.options.packageTypeOpt
+      .getOrElse(PackageType.Bootstrap)
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
@@ -77,8 +90,7 @@ object Package extends ScalaCommand[PackageOptions] {
       case _ => "app"
     }
 
-    val dest = options.output
-      .filter(_.nonEmpty)
+    val dest = outputOpt
       .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1) + extension))
       .getOrElse(defaultName)
     val destPath = os.Path(dest, Os.pwd)
@@ -87,7 +99,7 @@ object Package extends ScalaCommand[PackageOptions] {
       else destPath.toString
 
     def alreadyExistsCheck(): Unit =
-      if (!options.force && os.exists(destPath)) {
+      if (!force && os.exists(destPath)) {
         System.err.println(s"Error: $printableDest already exists. Pass -f or --force to force erasing it.")
         sys.exit(1)
       }
@@ -95,51 +107,49 @@ object Package extends ScalaCommand[PackageOptions] {
     alreadyExistsCheck()
 
     lazy val mainClassOpt =
-      options.mainClass.filter(_.nonEmpty) // trim it too?
-        .orElse(successfulBuild.retainedMainClassOpt(warnIfSeveral = true))
+      build.options.mainClass
+        .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
     def mainClass() = mainClassOpt.getOrElse(sys.error("No main class"))
 
     packageType match {
       case PackageType.Bootstrap =>
-        bootstrap(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
+        bootstrap(build, destPath, mainClass(), () => alreadyExistsCheck())
       case PackageType.LibraryJar =>
-        val content = libraryJar(successfulBuild)
+        val content = libraryJar(build)
         alreadyExistsCheck()
-        if (options.force) os.write.over(destPath, content)
+        if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
       case PackageType.Assembly =>
-        assembly(successfulBuild, destPath, mainClass(), () => alreadyExistsCheck())
+        assembly(build, destPath, mainClass(), () => alreadyExistsCheck())
 
       case PackageType.Js =>
-        val linkerConfig = successfulBuild.options.scalaJsOptions.linkerConfig
-        linkJs(successfulBuild, destPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
+        val linkerConfig = build.options.scalaJsOptions.linkerConfig
+        linkJs(build, destPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
 
       case PackageType.Native =>
-        val config = successfulBuild.options.scalaNativeOptions.config.getOrElse(???)
-        val workDir = options.shared.nativeWorkDir(inputs.workspace, inputs.projectName)
-        val logger = options.shared.logger.scalaNativeLogger
+        val config = build.options.scalaNativeOptions.config.getOrElse(???)
+        val workDir = build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
 
-        buildNative(successfulBuild, mainClass(), destPath, config, workDir, logger)
+        buildNative(build, mainClass(), destPath, config, workDir, logger.scalaNativeLogger)
 
       case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
-        bootstrap(successfulBuild, bootstrapPath, mainClass(), () => alreadyExistsCheck())
+        bootstrap(build, bootstrapPath, mainClass(), () => alreadyExistsCheck())
         nativePackagerType match {
           case PackageType.Debian =>
-            DebianPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+            DebianPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
           case PackageType.Dmg =>
-            DmgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+            DmgPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
           case PackageType.Pkg =>
-            PkgPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+            PkgPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
           case PackageType.Rpm =>
-            RedHatPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+            RedHatPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
           case PackageType.Msi =>
-            WindowsPackage(bootstrapPath, BuildSettings(force = options.force, outputPath = destPath)).build()
+            WindowsPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
         }
     }
 
-    if (options.shared.logging.verbosity >= 0)
-      System.err.println(s"Wrote $dest")
+    logger.message(s"Wrote $dest")
   }
 
   private def libraryJar(build: Build.Successful): Array[Byte] = {

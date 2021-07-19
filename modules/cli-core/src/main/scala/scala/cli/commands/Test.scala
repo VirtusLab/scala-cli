@@ -4,6 +4,7 @@ import caseapp._
 
 import scala.build.{Build, Inputs, Os}
 import scala.build.internal.{Constants, Runner}
+import scala.build.Logger
 
 object Test extends ScalaCommand[TestOptions] {
   override def group = "Main"
@@ -12,44 +13,51 @@ object Test extends ScalaCommand[TestOptions] {
 
     val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
 
-    val buildOptions = options.buildOptions.copy(
-      internalDependencies = options.buildOptions.internalDependencies.copy(
-        addTestRunnerDependencyOpt = Some(true)
-      )
-    )
+    val initialBuildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
+    val logger = options.shared.logger
 
-    if (options.watch.watch) {
-      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, postAction = () => WatchUtil.printWatchMessage()) {
+    def maybeTest(build: Build, allowExit: Boolean): Unit =
+      build match {
         case s: Build.Successful =>
-          testOnce(options, inputs.workspace, inputs.projectName, s, options.testFrameworkOpt, args.unparsed, allowExecve = false, exitOnError = false)
+          testOnce(
+            inputs.workspace,
+            inputs.projectName,
+            s,
+            args.unparsed,
+            logger,
+            allowExecve = allowExit,
+            exitOnError = allowExit
+          )
         case f: Build.Failed =>
           System.err.println("Compilation failed")
+          if (allowExit)
+            sys.exit(1)
+      }
+
+    if (options.watch.watch) {
+      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) { build =>
+        maybeTest(build, allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger)
-      build match {
-        case s: Build.Successful =>
-          testOnce(options, inputs.workspace, inputs.projectName, s, options.testFrameworkOpt, args.unparsed, allowExecve = true, exitOnError = true)
-        case f: Build.Failed =>
-          System.err.println("Compilation failed")
-          sys.exit(1)
-      }
+      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
+      maybeTest(build, allowExit = true)
     }
   }
 
   private def testOnce(
-    options: TestOptions,
     root: os.Path,
     projectName: String,
     build: Build.Successful,
-    testFrameworkOpt: Option[String],
     args: Seq[String],
+    logger: Logger,
     allowExecve: Boolean,
     exitOnError: Boolean
   ): Unit = {
+
+    val testFrameworkOpt = build.options.testOptions.frameworkOpt
 
     val retCode =
       if (build.options.scalaJsOptions.enable) {
@@ -59,7 +67,7 @@ object Test extends ScalaCommand[TestOptions] {
             build.fullClassPath,
             js.toIO,
             args,
-            options.testFrameworkOpt
+            testFrameworkOpt
           )
         }
       } else if (build.options.scalaNativeOptions.enable)
@@ -67,16 +75,16 @@ object Test extends ScalaCommand[TestOptions] {
           build,
           "scala.scalanative.testinterface.TestMain",
           build.options.scalaNativeOptions.config.getOrElse(???),
-          options.shared.nativeWorkDir(root, projectName),
-          options.shared.logger.scalaNativeLogger
+          build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
+          logger.scalaNativeLogger
         ) { launcher =>
           Runner.testNative(
             build.fullClassPath,
             launcher.toIO,
-            options.shared.logger,
-            options.testFrameworkOpt,
+            logger,
+            testFrameworkOpt,
             args,
-            options.shared.logger.scalaNativeLogger
+            logger.scalaNativeLogger
           )
         }
       else {
@@ -88,7 +96,7 @@ object Test extends ScalaCommand[TestOptions] {
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,
           extraArgs,
-          options.shared.logger,
+          logger,
           allowExecve = allowExecve
         )
       }

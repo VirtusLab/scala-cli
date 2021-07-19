@@ -119,8 +119,6 @@ final case class SharedOptions(
     if (classWrap) Some(CustomCodeClassWrapper)
     else None
 
-  def nativeWorkDir(root: os.Path, projectName: String) = root / ".scala" / projectName / "native"
-
   def buildOptions(enableJmh: Boolean, jmhVersion: Option[String], ignoreErrors: Boolean = false): BuildOptions =
     BuildOptions(
       scalaOptions = ScalaOptions(
