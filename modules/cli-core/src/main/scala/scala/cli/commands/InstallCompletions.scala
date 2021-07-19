@@ -1,5 +1,6 @@
 package scala.cli.commands
 
+import java.io.File
 import java.nio.charset.Charset
 import java.util.Arrays
 
@@ -22,7 +23,17 @@ object InstallCompletions extends Command[InstallCompletionsOptions] {
 
     val logger = options.logging.logger
 
-    val (rcScript, defaultRcFile) = options.format match {
+    val format = options.format.map(_.trim).filter(_.nonEmpty)
+      .orElse {
+        Option(System.getenv("SHELL")).map(_.split(File.separator).last).map {
+          case "bash" => Bash.id
+          case "zsh" => Zsh.id
+          case other => other
+        }
+      }
+      .getOrElse(sys.error("Cannot determine current shell, pass the shell you use with --format"))
+
+    val (rcScript, defaultRcFile) = format match {
       case Bash.id | "bash" =>
         val script = Bash.script(options.name)
         val defaultRcFile = home / ".bashrc"
@@ -46,7 +57,7 @@ object InstallCompletions extends Command[InstallCompletionsOptions] {
         ).map(_ + System.lineSeparator()).mkString
         (script, defaultRcFile)
       case _ =>
-        System.err.println(s"Unrecognized shell: ${options.format}")
+        System.err.println(s"Unrecognized or unsupported shell: $format")
         sys.exit(1)
     }
 
