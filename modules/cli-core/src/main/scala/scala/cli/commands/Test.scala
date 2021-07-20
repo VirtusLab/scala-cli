@@ -11,7 +11,7 @@ object Test extends ScalaCommand[TestOptions] {
   override def sharedOptions(options: TestOptions) = Some(options.shared)
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
-    val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
+    val inputs = options.shared.inputsOrExit(args)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()

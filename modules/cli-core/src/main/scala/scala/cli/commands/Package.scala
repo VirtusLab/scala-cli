@@ -30,7 +30,7 @@ object Package extends ScalaCommand[PackageOptions] {
   override def sharedOptions(options: PackageOptions) = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
 
-    val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
+    val inputs = options.shared.inputsOrExit(args)
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 

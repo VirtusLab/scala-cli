@@ -221,6 +221,13 @@ class TestTests extends munit.FunSuite {
     }
   }
 
+  test("utest - no arg") {
+    successfulUtestInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test", TestUtil.extraOptions).call(cwd = root).out.text
+      expect(output.contains("Hello from tests"))
+    }
+  }
+
   def utestJs(): Unit =
     successfulUtestJsInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", TestUtil.extraOptions, ".", "--js").call(cwd = root).out.text

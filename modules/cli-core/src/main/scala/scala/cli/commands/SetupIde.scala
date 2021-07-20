@@ -23,7 +23,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] with NeedsArgvCommand {
       sys.exit(1)
     }
 
-    def inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
+    def inputs = options.shared.inputsOrExit(args)
 
     val argv = {
       val commandIndex = rawArgv.indexOf("setup-ide")
