@@ -34,9 +34,20 @@ launcher() {
   echo "$launcherName"
 }
 
+version() {
+  "$mill" -i writePackageVersionTo scala-cli-version 1>&2
+  cat scala-cli-version
+}
+
+shortVersion() {
+  "$mill" -i writeShortPackageVersionTo scala-cli-short-version 1>&2
+  cat scala-cli-short-version
+}
+
 generate_deb() {
   packager \
     --deb \
+    --version "$(version)" \
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli.deb" \
     --description "Scala CLI"
@@ -45,6 +56,7 @@ generate_deb() {
 generate_rpm() {
   packager \
     --rpm \
+    --version "$(shortVersion)" \
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli.rpm" \
     --description "Scala CLI" \
@@ -54,6 +66,7 @@ generate_rpm() {
 generate_pkg() {
   packager \
     --pkg \
+    --version "$(version)" \
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli.pkg"
 }
@@ -61,6 +74,7 @@ generate_pkg() {
 generate_msi() {
   packager \
     --msi \
+    --version "$(shortVersion)" \
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli.msi" \
     --product-name "Scala CLI" \

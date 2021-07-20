@@ -404,6 +404,20 @@ def copyTo(task: mill.main.Tasks[PathRef], dest: os.Path) = T.command {
   os.copy.over(ref.path, dest)
 }
 
+def writePackageVersionTo(dest: os.Path) = T.command {
+  val rawVersion = cli.publishVersion()
+  val version =
+    if (rawVersion.contains("+")) rawVersion.stripSuffix("-SNAPSHOT")
+    else rawVersion
+  os.write.over(dest, version)
+}
+
+def writeShortPackageVersionTo(dest: os.Path) = T.command {
+  val rawVersion = cli.publishVersion()
+  val version = rawVersion.takeWhile(c => c != '-' && c != '+')
+  os.write.over(dest, version)
+}
+
 
 def copyLauncher(directory: String = "artifacts") = T.command {
   val nativeLauncher = cli.nativeImage().path

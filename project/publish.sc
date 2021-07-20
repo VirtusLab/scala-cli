@@ -20,20 +20,35 @@ trait ScalaCliPublishModule extends PublishModule {
       Developer("alexarchambault", "Alex Archambault","https://github.com/alexarchambault")
     )
   )
-  private def computePublishVersion(state: VcsState): String = {
+  private def computePublishVersion(state: VcsState, simple: Boolean): String = {
     if (state.commitsSinceLastTag > 0) {
-      val versionOrEmpty = state.lastTag
-        .filter(_ != "latest")
-        .map(_.stripPrefix("v"))
-        .map { tag =>
-          val idx = tag.lastIndexOf(".")
-          if (idx >= 0) tag.take(idx + 1) + (tag.drop(idx + 1).toInt + 1).toString + "-SNAPSHOT"
-          else ""
-        }
-        .getOrElse("0.0.1-SNAPSHOT")
-      Some(versionOrEmpty)
-        .filter(_.nonEmpty)
-        .getOrElse(state.format())
+      if (simple) {
+        val versionOrEmpty = state.lastTag
+          .filter(_ != "latest")
+          .map(_.stripPrefix("v"))
+          .flatMap { tag =>
+            if (simple) {
+              val idx = tag.lastIndexOf(".")
+              if (idx >= 0) Some(tag.take(idx + 1) + (tag.drop(idx + 1).toInt + 1).toString + "-SNAPSHOT")
+              else None
+            } else {
+              val idx = tag.indexOf("-")
+              if (idx >= 0) Some(tag.take(idx) + "+" + tag.drop(idx + 1) + "-SNAPSHOT")
+              else None
+            }
+          }
+          .getOrElse("0.0.1-SNAPSHOT")
+        Some(versionOrEmpty)
+          .filter(_.nonEmpty)
+          .getOrElse(state.format())
+      } else {
+        val rawVersion = os.proc("git", "describe", "--tags").call().out.text.trim
+          .stripPrefix("v")
+          .replace("latest", "0.0.0")
+        val idx = rawVersion.indexOf("-")
+        if (idx >= 0) rawVersion.take(idx) + "+" + rawVersion.drop(idx + 1) + "-SNAPSHOT"
+        else rawVersion
+      }
     } else
       state
         .lastTag
@@ -45,12 +60,12 @@ trait ScalaCliPublishModule extends PublishModule {
     if (isCI)
       T.persistent {
         val state = VcsVersion.vcsState()
-        computePublishVersion(state)
+        computePublishVersion(state, simple = false)
       }
     else
       T {
         val state = VcsVersion.vcsState()
-        computePublishVersion(state)
+        computePublishVersion(state, simple = true)
       }
   }
 }
