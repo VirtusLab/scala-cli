@@ -38,7 +38,7 @@ class TestTests extends munit.FunSuite {
   val successfulUtestInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.lihaoyi::utest::0.7.9`, utest._
+        """import $ivy.`com.lihaoyi::utest::0.7.10`, utest._
           |
           |object MyTests extends TestSuite {
           |  val tests = Tests {
@@ -55,7 +55,7 @@ class TestTests extends munit.FunSuite {
   val successfulUtestJsInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.lihaoyi::utest::0.7.9`, utest._
+        """import $ivy.`com.lihaoyi::utest::0.7.10`, utest._
           |import scala.scalajs.js
           |
           |object MyTests extends TestSuite {
@@ -74,7 +74,7 @@ class TestTests extends munit.FunSuite {
   val successfulUtestNativeInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.lihaoyi::utest::0.7.9`, utest._
+        """import $ivy.`com.lihaoyi::utest::0.7.10`, utest._
           |import scala.scalanative.libc._
           |import scala.scalanative.unsafe._
           |
@@ -311,7 +311,7 @@ class TestTests extends munit.FunSuite {
       val inputs = TestInputs(
         Seq(
           os.rel / "MyTests.scala" ->
-            """import $ivy.`com.lihaoyi::utest::0.7.9`, utest._
+            """import $ivy.`com.lihaoyi::utest::0.7.10`, utest._
               |
               |object MyTests extends TestSuite {
               |  val tests = Tests {

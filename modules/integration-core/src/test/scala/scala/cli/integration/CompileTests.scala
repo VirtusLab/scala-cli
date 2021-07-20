@@ -7,7 +7,7 @@ class CompileTests extends munit.FunSuite {
   val simpleInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.lihaoyi::utest::0.7.9`, utest._
+        """import $ivy.`com.lihaoyi::utest::0.7.10`, utest._
           |
           |object MyTests extends TestSuite {
           |  val tests = Tests {
