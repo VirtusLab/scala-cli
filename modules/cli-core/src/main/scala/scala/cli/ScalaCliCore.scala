@@ -15,6 +15,7 @@ object ScalaCliCore extends ScalaCliBase {
     Repl,
     Package,
     Run,
+    SetupIde,
     Test
   )
 }

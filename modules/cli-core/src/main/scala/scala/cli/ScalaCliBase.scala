@@ -37,6 +37,11 @@ abstract class ScalaCliBase extends CommandsEntryPoint {
     // quick hack, until the raw args are kept in caseapp.RemainingArgs by case-app
     actualDefaultCommand.anyArgs = args.nonEmpty
 
+    commands.foreach {
+      case c: NeedsArgvCommand => c.setArgv(progName +: args)
+      case _ =>
+    }
+
     super.main(args)
   }
 }

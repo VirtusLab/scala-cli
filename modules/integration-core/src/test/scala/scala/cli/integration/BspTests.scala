@@ -4,6 +4,7 @@ import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.net.URI
+import java.nio.charset.Charset
 import java.nio.file.Paths
 import java.util.concurrent.TimeoutException
 
@@ -12,9 +13,12 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.io.Codec
 import scala.util.control.NonFatal
 
 class BspTests extends munit.FunSuite {
+
+  import BspTests._
 
   def initParams(root: os.Path): b.InitializeBuildParams =
     new b.InitializeBuildParams(
@@ -84,6 +88,27 @@ class BspTests extends munit.FunSuite {
       baseUri + "/?id="
     )
     expect(expectedPrefixes.exists(uri.startsWith))
+  }
+
+  test("setup-ide") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "simple.sc" ->
+         s"""val msg = "Hello"
+            |println(msg)
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", TestUtil.extraOptions).call(cwd = root, stdout = os.Inherit)
+      val bspFile = root / ".bsp" / "scala-cli.json"
+      expect(os.isFile(bspFile))
+      val json = ujson.read(os.read(bspFile: os.ReadablePath, charSet = Codec(Charset.defaultCharset())))
+      // check that we can decode the connection details
+      val details = upickle.default.read(json)(detailsCodec)
+      expect(details.argv.length >= 2)
+      expect(details.argv(1) == "bsp")
+    }
   }
 
   test("simple") {
@@ -444,4 +469,17 @@ class BspTests extends munit.FunSuite {
       }
     }
   }
+}
+
+object BspTests {
+
+  private final case class Details(
+    name: String,
+    version: String,
+    bspVersion: String,
+    argv: List[String],
+    languages: List[String]
+  )
+  private val detailsCodec = upickle.default.macroRW[Details]
+
 }

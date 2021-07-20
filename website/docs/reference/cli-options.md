@@ -42,6 +42,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
 
 
@@ -86,6 +87,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
 
 
@@ -152,6 +154,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
 
 
@@ -286,6 +289,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
 
 
@@ -316,6 +320,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
 
 
@@ -352,6 +357,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
 
 
@@ -363,6 +369,24 @@ Aliases: `--scala-opt`, `-O`, `-P`, `-W`, `-g`, `-X`, `-language`, `-Y`, `-V`, `
 
 Add scalac option
 
+## Setup IDE options
+
+Available in commands:
+- [`setup-ide`](./commands#setup-ide)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--bsp-directory`
+
+Aliases: `--bsp-dir`
+
+#### `--bsp-name`
+
+Aliases: `--name`
+
+#### `--charset`
+
 ## Shared options
 
 Available in commands:
@@ -372,6 +396,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
 
 
@@ -489,6 +514,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
 
 

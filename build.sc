@@ -257,7 +257,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
       Deps.bsp4j,
       Deps.osLib,
       Deps.pprint,
-      Deps.scalaAsync
+      Deps.scalaAsync,
+      Deps.upickle
     )
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI" -> testLauncher().path.toString,
