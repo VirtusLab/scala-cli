@@ -104,7 +104,7 @@ object Sources {
       // for standard imports.
       val buf = content.toCharArray
       for (t <- dependencyTrees) {
-        val substitute = (t.prefix(0) + ".$").padTo(t.end - t.start, ' ')
+        val substitute = (t.prefix(0) + ".A").padTo(t.end - t.start, ' ')
         assert(substitute.length == (t.end - t.start))
         System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
       }
