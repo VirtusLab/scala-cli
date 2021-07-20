@@ -10,12 +10,8 @@ IDE support for sources managed by the Scala CLI is experimental, and limited to
 
 ### Setup
 
-Scala CLI support in Metals / VScode requires a custom version of the Metals VSCode extension.
-Use the following commands to install it:
-```text
-$ curl -fLo metals-scala-cli.vsix https://github.com/alexarchambault/metals-vscode/raw/scala-cli/metals-1.10.7.vsix
-$ code --install-extension metals-scala-cli.vsix
-```
+Scala CLI support in Metals / VSCode requires the latest Metals VSCode extension (>= `1.10.8`). Ensure
+it is installed and up-to-date, or install or update it from the Extension panel in VSCode.
 
 Scala CLI support relies on a custom Metals server for now. To enable it in the current project,
 run the command "Create New Integrated Terminal (in Active Workspace)", and type
@@ -23,7 +19,7 @@ run the command "Create New Integrated Terminal (in Active Workspace)", and type
 $ mkdir -p .vscode
 $ cat > .vscode/settings.json << EOF
 {
-  "metals.serverVersion": "com.github.alexarchambault.tmp.metals:metals_2.12:0.10.4+193-06810ef8-SNAPSHOT",
+  "metals.serverVersion": "org.virtuslab:metals_2.12:0.10.5+65-f2a9927c-SNAPSHOT",
   "metals.serverProperties": [
     "-Xmx512m",
     "-Dmetals.scala-cli.launcher=$(which scala)"
@@ -37,16 +33,24 @@ suggest it, run the "Developer: Reload window" command from the command palette.
 
 ### Activating the Scala CLI support
 
-Scala CLI support needs to be manually activated for specific files. Open an existing `.scala`
-or `.sc` file,
-or create a new one. Then, with that file opened and focused, run the command
-"Metals: Start Scala CLI server"
+In order for Metals to assume a `.scala` or `.sc` file is handled by the Scala CLI,
+a `scala.conf` file or a file ending in `.scala.conf` needs to exist in the same
+directory as the `.scala` or `.sc` files, or in a parent directory of theirs. Beware
+that it needs to be in the Metals workspace though (so you can't put it at the root
+of your filesystem, for example). This file can be empty.
 
+Upon opening a `.scala` or `.sc` file while `scala.conf` or a `*.scala.conf` file exists,
+Metals should open a dialog offering to:
+- Import Scala CLI projects automatically
+- Import
+- Dismiss
 
-- enjoy
-  - go-to-source
-  - accurate diagnostics
-  - find usages
-  - …
+Pick any of the first two options, and enjoy IDE support for your Scala CLI-managed sources!
 
-- automatic re-import when adding / removing dependencies
+The following Metals features are expected to work, among others:
+- go-to-source
+- diagnostics
+- find usages
+
+Upon adding new dependencies, via `scala.conf` or via `import $dep` in Scala sources, the
+new dependencies should be automatically downloaded and be available right after in Metals.

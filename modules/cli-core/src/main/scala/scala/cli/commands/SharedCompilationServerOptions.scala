@@ -86,9 +86,7 @@ final case class SharedCompilationServerOptions(
     if (Properties.isWin) None
     else
       bloopBspProtocol.filter(_ != "default") match {
-        case None =>
-          if (Properties.isLinux) Some(() => Right(bspSocketFile(directories)))
-          else None
+        case None => None
         case Some("tcp") => None
         case Some("local") =>
           Some(() => Right(bspSocketFile(directories)))
