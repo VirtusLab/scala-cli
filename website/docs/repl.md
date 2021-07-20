@@ -17,7 +17,7 @@ object Messages {
   def print(): Unit = println(message)
 }
 
-$ scala repl Messages.scala
+$ scala-cli repl Messages.scala
 Loading...
 Welcome to the Ammonite Repl 2.4.0 (Scala 2.12.13 Java 11.0.7)
 @ import mylibrary._

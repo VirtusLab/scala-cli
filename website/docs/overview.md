@@ -3,7 +3,7 @@ title: Overview
 sidebar_position: 1
 ---
 
-The `scala` CLI aims at making it easier to run, test, and package, Scala sources.
+The `scala-cli` CLI aims at making it easier to run, test, and package, Scala sources.
 
 It can:
 - compile Scala code,
@@ -22,7 +22,7 @@ only requires the [Visual C++ Redistributable Runtime](https://www.microsoft.com
 on Windows.
 
 It automatically downloads and unpacks a JVM if none is installed on your system, so that
-all its commands work fine even if a JVM isn't already installed. The `scala` CLI
+all its commands work fine even if a JVM isn't already installed. The `scala-cli` CLI
 uses [Bloop](https://scalacenter.github.io/bloop/) under-the-hood to compile Scala code.
 It takes care of fetching and starting Bloop if needed, so that you don't have to worry
 about it.

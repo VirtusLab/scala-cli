@@ -3,7 +3,7 @@ title: Input format
 sidebar_position: 3
 ---
 
-The `scala` CLI commands accept input in a number of ways, most notably:
+The `scala-cli` CLI commands accept input in a number of ways, most notably:
 - as `.scala` files
 - as one or several directories, containing Scala sources
 - as URLs, pointing to Scala sources
@@ -20,7 +20,7 @@ Lastly, note that all these input formats can used alongside each other.
 ## Scala files
 
 This is the simplest input format. Just write a `.scala` file, and pass it to
-`scala` to run it:
+`scala-cli` to run it:
 
 - `Hello.scala`
 ```scala
@@ -32,11 +32,11 @@ object Hello {
 
 Run it with
 ```text
-$ scala Hello.scala
+$ scala-cli Hello.scala
 Hello from Scala
 ```
 
-You can also split your code in multiple files, and pass all of them to `scala`:
+You can also split your code in multiple files, and pass all of them to `scala-cli` :
 
 - `Messages.scala`
 ```scala
@@ -55,7 +55,7 @@ object Hello {
 
 Run them with
 ```text
-$ scala Hello.scala Messages.scala
+$ scala-cli Hello.scala Messages.scala
 Hello from Scala
 ```
 
@@ -63,7 +63,7 @@ Passing many files this way can be cumbersome. Directories can help.
 
 ## Directories
 
-`scala` accepts whole directories as input. This is convenient when you have many
+`scala-cli` accepts whole directories as input. This is convenient when you have many
 `.scala` files, and passing them all one-by-one on the command line isn't practical:
 
 - `my-app/Messages.scala`
@@ -83,17 +83,17 @@ object Hello {
 
 Run them with
 ```text
-$ scala my-app
+$ scala-cli my-app
 Hello from Scala
 ```
 
 ## URLs
 
-`scala` accepts input via URLs pointing at `.scala` files.
+`scala-cli`  accepts input via URLs pointing at `.scala` files.
 It'll download and cache their content, and run them.
 
 ```text
-$ scala https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala
+$ scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala
 Hello from Scala GitHub Gist
 ```
 
@@ -103,7 +103,7 @@ TODO
 
 ## Piping
 
-You can just pipe Scala code to `scala` for execution:
+You can just pipe Scala code to `scala-cli` for execution:
 ```text
 $ echo 'println("Hello")' | scala -
 Hello
@@ -111,15 +111,15 @@ Hello
 
 ## Process substitution
 
-`scala` accepts input via shell process substitution:
+`scala-cli` accepts input via shell process substitution:
 ```text
-$ scala <(echo 'println("Hello")')
+$ scala-cli <(echo 'println("Hello")')
 Hello
 ```
 
 ## Scripts
 
-`scala` accept Scala scripts, ending in `.sc`. Unlike `.scala` files,
+`scala-cli` accept Scala scripts, ending in `.sc`. Unlike `.scala` files,
 any kind of statement is accepted at the top-level:
 
 - `hello.sc`
@@ -130,7 +130,7 @@ println(message)
 
 Run it with
 ```text
-$ scala hello.sc
+$ scala-cli hello.sc
 Hello from Scala script
 ```
 
@@ -147,7 +147,7 @@ object hello {
 (reformated for clarity)
 The name `hello` comes straight from the file name `hello.sc`.
 
-When a script is in a sub-directory of a directory passed to `scala`, a package is inferred too:
+When a script is in a sub-directory of a directory passed to `scala-cli` , a package is inferred too:
 
 - `my-app/constants/messages.sc`
 ```scala
@@ -162,7 +162,7 @@ println(messages.hello)
 
 Run them with
 ```text
-$ scala my-app --main-class main
+$ scala-cli my-app --main-class main
 Hello from Scala scripts
 ```
 
@@ -174,12 +174,12 @@ is required to disambiguate them.
 [Ammonite](http://ammonite.io) is a popular REPL for Scala, that is also able to compile and run
 `.sc` files.
 
-`scala` and Ammonite differ significantly when your code is split in multiple scripts:
+`scala-cli` and Ammonite differ significantly when your code is split in multiple scripts:
 - in Ammonite, a script needs to use `import $file` directives to use values defined in another script
-- with `scala`, all scripts passed can reference each other, without such directives
+- with `scala-cli` , all scripts passed can reference each other, without such directives
 
 On the other hand,
 - you can pass a single "entry point" script as input to Ammonite, and Ammonite finds the scripts
 it depends on via the `import $file` directives
-- `scala` requires all scripts to be passed beforehand, either one-by-one, or by putting them in a
-directory, and passing the directory to `scala`
+- `scala-cli` requires all scripts to be passed beforehand, either one-by-one, or by putting them in a
+directory, and passing the directory to `scala-cli`

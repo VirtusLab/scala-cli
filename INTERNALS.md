@@ -8,7 +8,7 @@ corresponding mill module definition in `build.sc` (but for `integration`).
 Most of the code currently lives in the `build` module.
 
 The `cli` module depends on `build`, gets
-packaged as a native-image executable, and distributed as `scala` binary.
+packaged as a native-image executable, and distributed as `scala-cli` binary.
 
 The other modules are either:
 - integration tests
@@ -36,17 +36,17 @@ Run unit tests with
 $ ./mill 'build[_].test'
 ```
 
-Run integration tests with a JVM-based `scala` with
+Run integration tests with a JVM-based `scala-cli` with
 ```
 $ ./mill integration.jvm.test
 ```
 
-Run integration tests with a native-image-based `scala` with
+Run integration tests with a native-image-based `scala-cli` with
 ```
 $ ./mill integration.native.test
 ```
 
-## General workflow in most `scala` commands
+## General workflow in most `scala-cli` commands
 
 We roughly go from user inputs to byte code through 3 classes:
 - `Inputs`: ADT for input files / directories.

@@ -28,7 +28,7 @@ object Hello {
   def main(args: Array[String]): Unit =
     println("Hello")
 }
-$ scala package Hello.scala -o hello
+$ scala-cli package Hello.scala -o hello
 $ ./hello
 Hello
 ```
@@ -44,7 +44,7 @@ package mylib
 class MyLibrary {
   def message = "Hello"
 }
-$ scala package MyLibrary.scala -o my-library.jar --library
+$ scala-cli package MyLibrary.scala -o my-library.jar --library
 $ javap -cp my-library.jar mylib.MyLibrary
 Compiled from "MyLibrary.scala"
 public class mylib.MyLibrary {
@@ -65,7 +65,7 @@ object Hello {
   def main(args: Array[String]): Unit =
     println("Hello")
 }
-$ scala package Hello.scala -o hello --assembly
+$ scala-cli package Hello.scala -o hello --assembly
 $ ./hello
 Hello
 ```
@@ -79,7 +79,7 @@ object Hello {
   def main(args: Array[String]): Unit =
     println("Hello")
 }
-$ scala package --js Hello.scala -o hello.js
+$ scala-cli package --js Hello.scala -o hello.js
 $ node hello.js
 Hello
 ```
@@ -95,7 +95,7 @@ object Hello {
   def main(args: Array[String]): Unit =
     println("Hello")
 }
-$ scala package --native Hello.scala -o hello
+$ scala-cli package --native Hello.scala -o hello
 $ file hello
 hello: Mach-O 64-bit executable x86_64
 $ ./hello
@@ -105,7 +105,7 @@ Hello
 ## OS-specific packages
 
 The Scala CLI also offers to package Scala code as OS-specific packages. This feature is somewhat experimental,
-and supports the following formats, provided they're compatible with the operating system you're running `scala` on:
+and supports the following formats, provided they're compatible with the operating system you're running `scala-cli` on:
 - DEB (Linux)
 - RPM (Linux)
 - PKG (macOS)
@@ -117,7 +117,7 @@ object Hello {
   def main(args: Array[String]): Unit =
     println("Hello")
 }
-$ scala package --deb Hello.scala -o hello.deb
+$ scala-cli package --deb Hello.scala -o hello.deb
 $ file hello
 hello: Mach-O 64-bit executable x86_64
 $ ./hello

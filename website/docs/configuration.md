@@ -3,7 +3,7 @@ title: Configuration
 sidebar_position: 4
 ---
 
-`scala` can be configured in several ways:
+`scala-cli` can be configured in several ways:
 - on the command-line
 - in a configuration file
 - some options can also be specified directly in `.scala` and `.sc` files
@@ -16,16 +16,16 @@ to evolve and be unified in the near future.
 
 ## Command-line
 
-Pass `--help` to any sub-command of `scala` to list its options:
+Pass `--help` to any sub-command of `scala-cli` to list its options:
 ```text
-$ scala --help
-$ scala package --help
+$ scala-cli --help
+$ scala-cli package --help
 ```
 
 For example, you can specify the Scala version, or add dependencies, on the command-line:
 ```text
-$ scala --scala 3.0.0 Test.scala
-$ scala --dependency org.typelevel::cats-core:2.3.0 Test.scala
+$ scala-cli --scala 3.0.0 Test.scala
+$ scala-cli --dependency org.typelevel::cats-core:2.3.0 Test.scala
 ```
 
 The reference documentation lists [all available options](reference/cli-options.md).
