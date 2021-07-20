@@ -42,7 +42,7 @@ final class BspImpl(
 
     val sources = Sources.forInputs(
       inputs,
-      buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+      Sources.defaultPreprocessors(buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper))
     )
 
     if (verbosity >= 3)

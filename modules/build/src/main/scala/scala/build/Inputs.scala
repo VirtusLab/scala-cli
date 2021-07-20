@@ -1,10 +1,10 @@
 package scala.build
 
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.security.MessageDigest
-import java.nio.charset.StandardCharsets
 import java.math.BigInteger
+import java.net.URI
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Paths}
+import java.security.MessageDigest
 
 import scala.util.Properties
 
@@ -57,6 +57,32 @@ final case class Inputs(
         Nil
     }
 
+  def flattened(): Seq[Inputs.SingleElement] =
+    elements.flatMap {
+      case f: Inputs.SingleFile => Seq(f)
+      case d: Inputs.Directory =>
+        os.walk.stream(d.path)
+          .filter { p =>
+            !p.relativeTo(d.path).segments.exists(_.startsWith("."))
+          }
+          .filter(os.isFile(_))
+          .collect {
+            case p if p.last.endsWith(".java") =>
+              Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
+            case p if p.last.endsWith(".scala") =>
+              Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
+            case p if p.last.endsWith(".sc") =>
+              Inputs.Script(d.path, p.subRelativeTo(d.path))
+            case p if p.last == "scala.conf" || p.last.endsWith(".scala.conf") =>
+              Inputs.ConfigFile(p)
+          }
+          .toVector
+      case _: Inputs.ResourceDirectory =>
+        Nil
+      case v: Inputs.Virtual =>
+        Seq(v)
+    }
+
   private lazy val inputsHash: String =
     Inputs.inputsHash(elements)
   lazy val projectName = {
@@ -80,10 +106,12 @@ object Inputs {
 
   sealed abstract class Element extends Product with Serializable
 
+  sealed trait SingleElement extends Element
+
   sealed abstract class OnDisk extends Element {
     def path: os.Path
   }
-  sealed abstract class Virtual extends Element {
+  sealed abstract class Virtual extends SingleElement {
     def content: Array[Byte]
     def source: String
 
@@ -93,7 +121,7 @@ object Inputs {
     }
   }
 
-  sealed trait SingleFile extends OnDisk
+  sealed trait SingleFile extends OnDisk with SingleElement
   sealed trait SourceFile extends SingleFile
   sealed trait Compiled extends Element
   sealed trait AnyScalaFile extends Compiled
@@ -112,7 +140,7 @@ object Inputs {
 
   final case class ConfigFile(path: os.Path) extends SingleFile
 
-  final case class VirtualScript(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
+  final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath) extends Virtual with AnyScalaFile
   final case class VirtualScalaFile(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
   final case class VirtualJavaFile(content: Array[Byte], source: String) extends Virtual with Compiled
 
@@ -186,32 +214,40 @@ object Inputs {
     stdinOpt: => Option[Array[Byte]],
     acceptFds: Boolean
   ): Either[String, Inputs] = {
-    val validatedArgs = args.map { arg =>
-      lazy val path = os.Path(arg, cwd)
-      lazy val dir = path / os.up
-      lazy val subPath = path.subRelativeTo(dir)
-      lazy val stdinOpt0 = stdinOpt
-      if ((arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty) Right(VirtualScalaFile(stdinOpt0.get, "<stdin>"))
-      else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) Right(VirtualScript(stdinOpt0.get, "<stdin>"))
-      else if (arg.contains("://"))
-        download(arg).map { content =>
-          if (arg.endsWith(".scala")) VirtualScalaFile(content, arg)
-          else if (arg.endsWith(".java")) VirtualJavaFile(content, arg)
-          else VirtualScript(content, arg)
+    val validatedArgs = args.zipWithIndex.map {
+      case (arg, idx) =>
+        lazy val path = os.Path(arg, cwd)
+        lazy val dir = path / os.up
+        lazy val subPath = path.subRelativeTo(dir)
+        lazy val stdinOpt0 = stdinOpt
+        if ((arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty) Right(VirtualScalaFile(stdinOpt0.get, "<stdin>"))
+        else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) Right(VirtualScript(stdinOpt0.get, "<stdin>", os.sub / "stdin.sc"))
+        else if (arg.contains("://"))
+          download(arg).map { content =>
+            val wrapperPath = {
+              val u = new URI(arg) // FIXME Ignore parsing errors?
+              val it = Option(u.getScheme).iterator ++
+                Option(u.getAuthority).iterator ++
+                Option(u.getPath).iterator.flatMap(_.split('/').iterator)
+              os.sub / it.filter(_.nonEmpty).toVector
+            }
+            if (arg.endsWith(".scala")) VirtualScalaFile(content, arg)
+            else if (arg.endsWith(".java")) VirtualJavaFile(content, arg)
+            else VirtualScript(content, arg, wrapperPath)
+          }
+        else if (arg.endsWith(".sc")) Right(Script(dir, subPath))
+        else if (arg.endsWith(".scala")) Right(ScalaFile(dir, subPath))
+        else if (arg.endsWith(".java")) Right(JavaFile(dir, subPath))
+        else if (os.isDir(path)) Right(Directory(path))
+        else if (acceptFds && arg.startsWith("/dev/fd/")) {
+          val content = os.read.bytes(os.Path(arg, cwd))
+          Right(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc"))
+        } else {
+          val msg =
+            if (os.exists(path)) s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
+            else s"$arg: not found"
+          Left(msg)
         }
-      else if (arg.endsWith(".sc")) Right(Script(dir, subPath))
-      else if (arg.endsWith(".scala")) Right(ScalaFile(dir, subPath))
-      else if (arg.endsWith(".java")) Right(JavaFile(dir, subPath))
-      else if (os.isDir(path)) Right(Directory(path))
-      else if (acceptFds && arg.startsWith("/dev/fd/")) {
-        val content = os.read.bytes(os.Path(arg, cwd))
-        Right(VirtualScript(content, arg))
-      } else {
-        val msg =
-          if (os.exists(path)) s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
-          else s"$arg: not found"
-        Left(msg)
-      }
     }
     val invalid = validatedArgs.collect {
       case Left(msg) => msg
