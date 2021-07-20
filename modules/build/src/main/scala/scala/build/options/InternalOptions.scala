@@ -7,11 +7,9 @@ final case class InternalOptions(
   keepDiagnostics: Boolean = false,
   cache: Option[FileCache[Task]] = None,
   localRepository: Option[String] = None
-) {
-  def orElse(other: InternalOptions): InternalOptions =
-    InternalOptions(
-      keepDiagnostics = keepDiagnostics || other.keepDiagnostics,
-      cache = cache.orElse(other.cache),
-      localRepository = localRepository.orElse(other.localRepository)
-    )
+)
+
+object InternalOptions {
+  implicit val hasHashData: HasHashData[InternalOptions] = HasHashData.nop
+  implicit val monoid: ConfigMonoid[InternalOptions] = ConfigMonoid.derive
 }

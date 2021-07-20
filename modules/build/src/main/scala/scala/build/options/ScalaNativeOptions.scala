@@ -24,42 +24,6 @@ final case class ScalaNativeOptions(
   def nativeWorkDir(root: os.Path, projectName: String): os.Path =
     root / ".scala" / projectName / "native"
 
-  def orElse(other: ScalaNativeOptions): ScalaNativeOptions =
-    ScalaNativeOptions(
-      enable = enable || other.enable,
-      version = version.orElse(other.version),
-      modeStr = modeStr.orElse(other.modeStr),
-      gcStr = gcStr.orElse(other.gcStr),
-      clang = clang.orElse(other.clang),
-      clangpp = clangpp.orElse(other.clangpp),
-      linkingOptions = linkingOptions ++ other.linkingOptions,
-      linkingDefaults = linkingDefaults || other.linkingDefaults,
-      compileOptions = compileOptions ++ other.compileOptions,
-      compileDefaults = compileDefaults || other.compileDefaults
-    )
-
-  def addHashData(update: String => Unit): Unit =
-    if (enable) {
-      update("native=" + version.getOrElse("default") + "\n")
-
-      for (value <- version)
-        update("native.version=" + value + "\n")
-      for (value <- modeStr)
-        update("native.modeStr=" + value + "\n")
-      for (value <- gcStr)
-        update("native.gcStr=" + value + "\n")
-      for (value <- clang)
-        update("native.clang=" + value + "\n")
-      for (value <- clangpp)
-        update("native.clangpp=" + value + "\n")
-      for (opt <- linkingOptions)
-        update("native.linkingOptions+=" + opt + "\n")
-      update("native.linkingDefaults=" + linkingDefaults + "\n")
-      for (opt <- compileOptions)
-        update("native.compileOptions+=" + opt + "\n")
-      update("native.compileDefaults=" + compileDefaults + "\n")
-    }
-
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
 
   private def gc: sn.GC =
@@ -131,4 +95,14 @@ final case class ScalaNativeOptions(
     if (enable) Some(configUnsafe)
     else None
 
+}
+
+object ScalaNativeOptions {
+  implicit val hasHashData: HasHashData[ScalaNativeOptions] = {
+    val underlying: HasHashData[ScalaNativeOptions] = HasHashData.derive
+    (prefix, t, update) =>
+      if (t.enable)
+        underlying.add(prefix, t, update)
+  }
+  implicit val monoid: ConfigMonoid[ScalaNativeOptions] = ConfigMonoid.derive
 }

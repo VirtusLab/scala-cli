@@ -27,30 +27,6 @@ final case class ScalaJsOptions(
     if (enable) Seq(dep"org.scala-js:::scalajs-compiler:$finalVersion")
     else Nil
 
-  def orElse(other: ScalaJsOptions): ScalaJsOptions =
-    ScalaJsOptions(
-      enable = enable || other.enable,
-      version = version.orElse(other.version),
-      mode = mode.orElse(other.mode),
-      moduleKindStr = moduleKindStr.orElse(other.moduleKindStr),
-      checkIr = checkIr.orElse(other.checkIr),
-      emitSourceMaps = emitSourceMaps || other.emitSourceMaps,
-      dom = dom.orElse(other.dom)
-    )
-
-  def addHashData(update: String => Unit): Unit =
-    if (enable) {
-      update("js=" + version.getOrElse("default") + "\n")
-      update("js.mode=" + mode + "\n")
-      for (value <- moduleKindStr)
-        update("js.moduleKind=" + value + "\n")
-      for (value <- checkIr)
-        update("js.checkIr=" + value + "\n")
-      update("js.emitSourceMaps=" + emitSourceMaps + "\n")
-      for (value <- dom)
-        update("js.moduleKind=" + value + "\n")
-    }
-
   private def moduleKind: ModuleKind =
     moduleKindStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
       case "commonjs" | "common" => ModuleKind.CommonJSModule
@@ -113,4 +89,14 @@ final case class ScalaJsOptions(
 
     config
   }
+}
+
+object ScalaJsOptions {
+  implicit val hasHashData: HasHashData[ScalaJsOptions] = {
+    val underlying: HasHashData[ScalaJsOptions] = HasHashData.derive
+    (prefix, t, update) =>
+      if (t.enable)
+        underlying.add(prefix, t, update)
+  }
+  implicit val monoid: ConfigMonoid[ScalaJsOptions] = ConfigMonoid.derive
 }

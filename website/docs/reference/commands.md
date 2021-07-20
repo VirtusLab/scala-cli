@@ -99,6 +99,18 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [watch](./cli-options.md#watch-options)
 
+## `setup-ide`
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
+- [dependency](./cli-options.md#dependency-options)
+- [logging](./cli-options.md#logging-options)
+- [Scala.JS](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [setup IDE](./cli-options.md#setup-ide-options)
+- [shared](./cli-options.md#shared-options)
+
 ## `test`
 
 Compile and test Scala code

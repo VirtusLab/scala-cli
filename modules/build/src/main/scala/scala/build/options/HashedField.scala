@@ -1,0 +1,44 @@
+package scala.build.options
+
+import shapeless._
+
+trait HashedField[T] {
+  def add(name: String, t: T, update: String => Unit): Unit
+}
+
+object HashedField extends LowPriorityHashedField {
+  def apply[T](implicit instance: HashedField[T]): HashedField[T] = instance
+
+  implicit def asIs[T](implicit hasher: Lazy[HashedType[T]]): HashedField[T] = {
+    (name, t, update) =>
+      update(s"$name=${hasher.value.hashedValue(t)}")
+  }
+
+  implicit def seq[T](implicit hasher: Lazy[HashedType[T]]): HashedField[Seq[T]] = {
+    (name, seq, update) =>
+      for (t <- seq)
+        update(s"$name+=${hasher.value.hashedValue(t)}")
+  }
+
+  implicit def list[T](implicit hasher: Lazy[HashedType[T]]): HashedField[List[T]] = {
+    (name, list, update) =>
+      for (t <- list)
+        update(s"$name+=${hasher.value.hashedValue(t)}")
+  }
+
+  implicit def option[T](implicit hasher: Lazy[HashedType[T]]): HashedField[Option[T]] = {
+    (name, opt, update) =>
+      for (t <- opt)
+        update(s"$name=${hasher.value.hashedValue(t)}")
+  }
+
+}
+
+abstract class LowPriorityHashedField {
+
+  implicit def recurse[T](implicit hasher: Lazy[HasHashData[T]]): HashedField[T] = {
+    (name, t, update) =>
+      hasher.value.add(name + ".", t, update)
+  }
+
+}
