@@ -328,10 +328,15 @@ object Build {
       if (params.scalaVersion.startsWith("2.")) Nil
       else Seq("-sourceroot", inputs.workspace.toString)
 
+    val scalaJsScalacOptions =
+      if (options.scalaJsOptions.enable && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
+      else Nil
+
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
-      sourceRootScalacOptions
+      sourceRootScalacOptions ++
+      scalaJsScalacOptions
 
     val scalaCompiler = ScalaCompiler(
             scalaVersion = params.scalaVersion,
