@@ -20,7 +20,7 @@ object Run extends ScalaCommand[RunOptions] {
 
   def run(options: RunOptions, args: RemainingArgs, defaultInputs: Option[Inputs]): Unit = {
 
-    val inputs = options.shared.inputsOrExit(args, defaultInputs)
+    val inputs = options.shared.inputsOrExit(args, defaultInputs = defaultInputs)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()

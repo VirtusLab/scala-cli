@@ -4,6 +4,7 @@ import caseapp._
 import ch.epfl.scala.bsp4j.BspConnectionDetails
 import com.google.gson.GsonBuilder
 
+import java.io.File
 import java.nio.charset.Charset
 
 import scala.build.{Inputs, Os}
@@ -22,12 +23,21 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] with NeedsArgvCommand {
       sys.exit(1)
     }
 
-    def inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
+    def inputs = options.shared.inputsOrExit(args)
 
     val argv = {
-      val idx = rawArgv.indexOf("setup-ide")
-      if (idx < 0) rawArgv // shouldn't happen
-      else rawArgv.take(idx) ++ Array("bsp") ++ rawArgv.drop(idx + 1)
+      val commandIndex = rawArgv.indexOf("setup-ide")
+      val withBspCommand =
+        if (commandIndex < 0) rawArgv // shouldn't happen
+        else rawArgv.take(commandIndex) ++ Array("bsp") ++ rawArgv.drop(commandIndex + 1)
+
+      // Ensure the path to the CLI is absolute
+      val progName = rawArgv(0)
+      if (progName.contains(File.pathSeparator)) {
+        val absoluteProgPath = os.FilePath(progName).resolveFrom(Os.pwd).toString
+        absoluteProgPath +: withBspCommand.drop(1)
+      }
+      else withBspCommand
     }
 
     val name = options.bspName.map(_.trim).filter(_.nonEmpty).getOrElse("scala-cli")

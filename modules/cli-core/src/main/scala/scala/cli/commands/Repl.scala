@@ -13,7 +13,7 @@ object Repl extends ScalaCommand[ReplOptions] {
   override def sharedOptions(options: ReplOptions) = Some(options.shared)
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
 
-    val inputs = options.shared.inputsOrExit(args, defaultInputs = Some(Inputs.default()))
+    val inputs = options.shared.inputsOrExit(args)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()

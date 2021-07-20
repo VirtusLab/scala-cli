@@ -60,13 +60,15 @@ In more detail, all options starting with
 
 are assumed to be Scala compiler options.
 
-For options that don't start with any of these, add a `-O` prefix:
+Compiler options can also be passed with `-O`:
 ```
-$ scala compile Hello.scala -O -deprecation
+$ scala compile Hello.scala -O -deprecation -O -Xlint:infer-any
 [warn] ./Hello.scala:3:7: method x in class Some is deprecated (since 2.12.0): Use .value instead.
 [warn]   opt.x
 [warn]       ^
 ```
+
+`-O` accepts both options with the prefixes above and those without such a prefix.
 
 ## Scala version
 
