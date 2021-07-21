@@ -8,21 +8,21 @@ import Layout from '@theme/Layout';
 const Features = (props) => {
   const features = [
     {
-      title: "Learn language, not a build tool",
+      title: "Learn a language, not a build tool",
       content:
       <p>
         <p>
-          Scala-cli combines all of the feature that you need to learn and use Scala in your (simple) projects. 
-          Scala-cli is intuitive <code>and interactive</code>. 
+          Scala-cli combines all the features you need to learn and use Scala in your (simple) projects.
+          Scala-cli is intuitive <code>and interactive</code>.
           We believe that you can just <a href="docs/installation">install</a> and <a href="docs/input">run scala-cli</a> for
           the first time and just skip reading rest of this page.
         </p>
         <p>
-          Are you still with us? 
+          Are you still with us?
           <br/>
           Ok, let us convince you why scala-cli is worth to give it a go.
         </p>
-      
+
         <code>features marked as code are still under development</code>
       </p>,
       image: "img/logo.svg",
@@ -33,9 +33,9 @@ const Features = (props) => {
       content:
         <p>
           <p>
-            Our installation instructions are as simple as possible. 
+            Our installation instructions are as simple as possible.
           </p>
-          Just pick your <a href="https://github.com/VirtuslabRnD/scala-cli/releases/tag/latest">distribution</a> and <a href="docs/installation">install</a> scala-cli. 
+          Just pick your <a href="https://github.com/VirtuslabRnD/scala-cli/releases/tag/latest">distribution</a> and <a href="docs/installation">install</a> scala-cli.
           <br/>
           No need to fluff with installing JVM or setting up PATH.
         </p>,
@@ -53,10 +53,10 @@ const Features = (props) => {
     },
     {
       title: "All the features that you need",
-      content: 
+      content:
         <p>
-        Scala-cli can <b>run</b>, <b>compile</b> and <code>format</code> your code. 
-        We support <b>REPL</b> and <b>scripts</b>. 
+        Scala-cli can <b>run</b>, <b>compile</b> and <code>format</code> your code.
+        We support <b>REPL</b> and <b>scripts</b>.
         We can run your <b>tests</b> or even <b>package</b> your project so you can share results of your work!",
         </p>,
       image: "img/features.gif",
@@ -66,9 +66,9 @@ const Features = (props) => {
       title: "Universal tool",
       content:
         <p>
-          If you want to use older <b>version of Scala</b> or 
+          If you want to use older <b>version of Scala</b> or
           run your code in <b>JS</b> or <b>Native</b> environments we've got you covered.
-          <br/> 
+          <br/>
           <i>some additional <a href="TODO?">setup</a> may be required for JS and Native</i>
         </p>,
       image:
@@ -79,12 +79,12 @@ const Features = (props) => {
       title: "Scala-cli is NOT a build tool",
       content: [
         <p>
-          Scala-cli shares some similarities with build tools, 
-          but doesn't aim at supporting multi-module projects, 
+          Scala-cli shares some similarities with build tools,
+          but doesn't aim at supporting multi-module projects,
           nor to be extended via a task system.
         </p>,
         <p>
-          Scala ecosystem has multiple amazing build tools, there is no need to create another one. 
+          Scala ecosystem has multiple amazing build tools, there is no need to create another one.
         </p>
       ],
       image: "https://user-images.githubusercontent.com/1408093/68486864-dd9f2b00-01f6-11ea-9291-d3a7ce6ef225.png",
@@ -96,10 +96,10 @@ const Features = (props) => {
         <p>
           Scala-cli is designed to fill the roles when complexity of a proper build tool kills productivity.
           <br/>
-          Scala-cli supports single module that consists of main sources and <code>tests</code>. 
-          We have only limited set of commands and do not plan for any extension mechanims.
+          Scala-cli supports single module that consists of main sources and <code>tests</code>.
+          We have only limited set of commands and do not plan for any extension mechanism.
         </p>,
-       
+
       image: "img/commands.png",
       imageAlign: "left",
     },
@@ -108,17 +108,17 @@ const Features = (props) => {
       content:
         <p>
           <p>
-            We are thinking that scala-cli may one day replaces `scala` command. For now scala-cli is just a bit more then working prototype and we need your feedback, what do you thing about the idea, features and ergonomics of scala-cli. 
+            We hope that scala-cli could one day be the default `scala` command. For now scala-cli is just a bit more than a working prototype and we need your feedback: tell us what you think about the idea, features and ergonomics of scala-cli.
           </p>
           <p>
-            Should scala-cli also targets simple libraries so we should provide support for cross compiling?
+            Should scala-cli also target simple libraries, so that we should provide support for cross compiling?
           </p>
           <p>
             Do you think that having a `scala-compose` or similar tool that will allow to combine multiple scala-cli projects is a good idea?
           </p>
           <p>Let us know!</p>
         </p>,
-       
+
       image: "img/scala-spiral.png",
       imageAlign: "right",
     }
@@ -150,8 +150,8 @@ const Index = (props) => {
         <div className="container ">
           <div className="padding-vert--md">
             <h1 className="hero__title">{siteConfig.title}</h1>
-            
-            
+
+
             <Features />
 
           </div>
