@@ -37,7 +37,7 @@ syntax as Ammonite and Metals worksheets:
 
 ```scala
 import $dep.`com.lihaoyi::upickle:1.4.0`
-import $ivy.`com.lihaoyi::pprint:0.6.4`
+import $ivy.`com.lihaoyi::pprint:0.6.6`
 import ujson._
 ```
 

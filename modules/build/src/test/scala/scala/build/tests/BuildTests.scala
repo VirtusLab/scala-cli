@@ -219,7 +219,7 @@ class BuildTests extends munit.FunSuite {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
         """import $ivy.`com.lihaoyi::geny:0.6.5`
-          |import $ivy.`com.lihaoyi::pprint:0.6.4`
+          |import $ivy.`com.lihaoyi::pprint:0.6.6`
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
