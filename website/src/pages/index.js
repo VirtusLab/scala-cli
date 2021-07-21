@@ -108,7 +108,7 @@ const Features = (props) => {
       content:
         <p>
           <p>
-            We are thinking that scala-cli may one day replace the `scala` command. For now scala-cli is just a bit more than a working prototype and we need your feedback: tell us what you think about the idea, features and ergonomics of scala-cli.
+            We hope that scala-cli could one day be the default `scala` command. For now scala-cli is just a bit more than a working prototype and we need your feedback: tell us what you think about the idea, features and ergonomics of scala-cli.
           </p>
           <p>
             Should scala-cli also target simple libraries, so that we should provide support for cross compiling?
