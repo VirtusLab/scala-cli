@@ -1,4 +1,4 @@
-import $file.deps, deps.Deps
+import $file.deps, deps.{Deps, Docker}
 
 import java.io.File
 import mill._, scalalib._
@@ -51,17 +51,27 @@ def vcvarsOpt: Option[os.Path] =
     .toStream
     .headOption
 
+final case class DockerParams(
+  imageName: String,
+  workingDir: os.Path,
+  prepareCommand: String,
+  csUrl: String,
+  extraNativeImageArgs: Seq[String]
+)
+
 def generateNativeImage(
   graalVmVersion: String,
   classPath: Seq[os.Path],
   mainClass: String,
   dest: os.Path,
-  includeResources: Seq[String]
+  includeResources: Seq[String],
+  dockerParamsOpt: Option[DockerParams] = None
 ): Unit = {
 
+  val defaultJvmId = s"graalvm-java11:$graalVmVersion"
   val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
     import sys.process._
-    Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", jvmIndex).!!.trim
+    Seq(cs, "java-home", "--jvm", defaultJvmId, "--jvm-index", jvmIndex).!!.trim
   }
 
   val ext = if (Properties.isWin) ".cmd" else ""
@@ -90,9 +100,9 @@ def generateNativeImage(
       jos.close()
       jarFile.getAbsolutePath
     } else
-      classPath.map(_.toIO.getAbsolutePath).mkString(File.pathSeparator)
+      classPath.map(_.toString).mkString(File.pathSeparator)
 
-  val extraArgs =
+  val extraNativeImageArgs =
     if (Properties.isWin)
       Seq(
         "--no-server",
@@ -101,11 +111,11 @@ def generateNativeImage(
       )
     else Nil
 
-  val command = Seq(
+  def command(nativeImage: String, extraNativeImageArgs: Seq[String], dest: String, classPath: String) = Seq(
     nativeImage,
     "--no-fallback"
   ) ++
-  extraArgs ++
+  extraNativeImageArgs ++
   Seq(
     "--enable-url-protocols=https",
     "--initialize-at-build-time=scala.Symbol",
@@ -129,23 +139,25 @@ def generateNativeImage(
     "--allow-incomplete-classpath",
     "--report-unsupported-elements-at-runtime",
     "-H:+ReportExceptionStackTraces",
-    s"-H:Name=${dest.relativeTo(os.pwd)}",
+    s"-H:Name=${dest}",
     "-cp",
-    finalCp,
+    classPath,
     mainClass
   )
 
-  val finalCommand =
+  def defaultCommand = command(nativeImage, extraNativeImageArgs, dest.relativeTo(os.pwd).toString, finalCp)
+
+  val (finalCommand, tmpDestOpt) =
     if (Properties.isWin)
       vcvarsOpt match {
         case None =>
           System.err.println(s"Warning: vcvarsall script not found in predefined locations:")
           for (loc <- vcvarsCandidates)
             System.err.println(s"  $loc")
-          command
+          (defaultCommand, None)
         case Some(vcvars) =>
           // chcp 437 sometimes needed, see https://github.com/oracle/graal/issues/2522
-          val escapedCommand = command.map {
+          val escapedCommand = defaultCommand.map {
             case s if s.contains(" ") => "\"" + s + "\""
             case s => s
           }
@@ -156,16 +168,76 @@ def generateNativeImage(
               |@call ${escapedCommand.mkString(" ")}
               |""".stripMargin
           val scriptPath = os.temp(script.getBytes, prefix = "run-native-image", suffix = ".bat")
-          Seq(scriptPath.toString)
+          (Seq(scriptPath.toString), None)
       }
     else
-      command
+      dockerParamsOpt match {
+        case Some(params) =>
+          var entries = Set.empty[String]
+          val cpDir = params.workingDir / "cp"
+          if (os.exists(cpDir))
+            os.remove.all(cpDir)
+          os.makeDir.all(cpDir)
+          val copiedCp = classPath.filter(os.exists(_)).map { f =>
+            val name =
+              if (entries(f.last)) {
+                var i = 1
+                val (base, ext) = if (f.last.endsWith(".jar")) (f.last.stripSuffix(".jar"), ".jar") else (f.last, "")
+                var candidate = ""
+                while ({
+                  candidate = s"$base-$i$ext"
+                  entries(candidate)
+                }) {
+                  i += 1
+                }
+                candidate
+              }
+              else f.last
+            entries = entries + name
+            val dest = cpDir / name
+            os.copy(f, dest)
+            s"/data/cp/$name"
+          }
+          val cp = copiedCp.mkString(File.pathSeparator)
+          val escapedCommand = command("native-image", params.extraNativeImageArgs, "/data/scala-cli", cp).map {
+            case s if s.contains(" ") => "\"" + s + "\""
+            case s => s
+          }
+          val backTick = "\\"
+          val script =
+            s"""#!/usr/bin/env bash
+               |set -e
+               |${params.prepareCommand}
+               |eval "$$(/data/cs java --env --jvm "$defaultJvmId" --jvm-index "$jvmIndex")"
+               |gu install native-image
+               |${escapedCommand.head}""".stripMargin + escapedCommand.drop(1).map("\\\n  " + _).mkString + "\n"
+          val scriptPath = params.workingDir / "run-native-image.sh"
+          os.write.over(scriptPath, script, createFolders = true)
+          os.perms.set(scriptPath, "rwxr-xr-x")
+          val csPath = os.Path(os.proc("cs", "get", params.csUrl).call().out.text.trim)
+          os.copy.over(csPath, params.workingDir / "cs")
+          os.perms.set(params.workingDir / "cs", "rwxr-xr-x")
+          val termOpt = if (System.console() == null) Nil else Seq("-t")
+          val dockerCmd = Seq("docker", "run") ++ termOpt ++ Seq(
+            "--rm",
+            "-v", s"${params.workingDir}:/data",
+            "-e", "COURSIER_JVM_CACHE=/data/jvm-cache",
+            "-e", "COURSIER_CACHE=/data/cs-cache",
+            params.imageName,
+            "/data/run-native-image.sh"
+          )
+          (dockerCmd, Some(params.workingDir / "scala-cli"))
+        case None =>
+          (defaultCommand, None)
+      }
 
   val res = os.proc(finalCommand.map(x => x: os.Shellable): _*).call(
     stdin = os.Inherit,
     stdout = os.Inherit
   )
-  if (res.exitCode != 0)
+  if (res.exitCode == 0)
+    tmpDestOpt.foreach(tmpDest => os.copy(tmpDest, dest))
+  else
     sys.error(s"native-image command exited with ${res.exitCode}")
 }
 
@@ -338,6 +410,73 @@ trait CliLaunchers extends SbtModule {
 
         PathRef(executable)
       }
+  }
+
+  def nativeImageStatic = T.persistent {
+    val cp = nativeImageClassPath().map(_.path)
+    val mainClass0 = nativeImageMainClass()
+    val dest = T.ctx().dest / "scala"
+
+    val localRepoJar0 = localRepoJar().path
+
+    val params = DockerParams(
+      imageName = Docker.muslBuilder,
+      workingDir = T.dest / "data",
+      prepareCommand = """(cd /usr/local/musl/bin && ln -s *-musl-gcc musl-gcc) && export PATH="/usr/local/musl/bin:$PATH"""",
+      csUrl = s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux",
+      extraNativeImageArgs = Seq(
+        "--static",
+        "--libc=musl"
+      )
+    )
+
+    if (os.exists(dest)) {
+      val printableDest = if (dest.startsWith(os.pwd)) dest.relativeTo(os.pwd).toString else dest.toString
+      T.log.outputStream.println(s"Warning: not re-computing $printableDest, delete it if you think it's stale")
+    } else
+      generateNativeImage(
+        graalVmVersion,
+        cp :+ localRepoJar0,
+        mainClass0,
+        dest,
+        Seq(localRepoResourcePath),
+        dockerParamsOpt = Some(params)
+      )
+
+    PathRef(dest)
+  }
+
+  def nativeImageMostlyStatic = T.persistent {
+    val cp = nativeImageClassPath().map(_.path)
+    val mainClass0 = nativeImageMainClass()
+    val dest = T.ctx().dest / "scala"
+
+    val localRepoJar0 = localRepoJar().path
+
+    val params = DockerParams(
+      imageName = "ubuntu:18.04",
+      workingDir = T.dest / "data",
+      prepareCommand = "apt-get update -q -y && apt-get install -q -y build-essential libz-dev",
+      csUrl = s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux",
+      extraNativeImageArgs = Seq(
+        "-H:+StaticExecutableWithDynamicLibC"
+      )
+    )
+
+    if (os.exists(dest)) {
+      val printableDest = if (dest.startsWith(os.pwd)) dest.relativeTo(os.pwd).toString else dest.toString
+      T.log.outputStream.println(s"Warning: not re-computing $printableDest, delete it if you think it's stale")
+    } else
+      generateNativeImage(
+        graalVmVersion,
+        cp :+ localRepoJar0,
+        mainClass0,
+        dest,
+        Seq(localRepoResourcePath),
+        dockerParamsOpt = Some(params)
+      )
+
+    PathRef(dest)
   }
 
   def runWithAssistedConfig(args: String*) = T.command {

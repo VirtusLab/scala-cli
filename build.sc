@@ -1,6 +1,6 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.0.16`
-import $file.project.deps, deps.{Deps, Scala}
+import $file.project.deps, deps.{Deps, Docker, Scala}
 import $file.project.ghreleaseassets
 import $file.project.publish, publish.ScalaCliPublishModule
 import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath}
@@ -33,6 +33,18 @@ object `integration-core` extends Module {
     object test extends Tests
   }
   object native extends NativeIntegrationCore with Bloop.Module {
+    def skipBloop = true
+    object test extends Tests with Bloop.Module {
+      def skipBloop = true
+    }
+  }
+  object `native-static` extends NativeIntegrationCoreStatic with Bloop.Module {
+    def skipBloop = true
+    object test extends Tests with Bloop.Module {
+      def skipBloop = true
+    }
+  }
+  object `native-mostly-static` extends NativeIntegrationCoreMostlyStatic with Bloop.Module {
     def skipBloop = true
     object test extends Tests with Bloop.Module {
       def skipBloop = true
@@ -245,7 +257,7 @@ trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule wit
 trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTests {
   def scalaVersion = sv
   def testLauncher: T[PathRef]
-  def isNative = T{ false }
+  def cliKind: T[String]
 
   def sv = Scala.scala213
 
@@ -262,12 +274,13 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     )
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI" -> testLauncher().path.toString,
-      "IS_NATIVE_SCALA_CLI" -> isNative().toString
+      "SCALA_CLI_KIND" -> cliKind()
     )
     def sources = T.sources {
       val name = mainArtifactName().stripPrefix(prefix)
-      super.sources().map { ref =>
-        PathRef(os.Path(ref.path.toString.replace(File.separator + name + File.separator, File.separator)))
+      super.sources().flatMap { ref =>
+        val base = PathRef(os.Path(ref.path.toString.replace(File.separator + name + File.separator, File.separator)))
+        Seq(base, ref)
       }
     }
 
@@ -283,6 +296,9 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def scala213 = "${Scala.scala213}"
            |  def scala3   = "${Scala.scala3}"
            |  def defaultScala = "${defaultScalaVersion}"
+           |
+           |  def dockerTestImage = "${Docker.testImage}"
+           |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
            |}
            |""".stripMargin
       os.write(dest, code)
@@ -302,20 +318,32 @@ trait CliIntegrationCore extends CliIntegration {
 
 trait NativeIntegration extends CliIntegration {
   def testLauncher = cli.nativeImage()
-  def isNative = true
+  def cliKind = "native"
 }
 
 trait JvmIntegration extends CliIntegration {
   def testLauncher = cli.launcher()
+  def cliKind = "jvm"
 }
 
 trait NativeIntegrationCore extends CliIntegrationCore {
   def testLauncher = `cli-core`.nativeImage()
-  def isNative = true
+  def cliKind = "native"
+}
+
+trait NativeIntegrationCoreStatic extends CliIntegrationCore {
+  def testLauncher = `cli-core`.nativeImageStatic()
+  def cliKind = "native-static"
+}
+
+trait NativeIntegrationCoreMostlyStatic extends CliIntegrationCore {
+  def testLauncher = `cli-core`.nativeImageMostlyStatic()
+  def cliKind = "native-mostly-static"
 }
 
 trait JvmIntegrationCore extends CliIntegrationCore {
   def testLauncher = `cli-core`.launcher()
+  def cliKind = "jvm"
 }
 
 class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
@@ -478,3 +506,13 @@ def copyDefaultLauncher(directory: String = "artifacts") =
     T.command {
       copyLauncher(directory)()
     }
+
+def copyMostlyStaticLauncher(directory: String = "artifacts") = T.command {
+  val nativeLauncher = `cli-core`.nativeImageMostlyStatic().path
+  ghreleaseassets.copyLauncher(nativeLauncher, directory, suffix = "-mostly-static")
+}
+
+def copyStaticLauncher(directory: String = "artifacts") = T.command {
+  val nativeLauncher = `cli-core`.nativeImageStatic().path
+  ghreleaseassets.copyLauncher(nativeLauncher, directory, suffix = "-static")
+}

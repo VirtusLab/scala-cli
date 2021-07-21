@@ -2,7 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.File
+import java.io.{ByteArrayOutputStream, File}
+import java.nio.charset.Charset
 
 import scala.util.Properties
 
@@ -748,15 +749,20 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
         )
       )
       inputs.fromRoot { root =>
+        val baseImage =
+          if (TestUtil.cliKind == "native-static")
+            Constants.dockerAlpineTestImage
+          else
+            Constants.dockerTestImage
         os.copy(os.Path(TestUtil.cli.head, os.pwd), root / "scala")
         val script =
-         s"""#!/usr/bin/env bash
+         s"""#!/usr/bin/env sh
             |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee -a output
             |""".stripMargin
         os.write(root / "script.sh", script)
         os.perms.set(root / "script.sh", "rwxr-xr-x")
         val termOpt = if (System.console() == null) Nil else Seq("-t")
-        os.proc("docker", "run", "--rm", termOpt, "-v", s"${root}:/data", "-w", "/data", "ubuntu:18.04", "/data/script.sh").call(cwd = root)
+        os.proc("docker", "run", "--rm", termOpt, "-v", s"${root}:/data", "-w", "/data", baseImage, "/data/script.sh").call(cwd = root)
         val output = os.read(root / "output").trim
         expect(output == message)
       }
@@ -780,5 +786,46 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
       expect(output == message)
     }
   }
+
+  def simpleScriptDistrolessImage(): Unit = {
+    val fileName = "simple.sc"
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+         s"""val msg = "$message"
+            |println(msg)
+            |""".stripMargin,
+        os.rel / "Dockerfile" ->
+          """FROM gcr.io/distroless/base-debian10
+            |ADD scala /usr/local/bin/scala
+            |ENTRYPOINT ["/usr/local/bin/scala"]
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.copy(os.Path(TestUtil.cli.head), root / "scala")
+      os.proc("docker", "build", "-t", "scala-cli-distroless-it", ".").call(cwd = root)
+      os.remove(root / "scala")
+      os.remove(root / "Dockerfile")
+      val termOpt = if (System.console() == null) Nil else Seq("-t")
+      val rawOutput = new ByteArrayOutputStream
+      os.proc("docker", "run", "--rm", termOpt, "-v", s"$root:/data", "-w", "/data", "scala-cli-distroless-it", extraOptions, fileName).call(
+        cwd = root,
+        stdout = os.ProcessOutput { (b, len) =>
+          rawOutput.write(b, 0, len)
+          System.err.write(b, 0, len)
+        },
+        mergeErrIntoOut = true
+      )
+      val output = new String(rawOutput.toByteArray, Charset.defaultCharset())
+      expect(output.linesIterator.toVector.last == message)
+    }
+  }
+
+  if (Properties.isLinux && TestUtil.cliKind == "native-mostly-static")
+    test("simple distroless test") {
+      simpleScriptDistrolessImage()
+    }
 
 }

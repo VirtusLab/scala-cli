@@ -71,6 +71,55 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
+  native-mostly-static-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6
+    - uses: laughedelic/coursier-setup@v1
+      with:
+        jvm: 8
+    - name: Generate native launcher
+      run: ./mill -i show cli-core.nativeImageMostlyStatic
+    - name: Native integration tests
+      run: ./mill -i integration-core.native-mostly-static.test
+    # TODO Build docker images too?
+    - name: Copy artifacts
+      run: ./mill -i copyMostlyStaticLauncher artifacts/
+    - uses: actions/upload-artifact@v2.2.4
+      with:
+        name: launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+
+  native-static-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6
+    - uses: laughedelic/coursier-setup@v1
+      with:
+        jvm: 8
+    - name: Generate native launcher
+      run: ./mill -i show cli-core.nativeImageStatic
+    - name: Native integration tests
+      run: ./mill -i integration-core.native-static.test
+    - name: Copy artifacts
+      run: ./mill -i copyStaticLauncher artifacts/
+    - uses: actions/upload-artifact@v2.2.4
+      with:
+        name: launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+
   checks:
     runs-on: ubuntu-latest
     steps:
@@ -108,7 +157,7 @@ jobs:
         )
 
   launchers:
-    needs: [jvm-tests, native-tests, checks, reference-doc]
+    needs: [jvm-tests, native-tests, native-mostly-static-tests, native-static-tests, checks, reference-doc]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:

@@ -188,12 +188,13 @@ def writeInZip(name: String, file: os.Path, zip: os.Path): Unit = {
 
 def copyLauncher(
   nativeLauncher: os.Path,
-  directory: String
+  directory: String,
+  suffix: String = ""
 ): Unit = {
   val path = os.Path(directory, os.pwd)
-  val name = s"scala-$platformSuffix$platformExtension"
+  val name = s"scala-$platformSuffix$suffix$platformExtension"
   if (Properties.isWin)
-    writeInZip(s"scala$platformExtension", nativeLauncher, path / s"scala-$platformSuffix.zip")
+    writeInZip(s"scala$platformExtension", nativeLauncher, path / s"scala-$platformSuffix$suffix.zip")
   else {
     val dest = path / name
     os.copy(nativeLauncher, dest, createFolders = true, replaceExisting = true)
