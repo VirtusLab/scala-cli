@@ -14,7 +14,6 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
     Seq(
       os.rel / "MyTests.scala" ->
         """import $ivy.`org.scalameta::munit::0.7.25`
-          |import $ivy.`org.scala-lang:scala-reflect:2.12.13` // seems munit lacks this dependency on the JVM
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -30,7 +29,6 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
     Seq(
       os.rel / "MyTests.scala" ->
         """import $ivy.`org.scalameta::munit::0.7.25`
-          |import $ivy.`org.scala-lang:scala-reflect:2.12.13` // seems munit lacks this dependency
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -120,7 +118,6 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
     Seq(
       os.rel / "MyTests.scala" ->
         """import $ivy.`org.scalameta::munit::0.7.25`
-          |import $ivy.`org.scala-lang:scala-reflect:2.12.13` // seems munit lacks this dependency on the JVM
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -131,7 +128,6 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
           |""".stripMargin,
       os.rel / "OtherTests.scala" ->
         """import $ivy.`org.scalameta::munit::0.7.25`
-          |import $ivy.`org.scala-lang:scala-reflect:2.12.13` // seems munit lacks this dependency on the JVM
           |
           |class OtherTests extends munit.FunSuite {
           |  test("bar") {
