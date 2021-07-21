@@ -39,9 +39,28 @@
 
 .img-holder {
   min-width: 650px;
-  
 }
 
 .img-holder img {
   max-height: 350px;
+}
+
+@media only screen and (max-width: 1450px) {
+  .img-holder {
+    min-width: 450px;
+  }
+  
+  .img-holder img {
+    max-height: 350px;
+  }
+}
+
+@media only screen and (max-width: 1050px) {
+  .flex-row-reverse{
+    display: block;
+  }
+
+  .flex-row-reverse, .flex-row {
+    display: block; 
+  }
 }
