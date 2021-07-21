@@ -105,10 +105,14 @@ final case class BuildOptions(
 
   def javaCommand(): String = javaCommand0
 
-  private def javaHomeManager = {
+  private lazy val javaHomeManager = {
     val indexUrl = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
     val indexTask = JvmIndex.load(finalCache, indexUrl)
-    val jvmCache = JvmCache().withIndex(indexTask).withCache(finalCache)
+    val jvmCache = JvmCache()
+      .withIndex(indexTask)
+      .withCache(finalCache)
+      .withOs(javaOptions.jvmIndexOs.getOrElse(JvmIndex.defaultOs()))
+      .withArchitecture(javaOptions.jvmIndexArch.getOrElse(JvmIndex.defaultArchitecture()))
     JavaHome().withCache(jvmCache)
   }
 

@@ -143,6 +143,39 @@ Set Java options, such as -Xmx1g
 
 Set Java properties
 
+## Jvm options
+
+Available in commands:
+- [`bsp`](./commands#bsp)
+- [`compile`](./commands#compile)
+- [`browse` / `metabrowse`](./commands#browse)
+- [`package`](./commands#package)
+- [`console` / `repl`](./commands#console)
+- [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
+- [`test`](./commands#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--jvm`
+
+Aliases: `-j`
+
+Use a specific JVM, such as 14, adopt:11, or graalvm:21, or system
+
+#### `--jvm-index`
+
+JVM index URL
+
+#### `--jvm-index-os`
+
+Operating system to use when looking up in the JVM index
+
+#### `--jvm-index-arch`
+
+CPU architecture to use when looking up in the JVM index
+
 ## Logging options
 
 Available in commands:
@@ -417,16 +450,6 @@ Set Scala binary version
 #### `--java-home`
 
 Set Java home
-
-#### `--jvm`
-
-Aliases: `-j`
-
-Use a specific JVM, such as 14, adopt:11, or graalvm:21, or system
-
-#### `--jvm-index`
-
-JVM index URL
 
 #### `--extra-jars`
 
