@@ -14,7 +14,7 @@ const Features = (props) => {
         <p>
           Scala-cli combines all of the feature that you need to learn and use Scala in your (simple) projects. 
           Scala-cli is intuitive <code>and interactive</code>. 
-          We believe that you can just <a href="/docs/installation">install</a> and <a href="/docs/input">run scala-cli</a> for
+          We believe that you can just <a href="docs/installation">install</a> and <a href="docs/input">run scala-cli</a> for
           the first time and just skip reading rest of this page.
         </p>
         <p>
@@ -25,7 +25,7 @@ const Features = (props) => {
       
         <code>features marked as code are still under development</code>
       </p>,
-      image: "/img/logo.svg",
+      image: "img/logo.svg",
       imageAlign: "left",
     },
     {
@@ -35,12 +35,12 @@ const Features = (props) => {
           <p>
             Our installation instructions are as simple as possible. 
           </p>
-          Just pick your <a href="https://github.com/VirtuslabRnD/scala-cli/releases/tag/latest">distribution</a> and <a href="/docs/installation">install</a> scala-cli. 
+          Just pick your <a href="https://github.com/VirtuslabRnD/scala-cli/releases/tag/latest">distribution</a> and <a href="docs/installation">install</a> scala-cli. 
           <br/>
           No need to fluff with installing JVM or setting up PATH.
         </p>,
       // TODO distribution dropdown not this lame screenshoot
-      image: "/img/installation.png",
+      image: "img/installation.png",
       imageAlign: "right",
     },
     {
@@ -48,7 +48,7 @@ const Features = (props) => {
       content:
         "Scala-cli is designed to be as fast and responsive as possible. One of our goals is to prove that Scala does not necessary needs ages to compile and run.",
       image:
-        "/img/fast-scala-cli.gif",
+        "img/fast-scala-cli.gif",
       imageAlign: "left",
     },
     {
@@ -59,7 +59,7 @@ const Features = (props) => {
         We support <b>REPL</b> and <b>scripts</b>. 
         We can run your <b>tests</b> or even <b>package</b> your project so you can share results of your work!",
         </p>,
-      image: "/img/features.gif",
+      image: "img/features.gif",
       imageAlign: "right",
     },
     {
@@ -100,7 +100,7 @@ const Features = (props) => {
           We have only limited set of commands and do not plan for any extension mechanims.
         </p>,
        
-      image: "/img/commands.png",
+      image: "img/commands.png",
       imageAlign: "left",
     },
     {
@@ -119,7 +119,7 @@ const Features = (props) => {
           <p>Let us know!</p>
         </p>,
        
-      image: "/img/scala-spiral.png",
+      image: "img/scala-spiral.png",
       imageAlign: "right",
     }
   ];
