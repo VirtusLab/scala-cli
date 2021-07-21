@@ -37,7 +37,7 @@ final case class BuildOptions(
     if (scalaOptions.addScalaLibrary.getOrElse(true)) {
       val lib =
         if (params.scalaVersion.startsWith("3."))
-          dep"org.scala-lang::scala3-library:${params.scalaVersion}"
+          dep"org.scala-lang::scala3-library::${params.scalaVersion}"
         else
           dep"org.scala-lang:scala-library:${params.scalaVersion}"
       Seq(lib)
@@ -45,7 +45,7 @@ final case class BuildOptions(
     else Nil
 
   def dependencies(params: ScalaParameters): Seq[AnyDependency] =
-    scalaJsOptions.jsDependencies ++
+    scalaJsOptions.jsDependencies(params.scalaVersion) ++
       scalaNativeOptions.nativeDependencies ++
       scalaLibraryDependencies(params) ++
       classPathOptions.extraDependencies
@@ -58,7 +58,7 @@ final case class BuildOptions(
     else Nil
 
   def compilerPlugins(params: ScalaParameters): Seq[AnyDependency] =
-    scalaJsOptions.compilerPlugins ++
+    scalaJsOptions.compilerPlugins(params.scalaVersion) ++
       scalaNativeOptions.compilerPlugins ++
       semanticDbPlugins(params)
 

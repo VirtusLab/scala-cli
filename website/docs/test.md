@@ -25,7 +25,7 @@ class MyTests extends munit.FunSuite {
   }
 }
 
-$ scala test MyTests.scala
+$ scala-cli test MyTests.scala
 Compiling project_8686a5fa42 (1 Scala source)
 Compiled 'project_8686a5fa42'
 MyTests:
@@ -49,7 +49,7 @@ class Tests extends AnyFlatSpec with should.Matchers {
   }
 }
 
-$ scala test MyTests.scala -- -oD
+$ scala-cli test MyTests.scala -- -oD
 Compiling project_8686a5fa42-4bae49baeb (1 Scala source)
 Compiled 'project_8686a5fa42-4bae49baeb'
 Tests:

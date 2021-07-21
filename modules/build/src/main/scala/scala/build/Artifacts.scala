@@ -87,7 +87,10 @@ object Artifacts {
       if (addJvmTestRunner) Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion")
       else Nil
     val jsTestBridgeDependencies = addJsTestBridge.toSeq.map { scalaJsVersion =>
-      dep"org.scala-js::scalajs-test-bridge:$scalaJsVersion"
+      if (params.scalaVersion.startsWith("2."))
+        dep"org.scala-js::scalajs-test-bridge:$scalaJsVersion"
+      else
+        dep"org.scala-js:scalajs-test-bridge_2.13:$scalaJsVersion"
     }
 
     val jmhDependencies = addJmhDependencies.toSeq.map { version =>

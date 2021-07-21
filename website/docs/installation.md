@@ -3,7 +3,7 @@ title: Installation
 sidebar_position: 2
 ---
 
-`scala` can be installed either manually, or using OS-specific packages.
+`scala-cli` can be installed either manually, or using OS-specific packages.
 OS-specific packages are experimental and in-progress.
 Manual installation is recommended for now.
 
@@ -20,7 +20,7 @@ $ sudo mv scala /usr/local/bin/scala
 
 Check that it runs fine by running its `about` command:
 ```text
-$ scala about
+$ scala-cli about
 ```
 
 ### macOS
@@ -34,7 +34,7 @@ $ sudo mv scala /usr/local/bin/scala
 
 Check that it runs fine by running its `about` command:
 ```text
-$ scala about
+$ scala-cli about
 ```
 
 ### Windows
@@ -50,7 +50,7 @@ Check that it runs fine by running its `about` command:
 > scala about
 ```
 
-Note that this doesn't put the `scala` command in the `PATH`. For that, you can create a directory, move the
+Note that this doesn't put the `scala-cli` command in the `PATH`. For that, you can create a directory, move the
 launcher there, and add the directory to the `PATH` with
 ```text
 > md "%USERPROFILE%/scala-cli"
