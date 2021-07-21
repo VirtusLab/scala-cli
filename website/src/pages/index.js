@@ -72,7 +72,7 @@ const Features = (props) => {
           <i>some additional <a href="TODO?">setup</a> may be required for JS and Native</i>
         </p>,
       image:
-        "/img/envs.gif",
+        "img/envs.gif",
       imageAlign: "left",
     },
     {
