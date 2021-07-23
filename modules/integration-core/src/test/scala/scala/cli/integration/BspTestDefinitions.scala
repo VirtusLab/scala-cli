@@ -98,7 +98,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String]) extends m
         os.rel / "simple.sc" ->
          s"""val msg = "Hello"
             |println(msg)
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>

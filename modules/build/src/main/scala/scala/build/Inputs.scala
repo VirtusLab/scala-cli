@@ -278,13 +278,21 @@ object Inputs {
     else
       forNonEmptyArgs(args, cwd, directories, baseProjectName, download, stdinOpt, acceptFds)
 
-  def default(cwd: os.Path = Os.pwd): Inputs =
-    Inputs(
-      head = Directory(cwd),
-      tail = Nil,
-      mainClassElement = None,
-      workspace = cwd,
-      baseProjectName = "project",
-      mayAppendHash = true
-    )
+  def default(cwd: os.Path = Os.pwd): Option[Inputs] = {
+    val hasConf = os.isFile(cwd / "scala.conf") ||
+      os.list(cwd).filter(os.isFile(_)).exists(_.last.endsWith(".scala.conf"))
+    if (hasConf)
+      Some {
+        Inputs(
+          head = Directory(cwd),
+          tail = Nil,
+          mainClassElement = None,
+          workspace = cwd,
+          baseProjectName = "project",
+          mayAppendHash = true
+        )
+      }
+    else
+      None
+  }
 }

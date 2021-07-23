@@ -214,7 +214,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |""".stripMargin,
         os.rel / "dir" / "print.sc" ->
          s"""println(messages.msg)
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "dir" / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>
@@ -249,7 +250,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |    println(args(0))
             |  }
             |}
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     val message = "Hello"
@@ -267,7 +269,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |  def main(args: Array[String]): Unit =
             |    val message = args(0)
             |    println(message)
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     val message = "Hello"
@@ -404,7 +407,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |        throw new Exception("Caught exception during processing", e)
             |    }
             |}
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>
@@ -464,7 +468,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |  case e: Exception =>
             |    throw new Exception("Caught exception during processing", e)
             |}
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>
@@ -523,7 +528,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |  case e: Exception =>
             |    throw new Exception("Caught exception during processing", e)
             |}
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>

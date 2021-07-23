@@ -19,7 +19,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String]) exten
           |    }
           |  }
           |}
-          |""".stripMargin
+          |""".stripMargin,
+      os.rel / "scala.conf" -> ""
     )
   )
 
