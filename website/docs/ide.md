@@ -22,7 +22,7 @@ $ cat > .vscode/settings.json << EOF
   "metals.serverVersion": "org.virtuslab:metals_2.12:0.10.5+65-f2a9927c-SNAPSHOT",
   "metals.serverProperties": [
     "-Xmx512m",
-    "-Dmetals.scala-cli.launcher=$(which scala)"
+    "-Dmetals.scala-cli.launcher=$(which scala-cli)"
   ]
 }
 EOF
