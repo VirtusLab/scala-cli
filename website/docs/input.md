@@ -89,7 +89,7 @@ Hello from Scala
 
 ## URLs
 
-`scala-cli`  accepts input via URLs pointing at `.scala` files.
+`scala-cli` accepts input via URLs pointing at `.scala` files.
 It'll download and cache their content, and run them.
 
 ```text
