@@ -195,7 +195,7 @@ final class BspImpl(
       )
     actualLocalServer.setProjectName(inputs.workspace, inputs.projectName)
 
-    val localServer: b.BuildServer with b.ScalaBuildServer =
+    val localServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer =
       if (verbosity >= 3)
         new LoggingBuildServerAll(actualLocalServer)
       else
