@@ -116,7 +116,7 @@ object Build {
 
     val sources = Sources.forInputs(
       inputs,
-      options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+      Sources.defaultPreprocessors(options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper))
     )
 
     val options0 = options.orElse(sources.buildOptions)
@@ -301,7 +301,7 @@ object Build {
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
 
-    val artifacts = options.artifacts(params, sources.dependencies, logger)
+    val artifacts = options.artifacts(params, logger)
 
     val pluginScalacOptions = artifacts.compilerPlugins.map {
       case (_, _, path) =>

@@ -33,9 +33,9 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val sources = Sources.forInputs(inputs, CustomCodeWrapper)
+      val sources = Sources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
 
-      expect(sources.dependencies == expectedDeps)
+      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
       expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
@@ -59,9 +59,9 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val sources = Sources.forInputs(inputs, CustomCodeWrapper)
+      val sources = Sources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
 
-      expect(sources.dependencies == expectedDeps)
+      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
       expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))

@@ -166,11 +166,11 @@ final case class BuildOptions(
     ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
   }
 
-  def artifacts(params: ScalaParameters, userDependencies: Seq[AnyDependency], logger: Logger): Artifacts =
+  def artifacts(params: ScalaParameters, logger: Logger): Artifacts =
     Artifacts(
                   params = params,
          compilerPlugins = compilerPlugins(params),
-            dependencies = userDependencies ++ dependencies(params),
+            dependencies = dependencies(params),
                extraJars = allExtraJars,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
          extraSourceJars = allExtraSourceJars,

@@ -1,23 +1,13 @@
 package scala.build
 
-import java.nio.charset.StandardCharsets
-import java.nio.file.Paths
-
-import dependency.parser.DependencyParser
-import dependency.{AnyDependency, ScalaParameters}
-import pureconfig.ConfigSource
-
-import scala.build.config.ConfigFormat
-import scala.build.internal.{AmmUtil, CodeWrapper, Name}
-import scala.build.internal.Util.DependencyOps
+import scala.build.internal.CodeWrapper
 import scala.build.options.BuildOptions
-import scala.util.Properties
+import scala.build.preprocessing._
 
 final case class Sources(
   paths: Seq[(os.Path, os.RelPath)],
   inMemory: Seq[(Either[String, os.Path], os.RelPath, String, Int)],
   mainClass: Option[String],
-  dependencies: Seq[AnyDependency],
   resourceDirs: Seq[os.Path],
   buildOptions: BuildOptions
 ) {
@@ -45,14 +35,14 @@ final case class Sources(
 
 object Sources {
 
-  private def process(path: os.Path): Option[(Seq[String], String)] = {
+  def process(path: os.Path): Option[(Seq[String], String)] = {
     val printablePath =
       if (path.startsWith(Os.pwd)) path.relativeTo(Os.pwd).toString
       else path.toString
     val content = os.read(path)
     process(content, printablePath)
   }
-  private def process(content: String, printablePath: String): Option[(Seq[String], String)] = {
+  def process(content: String, printablePath: String): Option[(Seq[String], String)] = {
 
     import fastparse._
     import scalaparse._
@@ -113,180 +103,55 @@ object Sources {
     }
   }
 
-  private def parseDependency(str: String): AnyDependency =
-    DependencyParser.parse(str) match {
-      case Left(msg) => sys.error(s"Malformed dependency '$str': $msg")
-      case Right(dep) => dep
-    }
 
-  private def scriptData(codeWrapper: CodeWrapper, script: Inputs.Script): ScriptData = {
-
-    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, script.subPath)
-
-    val (deps, updatedCode) = process(script.path).getOrElse((Nil, os.read(script.path)))
-
-    val (code, topWrapperLen, _) = codeWrapper.wrapCode(
-      pkg,
-      wrapper,
-      updatedCode
+  def defaultPreprocessors(codeWrapper: CodeWrapper): Seq[Preprocessor] =
+    Seq(
+      ScriptPreprocessor(codeWrapper),
+      JavaPreprocessor,
+      ConfigPreprocessor,
+      ScalaFilePreprocessor
     )
-
-    val deps0 = deps.map(parseDependency)
-
-    val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-    ScriptData(Right(script.path), className, code, deps0, topWrapperLen)
-  }
-
-  private def virtualScriptData(codeWrapper: CodeWrapper, script: Inputs.VirtualScript): ScriptData = {
-
-    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, os.rel / "stdin.sc")
-
-    val content = new String(script.content, StandardCharsets.UTF_8)
-    val (deps, updatedCode) = process(content, script.source).getOrElse((Nil, content))
-
-    val (code, topWrapperLen, _) = codeWrapper.wrapCode(
-      pkg,
-      wrapper,
-      updatedCode
-    )
-
-    val deps0 = deps.map(parseDependency)
-
-    val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-    ScriptData(Left(script.source), className, code, deps0, topWrapperLen)
-  }
 
   def forInputs(
     inputs: Inputs,
-    codeWrapper: CodeWrapper
+    preprocessors: Seq[Preprocessor]
   ): Sources = {
 
-    val singleFiles = inputs.singleFiles()
-    val virtualSourceFiles = inputs.virtualSourceFiles()
-
-    val configFiles = singleFiles.collect {
-      case c: Inputs.ConfigFile => c.path
+    val preprocessedSources = inputs.flattened().flatMap { elem =>
+      preprocessors.iterator.flatMap(p => p.preprocess(elem).iterator).toStream.headOption
+        .getOrElse(Nil) // FIXME Warn about unprocessed stuff?
     }
-    val configOptions = configFiles.flatMap { f =>
-      if (os.isFile(f)) {
-        val source = ConfigSource.string(os.read(f))
-        source.load[ConfigFormat] match {
-          case Left(err) =>
-            sys.error(s"Parsing $f:" + err.prettyPrint(indentLevel = 2))
-          case Right(conf) =>
-            Seq(conf.buildOptions)
-        }
-      }
-      else Nil
-    }
-    val buildOptions = configOptions.foldLeft(BuildOptions())(_.orElse(_))
 
-    val scalaFilePathsOrCode = singleFiles
-      .iterator
+    val buildOptions = preprocessedSources
+      .flatMap(_.options.toSeq)
+      .foldLeft(BuildOptions())(_.orElse(_))
+
+    val mainClassOpt = inputs.mainClassElement
       .collect {
-        case f: Inputs.ScalaFile => f
+        case elem: Inputs.SingleElement =>
+          preprocessors.iterator
+            .flatMap(p => p.preprocess(elem).iterator)
+            .toStream.headOption
+            .getOrElse(Nil)
+            .flatMap(_.mainClassOpt.toSeq)
+            .headOption
       }
-      .flatMap { f =>
-        process(f.path) match {
-          case None =>
-            Iterator(Right(f.path))
-          case Some((deps, updatedCode)) =>
-            Iterator(Left((f.path, deps, f.path.relativeTo(inputs.workspace), updatedCode)))
-        }
-      }
-      .toVector
+      .flatten
 
-    val virtualSources = virtualSourceFiles.map {
-      case v: Inputs.VirtualScalaFile =>
-        val content = new String(v.content, StandardCharsets.UTF_8)
-        val (deps, updatedContent) = process(content, v.source).getOrElse((Nil, content))
-        (v.source, deps, v.subPath, updatedContent)
-      case v: Inputs.VirtualScript =>
-        val content = new String(v.content, StandardCharsets.UTF_8)
-        val (deps, updatedContent) = process(content, v.source).getOrElse((Nil, content))
-        (v.source, deps, v.subPath, updatedContent)
-      case v: Inputs.VirtualJavaFile =>
-        val content = new String(v.content, StandardCharsets.UTF_8)
-        (v.source, Nil, v.subPath, content)
+    val paths = preprocessedSources.collect {
+      case d: PreprocessedSource.OnDisk =>
+        (d.path, d.path.relativeTo(inputs.workspace))
+    }
+    val inMemory = preprocessedSources.collect {
+      case m: PreprocessedSource.InMemory =>
+        (m.reportingPath, m.relPath, m.code, m.ignoreLen)
     }
 
-    val javaFilePaths = singleFiles
-      .iterator
-      .collect {
-        case f: Inputs.JavaFile =>
-          f.path
-      }
-      .toVector
-
-    val scalaFilePaths = scalaFilePathsOrCode.collect { case Right(v) => v }
-    val inMemorySourceFiles =
-      virtualSources.map {
-        case (originalPath, _, relPath, updatedCode) =>
-          (Left(originalPath), relPath: os.RelPath, updatedCode, 0)
-      } ++
-      scalaFilePathsOrCode.collect {
-        case Left((originalPath, _, relPath, updatedCode)) =>
-          (Right(originalPath), relPath, updatedCode, 0)
-      }
-
-    val scalaFilesDependencies = {
-      val depStrings =
-        virtualSources.flatMap(_._2) ++
-        scalaFilePathsOrCode
-          .collect {
-            case Left((_, deps, _, _)) => deps
-          }
-          .flatten
-
-      depStrings.map(parseDependency)
+    val resourceDirs = inputs.elements.collect {
+      case r: Inputs.ResourceDirectory =>
+        r.path
     }
 
-    val mainClassOpt = inputs.mainClassElement.collect {
-      case s: Inputs.ScalaFile if s.path.last.endsWith(".scala") => // TODO ignore case for the suffix?
-        val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, s.subPath)
-        (pkg :+ wrapper).map(_.raw).mkString(".")
-      case s: Inputs.Script =>
-        scriptData(codeWrapper, s).className
-    }
-
-    val allScriptData =
-      singleFiles
-        .iterator
-        .collect {
-          case s: Inputs.Script =>
-            scriptData(codeWrapper, s)
-        }
-        .toVector ++
-      virtualSourceFiles
-        .iterator
-        .collect {
-          case s: Inputs.VirtualScript =>
-            virtualScriptData(codeWrapper, s)
-        }
-
-    Sources(
-      paths = (javaFilePaths ++ scalaFilePaths).map(p => (p, p.relativeTo(inputs.workspace))),
-      inMemory = inMemorySourceFiles ++ allScriptData.map(script => (script.reportingPath, script.relPath, script.code, script.topWrapperLen)),
-      mainClass = mainClassOpt,
-      dependencies = (scalaFilesDependencies ++ allScriptData.flatMap(_.dependencies)).distinct,
-      resourceDirs = inputs.elements.collect {
-        case r: Inputs.ResourceDirectory => r.path
-      },
-      buildOptions = buildOptions
-    )
+    Sources(paths, inMemory, mainClassOpt, resourceDirs, buildOptions)
   }
-
-  private final case class ScriptData(
-    reportingPath: Either[String, os.Path],
-    className: String,
-    code: String,
-    dependencies: Seq[AnyDependency],
-    topWrapperLen: Int
-  ) {
-    def relPath: os.RelPath = {
-      val components = className.split('.')
-      os.rel / components.init.toSeq / s"${components.last}.scala"
-    }
-  }
-
 }
