@@ -105,7 +105,7 @@ TODO
 
 You can just pipe Scala code to `scala-cli` for execution:
 ```text
-$ echo 'println("Hello")' | scala -
+$ echo 'println("Hello")' | scala-cli -
 Hello
 ```
 

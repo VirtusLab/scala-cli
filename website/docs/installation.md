@@ -13,9 +13,9 @@ Manual installation is recommended for now.
 
 Download the launcher from GitHub release assets with
 ```text
-$ curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-pc-linux.gz | gzip -d > scala
-$ chmod +x scala
-$ sudo mv scala /usr/local/bin/scala
+$ curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-pc-linux.gz | gzip -d > scala-cli
+$ chmod +x scala-cli
+$ sudo mv scala-cli /usr/local/bin/scala-cli
 ```
 
 Check that it runs fine by running its `about` command:
@@ -27,9 +27,9 @@ $ scala-cli about
 
 Download the launcher from GitHub release assets with
 ```text
-$ curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-apple-darwin.gz | gzip -d > scala
-$ chmod +x scala
-$ sudo mv scala /usr/local/bin/scala
+$ curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-apple-darwin.gz | gzip -d > scala-cli
+$ chmod +x scala-cli
+$ sudo mv scala-cli /usr/local/bin/scala-cli
 ```
 
 Check that it runs fine by running its `about` command:
@@ -41,21 +41,21 @@ $ scala-cli about
 
 Download the launcher from GitHub release assets with
 ```text
-> curl -fLo scala.zip https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-pc-win32.zip
-> tar -xf scala.zip
+> curl -fLo scala-cli.zip https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-x86_64-pc-win32.zip
+> tar -xf scala-cli.zip
 ```
 
 Check that it runs fine by running its `about` command:
 ```text
-> scala about
+> scala-cli about
 ```
 
 Note that this doesn't put the `scala-cli` command in the `PATH`. For that, you can create a directory, move the
 launcher there, and add the directory to the `PATH` with
 ```text
 > md "%USERPROFILE%/scala-cli"
-> scala add-path "%USERPROFILE%/scala-cli"
-> move scala.exe "%USERPROFILE%/scala-cli"
+> scala-cli add-path "%USERPROFILE%/scala-cli"
+> move scala-cli.exe "%USERPROFILE%/scala-cli"
 ```
 
 ## OS-specific packages
