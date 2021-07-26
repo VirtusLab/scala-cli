@@ -4,7 +4,9 @@ import org.virtuslab.stacktraces.printer.PrettyExceptionPrinter
 
 object Stacktrace {
 
-  def print(t: Throwable, prefix: String): Boolean = {
+  private lazy val disable = java.lang.Boolean.getBoolean("scala.cli.runner.Stacktrace.disable")
+
+  def print(t: Throwable, prefix: String): Boolean = !disable && {
     val e = t match {
       case e: Exception => e
       case _ => new Exception(t) // meh

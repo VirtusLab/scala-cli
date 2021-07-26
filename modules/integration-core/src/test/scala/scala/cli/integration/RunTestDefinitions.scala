@@ -536,9 +536,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
       )
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", extraOptions, "--runner=false")
+      val res = os.proc(TestUtil.cli, "run", extraOptions, "--java-prop=scala.cli.runner.Stacktrace.disable=true")
         .call(cwd = root, check = false, mergeErrIntoOut = true)
-      val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
+      val exceptionLines = res.out.lines.map(stripAnsi).dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
       val expectedLines =
        s"""Exception in thread "main" java.lang.ExceptionInInitializerError
