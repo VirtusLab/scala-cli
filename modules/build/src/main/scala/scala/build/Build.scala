@@ -645,7 +645,7 @@ object Build {
       val jmhInputs = inputs.copy(
         baseProjectName = jmhProjectName,
         mayAppendHash = false, // hash of the underlying project if needed is already in jmhProjectName
-        tail = inputs.tail ++ Seq(
+        elements = inputs.elements ++ Seq(
           Inputs.Directory(jmhSourceDir),
           Inputs.ResourceDirectory(jmhResourceDir)
         )

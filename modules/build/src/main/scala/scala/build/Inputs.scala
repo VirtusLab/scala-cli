@@ -9,14 +9,12 @@ import java.security.MessageDigest
 import scala.util.Properties
 
 final case class Inputs(
-  head: Inputs.Element,
-  tail: Seq[Inputs.Element],
+  elements: Seq[Inputs.Element],
   mainClassElement: Option[Inputs.Element],
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean
 ) {
-  lazy val elements: Seq[Inputs.Element] = head +: tail
 
   def singleFiles(): Seq[Inputs.SingleFile] =
     elements.flatMap {
@@ -94,9 +92,9 @@ final case class Inputs(
     else baseProjectName
   }
 
-  def add(elements: Seq[Inputs.Element]): Inputs =
+  def add(extraElements: Seq[Inputs.Element]): Inputs =
     if (elements.isEmpty) this
-    else copy(tail = tail ++ elements)
+    else copy(elements = elements ++ extraElements)
 
   def generatedSrcRoot: os.Path =
     workspace / ".scala" / projectName / "src_generated"
@@ -202,7 +200,7 @@ object Inputs {
       .collectFirst {
         case f: SourceFile => f
       }
-    Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = needsHash)
+    Inputs(updatedElems, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = needsHash)
   }
 
   private def forNonEmptyArgs(
@@ -284,8 +282,7 @@ object Inputs {
     if (hasConf)
       Some {
         Inputs(
-          head = Directory(cwd),
-          tail = Nil,
+          Seq(Directory(cwd)),
           mainClassElement = None,
           workspace = cwd,
           baseProjectName = "project",
