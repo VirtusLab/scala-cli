@@ -268,13 +268,13 @@ object Inputs {
     cwd: os.Path,
     directories: Directories,
     baseProjectName: String = "project",
-    defaultInputs: Option[Inputs] = None,
+    defaultInputs: () => Option[Inputs] = () => None,
     download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
     stdinOpt: => Option[Array[Byte]] = None,
     acceptFds: Boolean = false
   ): Either[String, Inputs] =
     if (args.isEmpty)
-      defaultInputs.toRight("No inputs provided (expected files with .scala or .sc extensions, and / or directories).")
+      defaultInputs().toRight("No inputs provided (expected files with .scala or .sc extensions, and / or directories).")
     else
       forNonEmptyArgs(args, cwd, directories, baseProjectName, download, stdinOpt, acceptFds)
 

@@ -19,7 +19,7 @@ class DefaultBase(
   }
   def run(options: RunOptions, args: RemainingArgs): Unit =
     if (anyArgs)
-      Run.run(options, args, defaultInputs = None)
+      Run.run(options, args, defaultInputs = () => None)
     else
       helpAsked(finalHelp.progName)
 }
