@@ -31,7 +31,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
 
   // warm-up run that downloads compiler bridges
   // The "Downloading compiler-bridge (from bloop?) pollute the output, and would make the first test fail.
-  simpleScriptTest(ignoreErrors = true)
+  lazy val warmupTest = simpleScriptTest(ignoreErrors = true)
+
+  override def test(name: String)(body: => Any)(implicit loc: munit.Location): Unit =
+    super.test(name){ warmupTest; body }(loc)
 
   test("simple script") {
     simpleScriptTest()
