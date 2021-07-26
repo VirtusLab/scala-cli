@@ -2,6 +2,8 @@ package pprint
 
 object better {
 
+  // Same as pprint.log, except we log things to stderr rather than stdout
+
   def log[T](x: sourcecode.Text[T],
              tag: String = "",
              width: Int = defaultWidth,
