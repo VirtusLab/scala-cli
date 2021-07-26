@@ -63,7 +63,7 @@ object Artifacts {
     extraSourceJars: Seq[Path],
     fetchSources: Boolean,
     addStubs: Boolean,
-    addJvmRunner: Boolean,
+    addJvmRunner: Option[Boolean],
     addJvmTestRunner: Boolean,
     addJsTestBridge: Option[String],
     addJmhDependencies: Option[String],
@@ -82,7 +82,7 @@ object Artifacts {
         )
 
     val jvmRunnerDependencies =
-      if (addJvmRunner) Seq(dep"$runnerOrganization::$runnerModuleName:$runnerVersion")
+      if (addJvmRunner.getOrElse(true)) Seq(dep"$runnerOrganization::$runnerModuleName:$runnerVersion")
       else Nil
     val jvmTestRunnerDependencies =
       if (addJvmTestRunner) Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion")

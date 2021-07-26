@@ -35,7 +35,7 @@ object Run extends ScalaCommand[RunOptions] {
         logger,
         allowExecve = allowTerminate,
         exitOnError = allowTerminate,
-        jvmRunner = build.options.addRunnerDependency
+        jvmRunner = build.options.addRunnerDependency.getOrElse(true)
       )
 
     if (options.watch.watch) {

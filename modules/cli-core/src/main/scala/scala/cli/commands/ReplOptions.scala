@@ -26,6 +26,9 @@ final case class ReplOptions(
       ),
       replOptions = baseOptions.replOptions.copy(
         ammoniteVersionOpt = ammonite
+      ),
+      internalDependencies = baseOptions.internalDependencies.copy(
+        addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt.orElse(Some(false))
       )
     )
   }
