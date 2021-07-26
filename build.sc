@@ -147,7 +147,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
         VcsVersion.vcsState()
       }
   }
-  def constantsFile = T{
+  def constantsFile = T.persistent {
     val dest = T.dest / "Constants.scala"
     val code =
       s"""package scala.build.internal
@@ -188,7 +188,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |}
          |""".stripMargin
-    os.write(dest, code)
+    if (!os.isFile(dest) || os.read(dest) != code)
+      os.write.over(dest, code)
     PathRef(dest)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
@@ -286,7 +287,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
       }
     }
 
-    def constantsFile = T{
+    def constantsFile = T.persistent {
       val dest = T.dest / "Constants.scala"
       val code =
         s"""package scala.cli.integration
@@ -303,7 +304,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
            |}
            |""".stripMargin
-      os.write(dest, code)
+      if (!os.isFile(dest) || os.read(dest) != code)
+        os.write.over(dest, code)
       PathRef(dest)
     }
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
@@ -401,7 +403,7 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
   )
   def mainClass = Some("scala.build.blooprifle.BloopRifle")
 
-  def constantsFile = T{
+  def constantsFile = T.persistent {
     val dest = T.dest / "Constants.scala"
     val code =
       s"""package scala.build.blooprifle.internal
@@ -412,7 +414,8 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
          |  def bspVersion = "${Deps.bsp4j.dep.version}"
          |}
          |""".stripMargin
-    os.write(dest, code)
+    if (!os.isFile(dest) || os.read(dest) != code)
+      os.write.over(dest, code)
     PathRef(dest)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
