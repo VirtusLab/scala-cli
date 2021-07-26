@@ -252,7 +252,6 @@ class BuildTests extends munit.FunSuite {
         val end = new bsp4j.Position(2, 2)
         val range = new bsp4j.Range(start, end)
         val d = new bsp4j.Diagnostic(range, "not found: value zz")
-        d.setCode("zz")
         d.setSource("bloop")
         d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
         d
@@ -282,7 +281,6 @@ class BuildTests extends munit.FunSuite {
         val end = new bsp4j.Position(2, 0) // would have expected (2, 2) here :|
         val range = new bsp4j.Range(start, end)
         val d = new bsp4j.Diagnostic(range, "Not found: zz")
-        d.setCode("zz")
         d.setSource("bloop")
         d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
         d

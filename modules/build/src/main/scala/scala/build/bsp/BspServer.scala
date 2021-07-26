@@ -12,10 +12,10 @@ import scala.build.GeneratedSource
 import scala.build.Logger
 
 class BspServer(
-  bloopServer: b.BuildServer with b.ScalaBuildServer,
+  bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger
-) extends b.BuildServer with b.ScalaBuildServer with BuildServerForwardStubs with ScalaBuildServerForwardStubs with HasGeneratedSources {
+) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs with HasGeneratedSources {
 
   import BspServer._
 

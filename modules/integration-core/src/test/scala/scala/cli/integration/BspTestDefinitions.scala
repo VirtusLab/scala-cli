@@ -55,11 +55,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String]) extends m
     pool.shutdown()
   }
 
-  def withBsp[T](root: os.Path, args: Seq[String])(f: (TestBspClient, b.BuildServer with b.ScalaBuildServer) => Future[T]): T = {
+  def withBsp[T](root: os.Path, args: Seq[String])(f: (TestBspClient, b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer) => Future[T]): T = {
 
     // Having issues with local sockets during the tests, never got those outside of tests…
     val proc = os.proc(TestUtil.cli, "bsp", "--bloop-bsp-protocol", "tcp", extraOptions, args).spawn(cwd = root)
-    var remoteServer: b.BuildServer with b.ScalaBuildServer = null
+    var remoteServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer = null
 
     try {
       val (localClient, remoteServer0, shutdownFuture) = TestBspClient.connect(proc.stdout, proc.stdin, pool)
@@ -176,6 +176,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             expect(foundOptions.exists(opt => opt.startsWith("-Xplugin:") && opt.contains("semanticdb-scalac")))
           else
             expect(foundOptions.contains("-Xsemanticdb"))
+          resp
+        }
+
+        val javacOptionsResp = {
+          val resp = await(remoteServer.buildTargetJavacOptions(new b.JavacOptionsParams(targets)).asScala)
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).map(TestUtil.normalizeUri)
+          expect(foundTargets == Seq(targetUri))
           resp
         }
 
