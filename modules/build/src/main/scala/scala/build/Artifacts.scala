@@ -97,10 +97,14 @@ object Artifacts {
       dep"org.openjdk.jmh:jmh-generator-bytecode:$version"
     }
 
-    val maybeSnapshotRepo =
-      if ((jvmRunnerDependencies ++ jvmTestRunnerDependencies).exists(_.version.endsWith("SNAPSHOT")))
+    val maybeSnapshotRepo = {
+      val hasSnapshots =
+        (jvmRunnerDependencies ++ jvmTestRunnerDependencies).exists(_.version.endsWith("SNAPSHOT")) ||
+          Constants.runnerNeedsSonatypeSnapshots(params.scalaVersion)
+      if (hasSnapshots)
         Seq(coursier.Repositories.sonatype("snapshots").root)
       else Nil
+    }
 
     val allExtraRepositories = maybeSnapshotRepo ++ extraRepositories
 

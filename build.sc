@@ -173,6 +173,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def runnerModuleName = "${runner(defaultScalaVersion).artifactName()}"
          |  def runnerVersion = "${runner(defaultScalaVersion).publishVersion()}"
          |  def runnerMainClass = "${runner(defaultScalaVersion).mainClass().getOrElse(sys.error("No main class defined for runner"))}"
+         |  def runnerNeedsSonatypeSnapshots(sv: String): Boolean =
+         |    ${ if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT")) """ !sv.startsWith("2.") """ else "false" }
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
@@ -360,9 +362,16 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
       Agg(Deps.prettyStacktraces)
     else
       Agg.empty[Dep]
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
+  def repositories = {
+    val base = super.repositories
+    val extra =
+      if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT"))
+        Seq(coursier.Repositories.sonatype("snapshots"))
+      else
+        Nil
+
+    base ++ extra
+  }
   def sources = T.sources {
     val scala3DirNames =
       if (crossScalaVersion.startsWith("3.")) {
