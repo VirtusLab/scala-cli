@@ -13,6 +13,7 @@ import java.nio.file.Path
 
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 
 final case class Artifacts(
   compilerDependencies: Seq[AnyDependency],
@@ -207,7 +208,11 @@ object Artifacts {
       fetcher = fetcher.addClassifiers(classifiers.toSeq.filter(_ != "_").map(coursier.Classifier(_)): _*)
     }
 
-    fetcher.runResult()
+    try fetcher.runResult()
+    catch {
+      case NonFatal(e) =>
+        throw new Exception(e)
+    }
   }
 
 }
