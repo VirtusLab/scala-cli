@@ -30,6 +30,8 @@ final case class SharedOptions(
     dependencies: SharedDependencyOptions = SharedDependencyOptions(),
   @Recurse
     scalac: ScalacOptions = ScalacOptions(),
+  @Recurse
+    jvm: SharedJvmOptions = SharedJvmOptions(),
 
   @Group("Scala")
   @HelpMessage("Set Scala version")
@@ -49,16 +51,6 @@ final case class SharedOptions(
   @HelpMessage("Set Java home")
   @ValueDescription("path")
     javaHome: Option[String] = None,
-
-  @Group("Java")
-  @HelpMessage("Use a specific JVM, such as 14, adopt:11, or graalvm:21, or system")
-  @ValueDescription("jvm-name")
-  @Name("j")
-    jvm: Option[String] = None,
-  @Group("Java")
-  @HelpMessage("JVM index URL")
-  @ValueDescription("url")
-    jvmIndex: Option[String] = None,
 
   @Group("Java")
   @HelpMessage("Add extra JARs in the class path")
@@ -135,8 +127,10 @@ final case class SharedOptions(
       scalaNativeOptions = native.buildOptions,
       javaOptions = JavaOptions(
         javaHomeOpt = javaHome.filter(_.nonEmpty).map(os.Path(_, Os.pwd)),
-        jvmIdOpt = jvm.filter(_.nonEmpty),
-        jvmIndexOpt = jvmIndex.filter(_.nonEmpty)
+        jvmIdOpt = jvm.jvm.filter(_.nonEmpty),
+        jvmIndexOpt = jvm.jvmIndex.filter(_.nonEmpty),
+        jvmIndexOs = jvm.jvmIndexOs.map(_.trim).filter(_.nonEmpty),
+        jvmIndexArch = jvm.jvmIndexArch.map(_.trim).filter(_.nonEmpty)
       ),
       internalDependencies = InternalDependenciesOptions(
         addStubsDependencyOpt = addStubs,

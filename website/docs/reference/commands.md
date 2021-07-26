@@ -12,6 +12,7 @@ Print details about this application
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [dependency](./cli-options.md#dependency-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
@@ -33,6 +34,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [compile](./cli-options.md#compile-options)
 - [dependency](./cli-options.md#dependency-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
@@ -59,6 +61,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [dependency](./cli-options.md#dependency-options)
 - [java](./cli-options.md#java-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [repl](./cli-options.md#repl-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
@@ -74,6 +77,7 @@ Compile and package Scala code
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [dependency](./cli-options.md#dependency-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [package](./cli-options.md#package-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
@@ -91,6 +95,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [dependency](./cli-options.md#dependency-options)
 - [java](./cli-options.md#java-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [run](./cli-options.md#run-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
@@ -104,6 +109,7 @@ Accepts options:
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [dependency](./cli-options.md#dependency-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
@@ -119,6 +125,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [dependency](./cli-options.md#dependency-options)
 - [java](./cli-options.md#java-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
@@ -137,6 +144,7 @@ Browse Scala code and its dependencies in the browser
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [dependency](./cli-options.md#dependency-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [metabrowse](./cli-options.md#metabrowse-options)
 - [Scala.JS](./cli-options.md#scalajs-options)

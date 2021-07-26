@@ -63,3 +63,13 @@ object Deps {
 }
 
 def graalVmVersion = "21.1.0"
+
+def csAarch64Version = "2.0.16"
+def csDockerVersion  = "2.0.16"
+
+object Docker {
+  def muslBuilder   = "messense/rust-musl-cross@sha256:12d0dd535ef7364bf49cb2608ae7eaf60e40d07834eb4d9160c592422a08d3b3"
+
+  def testImage = "ubuntu:18.04"
+  def alpineTestImage = "alpine@sha256:234cb88d3020898631af0ccbbcca9a66ae7306ecd30c9720690858c1b007d2a0"
+}

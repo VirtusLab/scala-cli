@@ -11,7 +11,7 @@ import java.security.MessageDigest
 
 import scala.build.{Artifacts, Logger, Os}
 import scala.build.internal.Constants._
-import scala.build.internal.Util
+import scala.build.internal.{OsLibc, Util}
 import scala.util.Properties
 
 final case class BuildOptions(
@@ -98,17 +98,21 @@ final case class BuildOptions(
     javaHomeLocationOpt().getOrElse {
       implicit val ec = finalCache.ec
       finalCache.logger.use {
-        val path = javaHomeManager.get(JavaHome.defaultId).unsafeRun()
+        val path = javaHomeManager.get(OsLibc.defaultJvm).unsafeRun()
         os.Path(path)
       }
     }
 
   def javaCommand(): String = javaCommand0
 
-  private def javaHomeManager = {
+  private lazy val javaHomeManager = {
     val indexUrl = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
     val indexTask = JvmIndex.load(finalCache, indexUrl)
-    val jvmCache = JvmCache().withIndex(indexTask).withCache(finalCache)
+    val jvmCache = JvmCache()
+      .withIndex(indexTask)
+      .withCache(finalCache)
+      .withOs(javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs))
+      .withArchitecture(javaOptions.jvmIndexArch.getOrElse(JvmIndex.defaultArchitecture()))
     JavaHome().withCache(jvmCache)
   }
 
