@@ -305,6 +305,13 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
       PathRef(dest)
     }
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
+
+    def test(args: String*) = T.command {
+      val res = super.test(args: _*)()
+      val dotScalaInRoot = os.pwd / ".scala"
+      assert(!os.isDir(dotScalaInRoot), s"Expected .scala ($dotScalaInRoot) not to have been created")
+      res
+    }
   }
 }
 
