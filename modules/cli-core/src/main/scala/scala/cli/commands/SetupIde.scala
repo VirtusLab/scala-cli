@@ -11,11 +11,7 @@ import scala.build.{Inputs, Os}
 import scala.build.internal.Constants
 import scala.collection.JavaConverters._
 
-object SetupIde extends ScalaCommand[SetupIdeOptions] with NeedsArgvCommand {
-  private var argvOpt = Option.empty[Array[String]]
-  override def setArgv(argv: Array[String]): Unit = {
-    argvOpt = Some(argv)
-  }
+object SetupIde extends ScalaCommand[SetupIdeOptions] {
   def run(options: SetupIdeOptions, args: RemainingArgs): Unit = {
 
     val rawArgv = argvOpt.getOrElse {

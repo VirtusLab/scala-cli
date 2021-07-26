@@ -6,6 +6,9 @@ class DefaultBase(
   defaultHelp: => String,
   defaultFullHelp: => String
 ) extends ScalaCommand[RunOptions] {
+
+  override protected def commandLength = 0
+
   override def group = "Main"
   override def sharedOptions(options: RunOptions) = Some(options.shared)
   private[cli] var anyArgs = false
