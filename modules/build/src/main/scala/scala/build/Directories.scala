@@ -1,6 +1,6 @@
 package scala.build
 
-import dev.dirs.ProjectDirectories
+import dev.dirs.{GetWinDirs, ProjectDirectories}
 
 trait Directories {
   def localRepoDir: os.Path
@@ -35,9 +35,18 @@ object Directories {
       dir / "data-local" / "bsp-sockets"
   }
 
-  def default(): Directories =
-    // TODO When bumping the coursier version, pass the 4th argument too (more stable Windows env var stuff)
-    OsLocations(ProjectDirectories.from(null, null, "ScalaCli"))
+  def default(): Directories = {
+    val getWinDirs: GetWinDirs =
+      if (coursier.paths.Util.useJni())
+        new GetWinDirs {
+          def getWinDirs(guids: String*) =
+            guids.map(guid => coursier.jniutils.WindowsKnownFolders.knownFolderPath("{" + guid + "}")).toArray
+        }
+      else
+        GetWinDirs.powerShellBased
+
+    OsLocations(ProjectDirectories.from(null, null, "ScalaCli", getWinDirs))
+  }
 
   def under(dir: os.Path): Directories =
     SubDir(dir)
