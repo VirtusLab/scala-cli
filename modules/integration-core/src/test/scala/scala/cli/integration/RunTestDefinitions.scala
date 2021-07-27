@@ -31,7 +31,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
 
   // warm-up run that downloads compiler bridges
   // The "Downloading compiler-bridge (from bloop?) pollute the output, and would make the first test fail.
-  simpleScriptTest(ignoreErrors = true)
+  lazy val warmupTest = simpleScriptTest(ignoreErrors = true)
+
+  override def test(name: String)(body: => Any)(implicit loc: munit.Location): Unit =
+    super.test(name){ warmupTest; body }(loc)
 
   test("simple script") {
     simpleScriptTest()
@@ -214,7 +217,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |""".stripMargin,
         os.rel / "dir" / "print.sc" ->
          s"""println(messages.msg)
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "dir" / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>
@@ -249,7 +253,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |    println(args(0))
             |  }
             |}
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     val message = "Hello"
@@ -267,7 +272,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |  def main(args: Array[String]): Unit =
             |    val message = args(0)
             |    println(message)
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     val message = "Hello"
@@ -404,7 +410,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |        throw new Exception("Caught exception during processing", e)
             |    }
             |}
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>
@@ -464,7 +471,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |  case e: Exception =>
             |    throw new Exception("Caught exception during processing", e)
             |}
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>
@@ -523,13 +531,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String]) extends m
             |  case e: Exception =>
             |    throw new Exception("Caught exception during processing", e)
             |}
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "run", extraOptions, "--runner=false")
+      val res = os.proc(TestUtil.cli, "run", extraOptions, "--java-prop=scala.cli.runner.Stacktrace.disable=true")
         .call(cwd = root, check = false, mergeErrIntoOut = true)
-      val exceptionLines = res.out.lines.dropWhile(!_.startsWith("Exception in thread "))
+      val exceptionLines = res.out.lines.map(stripAnsi).dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
       val expectedLines =
        s"""Exception in thread "main" java.lang.ExceptionInInitializerError

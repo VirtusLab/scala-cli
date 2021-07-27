@@ -147,7 +147,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
         VcsVersion.vcsState()
       }
   }
-  def constantsFile = T{
+  def constantsFile = T.persistent {
     val dest = T.dest / "Constants.scala"
     val code =
       s"""package scala.build.internal
@@ -173,6 +173,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def runnerModuleName = "${runner(defaultScalaVersion).artifactName()}"
          |  def runnerVersion = "${runner(defaultScalaVersion).publishVersion()}"
          |  def runnerMainClass = "${runner(defaultScalaVersion).mainClass().getOrElse(sys.error("No main class defined for runner"))}"
+         |  def runnerNeedsSonatypeSnapshots(sv: String): Boolean =
+         |    ${ if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT")) """ !sv.startsWith("2.") """ else "false" }
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
@@ -186,7 +188,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |}
          |""".stripMargin
-    os.write(dest, code)
+    if (!os.isFile(dest) || os.read(dest) != code)
+      os.write.over(dest, code)
     PathRef(dest)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
@@ -284,7 +287,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
       }
     }
 
-    def constantsFile = T{
+    def constantsFile = T.persistent {
       val dest = T.dest / "Constants.scala"
       val code =
         s"""package scala.cli.integration
@@ -301,10 +304,18 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
            |}
            |""".stripMargin
-      os.write(dest, code)
+      if (!os.isFile(dest) || os.read(dest) != code)
+        os.write.over(dest, code)
       PathRef(dest)
     }
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
+
+    def test(args: String*) = T.command {
+      val res = super.test(args: _*)()
+      val dotScalaInRoot = os.pwd / ".scala"
+      assert(!os.isDir(dotScalaInRoot), s"Expected .scala ($dotScalaInRoot) not to have been created")
+      res
+    }
   }
 }
 
@@ -353,9 +364,16 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
       Agg(Deps.prettyStacktraces)
     else
       Agg.empty[Dep]
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
+  def repositories = {
+    val base = super.repositories
+    val extra =
+      if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT"))
+        Seq(coursier.Repositories.sonatype("snapshots"))
+      else
+        Nil
+
+    base ++ extra
+  }
   def sources = T.sources {
     val scala3DirNames =
       if (crossScalaVersion.startsWith("3.")) {
@@ -385,7 +403,7 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
   )
   def mainClass = Some("scala.build.blooprifle.BloopRifle")
 
-  def constantsFile = T{
+  def constantsFile = T.persistent {
     val dest = T.dest / "Constants.scala"
     val code =
       s"""package scala.build.blooprifle.internal
@@ -396,7 +414,8 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
          |  def bspVersion = "${Deps.bsp4j.dep.version}"
          |}
          |""".stripMargin
-    os.write(dest, code)
+    if (!os.isFile(dest) || os.read(dest) != code)
+      os.write.over(dest, code)
     PathRef(dest)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())

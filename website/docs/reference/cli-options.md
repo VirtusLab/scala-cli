@@ -105,6 +105,42 @@ Aliases: `--repo`, `-r`
 
 Add repositories
 
+## Help options
+
+Available in commands:
+- [`about`](./commands#about)
+- [`add-path`](./commands#add-path)
+- [`bsp`](./commands#bsp)
+- [`clean`](./commands#clean)
+- [`compile`](./commands#compile)
+- [`directories`](./commands#directories)
+- [`install completions`](./commands#install-completions)
+- [`browse` / `metabrowse`](./commands#browse)
+- [`package`](./commands#package)
+- [`console` / `repl`](./commands#console)
+- [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
+- [`test`](./commands#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--usage`
+
+Print usage and exit
+
+#### `--help`
+
+Aliases: `-h`
+
+Print help message and exit
+
+#### `--help-full`
+
+Aliases: `--full-help`
+
+Print help message, including hidden options, and exit
+
 ## Install completions options
 
 Available in commands:
@@ -297,7 +333,13 @@ Available in commands:
 
 #### `--ammonite`
 
+Aliases: `-A`
+
 Set Ammonite version
+
+#### `--ammonite-arg`
+
+Aliases: `-a`
 
 ## Run options
 
@@ -522,40 +564,4 @@ Available in commands:
 Aliases: `-w`
 
 Watch sources for changes
-
-## With help options
-
-Available in commands:
-- [`about`](./commands#about)
-- [`add-path`](./commands#add-path)
-- [`bsp`](./commands#bsp)
-- [`clean`](./commands#clean)
-- [`compile`](./commands#compile)
-- [`directories`](./commands#directories)
-- [`install completions`](./commands#install-completions)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--usage`
-
-Print usage and exit
-
-#### `--help`
-
-Aliases: `-h`
-
-Print help message and exit
-
-#### `--help-full`
-
-Aliases: `--full-help`
-
-Print help message, including hidden options, and exit
 

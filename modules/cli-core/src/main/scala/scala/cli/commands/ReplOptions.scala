@@ -16,7 +16,12 @@ final case class ReplOptions(
 
   @Group("Repl")
   @HelpMessage("Set Ammonite version")
-    ammonite: Option[String] = None
+  @Name("A")
+    ammonite: Option[String] = None,
+
+  @Name("a")
+  @Hidden
+    ammoniteArg: List[String] = Nil
 ) {
   def buildOptions: BuildOptions = {
     val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
@@ -26,6 +31,9 @@ final case class ReplOptions(
       ),
       replOptions = baseOptions.replOptions.copy(
         ammoniteVersionOpt = ammonite
+      ),
+      internalDependencies = baseOptions.internalDependencies.copy(
+        addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt.orElse(Some(false))
       )
     )
   }

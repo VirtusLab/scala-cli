@@ -9,7 +9,7 @@ import caseapp.core.complete.{Bash, Zsh}
 
 import scala.cli.internal.ProfileFileUpdater
 
-object InstallCompletions extends Command[InstallCompletionsOptions] {
+object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   override def names = List(
     List("install", "completions")
   )

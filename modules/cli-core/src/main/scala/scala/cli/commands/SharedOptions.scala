@@ -187,7 +187,7 @@ final case class SharedOptions(
       .withLogger(logging.logger.coursierLogger)
   }
 
-  def inputsOrExit(args: RemainingArgs, defaultInputs: Option[Inputs] = Some(Inputs.default())): Inputs = {
+  def inputsOrExit(args: RemainingArgs, defaultInputs: () => Option[Inputs] = () => Inputs.default()): Inputs = {
     val download: String => Either[String, Array[Byte]] = { url =>
       val artifact = Artifact(url).withChanging(true)
       val res = coursierCache.logger.use {

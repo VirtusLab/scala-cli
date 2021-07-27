@@ -16,9 +16,9 @@ object Run extends ScalaCommand[RunOptions] {
   override def sharedOptions(options: RunOptions) = Some(options.shared)
 
   def run(options: RunOptions, args: RemainingArgs): Unit =
-    run(options, args, Some(Inputs.default()))
+    run(options, args, () => Inputs.default())
 
-  def run(options: RunOptions, args: RemainingArgs, defaultInputs: Option[Inputs]): Unit = {
+  def run(options: RunOptions, args: RemainingArgs, defaultInputs: () => Option[Inputs]): Unit = {
 
     val inputs = options.shared.inputsOrExit(args, defaultInputs = defaultInputs)
 
@@ -35,7 +35,7 @@ object Run extends ScalaCommand[RunOptions] {
         logger,
         allowExecve = allowTerminate,
         exitOnError = allowTerminate,
-        jvmRunner = build.options.addRunnerDependency
+        jvmRunner = build.options.addRunnerDependency.getOrElse(true)
       )
 
     if (options.watch.watch) {

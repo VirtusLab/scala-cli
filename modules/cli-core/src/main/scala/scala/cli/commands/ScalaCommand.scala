@@ -2,15 +2,36 @@ package scala.cli.commands
 
 import caseapp.Name
 import caseapp.core.app.Command
-import caseapp.core.Arg
+import caseapp.core.{Arg, Error}
 import caseapp.core.complete.{Completer, CompletionItem}
 import caseapp.core.help.{Help, HelpFormat}
 import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 
-abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T]) extends Command()(parser, help) {
+abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T]) extends Command()(parser, help) with NeedsArgvCommand {
   def sharedOptions(t: T): Option[SharedOptions] = None
   override def hasFullHelp = true
+
+
+  protected var argvOpt = Option.empty[Array[String]]
+  override def setArgv(argv: Array[String]): Unit = {
+    argvOpt = Some(argv)
+  }
+
+  // TODO Manage to have case-app give use the exact command name that was used instead
+  protected def commandLength = 1
+
+  override def error(message: Error): Nothing = {
+    System.err.println(message.message)
+
+    for (argv <- argvOpt if argv.length >= 1 + commandLength) {
+      System.err.println()
+      System.err.println("To list all available options, run")
+      System.err.println(s"  ${Console.BOLD}${argv.take(1 + commandLength).mkString(" ")} --help${Console.RESET}")
+    }
+
+    sys.exit(1)
+  }
 
   // FIXME Report this in case-app default NameFormatter
   override lazy val nameFormatter: Formatter[Name] = {

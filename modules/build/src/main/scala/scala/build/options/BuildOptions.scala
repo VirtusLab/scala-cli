@@ -30,8 +30,9 @@ final case class BuildOptions(
                  replOptions: ReplOptions                 = ReplOptions()
 ) {
 
-  def addRunnerDependency: Boolean =
-    !scalaJsOptions.enable && !scalaNativeOptions.enable && internalDependencies.addRunnerDependencyOpt.getOrElse(true)
+  def addRunnerDependency: Option[Boolean] =
+    internalDependencies.addRunnerDependencyOpt
+      .orElse(if (scalaJsOptions.enable || scalaNativeOptions.enable) Some(false) else None)
 
   private def scalaLibraryDependencies(params: ScalaParameters): Seq[AnyDependency] =
     if (scalaOptions.addScalaLibrary.getOrElse(true)) {

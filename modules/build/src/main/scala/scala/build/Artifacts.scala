@@ -13,6 +13,7 @@ import java.nio.file.Path
 
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 
 final case class Artifacts(
   compilerDependencies: Seq[AnyDependency],
@@ -62,7 +63,7 @@ object Artifacts {
     extraSourceJars: Seq[Path],
     fetchSources: Boolean,
     addStubs: Boolean,
-    addJvmRunner: Boolean,
+    addJvmRunner: Option[Boolean],
     addJvmTestRunner: Boolean,
     addJsTestBridge: Option[String],
     addJmhDependencies: Option[String],
@@ -81,7 +82,7 @@ object Artifacts {
         )
 
     val jvmRunnerDependencies =
-      if (addJvmRunner) Seq(dep"$runnerOrganization::$runnerModuleName:$runnerVersion")
+      if (addJvmRunner.getOrElse(true)) Seq(dep"$runnerOrganization::$runnerModuleName:$runnerVersion")
       else Nil
     val jvmTestRunnerDependencies =
       if (addJvmTestRunner) Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion")
@@ -97,10 +98,14 @@ object Artifacts {
       dep"org.openjdk.jmh:jmh-generator-bytecode:$version"
     }
 
-    val maybeSnapshotRepo =
-      if ((jvmRunnerDependencies ++ jvmTestRunnerDependencies).exists(_.version.endsWith("SNAPSHOT")))
+    val maybeSnapshotRepo = {
+      val hasSnapshots =
+        (jvmRunnerDependencies ++ jvmTestRunnerDependencies).exists(_.version.endsWith("SNAPSHOT")) ||
+          Constants.runnerNeedsSonatypeSnapshots(params.scalaVersion)
+      if (hasSnapshots)
         Seq(coursier.Repositories.sonatype("snapshots").root)
       else Nil
+    }
 
     val allExtraRepositories = maybeSnapshotRepo ++ extraRepositories
 
@@ -203,7 +208,11 @@ object Artifacts {
       fetcher = fetcher.addClassifiers(classifiers.toSeq.filter(_ != "_").map(coursier.Classifier(_)): _*)
     }
 
-    fetcher.runResult()
+    try fetcher.runResult()
+    catch {
+      case NonFatal(e) =>
+        throw new Exception(e)
+    }
   }
 
 }

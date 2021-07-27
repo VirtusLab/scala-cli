@@ -9,14 +9,12 @@ import java.security.MessageDigest
 import scala.util.Properties
 
 final case class Inputs(
-  head: Inputs.Element,
-  tail: Seq[Inputs.Element],
+  elements: Seq[Inputs.Element],
   mainClassElement: Option[Inputs.Element],
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean
 ) {
-  lazy val elements: Seq[Inputs.Element] = head +: tail
 
   def singleFiles(): Seq[Inputs.SingleFile] =
     elements.flatMap {
@@ -94,9 +92,9 @@ final case class Inputs(
     else baseProjectName
   }
 
-  def add(elements: Seq[Inputs.Element]): Inputs =
+  def add(extraElements: Seq[Inputs.Element]): Inputs =
     if (elements.isEmpty) this
-    else copy(tail = tail ++ elements)
+    else copy(elements = elements ++ extraElements)
 
   def generatedSrcRoot: os.Path =
     workspace / ".scala" / projectName / "src_generated"
@@ -202,7 +200,7 @@ object Inputs {
       .collectFirst {
         case f: SourceFile => f
       }
-    Inputs(updatedElems.head, updatedElems.tail, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = needsHash)
+    Inputs(updatedElems, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = needsHash)
   }
 
   private def forNonEmptyArgs(
@@ -268,22 +266,38 @@ object Inputs {
     cwd: os.Path,
     directories: Directories,
     baseProjectName: String = "project",
-    defaultInputs: Option[Inputs] = None,
+    defaultInputs: () => Option[Inputs] = () => None,
     download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
     stdinOpt: => Option[Array[Byte]] = None,
     acceptFds: Boolean = false
   ): Either[String, Inputs] =
     if (args.isEmpty)
-      defaultInputs.toRight("No inputs provided (expected files with .scala or .sc extensions, and / or directories).")
+      defaultInputs().toRight("No inputs provided (expected files with .scala or .sc extensions, and / or directories).")
     else
       forNonEmptyArgs(args, cwd, directories, baseProjectName, download, stdinOpt, acceptFds)
 
-  def default(cwd: os.Path = Os.pwd): Inputs =
+  def default(cwd: os.Path = Os.pwd): Option[Inputs] = {
+    val hasConf = os.isFile(cwd / "scala.conf") ||
+      os.list(cwd).filter(os.isFile(_)).exists(_.last.endsWith(".scala.conf"))
+    if (hasConf)
+      Some {
+        Inputs(
+          Seq(Directory(cwd)),
+          mainClassElement = None,
+          workspace = cwd,
+          baseProjectName = "project",
+          mayAppendHash = true
+        )
+      }
+    else
+      None
+  }
+
+  def empty(workspace: os.Path): Inputs =
     Inputs(
-      head = Directory(cwd),
-      tail = Nil,
+      elements = Nil,
       mainClassElement = None,
-      workspace = cwd,
+      workspace = workspace,
       baseProjectName = "project",
       mayAppendHash = true
     )

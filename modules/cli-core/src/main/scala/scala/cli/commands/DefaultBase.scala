@@ -6,6 +6,9 @@ class DefaultBase(
   defaultHelp: => String,
   defaultFullHelp: => String
 ) extends ScalaCommand[RunOptions] {
+
+  override protected def commandLength = 0
+
   override def group = "Main"
   override def sharedOptions(options: RunOptions) = Some(options.shared)
   private[cli] var anyArgs = false
@@ -19,7 +22,7 @@ class DefaultBase(
   }
   def run(options: RunOptions, args: RemainingArgs): Unit =
     if (anyArgs)
-      Run.run(options, args, defaultInputs = None)
+      Run.run(options, args, defaultInputs = () => None)
     else
       helpAsked(finalHelp.progName)
 }

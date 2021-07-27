@@ -50,7 +50,8 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String]) exten
         os.rel / fileName ->
          s"""val msg = "$message"
             |println(msg)
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "scala.conf" -> ""
       )
     )
     inputs.fromRoot { root =>

@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets
 final case class TestInputs(
   files: Seq[(os.RelPath, String)]
 ) {
+  def add(extraFiles: (os.RelPath, String)*): TestInputs =
+    copy(files = files ++ extraFiles)
   private def writeIn(dir: os.Path): Unit =
     for ((relPath, content) <- files) {
       val path = dir / relPath
