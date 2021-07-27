@@ -245,6 +245,10 @@ def platformExtension: String =
   if (Properties.isWin) ".exe"
   else ""
 
+def platformExecutableJarExtension: String =
+  if (Properties.isWin) ".bat"
+  else ""
+
 def platformSuffix: String = {
   val arch = sys.props("os.arch").toLowerCase(java.util.Locale.ROOT) match {
     case "amd64" => "x86_64"
