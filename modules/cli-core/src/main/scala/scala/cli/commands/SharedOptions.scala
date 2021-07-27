@@ -42,6 +42,7 @@ final case class SharedOptions(
   @Group("Scala")
   @HelpMessage("Set Scala binary version")
   @ValueDescription("version")
+  @Hidden
   @Name("scalaBinary")
   @Name("scalaBin")
   @Name("B")
