@@ -1,5 +1,5 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-import $ivy.`io.get-coursier::coursier-launcher:2.0.16`
+import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
 import $file.project.deps, deps.{Deps, Docker, Scala}
 import $file.project.ghreleaseassets
 import $file.project.publish, publish.ScalaCliPublishModule
