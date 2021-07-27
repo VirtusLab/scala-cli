@@ -292,4 +292,13 @@ object Inputs {
     else
       None
   }
+
+  def empty(workspace: os.Path): Inputs =
+    Inputs(
+      elements = Nil,
+      mainClassElement = None,
+      workspace = workspace,
+      baseProjectName = "project",
+      mayAppendHash = true
+    )
 }

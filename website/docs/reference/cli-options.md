@@ -297,7 +297,13 @@ Available in commands:
 
 #### `--ammonite`
 
+Aliases: `-A`
+
 Set Ammonite version
+
+#### `--ammonite-arg`
+
+Aliases: `-a`
 
 ## Run options
 

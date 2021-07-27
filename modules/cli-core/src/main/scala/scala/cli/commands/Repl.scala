@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 import scala.build.{Build, Inputs, Logger, Os, ReplArtifacts}
 import scala.build.internal.{Constants, Runner}
+import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
   override def group = "Main"
@@ -13,7 +14,10 @@ object Repl extends ScalaCommand[ReplOptions] {
   override def sharedOptions(options: ReplOptions) = Some(options.shared)
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
 
-    val inputs = options.shared.inputsOrExit(args)
+    def default = Inputs.default().getOrElse {
+      Inputs.empty(Os.pwd)
+    }
+    val inputs = options.shared.inputsOrExit(args, defaultInputs = () => Some(default))
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
@@ -31,7 +35,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     def maybeRunRepl(build: Build, allowExit: Boolean): Unit =
       build match {
         case s: Build.Successful =>
-          runRepl(s, directories, logger, allowExit = allowExit)
+          runRepl(s, directories, logger, allowExit = allowExit, options.ammoniteArg)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           if (allowExit)
@@ -54,7 +58,8 @@ object Repl extends ScalaCommand[ReplOptions] {
     build: Build.Successful,
     directories: scala.build.Directories,
     logger: Logger,
-    allowExit: Boolean
+    allowExit: Boolean,
+    ammoniteArgs: Seq[String]
   ): Unit = {
 
     val replArtifacts = ReplArtifacts(
@@ -87,7 +92,13 @@ object Repl extends ScalaCommand[ReplOptions] {
       build.options.javaOptions.javaOpts,
       build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
       ammoniteMainClass,
-      Nil,
+      if (Properties.isWin)
+        ammoniteArgs.map { a =>
+          if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
+          else a
+        }
+      else
+        ammoniteArgs,
       logger,
       allowExecve = allowExit
     )
