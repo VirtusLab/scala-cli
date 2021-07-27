@@ -3,7 +3,7 @@ import $ivy.`io.get-coursier::coursier-launcher:2.0.16`
 import $file.project.deps, deps.{Deps, Docker, Scala}
 import $file.project.ghreleaseassets
 import $file.project.publish, publish.ScalaCliPublishModule
-import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath}
+import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath, platformExecutableJarExtension}
 
 import java.io.File
 
@@ -478,6 +478,11 @@ def copyLauncher(directory: String = "artifacts") = T.command {
 def copyCoreLauncher(directory: String = "artifacts") = T.command {
   val nativeLauncher = `cli-core`.nativeImage().path
   ghreleaseassets.copyLauncher(nativeLauncher, directory)
+}
+
+def copyJvmLauncher(directory: String = "artifacts") = T.command {
+  val launcher = cli.standaloneLauncher().path
+  os.copy(launcher, os.Path(directory, os.pwd) / s"scala-cli$platformExecutableJarExtension", createFolders = true, replaceExisting = true)
 }
 
 def uploadLaunchers(directory: String = "artifacts") = T.command {

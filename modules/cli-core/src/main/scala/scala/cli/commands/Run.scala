@@ -1,14 +1,15 @@
 package scala.cli.commands
 
+import caseapp._
+import org.scalajs.linker.interface.StandardConfig
+
 import java.nio.file.Path
 
-import caseapp._
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.BuildOptions
 import scala.scalanative.{build => sn}
-
-import org.scalajs.linker.interface.StandardConfig
+import scala.util.Properties
 
 object Run extends ScalaCommand[RunOptions] {
   override def group = "Main"
@@ -177,7 +178,7 @@ object Run extends ScalaCommand[RunOptions] {
     workDir: os.Path,
     logger: sn.Logger
   )(f: os.Path => T): T = {
-    val dest = os.temp(prefix = "main", suffix = ".js")
+    val dest = os.temp(prefix = "main", suffix = if (Properties.isWin) ".exe" else "")
     try {
       Package.buildNative(build, mainClass, dest, config, workDir, logger)
       f(dest)

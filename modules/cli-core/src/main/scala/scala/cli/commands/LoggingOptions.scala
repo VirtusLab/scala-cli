@@ -72,7 +72,7 @@ final case class LoggingOptions(
         new sn.Logger {
           def trace(msg: Throwable) = ()
           def debug(msg: String) = logger.debug(msg)
-          def info(msg: String) = logger.log(msg)
+          def info(msg: String) = logger.message(msg)
           def warn(msg: String) = logger.log(msg)
           def error(msg: String) = logger.log(msg)
         }
