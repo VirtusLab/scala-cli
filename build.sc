@@ -77,7 +77,7 @@ object packager extends ScalaModule with Bloop.Module {
   def ivyDeps = Agg(
     Deps.scalaPackagerCli
   )
-  def mainClass = Some("cli.PackagerCli")
+  def mainClass = Some("packager.cli.PackagerCli")
 }
 
 object `generate-reference-doc` extends SbtModule {

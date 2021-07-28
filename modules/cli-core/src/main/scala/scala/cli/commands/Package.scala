@@ -2,13 +2,14 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
-import packager.config.BuildSettings
 import packager.mac.dmg.DmgPackage
 import packager.mac.pkg.PkgPackage
 import packager.deb.DebianPackage
 import packager.rpm.RedHatPackage
 import packager.windows.WindowsPackage
 import org.scalajs.linker.interface.StandardConfig
+import packager.config._
+
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.build.internal.ScalaJsConfig
 import scala.build.options.PackageType
@@ -146,17 +147,88 @@ object Package extends ScalaCommand[PackageOptions] {
       case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
         bootstrap(build, bootstrapPath, mainClass(), () => alreadyExistsCheck())
+        val sharedSettings = SharedSettings(
+          version = build.options.packageOptions.packageVersion,
+          force = force,
+          outputPath = destPath,
+          logoPath = build.options.packageOptions.logoPath,
+          launcherAppName = build.options.packageOptions.launcherAppName
+        )
+
+        lazy val debianSettings = DebianSettings(
+          shared = sharedSettings,
+          maintainer = build.options.packageOptions.maintainer.getOrElse{
+            System.err.println(s"Maintainer parameter is mandatory for debian packages")
+            sys.exit(1)
+          },
+          description = build.options.packageOptions.description.getOrElse{
+            System.err.println(s"Description parameter is mandatory for debian packages")
+            sys.exit(1)
+          },
+          debianConflicts = build.options.packageOptions.debianOptions.conflicts,
+          debianDependencies = build.options.packageOptions.debianOptions.dependencies,
+          architecture = build.options.packageOptions.debianOptions.architecture.getOrElse{
+            System.err.println("Deb architecture parameter is mandatory for debian packages")
+            sys.exit(1)
+          }
+        )
+
+        lazy val macOSSettings = MacOSSettings(
+          shared = sharedSettings,
+          identifier = build.options.packageOptions.macOSidentifier.getOrElse{
+            System.err.println("Identifier parameter is mandatory for macOs packages")
+            sys.exit(1)
+          },
+        )
+
+        lazy val redHatSettings = RedHatSettings(
+          shared = sharedSettings,
+          description = build.options.packageOptions.description.getOrElse{
+            System.err.println("Description parameter is mandatory for redHat packages")
+            sys.exit(1)
+          },
+          license = build.options.packageOptions.redHatOptions.license.getOrElse{
+            System.err.println("License parameter is mandatory for redHat packages")
+            sys.exit(1)
+          },
+          release = build.options.packageOptions.redHatOptions.release.getOrElse{
+            System.err.println("Release parameter is mandatory for redHat packages")
+            sys.exit(1)
+          },
+          rpmArchitecture = build.options.packageOptions.redHatOptions.architecture.getOrElse{
+            System.err.println("Rpm architecture parameter is mandatory for red hat packages")
+            sys.exit(1)
+          }
+        )
+
+        lazy val windowsSettings = WindowsSettings(
+          shared = sharedSettings,
+          maintainer = build.options.packageOptions.maintainer.getOrElse {
+            System.err.println("Maintainer parameter is mandatory for windows packages")
+            sys.exit(1)
+          },
+          licencePath = build.options.packageOptions.windowsOptions.licensePath.getOrElse{
+            System.err.println("Licence path parameter is mandatory for windows packages")
+            sys.exit(1)
+          },
+          productName = build.options.packageOptions.windowsOptions.productName.getOrElse{
+            System.err.println("Product name parameter is mandatory for windows packages")
+            sys.exit(1)
+          },
+          exitDialog = build.options.packageOptions.windowsOptions.exitDialog
+        )
+
         nativePackagerType match {
           case PackageType.Debian =>
-            DebianPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
+            DebianPackage(bootstrapPath, debianSettings).build()
           case PackageType.Dmg =>
-            DmgPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
+            DmgPackage(bootstrapPath, macOSSettings).build()
           case PackageType.Pkg =>
-            PkgPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
+            PkgPackage(bootstrapPath, macOSSettings).build()
           case PackageType.Rpm =>
-            RedHatPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
+            RedHatPackage(bootstrapPath, redHatSettings).build()
           case PackageType.Msi =>
-            WindowsPackage(bootstrapPath, BuildSettings(force = force, outputPath = destPath)).build()
+            WindowsPackage(bootstrapPath, windowsSettings).build()
         }
     }
 
