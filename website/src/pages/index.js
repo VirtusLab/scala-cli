@@ -25,7 +25,7 @@ const Features = (props) => {
 
         <code>features marked as code are still under development</code>
       </p>,
-      image: "img/logo.svg",
+      image: "img/lift_off.png",
       imageAlign: "left",
     },
     {
