@@ -22,7 +22,12 @@ final case class ReplOptions(
   @Group("Repl")
   @Name("a")
   @Hidden
-    ammoniteArg: List[String] = Nil
+    ammoniteArg: List[String] = Nil,
+
+  @Group("Repl")
+  @Hidden
+  @HelpMessage("Don't actually run the REPL, only fetch it")
+    replDryRun: Boolean = false
 ) {
   private def ammoniteVersionOpt = ammonite.map(_.trim).filter(_.nonEmpty)
   def buildOptions: BuildOptions = {

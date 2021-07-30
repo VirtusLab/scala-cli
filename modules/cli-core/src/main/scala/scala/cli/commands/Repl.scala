@@ -35,7 +35,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     def maybeRunRepl(build: Build, allowExit: Boolean): Unit =
       build match {
         case s: Build.Successful =>
-          runRepl(s, directories, logger, allowExit = allowExit)
+          runRepl(s, directories, logger, allowExit = allowExit, options.replDryRun)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           if (allowExit)
@@ -58,7 +58,8 @@ object Repl extends ScalaCommand[ReplOptions] {
     build: Build.Successful,
     directories: scala.build.Directories,
     logger: Logger,
-    allowExit: Boolean
+    allowExit: Boolean,
+    dryRun: Boolean
   ): Unit = {
 
     val replArtifacts = ReplArtifacts(
@@ -84,20 +85,23 @@ object Repl extends ScalaCommand[ReplOptions] {
     if (rootClasses.nonEmpty)
       logger.message(s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")}). These will not be accessible from the REPL.")
 
-    Runner.run(
-      build.options.javaCommand(),
-      replArtifacts.replJavaOpts ++ build.options.javaOptions.javaOpts,
-      build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
-      replArtifacts.replMainClass,
-      if (Properties.isWin)
-        build.options.replOptions.ammoniteArgs.map { a =>
-          if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
-          else a
-        }
-      else
-        build.options.replOptions.ammoniteArgs,
-      logger,
-      allowExecve = allowExit
-    )
+    if (dryRun)
+      logger.message("Dry run, not running REPL.")
+    else
+      Runner.run(
+        build.options.javaCommand(),
+        replArtifacts.replJavaOpts ++ build.options.javaOptions.javaOpts,
+        build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
+        replArtifacts.replMainClass,
+        if (Properties.isWin)
+          build.options.replOptions.ammoniteArgs.map { a =>
+            if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
+            else a
+          }
+        else
+          build.options.replOptions.ammoniteArgs,
+        logger,
+        allowExecve = allowExit
+      )
   }
 }

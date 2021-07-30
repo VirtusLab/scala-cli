@@ -341,6 +341,10 @@ Set Ammonite version
 
 Aliases: `-a`
 
+#### `--repl-dry-run`
+
+Don't actually run the REPL, only fetch it
+
 ## Run options
 
 Available in commands:
