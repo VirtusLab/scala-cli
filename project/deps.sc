@@ -4,14 +4,14 @@ object Scala {
   def scala212 = "2.12.14"
   def scala213 = "2.13.6"
   def scala3Extras = Seq("3.0.0-RC2", "3.0.0-RC3")
-  def scala3 = "3.0.0"
+  def scala3 = "3.0.1"
   val allScala2 = Seq(scala213, scala212)
   val all = allScala2 ++ scala3Extras ++ Seq(scala3)
 
   def listAll: Seq[String] =
     (6 to 13).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 to 5).map(i => s"2.13.$i") ++ Seq(scala213) ++
-      Seq(scala3)
+      (0 to 0).map(i => s"3.0.$i") ++ Seq(scala3)
 
   // The Scala version used to build the CLI itself.
   // We should be able to switch to 2.13.x when bumping the scala-native version.
@@ -28,7 +28,7 @@ object Deps {
     def scalaNative = "0.4.0"
     def scalaPackager = "0.1.12"
   }
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.4.0-5-534c9436"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.4.0-12-69f45b4b"
   def asm = ivy"org.ow2.asm:asm:9.1"
   def bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.8-83-27d9d739"
   def bsp4j = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
