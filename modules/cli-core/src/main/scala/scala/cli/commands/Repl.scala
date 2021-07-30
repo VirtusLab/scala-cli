@@ -77,9 +77,6 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     // TODO Allow to disable printing the welcome banner and the "Loading..." message in Ammonite.
 
-    // FIXME Seems Ammonite isn't fully fine with directories as class path (these are passed to the interactive
-    //       compiler for completion, but not to the main compiler for actual compilation).
-
     lazy val rootClasses = os.list(build.output)
       .filter(_.last.endsWith(".class"))
       .filter(os.isFile(_)) // just in case
