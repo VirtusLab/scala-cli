@@ -31,13 +31,8 @@ object ReplArtifacts {
     directories: Directories
   ): ReplArtifacts = {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
-    val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion)
+    val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
     ReplArtifacts(replArtifacts, "ammonite.Main", Nil)
   }
-
-  private def ammoniteDependencies(ammoniteVersion: String): Seq[AnyDependency] =
-    Seq(
-      dep"com.lihaoyi:::ammonite:$ammoniteVersion"
-    )
 }

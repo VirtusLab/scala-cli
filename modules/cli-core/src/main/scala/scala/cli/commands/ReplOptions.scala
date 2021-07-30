@@ -19,10 +19,12 @@ final case class ReplOptions(
   @Name("A")
     ammonite: Option[String] = None,
 
+  @Group("Repl")
   @Name("a")
   @Hidden
     ammoniteArg: List[String] = Nil
 ) {
+  private def ammoniteVersionOpt = ammonite.map(_.trim).filter(_.nonEmpty)
   def buildOptions: BuildOptions = {
     val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
     baseOptions.copy(
@@ -30,7 +32,7 @@ final case class ReplOptions(
         javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
       ),
       replOptions = baseOptions.replOptions.copy(
-        ammoniteVersionOpt = ammonite,
+        ammoniteVersionOpt = ammoniteVersionOpt,
         ammoniteArgs = ammoniteArg
       ),
       internalDependencies = baseOptions.internalDependencies.copy(

@@ -76,7 +76,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     // TODO Allow to disable printing the welcome banner and the "Loading..." message in Ammonite.
 
-    lazy val rootClasses = os.list(build.output)
+    val rootClasses = os.list(build.output)
       .filter(_.last.endsWith(".class"))
       .filter(os.isFile(_)) // just in case
       .map(_.last.stripSuffix(".class"))
