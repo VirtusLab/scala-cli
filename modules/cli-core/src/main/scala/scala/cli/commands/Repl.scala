@@ -88,7 +88,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       build.options.javaCommand(),
       build.options.javaOptions.javaOpts,
       build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
-      ammoniteMainClass,
+      replArtifacts.replMainClass,
       if (Properties.isWin)
         build.options.replOptions.ammoniteArgs.map { a =>
           if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
@@ -100,7 +100,4 @@ object Repl extends ScalaCommand[ReplOptions] {
       allowExecve = allowExit
     )
   }
-
-  private def ammoniteMainClass: String =
-    "ammonite.Main"
 }

@@ -5,7 +5,8 @@ import java.nio.file.Path
 import dependency._
 
 final case class ReplArtifacts(
-  replArtifacts: Seq[(String, Path)]
+  replArtifacts: Seq[(String, Path)],
+  replMainClass: String
 ) {
   lazy val replClassPath: Seq[Path] =
     replArtifacts.map(_._2)
@@ -31,7 +32,7 @@ object ReplArtifacts {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
     val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion)
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
-    ReplArtifacts(replArtifacts)
+    ReplArtifacts(replArtifacts, "ammonite.Main")
   }
 
   private def ammoniteDependencies(ammoniteVersion: String): Seq[AnyDependency] =
