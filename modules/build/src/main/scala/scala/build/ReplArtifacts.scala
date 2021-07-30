@@ -23,7 +23,7 @@ object ReplArtifacts {
   // to
   //     val contextClassLoader = classOf[ammonite.repl.api.ReplAPI].getClassLoader
   // so that only the first loader is exposed to users in Ammonite.
-  def apply(
+  def ammonite(
     scalaParams: ScalaParameters,
     ammoniteVersion: String,
     dependencies: Seq[AnyDependency],
@@ -34,5 +34,28 @@ object ReplArtifacts {
     val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
     ReplArtifacts(replArtifacts, "ammonite.Main", Nil)
+  }
+
+  def default(
+    scalaParams: ScalaParameters,
+    dependencies: Seq[AnyDependency],
+    logger: Logger,
+    directories: Directories
+  ): ReplArtifacts = {
+    val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
+    val isScala2 = scalaParams.scalaVersion.startsWith("2.")
+    val replDep =
+      if (isScala2) dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}"
+      else dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}"
+    val allDeps = dependencies ++ Seq(replDep)
+    val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
+    val mainClass =
+      if (isScala2) "scala.tools.nsc.MainGenericRunner"
+      else "dotty.tools.repl.Main"
+    ReplArtifacts(
+      replArtifacts,
+      mainClass,
+      Seq("-Dscala.usejavacp=true")
+    )
   }
 }

@@ -333,7 +333,13 @@ Available in commands:
 
 #### `--ammonite`
 
-Aliases: `-A`
+Aliases: `-A`, `--amm`
+
+Use Ammonite rather than the default Scala REPL
+
+#### `--ammonite-version`
+
+Aliases: `--ammonite-ver`
 
 Set Ammonite version
 

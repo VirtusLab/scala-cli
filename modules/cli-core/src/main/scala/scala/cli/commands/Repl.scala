@@ -62,13 +62,22 @@ object Repl extends ScalaCommand[ReplOptions] {
     dryRun: Boolean
   ): Unit = {
 
-    val replArtifacts = ReplArtifacts(
-      build.artifacts.params,
-      build.options.replOptions.ammoniteVersionOpt.getOrElse(Constants.ammoniteVersion),
-      build.artifacts.dependencies,
-      logger,
-      directories
-    )
+    val replArtifacts =
+      if (build.options.replOptions.useAmmonite)
+        ReplArtifacts.ammonite(
+          build.artifacts.params,
+          build.options.replOptions.ammoniteVersionOpt.getOrElse(Constants.ammoniteVersion),
+          build.artifacts.dependencies,
+          logger,
+          directories
+        )
+      else
+        ReplArtifacts.default(
+          build.artifacts.params,
+          build.artifacts.dependencies,
+          logger,
+          directories
+        )
 
     // TODO Warn if some entries of build.artifacts.classPath were evicted in replArtifacts.replClassPath
     //      (should be artifacts whose version was bumped by Ammonite).
