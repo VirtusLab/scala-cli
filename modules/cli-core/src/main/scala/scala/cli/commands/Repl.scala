@@ -86,7 +86,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     Runner.run(
       build.options.javaCommand(),
-      build.options.javaOptions.javaOpts,
+      replArtifacts.replJavaOpts ++ build.options.javaOptions.javaOpts,
       build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
       replArtifacts.replMainClass,
       if (Properties.isWin)

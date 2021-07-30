@@ -6,7 +6,8 @@ import dependency._
 
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, Path)],
-  replMainClass: String
+  replMainClass: String,
+  replJavaOpts: Seq[String]
 ) {
   lazy val replClassPath: Seq[Path] =
     replArtifacts.map(_._2)
@@ -32,7 +33,7 @@ object ReplArtifacts {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
     val allDeps = dependencies ++ ammoniteDependencies(ammoniteVersion)
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
-    ReplArtifacts(replArtifacts, "ammonite.Main")
+    ReplArtifacts(replArtifacts, "ammonite.Main", Nil)
   }
 
   private def ammoniteDependencies(ammoniteVersion: String): Seq[AnyDependency] =
