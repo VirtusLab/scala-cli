@@ -333,13 +333,23 @@ Available in commands:
 
 #### `--ammonite`
 
-Aliases: `-A`
+Aliases: `-A`, `--amm`
+
+Use Ammonite rather than the default Scala REPL
+
+#### `--ammonite-version`
+
+Aliases: `--ammonite-ver`
 
 Set Ammonite version
 
 #### `--ammonite-arg`
 
 Aliases: `-a`
+
+#### `--repl-dry-run`
+
+Don't actually run the REPL, only fetch it
 
 ## Run options
 

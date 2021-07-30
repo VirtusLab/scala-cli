@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import scala.build.{Build, Inputs, Logger, Os, ReplArtifacts}
-import scala.build.internal.{Constants, Runner}
+import scala.build.internal.Runner
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
@@ -35,7 +35,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     def maybeRunRepl(build: Build, allowExit: Boolean): Unit =
       build match {
         case s: Build.Successful =>
-          runRepl(s, directories, logger, allowExit = allowExit, options.ammoniteArg)
+          runRepl(s, directories, logger, allowExit = allowExit, options.replDryRun)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           if (allowExit)
@@ -59,16 +59,25 @@ object Repl extends ScalaCommand[ReplOptions] {
     directories: scala.build.Directories,
     logger: Logger,
     allowExit: Boolean,
-    ammoniteArgs: Seq[String]
+    dryRun: Boolean
   ): Unit = {
 
-    val replArtifacts = ReplArtifacts(
-      build.artifacts.params,
-      build.options.replOptions.ammoniteVersionOpt.getOrElse(Constants.ammoniteVersion),
-      build.artifacts.dependencies,
-      logger,
-      directories
-    )
+    val replArtifacts =
+      if (build.options.replOptions.useAmmonite)
+        ReplArtifacts.ammonite(
+          build.artifacts.params,
+          build.options.replOptions.ammoniteVersion,
+          build.artifacts.dependencies,
+          logger,
+          directories
+        )
+      else
+        ReplArtifacts.default(
+          build.artifacts.params,
+          build.artifacts.dependencies,
+          logger,
+          directories
+        )
 
     // TODO Warn if some entries of build.artifacts.classPath were evicted in replArtifacts.replClassPath
     //      (should be artifacts whose version was bumped by Ammonite).
@@ -77,33 +86,31 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     // TODO Allow to disable printing the welcome banner and the "Loading..." message in Ammonite.
 
-    // FIXME Seems Ammonite isn't fully fine with directories as class path (these are passed to the interactive
-    //       compiler for completion, but not to the main compiler for actual compilation).
-
-    lazy val rootClasses = os.list(build.output)
+    val rootClasses = os.list(build.output)
       .filter(_.last.endsWith(".class"))
       .filter(os.isFile(_)) // just in case
       .map(_.last.stripSuffix(".class"))
       .sorted
     if (rootClasses.nonEmpty)
       logger.message(s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")}). These will not be accessible from the REPL.")
-    Runner.run(
-      build.options.javaCommand(),
-      build.options.javaOptions.javaOpts,
-      build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
-      ammoniteMainClass,
-      if (Properties.isWin)
-        ammoniteArgs.map { a =>
-          if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
-          else a
-        }
-      else
-        ammoniteArgs,
-      logger,
-      allowExecve = allowExit
-    )
-  }
 
-  private def ammoniteMainClass: String =
-    "ammonite.Main"
+    if (dryRun)
+      logger.message("Dry run, not running REPL.")
+    else
+      Runner.run(
+        build.options.javaCommand(),
+        replArtifacts.replJavaOpts ++ build.options.javaOptions.javaOpts,
+        build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
+        replArtifacts.replMainClass,
+        if (Properties.isWin)
+          build.options.replOptions.ammoniteArgs.map { a =>
+            if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
+            else a
+          }
+        else
+          build.options.replOptions.ammoniteArgs,
+        logger,
+        allowExecve = allowExit
+      )
+  }
 }

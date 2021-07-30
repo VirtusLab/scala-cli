@@ -15,14 +15,27 @@ final case class ReplOptions(
     watch: SharedWatchOptions = SharedWatchOptions(),
 
   @Group("Repl")
-  @HelpMessage("Set Ammonite version")
+  @HelpMessage("Use Ammonite rather than the default Scala REPL")
   @Name("A")
-    ammonite: Option[String] = None,
+  @Name("amm")
+    ammonite: Option[Boolean] = None,
 
+  @Group("Repl")
+  @HelpMessage("Set Ammonite version")
+  @Name("ammoniteVer")
+    ammoniteVersion: Option[String] = None,
+
+  @Group("Repl")
   @Name("a")
   @Hidden
-    ammoniteArg: List[String] = Nil
+    ammoniteArg: List[String] = Nil,
+
+  @Group("Repl")
+  @Hidden
+  @HelpMessage("Don't actually run the REPL, only fetch it")
+    replDryRun: Boolean = false
 ) {
+  private def ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
   def buildOptions: BuildOptions = {
     val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
     baseOptions.copy(
@@ -30,7 +43,9 @@ final case class ReplOptions(
         javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
       ),
       replOptions = baseOptions.replOptions.copy(
-        ammoniteVersionOpt = ammonite
+        useAmmoniteOpt = ammonite,
+        ammoniteVersionOpt = ammoniteVersionOpt,
+        ammoniteArgs = ammoniteArg
       ),
       internalDependencies = baseOptions.internalDependencies.copy(
         addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt.orElse(Some(false))

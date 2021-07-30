@@ -10,7 +10,13 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String]) extends 
 
   protected def versionNumberString = actualScalaVersion
 
-  test("simple") {
+  test("default dry run") {
+    TestInputs(Nil).fromRoot { root =>
+      os.proc(TestUtil.cli, "repl", extraOptions, "--repl-dry-run").call(cwd = root)
+    }
+  }
+
+  test("ammonite") {
     TestInputs(Nil).fromRoot { root =>
       val ammArgs = Seq("-c", """println("Hello" + " from Scala " + scala.util.Properties.versionNumberString)""")
         .map {
@@ -20,7 +26,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String]) extends 
             identity
         }
         .flatMap(arg => Seq("--ammonite-arg", arg))
-      val res = os.proc(TestUtil.cli, "repl", extraOptions, ammArgs).call(cwd = root)
+      val res = os.proc(TestUtil.cli, "repl", extraOptions, "--ammonite", ammArgs).call(cwd = root)
       val output = res.out.text().trim
       expect(output == s"Hello from Scala $versionNumberString")
     }
