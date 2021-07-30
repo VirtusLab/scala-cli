@@ -35,7 +35,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     def maybeRunRepl(build: Build, allowExit: Boolean): Unit =
       build match {
         case s: Build.Successful =>
-          runRepl(s, directories, logger, allowExit = allowExit, options.ammoniteArg)
+          runRepl(s, directories, logger, allowExit = allowExit)
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           if (allowExit)
@@ -58,8 +58,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     build: Build.Successful,
     directories: scala.build.Directories,
     logger: Logger,
-    allowExit: Boolean,
-    ammoniteArgs: Seq[String]
+    allowExit: Boolean
   ): Unit = {
 
     val replArtifacts = ReplArtifacts(
@@ -84,18 +83,19 @@ object Repl extends ScalaCommand[ReplOptions] {
       .sorted
     if (rootClasses.nonEmpty)
       logger.message(s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")}). These will not be accessible from the REPL.")
+
     Runner.run(
       build.options.javaCommand(),
       build.options.javaOptions.javaOpts,
       build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
       ammoniteMainClass,
       if (Properties.isWin)
-        ammoniteArgs.map { a =>
+        build.options.replOptions.ammoniteArgs.map { a =>
           if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
           else a
         }
       else
-        ammoniteArgs,
+        build.options.replOptions.ammoniteArgs,
       logger,
       allowExecve = allowExit
     )

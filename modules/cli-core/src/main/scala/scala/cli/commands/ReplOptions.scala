@@ -30,7 +30,8 @@ final case class ReplOptions(
         javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
       ),
       replOptions = baseOptions.replOptions.copy(
-        ammoniteVersionOpt = ammonite
+        ammoniteVersionOpt = ammonite,
+        ammoniteArgs = ammoniteArg
       ),
       internalDependencies = baseOptions.internalDependencies.copy(
         addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt.orElse(Some(false))

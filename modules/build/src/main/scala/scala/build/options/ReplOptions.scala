@@ -1,7 +1,8 @@
 package scala.build.options
 
 final case class ReplOptions(
-  ammoniteVersionOpt: Option[String] = None
+  ammoniteVersionOpt: Option[String] = None,
+  ammoniteArgs: Seq[String] = Nil
 )
 
 object ReplOptions {
