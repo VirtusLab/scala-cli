@@ -11,7 +11,7 @@ import java.security.MessageDigest
 
 import scala.build.{Artifacts, Logger, Os}
 import scala.build.internal.Constants._
-import scala.build.internal.{OsLibc, Util}
+import scala.build.internal.{Constants, OsLibc, Util}
 import scala.util.Properties
 
 final case class BuildOptions(
@@ -147,7 +147,7 @@ final case class BuildOptions(
       modules.flatMap(moduleVersions).distinct
     }
     val sv = scalaVersion match {
-      case None => scala.util.Properties.versionNumberString
+      case None => Constants.defaultScalaVersion
       case Some(sv0) =>
         if (Util.isFullScalaVersion(sv0)) sv0
         else {
