@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import scala.build.{Build, Inputs, Logger, Os, ReplArtifacts}
-import scala.build.internal.{Constants, Runner}
+import scala.build.internal.Runner
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
@@ -66,7 +66,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       if (build.options.replOptions.useAmmonite)
         ReplArtifacts.ammonite(
           build.artifacts.params,
-          build.options.replOptions.ammoniteVersionOpt.getOrElse(Constants.ammoniteVersion),
+          build.options.replOptions.ammoniteVersion,
           build.artifacts.dependencies,
           logger,
           directories

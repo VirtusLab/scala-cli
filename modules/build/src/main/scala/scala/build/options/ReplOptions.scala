@@ -1,5 +1,7 @@
 package scala.build.options
 
+import scala.build.internal.Constants
+
 final case class ReplOptions(
   useAmmoniteOpt: Option[Boolean] = None,
   ammoniteVersionOpt: Option[String] = None,
@@ -7,6 +9,8 @@ final case class ReplOptions(
 ) {
   def useAmmonite: Boolean =
     useAmmoniteOpt.getOrElse(false)
+  def ammoniteVersion: String =
+    ammoniteVersionOpt.getOrElse(Constants.ammoniteVersion)
 }
 
 object ReplOptions {
