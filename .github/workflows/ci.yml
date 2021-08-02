@@ -15,19 +15,7 @@ jobs:
     steps:
       - uses: azure/login@v1
         with:
-          creds: |
-            {
-              "clientId": "42e79051-affb-4895-b54a-56a90bc4d86b",
-              "clientSecret": "${{ secrets.SCALA3_CLIENT_SECRET }}",
-              "subscriptionId": "da0a842a-c933-47fd-a4db-2d1a06fbafee",
-              "tenantId": "d09acba4-fb14-464d-851a-44a7cf8a064d",
-              "activeDirectoryEndpointUrl": "https://login.microsoftonline.com",
-              "resourceManagerEndpointUrl": "https://management.azure.com/",
-              "activeDirectoryGraphResourceId": "https://graph.windows.net/",
-              "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/",
-              "galleryEndpointUrl": "https://gallery.azure.com/",
-              "managementEndpointUrl": "https://management.core.windows.net/"
-            }
+          creds: '{ "clientId": "42e79051-affb-4895-b54a-56a90bc4d86b", "clientSecret": "${{ secrets.SCALA3_CLIENT_SECRET }}", "subscriptionId": "da0a842a-c933-47fd-a4db-2d1a06fbafee", "tenantId": "d09acba4-fb14-464d-851a-44a7cf8a064d", "activeDirectoryEndpointUrl": "https://login.microsoftonline.com", "resourceManagerEndpointUrl": "https://management.azure.com/", "activeDirectoryGraphResourceId": "https://graph.windows.net/", "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/", "galleryEndpointUrl": "https://gallery.azure.com/", "managementEndpointUrl": "https://management.core.windows.net/" }'
       - run: |
           az vm start -g gh-runners -n scala-3-cli
 
