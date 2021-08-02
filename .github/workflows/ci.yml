@@ -3,6 +3,7 @@ on:
   push:
     branches:
     - master
+    - windows-worker
     tags:
     - "v*"
   pull_request:
