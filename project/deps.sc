@@ -12,6 +12,13 @@ object Scala {
     (6 to 13).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 to 5).map(i => s"2.13.$i") ++ Seq(scala213) ++
       Seq(scala3)
+
+  // The Scala version used to build the CLI itself.
+  // We should be able to switch to 2.13.x when bumping the scala-native version.
+  def defaultInternal = scala212
+
+  // The Scala version used by default to compile user input.
+  def defaultUser = scala3
 }
 
 object Deps {

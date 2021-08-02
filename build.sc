@@ -21,7 +21,7 @@ implicit def millModuleBasePath: define.BasePath =
 
 object cli                    extends Cli
 object `cli-core`             extends CliCore
-object build                  extends Cross[Build]             (defaultScalaVersion)
+object build                  extends Cross[Build]             (Scala.defaultInternal)
 object stubs                  extends JavaModule with ScalaCliPublishModule with PublishLocalNoFluff
 object runner                 extends Cross[Runner]            (Scala.all: _*)
 object `test-runner`          extends Cross[TestRunner]        (Scala.all: _*)
@@ -81,7 +81,7 @@ object packager extends ScalaModule with Bloop.Module {
 }
 
 object `generate-reference-doc` extends SbtModule {
-  def scalaVersion = defaultScalaVersion
+  def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
     cli
   )
@@ -105,9 +105,6 @@ object dummy extends Module {
   }
 }
 
-
-// We should be able to switch to 2.13.x when bumping the scala-native version
-def defaultScalaVersion = Scala.scala212
 
 class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with HasTests {
   def moduleDeps = Seq(
@@ -164,15 +161,15 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def stubsModuleName = "${stubs.artifactName()}"
          |  def stubsVersion = "${stubs.publishVersion()}"
          |
-         |  def testRunnerOrganization = "${`test-runner`(defaultScalaVersion).pomSettings().organization}"
-         |  def testRunnerModuleName = "${`test-runner`(defaultScalaVersion).artifactName()}"
-         |  def testRunnerVersion = "${`test-runner`(defaultScalaVersion).publishVersion()}"
-         |  def testRunnerMainClass = "${`test-runner`(defaultScalaVersion).mainClass().getOrElse(sys.error("No main class defined for test-runner"))}"
+         |  def testRunnerOrganization = "${`test-runner`(Scala.defaultInternal).pomSettings().organization}"
+         |  def testRunnerModuleName = "${`test-runner`(Scala.defaultInternal).artifactName()}"
+         |  def testRunnerVersion = "${`test-runner`(Scala.defaultInternal).publishVersion()}"
+         |  def testRunnerMainClass = "${`test-runner`(Scala.defaultInternal).mainClass().getOrElse(sys.error("No main class defined for test-runner"))}"
          |
-         |  def runnerOrganization = "${runner(defaultScalaVersion).pomSettings().organization}"
-         |  def runnerModuleName = "${runner(defaultScalaVersion).artifactName()}"
-         |  def runnerVersion = "${runner(defaultScalaVersion).publishVersion()}"
-         |  def runnerMainClass = "${runner(defaultScalaVersion).mainClass().getOrElse(sys.error("No main class defined for runner"))}"
+         |  def runnerOrganization = "${runner(Scala.defaultInternal).pomSettings().organization}"
+         |  def runnerModuleName = "${runner(Scala.defaultInternal).artifactName()}"
+         |  def runnerVersion = "${runner(Scala.defaultInternal).publishVersion()}"
+         |  def runnerMainClass = "${runner(Scala.defaultInternal).mainClass().getOrElse(sys.error("No main class defined for runner"))}"
          |  def runnerNeedsSonatypeSnapshots(sv: String): Boolean =
          |    ${ if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT")) """ !sv.startsWith("2.") """ else "false" }
          |
@@ -186,6 +183,8 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def jmhVersion = "1.29"
          |
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
+         |
+         |  def defaultScalaVersion = "${Scala.defaultUser}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -209,7 +208,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
 }
 
 trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf with HasTests {
-  def scalaVersion = defaultScalaVersion
+  def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
     `cli-core`
   )
@@ -234,10 +233,10 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
 }
 
 trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf {
-  def scalaVersion = defaultScalaVersion
+  def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
-    build(defaultScalaVersion),
-    `test-runner`(defaultScalaVersion)
+    build(Scala.defaultInternal),
+    `test-runner`(Scala.defaultInternal)
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
@@ -298,7 +297,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def scala212 = "${Scala.scala212}"
            |  def scala213 = "${Scala.scala213}"
            |  def scala3   = "${Scala.scala3}"
-           |  def defaultScala = "${defaultScalaVersion}"
+           |  def defaultScala = "${Scala.defaultUser}"
            |
            |  def dockerTestImage = "${Docker.testImage}"
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
@@ -434,7 +433,7 @@ object `local-repo` extends LocalRepo {
     } yield proj(sv)
     javaModules ++ crossModules
   }
-  def version = runner(defaultScalaVersion).publishVersion()
+  def version = runner(Scala.defaultInternal).publishVersion()
 }
 
 
@@ -491,7 +490,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 }
 
 def unitTests() = T.command {
-  build(defaultScalaVersion).test.test()()
+  build(Scala.defaultInternal).test.test()()
   cli.test.test()()
 }
 
