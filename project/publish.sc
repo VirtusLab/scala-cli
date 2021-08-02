@@ -1,4 +1,5 @@
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
+import $file.settings, settings.PublishLocalNoFluff
 
 import de.tobiasroeser.mill.vcs.version._
 import mill._, scalalib._
@@ -8,7 +9,7 @@ import scala.concurrent.duration._
 def ghOrg = "VirtuslabRnD"
 def ghName = "scala-cli"
 
-trait ScalaCliPublishModule extends PublishModule {
+trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
   import mill.scalalib.publish._
   def pomSettings = PomSettings(
     description = artifactName(),
