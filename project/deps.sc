@@ -18,7 +18,7 @@ object Scala {
   def defaultInternal = scala212
 
   // The Scala version used by default to compile user input.
-  def defaultUser = scala212
+  def defaultUser = scala3
 }
 
 object Deps {
