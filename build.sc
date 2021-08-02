@@ -133,6 +133,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
     Deps.scalaparse,
+    Deps.shapeless,
     Deps.swoval
   )
 
