@@ -71,7 +71,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String]) extends m
       Await.result(f0, Duration.Inf)
     } finally {
       if (remoteServer != null)
-        try Await.result(remoteServer.buildShutdown().asScala, 10.seconds)
+        try Await.result(remoteServer.buildShutdown().asScala, 20.seconds)
         catch {
           case NonFatal(e) =>
             System.err.println(s"Ignoring $e while shutting down BSP server")
