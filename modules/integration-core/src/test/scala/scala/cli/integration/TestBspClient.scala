@@ -33,8 +33,10 @@ class TestBspClient extends b.BuildClient {
   }
 
   def latestDiagnostics(): Option[b.PublishDiagnosticsParams] =
-    messages0.collectFirst {
-      case p: b.PublishDiagnosticsParams => p
+    lock.synchronized {
+      messages0.collectFirst {
+        case p: b.PublishDiagnosticsParams => p
+      }
     }
 
   def onBuildLogMessage(params: b.LogMessageParams): Unit =
