@@ -77,7 +77,7 @@ object packager extends ScalaModule with Bloop.Module {
   def ivyDeps = Agg(
     Deps.scalaPackagerCli
   )
-  def mainClass = Some("cli.PackagerCli")
+  def mainClass = Some("packager.cli.PackagerCli")
 }
 
 object `generate-reference-doc` extends SbtModule {
@@ -130,6 +130,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
     Deps.scalaparse,
+    Deps.shapeless,
     Deps.swoval
   )
 

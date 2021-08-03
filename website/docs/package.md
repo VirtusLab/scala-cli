@@ -123,3 +123,95 @@ hello: Mach-O 64-bit executable x86_64
 $ ./hello
 Hello
 ```
+
+## Native package
+
+### Debian 
+The software package format for GNU\Linux distribution Debian.
+
+#### To build a Debian package, you will need to have these applications installed
+* dpkg-deb
+
+### Run
+
+`./mill -i scala package ..arguments... --deb --output 'path.deb`
+
+### Mandatory arguments 
+* version
+* maintainer
+* description
+* output-path
+
+### Optional arguments
+* force
+* launcher-app-name
+* debian-conflicts
+* debian-dependencies
+* architecture
+
+### RedHat
+
+The software package format for RedHat distributions.
+
+#### To build a RedHat Package, you will need to have these applications installed
+* rpmbuild
+
+### Run
+
+`./mill -i scala package ..arguments... --rpm --output 'path.rpm`
+
+### Mandatory arguments 
+* version
+* description
+* license
+* output-path
+
+### Optional arguments
+* force
+* launcher-app-name
+* release
+* rpm-architecture
+
+### MacOs - Pkg
+
+The software package format for macOs.
+
+#### To build a Pkg, you will need to have these applications installed
+* pkgbuild
+
+### Run
+
+`./mill -i scala package ..arguments... --pkg --output 'path.pkg`
+
+### Mandatory arguments 
+* version
+* identifier
+* output-path
+
+### Optional arguments
+* force
+* launcher-app-name
+
+### Windows 
+
+The software package format for Windows distributions.
+
+#### To build a Windows installer, you will need to have these applications installed
+* WIX Toolset 
+
+### Run
+
+`./mill -i scala package ..arguments... --msi --output 'path.msi`
+
+### Mandatory arguments 
+* version
+* maintainer
+* licence-path
+* product-name
+* output-path
+
+### Optional arguments
+* force
+* launcher-app-name
+* exit-dialog
+* logo-path

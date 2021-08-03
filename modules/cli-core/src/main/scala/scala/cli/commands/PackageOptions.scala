@@ -4,6 +4,9 @@ import caseapp._
 import caseapp.core.help.Help
 
 import scala.build.options.{BuildOptions, PackageType}
+import scala.build.options.DebianOptions
+import scala.build.options.RedHatOptions
+import scala.build.options.WindowsOptions
 
 @HelpMessage("Compile and package Scala code")
 final case class PackageOptions(
@@ -33,6 +36,8 @@ final case class PackageOptions(
   @ValueDescription("main-class")
   @Name("M")
     mainClass: Option[String] = None,
+  @Recurse
+    packager: PackagerOptions = PackagerOptions(),
   @Group("Package")
   @HelpMessage("Build debian package, available only on linux")
     deb: Boolean = false,
@@ -64,7 +69,28 @@ final case class PackageOptions(
     baseOptions.copy(
       mainClass = mainClass.filter(_.nonEmpty),
       packageOptions = baseOptions.packageOptions.copy(
-        packageTypeOpt = packageTypeOpt
+        version =  Some(packager.version),
+        launcherAppName = packager.launcherAppName,
+        maintainer = packager.maintainer,
+        description = packager.description,
+        packageTypeOpt = packageTypeOpt,
+        logoPath = packager.logoPath.map(os.Path(_, os.pwd)),
+        macOSidentifier = packager.identifier,
+        debianOptions = DebianOptions(
+          conflicts = packager.debianConflicts,
+          dependencies = packager.debianDependencies,
+          architecture = Some(packager.debArchitecture)
+        ),
+        redHatOptions = RedHatOptions(
+          license = packager.license,
+          release = Some(packager.release),
+          architecture = Some(packager.rpmArchitecture)
+        ),
+        windowsOptions = WindowsOptions(
+          licensePath = packager.licensePath.map(os.Path(_, os.pwd)),
+          productName = Some(packager.productName),
+          exitDialog = packager.exitDialog
+        )
       )
     )
   }

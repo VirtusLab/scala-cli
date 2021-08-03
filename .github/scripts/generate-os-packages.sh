@@ -50,7 +50,9 @@ generate_deb() {
     --version "$(version)" \
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli.deb" \
-    --description "Scala CLI"
+    --description "Scala CLI" \
+    --maintainer "Scala CLI" \
+    --launcher-app-name "scala-cli"
 }
 
 generate_rpm() {
@@ -60,7 +62,9 @@ generate_rpm() {
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli.rpm" \
     --description "Scala CLI" \
-    --maintainer "Scala CLI"
+    --maintainer "Scala CLI" \
+    --license "ASL 2.0" \
+    --launcher-app-name "scala-cli"
 }
 
 generate_pkg() {
@@ -68,7 +72,9 @@ generate_pkg() {
     --pkg \
     --version "$(version)" \
     --source-app-path "$(launcher)" \
-    --output "$ARTIFACTS_DIR/scala-cli.pkg"
+    --output "$ARTIFACTS_DIR/scala-cli.pkg" \
+    --identifier "scala-cli" \
+    --launcher-app-name "scala-cli"
 }
 
 generate_msi() {
@@ -78,7 +84,11 @@ generate_msi() {
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli.msi" \
     --product-name "Scala CLI" \
-    --maintainer "Scala CLI"
+    --maintainer "Scala CLI" \
+    --launcher-app-name "scala-cli" \
+    --license-path "./LICENSE" \
+    --exit-dialog "If scala-cli is not visible, please restart your opened consoles" \
+    --logo-path "./logo.png"
 }
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then

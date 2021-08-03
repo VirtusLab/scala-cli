@@ -379,42 +379,45 @@ trait CliLaunchers extends SbtModule {
     actualDest
   }
 
-  def nativeImage = {
-    val isCI = System.getenv("CI") != null
-    if (isCI)
-      T.persistent {
-        val cp = nativeImageClassPath().map(_.path)
-        val mainClass0 = nativeImageMainClass()
+  def nativeImage =
+    if (Properties.isLinux)
+      nativeImageFromDocker
+    else {
+      val isCI = System.getenv("CI") != null
+      if (isCI)
+        T.persistent {
+          val cp = nativeImageClassPath().map(_.path)
+          val mainClass0 = nativeImageMainClass()
 
-        val localRepoJar0 = localRepoJar().path
+          val localRepoJar0 = localRepoJar().path
 
-        val executable = doGenerateNativeImage(
-          cp,
-          mainClass0,
-          T.ctx().dest,
-          localRepoJar0,
-          overwrite = false
-        )
+          val executable = doGenerateNativeImage(
+            cp,
+            mainClass0,
+            T.ctx().dest,
+            localRepoJar0,
+            overwrite = false
+          )
 
-        PathRef(executable)
-      }
-    else
-      T{
-        val cp = nativeImageClassPath().map(_.path)
-        val mainClass0 = nativeImageMainClass()
+          PathRef(executable)
+        }
+      else
+        T{
+          val cp = nativeImageClassPath().map(_.path)
+          val mainClass0 = nativeImageMainClass()
 
-        val localRepoJar0 = localRepoJar().path
+          val localRepoJar0 = localRepoJar().path
 
-        val executable = doGenerateNativeImage(
-          cp,
-          mainClass0,
-          T.ctx().dest,
-          localRepoJar0
-        )
+          val executable = doGenerateNativeImage(
+            cp,
+            mainClass0,
+            T.ctx().dest,
+            localRepoJar0
+          )
 
-        PathRef(executable)
-      }
-  }
+          PathRef(executable)
+        }
+    }
 
   def nativeImageStatic = T.persistent {
     val cp = nativeImageClassPath().map(_.path)
@@ -482,6 +485,60 @@ trait CliLaunchers extends SbtModule {
 
     PathRef(dest)
   }
+
+  def nativeImageFromDocker = {
+
+    def generate(cp: Seq[os.Path], mainClass0: String, dest: os.Path, localRepoJar0: os.Path, workingDir: os.Path): Unit = {
+      val params = DockerParams(
+        imageName = "ubuntu:18.04",
+        workingDir = workingDir,
+        prepareCommand = "apt-get update -q -y && apt-get install -q -y build-essential libz-dev",
+        csUrl = s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux",
+        extraNativeImageArgs = Nil
+      )
+
+      if (os.exists(dest)) {
+        val printableDest = if (dest.startsWith(os.pwd)) dest.relativeTo(os.pwd).toString else dest.toString
+        println(s"Warning: not re-computing $printableDest, delete it if you think it's stale")
+      } else
+        generateNativeImage(
+          graalVmVersion,
+          cp :+ localRepoJar0,
+          mainClass0,
+          dest,
+          Seq(localRepoResourcePath),
+          dockerParamsOpt = Some(params)
+        )
+    }
+
+    val isCI = System.getenv("CI") != null
+    if (isCI)
+      T.persistent {
+        val cp = nativeImageClassPath().map(_.path)
+        val mainClass0 = nativeImageMainClass()
+        val dest = T.ctx().dest / "scala"
+        val workingDir = T.dest / "data"
+
+        val localRepoJar0 = localRepoJar().path
+
+        generate(cp, mainClass0, dest, localRepoJar0, workingDir)
+
+        PathRef(dest)
+      }
+    else
+      T{
+        val cp = nativeImageClassPath().map(_.path)
+        val mainClass0 = nativeImageMainClass()
+        val dest = T.ctx().dest / "scala"
+        val workingDir = T.dest / "data"
+
+        val localRepoJar0 = localRepoJar().path
+
+        generate(cp, mainClass0, dest, localRepoJar0, workingDir)
+
+        PathRef(dest)
+      }
+    }
 
   def runWithAssistedConfig(args: String*) = T.command {
     val cp = jarClassPath().map(_.path).mkString(File.pathSeparator)

@@ -36,9 +36,9 @@ object HashedField extends LowPriorityHashedField {
 
 abstract class LowPriorityHashedField {
 
-  implicit def recurse[T](implicit hasher: Lazy[HasHashData[T]]): HashedField[T] = {
+  implicit def recurse[T](implicit hasher: HasHashData[T]): HashedField[T] = {
     (name, t, update) =>
-      hasher.value.add(name + ".", t, update)
+      hasher.add(name + ".", t, update)
   }
 
 }

@@ -80,6 +80,7 @@ Accepts options:
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [package](./cli-options.md#package-options)
+- [packager](./cli-options.md#packager-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
 - [scalac](./cli-options.md#scalac-options)

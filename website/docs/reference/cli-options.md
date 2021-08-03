@@ -323,6 +323,74 @@ Build msi package, available only on windows
 
 Build pkg package, available only on centOS
 
+## Packager options
+
+Available in commands:
+- [`package`](./commands#package)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--version`
+
+The version of generated package
+
+#### `--logo-path`
+
+Path to application logo in png format, it will be used to generate icon and banner/dialog in msi installer
+
+#### `--launcher-app-name`
+
+Set launcher app name which will be linked to PATH
+
+#### `--description`
+
+#### `--maintainer`
+
+Aliases: `-m`
+
+It should contains names and email addresses of co-maintainers of the package
+
+#### `--debian-conflicts`
+
+The list of debian package that this package is absolute incompatibility
+
+#### `--debian-dependencies`
+
+The list of debian package that this package depends on
+
+#### `--deb-architecture`
+
+Architecture that are supported by the repository, default: all
+
+#### `--identifier`
+
+CF Bundle Identifier
+
+#### `--license`
+
+License that are supported by the repository - list of licenses https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing
+
+#### `--release`
+
+The number of times this version of the software was released, default: 1
+
+#### `--rpm-architecture`
+
+Architecture that are supported by the repository, default: 
+
+#### `--license-path`
+
+Path to license file
+
+#### `--product-name`
+
+Name of product, default: Scala packager
+
+#### `--exit-dialog`
+
+Text will be displayed on exit dialog
+
 ## Repl options
 
 Available in commands:
