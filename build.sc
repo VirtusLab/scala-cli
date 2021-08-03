@@ -22,7 +22,7 @@ implicit def millModuleBasePath: define.BasePath =
 object cli                    extends Cli
 object `cli-core`             extends CliCore
 object build                  extends Cross[Build]             (Scala.defaultInternal)
-object stubs                  extends JavaModule with ScalaCliPublishModule with PublishLocalNoFluff
+object stubs                  extends JavaModule with ScalaCliPublishModule
 object runner                 extends Cross[Runner]            (Scala.all: _*)
 object `test-runner`          extends Cross[TestRunner]        (Scala.all: _*)
 object `bloop-rifle`          extends Cross[BloopRifle]        (Scala.allScala2: _*)
@@ -356,7 +356,7 @@ trait JvmIntegrationCore extends CliIntegrationCore {
   def cliKind = "jvm"
 }
 
-class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
+class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
   def mainClass = Some("scala.cli.runner.Runner")
   def ivyDeps =
     if (crossScalaVersion.startsWith("3.") && !crossScalaVersion.contains("-RC"))
@@ -386,7 +386,7 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
   }
 }
 
-class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with PublishLocalNoFluff {
+class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.testInterface

@@ -255,9 +255,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String]) extends m
         if (actualScalaVersion.startsWith("2.")) {
           expect(diag.getMessage == "not found: value zz")
           expect(diag.getRange.getEnd.getCharacter == 4)
-        } else {
+        } else if (actualScalaVersion == "3.0.0") {
           expect(diag.getMessage == "Not found: zz")
           expect(diag.getRange.getEnd.getCharacter == 2)
+        } else {
+          expect(diag.getMessage == "Not found: zz")
+          expect(diag.getRange.getEnd.getCharacter == 4)
         }
       }
     }
@@ -313,9 +316,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String]) extends m
         if (actualScalaVersion.startsWith("2.")) {
           expect(diag.getMessage == "not found: value zz")
           expect(diag.getRange.getEnd.getCharacter == 2)
-        } else {
+        } else if (actualScalaVersion == "3.0.0") {
           expect(diag.getMessage == "Not found: zz")
           expect(diag.getRange.getEnd.getCharacter == 0)
+        } else {
+          expect(diag.getMessage == "Not found: zz")
+          expect(diag.getRange.getEnd.getCharacter == 2)
         }
       }
     }
