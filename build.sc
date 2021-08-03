@@ -53,7 +53,22 @@ object `integration-core` extends Module {
   }
 }
 
+object `integration-docker` extends CliIntegrationDockerCore {
+  object test extends Tests {
+    def sources = T.sources {
+       super.sources() ++ `integration-core`.jvm.sources()
+     }
+   }
+}
+
 object integration extends Module {
+  object docker extends CliIntegrationDockerCore {
+    object test extends Tests {
+      def sources = T.sources {
+        super.sources() ++ `integration-docker`.test.sources()
+      }
+    }
+  }
   object jvm    extends JvmIntegration {
     object test extends Tests {
       def sources = T.sources {
@@ -267,11 +282,22 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
 
   def prefix: String
 
+  def sources = T.sources {
+    val name = mainArtifactName().stripPrefix(prefix)
+    val baseIntegrationPath = os.Path(millSourcePath.toString.stripSuffix(name))
+    val modulesPath = os.Path(baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName))
+    val mainPath = PathRef(modulesPath / "integration-core" / "src" / "main" / "scala")
+    super.sources() ++ Seq(mainPath)
+  }
+
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.osLib
+  )
+
   private def mainArtifactName = T{ artifactName() }
   trait Tests extends super.Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
-      Deps.osLib,
       Deps.pprint,
       Deps.scalaAsync,
       Deps.upickle
@@ -318,6 +344,13 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
       res
     }
   }
+}
+
+trait CliIntegrationDockerCore extends SbtModule with ScalaCliPublishModule with HasTests {
+  def scalaVersion = Scala.scala213
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.osLib
+  )
 }
 
 trait CliIntegration extends CliIntegrationBase {
