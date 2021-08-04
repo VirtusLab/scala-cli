@@ -19,7 +19,14 @@ object TestUtil {
       Seq("java", "-Xmx512m", "-jar", path)
   }
 
-  val extraOptions = List.empty[String]
+  val extraOptions =
+    if (Properties.isWin)
+      List(
+        "--bloop-startup-timeout", "2 minutes",
+        "--bloop-bsp-timeout", "1 minute"
+      )
+    else
+      Nil
 
   lazy val canRunJs = !isNativeCli || !Properties.isWin
   lazy val canRunNative = !Properties.isWin
