@@ -26,7 +26,7 @@ object Deps {
     def coursier = "2.0.16+73-gddc6d9cc9"
     def scalaJs = "1.5.1"
     def scalaNative = "0.4.0"
-    def scalaPackager = "0.1.15"
+    def scalaPackager = "0.1.12"
   }
   def ammonite = ivy"com.lihaoyi:::ammonite:2.4.0-12-69f45b4b"
   def asm = ivy"org.ow2.asm:asm:9.1"
@@ -58,7 +58,7 @@ object Deps {
   def scalaJsTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:${Versions.scalaJs}"
   def scalametaTrees = ivy"org.scalameta::trees:4.4.21"
   def scalaPackager = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
-  def scalaPackagerCli = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
+  def scalaPackagerCli = ivy"org.virtuslab::scala-packager-cli:0.1.15"
   def scalaparse = ivy"com.lihaoyi::scalaparse:2.3.2"
   def shapeless = ivy"com.chuusai::shapeless:2.3.7"
   def slf4jNop = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
