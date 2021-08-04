@@ -21,7 +21,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Unit tests
@@ -55,7 +55,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Generate native launcher
@@ -82,7 +82,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Generate native launcher
@@ -107,7 +107,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Generate native launcher
@@ -131,7 +131,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Check native-image config format
@@ -147,7 +147,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Check that reference doc is up-to-date
@@ -169,7 +169,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - uses: actions/download-artifact@v2
