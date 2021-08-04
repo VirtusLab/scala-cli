@@ -72,7 +72,6 @@ object Deps {
 
 def graalVmVersion = "21.1.0"
 
-def csAarch64Version = "2.0.16"
 def csDockerVersion  = "2.0.16"
 
 object Docker {

@@ -1,13 +1,14 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.5`
 import $file.project.deps, deps.{Deps, Docker, Scala}
-import $file.project.ghreleaseassets
-import $file.project.publish, publish.ScalaCliPublishModule
+import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath, platformExecutableJarExtension}
 
 import java.io.File
 
 import de.tobiasroeser.mill.vcs.version.VcsVersion
+import io.github.alexarchambault.millnativeimage.upload.Upload
 import mill._, scalalib.{publish => _, _}
 import mill.contrib.bloop.Bloop
 
@@ -472,12 +473,22 @@ def writeShortPackageVersionTo(dest: os.Path) = T.command {
 
 def copyLauncher(directory: String = "artifacts") = T.command {
   val nativeLauncher = cli.nativeImage().path
-  ghreleaseassets.copyLauncher(nativeLauncher, directory)
+  Upload.copyLauncher(
+    nativeLauncher,
+    directory,
+    "scala-cli",
+    compress = true
+  )
 }
 
 def copyCoreLauncher(directory: String = "artifacts") = T.command {
   val nativeLauncher = `cli-core`.nativeImage().path
-  ghreleaseassets.copyLauncher(nativeLauncher, directory)
+  Upload.copyLauncher(
+    nativeLauncher,
+    directory,
+    "scala-cli",
+    compress = true
+  )
 }
 
 def copyJvmLauncher(directory: String = "artifacts") = T.command {
@@ -487,7 +498,18 @@ def copyJvmLauncher(directory: String = "artifacts") = T.command {
 
 def uploadLaunchers(directory: String = "artifacts") = T.command {
   val version = cli.publishVersion()
-  ghreleaseassets.uploadLaunchers(version, directory)
+
+  val path = os.Path(directory, os.pwd)
+  val launchers = os.list(path).filter(os.isFile(_)).map { path =>
+    path.toNIO -> path.last
+  }
+  val ghToken = Option(System.getenv("UPLOAD_GH_TOKEN")).getOrElse {
+    sys.error("UPLOAD_GH_TOKEN not set")
+  }
+  val (tag, overwriteAssets) =
+    if (version.endsWith("-SNAPSHOT")) ("latest", true)
+    else ("v" + version, false)
+  Upload.upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
 }
 
 def unitTests() = T.command {
@@ -533,10 +555,22 @@ def copyDefaultLauncher(directory: String = "artifacts") =
 
 def copyMostlyStaticLauncher(directory: String = "artifacts") = T.command {
   val nativeLauncher = `cli-core`.nativeImageMostlyStatic().path
-  ghreleaseassets.copyLauncher(nativeLauncher, directory, suffix = "-mostly-static")
+  Upload.copyLauncher(
+    nativeLauncher,
+    directory,
+    "scala-cli",
+    compress = true,
+    suffix = "-mostly-static"
+  )
 }
 
 def copyStaticLauncher(directory: String = "artifacts") = T.command {
   val nativeLauncher = `cli-core`.nativeImageStatic().path
-  ghreleaseassets.copyLauncher(nativeLauncher, directory, suffix = "-static")
+  Upload.copyLauncher(
+    nativeLauncher,
+    directory,
+    "scala-cli",
+    compress = true,
+    suffix = "-static"
+  )
 }
