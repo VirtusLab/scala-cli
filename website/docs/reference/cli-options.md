@@ -64,6 +64,18 @@ Host the compilation server should bind to
 
 Port the compilation server should bind to (pass -1 to pick a random port)
 
+#### `--bloop-bsp-timeout`
+
+Maximum duration to wait for BSP connection to be opened
+
+#### `--bloop-bsp-check-period`
+
+Duration between checks of the BSP connection state
+
+#### `--bloop-startup-timeout`
+
+Maximum duration to wait for compilation server to start up
+
 ## Compile options
 
 Available in commands:
