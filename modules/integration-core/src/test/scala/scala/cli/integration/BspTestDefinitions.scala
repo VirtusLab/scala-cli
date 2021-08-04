@@ -68,7 +68,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String]) extends m
         await(remoteServer.buildInitialize(initParams(root)).asScala)
         await(f(localClient, remoteServer))
       }
-      Await.result(f0, Duration.Inf)
+      Await.result(f0, 3.minutes)
     } finally {
       if (remoteServer != null)
         try Await.result(remoteServer.buildShutdown().asScala, 20.seconds)
