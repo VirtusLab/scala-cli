@@ -8,7 +8,7 @@ import scala.build.internal.ScalaJsConfig;
 
 import java.nio.file.Path;
 
-@TargetClass(className = "scala.build.internal.ScalaJsLinker")
+@TargetClass(className = "scala.cli.internal.ScalaJsLinker")
 @Platforms({Platform.WINDOWS.class})
 final class ScalaJsLinkerSubst {
 
