@@ -70,7 +70,7 @@ object Deps {
   def upickle = ivy"com.lihaoyi::upickle:1.3.8"
 }
 
-def graalVmVersion = "21.1.0"
+def graalVmVersion = "21.2.0"
 
 def csDockerVersion  = "2.0.16"
 
