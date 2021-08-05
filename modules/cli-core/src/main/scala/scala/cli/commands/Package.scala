@@ -13,7 +13,7 @@ import packager.config._
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.build.internal.ScalaJsConfig
 import scala.build.options.PackageType
-import scala.cli.internal.ScalaJsLinker
+import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
 import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
 
@@ -228,7 +228,12 @@ object Package extends ScalaCommand[PackageOptions] {
           case PackageType.Rpm =>
             RedHatPackage(bootstrapPath, redHatSettings).build()
           case PackageType.Msi =>
-            WindowsPackage(bootstrapPath, windowsSettings).build()
+            val imageResizerOpt = Option((new GetImageResizer).get())
+            WindowsPackage(
+              bootstrapPath,
+              windowsSettings,
+              imageResizerOpt = imageResizerOpt
+            ).build()
         }
     }
 
