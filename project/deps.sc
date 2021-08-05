@@ -3,10 +3,9 @@ import mill._, scalalib._
 object Scala {
   def scala212 = "2.12.14"
   def scala213 = "2.13.6"
-  def scala3Extras = Seq("3.0.0-RC2", "3.0.0-RC3")
   def scala3 = "3.0.1"
   val allScala2 = Seq(scala213, scala212)
-  val all = allScala2 ++ scala3Extras ++ Seq(scala3)
+  val all = allScala2 ++ Seq(scala3)
 
   def listAll: Seq[String] =
     (6 to 13).map(i => s"2.12.$i") ++ Seq(scala212) ++
