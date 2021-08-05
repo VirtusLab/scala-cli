@@ -10,6 +10,7 @@ on:
 
 jobs:
   trigger-vm:
+    if: github.event_name == 'push' && github.repository == 'VirtuslabRnD/scala-cli'
     runs-on: ubuntu-latest
     steps:
       - uses: azure/login@v1
@@ -24,6 +25,10 @@ jobs:
       fail-fast: false
       matrix:
         OS: [[ self-hosted, windows, scala-3-cli ]]
+        onlyOnMaster: ${{ contains(github.event_name, 'push') && contains(github.repository, 'VirtuslabRnD/scala-cli') }}
+        exclude:
+          - OS: [ self-hosted, windows, scala-3-cli ]
+            onlyOnMaster: false
     steps:
     - uses: actions/checkout@v2
       with:
