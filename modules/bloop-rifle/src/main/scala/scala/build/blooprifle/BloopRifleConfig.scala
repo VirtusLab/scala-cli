@@ -1,11 +1,10 @@
 package scala.build.blooprifle
 
-import java.io.File
+import java.io.{File, InputStream, OutputStream}
 
 import scala.build.blooprifle.internal.Constants
+import scala.concurrent.duration._
 import scala.util.Try
-import java.io.InputStream
-import java.io.OutputStream
 
 final case class BloopRifleConfig(
   host: String,
@@ -13,10 +12,13 @@ final case class BloopRifleConfig(
   javaPath: String,
   javaOpts: Seq[String],
   classPath: () => Seq[File],
-  bspSocketOrPort: Option[() => Either[Int, File]] = None,
-  bspStdin: Option[InputStream] = None,
-  bspStdout: Option[OutputStream] = None,
-  bspStderr: Option[OutputStream] = None
+  bspSocketOrPort: Option[() => Either[Int, File]],
+  bspStdin: Option[InputStream],
+  bspStdout: Option[OutputStream],
+  bspStderr: Option[OutputStream],
+  period: FiniteDuration,
+  timeout: FiniteDuration,
+  initTimeout: FiniteDuration
 )
 
 object BloopRifleConfig {
@@ -87,7 +89,10 @@ object BloopRifleConfig {
       bspSocketOrPort = None,
       bspStdin = None,
       bspStdout = None,
-      bspStderr = None
+      bspStderr = None,
+      period = 100.milliseconds,
+      timeout = 5.seconds,
+      initTimeout = 10.seconds
     )
 
 }

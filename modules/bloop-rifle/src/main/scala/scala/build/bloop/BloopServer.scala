@@ -71,8 +71,8 @@ object BloopServer {
 
   private def connect(
     conn: BspConnection,
-    period: FiniteDuration = 100.milliseconds,
-    timeout: FiniteDuration = 5.seconds
+    period: FiniteDuration,
+    timeout: FiniteDuration
   ): Socket = {
 
     @tailrec
@@ -102,8 +102,8 @@ object BloopServer {
     workspace: Path,
     threads: BloopThreads,
     logger: BloopRifleLogger,
-    period: FiniteDuration = 100.milliseconds,
-    timeout: FiniteDuration = 5.seconds
+    period: FiniteDuration,
+    timeout: FiniteDuration
   ): (BspConnection, Socket) = {
 
     ensureBloopRunning(config, threads.startServerChecks, logger)
@@ -132,13 +132,10 @@ object BloopServer {
     classesDir: Path,
     buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
-    logger: BloopRifleLogger,
-    period: FiniteDuration = 100.milliseconds,
-    timeout: FiniteDuration = 5.seconds,
-    initTimeout: FiniteDuration = 10.seconds
+    logger: BloopRifleLogger
   ): BloopServer = {
 
-    val (conn, socket) = bsp(config, workspace, threads, logger, period, timeout)
+    val (conn, socket) = bsp(config, workspace, threads, logger, config.period, config.timeout)
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
@@ -173,7 +170,7 @@ object BloopServer {
     bloopExtraParams.setOwnsBuildFiles(true)
     initParams.setData(bloopExtraParams)
     logger.debug("Sending buildInitialize BSP command to Bloop")
-    try server.buildInitialize(initParams).get(initTimeout.length, initTimeout.unit)
+    try server.buildInitialize(initParams).get(config.initTimeout.length, config.initTimeout.unit)
     catch {
       case ex: TimeoutException =>
         throw new Exception("Timeout while waiting for buildInitialize response", ex)
@@ -191,9 +188,7 @@ object BloopServer {
     classesDir: Path,
     buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
-    logger: BloopRifleLogger,
-    period: FiniteDuration = 100.milliseconds,
-    timeout: FiniteDuration = 5.seconds
+    logger: BloopRifleLogger
   )(f: BloopServer => T): T = {
     var server: BloopServer = null
     try {
@@ -205,9 +200,7 @@ object BloopServer {
         classesDir,
         buildClient,
         threads,
-        logger,
-        period,
-        timeout
+        logger
       )
       f(server)
     } finally {

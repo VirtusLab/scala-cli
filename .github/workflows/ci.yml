@@ -21,13 +21,11 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Unit tests
       run: ./mill -i unitTests
-    - name: JVM integration tests
-      run: ./mill -i integration.jvm.test
     - name: Build OS packages
       run: .github/scripts/generate-os-packages.sh
       shell: bash
@@ -42,6 +40,8 @@ jobs:
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
+    - name: JVM integration tests
+      run: ./mill -i integration.jvm.test
 
   native-tests:
     runs-on: ${{ matrix.OS }}
@@ -55,13 +55,11 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Generate native launcher
       run: ./mill -i show defaultNativeImage
-    - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
     - name: Build OS packages
       run: .github/scripts/generate-os-packages.sh
       shell: bash
@@ -73,6 +71,8 @@ jobs:
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
+    - name: Native integration tests
+      run: ./mill -i nativeIntegrationTests
 
   native-mostly-static-tests:
     runs-on: ubuntu-latest
@@ -82,13 +82,11 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Generate native launcher
       run: ./mill -i show cli-core.nativeImageMostlyStatic
-    - name: Native integration tests
-      run: ./mill -i integration-core.native-mostly-static.test
     # TODO Build docker images too?
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
@@ -98,6 +96,8 @@ jobs:
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
+    - name: Native integration tests
+      run: ./mill -i integration-core.native-mostly-static.test
 
   native-static-tests:
     runs-on: ubuntu-latest
@@ -107,13 +107,11 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Generate native launcher
       run: ./mill -i show cli-core.nativeImageStatic
-    - name: Native integration tests
-      run: ./mill -i integration-core.native-static.test
     - name: Copy artifacts
       run: ./mill -i copyStaticLauncher artifacts/
     - uses: actions/upload-artifact@v2.2.4
@@ -122,6 +120,8 @@ jobs:
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
+    - name: Native integration tests
+      run: ./mill -i integration-core.native-static.test
 
   checks:
     runs-on: ubuntu-latest
@@ -131,7 +131,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Check native-image config format
@@ -147,7 +147,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - name: Check that reference doc is up-to-date
@@ -169,7 +169,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: laughedelic/coursier-setup@v1
+    - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
     - uses: actions/download-artifact@v2

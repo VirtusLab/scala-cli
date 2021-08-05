@@ -176,7 +176,10 @@ final case class SharedOptions(
       javaPath = buildOptions(false, None).javaCommand(),
       bspSocketOrPort = compilationServer.defaultBspSocketOrPort(directories.directories),
       bspStdout = if (logging.verbosity >= 3) Some(System.err) else None,
-      bspStderr = if (logging.verbosity >= 3) Some(System.err) else None
+      bspStderr = if (logging.verbosity >= 3) Some(System.err) else None,
+      period = compilationServer.bloopBspCheckPeriodDuration.getOrElse(baseConfig.period),
+      timeout = compilationServer.bloopBspTimeoutDuration.getOrElse(baseConfig.timeout),
+      initTimeout = compilationServer.bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout)
     )
   }
 
