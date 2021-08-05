@@ -222,7 +222,6 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     `cli-core`
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.metabrowseServer,
     Deps.slf4jNop
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(

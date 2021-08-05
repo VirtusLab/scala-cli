@@ -90,7 +90,7 @@ object Test extends ScalaCommand[TestOptions] {
       else {
         val extraArgs = testFrameworkOpt.map(fw => s"--test-framework=$fw").toSeq ++ Seq("--") ++ args
 
-        Runner.run(
+        Runner.runJvm(
           build.options.javaCommand(),
           build.options.javaOptions.javaOpts,
           build.fullClassPath.map(_.toFile),

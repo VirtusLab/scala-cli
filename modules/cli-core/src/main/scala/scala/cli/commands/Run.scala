@@ -130,7 +130,7 @@ object Run extends ScalaCommand[RunOptions] {
           )
         }
       else
-        Runner.run(
+        Runner.runJvm(
           build.options.javaCommand(),
           build.options.javaOptions.javaOpts,
           build.fullClassPath.map(_.toFile),
