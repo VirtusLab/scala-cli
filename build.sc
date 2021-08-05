@@ -53,19 +53,11 @@ object `integration-core` extends Module {
   }
 }
 
-object `integration-docker` extends CliIntegrationDockerCore {
-  object test extends Tests {
-    def sources = T.sources {
-       super.sources() ++ `integration-core`.jvm.sources()
-     }
-   }
-}
-
 object integration extends Module {
   object docker extends CliIntegrationDockerCore {
     object test extends Tests {
       def sources = T.sources {
-        super.sources() ++ `integration-docker`.test.sources()
+        super.sources() ++ `integration-core`.jvm.sources()
       }
     }
   }
