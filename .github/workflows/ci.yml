@@ -75,7 +75,7 @@ jobs:
     - name: Generate native launcher
       run: ./mill -i show defaultNativeImage
     - name: Build OS packages
-      run: .github/scripts/generate-os-packages.sh
+      run: .github/scripts/generate-os-packages.sh || true
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher artifacts/
