@@ -87,7 +87,8 @@ jobs:
         jvm: 8
     - name: Generate native launcher
       run: ./mill -i show cli-core.nativeImageMostlyStatic
-    # TODO Build docker images too?
+    - name: Generate docker image
+      run: .github/scripts/generate-docker-images-ubuntu.sh
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
     - uses: actions/upload-artifact@v2.2.4
@@ -98,6 +99,8 @@ jobs:
         retention-days: 2
     - name: Native integration tests
       run: ./mill -i integration-core.native-mostly-static.test
+    - name: Docker integration tests
+      run: ./mill integration.docker.test
 
   native-static-tests:
     runs-on: ubuntu-latest
