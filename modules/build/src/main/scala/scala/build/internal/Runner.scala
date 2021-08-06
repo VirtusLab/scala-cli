@@ -15,6 +15,31 @@ import scala.util.Properties
 object Runner {
 
   def run(
+    commandName: String,
+    command: Seq[String],
+    logger: Logger,
+    allowExecve: Boolean = false
+  ): Int = {
+
+    import logger.{log, debug}
+
+    log(
+      s"Running ${command.mkString(" ")}",
+      "  Running" + System.lineSeparator() + command.iterator.map(_ + System.lineSeparator()).mkString
+    )
+
+    if (allowExecve && Execve.available()) {
+      debug("execve available")
+      Execve.execve(findInPath(command.head).fold(command.head)(_.toString), commandName +: command.tail.toArray, sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" })
+      sys.error("should not happen")
+    } else
+      new ProcessBuilder(command: _*)
+        .inheritIO()
+        .start()
+        .waitFor()
+  }
+
+  def runJvm(
     javaCommand: String,
     javaArgs: Seq[String],
     classPath: Seq[File],
@@ -23,8 +48,6 @@ object Runner {
     logger: Logger,
     allowExecve: Boolean = false
   ): Int = {
-
-    import logger.{log, debug}
 
     val command =
       Seq(javaCommand) ++
@@ -35,20 +58,7 @@ object Runner {
       ) ++
       args
 
-    log(
-      s"Running ${command.mkString(" ")}",
-      "  Running" + System.lineSeparator() + command.iterator.map(_ + System.lineSeparator()).mkString
-    )
-
-    if (allowExecve && Execve.available()) {
-      debug("execve available")
-      Execve.execve(findInPath(command.head).fold(command.head)(_.toString), "java" +: command.tail.toArray, sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" })
-      sys.error("should not happen")
-    } else
-      new ProcessBuilder(command: _*)
-        .inheritIO()
-        .start()
-        .waitFor()
+    run("java", command, logger, allowExecve)
   }
 
   private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =

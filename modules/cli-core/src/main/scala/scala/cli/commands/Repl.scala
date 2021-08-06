@@ -97,7 +97,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     if (dryRun)
       logger.message("Dry run, not running REPL.")
     else
-      Runner.run(
+      Runner.runJvm(
         build.options.javaCommand(),
         replArtifacts.replJavaOpts ++ build.options.javaOptions.javaOpts,
         build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),

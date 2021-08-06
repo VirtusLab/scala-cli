@@ -221,10 +221,6 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   def moduleDeps = Seq(
     `cli-core`
   )
-  def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.metabrowseServer,
-    Deps.slf4jNop
-  )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
   )
@@ -232,11 +228,6 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
 
   def localRepoJar = `local-repo`.localRepoJar()
   def graalVmVersion = deps.graalVmVersion
-
-  // lsp4j, pulled by metabrowse, brings a class that conflicts with one
-  // defined in bloop, and sometimes creates issues when running
-  // native-image
-  def stripLsp4jPreconditionsFromBsp4j = true
 
   object test extends Tests
 }

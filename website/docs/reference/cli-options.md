@@ -281,6 +281,18 @@ Aliases: `-p`
 
 Bind to port
 
+#### `--os-arch-suffix`
+
+#### `--metabrowse-tag`
+
+#### `--metabrowse-git-hub-org-name`
+
+#### `--metabrowse-extension`
+
+#### `--metabrowse-launcher`
+
+#### `--metabrowse-dialect`
+
 ## Package options
 
 Available in commands:

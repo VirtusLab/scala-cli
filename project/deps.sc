@@ -3,10 +3,9 @@ import mill._, scalalib._
 object Scala {
   def scala212 = "2.12.14"
   def scala213 = "2.13.6"
-  def scala3Extras = Seq("3.0.0-RC2", "3.0.0-RC3")
   def scala3 = "3.0.1"
   val allScala2 = Seq(scala213, scala212)
-  val all = allScala2 ++ scala3Extras ++ Seq(scala3)
+  val all = allScala2 ++ Seq(scala3)
 
   def listAll: Seq[String] =
     (6 to 13).map(i => s"2.12.$i") ++ Seq(scala212) ++
@@ -41,7 +40,6 @@ object Deps {
   def ipcSocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.4.0"
   def jimfs = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.2.1"
-  def metabrowseServer = ivy"org.scalameta::metabrowse-server:0.2.5"
   def munit = ivy"org.scalameta::munit:0.7.25"
   def nativeTestRunner = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools = ivy"org.scala-native::tools:${Versions.scalaNative}"
