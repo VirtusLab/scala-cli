@@ -179,8 +179,7 @@ class NativePackagerTests extends munit.FunSuite{
     }
   }
 
-  if ( Properties.isWin) {
-
+  if (Properties.isWin && !TestUtil.isNativeCli)
     test("building msi package") {
 
       testInputs.fromRoot { root =>
@@ -208,5 +207,4 @@ class NativePackagerTests extends munit.FunSuite{
         expect(os.isFile(launcher))
       }
     }
-  }
 }
