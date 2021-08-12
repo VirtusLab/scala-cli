@@ -49,7 +49,7 @@ generate_deb() {
     --deb \
     --version "$(version)" \
     --source-app-path "$(launcher)" \
-    --output "$ARTIFACTS_DIR/scala-cli.deb" \
+    --output "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.deb" \
     --description "Scala CLI" \
     --maintainer "Scala CLI" \
     --launcher-app-name "scala-cli"
@@ -60,7 +60,7 @@ generate_rpm() {
     --rpm \
     --version "$(shortVersion)" \
     --source-app-path "$(launcher)" \
-    --output "$ARTIFACTS_DIR/scala-cli.rpm" \
+    --output "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.rpm" \
     --description "Scala CLI" \
     --maintainer "Scala CLI" \
     --license "ASL 2.0" \
@@ -72,7 +72,7 @@ generate_pkg() {
     --pkg \
     --version "$(version)" \
     --source-app-path "$(launcher)" \
-    --output "$ARTIFACTS_DIR/scala-cli.pkg" \
+    --output "$ARTIFACTS_DIR/scala-cli-x86_64-apple-darwin.pkg" \
     --identifier "scala-cli" \
     --launcher-app-name "scala-cli"
 }
@@ -82,7 +82,7 @@ generate_msi() {
     --msi \
     --version "$(shortVersion)" \
     --source-app-path "$(launcher)" \
-    --output "$ARTIFACTS_DIR/scala-cli.msi" \
+    --output "$ARTIFACTS_DIR/scala-cli-x86_64-pc-win32.msi" \
     --product-name "Scala CLI" \
     --maintainer "Scala CLI" \
     --launcher-app-name "scala-cli" \
