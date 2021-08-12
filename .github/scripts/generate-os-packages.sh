@@ -49,10 +49,11 @@ generate_deb() {
     --deb \
     --version "$(version)" \
     --source-app-path "$(launcher)" \
-    --output "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.deb" \
+    --output "$ARTIFACTS_DIR/scala-cli.deb" \
     --description "Scala CLI" \
     --maintainer "Scala CLI" \
     --launcher-app-name "scala-cli"
+  mv "$ARTIFACTS_DIR/scala-cli.deb" "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.deb"
 }
 
 generate_rpm() {
@@ -88,7 +89,8 @@ generate_msi() {
     --launcher-app-name "scala-cli" \
     --license-path "./LICENSE" \
     --exit-dialog "If scala-cli is not visible, please restart your opened consoles" \
-    --logo-path "./logo.png"
+    --logo-path "./logo.png" \
+    --suppress-validation
 }
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then

@@ -89,7 +89,8 @@ final case class PackageOptions(
         windowsOptions = WindowsOptions(
           licensePath = packager.licensePath.map(os.Path(_, os.pwd)),
           productName = Some(packager.productName),
-          exitDialog = packager.exitDialog
+          exitDialog = packager.exitDialog,
+          suppressValidation = packager.suppressValidation
         )
       )
     )

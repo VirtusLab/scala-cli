@@ -15,19 +15,23 @@ final case class SharedCompilationServerOptions(
   @Group("Compilation server")
   @HelpMessage("Protocol to use to open a BSP connection with Bloop (ignored on Windows for now)")
   @ValueDescription("tcp|local|default")
+  @Hidden
     bloopBspProtocol: Option[String] = None,
   @Group("Compilation server")
   @HelpMessage("Socket file to use to open a BSP connection with Bloop (ignored on Windows for now)")
   @ValueDescription("path")
+  @Hidden
     bloopBspSocket: Option[String] = None,
 
   @Group("Compilation server")
   @HelpMessage("Host the compilation server should bind to")
   @ValueDescription("host")
+  @Hidden
     bloopHost: Option[String] = None,
   @Group("Compilation server")
   @HelpMessage("Port the compilation server should bind to (pass -1 to pick a random port)")
   @ValueDescription("port|-1")
+  @Hidden
     bloopPort: Option[Int] = None,
 
   @Hidden

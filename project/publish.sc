@@ -69,6 +69,10 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
         computePublishVersion(state, simple = true)
       }
   }
+
+  def repositories = super.repositories ++ Seq(
+    coursier.Repositories.sonatype("snapshots")
+  )
 }
 
 def publishSonatype(

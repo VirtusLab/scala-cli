@@ -56,7 +56,10 @@ final case class PackagerOptions(
     productName: String = "Scala packager",
   @Group("Windows")
   @HelpMessage("Text will be displayed on exit dialog")
-    exitDialog: Option[String] = None
+    exitDialog: Option[String] = None,
+  @Group("Windows")
+  @HelpMessage("Suppress Wix ICE validation (required for users that are neither interactive, not local administrators)")
+    suppressValidation: Option[Boolean] = None
 )
 
 

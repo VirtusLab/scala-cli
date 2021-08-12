@@ -215,7 +215,8 @@ object Package extends ScalaCommand[PackageOptions] {
             System.err.println("Product name parameter is mandatory for windows packages")
             sys.exit(1)
           },
-          exitDialog = build.options.packageOptions.windowsOptions.exitDialog
+          exitDialog = build.options.packageOptions.windowsOptions.exitDialog,
+          suppressValidation = build.options.packageOptions.windowsOptions.suppressValidation.getOrElse(false)
         )
 
         nativePackagerType match {
