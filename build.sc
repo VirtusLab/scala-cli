@@ -1,9 +1,9 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.5`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.8`
 import $file.project.deps, deps.{Deps, Docker, Scala}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
-import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath, platformExecutableJarExtension}
+import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasMacroAnnotations, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath, platformExecutableJarExtension}
 
 import java.io.File
 
@@ -232,7 +232,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   object test extends Tests
 }
 
-trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf {
+trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf with HasMacroAnnotations {
   def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
@@ -241,6 +241,7 @@ trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule wit
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.coursierLauncher,
+    Deps.dataClass,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.scalaJsLinker,

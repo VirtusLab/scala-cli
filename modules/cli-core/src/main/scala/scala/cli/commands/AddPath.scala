@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import coursier.env.{EnvironmentUpdate, ProfileUpdater, WindowsEnvVarUpdater}
+import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import java.io.File
 
@@ -18,7 +18,7 @@ object AddPath extends ScalaCommand[AddPathOptions] {
       val update = EnvironmentUpdate(Nil, Seq("PATH" -> args.all.mkString(File.pathSeparator)))
       val didUpdate =
         if (Properties.isWin) {
-          val updater = WindowsEnvVarUpdater().withUseJni(Some(coursier.paths.Util.useJni()))
+          val updater = CustomWindowsEnvVarUpdater().withUseJni(Some(coursier.paths.Util.useJni()))
           updater.applyUpdate(update)
         } else {
           val updater = ProfileUpdater()

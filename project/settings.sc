@@ -1,4 +1,4 @@
-import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.5`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.8`
 import $file.deps, deps.{Deps, Docker}
 
 import io.github.alexarchambault.millnativeimage.NativeImage
@@ -378,6 +378,23 @@ trait LocalRepo extends Module {
     PathRef(dest)
   }
 
+}
+
+trait HasMacroAnnotations extends ScalaModule {
+  def scalacOptions = T{
+    val sv = scalaVersion()
+    val extra =
+      if (sv.startsWith("2.") && !sv.startsWith("2.13.")) Nil
+      else Seq("-Ymacro-annotations")
+    super.scalacOptions() ++ extra
+  }
+  def scalacPluginIvyDeps = T{
+    val sv = scalaVersion()
+    val extra =
+      if (sv.startsWith("2.") && !sv.startsWith("2.13.")) Agg(Deps.macroParadise)
+      else Agg.empty[Dep]
+    super.scalacPluginIvyDeps() ++ extra
+  }
 }
 
 private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path] = {
