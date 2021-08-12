@@ -1,9 +1,10 @@
 package scala.build.options
 
- final case class WindowsOptions(  
+ final case class WindowsOptions(
    licensePath: Option[os.Path] = None,
    productName: Option[String] = None,
-   exitDialog: Option[String] = None
+   exitDialog: Option[String] = None,
+   suppressValidation: Option[Boolean] = None
  )
 
  object WindowsOptions {

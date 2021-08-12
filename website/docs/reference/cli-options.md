@@ -415,6 +415,10 @@ Name of product, default: Scala packager
 
 Text will be displayed on exit dialog
 
+#### `--suppress-validation`
+
+Suppress Wix ICE validation (required for users that are neither interactive, not local administrators)
+
 ## Repl options
 
 Available in commands:
