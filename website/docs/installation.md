@@ -62,27 +62,27 @@ launcher there, and add the directory to the `PATH` with
 
 ### Debian (x86-64)
 
-[Download Debian package](https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli.deb)
+[Download Debian package](https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli-x86_64-pc-linux.deb)
 
 Alternatively, get and install the Debian package with
 ```text
-$ curl -fLo scala-cli.deb https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli.deb
+$ curl -fLo scala-cli.deb https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli-x86_64-pc-linux.deb
 $ dpkg -i scala-cli.deb
 ```
 
 ### RPM (x86-64)
 
-[Download RPM package](https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli.rpm)
+[Download RPM package](https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli-x86_64-pc-linux.rpm)
 
 ### Windows (x86-64)
 
-[Download installer](https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli.msi)
+[Download installer](https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli-x86_64-pc-win32.msi)
 
 ### macOS (pkg)
 
-[Download package](https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli.pkg)
+[Download package](https://github.com/VirtuslabRnD/scala-cli/releases/download/latest/scala-cli-x86_64-apple-darwin.pkg)
 
-Once downloaded, right-click on scala-cli.pkg from Finder, and choose "Open".
+Once downloaded, right-click on `scala-cli-x86_64-apple-darwin.pkg` from Finder, and choose "Open".
 
 ### macOS (brew)
 
