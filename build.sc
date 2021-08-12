@@ -597,3 +597,32 @@ def copyStaticLauncher(directory: String = "artifacts") = T.command {
     suffix = "-static"
   )
 }
+
+// TODO Move most CI-specific tasks there
+object ci extends Module {
+  def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") = T.command {
+    def vcVersions = Seq("2019", "2017")
+    def vcEditions = Seq("Enterprise", "Community", "BuildTools")
+    def candidateBaseDirs =
+      for {
+        year <- vcVersions
+        edition <- vcEditions
+      } yield os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio") / year / edition / "VC" / "Redist" / "MSVC"
+    val baseDirs = candidateBaseDirs.filter(os.isDir(_))
+    if (baseDirs.isEmpty)
+      sys.error(s"No Visual Studio installation found, tried:" + System.lineSeparator() + candidateBaseDirs.map("  " + _).mkString(System.lineSeparator()))
+    val orig = baseDirs
+      .iterator
+      .flatMap(os.list(_).iterator)
+      .filter(os.isDir(_))
+      .map(_ / distName)
+      .filter(os.isFile(_))
+      .toStream
+      .headOption
+      .getOrElse {
+        sys.error(s"Error: $distName not found under any of:" + System.lineSeparator() + baseDirs.map("  " + _).mkString(System.lineSeparator()))
+      }
+    val destDir = os.Path(directory, os.pwd)
+    os.copy(orig, destDir / distName, createFolders = true, replaceExisting = true)
+  }
+}
