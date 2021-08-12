@@ -30,13 +30,13 @@ class NativePackagerTests extends munit.FunSuite{
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase
         val pkgAppFile = s"$appName.pkg"
         os.proc(
-            TestUtil.cli, 
-            "package", 
-            TestUtil.extraOptions, 
-            helloWorldFileName, 
-            "--pkg", 
-            "--output", pkgAppFile, 
-            "--identifier", "scala-cli", 
+            TestUtil.cli,
+            "package",
+            TestUtil.extraOptions,
+            helloWorldFileName,
+            "--pkg",
+            "--output", pkgAppFile,
+            "--identifier", "scala-cli",
             "--launcher-app-name", appName
           )
           .call(
@@ -70,13 +70,13 @@ class NativePackagerTests extends munit.FunSuite{
         val appName = helloWorldFileName.stripSuffix(".scala")
 
         os.proc(
-            TestUtil.cli, 
-            "package", 
-            TestUtil.extraOptions, 
-            helloWorldFileName, 
-            "--dmg", 
-            "--output", appName, 
-            "--identifier", "scala-cli", 
+            TestUtil.cli,
+            "package",
+            TestUtil.extraOptions,
+            helloWorldFileName,
+            "--dmg",
+            "--output", appName,
+            "--identifier", "scala-cli",
             "--launcher-app-name", appName
           )
           .call(
@@ -117,14 +117,14 @@ class NativePackagerTests extends munit.FunSuite{
         val appName = helloWorldFileName.stripSuffix(".scala")
 
         os.proc(
-            TestUtil.cli, 
-            "package", 
-            TestUtil.extraOptions, 
-            helloWorldFileName, 
-            "--deb", 
+            TestUtil.cli,
+            "package",
+            TestUtil.extraOptions,
+            helloWorldFileName,
+            "--deb",
             "--output", s"$appName.deb",
-            "--maintainer", "scala-cli-test", 
-            "--description", "scala-cli-test", 
+            "--maintainer", "scala-cli-test",
+            "--description", "scala-cli-test",
             "--launcher-app-name", appName
           )
           .call(
@@ -156,15 +156,15 @@ class NativePackagerTests extends munit.FunSuite{
         val appName = helloWorldFileName.stripSuffix(".scala")
 
         os.proc(
-            TestUtil.cli, 
+            TestUtil.cli,
             "package",
-            TestUtil.extraOptions, 
+            TestUtil.extraOptions,
             helloWorldFileName,
-            "--rpm", 
-            "--output", s"$appName.rpm", 
+            "--rpm",
+            "--output", s"$appName.rpm",
             "--description", "scala-cli",
-            "--license", "ASL 2.0", 
-            "--version", "1.0.0", 
+            "--license", "ASL 2.0",
+            "--version", "1.0.0",
             "--launcher-app-name", appName
           )
           .call(
@@ -179,7 +179,7 @@ class NativePackagerTests extends munit.FunSuite{
     }
   }
 
-  if (Properties.isWin && !TestUtil.isNativeCli)
+  if (Properties.isWin)
     test("building msi package") {
 
       testInputs.fromRoot { root =>
