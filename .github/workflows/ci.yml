@@ -177,6 +177,26 @@ jobs:
           exit 1
         )
 
+  vc-redist:
+    runs-on: [ self-hosted, windows, scala-3-cli ]
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'VirtuslabRnD/scala-cli'
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1.1.1
+      with:
+        jvm: 8
+    - run: ./mill -i ci.copyVcRedist
+    - uses: actions/upload-artifact@v2.2.4
+      with:
+        name: launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+
   launchers:
     needs: [jvm-tests, native-tests, native-mostly-static-tests, native-static-tests, checks, reference-doc]
     if: github.event_name == 'push'
