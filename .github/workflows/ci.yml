@@ -10,7 +10,7 @@ on:
 
 jobs:
   trigger-vm:
-    if: github.repository == 'VirtuslabRnD/scala-cli'
+    if: github.event_name == 'push' || github.event.head.repo.full_name == 'VirtuslabRnD/scala-cli'
     runs-on: ubuntu-latest
     steps:
       - uses: azure/login@v1
@@ -56,7 +56,7 @@ jobs:
       fail-fast: false
       matrix:
         OS: [[ self-hosted, windows, scala-3-cli ]]
-        needsVirtuslabRepo: ["${{ contains(github.repository, 'VirtuslabRnD/scala-cli') }}"]
+        needsVirtuslabRepo: ["${{ github.event_name == 'push' || github.event.head.repo.full_name == 'VirtuslabRnD/scala-cli' }}"]
         include:
           - {OS: ubuntu-latest, needsVirtuslabRepo: false}
           - {OS: macos-latest, needsVirtuslabRepo: false}
