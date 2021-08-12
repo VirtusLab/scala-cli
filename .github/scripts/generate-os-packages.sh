@@ -91,6 +91,7 @@ generate_msi() {
     --exit-dialog "If scala-cli is not visible, please restart your opened consoles" \
     --logo-path "./logo.png" \
     --suppress-validation
+  rm -f "$ARTIFACTS_DIR/"*.wixpdb || true
 }
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
