@@ -195,7 +195,8 @@ class NativePackagerTests extends munit.FunSuite{
             "--license-path", licencePath,
             "--maintainer", "Scala-cli",
             "--launcher-app-name",
-            appName
+            appName,
+            "--suppress-validation"
           )
           .call(
             cwd = root,

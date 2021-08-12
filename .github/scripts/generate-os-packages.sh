@@ -88,7 +88,8 @@ generate_msi() {
     --launcher-app-name "scala-cli" \
     --license-path "./LICENSE" \
     --exit-dialog "If scala-cli is not visible, please restart your opened consoles" \
-    --logo-path "./logo.png"
+    --logo-path "./logo.png" \
+    --suppress-validation
 }
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
