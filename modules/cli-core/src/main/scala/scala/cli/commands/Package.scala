@@ -238,7 +238,16 @@ object Package extends ScalaCommand[PackageOptions] {
         }
     }
 
-    logger.message(s"Wrote $dest")
+    logger.message {
+      if (packageType.runnable)
+        s"Wrote $dest, run it with" + System.lineSeparator() +
+          "  " + printableDest
+      else if (packageType == PackageType.Js)
+        s"Wrote $dest, run it with" + System.lineSeparator() +
+          "  node " + printableDest
+      else
+        s"Wrote $dest"
+    }
   }
 
   private def libraryJar(build: Build.Successful): Array[Byte] = {
