@@ -85,9 +85,6 @@ object packager extends ScalaModule with Bloop.Module {
   def ivyDeps = Agg(
     Deps.scalaPackagerCli
   )
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
   def mainClass = Some("packager.cli.PackagerCli")
 }
 
@@ -99,9 +96,6 @@ object `generate-reference-doc` extends SbtModule {
   def ivyDeps = Agg(
     Deps.caseApp,
     Deps.munit
-  )
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
   )
   def mainClass = Some("scala.cli.doc.GenerateReferenceDoc")
 }
