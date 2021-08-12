@@ -524,7 +524,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
     sys.error("UPLOAD_GH_TOKEN not set")
   }
   val (tag, overwriteAssets) =
-    if (version.endsWith("-SNAPSHOT")) ("latest", true)
+    if (version.endsWith("-SNAPSHOT")) ("nightly", true)
     else ("v" + version, false)
   Upload.upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
 }
