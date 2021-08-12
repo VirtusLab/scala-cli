@@ -26,6 +26,7 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
       if (simple) {
         val versionOrEmpty = state.lastTag
           .filter(_ != "latest")
+          .filter(_ != "nightly")
           .map(_.stripPrefix("v"))
           .flatMap { tag =>
             if (simple) {
@@ -46,6 +47,7 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
         val rawVersion = os.proc("git", "describe", "--tags").call().out.text.trim
           .stripPrefix("v")
           .replace("latest", "0.0.0")
+          .replace("nightly", "0.0.0")
         val idx = rawVersion.indexOf("-")
         if (idx >= 0) rawVersion.take(idx) + "+" + rawVersion.drop(idx + 1) + "-SNAPSHOT"
         else rawVersion
