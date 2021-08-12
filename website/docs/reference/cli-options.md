@@ -143,7 +143,7 @@ Print usage and exit
 
 #### `--help`
 
-Aliases: `-h`
+Aliases: `-h`, `-help`
 
 Print help message and exit
 
