@@ -39,7 +39,7 @@ object Deps {
   def guava = ivy"com.google.guava:guava:18.0"
   def ipcSocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.4.0"
   def jimfs = ivy"com.google.jimfs:jimfs:1.2"
-  def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.2.1"
+  def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.2.5"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def munit = ivy"org.scalameta::munit:0.7.25"
   def nativeTestRunner = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
