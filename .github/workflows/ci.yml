@@ -39,9 +39,9 @@ jobs:
       run: ./mill -i unitTests
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher artifacts/
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' || runner.os == 'Windows'
     - uses: actions/upload-artifact@v2.2.4
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' || runner.os == 'Windows'
       with:
         name: launchers
         path: artifacts/
