@@ -34,6 +34,7 @@ object Deps {
   def caseApp = ivy"com.github.alexarchambault::case-app:2.1.0-M5"
   def coursierJvm = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
+  def dataClass = ivy"io.github.alexarchambault::data-class:0.2.5"
   def dependency = ivy"io.get-coursier::dependency:0.2.0"
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.15.1"
   def guava = ivy"com.google.guava:guava:18.0"
