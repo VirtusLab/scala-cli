@@ -17,7 +17,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
   private def cleanUpOrigin(origin: String): String = {
     val origin0 = origin.takeWhile(_ != '[').stripSuffix("Options")
-    val actualOrigin = if (origin0 == "WithFullHelp") "Help" else origin0
+    val actualOrigin = if (origin0 == "WithFullHelp" || origin0 == "WithHelp") "Help" else origin0
     if (actualOrigin == "Shared") actualOrigin
     else actualOrigin.stripPrefix("Shared")
   }

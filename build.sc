@@ -85,9 +85,6 @@ object packager extends ScalaModule with Bloop.Module {
   def ivyDeps = Agg(
     Deps.scalaPackagerCli
   )
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
   def mainClass = Some("packager.cli.PackagerCli")
 }
 
@@ -99,9 +96,6 @@ object `generate-reference-doc` extends SbtModule {
   def ivyDeps = Agg(
     Deps.caseApp,
     Deps.munit
-  )
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
   )
   def mainClass = Some("scala.cli.doc.GenerateReferenceDoc")
 }
@@ -530,7 +524,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
     sys.error("UPLOAD_GH_TOKEN not set")
   }
   val (tag, overwriteAssets) =
-    if (version.endsWith("-SNAPSHOT")) ("latest", true)
+    if (version.endsWith("-SNAPSHOT")) ("nightly", true)
     else ("v" + version, false)
   Upload.upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
 }
@@ -596,4 +590,33 @@ def copyStaticLauncher(directory: String = "artifacts") = T.command {
     compress = true,
     suffix = "-static"
   )
+}
+
+// TODO Move most CI-specific tasks there
+object ci extends Module {
+  def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") = T.command {
+    def vcVersions = Seq("2019", "2017")
+    def vcEditions = Seq("Enterprise", "Community", "BuildTools")
+    def candidateBaseDirs =
+      for {
+        year <- vcVersions
+        edition <- vcEditions
+      } yield os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio") / year / edition / "VC" / "Redist" / "MSVC"
+    val baseDirs = candidateBaseDirs.filter(os.isDir(_))
+    if (baseDirs.isEmpty)
+      sys.error(s"No Visual Studio installation found, tried:" + System.lineSeparator() + candidateBaseDirs.map("  " + _).mkString(System.lineSeparator()))
+    val orig = baseDirs
+      .iterator
+      .flatMap(os.list(_).iterator)
+      .filter(os.isDir(_))
+      .map(_ / distName)
+      .filter(os.isFile(_))
+      .toStream
+      .headOption
+      .getOrElse {
+        sys.error(s"Error: $distName not found under any of:" + System.lineSeparator() + baseDirs.map("  " + _).mkString(System.lineSeparator()))
+      }
+    val destDir = os.Path(directory, os.pwd)
+    os.copy(orig, destDir / distName, createFolders = true, replaceExisting = true)
+  }
 }
