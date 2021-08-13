@@ -15,15 +15,8 @@ packager() {
 }
 
 launcher() {
-  local launcherMillCommand
+  local launcherMillCommand="cli.nativeImage"
   local launcherName
-
-  if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "msys" ]]; then
-    # requires less memory - to be used when memory is tight on the CI
-    launcherMillCommand="cli-core.nativeImage"
-  else
-    launcherMillCommand="cli.nativeImage"
-  fi
 
   if [[ "$OSTYPE" == "msys" ]]; then
     launcherName="scala.exe"
