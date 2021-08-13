@@ -86,7 +86,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
     - name: Native integration tests
-      if: runner.os != 'Windows' # || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+      if: runner.os != 'Windows' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
       run: ./mill -i nativeIntegrationTests
 
   native-mostly-static-tests:
