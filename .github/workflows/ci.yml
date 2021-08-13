@@ -63,6 +63,8 @@ jobs:
         exclude:
           - OS: [ self-hosted, windows, scala-3-cli ]
             needsVirtuslabRepo: false
+          - OS: [ self-hosted, windows, scala-3-cli ]
+            needsVirtuslabRepo: true
     steps:
     - uses: actions/checkout@v2
       with:
