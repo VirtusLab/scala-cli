@@ -441,6 +441,7 @@ trait FormatNativeImageConf extends JavaModule {
   def nativeImageConfDirs = T{
     resources()
       .map(_.path)
+      .filter(os.exists(_))
       .flatMap { path =>
         os.walk(path / "META-INF" / "native-image")
           .filter(_.last.endsWith("-config.json"))
