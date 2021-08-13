@@ -101,7 +101,7 @@ jobs:
       with:
         jvm: 8
     - name: Generate native launcher
-      run: ./mill -i show cli-core.nativeImageMostlyStatic
+      run: ./mill -i show cli.nativeImageMostlyStatic
     - name: Generate docker image
       run: .github/scripts/generate-docker-images-ubuntu.sh
     - name: Copy artifacts
@@ -113,7 +113,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
     - name: Native integration tests
-      run: ./mill -i integration-core.native-mostly-static.test
+      run: ./mill -i integration.native-mostly-static.test
     - name: Docker integration tests
       run: ./mill integration.docker.test
 
@@ -129,7 +129,7 @@ jobs:
       with:
         jvm: 8
     - name: Generate native launcher
-      run: ./mill -i show cli-core.nativeImageStatic
+      run: ./mill -i show cli.nativeImageStatic
     - name: Copy artifacts
       run: ./mill -i copyStaticLauncher artifacts/
     - uses: actions/upload-artifact@v2.2.4
@@ -139,7 +139,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
     - name: Native integration tests
-      run: ./mill -i integration-core.native-static.test
+      run: ./mill -i integration.native-static.test
 
   checks:
     runs-on: ubuntu-latest

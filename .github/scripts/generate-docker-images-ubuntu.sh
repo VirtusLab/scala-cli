@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
-launcherMillCommand="cli-core.nativeImageMostlyStatic"
+launcherMillCommand="cli.nativeImageMostlyStatic"
 launcherName="scala"
 mill="./mill"
 
