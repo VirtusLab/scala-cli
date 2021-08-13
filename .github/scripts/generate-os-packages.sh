@@ -17,16 +17,17 @@ packager() {
 launcher() {
   local launcherMillCommand
   local launcherName
-  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+
+  if [[ "$OSTYPE" == "linux-gnu"* || "$OSTYPE" == "msys" ]]; then
     # requires less memory - to be used when memory is tight on the CI
     launcherMillCommand="cli-core.nativeImage"
-    launcherName="scala"
-  elif [[ "$OSTYPE" == "msys" ]]; then
-    # not enough memory on the GitHub actions Windows workers to build a native image
-    launcherMillCommand="cli.standaloneLauncher"
-    launcherName="scala.bat"
   else
     launcherMillCommand="cli.nativeImage"
+  fi
+
+  if [[ "$OSTYPE" == "msys" ]]; then
+    launcherName="scala.exe"
+  else
     launcherName="scala"
   fi
 

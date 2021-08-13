@@ -198,7 +198,7 @@ jobs:
         retention-days: 2
 
   launchers:
-    needs: [jvm-tests, native-tests, native-mostly-static-tests, native-static-tests, checks, reference-doc]
+    needs: [jvm-tests, native-tests, native-mostly-static-tests, native-static-tests, vc-redist, checks, reference-doc]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
