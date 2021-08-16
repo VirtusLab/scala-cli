@@ -9,7 +9,7 @@ import scala.build.{Inputs, Sources}
 import scala.build.internal.AmmUtil
 import scala.build.options.{BuildOptions, ClassPathOptions}
 
-case object ScalaFilePreprocessor extends Preprocessor {
+case object ScalaPreprocessor extends Preprocessor {
   def preprocess(input: Inputs.SingleElement): Option[Seq[PreprocessedSource]] =
     input match {
       case f: Inputs.ScalaFile =>
@@ -22,7 +22,7 @@ case object ScalaFilePreprocessor extends Preprocessor {
             PreprocessedSource.OnDisk(f.path, None, Some(inferredClsName))
           case Some((deps, updatedCode)) =>
             val options = BuildOptions(classPathOptions = ClassPathOptions(
-              extraDependencies = deps.map(ScalaFilePreprocessor.parseDependency)
+              extraDependencies = deps.map(ScalaPreprocessor.parseDependency)
             ))
             PreprocessedSource.InMemory(
               Right(f.path),
@@ -39,7 +39,7 @@ case object ScalaFilePreprocessor extends Preprocessor {
         val content = new String(v.content, StandardCharsets.UTF_8)
         val (deps, updatedContent) = Sources.process(content, v.source).getOrElse((Nil, content))
         val options = BuildOptions(classPathOptions = ClassPathOptions(
-          extraDependencies = deps.map(ScalaFilePreprocessor.parseDependency)
+          extraDependencies = deps.map(ScalaPreprocessor.parseDependency)
         ))
         val s = PreprocessedSource.InMemory(
           Left(v.source),

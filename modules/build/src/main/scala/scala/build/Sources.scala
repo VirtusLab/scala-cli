@@ -109,7 +109,7 @@ object Sources {
       ScriptPreprocessor(codeWrapper),
       JavaPreprocessor,
       ConfigPreprocessor,
-      ScalaFilePreprocessor
+      ScalaPreprocessor
     )
 
   def forInputs(
