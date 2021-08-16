@@ -102,6 +102,21 @@ Once downloaded, right-click on `scala-cli-x86_64-apple-darwin.pkg` from Finder,
 
 ## Shell completions
 
-### bash
+Only bash and zsh completions are offered for now.
 
-### zsh
+Try the completions with
+```text
+$ eval "$(scala-cli install completions --env)"
+$ scala-cli --<TAB>
+```
+
+Install them on your system with
+```text
+$ scala-cli install completions
+```
+
+If any of the `scala-cli install completions` command complained that your shell cannot be determined, specify it
+with `--shell`, like
+```text
+$ scala-cli install completions --shell zsh
+```
