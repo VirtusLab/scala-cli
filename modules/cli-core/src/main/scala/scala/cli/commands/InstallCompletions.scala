@@ -7,7 +7,7 @@ import java.util.Arrays
 import caseapp._
 import caseapp.core.complete.{Bash, Zsh}
 
-import scala.cli.internal.ProfileFileUpdater
+import scala.cli.internal.{Argv0, ProfileFileUpdater}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   override def names = List(
@@ -23,6 +23,13 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
 
     val logger = options.logging.logger
 
+    val name = options.name.getOrElse {
+      val baseName = (new Argv0).get("scala-cli")
+      val idx = baseName.lastIndexOf(File.pathSeparator)
+      if (idx < 0) baseName
+      else baseName.drop(idx + 1)
+    }
+
     val format = options.format.map(_.trim).filter(_.nonEmpty)
       .orElse {
         Option(System.getenv("SHELL")).map(_.split(File.separator).last).map {
@@ -31,21 +38,26 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
           case other => other
         }
       }
-      .getOrElse(sys.error("Cannot determine current shell, pass the shell you use with --format"))
+      .getOrElse {
+        System.err.println("Cannot determine current shell, pass the shell you use with --shell, like")
+        System.err.println(s"  $name install completions --shell zsh")
+        System.err.println(s"  $name install completions --shell bash")
+        sys.exit(1)
+      }
 
     val (rcScript, defaultRcFile) = format match {
       case Bash.id | "bash" =>
-        val script = Bash.script(options.name)
+        val script = Bash.script(name)
         val defaultRcFile = home / ".bashrc"
         (script, defaultRcFile)
       case Zsh.id | "zsh" =>
-        val completionScript = Zsh.script(options.name)
+        val completionScript = Zsh.script(name)
         val zDotDir = Option(System.getenv("ZDOTDIR"))
           .map(os.Path(_, os.pwd))
           .getOrElse(home)
         val defaultRcFile = zDotDir / ".zshrc"
         val dir = completionsDir / "zsh"
-        val completionScriptDest = dir / "_scala"
+        val completionScriptDest = dir / s"_$name"
         val content = completionScript.getBytes(Charset.defaultCharset())
         if (!os.exists(completionScriptDest) || !Arrays.equals(os.read.bytes(completionScriptDest), content)) {
           logger.log(s"Writing $completionScriptDest")
@@ -65,7 +77,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
       .map(os.Path(_, os.pwd))
       .getOrElse(defaultRcFile)
 
-    val banner = options.banner.replace("{NAME}", options.name)
+    val banner = options.banner.replace("{NAME}", name)
 
     val updated = ProfileFileUpdater.addToProfileFile(rcFile.toNIO, banner, rcScript, Charset.defaultCharset())
 

@@ -163,6 +163,8 @@ Available in commands:
 
 #### `--format`
 
+Aliases: `--shell`
+
 #### `--rc-file`
 
 #### `--directory`

@@ -8,10 +8,11 @@ final case class InstallCompletionsOptions(
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
 
-  format: Option[String] = None,
+  @Name("shell")
+    format: Option[String] = None,
 
   rcFile: Option[String] = None,
   directory: Option[String] = None,
-  banner: String = "{NAME} CLI completions",
-  name: String = "scala"
+  banner: String = "{NAME} completions",
+  name: Option[String] = None
 )
