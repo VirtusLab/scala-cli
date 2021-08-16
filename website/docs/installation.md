@@ -39,6 +39,9 @@ $ scala-cli about
 
 ### Windows
 
+Note that the Windows manual installation requires [Visual C++ redistributable](https://support.microsoft.com/en-us/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)
+to be installed. See below for how to install it.
+
 Download the launcher from GitHub release assets with
 ```text
 > curl -fLo scala-cli.zip https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.zip
@@ -50,7 +53,16 @@ Check that it runs fine by running its `about` command:
 > scala-cli about
 ```
 
-Note that this doesn't put the `scala-cli` command in the `PATH`. For that, you can create a directory, move the
+If you get an error about `MSVCR100.dll` being missing, you have to install
+[Visual C++ redistributable](https://support.microsoft.com/en-us/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0). A valid version is distributed with the Scala CLI launchers.
+You can download it [here](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/vc_redist.x64.exe),
+and install it by double-clicking on it. Once the Visual C++ redistributable runtime is installed,
+check that the Scala CLI runs fine by running its `about` command:
+```text
+> scala-cli about
+```
+
+Note that the commands above don't put the `scala-cli` command in the `PATH`. For that, you can create a directory, move the
 launcher there, and add the directory to the `PATH` with
 ```text
 > md "%USERPROFILE%/scala-cli"
