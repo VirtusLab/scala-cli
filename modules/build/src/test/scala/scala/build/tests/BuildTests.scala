@@ -182,46 +182,78 @@ class BuildTests extends munit.FunSuite {
       simpleNativeTest()
     }
 
-  test("dependencies") {
-    test("$ivy") {
-      val testInputs = TestInputs(
-        os.rel / "simple.sc" ->
-          """import $ivy.`com.lihaoyi::geny:0.6.5`
-            |import geny.Generator
-            |val g = Generator("Hel", "lo")
-            |println(g.mkString)
-            |""".stripMargin
+  test("dependencies - $ivy") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """import $ivy.`com.lihaoyi::geny:0.6.5`
+          |import geny.Generator
+          |val g = Generator("Hel", "lo")
+          |println(g.mkString)
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class"
       )
-      testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
-        build.assertGeneratedEquals(
-          "simple.class",
-          "simple$.class"
-        )
-      }
     }
-    test("$dep") {
-      val testInputs = TestInputs(
-        os.rel / "simple.sc" ->
-          """import $dep.`com.lihaoyi::geny:0.6.5`
-            |import geny.Generator
-            |val g = Generator("Hel", "lo")
-            |println(g.mkString)
-            |""".stripMargin
+  }
+  test("dependencies - $dep") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """import $dep.`com.lihaoyi::geny:0.6.5`
+          |import geny.Generator
+          |val g = Generator("Hel", "lo")
+          |println(g.mkString)
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class"
       )
-      testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
-        build.assertGeneratedEquals(
-          "simple.class",
-          "simple$.class"
-        )
-      }
+    }
+  }
+  test("dependencies - using") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """@using lib "com.lihaoyi::geny:0.6.5"
+          |import geny.Generator
+          |val g = Generator("Hel", "lo")
+          |println(g.mkString)
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class"
+      )
     }
   }
 
-  test("several dependencies") {
+  test("several dependencies - $ivy") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
         """import $ivy.`com.lihaoyi::geny:0.6.5`
           |import $ivy.`com.lihaoyi::pprint:0.6.6`
+          |import geny.Generator
+          |val g = Generator("Hel", "lo")
+          |pprint.log(g)
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple$.class"
+      )
+    }
+  }
+
+  test("several dependencies - using") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """@using lib "com.lihaoyi::geny:0.6.5"
+          |@using lib "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
