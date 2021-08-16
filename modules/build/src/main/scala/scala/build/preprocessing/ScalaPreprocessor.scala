@@ -20,10 +20,7 @@ case object ScalaPreprocessor extends Preprocessor {
         val source = process(f.path) match {
           case None =>
             PreprocessedSource.OnDisk(f.path, None, Some(inferredClsName))
-          case Some((deps, updatedCode)) =>
-            val options = BuildOptions(classPathOptions = ClassPathOptions(
-              extraDependencies = deps.map(ScalaPreprocessor.parseDependency)
-            ))
+          case Some((options, updatedCode)) =>
             PreprocessedSource.InMemory(
               Right(f.path),
               f.subPath,
@@ -37,10 +34,7 @@ case object ScalaPreprocessor extends Preprocessor {
 
       case v: Inputs.VirtualScalaFile =>
         val content = new String(v.content, StandardCharsets.UTF_8)
-        val (deps, updatedContent) = process(content, v.source).getOrElse((Nil, content))
-        val options = BuildOptions(classPathOptions = ClassPathOptions(
-          extraDependencies = deps.map(ScalaPreprocessor.parseDependency)
-        ))
+        val (options, updatedContent) = process(content, v.source).getOrElse((BuildOptions(), content))
         val s = PreprocessedSource.InMemory(
           Left(v.source),
           v.subPath,
@@ -62,14 +56,14 @@ case object ScalaPreprocessor extends Preprocessor {
     }
 
 
-  def process(path: os.Path): Option[(Seq[String], String)] = {
+  def process(path: os.Path): Option[(BuildOptions, String)] = {
     val printablePath =
       if (path.startsWith(Os.pwd)) path.relativeTo(Os.pwd).toString
       else path.toString
     val content = os.read(path)
     process(content, printablePath)
   }
-  def process(content: String, printablePath: String): Option[(Seq[String], String)] = {
+  def process(content: String, printablePath: String): Option[(BuildOptions, String)] = {
 
     import fastparse._
     import scalaparse._
@@ -126,7 +120,11 @@ case object ScalaPreprocessor extends Preprocessor {
         System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
       }
       val newCode = new String(buf)
-      Some((dependencyTrees.map(_.prefix.drop(1).mkString(".")), newCode))
+      val deps = dependencyTrees.map(_.prefix.drop(1).mkString("."))
+      val options = BuildOptions(classPathOptions = ClassPathOptions(
+        extraDependencies = deps.map(ScalaPreprocessor.parseDependency)
+      ))
+      Some((options, newCode))
     }
   }
 }

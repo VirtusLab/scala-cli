@@ -56,7 +56,7 @@ object ScriptPreprocessor {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, subPath)
 
-    val (deps, updatedCode) = ScalaPreprocessor.process(content, printablePath).getOrElse((Nil, content))
+    val (options, updatedCode) = ScalaPreprocessor.process(content, printablePath).getOrElse((BuildOptions(), content))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
@@ -64,22 +64,11 @@ object ScriptPreprocessor {
       updatedCode
     )
 
-    val deps0 = deps.map(ScriptPreprocessor.parseDependency)
-
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-    val options = BuildOptions(classPathOptions = ClassPathOptions(
-      extraDependencies = deps0
-    ))
 
     val components = className.split('.')
     val relPath = os.rel / components.init.toSeq / s"${components.last}.scala"
     PreprocessedSource.InMemory(reportingPath, relPath, code, topWrapperLen, Some(options), Some(className))
   }
-
-  private def parseDependency(str: String): AnyDependency =
-    DependencyParser.parse(str) match {
-      case Left(msg) => sys.error(s"Malformed dependency '$str': $msg")
-      case Right(dep) => dep
-    }
 
 }
