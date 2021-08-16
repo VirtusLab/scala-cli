@@ -5,7 +5,7 @@ import dependency.parser.DependencyParser
 
 import java.nio.charset.StandardCharsets
 
-import scala.build.{Inputs, Os, Sources}
+import scala.build.{Inputs, Os}
 import scala.build.internal.{AmmUtil, CodeWrapper, Name}
 import scala.build.options.{BuildOptions, ClassPathOptions}
 
@@ -56,7 +56,7 @@ object ScriptPreprocessor {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, subPath)
 
-    val (deps, updatedCode) = Sources.process(content, printablePath).getOrElse((Nil, content))
+    val (deps, updatedCode) = ScalaPreprocessor.process(content, printablePath).getOrElse((Nil, content))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
