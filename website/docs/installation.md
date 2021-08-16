@@ -29,7 +29,7 @@ Download the launcher from GitHub release assets with
 ```text
 $ curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-apple-darwin.gz | gzip -d > scala-cli
 $ chmod +x scala-cli
-$ sudo mv scala-cli /usr/local/bin/scala-cli
+$ mv scala-cli /usr/local/bin/scala-cli
 ```
 
 Check that it runs fine by running its `about` command:
