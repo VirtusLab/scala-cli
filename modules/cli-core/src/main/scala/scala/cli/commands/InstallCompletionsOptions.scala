@@ -12,6 +12,6 @@ final case class InstallCompletionsOptions(
 
   rcFile: Option[String] = None,
   directory: Option[String] = None,
-  banner: String = "{NAME} CLI completions",
-  name: String = "scala"
+  banner: String = "{NAME} completions",
+  name: Option[String] = None
 )

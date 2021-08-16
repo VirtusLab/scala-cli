@@ -7,7 +7,7 @@ import java.util.Arrays
 import caseapp._
 import caseapp.core.complete.{Bash, Zsh}
 
-import scala.cli.internal.ProfileFileUpdater
+import scala.cli.internal.{Argv0, ProfileFileUpdater}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   override def names = List(
@@ -33,13 +33,20 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
       }
       .getOrElse(sys.error("Cannot determine current shell, pass the shell you use with --format"))
 
+    val name = options.name.getOrElse {
+      val baseName = (new Argv0).get("scala-cli")
+      val idx = baseName.lastIndexOf(File.pathSeparator)
+      if (idx < 0) baseName
+      else baseName.drop(idx + 1)
+    }
+
     val (rcScript, defaultRcFile) = format match {
       case Bash.id | "bash" =>
-        val script = Bash.script(options.name)
+        val script = Bash.script(name)
         val defaultRcFile = home / ".bashrc"
         (script, defaultRcFile)
       case Zsh.id | "zsh" =>
-        val completionScript = Zsh.script(options.name)
+        val completionScript = Zsh.script(name)
         val zDotDir = Option(System.getenv("ZDOTDIR"))
           .map(os.Path(_, os.pwd))
           .getOrElse(home)
@@ -65,7 +72,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
       .map(os.Path(_, os.pwd))
       .getOrElse(defaultRcFile)
 
-    val banner = options.banner.replace("{NAME}", options.name)
+    val banner = options.banner.replace("{NAME}", name)
 
     val updated = ProfileFileUpdater.addToProfileFile(rcFile.toNIO, banner, rcScript, Charset.defaultCharset())
 
