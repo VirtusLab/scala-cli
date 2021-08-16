@@ -52,7 +52,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
           .getOrElse(home)
         val defaultRcFile = zDotDir / ".zshrc"
         val dir = completionsDir / "zsh"
-        val completionScriptDest = dir / "_scala"
+        val completionScriptDest = dir / s"_$name"
         val content = completionScript.getBytes(Charset.defaultCharset())
         if (!os.exists(completionScriptDest) || !Arrays.equals(os.read.bytes(completionScriptDest), content)) {
           logger.log(s"Writing $completionScriptDest")
