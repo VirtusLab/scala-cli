@@ -8,7 +8,8 @@ final case class InstallCompletionsOptions(
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
 
-  format: Option[String] = None,
+  @Name("shell")
+    format: Option[String] = None,
 
   rcFile: Option[String] = None,
   directory: Option[String] = None,

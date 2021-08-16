@@ -23,6 +23,13 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
 
     val logger = options.logging.logger
 
+    val name = options.name.getOrElse {
+      val baseName = (new Argv0).get("scala-cli")
+      val idx = baseName.lastIndexOf(File.pathSeparator)
+      if (idx < 0) baseName
+      else baseName.drop(idx + 1)
+    }
+
     val format = options.format.map(_.trim).filter(_.nonEmpty)
       .orElse {
         Option(System.getenv("SHELL")).map(_.split(File.separator).last).map {
@@ -31,14 +38,12 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
           case other => other
         }
       }
-      .getOrElse(sys.error("Cannot determine current shell, pass the shell you use with --format"))
-
-    val name = options.name.getOrElse {
-      val baseName = (new Argv0).get("scala-cli")
-      val idx = baseName.lastIndexOf(File.pathSeparator)
-      if (idx < 0) baseName
-      else baseName.drop(idx + 1)
-    }
+      .getOrElse {
+        System.err.println("Cannot determine current shell, pass the shell you use with --shell, like")
+        System.err.println(s"  $name install completions --shell zsh")
+        System.err.println(s"  $name install completions --shell bash")
+        sys.exit(1)
+      }
 
     val (rcScript, defaultRcFile) = format match {
       case Bash.id | "bash" =>
