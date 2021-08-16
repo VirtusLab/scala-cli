@@ -11,7 +11,7 @@ abstract class ScalaCliBase extends CommandsEntryPoint {
 
   def actualDefaultCommand: DefaultBase
 
-  lazy val progName = (new Argv0).get("scala")
+  lazy val progName = (new Argv0).get("scala-cli")
   override def description = "Compile, run, package Scala code."
   final override def defaultCommand = Some(actualDefaultCommand)
 
