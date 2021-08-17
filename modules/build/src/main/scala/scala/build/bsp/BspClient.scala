@@ -86,6 +86,7 @@ class BspClient(
     }
   }
 
+  def setProjectParams(newParams: Seq[String]): Unit = {}
   def diagnostics: Option[Seq[(Either[String, os.Path], b.Diagnostic)]] = None
   def clear(): Unit = {}
 }

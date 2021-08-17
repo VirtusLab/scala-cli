@@ -5,6 +5,7 @@ import ch.epfl.scala.bsp4j
 import java.io.PrintStream
 
 trait BloopBuildClient extends bsp4j.BuildClient {
+  def setProjectParams(newParams: Seq[String]): Unit
   def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]): Unit
   def diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
   def clear(): Unit

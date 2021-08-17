@@ -124,6 +124,7 @@ object Build {
 
     val generatedSources = sources.generateSources(inputs0.generatedSrcRoot)
 
+    buildClient.setProjectParams(options0.projectParams)
     build(
       inputs0,
       sources,

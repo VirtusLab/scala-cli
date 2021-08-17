@@ -30,6 +30,14 @@ final case class BuildOptions(
                  replOptions: ReplOptions                 = ReplOptions()
 ) {
 
+  lazy val projectParams: Seq[String] = {
+    val platform =
+      if (scalaJsOptions.enable) "Scala.JS"
+      else if (scalaNativeOptions.enable) "Scala Native"
+      else "JVM"
+    Seq(s"Scala ${scalaParams.scalaVersion}", platform)
+  }
+
   def addRunnerDependency: Option[Boolean] =
     internalDependencies.addRunnerDependencyOpt
       .orElse(if (scalaJsOptions.enable || scalaNativeOptions.enable) Some(false) else None)
