@@ -189,7 +189,7 @@ jobs:
     - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
-    - run: ./mill -i ci.copyVcRedist || true
+    - run: ./mill -i ci.copyVcRedist
     - uses: actions/upload-artifact@v2.2.4
       with:
         name: launchers
