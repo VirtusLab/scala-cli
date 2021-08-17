@@ -102,7 +102,7 @@ jobs:
         jvm: 8
     - name: Generate native launcher
       run: ./mill -i show cli-core.nativeImageMostlyStatic
-    - name: Generate docker image
+    - name: Build docker image
       run: .github/scripts/generate-docker-images-ubuntu.sh
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
@@ -116,6 +116,16 @@ jobs:
       run: ./mill -i integration-core.native-mostly-static.test
     - name: Docker integration tests
       run: ./mill integration.docker.test
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Push scala-cli to github container registry
+      run: |
+        docker tag scala-cli ghcr.io/VirtuslabRnD/scala-cli:latest
+        docker push ghcr.io/VirtuslabRnD/scala-cli:latest
 
   native-static-tests:
     runs-on: ubuntu-latest
