@@ -89,7 +89,7 @@ object Sources {
       // replace statements like
       //   import $ivy.`foo`,
       // by
-      //   import $ivy.$   ,
+      //   import $ivy.A   ,
       // Ideally, we should just wipe those statements, and take care of keeping 'import' and ','
       // for standard imports.
       val buf = content.toCharArray

@@ -91,8 +91,8 @@ object BloopRifleConfig {
       bspStdout = None,
       bspStderr = None,
       period = 100.milliseconds,
-      timeout = 5.seconds,
-      initTimeout = 10.seconds
+      timeout = 10.seconds,
+      initTimeout = 30.seconds
     )
 
 }

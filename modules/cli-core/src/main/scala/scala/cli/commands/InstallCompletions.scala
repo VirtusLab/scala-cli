@@ -73,23 +73,28 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         sys.exit(1)
     }
 
-    val rcFile = options.rcFile
-      .map(os.Path(_, os.pwd))
-      .getOrElse(defaultRcFile)
+    if (options.env) {
+      println(rcScript)
+    } else {
 
-    val banner = options.banner.replace("{NAME}", name)
+      val rcFile = options.rcFile
+        .map(os.Path(_, os.pwd))
+        .getOrElse(defaultRcFile)
 
-    val updated = ProfileFileUpdater.addToProfileFile(rcFile.toNIO, banner, rcScript, Charset.defaultCharset())
+      val banner = options.banner.replace("{NAME}", name)
 
-    if (options.logging.verbosity >= 0) {
-      if (updated) {
-        System.err.println(s"Updated $rcFile")
-        System.err.println(
-          s"It is recommended to reload your shell, or source $rcFile in the " +
-            "current session, for its changes to be taken into account."
-        )
-      } else
-        System.err.println(s"$rcFile already up-to-date")
+      val updated = ProfileFileUpdater.addToProfileFile(rcFile.toNIO, banner, rcScript, Charset.defaultCharset())
+
+      if (options.logging.verbosity >= 0) {
+        if (updated) {
+          System.err.println(s"Updated $rcFile")
+          System.err.println(
+            s"It is recommended to reload your shell, or source $rcFile in the " +
+              "current session, for its changes to be taken into account."
+          )
+        } else
+          System.err.println(s"$rcFile already up-to-date")
+      }
     }
   }
 }
