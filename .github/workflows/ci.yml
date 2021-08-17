@@ -124,8 +124,8 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Push scala-cli to github container registry
       run: |
-        docker tag scala-cli ghcr.io/VirtuslabRnD/scala-cli:latest
-        docker push ghcr.io/VirtuslabRnD/scala-cli:latest
+        docker tag scala-cli ghcr.io/virtuslabrnd/scala-cli:latest
+        docker push ghcr.io/virtuslabrnd/scala-cli:latest
 
   native-static-tests:
     runs-on: ubuntu-latest
