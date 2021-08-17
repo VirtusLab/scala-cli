@@ -301,7 +301,7 @@ object Build {
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
 
-    val artifacts = options.artifacts(params, logger)
+    val artifacts = options.artifacts(logger)
 
     val pluginScalacOptions = artifacts.compilerPlugins.map {
       case (_, _, path) =>
