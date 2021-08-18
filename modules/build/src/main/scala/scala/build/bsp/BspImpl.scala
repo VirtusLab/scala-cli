@@ -274,6 +274,8 @@ object BspImpl {
     def underlying = actualLocalClient
     def clear() = underlying.clear()
     def diagnostics = underlying.diagnostics
+    def setProjectParams(newParams: Seq[String]) =
+      underlying.setProjectParams(newParams)
     def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]) =
       underlying.setGeneratedSources(newGeneratedSources)
   }

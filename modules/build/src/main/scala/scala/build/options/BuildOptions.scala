@@ -30,38 +30,46 @@ final case class BuildOptions(
                  replOptions: ReplOptions                 = ReplOptions()
 ) {
 
+  lazy val projectParams: Seq[String] = {
+    val platform =
+      if (scalaJsOptions.enable) "Scala.JS"
+      else if (scalaNativeOptions.enable) "Scala Native"
+      else "JVM"
+    Seq(s"Scala ${scalaParams.scalaVersion}", platform)
+  }
+
   def addRunnerDependency: Option[Boolean] =
     internalDependencies.addRunnerDependencyOpt
       .orElse(if (scalaJsOptions.enable || scalaNativeOptions.enable) Some(false) else None)
 
-  private def scalaLibraryDependencies(params: ScalaParameters): Seq[AnyDependency] =
+  private def scalaLibraryDependencies: Seq[AnyDependency] =
     if (scalaOptions.addScalaLibrary.getOrElse(true)) {
       val lib =
-        if (params.scalaVersion.startsWith("3."))
-          dep"org.scala-lang::scala3-library::${params.scalaVersion}"
+        if (scalaParams.scalaVersion.startsWith("3."))
+          dep"org.scala-lang::scala3-library::${scalaParams.scalaVersion}"
         else
-          dep"org.scala-lang:scala-library:${params.scalaVersion}"
+          dep"org.scala-lang:scala-library:${scalaParams.scalaVersion}"
       Seq(lib)
     }
     else Nil
 
-  def dependencies(params: ScalaParameters): Seq[AnyDependency] =
-    scalaJsOptions.jsDependencies(params.scalaVersion) ++
+  private def dependencies: Seq[AnyDependency] =
+    scalaJsOptions.jsDependencies(scalaParams.scalaVersion) ++
       scalaNativeOptions.nativeDependencies ++
-      scalaLibraryDependencies(params) ++
+      scalaLibraryDependencies ++
       classPathOptions.extraDependencies
 
-  private def semanticDbPlugins(params: ScalaParameters): Seq[AnyDependency] =
-    if (scalaOptions.generateSemanticDbs.getOrElse(false) && params.scalaVersion.startsWith("2."))
+  private def semanticDbPlugins: Seq[AnyDependency] =
+    if (scalaOptions.generateSemanticDbs.getOrElse(false) && scalaParams.scalaVersion.startsWith("2."))
       Seq(
         dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
       )
     else Nil
 
-  def compilerPlugins(params: ScalaParameters): Seq[AnyDependency] =
-    scalaJsOptions.compilerPlugins(params.scalaVersion) ++
+  def compilerPlugins: Seq[AnyDependency] =
+    scalaJsOptions.compilerPlugins(scalaParams.scalaVersion) ++
       scalaNativeOptions.compilerPlugins ++
-      semanticDbPlugins(params)
+      semanticDbPlugins
 
   def allExtraJars: Seq[Path] =
     classPathOptions.extraJars.map(_.toNIO)
@@ -163,7 +171,7 @@ final case class BuildOptions(
     (sv, sbv)
   }
 
-  def scalaParams: ScalaParameters = {
+  lazy val scalaParams: ScalaParameters = {
     val (scalaVersion, scalaBinaryVersion) = computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion)
     val maybePlatformSuffix =
       scalaJsOptions.platformSuffix
@@ -171,11 +179,11 @@ final case class BuildOptions(
     ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
   }
 
-  def artifacts(params: ScalaParameters, logger: Logger): Artifacts =
+  def artifacts(logger: Logger): Artifacts =
     Artifacts(
-                  params = params,
-         compilerPlugins = compilerPlugins(params),
-            dependencies = dependencies(params),
+                  params = scalaParams,
+         compilerPlugins = compilerPlugins,
+            dependencies = dependencies,
                extraJars = allExtraJars,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
          extraSourceJars = allExtraSourceJars,

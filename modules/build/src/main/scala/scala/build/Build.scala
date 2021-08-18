@@ -124,6 +124,7 @@ object Build {
 
     val generatedSources = sources.generateSources(inputs0.generatedSrcRoot)
 
+    buildClient.setProjectParams(options0.projectParams)
     build(
       inputs0,
       sources,
@@ -301,7 +302,7 @@ object Build {
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
 
-    val artifacts = options.artifacts(params, logger)
+    val artifacts = options.artifacts(logger)
 
     val pluginScalacOptions = artifacts.compilerPlugins.map {
       case (_, _, path) =>

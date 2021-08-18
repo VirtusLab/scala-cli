@@ -16,6 +16,14 @@ class ConsoleBloopBuildClient(
   var generatedSources: Seq[GeneratedSource] = Nil
 ) extends BloopBuildClient {
 
+  private var projectParams = Seq.empty[String]
+
+  private def projectNameSuffix =
+    if (projectParams.isEmpty) ""
+    else " (" + projectParams.mkString(", ") + ")"
+
+  private def projectName = "project" + projectNameSuffix
+
   private var printedStart = false
   private val gray = "\u001b[90m"
   private val reset = Console.RESET
@@ -24,6 +32,9 @@ class ConsoleBloopBuildClient(
 
   def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]) = {
     generatedSources = newGeneratedSources
+  }
+  def setProjectParams(newParams: Seq[String]): Unit = {
+    projectParams = newParams
   }
   def diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]] =
     if (keepDiagnostics) Some(diagnostics0.result())
@@ -115,7 +126,10 @@ class ConsoleBloopBuildClient(
     logger.debug("Received onBuildTaskStart from bloop: " + params)
     for (msg <- Option(params.getMessage) if !msg.contains(" no-op compilation")) {
       printedStart = true
-      out.println(gray + msg + reset)
+      val msg0 =
+        if (params.getDataKind == "compile-task") s"Compiling $projectName"
+        else msg
+      out.println(gray + msg0 + reset)
     }
   }
 
@@ -125,8 +139,18 @@ class ConsoleBloopBuildClient(
   override def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit = {
     logger.debug("Received onBuildTaskFinish from bloop: " + params)
     if (printedStart)
-      for (msg <- Option(params.getMessage))
-        out.println(gray + msg + reset)
+      for (msg <- Option(params.getMessage)) {
+        val msg0 =
+          if (params.getDataKind == "compile-report")
+            params.getStatus match {
+              case bsp4j.StatusCode.OK => s"Compiled $projectName"
+              case bsp4j.StatusCode.ERROR => s"Error compiling $projectName"
+              case bsp4j.StatusCode.CANCELLED => s"Compilation cancelled$projectNameSuffix"
+              case _ => s"Compiled $projectName" // ???
+            }
+          else msg
+        out.println(gray + msg0 + reset)
+      }
   }
 
   override def onConnectWithServer(server: bsp4j.BuildServer): Unit = {}
