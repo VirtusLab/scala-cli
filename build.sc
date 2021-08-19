@@ -21,7 +21,6 @@ implicit def millModuleBasePath: define.BasePath =
 
 
 object cli                    extends Cli
-object `cli-core`             extends CliCore
 object build                  extends Cross[Build]             (Scala.defaultInternal)
 object stubs                  extends JavaModule with ScalaCliPublishModule
 object runner                 extends Cross[Runner]            (Scala.all: _*)
@@ -29,52 +28,33 @@ object `test-runner`          extends Cross[TestRunner]        (Scala.all: _*)
 object `bloop-rifle`          extends Cross[BloopRifle]        (Scala.allScala2: _*)
 object `tasty-lib`            extends Cross[TastyLib]          (Scala.all: _*)
 
-object `integration-core` extends Module {
-  object jvm    extends JvmIntegrationCore {
-    object test extends Tests
-  }
-  object native extends NativeIntegrationCore with Bloop.Module {
-    def skipBloop = true
-    object test extends Tests with Bloop.Module {
-      def skipBloop = true
-    }
-  }
-  object `native-static` extends NativeIntegrationCoreStatic with Bloop.Module {
-    def skipBloop = true
-    object test extends Tests with Bloop.Module {
-      def skipBloop = true
-    }
-  }
-  object `native-mostly-static` extends NativeIntegrationCoreMostlyStatic with Bloop.Module {
-    def skipBloop = true
-    object test extends Tests with Bloop.Module {
-      def skipBloop = true
-    }
-  }
-}
-
 object integration extends Module {
-  object docker extends CliIntegrationDockerCore {
+  object docker extends CliIntegrationDocker {
     object test extends Tests {
       def sources = T.sources {
-        super.sources() ++ `integration-core`.jvm.sources()
+        super.sources() ++ integration.jvm.sources()
       }
     }
   }
   object jvm    extends JvmIntegration {
-    object test extends Tests {
-      def sources = T.sources {
-        super.sources() ++ `integration-core`.jvm.test.sources()
-      }
-    }
+    object test extends Tests
   }
   object native extends NativeIntegration with Bloop.Module {
     def skipBloop = true
     object test extends Tests with Bloop.Module {
       def skipBloop = true
-      def sources = T.sources {
-        super.sources() ++ `integration-core`.native.test.sources()
-      }
+    }
+  }
+  object `native-static` extends NativeIntegrationStatic with Bloop.Module {
+    def skipBloop = true
+    object test extends Tests with Bloop.Module {
+      def skipBloop = true
+    }
+  }
+  object `native-mostly-static` extends NativeIntegrationMostlyStatic with Bloop.Module {
+    def skipBloop = true
+    object test extends Tests with Bloop.Module {
+      def skipBloop = true
     }
   }
 }
@@ -216,23 +196,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
   }
 }
 
-trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf with HasTests {
-  def scalaVersion = Scala.defaultInternal
-  def moduleDeps = Seq(
-    `cli-core`
-  )
-  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
-    Deps.svm
-  )
-  def mainClass = Some("scala.cli.ScalaCli")
-
-  def localRepoJar = `local-repo`.localRepoJar()
-  def graalVmVersion = deps.graalVmVersion
-
-  object test extends Tests
-}
-
-trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf with HasMacroAnnotations {
+trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf with HasTests with HasMacroAnnotations {
   def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
@@ -251,10 +215,12 @@ trait CliCore extends SbtModule with CliLaunchers with ScalaCliPublishModule wit
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
   )
-  def mainClass = Some("scala.cli.ScalaCliCore")
+  def mainClass = Some("scala.cli.ScalaCli")
 
   def localRepoJar = `local-repo`.localRepoJar()
   def graalVmVersion = deps.graalVmVersion
+
+  object test extends Tests
 }
 
 trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTests {
@@ -270,7 +236,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     val name = mainArtifactName().stripPrefix(prefix)
     val baseIntegrationPath = os.Path(millSourcePath.toString.stripSuffix(name))
     val modulesPath = os.Path(baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName))
-    val mainPath = PathRef(modulesPath / "integration-core" / "src" / "main" / "scala")
+    val mainPath = PathRef(modulesPath / "integration" / "src" / "main" / "scala")
     super.sources() ++ Seq(mainPath)
   }
 
@@ -330,7 +296,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
   }
 }
 
-trait CliIntegrationDockerCore extends SbtModule with ScalaCliPublishModule with HasTests {
+trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with HasTests {
   def scalaVersion = Scala.scala213
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.osLib
@@ -341,37 +307,23 @@ trait CliIntegration extends CliIntegrationBase {
   def prefix = "integration-"
 }
 
-trait CliIntegrationCore extends CliIntegration {
-  def prefix = "integration-core-"
-}
-
 trait NativeIntegration extends CliIntegration {
   def testLauncher = cli.nativeImage()
   def cliKind = "native"
 }
 
-trait JvmIntegration extends CliIntegration {
-  def testLauncher = cli.launcher()
-  def cliKind = "jvm"
-}
-
-trait NativeIntegrationCore extends CliIntegrationCore {
-  def testLauncher = `cli-core`.nativeImage()
-  def cliKind = "native"
-}
-
-trait NativeIntegrationCoreStatic extends CliIntegrationCore {
-  def testLauncher = `cli-core`.nativeImageStatic()
+trait NativeIntegrationStatic extends CliIntegration {
+  def testLauncher = cli.nativeImageStatic()
   def cliKind = "native-static"
 }
 
-trait NativeIntegrationCoreMostlyStatic extends CliIntegrationCore {
-  def testLauncher = `cli-core`.nativeImageMostlyStatic()
+trait NativeIntegrationMostlyStatic extends CliIntegration {
+  def testLauncher = cli.nativeImageMostlyStatic()
   def cliKind = "native-mostly-static"
 }
 
-trait JvmIntegrationCore extends CliIntegrationCore {
-  def testLauncher = `cli-core`.launcher()
+trait JvmIntegration extends CliIntegration {
+  def testLauncher = cli.launcher()
   def cliKind = "jvm"
 }
 
@@ -498,16 +450,6 @@ def copyLauncher(directory: String = "artifacts") = T.command {
   )
 }
 
-def copyCoreLauncher(directory: String = "artifacts") = T.command {
-  val nativeLauncher = `cli-core`.nativeImage().path
-  Upload.copyLauncher(
-    nativeLauncher,
-    directory,
-    "scala-cli",
-    compress = true
-  )
-}
-
 def copyJvmLauncher(directory: String = "artifacts") = T.command {
   val launcher = cli.standaloneLauncher().path
   os.copy(launcher, os.Path(directory, os.pwd) / s"scala-cli$platformExecutableJarExtension", createFolders = true, replaceExisting = true)
@@ -538,40 +480,23 @@ def scala(args: String*) = T.command {
   cli.run(args: _*)()
 }
 
-def tightMemory = Properties.isLinux || Properties.isWin
-
 def defaultNativeImage() =
-  if (tightMemory)
-    T.command {
-      `cli-core`.nativeImage()
-    }
-  else
-    T.command {
-      cli.nativeImage()
-    }
+  T.command {
+    cli.nativeImage()
+  }
 
 def nativeIntegrationTests() =
-  if (tightMemory)
-    T.command {
-      `integration-core`.native.test.test()()
-    }
-  else
-    T.command {
-      integration.native.test.test()()
-    }
+  T.command {
+    integration.native.test.test()()
+  }
 
 def copyDefaultLauncher(directory: String = "artifacts") =
-  if (tightMemory)
-    T.command {
-      copyCoreLauncher(directory)()
-    }
-  else
-    T.command {
-      copyLauncher(directory)()
-    }
+  T.command {
+    copyLauncher(directory)()
+  }
 
 def copyMostlyStaticLauncher(directory: String = "artifacts") = T.command {
-  val nativeLauncher = `cli-core`.nativeImageMostlyStatic().path
+  val nativeLauncher = cli.nativeImageMostlyStatic().path
   Upload.copyLauncher(
     nativeLauncher,
     directory,
@@ -582,7 +507,7 @@ def copyMostlyStaticLauncher(directory: String = "artifacts") = T.command {
 }
 
 def copyStaticLauncher(directory: String = "artifacts") = T.command {
-  val nativeLauncher = `cli-core`.nativeImageStatic().path
+  val nativeLauncher = cli.nativeImageStatic().path
   Upload.copyLauncher(
     nativeLauncher,
     directory,
