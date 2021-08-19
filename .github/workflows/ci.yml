@@ -9,16 +9,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  trigger-vm:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'VirtuslabRnD/scala-cli'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: azure/login@v1
-        with:
-          creds: '{"clientId": "42e79051-affb-4895-b54a-56a90bc4d86b", "clientSecret": "${{ secrets.SCALA3_CLIENT_SECRET }}", "subscriptionId": "da0a842a-c933-47fd-a4db-2d1a06fbafee","tenantId": "d09acba4-fb14-464d-851a-44a7cf8a064d","activeDirectoryEndpointUrl": "https://login.microsoftonline.com", "resourceManagerEndpointUrl": "https://management.azure.com/","activeDirectoryGraphResourceId": "https://graph.windows.net/", "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/", "galleryEndpointUrl": "https://gallery.azure.com/", "managementEndpointUrl": "https://management.core.windows.net/"}'
-      - run: |
-          az vm start -g gh-runners -n scala-3-cli
-
   jvm-tests:
     runs-on: ${{ matrix.OS }}
     strategy:
@@ -55,14 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        OS: [[ self-hosted, windows, scala-3-cli ]]
-        needsVirtuslabRepo: ["${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'VirtuslabRnD/scala-cli' }}"]
-        include:
-          - {OS: ubuntu-latest, needsVirtuslabRepo: false}
-          - {OS: macos-latest, needsVirtuslabRepo: false}
-        exclude:
-          - OS: [ self-hosted, windows, scala-3-cli ]
-            needsVirtuslabRepo: false
+        OS: ["ubuntu-latest", "macos-latest", "windows-2016"]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -86,7 +69,6 @@ jobs:
         if-no-files-found: error
         retention-days: 2
     - name: Native integration tests
-      if: runner.os != 'Windows' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
       run: ./mill -i nativeIntegrationTests
 
   native-mostly-static-tests:
