@@ -1,3 +1,4 @@
 FROM gcr.io/distroless/base-debian10
 ADD scala /usr/local/bin/scala
+LABEL org.opencontainers.image.source="https://github.com/virtuslabrnd/scala-cli"
 ENTRYPOINT ["/usr/local/bin/scala"]
