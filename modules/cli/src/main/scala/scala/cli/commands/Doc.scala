@@ -14,8 +14,8 @@ object Doc extends ScalaCommand[DocOptions] {
 
   override def group = "Main"
 
-  def run(options: DocOptions, args: RemainingArgs): Unit = {
-    Compile.runCompile(options, args){ 
+  def run(options: DocOptions, remaningArgs: RemainingArgs): Unit = {
+    Compile.runCompile(options, remaningArgs){ 
       case build: Build.Successful =>
         val buildOps = options.buildOptions
         val directories = options.shared.directories.directories
@@ -32,7 +32,10 @@ object Doc extends ScalaCommand[DocOptions] {
           Seq( // scaladoc configuration
             "-d", dest.toNIO.toString()
           ) ++ artrifacts.args ++ // scaladoc classpath
-          Seq(build.output.toIO.getAbsolutePath()) // class diretctory to get .tasty files
+            buildOps.scalaOptions.scalacOptions ++ // apply compiler options
+            remaningArgs.unparsed ++ // provided ad-hoc args
+            defaultScaladocArgs ++ // default args
+            Seq(build.output.toIO.getAbsolutePath()) // class diretctory to get .tasty files
 
         Runner.runJvm(
           build.options.javaCommand(),
@@ -42,9 +45,20 @@ object Doc extends ScalaCommand[DocOptions] {
           args,
           options.shared.logger
         )
+        println(s"Documetnation generated in $dest")
         
       case _ =>
         println("Compiation failed!")      
     }
   }
+
+  def defaultScaladocArgs = Seq(
+    "-snippet-compiler:compile", 
+    "-Ygenerate-inkuire",
+    "-external-mappings:" +
+        ".*scala.*::scaladoc3::https://scala-lang.org/api/3.x/," +
+        ".*java.*::javadoc::https://docs.oracle.com/javase/8/docs/api/",
+    "-author",
+    "-groups"
+  )
 }
