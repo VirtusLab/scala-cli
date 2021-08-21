@@ -233,7 +233,10 @@ object Package extends ScalaCommand[PackageOptions] {
           },
           exitDialog = build.options.packageOptions.windowsOptions.exitDialog,
           suppressValidation =
-            build.options.packageOptions.windowsOptions.suppressValidation.getOrElse(false)
+            build.options.packageOptions.windowsOptions.suppressValidation.getOrElse(false),
+          extraConfig = None,
+          is64Bits = true,
+          installerVersion = None
         )
 
         nativePackagerType match {
