@@ -16,6 +16,8 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
+import scala.build.CompileDriver
+import scala.build.BloopDriver
 
 final class BspImpl(
   logger: Logger,
@@ -55,16 +57,16 @@ final class BspImpl(
     actualLocalServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
     actualLocalServer.setGeneratedSources(generatedSources)
 
-    val (classesDir0, artifacts, project, buildChanged) = Build.prepareBuild(
+    val (classesDir0, artifacts, project, projectChanged) = Build.prepareBuild(
       inputs,
       sources,
       generatedSources,
       options0,
       logger,
-      localClient
+      compilerDriver
     )
 
-    (sources, options0, classesDir0, artifacts, project, generatedSources, buildChanged)
+    (sources, options0, classesDir0, artifacts, project, generatedSources, projectChanged)
   }
 
   def build(actualLocalServer: BspServer, bloopServer: BloopServer, notifyChanges: Boolean): Unit = {
@@ -78,8 +80,7 @@ final class BspImpl(
       generatedSources,
       buildOptions,
       logger,
-      actualLocalClient,
-      bloopServer
+      compilerDriver
     )
   }
 
@@ -163,6 +164,7 @@ final class BspImpl(
 
   var remoteServer: BloopServer = null
   var actualLocalServer: BspServer = null
+  var compilerDriver: CompileDriver = null
 
   val watcher = new Build.Watcher(
     ListBuffer(),
@@ -193,6 +195,7 @@ final class BspImpl(
         compile = doCompile => compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
         logger = logger
       )
+    compilerDriver = new BloopDriver(actualLocalClient, remoteServer, null)
     actualLocalServer.setProjectName(inputs.workspace, inputs.projectName)
 
     val localServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer =

@@ -12,24 +12,21 @@ final case class DocArtifacts(
 
 object DocArtifacts {
 
-  def scaladoc(
+  def scaladoc3(
       scalaParams: ScalaParameters,
       dependencies: Seq[AnyDependency],
       logger: Logger,
       directories: Directories,
     ): DocArtifacts = {
+      val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
+      def cp(deps: Seq[AnyDependency]): Seq[Path] =
+        Artifacts.artifacts(deps, localRepoOpt.toSeq, scalaParams, logger).map(_._2)
 
-      val isScala2 = scalaParams.scalaVersion.startsWith("2.")
-      if(isScala2) ???
-      else {
-        val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
-        def cp(deps: Seq[AnyDependency]): Seq[Path] =
-          Artifacts.artifacts(deps, localRepoOpt.toSeq, scalaParams, logger).map(_._2)
+      val scaladocDep = Seq(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")
+      val args = Seq( "-classpath", cp(dependencies).mkString(":"))
 
-        val scaladocDep = Seq(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")
-        val args = Seq( "-classpath", cp(dependencies).mkString(":"))
-        
-        DocArtifacts(cp(scaladocDep) , "dotty.tools.scaladoc.Main", args)
-      }
+      DocArtifacts(cp(scaladocDep) , "dotty.tools.scaladoc.Main", args)
     }
+
+  // def scaladoc2()
 }

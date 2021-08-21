@@ -110,8 +110,7 @@ object Build {
     inputs: Inputs,
     options: BuildOptions,
     logger: Logger,
-    buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    compilerDriver: CompileDriver
   ): Build = {
 
     val sources = Sources.forInputs(
@@ -124,7 +123,6 @@ object Build {
 
     val generatedSources = sources.generateSources(inputs0.generatedSrcRoot)
 
-    buildClient.setProjectParams(options0.projectParams)
     build(
       inputs0,
       sources,
@@ -132,8 +130,7 @@ object Build {
       generatedSources,
       options0,
       logger,
-      buildClient,
-      bloopServer
+      compilerDriver
     )
   }
 
@@ -144,16 +141,15 @@ object Build {
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
     logger: Logger,
-    buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    compilerDriver: CompileDriver
   ): Build = {
 
-    val build0 = buildOnce(inputs, sources, generatedSrcRoot0, generatedSources, options, logger, buildClient, bloopServer)
+    val build0 = buildOnce(inputs, sources, generatedSrcRoot0, generatedSources, options, logger, compilerDriver)
 
     build0 match {
       case successful: Successful =>
         if (options.jmhOptions.runJmh.getOrElse(false))
-          jmhBuild(inputs, successful, logger, successful.options.javaCommand(), buildClient, bloopServer).getOrElse {
+          jmhBuild(inputs, successful, logger, successful.options.javaCommand(), compilerDriver).getOrElse {
             sys.error("JMH build failed") // suppress stack trace?
           }
         else
@@ -165,127 +161,94 @@ object Build {
   def classesDir(root: os.Path, projectName: String): os.Path =
     root / ".scala" / projectName / "classes"
 
-  def build(
-    inputs: Inputs,
-    options: BuildOptions,
-    threads: BuildThreads,
-    bloopConfig: BloopRifleConfig,
-    logger: Logger
-  ): Build = {
 
-    val buildClient = BloopBuildClient.create(
-      logger,
-      keepDiagnostics = options.internal.keepDiagnostics
+  def compilerFactory(
+    bloopConfig: Option[BloopRifleConfig],
+    buildThreads: Option[BuildThreads] = None
+  ) = 
+    bloopConfig.fold(???)(c => 
+      new BloopDriverFactory(c, buildThreads.getOrElse(BuildThreads.create()))
     )
-    val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
-    bloop.BloopServer.withBuildServer(
-      bloopConfig,
-      "scala-cli",
-      Constants.version,
-      inputs.workspace.toNIO,
-      classesDir0.toNIO,
-      buildClient,
-      threads.bloop,
-      logger.bloopRifleLogger
-    ) { bloopServer =>
-      build(
-        inputs,
-        options,
-        logger,
-        buildClient,
-        bloopServer
-      )
-    }
-  }
 
   def build(
     inputs: Inputs,
     options: BuildOptions,
-    bloopConfig: BloopRifleConfig,
-    logger: Logger
-  ): Build =
-    build(inputs, options, BuildThreads.create(), bloopConfig, logger)
+    bloopConfig: Option[BloopRifleConfig],
+    logger: Logger,
+    buildThreads: Option[BuildThreads] = None // TODO
+  ): Build = 
+    compilerFactory(bloopConfig, buildThreads).mkDriver(inputs, options, logger){ driver =>
+      build(inputs,  options, logger, driver)
+    }
+  
 
   def watch(
     inputs: Inputs,
     options: BuildOptions,
-    bloopConfig: BloopRifleConfig,
+    bloopConfig: Option[BloopRifleConfig],
     logger: Logger,
     postAction: () => Unit = () => ()
   )(action: Build => Unit): Watcher = {
 
-    val buildClient = BloopBuildClient.create(
-      logger,
-      keepDiagnostics = options.internal.keepDiagnostics
-    )
     val threads = BuildThreads.create()
-    val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
-    val bloopServer = bloop.BloopServer.buildServer(
-      bloopConfig,
-      "scala-cli",
-      Constants.version,
-      inputs.workspace.toNIO,
-      classesDir0.toNIO,
-      buildClient,
-      threads.bloop,
-      logger.bloopRifleLogger
-    )
 
-    def run() = {
-      try {
-        val build0 = build(inputs, options, logger, buildClient, bloopServer)
-        action(build0)
-      } catch {
-        case NonFatal(e) =>
-          Util.printException(e)
+    Build.compilerFactory(bloopConfig, Some(threads)).mkDriver(inputs, options, logger){ driver =>
+      def run() = {
+        try {
+          val build0 = build(inputs, options, bloopConfig, logger, Some(threads))
+          action(build0)
+        } catch {
+          case NonFatal(e) =>
+            Util.printException(e)
+        }
+        postAction()
       }
-      postAction()
-    }
 
-    run()
+      run()
 
-    val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), bloopServer.shutdown())
+      val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), driver.shutdown())
 
-    try {
-      for (elem <- inputs.elements) {
-        val depth = elem match {
-          case s: Inputs.SingleFile => -1
-          case _ => Int.MaxValue
-        }
-        val eventFilter: PathWatchers.Event => Boolean = elem match {
-          case d: Inputs.Directory =>
-            // Filtering event for directories, to ignore those related to the .bloop directory in particular
-            event =>
-              val p = os.Path(event.getTypedPath.getPath.toAbsolutePath)
-              val relPath = p.relativeTo(d.path)
-              val isHidden = relPath.segments.exists(_.startsWith("."))
-              def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
-              def isJavaFile = relPath.last.endsWith(".java")
-              def isConfFile = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
-              !isHidden && (isScalaFile || isJavaFile || isConfFile)
-          case _ => _ => true
-        }
+      try {
+        for (elem <- inputs.elements) {
+          val depth = elem match {
+            case s: Inputs.SingleFile => -1
+            case _ => Int.MaxValue
+          }
+          val eventFilter: PathWatchers.Event => Boolean = elem match {
+            case d: Inputs.Directory =>
+              // Filtering event for directories, to ignore those related to the .bloop directory in particular
+              event =>
+                val p = os.Path(event.getTypedPath.getPath.toAbsolutePath)
+                val relPath = p.relativeTo(d.path)
+                val isHidden = relPath.segments.exists(_.startsWith("."))
+                def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
+                def isJavaFile = relPath.last.endsWith(".java")
+                def isConfFile = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
+                !isHidden && (isScalaFile || isJavaFile || isConfFile)
+            case _ => _ => true
+          }
 
-        val watcher0 = watcher.newWatcher()
-        elem match {
-          case d: Inputs.OnDisk =>
-            watcher0.register(d.path.toNIO, depth)
-          case _: Inputs.Virtual =>
-        }
-        watcher0.addObserver {
-          onChangeBufferedObserver { event =>
-            if (eventFilter(event))
-              watcher.schedule()
+          val watcher0 = watcher.newWatcher()
+          elem match {
+            case d: Inputs.OnDisk =>
+              watcher0.register(d.path.toNIO, depth)
+            case _: Inputs.Virtual =>
+          }
+          watcher0.addObserver {
+            onChangeBufferedObserver { event =>
+              if (eventFilter(event))
+                watcher.schedule()
+            }
           }
         }
+      } catch {
+        case NonFatal(e) =>
+          watcher.dispose()
+          throw e
       }
-    } catch {
-      case NonFatal(e) =>
-        watcher.dispose()
-        throw e
-    }
 
-    watcher
+      watcher
+    }
   }
 
   def prepareBuild(
@@ -294,7 +257,7 @@ object Build {
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
     logger: Logger,
-    buildClient: BloopBuildClient
+    compilerDriver: CompileDriver
   ): (os.Path, Artifacts, Project, Boolean) = {
 
     val params = options.scalaParams
@@ -356,29 +319,18 @@ object Build {
                classPath = artifacts.compileClassPath,
               resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
                  sources = allSources,
+        generatedSources = generatedSources,
             resourceDirs = sources.resourceDirs,
-             javaHomeOpt = options.javaHomeLocationOpt()
+             javaHomeOpt = options.javaHomeLocationOpt(),
+           projectParams = options.projectParams
     )
 
-    val updatedBloopConfig = project.writeBloopFile(logger)
+    val updatedConfig = compilerDriver.prepareBuild(logger, classesDir0, project)
 
-    if (updatedBloopConfig && os.isDir(classesDir0)) {
-      logger.debug(s"Clearing $classesDir0")
-      os.list(classesDir0).foreach { p =>
-        logger.debug(s"Removing $p")
-        try os.remove.all(p)
-        catch {
-          case ex: FileSystemException =>
-            logger.debug(s"Ignoring $ex while cleaning up $p")
-        }
-      }
-    }
-
-    buildClient.clear()
-    buildClient.setGeneratedSources(generatedSources)
-
-    (classesDir0, artifacts, project, updatedBloopConfig)
+    (classesDir0, artifacts, project, updatedConfig)
   }
+
+  // 
 
   def buildOnce(
     inputs: Inputs,
@@ -387,42 +339,21 @@ object Build {
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
     logger: Logger,
-    buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    compilerDriver: CompileDriver
   ): Build = {
 
-    val (classesDir0, artifacts, project, updatedBloopConfig) = prepareBuild(
+    val (classesDir0, artifacts, project, _) = prepareBuild(
       inputs,
       sources,
       generatedSources,
       options,
       logger,
-      buildClient
+      compilerDriver
     )
 
-    if (updatedBloopConfig && os.isDir(classesDir0)) {
-      logger.debug(s"Clearing $classesDir0")
-      os.list(classesDir0).foreach { p =>
-        logger.debug(s"Removing $p")
-        try os.remove.all(p)
-        catch {
-          case ex: FileSystemException =>
-            logger.debug(s"Ignore $ex while removing $p")
-        }
-      }
-    }
+    val result = compilerDriver.runBuild(inputs, logger, classesDir0, artifacts, project)
 
-    buildClient.clear()
-    buildClient.setGeneratedSources(generatedSources)
-    val success = Bloop.compile(
-      inputs.projectName,
-      buildClient,
-      bloopServer,
-      logger,
-      buildTargetsTimeout = 20.seconds
-    )
-
-    if (success) {
+    if (result.success) {
       postProcess(
         generatedSources,
         generatedSrcRoot0,
@@ -433,10 +364,11 @@ object Build {
         updateTasty = project.scalaCompiler.scalaVersion.startsWith("3.")
       )
 
-      Successful(inputs, options, sources, artifacts, project, classesDir0, buildClient.diagnostics)
+      // buildClient.diagnostics
+      Successful(inputs, options, sources, artifacts, project, classesDir0, result.diags) // TODO
     }
     else
-      Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)
+      Failed(inputs, options, sources, artifacts, project, result.diags)
   }
 
   @tailrec
@@ -619,8 +551,7 @@ object Build {
     build: Build.Successful,
     logger: Logger,
     javaCommand: String,
-    buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    compilerDriver: CompileDriver
   ) = {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir = inputs.workspace / ".scala" / jmhProjectName
@@ -656,7 +587,10 @@ object Build {
           runJmh = build.options.jmhOptions.runJmh.map(_ => false)
         )
       )
-      val jmhBuild = Build.build(jmhInputs, updatedOptions, logger, buildClient, bloopServer)
+
+      val jmhBuild = compilerDriver.compilerFactory.mkDriver(jmhInputs, updatedOptions, logger){ driver =>
+        Build.build(inputs, updatedOptions, logger, driver)
+      }
       Some(jmhBuild)
     }
     else None

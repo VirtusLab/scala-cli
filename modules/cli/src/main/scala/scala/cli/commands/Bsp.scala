@@ -29,7 +29,7 @@ object Bsp extends ScalaCommand[BspOptions] {
         inputs,
         buildOptions,
         logger,
-        bloopRifleConfig,
+        bloopRifleConfig.get, // TODO
         options.shared.logging.verbosity,
         threads,
         System.in,

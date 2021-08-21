@@ -8,6 +8,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
 import scala.util.{Properties, Try}
+import scala.build.BloopDriverFactory
 
 final case class TestInputs(
   files: Seq[(os.RelPath, String)],
@@ -28,7 +29,7 @@ final case class TestInputs(
     }
 
   def withBuild[T](options: BuildOptions, buildThreads: BuildThreads, bloopConfig: BloopRifleConfig)(f: (os.Path, Inputs, Build) => T): T = withInputs { (root, inputs) =>
-    val build = Build.build(inputs, options, buildThreads, bloopConfig, TestLogger())
+    val build = Build.build(inputs, options, Option(bloopConfig), TestLogger(), Some(buildThreads))
     f(root, inputs, build)
   }
 }

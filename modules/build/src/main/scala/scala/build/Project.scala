@@ -16,9 +16,11 @@ final case class Project(
   projectName: String,
   classPath: Seq[Path],
   sources: Seq[os.Path],
+  generatedSources: Seq[GeneratedSource],
   resolution: Option[BloopConfig.Resolution],
   resourceDirs: Seq[os.Path],
-  javaHomeOpt: Option[os.Path]
+  javaHomeOpt: Option[os.Path],
+  projectParams: Seq[String]
 ) {
 
   import Project._
