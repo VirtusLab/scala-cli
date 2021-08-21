@@ -70,13 +70,39 @@ launcher there, and add the directory to the `PATH` with
 > move scala-cli.exe "%USERPROFILE%/scala-cli"
 ```
 
+### Alpine 
+
+Download the launcher from GitHub release assets with
+
+```text
+$ wget -q -O scala-cli.gz  https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux-static.gz && gunzip scala-cli.gz
+$ chmod +x scala-cli
+$ mv scala-cli /usr/bin/
+```
+
+Check that it runs fine by running its `about` command:
+```text
+$ scala-cli about
+```
+
 ## OS-specific packages
 
 ### Debian (x86-64)
 
+#### Apt based installation
+
+```text
+$ curl -s --compressed "https://virtuslabrnd.github.io/scala-cli-packages/KEY.gpg" | sudo apt-key add -
+$ sudo curl -s --compressed -o /etc/apt/sources.list.d/scala_cli_packages.list "https://virtuslabrnd.github.io/scala-cli-packages/debian/scala_cli_packages.list"
+$ sudo apt update
+$ sudo apt install scala-cli
+```
+
+#### Deb package based installation
+Alternatively, just download and install the latest build of Debian package with
+
 [Download Debian package](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb)
 
-Alternatively, get and install the Debian package with
 ```text
 $ curl -fLo scala-cli.deb https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb
 $ dpkg -i scala-cli.deb
@@ -84,7 +110,30 @@ $ dpkg -i scala-cli.deb
 
 ### RPM (x86-64)
 
+#### Yum based installation
+
+```text
+$ cat > /etc/yum.repos.d/virtuslab.repo << EOF
+[virtuslab-repo]
+name=VirtusLab Repo
+baseurl=https://virtuslabrnd.github.io/scala-cli-packages/fedora/Packages
+enabled=1
+gpgcheck=1
+gpgkey=https://virtuslabrnd.github.io/scala-cli-packages/KEY.gpg
+EOF
+$ yum repo-pkgs virtuslab-repo list
+$ yum install scala-cli    
+```
+
+#### Rpm package based installation
+
+Alternatively, just download and install the latest build of RedHat package with
+
 [Download RPM package](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.rpm)
+```text
+$ curl -fLo scala-cli.rpm https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.rpm
+$ rpm -i scala-cli.rpm
+```
 
 ### Windows (x86-64)
 
@@ -98,7 +147,11 @@ Once downloaded, right-click on `scala-cli-x86_64-apple-darwin.pkg` from Finder,
 
 ### macOS (brew)
 
-…
+The scala-cli can be installed via [homebrew](https://brew.sh) with
+
+```text
+$ brew install VirtuslabRnD/scala-cli/scala-cli 
+```
 
 ## Shell completions
 
