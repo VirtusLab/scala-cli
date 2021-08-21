@@ -4,6 +4,12 @@ import caseapp._
 import caseapp.core.help.Help
 import scala.build.options.BuildOptions
 
+trait CompileLikeOptions {
+  def buildOptions: BuildOptions
+  def shared: SharedOptions
+  def watch: SharedWatchOptions
+}
+
 @HelpMessage("Compile Scala code")
 final case class CompileOptions(
   @Recurse
@@ -15,7 +21,7 @@ final case class CompileOptions(
   @Name("classpath")
   @HelpMessage("Print resulting class path")
     classPath: Boolean = false
-) {
+) extends CompileLikeOptions {
 
   def buildOptions: BuildOptions =
     shared.buildOptions(enableJmh = false, jmhVersion = None)
