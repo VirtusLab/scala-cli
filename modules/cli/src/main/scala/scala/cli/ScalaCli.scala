@@ -46,7 +46,7 @@ object ScalaCli extends CommandsEntryPoint {
 
   override def main(args: Array[String]): Unit = {
 
-    if (Properties.isWin && System.console() != null)
+    if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
       // Enable ANSI output in Windows terminal
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
 
