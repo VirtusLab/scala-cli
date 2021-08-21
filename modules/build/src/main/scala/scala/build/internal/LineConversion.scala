@@ -13,8 +13,8 @@ object LineConversion {
       // don't identify the CR in CR LF as a line break, since LF will do.
       val notCRLF0 =
         content0(idx) != CR ||
-          !content0.isDefinedAt(idx + 1) ||
-          content0(idx + 1) != LF
+        !content0.isDefinedAt(idx + 1) ||
+        content0(idx + 1) != LF
 
       notCRLF0 && (content0(idx) == CR || content0(idx) == LF)
     }
@@ -28,7 +28,7 @@ object LineConversion {
     startOffsetInScala: Int
   ): Int => Option[Int] = {
     val startLineInScala = line(scalaCode, startOffsetInScala)
-    val scLineCount = line(scCode, scCode.length)
+    val scLineCount      = line(scCode, scCode.length)
 
     lineScala =>
       val lineSc = lineScala - startLineInScala

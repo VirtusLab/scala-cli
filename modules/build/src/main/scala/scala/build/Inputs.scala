@@ -86,7 +86,7 @@ final case class Inputs(
   lazy val projectName = {
     val needsSuffix = mayAppendHash && (elements match {
       case Seq(d: Inputs.Directory) => d.path != workspace
-      case _ => true
+      case _                        => true
     })
     if (needsSuffix) baseProjectName + "-" + inputsHash
     else baseProjectName
@@ -119,40 +119,46 @@ object Inputs {
     }
   }
 
-  sealed trait SingleFile extends OnDisk with SingleElement
-  sealed trait SourceFile extends SingleFile
-  sealed trait Compiled extends Element
+  sealed trait SingleFile   extends OnDisk with SingleElement
+  sealed trait SourceFile   extends SingleFile
+  sealed trait Compiled     extends Element
   sealed trait AnyScalaFile extends Compiled
 
-  final case class Script(base: os.Path, subPath: os.SubPath) extends OnDisk with SourceFile with AnyScalaFile {
+  final case class Script(base: os.Path, subPath: os.SubPath)
+      extends OnDisk with SourceFile with AnyScalaFile {
     lazy val path = base / subPath
   }
-  final case class ScalaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SourceFile with AnyScalaFile {
+  final case class ScalaFile(base: os.Path, subPath: os.SubPath)
+      extends OnDisk with SourceFile with AnyScalaFile {
     lazy val path = base / subPath
   }
-  final case class JavaFile(base: os.Path, subPath: os.SubPath) extends OnDisk with SourceFile with Compiled {
+  final case class JavaFile(base: os.Path, subPath: os.SubPath)
+      extends OnDisk with SourceFile with Compiled {
     lazy val path = base / subPath
   }
-  final case class Directory(path: os.Path) extends OnDisk with Compiled
+  final case class Directory(path: os.Path)         extends OnDisk with Compiled
   final case class ResourceDirectory(path: os.Path) extends OnDisk
 
   final case class ConfigFile(path: os.Path) extends SingleFile
 
-  final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath) extends Virtual with AnyScalaFile
-  final case class VirtualScalaFile(content: Array[Byte], source: String) extends Virtual with AnyScalaFile
-  final case class VirtualJavaFile(content: Array[Byte], source: String) extends Virtual with Compiled
+  final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
+      extends Virtual with AnyScalaFile
+  final case class VirtualScalaFile(content: Array[Byte], source: String)
+      extends Virtual with AnyScalaFile
+  final case class VirtualJavaFile(content: Array[Byte], source: String)
+      extends Virtual with Compiled
 
   private def inputsHash(elements: Seq[Element]): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
     val it = elements.iterator.flatMap {
       case elem: Inputs.OnDisk =>
         val prefix = elem match {
-          case _: Inputs.Directory => "dir:"
+          case _: Inputs.Directory         => "dir:"
           case _: Inputs.ResourceDirectory => "resource-dir:"
-          case _: Inputs.JavaFile => "java:"
-          case _: Inputs.ScalaFile => "scala:"
-          case _: Inputs.Script => "sc:"
-          case _: Inputs.ConfigFile => "config:"
+          case _: Inputs.JavaFile          => "java:"
+          case _: Inputs.ScalaFile         => "scala:"
+          case _: Inputs.Script            => "sc:"
+          case _: Inputs.ConfigFile        => "config:"
         }
         Iterator(prefix, elem.path.toString, "\n").map(bytes)
       case v: Inputs.Virtual =>
@@ -160,7 +166,7 @@ object Inputs {
     }
     val md = MessageDigest.getInstance("SHA-1")
     it.foreach(md.update(_))
-    val digest = md.digest()
+    val digest        = md.digest()
     val calculatedSum = new BigInteger(1, digest)
     String.format(s"%040x", calculatedSum).take(10)
   }
@@ -182,7 +188,7 @@ object Inputs {
           case elem: SourceFile => (elem.path / os.up, true)
           case _: Virtual =>
             val hash0 = inputsHash(validElems)
-            val dir = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
+            val dir   = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
             os.makeDir.all(dir)
             (dir, false)
           case _: Directory => sys.error("Can't happen")
@@ -194,7 +200,7 @@ object Inputs {
         val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
         !isInDir
       case _: Directory => true
-      case _: Virtual => true
+      case _: Virtual   => true
     }
     val mainClassElemOpt = validElems
       .collectFirst {
@@ -214,12 +220,15 @@ object Inputs {
   ): Either[String, Inputs] = {
     val validatedArgs = args.zipWithIndex.map {
       case (arg, idx) =>
-        lazy val path = os.Path(arg, cwd)
-        lazy val dir = path / os.up
-        lazy val subPath = path.subRelativeTo(dir)
+        lazy val path      = os.Path(arg, cwd)
+        lazy val dir       = path / os.up
+        lazy val subPath   = path.subRelativeTo(dir)
         lazy val stdinOpt0 = stdinOpt
-        if ((arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty) Right(VirtualScalaFile(stdinOpt0.get, "<stdin>"))
-        else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) Right(VirtualScript(stdinOpt0.get, "<stdin>", os.sub / "stdin.sc"))
+        val isStdin = (arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") &&
+          stdinOpt0.nonEmpty
+        if (isStdin) Right(VirtualScalaFile(stdinOpt0.get, "<stdin>"))
+        else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
+          Right(VirtualScript(stdinOpt0.get, "<stdin>", os.sub / "stdin.sc"))
         else if (arg.contains("://"))
           download(arg).map { content =>
             val wrapperPath = {
@@ -240,9 +249,11 @@ object Inputs {
         else if (acceptFds && arg.startsWith("/dev/fd/")) {
           val content = os.read.bytes(os.Path(arg, cwd))
           Right(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc"))
-        } else {
+        }
+        else {
           val msg =
-            if (os.exists(path)) s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
+            if (os.exists(path))
+              s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
             else s"$arg: not found"
           Left(msg)
         }
@@ -257,7 +268,8 @@ object Inputs {
       assert(validElems.nonEmpty)
 
       Right(forValidatedElems(validElems, baseProjectName, directories))
-    } else
+    }
+    else
       Left(invalid.mkString(System.lineSeparator()))
   }
 
@@ -272,7 +284,9 @@ object Inputs {
     acceptFds: Boolean = false
   ): Either[String, Inputs] =
     if (args.isEmpty)
-      defaultInputs().toRight("No inputs provided (expected files with .scala or .sc extensions, and / or directories).")
+      defaultInputs().toRight(
+        "No inputs provided (expected files with .scala or .sc extensions, and / or directories)."
+      )
     else
       forNonEmptyArgs(args, cwd, directories, baseProjectName, download, stdinOpt, acceptFds)
 

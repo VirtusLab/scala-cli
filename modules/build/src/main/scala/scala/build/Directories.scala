@@ -40,7 +40,11 @@ object Directories {
       if (coursier.paths.Util.useJni())
         new GetWinDirs {
           def getWinDirs(guids: String*) =
-            guids.map(guid => coursier.jniutils.WindowsKnownFolders.knownFolderPath("{" + guid + "}")).toArray
+            guids
+              .map { guid =>
+                coursier.jniutils.WindowsKnownFolders.knownFolderPath("{" + guid + "}")
+              }
+              .toArray
         }
       else
         GetWinDirs.powerShellBased

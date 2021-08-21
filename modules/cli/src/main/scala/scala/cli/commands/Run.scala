@@ -24,8 +24,8 @@ object Run extends ScalaCommand[RunOptions] {
     val inputs = options.shared.inputsOrExit(args, defaultInputs = defaultInputs)
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig = options.shared.bloopRifleConfig()
-    val logger = options.shared.logger
+    val bloopRifleConfig    = options.shared.bloopRifleConfig()
+    val logger              = options.shared.logger
 
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
       maybeRunOnce(
@@ -40,7 +40,13 @@ object Run extends ScalaCommand[RunOptions] {
       )
 
     if (options.watch.watch) {
-      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(
+        inputs,
+        initialBuildOptions,
+        bloopRifleConfig,
+        logger,
+        postAction = () => WatchUtil.printWatchMessage()
+      ) {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = false)
         case f: Build.Failed =>
@@ -48,7 +54,8 @@ object Run extends ScalaCommand[RunOptions] {
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
-    } else {
+    }
+    else {
       val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
       build match {
         case s: Build.Successful =>
@@ -72,7 +79,10 @@ object Run extends ScalaCommand[RunOptions] {
   ): Unit = {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
-      .orElse(if (build.options.jmhOptions.runJmh.contains(false)) Some("org.openjdk.jmh.Main") else None)
+      .orElse {
+        if (build.options.jmhOptions.runJmh.contains(false)) Some("org.openjdk.jmh.Main")
+        else None
+      }
       .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
 
     for (mainClass <- mainClassOpt) {
@@ -114,7 +124,8 @@ object Run extends ScalaCommand[RunOptions] {
             allowExecve = allowExecve
           )
         }
-      } else if (build.options.scalaNativeOptions.enable)
+      }
+      else if (build.options.scalaNativeOptions.enable)
         withNativeLauncher(
           build,
           mainClass,
@@ -144,16 +155,15 @@ object Run extends ScalaCommand[RunOptions] {
       if (exitOnError)
         sys.exit(retCode)
       else {
-        val red = Console.RED
+        val red      = Console.RED
         val lightRed = "\u001b[91m"
-        val reset = Console.RESET
+        val reset    = Console.RESET
         System.err.println(s"${red}Program exited with return code $lightRed$retCode$red.$reset")
       }
     }
 
     retCode == 0
   }
-
 
   def withLinkedJs[T](
     build: Build.Successful,
@@ -165,7 +175,8 @@ object Run extends ScalaCommand[RunOptions] {
     try {
       Package.linkJs(build, dest, mainClassOpt, addTestInitializer, config)
       f(dest)
-    } finally {
+    }
+    finally {
       if (os.exists(dest))
         os.remove(dest)
     }
@@ -182,7 +193,8 @@ object Run extends ScalaCommand[RunOptions] {
     try {
       Package.buildNative(build, mainClass, dest, config, workDir, logger)
       f(dest)
-    } finally {
+    }
+    finally {
       if (os.exists(dest))
         os.remove(dest)
     }

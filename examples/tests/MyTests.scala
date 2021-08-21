@@ -8,4 +8,3 @@ class MyTests extends munit.FunSuite {
     assert(2 + 2 == 5)
   }
 }
-

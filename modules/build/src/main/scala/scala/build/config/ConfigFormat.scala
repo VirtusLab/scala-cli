@@ -7,7 +7,14 @@ import java.util.Locale
 
 import scala.build.{Build, Os}
 import scala.build.config.reader.DerivedConfigReader
-import scala.build.options.{BuildOptions, ClassPathOptions, JavaOptions, ScalaJsOptions, ScalaNativeOptions, ScalaOptions}
+import scala.build.options.{
+  BuildOptions,
+  ClassPathOptions,
+  JavaOptions,
+  ScalaJsOptions,
+  ScalaNativeOptions,
+  ScalaOptions
+}
 
 final case class ConfigFormat(
   scala: Scala = Scala(),
@@ -37,19 +44,19 @@ final case class ConfigFormat(
       scalaJsOptions = ScalaJsOptions(
         enable = scala.platform.map(_.toLowerCase(Locale.ROOT)).exists {
           case "js" | "scala.js" | "scala-js" | "scala js" | "scalajs" => true
-          case _ => false
+          case _                                                       => false
         }
       ),
       scalaNativeOptions = ScalaNativeOptions(
         enable = scala.platform.map(_.toLowerCase(Locale.ROOT)).exists {
           case "native" | "scala-native" | "scala native" | "scalanative" => true
-          case _ => false
+          case _                                                          => false
         }
       ),
       classPathOptions = ClassPathOptions(
         extraDependencies = dependencies.filter(_.nonEmpty).map { depStr =>
           DependencyParser.parse(depStr) match {
-            case Left(err) => sys.error(s"Error parsing dependency '$depStr': $err")
+            case Left(err)  => sys.error(s"Error parsing dependency '$depStr': $err")
             case Right(dep) => dep
           }
         },

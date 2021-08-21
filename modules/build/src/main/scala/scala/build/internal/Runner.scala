@@ -25,14 +25,20 @@ object Runner {
 
     log(
       s"Running ${command.mkString(" ")}",
-      "  Running" + System.lineSeparator() + command.iterator.map(_ + System.lineSeparator()).mkString
+      "  Running" + System.lineSeparator() +
+        command.iterator.map(_ + System.lineSeparator()).mkString
     )
 
     if (allowExecve && Execve.available()) {
       debug("execve available")
-      Execve.execve(findInPath(command.head).fold(command.head)(_.toString), commandName +: command.tail.toArray, sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" })
+      Execve.execve(
+        findInPath(command.head).fold(command.head)(_.toString),
+        commandName +: command.tail.toArray,
+        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
+      )
       sys.error("should not happen")
-    } else
+    }
+    else
       new ProcessBuilder(command: _*)
         .inheritIO()
         .start()
@@ -51,19 +57,20 @@ object Runner {
 
     val command =
       Seq(javaCommand) ++
-      javaArgs ++
-      Seq(
-        "-cp", classPath.iterator.map(_.getAbsolutePath).mkString(File.pathSeparator),
-        mainClass
-      ) ++
-      args
+        javaArgs ++
+        Seq(
+          "-cp",
+          classPath.iterator.map(_.getAbsolutePath).mkString(File.pathSeparator),
+          mainClass
+        ) ++
+        args
 
     run("java", command, logger, allowExecve)
   }
 
   private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =
     s.length >= suffix.length &&
-      s.regionMatches(true, s.length - suffix.length, suffix, 0, suffix.length)
+    s.regionMatches(true, s.length - suffix.length, suffix, 0, suffix.length)
 
   private def findInPath(app: String): Option[Path] = {
     val asIs = Paths.get(app)
@@ -74,7 +81,10 @@ object Runner {
           .iterator
           .flatMap(_.split(File.pathSeparator).iterator)
       def pathSep =
-        if (Properties.isWin) Option(System.getenv("PATHEXT")).iterator.flatMap(_.split(File.pathSeparator).iterator)
+        if (Properties.isWin)
+          Option(System.getenv("PATHEXT"))
+            .iterator
+            .flatMap(_.split(File.pathSeparator).iterator)
         else Iterator("")
       def matches = for {
         dir <- pathEntries
@@ -97,18 +107,24 @@ object Runner {
     import logger.{log, debug}
 
     val nodePath = findInPath("node").fold("node")(_.toString)
-    val command = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
+    val command  = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
 
     log(
       s"Running ${command.mkString(" ")}",
-      "  Running" + System.lineSeparator() + command.iterator.map(_ + System.lineSeparator()).mkString
+      "  Running" + System.lineSeparator() +
+        command.iterator.map(_ + System.lineSeparator()).mkString
     )
 
     if (allowExecve && Execve.available()) {
       debug("execve available")
-      Execve.execve(command.head, "node" +: command.tail.toArray, sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" })
+      Execve.execve(
+        command.head,
+        "node" +: command.tail.toArray,
+        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
+      )
       sys.error("should not happen")
-    } else
+    }
+    else
       new ProcessBuilder(command: _*)
         .inheritIO()
         .start()
@@ -128,14 +144,20 @@ object Runner {
 
     log(
       s"Running ${command.mkString(" ")}",
-      "  Running" + System.lineSeparator() + command.iterator.map(_ + System.lineSeparator()).mkString
+      "  Running" + System.lineSeparator() +
+        command.iterator.map(_ + System.lineSeparator()).mkString
     )
 
     if (allowExecve && Execve.available()) {
       debug("execve available")
-      Execve.execve(command.head, launcher.getName +: command.tail.toArray, sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" })
+      Execve.execve(
+        command.head,
+        launcher.getName +: command.tail.toArray,
+        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
+      )
       sys.error("should not happen")
-    } else
+    }
+    else
       new ProcessBuilder(command: _*)
         .inheritIO()
         .start()
@@ -157,21 +179,33 @@ object Runner {
         parentInspector
       ).toArray
 
-    val runner = framework.runner(args.toArray, Array(), null)
+    val runner       = framework.runner(args.toArray, Array(), null)
     val initialTasks = runner.tasks(taskDefs)
-    val events = TestRunner.runTasks(initialTasks, System.out)
+    val events       = TestRunner.runTasks(initialTasks, System.out)
 
     val doneMsg = runner.done()
     if (doneMsg.nonEmpty)
       System.out.println(doneMsg)
 
-    !events.exists(ev => ev.status == Status.Error || ev.status == Status.Failure || ev.status == Status.Canceled)
+    !events.exists { ev =>
+      ev.status == Status.Error ||
+      ev.status == Status.Failure ||
+      ev.status == Status.Canceled
+    }
   }
 
-
-  private def frameworkName(classPath: Seq[Path], parentInspector: AsmTestRunner.ParentInspector): String =
+  private def frameworkName(
+    classPath: Seq[Path],
+    parentInspector: AsmTestRunner.ParentInspector
+  ): String =
     AsmTestRunner.findFrameworkService(classPath)
-      .orElse(AsmTestRunner.findFramework(classPath, TestRunner.commonTestFrameworks, parentInspector))
+      .orElse {
+        AsmTestRunner.findFramework(
+          classPath,
+          TestRunner.commonTestFrameworks,
+          parentInspector
+        )
+      }
       .getOrElse(sys.error("No test framework found"))
       .replace('/', '.')
 
@@ -193,12 +227,12 @@ object Runner {
         .withEnv(Map.empty)
         .withSourceMap(NodeJSEnv.SourceMap.Disable)
     )
-    val adapterConfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
-    val inputs = Seq(Input.Script(entrypoint.toPath))
+    val adapterConfig        = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+    val inputs               = Seq(Input.Script(entrypoint.toPath))
     var adapter: TestAdapter = null
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val frameworkName0 = testFrameworkOpt.getOrElse(frameworkName(classPath, parentInspector))
+    val frameworkName0  = testFrameworkOpt.getOrElse(frameworkName(classPath, parentInspector))
 
     try {
       adapter = new TestAdapter(jsEnv, inputs, adapterConfig)
@@ -211,10 +245,11 @@ object Runner {
         sys.error("Too many frameworks found by Scala.JS test bridge")
       else {
         val framework = frameworks.head
-        val success = runTests(classPath, framework, args, parentInspector)
+        val success   = runTests(classPath, framework, args, parentInspector)
         if (success) 0 else 1
       }
-    } finally {
+    }
+    finally {
       if (adapter != null)
         adapter.close()
     }
@@ -232,7 +267,7 @@ object Runner {
     import scala.scalanative.testinterface.adapter.TestAdapter
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val frameworkName0 = frameworkNameOpt.getOrElse(frameworkName(classPath, parentInspector))
+    val frameworkName0  = frameworkNameOpt.getOrElse(frameworkName(classPath, parentInspector))
 
     val config = TestAdapter.Config()
       .withBinaryFile(launcher)
@@ -251,10 +286,11 @@ object Runner {
         sys.error("Too many frameworks found by Scala-Native test bridge")
       else {
         val framework = frameworks.head
-        val success = runTests(classPath, framework, args, parentInspector)
+        val success   = runTests(classPath, framework, args, parentInspector)
         if (success) 0 else 1
       }
-    } finally {
+    }
+    finally {
       if (adapter != null)
         adapter.close()
     }

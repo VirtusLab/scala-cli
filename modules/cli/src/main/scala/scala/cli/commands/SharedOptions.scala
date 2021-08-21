@@ -11,10 +11,20 @@ import dependency.parser.DependencyParser
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Bloop, Inputs, LocalRepo, Logger, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
-import scala.build.options.{BuildOptions, ClassPathOptions, InternalDependenciesOptions, InternalOptions, JavaOptions, JmhOptions, ScalaOptions, ScriptOptions}
+import scala.build.options.{
+  BuildOptions,
+  ClassPathOptions,
+  InternalDependenciesOptions,
+  InternalOptions,
+  JavaOptions,
+  JmhOptions,
+  ScalaOptions,
+  ScriptOptions
+}
 import scala.concurrent.duration.Duration
 import scala.util.Properties
 
+// format: off
 final case class SharedOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -105,6 +115,7 @@ final case class SharedOptions(
   @Hidden
     addStubs: Option[Boolean] = None
 ) {
+  // format: on
 
   def logger = logging.logger
 
@@ -112,7 +123,11 @@ final case class SharedOptions(
     if (classWrap) Some(CustomCodeClassWrapper)
     else None
 
-  def buildOptions(enableJmh: Boolean, jmhVersion: Option[String], ignoreErrors: Boolean = false): BuildOptions =
+  def buildOptions(
+    enableJmh: Boolean,
+    jmhVersion: Option[String],
+    ignoreErrors: Boolean = false
+  ): BuildOptions =
     BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
@@ -141,20 +156,27 @@ final case class SharedOptions(
         addJmhDependencies =
           if (enableJmh) jmhVersion.orElse(Some(Constants.jmhVersion))
           else None,
-        runJmh = if (enableJmh) Some(true) else None,
+        runJmh = if (enableJmh) Some(true) else None
       ),
       classPathOptions = ClassPathOptions(
-        extraJars = extraJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
-        extraCompileOnlyJars = extraCompileOnlyJars.flatMap(_.split(File.pathSeparator).toSeq).filter(_.nonEmpty).map(os.Path(_, os.pwd)),
+        extraJars = extraJars
+          .flatMap(_.split(File.pathSeparator).toSeq)
+          .filter(_.nonEmpty)
+          .map(os.Path(_, os.pwd)),
+        extraCompileOnlyJars = extraCompileOnlyJars
+          .flatMap(_.split(File.pathSeparator).toSeq)
+          .filter(_.nonEmpty)
+          .map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
-        extraDependencies = dependencies.dependency.map(_.trim).filter(_.nonEmpty).flatMap { depStr =>
-          DependencyParser.parse(depStr) match {
-            case Left(err) =>
-              if (ignoreErrors) Nil
-              else sys.error(s"Error parsing dependency '$depStr': $err")
-            case Right(dep) => Seq(dep)
+        extraDependencies = dependencies.dependency.map(_.trim).filter(_.nonEmpty)
+          .flatMap { depStr =>
+            DependencyParser.parse(depStr) match {
+              case Left(err) =>
+                if (ignoreErrors) Nil
+                else sys.error(s"Error parsing dependency '$depStr': $err")
+              case Right(dep) => Seq(dep)
+            }
           }
-        }
       ),
       internal = InternalOptions(
         cache = Some(coursierCache),
@@ -185,13 +207,16 @@ final case class SharedOptions(
 
   lazy val coursierCache = {
     val baseCache = FileCache()
-    val ttl0 = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_)).orElse(baseCache.ttl)
+    val ttl0      = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_)).orElse(baseCache.ttl)
     baseCache
       .withTtl(ttl0)
       .withLogger(logging.logger.coursierLogger)
   }
 
-  def inputsOrExit(args: RemainingArgs, defaultInputs: () => Option[Inputs] = () => Inputs.default()): Inputs = {
+  def inputsOrExit(
+    args: RemainingArgs,
+    defaultInputs: () => Option[Inputs] = () => Inputs.default()
+  ): Inputs = {
     val download: String => Either[String, Array[Byte]] = { url =>
       val artifact = Artifact(url).withChanging(true)
       val res = coursierCache.logger.use {
@@ -201,7 +226,15 @@ final case class SharedOptions(
         .left.map(_.describe)
         .map(f => os.read.bytes(os.Path(f, Os.pwd)))
     }
-    Inputs(args.remaining, Os.pwd, directories.directories, defaultInputs = defaultInputs, download = download, stdinOpt = SharedOptions.readStdin(logger = logger), acceptFds = !Properties.isWin) match {
+    Inputs(
+      args.remaining,
+      Os.pwd,
+      directories.directories,
+      defaultInputs = defaultInputs,
+      download = download,
+      stdinOpt = SharedOptions.readStdin(logger = logger),
+      acceptFds = !Properties.isWin
+    ) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -214,16 +247,17 @@ final case class SharedOptions(
 
 object SharedOptions {
   implicit val parser = Parser[SharedOptions]
-  implicit val help = Help[SharedOptions]
+  implicit val help   = Help[SharedOptions]
 
   def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
     if (in == null) {
       logger.debug("No stdin available")
       None
-    } else {
+    }
+    else {
       logger.debug("Reading stdin")
       val baos = new ByteArrayOutputStream
-      val buf = Array.ofDim[Byte](16*1024)
+      val buf  = Array.ofDim[Byte](16 * 1024)
       var read = -1
       while ({
         read = in.read(buf)

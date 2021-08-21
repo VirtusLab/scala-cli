@@ -11,5 +11,5 @@ final case class JavaOptions(
 
 object JavaOptions {
   implicit val hasHashData: HasHashData[JavaOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[JavaOptions] = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[JavaOptions]     = ConfigMonoid.derive
 }

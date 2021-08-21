@@ -8,7 +8,12 @@ object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"
   def run(options: CleanOptions, args: RemainingArgs): Unit = {
 
-    val inputs = Inputs(args.all, Os.pwd, options.directories.directories, defaultInputs = () => Inputs.default(Os.pwd)) match {
+    val inputs = Inputs(
+      args.all,
+      Os.pwd,
+      options.directories.directories,
+      defaultInputs = () => Inputs.default(Os.pwd)
+    ) match {
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
@@ -23,7 +28,8 @@ object Clean extends ScalaCommand[CleanOptions] {
       if (os.isDir(workDir)) {
         logger.log(s"Removing $workDir")
         os.remove.all(workDir)
-      } else
+      }
+      else
         logger.log(s"$workDir is not a directory, ignoring it.")
     }
   }

@@ -10,16 +10,16 @@
  * additional information regarding copyright ownership.
  */
 
- // Originally adapted from https://github.com/scala/scala/blob/20ac944346a93ba747811e80f8f67a09247cb987/src/compiler/scala/tools/tasty/TastyFormat.scala
+// Originally adapted from https://github.com/scala/scala/blob/20ac944346a93ba747811e80f8f67a09247cb987/src/compiler/scala/tools/tasty/TastyFormat.scala
 
 package scala.build.tastylib
 
 object TastyFormat {
 
-  final val header: Array[Int] = Array(0x5C, 0xA1, 0xAB, 0x1F)
+  final val header: Array[Int] = Array(0x5c, 0xa1, 0xab, 0x1f)
 
-  final val MajorVersion: Int = 28
-  final val MinorVersion: Int = 0
+  final val MajorVersion: Int        = 28
+  final val MinorVersion: Int        = 0
   final val ExperimentalVersion: Int = 0
 
   def isVersionCompatible(
@@ -40,17 +40,17 @@ object TastyFormat {
     }
 
   object NameTags {
-    final val UTF8 = 1
-    final val QUALIFIED = 2
-    final val EXPANDED = 3
-    final val EXPANDPREFIX = 4
-    final val UNIQUE = 10
-    final val DEFAULTGETTER = 11
-    final val SUPERACCESSOR = 20
+    final val UTF8           = 1
+    final val QUALIFIED      = 2
+    final val EXPANDED       = 3
+    final val EXPANDPREFIX   = 4
+    final val UNIQUE         = 10
+    final val DEFAULTGETTER  = 11
+    final val SUPERACCESSOR  = 20
     final val INLINEACCESSOR = 21
-    final val BODYRETAINER = 22
-    final val OBJECTCLASS = 23
-    final val SIGNED = 63
-    final val TARGETSIGNED = 62
+    final val BODYRETAINER   = 22
+    final val OBJECTCLASS    = 23
+    final val SIGNED         = 63
+    final val TARGETSIGNED   = 62
   }
 }

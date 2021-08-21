@@ -1,6 +1,13 @@
 package scala.cli.internal
 
-import org.scalajs.linker.interface.{ESFeatures, LinkerOutput, ModuleInitializer, ModuleKind, Semantics, StandardConfig}
+import org.scalajs.linker.interface.{
+  ESFeatures,
+  LinkerOutput,
+  ModuleInitializer,
+  ModuleKind,
+  Semantics,
+  StandardConfig
+}
 import org.scalajs.linker.{PathIRContainer, PathOutputFile, StandardImpl}
 import org.scalajs.logging.{Level, ScalaConsoleLogger}
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
@@ -39,8 +46,10 @@ final class ScalaJsLinker {
       ModuleInitializer.mainMethodWithArgs(mainClass, "main")
     }
     val testInitializers =
-      if (addTestInitializer) Seq(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
-      else Nil
+      if (addTestInitializer)
+        Seq(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
+      else
+        Nil
 
     val moduleInitializers = mainInitializers ++ testInitializers
 

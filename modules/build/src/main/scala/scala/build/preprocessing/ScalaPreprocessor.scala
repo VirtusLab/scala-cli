@@ -34,7 +34,8 @@ case object ScalaPreprocessor extends Preprocessor {
 
       case v: Inputs.VirtualScalaFile =>
         val content = new String(v.content, StandardCharsets.UTF_8)
-        val (options, updatedContent) = process(content, v.source).getOrElse((BuildOptions(), content))
+        val (options, updatedContent) = process(content, v.source)
+          .getOrElse((BuildOptions(), content))
         val s = PreprocessedSource.InMemory(
           Left(v.source),
           v.subPath,
@@ -51,10 +52,9 @@ case object ScalaPreprocessor extends Preprocessor {
 
   private def parseDependency(str: String): AnyDependency =
     DependencyParser.parse(str) match {
-      case Left(msg) => sys.error(s"Malformed dependency '$str': $msg")
+      case Left(msg)  => sys.error(s"Malformed dependency '$str': $msg")
       case Right(dep) => dep
     }
-
 
   def process(path: os.Path): Option[(BuildOptions, String)] = {
     val printablePath =
@@ -76,7 +76,7 @@ case object ScalaPreprocessor extends Preprocessor {
     val indicesOrErrorMsg = indicesOrFailingIdx0 match {
       case Left(failingIdx) =>
         val newCode = content.take(failingIdx)
-        val res1 = parse(newCode, Header(_))
+        val res1    = parse(newCode, Header(_))
         res1 match {
           case f: Parsed.Failure =>
             val msg = formatFastparseError(printablePath, content, f)
@@ -90,15 +90,20 @@ case object ScalaPreprocessor extends Preprocessor {
 
     // TODO Report error if indicesOrErrorMsg.isLeft?
 
-    val importTrees = indicesOrErrorMsg.right.toSeq.iterator.flatMap(_.iterator).flatMap {
-      case (start, end) =>
-        val code = content.substring(start, end)
-          // .trim // meh
-        val importRes = parse(code, ImportSplitter(_))
-        importRes.fold((_, _, _) => Iterator.empty, (trees, _) => trees.iterator).map { tree =>
-          tree.copy(start = start + tree.start, end = start + tree.end)
-        }
-    }.toVector
+    val importTrees = indicesOrErrorMsg
+      .right
+      .toSeq
+      .iterator
+      .flatMap(_.iterator)
+      .flatMap {
+        case (start, end) =>
+          val code      = content.substring(start, end) // .trim // meh
+          val importRes = parse(code, ImportSplitter(_))
+          importRes.fold((_, _, _) => Iterator.empty, (trees, _) => trees.iterator).map { tree =>
+            tree.copy(start = start + tree.start, end = start + tree.end)
+          }
+      }
+      .toVector
 
     val dependencyTrees = importTrees.filter { t =>
       val firstSegmentOpt = t.prefix.headOption
@@ -120,10 +125,12 @@ case object ScalaPreprocessor extends Preprocessor {
         System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
       }
       val newCode = new String(buf)
-      val deps = dependencyTrees.map(_.prefix.drop(1).mkString("."))
-      val options = BuildOptions(classPathOptions = ClassPathOptions(
-        extraDependencies = deps.map(ScalaPreprocessor.parseDependency)
-      ))
+      val deps    = dependencyTrees.map(_.prefix.drop(1).mkString("."))
+      val options = BuildOptions(
+        classPathOptions = ClassPathOptions(
+          extraDependencies = deps.map(ScalaPreprocessor.parseDependency)
+        )
+      )
       Some((options, newCode))
     }
   }

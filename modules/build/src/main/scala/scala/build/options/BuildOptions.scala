@@ -15,19 +15,19 @@ import scala.build.internal.{Constants, OsLibc, Util}
 import scala.util.Properties
 
 final case class BuildOptions(
-                scalaOptions: ScalaOptions                = ScalaOptions(),
-              scalaJsOptions: ScalaJsOptions              = ScalaJsOptions(),
-          scalaNativeOptions: ScalaNativeOptions          = ScalaNativeOptions(),
-        internalDependencies: InternalDependenciesOptions = InternalDependenciesOptions(),
-                 javaOptions: JavaOptions                 = JavaOptions(),
-                  jmhOptions: JmhOptions                  = JmhOptions(),
-            classPathOptions: ClassPathOptions            = ClassPathOptions(),
-               scriptOptions: ScriptOptions               = ScriptOptions(),
-                    internal: InternalOptions             = InternalOptions(),
-                   mainClass: Option[String]              = None,
-                 testOptions: TestOptions                 = TestOptions(),
-              packageOptions: PackageOptions              = PackageOptions(),
-                 replOptions: ReplOptions                 = ReplOptions()
+  scalaOptions: ScalaOptions = ScalaOptions(),
+  scalaJsOptions: ScalaJsOptions = ScalaJsOptions(),
+  scalaNativeOptions: ScalaNativeOptions = ScalaNativeOptions(),
+  internalDependencies: InternalDependenciesOptions = InternalDependenciesOptions(),
+  javaOptions: JavaOptions = JavaOptions(),
+  jmhOptions: JmhOptions = JmhOptions(),
+  classPathOptions: ClassPathOptions = ClassPathOptions(),
+  scriptOptions: ScriptOptions = ScriptOptions(),
+  internal: InternalOptions = InternalOptions(),
+  mainClass: Option[String] = None,
+  testOptions: TestOptions = TestOptions(),
+  packageOptions: PackageOptions = PackageOptions(),
+  replOptions: ReplOptions = ReplOptions()
 ) {
 
   lazy val projectParams: Seq[String] = {
@@ -59,12 +59,16 @@ final case class BuildOptions(
       scalaLibraryDependencies ++
       classPathOptions.extraDependencies
 
-  private def semanticDbPlugins: Seq[AnyDependency] =
-    if (scalaOptions.generateSemanticDbs.getOrElse(false) && scalaParams.scalaVersion.startsWith("2."))
+  private def semanticDbPlugins: Seq[AnyDependency] = {
+    val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false) &&
+      scalaParams.scalaVersion.startsWith("2.")
+    if (generateSemDbs)
       Seq(
         dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
       )
-    else Nil
+    else
+      Nil
+  }
 
   def compilerPlugins: Seq[AnyDependency] =
     scalaJsOptions.compilerPlugins(scalaParams.scalaVersion) ++
@@ -78,21 +82,28 @@ final case class BuildOptions(
   def allExtraSourceJars: Seq[Path] =
     classPathOptions.extraSourceJars.map(_.toNIO)
 
-  private def addJvmTestRunner: Boolean = !scalaJsOptions.enable && !scalaNativeOptions.enable && internalDependencies.addTestRunnerDependency
-  private def addJsTestBridge: Option[String] = if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion) else None
-
+  private def addJvmTestRunner: Boolean =
+    !scalaJsOptions.enable &&
+    !scalaNativeOptions.enable &&
+    internalDependencies.addTestRunnerDependency
+  private def addJsTestBridge: Option[String] =
+    if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion)
+    else None
 
   private lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
   private lazy val javaCommand0: String = {
     val javaHome = javaHomeLocation()
-    val ext = if (Properties.isWin) ".exe" else ""
+    val ext      = if (Properties.isWin) ".exe" else ""
     (javaHome / "bin" / s"java$ext").toString
   }
 
   def javaHomeLocationOpt(): Option[os.Path] =
     javaOptions.javaHomeOpt
-      .orElse(if (javaOptions.jvmIdOpt.isEmpty) sys.props.get("java.home").map(os.Path(_, Os.pwd)) else None)
+      .orElse {
+        if (javaOptions.jvmIdOpt.isEmpty) sys.props.get("java.home").map(os.Path(_, Os.pwd))
+        else None
+      }
       .orElse {
         javaOptions.jvmIdOpt.map { jvmId =>
           implicit val ec = finalCache.ec
@@ -115,7 +126,7 @@ final case class BuildOptions(
   def javaCommand(): String = javaCommand0
 
   private lazy val javaHomeManager = {
-    val indexUrl = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
+    val indexUrl  = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
     val indexTask = JvmIndex.load(finalCache, indexUrl)
     val jvmCache = JvmCache()
       .withIndex(indexTask)
@@ -128,7 +139,10 @@ final case class BuildOptions(
   private def finalRepositories: Seq[String] =
     classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
-  private def computeScalaVersions(scalaVersion: Option[String], scalaBinaryVersion: Option[String]): (String, String) = {
+  private def computeScalaVersions(
+    scalaVersion: Option[String],
+    scalaBinaryVersion: Option[String]
+  ): (String, String) = {
     import coursier.core.Version
     lazy val allVersions = {
       import coursier._
@@ -159,7 +173,7 @@ final case class BuildOptions(
       case Some(sv0) =>
         if (Util.isFullScalaVersion(sv0)) sv0
         else {
-          val prefix = if (sv0.endsWith(".")) sv0 else sv0 + "."
+          val prefix           = if (sv0.endsWith(".")) sv0 else sv0 + "."
           val matchingVersions = allVersions.filter(_.startsWith(prefix))
           if (matchingVersions.isEmpty)
             sys.error(s"Cannot find matching Scala version for '$sv0'")
@@ -172,7 +186,8 @@ final case class BuildOptions(
   }
 
   lazy val scalaParams: ScalaParameters = {
-    val (scalaVersion, scalaBinaryVersion) = computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion)
+    val (scalaVersion, scalaBinaryVersion) =
+      computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion)
     val maybePlatformSuffix =
       scalaJsOptions.platformSuffix
         .orElse(scalaNativeOptions.platformSuffix)
@@ -181,20 +196,20 @@ final case class BuildOptions(
 
   def artifacts(logger: Logger): Artifacts =
     Artifacts(
-                  params = scalaParams,
-         compilerPlugins = compilerPlugins,
-            dependencies = dependencies,
-               extraJars = allExtraJars,
+      params = scalaParams,
+      compilerPlugins = compilerPlugins,
+      dependencies = dependencies,
+      extraJars = allExtraJars,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
-         extraSourceJars = allExtraSourceJars,
-            fetchSources = classPathOptions.fetchSources.getOrElse(false),
-                addStubs = internalDependencies.addStubsDependency,
-            addJvmRunner = addRunnerDependency,
-        addJvmTestRunner = addJvmTestRunner,
-         addJsTestBridge = addJsTestBridge,
+      extraSourceJars = allExtraSourceJars,
+      fetchSources = classPathOptions.fetchSources.getOrElse(false),
+      addStubs = internalDependencies.addStubsDependency,
+      addJvmRunner = addRunnerDependency,
+      addJvmTestRunner = addJvmTestRunner,
+      addJsTestBridge = addJsTestBridge,
       addJmhDependencies = jmhOptions.addJmhDependencies,
-       extraRepositories = finalRepositories,
-                  logger = logger
+      extraRepositories = finalRepositories,
+      logger = logger
     )
 
   // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
@@ -208,18 +223,22 @@ final case class BuildOptions(
 
     var hasAnyOverride = false
 
-    BuildOptions.hasHashData.add("", this, s => {
-      val bytes = s.getBytes(StandardCharsets.UTF_8)
-      if (bytes.length > 0) {
-        hasAnyOverride = true
-        md.update(bytes)
+    BuildOptions.hasHashData.add(
+      "",
+      this,
+      s => {
+        val bytes = s.getBytes(StandardCharsets.UTF_8)
+        if (bytes.length > 0) {
+          hasAnyOverride = true
+          md.update(bytes)
+        }
       }
-    })
+    )
 
     if (hasAnyOverride) {
-      val digest = md.digest()
+      val digest        = md.digest()
       val calculatedSum = new BigInteger(1, digest)
-      val hash = String.format(s"%040x", calculatedSum).take(10)
+      val hash          = String.format(s"%040x", calculatedSum).take(10)
       Some(hash)
     }
     else None
@@ -231,5 +250,5 @@ final case class BuildOptions(
 
 object BuildOptions {
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[BuildOptions] = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive
 }

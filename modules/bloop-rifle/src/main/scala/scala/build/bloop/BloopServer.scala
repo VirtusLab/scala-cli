@@ -203,7 +203,8 @@ object BloopServer {
         logger
       )
       f(server)
-    } finally {
+    }
+    finally {
       if (server != null)
         server.shutdown()
     }

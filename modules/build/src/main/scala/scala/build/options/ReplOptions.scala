@@ -15,5 +15,5 @@ final case class ReplOptions(
 
 object ReplOptions {
   implicit val hasHashData: HasHashData[ReplOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[ReplOptions] = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[ReplOptions]     = ConfigMonoid.derive
 }

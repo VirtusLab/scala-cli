@@ -7,5 +7,5 @@ final case class JmhOptions(
 
 object JmhOptions {
   implicit val hasHashData: HasHashData[JmhOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[JmhOptions] = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[JmhOptions]     = ConfigMonoid.derive
 }

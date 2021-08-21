@@ -1,9 +1,9 @@
 package scala.build.options
 
 final case class InternalDependenciesOptions(
-       addStubsDependencyOpt: Option[Boolean]            = None,
-      addRunnerDependencyOpt: Option[Boolean]            = None,
-  addTestRunnerDependencyOpt: Option[Boolean]            = None
+  addStubsDependencyOpt: Option[Boolean] = None,
+  addRunnerDependencyOpt: Option[Boolean] = None,
+  addTestRunnerDependencyOpt: Option[Boolean] = None
 ) {
   def addStubsDependency: Boolean =
     addStubsDependencyOpt.getOrElse(true)
@@ -13,5 +13,5 @@ final case class InternalDependenciesOptions(
 
 object InternalDependenciesOptions {
   implicit val hasHashData: HasHashData[InternalDependenciesOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[InternalDependenciesOptions] = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[InternalDependenciesOptions]     = ConfigMonoid.derive
 }

@@ -62,13 +62,13 @@ object TastyData {
   def read(bytes: Array[Byte]): TastyData = {
 
     val headerReader = new TastyReader(bytes)
-    val id = new TastyHeaderUnpickler(headerReader).readHeader()
-    val header = Header(id, headerReader.read)
+    val id           = new TastyHeaderUnpickler(headerReader).readHeader()
+    val header       = Header(id, headerReader.read)
 
-    val nameReader = headerReader.readerFromCurrentPos
-    val pickler = new TastyUnpickler(nameReader)
+    val nameReader         = headerReader.readerFromCurrentPos
+    val pickler            = new TastyUnpickler(nameReader)
     val namesPreambleBytes = pickler.readNames()
-    val names = Names(namesPreambleBytes, pickler.nameAtRef.toSeq)
+    val names              = Names(namesPreambleBytes, pickler.nameAtRef.toSeq)
 
     val sections = Sections(nameReader.toRead)
 

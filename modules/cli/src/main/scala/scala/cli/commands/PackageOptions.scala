@@ -8,6 +8,7 @@ import scala.build.options.DebianOptions
 import scala.build.options.RedHatOptions
 import scala.build.options.WindowsOptions
 
+// format: off
 @HelpMessage("Compile and package Scala code")
 final case class PackageOptions(
   @Recurse
@@ -54,6 +55,7 @@ final case class PackageOptions(
   @HelpMessage("Build pkg package, available only on centOS")
     pkg: Boolean = false,
 ) {
+  // format: on
   def packageTypeOpt: Option[PackageType] =
     if (library) Some(PackageType.LibraryJar)
     else if (assembly) Some(PackageType.Assembly)
@@ -69,7 +71,7 @@ final case class PackageOptions(
     baseOptions.copy(
       mainClass = mainClass.filter(_.nonEmpty),
       packageOptions = baseOptions.packageOptions.copy(
-        version =  Some(packager.version),
+        version = Some(packager.version),
         launcherAppName = packager.launcherAppName,
         maintainer = packager.maintainer,
         description = packager.description,
@@ -99,5 +101,5 @@ final case class PackageOptions(
 
 object PackageOptions {
   implicit val parser = Parser[PackageOptions]
-  implicit val help = Help[PackageOptions]
+  implicit val help   = Help[PackageOptions]
 }

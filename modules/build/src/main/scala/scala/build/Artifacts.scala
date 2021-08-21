@@ -1,5 +1,6 @@
 package scala.build
 
+import _root_.coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
 import coursier.cache.FileCache
 import coursier.cache.loggers.RefreshLogger
 import coursier.core.Classifier
@@ -20,7 +21,7 @@ final case class Artifacts(
   compilerArtifacts: Seq[(String, Path)],
   compilerPlugins: Seq[(AnyDependency, String, Path)],
   dependencies: Seq[AnyDependency],
-  detailedArtifacts: Seq[(coursier.Dependency, coursier.core.Publication, coursier.util.Artifact, Path)],
+  detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, Path)],
   extraJars: Seq[Path],
   extraCompileOnlyJars: Seq[Path],
   extraSourceJars: Seq[Path],
@@ -82,11 +83,15 @@ object Artifacts {
         )
 
     val jvmRunnerDependencies =
-      if (addJvmRunner.getOrElse(true)) Seq(dep"$runnerOrganization::$runnerModuleName:$runnerVersion")
-      else Nil
+      if (addJvmRunner.getOrElse(true))
+        Seq(dep"$runnerOrganization::$runnerModuleName:$runnerVersion")
+      else
+        Nil
     val jvmTestRunnerDependencies =
-      if (addJvmTestRunner) Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion")
-      else Nil
+      if (addJvmTestRunner)
+        Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion")
+      else
+        Nil
     val jsTestBridgeDependencies = addJsTestBridge.toSeq.map { scalaJsVersion =>
       if (params.scalaVersion.startsWith("2."))
         dep"org.scala-js::scalajs-test-bridge:$scalaJsVersion"
@@ -99,12 +104,13 @@ object Artifacts {
     }
 
     val maybeSnapshotRepo = {
-      val hasSnapshots =
-        (jvmRunnerDependencies ++ jvmTestRunnerDependencies).exists(_.version.endsWith("SNAPSHOT")) ||
-          Constants.runnerNeedsSonatypeSnapshots(params.scalaVersion)
-      if (hasSnapshots)
+      val hasSnapshots = (jvmRunnerDependencies ++ jvmTestRunnerDependencies)
+        .exists(_.version.endsWith("SNAPSHOT"))
+      val runnerNeedsSonatypeSnapshots = Constants.runnerNeedsSonatypeSnapshots(params.scalaVersion)
+      if (hasSnapshots || runnerNeedsSonatypeSnapshots)
         Seq(coursier.Repositories.sonatype("snapshots").root)
-      else Nil
+      else
+        Nil
     }
 
     val allExtraRepositories = maybeSnapshotRepo ++ extraRepositories
@@ -125,15 +131,37 @@ object Artifacts {
       classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty))
     )
     val artifacts0 = {
-      val a = fetchRes.fullExtraArtifacts.iterator.collect { case (a, Some(f)) => (None, a.url, f.toPath) }.toVector ++
-        fetchRes.fullDetailedArtifacts.iterator.collect { case (dep, pub, a, Some(f)) if pub.classifier != Classifier.sources => (Some(dep.moduleVersion), a.url, f.toPath) }.toVector
-      a.distinct
+      val a = fetchRes
+        .fullExtraArtifacts
+        .iterator
+        .collect {
+          case (a, Some(f)) =>
+            (None, a.url, f.toPath)
+        }
+        .toVector
+      val b = fetchRes
+        .fullDetailedArtifacts
+        .iterator
+        .collect {
+          case (dep, pub, a, Some(f)) if pub.classifier != Classifier.sources =>
+            (Some(dep.moduleVersion), a.url, f.toPath)
+        }
+        .toVector
+      (a ++ b).distinct
     }
     val sourceArtifacts =
       if (fetchSources) {
-        val a = fetchRes.fullDetailedArtifacts.iterator.collect { case (dep, pub, a, Some(f)) if pub.classifier == Classifier.sources => (a.url, f.toPath) }.toVector
+        val a = fetchRes
+          .fullDetailedArtifacts
+          .iterator
+          .collect {
+            case (dep, pub, a, Some(f)) if pub.classifier == Classifier.sources =>
+              (a.url, f.toPath)
+          }
+          .toVector
         a.distinct
-      } else Nil
+      }
+      else Nil
 
     val extraStubsJars =
       if (addStubs)
@@ -177,7 +205,12 @@ object Artifacts {
       .iterator
       .map { case (a, f) => (a.url, f.toPath) }
       .toList
-    logger.debug((Seq(s"Found ${result.length} artifacts:") ++ result.map("  " + _._2) ++ Seq("")).mkString(System.lineSeparator()))
+    logger.debug {
+      val elems = Seq(s"Found ${result.length} artifacts:") ++
+        result.map("  " + _._2) ++
+        Seq("")
+      elems.mkString(System.lineSeparator())
+    }
     result
   }
 
@@ -188,7 +221,10 @@ object Artifacts {
     logger: Logger,
     classifiersOpt: Option[Set[String]]
   ): Fetch.Result = {
-    logger.debug(s"Fetching $dependencies" + (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories"))
+    logger.debug {
+      s"Fetching $dependencies" +
+        (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories")
+    }
 
     val extraRepositories0 = RepositoryParser.repositories(extraRepositories).either match {
       case Left(errors) => sys.error(s"Error parsing repositories: ${errors.mkString(", ")}")
@@ -205,7 +241,8 @@ object Artifacts {
     for (classifiers <- classifiersOpt) {
       if (classifiers("_"))
         fetcher = fetcher.withMainArtifacts()
-      fetcher = fetcher.addClassifiers(classifiers.toSeq.filter(_ != "_").map(coursier.Classifier(_)): _*)
+      fetcher = fetcher
+        .addClassifiers(classifiers.toSeq.filter(_ != "_").map(coursier.Classifier(_)): _*)
     }
 
     try fetcher.runResult()

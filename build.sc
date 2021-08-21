@@ -3,7 +3,16 @@ import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.9`
 import $file.project.deps, deps.{Deps, Docker, Scala}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
-import $file.project.settings, settings.{CliLaunchers, FormatNativeImageConf, HasMacroAnnotations, HasTests, LocalRepo, PublishLocalNoFluff, localRepoResourcePath, platformExecutableJarExtension}
+import $file.project.settings, settings.{
+  CliLaunchers,
+  FormatNativeImageConf,
+  HasMacroAnnotations,
+  HasTests,
+  LocalRepo,
+  PublishLocalNoFluff,
+  localRepoResourcePath,
+  platformExecutableJarExtension
+}
 
 import java.io.File
 
@@ -14,19 +23,17 @@ import mill.contrib.bloop.Bloop
 
 import _root_.scala.util.Properties
 
-
 // Tell mill modules are under modules/
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-
-object cli                    extends Cli
-object build                  extends Cross[Build]             (Scala.defaultInternal)
-object stubs                  extends JavaModule with ScalaCliPublishModule
-object runner                 extends Cross[Runner]            (Scala.all: _*)
-object `test-runner`          extends Cross[TestRunner]        (Scala.all: _*)
-object `bloop-rifle`          extends Cross[BloopRifle]        (Scala.allScala2: _*)
-object `tasty-lib`            extends Cross[TastyLib]          (Scala.all: _*)
+object cli           extends Cli
+object build         extends Cross[Build](Scala.defaultInternal)
+object stubs         extends JavaModule with ScalaCliPublishModule
+object runner        extends Cross[Runner](Scala.all: _*)
+object `test-runner` extends Cross[TestRunner](Scala.all: _*)
+object `bloop-rifle` extends Cross[BloopRifle](Scala.allScala2: _*)
+object `tasty-lib`   extends Cross[TastyLib](Scala.all: _*)
 
 object integration extends Module {
   object docker extends CliIntegrationDocker {
@@ -36,7 +43,7 @@ object integration extends Module {
       }
     }
   }
-  object jvm    extends JvmIntegration {
+  object jvm extends JvmIntegration {
     object test extends Tests
   }
   object native extends NativeIntegration with Bloop.Module {
@@ -60,7 +67,7 @@ object integration extends Module {
 }
 
 object packager extends ScalaModule with Bloop.Module {
-  def skipBloop = true
+  def skipBloop    = true
   def scalaVersion = Scala.scala213
   def ivyDeps = Agg(
     Deps.scalaPackagerCli
@@ -93,8 +100,8 @@ object dummy extends Module {
   }
 }
 
-
-class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule with HasTests {
+class Build(val crossScalaVersion: String)
+    extends CrossSbtModule with ScalaCliPublishModule with HasTests {
   def moduleDeps = Seq(
     `bloop-rifle`(),
     `test-runner`(),
@@ -135,6 +142,17 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
   }
   def constantsFile = T.persistent {
     val dest = T.dest / "Constants.scala"
+    val testRunnerMainClass = `test-runner`(Scala.defaultInternal)
+      .mainClass()
+      .getOrElse(sys.error("No main class defined for test-runner"))
+    val runnerMainClass = runner(Scala.defaultInternal)
+      .mainClass()
+      .getOrElse(sys.error("No main class defined for runner"))
+    val runnerNeedsSonatypeSnapshots =
+      if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT"))
+        """ !sv.startsWith("2.") """
+      else
+        "false"
     val code =
       s"""package scala.build.internal
          |
@@ -153,14 +171,14 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
          |  def testRunnerOrganization = "${`test-runner`(Scala.defaultInternal).pomSettings().organization}"
          |  def testRunnerModuleName = "${`test-runner`(Scala.defaultInternal).artifactName()}"
          |  def testRunnerVersion = "${`test-runner`(Scala.defaultInternal).publishVersion()}"
-         |  def testRunnerMainClass = "${`test-runner`(Scala.defaultInternal).mainClass().getOrElse(sys.error("No main class defined for test-runner"))}"
+         |  def testRunnerMainClass = "$testRunnerMainClass"
          |
          |  def runnerOrganization = "${runner(Scala.defaultInternal).pomSettings().organization}"
          |  def runnerModuleName = "${runner(Scala.defaultInternal).artifactName()}"
          |  def runnerVersion = "${runner(Scala.defaultInternal).publishVersion()}"
-         |  def runnerMainClass = "${runner(Scala.defaultInternal).mainClass().getOrElse(sys.error("No main class defined for runner"))}"
+         |  def runnerMainClass = "$runnerMainClass"
          |  def runnerNeedsSonatypeSnapshots(sv: String): Boolean =
-         |    ${ if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT")) """ !sv.startsWith("2.") """ else "false" }
+         |    $runnerNeedsSonatypeSnapshots
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
@@ -182,7 +200,7 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
-  def localRepoJar = T{
+  def localRepoJar = T {
     `local-repo`.localRepoJar()
   }
 
@@ -190,13 +208,14 @@ class Build(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliP
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.pprint
     )
-    def runClasspath = T{
+    def runClasspath = T {
       super.runClasspath() ++ Seq(localRepoJar())
     }
   }
 }
 
-trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf with HasTests with HasMacroAnnotations {
+trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf
+    with HasTests with HasMacroAnnotations {
   def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
@@ -217,7 +236,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   )
   def mainClass = Some("scala.cli.ScalaCli")
 
-  def localRepoJar = `local-repo`.localRepoJar()
+  def localRepoJar   = `local-repo`.localRepoJar()
   def graalVmVersion = deps.graalVmVersion
 
   object test extends Tests
@@ -233,9 +252,11 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
   def prefix: String
 
   def sources = T.sources {
-    val name = mainArtifactName().stripPrefix(prefix)
+    val name                = mainArtifactName().stripPrefix(prefix)
     val baseIntegrationPath = os.Path(millSourcePath.toString.stripSuffix(name))
-    val modulesPath = os.Path(baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName))
+    val modulesPath = os.Path(
+      baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName)
+    )
     val mainPath = PathRef(modulesPath / "integration" / "src" / "main" / "scala")
     super.sources() ++ Seq(mainPath)
   }
@@ -244,7 +265,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     Deps.osLib
   )
 
-  private def mainArtifactName = T{ artifactName() }
+  private def mainArtifactName = T { artifactName() }
   trait Tests extends super.Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
@@ -253,13 +274,17 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
       Deps.upickle
     )
     def forkEnv = super.forkEnv() ++ Seq(
-      "SCALA_CLI" -> testLauncher().path.toString,
+      "SCALA_CLI"      -> testLauncher().path.toString,
       "SCALA_CLI_KIND" -> cliKind()
     )
     def sources = T.sources {
       val name = mainArtifactName().stripPrefix(prefix)
       super.sources().flatMap { ref =>
-        val base = PathRef(os.Path(ref.path.toString.replace(File.separator + name + File.separator, File.separator)))
+        val rawPath = ref.path.toString.replace(
+          File.separator + name + File.separator,
+          File.separator
+        )
+        val base = PathRef(os.Path(rawPath))
         Seq(base, ref)
       }
     }
@@ -288,9 +313,12 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
     def test(args: String*) = T.command {
-      val res = super.test(args: _*)()
+      val res            = super.test(args: _*)()
       val dotScalaInRoot = os.pwd / ".scala"
-      assert(!os.isDir(dotScalaInRoot), s"Expected .scala ($dotScalaInRoot) not to have been created")
+      assert(
+        !os.isDir(dotScalaInRoot),
+        s"Expected .scala ($dotScalaInRoot) not to have been created"
+      )
       res
     }
   }
@@ -309,22 +337,22 @@ trait CliIntegration extends CliIntegrationBase {
 
 trait NativeIntegration extends CliIntegration {
   def testLauncher = cli.nativeImage()
-  def cliKind = "native"
+  def cliKind      = "native"
 }
 
 trait NativeIntegrationStatic extends CliIntegration {
   def testLauncher = cli.nativeImageStatic()
-  def cliKind = "native-static"
+  def cliKind      = "native-static"
 }
 
 trait NativeIntegrationMostlyStatic extends CliIntegration {
   def testLauncher = cli.nativeImageMostlyStatic()
-  def cliKind = "native-mostly-static"
+  def cliKind      = "native-mostly-static"
 }
 
 trait JvmIntegration extends CliIntegration {
   def testLauncher = cli.launcher()
-  def cliKind = "jvm"
+  def cliKind      = "jvm"
 }
 
 class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
@@ -351,7 +379,9 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
           if (crossScalaVersion.contains("-RC")) "scala-3-unstable"
           else "scala-3-stable"
         Seq(name)
-      } else Nil
+      }
+      else
+        Nil
     val extraDirs = scala3DirNames.map(name => PathRef(millSourcePath / "src" / "main" / name))
     super.sources() ++ extraDirs
   }
@@ -399,14 +429,13 @@ object `local-repo` extends LocalRepo {
       stubs
     )
     val crossModules = for {
-      sv <- Scala.all
+      sv   <- Scala.all
       proj <- Seq(runner, `test-runner`)
     } yield proj(sv)
     javaModules ++ crossModules
   }
   def version = runner(Scala.defaultInternal).publishVersion()
 }
-
 
 // Helper CI commands
 
@@ -435,10 +464,9 @@ def writePackageVersionTo(dest: os.Path) = T.command {
 
 def writeShortPackageVersionTo(dest: os.Path) = T.command {
   val rawVersion = cli.publishVersion()
-  val version = rawVersion.takeWhile(c => c != '-' && c != '+')
+  val version    = rawVersion.takeWhile(c => c != '-' && c != '+')
   os.write.over(dest, version)
 }
-
 
 def copyLauncher(directory: String = "artifacts") = T.command {
   val nativeLauncher = cli.nativeImage().path
@@ -452,7 +480,12 @@ def copyLauncher(directory: String = "artifacts") = T.command {
 
 def copyJvmLauncher(directory: String = "artifacts") = T.command {
   val launcher = cli.standaloneLauncher().path
-  os.copy(launcher, os.Path(directory, os.pwd) / s"scala-cli$platformExecutableJarExtension", createFolders = true, replaceExisting = true)
+  os.copy(
+    launcher,
+    os.Path(directory, os.pwd) / s"scala-cli$platformExecutableJarExtension",
+    createFolders = true,
+    replaceExisting = true
+  )
 }
 
 def uploadLaunchers(directory: String = "artifacts") = T.command {
@@ -468,7 +501,9 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
   val (tag, overwriteAssets) =
     if (version.endsWith("-SNAPSHOT")) ("nightly", true)
     else ("v" + version, false)
-  Upload.upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(launchers: _*)
+  Upload.upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(
+    launchers: _*
+  )
 }
 
 def unitTests() = T.command {
@@ -519,29 +554,41 @@ def copyStaticLauncher(directory: String = "artifacts") = T.command {
 
 // TODO Move most CI-specific tasks there
 object ci extends Module {
-  def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") = T.command {
-    def vcVersions = Seq("2019", "2017")
-    def vcEditions = Seq("Enterprise", "Community", "BuildTools")
-    def candidateBaseDirs =
-      for {
-        year <- vcVersions
-        edition <- vcEditions
-      } yield os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio") / year / edition / "VC" / "Redist" / "MSVC"
-    val baseDirs = candidateBaseDirs.filter(os.isDir(_))
-    if (baseDirs.isEmpty)
-      sys.error(s"No Visual Studio installation found, tried:" + System.lineSeparator() + candidateBaseDirs.map("  " + _).mkString(System.lineSeparator()))
-    val orig = baseDirs
-      .iterator
-      .flatMap(os.list(_).iterator)
-      .filter(os.isDir(_))
-      .map(_ / distName)
-      .filter(os.isFile(_))
-      .toStream
-      .headOption
-      .getOrElse {
-        sys.error(s"Error: $distName not found under any of:" + System.lineSeparator() + baseDirs.map("  " + _).mkString(System.lineSeparator()))
-      }
-    val destDir = os.Path(directory, os.pwd)
-    os.copy(orig, destDir / distName, createFolders = true, replaceExisting = true)
-  }
+  private def vsBasePath = os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
+  def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") =
+    T.command {
+      def vcVersions = Seq("2019", "2017")
+      def vcEditions = Seq("Enterprise", "Community", "BuildTools")
+      def candidateBaseDirs =
+        for {
+          year    <- vcVersions
+          edition <- vcEditions
+        } yield vsBasePath / year / edition / "VC" / "Redist" / "MSVC"
+      val baseDirs = candidateBaseDirs.filter(os.isDir(_))
+      if (baseDirs.isEmpty)
+        sys.error(
+          s"No Visual Studio installation found, tried:" + System.lineSeparator() +
+            candidateBaseDirs
+              .map("  " + _)
+              .mkString(System.lineSeparator())
+        )
+      val orig = baseDirs
+        .iterator
+        .flatMap(os.list(_).iterator)
+        .filter(os.isDir(_))
+        .map(_ / distName)
+        .filter(os.isFile(_))
+        .toStream
+        .headOption
+        .getOrElse {
+          sys.error(
+            s"Error: $distName not found under any of:" + System.lineSeparator() +
+              baseDirs
+                .map("  " + _)
+                .mkString(System.lineSeparator())
+          )
+        }
+      val destDir = os.Path(directory, os.pwd)
+      os.copy(orig, destDir / distName, createFolders = true, replaceExisting = true)
+    }
 }

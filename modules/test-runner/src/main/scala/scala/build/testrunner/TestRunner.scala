@@ -51,11 +51,11 @@ object TestRunner {
 
     val logger: Logger =
       new Logger {
-        def error(msg: String) = out.println(msg)
-        def warn(msg: String) = out.println(msg)
-        def info(msg: String) = out.println(msg)
-        def debug(msg: String) = out.println(msg)
-        def trace(t: Throwable) = t.printStackTrace(out)
+        def error(msg: String)   = out.println(msg)
+        def warn(msg: String)    = out.println(msg)
+        def info(msg: String)    = out.println(msg)
+        def debug(msg: String)   = out.println(msg)
+        def trace(t: Throwable)  = t.printStackTrace(out)
         def ansiCodesSupported() = true
       }
 
@@ -66,7 +66,7 @@ object TestRunner {
       }
 
     while (tasks.nonEmpty) {
-      val task = tasks.dequeue()
+      val task     = tasks.dequeue()
       val newTasks = task.execute(eventHandler, Array(logger))
       tasks ++= newTasks
     }

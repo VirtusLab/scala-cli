@@ -13,9 +13,9 @@ object Bsp extends ScalaCommand[BspOptions] {
     if (options.shared.logging.verbosity >= 3)
       pprint.better.log(args)
 
-    val buildOptions = options.buildOptions
+    val buildOptions     = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
-    val logger = options.shared.logging.logger
+    val logger           = options.shared.logging.logger
 
     val inputs = {
       val initialInputs = options.shared.inputsOrExit(args)
@@ -39,7 +39,8 @@ object Bsp extends ScalaCommand[BspOptions] {
       try {
         val doneFuture = bsp.run()
         Await.result(doneFuture, Duration.Inf)
-      } finally {
+      }
+      finally {
         bsp.shutdown()
       }
     }

@@ -25,8 +25,8 @@ object BloopRifleLogger {
     new BloopRifleLogger {
       def debug(msg: => String) = {}
       def error(msg: => String, ex: Throwable) = {}
-      def bloopBspStdout = None
-      def bloopBspStderr = None
+      def bloopBspStdout        = None
+      def bloopBspStderr        = None
       def bloopCliInheritStdout = false
       def bloopCliInheritStderr = false
     }

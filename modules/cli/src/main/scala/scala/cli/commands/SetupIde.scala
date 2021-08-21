@@ -61,7 +61,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       .map(_.trim)
       .filter(_.nonEmpty)
       .map(Charset.forName)
-      .getOrElse(Charset.defaultCharset())// Should it be UTF-8?
+      .getOrElse(Charset.defaultCharset()) // Should it be UTF-8?
 
     os.write.over(dest, json.getBytes(charset), createFolders = true)
 

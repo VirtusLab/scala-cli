@@ -14,14 +14,17 @@ class BspClient(
   readFilesEs: ExecutorService,
   logger: Logger,
   var forwardToOpt: Option[b.BuildClient] = None
-)
-  extends b.BuildClient with BuildClientForwardStubs with BloopBuildClient with HasGeneratedSources {
+) extends b.BuildClient with BuildClientForwardStubs with BloopBuildClient
+    with HasGeneratedSources {
 
   private def updatedPublishDiagnosticsParams(
     params: b.PublishDiagnosticsParams,
     genSource: GeneratedSource
   ): Either[() => b.PublishDiagnosticsParams, b.PublishDiagnosticsParams] = {
-    val updatedUri = genSource.reportingPath.fold(_ => params.getTextDocument.getUri, _.toNIO.toUri.toASCIIString)
+    val updatedUri = genSource.reportingPath.fold(
+      _ => params.getTextDocument.getUri,
+      _.toNIO.toUri.toASCIIString
+    )
     val updatedDiagnostics =
       if (genSource.topWrapperLen == 0)
         Right(params.getDiagnostics)
@@ -36,9 +39,9 @@ class BspClient(
             .map { diag =>
               val updatedDiagOpt = for {
                 startLine <- updateLine(diag.getRange.getStart.getLine)
-                endLine <- updateLine(diag.getRange.getEnd.getLine)
+                endLine   <- updateLine(diag.getRange.getEnd.getLine)
               } yield {
-              val diag0 = diag.duplicate()
+                val diag0 = diag.duplicate()
                 diag0.getRange.getStart.setLine(startLine)
                 diag0.getRange.getEnd.setLine(endLine)
                 diag0
@@ -47,9 +50,16 @@ class BspClient(
             }
             .asJava
         }
-    def updatedParamsFor(updatedDiagnostics: java.util.List[b.Diagnostic]): b.PublishDiagnosticsParams = {
+    def updatedParamsFor(
+      updatedDiagnostics: java.util.List[b.Diagnostic]
+    ): b.PublishDiagnosticsParams = {
       val updatedTextDoc = new b.TextDocumentIdentifier(updatedUri)
-      val updatedParams = new b.PublishDiagnosticsParams(updatedTextDoc, params.getBuildTarget, updatedDiagnostics, params.getReset)
+      val updatedParams = new b.PublishDiagnosticsParams(
+        updatedTextDoc,
+        params.getBuildTarget,
+        updatedDiagnostics,
+        params.getReset
+      )
       updatedParams.setOriginId(params.getOriginId)
       updatedParams
     }

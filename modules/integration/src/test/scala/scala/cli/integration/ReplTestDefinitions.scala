@@ -4,7 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String]) extends munit.FunSuite with TestScalaVersionArgs {
+abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
+    extends munit.FunSuite with TestScalaVersionArgs {
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
@@ -18,7 +19,10 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String]) extends 
 
   test("ammonite") {
     TestInputs(Nil).fromRoot { root =>
-      val ammArgs = Seq("-c", """println("Hello" + " from Scala " + scala.util.Properties.versionNumberString)""")
+      val ammArgs = Seq(
+        "-c",
+        """println("Hello" + " from Scala " + scala.util.Properties.versionNumberString)"""
+      )
         .map {
           if (Properties.isWin)
             a => if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\"" else a

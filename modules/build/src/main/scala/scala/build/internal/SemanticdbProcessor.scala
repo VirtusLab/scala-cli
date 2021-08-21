@@ -24,11 +24,12 @@ object SemanticdbProcessor {
       (range: scala.meta.internal.semanticdb.Range) =>
         for {
           startLine <- adjust(range.startLine)
-          endLine <- adjust(range.endLine)
-        }
-          yield range
+          endLine   <- adjust(range.endLine)
+        } yield {
+          range
             .withStartLine(startLine)
             .withEndLine(endLine)
+        }
     }
 
     def updateTrees(trees: Seq[Tree]): Option[Seq[Tree]] =
@@ -44,14 +45,14 @@ object SemanticdbProcessor {
         case a: ApplyTree =>
           for {
             function <- updateTree(a.function)
-            args <- updateTrees(a.arguments)
+            args     <- updateTrees(a.arguments)
           } yield a.withFunction(function).withArguments(args)
         case Tree.Empty => Some(Tree.Empty)
         case f: FunctionTree =>
           for {
             body <- updateTree(f.body)
           } yield f.withBody(body)
-        case i: IdTree => Some(i)
+        case i: IdTree      => Some(i)
         case l: LiteralTree => Some(l)
         case m: MacroExpansionTree =>
           for {
@@ -109,14 +110,15 @@ object SemanticdbProcessor {
         }
       }
       os.write.over(dest, updatedDocs.toByteArray, createFolders = true)
-    } else
+    }
+    else
       System.err.println(s"Error: $orig not found (for $dest)")
   }
 
   private def md5(content: String): String = {
-    val md = MessageDigest.getInstance("MD5")
+    val md     = MessageDigest.getInstance("MD5")
     val digest = md.digest(content.getBytes(StandardCharsets.UTF_8))
-    val res = new BigInteger(1, digest).toString(16)
+    val res    = new BigInteger(1, digest).toString(16)
     if (res.length < 32)
       ("0" * (32 - res.length)) + res
     else

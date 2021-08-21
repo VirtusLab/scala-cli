@@ -2,7 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String]) extends munit.FunSuite with TestScalaVersionArgs {
+abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
+    extends munit.FunSuite with TestScalaVersionArgs {
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 

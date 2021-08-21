@@ -1,7 +1,13 @@
 package scala.cli.commands
 
 import caseapp._
-import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
+import coursier.launcher.{
+  AssemblyGenerator,
+  BootstrapGenerator,
+  ClassPathEntry,
+  Parameters,
+  Preamble
+}
 import packager.mac.dmg.DmgPackage
 import packager.mac.pkg.PkgPackage
 import packager.deb.DebianPackage
@@ -27,7 +33,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
-  override def group = "Main"
+  override def group                                  = "Main"
   override def sharedOptions(options: PackageOptions) = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
 
@@ -38,11 +44,17 @@ object Package extends ScalaCommand[PackageOptions] {
     // TODO Add watch mode
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig = options.shared.bloopRifleConfig()
-    val logger = options.shared.logger
+    val bloopRifleConfig    = options.shared.bloopRifleConfig()
+    val logger              = options.shared.logger
 
     if (options.watch.watch) {
-      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(
+        inputs,
+        initialBuildOptions,
+        bloopRifleConfig,
+        logger,
+        postAction = () => WatchUtil.printWatchMessage()
+      ) {
         case s: Build.Successful =>
           doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
         case f: Build.Failed =>
@@ -50,7 +62,8 @@ object Package extends ScalaCommand[PackageOptions] {
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
-    } else {
+    }
+    else {
       val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
       build match {
         case s: Build.Successful =>
@@ -76,30 +89,30 @@ object Package extends ScalaCommand[PackageOptions] {
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
     def extension = packageType match {
-      case PackageType.LibraryJar => ".jar"
-      case PackageType.Assembly => ".jar"
-      case PackageType.Js => ".js"
-      case PackageType.Debian => ".deb"
-      case PackageType.Dmg => ".dmg"
-      case PackageType.Pkg => ".pkg"
-      case PackageType.Rpm => ".rpm"
-      case PackageType.Msi => ".msi"
+      case PackageType.LibraryJar                 => ".jar"
+      case PackageType.Assembly                   => ".jar"
+      case PackageType.Js                         => ".js"
+      case PackageType.Debian                     => ".deb"
+      case PackageType.Dmg                        => ".dmg"
+      case PackageType.Pkg                        => ".pkg"
+      case PackageType.Rpm                        => ".rpm"
+      case PackageType.Msi                        => ".msi"
       case PackageType.Native if Properties.isWin => ".exe"
-      case _ if Properties.isWin => ".bat"
-      case _ => ""
+      case _ if Properties.isWin                  => ".bat"
+      case _                                      => ""
     }
     def defaultName = packageType match {
-      case PackageType.LibraryJar => "library.jar"
-      case PackageType.Assembly => "app.jar"
-      case PackageType.Js => "app.js"
-      case PackageType.Debian => "app.deb"
-      case PackageType.Dmg => "app.dmg"
-      case PackageType.Pkg => "app.pkg"
-      case PackageType.Rpm => "app.rpm"
-      case PackageType.Msi => "app.msi"
+      case PackageType.LibraryJar                 => "library.jar"
+      case PackageType.Assembly                   => "app.jar"
+      case PackageType.Js                         => "app.js"
+      case PackageType.Debian                     => "app.deb"
+      case PackageType.Dmg                        => "app.dmg"
+      case PackageType.Pkg                        => "app.pkg"
+      case PackageType.Rpm                        => "app.rpm"
+      case PackageType.Msi                        => "app.msi"
       case PackageType.Native if Properties.isWin => "app.exe"
-      case _ if Properties.isWin => "app.bat"
-      case _ => "app"
+      case _ if Properties.isWin                  => "app.bat"
+      case _                                      => "app"
     }
 
     val dest = outputOpt
@@ -112,7 +125,9 @@ object Package extends ScalaCommand[PackageOptions] {
 
     def alreadyExistsCheck(): Unit =
       if (!force && os.exists(destPath)) {
-        System.err.println(s"Error: $printableDest already exists. Pass -f or --force to force erasing it.")
+        System.err.println(
+          s"Error: $printableDest already exists. Pass -f or --force to force erasing it."
+        )
         sys.exit(1)
       }
 
@@ -140,7 +155,8 @@ object Package extends ScalaCommand[PackageOptions] {
 
       case PackageType.Native =>
         val config = build.options.scalaNativeOptions.config.getOrElse(???)
-        val workDir = build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
+        val workDir =
+          build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
 
         buildNative(build, mainClass(), destPath, config, workDir, logger.scalaNativeLogger)
 
@@ -157,17 +173,17 @@ object Package extends ScalaCommand[PackageOptions] {
 
         lazy val debianSettings = DebianSettings(
           shared = sharedSettings,
-          maintainer = build.options.packageOptions.maintainer.getOrElse{
+          maintainer = build.options.packageOptions.maintainer.getOrElse {
             System.err.println(s"Maintainer parameter is mandatory for debian packages")
             sys.exit(1)
           },
-          description = build.options.packageOptions.description.getOrElse{
+          description = build.options.packageOptions.description.getOrElse {
             System.err.println(s"Description parameter is mandatory for debian packages")
             sys.exit(1)
           },
           debianConflicts = build.options.packageOptions.debianOptions.conflicts,
           debianDependencies = build.options.packageOptions.debianOptions.dependencies,
-          architecture = build.options.packageOptions.debianOptions.architecture.getOrElse{
+          architecture = build.options.packageOptions.debianOptions.architecture.getOrElse {
             System.err.println("Deb architecture parameter is mandatory for debian packages")
             sys.exit(1)
           }
@@ -175,27 +191,27 @@ object Package extends ScalaCommand[PackageOptions] {
 
         lazy val macOSSettings = MacOSSettings(
           shared = sharedSettings,
-          identifier = build.options.packageOptions.macOSidentifier.getOrElse{
+          identifier = build.options.packageOptions.macOSidentifier.getOrElse {
             System.err.println("Identifier parameter is mandatory for macOs packages")
             sys.exit(1)
-          },
+          }
         )
 
         lazy val redHatSettings = RedHatSettings(
           shared = sharedSettings,
-          description = build.options.packageOptions.description.getOrElse{
+          description = build.options.packageOptions.description.getOrElse {
             System.err.println("Description parameter is mandatory for redHat packages")
             sys.exit(1)
           },
-          license = build.options.packageOptions.redHatOptions.license.getOrElse{
+          license = build.options.packageOptions.redHatOptions.license.getOrElse {
             System.err.println("License parameter is mandatory for redHat packages")
             sys.exit(1)
           },
-          release = build.options.packageOptions.redHatOptions.release.getOrElse{
+          release = build.options.packageOptions.redHatOptions.release.getOrElse {
             System.err.println("Release parameter is mandatory for redHat packages")
             sys.exit(1)
           },
-          rpmArchitecture = build.options.packageOptions.redHatOptions.architecture.getOrElse{
+          rpmArchitecture = build.options.packageOptions.redHatOptions.architecture.getOrElse {
             System.err.println("Rpm architecture parameter is mandatory for red hat packages")
             sys.exit(1)
           }
@@ -207,16 +223,17 @@ object Package extends ScalaCommand[PackageOptions] {
             System.err.println("Maintainer parameter is mandatory for windows packages")
             sys.exit(1)
           },
-          licencePath = build.options.packageOptions.windowsOptions.licensePath.getOrElse{
+          licencePath = build.options.packageOptions.windowsOptions.licensePath.getOrElse {
             System.err.println("Licence path parameter is mandatory for windows packages")
             sys.exit(1)
           },
-          productName = build.options.packageOptions.windowsOptions.productName.getOrElse{
+          productName = build.options.packageOptions.windowsOptions.productName.getOrElse {
             System.err.println("Product name parameter is mandatory for windows packages")
             sys.exit(1)
           },
           exitDialog = build.options.packageOptions.windowsOptions.exitDialog,
-          suppressValidation = build.options.packageOptions.windowsOptions.suppressValidation.getOrElse(false)
+          suppressValidation =
+            build.options.packageOptions.windowsOptions.suppressValidation.getOrElse(false)
         )
 
         nativePackagerType match {
@@ -264,9 +281,9 @@ object Package extends ScalaCommand[PackageOptions] {
     try {
       zos = new JarOutputStream(baos, manifest)
       for (path <- os.walk(build.output) if os.isFile(path)) {
-        val name = path.relativeTo(build.output).toString
+        val name         = path.relativeTo(build.output).toString
         val lastModified = os.mtime(path)
-        val ent = new ZipEntry(name)
+        val ent          = new ZipEntry(name)
         ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
 
         val content = os.read.bytes(path)
@@ -276,7 +293,8 @@ object Package extends ScalaCommand[PackageOptions] {
         zos.write(content)
         zos.closeEntry()
       }
-    } finally {
+    }
+    finally {
       if (zos != null)
         zos.close()
     }
@@ -286,20 +304,20 @@ object Package extends ScalaCommand[PackageOptions] {
 
   private def sourceJar(build: Build.Successful, defaultLastModified: Long): Array[Byte] = {
 
-    val baos = new ByteArrayOutputStream
+    val baos                 = new ByteArrayOutputStream
     var zos: ZipOutputStream = null
 
     def fromSimpleSources = build.sources.paths.iterator.map {
       case (path, relPath) =>
         val lastModified = os.mtime(path)
-        val content = os.read.bytes(path)
+        val content      = os.read.bytes(path)
         (relPath, content, lastModified)
     }
 
     def fromGeneratedSources = build.sources.inMemory.iterator.map {
       case (Right(path), relPath, _, _) =>
         val lastModified = os.mtime(path)
-        val content = os.read.bytes(path)
+        val content      = os.read.bytes(path)
         (relPath, content, lastModified)
       case (Left(_), relPath, content, _) =>
         (relPath, content.getBytes(StandardCharsets.UTF_8), defaultLastModified)
@@ -311,7 +329,7 @@ object Package extends ScalaCommand[PackageOptions] {
       zos = new ZipOutputStream(baos)
       for ((relPath, content, lastModified) <- paths) {
         val name = relPath.toString
-        val ent = new ZipEntry(name)
+        val ent  = new ZipEntry(name)
         ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
         ent.setSize(content.length)
 
@@ -319,7 +337,8 @@ object Package extends ScalaCommand[PackageOptions] {
         zos.write(content)
         zos.closeEntry()
       }
-    } finally {
+    }
+    finally {
       if (zos != null)
         zos.close()
     }
@@ -327,14 +346,19 @@ object Package extends ScalaCommand[PackageOptions] {
     baos.toByteArray
   }
 
-  private def bootstrap(build: Build.Successful, destPath: os.Path, mainClass: String, alreadyExistsCheck: () => Unit): Unit = {
+  private def bootstrap(
+    build: Build.Successful,
+    destPath: os.Path,
+    mainClass: String,
+    alreadyExistsCheck: () => Unit
+  ): Unit = {
     val byteCodeZipEntries = os.walk(build.output)
       .filter(os.isFile(_))
       .map { path =>
-        val name = path.relativeTo(build.output).toString
-        val content = os.read.bytes(path)
+        val name         = path.relativeTo(build.output).toString
+        val content      = os.read.bytes(path)
         val lastModified = os.mtime(path)
-        val ent = new ZipEntry(name)
+        val ent          = new ZipEntry(name)
         ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
         ent.setSize(content.length)
         (ent, content)
@@ -355,7 +379,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     val byteCodeEntry = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
 
-    val allEntries = Seq(byteCodeEntry) ++ dependencyEntries
+    val allEntries    = Seq(byteCodeEntry) ++ dependencyEntries
     val loaderContent = coursier.launcher.ClassLoaderContent(allEntries)
     val preamble = Preamble()
       .withOsKind(Properties.isWin)
@@ -368,14 +392,19 @@ object Package extends ScalaCommand[PackageOptions] {
     BootstrapGenerator.generate(params, destPath.toNIO)
   }
 
-  private def assembly(build: Build.Successful, destPath: os.Path, mainClass: String, alreadyExistsCheck: () => Unit): Unit = {
+  private def assembly(
+    build: Build.Successful,
+    destPath: os.Path,
+    mainClass: String,
+    alreadyExistsCheck: () => Unit
+  ): Unit = {
     val byteCodeZipEntries = os.walk(build.output)
       .filter(os.isFile(_))
       .map { path =>
-        val name = path.relativeTo(build.output).toString
-        val content = os.read.bytes(path)
+        val name         = path.relativeTo(build.output).toString
+        val content      = os.read.bytes(path)
         val lastModified = os.mtime(path)
-        val ent = new ZipEntry(name)
+        val ent          = new ZipEntry(name)
         ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
         ent.setSize(content.length)
         (ent, content)
@@ -395,22 +424,28 @@ object Package extends ScalaCommand[PackageOptions] {
 
   def withLibraryJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {
     val mainJarContent = libraryJar(build)
-    val mainJar = Files.createTempFile(fileName.stripSuffix(".jar"), ".jar")
+    val mainJar        = Files.createTempFile(fileName.stripSuffix(".jar"), ".jar")
     try {
       Files.write(mainJar, mainJarContent)
       f(mainJar)
-    } finally {
+    }
+    finally {
       Files.deleteIfExists(mainJar)
     }
   }
 
-  def withSourceJar[T](build: Build.Successful, defaultLastModified: Long, fileName: String = "library")(f: Path => T): T = {
+  def withSourceJar[T](
+    build: Build.Successful,
+    defaultLastModified: Long,
+    fileName: String = "library"
+  )(f: Path => T): T = {
     val jarContent = sourceJar(build, defaultLastModified)
-    val jar = Files.createTempFile(fileName.stripSuffix(".jar"), "-sources.jar")
+    val jar        = Files.createTempFile(fileName.stripSuffix(".jar"), "-sources.jar")
     try {
       Files.write(jar, jarContent)
       f(jar)
-    } finally {
+    }
+    finally {
       Files.deleteIfExists(jar)
     }
   }
@@ -424,7 +459,13 @@ object Package extends ScalaCommand[PackageOptions] {
   ): Unit =
     withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
       val classPath = mainJar +: build.artifacts.classPath
-      (new ScalaJsLinker).link(classPath.toArray, mainClassOpt.orNull, addTestInitializer, new ScalaJsConfig(config), dest.toNIO)
+      (new ScalaJsLinker).link(
+        classPath.toArray,
+        mainClassOpt.orNull,
+        addTestInitializer,
+        new ScalaJsConfig(config),
+        dest.toNIO
+      )
     }
 
   def buildNative(

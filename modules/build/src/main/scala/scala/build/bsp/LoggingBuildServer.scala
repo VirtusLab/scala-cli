@@ -6,7 +6,9 @@ import java.util.concurrent.CompletableFuture
 
 trait LoggingBuildServer extends b.BuildServer {
   protected def underlying: b.BuildServer
-  override def buildInitialize(params: b.InitializeBuildParams): CompletableFuture[b.InitializeBuildResult] =
+  override def buildInitialize(
+    params: b.InitializeBuildParams
+  ): CompletableFuture[b.InitializeBuildResult] =
     underlying.buildInitialize(pprint.better.log(params)).logF
   override def onBuildExit(): Unit =
     underlying.onBuildExit()
@@ -14,15 +16,23 @@ trait LoggingBuildServer extends b.BuildServer {
     underlying.onBuildInitialized()
   override def buildShutdown(): CompletableFuture[Object] =
     underlying.buildShutdown().logF
-  override def buildTargetCleanCache(params: b.CleanCacheParams): CompletableFuture[b.CleanCacheResult] =
+  override def buildTargetCleanCache(
+    params: b.CleanCacheParams
+  ): CompletableFuture[b.CleanCacheResult] =
     underlying.buildTargetCleanCache(pprint.better.log(params)).logF
   override def buildTargetCompile(params: b.CompileParams): CompletableFuture[b.CompileResult] =
     underlying.buildTargetCompile(pprint.better.log(params)).logF
-  override def buildTargetDependencySources(params: b.DependencySourcesParams): CompletableFuture[b.DependencySourcesResult] =
+  override def buildTargetDependencySources(
+    params: b.DependencySourcesParams
+  ): CompletableFuture[b.DependencySourcesResult] =
     underlying.buildTargetDependencySources(pprint.better.log(params)).logF
-  override def buildTargetInverseSources(params: b.InverseSourcesParams): CompletableFuture[b.InverseSourcesResult] =
+  override def buildTargetInverseSources(
+    params: b.InverseSourcesParams
+  ): CompletableFuture[b.InverseSourcesResult] =
     underlying.buildTargetInverseSources(pprint.better.log(params)).logF
-  override def buildTargetResources(params: b.ResourcesParams): CompletableFuture[b.ResourcesResult] =
+  override def buildTargetResources(
+    params: b.ResourcesParams
+  ): CompletableFuture[b.ResourcesResult] =
     underlying.buildTargetResources(pprint.better.log(params)).logF
   override def buildTargetRun(params: b.RunParams): CompletableFuture[b.RunResult] =
     underlying.buildTargetRun(pprint.better.log(params)).logF

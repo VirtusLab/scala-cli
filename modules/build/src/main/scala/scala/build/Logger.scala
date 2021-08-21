@@ -23,10 +23,10 @@ trait Logger {
 
 object Logger {
   private class Nop extends Logger {
-    def message(message: => String): Unit = ()
-    def log(s: => String): Unit = ()
+    def message(message: => String): Unit         = ()
+    def log(s: => String): Unit                   = ()
     def log(s: => String, debug: => String): Unit = ()
-    def debug(s: => String): Unit = ()
+    def debug(s: => String): Unit                 = ()
 
     def coursierLogger: coursier.cache.CacheLogger =
       coursier.cache.CacheLogger.nop
@@ -38,7 +38,7 @@ object Logger {
     def compilerOutputStream: PrintStream =
       new PrintStream(
         new OutputStream {
-          override def write(b: Int): Unit = ()
+          override def write(b: Int): Unit                             = ()
           override def write(b: Array[Byte], off: Int, len: Int): Unit = ()
         }
       )

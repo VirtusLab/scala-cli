@@ -9,7 +9,7 @@ object Stacktrace {
   def print(t: Throwable, prefix: String): Boolean = !disable && {
     val e = t match {
       case e: Exception => e
-      case _ => new Exception(t) // meh
+      case _            => new Exception(t) // meh
     }
     val prettyStackTrace = Stacktraces.convertToPrettyStackTrace(e)
     Console.out.print(prefix)

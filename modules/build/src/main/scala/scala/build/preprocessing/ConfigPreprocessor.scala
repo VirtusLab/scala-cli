@@ -8,7 +8,6 @@ case object ConfigPreprocessor extends Preprocessor {
   def preprocess(input: Inputs.SingleElement): Option[Seq[PreprocessedSource]] =
     input match {
       case c: Inputs.ConfigFile if os.isFile(c.path) =>
-
         val source = ConfigSource.string(os.read(c.path))
         val conf = source.load[ConfigFormat] match {
           case Left(err) =>

@@ -27,15 +27,19 @@ object BloopRifleConfig {
   def hardCodedDefaultPort = 8212
 
   lazy val defaultHost: String = {
-    val fromEnv = Option(System.getenv("BLOOP_SERVER")).filter(_.nonEmpty)
+    val fromEnv   = Option(System.getenv("BLOOP_SERVER")).filter(_.nonEmpty)
     def fromProps = sys.props.get("bloop.server").filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
       .getOrElse(hardCodedDefaultHost)
   }
   lazy val defaultPort: Int = {
-    val fromEnv = Option(System.getenv("BLOOP_PORT")).filter(_.nonEmpty).flatMap(s => Try(s.toInt).toOption)
-    def fromProps = sys.props.get("bloop.port").filter(_.nonEmpty).flatMap(s => Try(s.toInt).toOption)
+    val fromEnv = Option(System.getenv("BLOOP_PORT"))
+      .filter(_.nonEmpty)
+      .flatMap(s => Try(s.toInt).toOption)
+    def fromProps = sys.props.get("bloop.port")
+      .filter(_.nonEmpty)
+      .flatMap(s => Try(s.toInt).toOption)
     fromEnv
       .orElse(fromProps)
       .getOrElse(hardCodedDefaultPort)
@@ -46,11 +50,11 @@ object BloopRifleConfig {
     Seq(
       "-Xss4m",
       "-XX:MaxInlineLevel=20", // Specific option for faster C2, ignored by GraalVM
-      "-XX:+UseParallelGC" // Full parallel GC is the best choice for Scala compilation
+      "-XX:+UseParallelGC"     // Full parallel GC is the best choice for Scala compilation
     )
 
   lazy val defaultJavaOpts: Seq[String] = {
-    val fromEnv = Option(System.getenv("BLOOP_JAVA_OPTS")).filter(_.nonEmpty)
+    val fromEnv   = Option(System.getenv("BLOOP_JAVA_OPTS")).filter(_.nonEmpty)
     def fromProps = sys.props.get("bloop.java-opts").filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
@@ -64,20 +68,19 @@ object BloopRifleConfig {
     Constants.bloopVersion
 
   lazy val defaultModule: String = {
-    val fromEnv = Option(System.getenv("BLOOP_MODULE")).map(_.trim).filter(_.nonEmpty)
+    val fromEnv   = Option(System.getenv("BLOOP_MODULE")).map(_.trim).filter(_.nonEmpty)
     def fromProps = sys.props.get("bloop.module").map(_.trim).filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
       .getOrElse(hardCodedDefaultModule)
   }
   lazy val defaultVersion: String = {
-    val fromEnv = Option(System.getenv("BLOOP_VERSION")).filter(_.nonEmpty)
+    val fromEnv   = Option(System.getenv("BLOOP_VERSION")).filter(_.nonEmpty)
     def fromProps = sys.props.get("bloop.version").filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
       .getOrElse(hardCodedDefaultVersion)
   }
-
 
   def default(bloopClassPath: () => Seq[File]): BloopRifleConfig =
     BloopRifleConfig(

@@ -8,12 +8,25 @@ object MainClass {
 
   private class MainMethodChecker extends asm.ClassVisitor(asm.Opcodes.ASM4) {
     private var foundMainClass = false
-    private var nameOpt = Option.empty[String]
-    def found: Boolean = foundMainClass
-    override def visit(version: Int, access: Int, name: String, signature: String, superName: String, interfaces: Array[String]): Unit = {
+    private var nameOpt        = Option.empty[String]
+    def found: Boolean         = foundMainClass
+    override def visit(
+      version: Int,
+      access: Int,
+      name: String,
+      signature: String,
+      superName: String,
+      interfaces: Array[String]
+    ): Unit = {
       nameOpt = Some(name.replace('/', '.'))
     }
-    override def visitMethod(access: Int, name: String, descriptor: String, signature: String, exceptions: Array[String]): asm.MethodVisitor = {
+    override def visitMethod(
+      access: Int,
+      name: String,
+      descriptor: String,
+      signature: String,
+      exceptions: Array[String]
+    ): asm.MethodVisitor = {
       def isStatic = (access & asm.Opcodes.ACC_STATIC) != 0
       if (name == "main" && descriptor == stringArrayDescriptor && isStatic)
         foundMainClass = true
@@ -31,11 +44,12 @@ object MainClass {
       .flatMap { path =>
         val is = os.read.inputStream(path)
         try {
-          val reader = new asm.ClassReader(is)
+          val reader  = new asm.ClassReader(is)
           val checker = new MainMethodChecker
           reader.accept(checker, 0)
           checker.mainClassOpt.iterator
-        } finally {
+        }
+        finally {
           is.close()
         }
       }

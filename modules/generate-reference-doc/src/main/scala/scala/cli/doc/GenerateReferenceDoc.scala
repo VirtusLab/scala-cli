@@ -16,7 +16,7 @@ import scala.cli.ScalaCli
 object GenerateReferenceDoc extends CaseApp[Options] {
 
   private def cleanUpOrigin(origin: String): String = {
-    val origin0 = origin.takeWhile(_ != '[').stripSuffix("Options")
+    val origin0      = origin.takeWhile(_ != '[').stripSuffix("Options")
     val actualOrigin = if (origin0 == "WithFullHelp" || origin0 == "WithHelp") "Help" else origin0
     if (actualOrigin == "Shared") actualOrigin
     else actualOrigin.stripPrefix("Shared")
@@ -33,7 +33,10 @@ object GenerateReferenceDoc extends CaseApp[Options] {
       .split("\\s+")
       .map(w => if (w == "ide") "IDE" else w)
       .mkString(" ")
-    if (keepCapitalization || (value.startsWith("Scala") && !value.startsWith("Scalac")) || !value.head.isUpper) value
+    val valueNeedsLowerCasing = keepCapitalization ||
+      (value.startsWith("Scala") && !value.startsWith("Scalac")) ||
+      !value.head.isUpper
+    if (valueNeedsLowerCasing) value
     else value.head.toLower +: value.tail
   }
 
@@ -50,7 +53,8 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     if (needsUpdate) {
       os.write.over(dest, content0, createFolders = true)
       System.err.println(s"Wrote ${prettyPath(dest)}")
-    } else
+    }
+    else
       System.err.println(s"${prettyPath(dest)} doesn't need updating")
   }
 
@@ -63,16 +67,24 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     }
   }
 
-  private def cliOptionsContent(commands: Seq[Command[_]], allArgs: Seq[Arg], nameFormatter: Formatter[Name]): String = {
+  private def cliOptionsContent(
+    commands: Seq[Command[_]],
+    allArgs: Seq[Arg],
+    nameFormatter: Formatter[Name]
+  ): String = {
 
     val argsByOrigin = allArgs.groupBy(arg => cleanUpOrigin(arg.origin.getOrElse("")))
 
     val commandOrigins = for {
       command <- commands
-      origin <- command.finalHelp.args.map(_.origin.getOrElse("")).map(cleanUpOrigin)
+      origin  <- command.finalHelp.args.map(_.origin.getOrElse("")).map(cleanUpOrigin)
     } yield origin -> command
 
-    val commandOriginsMap = commandOrigins.groupBy(_._1).map { case (k, v) => (k, v.map(_._2).distinct.sortBy(_.name)) }
+    val commandOriginsMap = commandOrigins.groupBy(_._1)
+      .map {
+        case (k, v) =>
+          (k, v.map(_._2).distinct.sortBy(_.name))
+      }
 
     val b = new StringBuilder
 
@@ -86,24 +98,24 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     )
 
     for ((origin, originArgs) <- argsByOrigin.toVector.sortBy(_._1)) {
-      val originArgs0 = originArgs.map(_.withOrigin(None)).distinct
-      val originCommands = commandOriginsMap.getOrElse(origin, Nil)
+      val originArgs0     = originArgs.map(_.withOrigin(None)).distinct
+      val originCommands  = commandOriginsMap.getOrElse(origin, Nil)
       val formattedOrigin = formatOrigin(origin)
       val formattedCommands = originCommands.map { c =>
         // http://localhost:3000/docs/reference/commands#install-completions
         val names = c.names.map(_.mkString(" "))
-        val text = names.map("`" + _ + "`").mkString(" / ")
+        val text  = names.map("`" + _ + "`").mkString(" / ")
         s"[$text](./commands#${names.head.replace(" ", "-")})"
       }
       val availableIn = "Available in commands:\n" + formattedCommands.map("- " + _ + "\n").mkString
       b.append(
-       s"""## $formattedOrigin options
-          |
-          |$availableIn
-          |
-          |<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-          |
-          |""".stripMargin
+        s"""## $formattedOrigin options
+           |
+           |$availableIn
+           |
+           |<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+           |
+           |""".stripMargin
       )
 
       for (arg <- originArgs0.distinct) {
@@ -153,7 +165,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
       val origins = c.parser0.args.flatMap(_.origin.toSeq).map(cleanUpOrigin).distinct.sorted
 
       val headerPrefix = "#" * additionalIndentation
-      val names = c.names.map(_.mkString(" "))
+      val names        = c.names.map(_.mkString(" "))
       b.append(
         s"""${headerPrefix}## `${names.head}`
            |
@@ -178,7 +190,10 @@ object GenerateReferenceDoc extends CaseApp[Options] {
       if (origins.nonEmpty) {
         val links = origins.map { origin =>
           val cleanedUp = formatOrigin(origin, keepCapitalization = false)
-          val linkPart = cleanedUp.split("\\s+").map(_.toLowerCase(Locale.ROOT).filter(_ != '.')).mkString("-")
+          val linkPart = cleanedUp
+            .split("\\s+")
+            .map(_.toLowerCase(Locale.ROOT).filter(_ != '.'))
+            .mkString("-")
           s"[$cleanedUp](./cli-options.md#$linkPart-options)"
         }
         b.append(
@@ -239,22 +254,22 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
   def run(options: Options, args: RemainingArgs): Unit = {
 
-    val commands = ScalaCli.commands
-    val allArgs = commands.flatMap(_.finalHelp.args)
+    val commands      = ScalaCli.commands
+    val allArgs       = commands.flatMap(_.finalHelp.args)
     val nameFormatter = ScalaCli.actualDefaultCommand.nameFormatter
 
     val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)
-    val commandsContent0 = commandsContent(commands, allArgs)
-    val configContent0 = configContent(ConfigFormat.reader)
+    val commandsContent0   = commandsContent(commands, allArgs)
+    val configContent0     = configContent(ConfigFormat.reader)
 
     if (options.check) {
       val content = Seq(
         (os.rel / "cli-options.md") -> cliOptionsContent0,
-        (os.rel / "commands.md") -> commandsContent0
+        (os.rel / "commands.md")    -> commandsContent0
       )
       var anyDiff = false
       for ((dest, content0) <- content) {
-        val dest0 = options.outputPath / dest
+        val dest0   = options.outputPath / dest
         val diffOpt = maybeDiff(options.outputPath / dest, content0)
         diffOpt match {
           case Some(diff) =>
@@ -262,12 +277,15 @@ object GenerateReferenceDoc extends CaseApp[Options] {
             System.err.println(Console.RED + prettyPath(dest0) + Console.RESET + " differs:")
             System.err.println(diff.unifiedDiff)
           case None =>
-            System.err.println(Console.GREEN + prettyPath(dest0) + Console.RESET + " is up-to-date.")
+            System.err.println(
+              Console.GREEN + prettyPath(dest0) + Console.RESET + " is up-to-date."
+            )
         }
       }
       if (anyDiff)
         sys.exit(1)
-    } else {
+    }
+    else {
       maybeWrite(options.outputPath / "cli-options.md", cliOptionsContent0)
       maybeWrite(options.outputPath / "commands.md", commandsContent0)
       maybeWrite(options.outputPath / "configuration-file.md", configContent0)

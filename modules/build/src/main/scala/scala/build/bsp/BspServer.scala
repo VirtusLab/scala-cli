@@ -15,9 +15,8 @@ class BspServer(
   bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger
-) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs with HasGeneratedSources {
-
-  import BspServer._
+) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
+    with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs with HasGeneratedSources {
 
   private var extraDependencySources: Seq[os.Path] = Nil
   def setExtraDependencySources(sourceJars: Seq[os.Path]): Unit = {
@@ -34,7 +33,11 @@ class BspServer(
     }
 
   private def stripInvalidTargets(params: b.WorkspaceBuildTargetsResult): Unit = {
-    val updatedTargets = params.getTargets.asScala.filter(target => validTarget(target.getId)).asJava
+    val updatedTargets = params
+      .getTargets
+      .asScala
+      .filter(target => validTarget(target.getId))
+      .asJava
     params.setTargets(updatedTargets)
   }
 
@@ -81,7 +84,7 @@ class BspServer(
       item <- res.getItems.asScala
       if validTarget(item.getTarget)
       sourceItem <- item.getSources.asScala
-      genSource <- gen.uriMap.get(sourceItem.getUri)
+      genSource  <- gen.uriMap.get(sourceItem.getUri)
       updatedUri <- genSource.reportingPath.toOption.map(_.toNIO.toUri.toASCIIString)
     } {
       sourceItem.setUri(updatedUri)
@@ -94,7 +97,9 @@ class BspServer(
   private def capabilities: b.BuildServerCapabilities =
     new b.BuildServerCapabilities
 
-  override def buildInitialize(params: b.InitializeBuildParams): CompletableFuture[b.InitializeBuildResult] = {
+  override def buildInitialize(
+    params: b.InitializeBuildParams
+  ): CompletableFuture[b.InitializeBuildResult] = {
     val res = new b.InitializeBuildResult(
       "scala-cli",
       Constants.version,
@@ -106,13 +111,17 @@ class BspServer(
 
   override def onBuildInitialized(): Unit = ()
 
-  override def buildTargetCleanCache(params: b.CleanCacheParams): CompletableFuture[b.CleanCacheResult] =
+  override def buildTargetCleanCache(
+    params: b.CleanCacheParams
+  ): CompletableFuture[b.CleanCacheResult] =
     super.buildTargetCleanCache(check(params))
 
   override def buildTargetCompile(params: b.CompileParams): CompletableFuture[b.CompileResult] =
     compile(() => super.buildTargetCompile(check(params)))
 
-  override def buildTargetDependencySources(params: b.DependencySourcesParams): CompletableFuture[b.DependencySourcesResult] =
+  override def buildTargetDependencySources(
+    params: b.DependencySourcesParams
+  ): CompletableFuture[b.DependencySourcesResult] =
     super.buildTargetDependencySources(check(params)).thenApply { res =>
       val updatedItems = res.getItems.asScala.map {
         case item if validTarget(item.getTarget) =>
@@ -126,13 +135,17 @@ class BspServer(
       new b.DependencySourcesResult(updatedItems.asJava)
     }
 
-  override def buildTargetResources(params: b.ResourcesParams): CompletableFuture[b.ResourcesResult] =
+  override def buildTargetResources(
+    params: b.ResourcesParams
+  ): CompletableFuture[b.ResourcesResult] =
     super.buildTargetResources(check(params))
 
   override def buildTargetRun(params: b.RunParams): CompletableFuture[b.RunResult] = {
     val target = params.getTarget
     if (!validTarget(target))
-      logger.debug(s"Got invalid target in Run request: ${target.getUri} (expected ${projectNameOpt.flatMap(_.targetUriOpt).orNull})")
+      logger.debug(
+        s"Got invalid target in Run request: ${target.getUri} (expected ${projectNameOpt.flatMap(_.targetUriOpt).orNull})"
+      )
     super.buildTargetRun(params)
   }
 
@@ -171,7 +184,4 @@ class BspServer(
 
   def initiateShutdown: Future[Unit] =
     shutdownPromise.future
-}
-
-object BspServer {
 }

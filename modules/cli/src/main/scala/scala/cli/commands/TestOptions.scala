@@ -5,6 +5,7 @@ import caseapp.core.help.Help
 
 import scala.build.options.BuildOptions
 
+// format: off
 @HelpMessage("Compile and test Scala code")
 final case class TestOptions(
   @Recurse
@@ -19,6 +20,7 @@ final case class TestOptions(
   @ValueDescription("class-name")
     testFramework: Option[String] = None
 ) {
+  // format: on
   def buildOptions: BuildOptions = {
     val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
     baseOptions.copy(
@@ -37,5 +39,5 @@ final case class TestOptions(
 
 object TestOptions {
   implicit val parser = Parser[TestOptions]
-  implicit val help = Help[TestOptions]
+  implicit val help   = Help[TestOptions]
 }

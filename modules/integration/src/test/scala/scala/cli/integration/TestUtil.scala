@@ -8,9 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 object TestUtil {
 
-  val cliKind = System.getenv("SCALA_CLI_KIND")
+  val cliKind     = System.getenv("SCALA_CLI_KIND")
   val isNativeCli = cliKind.startsWith("native")
-  val isCI = System.getenv("CI") != null
+  val isCI        = System.getenv("CI") != null
   val cli = {
     val path = System.getenv("SCALA_CLI")
     if (isNativeCli)
@@ -21,14 +21,16 @@ object TestUtil {
 
   val extraOptions =
     if (Properties.isWin)
+      // format: off
       List(
         "--bloop-startup-timeout", "2 minutes",
         "--bloop-bsp-timeout", "1 minute"
       )
+      // format: on
     else
       Nil
 
-  lazy val canRunJs = !isNativeCli || !Properties.isWin
+  lazy val canRunJs     = !isNativeCli || !Properties.isWin
   lazy val canRunNative = !Properties.isWin
 
   def fromPath(app: String): Option[String] = {
@@ -66,7 +68,7 @@ object TestUtil {
 
   private def daemonThreadFactory(prefix: String): ThreadFactory =
     new ThreadFactory {
-      val counter = new AtomicInteger
+      val counter        = new AtomicInteger
       def threadNumber() = counter.incrementAndGet()
       def newThread(r: Runnable) =
         new Thread(r, s"$prefix-thread-${threadNumber()}") {

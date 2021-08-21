@@ -12,7 +12,11 @@ import pureconfig.generic.ProductHint.UseOrDefault
 
 sealed abstract class MapShapedReader[Original, -DefaultRepr <: HList, -Descriptions <: HList] {
   type Repr <: HList
-  def from(cur: ConfigObjectCursor, default: DefaultRepr, usedFields: Set[String]): ConfigReader.Result[Repr]
+  def from(
+    cur: ConfigObjectCursor,
+    default: DefaultRepr,
+    usedFields: Set[String]
+  ): ConfigReader.Result[Repr]
   def fields(descriptions: Descriptions): List[Field]
 }
 
@@ -27,7 +31,11 @@ object MapShapedReader {
     new MapShapedReader[Original, HNil, HNil] {
       type Repr = HNil
       val hint = defaultHint[Original]
-      def from(cur: ConfigObjectCursor, default: HNil, usedFields: Set[String]): ConfigReader.Result[HNil] =
+      def from(
+        cur: ConfigObjectCursor,
+        default: HNil,
+        usedFields: Set[String]
+      ): ConfigReader.Result[HNil] =
         hint.bottom(cur, usedFields).fold[ConfigReader.Result[HNil]](Right(HNil))(Left.apply)
       def fields(descriptions: HNil) = scala.Nil
     }
@@ -37,11 +45,16 @@ object MapShapedReader {
     hConfigReader: Lazy[ConfigReader[H]],
     typeable: Typeable[H],
     tConfigReader: Lazy[MapShapedReader.Aux[Original, D, TDest, T]]
-  ): MapShapedReader.Aux[Original, Option[H] :: D, Option[Description] :: TDest, FieldType[K, H] :: T] =
+  ): MapShapedReader.Aux[
+    Original,
+    Option[H] :: D,
+    Option[Description] :: TDest,
+    FieldType[K, H] :: T
+  ] =
     new MapShapedReader[Original, Option[H] :: D, Option[Description] :: TDest] {
       type Repr = FieldType[K, H] :: T
-      val hint = defaultHint[Original]
-      val fieldName = key.value.name
+      val hint        = defaultHint[Original]
+      val fieldName   = key.value.name
       lazy val reader = hConfigReader.value
       def from(
         cur: ConfigObjectCursor,
