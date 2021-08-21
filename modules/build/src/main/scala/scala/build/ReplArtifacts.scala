@@ -41,8 +41,9 @@ object ReplArtifacts {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
     val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
+    val replSourceArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger, classifiersOpt = Some(Set("sources")))
     ReplArtifacts(
-      replArtifacts,
+      replArtifacts ++ replSourceArtifacts,
       extraJars,
       extraSourceJars,
       "ammonite.Main",
