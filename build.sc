@@ -15,6 +15,8 @@ import $file.project.settings, settings.{
 }
 
 import java.io.File
+import java.nio.charset.Charset
+import java.util.Locale
 
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.upload.Upload
@@ -591,4 +593,43 @@ object ci extends Module {
       val destDir = os.Path(directory, os.pwd)
       os.copy(orig, destDir / distName, createFolders = true, replaceExisting = true)
     }
+  def writeWixConfigExtra(dest: String = "wix-visual-cpp-redist.xml") = T.command {
+    val msmPath = {
+
+      val vcVersions     = Seq("2019", "2017")
+      val vcEditions     = Seq("Enterprise", "Community", "BuildTools")
+      val vsDir          = os.Path("""C:\Program Files (x86)\Microsoft Visual Studio""")
+      val fileNamePrefix = "Microsoft_VC".toLowerCase(Locale.ROOT)
+      val fileNameSuffix = "_CRT_x64.msm".toLowerCase(Locale.ROOT)
+      def candidatesIt =
+        for {
+          version <- vcVersions.iterator
+          edition <- vcEditions.iterator
+          dir = vsDir / version / edition
+          if os.isDir(dir)
+          path <- os.walk.stream(dir)
+            .filter { p =>
+              p.last.toLowerCase(Locale.ROOT).startsWith(fileNamePrefix) &&
+              p.last.toLowerCase(Locale.ROOT).endsWith(fileNameSuffix)
+            }
+            .filter(os.isFile(_))
+            .toVector
+            .iterator
+        } yield path
+
+      candidatesIt.toStream.headOption.getOrElse {
+        sys.error(s"$fileNamePrefix*$fileNameSuffix not found")
+      }
+    }
+    val content =
+      s"""<DirectoryRef Id="TARGETDIR">
+         |  <Merge Id="VCRedist" SourceFile="$msmPath" DiskId="1" Language="0"/>
+         |</DirectoryRef>
+         |<Feature Id="VCRedist" Title="Visual C++ Redistributable" AllowAdvertise="no" Display="hidden" Level="1">
+         |  <MergeRef Id="VCRedist"/>
+         |</Feature>
+         |""".stripMargin
+    val dest0 = os.Path(dest, os.pwd)
+    os.write.over(dest0, content.getBytes(Charset.defaultCharset()), createFolders = true)
+  }
 }
