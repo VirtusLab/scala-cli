@@ -89,7 +89,7 @@ $ scala-cli about
 
 ### Debian (x86-64)
 
-#### Apt based installation
+#### Apt-based installation
 
 ```text
 $ curl -s --compressed "https://virtuslabrnd.github.io/scala-cli-packages/KEY.gpg" | sudo apt-key add -
@@ -98,10 +98,10 @@ $ sudo apt update
 $ sudo apt install scala-cli
 ```
 
-#### Deb package based installation
-Alternatively, just download and install the latest build of Debian package with
+#### dpkg-based installation
+The Debian package can be downloaded at [this address](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb).
 
-[Download Debian package](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb)
+Alternatively, you can download it and install it manually with:
 
 ```text
 $ curl -fLo scala-cli.deb https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb
@@ -110,7 +110,7 @@ $ dpkg -i scala-cli.deb
 
 ### RPM (x86-64)
 
-#### Yum based installation
+#### Yum-based installation
 
 ```text
 $ cat > /etc/yum.repos.d/virtuslab.repo << EOF
@@ -125,11 +125,11 @@ $ yum repo-pkgs virtuslab-repo list
 $ yum install scala-cli    
 ```
 
-#### Rpm package based installation
+#### Rpm-based installation
 
-Alternatively, just download and install the latest build of RedHat package with
+The RPM package can be downloaded at [this address](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.rpm).
 
-[Download RPM package](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.rpm)
+Alternatively, you can download it and install it manually with:
 ```text
 $ curl -fLo scala-cli.rpm https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.rpm
 $ rpm -i scala-cli.rpm
@@ -147,7 +147,7 @@ Once downloaded, right-click on `scala-cli-x86_64-apple-darwin.pkg` from Finder,
 
 ### macOS (brew)
 
-The scala-cli can be installed via [homebrew](https://brew.sh) with
+Scala CLI can be installed via [homebrew](https://brew.sh) with
 
 ```text
 $ brew install VirtuslabRnD/scala-cli/scala-cli 
