@@ -68,6 +68,8 @@ object Repl extends ScalaCommand[ReplOptions] {
           build.artifacts.params,
           build.options.replOptions.ammoniteVersion,
           build.artifacts.dependencies,
+          build.artifacts.extraJars,
+          build.artifacts.extraSourceJars,
           logger,
           directories
         )
@@ -75,6 +77,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         ReplArtifacts.default(
           build.artifacts.params,
           build.artifacts.dependencies,
+          build.artifacts.extraJars,
           logger,
           directories
         )
