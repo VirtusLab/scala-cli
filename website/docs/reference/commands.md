@@ -50,6 +50,24 @@ Accepts options:
 - [install completions](./cli-options.md#install-completions-options)
 - [logging](./cli-options.md#logging-options)
 
+## `browse`
+
+Aliases:
+- `metabrowse`
+
+Browse Scala code and its dependencies in the browser
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
+- [dependency](./cli-options.md#dependency-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [metabrowse](./cli-options.md#metabrowse-options)
+- [Scala.JS](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [shared](./cli-options.md#shared-options)
+
 ## `console`
 
 Aliases:
@@ -134,24 +152,6 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [test](./cli-options.md#test-options)
 - [watch](./cli-options.md#watch-options)
-
-## `browse`
-
-Aliases:
-- `metabrowse`
-
-Browse Scala code and its dependencies in the browser
-
-Accepts options:
-- [compilation server](./cli-options.md#compilation-server-options)
-- [dependency](./cli-options.md#dependency-options)
-- [jvm](./cli-options.md#jvm-options)
-- [logging](./cli-options.md#logging-options)
-- [metabrowse](./cli-options.md#metabrowse-options)
-- [Scala.JS](./cli-options.md#scalajs-options)
-- [Scala Native](./cli-options.md#scala-native-options)
-- [scalac](./cli-options.md#scalac-options)
-- [shared](./cli-options.md#shared-options)
 
 ## Hidden commands
 

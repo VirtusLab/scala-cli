@@ -6,11 +6,17 @@ import dependency._
 
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, Path)],
+  extraJars: Seq[Path],
+  extraSourceJars: Seq[Path],
   replMainClass: String,
-  replJavaOpts: Seq[String]
+  replJavaOpts: Seq[String],
+  addSourceJars: Boolean
 ) {
   lazy val replClassPath: Seq[Path] =
-    replArtifacts.map(_._2)
+    if (addSourceJars)
+      extraJars ++ extraSourceJars ++ replArtifacts.map(_._2)
+    else
+      extraJars ++ replArtifacts.map(_._2)
 }
 
 object ReplArtifacts {
@@ -27,18 +33,29 @@ object ReplArtifacts {
     scalaParams: ScalaParameters,
     ammoniteVersion: String,
     dependencies: Seq[AnyDependency],
+    extraJars: Seq[Path],
+    extraSourceJars: Seq[Path],
     logger: Logger,
     directories: Directories
   ): ReplArtifacts = {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
     val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
-    ReplArtifacts(replArtifacts, "ammonite.Main", Nil)
+    val replSourceArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger, classifiersOpt = Some(Set("sources")))
+    ReplArtifacts(
+      replArtifacts ++ replSourceArtifacts,
+      extraJars,
+      extraSourceJars,
+      "ammonite.Main",
+      Nil,
+      addSourceJars = true
+    )
   }
 
   def default(
     scalaParams: ScalaParameters,
     dependencies: Seq[AnyDependency],
+    extraJars: Seq[Path],
     logger: Logger,
     directories: Directories
   ): ReplArtifacts = {
@@ -54,8 +71,11 @@ object ReplArtifacts {
       else "dotty.tools.repl.Main"
     ReplArtifacts(
       replArtifacts,
+      extraJars,
+      Nil,
       mainClass,
-      Seq("-Dscala.usejavacp=true")
+      Seq("-Dscala.usejavacp=true"),
+      addSourceJars = false
     )
   }
 }
