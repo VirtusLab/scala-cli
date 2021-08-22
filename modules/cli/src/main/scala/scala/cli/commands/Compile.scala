@@ -24,13 +24,14 @@ object Compile extends ScalaCommand[CompileOptions] {
 
     val inputs = options.shared.inputsOrExit(args)
     if (options.watch.watch) {
-      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig, options.shared.logger, postAction = () => WatchUtil.printWatchMessage()) { build =>
+      val watcher = Build.watch(inputs, buildOptions, bloopRifleConfig,
+         options.shared.logger, options.shared.directories.directories, postAction = () => WatchUtil.printWatchMessage()) { build =>
         postBuild(build)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger)
+      val build = Build.build(inputs, buildOptions, bloopRifleConfig, options.shared.logger, options.shared.directories.directories)
       postBuild(build)
     }
   }

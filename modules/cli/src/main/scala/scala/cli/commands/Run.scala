@@ -40,7 +40,7 @@ object Run extends ScalaCommand[RunOptions] {
       )
 
     if (options.watch.watch) {
-      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) {
+      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, options.shared.directories.directories, postAction = () => WatchUtil.printWatchMessage()) {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = false)
         case f: Build.Failed =>
@@ -49,7 +49,7 @@ object Run extends ScalaCommand[RunOptions] {
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
+      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, options.shared.directories.directories)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)

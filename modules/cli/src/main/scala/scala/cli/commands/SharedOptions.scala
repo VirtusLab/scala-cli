@@ -103,7 +103,11 @@ final case class SharedOptions(
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
   @Hidden
-    addStubs: Option[Boolean] = None
+    addStubs: Option[Boolean] = None,
+
+  @HelpMessage("Pass configuration files")
+  @Name("noBloop")
+    noBloop: Boolean = false,
 ) {
 
   def logger = logging.logger
@@ -163,7 +167,8 @@ final case class SharedOptions(
     )
 
   // This might download a JVM if --jvm … is passed or no system JVM is installed
-  def bloopRifleConfig(): Option[BloopRifleConfig] = {
+  def bloopRifleConfig(): Option[BloopRifleConfig] = 
+    if (noBloop) None else {
     val baseConfig = BloopRifleConfig.default(() => Bloop.bloopClassPath(logging.logger))
     val portOpt = compilationServer.bloopPort.filter(_ != 0) match {
       case Some(n) if n < 0 =>

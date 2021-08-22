@@ -164,9 +164,10 @@ object Build {
 
   def compilerFactory(
     bloopConfig: Option[BloopRifleConfig],
-    buildThreads: Option[BuildThreads] = None
+    directories: Directories,
+    buildThreads: Option[BuildThreads] = None,
   ) = 
-    bloopConfig.fold(???)(c => 
+    bloopConfig.fold[CompilerFactory](new BareScalacFactory(directories))( c => 
       new BloopDriverFactory(c, buildThreads.getOrElse(BuildThreads.create()))
     )
 
@@ -175,9 +176,10 @@ object Build {
     options: BuildOptions,
     bloopConfig: Option[BloopRifleConfig],
     logger: Logger,
+    directories: Directories,
     buildThreads: Option[BuildThreads] = None // TODO
   ): Build = 
-    compilerFactory(bloopConfig, buildThreads).mkDriver(inputs, options, logger){ driver =>
+    compilerFactory(bloopConfig, directories, buildThreads).mkDriver(inputs, options, logger){ driver =>
       build(inputs,  options, logger, driver)
     }
   
@@ -187,15 +189,16 @@ object Build {
     options: BuildOptions,
     bloopConfig: Option[BloopRifleConfig],
     logger: Logger,
+    directories: Directories,
     postAction: () => Unit = () => ()
   )(action: Build => Unit): Watcher = {
 
     val threads = BuildThreads.create()
 
-    Build.compilerFactory(bloopConfig, Some(threads)).mkDriver(inputs, options, logger){ driver =>
+    Build.compilerFactory(bloopConfig, directories).mkDriver(inputs, options, logger){ driver =>
       def run() = {
         try {
-          val build0 = build(inputs, options, bloopConfig, logger, Some(threads))
+          val build0 = build(inputs, options, bloopConfig, logger, directories, Some(threads))
           action(build0)
         } catch {
           case NonFatal(e) =>
@@ -329,8 +332,6 @@ object Build {
 
     (classesDir0, artifacts, project, updatedConfig)
   }
-
-  // 
 
   def buildOnce(
     inputs: Inputs,

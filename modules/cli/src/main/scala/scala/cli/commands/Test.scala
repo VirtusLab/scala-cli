@@ -36,13 +36,13 @@ object Test extends ScalaCommand[TestOptions] {
       }
 
     if (options.watch.watch) {
-      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) { build =>
+      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, options.shared.directories.directories, postAction = () => WatchUtil.printWatchMessage()) { build =>
         maybeTest(build, allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     } else {
-      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
+      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, options.shared.directories.directories)
       maybeTest(build, allowExit = true)
     }
   }
