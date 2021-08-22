@@ -5,7 +5,8 @@ final case class ScalaOptions(
    scalaBinaryVersion: Option[String]  = None,
       addScalaLibrary: Option[Boolean] = None,
   generateSemanticDbs: Option[Boolean] = None,
-        scalacOptions: Seq[String]     = Nil
+        scalacOptions: Seq[String]     = Nil,
+          runScaladoc: Boolean         = false,
 )
 
 object ScalaOptions {

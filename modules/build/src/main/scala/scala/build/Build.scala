@@ -266,7 +266,10 @@ object Build {
     val params = options.scalaParams
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
-    val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
+    val classesDir0 = {
+      val base = classesDir(inputs.workspace, inputs.projectName)
+      if (options.scalaOptions.runScaladoc && params.scalaVersion.startsWith("2.")) base / os.up / "doc" else base
+    }
 
     val artifacts = options.artifacts(logger)
 

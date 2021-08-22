@@ -17,11 +17,11 @@ object Doc extends ScalaCommand[DocOptions] {
   def run(options: DocOptions, remaningArgs: RemainingArgs): Unit = {
     val buildOps = options.buildOptions
     val isScala2 = buildOps.scalaParams.scalaVersion.startsWith("2.")
-    if (isScala2) {
-      ???
-    } else {
-      Compile.runCompile(options, remaningArgs){ 
-        case build: Build.Successful =>
+    
+    Compile.runCompile(options, remaningArgs){ 
+      case build: Build.Successful =>
+        val dest = build.output / os.up / "doc"
+        if (!isScala2) {
           val directories = options.shared.directories.directories
           val artrifacts =  DocArtifacts.scaladoc3(
             buildOps.scalaParams, 
@@ -29,7 +29,7 @@ object Doc extends ScalaCommand[DocOptions] {
             options.shared.logger, 
             directories
           )
-          val dest = build.output / os.up / "doc"
+          
           os.makeDir.all(dest)
 
           val args = 
@@ -49,12 +49,12 @@ object Doc extends ScalaCommand[DocOptions] {
             args,
             options.shared.logger
           )
-          println(s"Documetnation generated in $dest")
-          
-        case _ =>
-          println("Compiation failed!")      
-      }
+        }
+        println(s"Documetnation is generated in $dest")
+      case _ =>
+        println("Compiation failed!")      
     }
+    
   }
 
   def defaultScaladocArgs = Seq(

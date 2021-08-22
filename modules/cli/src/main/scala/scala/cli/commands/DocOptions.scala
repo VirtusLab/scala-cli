@@ -12,11 +12,16 @@ final case class DocOptions(
 
   def buildOptions: BuildOptions = {
     val default = shared.buildOptions(enableJmh = false, jmhVersion = None)
-    default.copy(internalDependencies = default.internalDependencies.copy(addRunnerDependencyOpt = Some(false)))
+    default.copy(
+      internalDependencies = default.internalDependencies.copy(addRunnerDependencyOpt = Some(false)),
+      scalaOptions = default.scalaOptions.copy(runScaladoc = true)
+    )
   }
 }
 
 object DocOptions {
   implicit val parser = Parser[CompileOptions]
   implicit val help = Help[CompileOptions]
+
+  val defaultScaladoc2Options = Seq("-groups")
 }
