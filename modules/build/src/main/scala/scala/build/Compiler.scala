@@ -119,9 +119,13 @@ case class BareScalacDriver(
 
         val args = 
           project.scalaCompiler.scalacOptions ++
+          Seq("-d", project.classesDir.toIO.getAbsolutePath(), "-cp", project.classPath.mkString(":")) ++
             project.sources.map(_.toIO.getAbsolutePath()) ++ 
-            project.generatedSources.map(_.generated.toIO.getAbsolutePath()) ++
-            Seq("-d", project.classesDir.toIO.getAbsolutePath(), "-cp", project.classPath.mkString(":"))
+            project.generatedSources.map(_.generated.toIO.getAbsolutePath())
+            
+
+        os.remove.all(project.classesDir)
+        os.makeDir.all(project.classesDir)
 
         val res = Runner.runJvm(
           javaCommand,
@@ -131,7 +135,6 @@ case class BareScalacDriver(
           args,
           logger
         )
-        println(s"Compiled to ${project.classesDir} with $res")
         CompilationResult(res == 0, None)
       }
     
