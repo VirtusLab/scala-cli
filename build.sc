@@ -495,9 +495,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
   val launchers = os.list(path).filter(os.isFile(_)).map { path =>
     path.toNIO -> path.last
   }
-  val ghToken = Option(System.getenv("UPLOAD_GH_TOKEN")).getOrElse {
-    sys.error("UPLOAD_GH_TOKEN not set")
-  }
+  val ghToken = cli.ghToken()
   val (tag, overwriteAssets) =
     if (version.endsWith("-SNAPSHOT")) ("nightly", true)
     else ("v" + version, false)
@@ -554,6 +552,131 @@ def copyStaticLauncher(directory: String = "artifacts") = T.command {
 
 // TODO Move most CI-specific tasks there
 object ci extends Module {
+  def updateBrewFormula() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir = os.pwd / "target"
+    val homebrewFormulaDir = targetDir / "homebrew-scala-cli"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val ghToken = cli.ghToken()
+    val branch = "main"
+    val repo = s"https://$ghToken@github.com/VirtuslabRnD/homebrew-scala-cli.git"
+
+    // Cloning
+    cli.gitClone(repo, branch, targetDir)
+    cli.setupGithubRepo(homebrewFormulaDir)
+
+    val launcherPath = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
+    val launcherURL= s"https://github.com/VirtuslabRnD/scala-cli/releases/download/v$version/scala-cli-x86_64-apple-darwin.gz"
+
+    val binarySha256 = os.proc("openssl", "dgst", "-sha256", "-binary")
+      .call(
+        cwd = targetDir,
+        stdin = os.read.stream(launcherPath)
+      ).out.bytes
+
+    val sha256 = os.proc("xxd", "-p", "-c", "256")
+      .call(
+        cwd = targetDir,
+        stdin = binarySha256
+      ).out.text().trim
+
+    val templateFormulaPath = os.pwd / ".github" / "scripts" / "scala-cli.rb.template"
+    val template = os.read(templateFormulaPath)
+
+    val updatedFormula = template
+      .replace("\"@LAUNCHER_URL@\"", s""""$launcherURL"""")
+      .replace("\"@LAUNCHER_VERSION@\"", s""""$version"""")
+      .replace("\"@LAUNCHER_SHA256@\"", s""""$sha256"""")
+
+    val formulaPath = homebrewFormulaDir / "scala-cli.rb"
+    os.write.over(formulaPath, updatedFormula)
+
+    cli.commitChanges(s"Update for $version", branch, homebrewFormulaDir)
+  }
+  def updateDebianPackages() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir = os.pwd / "target"
+    val packagesDir = targetDir / "scala-cli-packages"
+    val debianDir = packagesDir / "debian"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val ghToken = cli.ghToken()
+    val branch = "master"
+    val repo = s"https://$ghToken@github.com/VirtuslabRnD/scala-cli-packages.git"
+
+    // Cloning
+    cli.gitClone(repo, branch, targetDir)
+    cli.setupGithubRepo(packagesDir)
+
+    // copy deb package to repository
+    os.copy(os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.deb", debianDir / s"scala-cli_$version.deb")
+
+    val packagesPath = debianDir / "Packages"
+    os.proc("dpkg-scanpackages", "--multiversion", ".").call(cwd = debianDir, stdout = packagesPath)
+    os.proc("gzip", "-k", "-f", "Packages").call(cwd = debianDir)
+
+    val releasePath = debianDir / "Release"
+    os.proc("apt-ftparchive", "release", ".").call(cwd = debianDir, stdout = releasePath)
+
+    val pgpPassphrase = Option(System.getenv("PGP_PASSPHRASE")).getOrElse { sys.error("PGP_PASSPHRASE not set") }
+    val keyName = Option(System.getenv("KEYNAME")).getOrElse { sys.error("KEYNAME not set") }
+    val releaseGpgPath = debianDir / "Release.gpg"
+    val inReleasePath = debianDir / "InRelease"
+    os.proc("gpg", "--batch", "--yes", "--passphrase-fd", "0", "--default-key", keyName,  "-abs", "-o", "-", "Release")
+      .call(cwd = debianDir, stdin = pgpPassphrase , stdout = releaseGpgPath)
+    os.proc("gpg", "--batch", "--yes", "--passphrase-fd", "0", "--default-key", keyName,  "--clearsign", "-o", "-", "Release")
+      .call(cwd = debianDir, stdin = pgpPassphrase , stdout = inReleasePath)
+
+    cli.commitChanges(s"Update Debian packages for $version", "master", packagesDir)
+  }
+  def updateCentOsPackages() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir = os.pwd / "target"
+    val packagesDir = targetDir / "scala-cli-packages"
+    val centOsDir = packagesDir / "CentOS"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val ghToken = cli.ghToken()
+    val branch = "master"
+    val repo = s"https://$ghToken@github.com/VirtuslabRnD/scala-cli-packages.git"
+
+    // Cloning
+    cli.gitClone(repo, branch, targetDir)
+    cli.setupGithubRepo(packagesDir)
+
+    // copy rpm package to repository
+    os.copy(os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.deb", centOsDir / "Packages" / s"scala-cli_$version.rpm")
+
+    os.proc("docker", "run",
+      "-v", s"$packagesDir:/packages",
+      "-w", "/packages",
+      "--env", "PGP_SECRET",
+      "--env", "PGP_PASSPHRASE",
+      "--env", "GPG_EMAIL",
+      "--env", "KEYGRIP",
+      "--privileged",
+      "fedora", "sh", "updateCentOsPackages.sh"
+    ).call(cwd = packagesDir)
+
+
+    cli.commitChanges(s"Update CentOS packages for $version", branch, packagesDir)
+  }
   private def vsBasePath = os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
   def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") =
     T.command {

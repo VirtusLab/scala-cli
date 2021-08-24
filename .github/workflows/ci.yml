@@ -226,8 +226,38 @@ jobs:
       env:
         UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  website:
+  update-packages:
+    name: Update packages
     needs: launchers
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+      - run: ./mill -i ci.updateBrewFormula
+        env:
+          UPLOAD_GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: GPG setup
+        run: .github/scripts/gpg-setup.sh
+        env:
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+      - run: ./mill -i ci.updateDebianPackages
+        env:
+          UPLOAD_GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          KEYNAME: ${{ secrets.KEYNAME }}
+      - run: ./mill -i ci.updateCentOsPackages
+        env:
+          UPLOAD_GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          KEYGRIP: ${{ secrets.KEYGRIP }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
+
+  website:
+    needs: update-packages
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
