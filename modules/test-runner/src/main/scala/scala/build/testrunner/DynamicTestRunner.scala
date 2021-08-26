@@ -118,7 +118,7 @@ object DynamicTestRunner {
       }
       .flatMap { cls =>
         def isAbstract = Modifier.isAbstract(cls.getModifiers)
-        def publicConstructorCount = cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
+        def publicConstructorCount = cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers) && c.getParameterCount() == 0)
         val it: Iterator[Class[_]] =
           if (frameworkCls.isAssignableFrom(cls) && !isAbstract && publicConstructorCount == 1) Iterator(cls)
           else Iterator.empty
