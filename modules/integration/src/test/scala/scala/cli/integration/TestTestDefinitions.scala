@@ -139,6 +139,22 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
     )
   )
 
+  val successfulWeaverInputs = TestInputs(
+    Seq(
+      os.rel / "MyTests.scala" ->
+        """import $ivy.`com.disneystreaming::weaver-cats:0.7.5`
+          |import weaver._
+          |import cats.effect.IO
+          |
+          |object MyTests extends SimpleIOSuite {
+          |  test("bar") {
+          |    IO.println("Hello from " + "tests").map(_ => expect(1 + 1 == 2))
+          |  }
+          |}
+          |""".stripMargin
+    )
+  )
+
   test("successful test") {
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text
@@ -270,6 +286,13 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text
       expect(output.contains("Hello from tests1"))
       expect(output.contains("Hello from tests2"))
+    }
+  }
+
+  test("weaver"){
+    successfulWeaverInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text
+      expect(output.contains("Hello from tests"))
     }
   }
 
