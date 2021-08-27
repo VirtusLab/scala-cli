@@ -10,19 +10,19 @@ It uses on the [Ammonite](http://ammonite.io) REPL, which is more featureful
 and user-friendly than the REPL that comes up with the Scala compiler.
 
 ```text
-$ cat Messages.scala
-package mylibrary
-object Messages {
-  def message = "Hello"
-  def print(): Unit = println(message)
-}
+cat Messages.scala
+# package mylibrary
+# object Messages {
+#   def message = "Hello"
+#   def print(): Unit = println(message)
+# }
 
-$ scala-cli repl Messages.scala
-Loading...
-Welcome to the Ammonite Repl 2.4.0 (Scala 2.12.13 Java 11.0.7)
-@ import mylibrary._
-import mylibrary._
-@ Messages.print()
-Hello
-@ exit
+scala-cli repl Messages.scala
+# Loading...
+# Welcome to the Ammonite Repl 2.4.0 (Scala 2.12.13 Java 11.0.7)
+# @ import mylibrary._
+# import mylibrary._
+# @ Messages.print()
+# Hello
+# @ exit
 ```

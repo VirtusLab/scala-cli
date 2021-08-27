@@ -18,14 +18,14 @@ to evolve and be unified in the near future.
 
 Pass `--help` to any sub-command of `scala-cli` to list its options:
 ```text
-$ scala-cli --help
-$ scala-cli package --help
+scala-cli --help
+scala-cli package --help
 ```
 
 For example, you can specify the Scala version, or add dependencies, on the command-line:
 ```text
-$ scala-cli --scala 3.0.0 Test.scala
-$ scala-cli --dependency org.typelevel::cats-core:2.3.0 Test.scala
+scala-cli --scala 3.0.0 Test.scala
+scala-cli --dependency org.typelevel::cats-core:2.3.0 Test.scala
 ```
 
 The reference documentation lists [all available options](reference/cli-options.md).

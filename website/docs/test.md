@@ -15,49 +15,49 @@ application. Some of the most popular testing frameworks in Scala are
 - [JUnit 4](https://junit.org/junit4), that can be used via a [dedicated interface](https://github.com/sbt/junit-interface): `com.github.sbt:junit-interface:0.13.2`
 
 For example, let's run a simple munit-based test suite:
-```text
-$ cat MyTests.scala
-import $ivy.`org.scalameta::munit::0.7.27`
+```bash
+cat MyTests.scala
+# import $ivy.`org.scalameta::munit::0.7.27`
+#
+# class MyTests extends munit.FunSuite {
+#   test("foo") {
+#     assert(2 + 2 == 4)
+#   }
+# }
 
-class MyTests extends munit.FunSuite {
-  test("foo") {
-    assert(2 + 2 == 4)
-  }
-}
-
-$ scala-cli test MyTests.scala
-Compiling project_8686a5fa42 (1 Scala source)
-Compiled 'project_8686a5fa42'
-MyTests:
-  + foo 0.143s
+scala-cli test MyTests.scala
+# Compiling project_8686a5fa42 (1 Scala source)
+# Compiled 'project_8686a5fa42'
+# MyTests:
+#   + foo 0.143s
 ```
 
 ## Test arguments
 
 You can pass test arguments to your test framework, by passing them after a `--`:
-```text
-$ cat MyTests.scala
-import $ivy.`org.scalatest::scalatest::3.2.9`
+```bash
+cat MyTests.scala
+# import $ivy.`org.scalatest::scalatest::3.2.9`
+# 
+# import org.scalatest._
+# import org.scalatest.flatspec._
+# import org.scalatest.matchers._
+#
+# class Tests extends AnyFlatSpec with should.Matchers {
+#   "A thing" should "thing" in {
+#     assert(2 + 2 == 4)
+#   }
+# }
 
-import org.scalatest._
-import org.scalatest.flatspec._
-import org.scalatest.matchers._
-
-class Tests extends AnyFlatSpec with should.Matchers {
-  "A thing" should "thing" in {
-    assert(2 + 2 == 4)
-  }
-}
-
-$ scala-cli test MyTests.scala -- -oD
-Compiling project_8686a5fa42-4bae49baeb (1 Scala source)
-Compiled 'project_8686a5fa42-4bae49baeb'
-Tests:
-A thing
-- should thing (22 milliseconds)
-Run completed in 359 milliseconds.
-Total number of tests run: 1
-Suites: completed 1, aborted 0
-Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
-All tests passed.
+scala-cli test MyTests.scala -- -oD
+# Compiling project_8686a5fa42-4bae49baeb (1 Scala source)
+# Compiled 'project_8686a5fa42-4bae49baeb'
+# Tests:
+# A thing
+# - should thing (22 milliseconds)
+# Run completed in 359 milliseconds.
+# Total number of tests run: 1
+# Suites: completed 1, aborted 0
+# Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
+# All tests passed.
 ```

@@ -3,54 +3,174 @@ title: Installation
 sidebar_position: 2
 ---
 
-`scala-cli` can be installed either manually, or using OS-specific packages.
-OS-specific packages are experimental and in-progress.
-Manual installation is recommended for now.
+We recomment following the [Quick start](#quick-start) instructions
+to install Scala CLI. If the quick start instructions don't suit you,
+more installation options are offered in the [Advanced](#advanced) section.
 
-## Manual installation
+import DownloadButton from '../src/components/DownloadButton';
 
-### Linux
+## Quick start
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs 
+    groupId="operating-systems"
+    defaultValue="win"
+   values={[
+    {label: 'Windows', value: 'win'},
+    {label: 'macOS/Linux', value: 'mac/linux'},
+  ]}
+>
+<TabItem value="win">
+
+Download Scala CLI for Windows
+<DownloadButton desc= 'Scala CLI for Windows' href='https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi'></DownloadButton>
+</TabItem>
+<TabItem value="mac/linux">
+
+Run the following one-line command in your terminal
+
+```bash
+curl -sSf https://virtuslabrnd.github.io/scala-cli-packages/scala-setup.sh | sh
+```
+</TabItem>
+</Tabs>
+
+## Advanced
+
+<Tabs
+groupId="operating-systems-specific"
+defaultValue="windows"
+values={[
+{label: 'Windows', value: 'windows'},
+{label: 'MacOs', value: 'macOs'},
+{label: 'Linux', value: 'linux'},
+]}
+>
+<TabItem value="linux">
+
+<Tabs
+groupId="linux"
+defaultValue="manual"
+values={[
+{label: 'Manual', value: 'manual'},
+{label: 'Apt', value: 'apt'},
+{label: 'Deb', value: 'deb'},
+{label: 'Yum', value: 'yum'},
+{label: 'Rpm', value: 'rpm'},
+{label: 'Alpine', value: 'alpine'},
+]}
+>
+<TabItem value="manual">
 
 Download the launcher from GitHub release assets with
-```text
-$ curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.gz | gzip -d > scala-cli
-$ chmod +x scala-cli
-$ sudo mv scala-cli /usr/local/bin/scala-cli
+```bash
+curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.gz | gzip -d > scala-cli
+chmod +x scala-cli
+sudo mv scala-cli /usr/local/bin/scala-cli
 ```
 
 Check that it runs fine by running its `about` command:
-```text
-$ scala-cli about
+```bash
+scala-cli about
 ```
+</TabItem>
 
-### macOS
+<TabItem value="apt">
+
+Scala CLI can be installed via [apt](https://wiki.debian.org/Apt) packager tool.
+
+```bash
+curl -s --compressed "https://virtuslabrnd.github.io/scala-cli-packages/KEY.gpg" | sudo apt-key add -
+sudo curl -s --compressed -o /etc/apt/sources.list.d/scala_cli_packages.list "https://virtuslabrnd.github.io/scala-cli-packages/debian/scala_cli_packages.list"
+sudo apt update
+sudo apt install scala-cli
+```
+</TabItem>
+
+<TabItem value="deb">
+
+The Debian package can be downloaded at [this address](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb).
+
+Alternatively, you can download it and install it manually with:
+
+```bash
+curl -fLo scala-cli.deb https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb
+sudo dpkg -i scala-cli.deb
+```
+</TabItem>
+
+<TabItem value="yum">
+
+Scala CLI can be installed via [yum](http://yum.baseurl.org) packager tool.
+
+```bash
+sudo cat > /etc/yum.repos.d/virtuslab.repo << EOF
+[virtuslab-repo]
+name=VirtusLab Repo
+baseurl=https://virtuslabrnd.github.io/scala-cli-packages/CentOS/Packages
+enabled=1
+gpgcheck=1
+gpgkey=https://virtuslabrnd.github.io/scala-cli-packages/KEY.gpg
+EOF
+sudo yum repo-pkgs virtuslab-repo list
+sudo yum install scala-cli    
+```
+</TabItem>
+<TabItem value="rpm">
+
+The RPM package can be downloaded at [this address](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.rpm).
+
+Alternatively, you can download it and install it manually with:
+```bash
+curl -fLo scala-cli.rpm https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.rpm
+sudo rpm -i scala-cli.rpm
+```
+</TabItem>
+<TabItem value="alpine">
 
 Download the launcher from GitHub release assets with
-```text
-$ curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-apple-darwin.gz | gzip -d > scala-cli
-$ chmod +x scala-cli
-$ mv scala-cli /usr/local/bin/scala-cli
+
+```bash
+wget -q -O scala-cli.gz  https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux-static.gz && gunzip scala-cli.gz
+chmod +x scala-cli
+mv scala-cli /usr/bin/
 ```
 
 Check that it runs fine by running its `about` command:
-```text
-$ scala-cli about
+```bash
+scala-cli about
 ```
+</TabItem>
+</Tabs>
 
-### Windows
+</TabItem>
+<TabItem value="windows">
+
+<Tabs
+groupId="windows"
+defaultValue="manual"
+values={[
+{label: 'Manual', value: 'manual'},
+{label: 'Installer', value: 'installer'},
+]}
+>
+
+<TabItem value="manual">
 
 Note that the Windows manual installation requires [Visual C++ redistributable](https://support.microsoft.com/en-us/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0)
 to be installed. See below for how to install it.
 
 Download the launcher from GitHub release assets with
-```text
-> curl -fLo scala-cli.zip https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.zip
-> tar -xf scala-cli.zip
+```bash
+curl -fLo scala-cli.zip https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.zip
+tar -xf scala-cli.zip
 ```
 
 Check that it runs fine by running its `about` command:
-```text
-> scala-cli about
+```bash
+scala-cli about
 ```
 
 If you get an error about `MSVCR100.dll` being missing, you have to install
@@ -58,118 +178,90 @@ If you get an error about `MSVCR100.dll` being missing, you have to install
 You can download it [here](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/vc_redist.x64.exe),
 and install it by double-clicking on it. Once the Visual C++ redistributable runtime is installed,
 check that the Scala CLI runs fine by running its `about` command:
-```text
-> scala-cli about
+```bash
+scala-cli about
 ```
 
 Note that the commands above don't put the `scala-cli` command in the `PATH`. For that, you can create a directory, move the
 launcher there, and add the directory to the `PATH` with
-```text
-> md "%USERPROFILE%/scala-cli"
-> scala-cli add-path "%USERPROFILE%/scala-cli"
-> move scala-cli.exe "%USERPROFILE%/scala-cli"
+```bash
+md "%USERPROFILE%/scala-cli"
+scala-cli add-path "%USERPROFILE%/scala-cli"
+move scala-cli.exe "%USERPROFILE%/scala-cli"
 ```
+</TabItem>
+<TabItem value="installer">
 
-### Alpine 
+Download MSI installer with Scala CLI for Windows
+<DownloadButton desc= 'Scala CLI for Windows' href='https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi'></DownloadButton>
+</TabItem>
+</Tabs>
+
+</TabItem>
+<TabItem value="macOs">
+
+<Tabs
+groupId="macOs"
+defaultValue="manual"
+values={[
+{label: 'Manual', value: 'manual'},
+{label: 'Installer', value: 'installer'},
+{label: 'Brew', value: 'brew'},
+]}
+>
+<TabItem value="manual">
 
 Download the launcher from GitHub release assets with
-
-```text
-$ wget -q -O scala-cli.gz  https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux-static.gz && gunzip scala-cli.gz
-$ chmod +x scala-cli
-$ mv scala-cli /usr/bin/
+```bash
+curl -fL https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-apple-darwin.gz | gzip -d > scala-cli
+chmod +x scala-cli
+mv scala-cli /usr/local/bin/scala-cli
 ```
 
 Check that it runs fine by running its `about` command:
-```text
-$ scala-cli about
+```bash
+scala-cli about
 ```
+</TabItem>
+<TabItem value="installer">
 
-## OS-specific packages
-
-### Debian (x86-64)
-
-#### Apt-based installation
-
-```text
-$ curl -s --compressed "https://virtuslabrnd.github.io/scala-cli-packages/KEY.gpg" | sudo apt-key add -
-$ sudo curl -s --compressed -o /etc/apt/sources.list.d/scala_cli_packages.list "https://virtuslabrnd.github.io/scala-cli-packages/debian/scala_cli_packages.list"
-$ sudo apt update
-$ sudo apt install scala-cli
-```
-
-#### dpkg-based installation
-The Debian package can be downloaded at [this address](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb).
-
-Alternatively, you can download it and install it manually with:
-
-```text
-$ curl -fLo scala-cli.deb https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb
-$ dpkg -i scala-cli.deb
-```
-
-### RPM (x86-64)
-
-#### Yum-based installation
-
-```text
-$ cat > /etc/yum.repos.d/virtuslab.repo << EOF
-[virtuslab-repo]
-name=VirtusLab Repo
-baseurl=https://virtuslabrnd.github.io/scala-cli-packages/fedora/Packages
-enabled=1
-gpgcheck=1
-gpgkey=https://virtuslabrnd.github.io/scala-cli-packages/KEY.gpg
-EOF
-$ yum repo-pkgs virtuslab-repo list
-$ yum install scala-cli    
-```
-
-#### Rpm-based installation
-
-The RPM package can be downloaded at [this address](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.rpm).
-
-Alternatively, you can download it and install it manually with:
-```text
-$ curl -fLo scala-cli.rpm https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.rpm
-$ rpm -i scala-cli.rpm
-```
-
-### Windows (x86-64)
-
-[Download installer](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi)
-
-### macOS (pkg)
-
-[Download package](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-apple-darwin.pkg)
+Download PKG installer with Scala CLI for MacOS
+<DownloadButton desc= 'Scala CLI for MacOS' href='https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-apple-darwin.pkg'></DownloadButton>
+<br/>
+<br/>
 
 Once downloaded, right-click on `scala-cli-x86_64-apple-darwin.pkg` from Finder, and choose "Open".
-
-### macOS (brew)
+</TabItem>
+<TabItem value="brew">
 
 Scala CLI can be installed via [homebrew](https://brew.sh) with
 
-```text
-$ brew install VirtuslabRnD/scala-cli/scala-cli 
+```bash
+brew install VirtuslabRnD/scala-cli/scala-cli 
 ```
+</TabItem>
+</Tabs>
+
+</TabItem>
+</Tabs>
 
 ## Shell completions
 
 Only bash and zsh completions are offered for now.
 
 Try the completions with
-```text
-$ eval "$(scala-cli install completions --env)"
-$ scala-cli --<TAB>
+```
+eval "$(scala-cli install completions --env)"
+scala-cli --<TAB>
 ```
 
 Install them on your system with
-```text
-$ scala-cli install completions
+```bash
+scala-cli install completions
 ```
 
 If any of the `scala-cli install completions` command complained that your shell cannot be determined, specify it
 with `--shell`, like
-```text
-$ scala-cli install completions --shell zsh
+```bash
+scala-cli install completions --shell zsh
 ```
