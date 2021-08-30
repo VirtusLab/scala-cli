@@ -142,7 +142,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
   val successfulWeaverInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.disneystreaming::weaver-cats:0.7.5`
+        """import $ivy.`com.disneystreaming::weaver-cats:0.7.6`
           |import weaver._
           |import cats.effect.IO
           |
