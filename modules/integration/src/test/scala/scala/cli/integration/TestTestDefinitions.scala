@@ -143,6 +143,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
     Seq(
       os.rel / "MyTests.scala" ->
         """import $ivy.`com.disneystreaming::weaver-cats:0.7.6`
+          |import $ivy.`com.eed3si9n.expecty::expecty:0.15.4+5-f1d8927e-SNAPSHOT`
           |import weaver._
           |import cats.effect.IO
           |
