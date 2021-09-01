@@ -91,7 +91,7 @@ const Features = (props) => {
       imageAlign: "right",
     },
     {
-      title: "Single module, basics commands",
+      title: "Single module, basic commands",
       content:
         <p>
           Scala-cli is designed to fill the roles when complexity of a proper build tool kills productivity.
@@ -104,7 +104,7 @@ const Features = (props) => {
       imageAlign: "left",
     },
     {
-      title: "Can scala-cli becomes just scala?",
+      title: "Can scala-cli become just scala?",
       content:
         <p>
           <p>
