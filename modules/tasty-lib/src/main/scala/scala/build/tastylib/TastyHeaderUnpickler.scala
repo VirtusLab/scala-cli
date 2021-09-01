@@ -36,36 +36,40 @@ class TastyHeaderUnpickler(reader: TastyReader) {
       throw new UnpickleException(signature + backIncompatAddendum + toolingAddendum)
     }
     else {
-      val fileMinor = readNat()
+      val fileMinor        = readNat()
       val fileExperimental = readNat()
-      val toolingLength = readNat()
+      val toolingLength    = readNat()
       val toolingStart = {
         val start = currentAddr
-        val end = start + toolingLength
+        val end   = start + toolingLength
         goto(end)
         start
       }
 
       val validVersion = TastyFormat.isVersionCompatible(
-        fileMajor            = fileMajor,
-        fileMinor            = fileMinor,
-        fileExperimental     = fileExperimental,
-        compilerMajor        = MajorVersion,
-        compilerMinor        = MinorVersion,
+        fileMajor = fileMajor,
+        fileMinor = fileMinor,
+        fileExperimental = fileExperimental,
+        compilerMajor = MajorVersion,
+        compilerMinor = MinorVersion,
         compilerExperimental = ExperimentalVersion
       )
 
-      check(validVersion, {
-        val signature = signatureString(fileMajor, fileMinor, fileExperimental)
-        val toolingVersion = new String(bytes, toolingStart.index, toolingLength)
-        val producedByAddendum = s"\nThe TASTy file was produced by $toolingVersion.$toolingAddendum"
-        val msg = (
-          if (fileExperimental != 0) unstableAddendum
-          else if (fileMajor < MajorVersion) backIncompatAddendum
-          else forwardIncompatAddendum
-        )
-        signature + msg + producedByAddendum
-      })
+      check(
+        validVersion, {
+          val signature      = signatureString(fileMajor, fileMinor, fileExperimental)
+          val toolingVersion = new String(bytes, toolingStart.index, toolingLength)
+          val producedByAddendum =
+            s"\nThe TASTy file was produced by $toolingVersion.$toolingAddendum"
+          val msg =
+            (
+              if (fileExperimental != 0) unstableAddendum
+              else if (fileMajor < MajorVersion) backIncompatAddendum
+              else forwardIncompatAddendum
+            )
+          signature + msg + producedByAddendum
+        }
+      )
 
       new UUID(readUncompressedLong(), readUncompressedLong())
     }
@@ -78,7 +82,8 @@ class TastyHeaderUnpickler(reader: TastyReader) {
 object TastyHeaderUnpickler {
 
   private def toolingAddendum =
-    if (ExperimentalVersion > 0) "\nNote that your tooling is currently using an unstable TASTy version."
+    if (ExperimentalVersion > 0)
+      "\nNote that your tooling is currently using an unstable TASTy version."
     else ""
 
   private def signatureString(fileMajor: Int, fileMinor: Int, fileExperimental: Int) = {
@@ -86,13 +91,13 @@ object TastyHeaderUnpickler {
       val expStr = if (exp == 0) "" else s" [unstable release: $exp]"
       s"$min$expStr"
     }
-    val minorVersion = showMinorVersion(MinorVersion, ExperimentalVersion)
+    val minorVersion     = showMinorVersion(MinorVersion, ExperimentalVersion)
     val fileMinorVersion = showMinorVersion(fileMinor, fileExperimental)
     s"""TASTy signature has wrong version.
-      | expected: {majorVersion: $MajorVersion, minorVersion: $minorVersion}
-      | found   : {majorVersion: $fileMajor, minorVersion: $fileMinorVersion}
-      |
-      |""".stripMargin
+       | expected: {majorVersion: $MajorVersion, minorVersion: $minorVersion}
+       | found   : {majorVersion: $fileMajor, minorVersion: $fileMinorVersion}
+       |
+       |""".stripMargin
   }
 
   private def unstableAddendum =

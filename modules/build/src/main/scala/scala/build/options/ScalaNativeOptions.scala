@@ -29,16 +29,22 @@ final case class ScalaNativeOptions(
   private def gc: sn.GC =
     gcStr.map(_.trim).filter(_.nonEmpty) match {
       case Some("default") | None => sn.GC.default
-      case Some(other) => sn.GC(other)
+      case Some(other)            => sn.GC(other)
     }
   private def mode: sn.Mode =
     modeStr.map(_.trim).filter(_.nonEmpty) match {
       case Some("default") | None => sn.Discover.mode()
-      case Some(other) => sn.Mode(other)
+      case Some(other)            => sn.Mode(other)
     }
 
-  private def clangPath = clang.filter(_.nonEmpty).map(Paths.get(_)).getOrElse(sn.Discover.clang())
-  private def clangppPath = clangpp.filter(_.nonEmpty).map(Paths.get(_)).getOrElse(sn.Discover.clangpp())
+  private def clangPath = clang
+    .filter(_.nonEmpty)
+    .map(Paths.get(_))
+    .getOrElse(sn.Discover.clang())
+  private def clangppPath = clangpp
+    .filter(_.nonEmpty)
+    .map(Paths.get(_))
+    .getOrElse(sn.Discover.clangpp())
   private def finalLinkingOptions =
     linkingOptions ++ (if (linkingDefaults) sn.Discover.linkingOptions() else Nil)
   private def finalCompileOptions =
@@ -59,22 +65,24 @@ final case class ScalaNativeOptions(
 
   private def bloopConfigUnsafe: BloopConfig.NativeConfig =
     BloopConfig.NativeConfig(
-           version = finalVersion,
-                     // there are more modes than bloop allows, but that setting here shouldn't end up being used anyway
-              mode = if (mode.name == "release") BloopConfig.LinkerMode.Release else BloopConfig.LinkerMode.Debug,
-                gc = gc.name,
+      version = finalVersion,
+      // there are more modes than bloop allows, but that setting here shouldn't end up being used anyway
+      mode =
+        if (mode.name == "release") BloopConfig.LinkerMode.Release
+        else BloopConfig.LinkerMode.Debug,
+      gc = gc.name,
       targetTriple = None,
-             clang = clangPath,
-           clangpp = clangppPath,
-         toolchain = Nil,
-           options = BloopConfig.NativeOptions(
-               linker = finalLinkingOptions,
-             compiler = finalCompileOptions
-           ),
-         linkStubs = false,
-             check = false,
-              dump = false,
-            output = None
+      clang = clangPath,
+      clangpp = clangppPath,
+      toolchain = Nil,
+      options = BloopConfig.NativeOptions(
+        linker = finalLinkingOptions,
+        compiler = finalCompileOptions
+      ),
+      linkStubs = false,
+      check = false,
+      dump = false,
+      output = None
     )
 
   def bloopConfig: Option[BloopConfig.NativeConfig] =

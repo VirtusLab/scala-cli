@@ -20,7 +20,7 @@ object Util {
 
   def daemonThreadFactory(prefix: String): ThreadFactory =
     new ThreadFactory {
-      val counter = new AtomicInteger
+      val counter        = new AtomicInteger
       def threadNumber() = counter.incrementAndGet()
       def newThread(r: Runnable) =
         new Thread(r, s"$prefix-thread-${threadNumber()}") {
@@ -31,10 +31,18 @@ object Util {
 
   private implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
     def toCs: coursier.Dependency = {
-      val mod = coursier.Module(coursier.Organization(dep.organization), coursier.ModuleName(dep.name), dep.attributes)
+      val mod = coursier.Module(
+        coursier.Organization(dep.organization),
+        coursier.ModuleName(dep.name),
+        dep.attributes
+      )
       var dep0 = coursier.Dependency(mod, dep.version)
       if (dep.exclude.nonEmpty)
-        dep0 = dep0.withExclusions(dep.exclude.toSet[dependency.Module].map(mod => (coursier.Organization(mod.organization), coursier.ModuleName(mod.name))))
+        dep0 = dep0.withExclusions {
+          dep.exclude.toSet[dependency.Module].map { mod =>
+            (coursier.Organization(mod.organization), coursier.ModuleName(mod.name))
+          }
+        }
       for (clOpt <- dep.userParams.get("classifier"); cl <- clOpt)
         dep0 = dep0.withConfiguration(coursier.core.Configuration(cl))
       for (_ <- dep.userParams.get("intransitive"))

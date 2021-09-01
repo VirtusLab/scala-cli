@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 import scala.build.options
 
+// format: off
 final case class ScalaJsOptions(
 
   @Group("Scala")
@@ -24,6 +25,7 @@ final case class ScalaJsOptions(
     jsDom: Option[Boolean] = None
 
 ) {
+  // format: on
 
   def buildOptions: options.ScalaJsOptions =
     options.ScalaJsOptions(

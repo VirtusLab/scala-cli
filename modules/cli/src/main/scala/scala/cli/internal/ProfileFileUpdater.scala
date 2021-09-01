@@ -15,7 +15,8 @@ object ProfileFileUpdater {
         Some(startIdx, endIdx + end.length)
       else
         None
-    } else
+    }
+    else
       None
   }
 
@@ -28,7 +29,7 @@ object ProfileFileUpdater {
 
     def updated(content: String): Option[String] = {
       val start = s"# >>> $title >>>\n"
-      val end = s"# <<< $title <<<\n"
+      val end   = s"# <<< $title <<<\n"
       val withTags = "\n" +
         start +
         addition.stripSuffix("\n") + "\n" +
@@ -68,7 +69,7 @@ object ProfileFileUpdater {
 
     def updated(content: String): Option[String] = {
       val start = s"# >>> $title >>>\n"
-      val end = s"# <<< $title <<<\n"
+      val end   = s"# <<< $title <<<\n"
       startEndIndices(start, end, content).map {
         case (startIdx, endIdx) =>
           content.take(startIdx).stripSuffix("\n") +
@@ -91,8 +92,8 @@ object ProfileFileUpdater {
   private def createDirectories(path: Path): Unit =
     try Files.createDirectories(path)
     catch {
+      // Ignored, see https://bugs.openjdk.java.net/browse/JDK-8130464
       case _: FileAlreadyExistsException if Files.isDirectory(path) =>
-        // Ignored, see https://bugs.openjdk.java.net/browse/JDK-8130464
     }
 
 }

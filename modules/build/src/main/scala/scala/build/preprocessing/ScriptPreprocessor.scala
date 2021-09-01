@@ -56,7 +56,8 @@ object ScriptPreprocessor {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, subPath)
 
-    val (options, updatedCode) = ScalaPreprocessor.process(content, printablePath).getOrElse((BuildOptions(), content))
+    val (options, updatedCode) = ScalaPreprocessor.process(content, printablePath)
+      .getOrElse((BuildOptions(), content))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
@@ -67,8 +68,15 @@ object ScriptPreprocessor {
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
 
     val components = className.split('.')
-    val relPath = os.rel / components.init.toSeq / s"${components.last}.scala"
-    PreprocessedSource.InMemory(reportingPath, relPath, code, topWrapperLen, Some(options), Some(className))
+    val relPath    = os.rel / components.init.toSeq / s"${components.last}.scala"
+    PreprocessedSource.InMemory(
+      reportingPath,
+      relPath,
+      code,
+      topWrapperLen,
+      Some(options),
+      Some(className)
+    )
   }
 
 }

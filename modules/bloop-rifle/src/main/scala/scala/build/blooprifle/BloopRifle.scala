@@ -13,13 +13,13 @@ import scala.util.Properties
 
 object BloopRifle {
 
-  /**
-    * Checks whether a bloop server is running at this host / port.
+  /** Checks whether a bloop server is running at this host / port.
     *
     * @param host
     * @param port
     * @param logger
-    * @return Whether a server is running or not.
+    * @return
+    *   Whether a server is running or not.
     */
   def check(
     config: BloopRifleConfig,
@@ -31,8 +31,7 @@ object BloopRifle {
       logger
     )
 
-  /**
-    * Starts a new bloop server.
+  /** Starts a new bloop server.
     *
     * @param host
     * @param port
@@ -42,7 +41,8 @@ object BloopRifle {
     * @param waitInterval
     * @param timeout
     * @param logger
-    * @return A future, that gets completed when the server is done starting (and can thus be used).
+    * @return
+    *   A future, that gets completed when the server is done starting (and can thus be used).
     */
   def startServer(
     config: BloopRifleConfig,
@@ -67,14 +67,14 @@ object BloopRifle {
     )
   }
 
-  /**
-    * Opens a BSP connection to a running bloop server.
+  /** Opens a BSP connection to a running bloop server.
     *
-    * Starts a thread to read output from the nailgun connection, and another one
-    * to pass input to it.
+    * Starts a thread to read output from the nailgun connection, and another one to pass input to
+    * it.
     *
     * @param logger
-    * @return A [[BspConnection]] object, that can be used to close the connection.
+    * @return
+    *   A [[BspConnection]] object, that can be used to close the connection.
     */
   def bsp(
     config: BloopRifleConfig,
@@ -114,16 +114,17 @@ object BloopRifle {
       )
 
       new BspConnection {
-        def address = conn.address
+        def address      = conn.address
         def openSocket() = conn.openSocket()
-        def closed = conn.closed
+        def closed       = conn.closed
         def stop(): Unit = {
           if (devNullOs != null)
             devNullOs.close()
           conn.stop()
         }
       }
-    } catch {
+    }
+    catch {
       case NonFatal(e) =>
         if (devNullOs != null)
           devNullOs.close()

@@ -19,8 +19,8 @@ object PackageType {
     override def runnable = true
   }
   case object Debian extends NativePackagerType
-  case object Dmg extends NativePackagerType
-  case object Pkg extends NativePackagerType
-  case object Rpm extends NativePackagerType
-  case object Msi extends NativePackagerType
+  case object Dmg    extends NativePackagerType
+  case object Pkg    extends NativePackagerType
+  case object Rpm    extends NativePackagerType
+  case object Msi    extends NativePackagerType
 }

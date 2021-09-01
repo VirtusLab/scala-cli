@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext
 
 class TestBspClient extends b.BuildClient {
 
-  private val lock = new Object
+  private val lock      = new Object
   private var messages0 = new mutable.ListBuffer[Object]
   private def addMessage(params: Object): Unit =
     lock.synchronized {
@@ -23,7 +23,7 @@ class TestBspClient extends b.BuildClient {
     }
 
   private val didChangePromises = new mutable.ListBuffer[Promise[b.DidChangeBuildTarget]]
-  private val didChangeLock = new Object
+  private val didChangeLock     = new Object
   def buildTargetDidChange(): Future[b.DidChangeBuildTarget] = {
     val p = Promise[b.DidChangeBuildTarget]()
     didChangeLock.synchronized {
@@ -88,9 +88,10 @@ object TestBspClient {
     val remoteServer = launcher.getRemoteProxy
     localClient.onConnectWithServer(remoteServer)
 
-    val f = launcher.startListening()
+    val f  = launcher.startListening()
+    val f0 = naiveJavaFutureToScalaFuture(f).map(_ => ())(ExecutionContext.fromExecutor(es))
 
-    (localClient, remoteServer, naiveJavaFutureToScalaFuture(f).map(_ => ())(ExecutionContext.fromExecutor(es)))
+    (localClient, remoteServer, f0)
   }
 
   // from https://github.com/com-lihaoyi/Ammonite/blob/7eb58c58ec8c252dc5bd1591b041fcae01cccf90/amm/interp/src/main/scala/ammonite/interp/script/AmmoniteBuildServer.scala#L550-L565

@@ -16,7 +16,9 @@ package object bsp {
       }
   }
 
-  implicit class BuildTargetIdentifierExt(private val item: b.BuildTargetIdentifier) extends AnyVal {
+  implicit class BuildTargetIdentifierExt(
+    private val item: b.BuildTargetIdentifier
+  ) extends AnyVal {
     def duplicate(): b.BuildTargetIdentifier =
       new b.BuildTargetIdentifier(item.getUri)
   }
@@ -28,7 +30,10 @@ package object bsp {
 
   implicit class SourcesItemExt(private val item: b.SourcesItem) extends AnyVal {
     def duplicate(): b.SourcesItem = {
-      val other = new b.SourcesItem(item.getTarget, item.getSources.asScala.map(_.duplicate()).asJava)
+      val other = new b.SourcesItem(
+        item.getTarget,
+        item.getSources.asScala.map(_.duplicate()).asJava
+      )
       for (roots <- Option(item.getRoots))
         other.setRoots(roots.asScala.toList.asJava)
       other
@@ -40,7 +45,9 @@ package object bsp {
       new b.SourcesResult(res.getItems.asScala.toList.map(_.duplicate()).asJava)
   }
 
-  implicit class BuildTargetCapabilitiesExt(private val capabilities: b.BuildTargetCapabilities) extends AnyVal {
+  implicit class BuildTargetCapabilitiesExt(
+    private val capabilities: b.BuildTargetCapabilities
+  ) extends AnyVal {
     def duplicate(): b.BuildTargetCapabilities =
       new b.BuildTargetCapabilities(
         capabilities.getCanCompile,
@@ -64,7 +71,9 @@ package object bsp {
       target0
     }
   }
-  implicit class WorkspaceBuildTargetsResultExt(private val res: b.WorkspaceBuildTargetsResult) extends AnyVal {
+  implicit class WorkspaceBuildTargetsResultExt(
+    private val res: b.WorkspaceBuildTargetsResult
+  ) extends AnyVal {
     def duplicate(): b.WorkspaceBuildTargetsResult =
       new b.WorkspaceBuildTargetsResult(res.getTargets.asScala.toList.map(_.duplicate()).asJava)
   }
@@ -73,7 +82,9 @@ package object bsp {
     def duplicate(): b.Location =
       new b.Location(loc.getUri, loc.getRange.duplicate())
   }
-  implicit class DiagnosticRelatedInformationExt(private val info: b.DiagnosticRelatedInformation) extends AnyVal {
+  implicit class DiagnosticRelatedInformationExt(
+    private val info: b.DiagnosticRelatedInformation
+  ) extends AnyVal {
     def duplicate(): b.DiagnosticRelatedInformation =
       new b.DiagnosticRelatedInformation(info.getLocation.duplicate(), info.getMessage)
   }

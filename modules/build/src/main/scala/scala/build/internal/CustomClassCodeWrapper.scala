@@ -1,6 +1,6 @@
 package scala.build.internal
 
-case object CustomCodeClassWrapper extends CodeWrapper{
+case object CustomCodeClassWrapper extends CodeWrapper {
   /*
    * The goal of this code wrapper is that the user code:
    * - should be in a class rather than a singleton,
@@ -18,9 +18,9 @@ case object CustomCodeClassWrapper extends CodeWrapper{
    * themselves processed by macros (definitions in objects are easier to process from
    * macros).
    */
-  private val userCodeNestingLevel = 2
-  private val q = "\""
-  private val tq = "\"\"\""
+  private val userCodeNestingLevel    = 2
+  private val q                       = "\""
+  private val tq                      = "\"\"\""
   override val wrapperPath: Seq[Name] = Seq(Name("instance"))
   def apply(
     code: String,
@@ -29,7 +29,11 @@ case object CustomCodeClassWrapper extends CodeWrapper{
     extraCode: String
   ) = {
 //     val isObjDef = Parsers.isObjDef(code)
-    val packageDirective = if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
+    val packageDirective =
+      if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
+
+    // indentation is important in the generated code, so we don't want scalafmt to touch that
+    // format: off
 
 //     if (isObjDef) {
 //       val top = AmmUtil.normalizeNewlines(s"""$packageDirective
@@ -93,14 +97,14 @@ case object CustomCodeClassWrapper extends CodeWrapper{
       //   }
       //   .mkString
 
-      val usedThingsSet = ""
+    val usedThingsSet = ""
         /*if (reqVals.isEmpty) ""
         else
           s"""
   @_root_.scala.transient private val __amm_usedThings =
     _root_.ammonite.repl.ReplBridge.value.usedEarlierDefinitions.toSet"""*/
 
-        val top = AmmUtil.normalizeNewlines(s"""$packageDirective
+    val top = AmmUtil.normalizeNewlines(s"""$packageDirective
 
 object ${indexedWrapperName.backticked}{
   val wrapper = new ${indexedWrapperName.backticked}
@@ -117,13 +121,15 @@ $usedThingsSet
 final class Helper extends _root_.java.io.Serializable{\n"""
     )
 
-      val bottom = AmmUtil.normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = {}
+    val bottom = AmmUtil.normalizeNewlines(s"""\ndef $$main(): _root_.scala.Unit = {}
   override def toString = "${indexedWrapperName.encoded}"
   $extraCode
 }}
 """)
 
-      (top, bottom, userCodeNestingLevel)
+    // format: on
+
+    (top, bottom, userCodeNestingLevel)
 //    }
   }
 }

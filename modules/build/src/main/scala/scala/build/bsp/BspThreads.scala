@@ -21,7 +21,8 @@ object BspThreads {
     try {
       threads = create()
       f(threads)
-    } finally {
+    }
+    finally {
       if (threads != null)
         threads.shutdown()
     }
@@ -29,6 +30,8 @@ object BspThreads {
   def create(): BspThreads =
     BspThreads(
       BuildThreads.create(),
-      Executors.newSingleThreadExecutor(Util.daemonThreadFactory("scala-cli-bsp-prepare-build-thread"))
+      Executors.newSingleThreadExecutor(
+        Util.daemonThreadFactory("scala-cli-bsp-prepare-build-thread")
+      )
     )
 }

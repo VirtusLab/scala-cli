@@ -38,10 +38,16 @@ object ReplArtifacts {
     logger: Logger,
     directories: Directories
   ): ReplArtifacts = {
-    val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
-    val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
+    val localRepoOpt  = LocalRepo.localRepo(directories.localRepoDir)
+    val allDeps       = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
-    val replSourceArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger, classifiersOpt = Some(Set("sources")))
+    val replSourceArtifacts = Artifacts.artifacts(
+      allDeps,
+      localRepoOpt.toSeq,
+      scalaParams,
+      logger,
+      classifiersOpt = Some(Set("sources"))
+    )
     ReplArtifacts(
       replArtifacts ++ replSourceArtifacts,
       extraJars,
@@ -60,11 +66,11 @@ object ReplArtifacts {
     directories: Directories
   ): ReplArtifacts = {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
-    val isScala2 = scalaParams.scalaVersion.startsWith("2.")
+    val isScala2     = scalaParams.scalaVersion.startsWith("2.")
     val replDep =
       if (isScala2) dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}"
       else dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}"
-    val allDeps = dependencies ++ Seq(replDep)
+    val allDeps       = dependencies ++ Seq(replDep)
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
     val mainClass =
       if (isScala2) "scala.tools.nsc.MainGenericRunner"

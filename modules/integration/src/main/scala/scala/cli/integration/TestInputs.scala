@@ -28,7 +28,7 @@ final case class TestInputs(
 object TestInputs {
 
   private def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
-    val tmpDir = os.temp.dir(prefix = prefix)
+    val tmpDir  = os.temp.dir(prefix = prefix)
     val tmpDir0 = os.Path(tmpDir.toIO.getCanonicalFile)
     try f(tmpDir0)
     finally {

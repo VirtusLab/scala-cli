@@ -6,10 +6,16 @@ import java.util.concurrent.CompletableFuture
 
 trait ScalaBuildServerForwardStubs extends b.ScalaBuildServer {
   protected def forwardTo: b.ScalaBuildServer
-  override def buildTargetScalaMainClasses(params: b.ScalaMainClassesParams): CompletableFuture[b.ScalaMainClassesResult] =
+  override def buildTargetScalaMainClasses(
+    params: b.ScalaMainClassesParams
+  ): CompletableFuture[b.ScalaMainClassesResult] =
     forwardTo.buildTargetScalaMainClasses(params)
-  override def buildTargetScalaTestClasses(params: b.ScalaTestClassesParams): CompletableFuture[b.ScalaTestClassesResult] =
+  override def buildTargetScalaTestClasses(
+    params: b.ScalaTestClassesParams
+  ): CompletableFuture[b.ScalaTestClassesResult] =
     forwardTo.buildTargetScalaTestClasses(params)
-  override def buildTargetScalacOptions(params: b.ScalacOptionsParams): CompletableFuture[b.ScalacOptionsResult] =
+  override def buildTargetScalacOptions(
+    params: b.ScalacOptionsParams
+  ): CompletableFuture[b.ScalacOptionsResult] =
     forwardTo.buildTargetScalacOptions(params)
 }

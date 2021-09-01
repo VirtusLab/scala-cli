@@ -11,7 +11,7 @@ import java.util.zip.{ZipEntry, ZipInputStream}
 object LocalRepo {
 
   private def resourcePath = Constants.localRepoResourcePath
-  private def version = Constants.localRepoVersion
+  private def version      = Constants.localRepoVersion
 
   def localRepo(
     baseDir: os.Path,
@@ -21,19 +21,19 @@ object LocalRepo {
 
     if (archiveUrl == null) None
     else {
-      val repoDir = baseDir / version
+      val repoDir    = baseDir / version
       val tmpRepoDir = repoDir / os.up / s".$version.tmp"
-      val repo = "ivy:" + repoDir.toNIO.toUri.toASCIIString + "/[defaultPattern]"
+      val repo       = "ivy:" + repoDir.toNIO.toUri.toASCIIString + "/[defaultPattern]"
       if (!os.exists(repoDir))
         withLock((repoDir / os.up).toNIO, version) {
           os.remove.all(tmpRepoDir)
-          var is: InputStream = null
+          var is: InputStream     = null
           var zis: ZipInputStream = null
           try {
             is = archiveUrl.openStream()
             zis = new ZipInputStream(new BufferedInputStream(is))
             var ent: ZipEntry = null
-            val buf = Array.ofDim[Byte](16*1024)
+            val buf           = Array.ofDim[Byte](16 * 1024)
             while ({
               ent = zis.getNextEntry()
               ent != null
@@ -47,10 +47,15 @@ object LocalRepo {
                 })
                   baos.write(buf, 0, read)
                 zis.closeEntry()
-                os.write(tmpRepoDir / ent.getName.split('/').toSeq, baos.toByteArray, createFolders = true)
+                os.write(
+                  tmpRepoDir / ent.getName.split('/').toSeq,
+                  baos.toByteArray,
+                  createFolders = true
+                )
               }
             }
-          } finally {
+          }
+          finally {
             if (zis != null) zis.close()
             if (is != null) is.close()
           }
@@ -60,7 +65,6 @@ object LocalRepo {
       Some(repo)
     }
   }
-
 
   private val intraProcessLock = new Object
   private def withLock[T](dir: Path, id: String)(f: => T): T =
@@ -79,20 +83,21 @@ object LocalRepo {
 
         var lock: FileLock = null
         try {
-            lock = channel.lock()
+          lock = channel.lock()
 
-            try f
-            finally {
-              lock.release()
-              lock = null
-              channel.close()
-              channel = null
-            }
+          try f
+          finally {
+            lock.release()
+            lock = null
+            channel.close()
+            channel = null
+          }
         }
         finally {
           if (lock != null) lock.release()
         }
-      } finally {
+      }
+      finally {
         if (channel != null) channel.close()
       }
     }

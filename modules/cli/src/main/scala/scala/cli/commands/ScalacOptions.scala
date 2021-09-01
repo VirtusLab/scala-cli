@@ -7,6 +7,7 @@ import caseapp.core.{Arg, Error}
 import caseapp.core.util.Formatter
 import caseapp.core.parser.StandardArgument
 
+// format: off
 final case class ScalacOptions(
   @Group("Scala")
   @HelpMessage("Add scalac option")
@@ -15,6 +16,7 @@ final case class ScalacOptions(
   @Name("O")
     scalacOption: List[String] = Nil
 )
+// format: on
 
 object ScalacOptions {
 
@@ -24,8 +26,9 @@ object ScalacOptions {
     .withHelpMessage(Some(HelpMessage("Add scalac option")))
     .withGroup(Some(Group("Scala")))
     .withOrigin(Some("ScalacOptions"))
-    // .withIsFlag(true) // The scalac options we handle accept no value after the -… argument
-  private val scalacOptionsPrefixes = Set("-g", "-language", "-opt", "-P", "-target", "-V", "-W", "-X", "-Y")
+  // .withIsFlag(true) // The scalac options we handle accept no value after the -… argument
+  private val scalacOptionsPrefixes =
+    Set("-g", "-language", "-opt", "-P", "-target", "-V", "-W", "-X", "-Y")
   private val scalacOptionsArgument: Argument[List[String]] =
     new Argument[List[String]] {
 
@@ -35,10 +38,11 @@ object ScalacOptions {
         scalacOptionsArg.extraNames ++ scalacOptionsPrefixes.toVector.map(Name(_))
       )
       def withDefaultOrigin(origin: String) = this
-      def init = Some(Nil)
+      def init                              = Some(Nil)
       def step(args: List[String], acc: Option[List[String]], formatter: Formatter[Name]) =
         args match {
-          case h :: t if scalacOptionsPrefixes.exists(h.startsWith) => Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
+          case h :: t if scalacOptionsPrefixes.exists(h.startsWith) =>
+            Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
           case _ => underlying.step(args, acc, formatter)
         }
       def get(acc: Option[List[String]], formatter: Formatter[Name]) =

@@ -2,7 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends munit.FunSuite with TestScalaVersionArgs {
+abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
+    extends munit.FunSuite with TestScalaVersionArgs {
 
   private val jvmOptions =
     // seems munit requires this with Scala 3
@@ -175,7 +176,9 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
 
   def successfulJsTest(): Unit =
     successfulTestInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js").call(cwd = root).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
+        .call(cwd = root)
+        .out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -186,7 +189,9 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
 
   def successfulNativeTest(): Unit =
     successfulTestInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native").call(cwd = root).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
+        .call(cwd = root)
+        .out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -197,14 +202,18 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
 
   test("failing test") {
     failingTestInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root, check = false).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".")
+        .call(cwd = root, check = false)
+        .out.text
       expect(output.contains("Hello from tests"))
     }
   }
 
   def failingJsTest(): Unit =
     failingTestInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js").call(cwd = root, check = false).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
+        .call(cwd = root, check = false)
+        .out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -215,7 +224,9 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
 
   def failingNativeTest(): Unit =
     failingTestInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native").call(cwd = root, check = false).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
+        .call(cwd = root, check = false)
+        .out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -255,7 +266,9 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
 
   def utestJs(): Unit =
     successfulUtestJsInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js").call(cwd = root).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
+        .call(cwd = root)
+        .out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -266,7 +279,9 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
 
   def utestNative(): Unit =
     successfulUtestNativeInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native").call(cwd = root).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
+        .call(cwd = root)
+        .out.text
       expect(output.contains("Hello from tests"))
     }
 
@@ -299,7 +314,11 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
 
   val platforms = {
     val maybeJs = if (TestUtil.canRunJs) Seq("JS" -> Seq("--js")) else Nil
-    val maybeNative = if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.")) Seq("Native" -> Seq("--native")) else Nil
+    val maybeNative =
+      if (TestUtil.canRunNative && actualScalaVersion.startsWith("2."))
+        Seq("Native" -> Seq("--native"))
+      else
+        Nil
     Seq("JVM" -> Nil) ++ maybeJs ++ maybeNative
   }
 
@@ -322,14 +341,19 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
         )
       )
       inputs.fromRoot { root =>
-        val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".").call(cwd = root)
+        val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
+          .call(cwd = root)
         val baseOutput = baseRes.out.text
         expect(baseOutput.contains("A thing"))
         expect(baseOutput.contains("should thing"))
-        val baseShouldThingLine = baseRes.out.lines().find(_.contains("should thing")).getOrElse(???)
+        val baseShouldThingLine = baseRes.out
+          .lines()
+          .find(_.contains("should thing"))
+          .getOrElse(???)
         expect(!baseShouldThingLine.contains("millisecond"))
 
-        val res = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".", "--", "-oD").call(cwd = root)
+        val res = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".", "--", "-oD")
+          .call(cwd = root)
         val output = res.out.text
         expect(output.contains("A thing"))
         expect(output.contains("should thing"))
@@ -365,12 +389,19 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String]) extends 
         )
       )
       inputs.fromRoot { root =>
-        val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".").call(cwd = root)
+        val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
+          .call(cwd = root)
         val baseOutput = baseRes.out.text
         expect(baseOutput.contains("Hello from tests"))
         expect(!baseOutput.contains("Hello from CustomFramework"))
 
-        val res = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".", "--test-framework", "custom.CustomFramework").call(cwd = root)
+        // format: off
+        val cmd = Seq[os.Shellable](
+          TestUtil.cli, "test", extraOptions, platformArgs, ".",
+          "--test-framework", "custom.CustomFramework"
+        )
+        // format: on
+        val res    = os.proc(cmd).call(cwd = root)
         val output = res.out.text
         expect(output.contains("Hello from tests"))
         expect(output.contains("Hello from CustomFramework"))

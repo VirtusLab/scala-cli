@@ -25,9 +25,10 @@ object TastyUnpickler {
 
   final class NameTable {
     private[this] val names = new mutable.ArrayBuffer[(TastyName, Bytes)]
-    def add(name: TastyName, bytes: Bytes): mutable.ArrayBuffer[(TastyName, Bytes)] = names += (name -> bytes)
+    def add(name: TastyName, bytes: Bytes): mutable.ArrayBuffer[(TastyName, Bytes)] =
+      names += (name -> bytes)
     def apply(ref: NameRef): TastyName = names(ref.index)._1
-    def size: Int = names.size
+    def size: Int                      = names.size
     def toSeq: Seq[(TastyName, Bytes)] = names.toArray.toSeq
   }
 }
@@ -54,16 +55,16 @@ private class TastyUnpickler(reader: TastyReader) { self =>
 
   private def readNameContents(): (TastyName, Bytes) = {
     val initialPos = pos
-    val tag = readByte()
-    val length = readNat()
-    val start = currentAddr
-    val end = start + length
+    val tag        = readByte()
+    val length     = readNat()
+    val start      = currentAddr
+    val end        = start + length
     def debugName(name: TastyName): name.type =
       name
     def readSignedRest(original: TastyName, target: TastyName): TastyName = {
-      val result = ErasedTypeRef(readName())
+      val result    = ErasedTypeRef(readName())
       val paramsSig = until(end)(readParamSig())
-      val sig = Signature(paramsSig, result)
+      val sig       = Signature(paramsSig, result)
       debugName(SignedName(original, sig, target))
     }
     val result = tag match {
@@ -81,13 +82,13 @@ private class TastyUnpickler(reader: TastyReader) { self =>
         val separator = readName().asSimpleName
         val num       = readNat()
         val originals = until(end)(readName())
-        val original = if (originals.isEmpty) TastyName.Empty else originals.head
+        val original  = if (originals.isEmpty) TastyName.Empty else originals.head
         debugName(UniqueName(original, separator, num))
       case DEFAULTGETTER =>
         debugName(DefaultName(readName(), readNat()))
       case TARGETSIGNED =>
         val original = readName()
-        val target = readName()
+        val target   = readName()
         readSignedRest(original, target)
       case SIGNED =>
         val original = readName()
@@ -104,7 +105,9 @@ private class TastyUnpickler(reader: TastyReader) { self =>
         debugName(PrefixName(prefix, readName()))
       case _ =>
         val qual = readName()
-        sys.error(s"at NameRef(${nameTable.size}): name `${qual.debug}` is qualified by unknown tag $tag")
+        sys.error(
+          s"at NameRef(${nameTable.size}): name `${qual.debug}` is qualified by unknown tag $tag"
+        )
     }
     assert(currentAddr == end, s"bad name ${result.debug} $start $currentAddr $end")
     (result, new Bytes(bytes, initialPos, index(end)))
@@ -114,8 +117,8 @@ private class TastyUnpickler(reader: TastyReader) { self =>
 
   def readNames(): Bytes = {
     val preambleStart = pos
-    val endAddr = readEnd()
-    val preambleEnd = pos
+    val endAddr       = readEnd()
+    val preambleEnd   = pos
     val preambleBytes = Bytes(bytes, preambleStart, preambleEnd)
     doUntil(endAddr) {
       val (n, b) = readNameContents()

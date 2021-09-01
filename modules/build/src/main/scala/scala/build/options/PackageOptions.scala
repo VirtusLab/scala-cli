@@ -15,11 +15,15 @@ final case class PackageOptions(
   redHatOptions: RedHatOptions = RedHatOptions()
 ) {
 
-  def packageVersion: String = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.version.stripSuffix("-SNAPSHOT"))
+  def packageVersion: String =
+    version
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .getOrElse(Constants.version.stripSuffix("-SNAPSHOT"))
 
 }
 
 object PackageOptions {
   implicit val hasHashData: HasHashData[PackageOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[PackageOptions] = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[PackageOptions]     = ConfigMonoid.derive
 }

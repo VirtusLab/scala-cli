@@ -24,7 +24,8 @@ object Bloop {
   ): Boolean = {
 
     logger.debug("Listing BSP build targets")
-    val results = bloopServer.server.workspaceBuildTargets().get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
+    val results = bloopServer.server.workspaceBuildTargets()
+      .get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
     val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
 
     val buildTarget = buildTargetOpt.getOrElse {
@@ -53,12 +54,12 @@ object Bloop {
   def bloopClassPath(logger: Logger): Seq[File] = {
     val moduleStr = BloopRifleConfig.defaultModule
     val mod = ModuleParser.parse(moduleStr) match {
-      case Left(err) => sys.error(s"Error parsing default bloop module '$moduleStr'")
+      case Left(err)  => sys.error(s"Error parsing default bloop module '$moduleStr'")
       case Right(mod) => mod
     }
-    val dep = DependencyLike(mod, BloopRifleConfig.defaultVersion)
-    val sv = Properties.versionNumberString
-    val sbv = ScalaVersion.binary(sv)
+    val dep    = DependencyLike(mod, BloopRifleConfig.defaultVersion)
+    val sv     = Properties.versionNumberString
+    val sbv    = ScalaVersion.binary(sv)
     val params = ScalaParameters(sv, sbv)
     bloopClassPath(dep, params, logger)
   }

@@ -22,15 +22,20 @@ final case class TestInputs(
 
       val inputArgs0 = if (inputArgs.isEmpty) files.map(_._1.toString) else inputArgs
       Inputs(inputArgs0, tmpDir, Directories.under(tmpDir / ".data")) match {
-        case Left(err) => sys.error(err)
+        case Left(err)     => sys.error(err)
         case Right(inputs) => f(tmpDir, inputs)
       }
     }
 
-  def withBuild[T](options: BuildOptions, buildThreads: BuildThreads, bloopConfig: BloopRifleConfig)(f: (os.Path, Inputs, Build) => T): T = withInputs { (root, inputs) =>
-    val build = Build.build(inputs, options, buildThreads, bloopConfig, TestLogger())
-    f(root, inputs, build)
-  }
+  def withBuild[T](
+    options: BuildOptions,
+    buildThreads: BuildThreads,
+    bloopConfig: BloopRifleConfig
+  )(f: (os.Path, Inputs, Build) => T): T =
+    withInputs { (root, inputs) =>
+      val build = Build.build(inputs, options, buildThreads, bloopConfig, TestLogger())
+      f(root, inputs, build)
+    }
 }
 
 object TestInputs {

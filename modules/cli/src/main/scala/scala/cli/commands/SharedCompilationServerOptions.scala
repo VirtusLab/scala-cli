@@ -11,6 +11,7 @@ import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Properties
 
+// format: off
 final case class SharedCompilationServerOptions(
   @Group("Compilation server")
   @HelpMessage("Protocol to use to open a BSP connection with Bloop (ignored on Windows for now)")
@@ -50,6 +51,7 @@ final case class SharedCompilationServerOptions(
   @ValueDescription("duration")
     bloopStartupTimeout: Option[String] = None
 ) {
+  // format: on
 
   private lazy val pidOrRandom: Either[Int, Int] =
     Option((new Pid).get()).map(_.intValue()).map(Right(_)).getOrElse {
@@ -73,7 +75,8 @@ final case class SharedCompilationServerOptions(
             }
           case _: FileAlreadyExistsException =>
         }
-      } finally {
+      }
+      finally {
         if (os.exists(tmpDir))
           os.remove(tmpDir)
       }
@@ -103,22 +106,26 @@ final case class SharedCompilationServerOptions(
     socket.toIO.getCanonicalFile
   }
 
-  def defaultBspSocketOrPort(directories: => scala.build.Directories): Option[() => Either[Int, File]] =
+  def defaultBspSocketOrPort(
+    directories: => scala.build.Directories
+  ): Option[() => Either[Int, File]] =
     if (Properties.isWin) None
     else
       bloopBspProtocol.filter(_ != "default") match {
-        case None => None
+        case None        => None
         case Some("tcp") => None
         case Some("local") =>
           Some(() => Right(bspSocketFile(directories)))
         case Some(other) =>
-          sys.error(s"Invalid bloop BSP protocol value: '$other' (expected 'tcp', 'local', or 'default')")
+          sys.error(
+            s"Invalid bloop BSP protocol value: '$other' (expected 'tcp', 'local', or 'default')"
+          )
       }
 
   private def parseDuration(name: String, valueOpt: Option[String]): Option[FiniteDuration] =
     valueOpt.map(_.trim).filter(_.nonEmpty).map(Duration(_)).map {
       case d: FiniteDuration => d
-      case d => sys.error(s"Expected finite $name duration, got $d")
+      case d                 => sys.error(s"Expected finite $name duration, got $d")
     }
 
   def bloopBspTimeoutDuration: Option[FiniteDuration] =

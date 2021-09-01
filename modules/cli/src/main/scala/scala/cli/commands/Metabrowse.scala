@@ -59,12 +59,13 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     def defaultLauncher() = {
 
-      val (url, changing) = options.metabrowseBinaryUrl(successfulBuild.options.scalaParams.scalaVersion)
+      val (url, changing) =
+        options.metabrowseBinaryUrl(successfulBuild.options.scalaParams.scalaVersion)
       val cache = options.shared.coursierCache
       val f = cache.logger.use {
         logger.log(s"Getting $url")
         cache.file(Artifact(url).withChanging(changing)).run.flatMap {
-          case Left(e) => Task.fail(e)
+          case Left(e)  => Task.fail(e)
           case Right(f) => Task.point(os.Path(f, os.pwd))
         }.unsafeRun()(cache.ec)
       }
@@ -73,14 +74,19 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       // FIXME Once coursier has proper support for extracted archives in cache, use it instead of those hacks
       if (f.last.endsWith(".zip")) {
         val baseDir = f / os.up
-        val dir = baseDir / s".${f.last.stripSuffix(".zip")}-content"
+        val dir     = baseDir / s".${f.last.stripSuffix(".zip")}-content"
         if (os.exists(dir))
           logger.debug(s"Found $dir")
         else {
           logger.debug(s"Unzipping $f under $dir")
           val tmpDir = baseDir / s".${f.last.stripSuffix(".zip")}-content-${UUID.randomUUID()}"
           try {
-            coursier.jvm.UnArchiver.default().extract(ArchiveType.Zip, f.toIO, tmpDir.toIO, overwrite = false)
+            coursier.jvm.UnArchiver.default().extract(
+              ArchiveType.Zip,
+              f.toIO,
+              tmpDir.toIO,
+              overwrite = false
+            )
             if (!os.exists(dir)) {
               try os.move(tmpDir, dir, atomicMove = true)
               catch {
@@ -89,7 +95,8 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
                     throw new Exception(ex)
               }
             }
-          } finally {
+          }
+          finally {
             try os.remove.all(tmpDir)
             catch {
               case _: IOException if Properties.isWin =>
@@ -100,13 +107,14 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         val dirContent = os.list(dir)
         if (dirContent.length == 1) dirContent.head
         else dirContent.filter(_.last.startsWith("metabrowse")).head
-      } else if (f.last.endsWith(".gz")) {
+      }
+      else if (f.last.endsWith(".gz")) {
         val dest = f / os.up / s".${f.last.stripSuffix(".gz")}"
         if (os.exists(dest))
           logger.debug(s"Found $dest")
         else {
           logger.debug(s"Uncompression $f at $dest")
-          var fis: FileInputStream = null
+          var fis: FileInputStream  = null
           var fos: FileOutputStream = null
           var gzis: GZIPInputStream = null
           try {
@@ -114,7 +122,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
             gzis = new GZIPInputStream(fis)
             fos = new FileOutputStream(dest.toIO)
 
-            val buf = Array.ofDim[Byte](16*1024)
+            val buf  = Array.ofDim[Byte](16 * 1024)
             var read = -1
             while ({
               read = gzis.read(buf)
@@ -124,14 +132,16 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
                 fos.write(buf, 0, read)
             }
             fos.flush()
-          } finally {
+          }
+          finally {
             if (gzis != null) gzis.close()
             if (fos != null) fos.close()
             if (fis != null) fis.close()
           }
         }
         dest
-      } else
+      }
+      else
         f
     }
 
@@ -162,11 +172,11 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       else Nil
 
     val classPath = jar :: (successfulBuild.artifacts.classPath ++ extraJars).toList
-    val sources = sourceJar :: successfulBuild.artifacts.sourcePath.toList
+    val sources   = sourceJar :: successfulBuild.artifacts.sourcePath.toList
 
     logger.debug {
       val newLine = System.lineSeparator()
-      val b = new StringBuilder
+      val b       = new StringBuilder
       b.append("Class path:")
       b.append(newLine)
       for (jar <- classPath) {
@@ -179,7 +189,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     logger.debug {
       val newLine = System.lineSeparator()
-      val b = new StringBuilder
+      val b       = new StringBuilder
       b.append("Source path:")
       b.append(newLine)
       for (jar <- sources) {
@@ -201,19 +211,25 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val command = Seq(
       launcher.toString,
-      "--class-path", classPath.map(_.toString).mkString(File.pathSeparator),
-      "--source-path", sources.map(_.toString).mkString(File.pathSeparator),
-      "--host", options.host,
-      "--port", options.port.toString,
-      "--dialect", options.metabrowseDialect.map(_.trim).filter(_.nonEmpty).getOrElse(defaultDialect),
-      "--message", message
+      "--class-path",
+      classPath.map(_.toString).mkString(File.pathSeparator),
+      "--source-path",
+      sources.map(_.toString).mkString(File.pathSeparator),
+      "--host",
+      options.host,
+      "--port",
+      options.port.toString,
+      "--dialect",
+      options.metabrowseDialect.map(_.trim).filter(_.nonEmpty).getOrElse(defaultDialect),
+      "--message",
+      message
     )
 
     Runner.run("metabrowse", command, logger, allowExecve = true)
   }
 
   private def randomPort(): Int = {
-    val s = new ServerSocket(0)
+    val s    = new ServerSocket(0)
     val port = s.getLocalPort
     s.close()
     port

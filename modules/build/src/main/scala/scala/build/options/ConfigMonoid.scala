@@ -9,7 +9,6 @@ trait ConfigMonoid[T] {
 object ConfigMonoid {
   def apply[T](implicit instance: ConfigMonoid[T]): ConfigMonoid[T] = instance
 
-
   trait HListConfigMonoid[T <: HList] {
     def orElse(main: T, defaults: T): T
   }

@@ -28,7 +28,9 @@ import dataclass._
     if (useJni0)
       Option(coursier.jniutils.WindowsEnvironmentVariables.get(name))
     else {
-      val output = powershellRunner.runScript(CustomWindowsEnvVarUpdater.getEnvVarScript(name)).stripSuffix(System.lineSeparator())
+      val output = powershellRunner
+        .runScript(CustomWindowsEnvVarUpdater.getEnvVarScript(name))
+        .stripSuffix(System.lineSeparator())
       if (output == "null") // if ever the actual value is "null", we'll miss it
         None
       else
@@ -37,11 +39,14 @@ import dataclass._
 
   private def setEnvironmentVariable(name: String, value: String): Unit =
     if (useJni0) {
-      val value0 = 
-        if (value.contains("\u0000")) value.split(';').filter(!_.contains("\u0000")).mkString(";")
-        else value
+      val value0 =
+        if (value.contains("\u0000"))
+          value.split(';').filter(!_.contains("\u0000")).mkString(";")
+        else
+          value
       coursier.jniutils.WindowsEnvironmentVariables.set(name, value0)
-    } else
+    }
+    else
       powershellRunner.runScript(CustomWindowsEnvVarUpdater.setEnvVarScript(name, value))
 
   private def clearEnvironmentVariable(name: String): Unit =
@@ -59,7 +64,7 @@ import dataclass._
 
     for ((k, v) <- update.set) {
       val formerValueOpt = getEnvironmentVariable(k)
-      val needsUpdate = formerValueOpt.forall(_ != v)
+      val needsUpdate    = formerValueOpt.forall(_ != v)
       if (needsUpdate) {
         setEnvironmentVariable(k, v)
         setSomething = true
@@ -68,9 +73,11 @@ import dataclass._
 
     for ((k, v) <- update.pathLikeAppends) {
       val formerValueOpt = getEnvironmentVariable(k)
-      val alreadyInList = formerValueOpt.exists(_.split(CustomWindowsEnvVarUpdater.windowsPathSeparator).contains(v))
+      val alreadyInList = formerValueOpt
+        .exists(_.split(CustomWindowsEnvVarUpdater.windowsPathSeparator).contains(v))
       if (!alreadyInList) {
-        val newValue = formerValueOpt.fold(v)(_ + CustomWindowsEnvVarUpdater.windowsPathSeparator + v)
+        val newValue = formerValueOpt
+          .fold(v)(_ + CustomWindowsEnvVarUpdater.windowsPathSeparator + v)
         setEnvironmentVariable(k, newValue)
         setSomething = true
       }
@@ -88,7 +95,7 @@ import dataclass._
 
     for ((k, v) <- update.set) {
       val formerValueOpt = getEnvironmentVariable(k)
-      val wasUpdated = formerValueOpt.exists(_ == v)
+      val wasUpdated     = formerValueOpt.exists(_ == v)
       if (wasUpdated) {
         clearEnvironmentVariable(k)
         setSomething = true
@@ -96,14 +103,17 @@ import dataclass._
     }
 
     for ((k, v) <- update.pathLikeAppends; formerValue <- getEnvironmentVariable(k)) {
-      val parts = formerValue.split(CustomWindowsEnvVarUpdater.windowsPathSeparator)
+      val parts    = formerValue.split(CustomWindowsEnvVarUpdater.windowsPathSeparator)
       val isInList = parts.contains(v)
       if (isInList) {
         val newValue = parts.filter(_ != v)
         if (newValue.isEmpty)
           clearEnvironmentVariable(k)
         else
-          setEnvironmentVariable(k, newValue.mkString(CustomWindowsEnvVarUpdater.windowsPathSeparator))
+          setEnvironmentVariable(
+            k,
+            newValue.mkString(CustomWindowsEnvVarUpdater.windowsPathSeparator)
+          )
         setSomething = true
       }
     }

@@ -25,7 +25,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
 
     val name = options.name.getOrElse {
       val baseName = (new Argv0).get("scala-cli")
-      val idx = baseName.lastIndexOf(File.pathSeparator)
+      val idx      = baseName.lastIndexOf(File.pathSeparator)
       if (idx < 0) baseName
       else baseName.drop(idx + 1)
     }
@@ -34,12 +34,14 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
       .orElse {
         Option(System.getenv("SHELL")).map(_.split(File.separator).last).map {
           case "bash" => Bash.id
-          case "zsh" => Zsh.id
-          case other => other
+          case "zsh"  => Zsh.id
+          case other  => other
         }
       }
       .getOrElse {
-        System.err.println("Cannot determine current shell, pass the shell you use with --shell, like")
+        System.err.println(
+          "Cannot determine current shell, pass the shell you use with --shell, like"
+        )
         System.err.println(s"  $name install completions --shell zsh")
         System.err.println(s"  $name install completions --shell bash")
         sys.exit(1)
@@ -47,7 +49,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
 
     val (rcScript, defaultRcFile) = format match {
       case Bash.id | "bash" =>
-        val script = Bash.script(name)
+        val script        = Bash.script(name)
         val defaultRcFile = home / ".bashrc"
         (script, defaultRcFile)
       case Zsh.id | "zsh" =>
@@ -55,11 +57,13 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         val zDotDir = Option(System.getenv("ZDOTDIR"))
           .map(os.Path(_, os.pwd))
           .getOrElse(home)
-        val defaultRcFile = zDotDir / ".zshrc"
-        val dir = completionsDir / "zsh"
+        val defaultRcFile        = zDotDir / ".zshrc"
+        val dir                  = completionsDir / "zsh"
         val completionScriptDest = dir / s"_$name"
-        val content = completionScript.getBytes(Charset.defaultCharset())
-        if (!os.exists(completionScriptDest) || !Arrays.equals(os.read.bytes(completionScriptDest), content)) {
+        val content              = completionScript.getBytes(Charset.defaultCharset())
+        val needsWrite = !os.exists(completionScriptDest) ||
+          !Arrays.equals(os.read.bytes(completionScriptDest), content)
+        if (needsWrite) {
           logger.log(s"Writing $completionScriptDest")
           os.write.over(completionScriptDest, content, createFolders = true)
         }
@@ -73,9 +77,9 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         sys.exit(1)
     }
 
-    if (options.env) {
+    if (options.env)
       println(rcScript)
-    } else {
+    else {
 
       val rcFile = options.rcFile
         .map(os.Path(_, os.pwd))
@@ -83,7 +87,12 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
 
       val banner = options.banner.replace("{NAME}", name)
 
-      val updated = ProfileFileUpdater.addToProfileFile(rcFile.toNIO, banner, rcScript, Charset.defaultCharset())
+      val updated = ProfileFileUpdater.addToProfileFile(
+        rcFile.toNIO,
+        banner,
+        rcScript,
+        Charset.defaultCharset()
+      )
 
       if (options.logging.verbosity >= 0) {
         if (updated) {
@@ -92,7 +101,8 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
             s"It is recommended to reload your shell, or source $rcFile in the " +
               "current session, for its changes to be taken into account."
           )
-        } else
+        }
+        else
           System.err.println(s"$rcFile already up-to-date")
       }
     }

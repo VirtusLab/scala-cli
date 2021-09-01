@@ -10,7 +10,7 @@
  * additional information regarding copyright ownership.
  */
 
- // Originally adapted from https://github.com/scala/scala/blob/20ac944346a93ba747811e80f8f67a09247cb987/src/compiler/scala/tools/tasty/ErasedTypeRef.scala
+// Originally adapted from https://github.com/scala/scala/blob/20ac944346a93ba747811e80f8f67a09247cb987/src/compiler/scala/tools/tasty/ErasedTypeRef.scala
 
 package scala.build.tastylib
 
@@ -18,16 +18,21 @@ import TastyName.{ObjectName, QualifiedName, SimpleName, TypeName, Empty, PathSe
 
 /** Represents an erased type of a scala class/object with the number of array dimensions.
   *
-  * @param qualifiedName the fully qualified path of the class/object, including selection from package or class, unencoded
-  * @param arrayDims the number of array dimensions of this type ref.
-  *        A 0-dimensional array is just qualifiedName itself
+  * @param qualifiedName
+  *   the fully qualified path of the class/object, including selection from package or class,
+  *   unencoded
+  * @param arrayDims
+  *   the number of array dimensions of this type ref. A 0-dimensional array is just qualifiedName
+  *   itself
   */
 case class ErasedTypeRef(qualifiedName: TypeName, arrayDims: Int) {
   def signature: String = {
     val qualified = qualifiedName.source
-    "[" * arrayDims + (if (qualifiedName.toTermName.isObjectName) s"object $qualified" else qualified)
+    "[" * arrayDims + (if (qualifiedName.toTermName.isObjectName) s"object $qualified"
+                       else qualified)
   }
-  def encode: ErasedTypeRef = ErasedTypeRef(TastyName.deepEncode(qualifiedName).toTypeName, arrayDims)
+  def encode: ErasedTypeRef =
+    ErasedTypeRef(TastyName.deepEncode(qualifiedName).toTypeName, arrayDims)
 }
 
 object ErasedTypeRef {
@@ -39,9 +44,15 @@ object ErasedTypeRef {
       if (isModule) ObjectName(qualified) else qualified
     }
 
-    def specialised(qual: TastyName, terminal: String, isModule: Boolean, arrayDims: Int = 0): ErasedTypeRef = terminal match {
-      case value if value.endsWith("[]") => specialised(qual, value.stripSuffix("[]"), isModule, arrayDims + 1)
-      case clazz       => ErasedTypeRef(name(qual, SimpleName(clazz), isModule).toTypeName, arrayDims)
+    def specialised(
+      qual: TastyName,
+      terminal: String,
+      isModule: Boolean,
+      arrayDims: Int = 0
+    ): ErasedTypeRef = terminal match {
+      case value if value.endsWith("[]") =>
+        specialised(qual, value.stripSuffix("[]"), isModule, arrayDims + 1)
+      case clazz => ErasedTypeRef(name(qual, SimpleName(clazz), isModule).toTypeName, arrayDims)
     }
 
     var isModule = false

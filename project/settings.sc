@@ -49,7 +49,7 @@ def platformExecutableJarExtension: String =
 def platformSuffix: String = {
   val arch = sys.props("os.arch").toLowerCase(java.util.Locale.ROOT) match {
     case "amd64" => "x86_64"
-    case other => other
+    case other   => other
   }
   val os =
     if (Properties.isWin) "pc-win32"
@@ -59,19 +59,18 @@ def platformSuffix: String = {
   s"$arch-$os"
 }
 
-
 def localRepoResourcePath = "local-repo.zip"
 
 trait CliLaunchers extends SbtModule { self =>
 
   trait CliNativeImage extends NativeImage {
-    def nativeImageCsCommand = Seq(cs)
-    def nativeImagePersist = System.getenv("CI") != null
+    def nativeImageCsCommand    = Seq(cs)
+    def nativeImagePersist      = System.getenv("CI") != null
     def nativeImageGraalVmJvmId = s"graalvm-java11:${deps.graalVmVersion}"
     def nativeImageOptions = Seq(
       s"-H:IncludeResources=$localRepoResourcePath"
     )
-    def nativeImageName = "scala-cli"
+    def nativeImageName      = "scala-cli"
     def nativeImageClassPath = self.nativeImageClassPath()
     def nativeImageMainClass = self.nativeImageMainClass()
   }
@@ -83,7 +82,8 @@ trait CliLaunchers extends SbtModule { self =>
       NativeImage.DockerParams(
         imageName = "ubuntu:18.04",
         prepareCommand = "apt-get update -q -y && apt-get install -q -y build-essential libz-dev",
-        csUrl = s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux",
+        csUrl =
+          s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux",
         extraNativeImageArgs = Nil
       )
     )
@@ -110,7 +110,7 @@ trait CliLaunchers extends SbtModule { self =>
   def localRepoJar: T[PathRef]
   def graalVmVersion: String
 
-  def nativeImageMainClass = T{
+  def nativeImageMainClass = T {
     mainClass().getOrElse(sys.error("Don't know what main class to use"))
   }
 
@@ -123,23 +123,23 @@ trait CliLaunchers extends SbtModule { self =>
           h :: allModuleDeps(h.moduleDeps.toList ::: t)
       }
 
-    T{
+    T {
       mill.define.Target.traverse(allModuleDeps(this :: Nil).distinct)(m =>
-        T.task{m.jar()}
+        T.task { m.jar() }
       )()
     }
   }
 
-  def nativeImageClassPath = T{
+  def nativeImageClassPath = T {
     val localRepoJar0 = localRepoJar()
     runClasspath() :+ localRepoJar0 // isn't localRepoJar already there?
   }
 
   def nativeImage =
     if (Properties.isLinux)
-    `linux-docker-image`.nativeImage
+      `linux-docker-image`.nativeImage
     else
-    `base-image`.nativeImage
+      `base-image`.nativeImage
 
   def nativeImageStatic =
     `static-image`.nativeImage
@@ -147,19 +147,27 @@ trait CliLaunchers extends SbtModule { self =>
     `mostly-static-image`.nativeImage
 
   def runWithAssistedConfig(args: String*) = T.command {
-    val cp = jarClassPath().map(_.path).mkString(File.pathSeparator)
+    val cp         = jarClassPath().map(_.path).mkString(File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
-      Seq(cs, "java-home", "--jvm", s"graalvm-java11:$graalVmVersion", "--jvm-index", jvmIndex).!!.trim
+      // format: off
+      Seq(
+        cs, "java-home",
+        "--jvm", s"graalvm-java11:$graalVmVersion",
+        "--jvm-index", jvmIndex
+      ).!!.trim
+      // format: on
     }
     val outputDir = T.ctx().dest / "config"
+    // format: off
     val command = Seq(
       s"$graalVmHome/bin/java",
       s"-agentlib:native-image-agent=config-output-dir=$outputDir",
       "-cp", cp,
       mainClass0
     ) ++ args
+    // format: on
     os.proc(command.map(x => x: os.Shellable): _*).call(
       stdin = os.Inherit,
       stdout = os.Inherit
@@ -168,28 +176,34 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def runFromJars(args: String*) = T.command {
-    val cp = jarClassPath().map(_.path).mkString(File.pathSeparator)
+    val cp         = jarClassPath().map(_.path).mkString(File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
-    val command = Seq("java", "-cp", cp, mainClass0) ++ args
+    val command    = Seq("java", "-cp", cp, mainClass0) ++ args
     os.proc(command.map(x => x: os.Shellable): _*).call(
       stdin = os.Inherit,
       stdout = os.Inherit
     )
   }
 
-  def runClasspath = T{
+  def runClasspath = T {
     super.runClasspath() ++ Seq(localRepoJar())
   }
 
-  def jarClassPath = T{
+  def jarClassPath = T {
     val cp = runClasspath() ++ transitiveJars()
     cp.filter(ref => os.exists(ref.path) && !os.isDir(ref.path))
   }
 
-  def launcher = T{
-    import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
+  def launcher = T {
+    import coursier.launcher.{
+      AssemblyGenerator,
+      BootstrapGenerator,
+      ClassPathEntry,
+      Parameters,
+      Preamble
+    }
     import scala.util.Properties.isWin
-    val cp = jarClassPath().map(_.path)
+    val cp         = jarClassPath().map(_.path)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
 
     val dest = T.ctx().dest / (if (isWin) "launcher.bat" else "launcher")
@@ -197,7 +211,7 @@ trait CliLaunchers extends SbtModule { self =>
     val preamble = Preamble()
       .withOsKind(isWin)
       .callsItself(isWin)
-    val entries = cp.map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
+    val entries       = cp.map(path => ClassPathEntry.Url(path.toNIO.toUri.toASCIIString))
     val loaderContent = coursier.launcher.ClassLoaderContent(entries)
     val params = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
       .withDeterministic(true)
@@ -208,21 +222,27 @@ trait CliLaunchers extends SbtModule { self =>
     PathRef(dest)
   }
 
-  def standaloneLauncher = T{
+  def standaloneLauncher = T {
 
     val cachePath = os.Path(coursier.cache.FileCache().location, os.pwd)
     def urlOf(path: os.Path): Option[String] = {
       if (path.startsWith(cachePath)) {
         val segments = path.relativeTo(cachePath).segments
-        val url = segments.head + "://" + segments.tail.mkString("/")
+        val url      = segments.head + "://" + segments.tail.mkString("/")
         Some(url)
       }
       else None
     }
 
-    import coursier.launcher.{AssemblyGenerator, BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
+    import coursier.launcher.{
+      AssemblyGenerator,
+      BootstrapGenerator,
+      ClassPathEntry,
+      Parameters,
+      Preamble
+    }
     import scala.util.Properties.isWin
-    val cp = jarClassPath().map(_.path)
+    val cp         = jarClassPath().map(_.path)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
 
     val dest = T.ctx().dest / (if (isWin) "launcher.bat" else "launcher")
@@ -234,7 +254,7 @@ trait CliLaunchers extends SbtModule { self =>
       urlOf(path) match {
         case None =>
           val content = os.read.bytes(path)
-          val name = path.last
+          val name    = path.last
           ClassPathEntry.Resource(name, os.mtime(path), content)
         case Some(url) => ClassPathEntry.Url(url)
       }
@@ -258,17 +278,17 @@ trait HasTests extends SbtModule {
       Deps.munit
     )
     def testFramework = "munit.Framework"
-    def forkArgs = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
+    def forkArgs      = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
   }
 }
 
 trait PublishLocalNoFluff extends PublishModule {
-  def emptyZip = T{
+  def emptyZip = T {
     import java.io._
     import java.util.zip._
     val dest = T.dest / "empty.zip"
     val baos = new ByteArrayOutputStream
-    val zos = new ZipOutputStream(baos)
+    val zos  = new ZipOutputStream(baos)
     zos.finish()
     zos.close()
     os.write(dest, baos.toByteArray)
@@ -281,7 +301,8 @@ trait PublishLocalNoFluff extends PublishModule {
     import mill.scalalib.publish.LocalIvyPublisher
     val publisher = localIvyRepo match {
       case null => LocalIvyPublisher
-      case repo => new LocalIvyPublisher(os.Path(repo.replace("{VERSION}", publishVersion()), os.pwd))
+      case repo =>
+        new LocalIvyPublisher(os.Path(repo.replace("{VERSION}", publishVersion()), os.pwd))
     }
 
     publisher.publish(
@@ -303,35 +324,35 @@ trait LocalRepo extends Module {
   def stubsModules: Seq[PublishLocalNoFluff]
   def version: T[String]
 
-  def publishStubs = T{
+  def publishStubs = T {
     val tasks = stubsModules.map(_.publishLocalNoFluff())
     define.Task.sequence(tasks)
   }
 
-  def localRepo = T{
+  def localRepo = T {
     val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
-    val tasks = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
+    val tasks    = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
     define.Task.sequence(tasks)
   }
 
-  def localRepoZip = T{
-    val ver = version()
+  def localRepoZip = T {
+    val ver       = version()
     val something = localRepo()
-    val repoDir = os.pwd / "out" / "repo" / ver
-    val destDir = T.dest / ver / "repo.zip"
-    val dest = destDir / "repo.zip"
+    val repoDir   = os.pwd / "out" / "repo" / ver
+    val destDir   = T.dest / ver / "repo.zip"
+    val dest      = destDir / "repo.zip"
 
     import java.io._
     import java.util.zip._
     os.makeDir.all(destDir)
     var fos: FileOutputStream = null
-    var zos: ZipOutputStream = null
+    var zos: ZipOutputStream  = null
     try {
       fos = new FileOutputStream(dest.toIO)
       zos = new ZipOutputStream(new BufferedOutputStream(fos))
       os.walk(repoDir).filter(_ != repoDir).foreach { p =>
         val isDir = os.isDir(p)
-        val name = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")
+        val name  = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")
         val entry = new ZipEntry(name)
         entry.setTime(os.mtime(p))
         zos.putNextEntry(entry)
@@ -342,7 +363,8 @@ trait LocalRepo extends Module {
         zos.closeEntry()
       }
       zos.finish()
-    } finally {
+    }
+    finally {
       if (zos != null) zos.close()
       if (fos != null) fos.close()
     }
@@ -350,14 +372,14 @@ trait LocalRepo extends Module {
     PathRef(dest)
   }
 
-  def localRepoJar = T{
-    val zip = localRepoZip().path
+  def localRepoJar = T {
+    val zip  = localRepoZip().path
     val dest = T.dest / "repo.jar"
 
     import java.io._
     import java.util.zip._
     var fos: FileOutputStream = null
-    var zos: ZipOutputStream = null
+    var zos: ZipOutputStream  = null
     try {
       fos = new FileOutputStream(dest.toIO)
       zos = new ZipOutputStream(new BufferedOutputStream(fos))
@@ -370,7 +392,8 @@ trait LocalRepo extends Module {
       zos.closeEntry()
 
       zos.finish()
-    } finally {
+    }
+    finally {
       if (zos != null) zos.close()
       if (fos != null) fos.close()
     }
@@ -381,14 +404,14 @@ trait LocalRepo extends Module {
 }
 
 trait HasMacroAnnotations extends ScalaModule {
-  def scalacOptions = T{
+  def scalacOptions = T {
     val sv = scalaVersion()
     val extra =
       if (sv.startsWith("2.") && !sv.startsWith("2.13.")) Nil
       else Seq("-Ymacro-annotations")
     super.scalacOptions() ++ extra
   }
-  def scalacPluginIvyDeps = T{
+  def scalacPluginIvyDeps = T {
     val sv = scalaVersion()
     val extra =
       if (sv.startsWith("2.") && !sv.startsWith("2.13.")) Agg(Deps.macroParadise)
@@ -399,24 +422,30 @@ trait HasMacroAnnotations extends ScalaModule {
 
 private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path] = {
   val sortByName = Set("jni-config.json", "reflect-config.json")
-  val files = Seq("jni-config.json", "proxy-config.json", "reflect-config.json", "resource-config.json")
+  val files = Seq(
+    "jni-config.json",
+    "proxy-config.json",
+    "reflect-config.json",
+    "resource-config.json"
+  )
   var needsFormatting = List.empty[os.Path]
   for (name <- files) {
     val file = dir / name
     if (os.isFile(file)) {
       val content = os.read(file)
-      val json = ujson.read(content)
+      val json    = ujson.read(content)
       val updatedJson =
         if (name == "reflect-config.json")
           json.arrOpt.fold(json) { arr =>
-            val values = arr.toVector.groupBy(_("name").str).toVector.sortBy(_._1).map(_._2).map { t =>
-              val entries = t.map(_.obj).reduce(_ ++ _)
-              if (entries.get("allDeclaredFields") == Some(ujson.Bool(true)))
-                entries -= "fields"
-              if (entries.get("allDeclaredMethods") == Some(ujson.Bool(true)))
-                entries -= "methods"
-              ujson.Obj(entries)
-            }
+            val values =
+              arr.toVector.groupBy(_("name").str).toVector.sortBy(_._1).map(_._2).map { t =>
+                val entries = t.map(_.obj).reduce(_ ++ _)
+                if (entries.get("allDeclaredFields") == Some(ujson.Bool(true)))
+                  entries -= "fields"
+                if (entries.get("allDeclaredMethods") == Some(ujson.Bool(true)))
+                  entries -= "methods"
+                ujson.Obj(entries)
+              }
             ujson.Arr(values: _*)
           }
         else if (sortByName(name))
@@ -438,7 +467,7 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
 }
 
 trait FormatNativeImageConf extends JavaModule {
-  def nativeImageConfDirs = T{
+  def nativeImageConfDirs = T {
     resources()
       .map(_.path)
       .filter(os.exists(_))
@@ -457,7 +486,9 @@ trait FormatNativeImageConf extends JavaModule {
     if (needsFormatting.nonEmpty) {
       System.err.println(s"Error: ${needsFormatting.length} file(s) needs formatting:")
       for (f <- needsFormatting)
-        System.err.println(s"  ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd).toString else f.toString}")
+        System.err.println(
+          s"  ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd).toString else f.toString}"
+        )
     }
     ()
   }

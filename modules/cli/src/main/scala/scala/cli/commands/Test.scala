@@ -7,15 +7,15 @@ import scala.build.internal.{Constants, Runner}
 import scala.build.Logger
 
 object Test extends ScalaCommand[TestOptions] {
-  override def group = "Main"
+  override def group                               = "Main"
   override def sharedOptions(options: TestOptions) = Some(options.shared)
   def run(options: TestOptions, args: RemainingArgs): Unit = {
 
     val inputs = options.shared.inputsOrExit(args)
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig = options.shared.bloopRifleConfig()
-    val logger = options.shared.logger
+    val bloopRifleConfig    = options.shared.bloopRifleConfig()
+    val logger              = options.shared.logger
 
     def maybeTest(build: Build, allowExit: Boolean): Unit =
       build match {
@@ -36,12 +36,19 @@ object Test extends ScalaCommand[TestOptions] {
       }
 
     if (options.watch.watch) {
-      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) { build =>
+      val watcher = Build.watch(
+        inputs,
+        initialBuildOptions,
+        bloopRifleConfig,
+        logger,
+        postAction = () => WatchUtil.printWatchMessage()
+      ) { build =>
         maybeTest(build, allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
-    } else {
+    }
+    else {
       val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
       maybeTest(build, allowExit = true)
     }
@@ -70,7 +77,8 @@ object Test extends ScalaCommand[TestOptions] {
             testFrameworkOpt
           )
         }
-      } else if (build.options.scalaNativeOptions.enable)
+      }
+      else if (build.options.scalaNativeOptions.enable)
         Run.withNativeLauncher(
           build,
           "scala.scalanative.testinterface.TestMain",
@@ -88,7 +96,8 @@ object Test extends ScalaCommand[TestOptions] {
           )
         }
       else {
-        val extraArgs = testFrameworkOpt.map(fw => s"--test-framework=$fw").toSeq ++ Seq("--") ++ args
+        val extraArgs =
+          testFrameworkOpt.map(fw => s"--test-framework=$fw").toSeq ++ Seq("--") ++ args
 
         Runner.runJvm(
           build.options.javaCommand(),
@@ -105,9 +114,9 @@ object Test extends ScalaCommand[TestOptions] {
       if (exitOnError)
         sys.exit(retCode)
       else {
-        val red = Console.RED
+        val red      = Console.RED
         val lightRed = "\u001b[91m"
-        val reset = Console.RESET
+        val reset    = Console.RESET
         System.err.println(s"${red}Program exited with return code $lightRed$retCode$red.$reset")
       }
     }

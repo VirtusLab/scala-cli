@@ -42,7 +42,9 @@ final class BspImpl(
 
     val sources = Sources.forInputs(
       inputs,
-      Sources.defaultPreprocessors(buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper))
+      Sources.defaultPreprocessors(
+        buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+      )
     )
 
     if (verbosity >= 3)
@@ -67,8 +69,13 @@ final class BspImpl(
     (sources, options0, classesDir0, artifacts, project, generatedSources, buildChanged)
   }
 
-  def build(actualLocalServer: BspServer, bloopServer: BloopServer, notifyChanges: Boolean): Unit = {
-    val (sources, buildOptions, classesDir0, artifacts, project, generatedSources, buildChanged) = prepareBuild(actualLocalServer)
+  def build(
+    actualLocalServer: BspServer,
+    bloopServer: BloopServer,
+    notifyChanges: Boolean
+  ): Unit = {
+    val (sources, buildOptions, classesDir0, artifacts, project, generatedSources, buildChanged) =
+      prepareBuild(actualLocalServer)
     if (notifyChanges && buildChanged)
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
@@ -86,11 +93,12 @@ final class BspImpl(
   def compile(
     actualLocalServer: BspServer,
     executor: Executor,
-    doCompile: () => CompletableFuture[b.CompileResult],
+    doCompile: () => CompletableFuture[b.CompileResult]
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () => {
-        val (_, _, classesDir0, artifacts, project, generatedSources, buildChanged) = prepareBuild(actualLocalServer)
+        val (_, _, classesDir0, artifacts, project, generatedSources, buildChanged) =
+          prepareBuild(actualLocalServer)
         if (buildChanged)
           notifyBuildChange(actualLocalServer)
         (classesDir0, artifacts, project, generatedSources)
@@ -130,13 +138,13 @@ final class BspImpl(
         val eventFilter: PathWatchers.Event => Boolean = { event =>
           val newOrDeletedFile =
             event.getKind == PathWatchers.Event.Kind.Create ||
-              event.getKind == PathWatchers.Event.Kind.Delete
-          lazy val p = os.Path(event.getTypedPath.getPath.toAbsolutePath)
-          lazy val relPath = p.relativeTo(dir.path)
+            event.getKind == PathWatchers.Event.Kind.Delete
+          lazy val p        = os.Path(event.getTypedPath.getPath.toAbsolutePath)
+          lazy val relPath  = p.relativeTo(dir.path)
           lazy val isHidden = relPath.segments.exists(_.startsWith("."))
-          def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
-          def isJavaFile = relPath.last.endsWith(".java")
-          def isConfFile = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
+          def isScalaFile   = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
+          def isJavaFile    = relPath.last.endsWith(".java")
+          def isConfFile    = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
           newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile || isConfFile)
         }
         val watcher0 = watcher.newWatcher()
@@ -161,7 +169,7 @@ final class BspImpl(
     else
       actualLocalClient
 
-  var remoteServer: BloopServer = null
+  var remoteServer: BloopServer    = null
   var actualLocalServer: BspServer = null
 
   val watcher = new Build.Watcher(
@@ -235,11 +243,12 @@ final class BspImpl(
 
     registerWatchInputs(watcher)
 
+    val es = ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc)
     val futures = Seq(
-      BspImpl.naiveJavaFutureToScalaFuture(f).map(_ => ())(ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc)),
+      BspImpl.naiveJavaFutureToScalaFuture(f).map(_ => ())(es),
       actualLocalServer.initiateShutdown
     )
-    Future.firstCompletedOf(futures)(ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc))
+    Future.firstCompletedOf(futures)(es)
   }
 
   def shutdown(): Unit = {
@@ -270,9 +279,10 @@ object BspImpl {
     p.future
   }
 
-  private final class LoggingBspClient(actualLocalClient: BspClient) extends LoggingBuildClient with BloopBuildClient {
-    def underlying = actualLocalClient
-    def clear() = underlying.clear()
+  private final class LoggingBspClient(actualLocalClient: BspClient) extends LoggingBuildClient
+      with BloopBuildClient {
+    def underlying  = actualLocalClient
+    def clear()     = underlying.clear()
     def diagnostics = underlying.diagnostics
     def setProjectParams(newParams: Seq[String]) =
       underlying.setProjectParams(newParams)

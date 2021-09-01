@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
+// format: off
 final case class InstallCompletionsOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -17,3 +18,4 @@ final case class InstallCompletionsOptions(
   name: Option[String] = None,
   env: Boolean = false
 )
+// format: on

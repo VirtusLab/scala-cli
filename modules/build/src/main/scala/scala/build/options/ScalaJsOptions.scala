@@ -27,10 +27,13 @@ final case class ScalaJsOptions(
       else
         Seq(dep"org.scala-js:scalajs-library_2.13:$finalVersion")
     }
-    else Nil
+    else
+      Nil
   def compilerPlugins(scalaVersion: String): Seq[AnyDependency] =
-    if (enable && scalaVersion.startsWith("2.")) Seq(dep"org.scala-js:::scalajs-compiler:$finalVersion")
-    else Nil
+    if (enable && scalaVersion.startsWith("2."))
+      Seq(dep"org.scala-js:::scalajs-compiler:$finalVersion")
+    else
+      Nil
 
   private def moduleKind: ModuleKind =
     moduleKindStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
@@ -42,8 +45,8 @@ final case class ScalaJsOptions(
   private def moduleKindName: String =
     moduleKind match {
       case ModuleKind.CommonJSModule => "commonjs"
-      case ModuleKind.ESModule => "esmodule"
-      case ModuleKind.NoModule => "nomodule"
+      case ModuleKind.ESModule       => "esmodule"
+      case ModuleKind.NoModule       => "nomodule"
     }
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
@@ -55,14 +58,16 @@ final case class ScalaJsOptions(
       case ModuleKind.NoModule       => BloopConfig.ModuleKindJS.NoModule
     }
     BloopConfig.JsConfig(
-           version = finalVersion,
-              mode = if (mode.contains("release")) BloopConfig.LinkerMode.Release else BloopConfig.LinkerMode.Debug,
-              kind = kind,
-    emitSourceMaps = emitSourceMaps,
-             jsdom = dom,
-            output = None,
-          nodePath = None,
-         toolchain = Nil
+      version = finalVersion,
+      mode =
+        if (mode.contains("release")) BloopConfig.LinkerMode.Release
+        else BloopConfig.LinkerMode.Debug,
+      kind = kind,
+      emitSourceMaps = emitSourceMaps,
+      jsdom = dom,
+      output = None,
+      nodePath = None,
+      toolchain = Nil
     )
   }
 

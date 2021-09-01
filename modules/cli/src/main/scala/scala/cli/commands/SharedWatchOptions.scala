@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
+// format: off
 final case class SharedWatchOptions(
 
   @HelpMessage("Watch sources for changes")
@@ -9,3 +10,4 @@ final case class SharedWatchOptions(
     watch: Boolean = false
 
 )
+// format: on

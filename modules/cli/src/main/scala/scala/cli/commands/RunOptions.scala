@@ -6,6 +6,7 @@ import caseapp.core.help.Help
 import scala.build.Build
 import scala.build.options.BuildOptions
 
+// format: off
 @HelpMessage("Compile and run Scala code")
 final case class RunOptions(
   @Recurse
@@ -23,6 +24,7 @@ final case class RunOptions(
   @Name("M")
     mainClass: Option[String] = None
 ) {
+  // format: on
 
   def buildOptions: BuildOptions = {
     val baseOptions = shared.buildOptions(
@@ -40,5 +42,5 @@ final case class RunOptions(
 
 object RunOptions {
   implicit val parser = Parser[RunOptions]
-  implicit val help = Help[RunOptions]
+  implicit val help   = Help[RunOptions]
 }

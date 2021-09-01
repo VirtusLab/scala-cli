@@ -24,14 +24,14 @@ class TastyReader(val bytes: Array[Byte], val start: Int, val end: Int, val base
 
   private[this] var bp: Int = start
 
-  def pos: Int = bp
-  def read: TastyReader.Bytes = TastyReader.Bytes(bytes, start, bp)
+  def pos: Int                  = bp
+  def read: TastyReader.Bytes   = TastyReader.Bytes(bytes, start, bp)
   def toRead: TastyReader.Bytes = TastyReader.Bytes(bytes, bp, end)
 
   def readerFromCurrentPos: TastyReader =
     new TastyReader(bytes, bp, end, base)
 
-  def addr(idx: Int): Addr = Addr(idx - base)
+  def addr(idx: Int): Addr   = Addr(idx - base)
   def index(addr: Addr): Int = addr.index + base
 
   def currentAddr: Addr = addr(bp)
@@ -62,7 +62,7 @@ class TastyReader(val bytes: Array[Byte], val start: Int, val end: Int, val base
   }
 
   def readLongInt(): Long = {
-    var b = bytes(bp)
+    var b       = bytes(bp)
     var x: Long = (b << 1).toByte >> 1
     bp += 1
     while ((b & 0x80) == 0) {

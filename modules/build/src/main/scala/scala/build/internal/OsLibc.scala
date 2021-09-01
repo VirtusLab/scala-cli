@@ -18,7 +18,8 @@ object OsLibc {
           check = false
         )
         Some(res)
-      } catch {
+      }
+      catch {
         case _: IOException =>
           None
       }
@@ -30,7 +31,8 @@ object OsLibc {
       val lddResOpt = tryRun("ldd", "--version")
 
       val foundMusl = lddResOpt.exists { lddRes =>
-        (lddRes.exitCode == 0 || lddRes.exitCode == 1) && lddRes.out.text(Charset.defaultCharset()).contains("musl")
+        (lddRes.exitCode == 0 || lddRes.exitCode == 1) &&
+        lddRes.out.text(Charset.defaultCharset()).contains("musl")
       }
 
       if (foundMusl)
@@ -38,7 +40,8 @@ object OsLibc {
       else {
         val inLib = os.list(os.Path("/lib")).map(_.last)
         if (inLib.exists(_.contains("-linux-gnu"))) Some(false)
-        else if (inLib.exists(name => name.contains("libc.musl-") || name.contains("ld-musl-"))) Some(true)
+        else if (inLib.exists(name => name.contains("libc.musl-") || name.contains("ld-musl-")))
+          Some(true)
         else {
           val inUsrSbin = os.list(os.Path("/usr/sbin")).map(_.last)
           if (inUsrSbin.exists(_.contains("glibc"))) Some(false)

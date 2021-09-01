@@ -5,6 +5,7 @@ import caseapp._
 import scala.build.options.BuildOptions
 import scala.util.Properties
 
+// format: off
 @HelpMessage("Browse Scala code and its dependencies in the browser")
 final case class MetabrowseOptions(
   @Recurse
@@ -35,14 +36,16 @@ final case class MetabrowseOptions(
   @Hidden
     metabrowseDialect: Option[String] = None
 ) {
+  // format: on
 
   def metabrowseBinaryUrl(scalaVersion: String): (String, Boolean) = {
     val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
       .getOrElse(MetabrowseOptions.platformSuffix)
-    val metabrowseTag0 = metabrowseTag.getOrElse("latest")
+    val metabrowseTag0           = metabrowseTag.getOrElse("latest")
     val metabrowseGitHubOrgName0 = metabrowseGitHubOrgName.getOrElse("alexarchambault/metabrowse")
-    val metabrowseExtension0 = if (Properties.isWin) ".zip" else ".gz"
-    val url = s"https://github.com/$metabrowseGitHubOrgName0/releases/download/$metabrowseTag0/metabrowse-$scalaVersion-$osArchSuffix0$metabrowseExtension0"
+    val metabrowseExtension0     = if (Properties.isWin) ".zip" else ".gz"
+    val url =
+      s"https://github.com/$metabrowseGitHubOrgName0/releases/download/$metabrowseTag0/metabrowse-$scalaVersion-$osArchSuffix0$metabrowseExtension0"
     (url, !metabrowseTag0.startsWith("v"))
   }
 
@@ -64,7 +67,7 @@ object MetabrowseOptions {
   private def platformSuffix: String = {
     val arch = sys.props("os.arch").toLowerCase(java.util.Locale.ROOT) match {
       case "amd64" => "x86_64"
-      case other => other
+      case other   => other
     }
     val os =
       if (Properties.isWin) "pc-win32"

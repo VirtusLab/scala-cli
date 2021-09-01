@@ -10,8 +10,8 @@ import scala.build.tests.TestUtil._
 
 class SourcesTests extends munit.FunSuite {
 
-  def scalaVersion = "2.13.5"
-  def scalaParams = ScalaParameters(scalaVersion)
+  def scalaVersion       = "2.13.5"
+  def scalaParams        = ScalaParameters(scalaVersion)
   def scalaBinaryVersion = scalaParams.scalaBinaryVersion
 
   test("dependencies in .scala") {

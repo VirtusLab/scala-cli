@@ -8,6 +8,8 @@ import java.util.concurrent.CompletableFuture
 trait JavaBuildServerForwardStubs extends b.JavaBuildServer {
   protected def forwardTo: b.JavaBuildServer
 
-  override def buildTargetJavacOptions(params: JavacOptionsParams): CompletableFuture[JavacOptionsResult] =
+  override def buildTargetJavacOptions(
+    params: JavacOptionsParams
+  ): CompletableFuture[JavacOptionsResult] =
     forwardTo.buildTargetJavacOptions(params)
 }

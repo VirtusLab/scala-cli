@@ -10,7 +10,7 @@
  * additional information regarding copyright ownership.
  */
 
- // Originally adapted from https://github.com/scala/scala/blob/20ac944346a93ba747811e80f8f67a09247cb987/src/compiler/scala/tools/tasty/Signature.scala
+// Originally adapted from https://github.com/scala/scala/blob/20ac944346a93ba747811e80f8f67a09247cb987/src/compiler/scala/tools/tasty/Signature.scala
 
 package scala.build.tastylib
 
@@ -29,19 +29,26 @@ sealed abstract class Signature[+T] { self =>
 
 object Signature {
 
-  /** Encodes either an `Int` which is the size of a type parameter list, or `T`, which represents a type */
+  /** Encodes either an `Int` which is the size of a type parameter list, or `T`, which represents a
+    * type
+    */
   type ParamSig[T] = Either[Int, T]
 
   def merge[T](sb: StringBuilder, sig: Signature[T]): StringBuilder = sig.mergeShow(sb)
 
-  def apply[T](params: List[ParamSig[T]], result: T): MethodSignature[T] = new MethodSignature(params, result)
+  def apply[T](params: List[ParamSig[T]], result: T): MethodSignature[T] =
+    new MethodSignature(params, result)
 
-  /** Encodes the structure of an uncurried Scala method signature, with generic type parameter lists erased to just
-   *  their size and position.
-    * @param params represents types of method parameters interspersed by the lengths of generic type parameter lists
-    * @param result represents the type of the method result
+  /** Encodes the structure of an uncurried Scala method signature, with generic type parameter
+    * lists erased to just their size and position.
+    * @param params
+    *   represents types of method parameters interspersed by the lengths of generic type parameter
+    *   lists
+    * @param result
+    *   represents the type of the method result
     */
-  case class MethodSignature[T] private[Signature](params: List[ParamSig[T]], result: T) extends Signature[T] {
+  case class MethodSignature[T] private[Signature] (params: List[ParamSig[T]], result: T)
+      extends Signature[T] {
     def map[U](f: T => U): MethodSignature[U] = this match {
       case MethodSignature(params, result) => MethodSignature(params.map(_.map(f)), f(result))
     }

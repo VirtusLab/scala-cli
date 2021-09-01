@@ -18,10 +18,15 @@ object DynamicTestRunner {
     cls: Class[_],
     fingerprints: Array[Fingerprint]
   ): Option[Fingerprint] = {
-    val isModule = cls.getName.endsWith("$")
+    val isModule               = cls.getName.endsWith("$")
     val publicConstructorCount = cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
-    val noPublicConstructors = publicConstructorCount == 0
-    if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1 || isModule != noPublicConstructors) None
+    val noPublicConstructors   = publicConstructorCount == 0
+    val definitelyNoTests = Modifier.isAbstract(cls.getModifiers) ||
+      cls.isInterface ||
+      publicConstructorCount > 1 ||
+      isModule != noPublicConstructors
+    if (definitelyNoTests)
+      None
     else
       fingerprints.find {
         case f: SubclassFingerprint =>
@@ -35,7 +40,10 @@ object DynamicTestRunner {
           f.isModule == isModule && (
             cls.isAnnotationPresent(annotationCls) ||
             cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
-            cls.getMethods.exists(m => m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers()))
+            cls.getMethods.exists { m =>
+              m.isAnnotationPresent(annotationCls) &&
+              Modifier.isPublic(m.getModifiers())
+            }
           )
       }
   }
@@ -57,11 +65,13 @@ object DynamicTestRunner {
           .map(_.stripSuffix(".class"))
           .toVector // fully consume stream before closing it
           .iterator
-      } finally {
+      }
+      finally {
         if (stream != null)
           stream.close()
       }
-    } else if (keepJars && Files.isRegularFile(classPathEntry)) {
+    }
+    else if (keepJars && Files.isRegularFile(classPathEntry)) {
       import java.util.zip._
       var zf: ZipFile = null
       try {
@@ -73,7 +83,8 @@ object DynamicTestRunner {
           .map(ent => ent.getName.stripSuffix(".class").replace("/", "."))
           .toVector // full consume ZipFile before closing it
           .iterator
-      } finally {
+      }
+      finally {
         if (zf != null)
           zf.close()
       }
@@ -95,8 +106,8 @@ object DynamicTestRunner {
     className: String
   ): Framework = {
     val frameworkCls = classOf[Framework]
-    val cls = loader.loadClass(className)
-    val constructor = cls.getConstructor()
+    val cls          = loader.loadClass(className)
+    val constructor  = cls.getConstructor()
     constructor.newInstance().asInstanceOf[Framework]
   }
 
@@ -118,17 +129,23 @@ object DynamicTestRunner {
       }
       .flatMap { cls =>
         def isAbstract = Modifier.isAbstract(cls.getModifiers)
-        def publicConstructorCount = cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers) && c.getParameterCount() == 0)
+        def publicConstructorCount =
+          cls.getConstructors.count { c =>
+            Modifier.isPublic(c.getModifiers) && c.getParameterCount() == 0
+          }
         val it: Iterator[Class[_]] =
-          if (frameworkCls.isAssignableFrom(cls) && !isAbstract && publicConstructorCount == 1) Iterator(cls)
-          else Iterator.empty
+          if (frameworkCls.isAssignableFrom(cls) && !isAbstract && publicConstructorCount == 1)
+            Iterator(cls)
+          else
+            Iterator.empty
         it
       }
       .flatMap { cls =>
         try {
           val constructor = cls.getConstructor()
           Iterator(constructor.newInstance().asInstanceOf[Framework])
-        } catch {
+        }
+        catch {
           case _: NoSuchMethodException => Iterator.empty
         }
       }
@@ -140,11 +157,16 @@ object DynamicTestRunner {
 
     val (testFrameworkOpt, args0) = {
       @tailrec
-      def parse(testFrameworkOpt: Option[String], reverseTestArgs: List[String], args: List[String]): (Option[String], List[String]) =
+      def parse(
+        testFrameworkOpt: Option[String],
+        reverseTestArgs: List[String],
+        args: List[String]
+      ): (Option[String], List[String]) =
         args match {
-          case Nil => (testFrameworkOpt, reverseTestArgs.reverse)
+          case Nil       => (testFrameworkOpt, reverseTestArgs.reverse)
           case "--" :: t => (testFrameworkOpt, reverseTestArgs.reverse ::: t)
-          case h :: t if h.startsWith("--test-framework=") => parse(Some(h.stripPrefix("--test-framework=")), reverseTestArgs, t)
+          case h :: t if h.startsWith("--test-framework=") =>
+            parse(Some(h.stripPrefix("--test-framework=")), reverseTestArgs, t)
           case h :: t => parse(testFrameworkOpt, h :: reverseTestArgs, t)
         }
 
@@ -152,7 +174,7 @@ object DynamicTestRunner {
     }
 
     val classLoader = Thread.currentThread().getContextClassLoader
-    val classPath0 = TestRunner.classPath(classLoader)
+    val classPath0  = TestRunner.classPath(classLoader)
     val framework = testFrameworkOpt.map(loadFramework(classLoader, _))
       .orElse(findFrameworkService(classLoader))
       .orElse(findFramework(classPath0, classLoader, TestRunner.commonTestFrameworks))
@@ -164,7 +186,7 @@ object DynamicTestRunner {
     val out = System.out
 
     val fingerprints = framework.fingerprints()
-    val runner = framework.runner(args0.toArray, Array(), classLoader)
+    val runner       = framework.runner(args0.toArray, Array(), classLoader)
     def clsFingerprints = classes.flatMap { cls =>
       matchFingerprints(classLoader, cls, fingerprints)
         .map((cls, _))
@@ -177,8 +199,12 @@ object DynamicTestRunner {
       }
       .toVector
     val initialTasks = runner.tasks(taskDefs.toArray)
-    val events = TestRunner.runTasks(initialTasks, out)
-    val failed = events.exists(ev => ev.status == Status.Error || ev.status == Status.Failure || ev.status == Status.Canceled)
+    val events       = TestRunner.runTasks(initialTasks, out)
+    val failed = events.exists { ev =>
+      ev.status == Status.Error ||
+      ev.status == Status.Failure ||
+      ev.status == Status.Canceled
+    }
     val doneMsg = runner.done()
     if (doneMsg.nonEmpty)
       out.println(doneMsg)
