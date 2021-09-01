@@ -13,5 +13,5 @@ final case class ClassPathOptions(
 
 object ClassPathOptions {
   implicit val hasHashData: HasHashData[ClassPathOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[ClassPathOptions] = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[ClassPathOptions]     = ConfigMonoid.derive
 }

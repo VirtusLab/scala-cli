@@ -10,7 +10,7 @@ import org.virtuslab.stacktraces.model.ClasspathWrapper
 object ClasspathDirectoriesLoader:
 
   private def getUrls(cl: ClassLoader): Array[File] = cl match
-    case null => Array()
+    case null              => Array()
     case u: URLClassLoader => u.getURLs.map(u => new File(u.toURI)) ++ getUrls(cl.getParent)
     case cl if cl.getClass.getName == "jdk.internal.loader.ClassLoaders$AppClassLoader" =>
       // Required with JDK-11
@@ -25,7 +25,8 @@ object ClasspathDirectoriesLoader:
 
   def getClasspathDirectories(classPathFiles: List[File] = getClasspath()): List[ClasspathWrapper] =
     val (directories, jars) = classPathFiles.partition(_.isDirectory)
-    val allDirectories = projectClassesToClasspathWrappers(directories) ++ jarsToClasspathWrappers(jars)
+    val allDirectories = projectClassesToClasspathWrappers(directories) ++
+      jarsToClasspathWrappers(jars)
     allDirectories
 
   private def projectClassesToClasspathWrappers(directories: List[File]): List[ClasspathWrapper] =

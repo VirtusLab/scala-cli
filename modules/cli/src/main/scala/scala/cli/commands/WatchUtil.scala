@@ -9,8 +9,8 @@ object WatchUtil {
   def waitMessage(message: String): String = {
     // Both short cuts actually always work, but Ctrl+C also exits mill in mill watch mode.
     val shortCut = if (isDevMode) "Ctrl+D" else "Ctrl+C"
-    val gray = "\u001b[90m"
-    val reset = Console.RESET
+    val gray     = "\u001b[90m"
+    val reset    = Console.RESET
     s"${gray}$message, press $shortCut to exit.$reset"
   }
 

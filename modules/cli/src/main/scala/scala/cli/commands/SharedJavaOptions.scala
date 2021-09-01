@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
+// format: off
 final case class SharedJavaOptions(
   @Group("Java")
   @HelpMessage("Set Java options, such as -Xmx1g")
@@ -13,9 +14,10 @@ final case class SharedJavaOptions(
   @ValueDescription("key=value|key")
     javaProp: List[String] = Nil
 ) {
+  // format: on
   def allJavaOpts: Seq[String] =
     javaOpt ++ javaProp.filter(_.nonEmpty).map(_.split("=", 2)).map {
-      case Array(k) => s"-D$k"
+      case Array(k)    => s"-D$k"
       case Array(k, v) => s"-D$k=$v"
     }
 }

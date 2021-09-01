@@ -25,8 +25,8 @@ class ConsoleBloopBuildClient(
   private def projectName = "project" + projectNameSuffix
 
   private var printedStart = false
-  private val gray = "\u001b[90m"
-  private val reset = Console.RESET
+  private val gray         = "\u001b[90m"
+  private val reset        = Console.RESET
 
   private var diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
 
@@ -46,9 +46,17 @@ class ConsoleBloopBuildClient(
     diagnosticMappings: Map[os.Path, (Either[String, os.Path], Int)]
   ): Option[(Either[String, os.Path], bsp4j.Diagnostic)] =
     diagnosticMappings.get(path).collect {
-      case (originalPath, lineOffset) if diag.getRange.getStart.getLine + lineOffset >= 0 && diag.getRange.getEnd.getLine + lineOffset >= 0 =>
-        val start = new bsp4j.Position(diag.getRange.getStart.getLine + lineOffset, diag.getRange.getStart.getCharacter)
-        val end = new bsp4j.Position(diag.getRange.getEnd.getLine + lineOffset, diag.getRange.getEnd.getCharacter)
+      case (originalPath, lineOffset)
+          if diag.getRange.getStart.getLine + lineOffset >= 0 &&
+            diag.getRange.getEnd.getLine + lineOffset >= 0 =>
+        val start = new bsp4j.Position(
+          diag.getRange.getStart.getLine + lineOffset,
+          diag.getRange.getStart.getCharacter
+        )
+        val end = new bsp4j.Position(
+          diag.getRange.getEnd.getLine + lineOffset,
+          diag.getRange.getEnd.getCharacter
+        )
         val range = new bsp4j.Range(start, end)
 
         val updatedDiag = new bsp4j.Diagnostic(range, diag.getMessage)
@@ -60,20 +68,25 @@ class ConsoleBloopBuildClient(
         (originalPath, updatedDiag)
     }
 
-  private def printDiagnostic(path: Either[String, os.Path], diag: bsp4j.Diagnostic): Unit =
-    if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR || diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING) {
-      val red = Console.RED
+  private def printDiagnostic(path: Either[String, os.Path], diag: bsp4j.Diagnostic): Unit = {
+    val isWarningOrError = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
+      diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING
+    if (isWarningOrError) {
+      val red    = Console.RED
       val yellow = Console.YELLOW
-      val reset = Console.RESET
-      val prefix = if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR) s"[${red}error$reset] " else s"[${yellow}warn$reset] "
+      val reset  = Console.RESET
+      val prefix =
+        if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR) s"[${red}error$reset] "
+        else s"[${yellow}warn$reset] "
 
-      val line = (diag.getRange.getStart.getLine + 1).toString + ":"
-      val col = (diag.getRange.getStart.getCharacter + 1).toString + ":"
+      val line  = (diag.getRange.getStart.getLine + 1).toString + ":"
+      val col   = (diag.getRange.getStart.getCharacter + 1).toString + ":"
       val msgIt = diag.getMessage.linesIterator
 
       val path0 = path match {
         case Left(source) => source
-        case Right(p) if p.startsWith(Os.pwd) => "." + File.separator + p.relativeTo(Os.pwd).toString
+        case Right(p) if p.startsWith(Os.pwd) =>
+          "." + File.separator + p.relativeTo(Os.pwd).toString
         case Right(p) => p.toString
       }
       out.println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
@@ -81,10 +94,15 @@ class ConsoleBloopBuildClient(
         out.println(prefix + line)
       for (code <- Option(diag.getCode))
         code.linesIterator.map(prefix + _).foreach(out.println(_))
-      if (diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine && diag.getRange.getStart.getCharacter != null && diag.getRange.getEnd.getCharacter != null)
-        out.println(prefix + " " * diag.getRange.getStart.getCharacter + "^" * (diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter + 1))
+      val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
+        diag.getRange.getStart.getCharacter != null &&
+        diag.getRange.getEnd.getCharacter != null
+      if (canPrintUnderline)
+        out.println(
+          prefix + " " * diag.getRange.getStart.getCharacter + "^" * (diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter + 1)
+        )
     }
-
+  }
 
   override def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit = {
     logger.debug("Received onBuildPublishDiagnostics from bloop: " + params)
@@ -92,13 +110,16 @@ class ConsoleBloopBuildClient(
 
       val diagnosticMappings = generatedSources
         .map { source =>
-          val lineShift = -os.read(source.generated).take(source.topWrapperLen).count(_ == '\n') // charset?
+          val lineShift = -os.read(source.generated)
+            .take(source.topWrapperLen)
+            .count(_ == '\n') // charset?
           (source.generated, (source.reportingPath, lineShift))
         }
         .toMap
 
       val path = os.Path(Paths.get(new URI(params.getTextDocument.getUri)).toAbsolutePath)
-      val (updatedPath, updatedDiag) = postProcessDiagnostic(path, diag, diagnosticMappings).getOrElse((Right(path), diag))
+      val (updatedPath, updatedDiag) = postProcessDiagnostic(path, diag, diagnosticMappings)
+        .getOrElse((Right(path), diag))
       if (keepDiagnostics)
         diagnostics0 += updatedPath -> updatedDiag
       printDiagnostic(updatedPath, updatedDiag)
@@ -143,10 +164,10 @@ class ConsoleBloopBuildClient(
         val msg0 =
           if (params.getDataKind == "compile-report")
             params.getStatus match {
-              case bsp4j.StatusCode.OK => s"Compiled $projectName"
-              case bsp4j.StatusCode.ERROR => s"Error compiling $projectName"
+              case bsp4j.StatusCode.OK        => s"Compiled $projectName"
+              case bsp4j.StatusCode.ERROR     => s"Error compiling $projectName"
               case bsp4j.StatusCode.CANCELLED => s"Compilation cancelled$projectNameSuffix"
-              case _ => s"Compiled $projectName" // ???
+              case _                          => s"Compiled $projectName" // ???
             }
           else msg
         out.println(gray + msg0 + reset)

@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
+// format: off
 final case class SharedDependencyOptions(
   @Group("Dependency")
   @HelpMessage("Add dependencies")
@@ -16,3 +17,4 @@ final case class SharedDependencyOptions(
   @Name("r")
     repository: List[String] = Nil
 )
+// format: on

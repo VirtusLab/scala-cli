@@ -2,6 +2,7 @@ package scala.build
 
 import _root_.bloop.config.{Config => BloopConfig, ConfigCodecs => BloopCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonToArray}
+import _root_.coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
 import coursier.core.Classifier
 
 import java.nio.file.{Path, Paths}
@@ -33,28 +34,30 @@ final case class Project(
           )
         )
       case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
-      case (_, Some(nativeConfig)) => BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
+      case (_, Some(nativeConfig)) =>
+        BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
     }
-    val scalaConfig = bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler.scalaVersion).copy(
-      options = scalaCompiler.scalacOptions.toList,
-      jars = scalaCompiler.compilerClassPath.toList
-    )
+    val scalaConfig =
+      bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler.scalaVersion).copy(
+        options = scalaCompiler.scalacOptions.toList,
+        jars = scalaCompiler.compilerClassPath.toList
+      )
     baseBloopProject(
       projectName,
       workspace.toNIO,
       (workspace / ".bloop" / projectName).toNIO,
       classesDir.toNIO
     )
-    .copy(
-      workspaceDir = Some(workspace.toNIO),
-      classpath = classPath.toList,
-      sources = sources.iterator.map(_.toNIO).toList,
-      resources = Some(resourceDirs).filter(_.nonEmpty).map(_.iterator.map(_.toNIO).toList),
-      platform = Some(platform),
-      `scala` = Some(scalaConfig),
-      java = Some(BloopConfig.Java(Nil)),
-      resolution = resolution
-    )
+      .copy(
+        workspaceDir = Some(workspace.toNIO),
+        classpath = classPath.toList,
+        sources = sources.iterator.map(_.toNIO).toList,
+        resources = Some(resourceDirs).filter(_.nonEmpty).map(_.iterator.map(_.toNIO).toList),
+        platform = Some(platform),
+        `scala` = Some(scalaConfig),
+        java = Some(BloopConfig.Java(Nil)),
+        resolution = resolution
+      )
   }
 
   def bloopFile: BloopConfig.File =
@@ -62,7 +65,7 @@ final case class Project(
 
   def writeBloopFile(logger: Logger): Boolean = {
     val bloopFileContent = writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
-    val dest = workspace / ".bloop" / s"$projectName.json"
+    val dest             = workspace / ".bloop" / s"$projectName.json"
     val doWrite = !os.isFile(dest) || {
       val currentContent = os.read.bytes(dest)
       !Arrays.equals(currentContent, bloopFileContent)
@@ -70,7 +73,8 @@ final case class Project(
     if (doWrite) {
       logger.debug(s"Writing bloop project in $dest")
       os.write.over(dest, bloopFileContent, createFolders = true)
-    } else
+    }
+    else
       logger.debug(s"Bloop project in $dest doesn't need updating")
     doWrite
   }
@@ -78,7 +82,9 @@ final case class Project(
 
 object Project {
 
-  def resolution(detailedArtifacts: Seq[(coursier.Dependency, coursier.core.Publication, coursier.util.Artifact, Path)]): BloopConfig.Resolution = {
+  def resolution(
+    detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, Path)]
+  ): BloopConfig.Resolution = {
     val indices = detailedArtifacts.map(_._1.moduleVersion).zipWithIndex.toMap
     val modules = detailedArtifacts
       .groupBy(_._1.moduleVersion)
@@ -89,7 +95,9 @@ object Project {
         case ((mod, ver), values) =>
           val artifacts = values.toList.map {
             case (dep, pub, art, f) =>
-              val classifier = if (pub.classifier == Classifier.empty) None else Some(pub.classifier.value)
+              val classifier =
+                if (pub.classifier == Classifier.empty) None
+                else Some(pub.classifier.value)
               BloopConfig.Artifact(pub.name, classifier, None, f)
           }
           BloopConfig.Module(mod.organization.value, mod.name.value, ver, None, artifacts)
@@ -98,7 +106,12 @@ object Project {
     BloopConfig.Resolution(modules)
   }
 
-  private def baseBloopProject(name: String, directory: Path, out: Path, classesDir: Path): BloopConfig.Project =
+  private def baseBloopProject(
+    name: String,
+    directory: Path,
+    out: Path,
+    classesDir: Path
+  ): BloopConfig.Project =
     BloopConfig.Project(
       name = name,
       directory = directory,
@@ -127,7 +140,11 @@ object Project {
       classpath = None,
       resources = None
     )
-  private def bloopScalaConfig(organization: String, name: String, version: String): BloopConfig.Scala =
+  private def bloopScalaConfig(
+    organization: String,
+    name: String,
+    version: String
+  ): BloopConfig.Scala =
     BloopConfig.Scala(
       organization = organization,
       name = name,

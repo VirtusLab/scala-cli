@@ -4,27 +4,29 @@ package scala.build.internal
 
 object AmmUtil {
   val upPathSegment = "^"
-  def pathToPackageWrapper(flexiblePkgName0: Seq[Name],
-                           relPath0: os.RelPath): (Seq[Name], Name) = {
+  def pathToPackageWrapper(
+    flexiblePkgName0: Seq[Name],
+    relPath0: os.RelPath
+  ): (Seq[Name], Name) = {
     var flexiblePkgName = flexiblePkgName0
-    var relPath = relPath0/os.up
-    val fileName = relPath0.last
-    while(
+    var relPath         = relPath0 / os.up
+    val fileName        = relPath0.last
+    while (
       flexiblePkgName.length > 1 &&
       flexiblePkgName.last.encoded != upPathSegment &&
       relPath.ups > 0
-    ){
+    ) {
       flexiblePkgName = flexiblePkgName.dropRight(1)
       relPath = os.RelPath(relPath.segments, relPath.ups - 1)
     }
     val pkg = {
-      val ups = Seq.fill(relPath.ups)(upPathSegment)
+      val ups  = Seq.fill(relPath.ups)(upPathSegment)
       val rest = relPath.segments
       flexiblePkgName ++ (ups ++ rest).map(Name(_))
     }
-    val wrapper = fileName.lastIndexOf('.') match{
+    val wrapper = fileName.lastIndexOf('.') match {
       case -1 => fileName
-      case i => fileName.take(i)
+      case i  => fileName.take(i)
     }
 
     (pkg, Name(wrapper))

@@ -7,7 +7,6 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.options.BuildOptions
 import scala.concurrent.Future
 
-
 trait Bsp {
   def run(): Future[Unit]
   def shutdown(): Unit

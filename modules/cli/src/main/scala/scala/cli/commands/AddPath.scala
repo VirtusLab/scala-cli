@@ -14,13 +14,15 @@ object AddPath extends ScalaCommand[AddPathOptions] {
     if (args.all.isEmpty) {
       if (!options.quiet)
         System.err.println("Nothing to do")
-    } else {
+    }
+    else {
       val update = EnvironmentUpdate(Nil, Seq("PATH" -> args.all.mkString(File.pathSeparator)))
       val didUpdate =
         if (Properties.isWin) {
           val updater = CustomWindowsEnvVarUpdater().withUseJni(Some(coursier.paths.Util.useJni()))
           updater.applyUpdate(update)
-        } else {
+        }
+        else {
           val updater = ProfileUpdater()
           updater.applyUpdate(update, Some(options.title).filter(_.nonEmpty))
         }

@@ -15,8 +15,8 @@ object TastyBuffer {
 
   /** An address pointing to an index in a Tasty buffer's byte array */
   case class Addr(index: Int) extends AnyVal {
-    def - (delta: Int): Addr = Addr(this.index - delta)
-    def + (delta: Int): Addr = Addr(this.index + delta)
+    def -(delta: Int): Addr = Addr(this.index - delta)
+    def +(delta: Int): Addr = Addr(this.index + delta)
 
     def relativeTo(base: Addr): Addr = this - base.index - AddrWidth
 
@@ -26,10 +26,9 @@ object TastyBuffer {
 
   val NoAddr: Addr = Addr(-1)
 
-  /** The maximal number of address bytes.
-   *  Since addresses are written as base-128 natural numbers,
-   *  the value of 4 gives a maximal array size of 256M.
-   */
+  /** The maximal number of address bytes. Since addresses are written as base-128 natural numbers,
+    * the value of 4 gives a maximal array size of 256M.
+    */
   final val AddrWidth = 4
 
   /** An address referring to a serialized name */
@@ -45,9 +44,9 @@ object TastyBuffer {
 }
 import TastyBuffer._
 
-/** A byte array buffer that can be filled with bytes or natural numbers in TASTY format,
- *  and that supports reading and patching addresses represented as natural numbers.
- */
+/** A byte array buffer that can be filled with bytes or natural numbers in TASTY format, and that
+  * supports reading and patching addresses represented as natural numbers.
+  */
 class TastyBuffer(initialSize: Int) {
 
   /** The current byte array, will be expanded as needed */
@@ -73,24 +72,21 @@ class TastyBuffer(initialSize: Int) {
     length += n
   }
 
-  /** Write a natural number in big endian format, base 128.
-   *  All but the last digits have bit 0x80 set.
-   */
+  /** Write a natural number in big endian format, base 128. All but the last digits have bit 0x80
+    * set.
+    */
   def writeNat(x: Int): Unit =
-    writeLongNat(x.toLong & 0x00000000FFFFFFFFL)
+    writeLongNat(x.toLong & 0x00000000ffffffffL)
 
-  /** Write a natural number in 2's complement big endian format, base 128.
-   *  All but the last digits have bit 0x80 set.
-   */
+  /** Write a natural number in 2's complement big endian format, base 128. All but the last digits
+    * have bit 0x80 set.
+    */
   def writeInt(x: Int): Unit =
     writeLongInt(x)
 
-  /**
-   * Like writeNat, but for longs. Note that the
-   * binary representation of LongNat is identical to Nat
-   * if the long value is in the range Int.MIN_VALUE to
-   * Int.MAX_VALUE.
-   */
+  /** Like writeNat, but for longs. Note that the binary representation of LongNat is identical to
+    * Nat if the long value is in the range Int.MIN_VALUE to Int.MAX_VALUE.
+    */
   def writeLongNat(x: Long): Unit = {
     def writePrefix(x: Long): Unit = {
       val y = x >>> 7
@@ -116,7 +112,7 @@ class TastyBuffer(initialSize: Int) {
 
   /** Write an uncompressed Long stored in 8 bytes in big endian format */
   def writeUncompressedLong(x: Long): Unit = {
-    var y = x
+    var y     = x
     val bytes = new Array[Byte](8)
     for (i <- 7 to 0 by -1) {
       bytes(i) = (y & 0xff).toByte
@@ -127,9 +123,9 @@ class TastyBuffer(initialSize: Int) {
 
   // -- Address handling --------------------------------------------
 
-  /** Write natural number `x` right-adjusted in a field of `width` bytes
-   *  starting with address `at`.
-   */
+  /** Write natural number `x` right-adjusted in a field of `width` bytes starting with address
+    * `at`.
+    */
   def putNat(at: Addr, x: Int, width: Int): Unit = {
     var y = x
     var w = width
@@ -153,8 +149,8 @@ class TastyBuffer(initialSize: Int) {
 
   /** The long natural number at address `at` */
   def getLongNat(at: Addr): Long = {
-    var b = 0L
-    var x = 0L
+    var b   = 0L
+    var x   = 0L
     var idx = at.index
     while ({
       b = bytes(idx)
@@ -162,7 +158,7 @@ class TastyBuffer(initialSize: Int) {
       idx += 1
       (b & 0x80) == 0
     })
-    ()
+      ()
     x
   }
 
@@ -198,9 +194,8 @@ class TastyBuffer(initialSize: Int) {
 
   // -- Finalization --------------------------------------------
 
-  /** Hook to be overridden in subclasses.
-   *  Perform all actions necessary to assemble the final byte array.
-   *  After `assemble` no more output actions to this buffer are permitted.
-   */
+  /** Hook to be overridden in subclasses. Perform all actions necessary to assemble the final byte
+    * array. After `assemble` no more output actions to this buffer are permitted.
+    */
   def assemble(): Unit = ()
 }

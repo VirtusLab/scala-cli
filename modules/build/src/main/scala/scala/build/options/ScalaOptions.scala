@@ -1,14 +1,14 @@
 package scala.build.options
 
 final case class ScalaOptions(
-         scalaVersion: Option[String]  = None,
-   scalaBinaryVersion: Option[String]  = None,
-      addScalaLibrary: Option[Boolean] = None,
+  scalaVersion: Option[String] = None,
+  scalaBinaryVersion: Option[String] = None,
+  addScalaLibrary: Option[Boolean] = None,
   generateSemanticDbs: Option[Boolean] = None,
-        scalacOptions: Seq[String]     = Nil
+  scalacOptions: Seq[String] = Nil
 )
 
 object ScalaOptions {
   implicit val hasHashData: HasHashData[ScalaOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[ScalaOptions] = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[ScalaOptions]     = ConfigMonoid.derive
 }

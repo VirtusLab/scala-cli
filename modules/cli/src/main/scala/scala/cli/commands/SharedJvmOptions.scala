@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
+// format: off
 final case class SharedJvmOptions(
   @Group("Java")
   @HelpMessage("Use a specific JVM, such as 14, adopt:11, or graalvm:21, or system")
@@ -21,3 +22,4 @@ final case class SharedJvmOptions(
   @ValueDescription("amd64|arm64|arm|…")
     jvmIndexArch: Option[String] = None
 )
+// format: on

@@ -12,7 +12,8 @@ object Util {
     try {
       socket = new Socket
       f(socket)
-    } finally {
+    }
+    finally {
       if (socket != null)
         try {
           socket.shutdownInput()
@@ -27,7 +28,7 @@ object Util {
     new File(if (Properties.isWin) "NUL" else "/dev/null")
 
   def randomPort(): Int = {
-    val s = new ServerSocket(0)
+    val s    = new ServerSocket(0)
     val port = s.getLocalPort
     s.close()
     port

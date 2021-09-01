@@ -4,6 +4,7 @@ import caseapp._
 import caseapp.core.help.Help
 import scala.build.options.BuildOptions
 
+// format: off
 @HelpMessage("Compile Scala code")
 final case class CompileOptions(
   @Recurse
@@ -16,6 +17,7 @@ final case class CompileOptions(
   @HelpMessage("Print resulting class path")
     classPath: Boolean = false
 ) {
+  // format: on
 
   def buildOptions: BuildOptions =
     shared.buildOptions(enableJmh = false, jmhVersion = None)
@@ -23,5 +25,5 @@ final case class CompileOptions(
 
 object CompileOptions {
   implicit val parser = Parser[CompileOptions]
-  implicit val help = Help[CompileOptions]
+  implicit val help   = Help[CompileOptions]
 }

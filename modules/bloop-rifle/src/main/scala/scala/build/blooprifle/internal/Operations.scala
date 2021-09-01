@@ -19,13 +19,13 @@ import snailgun.protocol.Streams
 
 object Operations {
 
-  /**
-    * Checks whether a bloop server is running at this host / port.
+  /** Checks whether a bloop server is running at this host / port.
     *
     * @param host
     * @param port
     * @param logger
-    * @return Whether a server is running or not.
+    * @return
+    *   Whether a server is running or not.
     */
   def check(
     host: String,
@@ -40,13 +40,13 @@ object Operations {
       try {
         socket.connect(new InetSocketAddress(host, port))
         socket.isConnected()
-      } catch {
+      }
+      catch {
         case _: ConnectException => false
       }
     }
 
-  /**
-    * Starts a new bloop server.
+  /** Starts a new bloop server.
     *
     * @param host
     * @param port
@@ -56,7 +56,8 @@ object Operations {
     * @param waitInterval
     * @param timeout
     * @param logger
-    * @return A future, that gets completed when the server is done starting (and can thus be used).
+    * @return
+    *   A future, that gets completed when the server is done starting (and can thus be used).
     */
   def startServer(
     host: String,
@@ -72,13 +73,14 @@ object Operations {
 
     val command =
       Seq(javaPath) ++
-      javaOpts ++
-      Seq(
-        "-cp", classPath.map(_.toString).mkString(File.pathSeparator),
-        "bloop.Server",
-        host,
-        port.toString
-      )
+        javaOpts ++
+        Seq(
+          "-cp",
+          classPath.map(_.toString).mkString(File.pathSeparator),
+          "bloop.Server",
+          host,
+          port.toString
+        )
     val b = new ProcessBuilder(command: _*)
     b.redirectInput(ProcessBuilder.Redirect.PIPE)
 
@@ -102,10 +104,14 @@ object Operations {
       val start = System.currentTimeMillis()
       () =>
         val completionOpt =
-          if (!p.isAlive()) Some(Failure(new Exception("Server didn't start")))
-          else if (check(host, port, logger)) Some(Success(()))
-          else if (timeout.isFinite && System.currentTimeMillis() - start > timeout.toMillis) Some(Failure(new Exception(s"Server didn't start after $timeout ms")))
-          else None
+          if (!p.isAlive())
+            Some(Failure(new Exception("Server didn't start")))
+          else if (check(host, port, logger))
+            Some(Success(()))
+          else if (timeout.isFinite && System.currentTimeMillis() - start > timeout.toMillis)
+            Some(Failure(new Exception(s"Server didn't start after $timeout ms")))
+          else
+            None
 
         for (completion <- completionOpt) {
           try promise.complete(completion)
@@ -128,11 +134,10 @@ object Operations {
     promise.future
   }
 
-  /**
-    * Opens a BSP connection to a running bloop server.
+  /** Opens a BSP connection to a running bloop server.
     *
-    * Starts a thread to read output from the nailgun connection, and another one
-    * to pass input to it.
+    * Starts a thread to read output from the nailgun connection, and another one to pass input to
+    * it.
     *
     * @param host
     * @param port
@@ -140,7 +145,8 @@ object Operations {
     * @param out
     * @param err
     * @param logger
-    * @return A [[BspConnection]] object, that can be used to close the connection.
+    * @return
+    *   A [[BspConnection]] object, that can be used to close the connection.
     */
   def bsp(
     host: String,
@@ -155,19 +161,19 @@ object Operations {
 
     val nailgunLogger: SnailgunLogger =
       new SnailgunLogger {
-        val name: String = "bloop"
-        val isVerbose: Boolean = true
-        def debug(msg: String): Unit = logger.debug("nailgun debug: " + msg)
-        def error(msg: String): Unit = logger.debug("nailgun error: " + msg)
-        def warn(msg: String): Unit = logger.debug("nailgun warn: " + msg)
-        def info(msg: String): Unit = logger.debug("nailgun info: " + msg)
+        val name: String                      = "bloop"
+        val isVerbose: Boolean                = true
+        def debug(msg: String): Unit          = logger.debug("nailgun debug: " + msg)
+        def error(msg: String): Unit          = logger.debug("nailgun error: " + msg)
+        def warn(msg: String): Unit           = logger.debug("nailgun warn: " + msg)
+        def info(msg: String): Unit           = logger.debug("nailgun info: " + msg)
         def trace(exception: Throwable): Unit = logger.debug("nailgun trace: " + exception.toString)
       }
-    val stop0 = new AtomicBoolean
+    val stop0         = new AtomicBoolean
     val nailgunClient = TcpClient(host, port)
-    val streams = Streams(in, out, err)
+    val streams       = Streams(in, out, err)
 
-    val promise = Promise[Int]()
+    val promise    = Promise[Int]()
     val threadName = "bloop-rifle-nailgun-out"
     val protocolArgs = bspSocketOrPort match {
       case Left(bspPort) => Array("--protocol", "tcp", "--host", host, "--port", bspPort.toString)
@@ -204,12 +210,14 @@ object Operations {
         case Left(bspPort) =>
           new Socket(host, bspPort)
         case Right(socketFile) =>
-          var count = 0
-          val period = 50.millis
-          val maxWait = 10.seconds
-          val maxCount = (maxWait / period).toInt
+          var count          = 0
+          val period         = 50.millis
+          val maxWait        = 10.seconds
+          val maxCount       = (maxWait / period).toInt
           var socket: Socket = null
-          while (!socketFile.exists() && socket == null && count < maxCount && closed.value.isEmpty) {
+          while (
+            !socketFile.exists() && socket == null && count < maxCount && closed.value.isEmpty
+          ) {
             logger.debug {
               if (socketFile.exists())
                 s"BSP connection $socketFile found but not open, waiting $period"
@@ -218,26 +226,33 @@ object Operations {
             }
             Thread.sleep(period.toMillis)
             if (socketFile.exists()) {
-              socket = try {
-                new org.scalasbt.ipcsocket.UnixDomainSocket(socketFile.getAbsolutePath, true)
-              } catch {
-                case ex: IOException if ex.getCause.isInstanceOf[NativeErrorException] && ex.getCause.asInstanceOf[NativeErrorException].returnCode == 111 =>
-                  logger.debug(s"Error when connecting to $socketFile: ${ex.getMessage}")
-                  null
-                case e: NativeErrorException if e.returnCode == 111 =>
-                  logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
-                  null
-              }
+              socket =
+                try {
+                  new org.scalasbt.ipcsocket.UnixDomainSocket(socketFile.getAbsolutePath, true)
+                }
+                catch {
+                  case ex: IOException
+                      if ex.getCause.isInstanceOf[NativeErrorException] &&
+                        ex.getCause.asInstanceOf[NativeErrorException].returnCode == 111 =>
+                    logger.debug(s"Error when connecting to $socketFile: ${ex.getMessage}")
+                    null
+                  case e: NativeErrorException if e.returnCode == 111 =>
+                    logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
+                    null
+                }
             }
             count += 1
           }
           if (socket != null) {
             logger.debug(s"BSP connection at $socketFile opened")
             socket
-          } else if (closed.value.isEmpty)
+          }
+          else if (closed.value.isEmpty)
             sys.error(s"Timeout while waiting for BSP socket to be created in $socketFile")
           else
-            sys.error(s"Bloop BSP connection in $socketFile was unexpectedly closed or bloop didn't start.")
+            sys.error(
+              s"Bloop BSP connection in $socketFile was unexpectedly closed or bloop didn't start."
+            )
       }
       val closed = promise.future
       def stop() = stop0.set(true)

@@ -4,6 +4,7 @@ import caseapp._
 
 import scala.build.options
 
+// format: off
 final case class ScalaNativeOptions(
 
   @Group("Scala")
@@ -33,6 +34,7 @@ final case class ScalaNativeOptions(
     nativeCompileDefaults: Boolean = true
 
 ) {
+  // format: on
 
   def buildOptions: options.ScalaNativeOptions =
     options.ScalaNativeOptions(

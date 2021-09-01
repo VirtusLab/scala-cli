@@ -18,10 +18,10 @@ import scala.build.LocalRepo
 class BuildTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
-  val bloopConfig = BloopRifleConfig.default(() => Bloop.bloopClassPath(Logger.nop))
+  val bloopConfig  = BloopRifleConfig.default(() => Bloop.bloopClassPath(Logger.nop))
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories = Directories.under(extraRepoTmpDir)
+  val directories     = Directories.under(extraRepoTmpDir)
 
   override def afterAll(): Unit = {
     TestInputs.tryRemoveAll(extraRepoTmpDir)
@@ -32,7 +32,7 @@ class BuildTests extends munit.FunSuite {
   val defaultOptions = BuildOptions(
     scalaOptions = ScalaOptions(
       scalaVersion = Some(sv2),
-      scalaBinaryVersion = None,
+      scalaBinaryVersion = None
     ),
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir)
@@ -108,9 +108,9 @@ class BuildTests extends munit.FunSuite {
       )
 
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
-      val semDb = os.read.bytes(outputDir / "META-INF" / "semanticdb" / "simple.sc.semanticdb")
-      val doc = TextDocuments.parseFrom(semDb)
-      val uris = doc.documents.map(_.uri)
+      val semDb     = os.read.bytes(outputDir / "META-INF" / "semanticdb" / "simple.sc.semanticdb")
+      val doc       = TextDocuments.parseFrom(semDb)
+      val uris      = doc.documents.map(_.uri)
       expect(uris == Seq("simple.sc"))
     }
   }
@@ -137,7 +137,7 @@ class BuildTests extends munit.FunSuite {
 
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
       val tastyData = TastyData.read(os.read.bytes(outputDir / "simple.tasty"))
-      val names = tastyData.names.simpleNames
+      val names     = tastyData.names.simpleNames
       expect(names.exists(_ == "simple.sc"))
     }
   }
@@ -149,13 +149,14 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.enableJs, buildThreads, bloopConfig) { (root, inputs, build) =>
-      build.assertGeneratedEquals(
-        "simple.class",
-        "simple$.class",
-        "simple.sjsir",
-        "simple$.sjsir"
-      )
+    testInputs.withBuild(defaultOptions.enableJs, buildThreads, bloopConfig) {
+      (root, inputs, build) =>
+        build.assertGeneratedEquals(
+          "simple.class",
+          "simple$.class",
+          "simple.sjsir",
+          "simple$.sjsir"
+        )
     }
   }
 
@@ -166,13 +167,14 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.enableNative, buildThreads, bloopConfig) { (root, inputs, build) =>
-      build.assertGeneratedEquals(
-        "simple.class",
-        "simple$.class",
-        // "simple.nir", // not sure why Scala Native doesn't generate this one.
-        "simple$.nir"
-      )
+    testInputs.withBuild(defaultOptions.enableNative, buildThreads, bloopConfig) {
+      (root, inputs, build) =>
+        build.assertGeneratedEquals(
+          "simple.class",
+          "simple$.class",
+          // "simple.nir", // not sure why Scala Native doesn't generate this one.
+          "simple$.nir"
+        )
     }
   }
   if (!Properties.isWin)
@@ -249,15 +251,15 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
       val expectedDiag = {
         val start = new bsp4j.Position(2, 0)
-        val end = new bsp4j.Position(2, 2)
+        val end   = new bsp4j.Position(2, 2)
         val range = new bsp4j.Range(start, end)
-        val d = new bsp4j.Diagnostic(range, "not found: value zz")
+        val d     = new bsp4j.Diagnostic(range, "not found: value zz")
         d.setSource("bloop")
         d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
         d
       }
       val diagnostics = build.diagnostics
-      val expected = Some(Seq(Right(root / "simple.sc") -> expectedDiag))
+      val expected    = Some(Seq(Right(root / "simple.sc") -> expectedDiag))
       expect(diagnostics == expected)
     }
   }
@@ -278,15 +280,15 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
       val expectedDiag = {
         val start = new bsp4j.Position(2, 0)
-        val end = new bsp4j.Position(2, 0) // would have expected (2, 2) here :|
+        val end   = new bsp4j.Position(2, 0) // would have expected (2, 2) here :|
         val range = new bsp4j.Range(start, end)
-        val d = new bsp4j.Diagnostic(range, "Not found: zz")
+        val d     = new bsp4j.Diagnostic(range, "Not found: zz")
         d.setSource("bloop")
         d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
         d
       }
       val diagnostics = build.diagnostics
-      val expected = Some(Seq(Right(root / "simple.sc") -> expectedDiag))
+      val expected    = Some(Seq(Right(root / "simple.sc") -> expectedDiag))
       expect(diagnostics == expected)
     }
   }

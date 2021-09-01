@@ -5,7 +5,7 @@ trait TestScalaVersionArgs {
   def scalaVersionOpt: Option[String]
 
   lazy val scalaVersionArgs = scalaVersionOpt match {
-    case None => Nil
+    case None     => Nil
     case Some(sv) => Seq("--scala", sv)
   }
 

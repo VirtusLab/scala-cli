@@ -7,7 +7,8 @@ class Pid {
     try {
       val pid = ManagementFactory.getRuntimeMXBean.getName.takeWhile(_ != '@').toInt
       (pid: Integer)
-    } catch {
+    }
+    catch {
       case _: NumberFormatException => null
     }
 }

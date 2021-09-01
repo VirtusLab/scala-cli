@@ -10,6 +10,7 @@ import scala.build.blooprifle.BloopRifleLogger
 import scala.build.Logger
 import scala.scalanative.{build => sn}
 
+// format: off
 final case class LoggingOptions(
   @Group("Logging")
   @HelpMessage("Increase verbosity (can be specified multiple times)")
@@ -23,6 +24,7 @@ final case class LoggingOptions(
   @HelpMessage("Use progress bars")
     progress: Option[Boolean] = None
 ) {
+  // format: on
 
   lazy val verbosity = Tag.unwrap(verbose) - (if (quiet) 1 else 0)
 
@@ -71,10 +73,10 @@ final case class LoggingOptions(
       def scalaNativeLogger: sn.Logger =
         new sn.Logger {
           def trace(msg: Throwable) = ()
-          def debug(msg: String) = logger.debug(msg)
-          def info(msg: String) = logger.message(msg)
-          def warn(msg: String) = logger.log(msg)
-          def error(msg: String) = logger.log(msg)
+          def debug(msg: String)    = logger.debug(msg)
+          def info(msg: String)     = logger.message(msg)
+          def warn(msg: String)     = logger.log(msg)
+          def error(msg: String)    = logger.log(msg)
         }
 
       // Allow to disable that?

@@ -1,4 +1,3 @@
-
 def something(n: Int): String =
   if (n % 10 == 0) sys.error("nope")
   else n.toString
@@ -6,7 +5,8 @@ def something(n: Int): String =
 try {
   for (i <- 1 until 100)
     println(something(i))
-} catch {
+}
+catch {
   case e: Exception =>
     throw new Exception("Caught exception during processing", e)
 }

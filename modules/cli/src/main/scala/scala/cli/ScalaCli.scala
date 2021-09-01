@@ -27,8 +27,8 @@ object ScalaCli extends CommandsEntryPoint {
     Test
   )
 
-  lazy val progName = (new Argv0).get("scala-cli")
-  override def description = "Compile, run, package Scala code."
+  lazy val progName                 = (new Argv0).get("scala-cli")
+  override def description          = "Compile, run, package Scala code."
   final override def defaultCommand = Some(actualDefaultCommand)
 
   // FIXME Report this in case-app default NameFormatter
@@ -39,7 +39,7 @@ object ScalaCli extends CommandsEntryPoint {
     )
   }
 
-  override def enableCompleteCommand = true
+  override def enableCompleteCommand    = true
   override def enableCompletionsCommand = true
 
   override def helpFormat = actualDefaultCommand.helpFormat
@@ -55,7 +55,7 @@ object ScalaCli extends CommandsEntryPoint {
 
     commands.foreach {
       case c: NeedsArgvCommand => c.setArgv(progName +: args)
-      case _ =>
+      case _                   =>
     }
 
     super.main(args)

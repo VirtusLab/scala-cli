@@ -8,10 +8,10 @@ import caseapp.core.help.{Help, HelpFormat}
 import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 
-abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T]) extends Command()(parser, help) with NeedsArgvCommand {
+abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
+    extends Command()(parser, help) with NeedsArgvCommand {
   def sharedOptions(t: T): Option[SharedOptions] = None
-  override def hasFullHelp = true
-
+  override def hasFullHelp                       = true
 
   protected var argvOpt = Option.empty[Array[String]]
   override def setArgv(argv: Array[String]): Unit = {
@@ -27,7 +27,9 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T]) extend
     for (argv <- argvOpt if argv.length >= 1 + commandLength) {
       System.err.println()
       System.err.println("To list all available options, run")
-      System.err.println(s"  ${Console.BOLD}${argv.take(1 + commandLength).mkString(" ")} --help${Console.RESET}")
+      System.err.println(
+        s"  ${Console.BOLD}${argv.take(1 + commandLength).mkString(" ")} --help${Console.RESET}"
+      )
     }
 
     sys.exit(1)
@@ -63,14 +65,14 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T]) extend
               if (completions.isEmpty) Nil
               else {
                 val prefix0 = prefix.take(fromIndex)
-                val values = completions.map(c => prefix0 + c)
+                val values  = completions.map(c => prefix0 + c)
                 values.map { str =>
                   CompletionItem(str)
                 }
               }
             }
           case "repository" => Nil // TODO
-          case _ => Nil
+          case _            => Nil
         }
         candidates ++ parent.optionValue(arg, prefix, state)
       }

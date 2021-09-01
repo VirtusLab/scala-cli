@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp.{Group, Help, HelpMessage, Name, Parser, ValueDescription}
 
+// format: off
 final case class PackagerOptions(
   @HelpMessage("The version of generated package")
     version: String = "1.0.0",
@@ -61,9 +62,9 @@ final case class PackagerOptions(
   @HelpMessage("Suppress Wix ICE validation (required for users that are neither interactive, not local administrators)")
     suppressValidation: Option[Boolean] = None
 )
-
+// format: on
 
 object PackagerOptions {
   implicit val parser = Parser[PackagerOptions]
-  implicit val help = Help[PackagerOptions]
+  implicit val help   = Help[PackagerOptions]
 }

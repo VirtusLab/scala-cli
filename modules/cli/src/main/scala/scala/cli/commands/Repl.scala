@@ -20,8 +20,8 @@ object Repl extends ScalaCommand[ReplOptions] {
     val inputs = options.shared.inputsOrExit(args, defaultInputs = () => Some(default))
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig = options.shared.bloopRifleConfig()
-    val logger = options.shared.logger
+    val bloopRifleConfig    = options.shared.bloopRifleConfig()
+    val logger              = options.shared.logger
 
     val directories = options.shared.directories.directories
 
@@ -43,12 +43,19 @@ object Repl extends ScalaCommand[ReplOptions] {
       }
 
     if (options.watch.watch) {
-      val watcher = Build.watch(inputs, initialBuildOptions, bloopRifleConfig, logger, postAction = () => WatchUtil.printWatchMessage()) { build =>
+      val watcher = Build.watch(
+        inputs,
+        initialBuildOptions,
+        bloopRifleConfig,
+        logger,
+        postAction = () => WatchUtil.printWatchMessage()
+      ) { build =>
         maybeRunRepl(build, allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
-    } else {
+    }
+    else {
       val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
       maybeRunRepl(build, allowExit = true)
     }
@@ -95,7 +102,10 @@ object Repl extends ScalaCommand[ReplOptions] {
       .map(_.last.stripSuffix(".class"))
       .sorted
     if (rootClasses.nonEmpty)
-      logger.message(s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")}). These will not be accessible from the REPL.")
+      logger.message(
+        s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")})." +
+          " These will not be accessible from the REPL."
+      )
 
     if (dryRun)
       logger.message("Dry run, not running REPL.")

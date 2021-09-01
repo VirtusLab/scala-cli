@@ -8,7 +8,7 @@ trait HasGeneratedSources {
 
   import HasGeneratedSources._
 
-  protected var projectNameOpt = Option.empty[ProjectName]
+  protected var projectNameOpt   = Option.empty[ProjectName]
   protected var generatedSources = GeneratedSources(Nil)
 
   def targetIdOpt: Option[b.BuildTargetIdentifier] =

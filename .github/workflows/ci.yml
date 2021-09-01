@@ -151,6 +151,20 @@ jobs:
     - name: Check Ammonite availability
       run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps.'
 
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1.1.1
+      with:
+        jvm: 8
+        apps: scalafmt:3.0.0
+    - run: scalafmt --check
+
   reference-doc:
     runs-on: ubuntu-latest
     steps:
@@ -192,7 +206,7 @@ jobs:
         retention-days: 2
 
   launchers:
-    needs: [jvm-tests, native-tests, native-mostly-static-tests, native-static-tests, vc-redist, checks, reference-doc]
+    needs: [jvm-tests, native-tests, native-mostly-static-tests, native-static-tests, vc-redist, format, checks, reference-doc]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:

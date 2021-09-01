@@ -9,9 +9,9 @@ class DefaultBase(
 
   override protected def commandLength = 0
 
-  override def group = "Main"
+  override def group                              = "Main"
   override def sharedOptions(options: RunOptions) = Some(options.shared)
-  private[cli] var anyArgs = false
+  private[cli] var anyArgs                        = false
   override def helpAsked(progName: String): Nothing = {
     println(defaultHelp)
     sys.exit(0)

@@ -1,6 +1,5 @@
 package scala.cli.runner
 
-
 import org.virtuslab.stacktraces.core.StacktracesInspector
 import org.virtuslab.stacktraces.model.TastyWrapper
 import org.virtuslab.stacktraces.model.PrettyException
@@ -28,7 +27,14 @@ object Stacktraces:
         case Some(TastyWrapper(tastyFile, opJarName)) =>
           StacktracesInspector.inspectStackTrace(ste, tastyFile).map(_.copy(jarName = opJarName))
         case None =>
-          Some(PrettyStackTraceElement(ste, ElementType.Method, ste.getMethodName, ste.getClassName, ste.getLineNumber))
+          val elem = PrettyStackTraceElement(
+            ste,
+            ElementType.Method,
+            ste.getMethodName,
+            ste.getClassName,
+            ste.getLineNumber
+          )
+          Some(elem)
     }.toList
     PrettyException(e, st)
 
