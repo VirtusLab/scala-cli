@@ -307,7 +307,15 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("weaver") {
     successfulWeaverInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "-r", "sonatype:snapshots").call(cwd = root).out.text
+      val output =
+        os.proc(
+          TestUtil.cli,
+          "test",
+          extraOptions,
+          ".",
+          "-r",
+          "sonatype:snapshots"
+        ).call(cwd = root).out.text
       expect(output.contains("Hello from tests"))
     }
   }

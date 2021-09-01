@@ -122,7 +122,7 @@ object DynamicTestRunner {
         val it: Iterator[Class[_]] =
           try Iterator(loader.loadClass(name))
           catch {
-            case _: ClassNotFoundException | _ : UnsupportedClassVersionError =>
+            case _: ClassNotFoundException | _: UnsupportedClassVersionError =>
               Iterator.empty
           }
         it
