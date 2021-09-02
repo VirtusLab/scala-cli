@@ -4,7 +4,9 @@ sidebar_position: 10
 ---
 
 IDE support for sources managed by the Scala CLI is experimental, and limited to
-[Metals from VSCode](https://scalameta.org/metals/docs/editors/vscode) for now.
+[Metals](https://scalameta.org/metals/) with [VS
+Code](https://scalameta.org/metals/docs/editors/vscode) or
+[Neovim](https://github.com/scalameta/nvim-metals) for now.
 
 ## VSCode
 
@@ -54,3 +56,30 @@ The following Metals features are expected to work, among others:
 
 Upon adding new dependencies, via `scala.conf` or via `import $dep` in Scala sources, the
 new dependencies should be automatically downloaded and be available right after in Metals.
+
+## Neovim
+
+### Setup
+
+You can get Scala CLI support in Neovim by using
+[`nvim-metals`](https://github.com/scalameta/nvim-metals). Scala CLI support
+relies on a custom Metals server for now. To enable it make sure to set the
+`g:metals_server_org` to `org.virtuslab`, and update the
+`g:metals_server_version` to the desired version.
+
+You'll also need to set a server property to detect the location of `scala-cli`.
+You can set this in your settings table like so:
+
+```lua
+Metals_config = require("metals").bare_config
+
+Metals_config.settings = {
+  serverProperties = {
+    "-Dmetals.scala-cli.launcher=<location of your installed scala-cli>"
+  }
+}
+```
+
+After updating these values make sure to run a `:MetalsInstall` command to
+install the custom Metals server. You'll then either need to restart the server
+with a `:MetalsRestartServer` or just close the project and reopen.
