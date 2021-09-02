@@ -86,16 +86,19 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
     os.proc("git", "clone", repo, "--depth", "1", "-q", "-b", branch).call(cwd = workDir)
   }
   def setupGithubRepo(repoDir: os.Path) = {
-    val gitUserName="Github Actions"
-    val gitEmail ="actions@github.com"
+    val gitUserName = "Github Actions"
+    val gitEmail    = "actions@github.com"
 
     os.proc("git", "config", "user.name", gitUserName).call(cwd = repoDir)
     os.proc("git", "config", "user.email", gitEmail).call(cwd = repoDir)
   }
   def commitChanges(name: String, branch: String, repoDir: os.Path): Unit = {
-    if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit")) {
+    if (
+      os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit")
+    ) {
       println("Nothing Changes")
-    } else {
+    }
+    else {
       os.proc("git", "add", "-A").call(cwd = repoDir)
       os.proc("git", "commit", "-am", name).call(cwd = repoDir)
       os.proc("git", "push", "origin", branch).call(cwd = repoDir)
