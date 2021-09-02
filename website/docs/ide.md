@@ -15,9 +15,9 @@ it is installed and up-to-date, or install or update it from the Extension panel
 
 Scala CLI support relies on a custom Metals server for now. To enable it in the current project,
 run the command "Create New Integrated Terminal (in Active Workspace)", and type
-```text
-$ mkdir -p .vscode
-$ cat > .vscode/settings.json << EOF
+```bash
+mkdir -p .vscode
+cat > .vscode/settings.json << EOF
 {
   "metals.serverVersion": "org.virtuslab:metals_2.12:0.10.5+65-f2a9927c-SNAPSHOT",
   "metals.serverProperties": [

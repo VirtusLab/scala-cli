@@ -32,18 +32,18 @@ The tests live either in:
 - `integration`: integration tests
 
 Run unit tests with
-```
-$ ./mill 'build[_].test'
+```bash
+./mill 'build[_].test'
 ```
 
 Run integration tests with a JVM-based `scala-cli` with
-```
-$ ./mill integration.jvm.test
+```bash
+./mill integration.jvm.test
 ```
 
 Run integration tests with a native-image-based `scala-cli` with
-```
-$ ./mill integration.native.test
+```bash
+./mill integration.native.test
 ```
 
 ## General workflow in most `scala-cli` commands

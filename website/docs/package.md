@@ -22,15 +22,15 @@ and download their dependencies upon first launch, via [coursier](https://get-co
 These can be copied on other machines, and run fine there. Their only requirement is
 that the `java` command needs to be available in the `PATH`.
 
-```text
-$ cat Hello.scala
-object Hello {
-  def main(args: Array[String]): Unit =
-    println("Hello")
-}
-$ scala-cli package Hello.scala -o hello
-$ ./hello
-Hello
+```bash
+cat Hello.scala
+# object Hello {
+#   def main(args: Array[String]): Unit =
+#     println("Hello")
+# }
+scala-cli package Hello.scala -o hello
+./hello
+# Hello
 ```
 
 ## Library JARs
@@ -38,19 +38,19 @@ Hello
 Library JARs are suitable if you plan to put the resulting JAR in a class path, rather than running it as is.
 These follow the same format as the JARs of libraries published to Maven Central for example.
 
-```text
-$ cat MyLibrary.scala
-package mylib
-class MyLibrary {
-  def message = "Hello"
-}
-$ scala-cli package MyLibrary.scala -o my-library.jar --library
-$ javap -cp my-library.jar mylib.MyLibrary
-Compiled from "MyLibrary.scala"
-public class mylib.MyLibrary {
-  public java.lang.String message();
-  public mylib.MyLibrary();
-}
+```bash
+cat MyLibrary.scala
+# package mylib
+# class MyLibrary {
+#   def message = "Hello"
+# }
+scala-cli package MyLibrary.scala -o my-library.jar --library
+javap -cp my-library.jar mylib.MyLibrary
+# Compiled from "MyLibrary.scala"
+# public class mylib.MyLibrary {
+#   public java.lang.String message();
+#   public mylib.MyLibrary();
+# }
 ```
 
 ## Assemblies
@@ -59,29 +59,29 @@ Assemblies blend your dependencies and your sources' byte code together in a sin
 assemblies can be run as is, just like [bootstraps](#default-package-format), but don't need to download
 anything upon first launch. Because of that, assemblies also tend to be bigger, and somewhat slower to generate.
 
-```text
-$ cat Hello.scala
-object Hello {
-  def main(args: Array[String]): Unit =
-    println("Hello")
-}
-$ scala-cli package Hello.scala -o hello --assembly
-$ ./hello
-Hello
+```bash
+cat Hello.scala
+# object Hello {
+#   def main(args: Array[String]): Unit =
+#     println("Hello")
+# }
+scala-cli package Hello.scala -o hello --assembly
+./hello
+# Hello
 ```
 
 ## Scala.JS
 
 Packaging Scala.JS applications results in a `.js` file, that can be run with `node` for example:
-```text
-$ cat Hello.scala
-object Hello {
-  def main(args: Array[String]): Unit =
-    println("Hello")
-}
-$ scala-cli package --js Hello.scala -o hello.js
-$ node hello.js
-Hello
+```bash
+cat Hello.scala
+# object Hello {
+#   def main(args: Array[String]): Unit =
+#     println("Hello")
+# }
+scala-cli package --js Hello.scala -o hello.js
+node hello.js
+# Hello
 ```
 
 Note that the Scala CLI doesn't offer to link the resulting JavaScript with linkers, such as Webpack, yet.
@@ -89,17 +89,17 @@ Note that the Scala CLI doesn't offer to link the resulting JavaScript with link
 ## Scala Native
 
 Package Scala Native applications results in a native executable:
-```text
-$ cat Hello.scala
-object Hello {
-  def main(args: Array[String]): Unit =
-    println("Hello")
-}
-$ scala-cli package --native Hello.scala -o hello
-$ file hello
-hello: Mach-O 64-bit executable x86_64
-$ ./hello
-Hello
+```bash
+cat Hello.scala
+# object Hello {
+#   def main(args: Array[String]): Unit =
+#     println("Hello")
+# }
+scala-cli package --native Hello.scala -o hello
+file hello
+# hello: Mach-O 64-bit executable x86_64
+./hello
+# Hello
 ```
 
 ## OS-specific packages
@@ -111,17 +111,17 @@ and supports the following formats, provided they're compatible with the operati
 - PKG (macOS)
 - MSI (Windows)
 
-```text
-$ cat Hello.scala
-object Hello {
-  def main(args: Array[String]): Unit =
-    println("Hello")
-}
-$ scala-cli package --deb Hello.scala -o hello.deb
-$ file hello
-hello: Mach-O 64-bit executable x86_64
-$ ./hello
-Hello
+```bash
+cat Hello.scala
+# object Hello {
+#   def main(args: Array[String]): Unit =
+#     println("Hello")
+# }
+scala-cli package --deb Hello.scala -o hello.deb
+file hello
+# hello: Mach-O 64-bit executable x86_64
+./hello
+# Hello
 ```
 
 ## Native package
@@ -134,7 +134,9 @@ The software package format for GNU\Linux distribution Debian.
 
 ### Run
 
-`./mill -i scala package ..arguments... --deb --output 'path.deb`
+```bash
+./mill -i scala package ..arguments... --deb --output 'path.deb`
+```
 
 ### Mandatory arguments 
 * version
@@ -158,7 +160,9 @@ The software package format for RedHat distributions.
 
 ### Run
 
-`./mill -i scala package ..arguments... --rpm --output 'path.rpm`
+```bash
+./mill -i scala package ..arguments... --rpm --output 'path.rpm`
+```
 
 ### Mandatory arguments 
 * version
@@ -181,7 +185,9 @@ The software package format for macOs.
 
 ### Run
 
+```bash
 `./mill -i scala package ..arguments... --pkg --output 'path.pkg`
+```
 
 ### Mandatory arguments 
 * version
@@ -201,7 +207,9 @@ The software package format for Windows distributions.
 
 ### Run
 
-`./mill -i scala package ..arguments... --msi --output 'path.msi`
+```bash
+./mill -i scala package ..arguments... --msi --output 'path.msi`
+```
 
 ### Mandatory arguments 
 * version

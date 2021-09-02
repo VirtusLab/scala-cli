@@ -12,34 +12,34 @@ Scala CLI is an experimental tool to run/compile/test Scala that aims at being a
 
 #### Running the CLI from sources
 
-```text
-$ ./mill -i scala …arguments…
+```bash
+./mill -i scala …arguments…
 ```
 
 #### Run unit tests
 
-```text
-$ ./mill 'build[_].test'
+```bash
+./mill 'build[_].test'
 ```
 
 #### Run integration tests with the JVM launcher
 
-```text
-$ ./mill integration.jvm.test
+```bash
+./mill integration.jvm.test
 ```
 
 Filter test suites with
-```text
-$ ./mill integration.jvm.test 'scala.cli.integration.RunTests.*'
-$ ./mill integration.jvm.test 'scala.cli.integration.RunTests.Multiple scripts'
+```bash
+./mill integration.jvm.test 'scala.cli.integration.RunTests.*'
+./mill integration.jvm.test 'scala.cli.integration.RunTests.Multiple scripts'
 ```
 
 #### Run integration tests with the native launcher
 
 (generating the launcher can take several minutes)
 
-```text
-$ ./mill integration.native.test
+```bash
+./mill integration.native.test
 ```
 
 #### Generate native packages
@@ -50,16 +50,16 @@ Build native packagers:
 * `dmg` and `pkg` for macOS
 
 (generating native packager for specified format)
-```text
-$ ./mill -i scala package ..arguments... --deb --output 'path.deb'
-$ ./mill -i scala package ..arguments... --dmg --output 'path.dmg'
-$ ./mill -i scala package ..arguments... --pkg --output 'path.pkg'
+```bash
+./mill -i scala package ..arguments... --deb --output 'path.deb'
+./mill -i scala package ..arguments... --dmg --output 'path.dmg'
+./mill -i scala package ..arguments... --pkg --output 'path.pkg'
 ```
 
 #### Generate Metals configuration files
 
-```text
-$ ./mill mill.contrib.Bloop/install
+```bash
+./mill mill.contrib.Bloop/install
 ```
 
 Then run the command "Metals: Connect to build server".
@@ -70,8 +70,8 @@ Whenever the build is updated, just do these two steps again.
 
 #### Generate IntelliJ configuration files
 
-```text
-$ ./mill mill.scalalib.GenIdea/idea
+```bash
+./mill mill.scalalib.GenIdea/idea
 ```
 
 Then open the scala-cli directory in IntelliJ.
@@ -83,8 +83,8 @@ should then pick up the new changes.
 
 #### Generate a native launcher
 
-```text
-$ ./mill -i show cli.nativeImage
+```bash
+./mill -i show cli.nativeImage
 ```
 
 This prints the path to the generated native image.
@@ -94,8 +94,8 @@ whether the files it points at exists or not.)
 
 #### Generate a JVM launcher
 
-```text
-$ ./mill -i show cli.launcher
+```bash
+./mill -i show cli.launcher
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,
@@ -107,8 +107,8 @@ JVM one (see below).
 
 #### Generate a standalone JVM launcher
 
-```text
-$ ./mill -i show cli.standaloneLauncher
+```bash
+./mill -i show cli.standaloneLauncher
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,
@@ -120,15 +120,15 @@ a coursier bootstrap).
 
 #### Generate the website once
 
-```text
-$ cd website
-$ yarn build
-$ npm run serve
+```bash
+cd website
+yarn build
+npm run serve
 ```
 
 #### Generate the website continuously
 
-```text
-$ cd website
-$ yarn run start
+```bash
+cd website
+yarn run start
 ```

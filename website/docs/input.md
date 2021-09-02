@@ -31,9 +31,9 @@ object Hello {
 ```
 
 Run it with
-```text
-$ scala-cli Hello.scala
-Hello from Scala
+```bash
+scala-cli Hello.scala
+# Hello from Scala
 ```
 
 You can also split your code in multiple files, and pass all of them to `scala-cli` :
@@ -54,9 +54,9 @@ object Hello {
 ```
 
 Run them with
-```text
-$ scala-cli Hello.scala Messages.scala
-Hello from Scala
+```bash
+scala-cli Hello.scala Messages.scala
+# Hello from Scala
 ```
 
 Passing many files this way can be cumbersome. Directories can help.
@@ -82,9 +82,9 @@ object Hello {
 ```
 
 Run them with
-```text
-$ scala-cli my-app
-Hello from Scala
+```bash
+scala-cli my-app
+# Hello from Scala
 ```
 
 ## URLs
@@ -92,9 +92,9 @@ Hello from Scala
 `scala-cli` accepts input via URLs pointing at `.scala` files.
 It'll download and cache their content, and run them.
 
-```text
-$ scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala
-Hello from Scala GitHub Gist
+```bash
+scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala
+# Hello from Scala GitHub Gist
 ```
 
 ## GitHub Gist
@@ -104,17 +104,17 @@ TODO
 ## Piping
 
 You can just pipe Scala code to `scala-cli` for execution:
-```text
-$ echo 'println("Hello")' | scala-cli -
-Hello
+```bash
+echo 'println("Hello")' | scala-cli -
+# Hello
 ```
 
 ## Process substitution
 
 `scala-cli` accepts input via shell process substitution:
-```text
-$ scala-cli <(echo 'println("Hello")')
-Hello
+```bash
+scala-cli <(echo 'println("Hello")')
+# Hello
 ```
 
 ## Scripts
@@ -129,9 +129,9 @@ println(message)
 ```
 
 Run it with
-```text
-$ scala-cli hello.sc
-Hello from Scala script
+```bash
+scala-cli hello.sc
+# Hello from Scala script
 ```
 
 In more detail, such a script is wrapped in an `object` before being passed to
@@ -161,9 +161,9 @@ println(messages.hello)
 ```
 
 Run them with
-```text
-$ scala-cli my-app --main-class main
-Hello from Scala scripts
+```bash
+scala-cli my-app --main-class main
+# Hello from Scala scripts
 ```
 
 Note that we pass an explicit main class. Both scripts automatically get a main class, so this
