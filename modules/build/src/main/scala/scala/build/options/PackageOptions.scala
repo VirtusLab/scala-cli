@@ -4,7 +4,7 @@ import scala.build.internal.Constants
 
 final case class PackageOptions(
   version: Option[String] = None,
-  launcherAppName: Option[String] = None,
+  launcherApp: Option[String] = None,
   maintainer: Option[String] = None,
   description: Option[String] = None,
   packageTypeOpt: Option[PackageType] = None,
@@ -12,7 +12,8 @@ final case class PackageOptions(
   macOSidentifier: Option[String] = None,
   debianOptions: DebianOptions = DebianOptions(),
   windowsOptions: WindowsOptions = WindowsOptions(),
-  redHatOptions: RedHatOptions = RedHatOptions()
+  redHatOptions: RedHatOptions = RedHatOptions(),
+  dockerOptions: DockerOptions = DockerOptions()
 ) {
 
   def packageVersion: String =
@@ -20,6 +21,8 @@ final case class PackageOptions(
       .map(_.trim)
       .filter(_.nonEmpty)
       .getOrElse(Constants.version.stripSuffix("-SNAPSHOT"))
+
+  def isDockerEnabled: Boolean = dockerOptions.isDockerEnabled.getOrElse(false)
 
 }
 

@@ -367,7 +367,7 @@ The version of generated package
 
 Path to application logo in png format, it will be used to generate icon and banner/dialog in msi installer
 
-#### `--launcher-app-name`
+#### `--launcher-app`
 
 Set launcher app name which will be linked to PATH
 
