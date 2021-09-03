@@ -73,6 +73,11 @@ generate_pkg() {
 }
 
 generate_msi() {
+
+  # Having the MSI automatically install Visual C++ redistributable when needed,
+  # see https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html
+  "$mill" -i ci.writeWixConfigExtra wix-visual-cpp-redist.xml
+
   packager \
     --msi \
     --version "$(shortVersion)" \
@@ -84,7 +89,8 @@ generate_msi() {
     --license-path "./LICENSE" \
     --exit-dialog "If scala-cli is not visible, please restart your opened consoles" \
     --logo-path "./logo.png" \
-    --suppress-validation
+    --suppress-validation \
+    --extra-config wix-visual-cpp-redist.xml
   rm -f "$ARTIFACTS_DIR/"*.wixpdb || true
 }
 
