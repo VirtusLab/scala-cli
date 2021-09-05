@@ -47,7 +47,7 @@ final case class PackagerOptions(
     "The number of times this version of the software was released, default: 1"
   )
     release: String = "1",
-  @HelpMessage("Architecture that are supported by the repository, default: ")
+  @HelpMessage("Architecture that are supported by the repository, default: noarch")
     rpmArchitecture: String = "noarch",
   @Group("Windows")
   @HelpMessage("Path to license file")

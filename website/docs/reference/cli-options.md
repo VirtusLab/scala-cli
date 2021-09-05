@@ -337,7 +337,7 @@ Build debian package, available only on linux
 
 #### `--dmg`
 
-Build dmg package, available only on centOS
+Build dmg package, available only on macOS
 
 #### `--rpm`
 
@@ -349,7 +349,7 @@ Build msi package, available only on windows
 
 #### `--pkg`
 
-Build pkg package, available only on centOS
+Build pkg package, available only on macOS
 
 ## Packager options
 
@@ -405,7 +405,7 @@ The number of times this version of the software was released, default: 1
 
 #### `--rpm-architecture`
 
-Architecture that are supported by the repository, default: 
+Architecture that are supported by the repository, default: noarch
 
 #### `--license-path`
 

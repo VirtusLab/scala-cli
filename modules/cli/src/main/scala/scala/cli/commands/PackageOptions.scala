@@ -43,7 +43,7 @@ final case class PackageOptions(
   @HelpMessage("Build debian package, available only on linux")
     deb: Boolean = false,
   @Group("Package")
-  @HelpMessage("Build dmg package, available only on centOS")
+  @HelpMessage("Build dmg package, available only on macOS")
     dmg: Boolean = false,
   @Group("Package")
   @HelpMessage("Build rpm package, available only on linux")
@@ -52,7 +52,7 @@ final case class PackageOptions(
   @HelpMessage("Build msi package, available only on windows")
     msi: Boolean = false,
   @Group("Package")
-  @HelpMessage("Build pkg package, available only on centOS")
+  @HelpMessage("Build pkg package, available only on macOS")
     pkg: Boolean = false,
 ) {
   // format: on
