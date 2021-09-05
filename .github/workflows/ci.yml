@@ -236,6 +236,13 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - uses: actions/download-artifact@v2
+        with:
+          name: launchers
+          path: artifacts/
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: artifacts/
       - run: ./mill -i ci.updateBrewFormula
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -247,7 +254,7 @@ jobs:
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GH_TOKEN }}
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-          KEYNAME: ${{ secrets.KEYNAME }}
+          GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
       - run: ./mill -i ci.updateCentOsPackages
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GH_TOKEN }}

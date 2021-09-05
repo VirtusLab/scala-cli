@@ -10,6 +10,7 @@ import $file.project.settings, settings.{
   HasTests,
   LocalRepo,
   PublishLocalNoFluff,
+  getGhToken,
   localRepoResourcePath,
   platformExecutableJarExtension
 }
@@ -495,7 +496,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
   val launchers = os.list(path).filter(os.isFile(_)).map { path =>
     path.toNIO -> path.last
   }
-  val ghToken = cli.ghToken()
+  val ghToken = getGhToken()
   val (tag, overwriteAssets) =
     if (version.endsWith("-SNAPSHOT")) ("nightly", true)
     else ("v" + version, false)
@@ -550,6 +551,32 @@ def copyStaticLauncher(directory: String = "artifacts") = T.command {
   )
 }
 
+private def gitClone(repo: String, branch: String, workDir: os.Path) = {
+    os.proc("git", "clone", repo, "-q", "-b", branch).call(cwd = workDir)
+  }
+private  def setupGithubRepo(repoDir: os.Path) = {
+    val gitUserName = "gh-actions"
+    val gitEmail    = "actions@github.com"
+
+    os.proc("git", "config", "user.name", gitUserName).call(cwd = repoDir)
+    os.proc("git", "config", "user.email", gitEmail).call(cwd = repoDir)
+  }
+
+private  def commitChanges(name: String, branch: String, repoDir: os.Path): Unit = {
+    if (
+      os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit")
+    ) {
+      println("Nothing Changes")
+    }
+    else {
+      os.proc("git", "add", "-A").call(cwd = repoDir)
+      os.proc("git", "commit", "-am", name).call(cwd = repoDir)
+      println(s"Trying to push on $branch branch")
+      os.proc("git", "push", "origin", branch).call(cwd = repoDir)
+      println(s"Push successfully on $branch branch")
+    }
+  }
+
 // TODO Move most CI-specific tasks there
 object ci extends Module {
   def updateBrewFormula() = T.command {
@@ -563,13 +590,13 @@ object ci extends Module {
 
     os.makeDir.all(targetDir)
 
-    val ghToken = cli.ghToken()
+    val ghToken = getGhToken()
     val branch  = "main"
     val repo    = s"https://$ghToken@github.com/VirtuslabRnD/homebrew-scala-cli.git"
 
     // Cloning
-    cli.gitClone(repo, branch, targetDir)
-    cli.setupGithubRepo(homebrewFormulaDir)
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(homebrewFormulaDir)
 
     val launcherPath = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
     val launcherURL =
@@ -598,7 +625,7 @@ object ci extends Module {
     val formulaPath = homebrewFormulaDir / "scala-cli.rb"
     os.write.over(formulaPath, updatedFormula)
 
-    cli.commitChanges(s"Update for $version", branch, homebrewFormulaDir)
+    commitChanges(s"Update for $version", branch, homebrewFormulaDir)
   }
   def updateDebianPackages() = T.command {
     val version = cli.publishVersion()
@@ -612,13 +639,13 @@ object ci extends Module {
 
     os.makeDir.all(targetDir)
 
-    val ghToken = cli.ghToken()
+    val ghToken =  getGhToken()
     val branch  = "master"
     val repo    = s"https://$ghToken@github.com/VirtuslabRnD/scala-cli-packages.git"
 
     // Cloning
-    cli.gitClone(repo, branch, targetDir)
-    cli.setupGithubRepo(packagesDir)
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(packagesDir)
 
     // copy deb package to repository
     os.copy(
@@ -635,7 +662,7 @@ object ci extends Module {
 
     val pgpPassphrase =
       Option(System.getenv("PGP_PASSPHRASE")).getOrElse { sys.error("PGP_PASSPHRASE not set") }
-    val keyName        = Option(System.getenv("KEYNAME")).getOrElse { sys.error("KEYNAME not set") }
+    val keyName        = Option(System.getenv("GPG_EMAIL")).getOrElse { sys.error("GPG_EMAIL not set") }
     val releaseGpgPath = debianDir / "Release.gpg"
     val inReleasePath  = debianDir / "InRelease"
     os.proc(
@@ -667,7 +694,7 @@ object ci extends Module {
     )
       .call(cwd = debianDir, stdin = pgpPassphrase, stdout = inReleasePath)
 
-    cli.commitChanges(s"Update Debian packages for $version", "master", packagesDir)
+    commitChanges(s"Update Debian packages for $version", "master", packagesDir)
   }
   def updateCentOsPackages() = T.command {
     val version = cli.publishVersion()
@@ -681,42 +708,38 @@ object ci extends Module {
 
     os.makeDir.all(targetDir)
 
-    val ghToken = cli.ghToken()
+    val ghToken = getGhToken()
     val branch  = "master"
     val repo    = s"https://$ghToken@github.com/VirtuslabRnD/scala-cli-packages.git"
 
     // Cloning
-    cli.gitClone(repo, branch, targetDir)
-    cli.setupGithubRepo(packagesDir)
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(packagesDir)
 
     // copy rpm package to repository
     os.copy(
-      os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.deb",
+      os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.rpm",
       centOsDir / "Packages" / s"scala-cli_$version.rpm"
     )
 
-    os.proc(
-      "docker",
-      "run",
-      "-v",
-      s"$packagesDir:/packages",
-      "-w",
-      "/packages",
-      "--env",
-      "PGP_SECRET",
-      "--env",
-      "PGP_PASSPHRASE",
-      "--env",
-      "GPG_EMAIL",
-      "--env",
-      "KEYGRIP",
+    // format: off
+    val cmd =  Seq[os.Shellable](
+      "docker", "run",
+      "-v", s"$packagesDir:/packages",
+      "-w", "/packages",
+      "--env", "PGP_SECRET",
+      "--env", "PGP_PASSPHRASE",
+      "--env", "GPG_EMAIL",
+      "--env", "KEYGRIP",
       "--privileged",
       "fedora",
-      "sh",
-      "updateCentOsPackages.sh"
-    ).call(cwd = packagesDir)
+      "sh", "updateCentOsPackages.sh"
+    )
+    // format: on
 
-    cli.commitChanges(s"Update CentOS packages for $version", branch, packagesDir)
+    os.proc(cmd).call(cwd = packagesDir)
+
+    commitChanges(s"Update CentOS packages for $version", branch, packagesDir)
   }
   private def vsBasePath = os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
   def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") =
