@@ -34,7 +34,7 @@ class NativePackagerTests extends munit.FunSuite {
           TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--pkg",
           "--output", pkgAppFile,
           "--identifier", "scala-cli",
-          "--launcher-app-name", appName
+          "--launcher-app", appName
         )
         // format: on
         os.proc(cmd).call(
@@ -66,14 +66,14 @@ class NativePackagerTests extends munit.FunSuite {
 
       testInputs.fromRoot { root =>
 
-        val appName = helloWorldFileName.stripSuffix(".scala")
+        val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
 
         // format: off
         val cmd = Seq[os.Shellable](
           TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--dmg",
           "--output", appName,
           "--identifier", "scala-cli",
-          "--launcher-app-name", appName
+          "--launcher-app", appName
         )
         // format: on
         os.proc(cmd).call(
@@ -113,7 +113,7 @@ class NativePackagerTests extends munit.FunSuite {
 
       testInputs.fromRoot { root =>
 
-        val appName = helloWorldFileName.stripSuffix(".scala")
+        val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
 
         // format: off
         val cmd = Seq[os.Shellable](
@@ -121,7 +121,7 @@ class NativePackagerTests extends munit.FunSuite {
           "--output", s"$appName.deb",
           "--maintainer", "scala-cli-test",
           "--description", "scala-cli-test",
-          "--launcher-app-name", appName
+          "--launcher-app", appName
         )
         // format: on
         os.proc(cmd).call(
@@ -150,7 +150,7 @@ class NativePackagerTests extends munit.FunSuite {
 
       testInputs.fromRoot { root =>
 
-        val appName = helloWorldFileName.stripSuffix(".scala")
+        val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
 
         // format: off
         val cmd = Seq[os.Shellable](
@@ -159,7 +159,7 @@ class NativePackagerTests extends munit.FunSuite {
           "--description", "scala-cli",
           "--license", "ASL 2.0",
           "--version", "1.0.0",
-          "--launcher-app-name", appName
+          "--launcher-app", appName
         )
         // format: on
         os.proc(cmd).call(
@@ -179,7 +179,7 @@ class NativePackagerTests extends munit.FunSuite {
 
       testInputs.fromRoot { root =>
 
-        val appName = helloWorldFileName.stripSuffix(".scala")
+        val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
 
         // format: off
         val cmd = Seq[os.Shellable](
@@ -188,7 +188,7 @@ class NativePackagerTests extends munit.FunSuite {
           "--product-name", "scala-cli",
           "--license-path", licencePath,
           "--maintainer", "Scala-cli",
-          "--launcher-app-name", appName,
+          "--launcher-app", appName,
           "--suppress-validation"
         )
         // format: on
@@ -202,4 +202,91 @@ class NativePackagerTests extends munit.FunSuite {
         expect(os.isFile(launcher))
       }
     }
+
+  if (Properties.isLinux) {
+
+    test("building docker image") {
+
+      testInputs.fromRoot { root =>
+
+        val appName         = helloWorldFileName.stripSuffix(".scala")
+        val imageRepository = appName.toLowerCase()
+        val imageTag        = "latest"
+
+      // format: off
+      val cmd = Seq[os.Shellable](
+        TestUtil.cli,
+        "package", helloWorldFileName,
+        "--docker",
+        "--docker-from", "adoptopenjdk/openjdk8",
+        "--docker-image-repository", imageRepository,
+        "--docker-image-tag", imageTag
+      )
+      // format: on
+
+        os.proc(cmd)
+          .call(
+            cwd = root,
+            stdin = os.Inherit,
+            stdout = os.Inherit
+          )
+
+        val expectedImage =
+          s"$imageRepository:$imageTag"
+
+        try {
+          val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
+          expect(output == message)
+        }
+        finally {
+          // clear
+          os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
+        }
+      }
+    }
+
+    test("building docker image with scala.js app") {
+
+      testInputs.fromRoot { root =>
+
+        val appName         = helloWorldFileName.stripSuffix(".scala")
+        val imageRepository = appName.toLowerCase()
+        val imageTag        = "latest"
+
+      // format: off
+      val cmd = Seq[os.Shellable](
+        TestUtil.cli,
+        "package", helloWorldFileName,
+        "--js",
+        "--docker",
+        "--docker-from", "node",
+        "--docker-image-repository", imageRepository,
+        "--docker-image-tag", imageTag
+      )
+      // format: on
+
+        os.proc(cmd)
+          .call(
+            cwd = root,
+            stdin = os.Inherit,
+            stdout = os.Inherit
+          )
+
+        val expectedImage =
+          s"$imageRepository:$imageTag"
+
+        try {
+          val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
+          expect(output == message)
+
+        }
+        finally {
+          // clear
+          os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
+        }
+      }
+    }
+
+  }
+
 }

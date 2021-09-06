@@ -46,7 +46,7 @@ generate_deb() {
     --output "$ARTIFACTS_DIR/scala-cli.deb" \
     --description "Scala CLI" \
     --maintainer "Scala CLI" \
-    --launcher-app-name "scala-cli"
+    --launcher-app "scala-cli"
   mv "$ARTIFACTS_DIR/scala-cli.deb" "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.deb"
 }
 
@@ -59,7 +59,7 @@ generate_rpm() {
     --description "Scala CLI" \
     --maintainer "Scala CLI" \
     --license "ASL 2.0" \
-    --launcher-app-name "scala-cli"
+    --launcher-app "scala-cli"
 }
 
 generate_pkg() {
@@ -69,7 +69,7 @@ generate_pkg() {
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli-x86_64-apple-darwin.pkg" \
     --identifier "scala-cli" \
-    --launcher-app-name "scala-cli"
+    --launcher-app "scala-cli"
 }
 
 generate_msi() {
@@ -85,12 +85,12 @@ generate_msi() {
     --output "$ARTIFACTS_DIR/scala-cli-x86_64-pc-win32.msi" \
     --product-name "Scala CLI" \
     --maintainer "Scala CLI" \
-    --launcher-app-name "scala-cli" \
+    --launcher-app "scala-cli" \
     --license-path "./LICENSE" \
     --exit-dialog "If scala-cli is not visible, please restart your opened consoles" \
     --logo-path "./logo.png" \
     --suppress-validation \
-    --extra-config wix-visual-cpp-redist.xml
+    --extra-configs wix-visual-cpp-redist.xml
   rm -f "$ARTIFACTS_DIR/"*.wixpdb || true
 }
 

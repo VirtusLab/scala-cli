@@ -351,6 +351,10 @@ Build msi package, available only on windows
 
 Build pkg package, available only on centOS
 
+#### `--docker`
+
+Build docker image
+
 ## Packager options
 
 Available in commands:
@@ -367,7 +371,7 @@ The version of generated package
 
 Path to application logo in png format, it will be used to generate icon and banner/dialog in msi installer
 
-#### `--launcher-app-name`
+#### `--launcher-app`
 
 Set launcher app name which will be linked to PATH
 
@@ -422,6 +426,36 @@ Text will be displayed on exit dialog
 #### `--suppress-validation`
 
 Suppress Wix ICE validation (required for users that are neither interactive, not local administrators)
+
+#### `--extra-config`
+
+Path to extra WIX config content
+
+#### `--is64-bits`
+
+Aliases: `--64`
+
+Whether a 64-bit executable is getting packaged
+
+#### `--installer-version`
+
+WIX installer version
+
+#### `--docker-from`
+
+Building the container from base image
+
+#### `--docker-image-registry`
+
+The image registry, if will be empty it will be used default registry
+
+#### `--docker-image-repository`
+
+The image repository
+
+#### `--docker-image-tag`
+
+The image tag, the default tag is latest
 
 ## Repl options
 

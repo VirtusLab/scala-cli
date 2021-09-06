@@ -4,9 +4,7 @@ import caseapp._
 import caseapp.core.help.Help
 
 import scala.build.options.{BuildOptions, PackageType}
-import scala.build.options.DebianOptions
-import scala.build.options.RedHatOptions
-import scala.build.options.WindowsOptions
+import scala.build.options._
 
 // format: off
 @HelpMessage("Compile and package Scala code")
@@ -54,6 +52,9 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Build pkg package, available only on centOS")
     pkg: Boolean = false,
+  @Group("Package")
+  @HelpMessage("Build docker image")
+    docker: Boolean = false,
 ) {
   // format: on
   def packageTypeOpt: Option[PackageType] =
@@ -72,7 +73,7 @@ final case class PackageOptions(
       mainClass = mainClass.filter(_.nonEmpty),
       packageOptions = baseOptions.packageOptions.copy(
         version = Some(packager.version),
-        launcherAppName = packager.launcherAppName,
+        launcherApp = packager.launcherApp,
         maintainer = packager.maintainer,
         description = packager.description,
         packageTypeOpt = packageTypeOpt,
@@ -92,7 +93,17 @@ final case class PackageOptions(
           licensePath = packager.licensePath.map(os.Path(_, os.pwd)),
           productName = Some(packager.productName),
           exitDialog = packager.exitDialog,
-          suppressValidation = packager.suppressValidation
+          suppressValidation = packager.suppressValidation,
+          extraConfig = packager.extraConfig,
+          is64Bits = Some(packager.is64Bits),
+          installerVersion = packager.installerVersion
+        ),
+        dockerOptions = DockerOptions(
+          from = packager.dockerFrom,
+          imageRegistry = packager.dockerImageRegistry,
+          imageRepository = packager.dockerImageRepository,
+          imageTag = packager.dockerImageTag,
+          isDockerEnabled = Some(docker)
         )
       )
     )

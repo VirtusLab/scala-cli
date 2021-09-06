@@ -22,6 +22,7 @@ import scala.build.options.PackageType
 import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
 import scala.scalanative.{build => sn}
 import scala.scalanative.util.Scope
+import scala.cli.commands.OptionsHelper._
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.StandardCharsets
@@ -31,6 +32,9 @@ import java.util.jar.{JarOutputStream, Attributes => JarAttributes}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.util.Properties
+
+import java.nio.charset.Charset
+import packager.docker.DockerPackage
 
 object Package extends ScalaCommand[PackageOptions] {
   override def group                                  = "Main"
@@ -159,103 +163,108 @@ object Package extends ScalaCommand[PackageOptions] {
           build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
 
         buildNative(build, mainClass(), destPath, config, workDir, logger.scalaNativeLogger)
-
       case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
         bootstrap(build, bootstrapPath, mainClass(), () => alreadyExistsCheck())
         val sharedSettings = SharedSettings(
+          sourceAppPath = bootstrapPath,
           version = build.options.packageOptions.packageVersion,
           force = force,
           outputPath = destPath,
           logoPath = build.options.packageOptions.logoPath,
-          launcherAppName = build.options.packageOptions.launcherAppName
+          launcherApp = build.options.packageOptions.launcherApp
         )
+        val packageOptions = build.options.packageOptions
 
         lazy val debianSettings = DebianSettings(
           shared = sharedSettings,
-          maintainer = build.options.packageOptions.maintainer.getOrElse {
-            System.err.println(s"Maintainer parameter is mandatory for debian packages")
-            sys.exit(1)
-          },
-          description = build.options.packageOptions.description.getOrElse {
-            System.err.println(s"Description parameter is mandatory for debian packages")
-            sys.exit(1)
-          },
-          debianConflicts = build.options.packageOptions.debianOptions.conflicts,
-          debianDependencies = build.options.packageOptions.debianOptions.dependencies,
-          architecture = build.options.packageOptions.debianOptions.architecture.getOrElse {
-            System.err.println("Deb architecture parameter is mandatory for debian packages")
-            sys.exit(1)
-          }
+          maintainer = packageOptions.maintainer.mandatory("maintainer", "debian"),
+          description = packageOptions.description.mandatory("description", "debian"),
+          debianConflicts = packageOptions.debianOptions.conflicts,
+          debianDependencies = packageOptions.debianOptions.dependencies,
+          architecture = packageOptions.debianOptions.architecture.mandatory(
+            "deb architecture",
+            "debian"
+          )
         )
 
         lazy val macOSSettings = MacOSSettings(
           shared = sharedSettings,
-          identifier = build.options.packageOptions.macOSidentifier.getOrElse {
-            System.err.println("Identifier parameter is mandatory for macOs packages")
-            sys.exit(1)
-          }
+          identifier =
+            packageOptions.macOSidentifier.mandatory("identifier parameter", "macOs")
         )
 
         lazy val redHatSettings = RedHatSettings(
           shared = sharedSettings,
-          description = build.options.packageOptions.description.getOrElse {
-            System.err.println("Description parameter is mandatory for redHat packages")
-            sys.exit(1)
-          },
-          license = build.options.packageOptions.redHatOptions.license.getOrElse {
-            System.err.println("License parameter is mandatory for redHat packages")
-            sys.exit(1)
-          },
-          release = build.options.packageOptions.redHatOptions.release.getOrElse {
-            System.err.println("Release parameter is mandatory for redHat packages")
-            sys.exit(1)
-          },
-          rpmArchitecture = build.options.packageOptions.redHatOptions.architecture.getOrElse {
-            System.err.println("Rpm architecture parameter is mandatory for red hat packages")
-            sys.exit(1)
-          }
+          description = packageOptions.description.mandatory("description", "redHat"),
+          license =
+            packageOptions.redHatOptions.license.mandatory("license", "redHat"),
+          release =
+            packageOptions.redHatOptions.release.mandatory("release", "redHat"),
+          rpmArchitecture = packageOptions.redHatOptions.architecture.mandatory(
+            "rpm architecture",
+            "redHat"
+          )
         )
 
         lazy val windowsSettings = WindowsSettings(
           shared = sharedSettings,
-          maintainer = build.options.packageOptions.maintainer.getOrElse {
-            System.err.println("Maintainer parameter is mandatory for windows packages")
-            sys.exit(1)
-          },
-          licencePath = build.options.packageOptions.windowsOptions.licensePath.getOrElse {
-            System.err.println("Licence path parameter is mandatory for windows packages")
-            sys.exit(1)
-          },
-          productName = build.options.packageOptions.windowsOptions.productName.getOrElse {
-            System.err.println("Product name parameter is mandatory for windows packages")
-            sys.exit(1)
-          },
-          exitDialog = build.options.packageOptions.windowsOptions.exitDialog,
+          maintainer = packageOptions.maintainer.mandatory("maintainer", "windows"),
+          licencePath = packageOptions.windowsOptions.licensePath.mandatory(
+            "licence path",
+            "windows"
+          ),
+          productName = packageOptions.windowsOptions.productName.mandatory(
+            "product name",
+            "windows"
+          ),
+          exitDialog = packageOptions.windowsOptions.exitDialog,
           suppressValidation =
-            build.options.packageOptions.windowsOptions.suppressValidation.getOrElse(false),
-          extraConfig = None,
-          is64Bits = true,
-          installerVersion = None
+            packageOptions.windowsOptions.suppressValidation.getOrElse(false),
+          extraConfigs = packageOptions.windowsOptions.extraConfig,
+          is64Bits = packageOptions.windowsOptions.is64Bits.getOrElse(true),
+          installerVersion = packageOptions.windowsOptions.installerVersion
         )
 
         nativePackagerType match {
           case PackageType.Debian =>
-            DebianPackage(bootstrapPath, debianSettings).build()
+            DebianPackage(debianSettings).build()
           case PackageType.Dmg =>
-            DmgPackage(bootstrapPath, macOSSettings).build()
+            DmgPackage(macOSSettings).build()
           case PackageType.Pkg =>
-            PkgPackage(bootstrapPath, macOSSettings).build()
+            PkgPackage(macOSSettings).build()
           case PackageType.Rpm =>
-            RedHatPackage(bootstrapPath, redHatSettings).build()
+            RedHatPackage(redHatSettings).build()
           case PackageType.Msi =>
             val imageResizerOpt = Option((new GetImageResizer).get())
             WindowsPackage(
-              bootstrapPath,
               windowsSettings,
               imageResizerOpt = imageResizerOpt
             ).build()
         }
+    }
+
+    // build docker image
+    if (build.options.packageOptions.isDockerEnabled) {
+
+      val exec = if (build.options.scalaJsOptions.enable) "node" else "sh"
+      val from = build.options.packageOptions.dockerOptions.from match {
+        case Some(baseImage) => baseImage
+        case None => if (build.options.scalaJsOptions.enable) "node" else "adoptopenjdk/openjdk8"
+      }
+
+      val dockerSettings = DockerSettings(
+        from = from,
+        registry = build.options.packageOptions.dockerOptions.imageRegistry,
+        repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
+          "image repository",
+          "docker"
+        ),
+        tag = build.options.packageOptions.dockerOptions.imageTag,
+        exec = exec
+      )
+
+      DockerPackage(destPath, dockerSettings).build()
     }
 
     logger.message {

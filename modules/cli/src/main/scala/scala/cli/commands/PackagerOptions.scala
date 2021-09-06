@@ -11,7 +11,7 @@ final case class PackagerOptions(
   )
     logoPath: Option[String] = None,
   @HelpMessage("Set launcher app name which will be linked to PATH")
-    launcherAppName: Option[String] = None,
+    launcherApp: Option[String] = None,
   @ValueDescription("Description")
     description: Option[String] = None,
   @HelpMessage("It should contains names and email addresses of co-maintainers of the package")
@@ -60,7 +60,38 @@ final case class PackagerOptions(
     exitDialog: Option[String] = None,
   @Group("Windows")
   @HelpMessage("Suppress Wix ICE validation (required for users that are neither interactive, not local administrators)")
-    suppressValidation: Option[Boolean] = None
+    suppressValidation: Option[Boolean] = None,
+  @Group("Windows")
+  @HelpMessage("Path to extra WIX config content")
+  @ValueDescription("path")
+    extraConfig: List[String] = Nil,
+  @Group("Windows")
+  @HelpMessage("Whether a 64-bit executable is getting packaged")
+  @Name("64")
+    is64Bits: Boolean = true,
+  @Group("Windows")
+  @HelpMessage("WIX installer version")
+    installerVersion: Option[String] = None,
+  @Group("Docker")
+  @HelpMessage(
+    "Building the container from base image"
+  )
+  dockerFrom: Option[String] = None,
+  @Group("Docker")
+  @HelpMessage(
+    "The image registry, if will be empty it will be used default registry"
+  )
+  dockerImageRegistry: Option[String] = None,
+  @Group("Docker")
+  @HelpMessage(
+    "The image repository"
+  )
+  dockerImageRepository: Option[String] = None,
+  @Group("Docker")
+  @HelpMessage(
+    "The image tag, the default tag is latest"
+  )
+  dockerImageTag: Option[String] = None,
 )
 // format: on
 
