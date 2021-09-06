@@ -174,14 +174,15 @@ object Package extends ScalaCommand[PackageOptions] {
           logoPath = build.options.packageOptions.logoPath,
           launcherApp = build.options.packageOptions.launcherApp
         )
+        val packageOptions = build.options.packageOptions
 
         lazy val debianSettings = DebianSettings(
           shared = sharedSettings,
-          maintainer = build.options.packageOptions.maintainer.mandatory("maintainer", "debian"),
-          description = build.options.packageOptions.description.mandatory("description", "debian"),
-          debianConflicts = build.options.packageOptions.debianOptions.conflicts,
-          debianDependencies = build.options.packageOptions.debianOptions.dependencies,
-          architecture = build.options.packageOptions.debianOptions.architecture.mandatory(
+          maintainer = packageOptions.maintainer.mandatory("maintainer", "debian"),
+          description = packageOptions.description.mandatory("description", "debian"),
+          debianConflicts = packageOptions.debianOptions.conflicts,
+          debianDependencies = packageOptions.debianOptions.dependencies,
+          architecture = packageOptions.debianOptions.architecture.mandatory(
             "deb architecture",
             "debian"
           )
@@ -190,17 +191,17 @@ object Package extends ScalaCommand[PackageOptions] {
         lazy val macOSSettings = MacOSSettings(
           shared = sharedSettings,
           identifier =
-            build.options.packageOptions.macOSidentifier.mandatory("identifier parameter", "macOs")
+            packageOptions.macOSidentifier.mandatory("identifier parameter", "macOs")
         )
 
         lazy val redHatSettings = RedHatSettings(
           shared = sharedSettings,
-          description = build.options.packageOptions.description.mandatory("description", "redHat"),
+          description = packageOptions.description.mandatory("description", "redHat"),
           license =
-            build.options.packageOptions.redHatOptions.license.mandatory("license", "redHat"),
+            packageOptions.redHatOptions.license.mandatory("license", "redHat"),
           release =
-            build.options.packageOptions.redHatOptions.release.mandatory("release", "redHat"),
-          rpmArchitecture = build.options.packageOptions.redHatOptions.architecture.mandatory(
+            packageOptions.redHatOptions.release.mandatory("release", "redHat"),
+          rpmArchitecture = packageOptions.redHatOptions.architecture.mandatory(
             "rpm architecture",
             "redHat"
           )
@@ -208,31 +209,21 @@ object Package extends ScalaCommand[PackageOptions] {
 
         lazy val windowsSettings = WindowsSettings(
           shared = sharedSettings,
-          maintainer = build.options.packageOptions.maintainer.mandatory("maintainer", "windows"),
-          licencePath = build.options.packageOptions.windowsOptions.licensePath.mandatory(
+          maintainer = packageOptions.maintainer.mandatory("maintainer", "windows"),
+          licencePath = packageOptions.windowsOptions.licensePath.mandatory(
             "licence path",
             "windows"
           ),
-          productName = build.options.packageOptions.windowsOptions.productName.mandatory(
+          productName = packageOptions.windowsOptions.productName.mandatory(
             "product name",
             "windows"
           ),
-          exitDialog = build.options.packageOptions.windowsOptions.exitDialog,
+          exitDialog = packageOptions.windowsOptions.exitDialog,
           suppressValidation =
-            build.options.packageOptions.windowsOptions.suppressValidation.getOrElse(false),
-          extraConfig = {
-            val config = build.options.packageOptions.windowsOptions.extraConfig
-            if (config.isEmpty) None
-            else
-              Some {
-                config
-                  .map { path =>
-                    val path0 = os.Path(path, os.pwd)
-                    os.read(path0, charSet = Charset.defaultCharset(), offset = 0L)
-                  }
-                  .mkString(System.lineSeparator())
-              }
-          }
+            packageOptions.windowsOptions.suppressValidation.getOrElse(false),
+          extraConfigs = packageOptions.windowsOptions.extraConfig,
+          is64Bits = packageOptions.windowsOptions.is64Bits.getOrElse(true),
+          installerVersion = packageOptions.windowsOptions.installerVersion
         )
 
         nativePackagerType match {

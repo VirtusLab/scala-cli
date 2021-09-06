@@ -90,7 +90,7 @@ generate_msi() {
     --exit-dialog "If scala-cli is not visible, please restart your opened consoles" \
     --logo-path "./logo.png" \
     --suppress-validation \
-    --extra-config wix-visual-cpp-redist.xml
+    --extra-configs wix-visual-cpp-redist.xml
   rm -f "$ARTIFACTS_DIR/"*.wixpdb || true
 }
 

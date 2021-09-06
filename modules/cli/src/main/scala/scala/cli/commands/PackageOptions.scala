@@ -94,13 +94,15 @@ final case class PackageOptions(
           productName = Some(packager.productName),
           exitDialog = packager.exitDialog,
           suppressValidation = packager.suppressValidation,
-          extraConfig = packager.extraConfig
+          extraConfig = packager.extraConfig,
+          is64Bits = Some(packager.is64Bits),
+          installerVersion = packager.installerVersion
         ),
         dockerOptions = DockerOptions(
-          from = packager.from,
-          imageRegistry = packager.imageRegistry,
-          imageRepository = packager.imageRepository,
-          imageTag = packager.imageTag,
+          from = packager.dockerFrom,
+          imageRegistry = packager.dockerImageRegistry,
+          imageRepository = packager.dockerImageRepository,
+          imageTag = packager.dockerImageTag,
           isDockerEnabled = Some(docker)
         )
       )

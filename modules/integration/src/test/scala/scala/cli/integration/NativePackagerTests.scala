@@ -216,9 +216,9 @@ class NativePackagerTests extends munit.FunSuite {
         TestUtil.cli,
         "package", helloWorldFileName,
         "--docker",
-        "--from", "adoptopenjdk/openjdk8",
-        "--image-repository", imageRepository,
-        "--image-tag", imageTag
+        "--docker-from", "adoptopenjdk/openjdk8",
+        "--docker-image-repository", imageRepository,
+        "--docker-image-tag", imageTag
       )
       // format: on
 
@@ -254,9 +254,9 @@ class NativePackagerTests extends munit.FunSuite {
         "package", helloWorldFileName,
         "--js",
         "--docker",
-        "--from", "node",
-        "--image-repository", imageRepository,
-        "--image-tag", imageTag
+        "--docker-from", "node",
+        "--docker-image-repository", imageRepository,
+        "--docker-image-tag", imageTag
       )
       // format: on
 

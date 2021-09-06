@@ -65,26 +65,33 @@ final case class PackagerOptions(
   @HelpMessage("Path to extra WIX config content")
   @ValueDescription("path")
     extraConfig: List[String] = Nil,
+  @Group("Windows")
+  @HelpMessage("Whether a 64-bit executable is getting packaged")
+  @Name("64")
+    is64Bits: Boolean = true,
+  @Group("Windows")
+  @HelpMessage("WIX installer version")
+    installerVersion: Option[String] = None,
   @Group("Docker")
   @HelpMessage(
     "Building the container from base image"
   )
-  from: Option[String] = None,
+  dockerFrom: Option[String] = None,
   @Group("Docker")
   @HelpMessage(
     "The image registry, if will be empty it will be used default registry"
   )
-  imageRegistry: Option[String] = None,
+  dockerImageRegistry: Option[String] = None,
   @Group("Docker")
   @HelpMessage(
     "The image repository"
   )
-  imageRepository: Option[String] = None,
+  dockerImageRepository: Option[String] = None,
   @Group("Docker")
   @HelpMessage(
     "The image tag, the default tag is latest"
   )
-  imageTag: Option[String] = None,
+  dockerImageTag: Option[String] = None,
 )
 // format: on
 
