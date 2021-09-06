@@ -24,6 +24,9 @@
       },
       {
         "pattern": "win32/x86_64/sbtipcsocket.dll"
+      },
+      {
+        "pattern": "\\Qcommons-logging.properties\\E"
       }
     ]
   },
