@@ -921,9 +921,6 @@
     "name":"java.lang.String"
   },
   {
-    "name":"java.util.Date"
-  },
-  {
     "name":"java.util.List",
     "allDeclaredMethods":true
   },
