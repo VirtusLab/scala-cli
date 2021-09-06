@@ -232,11 +232,14 @@ class NativePackagerTests extends munit.FunSuite {
       val expectedImage =
         s"$imageRepository:$imageTag"
 
-      val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
-      expect(output == message)
-
-      // clear
-      os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
+      try {
+        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
+        expect(output == message)
+      }
+      finally {
+        // clear
+        os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
+      }
     }
   }
 
@@ -270,11 +273,15 @@ class NativePackagerTests extends munit.FunSuite {
       val expectedImage =
         s"$imageRepository:$imageTag"
 
-      val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
-      expect(output == message)
+      try {
+        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
+        expect(output == message)
 
-      // clear
-      os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
+      }
+      finally {
+        // clear
+        os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
+      }
     }
   }
 
