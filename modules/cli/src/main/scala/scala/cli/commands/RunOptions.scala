@@ -7,7 +7,10 @@ import scala.build.Build
 import scala.build.options.BuildOptions
 
 // format: off
-@HelpMessage("Compile and run Scala code")
+@HelpMessage("""|Compile and run Scala code.
+                |
+                |To pass arguments to the application, just launch after --
+                |scala-cli MyApp.scala -- first-arg second-arg""".stripMargin)
 final case class RunOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
