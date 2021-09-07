@@ -9,7 +9,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 import scala.build.blooprifle.{BloopRifleLogger, BspConnection, BspConnectionAddress}
 import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
-import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
+import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.{Failure, Properties, Success, Try}
 
 import org.scalasbt.ipcsocket.NativeErrorException
@@ -212,15 +212,13 @@ object Operations {
           "local:" + s.path.toURI.toASCIIString.stripPrefix("file:")
         case p: BspConnectionAddress.WindowsNamedPipe => p.name
       }
-      def openSocket() = bspSocketOrPort match {
+      def openSocket(period: FiniteDuration, timeout: FiniteDuration) = bspSocketOrPort match {
         case t: BspConnectionAddress.Tcp =>
           new Socket(host, t.port)
         case s: BspConnectionAddress.UnixDomainSocket =>
           val socketFile     = s.path
           var count          = 0
-          val period         = 50.millis
-          val maxWait        = 10.seconds
-          val maxCount       = (maxWait / period).toInt
+          val maxCount       = (timeout / period).toInt
           var socket: Socket = null
           while (
             !socketFile.exists() && socket == null && count < maxCount && closed.value.isEmpty
@@ -268,9 +266,7 @@ object Operations {
             )
         case p: BspConnectionAddress.WindowsNamedPipe =>
           var count          = 0
-          val period         = 50.millis
-          val maxWait        = 10.seconds
-          val maxCount       = (maxWait / period).toInt
+          val maxCount       = (timeout / period).toInt
           var socket: Socket = null
           while (socket == null && count < maxCount && closed.value.isEmpty) {
             Thread.sleep(period.toMillis)

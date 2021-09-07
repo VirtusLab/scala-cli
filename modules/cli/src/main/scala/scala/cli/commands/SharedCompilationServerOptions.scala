@@ -9,7 +9,7 @@ import java.util.Random
 import scala.build.blooprifle.BspConnectionAddress
 import scala.build.Os
 import scala.cli.internal.Pid
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.util.Properties
 
 // format: off
