@@ -63,8 +63,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     f: (TestBspClient, b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer) => Future[T]
   ): T = {
 
-    // Having issues with local sockets during the tests, never got those outside of tests…
-    val proc = os.proc(TestUtil.cli, "bsp", "--bloop-bsp-protocol", "tcp", extraOptions, args)
+    val proc = os.proc(TestUtil.cli, "bsp", extraOptions, args)
       .spawn(cwd = root)
     var remoteServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer = null
 

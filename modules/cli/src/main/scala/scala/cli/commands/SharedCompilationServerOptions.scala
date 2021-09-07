@@ -66,7 +66,8 @@ final case class SharedCompilationServerOptions(
       val tmpDir = dir / os.up / s".${dir.last}.tmp-${pidOrRandom.merge}"
       try {
         os.makeDir.all(tmpDir)
-        os.perms.set(tmpDir, "rwx------")
+        if (!Properties.isWin)
+          os.perms.set(tmpDir, "rwx------")
         try os.move(tmpDir, dir, atomicMove = true)
         catch {
           case _: AtomicMoveNotSupportedException =>
@@ -118,20 +119,22 @@ final case class SharedCompilationServerOptions(
 
   def defaultBspSocketOrPort(
     directories: => scala.build.Directories
-  ): Option[() => BspConnectionAddress] =
+  ): Option[() => BspConnectionAddress] = {
+    def namedSocket =
+      if (Properties.isWin)
+        Some(() => BspConnectionAddress.WindowsNamedPipe(bspPipeName()))
+      else
+        Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile(directories)))
     bloopBspProtocol.filter(_ != "default") match {
-      case None        => None
-      case Some("tcp") => None
-      case Some("local") =>
-        if (Properties.isWin)
-          Some(() => BspConnectionAddress.WindowsNamedPipe(bspPipeName()))
-        else
-          Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile(directories)))
+      case None          => namedSocket
+      case Some("tcp")   => None
+      case Some("local") => namedSocket
       case Some(other) =>
         sys.error(
           s"Invalid bloop BSP protocol value: '$other' (expected 'tcp', 'local', or 'default')"
         )
     }
+  }
 
   private def parseDuration(name: String, valueOpt: Option[String]): Option[FiniteDuration] =
     valueOpt.map(_.trim).filter(_.nonEmpty).map(Duration(_)).map {
