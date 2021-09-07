@@ -244,7 +244,6 @@ jobs:
         run: ls -R
         working-directory: artifacts/
       - uses: webfactory/ssh-agent@5f066a372ec13036ab7cb9a8adf18c936f8d2043
-      - uses: webfactory/ssh-agent@5f066a372ec13036ab7cb9a8adf18c936f8d2043
         with:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
