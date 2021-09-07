@@ -554,8 +554,191 @@ def copyStaticLauncher(directory: String = "artifacts") = T.command {
   )
 }
 
+private def gitClone(repo: String, branch: String, workDir: os.Path) = {
+  os.proc("git", "clone", repo, "-q", "-b", branch).call(cwd = workDir)
+}
+private def setupGithubRepo(repoDir: os.Path) = {
+  val gitUserName = "gh-actions"
+  val gitEmail    = "actions@github.com"
+
+  os.proc("git", "config", "user.name", gitUserName).call(cwd = repoDir)
+  os.proc("git", "config", "user.email", gitEmail).call(cwd = repoDir)
+}
+
+private def commitChanges(name: String, branch: String, repoDir: os.Path): Unit = {
+  if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit")) {
+    println("Nothing Changes")
+  }
+  else {
+    os.proc("git", "add", "-A").call(cwd = repoDir)
+    os.proc("git", "commit", "-am", name).call(cwd = repoDir)
+    println(s"Trying to push on $branch branch")
+    os.proc("git", "push", "origin", branch).call(cwd = repoDir)
+    println(s"Push successfully on $branch branch")
+  }
+}
+
 // TODO Move most CI-specific tasks there
 object ci extends Module {
+  def updateBrewFormula() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir          = os.pwd / "target"
+    val homebrewFormulaDir = targetDir / "homebrew-scala-cli"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val branch = "main"
+    val repo   = s"git@github.com:VirtuslabRnD/homebrew-scala-cli.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(homebrewFormulaDir)
+
+    val launcherPath = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
+    val launcherURL =
+      s"https://github.com/VirtuslabRnD/scala-cli/releases/download/v$version/scala-cli-x86_64-apple-darwin.gz"
+
+    val binarySha256 = os.proc("openssl", "dgst", "-sha256", "-binary")
+      .call(
+        cwd = targetDir,
+        stdin = os.read.stream(launcherPath)
+      ).out.bytes
+
+    val sha256 = os.proc("xxd", "-p", "-c", "256")
+      .call(
+        cwd = targetDir,
+        stdin = binarySha256
+      ).out.text().trim
+
+    val templateFormulaPath = os.pwd / ".github" / "scripts" / "scala-cli.rb.template"
+    val template            = os.read(templateFormulaPath)
+
+    val updatedFormula = template
+      .replace("\"@LAUNCHER_URL@\"", s""""$launcherURL"""")
+      .replace("\"@LAUNCHER_VERSION@\"", s""""$version"""")
+      .replace("\"@LAUNCHER_SHA256@\"", s""""$sha256"""")
+
+    val formulaPath = homebrewFormulaDir / "scala-cli.rb"
+    os.write.over(formulaPath, updatedFormula)
+
+    commitChanges(s"Update for $version", branch, homebrewFormulaDir)
+  }
+  def updateDebianPackages() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir   = os.pwd / "target"
+    val packagesDir = targetDir / "scala-cli-packages"
+    val debianDir   = packagesDir / "debian"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val branch = "master"
+    val repo   = s"git@github.com:VirtuslabRnD/scala-cli-packages.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(packagesDir)
+
+    // copy deb package to repository
+    os.copy(
+      os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.deb",
+      debianDir / s"scala-cli_$version.deb"
+    )
+
+    val packagesPath = debianDir / "Packages"
+    os.proc("dpkg-scanpackages", "--multiversion", ".").call(cwd = debianDir, stdout = packagesPath)
+    os.proc("gzip", "-k", "-f", "Packages").call(cwd = debianDir)
+
+    val releasePath = debianDir / "Release"
+    os.proc("apt-ftparchive", "release", ".").call(cwd = debianDir, stdout = releasePath)
+
+    val pgpPassphrase =
+      Option(System.getenv("PGP_PASSPHRASE")).getOrElse { sys.error("PGP_PASSPHRASE not set") }
+    val keyName = Option(System.getenv("GPG_EMAIL")).getOrElse { sys.error("GPG_EMAIL not set") }
+    val releaseGpgPath = debianDir / "Release.gpg"
+    val inReleasePath  = debianDir / "InRelease"
+    os.proc(
+      "gpg",
+      "--batch",
+      "--yes",
+      "--passphrase-fd",
+      "0",
+      "--default-key",
+      keyName,
+      "-abs",
+      "-o",
+      "-",
+      "Release"
+    )
+      .call(cwd = debianDir, stdin = pgpPassphrase, stdout = releaseGpgPath)
+    os.proc(
+      "gpg",
+      "--batch",
+      "--yes",
+      "--passphrase-fd",
+      "0",
+      "--default-key",
+      keyName,
+      "--clearsign",
+      "-o",
+      "-",
+      "Release"
+    )
+      .call(cwd = debianDir, stdin = pgpPassphrase, stdout = inReleasePath)
+
+    commitChanges(s"Update Debian packages for $version", "master", packagesDir)
+  }
+  def updateCentOsPackages() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir   = os.pwd / "target"
+    val packagesDir = targetDir / "scala-cli-packages"
+    val centOsDir   = packagesDir / "CentOS"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val branch = "master"
+    val repo   = s"git@github.com:VirtuslabRnD/scala-cli-packages.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(packagesDir)
+
+    // copy rpm package to repository
+    os.copy(
+      os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.rpm",
+      centOsDir / "Packages" / s"scala-cli_$version.rpm"
+    )
+
+    // format: off
+    val cmd =  Seq[os.Shellable](
+      "docker", "run",
+      "-v", s"$packagesDir:/packages",
+      "-w", "/packages",
+      "--env", "PGP_SECRET",
+      "--env", "PGP_PASSPHRASE",
+      "--env", "GPG_EMAIL",
+      "--env", "KEYGRIP",
+      "--privileged",
+      "fedora",
+      "sh", "updateCentOsPackages.sh"
+    )
+    // format: on
+
+    os.proc(cmd).call(cwd = packagesDir)
+
+    commitChanges(s"Update CentOS packages for $version", branch, packagesDir)
+  }
   private def vsBasePath = os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
   def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") =
     T.command {
