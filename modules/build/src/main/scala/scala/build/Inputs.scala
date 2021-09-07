@@ -16,6 +16,9 @@ final case class Inputs(
   mayAppendHash: Boolean
 ) {
 
+  def isEmpty: Boolean =
+    elements.isEmpty
+
   def singleFiles(): Seq[Inputs.SingleFile] =
     elements.flatMap {
       case f: Inputs.SingleFile => Seq(f)
