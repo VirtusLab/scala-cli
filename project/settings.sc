@@ -67,12 +67,45 @@ trait CliLaunchers extends SbtModule { self =>
     def nativeImageCsCommand    = Seq(cs)
     def nativeImagePersist      = System.getenv("CI") != null
     def nativeImageGraalVmJvmId = s"graalvm-java11:${deps.graalVmVersion}"
-    def nativeImageOptions = Seq(
-      s"-H:IncludeResources=$localRepoResourcePath"
-    )
+    def nativeImageOptions = T {
+      val usesDocker = nativeImageDockerParams().nonEmpty
+      val cLibPath =
+        if (usesDocker) s"/data/$staticLibDirName"
+        else staticLibDir().path.toString
+      Seq(
+        s"-H:IncludeResources=$localRepoResourcePath",
+        s"-H:CLibraryPath=$cLibPath"
+      )
+    }
     def nativeImageName      = "scala-cli"
     def nativeImageClassPath = self.nativeImageClassPath()
     def nativeImageMainClass = self.nativeImageMainClass()
+
+    private def staticLibDirName = "native-libs"
+
+    private def copyCsjniutilTo(destDir: os.Path): Unit = {
+      val jniUtilsVersion = Deps.jniUtils.dep.version
+      val libRes = os.proc(
+        cs,
+        "fetch",
+        "--intransitive",
+        s"io.get-coursier.jniutils:windows-jni-utils:$jniUtilsVersion,classifier=x86_64-pc-win32,ext=lib,type=lib",
+        "-A",
+        "lib"
+      ).call()
+      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      os.copy.over(libPath, destDir / "csjniutils.lib")
+    }
+    def staticLibDir = T {
+      val dir = nativeImageDockerWorkingDir() / staticLibDirName
+      os.makeDir.all(dir)
+
+      if (Properties.isWin) {
+        copyCsjniutilTo(dir)
+      }
+
+      PathRef(dir)
+    }
   }
 
   object `base-image` extends CliNativeImage
