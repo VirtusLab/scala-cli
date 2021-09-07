@@ -12,7 +12,7 @@ final case class BloopRifleConfig(
   javaPath: String,
   javaOpts: Seq[String],
   classPath: () => Seq[File],
-  bspSocketOrPort: Option[() => Either[Int, File]],
+  bspSocketOrPort: Option[() => BspConnectionAddress],
   bspStdin: Option[InputStream],
   bspStdout: Option[OutputStream],
   bspStderr: Option[OutputStream],

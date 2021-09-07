@@ -403,6 +403,9 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
     Deps.ipcSocket,
     Deps.snailgun
   )
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.svm
+  )
   def mainClass = Some("scala.build.blooprifle.BloopRifle")
 
   def constantsFile = T.persistent {

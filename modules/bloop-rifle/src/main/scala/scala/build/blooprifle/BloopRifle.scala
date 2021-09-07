@@ -83,7 +83,7 @@ object BloopRifle {
   ): BspConnection = {
 
     val bspSocketOrPort = config.bspSocketOrPort.map(_()).getOrElse {
-      Left(Util.randomPort())
+      BspConnectionAddress.Tcp(Util.randomPort())
     }
 
     val in = config.bspStdin.getOrElse {
