@@ -552,30 +552,28 @@ def copyStaticLauncher(directory: String = "artifacts") = T.command {
 }
 
 private def gitClone(repo: String, branch: String, workDir: os.Path) = {
-    os.proc("git", "clone", repo, "-q", "-b", branch).call(cwd = workDir)
-  }
-private  def setupGithubRepo(repoDir: os.Path) = {
-    val gitUserName = "gh-actions"
-    val gitEmail    = "actions@github.com"
+  os.proc("git", "clone", repo, "-q", "-b", branch).call(cwd = workDir)
+}
+private def setupGithubRepo(repoDir: os.Path) = {
+  val gitUserName = "gh-actions"
+  val gitEmail    = "actions@github.com"
 
-    os.proc("git", "config", "user.name", gitUserName).call(cwd = repoDir)
-    os.proc("git", "config", "user.email", gitEmail).call(cwd = repoDir)
-  }
+  os.proc("git", "config", "user.name", gitUserName).call(cwd = repoDir)
+  os.proc("git", "config", "user.email", gitEmail).call(cwd = repoDir)
+}
 
-private  def commitChanges(name: String, branch: String, repoDir: os.Path): Unit = {
-    if (
-      os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit")
-    ) {
-      println("Nothing Changes")
-    }
-    else {
-      os.proc("git", "add", "-A").call(cwd = repoDir)
-      os.proc("git", "commit", "-am", name).call(cwd = repoDir)
-      println(s"Trying to push on $branch branch")
-      os.proc("git", "push", "origin", branch).call(cwd = repoDir)
-      println(s"Push successfully on $branch branch")
-    }
+private def commitChanges(name: String, branch: String, repoDir: os.Path): Unit = {
+  if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit")) {
+    println("Nothing Changes")
   }
+  else {
+    os.proc("git", "add", "-A").call(cwd = repoDir)
+    os.proc("git", "commit", "-am", name).call(cwd = repoDir)
+    println(s"Trying to push on $branch branch")
+    os.proc("git", "push", "origin", branch).call(cwd = repoDir)
+    println(s"Push successfully on $branch branch")
+  }
+}
 
 // TODO Move most CI-specific tasks there
 object ci extends Module {
@@ -590,9 +588,8 @@ object ci extends Module {
 
     os.makeDir.all(targetDir)
 
-    val ghToken = getGhToken()
-    val branch  = "main"
-    val repo    = s"https://$ghToken@github.com/VirtuslabRnD/homebrew-scala-cli.git"
+    val branch = "main"
+    val repo   = s"git@github.com:VirtuslabRnD/homebrew-scala-cli.git"
 
     // Cloning
     gitClone(repo, branch, targetDir)
@@ -639,9 +636,8 @@ object ci extends Module {
 
     os.makeDir.all(targetDir)
 
-    val ghToken =  getGhToken()
-    val branch  = "master"
-    val repo    = s"https://$ghToken@github.com/VirtuslabRnD/scala-cli-packages.git"
+    val branch = "master"
+    val repo   = s"git@github.com:VirtuslabRnD/scala-cli-packages.git"
 
     // Cloning
     gitClone(repo, branch, targetDir)
@@ -662,7 +658,7 @@ object ci extends Module {
 
     val pgpPassphrase =
       Option(System.getenv("PGP_PASSPHRASE")).getOrElse { sys.error("PGP_PASSPHRASE not set") }
-    val keyName        = Option(System.getenv("GPG_EMAIL")).getOrElse { sys.error("GPG_EMAIL not set") }
+    val keyName = Option(System.getenv("GPG_EMAIL")).getOrElse { sys.error("GPG_EMAIL not set") }
     val releaseGpgPath = debianDir / "Release.gpg"
     val inReleasePath  = debianDir / "InRelease"
     os.proc(
@@ -708,9 +704,8 @@ object ci extends Module {
 
     os.makeDir.all(targetDir)
 
-    val ghToken = getGhToken()
-    val branch  = "master"
-    val repo    = s"https://$ghToken@github.com/VirtuslabRnD/scala-cli-packages.git"
+    val branch = "master"
+    val repo   = s"git@github.com:VirtuslabRnD/scala-cli-packages.git"
 
     // Cloning
     gitClone(repo, branch, targetDir)

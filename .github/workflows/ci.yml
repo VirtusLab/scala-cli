@@ -243,21 +243,23 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: artifacts/
+      - uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: |
+            ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
+            ${{ secrets.HOMEBREW_SCALA_CLI }}
+      - uses: webfactory/ssh-agent@v0.5.3
       - run: ./mill -i ci.updateBrewFormula
-        env:
-          UPLOAD_GH_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: GPG setup
         run: .github/scripts/gpg-setup.sh
         env:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
       - run: ./mill -i ci.updateDebianPackages
         env:
-          UPLOAD_GH_TOKEN: ${{ secrets.GH_TOKEN }}
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
       - run: ./mill -i ci.updateCentOsPackages
         env:
-          UPLOAD_GH_TOKEN: ${{ secrets.GH_TOKEN }}
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           KEYGRIP: ${{ secrets.KEYGRIP }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}

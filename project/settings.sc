@@ -62,10 +62,10 @@ def platformSuffix: String = {
 def localRepoResourcePath = "local-repo.zip"
 
 def getGhToken(): String = {
-    Option(System.getenv("UPLOAD_GH_TOKEN"))
-      .getOrElse {
-        sys.error("UPLOAD_GH_TOKEN not set")
-      }
+  Option(System.getenv("UPLOAD_GH_TOKEN"))
+    .getOrElse {
+      sys.error("UPLOAD_GH_TOKEN not set")
+    }
 }
 
 trait CliLaunchers extends SbtModule { self =>
