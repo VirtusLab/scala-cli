@@ -29,7 +29,7 @@ object Deps {
   }
   def ammonite                   = ivy"com.lihaoyi:::ammonite:2.4.0-12-69f45b4b"
   def asm                        = ivy"org.ow2.asm:asm:9.1"
-  def bloopConfig                = ivy"ch.epfl.scala::bloop-config:1.4.8-83-27d9d739"
+  def bloopConfig                = ivy"ch.epfl.scala::bloop-config:1.4.8-124-49a6348a"
   def bsp4j                      = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   def caseApp                    = ivy"com.github.alexarchambault::case-app:2.1.0-M6"
   def coursierJvm                = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
