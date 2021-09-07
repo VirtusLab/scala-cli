@@ -2,6 +2,10 @@ package scala.cli.integration
 
 import java.io.IOException
 import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
+import java.util.concurrent.atomic.AtomicInteger
+
+import scala.util.control.NonFatal
 
 final case class TestInputs(
   files: Seq[(os.RelPath, String)]
@@ -27,8 +31,33 @@ final case class TestInputs(
 
 object TestInputs {
 
+  private lazy val baseTmpDir = {
+    val fromEnv = Option(System.getenv("SCALA_CLI_TMP")).getOrElse {
+      sys.error("SCALA_CLI_TMP not set")
+    }
+    val base = os.Path(System.getenv("SCALA_CLI_TMP"), os.pwd)
+    val rng  = new SecureRandom
+    val d    = base / s"run-${math.abs(rng.nextInt().toLong)}"
+    os.makeDir.all(d)
+    Runtime.getRuntime.addShutdownHook(
+      new Thread("scala-cli-its-clean-up-tmp-dir") {
+        setDaemon(true)
+        override def run(): Unit =
+          try os.remove.all(d)
+          catch {
+            case NonFatal(e) =>
+              System.err.println(s"Could not remove $d, ignoring it.")
+          }
+      }
+    )
+    d
+  }
+
+  private val tmpCount = new AtomicInteger
+
   private def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
-    val tmpDir  = os.temp.dir(prefix = prefix)
+    val tmpDir = baseTmpDir / s"test-${tmpCount.incrementAndGet()}"
+    os.makeDir.all(tmpDir)
     val tmpDir0 = os.Path(tmpDir.toIO.getCanonicalFile)
     try f(tmpDir0)
     finally {
@@ -41,7 +70,8 @@ object TestInputs {
   }
 
   private def tmpDir(prefix: String): os.Path = {
-    val tmpDir = os.temp.dir(prefix = prefix)
+    val tmpDir = baseTmpDir / s"test-${tmpCount.incrementAndGet()}"
+    os.makeDir.all(tmpDir)
     os.Path(tmpDir.toIO.getCanonicalFile)
   }
 }

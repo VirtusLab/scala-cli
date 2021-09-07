@@ -43,6 +43,12 @@ object integration extends Module {
       def sources = T.sources {
         super.sources() ++ integration.jvm.sources()
       }
+      def tmpDirBase = T.persistent {
+        PathRef(T.dest / "working-dir")
+      }
+      def forkEnv = super.forkEnv() ++ Seq(
+        "SCALA_CLI_TMP" -> tmpDirBase().path.toString
+      )
     }
   }
   object jvm extends JvmIntegration {
@@ -253,6 +259,10 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
 
   def prefix: String
 
+  def tmpDirBase = T.persistent {
+    PathRef(T.dest / "working-dir")
+  }
+
   def sources = T.sources {
     val name                = mainArtifactName().stripPrefix(prefix)
     val baseIntegrationPath = os.Path(millSourcePath.toString.stripSuffix(name))
@@ -277,7 +287,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     )
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI"      -> testLauncher().path.toString,
-      "SCALA_CLI_KIND" -> cliKind()
+      "SCALA_CLI_KIND" -> cliKind(),
+      "SCALA_CLI_TMP"  -> tmpDirBase().path.toString
     )
     def sources = T.sources {
       val name = mainArtifactName().stripPrefix(prefix)
