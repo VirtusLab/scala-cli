@@ -674,7 +674,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   def compileTimeOnlyJars(): Unit = {
     // format: off
     val cmd = Seq[os.Shellable](
-      "cs", "fetch",
+      TestUtil.cs, "fetch",
       "--intransitive", "com.chuusai::shapeless:2.3.7",
       "--scala", actualScalaVersion
     )

@@ -60,6 +60,11 @@ object TestUtil {
       .map(_.getAbsolutePath)
   }
 
+  lazy val cs = fromPath("cs").getOrElse {
+    System.err.println("Warning: cannot find cs in PATH")
+    "cs"
+  }
+
   def threadPool(prefix: String, size: Int): ExecutorService =
     Executors.newFixedThreadPool(4, daemonThreadFactory(prefix))
 

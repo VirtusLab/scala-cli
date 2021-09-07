@@ -26,7 +26,7 @@ class ReplTests213 extends ReplTestDefinitions(
         }
         .flatMap(arg => Seq("--ammonite-arg", arg))
       val shapelessJar =
-        os.proc("cs", "fetch", "--intransitive", "com.chuusai:shapeless_2.13:2.3.7")
+        os.proc(TestUtil.cs, "fetch", "--intransitive", "com.chuusai:shapeless_2.13:2.3.7")
           .call()
           .out
           .text()
