@@ -243,12 +243,12 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: artifacts/
-      - uses: webfactory/ssh-agent@v0.5.3
+      - uses: webfactory/ssh-agent@5f066a372ec13036ab7cb9a8adf18c936f8d2043
+      - uses: webfactory/ssh-agent@5f066a372ec13036ab7cb9a8adf18c936f8d2043
         with:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
-            ${{ secrets.HOMEBREW_SCALA_CLI }}
-      - uses: webfactory/ssh-agent@v0.5.3
+            ${{ secrets.HOMEBREW_SCALA_CLI_KEY }}
       - run: ./mill -i ci.updateBrewFormula
       - name: GPG setup
         run: .github/scripts/gpg-setup.sh

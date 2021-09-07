@@ -10,7 +10,6 @@ import $file.project.settings, settings.{
   HasTests,
   LocalRepo,
   PublishLocalNoFluff,
-  getGhToken,
   localRepoResourcePath,
   platformExecutableJarExtension
 }
@@ -496,7 +495,9 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
   val launchers = os.list(path).filter(os.isFile(_)).map { path =>
     path.toNIO -> path.last
   }
-  val ghToken = getGhToken()
+  val ghToken = Option(System.getenv("UPLOAD_GH_TOKEN")).getOrElse {
+    sys.error("UPLOAD_GH_TOKEN not set")
+  }
   val (tag, overwriteAssets) =
     if (version.endsWith("-SNAPSHOT")) ("nightly", true)
     else ("v" + version, false)
