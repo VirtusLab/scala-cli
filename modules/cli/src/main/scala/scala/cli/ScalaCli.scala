@@ -53,6 +53,9 @@ object ScalaCli extends CommandsEntryPoint {
       // The DLL loaded by LoadWindowsLibrary is statically linked in
       // the Scala CLI native image, no need to manually load it.
       coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
+
+      // Same for the ipcsocket DLL.
+      org.scalasbt.ipcsocket.NativeLoader.assumeLoaded()
     }
 
     if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
