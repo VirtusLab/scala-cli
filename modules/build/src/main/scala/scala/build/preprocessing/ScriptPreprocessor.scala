@@ -2,6 +2,8 @@ package scala.build.preprocessing
 
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
+import scalaparse.Scala.Pattern
+import scala.util.matching.Regex
 
 import java.nio.charset.StandardCharsets
 
@@ -46,6 +48,17 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
 
 object ScriptPreprocessor {
 
+  private val sheBangRegex: Regex = s"""((#!.*)|(!#.*))""".r
+
+  private def ignoreSheBangLines(content: String): String = {
+    if (content.startsWith("#!")) {
+      sheBangRegex.replaceAllIn(content, "")
+    }
+    else {
+      content
+    }
+  }
+
   private def preprocess(
     reportingPath: Either[String, os.Path],
     content: String,
@@ -54,10 +67,13 @@ object ScriptPreprocessor {
     subPath: os.SubPath
   ) = {
 
+    val contentIgnoredSheBangLines = ignoreSheBangLines(content)
+
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, subPath)
 
-    val (options, updatedCode) = ScalaPreprocessor.process(content, printablePath)
-      .getOrElse((BuildOptions(), content))
+    val (options, updatedCode) =
+      ScalaPreprocessor.process(contentIgnoredSheBangLines, printablePath)
+        .getOrElse((BuildOptions(), contentIgnoredSheBangLines))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
