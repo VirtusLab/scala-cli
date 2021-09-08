@@ -10,7 +10,7 @@ import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.Platforms;
 
 @AutomaticFeature
-@Platforms({Platform.DARWIN.class})
+@Platforms({Platform.LINUX.class, Platform.DARWIN.class})
 public class IpcsocketUnixFeature implements Feature {
 
     @Override

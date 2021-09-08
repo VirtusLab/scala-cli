@@ -17,9 +17,6 @@
         "pattern": "\\Qnative/x86_64/libswoval-files0.dylib\\E"
       },
       {
-        "pattern": "linux/x86_64/libsbtipcsocket.so"
-      },
-      {
         "pattern": "\\Qcommons-logging.properties\\E"
       }
     ]

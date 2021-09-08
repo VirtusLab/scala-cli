@@ -122,6 +122,19 @@ trait CliLaunchers extends SbtModule { self =>
       val libPath = os.Path(libRes.out.text.trim, os.pwd)
       os.copy.over(libPath, destDir / "libipcsocket.a")
     }
+    private def copyIpcsocketLinuxATo(destDir: os.Path): Unit = {
+      val ipcsocketVersion = Deps.ipcSocket.dep.version
+      val libRes = os.proc(
+        cs,
+        "fetch",
+        "--intransitive",
+        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-pc-linux,ext=a,type=a",
+        "-A",
+        "a"
+      ).call()
+      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      os.copy.over(libPath, destDir / "libipcsocket.a")
+    }
     def staticLibDir = T {
       val dir = nativeImageDockerWorkingDir() / staticLibDirName
       os.makeDir.all(dir)
@@ -133,6 +146,9 @@ trait CliLaunchers extends SbtModule { self =>
 
       if (Properties.isMac)
         copyIpcsocketMacATo(dir)
+
+      if (Properties.isLinux)
+        copyIpcsocketLinuxATo(dir)
 
       PathRef(dir)
     }
