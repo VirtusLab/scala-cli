@@ -220,9 +220,7 @@ object Operations {
           var count          = 0
           val maxCount       = (timeout / period).toInt
           var socket: Socket = null
-          while (
-            !socketFile.exists() && socket == null && count < maxCount && closed.value.isEmpty
-          ) {
+          while (socket == null && count < maxCount && closed.value.isEmpty) {
             logger.debug {
               if (socketFile.exists())
                 s"BSP connection $socketFile found but not open, waiting $period"
