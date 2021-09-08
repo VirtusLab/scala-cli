@@ -96,7 +96,7 @@ trait CliLaunchers extends SbtModule { self =>
       val libPath = os.Path(libRes.out.text.trim, os.pwd)
       os.copy.over(libPath, destDir / "csjniutils.lib")
     }
-    private def copyIpcsocketTo(destDir: os.Path): Unit = {
+    private def copyIpcsocketDllTo(destDir: os.Path): Unit = {
       val ipcsocketVersion = Deps.ipcSocket.dep.version
       val libRes = os.proc(
         cs,
@@ -109,14 +109,30 @@ trait CliLaunchers extends SbtModule { self =>
       val libPath = os.Path(libRes.out.text.trim, os.pwd)
       os.copy.over(libPath, destDir / "ipcsocket.lib")
     }
+    private def copyIpcsocketMacATo(destDir: os.Path): Unit = {
+      val ipcsocketVersion = Deps.ipcSocket.dep.version
+      val libRes = os.proc(
+        cs,
+        "fetch",
+        "--intransitive",
+        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-apple-darwin,ext=a,type=a",
+        "-A",
+        "a"
+      ).call()
+      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      os.copy.over(libPath, destDir / "libipcsocket.a")
+    }
     def staticLibDir = T {
       val dir = nativeImageDockerWorkingDir() / staticLibDirName
       os.makeDir.all(dir)
 
       if (Properties.isWin) {
         copyCsjniutilTo(dir)
-        copyIpcsocketTo(dir)
+        copyIpcsocketDllTo(dir)
       }
+
+      if (Properties.isMac)
+        copyIpcsocketMacATo(dir)
 
       PathRef(dir)
     }
