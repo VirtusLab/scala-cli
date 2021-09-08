@@ -78,7 +78,7 @@ object BloopServer {
     @tailrec
     def create(stopAt: Long): Socket = {
       val maybeSocket =
-        try Right(conn.openSocket())
+        try Right(conn.openSocket(period, timeout))
         catch {
           case e: ConnectException => Left(e)
         }

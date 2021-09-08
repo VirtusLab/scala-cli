@@ -54,7 +54,7 @@ Protocol to use to open a BSP connection with Bloop (ignored on Windows for now)
 
 #### `--bloop-bsp-socket`
 
-Socket file to use to open a BSP connection with Bloop (ignored on Windows for now)
+Socket file to use to open a BSP connection with Bloop (on Windows, pipe name like "\\.\pipe\…")
 
 #### `--bloop-host`
 

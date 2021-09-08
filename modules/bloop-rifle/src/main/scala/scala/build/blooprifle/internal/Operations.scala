@@ -6,11 +6,11 @@ import java.nio.file.{Path, Paths}
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
-import scala.build.blooprifle.{BloopRifleLogger, BspConnection}
+import scala.build.blooprifle.{BloopRifleLogger, BspConnection, BspConnectionAddress}
 import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
-import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.util.{Failure, Properties, Success, Try}
 
 import org.scalasbt.ipcsocket.NativeErrorException
 import snailgun.TcpClient
@@ -151,7 +151,7 @@ object Operations {
   def bsp(
     host: String,
     port: Int,
-    bspSocketOrPort: Either[Int, File],
+    bspSocketOrPort: BspConnectionAddress,
     workingDir: Path,
     in: InputStream,
     out: OutputStream,
@@ -176,8 +176,12 @@ object Operations {
     val promise    = Promise[Int]()
     val threadName = "bloop-rifle-nailgun-out"
     val protocolArgs = bspSocketOrPort match {
-      case Left(bspPort) => Array("--protocol", "tcp", "--host", host, "--port", bspPort.toString)
-      case Right(socket) => Array("--protocol", "local", "--socket", socket.getAbsolutePath)
+      case t: BspConnectionAddress.Tcp =>
+        Array("--protocol", "tcp", "--host", host, "--port", t.port.toString)
+      case s: BspConnectionAddress.UnixDomainSocket =>
+        Array("--protocol", "local", "--socket", s.path.getAbsolutePath)
+      case p: BspConnectionAddress.WindowsNamedPipe =>
+        Array("--protocol", "local", "--pipe-name", p.name)
     }
     val runnable: Runnable = logger.runnable(threadName) { () =>
       val maybeRetCode = Try {
@@ -203,21 +207,20 @@ object Operations {
 
     new BspConnection {
       def address = bspSocketOrPort match {
-        case Left(bspPort) => s"$host:$bspPort"
-        case Right(socket) => "local:" + socket.toURI.toASCIIString.stripPrefix("file:")
+        case t: BspConnectionAddress.Tcp => s"$host:${t.port}"
+        case s: BspConnectionAddress.UnixDomainSocket =>
+          "local:" + s.path.toURI.toASCIIString.stripPrefix("file:")
+        case p: BspConnectionAddress.WindowsNamedPipe => p.name
       }
-      def openSocket() = bspSocketOrPort match {
-        case Left(bspPort) =>
-          new Socket(host, bspPort)
-        case Right(socketFile) =>
+      def openSocket(period: FiniteDuration, timeout: FiniteDuration) = bspSocketOrPort match {
+        case t: BspConnectionAddress.Tcp =>
+          new Socket(host, t.port)
+        case s: BspConnectionAddress.UnixDomainSocket =>
+          val socketFile     = s.path
           var count          = 0
-          val period         = 50.millis
-          val maxWait        = 10.seconds
-          val maxCount       = (maxWait / period).toInt
+          val maxCount       = (timeout / period).toInt
           var socket: Socket = null
-          while (
-            !socketFile.exists() && socket == null && count < maxCount && closed.value.isEmpty
-          ) {
+          while (socket == null && count < maxCount && closed.value.isEmpty) {
             logger.debug {
               if (socketFile.exists())
                 s"BSP connection $socketFile found but not open, waiting $period"
@@ -228,7 +231,13 @@ object Operations {
             if (socketFile.exists()) {
               socket =
                 try {
-                  new org.scalasbt.ipcsocket.UnixDomainSocket(socketFile.getAbsolutePath, true)
+                  try {
+                    (new NamedSocketBuilder).create(socketFile.getAbsolutePath)
+                  }
+                  catch {
+                    case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
+                      throw ex.getCause
+                  }
                 }
                 catch {
                   case ex: IOException
@@ -252,6 +261,44 @@ object Operations {
           else
             sys.error(
               s"Bloop BSP connection in $socketFile was unexpectedly closed or bloop didn't start."
+            )
+        case p: BspConnectionAddress.WindowsNamedPipe =>
+          var count          = 0
+          val maxCount       = (timeout / period).toInt
+          var socket: Socket = null
+          while (socket == null && count < maxCount && closed.value.isEmpty) {
+            Thread.sleep(period.toMillis)
+            socket =
+              try {
+                try {
+                  (new NamedSocketBuilder).create(p.name)
+                }
+                catch {
+                  case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
+                    throw ex.getCause
+                }
+              }
+              catch {
+                case ex: IOException
+                    if ex.getMessage != null &&
+                      ex.getMessage.contains("The system cannot find the file specified.") =>
+                  logger.debug(s"Error when connecting to ${p.name}: ${ex.getMessage}")
+                  null
+                case e: NativeErrorException if e.returnCode == 111 =>
+                  logger.debug(s"Error when connecting to ${p.name}: ${e.getMessage}")
+                  null
+              }
+            count += 1
+          }
+          if (socket != null) {
+            logger.debug(s"BSP connection at ${p.name} opened")
+            socket
+          }
+          else if (closed.value.isEmpty)
+            sys.error(s"Timeout while waiting for BSP socket to be created in ${p.name}")
+          else
+            sys.error(
+              s"Bloop BSP connection in ${p.name} was unexpectedly closed or bloop didn't start."
             )
       }
       val closed = promise.future

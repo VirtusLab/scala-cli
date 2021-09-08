@@ -6,9 +6,10 @@ import java.io.File
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
 import java.util.Random
 
+import scala.build.blooprifle.BspConnectionAddress
 import scala.build.Os
 import scala.cli.internal.Pid
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.util.Properties
 
 // format: off
@@ -19,7 +20,7 @@ final case class SharedCompilationServerOptions(
   @Hidden
     bloopBspProtocol: Option[String] = None,
   @Group("Compilation server")
-  @HelpMessage("Socket file to use to open a BSP connection with Bloop (ignored on Windows for now)")
+  @HelpMessage("Socket file to use to open a BSP connection with Bloop (on Windows, pipe name like \"\\\\.\\pipe\\…\")")
   @ValueDescription("path")
   @Hidden
     bloopBspSocket: Option[String] = None,
@@ -65,7 +66,8 @@ final case class SharedCompilationServerOptions(
       val tmpDir = dir / os.up / s".${dir.last}.tmp-${pidOrRandom.merge}"
       try {
         os.makeDir.all(tmpDir)
-        os.perms.set(tmpDir, "rwx------")
+        if (!Properties.isWin)
+          os.perms.set(tmpDir, "rwx------")
         try os.move(tmpDir, dir, atomicMove = true)
         catch {
           case _: AtomicMoveNotSupportedException =>
@@ -83,6 +85,15 @@ final case class SharedCompilationServerOptions(
     }
     dir
   }
+
+  private def bspPipeName(): String =
+    bloopBspSocket.filter(_.nonEmpty).getOrElse {
+      val bt = "\\"
+      s"$bt$bt.${bt}pipe$bt" + pidOrRandom
+        .map("proc-" + _)
+        .left.map("conn-" + _)
+        .merge
+    }
 
   private def bspSocketFile(directories: => scala.build.Directories): File = {
     val (socket, deleteOnExit) = bloopBspSocket match {
@@ -108,19 +119,22 @@ final case class SharedCompilationServerOptions(
 
   def defaultBspSocketOrPort(
     directories: => scala.build.Directories
-  ): Option[() => Either[Int, File]] =
-    if (Properties.isWin) None
-    else
-      bloopBspProtocol.filter(_ != "default") match {
-        case None        => None
-        case Some("tcp") => None
-        case Some("local") =>
-          Some(() => Right(bspSocketFile(directories)))
-        case Some(other) =>
-          sys.error(
-            s"Invalid bloop BSP protocol value: '$other' (expected 'tcp', 'local', or 'default')"
-          )
-      }
+  ): Option[() => BspConnectionAddress] = {
+    def namedSocket =
+      if (Properties.isWin)
+        Some(() => BspConnectionAddress.WindowsNamedPipe(bspPipeName()))
+      else
+        Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile(directories)))
+    bloopBspProtocol.filter(_ != "default") match {
+      case None          => namedSocket
+      case Some("tcp")   => None
+      case Some("local") => namedSocket
+      case Some(other) =>
+        sys.error(
+          s"Invalid bloop BSP protocol value: '$other' (expected 'tcp', 'local', or 'default')"
+        )
+    }
+  }
 
   private def parseDuration(name: String, valueOpt: Option[String]): Option[FiniteDuration] =
     valueOpt.map(_.trim).filter(_.nonEmpty).map(Duration(_)).map {

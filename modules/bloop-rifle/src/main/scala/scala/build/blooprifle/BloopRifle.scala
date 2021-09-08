@@ -83,7 +83,7 @@ object BloopRifle {
   ): BspConnection = {
 
     val bspSocketOrPort = config.bspSocketOrPort.map(_()).getOrElse {
-      Left(Util.randomPort())
+      BspConnectionAddress.Tcp(Util.randomPort())
     }
 
     val in = config.bspStdin.getOrElse {
@@ -114,9 +114,12 @@ object BloopRifle {
       )
 
       new BspConnection {
-        def address      = conn.address
-        def openSocket() = conn.openSocket()
-        def closed       = conn.closed
+        def address = conn.address
+        def openSocket(
+          period: FiniteDuration,
+          timeout: FiniteDuration
+        )          = conn.openSocket(period, timeout)
+        def closed = conn.closed
         def stop(): Unit = {
           if (devNullOs != null)
             devNullOs.close()

@@ -1,8 +1,9 @@
 package scala.cli.commands
 
 import caseapp._
-import scala.build.{Build, Inputs, Logger, Os, ReplArtifacts}
+import scala.build.{Artifacts, Build, Inputs, Logger, Os, ReplArtifacts}
 import scala.build.internal.Runner
+import scala.build.options.BuildOptions
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
@@ -32,17 +33,39 @@ object Repl extends ScalaCommand[ReplOptions] {
       sys.exit(1)
     }
 
-    def maybeRunRepl(build: Build, allowExit: Boolean): Unit =
+    def maybeRunRepl(
+      buildOptions: BuildOptions,
+      artifacts: Artifacts,
+      classDir: Option[os.Path],
+      allowExit: Boolean
+    ): Unit =
       build match {
         case s: Build.Successful =>
-          runRepl(s, directories, logger, allowExit = allowExit, options.replDryRun)
+          runRepl(
+            buildOptions,
+            artifacts,
+            classDir,
+            directories,
+            logger,
+            allowExit = allowExit,
+            options.replDryRun
+          )
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           if (allowExit)
             sys.exit(1)
       }
 
-    if (options.watch.watch) {
+    if (inputs.isEmpty) {
+      val artifacts = initialBuildOptions.artifacts(logger)
+      maybeRunRepl(initialBuildOptions, artifacts, None, allowExit = !options.watch.watch)
+      if (options.watch.watch) {
+        // nothing to watch, just wait for Ctrl+C
+        WatchUtil.printWatchMessage()
+        WatchUtil.waitForCtrlC()
+      }
+    }
+    else if (options.watch.watch) {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -50,19 +73,21 @@ object Repl extends ScalaCommand[ReplOptions] {
         logger,
         postAction = () => WatchUtil.printWatchMessage()
       ) { build =>
-        maybeRunRepl(build, allowExit = false)
+        maybeRunRepl(build.options, build.artifacts, build.outputOpt, allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     }
     else {
       val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
-      maybeRunRepl(build, allowExit = true)
+      maybeRunRepl(build.options, build.artifacts, build.outputOpt, allowExit = true)
     }
   }
 
   private def runRepl(
-    build: Build.Successful,
+    options: BuildOptions,
+    artifacts: Artifacts,
+    classDir: Option[os.Path],
     directories: scala.build.Directories,
     logger: Logger,
     allowExit: Boolean,
@@ -70,33 +95,35 @@ object Repl extends ScalaCommand[ReplOptions] {
   ): Unit = {
 
     val replArtifacts =
-      if (build.options.replOptions.useAmmonite)
+      if (options.replOptions.useAmmonite)
         ReplArtifacts.ammonite(
-          build.artifacts.params,
-          build.options.replOptions.ammoniteVersion,
-          build.artifacts.dependencies,
-          build.artifacts.extraJars,
-          build.artifacts.extraSourceJars,
+          artifacts.params,
+          options.replOptions.ammoniteVersion,
+          artifacts.dependencies,
+          artifacts.extraJars,
+          artifacts.extraSourceJars,
           logger,
           directories
         )
       else
         ReplArtifacts.default(
-          build.artifacts.params,
-          build.artifacts.dependencies,
-          build.artifacts.extraJars,
+          artifacts.params,
+          artifacts.dependencies,
+          artifacts.extraJars,
           logger,
           directories
         )
 
-    // TODO Warn if some entries of build.artifacts.classPath were evicted in replArtifacts.replClassPath
+    // TODO Warn if some entries of artifacts.classPath were evicted in replArtifacts.replClassPath
     //      (should be artifacts whose version was bumped by Ammonite).
 
     // TODO Find the common namespace of all user classes, and import it all in the Ammonite session.
 
     // TODO Allow to disable printing the welcome banner and the "Loading..." message in Ammonite.
 
-    val rootClasses = os.list(build.output)
+    val rootClasses = classDir
+      .toSeq
+      .flatMap(os.list(_))
       .filter(_.last.endsWith(".class"))
       .filter(os.isFile(_)) // just in case
       .map(_.last.stripSuffix(".class"))
@@ -111,17 +138,17 @@ object Repl extends ScalaCommand[ReplOptions] {
       logger.message("Dry run, not running REPL.")
     else
       Runner.runJvm(
-        build.options.javaCommand(),
-        replArtifacts.replJavaOpts ++ build.options.javaOptions.javaOpts,
-        build.output.toIO +: replArtifacts.replClassPath.map(_.toFile),
+        options.javaCommand(),
+        replArtifacts.replJavaOpts ++ options.javaOptions.javaOpts,
+        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toFile),
         replArtifacts.replMainClass,
         if (Properties.isWin)
-          build.options.replOptions.ammoniteArgs.map { a =>
+          options.replOptions.ammoniteArgs.map { a =>
             if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
             else a
           }
         else
-          build.options.replOptions.ammoniteArgs,
+          options.replOptions.ammoniteArgs,
         logger,
         allowExecve = allowExit
       )

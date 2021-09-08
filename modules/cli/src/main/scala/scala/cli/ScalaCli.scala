@@ -44,7 +44,18 @@ object ScalaCli extends CommandsEntryPoint {
 
   override def helpFormat = actualDefaultCommand.helpFormat
 
+  private def isGraalvmNativeImage: Boolean =
+    sys.props.contains("org.graalvm.nativeimage.imagecode")
+
   override def main(args: Array[String]): Unit = {
+
+    if (Properties.isWin && isGraalvmNativeImage)
+      // The DLL loaded by LoadWindowsLibrary is statically linked in
+      // the Scala CLI native image, no need to manually load it.
+      coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
+
+    if (isGraalvmNativeImage)
+      org.scalasbt.ipcsocket.NativeLoader.assumeLoaded()
 
     if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
       // Enable ANSI output in Windows terminal
