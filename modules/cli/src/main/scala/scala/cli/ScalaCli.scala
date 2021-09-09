@@ -14,6 +14,8 @@ object ScalaCli extends CommandsEntryPoint {
   val commands: Seq[ScalaCommand[_]] = Seq(
     About,
     AddPath,
+    BloopExit,
+    BloopStart,
     Bsp,
     Clean,
     Compile,

@@ -296,4 +296,30 @@ object Operations {
     }
   }
 
+  def exit(
+    host: String,
+    port: Int,
+    workingDir: Path,
+    in: InputStream,
+    out: OutputStream,
+    err: OutputStream,
+    logger: BloopRifleLogger
+  ): Int = {
+
+    val stop0         = new AtomicBoolean
+    val nailgunClient = TcpClient(host, port)
+    val streams       = Streams(in, out, err)
+
+    nailgunClient.run(
+      "exit",
+      Array.empty,
+      workingDir,
+      sys.env.toMap,
+      streams,
+      logger.nailgunLogger,
+      stop0,
+      interactiveSession = false
+    )
+  }
+
 }

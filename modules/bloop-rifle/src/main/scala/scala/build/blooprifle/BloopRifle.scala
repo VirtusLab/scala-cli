@@ -128,4 +128,48 @@ object BloopRifle {
     }
   }
 
+  def exit(
+    config: BloopRifleConfig,
+    workingDir: Path,
+    logger: BloopRifleLogger
+  ): Int = {
+
+    val bspSocketOrPort = config.bspSocketOrPort.map(_()).getOrElse {
+      BspConnectionAddress.Tcp(Util.randomPort())
+    }
+
+    val in = config.bspStdin.getOrElse {
+      new InputStream {
+        def read(): Int = -1
+      }
+    }
+    var devNullOs: OutputStream = null
+    def devNull(): OutputStream = {
+      if (devNullOs == null)
+        devNullOs = new FileOutputStream(Util.devNull)
+      devNullOs
+    }
+
+    try {
+      val out = config.bspStdout.getOrElse(devNull())
+      val err = config.bspStderr.getOrElse(devNull())
+
+      Operations.exit(
+        config.host,
+        config.port,
+        workingDir,
+        in,
+        out,
+        err,
+        logger
+      )
+    }
+    catch {
+      case NonFatal(e) =>
+        if (devNullOs != null)
+          devNullOs.close()
+        throw e
+    }
+  }
+
 }

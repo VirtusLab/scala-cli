@@ -33,9 +33,23 @@ Run JMH benchmarks
 
 Set JMH version
 
+## Bloop start options
+
+Available in commands:
+- [`bloop start`](./commands#bloop-start)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--force`
+
+Aliases: `-f`
+
 ## Compilation server options
 
 Available in commands:
+- [`bloop exit`](./commands#bloop-exit)
+- [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`browse` / `metabrowse`](./commands#browse)
@@ -93,6 +107,7 @@ Print resulting class path
 ## Coursier options
 
 Available in commands:
+- [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`browse` / `metabrowse`](./commands#browse)
@@ -141,6 +156,8 @@ Add repositories
 Available in commands:
 - [`about`](./commands#about)
 - [`add-path`](./commands#add-path)
+- [`bloop exit`](./commands#bloop-exit)
+- [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`clean`](./commands#clean)
 - [`compile`](./commands#compile)
@@ -217,6 +234,7 @@ Set Java properties
 ## Jvm options
 
 Available in commands:
+- [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`browse` / `metabrowse`](./commands#browse)
@@ -254,6 +272,8 @@ CPU architecture to use when looking up in the JVM index
 ## Logging options
 
 Available in commands:
+- [`bloop exit`](./commands#bloop-exit)
+- [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`clean`](./commands#clean)
 - [`compile`](./commands#compile)

@@ -6,8 +6,8 @@ import java.io.File
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
 import java.util.Random
 
-import scala.build.blooprifle.BspConnectionAddress
-import scala.build.Os
+import scala.build.blooprifle.{BloopRifleConfig, BspConnectionAddress}
+import scala.build.{Bloop, Logger, Os}
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.util.Properties
@@ -148,5 +148,30 @@ final case class SharedCompilationServerOptions(
     parseDuration("BSP connection check period", bloopBspCheckPeriod)
   def bloopStartupTimeoutDuration: Option[FiniteDuration] =
     parseDuration("connection server startup timeout", bloopStartupTimeout)
+
+  def bloopRifleConfig(
+    logger: Logger,
+    verbosity: Int,
+    javaPath: String,
+    directories: => scala.build.Directories
+  ): BloopRifleConfig = {
+    val baseConfig = BloopRifleConfig.default(() => Bloop.bloopClassPath(logger))
+    val portOpt = bloopPort.filter(_ != 0) match {
+      case Some(n) if n < 0 =>
+        Some(scala.build.blooprifle.internal.Util.randomPort())
+      case other => other
+    }
+    baseConfig.copy(
+      host = bloopHost.filter(_.nonEmpty).getOrElse(baseConfig.host),
+      port = portOpt.getOrElse(baseConfig.port),
+      javaPath = javaPath,
+      bspSocketOrPort = defaultBspSocketOrPort(directories),
+      bspStdout = if (verbosity >= 3) Some(System.err) else None,
+      bspStderr = if (verbosity >= 3) Some(System.err) else None,
+      period = bloopBspCheckPeriodDuration.getOrElse(baseConfig.period),
+      timeout = bloopBspTimeoutDuration.getOrElse(baseConfig.timeout),
+      initTimeout = bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout)
+    )
+  }
 
 }

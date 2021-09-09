@@ -168,3 +168,18 @@ Accepts options:
 Accepts options:
 - [add path](./cli-options.md#add-path-options)
 
+### `bloop exit`
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
+- [logging](./cli-options.md#logging-options)
+
+### `bloop start`
+
+Accepts options:
+- [bloop start](./cli-options.md#bloop-start-options)
+- [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+

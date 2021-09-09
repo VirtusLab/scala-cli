@@ -170,26 +170,14 @@ final case class SharedOptions(
       )
     )
 
-  // This might download a JVM if --jvm … is passed or no system JVM is installed
-  def bloopRifleConfig(): BloopRifleConfig = {
-    val baseConfig = BloopRifleConfig.default(() => Bloop.bloopClassPath(logging.logger))
-    val portOpt = compilationServer.bloopPort.filter(_ != 0) match {
-      case Some(n) if n < 0 =>
-        Some(scala.build.blooprifle.internal.Util.randomPort())
-      case other => other
-    }
-    baseConfig.copy(
-      host = compilationServer.bloopHost.filter(_.nonEmpty).getOrElse(baseConfig.host),
-      port = portOpt.getOrElse(baseConfig.port),
-      javaPath = buildOptions(false, None).javaCommand(),
-      bspSocketOrPort = compilationServer.defaultBspSocketOrPort(directories.directories),
-      bspStdout = if (logging.verbosity >= 3) Some(System.err) else None,
-      bspStderr = if (logging.verbosity >= 3) Some(System.err) else None,
-      period = compilationServer.bloopBspCheckPeriodDuration.getOrElse(baseConfig.period),
-      timeout = compilationServer.bloopBspTimeoutDuration.getOrElse(baseConfig.timeout),
-      initTimeout = compilationServer.bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout)
+  def bloopRifleConfig(): BloopRifleConfig =
+    compilationServer.bloopRifleConfig(
+      logging.logger,
+      logging.verbosity,
+      // This might download a JVM if --jvm … is passed or no system JVM is installed
+      buildOptions(false, None).javaCommand(),
+      directories.directories
     )
-  }
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger)
 
