@@ -159,16 +159,6 @@ object Operations {
     logger: BloopRifleLogger
   ): BspConnection = {
 
-    val nailgunLogger: SnailgunLogger =
-      new SnailgunLogger {
-        val name: String                      = "bloop"
-        val isVerbose: Boolean                = true
-        def debug(msg: String): Unit          = logger.debug("nailgun debug: " + msg)
-        def error(msg: String): Unit          = logger.debug("nailgun error: " + msg)
-        def warn(msg: String): Unit           = logger.debug("nailgun warn: " + msg)
-        def info(msg: String): Unit           = logger.debug("nailgun info: " + msg)
-        def trace(exception: Throwable): Unit = logger.debug("nailgun trace: " + exception.toString)
-      }
     val stop0         = new AtomicBoolean
     val nailgunClient = TcpClient(host, port)
     val streams       = Streams(in, out, err)
@@ -191,7 +181,7 @@ object Operations {
           workingDir,
           sys.env.toMap,
           streams,
-          nailgunLogger,
+          logger.nailgunLogger,
           stop0,
           interactiveSession = false
         )
