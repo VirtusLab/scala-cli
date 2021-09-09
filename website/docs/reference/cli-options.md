@@ -33,9 +33,23 @@ Run JMH benchmarks
 
 Set JMH version
 
+## Bloop start options
+
+Available in commands:
+- [`bloop start`](./commands#bloop-start)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--force`
+
+Aliases: `-f`
+
 ## Compilation server options
 
 Available in commands:
+- [`bloop exit`](./commands#bloop-exit)
+- [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`browse` / `metabrowse`](./commands#browse)
@@ -90,6 +104,26 @@ Aliases: `-p`, `--classpath`
 
 Print resulting class path
 
+## Coursier options
+
+Available in commands:
+- [`bloop start`](./commands#bloop-start)
+- [`bsp`](./commands#bsp)
+- [`compile`](./commands#compile)
+- [`browse` / `metabrowse`](./commands#browse)
+- [`package`](./commands#package)
+- [`console` / `repl`](./commands#console)
+- [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
+- [`test`](./commands#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--ttl`
+
+Specify a TTL for changing dependencies, such as snapshots
+
 ## Dependency options
 
 Available in commands:
@@ -122,6 +156,8 @@ Add repositories
 Available in commands:
 - [`about`](./commands#about)
 - [`add-path`](./commands#add-path)
+- [`bloop exit`](./commands#bloop-exit)
+- [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`clean`](./commands#clean)
 - [`compile`](./commands#compile)
@@ -198,6 +234,7 @@ Set Java properties
 ## Jvm options
 
 Available in commands:
+- [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`browse` / `metabrowse`](./commands#browse)
@@ -209,6 +246,10 @@ Available in commands:
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--java-home`
+
+Set Java home
 
 #### `--jvm`
 
@@ -231,6 +272,8 @@ CPU architecture to use when looking up in the JVM index
 ## Logging options
 
 Available in commands:
+- [`bloop exit`](./commands#bloop-exit)
+- [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`clean`](./commands#clean)
 - [`compile`](./commands#compile)
@@ -633,10 +676,6 @@ Aliases: `--scala-binary`, `--scala-bin`, `-B`
 
 Set Scala binary version
 
-#### `--java-home`
-
-Set Java home
-
 #### `--extra-jars`
 
 Aliases: `--jar`, `--jars`, `--extra-jar`
@@ -654,10 +693,6 @@ Add extra JARs in the class path during compilation only
 Aliases: `--source-jar`, `--source-jars`, `--extra-source-jar`
 
 Add extra source JARs
-
-#### `--ttl`
-
-Specify a TTL for changing dependencies, such as snapshots
 
 #### `--class-wrap`
 

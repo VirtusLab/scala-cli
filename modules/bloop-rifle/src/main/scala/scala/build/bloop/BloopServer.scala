@@ -58,8 +58,6 @@ object BloopServer {
       val serverStartedFuture = BloopRifle.startServer(
         config,
         startServerChecksPool,
-        100.millis,
-        1.minute,
         logger
       )
 

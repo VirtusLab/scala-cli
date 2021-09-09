@@ -42,6 +42,8 @@ final case class SharedOptions(
     scalac: ScalacOptions = ScalacOptions(),
   @Recurse
     jvm: SharedJvmOptions = SharedJvmOptions(),
+  @Recurse
+    coursier: CoursierOptions = CoursierOptions(),
 
   @Group("Scala")
   @HelpMessage("Set Scala version")
@@ -57,11 +59,6 @@ final case class SharedOptions(
   @Name("scalaBin")
   @Name("B")
     scalaBinaryVersion: Option[String] = None,
-
-  @Group("Java")
-  @HelpMessage("Set Java home")
-  @ValueDescription("path")
-    javaHome: Option[String] = None,
 
   @Group("Java")
   @HelpMessage("Add extra JARs in the class path")
@@ -86,11 +83,6 @@ final case class SharedOptions(
   @Name("sourceJars")
   @Name("extraSourceJar")
     extraSourceJars: List[String] = Nil,
-
-  @Group("Dependency")
-  @HelpMessage("Specify a TTL for changing dependencies, such as snapshots")
-  @ValueDescription("duration|Inf")
-    ttl: Option[String] = None,
 
   @Hidden
     classWrap: Boolean = false,
@@ -141,13 +133,7 @@ final case class SharedOptions(
       ),
       scalaJsOptions = js.buildOptions,
       scalaNativeOptions = native.buildOptions,
-      javaOptions = JavaOptions(
-        javaHomeOpt = javaHome.filter(_.nonEmpty).map(os.Path(_, Os.pwd)),
-        jvmIdOpt = jvm.jvm.filter(_.nonEmpty),
-        jvmIndexOpt = jvm.jvmIndex.filter(_.nonEmpty),
-        jvmIndexOs = jvm.jvmIndexOs.map(_.trim).filter(_.nonEmpty),
-        jvmIndexArch = jvm.jvmIndexArch.map(_.trim).filter(_.nonEmpty)
-      ),
+      javaOptions = jvm.javaOptions,
       internalDependencies = InternalDependenciesOptions(
         addStubsDependencyOpt = addStubs,
         addRunnerDependencyOpt = runner
@@ -184,34 +170,16 @@ final case class SharedOptions(
       )
     )
 
-  // This might download a JVM if --jvm … is passed or no system JVM is installed
-  def bloopRifleConfig(): BloopRifleConfig = {
-    val baseConfig = BloopRifleConfig.default(() => Bloop.bloopClassPath(logging.logger))
-    val portOpt = compilationServer.bloopPort.filter(_ != 0) match {
-      case Some(n) if n < 0 =>
-        Some(scala.build.blooprifle.internal.Util.randomPort())
-      case other => other
-    }
-    baseConfig.copy(
-      host = compilationServer.bloopHost.filter(_.nonEmpty).getOrElse(baseConfig.host),
-      port = portOpt.getOrElse(baseConfig.port),
-      javaPath = buildOptions(false, None).javaCommand(),
-      bspSocketOrPort = compilationServer.defaultBspSocketOrPort(directories.directories),
-      bspStdout = if (logging.verbosity >= 3) Some(System.err) else None,
-      bspStderr = if (logging.verbosity >= 3) Some(System.err) else None,
-      period = compilationServer.bloopBspCheckPeriodDuration.getOrElse(baseConfig.period),
-      timeout = compilationServer.bloopBspTimeoutDuration.getOrElse(baseConfig.timeout),
-      initTimeout = compilationServer.bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout)
+  def bloopRifleConfig(): BloopRifleConfig =
+    compilationServer.bloopRifleConfig(
+      logging.logger,
+      logging.verbosity,
+      // This might download a JVM if --jvm … is passed or no system JVM is installed
+      buildOptions(false, None).javaCommand(),
+      directories.directories
     )
-  }
 
-  lazy val coursierCache = {
-    val baseCache = FileCache()
-    val ttl0      = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_)).orElse(baseCache.ttl)
-    baseCache
-      .withTtl(ttl0)
-      .withLogger(logging.logger.coursierLogger)
-  }
+  lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger)
 
   def inputsOrExit(
     args: RemainingArgs,

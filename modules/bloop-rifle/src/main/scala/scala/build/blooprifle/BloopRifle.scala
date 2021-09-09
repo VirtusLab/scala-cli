@@ -33,13 +33,8 @@ object BloopRifle {
 
   /** Starts a new bloop server.
     *
-    * @param host
-    * @param port
-    * @param javaPath
-    * @param classPath
+    * @param config
     * @param scheduler
-    * @param waitInterval
-    * @param timeout
     * @param logger
     * @return
     *   A future, that gets completed when the server is done starting (and can thus be used).
@@ -47,8 +42,6 @@ object BloopRifle {
   def startServer(
     config: BloopRifleConfig,
     scheduler: ScheduledExecutorService,
-    waitInterval: FiniteDuration,
-    timeout: Duration,
     logger: BloopRifleLogger
   ): Future[Unit] = {
 
@@ -61,8 +54,8 @@ object BloopRifle {
       config.javaOpts,
       classPath,
       scheduler,
-      waitInterval,
-      timeout,
+      config.startCheckPeriod,
+      config.startCheckTimeout,
       logger
     )
   }
@@ -126,6 +119,50 @@ object BloopRifle {
           conn.stop()
         }
       }
+    }
+    catch {
+      case NonFatal(e) =>
+        if (devNullOs != null)
+          devNullOs.close()
+        throw e
+    }
+  }
+
+  def exit(
+    config: BloopRifleConfig,
+    workingDir: Path,
+    logger: BloopRifleLogger
+  ): Int = {
+
+    val bspSocketOrPort = config.bspSocketOrPort.map(_()).getOrElse {
+      BspConnectionAddress.Tcp(Util.randomPort())
+    }
+
+    val in = config.bspStdin.getOrElse {
+      new InputStream {
+        def read(): Int = -1
+      }
+    }
+    var devNullOs: OutputStream = null
+    def devNull(): OutputStream = {
+      if (devNullOs == null)
+        devNullOs = new FileOutputStream(Util.devNull)
+      devNullOs
+    }
+
+    try {
+      val out = config.bspStdout.getOrElse(devNull())
+      val err = config.bspStderr.getOrElse(devNull())
+
+      Operations.exit(
+        config.host,
+        config.port,
+        workingDir,
+        in,
+        out,
+        err,
+        logger
+      )
     }
     catch {
       case NonFatal(e) =>

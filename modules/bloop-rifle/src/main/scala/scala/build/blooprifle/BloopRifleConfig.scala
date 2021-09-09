@@ -18,6 +18,8 @@ final case class BloopRifleConfig(
   bspStderr: Option[OutputStream],
   period: FiniteDuration,
   timeout: FiniteDuration,
+  startCheckPeriod: FiniteDuration,
+  startCheckTimeout: FiniteDuration,
   initTimeout: FiniteDuration
 )
 
@@ -95,6 +97,8 @@ object BloopRifleConfig {
       bspStderr = None,
       period = 100.milliseconds,
       timeout = 10.seconds,
+      startCheckPeriod = 100.millis,
+      startCheckTimeout = 1.minute,
       initTimeout = 30.seconds
     )
 
