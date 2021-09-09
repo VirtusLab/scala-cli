@@ -210,6 +210,10 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
+#### `--java-home`
+
+Set Java home
+
 #### `--jvm`
 
 Aliases: `-j`
@@ -632,10 +636,6 @@ Set Scala version
 Aliases: `--scala-binary`, `--scala-bin`, `-B`
 
 Set Scala binary version
-
-#### `--java-home`
-
-Set Java home
 
 #### `--extra-jars`
 

@@ -59,11 +59,6 @@ final case class SharedOptions(
     scalaBinaryVersion: Option[String] = None,
 
   @Group("Java")
-  @HelpMessage("Set Java home")
-  @ValueDescription("path")
-    javaHome: Option[String] = None,
-
-  @Group("Java")
   @HelpMessage("Add extra JARs in the class path")
   @ValueDescription("paths")
   @Name("jar")
@@ -141,13 +136,7 @@ final case class SharedOptions(
       ),
       scalaJsOptions = js.buildOptions,
       scalaNativeOptions = native.buildOptions,
-      javaOptions = JavaOptions(
-        javaHomeOpt = javaHome.filter(_.nonEmpty).map(os.Path(_, Os.pwd)),
-        jvmIdOpt = jvm.jvm.filter(_.nonEmpty),
-        jvmIndexOpt = jvm.jvmIndex.filter(_.nonEmpty),
-        jvmIndexOs = jvm.jvmIndexOs.map(_.trim).filter(_.nonEmpty),
-        jvmIndexArch = jvm.jvmIndexArch.map(_.trim).filter(_.nonEmpty)
-      ),
+      javaOptions = jvm.javaOptions,
       internalDependencies = InternalDependenciesOptions(
         addStubsDependencyOpt = addStubs,
         addRunnerDependencyOpt = runner
