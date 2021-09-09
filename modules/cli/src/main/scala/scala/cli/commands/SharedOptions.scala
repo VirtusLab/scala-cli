@@ -42,6 +42,8 @@ final case class SharedOptions(
     scalac: ScalacOptions = ScalacOptions(),
   @Recurse
     jvm: SharedJvmOptions = SharedJvmOptions(),
+  @Recurse
+    coursier: CoursierOptions = CoursierOptions(),
 
   @Group("Scala")
   @HelpMessage("Set Scala version")
@@ -81,11 +83,6 @@ final case class SharedOptions(
   @Name("sourceJars")
   @Name("extraSourceJar")
     extraSourceJars: List[String] = Nil,
-
-  @Group("Dependency")
-  @HelpMessage("Specify a TTL for changing dependencies, such as snapshots")
-  @ValueDescription("duration|Inf")
-    ttl: Option[String] = None,
 
   @Hidden
     classWrap: Boolean = false,
@@ -194,13 +191,7 @@ final case class SharedOptions(
     )
   }
 
-  lazy val coursierCache = {
-    val baseCache = FileCache()
-    val ttl0      = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_)).orElse(baseCache.ttl)
-    baseCache
-      .withTtl(ttl0)
-      .withLogger(logging.logger.coursierLogger)
-  }
+  lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger)
 
   def inputsOrExit(
     args: RemainingArgs,

@@ -11,6 +11,7 @@ Print details about this application
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -33,6 +34,7 @@ Compile Scala code
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [compile](./cli-options.md#compile-options)
+- [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -59,6 +61,7 @@ Browse Scala code and its dependencies in the browser
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -77,6 +80,7 @@ Fire-up a Scala REPL
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
@@ -94,6 +98,7 @@ Compile and package Scala code
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -112,6 +117,7 @@ Compile and run Scala code
 Accepts options:
 - [benchmarking](./cli-options.md#benchmarking-options)
 - [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
@@ -127,6 +133,7 @@ Accepts options:
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -142,6 +149,7 @@ Compile and test Scala code
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)

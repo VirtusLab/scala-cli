@@ -90,6 +90,25 @@ Aliases: `-p`, `--classpath`
 
 Print resulting class path
 
+## Coursier options
+
+Available in commands:
+- [`bsp`](./commands#bsp)
+- [`compile`](./commands#compile)
+- [`browse` / `metabrowse`](./commands#browse)
+- [`package`](./commands#package)
+- [`console` / `repl`](./commands#console)
+- [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
+- [`test`](./commands#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--ttl`
+
+Specify a TTL for changing dependencies, such as snapshots
+
 ## Dependency options
 
 Available in commands:
@@ -654,10 +673,6 @@ Add extra JARs in the class path during compilation only
 Aliases: `--source-jar`, `--source-jars`, `--extra-source-jar`
 
 Add extra source JARs
-
-#### `--ttl`
-
-Specify a TTL for changing dependencies, such as snapshots
 
 #### `--class-wrap`
 
