@@ -7,7 +7,7 @@ import java.nio.file.Paths
 import java.util.concurrent.ExecutorService
 
 import scala.build.{BloopBuildClient, GeneratedSource, Logger}
-import scala.build.internal.LineConversion
+import scala.build.postprocessing.LineConversion
 import scala.collection.JavaConverters._
 
 class BspClient(
