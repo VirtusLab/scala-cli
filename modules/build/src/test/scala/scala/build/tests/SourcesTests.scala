@@ -68,4 +68,58 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
+  test("should skip SheBang in .sc") {
+    val testInputs = TestInputs(
+      os.rel / "something1.sc" ->
+        """#!/usr/bin/env scala-cli
+          |
+          |println("Hello World")
+          |""".stripMargin,
+      os.rel / "something2.sc" ->
+        """#!/usr/bin/scala-cli
+          |
+          |println("Hello World")
+          |""".stripMargin,
+      os.rel / "something3.sc" ->
+        """#!/usr/bin/scala-cli
+          |#! nix-shell -i scala-cli
+          |
+          |println("Hello World")
+          |""".stripMargin,
+      os.rel / "something4.sc" ->
+        """#!/usr/bin/scala-cli
+          |#! nix-shell -i scala-cli
+          |
+          |!#
+          |
+          |println("Hello World")
+          |""".stripMargin
+    )
+    val expectedParsedCodes = Seq(
+      """
+        |println("Hello World")""".stripMargin,
+      """
+        |println("Hello World")""".stripMargin,
+      """
+        |
+        |
+        |println("Hello World")""".stripMargin,
+      """
+        |
+        |
+        |
+        |println("Hello World")""".stripMargin
+    )
+
+    testInputs.withInputs { (_, inputs) =>
+      val sources = Sources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+
+      val parsedCodes: Seq[String] = sources.inMemory.map(_._3)
+
+      parsedCodes.zip(expectedParsedCodes).foreach { case (parsedCode, expectedCode) =>
+        expect(parsedCode.contains(expectedCode))
+      }
+    }
+  }
+
 }
