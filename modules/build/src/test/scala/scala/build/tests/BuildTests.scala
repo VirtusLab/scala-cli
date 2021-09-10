@@ -217,7 +217,7 @@ class BuildTests extends munit.FunSuite {
   test("dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """@using lib "com.lihaoyi::geny:0.6.5"
+        """using "com.lihaoyi::geny:0.6.5"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |println(g.mkString)
@@ -252,8 +252,8 @@ class BuildTests extends munit.FunSuite {
   test("several dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """@using lib "com.lihaoyi::geny:0.6.5"
-          |@using lib "com.lihaoyi::pprint:0.6.6"
+        """using "com.lihaoyi::geny:0.6.5"
+          |using "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)

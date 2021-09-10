@@ -45,9 +45,9 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """@using lib "org1:name1:1.1"
-          |@using lib "org2::name2:2.2"
-          |@using lib "org3:::name3:3.3"
+        """using "org1:name1:1.1"
+          |using "org2::name2:2.2"
+          |using "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -154,9 +154,9 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .sc - using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """@using lib "org1:name1:1.1"
-          |@using lib "org2::name2:2.2"
-          |@using lib "org3:::name3:3.3"
+        """using "org1:name1:1.1"
+          |using "org2::name2:2.2"
+          |using "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |def a = 1

@@ -1,9 +1,5 @@
 package scala.build.preprocessing
 
-import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
-import com.virtuslab.using_directives.config.Settings
-import com.virtuslab.using_directives.custom.model.Path
-import com.virtuslab.using_directives.reporter.ConsoleReporter
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
@@ -11,7 +7,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.{Inputs, Os, Sources}
 import scala.build.internal.AmmUtil
-import scala.build.options.{BuildOptions, ClassPathOptions}
+import scala.build.options.{BuildOptions, ClassPathOptions, ScalaOptions}
 import scala.collection.JavaConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -82,41 +78,44 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
-  private def processUsing(
-    content: String,
-    printablePath: String
-  ): Option[(BuildOptions, String)] = {
-
-    val processor = {
-      val reporter = new DirectivesOutputStreamReporter(System.err) // TODO Get that via a logger
-      val settings = new Settings
-      val context  = new Context(reporter, settings)
-      new UsingDirectivesProcessor(context)
-    }
-
-    val contentChars = content.toCharArray
-    val directives   = processor.extract(contentChars)
-
-    val updatedOptions = DirectivesProcessor.process(directives.getFlattenedMap.asScala.toMap)
-
-    val codeOffset = directives.getCodeOffset()
-
-    val updatedContentOpt =
-      if (codeOffset > 0)
-        Some {
-          val headerBytes = contentChars
-            .iterator
-            .take(codeOffset)
-            .map(c => if (c.isControl) c else ' ')
-            .toArray
-          val mainBytes = contentChars.drop(codeOffset)
-          new String(headerBytes ++ mainBytes)
+  private def directivesBuildOptions(directives: Seq[Directive]): BuildOptions =
+    directives
+      .filter(_.tpe == Directive.Using)
+      .map { dir =>
+        dir.values match {
+          case Seq(depStr) if depStr.split(":").count(_.trim.nonEmpty) == 3 =>
+            DependencyParser.parse(depStr) match {
+              case Left(err) => sys.error(s"Error parsing dependency '$depStr': $err")
+              case Right(dep) =>
+                BuildOptions(
+                  classPathOptions = ClassPathOptions(
+                    extraDependencies = Seq(dep)
+                  )
+                )
+            }
+          case Seq("scala", scalaVer) if scalaVer.nonEmpty =>
+            BuildOptions(
+              scalaOptions = ScalaOptions(
+                scalaVersion = Some(scalaVer)
+              )
+            )
+          case _ =>
+            sys.error(s"Unrecognized using directive: ${dir.values.mkString(" ")}")
         }
-      else None
+      }
+      .foldLeft(BuildOptions())(_ orElse _)
 
-    if (updatedContentOpt.isEmpty) None
-    else Some((updatedOptions, updatedContentOpt.getOrElse(content)))
-  }
+  private def processUsing(content: String, printablePath: String): Option[(BuildOptions, String)] =
+    TemporaryDirectivesParser.parseDirectives(content).flatMap {
+      case (directives, updatedContent) =>
+        // TODO Warn about unrecognized directives
+        // TODO Report via some diagnostics malformed directives
+
+        TemporaryDirectivesParser.parseDirectives(content).map {
+          case (directives, updatedContent) =>
+            (directivesBuildOptions(directives), updatedContent)
+        }
+    }
 
   private def processSpecialImports(
     content: String,
