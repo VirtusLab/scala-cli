@@ -109,7 +109,7 @@ Accepts options:
 
 Compile and run Scala code.
 
-To pass arguments to the application, just launch after --
+To pass arguments to the application, just add them after '--', like:
 scala-cli MyApp.scala -- first-arg second-arg
 
 Accepts options:
