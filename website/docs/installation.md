@@ -55,6 +55,7 @@ groupId="linux"
 defaultValue="manual"
 values={[
 {label: 'Manual', value: 'manual'},
+{label: 'Snap', value: 'snap'},
 {label: 'Apt', value: 'apt'},
 {label: 'Deb', value: 'deb'},
 {label: 'Yum', value: 'yum'},
@@ -88,7 +89,14 @@ sudo apt update
 sudo apt install scala-cli
 ```
 </TabItem>
+<TabItem value="snap">
 
+Scala CLI can be installed via [snap](https://snapcraft.io/#) with
+
+```bash
+snap install scala-cli
+```
+</TabItem>
 <TabItem value="deb">
 
 The Debian package can be downloaded at [this address](https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-linux.deb).
