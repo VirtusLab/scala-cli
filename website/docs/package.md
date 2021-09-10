@@ -146,7 +146,7 @@ The software package format for GNU\Linux distribution Debian.
 
 ### Optional arguments
 * force
-* launcher-app-name
+* launcher-app
 * debian-conflicts
 * debian-dependencies
 * architecture
@@ -172,7 +172,7 @@ The software package format for RedHat distributions.
 
 ### Optional arguments
 * force
-* launcher-app-name
+* launcher-app
 * release
 * rpm-architecture
 
@@ -196,7 +196,7 @@ The software package format for macOs.
 
 ### Optional arguments
 * force
-* launcher-app-name
+* launcher-app
 
 ### Windows 
 
@@ -220,6 +220,6 @@ The software package format for Windows distributions.
 
 ### Optional arguments
 * force
-* launcher-app-name
+* launcher-app
 * exit-dialog
 * logo-path
