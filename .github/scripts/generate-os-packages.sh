@@ -87,7 +87,7 @@ generate_msi() {
     --maintainer "Scala CLI" \
     --launcher-app "scala-cli" \
     --license-path "./LICENSE" \
-    --exit-dialog "If scala-cli is not visible, please restart your opened consoles" \
+    --exit-dialog "To run Scala CLI, open a Command window, and type scala-cli + Enter. If scala-cli cannot be found, ensure that the Command window was opened after Scala CLI was installed." \
     --logo-path "./logo.png" \
     --suppress-validation \
     --extra-configs wix-visual-cpp-redist.xml

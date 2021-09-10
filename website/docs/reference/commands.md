@@ -112,7 +112,10 @@ Accepts options:
 
 ## `run`
 
-Compile and run Scala code
+Compile and run Scala code.
+
+To pass arguments to the application, just add them after '--', like:
+scala-cli MyApp.scala -- first-arg second-arg
 
 Accepts options:
 - [benchmarking](./cli-options.md#benchmarking-options)
