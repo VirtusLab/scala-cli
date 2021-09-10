@@ -38,3 +38,8 @@ final case class ScalaJsOptions(
       dom = jsDom
     )
 }
+
+object ScalaJsOptions {
+  implicit val parser = Parser[ScalaJsOptions]
+  implicit val help   = Help[ScalaJsOptions]
+}

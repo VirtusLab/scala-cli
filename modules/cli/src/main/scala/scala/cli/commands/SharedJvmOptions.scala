@@ -42,3 +42,8 @@ final case class SharedJvmOptions(
   )
 
 }
+
+object SharedJvmOptions {
+  implicit val parser = Parser[SharedJvmOptions]
+  implicit val help   = Help[SharedJvmOptions]
+}

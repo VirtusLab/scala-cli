@@ -13,3 +13,8 @@ final case class BenchmarkingOptions(
     jmhVersion: Option[String] = None
 )
 // format: on
+
+object BenchmarkingOptions {
+  implicit val parser = Parser[BenchmarkingOptions]
+  implicit val help   = Help[BenchmarkingOptions]
+}

@@ -21,3 +21,8 @@ final case class CoursierOptions(
       .withLogger(logger)
   }
 }
+
+object CoursierOptions {
+  implicit val parser = Parser[CoursierOptions]
+  implicit val help   = Help[CoursierOptions]
+}

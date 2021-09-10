@@ -18,3 +18,8 @@ final case class SharedDependencyOptions(
     repository: List[String] = Nil
 )
 // format: on
+
+object SharedDependencyOptions {
+  implicit val parser = Parser[SharedDependencyOptions]
+  implicit val help   = Help[SharedDependencyOptions]
+}

@@ -84,3 +84,8 @@ final case class LoggingOptions(
     }
 
 }
+
+object LoggingOptions {
+  implicit val parser = Parser[LoggingOptions]
+  implicit val help   = Help[LoggingOptions]
+}
