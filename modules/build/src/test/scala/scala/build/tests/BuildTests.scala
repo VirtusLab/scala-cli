@@ -325,4 +325,80 @@ class BuildTests extends munit.FunSuite {
     }
   }
 
+  test("ignore files if wrong Scala version requirement") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """object Simple {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "Ignored.scala" ->
+        """require scala == 2.12
+          |object Ignored {
+          |  def foo = 2
+          |}
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "Simple.class",
+        "Simple$.class"
+      )
+    }
+  }
+  test("ignore files if wrong Scala target requirement") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """object Simple {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "Ignored.scala" ->
+        """require scala.js
+          |object Ignored {
+          |  def foo = 2
+          |}
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "Simple.class",
+        "Simple$.class"
+      )
+    }
+  }
+
+  test("ignore files if wrong Scala target requirement - JS") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """object Simple {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "Ignored.scala" ->
+        """require jvm
+          |object Ignored {
+          |  def foo = 2
+          |}
+          |""".stripMargin,
+      os.rel / "IgnoredToo.scala" ->
+        """require native
+          |object IgnoredToo {
+          |  def foo = 2
+          |}
+          |""".stripMargin
+    )
+    val options = defaultOptions.enableJs
+    testInputs.withBuild(options, buildThreads, bloopConfig) { (root, inputs, build) =>
+      build.assertGeneratedEquals(
+        "Simple.class",
+        "Simple$.class",
+        "Simple.sjsir",
+        "Simple$.sjsir"
+      )
+    }
+  }
 }

@@ -11,6 +11,8 @@ final case class CompileOptions(
     shared: SharedOptions = SharedOptions(),
   @Recurse
     watch: SharedWatchOptions = SharedWatchOptions(),
+  @Recurse
+    cross: CrossOptions = CrossOptions(),
 
   @Name("p")
   @Name("classpath")

@@ -42,47 +42,4 @@ object Sources {
       ConfigPreprocessor,
       ScalaPreprocessor
     )
-
-  def forInputs(
-    inputs: Inputs,
-    preprocessors: Seq[Preprocessor]
-  ): Sources = {
-
-    val preprocessedSources = inputs.flattened().flatMap { elem =>
-      preprocessors.iterator.flatMap(p => p.preprocess(elem).iterator).toStream.headOption
-        .getOrElse(Nil) // FIXME Warn about unprocessed stuff?
-    }
-
-    val buildOptions = preprocessedSources
-      .flatMap(_.options.toSeq)
-      .foldLeft(BuildOptions())(_.orElse(_))
-
-    val mainClassOpt = inputs.mainClassElement
-      .collect {
-        case elem: Inputs.SingleElement =>
-          preprocessors.iterator
-            .flatMap(p => p.preprocess(elem).iterator)
-            .toStream.headOption
-            .getOrElse(Nil)
-            .flatMap(_.mainClassOpt.toSeq)
-            .headOption
-      }
-      .flatten
-
-    val paths = preprocessedSources.collect {
-      case d: PreprocessedSource.OnDisk =>
-        (d.path, d.path.relativeTo(inputs.workspace))
-    }
-    val inMemory = preprocessedSources.collect {
-      case m: PreprocessedSource.InMemory =>
-        (m.reportingPath, m.relPath, m.code, m.ignoreLen)
-    }
-
-    val resourceDirs = inputs.elements.collect {
-      case r: Inputs.ResourceDirectory =>
-        r.path
-    }
-
-    Sources(paths, inMemory, mainClassOpt, resourceDirs, buildOptions)
-  }
 }

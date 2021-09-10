@@ -124,6 +124,16 @@ Available in commands:
 
 Specify a TTL for changing dependencies, such as snapshots
 
+## Cross options
+
+Available in commands:
+- [`compile`](./commands#compile)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--cross`
+
 ## Dependency options
 
 Available in commands:

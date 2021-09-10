@@ -33,7 +33,8 @@ final case class TestInputs(
     bloopConfig: BloopRifleConfig
   )(f: (os.Path, Inputs, Build) => T): T =
     withInputs { (root, inputs) =>
-      val build = Build.build(inputs, options, buildThreads, bloopConfig, TestLogger())
+      val (build, _) =
+        Build.build(inputs, options, buildThreads, bloopConfig, TestLogger(), crossBuilds = false)
       f(root, inputs, build)
     }
 }

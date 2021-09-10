@@ -35,6 +35,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [compile](./cli-options.md#compile-options)
 - [coursier](./cli-options.md#coursier-options)
+- [cross](./cli-options.md#cross-options)
 - [dependency](./cli-options.md#dependency-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)

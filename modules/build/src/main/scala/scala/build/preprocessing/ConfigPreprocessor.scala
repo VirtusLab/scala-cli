@@ -16,7 +16,7 @@ case object ConfigPreprocessor extends Preprocessor {
             conf0
         }
 
-        Some(Seq(PreprocessedSource.NoSource(Some(conf.buildOptions))))
+        Some(Seq(PreprocessedSource.NoSourceCode(Some(conf.buildOptions), None, c.path)))
       case _ =>
         None
     }

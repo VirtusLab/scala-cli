@@ -62,6 +62,11 @@ object ConfigMonoid {
       main ::: defaults
   }
 
+  implicit def set[T]: ConfigMonoid[Set[T]] = {
+    (main, defaults) =>
+      main ++ defaults
+  }
+
   implicit val boolean: ConfigMonoid[Boolean] = {
     (main, defaults) =>
       main || defaults

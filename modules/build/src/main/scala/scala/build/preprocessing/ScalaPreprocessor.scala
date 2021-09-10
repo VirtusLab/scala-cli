@@ -4,10 +4,11 @@ import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 
 import scala.build.{Inputs, Os, Sources}
 import scala.build.internal.AmmUtil
-import scala.build.options.{BuildOptions, ClassPathOptions, ScalaOptions}
+import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ScalaOptions}
 import scala.collection.JavaConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -20,14 +21,15 @@ case object ScalaPreprocessor extends Preprocessor {
         }
         val source = process(f.path) match {
           case None =>
-            PreprocessedSource.OnDisk(f.path, None, Some(inferredClsName))
-          case Some((options, updatedCode)) =>
+            PreprocessedSource.OnDisk(f.path, None, None, Some(inferredClsName))
+          case Some((requirements, options, updatedCode)) =>
             PreprocessedSource.InMemory(
               Right(f.path),
               f.subPath,
               updatedCode,
               0,
               Some(options),
+              Some(requirements),
               Some(inferredClsName)
             )
         }
@@ -35,14 +37,15 @@ case object ScalaPreprocessor extends Preprocessor {
 
       case v: Inputs.VirtualScalaFile =>
         val content = new String(v.content, StandardCharsets.UTF_8)
-        val (options, updatedContent) = process(content, v.source)
-          .getOrElse((BuildOptions(), content))
+        val (requirements, options, updatedContent) = process(content, v.source)
+          .getOrElse((BuildRequirements(), BuildOptions(), content))
         val s = PreprocessedSource.InMemory(
           Left(v.source),
           v.subPath,
           updatedContent,
           0,
           Some(options),
+          Some(requirements),
           None
         )
         Some(Seq(s))
@@ -51,30 +54,33 @@ case object ScalaPreprocessor extends Preprocessor {
         None
     }
 
-  def process(path: os.Path): Option[(BuildOptions, String)] = {
+  def process(path: os.Path): Option[(BuildRequirements, BuildOptions, String)] = {
     val printablePath =
       if (path.startsWith(Os.pwd)) path.relativeTo(Os.pwd).toString
       else path.toString
     val content = os.read(path)
     process(content, printablePath)
   }
-  def process(content: String, printablePath: String): Option[(BuildOptions, String)] = {
+  def process(
+    content: String,
+    printablePath: String
+  ): Option[(BuildRequirements, BuildOptions, String)] = {
 
     val afterUsing = processUsing(content, printablePath)
-    val afterProcessImports = processSpecialImports(
-      afterUsing.map(_._2).getOrElse(content),
-      printablePath
-    )
+    val afterProcessImports =
+      processSpecialImports(afterUsing.map(_._3).getOrElse(content), printablePath)
 
     if (afterUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
-      val allOptions    = afterUsing.map(_._1).toSeq ++ afterProcessImports.map(_._1).toSeq
-      val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
+      val allRequirements    = afterUsing.map(_._1).toSeq ++ afterProcessImports.map(_._1).toSeq
+      val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
+      val allOptions         = afterUsing.map(_._2).toSeq ++ afterProcessImports.map(_._2).toSeq
+      val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContent = afterProcessImports
-        .map(_._2)
-        .orElse(afterUsing.map(_._2))
+        .map(_._3)
+        .orElse(afterUsing.map(_._3))
         .getOrElse(content)
-      Some((summedOptions, lastContent))
+      Some((summedRequirements, summedOptions, lastContent))
     }
   }
 
@@ -105,7 +111,69 @@ case object ScalaPreprocessor extends Preprocessor {
       }
       .foldLeft(BuildOptions())(_ orElse _)
 
-  private def processUsing(content: String, printablePath: String): Option[(BuildOptions, String)] =
+  private def normalizePlatform(p: String): String =
+    p.toLowerCase(Locale.ROOT) match {
+      case "scala.js" | "scala-js" | "scalajs" | "js" => "js"
+      case "scala-native" | "scalanative" | "native"  => "native"
+      case "jvm"                                      => "jvm"
+      case _                                          => p
+    }
+  private def isPlatform(p: String): Option[BuildRequirements.Platform] =
+    p match {
+      case "jvm"    => Some(BuildRequirements.Platform.JVM)
+      case "js"     => Some(BuildRequirements.Platform.JS)
+      case "native" => Some(BuildRequirements.Platform.Native)
+      case _        => None
+    }
+  private def isPlatformSpec(
+    l: List[String],
+    acc: Set[BuildRequirements.Platform]
+  ): Option[Set[BuildRequirements.Platform]] =
+    l match {
+      case Nil      => None
+      case p :: Nil => isPlatform(p).map(p0 => acc + p0)
+      case p :: "|" :: tail =>
+        isPlatform(p) match {
+          case Some(p0) => isPlatformSpec(tail, acc + p0)
+          case None     => None
+        }
+    }
+
+  private def directivesBuildRequirements(directives: Seq[Directive]): BuildRequirements =
+    directives
+      .filter(_.tpe == Directive.Require)
+      .map { dir =>
+        dir.values match {
+          case Seq("scala", ">=", minVer) =>
+            BuildRequirements(
+              scalaVersion = Seq(BuildRequirements.VersionHigherThan(minVer, orEqual = true))
+            )
+          case Seq("scala", "<=", maxVer) =>
+            BuildRequirements(
+              scalaVersion = Seq(BuildRequirements.VersionLowerThan(maxVer, orEqual = true))
+            )
+          case Seq("scala", "==", reqVer) =>
+            // FIXME What about things like just '2.12'?
+            BuildRequirements(
+              scalaVersion = Seq(BuildRequirements.VersionEquals(reqVer, loose = true))
+            )
+          case other =>
+            isPlatformSpec(other.map(normalizePlatform).toList, Set.empty) match {
+              case Some(platforms) =>
+                BuildRequirements(
+                  platform = Some(BuildRequirements.PlatformRequirement(platforms))
+                )
+              case None =>
+                sys.error(s"Unrecognized require directive: ${other.mkString(" ")}")
+            }
+        }
+      }
+      .foldLeft(BuildRequirements())(_ orElse _)
+
+  private def processUsing(
+    content: String,
+    printablePath: String
+  ): Option[(BuildRequirements, BuildOptions, String)] =
     TemporaryDirectivesParser.parseDirectives(content).flatMap {
       case (directives, updatedContent) =>
         // TODO Warn about unrecognized directives
@@ -113,14 +181,18 @@ case object ScalaPreprocessor extends Preprocessor {
 
         TemporaryDirectivesParser.parseDirectives(content).map {
           case (directives, updatedContent) =>
-            (directivesBuildOptions(directives), updatedContent)
+            (
+              directivesBuildRequirements(directives),
+              directivesBuildOptions(directives),
+              updatedContent
+            )
         }
     }
 
   private def processSpecialImports(
     content: String,
     printablePath: String
-  ): Option[(BuildOptions, String)] = {
+  ): Option[(BuildRequirements, BuildOptions, String)] = {
 
     import fastparse._
     import scalaparse._
@@ -188,7 +260,7 @@ case object ScalaPreprocessor extends Preprocessor {
           extraDependencies = deps.map(parseDependency)
         )
       )
-      Some((options, newCode))
+      Some((BuildRequirements(), options, newCode))
     }
   }
 
