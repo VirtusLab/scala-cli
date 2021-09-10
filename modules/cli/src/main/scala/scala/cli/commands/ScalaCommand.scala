@@ -7,6 +7,7 @@ import caseapp.core.complete.{Completer, CompletionItem}
 import caseapp.core.help.{Help, HelpFormat}
 import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
+import scala.util.Properties
 
 abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
     extends Command()(parser, help) with NeedsArgvCommand {
@@ -97,4 +98,22 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
         "Miscellaneous",
         ""
       )))
+      .withTerminalWidthOpt {
+        if (Properties.isWin) {
+          if (coursier.paths.Util.useJni()) {
+            val size = coursier.jniutils.WindowsAnsiTerminal.terminalSize()
+            Some(size.getWidth)
+          }
+          else None
+        }
+        else
+          // That's how Ammonite gets the terminal width, but I'd rather not spawn a sub-process upfront in Scala CLI…
+          //   val pathedTput = if (os.isFile(os.Path("/usr/bin/tput"))) "/usr/bin/tput" else "tput"
+          //   val width = os.proc("sh", "-c", s"$pathedTput cols 2>/dev/tty").call(stderr = os.Pipe).out.text.trim.toInt
+          //   Some(width)
+          // Ideally, we should do an ioctl, like jansi does here:
+          //   https://github.com/fusesource/jansi/blob/09722b7cccc8a99f14ac1656db3072dbeef34478/src/main/java/org/fusesource/jansi/AnsiConsole.java#L344
+          // This requires writing our own minimal JNI library, that publishes '.a' files too for static linking in the executable of Scala CLI.
+          None
+      }
 }
