@@ -6,17 +6,9 @@ import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
 import dependency._
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.internal.{
-  AsmPositionUpdater,
-  Constants,
-  CustomCodeWrapper,
-  LineConversion,
-  MainClass,
-  SemanticdbProcessor,
-  Util
-}
+import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.BuildOptions
-import scala.build.tastylib.TastyData
+import scala.build.postprocessing._
 
 import java.io.{File, IOException}
 import java.lang.{Boolean => JBoolean}
@@ -465,20 +457,6 @@ object Build {
       Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)
   }
 
-  @tailrec
-  private def deleteSubPathIfEmpty(base: os.Path, subPath: os.SubPath, logger: Logger): Unit =
-    if (subPath.segments.nonEmpty) {
-      val p = base / subPath
-      if (os.isDir(p) && os.list.stream(p).headOption.isEmpty) {
-        try os.remove(p)
-        catch {
-          case e: FileSystemException =>
-            logger.debug(s"Ignoring $e while cleaning up $p")
-        }
-        deleteSubPathIfEmpty(base, subPath / os.up, logger)
-      }
-    }
-
   def postProcess(
     generatedSources: Seq[GeneratedSource],
     generatedSrcRoot: os.Path,
@@ -500,90 +478,14 @@ object Build {
         (relPath, (reportingPath, lineShift))
       }
       .toMap
-    AsmPositionUpdater.postProcess(mappings, classesDir, logger)
 
-    if (updateSemanticDbs) {
-      logger.debug("Moving semantic DBs around")
-      val semDbRoot = classesDir / "META-INF" / "semanticdb"
-      for (source <- generatedSources; originalSource <- source.reportingPath) {
-        val fromSourceRoot = source.generated.relativeTo(workspace)
-        val actual         = originalSource.relativeTo(workspace)
+    val postProcessors =
+      Seq(ByteCodePostProcessor) ++
+        (if (updateSemanticDbs) Seq(SemanticDbPostProcessor) else Nil) ++
+        (if (updateTasty) Seq(TastyPostProcessor) else Nil)
 
-        val semDbSubPath = {
-          val dirSegments = fromSourceRoot.segments.dropRight(1)
-          os.sub / dirSegments / s"${fromSourceRoot.last}.semanticdb"
-        }
-        val semDbFile = semDbRoot / semDbSubPath
-        if (os.exists(semDbFile)) {
-          val finalSemDbFile = {
-            val dirSegments = actual.segments.dropRight(1)
-            semDbRoot / dirSegments / s"${actual.last}.semanticdb"
-          }
-          SemanticdbProcessor.postProcess(
-            os.read(originalSource),
-            originalSource.relativeTo(workspace),
-            None,
-            if (source.topWrapperLen == 0) n => Some(n)
-            else
-              LineConversion.scalaLineToScLine(
-                os.read(originalSource),
-                os.read(source.generated),
-                source.topWrapperLen
-              ),
-            semDbFile,
-            finalSemDbFile
-          )
-          try os.remove(semDbFile)
-          catch {
-            case ex: FileSystemException =>
-              logger.debug(s"Ignoring $ex while removing $semDbFile")
-          }
-          deleteSubPathIfEmpty(semDbRoot, semDbSubPath / os.up, logger)
-        }
-      }
-
-      if (updateTasty) {
-        val updatedPaths = generatedSources
-          .flatMap { source =>
-            source.reportingPath.toOption.toSeq.map { originalSource =>
-              val fromSourceRoot = source.generated.relativeTo(workspace)
-              val actual         = originalSource.relativeTo(workspace)
-              fromSourceRoot.toString -> actual.toString
-            }
-          }
-          .toMap
-
-        if (updatedPaths.nonEmpty)
-          os.walk(classesDir)
-            .filter(os.isFile(_))
-            .filter(_.last.endsWith(".tasty")) // make that case-insensitive just in case?
-            .foreach { f =>
-              logger.debug(s"Reading TASTy file $f")
-              val content = os.read.bytes(f)
-              val data    = TastyData.read(content)
-              logger.debug(s"Parsed TASTy file $f")
-              var updatedOne = false
-              val updatedData = data.mapNames { n =>
-                updatedPaths.get(n) match {
-                  case Some(newName) =>
-                    updatedOne = true
-                    newName
-                  case None =>
-                    n
-                }
-              }
-              if (updatedOne) {
-                logger.debug(
-                  s"Overwriting ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd) else f}"
-                )
-                val updatedContent = TastyData.write(updatedData)
-                os.write.over(f, updatedContent)
-              }
-            }
-      }
-    }
-    else
-      logger.debug("Custom generated source directory used, not moving semantic DBs around")
+    for (p <- postProcessors)
+      p.postProcess(generatedSources, mappings, workspace, classesDir, logger)
   }
 
   def onChangeBufferedObserver(onEvent: PathWatchers.Event => Unit): Observer[PathWatchers.Event] =

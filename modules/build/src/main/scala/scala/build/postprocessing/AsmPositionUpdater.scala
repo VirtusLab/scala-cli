@@ -1,4 +1,4 @@
-package scala.build.internal
+package scala.build.postprocessing
 
 import org.objectweb.asm
 

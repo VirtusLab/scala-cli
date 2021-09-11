@@ -1,6 +1,6 @@
 // adapted from https://github.com/com-lihaoyi/Ammonite/blob/2da846d2313f1e12e812802babf9c69005f5d44a/amm/interp/src/main/scala/ammonite/interp/script/SemanticdbProcessor.scala
 
-package scala.build.internal
+package scala.build.postprocessing
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
