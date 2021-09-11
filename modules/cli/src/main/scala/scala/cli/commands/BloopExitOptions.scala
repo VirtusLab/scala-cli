@@ -24,3 +24,8 @@ final case class BloopExitOptions(
     )
 
 }
+
+object BloopExitOptions {
+  implicit val parser = Parser[BloopExitOptions]
+  implicit val help   = Help[BloopExitOptions]
+}

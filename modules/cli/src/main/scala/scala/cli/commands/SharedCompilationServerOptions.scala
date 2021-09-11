@@ -175,3 +175,8 @@ final case class SharedCompilationServerOptions(
   }
 
 }
+
+object SharedCompilationServerOptions {
+  implicit val parser = Parser[SharedCompilationServerOptions]
+  implicit val help   = Help[SharedCompilationServerOptions]
+}

@@ -21,3 +21,8 @@ final case class SharedJavaOptions(
       case Array(k, v) => s"-D$k=$v"
     }
 }
+
+object SharedJavaOptions {
+  implicit val parser = Parser[SharedJavaOptions]
+  implicit val help   = Help[SharedJavaOptions]
+}

@@ -11,3 +11,8 @@ final case class CleanOptions(
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions()
 )
 // format: on
+
+object CleanOptions {
+  implicit val parser = Parser[CleanOptions]
+  implicit val help   = Help[CleanOptions]
+}

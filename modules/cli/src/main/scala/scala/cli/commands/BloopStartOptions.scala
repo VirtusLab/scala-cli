@@ -41,3 +41,8 @@ final case class BloopStartOptions(
     )
 
 }
+
+object BloopStartOptions {
+  implicit val parser = Parser[BloopStartOptions]
+  implicit val help   = Help[BloopStartOptions]
+}

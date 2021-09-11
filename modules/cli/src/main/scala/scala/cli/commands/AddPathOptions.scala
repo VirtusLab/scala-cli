@@ -9,3 +9,8 @@ final case class AddPathOptions(
   title: String = ""
 )
 // format: on
+
+object AddPathOptions {
+  implicit val parser = Parser[AddPathOptions]
+  implicit val help   = Help[AddPathOptions]
+}

@@ -19,3 +19,8 @@ final case class InstallCompletionsOptions(
   env: Boolean = false
 )
 // format: on
+
+object InstallCompletionsOptions {
+  implicit val parser = Parser[InstallCompletionsOptions]
+  implicit val help   = Help[InstallCompletionsOptions]
+}

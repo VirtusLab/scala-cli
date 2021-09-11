@@ -516,7 +516,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     )
     val root = inputs.root()
 
-    withBsp(root, Seq(".", "-v", "-v", "-v")) { (localClient, remoteServer) =>
+    withBsp(root, Seq(".")) { (localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {

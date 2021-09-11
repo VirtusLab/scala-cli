@@ -77,4 +77,6 @@ object MetabrowseOptions {
     s"$arch-$os"
   }
 
+  implicit val parser = Parser[MetabrowseOptions]
+  implicit val help   = Help[MetabrowseOptions]
 }

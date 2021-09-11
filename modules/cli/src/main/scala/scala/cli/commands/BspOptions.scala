@@ -27,3 +27,8 @@ final case class BspOptions(
     )
   }
 }
+
+object BspOptions {
+  implicit val parser = Parser[BspOptions]
+  implicit val help   = Help[BspOptions]
+}
