@@ -48,14 +48,17 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
 
 object ScriptPreprocessor {
 
-  private val sheBangRegex: Regex = s"""(^(#!.*\\n?)+\\s*(!#.*)?)""".r
+  private val sheBangRegex: Regex = s"""(^(#!.*(\\r\\n?|\\n)?)+(\\s*!#.*)?)""".r
 
   private def ignoreSheBangLines(content: String): String = {
     if (content.startsWith("#!")) {
       val regexMatch = sheBangRegex.findFirstMatchIn(content)
       regexMatch match {
         case Some(firstMatch) =>
-          content.replace(firstMatch.toString(), "\n" * firstMatch.toString().count(_ == '\n'))
+          content.replace(
+            firstMatch.toString(),
+            System.lineSeparator() * firstMatch.toString().split(System.lineSeparator()).length
+          )
         case None => content
       }
     }
