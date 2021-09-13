@@ -20,6 +20,7 @@ object ScalaCli extends CommandsEntryPoint {
     Clean,
     Compile,
     Directories,
+    Export,
     InstallCompletions,
     Metabrowse,
     Repl,

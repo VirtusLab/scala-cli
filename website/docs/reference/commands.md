@@ -47,6 +47,21 @@ Accepts options:
 
 ## `directories`
 
+## `export`
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
+- [dependency](./cli-options.md#dependency-options)
+- [export](./cli-options.md#export-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [main class](./cli-options.md#main-class-options)
+- [Scala.JS](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [shared](./cli-options.md#shared-options)
+
 ## `install completions`
 
 Accepts options:

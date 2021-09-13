@@ -112,6 +112,12 @@ case object ScalaPreprocessor extends Preprocessor {
                 scalaVersion = Some(scalaVer)
               )
             )
+          case Seq("repository", repo) if repo.nonEmpty =>
+            BuildOptions(
+              classPathOptions = ClassPathOptions(
+                extraRepositories = Seq(repo)
+              )
+            )
           case other =>
             val maybeOptions =
               // TODO Accept several platforms for cross-compilation

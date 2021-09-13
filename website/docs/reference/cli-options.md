@@ -52,6 +52,7 @@ Available in commands:
 - [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
+- [`export`](./commands#export)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -124,6 +125,7 @@ Available in commands:
 - [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
+- [`export`](./commands#export)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -153,6 +155,7 @@ Available in commands:
 Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
+- [`export`](./commands#export)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -175,6 +178,20 @@ Aliases: `--repo`, `-r`
 
 Add repositories
 
+## Export options
+
+Available in commands:
+- [`export`](./commands#export)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--sbt`
+
+#### `--output`
+
+Aliases: `-o`
+
 ## Help options
 
 Available in commands:
@@ -186,6 +203,7 @@ Available in commands:
 - [`clean`](./commands#clean)
 - [`compile`](./commands#compile)
 - [`directories`](./commands#directories)
+- [`export`](./commands#export)
 - [`install completions`](./commands#install-completions)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
@@ -261,6 +279,7 @@ Available in commands:
 - [`bloop start`](./commands#bloop-start)
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
+- [`export`](./commands#export)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -301,6 +320,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`clean`](./commands#clean)
 - [`compile`](./commands#compile)
+- [`export`](./commands#export)
 - [`install completions`](./commands#install-completions)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
@@ -331,6 +351,7 @@ Use progress bars
 ## Main class options
 
 Available in commands:
+- [`export`](./commands#export)
 - [`package`](./commands#package)
 - [`run`](./commands#run)
 
@@ -566,6 +587,7 @@ Don't actually run the REPL, only fetch it
 Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
+- [`export`](./commands#export)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -597,6 +619,7 @@ Enable Scala.JS
 Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
+- [`export`](./commands#export)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -634,6 +657,7 @@ Enable Scala Native
 Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
+- [`export`](./commands#export)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -673,6 +697,7 @@ Aliases: `--name`
 Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
+- [`export`](./commands#export)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
