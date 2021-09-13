@@ -57,6 +57,8 @@ object Repl extends ScalaCommand[ReplOptions] {
             sys.exit(1)
       }
 
+    val cross = options.compileCross.cross.getOrElse(false)
+
     if (inputs.isEmpty) {
       val artifacts = initialBuildOptions.artifacts(logger)
       maybeRunRepl(initialBuildOptions, artifacts, None, allowExit = !options.watch.watch)
@@ -72,7 +74,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         initialBuildOptions,
         bloopRifleConfig,
         logger,
-        crossBuilds = false,
+        crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) { (build, _) =>
         maybeRunRepl(build.options, build.artifacts, build.outputOpt, allowExit = false)
@@ -82,7 +84,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     }
     else {
       val (build, _) =
-        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
+        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
       maybeRunRepl(build.options, build.artifacts, build.outputOpt, allowExit = true)
     }
   }

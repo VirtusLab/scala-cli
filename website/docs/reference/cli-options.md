@@ -104,6 +104,20 @@ Aliases: `-p`, `--classpath`
 
 Print resulting class path
 
+## Compile cross options
+
+Available in commands:
+- [`package`](./commands#package)
+- [`console` / `repl`](./commands#console)
+- [`run`](./commands#run)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--cross`
+
+Cross-compile sources
+
 ## Coursier options
 
 Available in commands:

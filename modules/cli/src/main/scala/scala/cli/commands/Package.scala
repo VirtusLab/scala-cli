@@ -51,13 +51,15 @@ object Package extends ScalaCommand[PackageOptions] {
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
 
+    val cross = options.compileCross.cross.getOrElse(false)
+
     if (options.watch.watch) {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
         bloopRifleConfig,
         logger,
-        crossBuilds = false,
+        crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) {
         case (s: Build.Successful, _) =>
@@ -70,7 +72,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     else {
       val (build, _) =
-        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
+        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
       build match {
         case s: Build.Successful =>
           doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)

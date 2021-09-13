@@ -13,6 +13,8 @@ final case class PackageOptions(
     shared: SharedOptions = SharedOptions(),
   @Recurse
     watch: SharedWatchOptions = SharedWatchOptions(),
+  @Recurse
+    compileCross: CompileCrossOptions = CompileCrossOptions(),
 
   @Group("Package")
   @HelpMessage("Set destination path")

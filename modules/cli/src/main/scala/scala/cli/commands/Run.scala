@@ -39,13 +39,15 @@ object Run extends ScalaCommand[RunOptions] {
         jvmRunner = build.options.addRunnerDependency.getOrElse(true)
       )
 
+    val cross = options.compileCross.cross.getOrElse(false)
+
     if (options.watch.watch) {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
         bloopRifleConfig,
         logger,
-        crossBuilds = false,
+        crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) {
         case (s: Build.Successful, _) =>
@@ -58,7 +60,7 @@ object Run extends ScalaCommand[RunOptions] {
     }
     else {
       val (build, _) =
-        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
+        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)

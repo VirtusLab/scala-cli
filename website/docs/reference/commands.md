@@ -81,6 +81,7 @@ Fire-up a Scala REPL
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [compile cross](./cli-options.md#compile-cross-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [java](./cli-options.md#java-options)
@@ -99,6 +100,7 @@ Compile and package Scala code
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [compile cross](./cli-options.md#compile-cross-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [jvm](./cli-options.md#jvm-options)
@@ -121,6 +123,7 @@ scala-cli MyApp.scala -- first-arg second-arg
 Accepts options:
 - [benchmarking](./cli-options.md#benchmarking-options)
 - [compilation server](./cli-options.md#compilation-server-options)
+- [compile cross](./cli-options.md#compile-cross-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [java](./cli-options.md#java-options)
