@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.{Inputs, Os}
 import scala.build.internal.{AmmUtil, CodeWrapper, Name}
 import scala.build.options.{BuildOptions, ClassPathOptions}
+import scala.build.options.BuildRequirements
 
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {
   def preprocess(input: Inputs.SingleElement): Option[Seq[PreprocessedSource]] =
@@ -71,9 +72,9 @@ object ScriptPreprocessor {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, subPath)
 
-    val (options, updatedCode) =
+    val (requirements, options, updatedCode) =
       ScalaPreprocessor.process(contentIgnoredSheBangLines, printablePath)
-        .getOrElse((BuildOptions(), contentIgnoredSheBangLines))
+        .getOrElse((BuildRequirements(), BuildOptions(), contentIgnoredSheBangLines))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
@@ -91,6 +92,7 @@ object ScriptPreprocessor {
       code,
       topWrapperLen,
       Some(options),
+      Some(requirements),
       Some(className)
     )
   }

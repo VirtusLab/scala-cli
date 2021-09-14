@@ -39,24 +39,28 @@ object Run extends ScalaCommand[RunOptions] {
         jvmRunner = build.options.addRunnerDependency.getOrElse(true)
       )
 
+    val cross = options.compileCross.cross.getOrElse(false)
+
     if (options.watch.watch) {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
         bloopRifleConfig,
         logger,
+        crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) {
-        case s: Build.Successful =>
+        case (s: Build.Successful, _) =>
           maybeRun(s, allowTerminate = false)
-        case f: Build.Failed =>
+        case (f: Build.Failed, _) =>
           System.err.println("Compilation failed")
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     }
     else {
-      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
+      val (build, _) =
+        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)

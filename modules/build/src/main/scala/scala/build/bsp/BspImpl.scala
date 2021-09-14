@@ -16,6 +16,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
+import scala.build.CrossSources
 
 final class BspImpl(
   logger: Logger,
@@ -40,12 +41,17 @@ final class BspImpl(
 
     logger.log("Preparing build")
 
-    val sources = Sources.forInputs(
+    val crossSources = CrossSources.forInputs(
       inputs,
       Sources.defaultPreprocessors(
         buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
       )
     )
+
+    if (verbosity >= 3)
+      pprint.better.log(crossSources)
+
+    val sources = crossSources.sources(buildOptions)
 
     if (verbosity >= 3)
       pprint.better.log(sources)

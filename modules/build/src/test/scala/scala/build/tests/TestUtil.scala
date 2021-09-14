@@ -21,7 +21,7 @@ object TestUtil {
       val generated0 = generated()
       assert(
         generated0.map(_.toString).toSet == expected.toSet, {
-          pprint.log(generated0)
+          pprint.log(generated0.map(_.toString))
           pprint.log(expected)
           ""
         }

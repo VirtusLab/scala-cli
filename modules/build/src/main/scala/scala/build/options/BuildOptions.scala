@@ -218,6 +218,21 @@ final case class BuildOptions(
     else if (scalaNativeOptions.enable) Some(PackageType.Native)
     else packageOptions.packageTypeOpt
 
+  def crossOptions: Seq[BuildOptions] = {
+    val extraScalaVersions =
+      scalaOptions.extraScalaVersions.filter(v => !scalaOptions.scalaVersion.contains(v))
+    val sortedExtraScalaVersions =
+      extraScalaVersions.toVector.map(coursier.core.Version(_)).sorted.map(_.repr).reverse
+    sortedExtraScalaVersions.map { sv =>
+      copy(
+        scalaOptions = scalaOptions.copy(
+          scalaVersion = Some(sv),
+          extraScalaVersions = Set.empty
+        )
+      )
+    }
+  }
+
   lazy val hash: Option[String] = {
     val md = MessageDigest.getInstance("SHA-1")
 

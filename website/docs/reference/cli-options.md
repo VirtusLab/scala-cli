@@ -104,6 +104,20 @@ Aliases: `-p`, `--classpath`
 
 Print resulting class path
 
+## Compile cross options
+
+Available in commands:
+- [`package`](./commands#package)
+- [`console` / `repl`](./commands#console)
+- [`run`](./commands#run)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--cross`
+
+Cross-compile sources
+
 ## Coursier options
 
 Available in commands:
@@ -123,6 +137,16 @@ Available in commands:
 #### `--ttl`
 
 Specify a TTL for changing dependencies, such as snapshots
+
+## Cross options
+
+Available in commands:
+- [`compile`](./commands#compile)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--cross`
 
 ## Dependency options
 

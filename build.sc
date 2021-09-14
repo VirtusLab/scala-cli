@@ -88,6 +88,9 @@ object `generate-reference-doc` extends SbtModule {
   def moduleDeps = Seq(
     cli
   )
+  def repositories = super.repositories ++ Seq(
+    coursier.Repositories.sonatype("snapshots")
+  )
   def ivyDeps = Agg(
     Deps.caseApp,
     Deps.munit
@@ -114,6 +117,9 @@ class Build(val crossScalaVersion: String)
     `bloop-rifle`(),
     `test-runner`(),
     `tasty-lib`()
+  )
+  def repositories = super.repositories ++ Seq(
+    coursier.Repositories.sonatype("snapshots")
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
@@ -228,6 +234,9 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
     `test-runner`(Scala.defaultInternal)
+  )
+  def repositories = super.repositories ++ Seq(
+    coursier.Repositories.sonatype("snapshots")
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,

@@ -20,6 +20,8 @@ final case class RunOptions(
     sharedJava: SharedJavaOptions = SharedJavaOptions(),
   @Recurse
     watch: SharedWatchOptions = SharedWatchOptions(),
+  @Recurse
+    compileCross: CompileCrossOptions = CompileCrossOptions(),
 
   @Group("Runner")
   @HelpMessage("Specify which main class to run")

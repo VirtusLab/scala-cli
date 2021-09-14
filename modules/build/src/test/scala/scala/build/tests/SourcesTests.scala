@@ -7,6 +7,8 @@ import scala.build.Sources
 import scala.build.internal.CustomCodeWrapper
 import scala.build.internal.Util._
 import scala.build.tests.TestUtil._
+import scala.build.CrossSources
+import scala.build.options.BuildOptions
 
 class SourcesTests extends munit.FunSuite {
 
@@ -14,7 +16,7 @@ class SourcesTests extends munit.FunSuite {
   def scalaParams        = ScalaParameters(scalaVersion)
   def scalaBinaryVersion = scalaParams.scalaBinaryVersion
 
-  test("dependencies in .scala") {
+  test("dependencies in .scala - $ivy") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
         """import $ivy.`org1:name1:1.1`
@@ -33,7 +35,9 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val sources = Sources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      val sources = crossSources.sources(BuildOptions())
 
       expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -42,7 +46,37 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("dependencies in .sc") {
+  test("dependencies in .scala - using") {
+    val testInputs = TestInputs(
+      os.rel / "something.scala" ->
+        """using "org1:name1:1.1"
+          |using "org2::name2:2.2"
+          |using "org3:::name3:3.3"
+          |import scala.collection.mutable
+          |
+          |object Something {
+          |  def a = 1
+          |}
+          |""".stripMargin
+    )
+    val expectedDeps = Seq(
+      dep"org1:name1:1.1",
+      dep"org2::name2:2.2",
+      dep"org3:::name3:3.3"
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      val sources = crossSources.sources(BuildOptions())
+
+      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
+      expect(sources.paths.isEmpty)
+      expect(sources.inMemory.length == 1)
+      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+    }
+  }
+
+  test("dependencies in .sc - $ivy") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
         """import $ivy.`org1:name1:1.1`
@@ -59,7 +93,9 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val sources = Sources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      val sources = crossSources.sources(BuildOptions())
 
       expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -112,13 +148,43 @@ class SourcesTests extends munit.FunSuite {
     )
 
     testInputs.withInputs { (_, inputs) =>
-      val sources = Sources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      val sources = crossSources.sources(BuildOptions())
 
       val parsedCodes: Seq[String] = sources.inMemory.map(_._3)
 
       parsedCodes.zip(expectedParsedCodes).foreach { case (parsedCode, expectedCode) =>
         expect(parsedCode.contains(expectedCode))
       }
+    }
+  }
+
+  test("dependencies in .sc - using") {
+    val testInputs = TestInputs(
+      os.rel / "something.sc" ->
+        """using "org1:name1:1.1"
+          |using "org2::name2:2.2"
+          |using "org3:::name3:3.3"
+          |import scala.collection.mutable
+          |
+          |def a = 1
+          |""".stripMargin
+    )
+    val expectedDeps = Seq(
+      dep"org1:name1:1.1",
+      dep"org2::name2:2.2",
+      dep"org3:::name3:3.3"
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      val sources = crossSources.sources(BuildOptions())
+
+      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
+      expect(sources.paths.isEmpty)
+      expect(sources.inMemory.length == 1)
+      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
     }
   }
 

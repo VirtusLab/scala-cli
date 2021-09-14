@@ -32,6 +32,15 @@ object HashedField extends LowPriorityHashedField {
         update(s"$name=${hasher.value.hashedValue(t)}")
   }
 
+  implicit def set[T](implicit
+    hasher: Lazy[HashedType[T]],
+    ordering: Ordering[T]
+  ): HashedField[Set[T]] = {
+    (name, set, update) =>
+      for (t <- set.toVector.sorted(ordering))
+        update(s"$name+=${hasher.value.hashedValue(t)}")
+  }
+
 }
 
 abstract class LowPriorityHashedField {

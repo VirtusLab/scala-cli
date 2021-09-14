@@ -26,7 +26,8 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     val directories = options.shared.directories.directories
 
-    val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
+    val (build, _) =
+      Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
@@ -56,6 +57,8 @@ object Repl extends ScalaCommand[ReplOptions] {
             sys.exit(1)
       }
 
+    val cross = options.compileCross.cross.getOrElse(false)
+
     if (inputs.isEmpty) {
       val artifacts = initialBuildOptions.artifacts(logger)
       maybeRunRepl(initialBuildOptions, artifacts, None, allowExit = !options.watch.watch)
@@ -71,15 +74,17 @@ object Repl extends ScalaCommand[ReplOptions] {
         initialBuildOptions,
         bloopRifleConfig,
         logger,
+        crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
-      ) { build =>
+      ) { (build, _) =>
         maybeRunRepl(build.options, build.artifacts, build.outputOpt, allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     }
     else {
-      val build = Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger)
+      val (build, _) =
+        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
       maybeRunRepl(build.options, build.artifacts, build.outputOpt, allowExit = true)
     }
   }

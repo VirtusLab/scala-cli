@@ -14,7 +14,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulTestInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`org.scalameta::munit::0.7.25`
+        """using "org.scalameta::munit::0.7.25"
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -29,7 +29,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val failingTestInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`org.scalameta::munit::0.7.25`
+        """using "org.scalameta::munit::0.7.25"
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -43,7 +43,8 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulUtestInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.lihaoyi::utest::0.7.10`, utest._
+        """using "com.lihaoyi::utest::0.7.10"
+          |import utest._
           |
           |object MyTests extends TestSuite {
           |  val tests = Tests {
@@ -60,7 +61,8 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulUtestJsInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.lihaoyi::utest::0.7.10`, utest._
+        """using "com.lihaoyi::utest::0.7.10"
+          |import utest._
           |import scala.scalajs.js
           |
           |object MyTests extends TestSuite {
@@ -79,7 +81,8 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulUtestNativeInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.lihaoyi::utest::0.7.10`, utest._
+        """using "com.lihaoyi::utest::0.7.10"
+          |import utest._
           |import scala.scalanative.libc._
           |import scala.scalanative.unsafe._
           |
@@ -100,7 +103,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulJunitInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.novocode:junit-interface:0.11`
+        """using "com.novocode:junit-interface:0.11"
           |import org.junit.Test
           |
           |class MyTests {
@@ -118,7 +121,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val severalTestsInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`org.scalameta::munit::0.7.25`
+        """using "org.scalameta::munit::0.7.25"
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -128,7 +131,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
           |}
           |""".stripMargin,
       os.rel / "OtherTests.scala" ->
-        """import $ivy.`org.scalameta::munit::0.7.25`
+        """using "org.scalameta::munit::0.7.25"
           |
           |class OtherTests extends munit.FunSuite {
           |  test("bar") {
@@ -143,8 +146,8 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulWeaverInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """import $ivy.`com.disneystreaming::weaver-cats:0.7.6`
-          |import $ivy.`com.eed3si9n.expecty::expecty:0.15.4+5-f1d8927e-SNAPSHOT`
+        """using "com.disneystreaming::weaver-cats:0.7.6"
+          |using "com.eed3si9n.expecty::expecty:0.15.4+5-f1d8927e-SNAPSHOT"
           |import weaver._
           |import cats.effect.IO
           |
@@ -335,7 +338,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       val inputs = TestInputs(
         Seq(
           os.rel / "MyTests.scala" ->
-            """import $ivy.`org.scalatest::scalatest::3.2.9`
+            """using "org.scalatest::scalatest::3.2.9"
               |import org.scalatest._
               |import org.scalatest.flatspec._
               |import org.scalatest.matchers._
@@ -375,7 +378,8 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       val inputs = TestInputs(
         Seq(
           os.rel / "MyTests.scala" ->
-            """import $ivy.`com.lihaoyi::utest::0.7.10`, utest._
+            """using "com.lihaoyi::utest::0.7.10"
+              |import utest._
               |
               |object MyTests extends TestSuite {
               |  val tests = Tests {
