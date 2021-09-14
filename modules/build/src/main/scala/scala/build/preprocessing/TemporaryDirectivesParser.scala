@@ -17,7 +17,13 @@ object TemporaryDirectivesParser {
       P(usingTpe | requireTpe)
     }
 
-    def simpleElem = P(CharPred(c => !c.isWhitespace && c != '"').rep(1).!)
+    def simpleElemChar = P(
+      CharPred(c => !c.isWhitespace && c != '"' && c != ',') |
+        P("\\\\").map(_ => "\\") |
+        P("\\\"").map(_ => "\"") |
+        P("\\,").map(_ => ",")
+    )
+    def simpleElem = P(simpleElemChar.rep(1).!)
     def charInQuote = P(
       CharPred(c => c != '"' && c != '\\').! |
         P("\\\\").map(_ => "\\") |
@@ -26,9 +32,16 @@ object TemporaryDirectivesParser {
     def quotedElem = P("\"" ~ charInQuote.rep ~ "\"").map(_.mkString)
     def elem       = P(simpleElem | quotedElem)
 
-    P(tpe ~ ws ~ elem ~ (ws ~ elem).rep(0) ~ nl.? ~ sc.? ~ nl.?).map {
-      case (tpe0, firstElem, otherElems) =>
-        Directive(tpe0, firstElem +: otherElems)
+    def parser = P(
+      tpe ~ ws ~
+        elem.rep(1, sep = P(ws)).rep(1, sep = P(ws.? ~ "," ~ ws.?)) ~
+        nl.? ~ sc.? ~
+        nl.?
+    )
+
+    parser.map {
+      case (tpe0, allElems) =>
+        allElems.map(elems => Directive(tpe0, elems))
     }
   }
 
@@ -37,7 +50,7 @@ object TemporaryDirectivesParser {
     P(directive.?)
   }
 
-  private def parseDirective(content: String, fromIndex: Int): Option[(Directive, Int)] = {
+  private def parseDirective(content: String, fromIndex: Int): Option[(Seq[Directive], Int)] = {
     // TODO Don't create a new String here
     val res = parse(content.drop(fromIndex), maybeDirective(_))
     res.fold((err, idx, _) => sys.error(err), (dirOpt, idx) => dirOpt.map((_, idx + fromIndex)))
@@ -48,7 +61,7 @@ object TemporaryDirectivesParser {
     def helper(fromIndex: Int, acc: List[Directive]): (List[Directive], Int) =
       parseDirective(content, fromIndex) match {
         case None                  => (acc.reverse, fromIndex)
-        case Some((dir, newIndex)) => helper(newIndex, dir :: acc)
+        case Some((dir, newIndex)) => helper(newIndex, dir.toList ::: acc)
       }
 
     val (directives, codeStartsAt) = helper(0, Nil)
