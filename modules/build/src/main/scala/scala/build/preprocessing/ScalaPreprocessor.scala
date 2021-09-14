@@ -8,7 +8,14 @@ import java.util.Locale
 
 import scala.build.{Inputs, Os, Sources}
 import scala.build.internal.AmmUtil
-import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ScalaOptions}
+import scala.build.options.{
+  BuildOptions,
+  BuildRequirements,
+  ClassPathOptions,
+  ScalaJsOptions,
+  ScalaNativeOptions,
+  ScalaOptions
+}
 import scala.collection.JavaConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -105,8 +112,27 @@ case object ScalaPreprocessor extends Preprocessor {
                 scalaVersion = Some(scalaVer)
               )
             )
-          case _ =>
-            sys.error(s"Unrecognized using directive: ${dir.values.mkString(" ")}")
+          case other =>
+            val maybeOptions =
+              // TODO Accept several platforms for cross-compilation
+              if (other.lengthCompare(1) == 0)
+                isPlatform(normalizePlatform(other.head)).map {
+                  case BuildRequirements.Platform.JVM =>
+                    BuildOptions()
+                  case BuildRequirements.Platform.JS =>
+                    BuildOptions(
+                      scalaJsOptions = ScalaJsOptions(enable = true)
+                    )
+                  case BuildRequirements.Platform.Native =>
+                    BuildOptions(
+                      scalaNativeOptions = ScalaNativeOptions(enable = true)
+                    )
+                }
+              else
+                None
+            maybeOptions.getOrElse {
+              sys.error(s"Unrecognized using directive: ${other.mkString(" ")}")
+            }
         }
       }
       .foldLeft(BuildOptions())(_ orElse _)
