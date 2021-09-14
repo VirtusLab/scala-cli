@@ -22,12 +22,8 @@ final case class RunOptions(
     watch: SharedWatchOptions = SharedWatchOptions(),
   @Recurse
     compileCross: CompileCrossOptions = CompileCrossOptions(),
-
-  @Group("Runner")
-  @HelpMessage("Specify which main class to run")
-  @ValueDescription("main-class")
-  @Name("M")
-    mainClass: Option[String] = None
+  @Recurse
+    mainClass: MainClassOptions = MainClassOptions()
 ) {
   // format: on
 
@@ -37,7 +33,7 @@ final case class RunOptions(
       jmhVersion = benchmarking.jmhVersion
     )
     baseOptions.copy(
-      mainClass = mainClass,
+      mainClass = mainClass.mainClass,
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
       )
