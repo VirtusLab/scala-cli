@@ -15,6 +15,8 @@ final case class PackageOptions(
     watch: SharedWatchOptions = SharedWatchOptions(),
   @Recurse
     compileCross: CompileCrossOptions = CompileCrossOptions(),
+  @Recurse
+    mainClass: MainClassOptions = MainClassOptions(),
 
   @Group("Package")
   @HelpMessage("Set destination path")
@@ -32,11 +34,6 @@ final case class PackageOptions(
   @HelpMessage("Generate an assembly JAR")
     assembly: Boolean = false,
 
-  @Group("Package")
-  @HelpMessage("Specify which main class to run")
-  @ValueDescription("main-class")
-  @Name("M")
-    mainClass: Option[String] = None,
   @Recurse
     packager: PackagerOptions = PackagerOptions(),
   @Group("Package")
@@ -72,7 +69,7 @@ final case class PackageOptions(
   def buildOptions: BuildOptions = {
     val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
     baseOptions.copy(
-      mainClass = mainClass.filter(_.nonEmpty),
+      mainClass = mainClass.mainClass.filter(_.nonEmpty),
       packageOptions = baseOptions.packageOptions.copy(
         version = Some(packager.version),
         launcherApp = packager.launcherApp,

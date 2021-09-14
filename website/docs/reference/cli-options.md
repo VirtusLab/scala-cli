@@ -328,6 +328,21 @@ Decrease verbosity
 
 Use progress bars
 
+## Main class options
+
+Available in commands:
+- [`package`](./commands#package)
+- [`run`](./commands#run)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--main-class`
+
+Aliases: `-M`
+
+Specify which main class to run
+
 ## Metabrowse options
 
 Available in commands:
@@ -391,12 +406,6 @@ Generate a library JAR rather than an executable JAR
 #### `--assembly`
 
 Generate an assembly JAR
-
-#### `--main-class`
-
-Aliases: `-M`
-
-Specify which main class to run
 
 #### `--deb`
 
@@ -551,20 +560,6 @@ Aliases: `-a`
 #### `--repl-dry-run`
 
 Don't actually run the REPL, only fetch it
-
-## Run options
-
-Available in commands:
-- [`run`](./commands#run)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--main-class`
-
-Aliases: `-M`
-
-Specify which main class to run
 
 ## Scala.JS options
 
