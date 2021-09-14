@@ -1,6 +1,6 @@
 ---
 title: About
-sidebar_position: 17
+sidebar_position: 16
 ---
 
 - developed at VirtusLab

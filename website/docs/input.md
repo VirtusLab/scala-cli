@@ -169,6 +169,22 @@ scala-cli my-app --main-class main
 Note that we pass an explicit main class. Both scripts automatically get a main class, so this
 is required to disambiguate them.
 
+### Self executable Scala Script
+
+You can define file with shebang header to self executable. It could be also run as a normal script.
+
+```bash
+cat HelloScript.sc
+# #!/usr/bin/env scala-cli
+# println("Hello world")
+
+scala-cli run HelloScript.sc
+# Hello world
+chmod +x HelloScript.sc
+./HelloScript.sc
+# Hello world
+```
+
 ### Difference with Ammonite scripts
 
 [Ammonite](http://ammonite.io) is a popular REPL for Scala, that is also able to compile and run
