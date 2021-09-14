@@ -109,27 +109,27 @@ class SourcesTests extends munit.FunSuite {
       os.rel / "something1.sc" ->
         """#!/usr/bin/env scala-cli
           |
-          |println("Hello World")
-          |""".stripMargin,
+          |println("Hello World")""".stripMargin,
       os.rel / "something2.sc" ->
         """#!/usr/bin/scala-cli
           |
-          |println("Hello World")
-          |""".stripMargin,
+          |println("Hello World")""".stripMargin,
       os.rel / "something3.sc" ->
         """#!/usr/bin/scala-cli
           |#! nix-shell -i scala-cli
           |
-          |println("Hello World")
-          |""".stripMargin,
+          |println("Hello World")""".stripMargin,
       os.rel / "something4.sc" ->
         """#!/usr/bin/scala-cli
           |#! nix-shell -i scala-cli
           |
           |!#
           |
-          |println("Hello World")
-          |""".stripMargin
+          |println("Hello World")""".stripMargin,
+      os.rel / "something5.sc" ->
+        """#!/usr/bin/scala-cli
+          |
+          |println("Hello World #!")""".stripMargin
     )
     val expectedParsedCodes = Seq(
       """
@@ -144,7 +144,10 @@ class SourcesTests extends munit.FunSuite {
         |
         |
         |
-        |println("Hello World")""".stripMargin
+        |println("Hello World")""".stripMargin,
+      """
+        |
+        |println("Hello World #!")""".stripMargin
     )
 
     testInputs.withInputs { (_, inputs) =>
