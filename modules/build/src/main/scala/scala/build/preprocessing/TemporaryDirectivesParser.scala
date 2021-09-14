@@ -26,9 +26,9 @@ object TemporaryDirectivesParser {
     def quotedElem = P("\"" ~ charInQuote.rep ~ "\"").map(_.mkString)
     def elem       = P(simpleElem | quotedElem)
 
-    P(tpe ~ ws ~ elem ~ (ws ~ elem).rep(0) ~ nl.? ~ sc.? ~ nl.?).map {
-      case (tpe0, firstElem, otherElems) =>
-        Directive(tpe0, firstElem +: otherElems)
+    P(tpe ~ (ws ~ elem).rep(1) ~ nl.? ~ sc.? ~ nl.?).map {
+      case (tpe0, elems) =>
+        Directive(tpe0, elems)
     }
   }
 
