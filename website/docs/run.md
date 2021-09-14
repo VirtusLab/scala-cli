@@ -64,9 +64,9 @@ and that Scala Native only supports Linux and macOS for now.
 scala-cli my-scala-native-app/ --native
 ```
 
-## ScalaScripts
+## Scala Scripts
 
-ScalaScripts can also be compiled and run.
+Scala CLI can also compile and run Scala scripts.
 ```bash
 cat HelloScript.sc
 # #!/usr/bin/env scala-cli
