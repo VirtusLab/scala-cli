@@ -6,7 +6,10 @@ import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
 import dependency._
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.EitherAwait.{either, value}
+import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
+import scala.build.Ops._
 import scala.build.options.BuildOptions
 import scala.build.postprocessing._
 
@@ -19,7 +22,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.scalanative.{build => sn}
 import scala.util.control.NonFatal
-import scala.build.options.BuildOptions
 import scala.annotation.tailrec
 
 trait Build {
@@ -113,7 +115,7 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
     crossBuilds: Boolean
-  ): (Build, Seq[Build]) = {
+  ): Either[BuildException, (Build, Seq[Build])] = either {
 
     val crossSources = CrossSources.forInputs(
       inputs,
@@ -141,11 +143,17 @@ object Build {
       )
     }
 
-    val mainBuild = doBuild(options0)
+    val mainBuild = value(doBuild(options0))
 
     val extraBuilds =
-      if (crossBuilds) options0.crossOptions.map(opt => doBuild(opt))
-      else Nil
+      if (crossBuilds)
+        value {
+          options0.crossOptions.map(opt => doBuild(opt))
+            .traverse
+            .left.map(CompositeBuildException(_))
+        }
+      else
+        Nil
 
     (mainBuild, extraBuilds)
   }
@@ -159,30 +167,34 @@ object Build {
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
-  ): Build = {
+  ): Either[BuildException, Build] = either {
 
-    val build0 = buildOnce(
-      inputs,
-      sources,
-      generatedSrcRoot0,
-      generatedSources,
-      options,
-      logger,
-      buildClient,
-      bloopServer
-    )
+    val build0 = value {
+      buildOnce(
+        inputs,
+        sources,
+        generatedSrcRoot0,
+        generatedSources,
+        options,
+        logger,
+        buildClient,
+        bloopServer
+      )
+    }
 
     build0 match {
       case successful: Successful =>
         if (options.jmhOptions.runJmh.getOrElse(false))
-          jmhBuild(
-            inputs,
-            successful,
-            logger,
-            successful.options.javaCommand(),
-            buildClient,
-            bloopServer
-          ).getOrElse {
+          value {
+            jmhBuild(
+              inputs,
+              successful,
+              logger,
+              successful.options.javaCommand(),
+              buildClient,
+              bloopServer
+            )
+          }.getOrElse {
             sys.error("JMH build failed") // suppress stack trace?
           }
         else
@@ -201,7 +213,7 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean
-  ): (Build, Seq[Build]) = {
+  ): Either[BuildException, (Build, Seq[Build])] = {
 
     val buildClient = BloopBuildClient.create(
       logger,
@@ -219,11 +231,11 @@ object Build {
       logger.bloopRifleLogger
     ) { bloopServer =>
       build(
-        inputs,
-        options,
-        logger,
-        buildClient,
-        bloopServer,
+        inputs = inputs,
+        options = options,
+        logger = logger,
+        buildClient = buildClient,
+        bloopServer = bloopServer,
         crossBuilds = crossBuilds
       )
     }
@@ -235,7 +247,7 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean
-  ): (Build, Seq[Build]) =
+  ): Either[BuildException, (Build, Seq[Build])] =
     build(inputs, options, BuildThreads.create(), bloopConfig, logger, crossBuilds = crossBuilds)
 
   def watch(
@@ -245,7 +257,7 @@ object Build {
     logger: Logger,
     crossBuilds: Boolean,
     postAction: () => Unit = () => ()
-  )(action: (Build, Seq[Build]) => Unit): Watcher = {
+  )(action: Either[BuildException, (Build, Seq[Build])] => Unit): Watcher = {
 
     val buildClient = BloopBuildClient.create(
       logger,
@@ -266,7 +278,7 @@ object Build {
 
     def run() = {
       try {
-        val (build0, crossBuilds0) = build(
+        val res = build(
           inputs,
           options,
           logger,
@@ -274,7 +286,7 @@ object Build {
           bloopServer,
           crossBuilds = crossBuilds
         )
-        action(build0, crossBuilds0)
+        action(res)
       }
       catch {
         case NonFatal(e) =>
@@ -337,14 +349,14 @@ object Build {
     options: BuildOptions,
     logger: Logger,
     buildClient: BloopBuildClient
-  ): (os.Path, Artifacts, Project, Boolean) = {
+  ): Either[BuildException, (os.Path, Artifacts, Project, Boolean)] = either {
 
     val params     = options.scalaParams
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
 
-    val artifacts = options.artifacts(logger)
+    val artifacts = value(options.artifacts(logger))
 
     val pluginScalacOptions = artifacts.compilerPlugins.map {
       case (_, _, path) =>
@@ -431,16 +443,18 @@ object Build {
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
-  ): Build = {
+  ): Either[BuildException, Build] = either {
 
-    val (classesDir0, artifacts, project, updatedBloopConfig) = prepareBuild(
-      inputs,
-      sources,
-      generatedSources,
-      options,
-      logger,
-      buildClient
-    )
+    val (classesDir0, artifacts, project, updatedBloopConfig) = value {
+      prepareBuild(
+        inputs,
+        sources,
+        generatedSources,
+        options,
+        logger,
+        buildClient
+      )
+    }
 
     if (updatedBloopConfig && os.isDir(classesDir0)) {
       logger.debug(s"Clearing $classesDir0")
@@ -556,7 +570,7 @@ object Build {
       lock.synchronized {
         f = null
       }
-      onChange
+      onChange // FIXME Log exceptions
     }
     def schedule(): Unit =
       if (f == null)
@@ -592,7 +606,7 @@ object Build {
     javaCommand: String,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
-  ) = {
+  ) = either {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir   = inputs.workspace / ".scala" / jmhProjectName
     os.remove.all(jmhOutputDir)
@@ -630,14 +644,16 @@ object Build {
           runJmh = build.options.jmhOptions.runJmh.map(_ => false)
         )
       )
-      val (jmhBuild, _) = Build.build(
-        jmhInputs,
-        updatedOptions,
-        logger,
-        buildClient,
-        bloopServer,
-        crossBuilds = false
-      )
+      val (jmhBuild, _) = value {
+        Build.build(
+          jmhInputs,
+          updatedOptions,
+          logger,
+          buildClient,
+          bloopServer,
+          crossBuilds = false
+        )
+      }
       Some(jmhBuild)
     }
     else None

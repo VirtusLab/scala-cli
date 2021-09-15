@@ -10,6 +10,8 @@ import java.nio.file.Path
 import java.security.MessageDigest
 
 import scala.build.{Artifacts, Logger, Os}
+import scala.build.EitherAwait.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.Constants._
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.util.Properties
@@ -194,7 +196,7 @@ final case class BuildOptions(
     ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
   }
 
-  def artifacts(logger: Logger): Artifacts =
+  def artifacts(logger: Logger): Either[BuildException, Artifacts] =
     Artifacts(
       params = scalaParams,
       compilerPlugins = compilerPlugins,

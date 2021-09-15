@@ -49,11 +49,13 @@ object Run extends ScalaCommand[RunOptions] {
         logger,
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
-      ) {
-        case (s: Build.Successful, _) =>
-          maybeRun(s, allowTerminate = false)
-        case (f: Build.Failed, _) =>
-          System.err.println("Compilation failed")
+      ) { res =>
+        res.orReport(logger).map(_._1).foreach {
+          case s: Build.Successful =>
+            maybeRun(s, allowTerminate = false)
+          case f: Build.Failed =>
+            System.err.println("Compilation failed")
+        }
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
@@ -61,6 +63,7 @@ object Run extends ScalaCommand[RunOptions] {
     else {
       val (build, _) =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
+          .orExit(logger)
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)

@@ -29,28 +29,32 @@ object Compile extends ScalaCommand[CompileOptions] {
     val buildOptions     = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
 
+    val logger = options.shared.logger
+
     if (options.watch.watch) {
       val watcher = Build.watch(
         inputs,
         buildOptions,
         bloopRifleConfig,
-        options.shared.logger,
+        logger,
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
-      ) { (build, _) =>
-        postBuild(build)
+      ) { res =>
+        for ((build, _) <- res.orReport(logger))
+          postBuild(build)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     }
     else {
-      val (build, _) = Build.build(
+      val res = Build.build(
         inputs,
         buildOptions,
         bloopRifleConfig,
-        options.shared.logger,
+        logger,
         crossBuilds = cross
       )
+      val (build, _) = res.orExit(logger)
       postBuild(build)
     }
   }

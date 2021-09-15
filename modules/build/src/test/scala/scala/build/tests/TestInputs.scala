@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService
 
 import scala.build.{Build, BuildThreads, Directories, Inputs}
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
 import scala.util.{Properties, Try}
@@ -31,11 +32,11 @@ final case class TestInputs(
     options: BuildOptions,
     buildThreads: BuildThreads,
     bloopConfig: BloopRifleConfig
-  )(f: (os.Path, Inputs, Build) => T): T =
+  )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
     withInputs { (root, inputs) =>
-      val (build, _) =
+      val res =
         Build.build(inputs, options, buildThreads, bloopConfig, TestLogger(), crossBuilds = false)
-      f(root, inputs, build)
+      f(root, inputs, res.map(_._1))
     }
 }
 

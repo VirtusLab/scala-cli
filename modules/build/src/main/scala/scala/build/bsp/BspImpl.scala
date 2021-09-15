@@ -10,13 +10,16 @@ import java.util.concurrent.{CompletableFuture, Executor}
 import scala.build.{BloopBuildClient, Build, GeneratedSource, Inputs, Logger, Sources}
 import scala.build.bloop.{BloopServer, BuildServer}
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.CrossSources
+import scala.build.EitherAwait.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
+import scala.build.Ops._
 import scala.build.options.BuildOptions
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
-import scala.build.CrossSources
 
 final class BspImpl(
   logger: Logger,
@@ -37,7 +40,7 @@ final class BspImpl(
       actualLocalClient.onBuildTargetDidChange(params)
     }
 
-  def prepareBuild(actualLocalServer: BspServer) = {
+  private def prepareBuild(actualLocalServer: BspServer) = either {
 
     logger.log("Preparing build")
 
@@ -63,25 +66,27 @@ final class BspImpl(
     actualLocalServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
     actualLocalServer.setGeneratedSources(generatedSources)
 
-    val (classesDir0, artifacts, project, buildChanged) = Build.prepareBuild(
-      inputs,
-      sources,
-      generatedSources,
-      options0,
-      logger,
-      localClient
-    )
+    val (classesDir0, artifacts, project, buildChanged) = value {
+      Build.prepareBuild(
+        inputs,
+        sources,
+        generatedSources,
+        options0,
+        logger,
+        localClient
+      )
+    }
 
     (sources, options0, classesDir0, artifacts, project, generatedSources, buildChanged)
   }
 
-  def build(
+  private def buildE(
     actualLocalServer: BspServer,
     bloopServer: BloopServer,
     notifyChanges: Boolean
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
     val (sources, buildOptions, classesDir0, artifacts, project, generatedSources, buildChanged) =
-      prepareBuild(actualLocalServer)
+      value(prepareBuild(actualLocalServer))
     if (notifyChanges && buildChanged)
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
@@ -96,6 +101,17 @@ final class BspImpl(
     )
   }
 
+  private def build(
+    actualLocalServer: BspServer,
+    bloopServer: BloopServer,
+    notifyChanges: Boolean,
+    logger: Logger
+  ): Unit =
+    buildE(actualLocalServer, bloopServer, notifyChanges) match {
+      case Left(ex)  => logger.debug(s"Caught $ex during BSP build, ignoring it")
+      case Right(()) =>
+    }
+
   def compile(
     actualLocalServer: BspServer,
     executor: Executor,
@@ -104,7 +120,7 @@ final class BspImpl(
     val preBuild = CompletableFuture.supplyAsync(
       () => {
         val (_, _, classesDir0, artifacts, project, generatedSources, buildChanged) =
-          prepareBuild(actualLocalServer)
+          prepareBuild(actualLocalServer).orThrow
         if (buildChanged)
           notifyBuildChange(actualLocalServer)
         (classesDir0, artifacts, project, generatedSources)
@@ -181,7 +197,7 @@ final class BspImpl(
   val watcher = new Build.Watcher(
     ListBuffer(),
     threads.buildThreads.fileWatcher,
-    build(actualLocalServer, remoteServer, notifyChanges = true),
+    build(actualLocalServer, remoteServer, notifyChanges = true, logger),
     ()
   )
 
@@ -239,7 +255,7 @@ final class BspImpl(
     val f0 = threads.prepareBuildExecutor.submit {
       new Runnable {
         def run(): Unit =
-          try build(actualLocalServer, remoteServer, notifyChanges = false)
+          try build(actualLocalServer, remoteServer, notifyChanges = false, logger)
           catch {
             case t: Throwable =>
               logger.debug(s"Caught $t during initial BSP build, ignoring it")

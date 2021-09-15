@@ -4,6 +4,9 @@ import java.nio.file.Path
 
 import dependency._
 
+import scala.build.errors.BuildException
+import scala.build.EitherAwait.{either, value}
+
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, Path)],
   extraJars: Seq[Path],
@@ -37,7 +40,7 @@ object ReplArtifacts {
     extraSourceJars: Seq[Path],
     logger: Logger,
     directories: Directories
-  ): ReplArtifacts = {
+  ): Either[BuildException, ReplArtifacts] = either {
     val localRepoOpt  = LocalRepo.localRepo(directories.localRepoDir)
     val allDeps       = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
     val replArtifacts = Artifacts.artifacts(allDeps, localRepoOpt.toSeq, scalaParams, logger)
@@ -49,7 +52,7 @@ object ReplArtifacts {
       classifiersOpt = Some(Set("sources"))
     )
     ReplArtifacts(
-      replArtifacts ++ replSourceArtifacts,
+      value(replArtifacts) ++ value(replSourceArtifacts),
       extraJars,
       extraSourceJars,
       "ammonite.Main",
@@ -64,7 +67,7 @@ object ReplArtifacts {
     extraJars: Seq[Path],
     logger: Logger,
     directories: Directories
-  ): ReplArtifacts = {
+  ): Either[BuildException, ReplArtifacts] = either {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
     val isScala2     = scalaParams.scalaVersion.startsWith("2.")
     val replDep =
@@ -76,7 +79,7 @@ object ReplArtifacts {
       if (isScala2) "scala.tools.nsc.MainGenericRunner"
       else "dotty.tools.repl.Main"
     ReplArtifacts(
-      replArtifacts,
+      value(replArtifacts),
       extraJars,
       Nil,
       mainClass,
