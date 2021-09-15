@@ -99,7 +99,12 @@ scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d63
 
 ## GitHub Gist
 
-TODO
+`scala-cli` accepts input via Github Gists url.
+It'll download gists zip archive, cache their content, and run them.
+
+```bash
+scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec
+# Hello
 
 ## Piping
 
