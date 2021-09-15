@@ -1,5 +1,7 @@
 package scala.build
 
+import org.apache.commons.io.IOUtils
+
 import java.io.ByteArrayInputStream
 import java.math.BigInteger
 import java.net.URI
@@ -256,7 +258,7 @@ object Inputs {
               def readArchive(acc: Seq[Compiled]): Seq[Compiled] =
                 zipInputStream.getNextEntry() match {
                   case entry: ZipEntry if !entry.isDirectory =>
-                    val content = zipInputStream.readAllBytes()
+                    val content = IOUtils.toByteArray(zipInputStream)
                     readArchive(resolve(entry.getName, content) +: acc)
                   case _: ZipEntry => readArchive(acc)
                   case _           => acc
