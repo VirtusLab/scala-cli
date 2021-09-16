@@ -242,6 +242,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     Deps.caseApp,
     Deps.coursierLauncher,
     Deps.dataClass,
+    Deps.giter8,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.scalaJsLinker,
