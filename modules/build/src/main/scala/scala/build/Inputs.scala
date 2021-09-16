@@ -1,12 +1,15 @@
 package scala.build
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.math.BigInteger
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
 import java.security.MessageDigest
-
+import java.util.zip.{ZipEntry, ZipInputStream}
+import scala.annotation.tailrec
 import scala.util.Properties
+import scala.util.matching.Regex
 
 final case class Inputs(
   elements: Seq[Inputs.Element],
@@ -212,6 +215,9 @@ object Inputs {
     Inputs(updatedElems, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = needsHash)
   }
 
+  private val githubGistsArchiveRegex: Regex =
+    s""":\\/\\/gist\\.github\\.com\\/[^\\/]*?\\/[^\\/]*$$""".r
+
   private def forNonEmptyArgs(
     args: Seq[String],
     cwd: os.Path,
@@ -229,29 +235,58 @@ object Inputs {
         lazy val stdinOpt0 = stdinOpt
         val isStdin = (arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") &&
           stdinOpt0.nonEmpty
-        if (isStdin) Right(VirtualScalaFile(stdinOpt0.get, "<stdin>"))
+        if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>")))
         else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
-          Right(VirtualScript(stdinOpt0.get, "<stdin>", os.sub / "stdin.sc"))
-        else if (arg.contains("://"))
-          download(arg).map { content =>
-            val wrapperPath = {
-              val u = new URI(arg) // FIXME Ignore parsing errors?
-              val it = Option(u.getScheme).iterator ++
-                Option(u.getAuthority).iterator ++
-                Option(u.getPath).iterator.flatMap(_.split('/').iterator)
-              os.sub / it.filter(_.nonEmpty).toVector
+          Right(Seq(VirtualScript(stdinOpt0.get, "<stdin>", os.sub / "stdin.sc")))
+        else if (arg.contains("://")) {
+          val url =
+            if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) s"$arg/download" else arg
+          download(url).map { content =>
+            def resolve(path: String, content: Array[Byte]): Compiled = {
+              val wrapperPath =
+                os.sub / path.split("/").last
+
+              if (path.endsWith(".scala")) VirtualScalaFile(content, path)
+              else if (path.endsWith(".java")) VirtualJavaFile(content, path)
+              else VirtualScript(content, path, wrapperPath)
             }
-            if (arg.endsWith(".scala")) VirtualScalaFile(content, arg)
-            else if (arg.endsWith(".java")) VirtualJavaFile(content, arg)
-            else VirtualScript(content, arg, wrapperPath)
+            if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) {
+              val zipInputStream = new ZipInputStream(new ByteArrayInputStream(content))
+              @tailrec
+              def readArchive(acc: Seq[Compiled]): Seq[Compiled] =
+                zipInputStream.getNextEntry() match {
+                  case entry: ZipEntry if !entry.isDirectory =>
+                    val content = {
+                      val baos = new ByteArrayOutputStream
+                      val buf  = Array.ofDim[Byte](16 * 1024)
+                      var read = -1
+                      while ({
+                        read = zipInputStream.read(buf)
+                        read >= 0
+                      }) {
+                        if (read > 0)
+                          baos.write(buf, 0, read)
+                      }
+                      baos.toByteArray
+                    }
+                    readArchive(resolve(entry.getName, content) +: acc)
+                  case _: ZipEntry => readArchive(acc)
+                  case _           => acc
+                }
+              readArchive(Nil)
+            }
+            else {
+              List(resolve(url, content))
+            }
           }
-        else if (arg.endsWith(".sc")) Right(Script(dir, subPath))
-        else if (arg.endsWith(".scala")) Right(ScalaFile(dir, subPath))
-        else if (arg.endsWith(".java")) Right(JavaFile(dir, subPath))
-        else if (os.isDir(path)) Right(Directory(path))
+        }
+        else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
+        else if (arg.endsWith(".scala")) Right(Seq(ScalaFile(dir, subPath)))
+        else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
+        else if (os.isDir(path)) Right(Seq(Directory(path)))
         else if (acceptFds && arg.startsWith("/dev/fd/")) {
           val content = os.read.bytes(os.Path(arg, cwd))
-          Right(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc"))
+          Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
         }
         else {
           val msg =
@@ -267,7 +302,7 @@ object Inputs {
     if (invalid.isEmpty) {
       val validElems = validatedArgs.collect {
         case Right(elem) => elem
-      }
+      }.flatten
       assert(validElems.nonEmpty)
 
       Right(forValidatedElems(validElems, baseProjectName, directories))
