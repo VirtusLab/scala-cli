@@ -60,6 +60,7 @@ object Deps {
   def scalaPackager              = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
   def scalaPackagerCli           = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
   def scalaparse                 = ivy"com.lihaoyi::scalaparse:2.3.2"
+  def scalaReflect(sv: String)   = ivy"org.scala-lang:scala-reflect:$sv"
   def shapeless                  = ivy"com.chuusai::shapeless:2.3.7"
   def slf4jNop                   = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   def snailgun                   = ivy"me.vican.jorge::snailgun-core:0.4.0"

@@ -11,7 +11,7 @@ final case class BloopRifleConfig(
   port: Int,
   javaPath: String,
   javaOpts: Seq[String],
-  classPath: () => Seq[File],
+  classPath: () => Either[Throwable, Seq[File]],
   bspSocketOrPort: Option[() => BspConnectionAddress],
   bspStdin: Option[InputStream],
   bspStdout: Option[OutputStream],
@@ -84,7 +84,7 @@ object BloopRifleConfig {
       .getOrElse(hardCodedDefaultVersion)
   }
 
-  def default(bloopClassPath: () => Seq[File]): BloopRifleConfig =
+  def default(bloopClassPath: () => Either[Throwable, Seq[File]]): BloopRifleConfig =
     BloopRifleConfig(
       host = defaultHost,
       port = defaultPort,

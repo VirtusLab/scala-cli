@@ -2,9 +2,11 @@ package scala.cli.commands
 
 import caseapp._
 import scala.build.{Artifacts, Build, Inputs, Logger, Os, ReplArtifacts}
+import scala.build.EitherAwait.{either, value}
 import scala.build.internal.Runner
 import scala.build.options.BuildOptions
 import scala.util.Properties
+import scala.build.errors.BuildException
 
 object Repl extends ScalaCommand[ReplOptions] {
   override def group = "Main"
@@ -28,6 +30,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     val (build, _) =
       Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
+        .orExit(logger)
 
     val successfulBuild = build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
@@ -38,11 +41,12 @@ object Repl extends ScalaCommand[ReplOptions] {
       buildOptions: BuildOptions,
       artifacts: Artifacts,
       classDir: Option[os.Path],
+      logger: Logger,
       allowExit: Boolean
     ): Unit =
       build match {
         case s: Build.Successful =>
-          runRepl(
+          val res = runRepl(
             buildOptions,
             artifacts,
             classDir,
@@ -51,6 +55,12 @@ object Repl extends ScalaCommand[ReplOptions] {
             allowExit = allowExit,
             options.replDryRun
           )
+          res match {
+            case Left(ex) =>
+              if (allowExit) logger.exit(ex)
+              else logger.log(ex)
+            case Right(()) =>
+          }
         case f: Build.Failed =>
           System.err.println("Compilation failed")
           if (allowExit)
@@ -60,8 +70,8 @@ object Repl extends ScalaCommand[ReplOptions] {
     val cross = options.compileCross.cross.getOrElse(false)
 
     if (inputs.isEmpty) {
-      val artifacts = initialBuildOptions.artifacts(logger)
-      maybeRunRepl(initialBuildOptions, artifacts, None, allowExit = !options.watch.watch)
+      val artifacts = initialBuildOptions.artifacts(logger).orExit(logger)
+      maybeRunRepl(initialBuildOptions, artifacts, None, logger, allowExit = !options.watch.watch)
       if (options.watch.watch) {
         // nothing to watch, just wait for Ctrl+C
         WatchUtil.printWatchMessage()
@@ -76,8 +86,9 @@ object Repl extends ScalaCommand[ReplOptions] {
         logger,
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
-      ) { (build, _) =>
-        maybeRunRepl(build.options, build.artifacts, build.outputOpt, allowExit = false)
+      ) { res =>
+        for ((build, _) <- res.orReport(logger))
+          maybeRunRepl(build.options, build.artifacts, build.outputOpt, logger, allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
@@ -85,7 +96,8 @@ object Repl extends ScalaCommand[ReplOptions] {
     else {
       val (build, _) =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
-      maybeRunRepl(build.options, build.artifacts, build.outputOpt, allowExit = true)
+          .orExit(logger)
+      maybeRunRepl(build.options, build.artifacts, build.outputOpt, logger, allowExit = true)
     }
   }
 
@@ -97,9 +109,9 @@ object Repl extends ScalaCommand[ReplOptions] {
     logger: Logger,
     allowExit: Boolean,
     dryRun: Boolean
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
 
-    val replArtifacts =
+    val replArtifacts = value {
       if (options.replOptions.useAmmonite)
         ReplArtifacts.ammonite(
           artifacts.params,
@@ -118,6 +130,7 @@ object Repl extends ScalaCommand[ReplOptions] {
           logger,
           directories
         )
+    }
 
     // TODO Warn if some entries of artifacts.classPath were evicted in replArtifacts.replClassPath
     //      (should be artifacts whose version was bumped by Ammonite).

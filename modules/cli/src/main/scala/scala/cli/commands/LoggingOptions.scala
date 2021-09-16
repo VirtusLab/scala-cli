@@ -7,6 +7,7 @@ import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay
 import java.io.PrintStream
 
 import scala.build.blooprifle.BloopRifleLogger
+import scala.build.errors.BuildException
 import scala.build.Logger
 import scala.scalanative.{build => sn}
 
@@ -44,6 +45,19 @@ final case class LoggingOptions(
       def debug(message: => String) =
         if (verbosity >= 2)
           System.err.println(message)
+
+      def log(ex: BuildException): Unit =
+        if (verbosity >= 0)
+          System.err.println(ex.getMessage)
+      def exit(ex: BuildException): Nothing =
+        if (verbosity < 0)
+          sys.exit(1)
+        else if (verbosity == 0) {
+          System.err.println(ex.getMessage)
+          sys.exit(1)
+        }
+        else
+          throw new Exception(ex)
 
       def coursierLogger =
         if (quiet)

@@ -1,18 +1,21 @@
 package scala.build
 
-import _root_.coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
+import coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
 import coursier.cache.FileCache
 import coursier.cache.loggers.RefreshLogger
 import coursier.core.Classifier
 import coursier.Fetch
 import coursier.parse.RepositoryParser
-import _root_.dependency._
-import scala.build.internal.Constants
-import scala.build.internal.Constants._
+import dependency._
 
 import java.nio.file.Path
 
+import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.EitherAwait.{either, value}
+import scala.build.internal.Constants
+import scala.build.internal.Constants._
 import scala.build.internal.Util.ScalaDependencyOps
+import scala.build.Ops._
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
@@ -70,7 +73,7 @@ object Artifacts {
     addJmhDependencies: Option[String],
     extraRepositories: Seq[String],
     logger: Logger
-  ): Artifacts = {
+  ): Either[BuildException, Artifacts] = either {
 
     val compilerDependencies =
       if (params.scalaVersion.startsWith("3."))
@@ -121,15 +124,19 @@ object Artifacts {
       jsTestBridgeDependencies ++
       jmhDependencies
 
-    val compilerArtifacts = artifacts(compilerDependencies, allExtraRepositories, params, logger)
+    val compilerArtifacts = value {
+      artifacts(compilerDependencies, allExtraRepositories, params, logger)
+    }
 
-    val fetchRes = fetch(
-      updatedDependencies,
-      allExtraRepositories,
-      params,
-      logger,
-      classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty))
-    )
+    val fetchRes = value {
+      fetch(
+        updatedDependencies,
+        allExtraRepositories,
+        params,
+        logger,
+        classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty))
+      )
+    }
     val artifacts0 = {
       val a = fetchRes
         .fullExtraArtifacts
@@ -165,19 +172,27 @@ object Artifacts {
 
     val extraStubsJars =
       if (addStubs)
-        artifacts(
-          Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion"),
-          allExtraRepositories,
-          params,
-          logger
-        ).map(_._2)
+        value {
+          artifacts(
+            Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion"),
+            allExtraRepositories,
+            params,
+            logger
+          ).map(_.map(_._2))
+        }
       else
         Nil
 
-    val compilerPlugins0 = compilerPlugins.flatMap { dep =>
-      val dep0 = dep.copy(userParams = dep.userParams + ("intransitive" -> None))
-      artifacts(Seq(dep0), allExtraRepositories, params, logger)
-        .map { case (url, path) => (dep0, url, path) }
+    val compilerPlugins0 = value {
+      compilerPlugins
+        .map { dep =>
+          val dep0 = dep.copy(userParams = dep.userParams + ("intransitive" -> None))
+          artifacts(Seq(dep0), allExtraRepositories, params, logger)
+            .map(_.map { case (url, path) => (dep0, url, path) })
+        }
+        .traverse
+        .left.map(CompositeBuildException(_))
+        .map(_.flatten)
     }
 
     Artifacts(
@@ -199,8 +214,8 @@ object Artifacts {
     params: ScalaParameters,
     logger: Logger,
     classifiersOpt: Option[Set[String]] = None
-  ): Seq[(String, Path)] = {
-    val result = fetch(dependencies, extraRepositories, params, logger, classifiersOpt)
+  ): Either[BuildException, Seq[(String, Path)]] = either {
+    val result = value(fetch(dependencies, extraRepositories, params, logger, classifiersOpt))
       .artifacts
       .iterator
       .map { case (a, f) => (a.url, f.toPath) }
@@ -220,7 +235,7 @@ object Artifacts {
     params: ScalaParameters,
     logger: Logger,
     classifiersOpt: Option[Set[String]]
-  ): Fetch.Result = {
+  ): Either[BuildException, Fetch.Result] = {
     logger.debug {
       s"Fetching $dependencies" +
         (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories")
@@ -245,7 +260,7 @@ object Artifacts {
         .addClassifiers(classifiers.toSeq.filter(_ != "_").map(coursier.Classifier(_)): _*)
     }
 
-    try fetcher.runResult()
+    try Right(fetcher.runResult())
     catch {
       case NonFatal(e) =>
         throw new Exception(e)

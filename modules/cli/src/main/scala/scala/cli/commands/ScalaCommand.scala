@@ -7,6 +7,9 @@ import caseapp.core.complete.{Completer, CompletionItem}
 import caseapp.core.help.{Help, HelpFormat}
 import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
+
+import scala.build.errors.BuildException
+import scala.build.Logger
 import scala.util.Properties
 
 abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
@@ -116,4 +119,19 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
           // This requires writing our own minimal JNI library, that publishes '.a' files too for static linking in the executable of Scala CLI.
           None
       }
+
+  implicit class EitherBuildExceptionOps[E <: BuildException, T](private val either: Either[E, T]) {
+    def orReport(logger: Logger): Option[T] =
+      either match {
+        case Left(ex) =>
+          logger.log(ex)
+          None
+        case Right(t) => Some(t)
+      }
+    def orExit(logger: Logger): T =
+      either match {
+        case Left(ex) => logger.exit(ex)
+        case Right(t) => t
+      }
+  }
 }

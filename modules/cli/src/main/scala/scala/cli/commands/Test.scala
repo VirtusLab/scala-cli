@@ -43,8 +43,9 @@ object Test extends ScalaCommand[TestOptions] {
         logger,
         crossBuilds = false,
         postAction = () => WatchUtil.printWatchMessage()
-      ) { (build, _) =>
-        maybeTest(build, allowExit = false)
+      ) { res =>
+        for ((build, _) <- res.orReport(logger))
+          maybeTest(build, allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
@@ -52,6 +53,7 @@ object Test extends ScalaCommand[TestOptions] {
     else {
       val (build, _) =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
+          .orExit(logger)
       maybeTest(build, allowExit = true)
     }
   }

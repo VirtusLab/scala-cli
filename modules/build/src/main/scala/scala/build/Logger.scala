@@ -5,6 +5,7 @@ import coursier.cache.CacheLogger
 import java.io.{OutputStream, PrintStream}
 
 import scala.build.blooprifle.BloopRifleLogger
+import scala.build.errors.BuildException
 import scala.scalanative.{build => sn}
 
 trait Logger {
@@ -13,6 +14,9 @@ trait Logger {
   def log(s: => String): Unit
   def log(s: => String, debug: => String): Unit
   def debug(s: => String): Unit
+
+  def log(ex: BuildException): Unit
+  def exit(ex: BuildException): Nothing
 
   def coursierLogger: coursier.cache.CacheLogger
   def bloopRifleLogger: BloopRifleLogger
@@ -27,6 +31,10 @@ object Logger {
     def log(s: => String): Unit                   = ()
     def log(s: => String, debug: => String): Unit = ()
     def debug(s: => String): Unit                 = ()
+
+    def log(ex: BuildException): Unit = ()
+    def exit(ex: BuildException): Nothing =
+      throw new Exception(ex)
 
     def coursierLogger: coursier.cache.CacheLogger =
       coursier.cache.CacheLogger.nop

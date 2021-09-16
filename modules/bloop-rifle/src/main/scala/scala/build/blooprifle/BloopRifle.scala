@@ -43,22 +43,22 @@ object BloopRifle {
     config: BloopRifleConfig,
     scheduler: ScheduledExecutorService,
     logger: BloopRifleLogger
-  ): Future[Unit] = {
-
-    val classPath = config.classPath().map(_.toPath)
-
-    Operations.startServer(
-      config.host,
-      config.port,
-      config.javaPath,
-      config.javaOpts,
-      classPath,
-      scheduler,
-      config.startCheckPeriod,
-      config.startCheckTimeout,
-      logger
-    )
-  }
+  ): Future[Unit] =
+    config.classPath() match {
+      case Left(ex) => Future.failed(new Exception("Error getting Bloop class path", ex))
+      case Right(cp) =>
+        Operations.startServer(
+          config.host,
+          config.port,
+          config.javaPath,
+          config.javaOpts,
+          cp.map(_.toPath),
+          scheduler,
+          config.startCheckPeriod,
+          config.startCheckTimeout,
+          logger
+        )
+    }
 
   /** Opens a BSP connection to a running bloop server.
     *

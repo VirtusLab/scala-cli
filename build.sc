@@ -29,13 +29,14 @@ import _root_.scala.util.Properties
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli           extends Cli
-object build         extends Cross[Build](Scala.defaultInternal)
-object stubs         extends JavaModule with ScalaCliPublishModule
-object runner        extends Cross[Runner](Scala.all: _*)
-object `test-runner` extends Cross[TestRunner](Scala.all: _*)
-object `bloop-rifle` extends Cross[BloopRifle](Scala.allScala2: _*)
-object `tasty-lib`   extends Cross[TastyLib](Scala.all: _*)
+object cli            extends Cli
+object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal)
+object build          extends Cross[Build](Scala.defaultInternal)
+object stubs          extends JavaModule with ScalaCliPublishModule
+object runner         extends Cross[Runner](Scala.all: _*)
+object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
+object `bloop-rifle`  extends Cross[BloopRifle](Scala.allScala2: _*)
+object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
 
 object integration extends Module {
   object docker extends CliIntegrationDocker {
@@ -111,13 +112,25 @@ object dummy extends Module {
   }
 }
 
+class BuildMacros(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule {
+  def compileIvyDeps = T {
+    super.compileIvyDeps() ++ Agg(
+      Deps.scalaReflect(scalaVersion())
+    )
+  }
+}
+
 class Build(val crossScalaVersion: String)
     extends CrossSbtModule with ScalaCliPublishModule with HasTests {
   def moduleDeps = Seq(
     `bloop-rifle`(),
+    `build-macros`(),
     `test-runner`(),
     `tasty-lib`()
   )
+  def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-Xasync")
+  }
   def repositories = super.repositories ++ Seq(
     coursier.Repositories.sonatype("snapshots")
   )
@@ -231,6 +244,9 @@ class Build(val crossScalaVersion: String)
 trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf
     with HasTests with HasMacroAnnotations {
   def scalaVersion = Scala.defaultInternal
+  def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-Xasync")
+  }
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
     `test-runner`(Scala.defaultInternal)

@@ -61,11 +61,13 @@ object Package extends ScalaCommand[PackageOptions] {
         logger,
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
-      ) {
-        case (s: Build.Successful, _) =>
-          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
-        case (f: Build.Failed, _) =>
-          System.err.println("Compilation failed")
+      ) { res =>
+        res.orReport(logger).map(_._1).foreach {
+          case s: Build.Successful =>
+            doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+          case f: Build.Failed =>
+            System.err.println("Compilation failed")
+        }
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
@@ -73,6 +75,7 @@ object Package extends ScalaCommand[PackageOptions] {
     else {
       val (build, _) =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
+          .orExit(logger)
       build match {
         case s: Build.Successful =>
           doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)

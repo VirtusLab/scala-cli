@@ -8,10 +8,14 @@ import java.io.File
 import java.nio.file.Path
 
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.EitherAwait.{either, value}
+import scala.build.errors.ModuleFormatError
 import scala.build.internal.Util.ScalaDependencyOps
+import scala.build.Ops._
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Properties
+import scala.build.errors.BuildException
 
 object Bloop {
 
@@ -48,19 +52,22 @@ object Bloop {
     dep: AnyDependency,
     params: ScalaParameters,
     logger: Logger
-  ): Seq[File] =
-    Artifacts.artifacts(Seq(dep), Nil, params, logger).map(_._2.toFile)
+  ): Either[BuildException, Seq[File]] =
+    either {
+      value(Artifacts.artifacts(Seq(dep), Nil, params, logger))
+        .map(_._2.toFile)
+    }
 
-  def bloopClassPath(logger: Logger): Seq[File] = {
+  def bloopClassPath(logger: Logger): Either[BuildException, Seq[File]] = either {
     val moduleStr = BloopRifleConfig.defaultModule
-    val mod = ModuleParser.parse(moduleStr) match {
-      case Left(err)  => sys.error(s"Error parsing default bloop module '$moduleStr'")
-      case Right(mod) => mod
+    val mod = value {
+      ModuleParser.parse(moduleStr)
+        .left.map(err => new ModuleFormatError(moduleStr, err, Some("Bloop")))
     }
     val dep    = DependencyLike(mod, BloopRifleConfig.defaultVersion)
     val sv     = Properties.versionNumberString
     val sbv    = ScalaVersion.binary(sv)
     val params = ScalaParameters(sv, sbv)
-    bloopClassPath(dep, params, logger)
+    value(bloopClassPath(dep, params, logger))
   }
 }
