@@ -13,6 +13,7 @@ import coursier.util.{Artifact, Task}
 import scala.build.{Build, BuildThreads, Inputs, Logger, Os}
 import scala.build.internal.Runner
 import scala.build.options.BuildOptions
+import scala.cli.internal.FetchExternalBinary
 import scala.concurrent.ExecutionContext.{global => ec}
 import scala.util.Properties
 
@@ -59,103 +60,22 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     sourceJar: Path
   ): Unit = {
 
-    def defaultLauncher() = {
-
-      val (url, changing) =
-        options.metabrowseBinaryUrl(successfulBuild.options.scalaParams.scalaVersion)
-      val cache = options.shared.coursierCache
-      val f = cache.logger.use {
-        logger.log(s"Getting $url")
-        cache.file(Artifact(url).withChanging(changing)).run.flatMap {
-          case Left(e)  => Task.fail(e)
-          case Right(f) => Task.point(os.Path(f, os.pwd))
-        }.unsafeRun()(cache.ec)
-      }
-      logger.debug(s"$url is available locally at $f")
-
-      // FIXME Once coursier has proper support for extracted archives in cache, use it instead of those hacks
-      if (f.last.endsWith(".zip")) {
-        val baseDir = f / os.up
-        val dir     = baseDir / s".${f.last.stripSuffix(".zip")}-content"
-        if (os.exists(dir))
-          logger.debug(s"Found $dir")
-        else {
-          logger.debug(s"Unzipping $f under $dir")
-          val tmpDir = baseDir / s".${f.last.stripSuffix(".zip")}-content-${UUID.randomUUID()}"
-          try {
-            coursier.jvm.UnArchiver.default().extract(
-              ArchiveType.Zip,
-              f.toIO,
-              tmpDir.toIO,
-              overwrite = false
-            )
-            if (!os.exists(dir)) {
-              try os.move(tmpDir, dir, atomicMove = true)
-              catch {
-                case ex: IOException =>
-                  if (!os.exists(dir))
-                    throw new Exception(ex)
-              }
-            }
-          }
-          finally {
-            try os.remove.all(tmpDir)
-            catch {
-              case _: IOException if Properties.isWin =>
-            }
-          }
-        }
-
-        val dirContent = os.list(dir)
-        if (dirContent.length == 1) dirContent.head
-        else dirContent.filter(_.last.startsWith("metabrowse")).head
-      }
-      else if (f.last.endsWith(".gz")) {
-        val dest = f / os.up / s".${f.last.stripSuffix(".gz")}"
-        if (os.exists(dest))
-          logger.debug(s"Found $dest")
-        else {
-          logger.debug(s"Uncompression $f at $dest")
-          var fis: FileInputStream  = null
-          var fos: FileOutputStream = null
-          var gzis: GZIPInputStream = null
-          try {
-            fis = new FileInputStream(f.toIO)
-            gzis = new GZIPInputStream(fis)
-            fos = new FileOutputStream(dest.toIO)
-
-            val buf  = Array.ofDim[Byte](16 * 1024)
-            var read = -1
-            while ({
-              read = gzis.read(buf)
-              read >= 0
-            }) {
-              if (read > 0)
-                fos.write(buf, 0, read)
-            }
-            fos.flush()
-          }
-          finally {
-            if (gzis != null) gzis.close()
-            if (fos != null) fos.close()
-            if (fis != null) fis.close()
-          }
-        }
-        dest
-      }
-      else
-        f
-    }
-
     val launcher = options.metabrowseLauncher
       .filter(_.nonEmpty)
       .map(os.Path(_, os.pwd))
-      .getOrElse(defaultLauncher())
+      .getOrElse {
+        val (url, changing) =
+          options.metabrowseBinaryUrl(successfulBuild.options.scalaParams.scalaVersion)
+        FetchExternalBinary.fetch(
+          url,
+          changing,
+          options.shared.coursierCache,
+          logger,
+          "metabrowse"
+        )
+      }
 
     logger.debug(s"Using metabrowse launcher $launcher")
-
-    if (!Properties.isWin)
-      os.perms.set(launcher, "rwxr-xr-x")
 
     val extraJars =
       if (options.addRtJar.getOrElse(true)) {
