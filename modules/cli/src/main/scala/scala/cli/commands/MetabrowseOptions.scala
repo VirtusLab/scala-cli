@@ -41,7 +41,7 @@ final case class MetabrowseOptions(
 
   def metabrowseBinaryUrl(scalaVersion: String): (String, Boolean) = {
     val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
-      .getOrElse(FetchExternalBinary.platformSuffix)
+      .getOrElse(FetchExternalBinary.platformSuffix(supportsMusl = false))
     val metabrowseTag0           = metabrowseTag.getOrElse("latest")
     val metabrowseGitHubOrgName0 = metabrowseGitHubOrgName.getOrElse("alexarchambault/metabrowse")
     val metabrowseExtension0     = if (Properties.isWin) ".zip" else ".gz"

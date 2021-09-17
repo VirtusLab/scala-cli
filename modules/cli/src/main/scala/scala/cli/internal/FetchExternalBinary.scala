@@ -8,6 +8,7 @@ import java.io.{FileInputStream, FileOutputStream, IOException}
 import java.util.{Locale, UUID}
 import java.util.zip.GZIPInputStream
 
+import scala.build.internal.OsLibc
 import scala.build.Logger
 import scala.util.Properties
 
@@ -110,14 +111,19 @@ object FetchExternalBinary {
     launcher
   }
 
-  def platformSuffix: String = {
+  def platformSuffix(supportsMusl: Boolean = true): String = {
     val arch = sys.props("os.arch").toLowerCase(Locale.ROOT) match {
       case "amd64" => "x86_64"
       case other   => other
     }
     val os =
       if (Properties.isWin) "pc-win32"
-      else if (Properties.isLinux) "pc-linux"
+      else if (Properties.isLinux) {
+        if (supportsMusl && OsLibc.isMusl.getOrElse(false))
+          "pc-linux-static"
+        else
+          "pc-linux"
+      }
       else if (Properties.isMac) "apple-darwin"
       else sys.error(s"Unrecognized OS: ${sys.props("os.name")}")
     s"$arch-$os"

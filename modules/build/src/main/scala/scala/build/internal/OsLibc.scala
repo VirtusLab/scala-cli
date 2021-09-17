@@ -9,7 +9,7 @@ import scala.util.Properties
 
 object OsLibc {
 
-  private lazy val isMusl: Option[Boolean] = {
+  lazy val isMusl: Option[Boolean] = {
 
     def tryRun(cmd: String*): Option[os.CommandResult] =
       try {
