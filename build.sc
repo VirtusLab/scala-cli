@@ -100,14 +100,21 @@ object `generate-reference-doc` extends SbtModule {
 }
 
 object dummy extends Module {
-  // dummy project to get scala steward updates for Ammonite, whose
-  // version is used in the repl command, and ensure Ammonite is available
-  // for all Scala versions we support
+  // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
+  // versions are used in the fmt and repl commands, and ensure Ammonite is available
+  // for all Scala versions we support.
   object amm extends Cross[Amm](Scala.listAll: _*)
   class Amm(val crossScalaVersion: String) extends CrossScalaModule with Bloop.Module {
     def skipBloop = true
     def ivyDeps = Agg(
       Deps.ammonite
+    )
+  }
+  object scalafmt extends ScalaModule with Bloop.Module {
+    def skipBloop    = true
+    def scalaVersion = Scala.defaultInternal
+    def ivyDeps = Agg(
+      Deps.scalafmtCli
     )
   }
 }
@@ -220,6 +227,8 @@ class Build(val crossScalaVersion: String)
          |  def jmhVersion = "1.29"
          |
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
+         |
+         |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |}

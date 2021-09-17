@@ -53,6 +53,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -126,6 +127,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -156,6 +158,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -192,6 +195,28 @@ Available in commands:
 
 Aliases: `-o`
 
+## Fmt options
+
+Available in commands:
+- [`fmt`](./commands#fmt)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--check`
+
+Check that sources are well formatted
+
+#### `--os-arch-suffix`
+
+#### `--scalafmt-tag`
+
+#### `--scalafmt-git-hub-org-name`
+
+#### `--scalafmt-extension`
+
+#### `--scalafmt-launcher`
+
 ## Help options
 
 Available in commands:
@@ -204,6 +229,7 @@ Available in commands:
 - [`compile`](./commands#compile)
 - [`directories`](./commands#directories)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`install completions`](./commands#install-completions)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
@@ -280,6 +306,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -321,6 +348,7 @@ Available in commands:
 - [`clean`](./commands#clean)
 - [`compile`](./commands#compile)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`install completions`](./commands#install-completions)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
@@ -588,6 +616,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -620,6 +649,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -658,6 +688,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -698,6 +729,7 @@ Available in commands:
 - [`bsp`](./commands#bsp)
 - [`compile`](./commands#compile)
 - [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
