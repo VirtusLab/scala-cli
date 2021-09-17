@@ -18,6 +18,7 @@ object PackageType {
   case object Native extends PackageType {
     override def runnable = true
   }
+  case object Docker extends PackageType
   case object Debian extends NativePackagerType
   case object Dmg    extends NativePackagerType
   case object Pkg    extends NativePackagerType

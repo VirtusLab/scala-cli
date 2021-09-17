@@ -182,12 +182,12 @@ object Package extends ScalaCommand[PackageOptions] {
 
         lazy val debianSettings = DebianSettings(
           shared = sharedSettings,
-          maintainer = packageOptions.maintainer.mandatory("maintainer", "debian"),
-          description = packageOptions.description.mandatory("description", "debian"),
+          maintainer = packageOptions.maintainer.mandatory("--maintainer", "debian"),
+          description = packageOptions.description.mandatory("--description", "debian"),
           debianConflicts = packageOptions.debianOptions.conflicts,
           debianDependencies = packageOptions.debianOptions.dependencies,
           architecture = packageOptions.debianOptions.architecture.mandatory(
-            "deb architecture",
+            "--deb-architecture",
             "debian"
           )
         )
@@ -195,31 +195,31 @@ object Package extends ScalaCommand[PackageOptions] {
         lazy val macOSSettings = MacOSSettings(
           shared = sharedSettings,
           identifier =
-            packageOptions.macOSidentifier.mandatory("identifier parameter", "macOs")
+            packageOptions.macOSidentifier.mandatory("--identifier-parameter", "macOs")
         )
 
         lazy val redHatSettings = RedHatSettings(
           shared = sharedSettings,
-          description = packageOptions.description.mandatory("description", "redHat"),
+          description = packageOptions.description.mandatory("--description", "redHat"),
           license =
-            packageOptions.redHatOptions.license.mandatory("license", "redHat"),
+            packageOptions.redHatOptions.license.mandatory("--license", "redHat"),
           release =
-            packageOptions.redHatOptions.release.mandatory("release", "redHat"),
+            packageOptions.redHatOptions.release.mandatory("--release", "redHat"),
           rpmArchitecture = packageOptions.redHatOptions.architecture.mandatory(
-            "rpm architecture",
+            "--rpm-architecture",
             "redHat"
           )
         )
 
         lazy val windowsSettings = WindowsSettings(
           shared = sharedSettings,
-          maintainer = packageOptions.maintainer.mandatory("maintainer", "windows"),
+          maintainer = packageOptions.maintainer.mandatory("--maintainer", "windows"),
           licencePath = packageOptions.windowsOptions.licensePath.mandatory(
-            "licence path",
+            "--licence-path",
             "windows"
           ),
           productName = packageOptions.windowsOptions.productName.mandatory(
-            "product name",
+            "--product-name",
             "windows"
           ),
           exitDialog = packageOptions.windowsOptions.exitDialog,
@@ -246,29 +246,45 @@ object Package extends ScalaCommand[PackageOptions] {
               imageResizerOpt = imageResizerOpt
             ).build()
         }
-    }
-
-    // build docker image
-    if (build.options.packageOptions.isDockerEnabled) {
-
-      val exec = if (build.options.scalaJsOptions.enable) "node" else "sh"
-      val from = build.options.packageOptions.dockerOptions.from match {
-        case Some(baseImage) => baseImage
-        case None => if (build.options.scalaJsOptions.enable) "node" else "adoptopenjdk/openjdk8"
-      }
-
-      val dockerSettings = DockerSettings(
-        from = from,
-        registry = build.options.packageOptions.dockerOptions.imageRegistry,
-        repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
-          "image repository",
+      case PackageType.Docker =>
+        val exec = if (build.options.scalaJsOptions.enable) "node" else "sh"
+        val from = build.options.packageOptions.dockerOptions.from match {
+          case Some(baseImage) => baseImage
+          case None => if (build.options.scalaJsOptions.enable) "node" else "openjdk:8-jre-slim"
+        }
+        val repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
+          "--docker-image-repository",
           "docker"
-        ),
-        tag = build.options.packageOptions.dockerOptions.imageTag,
-        exec = exec
-      )
+        )
+        val tag = build.options.packageOptions.dockerOptions.imageTag.getOrElse("latest")
 
-      DockerPackage(destPath, dockerSettings).build()
+        val dockerSettings = DockerSettings(
+          from = from,
+          registry = build.options.packageOptions.dockerOptions.imageRegistry,
+          repository = repository,
+          tag = Some(tag),
+          exec = exec
+        )
+
+        val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
+        if (build.options.scalaJsOptions.enable) {
+          val linkerConfig = build.options.scalaJsOptions.linkerConfig
+          linkJs(build, appPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
+        }
+        else {
+          bootstrap(build, appPath, mainClass(), () => alreadyExistsCheck())
+        }
+
+        logger.message(
+          "Started building docker image with your application, it would take some time"
+        )
+
+        DockerPackage(appPath, dockerSettings).build()
+
+        logger.message(
+          "Built docker image, run it with" + System.lineSeparator() +
+            s"  docker run $repository:$tag"
+        )
     }
 
     logger.message {
@@ -278,6 +294,8 @@ object Package extends ScalaCommand[PackageOptions] {
       else if (packageType == PackageType.Js)
         s"Wrote $dest, run it with" + System.lineSeparator() +
           "  node " + printableDest
+      else if (packageType == PackageType.Docker)
+        "Wrote docker image"
       else
         s"Wrote $dest"
     }

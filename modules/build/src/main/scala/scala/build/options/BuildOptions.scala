@@ -214,7 +214,8 @@ final case class BuildOptions(
 
   // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
   def packageTypeOpt: Option[PackageType] =
-    if (scalaJsOptions.enable) Some(PackageType.Js)
+    if (packageOptions.isDockerEnabled) Some(PackageType.Docker)
+    else if (scalaJsOptions.enable) Some(PackageType.Js)
     else if (scalaNativeOptions.enable) Some(PackageType.Native)
     else packageOptions.packageTypeOpt
 
