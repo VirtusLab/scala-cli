@@ -134,6 +134,9 @@ class Build(val crossScalaVersion: String)
   def repositories = super.repositories ++ Seq(
     coursier.Repositories.sonatype("snapshots")
   )
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.svm
+  )
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.bloopConfig,
