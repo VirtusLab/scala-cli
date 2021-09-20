@@ -52,6 +52,7 @@ object Deps {
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalaAsync                 = ivy"org.scala-lang.modules::scala-async:0.10.0"
   def scalac(sv: String)         = ivy"org.scala-lang:scala-compiler:$sv"
+  def scalafmtCli                = ivy"org.scalameta::scalafmt-cli:3.0.3"
   def scalaJsEnvNodeJs           = ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
   def scalaJsLinker              = ivy"org.scala-js::scalajs-linker:${Versions.scalaJs}"
   def scalaJsLinkerInterface     = ivy"org.scala-js::scalajs-linker-interface:${Versions.scalaJs}"

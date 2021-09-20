@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.options.BuildOptions
+import scala.cli.internal.FetchExternalBinary
 import scala.util.Properties
 
 // format: off
@@ -40,7 +41,7 @@ final case class MetabrowseOptions(
 
   def metabrowseBinaryUrl(scalaVersion: String): (String, Boolean) = {
     val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
-      .getOrElse(MetabrowseOptions.platformSuffix)
+      .getOrElse(FetchExternalBinary.platformSuffix(supportsMusl = false))
     val metabrowseTag0           = metabrowseTag.getOrElse("latest")
     val metabrowseGitHubOrgName0 = metabrowseGitHubOrgName.getOrElse("alexarchambault/metabrowse")
     val metabrowseExtension0     = if (Properties.isWin) ".zip" else ".gz"
@@ -63,20 +64,6 @@ final case class MetabrowseOptions(
 }
 
 object MetabrowseOptions {
-
-  private def platformSuffix: String = {
-    val arch = sys.props("os.arch").toLowerCase(java.util.Locale.ROOT) match {
-      case "amd64" => "x86_64"
-      case other   => other
-    }
-    val os =
-      if (Properties.isWin) "pc-win32"
-      else if (Properties.isLinux) "pc-linux"
-      else if (Properties.isMac) "apple-darwin"
-      else sys.error(s"Unrecognized OS: ${sys.props("os.name")}")
-    s"$arch-$os"
-  }
-
   implicit val parser = Parser[MetabrowseOptions]
   implicit val help   = Help[MetabrowseOptions]
 }

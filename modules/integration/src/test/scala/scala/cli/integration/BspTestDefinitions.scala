@@ -15,6 +15,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.io.Codec
 import scala.util.control.NonFatal
+import scala.util.Properties
 
 abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
@@ -401,7 +402,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     )
     val root = inputs.root()
 
-    withBsp(root, Seq(".")) { (localClient, remoteServer) =>
+    val extraArgs =
+      if (Properties.isWin) Seq("-v", "-v", "-v")
+      else Nil
+    withBsp(root, Seq(".") ++ extraArgs) { (localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {

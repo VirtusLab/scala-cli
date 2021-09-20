@@ -18,7 +18,8 @@ object Runner {
     commandName: String,
     command: Seq[String],
     logger: Logger,
-    allowExecve: Boolean = false
+    allowExecve: Boolean = false,
+    cwd: Option[os.Path] = None
   ): Int = {
 
     import logger.{log, debug}
@@ -31,6 +32,10 @@ object Runner {
 
     if (allowExecve && Execve.available()) {
       debug("execve available")
+
+      for (dir <- cwd)
+        Chdir.chdir(dir.toString)
+
       Execve.execve(
         findInPath(command.head).fold(command.head)(_.toString),
         commandName +: command.tail.toArray,
@@ -38,11 +43,13 @@ object Runner {
       )
       sys.error("should not happen")
     }
-    else
-      new ProcessBuilder(command: _*)
+    else {
+      val b = new ProcessBuilder(command: _*)
         .inheritIO()
-        .start()
-        .waitFor()
+      for (dir <- cwd)
+        b.directory(dir.toIO)
+      b.start().waitFor()
+    }
   }
 
   def runJvm(
