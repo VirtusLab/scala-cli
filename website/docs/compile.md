@@ -70,6 +70,13 @@ scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
 
 `-O` accepts both options with the prefixes above and those without such a prefix.
 
+## Scala compiler plugins
+To add compiler plugins dependencis you'd like to use --compiler-plugin:
+
+```bash
+scala-cli compile Plugin.scala --compiler-plugin org.typelevel:::kind-projector:0.13.2 --scala 2.12.14
+```
+
 ## Scala version
 
 Specify the Scala version you'd like to use with `--scala`:

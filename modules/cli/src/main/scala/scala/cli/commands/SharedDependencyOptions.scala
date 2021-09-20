@@ -15,7 +15,10 @@ final case class SharedDependencyOptions(
   @HelpMessage("")
   @Name("repo")
   @Name("r")
-    repository: List[String] = Nil
+    repository: List[String] = Nil,
+  @Group("Dependency")
+  @HelpMessage("Add compiler plugins dependencies")
+  compilerPlugin: List[String] = Nil
 )
 // format: on
 

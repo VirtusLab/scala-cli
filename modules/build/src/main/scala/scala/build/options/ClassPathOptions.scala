@@ -8,7 +8,8 @@ final case class ClassPathOptions(
   extraCompileOnlyJars: Seq[os.Path] = Nil,
   extraSourceJars: Seq[os.Path] = Nil,
   fetchSources: Option[Boolean] = None,
-  extraDependencies: Seq[AnyDependency] = Nil
+  extraDependencies: Seq[AnyDependency] = Nil,
+  compilerPlugins: Seq[AnyDependency] = Nil
 )
 
 object ClassPathOptions {

@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
-  private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   val simpleInputs = TestInputs(
     Seq(
