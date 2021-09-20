@@ -178,7 +178,9 @@ Aliases: `--repo`, `-r`
 
 Add repositories
 
-#### `--compiler-plugin`
+#### `--plugin`
+
+Aliases: `-P`
 
 Add compiler plugins dependencies
 

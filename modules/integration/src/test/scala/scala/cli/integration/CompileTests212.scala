@@ -31,7 +31,7 @@ class CompileTests212 extends CompileTestDefinitions(
         TestUtil.cli,
         "compile",
         extraOptions,
-        "--compiler-plugin",
+        "--plugin",
         kindProjectPlugin
       ).call(cwd = root).out.text
     }
