@@ -428,6 +428,10 @@ Generate a library JAR rather than an executable JAR
 
 Generate an assembly JAR
 
+#### `--standalone`
+
+Package standalone JARs
+
 #### `--deb`
 
 Build debian package, available only on linux
