@@ -207,6 +207,29 @@ jobs:
         if-no-files-found: warn
         retention-days: 2
 
+  publish:
+    needs: [jvm-tests, format, checks, reference-doc]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1.1.1
+      with:
+        jvm: 8
+    - name: GPG setup
+      run: .github/scripts/gpg-setup.sh
+      env:
+        PGP_SECRET: ${{ secrets.PGP_SECRET }}
+    - run: ./mill -i publishSonatype __.publishArtifacts
+      env:
+        PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
+        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+
   launchers:
     needs: [jvm-tests, native-tests, native-mostly-static-tests, native-static-tests, vc-redist, format, checks, reference-doc]
     if: github.event_name == 'push'
@@ -267,7 +290,7 @@ jobs:
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
 
   website:
-    needs: update-packages
+    needs: [publish, update-packages]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
