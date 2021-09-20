@@ -178,6 +178,10 @@ Aliases: `--repo`, `-r`
 
 Add repositories
 
+#### `--compiler-plugin`
+
+Add compiler plugins dependencies
+
 ## Export options
 
 Available in commands:
