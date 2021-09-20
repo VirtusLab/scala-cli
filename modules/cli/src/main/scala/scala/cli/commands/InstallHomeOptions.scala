@@ -3,11 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 // format: off
-@HelpMessage(
-  """Linking scala-cli binary to home
-    |
-    |Supported system: MacOS and Linux
-    |""".stripMargin)
+@HelpMessage("Install scala-cli in a sub-directory of the home directory")
 final case class InstallHomeOptions(        
   scalaCliBinaryPath: String
 )

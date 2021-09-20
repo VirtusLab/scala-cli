@@ -222,3 +222,10 @@ Accepts options:
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 
+### `install-home`
+
+Install scala-cli in a sub-directory of the home directory
+
+Accepts options:
+- [install home](./cli-options.md#install-home-options)
+
