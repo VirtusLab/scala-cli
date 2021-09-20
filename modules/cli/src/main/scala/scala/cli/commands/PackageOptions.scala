@@ -33,7 +33,9 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Generate an assembly JAR")
     assembly: Boolean = false,
-
+  @Group("Package")
+  @HelpMessage("Package standalone JARs")
+    standalone: Option[Boolean] = None,
   @Recurse
     packager: PackagerOptions = PackagerOptions(),
   @Group("Package")
@@ -71,6 +73,7 @@ final case class PackageOptions(
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
       packageOptions = baseOptions.packageOptions.copy(
+        standalone = standalone,
         version = Some(packager.version),
         launcherApp = packager.launcherApp,
         maintainer = packager.maintainer,

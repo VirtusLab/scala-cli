@@ -3,6 +3,7 @@ package scala.build.options
 import scala.build.internal.Constants
 
 final case class PackageOptions(
+  standalone: Option[Boolean] = None,
   version: Option[String] = None,
   launcherApp: Option[String] = None,
   maintainer: Option[String] = None,
@@ -23,6 +24,9 @@ final case class PackageOptions(
       .getOrElse(Constants.version.stripSuffix("-SNAPSHOT"))
 
   def isDockerEnabled: Boolean = dockerOptions.isDockerEnabled.getOrElse(false)
+
+  // default behaviour for building docker image is building standalone JARs
+  def isStandalone: Boolean = standalone.getOrElse(isDockerEnabled)
 
 }
 

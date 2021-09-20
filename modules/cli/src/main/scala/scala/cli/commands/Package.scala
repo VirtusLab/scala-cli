@@ -392,10 +392,17 @@ object Package extends ScalaCommand[PackageOptions] {
     val tmpJarContent = os.read.bytes(os.Path(tmpJar))
     Files.deleteIfExists(tmpJar)
 
-    def dependencyEntries = build.artifacts.artifacts.map {
-      case (url, _) =>
-        ClassPathEntry.Url(url)
-    }
+    def dependencyEntries =
+      build.artifacts.artifacts.map {
+        case (url, artifactPath) =>
+          if (build.options.packageOptions.isStandalone) {
+            val path = os.Path(artifactPath)
+            ClassPathEntry.Resource(path.last, os.mtime(path), os.read.bytes(path))
+          }
+          else {
+            ClassPathEntry.Url(url)
+          }
+      }
     val byteCodeEntry = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
 
     val allEntries    = Seq(byteCodeEntry) ++ dependencyEntries
