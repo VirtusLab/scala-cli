@@ -138,7 +138,7 @@ final case class SharedOptions(
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         generateSemanticDbs = semanticDb,
         scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
-        compilerPlugins = parseDependencies(dependencies.plugin, ignoreErrors)
+        compilerPlugins = parseDependencies(dependencies.compilerPlugin, ignoreErrors)
       ),
       scriptOptions = ScriptOptions(
         codeWrapper = codeWrapper

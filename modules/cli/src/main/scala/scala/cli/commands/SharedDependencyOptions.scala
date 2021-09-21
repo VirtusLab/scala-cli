@@ -18,8 +18,9 @@ final case class SharedDependencyOptions(
     repository: List[String] = Nil,
   @Group("Scala")
   @Name("P")
+  @Name("plugin")
   @HelpMessage("Add compiler plugins dependencies")
-  plugin: List[String] = Nil
+  compilerPlugin: List[String] = Nil
 )
 // format: on
 
