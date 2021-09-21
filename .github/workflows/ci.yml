@@ -298,9 +298,9 @@ jobs:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
 
-  website:
-    needs: [publish, update-packages]
-    if: github.event_name == 'push'
+  website-nightly:
+    needs: publish
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -310,13 +310,26 @@ jobs:
     - uses: actions/setup-node@v2.4.0
       with:
         node-version: '12.x'
-    - run: |
-        git config --global user.name "gh-actions"
-        git config --global user.email "actions@github.com"
-        cd website
-        yarn install
-        yarn build
-        yarn deploy
+    - run: .github/scripts/update-website.sh
+      env:
+        GIT_USER: VirtuslabRnD
+        DEPLOYMENT_BRANCH: gh-pages
+        GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
+
+  # same as website-nightly above, but for the 'needs' and 'if' fields
+  website-release:
+    needs: [publish, update-packages]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: actions/setup-node@v2.4.0
+      with:
+        node-version: '12.x'
+    - run: .github/scripts/update-website.sh
       env:
         GIT_USER: VirtuslabRnD
         DEPLOYMENT_BRANCH: gh-pages
