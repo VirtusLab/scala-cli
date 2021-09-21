@@ -58,11 +58,17 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   def withBsp[T](
-    root: os.Path,
+    inputs: TestInputs,
     args: Seq[String]
   )(
-    f: (TestBspClient, b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer) => Future[T]
+    f: (
+      os.Path,
+      TestBspClient,
+      b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
+    ) => Future[T]
   ): T = {
+
+    val root = inputs.root()
 
     val proc = os.proc(TestUtil.cli, "bsp", extraOptions, args)
       .spawn(cwd = root)
@@ -73,7 +79,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         TestBspClient.connect(proc.stdout, proc.stdin, pool)
       remoteServer = remoteServer0
       Await.result(remoteServer.buildInitialize(initParams(root)).asScala, 3.minutes)
-      Await.result(f(localClient, remoteServer), 3.minutes)
+      Await.result(f(root, localClient, remoteServer), 3.minutes)
     }
     finally {
       if (remoteServer != null)
@@ -132,9 +138,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
              |""".stripMargin
       )
     )
-    val root = inputs.root()
 
-    withBsp(root, Seq(".")) { (localClient, remoteServer) =>
+    withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
@@ -260,9 +265,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
              |""".stripMargin
       )
     )
-    val root = inputs.root()
 
-    withBsp(root, Seq(".")) { (localClient, remoteServer) =>
+    withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
@@ -328,9 +332,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
              |""".stripMargin
       )
     )
-    val root = inputs.root()
 
-    withBsp(root, Seq(".")) { (localClient, remoteServer) =>
+    withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
@@ -397,12 +400,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
              |""".stripMargin
       )
     )
-    val root = inputs.root()
-
     val extraArgs =
       if (Properties.isWin) Seq("-v", "-v", "-v")
       else Nil
-    withBsp(root, Seq(".") ++ extraArgs) { (localClient, remoteServer) =>
+
+    withBsp(inputs, Seq(".") ++ extraArgs) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
@@ -515,9 +517,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
              |""".stripMargin
       )
     )
-    val root = inputs.root()
 
-    withBsp(root, Seq(".")) { (localClient, remoteServer) =>
+    withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
