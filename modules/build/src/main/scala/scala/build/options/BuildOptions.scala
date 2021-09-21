@@ -75,7 +75,8 @@ final case class BuildOptions(
   def compilerPlugins: Seq[AnyDependency] =
     scalaJsOptions.compilerPlugins(scalaParams.scalaVersion) ++
       scalaNativeOptions.compilerPlugins ++
-      semanticDbPlugins
+      semanticDbPlugins ++
+      scalaOptions.compilerPlugins
 
   def allExtraJars: Seq[Path] =
     classPathOptions.extraJars.map(_.toNIO)

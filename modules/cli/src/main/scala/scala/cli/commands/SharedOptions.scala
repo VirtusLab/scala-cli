@@ -1,11 +1,11 @@
 package scala.cli.commands
 
 import java.io.{ByteArrayOutputStream, File, InputStream}
-
 import caseapp._
 import caseapp.core.help.Help
 import coursier.cache.FileCache
 import coursier.util.Artifact
+import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import scala.build.blooprifle.BloopRifleConfig
@@ -115,6 +115,17 @@ final case class SharedOptions(
     if (classWrap) Some(CustomCodeClassWrapper)
     else None
 
+  private def parseDependencies(deps: List[String], ignoreErrors: Boolean): Seq[AnyDependency] =
+    deps.map(_.trim).filter(_.nonEmpty)
+      .flatMap { depStr =>
+        DependencyParser.parse(depStr) match {
+          case Left(err) =>
+            if (ignoreErrors) Nil
+            else sys.error(s"Error parsing dependency '$depStr': $err")
+          case Right(dep) => Seq(dep)
+        }
+      }
+
   def buildOptions(
     enableJmh: Boolean,
     jmhVersion: Option[String],
@@ -126,7 +137,8 @@ final case class SharedOptions(
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         generateSemanticDbs = semanticDb,
-        scalacOptions = scalac.scalacOption.filter(_.nonEmpty)
+        scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
+        compilerPlugins = parseDependencies(dependencies.compilerPlugin, ignoreErrors)
       ),
       scriptOptions = ScriptOptions(
         codeWrapper = codeWrapper
@@ -154,15 +166,7 @@ final case class SharedOptions(
           .filter(_.nonEmpty)
           .map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
-        extraDependencies = dependencies.dependency.map(_.trim).filter(_.nonEmpty)
-          .flatMap { depStr =>
-            DependencyParser.parse(depStr) match {
-              case Left(err) =>
-                if (ignoreErrors) Nil
-                else sys.error(s"Error parsing dependency '$depStr': $err")
-              case Right(dep) => Seq(dep)
-            }
-          }
+        extraDependencies = parseDependencies(dependencies.dependency, ignoreErrors)
       ),
       internal = InternalOptions(
         cache = Some(coursierCache),
