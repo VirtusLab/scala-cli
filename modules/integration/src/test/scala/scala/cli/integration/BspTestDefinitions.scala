@@ -8,6 +8,7 @@ import java.nio.charset.Charset
 import java.nio.file.Paths
 import java.util.concurrent.TimeoutException
 
+import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, Future, Promise}
@@ -15,7 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.io.Codec
 import scala.util.control.NonFatal
-import scala.util.Properties
+import scala.util.{Failure, Properties, Success, Try}
 
 abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
@@ -59,7 +60,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   def withBsp[T](
     inputs: TestInputs,
-    args: Seq[String]
+    args: Seq[String],
+    attempts: Int = 3
   )(
     f: (
       os.Path,
@@ -68,31 +70,50 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     ) => Future[T]
   ): T = {
 
-    val root = inputs.root()
+    def attempt(): Try[T] = Try {
+      val root = inputs.root()
 
-    val proc = os.proc(TestUtil.cli, "bsp", extraOptions, args)
-      .spawn(cwd = root)
-    var remoteServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer = null
+      val proc = os.proc(TestUtil.cli, "bsp", extraOptions, args)
+        .spawn(cwd = root)
+      var remoteServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer = null
 
-    try {
-      val (localClient, remoteServer0, shutdownFuture) =
-        TestBspClient.connect(proc.stdout, proc.stdin, pool)
-      remoteServer = remoteServer0
-      Await.result(remoteServer.buildInitialize(initParams(root)).asScala, 3.minutes)
-      Await.result(f(root, localClient, remoteServer), 3.minutes)
+      try {
+        val (localClient, remoteServer0, shutdownFuture) =
+          TestBspClient.connect(proc.stdout, proc.stdin, pool)
+        remoteServer = remoteServer0
+        Await.result(remoteServer.buildInitialize(initParams(root)).asScala, 3.minutes)
+        Await.result(f(root, localClient, remoteServer), 3.minutes)
+      }
+      finally {
+        if (remoteServer != null)
+          try Await.result(remoteServer.buildShutdown().asScala, 20.seconds)
+          catch {
+            case NonFatal(e) =>
+              System.err.println(s"Ignoring $e while shutting down BSP server")
+          }
+        proc.join(2.seconds.toMillis)
+        proc.destroy()
+        proc.join(2.seconds.toMillis)
+        proc.destroyForcibly()
+      }
     }
-    finally {
-      if (remoteServer != null)
-        try Await.result(remoteServer.buildShutdown().asScala, 20.seconds)
-        catch {
-          case NonFatal(e) =>
-            System.err.println(s"Ignoring $e while shutting down BSP server")
+
+    @tailrec
+    def helper(count: Int): T =
+      if (count <= 1)
+        attempt() match {
+          case Success(t)  => t
+          case Failure(ex) => throw new Exception(ex)
         }
-      proc.join(2.seconds.toMillis)
-      proc.destroy()
-      proc.join(2.seconds.toMillis)
-      proc.destroyForcibly()
-    }
+      else
+        attempt() match {
+          case Success(t) => t
+          case Failure(ex) =>
+            System.err.println(s"Caught $ex, trying again…")
+            helper(count - 1)
+        }
+
+    helper(attempts)
   }
 
   def checkTargetUri(root: os.Path, uri: String): Unit = {
