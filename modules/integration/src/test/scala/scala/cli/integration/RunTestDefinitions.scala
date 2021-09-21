@@ -611,10 +611,21 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!Properties.isWin)
+  if (!Properties.isWin) {
     test("piping") {
       piping()
     }
+    test("Scripts accepted as piped input") {
+      val message = "Hello"
+      val input   = s"println(\"$message\")"
+      emptyInputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, "-", extraOptions)
+          .call(cwd = root, stdin = input)
+          .out.text.trim
+        expect(output == message)
+      }
+    }
+  }
 
   def fd(): Unit = {
     emptyInputs.fromRoot { root =>
