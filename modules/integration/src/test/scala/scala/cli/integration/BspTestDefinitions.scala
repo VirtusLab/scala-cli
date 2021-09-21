@@ -72,11 +72,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       val (localClient, remoteServer0, shutdownFuture) =
         TestBspClient.connect(proc.stdout, proc.stdin, pool)
       remoteServer = remoteServer0
-      val f0 = async {
-        await(remoteServer.buildInitialize(initParams(root)).asScala)
-        await(f(localClient, remoteServer))
-      }
-      Await.result(f0, 3.minutes)
+      Await.result(remoteServer.buildInitialize(initParams(root)).asScala, 3.minutes)
+      Await.result(f(localClient, remoteServer), 3.minutes)
     }
     finally {
       if (remoteServer != null)
