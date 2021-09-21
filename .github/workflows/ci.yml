@@ -10,6 +10,7 @@ on:
 
 jobs:
   jvm-tests:
+    timeout-minutes: 80
     runs-on: ${{ matrix.OS }}
     strategy:
       fail-fast: false
@@ -41,6 +42,7 @@ jobs:
       run: ./mill -i integration.jvm.test
 
   native-tests:
+    timeout-minutes: 80
     runs-on: ${{ matrix.OS }}
     strategy:
       fail-fast: false
@@ -74,6 +76,7 @@ jobs:
         COURSIER_JNI: force
 
   native-mostly-static-tests:
+    timeout-minutes: 80
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -114,6 +117,7 @@ jobs:
         docker push ghcr.io/virtuslabrnd/scala-cli:latest
 
   native-static-tests:
+    timeout-minutes: 80
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -138,6 +142,7 @@ jobs:
       run: ./mill -i integration.native-static.test
 
   checks:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -154,6 +159,7 @@ jobs:
       run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps.'
 
   format:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -168,6 +174,7 @@ jobs:
     - run: scalafmt --check
 
   reference-doc:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -188,6 +195,7 @@ jobs:
         )
 
   vc-redist:
+    timeout-minutes: 15
     runs-on: windows-2016
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'VirtuslabRnD/scala-cli'
     steps:
@@ -231,6 +239,7 @@ jobs:
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
 
   launchers:
+    timeout-minutes: 20
     needs: [jvm-tests, native-tests, native-mostly-static-tests, native-static-tests, vc-redist, format, checks, reference-doc]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -289,9 +298,9 @@ jobs:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
 
-  website:
-    needs: [publish, update-packages]
-    if: github.event_name == 'push'
+  website-nightly:
+    needs: publish
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -301,13 +310,26 @@ jobs:
     - uses: actions/setup-node@v2.4.0
       with:
         node-version: '12.x'
-    - run: |
-        git config --global user.name "gh-actions"
-        git config --global user.email "actions@github.com"
-        cd website
-        yarn install
-        yarn build
-        yarn deploy
+    - run: .github/scripts/update-website.sh
+      env:
+        GIT_USER: VirtuslabRnD
+        DEPLOYMENT_BRANCH: gh-pages
+        GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
+
+  # same as website-nightly above, but for the 'needs' and 'if' fields
+  website-release:
+    needs: [publish, update-packages]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: actions/setup-node@v2.4.0
+      with:
+        node-version: '12.x'
+    - run: .github/scripts/update-website.sh
       env:
         GIT_USER: VirtuslabRnD
         DEPLOYMENT_BRANCH: gh-pages

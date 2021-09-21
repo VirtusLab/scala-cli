@@ -134,6 +134,11 @@ object Operations {
     promise.future
   }
 
+  private val ignoredErrnos = Set(
+    61, // Connection refused
+    111 //
+  )
+
   /** Opens a BSP connection to a running bloop server.
     *
     * Starts a thread to read output from the nailgun connection, and another one to pass input to
@@ -232,10 +237,10 @@ object Operations {
                 catch {
                   case ex: IOException
                       if ex.getCause.isInstanceOf[NativeErrorException] &&
-                        ex.getCause.asInstanceOf[NativeErrorException].returnCode == 111 =>
+                        ignoredErrnos(ex.getCause.asInstanceOf[NativeErrorException].returnCode) =>
                     logger.debug(s"Error when connecting to $socketFile: ${ex.getMessage}")
                     null
-                  case e: NativeErrorException if e.returnCode == 111 =>
+                  case e: NativeErrorException if ignoredErrnos(e.returnCode) =>
                     logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
                     null
                 }
