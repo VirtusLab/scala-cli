@@ -290,6 +290,12 @@ Available in commands:
 
 #### `--scala-cli-binary-path`
 
+#### `--force`
+
+Aliases: `-f`
+
+Overwrite scala-cli if exists
+
 ## Java options
 
 Available in commands:

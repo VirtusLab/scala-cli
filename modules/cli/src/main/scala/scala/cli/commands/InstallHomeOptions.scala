@@ -4,8 +4,13 @@ import caseapp._
 
 // format: off
 @HelpMessage("Install scala-cli in a sub-directory of the home directory")
-final case class InstallHomeOptions(        
-  scalaCliBinaryPath: String
+final case class InstallHomeOptions(
+  @Group("InstallHome")  
+    scalaCliBinaryPath: String,
+  @Group("InstallHome")
+  @Name("f")
+  @HelpMessage("Overwrite scala-cli if exists")
+    force: Boolean = false,
 )
 // format: on
 

@@ -14,13 +14,24 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     val scalaCliBinPath = binDirPath / "scala-cli"
 
     if (os.exists(scalaCliBinPath)) {
-      println("scala-cli already exists. Do you want to override it in local repo directory [Y/n]")
-      val replace = readLine()
-      if (replace == "Y") {
-        os.remove.all(scalaCliBinPath)
+      if (options.force) os.remove.all(scalaCliBinPath)
+      else if (coursier.paths.Util.useAnsiOutput()) {
+        println(
+          "scala-cli already exists. Do you want to override it [Y/n]"
+        )
+        val replace = readLine()
+        if (replace == "Y") {
+          os.remove.all(scalaCliBinPath)
+        }
+        else {
+          System.err.println("Abort")
+          sys.exit(1)
+        }
       }
       else {
-        System.err.println("Abort")
+        System.err.println(
+          s"Error: scala-cli already exists. Pass -f or --force to force erasing it."
+        )
         sys.exit(1)
       }
     }
@@ -30,7 +41,8 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
       to = scalaCliBinPath / "scala-cli",
       createFolders = true
     )
-    os.perms.set(scalaCliBinPath / "scala-cli", os.PermSet.fromString("rwxrwxr-x"))
+    if (!Properties.isWin)
+      os.perms.set(scalaCliBinPath / "scala-cli", os.PermSet.fromString("rwxrwxr-x"))
 
     val update = EnvironmentUpdate(Nil, Seq("PATH" -> scalaCliBinPath.toString()))
 
