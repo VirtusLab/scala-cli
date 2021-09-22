@@ -86,7 +86,7 @@ final case class PackagerOptions(
   @HelpMessage(
     "The image repository"
   )
-  dockerImageRepository: Option[String] = None,
+  dockerImageRepository: Option[String] = Some("latest"),
   @Group("Docker")
   @HelpMessage(
     "The image tag, the default tag is latest"
