@@ -5,6 +5,13 @@ import java.io.{File, InputStream, OutputStream}
 import scala.build.blooprifle.internal.Constants
 import scala.concurrent.duration._
 import scala.util.Try
+import org.apache.maven.artifact.versioning.ComparableVersion
+
+case class Version(v: String) {
+  def <(rhs: Version): Boolean = {
+    new ComparableVersion(v).compareTo(new ComparableVersion(rhs.v)) < 0
+  }
+}
 
 final case class BloopRifleConfig(
   host: String,
@@ -21,7 +28,10 @@ final case class BloopRifleConfig(
   startCheckPeriod: FiniteDuration,
   startCheckTimeout: FiniteDuration,
   initTimeout: FiniteDuration
-)
+) {
+  def minimumBloopVersion                 = Some(Version("1.4.8-124-49a6348a"))
+  def acceptBloopVersion(version: String) = !minimumBloopVersion.exists(Version(version) < _)
+}
 
 object BloopRifleConfig {
 
@@ -101,5 +111,4 @@ object BloopRifleConfig {
       startCheckTimeout = 1.minute,
       initTimeout = 30.seconds
     )
-
 }

@@ -20,6 +20,13 @@ object Scala {
   def defaultUser = scala3
 }
 
+object TestDeps {
+  def oldBloopConfig =
+    ivy"ch.epfl.scala::bloop-config:1.4.8-122-794af022" // used in tests, should be older than the default one
+  def newBloopConfig =
+    ivy"ch.epfl.scala::bloop-config:1.4.9" // used in tests, should be newer than the default one
+}
+
 object Deps {
   object Versions {
     def coursier      = "2.0.16+73-gddc6d9cc9"
@@ -42,6 +49,7 @@ object Deps {
   def jimfs             = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils          = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.1"
   def macroParadise     = ivy"org.scalamacros:::paradise:2.1.1"
+  def mavenArtifact     = ivy"org.apache.maven:maven-artifact:3.8.2"
   def munit             = ivy"org.scalameta::munit:0.7.25"
   def nativeTestRunner  = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools       = ivy"org.scala-native::tools:${Versions.scalaNative}"

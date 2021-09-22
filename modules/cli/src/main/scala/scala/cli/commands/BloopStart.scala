@@ -15,11 +15,12 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
     List("bloop", "start")
   )
   def run(options: BloopStartOptions, args: RemainingArgs): Unit = {
-
+    val threads          = BloopThreads.create()
     val bloopRifleConfig = options.bloopRifleConfig
     val logger           = options.logging.logger
 
-    val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)
+    val isRunning =
+      BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger, threads.startServerChecks)
 
     if (isRunning && options.force) {
       logger.message("Found Bloop server running, stopping it.")
@@ -37,7 +38,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
     if (isRunning && !options.force)
       logger.message("Bloop server already running.")
     else {
-      val threads = BloopThreads.create()
+
       val f = BloopRifle.startServer(
         bloopRifleConfig,
         threads.startServerChecks,

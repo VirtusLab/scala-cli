@@ -1,9 +1,9 @@
 package scala.build.blooprifle
 
-import java.io.{FileOutputStream, InputStream, OutputStream}
+
+import java.io.{FileOutputStream, FileInputStream, InputStream, OutputStream, ByteArrayOutputStream}
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
-
 import scala.build.blooprifle.internal.{Operations, Util}
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
@@ -21,13 +21,28 @@ object BloopRifle {
     */
   def check(
     config: BloopRifleConfig,
-    logger: BloopRifleLogger
-  ): Boolean =
-    Operations.check(
-      config.host,
-      config.port,
-      logger
-    )
+    logger: BloopRifleLogger,
+    scheduler: ScheduledExecutorService
+  ): Boolean = {
+    def check() = {
+      Operations.check(
+        config.host,
+        config.port,
+        logger
+      )
+    }
+    if (check()) {
+      !BloopRifle.shutdownBloopIfVersionIncompatible(
+        config,
+        logger,
+        os.Path(os.pwd.toIO.getCanonicalFile).toNIO,
+        scheduler
+      )
+    }
+    else {
+      false
+    }
+  }
 
   /** Starts a new bloop server.
     *
@@ -166,4 +181,58 @@ object BloopRifle {
     }
   }
 
+  def nullOutputStream() = new FileOutputStream(Util.devNull)
+
+  def nullInputStream() = new FileInputStream(Util.devNull)
+
+  def extractVersionFromBloopAbout(stdoutFromBloopAbout: String): Option[String] = {
+    stdoutFromBloopAbout.split("\n").find(_.startsWith("bloop v")).map(
+      _.split(" ")(1).trim().drop(1)
+    )
+  }
+
+  def getCurrentBloopVersion(
+    config: BloopRifleConfig,
+    logger: BloopRifleLogger,
+    workdir: Path,
+    scheduler: ScheduledExecutorService
+  ) = {
+    val bufferedOStream = new ByteArrayOutputStream(100000)
+    Operations.about(
+      config.host,
+      config.port,
+      workdir,
+      nullInputStream(),
+      bufferedOStream,
+      nullOutputStream(),
+      logger,
+      scheduler
+    )
+    extractVersionFromBloopAbout(new String(bufferedOStream.toByteArray()))
+  }
+
+  /** Sometimes we need some minimal requirements for Bloop version. This method kills Bloop if its
+    * version is unsupported.
+    * @returns
+    *   true if the 'exit' command has actually been sent to Bloop
+    */
+  def shutdownBloopIfVersionIncompatible(
+    config: BloopRifleConfig,
+    logger: BloopRifleLogger,
+    workdir: Path,
+    scheduler: ScheduledExecutorService
+  ): Boolean = {
+    val currentBloopVersion = getCurrentBloopVersion(config, logger, workdir, scheduler)
+    val bloopExitNeeded     = !currentBloopVersion.exists(config.acceptBloopVersion(_))
+    if (bloopExitNeeded) {
+      logger.debug(
+        s"Shutting down unsupported bloop v${currentBloopVersion}. Expected bloop ${config.minimumBloopVersion}"
+      )
+      exit(config, workdir, logger)
+    }
+    else {
+      logger.debug("No need to reset bloop")
+    }
+    bloopExitNeeded
+  }
 }

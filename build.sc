@@ -1,7 +1,7 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.9`
-import $file.project.deps, deps.{Deps, Docker, Scala}
+import $file.project.deps, deps.{Deps, Docker, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{
   CliLaunchers,
@@ -362,7 +362,9 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def scala213 = "${Scala.scala213}"
            |  def scala3   = "${Scala.scala3}"
            |  def defaultScala = "${Scala.defaultUser}"
-           |
+           |  def bloopVersion = "${Deps.bloopConfig.dep.version}"
+           |  def oldBloopVersion = "${TestDeps.oldBloopConfig.dep.version}"
+           |  def newBloopVersion = "${TestDeps.newBloopConfig.dep.version}"
            |  def dockerTestImage = "${Docker.testImage}"
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
            |}
@@ -478,7 +480,9 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
     Deps.ipcSocket,
-    Deps.snailgun
+    Deps.snailgun,
+    Deps.osLib,
+    Deps.mavenArtifact
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm

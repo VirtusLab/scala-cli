@@ -4,6 +4,7 @@ import caseapp._
 
 import scala.build.Os
 import scala.build.blooprifle.BloopRifle
+import scala.build.bloop.BloopThreads
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {
   override def hidden = true
@@ -11,11 +12,12 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
     List("bloop", "exit")
   )
   def run(options: BloopExitOptions, args: RemainingArgs): Unit = {
-
+    val threads          = BloopThreads.create()
     val bloopRifleConfig = options.bloopRifleConfig
     val logger           = options.logging.logger
 
-    val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)
+    val isRunning =
+      BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger, threads.startServerChecks)
 
     if (isRunning) {
       val ret = BloopRifle.exit(bloopRifleConfig, Os.pwd.toNIO, logger.bloopRifleLogger)
