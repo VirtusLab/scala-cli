@@ -4,6 +4,7 @@ import dev.dirs.{GetWinDirs, ProjectDirectories}
 
 trait Directories {
   def localRepoDir: os.Path
+  def binRepoDir: os.Path
   def completionsDir: os.Path
   def virtualProjectsDir: os.Path
   def bspSocketDir: os.Path
@@ -14,6 +15,8 @@ object Directories {
   final case class OsLocations(projDirs: ProjectDirectories) extends Directories {
     lazy val localRepoDir: os.Path =
       os.Path(projDirs.cacheDir, Os.pwd) / "local-repo"
+    lazy val binRepoDir: os.Path =
+      os.Path(localRepoDir, Os.pwd) / "bin"
     lazy val completionsDir: os.Path =
       os.Path(projDirs.dataLocalDir, Os.pwd) / "completions"
     lazy val virtualProjectsDir: os.Path =
@@ -27,6 +30,8 @@ object Directories {
   final case class SubDir(dir: os.Path) extends Directories {
     lazy val localRepoDir: os.Path =
       dir / "cache" / "local-repo"
+    lazy val binRepoDir: os.Path =
+      localRepoDir / "bin"
     lazy val completionsDir: os.Path =
       dir / "data-local" / "completions"
     lazy val virtualProjectsDir: os.Path =

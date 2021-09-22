@@ -237,6 +237,7 @@ Available in commands:
 - [`export`](./commands#export)
 - [`fmt`](./commands#fmt)
 - [`install completions`](./commands#install-completions)
+- [`install-home`](./commands#install-home)
 - [`browse` / `metabrowse`](./commands#browse)
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
@@ -284,6 +285,22 @@ Aliases: `--shell`
 #### `--name`
 
 #### `--env`
+
+## Install home options
+
+Available in commands:
+- [`install-home`](./commands#install-home)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--scala-cli-binary-path`
+
+#### `--force`
+
+Aliases: `-f`
+
+Overwrite scala-cli if exists
 
 ## Java options
 
