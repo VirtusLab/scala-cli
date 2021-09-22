@@ -1,6 +1,6 @@
 package scala.build.bloop
 
-import java.io.{ByteArrayInputStream, InputStream, IOException}
+import java.io.IOException
 import java.net.{ConnectException, Socket}
 import java.nio.file.{Files, Path}
 import java.util.concurrent.{Future => JFuture, ScheduledExecutorService, TimeoutException}
@@ -13,7 +13,7 @@ import scala.build.bloop.bloop4j.BloopExtraBuildParams
 import scala.build.blooprifle.internal.Constants
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
-import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
+import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, BspConnection}
 
 trait BloopServer {
@@ -36,9 +36,6 @@ object BloopServer {
       socket.close()
     }
   }
-
-  private def emptyInputStream: InputStream =
-    new ByteArrayInputStream(Array.emptyByteArray)
 
   private def ensureBloopRunning(
     config: BloopRifleConfig,

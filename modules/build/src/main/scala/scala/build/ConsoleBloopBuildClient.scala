@@ -28,7 +28,7 @@ class ConsoleBloopBuildClient(
   private val gray         = "\u001b[90m"
   private val reset        = Console.RESET
 
-  private var diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
+  private val diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
 
   def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]) = {
     generatedSources = newGeneratedSources

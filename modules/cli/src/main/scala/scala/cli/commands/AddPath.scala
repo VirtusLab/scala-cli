@@ -5,7 +5,6 @@ import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import java.io.File
 
-import scala.cli.internal.ProfileFileUpdater
 import scala.util.Properties
 
 object AddPath extends ScalaCommand[AddPathOptions] {

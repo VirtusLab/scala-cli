@@ -1,7 +1,5 @@
 package scala.build
 
-import coursier.cache.CacheLogger
-
 import java.io.{OutputStream, PrintStream}
 
 import scala.build.blooprifle.BloopRifleLogger

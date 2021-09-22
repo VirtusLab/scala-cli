@@ -3,7 +3,6 @@ package scala.cli.commands
 import caseapp._
 import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 import scala.io.StdIn.readLine
-
 import scala.util.Properties
 
 object InstallHome extends ScalaCommand[InstallHomeOptions] {

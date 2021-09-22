@@ -4,7 +4,7 @@ import caseapp._
 
 import java.io.File
 
-import scala.build.{Build, Inputs, Os}
+import scala.build.Build
 
 object Compile extends ScalaCommand[CompileOptions] {
   override def group                                  = "Main"

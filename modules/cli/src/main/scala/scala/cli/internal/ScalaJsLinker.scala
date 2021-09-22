@@ -1,13 +1,6 @@
 package scala.cli.internal
 
-import org.scalajs.linker.interface.{
-  ESFeatures,
-  LinkerOutput,
-  ModuleInitializer,
-  ModuleKind,
-  Semantics,
-  StandardConfig
-}
+import org.scalajs.linker.interface.{LinkerOutput, ModuleInitializer}
 import org.scalajs.linker.{PathIRContainer, PathOutputFile, StandardImpl}
 import org.scalajs.logging.{Level, ScalaConsoleLogger}
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}

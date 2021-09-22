@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.parser.NilParser
 import caseapp.core.parser.Argument
-import caseapp.core.{Arg, Error}
+import caseapp.core.Arg
 import caseapp.core.util.Formatter
 import caseapp.core.parser.StandardArgument
 

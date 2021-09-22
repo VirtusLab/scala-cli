@@ -42,12 +42,6 @@ final case class ScalaJsOptions(
       case "nomodule" | "none"   => ModuleKind.NoModule
       case _                     => ModuleKind.CommonJSModule
     }
-  private def moduleKindName: String =
-    moduleKind match {
-      case ModuleKind.CommonJSModule => "commonjs"
-      case ModuleKind.ESModule       => "esmodule"
-      case ModuleKind.NoModule       => "nomodule"
-    }
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
 

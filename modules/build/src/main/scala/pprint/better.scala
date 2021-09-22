@@ -9,13 +9,8 @@ object better {
     tag: String = "",
     width: Int = defaultWidth,
     height: Int = defaultHeight,
-    indent: Int = defaultIndent,
-    initialOffset: Int = 0
+    indent: Int = defaultIndent
   )(implicit line: sourcecode.Line, fileName: sourcecode.FileName): T = {
-
-    def joinSeq[T](seq: Seq[T], sep: T): Seq[T] = {
-      seq.flatMap(x => Seq(x, sep)).dropRight(1)
-    }
 
     val tagStrs =
       if (tag.isEmpty) Seq()

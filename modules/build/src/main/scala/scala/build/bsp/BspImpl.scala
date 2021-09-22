@@ -8,7 +8,7 @@ import java.io.{InputStream, OutputStream}
 import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.{BloopBuildClient, Build, GeneratedSource, Inputs, Logger, Sources}
-import scala.build.bloop.{BloopServer, BuildServer}
+import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.CrossSources
 import scala.build.EitherCps.{either, value}
@@ -87,7 +87,7 @@ final class BspImpl(
     bloopServer: BloopServer,
     notifyChanges: Boolean
   ): Either[BuildException, Unit] = either {
-    val (sources, buildOptions, classesDir0, artifacts, project, generatedSources, buildChanged) =
+    val (sources, buildOptions, _, _, _, generatedSources, buildChanged) =
       value(prepareBuild(actualLocalServer))
     if (notifyChanges && buildChanged)
       notifyBuildChange(actualLocalServer)
@@ -252,17 +252,6 @@ final class BspImpl(
         "Listening to incoming JSONRPC BSP requests."
     }
     val f = launcher.startListening()
-
-    val f0 = threads.prepareBuildExecutor.submit {
-      new Runnable {
-        def run(): Unit =
-          try build(actualLocalServer, remoteServer, notifyChanges = false, logger)
-          catch {
-            case t: Throwable =>
-              logger.debug(s"Caught $t during initial BSP build, ignoring it")
-          }
-      }
-    }
 
     registerWatchInputs(watcher)
 

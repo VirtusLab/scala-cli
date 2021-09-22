@@ -2,12 +2,11 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.{BloopBuildClient, Build, CrossSources, Inputs, Logger, Sources}
+import scala.build.{CrossSources, Inputs, Logger, Sources}
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
-import scala.build.GeneratedSource
 
 import scala.cli.export._
 

@@ -1,15 +1,13 @@
 package scala.build.blooprifle
 
 import java.io.{FileOutputStream, InputStream, OutputStream}
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 
 import scala.build.blooprifle.internal.{Operations, Util}
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
-import scala.util.Properties
 
 object BloopRifle {
 
@@ -134,7 +132,7 @@ object BloopRifle {
     logger: BloopRifleLogger
   ): Int = {
 
-    val bspSocketOrPort = config.bspSocketOrPort.map(_()).getOrElse {
+    config.bspSocketOrPort.map(_()).getOrElse {
       BspConnectionAddress.Tcp(Util.randomPort())
     }
 

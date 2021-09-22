@@ -68,11 +68,11 @@ final case class Sbt(sbtVersion: String) {
           .map(repo => (repo, RepositoryParser.repository(repo)))
           .zipWithIndex
           .map {
-            case ((repoStr, Right(repo: IvyRepository)), idx) =>
+            case ((_, Right(repo: IvyRepository)), idx) =>
               // TODO repo.authentication?
               // TODO repo.metadataPatternOpt
               s"""Resolver.url("repo-$idx") artifacts "${repo.pattern.string}""""
-            case ((repoStr, Right(repo: MavenRepository)), idx) =>
+            case ((_, Right(repo: MavenRepository)), idx) =>
               // TODO repo.authentication?
               s""""repo-$idx" at "${repo.root}""""
             case _ =>

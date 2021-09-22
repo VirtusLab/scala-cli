@@ -33,7 +33,6 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.util.Properties
 
-import java.nio.charset.Charset
 import packager.docker.DockerPackage
 
 object Package extends ScalaCommand[PackageOptions] {
@@ -65,7 +64,7 @@ object Package extends ScalaCommand[PackageOptions] {
         res.orReport(logger).map(_._1).foreach {
           case s: Build.Successful =>
             doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
-          case f: Build.Failed =>
+          case _: Build.Failed =>
             System.err.println("Compilation failed")
         }
       }
@@ -79,7 +78,7 @@ object Package extends ScalaCommand[PackageOptions] {
       build match {
         case s: Build.Successful =>
           doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
-        case f: Build.Failed =>
+        case _: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
       }

@@ -55,7 +55,7 @@ object TemporaryDirectivesParser {
   private def parseDirective(content: String, fromIndex: Int): Option[(Seq[Directive], Int)] = {
     // TODO Don't create a new String here
     val res = parse(content.drop(fromIndex), maybeDirective(_))
-    res.fold((err, idx, _) => sys.error(err), (dirOpt, idx) => dirOpt.map((_, idx + fromIndex)))
+    res.fold((err, _, _) => sys.error(err), (dirOpt, idx) => dirOpt.map((_, idx + fromIndex)))
   }
 
   def parseDirectives(content: String): Option[(List[Directive], String)] = {

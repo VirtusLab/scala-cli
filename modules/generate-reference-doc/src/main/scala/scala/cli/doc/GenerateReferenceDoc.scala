@@ -2,7 +2,6 @@ package scala.cli.doc
 
 import caseapp._
 import caseapp.core.Arg
-import caseapp.core.parser.ParserWithNameFormatter
 import caseapp.core.util.Formatter
 import munit.internal.difflib.Diff
 

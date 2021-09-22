@@ -2,7 +2,6 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 
 // format: off

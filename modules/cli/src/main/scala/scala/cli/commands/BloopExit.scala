@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.{Bloop, Os}
+import scala.build.Os
 import scala.build.blooprifle.BloopRifle
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {

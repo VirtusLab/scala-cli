@@ -5,7 +5,6 @@ import sbt.testing.{Framework, Status}
 
 import java.io.File
 import java.nio.file.{Files, Path, Paths}
-import java.util.Locale
 
 import scala.build.Logger
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
@@ -265,7 +264,6 @@ object Runner {
   def testNative(
     classPath: Seq[Path],
     launcher: File,
-    logger: Logger,
     frameworkNameOpt: Option[String],
     args: Seq[String],
     nativeLogger: sn.Logger

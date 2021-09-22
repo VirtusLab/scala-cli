@@ -7,7 +7,7 @@ import com.google.gson.GsonBuilder
 import java.io.File
 import java.nio.charset.Charset
 
-import scala.build.{Inputs, Os}
+import scala.build.Os
 import scala.build.internal.Constants
 import scala.collection.JavaConverters._
 

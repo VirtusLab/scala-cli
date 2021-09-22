@@ -3,25 +3,22 @@ package scala.cli.commands
 import java.io.{ByteArrayOutputStream, File, InputStream}
 import caseapp._
 import caseapp.core.help.Help
-import coursier.cache.FileCache
 import coursier.util.Artifact
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.{Bloop, Inputs, LocalRepo, Logger, Os}
+import scala.build.{Inputs, LocalRepo, Logger, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
 import scala.build.options.{
   BuildOptions,
   ClassPathOptions,
   InternalDependenciesOptions,
   InternalOptions,
-  JavaOptions,
   JmhOptions,
   ScalaOptions,
   ScriptOptions
 }
-import scala.concurrent.duration.Duration
 import scala.util.Properties
 
 // format: off

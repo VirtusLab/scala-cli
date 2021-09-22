@@ -1,8 +1,5 @@
 package scala.build.preprocessing
 
-import dependency.AnyDependency
-import dependency.parser.DependencyParser
-import scalaparse.Scala.Pattern
 import scala.util.matching.Regex
 
 import java.nio.charset.StandardCharsets
@@ -10,8 +7,8 @@ import java.nio.charset.StandardCharsets
 import scala.build.{Inputs, Os}
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.internal.{AmmUtil, CodeWrapper, Name}
-import scala.build.options.{BuildOptions, ClassPathOptions}
+import scala.build.internal.{AmmUtil, CodeWrapper}
+import scala.build.options.BuildOptions
 import scala.build.options.BuildRequirements
 
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {

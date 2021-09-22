@@ -4,10 +4,9 @@ import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import java.nio.charset.StandardCharsets
-import java.util.Locale
 
 import scala.build.EitherCps.{either, value}
-import scala.build.{Inputs, Os, Sources}
+import scala.build.{Inputs, Os}
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
@@ -19,14 +18,9 @@ import scala.build.Ops._
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
-  ClassPathOptions,
-  Platform,
-  ScalaJsOptions,
-  ScalaNativeOptions,
-  ScalaOptions
+  ClassPathOptions
 }
 import scala.build.preprocessing.directives._
-import scala.collection.JavaConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
 
@@ -214,7 +208,6 @@ case object ScalaPreprocessor extends Preprocessor {
   ): Option[(BuildRequirements, BuildOptions, String)] = {
 
     import fastparse._
-    import scalaparse._
     import scala.build.internal.ScalaParse._
 
     val res = parse(content, Header(_))

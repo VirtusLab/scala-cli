@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.{Build, Inputs, Os}
+import scala.build.Build
 import scala.build.internal.{Constants, Runner}
 import scala.build.Logger
 
@@ -29,7 +29,7 @@ object Test extends ScalaCommand[TestOptions] {
             allowExecve = allowExit,
             exitOnError = allowExit
           )
-        case f: Build.Failed =>
+        case _: Build.Failed =>
           System.err.println("Compilation failed")
           if (allowExit)
             sys.exit(1)
@@ -93,7 +93,6 @@ object Test extends ScalaCommand[TestOptions] {
           Runner.testNative(
             build.fullClassPath,
             launcher.toIO,
-            logger,
             testFrameworkOpt,
             args,
             logger.scalaNativeLogger

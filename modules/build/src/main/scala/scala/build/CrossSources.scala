@@ -2,7 +2,6 @@ package scala.build
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.internal.CodeWrapper
 import scala.build.Ops._
 import scala.build.options.{BuildOptions, BuildRequirements, HasBuildRequirements, Platform}
 import scala.build.preprocessing._

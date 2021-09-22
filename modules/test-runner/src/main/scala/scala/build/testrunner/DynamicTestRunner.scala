@@ -105,9 +105,8 @@ object DynamicTestRunner {
     loader: ClassLoader,
     className: String
   ): Framework = {
-    val frameworkCls = classOf[Framework]
-    val cls          = loader.loadClass(className)
-    val constructor  = cls.getConstructor()
+    val cls         = loader.loadClass(className)
+    val constructor = cls.getConstructor()
     constructor.newInstance().asInstanceOf[Framework]
   }
 

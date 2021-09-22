@@ -3,7 +3,6 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
-import scala.build.Build
 import scala.build.options.BuildOptions
 
 // format: off

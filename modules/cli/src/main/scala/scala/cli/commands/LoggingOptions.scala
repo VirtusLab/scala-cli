@@ -4,8 +4,6 @@ import caseapp._
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
 
-import java.io.PrintStream
-
 import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.BuildException
 import scala.build.Logger

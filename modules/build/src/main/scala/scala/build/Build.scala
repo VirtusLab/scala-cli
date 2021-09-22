@@ -1,10 +1,8 @@
 package scala.build
 
-import _root_.bloop.config.{Config => BloopConfig}
 import ch.epfl.scala.bsp4j
 import com.swoval.files.FileTreeViews.Observer
-import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
-import dependency._
+import com.swoval.files.{PathWatcher, PathWatchers}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, CompositeBuildException}
@@ -13,16 +11,13 @@ import scala.build.Ops._
 import scala.build.options.BuildOptions
 import scala.build.postprocessing._
 
-import java.io.{File, IOException}
-import java.lang.{Boolean => JBoolean}
-import java.nio.file.{FileSystemException, Path, Paths}
-import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
+import java.io.File
+import java.nio.file.{FileSystemException, Path}
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
-import scala.scalanative.{build => sn}
+import scala.concurrent.duration.DurationInt
 import scala.util.control.NonFatal
-import scala.annotation.tailrec
 
 trait Build {
   def inputs: Inputs
@@ -304,7 +299,7 @@ object Build {
     try {
       for (elem <- inputs.elements) {
         val depth = elem match {
-          case s: Inputs.SingleFile => -1
+          case _: Inputs.SingleFile => -1
           case _                    => Int.MaxValue
         }
         val eventFilter: PathWatchers.Event => Boolean = elem match {
@@ -473,7 +468,6 @@ object Build {
     buildClient.setGeneratedSources(generatedSources)
     val success = Bloop.compile(
       inputs.projectName,
-      buildClient,
       bloopServer,
       logger,
       buildTargetsTimeout = 20.seconds
@@ -580,21 +574,6 @@ object Build {
             f = scheduler.schedule(runnable, waitFor.length, waitFor.unit)
         }
   }
-
-  private def registerInputs(watcher: PathWatcher[PathWatchers.Event], inputs: Inputs): Unit =
-    inputs.elements.foreach {
-      case elem: Inputs.OnDisk =>
-        val depth = elem match {
-          case _: Inputs.Directory         => Int.MaxValue
-          case _: Inputs.ResourceDirectory => Int.MaxValue
-          case _                           => -1
-        }
-        watcher.register(elem.path.toNIO, depth) match {
-          case l: com.swoval.functional.Either.Left[IOException, JBoolean] => throw l.getValue
-          case _                                                           =>
-        }
-      case _: Inputs.Virtual =>
-    }
 
   private def printable(path: os.Path): String =
     if (path.startsWith(os.pwd)) path.relativeTo(os.pwd).toString

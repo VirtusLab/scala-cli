@@ -1,7 +1,6 @@
 package scala.build.testrunner
 
 import java.io.{File, PrintStream}
-import java.net.URLClassLoader
 import java.nio.file.{Path, Paths}
 
 import sbt.testing._

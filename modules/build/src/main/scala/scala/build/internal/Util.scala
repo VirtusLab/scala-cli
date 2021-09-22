@@ -4,10 +4,6 @@ import java.io.PrintStream
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
-import scala.collection.JavaConverters._
-import java.util.AbstractMap.SimpleEntry
-import java.util.Map.Entry
-
 object Util {
 
   def printException(t: Throwable, out: PrintStream = System.err): Unit =
