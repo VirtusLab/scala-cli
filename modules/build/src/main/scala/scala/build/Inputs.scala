@@ -233,11 +233,12 @@ object Inputs {
         lazy val dir       = path / os.up
         lazy val subPath   = path.subRelativeTo(dir)
         lazy val stdinOpt0 = stdinOpt
-        val isStdin = (arg == "-" || arg == "-.scala" || arg == "_" || arg == "_.scala") &&
+        val isStdin = (arg == "-.scala" || arg == "_" || arg == "_.scala") &&
           stdinOpt0.nonEmpty
         if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>")))
-        else if ((arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
-          Right(Seq(VirtualScript(stdinOpt0.get, "<stdin>", os.sub / "stdin.sc")))
+        else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) {
+          Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
+        }
         else if (arg.contains("://")) {
           val url =
             if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) s"$arg/download" else arg
