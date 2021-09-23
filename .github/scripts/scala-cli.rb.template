@@ -4,7 +4,7 @@
 # ScalaCli Formula
 class ScalaCli < Formula
   desc "Launcher for ScalaCli"
-  homepage "https://virtuslabrnd.github.io/scala-cli/"
+  homepage "https://virtuslab.github.io/scala-cli/"
   url "@LAUNCHER_URL@"
   version "@LAUNCHER_VERSION@"
   sha256 "@LAUNCHER_SHA256@"

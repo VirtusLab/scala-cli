@@ -642,7 +642,7 @@ object ci extends Module {
     os.makeDir.all(targetDir)
 
     val branch = "main"
-    val repo   = s"git@github.com:VirtuslabRnD/homebrew-scala-cli.git"
+    val repo   = s"git@github.com:Virtuslab/homebrew-scala-cli.git"
 
     // Cloning
     gitClone(repo, branch, targetDir)
@@ -650,7 +650,7 @@ object ci extends Module {
 
     val launcherPath = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
     val launcherURL =
-      s"https://github.com/VirtuslabRnD/scala-cli/releases/download/v$version/scala-cli-x86_64-apple-darwin.gz"
+      s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-x86_64-apple-darwin.gz"
 
     val binarySha256 = os.proc("openssl", "dgst", "-sha256", "-binary")
       .call(
@@ -690,7 +690,7 @@ object ci extends Module {
     os.makeDir.all(targetDir)
 
     val branch = "master"
-    val repo   = s"git@github.com:VirtuslabRnD/scala-cli-packages.git"
+    val repo   = s"git@github.com:Virtuslab/scala-cli-packages.git"
 
     // Cloning
     gitClone(repo, branch, targetDir)
@@ -758,7 +758,7 @@ object ci extends Module {
     os.makeDir.all(targetDir)
 
     val branch = "master"
-    val repo   = s"git@github.com:VirtuslabRnD/scala-cli-packages.git"
+    val repo   = s"git@github.com:Virtuslab/scala-cli-packages.git"
 
     // Cloning
     gitClone(repo, branch, targetDir)

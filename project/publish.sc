@@ -6,7 +6,7 @@ import mill._, scalalib._
 
 import scala.concurrent.duration._
 
-def ghOrg  = "VirtuslabRnD"
+def ghOrg  = "Virtuslab"
 def ghName = "scala-cli"
 
 trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {

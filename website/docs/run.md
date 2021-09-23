@@ -82,7 +82,7 @@ scala-cli run HelloScript.sc
 Scala applications can also be compiled and run using docker image with `scala-cli`.
 
 ```bash
-docker run ghcr.io/virtuslabrnd/scala-cli:latest about
+docker run virtuslab/scala-cli:latest about
 ```
 
 ###
@@ -91,6 +91,6 @@ cat HelloWorld.scala
 # object HelloWorld extends App {
 #     println("Hello world")
 # }
-docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala ghcr.io/virtuslabrnd/scala-cli /HelloWorld.scala 
+docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala 
 # Hello world
 ```
