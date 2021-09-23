@@ -805,12 +805,6 @@ Add extra source JARs
 
 #### `--runner`
 
-#### `--config`
-
-Aliases: `--conf`, `-C`
-
-Pass configuration files
-
 #### `--semantic-db`
 
 Generate SemanticDBs

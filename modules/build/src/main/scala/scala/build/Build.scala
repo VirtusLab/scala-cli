@@ -316,8 +316,7 @@ object Build {
               val isHidden    = relPath.segments.exists(_.startsWith("."))
               def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
               def isJavaFile  = relPath.last.endsWith(".java")
-              def isConfFile  = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
-              !isHidden && (isScalaFile || isJavaFile || isConfFile)
+              !isHidden && (isScalaFile || isJavaFile)
           case _ => _ => true
         }
 

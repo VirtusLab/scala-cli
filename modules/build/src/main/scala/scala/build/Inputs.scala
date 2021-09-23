@@ -35,8 +35,6 @@ final case class Inputs(
               Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
             case p if p.last.endsWith(".sc") =>
               Inputs.Script(d.path, p.subRelativeTo(d.path))
-            case p if p.last == "scala.conf" || p.last.endsWith(".scala.conf") =>
-              Inputs.ConfigFile(p)
           }
           .toVector
       case _: Inputs.ResourceDirectory =>
@@ -74,8 +72,6 @@ final case class Inputs(
               Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
             case p if p.last.endsWith(".sc") =>
               Inputs.Script(d.path, p.subRelativeTo(d.path))
-            case p if p.last == "scala.conf" || p.last.endsWith(".scala.conf") =>
-              Inputs.ConfigFile(p)
           }
           .toVector
       case _: Inputs.ResourceDirectory =>
@@ -142,8 +138,6 @@ object Inputs {
   final case class Directory(path: os.Path)         extends OnDisk with Compiled
   final case class ResourceDirectory(path: os.Path) extends OnDisk
 
-  final case class ConfigFile(path: os.Path) extends SingleFile
-
   final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
       extends Virtual with AnyScalaFile
   final case class VirtualScalaFile(content: Array[Byte], source: String)
@@ -161,7 +155,6 @@ object Inputs {
           case _: Inputs.JavaFile          => "java:"
           case _: Inputs.ScalaFile         => "scala:"
           case _: Inputs.Script            => "sc:"
-          case _: Inputs.ConfigFile        => "config:"
         }
         Iterator(prefix, elem.path.toString, "\n").map(bytes)
       case v: Inputs.Virtual =>

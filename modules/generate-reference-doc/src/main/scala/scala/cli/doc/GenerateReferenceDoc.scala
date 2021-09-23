@@ -9,8 +9,6 @@ import munit.internal.difflib.Diff
 import java.nio.charset.StandardCharsets
 import java.util.{Arrays, Locale}
 
-import scala.build.config.ConfigFormat
-import scala.build.config.reader.DerivedConfigReader
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
   RequireDirectiveHandler,
@@ -225,39 +223,6 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.toString
   }
 
-  private def configContent(reader: DerivedConfigReader[_]): String = {
-    val b = new StringBuilder
-
-    b.append(
-      """---
-        |title: Configuration file
-        |sidebar_position: 2
-        |---
-        |
-        |All fields are optional.
-        |
-        |""".stripMargin
-    )
-
-    for (field <- reader.allFields) {
-      b.append(
-        s"""### `${(field.prefix.iterator ++ Iterator(field.name)).mkString(".")}`
-           |
-           |Type: ${field.mdTypeDescription}
-           |
-           |""".stripMargin
-      )
-      for (desc <- field.description)
-        b.append(
-          s"""$desc
-             |
-             |""".stripMargin
-        )
-    }
-
-    b.toString
-  }
-
   private def usingContent(
     usingHandlers: Seq[UsingDirectiveHandler],
     requireHandlers: Seq[RequireDirectiveHandler]
@@ -323,7 +288,6 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
     val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)
     val commandsContent0   = commandsContent(commands, allArgs)
-    val configContent0     = configContent(ConfigFormat.reader)
     val usingContent0 = usingContent(
       ScalaPreprocessor.usingDirectiveHandlers,
       ScalaPreprocessor.requireDirectiveHandlers
@@ -355,7 +319,6 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     else {
       maybeWrite(options.outputPath / "cli-options.md", cliOptionsContent0)
       maybeWrite(options.outputPath / "commands.md", commandsContent0)
-      maybeWrite(options.outputPath / "configuration-file.md", configContent0)
       maybeWrite(options.outputPath / "directives.md", usingContent0)
     }
   }

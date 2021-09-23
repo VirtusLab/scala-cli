@@ -168,8 +168,7 @@ final class BspImpl(
           lazy val isHidden = relPath.segments.exists(_.startsWith("."))
           def isScalaFile   = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
           def isJavaFile    = relPath.last.endsWith(".java")
-          def isConfFile    = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
-          newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile || isConfFile)
+          newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile)
         }
         val watcher0 = watcher.newWatcher()
         watcher0.register(dir.path.toNIO, Int.MaxValue)

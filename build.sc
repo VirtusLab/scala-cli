@@ -156,7 +156,6 @@ class Build(val crossScalaVersion: String)
     Deps.nativeTools,
     Deps.osLib,
     Deps.pprint,
-    Deps.pureconfig,
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsLinkerInterface,
     Deps.scalaJsTestAdapter,

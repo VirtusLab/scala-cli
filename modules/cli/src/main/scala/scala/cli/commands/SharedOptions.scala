@@ -96,11 +96,6 @@ final case class SharedOptions(
   @Hidden
     runner: Option[Boolean] = None,
 
-  @HelpMessage("Pass configuration files")
-  @Name("conf")
-  @Name("C")
-    config: List[String] = Nil,
-
   @Hidden
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
@@ -210,9 +205,7 @@ final case class SharedOptions(
       case Left(message) =>
         System.err.println(message)
         sys.exit(1)
-      case Right(i) =>
-        val configFiles = config.map(os.Path(_, Os.pwd)).map(Inputs.ConfigFile(_))
-        i.add(configFiles)
+      case Right(i) => i
     }
   }
 }
