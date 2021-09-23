@@ -3,10 +3,15 @@ package scala.build.preprocessing.directives
 import scala.build.options.BuildRequirements
 
 case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler {
-  def name              = ""
-  def description       = ""
-  def usage             = ""
-  override def examples = Nil
+  def name             = "Scala version"
+  def description      = "Require a Scala version for the current file"
+  def usage            = "require scala _version_"
+  override def usageMd = "`require scala `_version_"
+  override def examples = Seq(
+    "require scala 3",
+    "require scala 2.13",
+    "require scala 3.0.2"
+  )
 
   def handle(directive: Directive): Option[Either[String, BuildRequirements]] =
     directive.values match {

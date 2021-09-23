@@ -5,19 +5,6 @@ sidebar_position: 2
 
 ## using directives
 
-### Compiler options
-
-Add Scala compiler options
-
-`using option `_option_
-
-`using options `_option1_ _option2_ …
-
-#### Examples
-`using option -Xasync`
-
-`using options -Xasync -Xfatal-warnings`
-
 ### Dependency
 
 Adds dependencies

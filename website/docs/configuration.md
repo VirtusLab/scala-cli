@@ -76,4 +76,4 @@ using scala-js
 using options -Xasync
 ```
 
-The reference documentation lists [all available using directives](reference/using-directives.md).
+The reference documentation lists [all available using directives](reference/directives.md#using-directives).
