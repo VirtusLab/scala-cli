@@ -186,6 +186,7 @@ case object ScalaPreprocessor extends Preprocessor {
           case Some(p0) => isPlatformSpec(tail, acc + p0)
           case None     => None
         }
+      case _ => None
     }
 
   private def directivesBuildRequirements(directives: Seq[Directive]): BuildRequirements =
