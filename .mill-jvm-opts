@@ -1,3 +1,4 @@
 -Xmx512m
 -Xms128m
 -Xss8m
+-Dxsbt.skip.cp.lookup=true
