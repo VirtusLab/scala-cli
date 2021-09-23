@@ -29,6 +29,19 @@ import scala.build.preprocessing.directives._
 import scala.collection.JavaConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
+
+  private val usingDirectiveHandlers = Seq[UsingDirectiveHandler](
+    UsingDependencyDirectiveHandler,
+    UsingScalaVersionDirectiveHandler,
+    UsingRepositoryDirectiveHandler,
+    UsingPlatformDirectiveHandler
+  )
+
+  val requireDirectiveHandlers = Seq[RequireDirectiveHandler](
+    RequireScalaVersionDirectiveHandler,
+    RequirePlatformsDirectiveHandler
+  )
+
   def preprocess(input: Inputs.SingleElement)
     : Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
@@ -112,13 +125,6 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
-  private val usingDirectiveHandlers = Seq[UsingDirectiveHandler](
-    UsingDependencyDirectiveHandler,
-    UsingScalaVersionDirectiveHandler,
-    UsingRepositoryDirectiveHandler,
-    UsingPlatformDirectiveHandler
-  )
-
   private def directivesBuildOptions(directives: Seq[Directive])
     : Either[BuildException, BuildOptions] = {
     val results = directives
@@ -148,36 +154,34 @@ case object ScalaPreprocessor extends Preprocessor {
       }
   }
 
-  private def directivesBuildRequirements(directives: Seq[Directive]): BuildRequirements =
-    directives
+  private def directivesBuildRequirements(directives: Seq[Directive])
+    : Either[BuildException, BuildRequirements] = {
+    val results = directives
       .filter(_.tpe == Directive.Require)
       .map { dir =>
-        dir.values match {
-          case Seq("scala", ">=", minVer) =>
-            BuildRequirements(
-              scalaVersion = Seq(BuildRequirements.VersionHigherThan(minVer, orEqual = true))
-            )
-          case Seq("scala", "<=", maxVer) =>
-            BuildRequirements(
-              scalaVersion = Seq(BuildRequirements.VersionLowerThan(maxVer, orEqual = true))
-            )
-          case Seq("scala", "==", reqVer) =>
-            // FIXME What about things like just '2.12'?
-            BuildRequirements(
-              scalaVersion = Seq(BuildRequirements.VersionEquals(reqVer, loose = true))
-            )
-          case other =>
-            Platform.parseSpec(other.map(Platform.normalize)) match {
-              case Some(platforms) =>
-                BuildRequirements(
-                  platform = Some(BuildRequirements.PlatformRequirement(platforms))
-                )
-              case None =>
-                sys.error(s"Unrecognized require directive: ${other.mkString(" ")}")
-            }
+        val fromHandlersOpt = requireDirectiveHandlers
+          .iterator
+          .flatMap(_.handle(dir).iterator)
+          .toStream
+          .headOption
+
+        fromHandlersOpt match {
+          case None =>
+            Left(new UnusedDirectiveError(dir))
+          case Some(Right(reqs)) =>
+            Right(reqs)
+          case Some(Left(err)) =>
+            Left(new InvalidDirectiveError(dir, err))
         }
       }
-      .foldLeft(BuildRequirements())(_ orElse _)
+
+    results
+      .traverse
+      .left.map(CompositeBuildException(_))
+      .map { allReqs =>
+        allReqs.foldLeft(BuildRequirements())(_ orElse _)
+      }
+  }
 
   private def processUsing(
     content: String,
@@ -191,7 +195,7 @@ case object ScalaPreprocessor extends Preprocessor {
         TemporaryDirectivesParser.parseDirectives(content).map {
           case (directives, updatedContent) =>
             val tuple = (
-              Right(directivesBuildRequirements(directives)),
+              directivesBuildRequirements(directives),
               directivesBuildOptions(directives),
               Right(updatedContent)
             )
