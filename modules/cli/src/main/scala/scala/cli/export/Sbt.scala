@@ -143,8 +143,19 @@ final case class Sbt(sbtVersion: String) {
       if (depStrings.isEmpty) Nil
       else if (depStrings.lengthCompare(1) == 0)
         Seq(s"""libraryDependencies += ${depStrings.head}""")
-      else
-        Seq(s"""libraryDependencies ++= Seq($nl${depStrings.map("  " + _ + nl).mkString})""")
+      else {
+        val count = depStrings.length
+        val allDeps = depStrings
+          .iterator
+          .zipWithIndex
+          .map {
+            case (dep, idx) =>
+              val maybeComma = if (idx == count - 1) "" else ","
+              "  " + dep + maybeComma + nl
+          }
+          .mkString
+        Seq(s"""libraryDependencies ++= Seq($nl$allDeps)""")
+      }
     }
 
     val settings =
