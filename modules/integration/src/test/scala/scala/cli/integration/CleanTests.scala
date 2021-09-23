@@ -12,19 +12,18 @@ class CleanTests extends munit.FunSuite {
             |  def main(args: Array[String]): Unit =
             |    println("Hello")
             |}
-            |""".stripMargin,
-        os.rel / "scala.conf" -> ""
+            |""".stripMargin
       )
     )
 
     inputs.fromRoot { root =>
       val dir = root / ".scala"
 
-      val res = os.proc(TestUtil.cli, "run").call(cwd = root)
+      val res = os.proc(TestUtil.cli, "run", ".").call(cwd = root)
       expect(res.out.text.trim == "Hello")
       expect(os.exists(dir))
 
-      val cleanRes = os.proc(TestUtil.cli, "clean").call(cwd = root)
+      val cleanRes = os.proc(TestUtil.cli, "clean", ".").call(cwd = root)
       expect(!os.exists(dir))
     }
   }

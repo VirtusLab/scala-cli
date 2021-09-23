@@ -10,7 +10,7 @@ import java.nio.file.Path
 import java.security.MessageDigest
 
 import scala.build.{Artifacts, Logger, Os}
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.Constants._
 import scala.build.internal.{Constants, OsLibc, Util}

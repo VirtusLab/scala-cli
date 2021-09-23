@@ -8,14 +8,36 @@ IDE support for sources managed by the Scala CLI is experimental, and limited to
 Code](https://scalameta.org/metals/docs/editors/vscode) or
 [Neovim](https://github.com/scalameta/nvim-metals) for now.
 
-## VSCode
+Two kind of support co-exist for VSCode:
+- [one relying purely on BSP](#vscode-bsp), with no automatic reload upon adding new dependencies for now.
+- [one relying on a custom Metals server](#vscode-custom-metals-server), featuring an import right from VSCode, and having automatic reload support upon adding new dependencies,
+
+## VSCode (BSP)
+
+This Scala CLI support should work with any recent version of Metals. In order to
+open a Scala CLI project in Metals, run the `setup-ide` command first:
+```text
+scala-cli setup-ide .
+```
+(replace `.` with another set of inputs if these are different.) This should create
+a file named `.bsp/scala-cli.json`.
+
+Then open the directory where you ran the `setup-ide` command in VSCode. Provided
+the current directory doesn't also contain an sbt or Mill project, the Scala CLI
+project should be automatically detected by Metals, and most Metals features (code
+navigation, diagnostics in editor, etc.) should work.
+
+If you add dependencies (via `import $ivy` or `using` directives), re-run the
+`setup-ide` above, and run the command "Metals: Connect to build server".
+
+## VSCode (custom Metals server)
 
 ### Setup
 
-Scala CLI support in Metals / VSCode requires the latest Metals VSCode extension (>= `1.10.8`). Ensure
+This Scala CLI support in Metals / VSCode requires the latest Metals VSCode extension (>= `1.10.8`). Ensure
 it is installed and up-to-date, or install or update it from the Extension panel in VSCode.
 
-Scala CLI support relies on a custom Metals server for now. To enable it in the current project,
+This Scala CLI support relies on a custom Metals server for now. To enable it in the current project,
 run the command "Create New Integrated Terminal (in Active Workspace)", and type
 ```bash
 mkdir -p .vscode

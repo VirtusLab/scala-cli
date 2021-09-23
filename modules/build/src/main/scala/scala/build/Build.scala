@@ -6,7 +6,7 @@ import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
 import dependency._
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.Ops._
@@ -117,10 +117,12 @@ object Build {
     crossBuilds: Boolean
   ): Either[BuildException, (Build, Seq[Build])] = either {
 
-    val crossSources = CrossSources.forInputs(
-      inputs,
-      Sources.defaultPreprocessors(options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper))
-    )
+    val crossSources = value {
+      CrossSources.forInputs(
+        inputs,
+        Sources.defaultPreprocessors(options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper))
+      )
+    }
 
     val sources = crossSources.sources(options)
 
@@ -149,7 +151,7 @@ object Build {
       if (crossBuilds)
         value {
           options0.crossOptions.map(opt => doBuild(opt))
-            .traverse
+            .sequence
             .left.map(CompositeBuildException(_))
         }
       else
@@ -314,8 +316,7 @@ object Build {
               val isHidden    = relPath.segments.exists(_.startsWith("."))
               def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
               def isJavaFile  = relPath.last.endsWith(".java")
-              def isConfFile  = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
-              !isHidden && (isScalaFile || isJavaFile || isConfFile)
+              !isHidden && (isScalaFile || isJavaFile)
           case _ => _ => true
         }
 

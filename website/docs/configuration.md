@@ -5,14 +5,13 @@ sidebar_position: 4
 
 `scala-cli` can be configured in several ways:
 - on the command-line
-- in a configuration file
-- some options can also be specified directly in `.scala` and `.sc` files
+- directly in `.scala` and `.sc` files
 
-Parameters on the command-line take precedence over parameters in configuration files or sources.
+Parameters on the command-line take precedence over parameters in sources.
 That way, you can quickly override parameters from the command-line.
 
-Note that the configuration format and options in `.scala` files are likely
-to evolve and be unified in the near future.
+Note that the configuration options and syntax in `.scala` files is likely
+to evolve in the future.
 
 ## Command-line
 
@@ -30,7 +29,7 @@ scala-cli --dependency org.typelevel::cats-core:2.3.0 Test.scala
 
 The reference documentation lists [all available options](reference/cli-options.md).
 
-## In `.scala` files
+## Special imports
 
 Dependencies can be added right from `.scala` and `.sc` files, using the same
 syntax as Ammonite and Metals worksheets:
@@ -43,24 +42,15 @@ import ujson._
 
 Both `import $ivy` and `import $dep` are accepted, and are equivalent.
 
-## Configuration files
+## Using directives
 
-Pass a file named `scala.conf`, or ending in `.scala.conf`, to specify options
-via a [HOCON](https://github.com/lightbend/config) configuration file:
-```hocon
-scala {
-  version = "2.13"
-  options = [
-    "-Xlint:infer-any"
-  ]
-}
-jvm = "14"
-repositories = [
-  "https://s01.oss.sonatype.org/content/repositories/snapshots"
-]
-dependencies = [
-  "ai.kien::python-native-libs:0.0.0+13-f5d7089a-SNAPSHOT"
-]
+Scala CLI can be configured from `.scala` files. You can specify `using` directives at the
+top of a `.scala` file, before any `package` or `import` statement.
+
+```scala
+using scala 2.13
+using scala-js
+using options -Xasync
 ```
 
-The reference documentation lists [all available options](reference/configuration-file.md).
+The reference documentation lists [all available using directives](reference/directives.md#using-directives).

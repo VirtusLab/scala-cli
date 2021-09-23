@@ -11,7 +11,7 @@ final case class BuildRequirements(
     else
       Left(dontPass.map(_.failedMessage).mkString(", "))
   }
-  def withPlatform(pf: BuildRequirements.Platform): Either[String, BuildRequirements] =
+  def withPlatform(pf: Platform): Either[String, BuildRequirements] =
     platform match {
       case None => Right(this)
       case Some(platform0) =>
@@ -64,14 +64,6 @@ object BuildRequirements {
     def failedMessage: String =
       if (orEqual) s"Expected version higher than or equal to $minVersion"
       else s"Expected version higher than $minVersion"
-  }
-
-  sealed abstract class Platform(val repr: String) extends Product with Serializable
-
-  object Platform {
-    case object JVM    extends Platform("JVM")
-    case object JS     extends Platform("JS")
-    case object Native extends Platform("Native")
   }
 
   final case class PlatformRequirement(platforms: Set[Platform]) {

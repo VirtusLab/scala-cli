@@ -8,7 +8,7 @@ final case class HasBuildRequirements[+T](
     requirements.withScalaVersion(sv).map { updatedRequirements =>
       copy(requirements = updatedRequirements)
     }
-  def withPlatform(pf: BuildRequirements.Platform): Either[String, HasBuildRequirements[T]] =
+  def withPlatform(pf: Platform): Either[String, HasBuildRequirements[T]] =
     requirements.withPlatform(pf).map { updatedRequirements =>
       copy(requirements = updatedRequirements)
     }

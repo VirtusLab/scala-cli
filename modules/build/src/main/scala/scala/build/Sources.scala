@@ -39,7 +39,6 @@ object Sources {
     Seq(
       ScriptPreprocessor(codeWrapper),
       JavaPreprocessor,
-      ConfigPreprocessor,
       ScalaPreprocessor
     )
 }

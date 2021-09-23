@@ -5,7 +5,7 @@ import java.nio.file.Path
 import dependency._
 
 import scala.build.errors.BuildException
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, Path)],

@@ -6,16 +6,16 @@ import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox
 
-object EitherAwait {
+object EitherCps {
   final case class Helper[E]() {
     def apply[T](body: T): Either[E, T] = macro impl
   }
   def either[E]: Helper[E] = Helper[E]()
-  @compileTimeOnly("[async] `value` must be enclosed in `optionally`")
+  @compileTimeOnly("[async] `value` must be enclosed in `EitherCps.either`")
   def value[E, T](option: Either[E, T]): T = ???
   def impl(c: blackbox.Context)(body: c.Tree): c.Tree = {
     import c.universe._
-    val awaitSym = typeOf[EitherAwait.type].decl(TermName("value"))
+    val awaitSym = typeOf[EitherCps.type].decl(TermName("value"))
     def mark(t: DefDef): Tree =
       c.internal.markForAsyncTransform(c.internal.enclosingOwner, t, awaitSym, Map.empty)
     val name = TypeName("stateMachine$async")

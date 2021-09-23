@@ -3,6 +3,8 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.{BloopBuildClient, Build, CrossSources, Inputs, Logger, Sources}
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
 import scala.build.GeneratedSource
@@ -16,16 +18,18 @@ object Export extends ScalaCommand[ExportOptions] {
     buildOptions: BuildOptions,
     logger: Logger,
     verbosity: Int
-  ): (Sources, BuildOptions) = {
+  ): Either[BuildException, (Sources, BuildOptions)] = either {
 
     logger.log("Preparing build")
 
-    val crossSources = CrossSources.forInputs(
-      inputs,
-      Sources.defaultPreprocessors(
-        buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+    val crossSources = value {
+      CrossSources.forInputs(
+        inputs,
+        Sources.defaultPreprocessors(
+          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+        )
       )
-    )
+    }
     val sources = crossSources.sources(buildOptions)
 
     if (verbosity >= 3)
@@ -47,6 +51,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     val (sources, options0) =
       prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity)
+        .orExit(logger)
 
     val buildTool =
       if (options.sbt.getOrElse(true))

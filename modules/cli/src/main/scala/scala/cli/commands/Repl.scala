@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import scala.build.{Artifacts, Build, Inputs, Logger, Os, ReplArtifacts}
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.internal.Runner
 import scala.build.options.BuildOptions
 import scala.util.Properties

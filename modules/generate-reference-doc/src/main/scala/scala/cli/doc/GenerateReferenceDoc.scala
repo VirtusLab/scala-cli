@@ -9,8 +9,12 @@ import munit.internal.difflib.Diff
 import java.nio.charset.StandardCharsets
 import java.util.{Arrays, Locale}
 
-import scala.build.config.ConfigFormat
-import scala.build.config.reader.DerivedConfigReader
+import scala.build.preprocessing.directives.{
+  DirectiveHandler,
+  RequireDirectiveHandler,
+  UsingDirectiveHandler
+}
+import scala.build.preprocessing.ScalaPreprocessor
 import scala.cli.ScalaCli
 
 object GenerateReferenceDoc extends CaseApp[Options] {
@@ -219,35 +223,59 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.toString
   }
 
-  private def configContent(reader: DerivedConfigReader[_]): String = {
+  private def usingContent(
+    usingHandlers: Seq[UsingDirectiveHandler],
+    requireHandlers: Seq[RequireDirectiveHandler]
+  ): String = {
     val b = new StringBuilder
 
     b.append(
       """---
-        |title: Configuration file
+        |title: Directives
         |sidebar_position: 2
         |---
         |
-        |All fields are optional.
+        |## using directives
         |
         |""".stripMargin
     )
 
-    for (field <- reader.allFields) {
-      b.append(
-        s"""### `${(field.prefix.iterator ++ Iterator(field.name)).mkString(".")}`
-           |
-           |Type: ${field.mdTypeDescription}
-           |
-           |""".stripMargin
-      )
-      for (desc <- field.description)
+    def addHandlers(handlers: Seq[DirectiveHandler]): Unit =
+      for (handler <- handlers.sortBy(_.name)) {
         b.append(
-          s"""$desc
+          s"""### ${handler.name}
+             |
+             |${handler.descriptionMd}
+             |
+             |${handler.usageMd}
              |
              |""".stripMargin
         )
-    }
+        val examples = handler.examples
+        if (examples.nonEmpty) {
+          b.append(
+            """#### Examples
+              |""".stripMargin
+          )
+          for (ex <- examples)
+            b.append(
+              s"""`$ex`
+                 |
+                 |""".stripMargin
+            )
+        }
+      }
+
+    addHandlers(usingHandlers)
+
+    b.append(
+      """
+        |## require directives
+        |
+        |""".stripMargin
+    )
+
+    addHandlers(requireHandlers)
 
     b.toString
   }
@@ -260,7 +288,10 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
     val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)
     val commandsContent0   = commandsContent(commands, allArgs)
-    val configContent0     = configContent(ConfigFormat.reader)
+    val usingContent0 = usingContent(
+      ScalaPreprocessor.usingDirectiveHandlers,
+      ScalaPreprocessor.requireDirectiveHandlers
+    )
 
     if (options.check) {
       val content = Seq(
@@ -288,7 +319,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     else {
       maybeWrite(options.outputPath / "cli-options.md", cliOptionsContent0)
       maybeWrite(options.outputPath / "commands.md", commandsContent0)
-      maybeWrite(options.outputPath / "configuration-file.md", configContent0)
+      maybeWrite(options.outputPath / "directives.md", usingContent0)
     }
   }
 }

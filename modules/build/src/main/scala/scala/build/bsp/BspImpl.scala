@@ -11,7 +11,7 @@ import scala.build.{BloopBuildClient, Build, GeneratedSource, Inputs, Logger, So
 import scala.build.bloop.{BloopServer, BuildServer}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.CrossSources
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.Ops._
@@ -44,12 +44,14 @@ final class BspImpl(
 
     logger.log("Preparing build")
 
-    val crossSources = CrossSources.forInputs(
-      inputs,
-      Sources.defaultPreprocessors(
-        buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+    val crossSources = value {
+      CrossSources.forInputs(
+        inputs,
+        Sources.defaultPreprocessors(
+          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+        )
       )
-    )
+    }
 
     if (verbosity >= 3)
       pprint.better.log(crossSources)
@@ -166,8 +168,7 @@ final class BspImpl(
           lazy val isHidden = relPath.segments.exists(_.startsWith("."))
           def isScalaFile   = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
           def isJavaFile    = relPath.last.endsWith(".java")
-          def isConfFile    = relPath.last == "scala.conf" || relPath.last.endsWith(".scala.conf")
-          newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile || isConfFile)
+          newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile)
         }
         val watcher0 = watcher.newWatcher()
         watcher0.register(dir.path.toNIO, Int.MaxValue)

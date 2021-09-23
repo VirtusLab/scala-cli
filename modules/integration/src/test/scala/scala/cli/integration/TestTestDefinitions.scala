@@ -166,16 +166,6 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("current directory as default input") {
-    val inputs = successfulTestInputs.add(
-      os.rel / "scala.conf" -> ""
-    )
-    inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions).call(cwd = root).out.text
-      expect(output.contains("Hello from tests"))
-    }
-  }
-
   def successfulJsTest(): Unit =
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
@@ -252,16 +242,6 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   test("utest") {
     successfulUtestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text
-      expect(output.contains("Hello from tests"))
-    }
-  }
-
-  test("utest - no arg") {
-    val inputs = successfulUtestInputs.add(
-      os.rel / "scala.conf" -> ""
-    )
-    inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions).call(cwd = root).out.text
       expect(output.contains("Hello from tests"))
     }
   }

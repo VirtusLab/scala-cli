@@ -1,4 +1,4 @@
-package scala.build.preprocessing
+package scala.build.preprocessing.directives
 
 final case class Directive(
   tpe: Directive.Type,
