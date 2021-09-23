@@ -35,7 +35,7 @@ const Features = (props) => {
           <p>
             Our installation instructions are as simple as possible.
           </p>
-          Just pick your <a href="https://github.com/VirtuslabRnD/scala-cli/releases/tag/nightly">distribution</a> and <a href="docs/installation">install</a> scala-cli.
+          Just pick your <a href="https://github.com/Virtuslab/scala-cli/releases/tag/nightly">distribution</a> and <a href="docs/installation">install</a> scala-cli.
           <br/>
           No need to fluff with installing JVM or setting up PATH.
         </p>,

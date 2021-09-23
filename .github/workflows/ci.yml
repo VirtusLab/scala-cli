@@ -107,14 +107,13 @@ jobs:
       if: github.event_name == 'push'
       uses: docker/login-action@v1
       with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Push scala-cli to github container registry
       if: github.event_name == 'push'
       run: |
-        docker tag scala-cli ghcr.io/virtuslabrnd/scala-cli:latest
-        docker push ghcr.io/virtuslabrnd/scala-cli:latest
+        docker tag scala-cli virtuslab/scala-cli:latest
+        docker push virtuslab/scala-cli:latest
 
   native-static-tests:
     timeout-minutes: 80
@@ -197,7 +196,7 @@ jobs:
   vc-redist:
     timeout-minutes: 15
     runs-on: windows-2016
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'VirtuslabRnD/scala-cli'
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     steps:
     - uses: actions/checkout@v2
       with:
@@ -312,7 +311,7 @@ jobs:
         node-version: '12.x'
     - run: .github/scripts/update-website.sh
       env:
-        GIT_USER: VirtuslabRnD
+        GIT_USER: Virtuslab
         DEPLOYMENT_BRANCH: gh-pages
         GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
 
@@ -331,6 +330,6 @@ jobs:
         node-version: '12.x'
     - run: .github/scripts/update-website.sh
       env:
-        GIT_USER: VirtuslabRnD
+        GIT_USER: Virtuslab
         DEPLOYMENT_BRANCH: gh-pages
         GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
