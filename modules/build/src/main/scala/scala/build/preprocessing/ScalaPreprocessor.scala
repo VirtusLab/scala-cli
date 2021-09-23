@@ -6,8 +6,11 @@ import dependency.parser.DependencyParser
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
+import scala.build.EitherAwait.{either, value}
 import scala.build.{Inputs, Os, Sources}
+import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.AmmUtil
+import scala.build.Ops._
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -19,49 +22,57 @@ import scala.build.options.{
 import scala.collection.JavaConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
-  def preprocess(input: Inputs.SingleElement): Option[Seq[PreprocessedSource]] =
+  def preprocess(input: Inputs.SingleElement)
+    : Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: Inputs.ScalaFile =>
         val inferredClsName = {
           val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, f.subPath)
           (pkg :+ wrapper).map(_.raw).mkString(".")
         }
-        val source = process(f.path) match {
-          case None =>
-            PreprocessedSource.OnDisk(f.path, None, None, Some(inferredClsName))
-          case Some((requirements, options, updatedCode)) =>
-            PreprocessedSource.InMemory(
-              Right(f.path),
-              f.subPath,
-              updatedCode,
-              0,
-              Some(options),
-              Some(requirements),
-              Some(inferredClsName)
-            )
+        val res = either {
+          val source = value(process(f.path)) match {
+            case None =>
+              PreprocessedSource.OnDisk(f.path, None, None, Some(inferredClsName))
+            case Some((requirements, options, updatedCode)) =>
+              PreprocessedSource.InMemory(
+                Right(f.path),
+                f.subPath,
+                updatedCode,
+                0,
+                Some(options),
+                Some(requirements),
+                Some(inferredClsName)
+              )
+          }
+          Seq(source)
         }
-        Some(Seq(source))
+        Some(res)
 
       case v: Inputs.VirtualScalaFile =>
-        val content = new String(v.content, StandardCharsets.UTF_8)
-        val (requirements, options, updatedContent) = process(content, v.source)
-          .getOrElse((BuildRequirements(), BuildOptions(), content))
-        val s = PreprocessedSource.InMemory(
-          Left(v.source),
-          v.subPath,
-          updatedContent,
-          0,
-          Some(options),
-          Some(requirements),
-          None
-        )
-        Some(Seq(s))
+        val res = either {
+          val content = new String(v.content, StandardCharsets.UTF_8)
+          val (requirements, options, updatedContent) = value(process(content, v.source))
+            .getOrElse((BuildRequirements(), BuildOptions(), content))
+          val s = PreprocessedSource.InMemory(
+            Left(v.source),
+            v.subPath,
+            updatedContent,
+            0,
+            Some(options),
+            Some(requirements),
+            None
+          )
+          Seq(s)
+        }
+        Some(res)
 
       case _ =>
         None
     }
 
-  def process(path: os.Path): Option[(BuildRequirements, BuildOptions, String)] = {
+  def process(path: os.Path)
+    : Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = {
     val printablePath =
       if (path.startsWith(Os.pwd)) path.relativeTo(Os.pwd).toString
       else path.toString
@@ -71,9 +82,12 @@ case object ScalaPreprocessor extends Preprocessor {
   def process(
     content: String,
     printablePath: String
-  ): Option[(BuildRequirements, BuildOptions, String)] = {
+  ): Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = either {
 
-    val afterUsing = processUsing(content, printablePath)
+    val afterUsing = value {
+      processUsing(content, printablePath)
+        .traverse
+    }
     val afterProcessImports =
       processSpecialImports(afterUsing.map(_._3).getOrElse(content), printablePath)
 
@@ -91,8 +105,9 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
-  private def directivesBuildOptions(directives: Seq[Directive]): BuildOptions =
-    directives
+  private def directivesBuildOptions(directives: Seq[Directive])
+    : Either[BuildException, BuildOptions] = {
+    val allOptions = directives
       .filter(_.tpe == Directive.Using)
       .map { dir =>
         dir.values match {
@@ -141,7 +156,9 @@ case object ScalaPreprocessor extends Preprocessor {
             }
         }
       }
-      .foldLeft(BuildOptions())(_ orElse _)
+
+    Right(allOptions.foldLeft(BuildOptions())(_ orElse _))
+  }
 
   private def normalizePlatform(p: String): String =
     p.toLowerCase(Locale.ROOT) match {
@@ -205,7 +222,7 @@ case object ScalaPreprocessor extends Preprocessor {
   private def processUsing(
     content: String,
     printablePath: String
-  ): Option[(BuildRequirements, BuildOptions, String)] =
+  ): Option[Either[BuildException, (BuildRequirements, BuildOptions, String)]] =
     TemporaryDirectivesParser.parseDirectives(content).flatMap {
       case (directives, updatedContent) =>
         // TODO Warn about unrecognized directives
@@ -213,11 +230,14 @@ case object ScalaPreprocessor extends Preprocessor {
 
         TemporaryDirectivesParser.parseDirectives(content).map {
           case (directives, updatedContent) =>
-            (
-              directivesBuildRequirements(directives),
+            val tuple = (
+              Right(directivesBuildRequirements(directives)),
               directivesBuildOptions(directives),
-              updatedContent
+              Right(updatedContent)
             )
+            tuple
+              .traverseN
+              .left.map(CompositeBuildException(_))
         }
     }
 

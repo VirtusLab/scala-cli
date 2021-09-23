@@ -117,10 +117,12 @@ object Build {
     crossBuilds: Boolean
   ): Either[BuildException, (Build, Seq[Build])] = either {
 
-    val crossSources = CrossSources.forInputs(
-      inputs,
-      Sources.defaultPreprocessors(options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper))
-    )
+    val crossSources = value {
+      CrossSources.forInputs(
+        inputs,
+        Sources.defaultPreprocessors(options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper))
+      )
+    }
 
     val sources = crossSources.sources(options)
 

@@ -44,12 +44,14 @@ final class BspImpl(
 
     logger.log("Preparing build")
 
-    val crossSources = CrossSources.forInputs(
-      inputs,
-      Sources.defaultPreprocessors(
-        buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+    val crossSources = value {
+      CrossSources.forInputs(
+        inputs,
+        Sources.defaultPreprocessors(
+          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+        )
       )
-    )
+    }
 
     if (verbosity >= 3)
       pprint.better.log(crossSources)

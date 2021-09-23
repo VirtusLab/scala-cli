@@ -1,11 +1,14 @@
 package scala.build.preprocessing
 
-import scala.build.Inputs
 import pureconfig.ConfigSource
+
 import scala.build.config.ConfigFormat
+import scala.build.errors.BuildException
+import scala.build.Inputs
 
 case object ConfigPreprocessor extends Preprocessor {
-  def preprocess(input: Inputs.SingleElement): Option[Seq[PreprocessedSource]] =
+  def preprocess(input: Inputs.SingleElement)
+    : Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case c: Inputs.ConfigFile if os.isFile(c.path) =>
         val source = ConfigSource.string(os.read(c.path))
@@ -16,7 +19,7 @@ case object ConfigPreprocessor extends Preprocessor {
             conf0
         }
 
-        Some(Seq(PreprocessedSource.NoSourceCode(Some(conf.buildOptions), None, c.path)))
+        Some(Right(Seq(PreprocessedSource.NoSourceCode(Some(conf.buildOptions), None, c.path))))
       case _ =>
         None
     }

@@ -1,8 +1,12 @@
 package scala.build
 
+import scala.build.EitherAwait.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.CodeWrapper
+import scala.build.Ops._
 import scala.build.options.{BuildOptions, BuildRequirements, HasBuildRequirements}
 import scala.build.preprocessing._
+import scala.build.errors.CompositeBuildException
 
 final case class CrossSources(
   paths: Seq[HasBuildRequirements[(os.Path, os.RelPath)]],
@@ -66,11 +70,17 @@ object CrossSources {
   def forInputs(
     inputs: Inputs,
     preprocessors: Seq[Preprocessor]
-  ): CrossSources = {
+  ): Either[BuildException, CrossSources] = either {
 
-    val preprocessedSources = inputs.flattened().flatMap { elem =>
-      preprocessors.iterator.flatMap(p => p.preprocess(elem).iterator).toStream.headOption
-        .getOrElse(Nil) // FIXME Warn about unprocessed stuff?
+    val preprocessedSources = value {
+      inputs.flattened()
+        .map { elem =>
+          preprocessors.iterator.flatMap(p => p.preprocess(elem).iterator).toStream.headOption
+            .getOrElse(Right(Nil)) // FIXME Warn about unprocessed stuff?
+        }
+        .traverse
+        .left.map(CompositeBuildException(_))
+        .map(_.flatten)
     }
 
     val buildOptions = preprocessedSources.flatMap {
@@ -98,17 +108,19 @@ object CrossSources {
         Nil
     }
 
-    val mainClassOpt = inputs.mainClassElement
-      .collect {
-        case elem: Inputs.SingleElement =>
-          preprocessors.iterator
-            .flatMap(p => p.preprocess(elem).iterator)
-            .toStream.headOption
-            .getOrElse(Nil)
-            .flatMap(_.mainClassOpt.toSeq)
-            .headOption
-      }
-      .flatten
+    val mainClassOpt = value {
+      inputs.mainClassElement
+        .collect {
+          case elem: Inputs.SingleElement =>
+            preprocessors.iterator
+              .flatMap(p => p.preprocess(elem).iterator)
+              .toStream.headOption
+              .getOrElse(Right(Nil))
+              .map(_.flatMap(_.mainClassOpt.toSeq).headOption)
+        }
+        .traverse
+        .map(_.flatten)
+    }
 
     val paths = preprocessedSources.collect {
       case d: PreprocessedSource.OnDisk =>
