@@ -132,12 +132,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         os.rel / "simple.sc" ->
           s"""val msg = "Hello"
              |println(msg)
-             |""".stripMargin,
-        os.rel / "scala.conf" -> ""
+             |""".stripMargin
       )
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", extraOptions).call(cwd = root, stdout = os.Inherit)
+      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions).call(cwd = root, stdout = os.Inherit)
       val bspFile = root / ".bsp" / "scala-cli.json"
       expect(os.isFile(bspFile))
       val json = ujson.read(

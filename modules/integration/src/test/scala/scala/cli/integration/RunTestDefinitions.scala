@@ -71,14 +71,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "simple.sc" ->
-          s"""import scala.scalajs.js
+          s"""using scala-js
+             |import scala.scalajs.js
              |val console = js.Dynamic.global.console
              |val msg = "$message"
              |console.log(msg)
-             |""".stripMargin,
-        os.rel / "scala.conf" ->
-          """scala.platform = "js"
-            |""".stripMargin
+             |""".stripMargin
       )
     )
     inputs.fromRoot { root =>
@@ -215,26 +213,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("Current directory as default") {
-    val message = "Hello"
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "dir" / "messages.sc" ->
-          s"""def msg = "$message"
-             |""".stripMargin,
-        os.rel / "dir" / "print.sc" ->
-          s"""println(messages.msg)
-             |""".stripMargin,
-        os.rel / "dir" / "scala.conf" -> ""
-      )
-    )
-    inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "run", extraOptions, "--main-class", "print").call(cwd =
-        root / "dir").out.text.trim
-      expect(output == message)
-    }
-  }
-
   test("No default input when no explicit command is passed") {
     val inputs = TestInputs(
       Seq(
@@ -261,13 +239,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |    println(args(0))
              |  }
              |}
-             |""".stripMargin,
-        os.rel / "scala.conf" -> ""
+             |""".stripMargin
       )
     )
     val message = "Hello"
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "run", extraOptions, "--", message)
+      val output = os.proc(TestUtil.cli, "run", extraOptions, ".", "--", message)
         .call(cwd = root)
         .out.text.trim
       expect(output == message)
@@ -282,13 +259,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |  def main(args: Array[String]): Unit =
              |    val message = args(0)
              |    println(message)
-             |""".stripMargin,
-        os.rel / "scala.conf" -> ""
+             |""".stripMargin
       )
     )
     val message = "Hello"
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "run", extraOptions, "--", message)
+      val output = os.proc(TestUtil.cli, "run", extraOptions, ".", "--", message)
         .call(cwd = root)
         .out.text.trim
       expect(output == message)
@@ -426,14 +402,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |        throw new Exception("Caught exception during processing", e)
              |    }
              |}
-             |""".stripMargin,
-        os.rel / "scala.conf" -> ""
+             |""".stripMargin
       )
     )
     inputs.fromRoot { root =>
       // format: off
       val cmd = Seq[os.Shellable](
-        TestUtil.cli, "run", extraOptions,
+        TestUtil.cli, "run", extraOptions, ".",
         "--java-prop", "scala.colored-stack-traces=false"
       )
       // format: on
@@ -493,14 +468,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |  case e: Exception =>
              |    throw new Exception("Caught exception during processing", e)
              |}
-             |""".stripMargin,
-        os.rel / "scala.conf" -> ""
+             |""".stripMargin
       )
     )
     inputs.fromRoot { root =>
       // format: off
       val cmd = Seq[os.Shellable](
-        TestUtil.cli, "run", extraOptions,
+        TestUtil.cli, "run", extraOptions, ".",
         "--java-prop", "scala.colored-stack-traces=false"
       )
       // format: on
@@ -558,14 +532,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |  case e: Exception =>
              |    throw new Exception("Caught exception during processing", e)
              |}
-             |""".stripMargin,
-        os.rel / "scala.conf" -> ""
+             |""".stripMargin
       )
     )
     inputs.fromRoot { root =>
       // format: off
       val cmd = Seq[os.Shellable](
-        TestUtil.cli, "run", extraOptions,
+        TestUtil.cli, "run", extraOptions, ".",
         "--java-prop=scala.cli.runner.Stacktrace.disable=true"
       )
       // format: on
@@ -884,11 +857,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "simple.sc" ->
-          """val msg = sys.props("test.message")
-            |println(msg)
-            |""".stripMargin,
-        os.rel / "scala.conf" ->
-          s"""java.options = ["-Dtest.message=$message"]
+          s"""using javaOpt "-Dtest.message=$message"
+             |val msg = sys.props("test.message")
+             |println(msg)
              |""".stripMargin
       )
     )

@@ -51,12 +51,11 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         os.rel / fileName ->
           s"""val msg = "$message"
              |println(msg)
-             |""".stripMargin,
-        os.rel / "scala.conf" -> ""
+             |""".stripMargin
       )
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions).call(
+      os.proc(TestUtil.cli, "package", extraOptions, ".").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit

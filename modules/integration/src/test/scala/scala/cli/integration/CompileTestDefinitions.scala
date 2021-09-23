@@ -21,14 +21,13 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           |    }
           |  }
           |}
-          |""".stripMargin,
-      os.rel / "scala.conf" -> ""
+          |""".stripMargin
     )
   )
 
   test("no arg") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", extraOptions).call(cwd = root).out.text
+      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root).out.text
     }
   }
 

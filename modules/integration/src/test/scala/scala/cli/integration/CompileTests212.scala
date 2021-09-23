@@ -18,8 +18,7 @@ class CompileTests212 extends CompileTestDefinitions(
           |  val kf5 = λ[Map[*, Int] ~> Map[*, Long]](_.map { case (k, v) => (k, v.toLong) }.toMap)
           |  val kf6 = λ[ToSelf[Map[*, Int]]](_.map { case (k, v) => (k, v * 2) }.toMap)
           |}
-          |""".stripMargin,
-      os.rel / "scala.conf" -> ""
+          |""".stripMargin
     )
   )
 
@@ -31,6 +30,7 @@ class CompileTests212 extends CompileTestDefinitions(
         TestUtil.cli,
         "compile",
         extraOptions,
+        ".",
         "--compiler-plugin",
         kindProjectPlugin
       ).call(cwd = root).out.text

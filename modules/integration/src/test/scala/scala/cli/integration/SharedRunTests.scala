@@ -60,12 +60,8 @@ class SharedRunTests extends munit.FunSuite {
     val inputs = TestInputs(
       Seq(
         os.rel / "test.sc" ->
-          """println(scala.util.Properties.versionNumberString)
-            |""".stripMargin,
-        os.rel / "scala.conf" ->
-          s"""scala {
-             |  version = $confSv
-             |}
+          s"""using scala $confSv
+             |println(scala.util.Properties.versionNumberString)
              |""".stripMargin
       )
     )
