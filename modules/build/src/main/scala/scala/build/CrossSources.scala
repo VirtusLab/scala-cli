@@ -4,7 +4,7 @@ import scala.build.EitherAwait.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.CodeWrapper
 import scala.build.Ops._
-import scala.build.options.{BuildOptions, BuildRequirements, HasBuildRequirements}
+import scala.build.options.{BuildOptions, BuildRequirements, HasBuildRequirements, Platform}
 import scala.build.preprocessing._
 import scala.build.errors.CompositeBuildException
 
@@ -33,11 +33,11 @@ final case class CrossSources(
 
     val platform =
       if (buildOptionsWithScalaVersion.scalaJsOptions.enable)
-        BuildRequirements.Platform.JS
+        Platform.JS
       else if (buildOptionsWithScalaVersion.scalaNativeOptions.enable)
-        BuildRequirements.Platform.Native
+        Platform.Native
       else
-        BuildRequirements.Platform.JVM
+        Platform.JVM
 
     // FIXME Not 100% sure the way we compute the intermediate and final BuildOptions
     // is consistent (we successively filter out / retain options to compute a scala

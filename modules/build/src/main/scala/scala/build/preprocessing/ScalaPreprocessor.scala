@@ -15,6 +15,7 @@ import scala.build.options.{
   BuildOptions,
   BuildRequirements,
   ClassPathOptions,
+  Platform,
   ScalaJsOptions,
   ScalaNativeOptions,
   ScalaOptions
@@ -137,14 +138,14 @@ case object ScalaPreprocessor extends Preprocessor {
             val maybeOptions =
               // TODO Accept several platforms for cross-compilation
               if (other.lengthCompare(1) == 0)
-                isPlatform(normalizePlatform(other.head)).map {
-                  case BuildRequirements.Platform.JVM =>
+                Platform.parse(Platform.normalize(other.head)).map {
+                  case Platform.JVM =>
                     BuildOptions()
-                  case BuildRequirements.Platform.JS =>
+                  case Platform.JS =>
                     BuildOptions(
                       scalaJsOptions = ScalaJsOptions(enable = true)
                     )
-                  case BuildRequirements.Platform.Native =>
+                  case Platform.Native =>
                     BuildOptions(
                       scalaNativeOptions = ScalaNativeOptions(enable = true)
                     )
@@ -159,35 +160,6 @@ case object ScalaPreprocessor extends Preprocessor {
 
     Right(allOptions.foldLeft(BuildOptions())(_ orElse _))
   }
-
-  private def normalizePlatform(p: String): String =
-    p.toLowerCase(Locale.ROOT) match {
-      case "scala.js" | "scala-js" | "scalajs" | "js" => "js"
-      case "scala-native" | "scalanative" | "native"  => "native"
-      case "jvm"                                      => "jvm"
-      case _                                          => p
-    }
-  private def isPlatform(p: String): Option[BuildRequirements.Platform] =
-    p match {
-      case "jvm"    => Some(BuildRequirements.Platform.JVM)
-      case "js"     => Some(BuildRequirements.Platform.JS)
-      case "native" => Some(BuildRequirements.Platform.Native)
-      case _        => None
-    }
-  private def isPlatformSpec(
-    l: List[String],
-    acc: Set[BuildRequirements.Platform]
-  ): Option[Set[BuildRequirements.Platform]] =
-    l match {
-      case Nil      => None
-      case p :: Nil => isPlatform(p).map(p0 => acc + p0)
-      case p :: "|" :: tail =>
-        isPlatform(p) match {
-          case Some(p0) => isPlatformSpec(tail, acc + p0)
-          case None     => None
-        }
-      case _ => None
-    }
 
   private def directivesBuildRequirements(directives: Seq[Directive]): BuildRequirements =
     directives
@@ -208,7 +180,7 @@ case object ScalaPreprocessor extends Preprocessor {
               scalaVersion = Seq(BuildRequirements.VersionEquals(reqVer, loose = true))
             )
           case other =>
-            isPlatformSpec(other.map(normalizePlatform).toList, Set.empty) match {
+            Platform.parseSpec(other.map(Platform.normalize)) match {
               case Some(platforms) =>
                 BuildRequirements(
                   platform = Some(BuildRequirements.PlatformRequirement(platforms))
