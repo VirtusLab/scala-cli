@@ -8,7 +8,12 @@ import java.util.Locale
 
 import scala.build.EitherAwait.{either, value}
 import scala.build.{Inputs, Os, Sources}
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  InvalidDirectiveError,
+  UnusedDirectiveError
+}
 import scala.build.internal.AmmUtil
 import scala.build.Ops._
 import scala.build.options.{
@@ -20,6 +25,7 @@ import scala.build.options.{
   ScalaNativeOptions,
   ScalaOptions
 }
+import scala.build.preprocessing.directives._
 import scala.collection.JavaConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -106,59 +112,40 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
+  private val usingDirectiveHandlers = Seq[UsingDirectiveHandler](
+    UsingDependencyDirectiveHandler,
+    UsingScalaVersionDirectiveHandler,
+    UsingRepositoryDirectiveHandler,
+    UsingPlatformDirectiveHandler
+  )
+
   private def directivesBuildOptions(directives: Seq[Directive])
     : Either[BuildException, BuildOptions] = {
-    val allOptions = directives
+    val results = directives
       .filter(_.tpe == Directive.Using)
       .map { dir =>
-        dir.values match {
-          case Seq(depStr) if depStr.split(":").count(_.trim.nonEmpty) == 3 =>
-            DependencyParser.parse(depStr) match {
-              case Left(err) => sys.error(s"Error parsing dependency '$depStr': $err")
-              case Right(dep) =>
-                BuildOptions(
-                  classPathOptions = ClassPathOptions(
-                    extraDependencies = Seq(dep)
-                  )
-                )
-            }
-          case Seq("scala", scalaVer) if scalaVer.nonEmpty =>
-            BuildOptions(
-              scalaOptions = ScalaOptions(
-                scalaVersion = Some(scalaVer)
-              )
-            )
-          case Seq("repository", repo) if repo.nonEmpty =>
-            BuildOptions(
-              classPathOptions = ClassPathOptions(
-                extraRepositories = Seq(repo)
-              )
-            )
-          case other =>
-            val maybeOptions =
-              // TODO Accept several platforms for cross-compilation
-              if (other.lengthCompare(1) == 0)
-                Platform.parse(Platform.normalize(other.head)).map {
-                  case Platform.JVM =>
-                    BuildOptions()
-                  case Platform.JS =>
-                    BuildOptions(
-                      scalaJsOptions = ScalaJsOptions(enable = true)
-                    )
-                  case Platform.Native =>
-                    BuildOptions(
-                      scalaNativeOptions = ScalaNativeOptions(enable = true)
-                    )
-                }
-              else
-                None
-            maybeOptions.getOrElse {
-              sys.error(s"Unrecognized using directive: ${other.mkString(" ")}")
-            }
+        val fromHandlersOpt = usingDirectiveHandlers
+          .iterator
+          .flatMap(_.handle(dir).iterator)
+          .toStream
+          .headOption
+
+        fromHandlersOpt match {
+          case None =>
+            Left(new UnusedDirectiveError(dir))
+          case Some(Right(options)) =>
+            Right(options)
+          case Some(Left(err)) =>
+            Left(new InvalidDirectiveError(dir, err))
         }
       }
 
-    Right(allOptions.foldLeft(BuildOptions())(_ orElse _))
+    results
+      .traverse
+      .left.map(CompositeBuildException(_))
+      .map { allOptions =>
+        allOptions.foldLeft(BuildOptions())(_ orElse _)
+      }
   }
 
   private def directivesBuildRequirements(directives: Seq[Directive]): BuildRequirements =

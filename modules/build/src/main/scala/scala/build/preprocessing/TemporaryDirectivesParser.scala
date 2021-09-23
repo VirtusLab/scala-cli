@@ -3,6 +3,8 @@ package scala.build.preprocessing
 import fastparse._
 import fastparse.NoWhitespace.noWhitespaceImplicit
 
+import scala.build.preprocessing.directives.Directive
+
 object TemporaryDirectivesParser {
 
   private def directive[_: P] = {
