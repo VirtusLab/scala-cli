@@ -6,7 +6,7 @@ import dependency.parser.DependencyParser
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.{Inputs, Os, Sources}
 import scala.build.errors.{
   BuildException,
@@ -106,7 +106,7 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val afterUsing = value {
       processUsing(content, printablePath)
-        .traverse
+        .sequence
     }
     val afterProcessImports =
       processSpecialImports(afterUsing.map(_._3).getOrElse(content), printablePath)
@@ -147,7 +147,7 @@ case object ScalaPreprocessor extends Preprocessor {
       }
 
     results
-      .traverse
+      .sequence
       .left.map(CompositeBuildException(_))
       .map { allOptions =>
         allOptions.foldLeft(BuildOptions())(_ orElse _)
@@ -176,7 +176,7 @@ case object ScalaPreprocessor extends Preprocessor {
       }
 
     results
-      .traverse
+      .sequence
       .left.map(CompositeBuildException(_))
       .map { allReqs =>
         allReqs.foldLeft(BuildRequirements())(_ orElse _)

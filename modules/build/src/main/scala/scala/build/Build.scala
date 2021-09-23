@@ -6,7 +6,7 @@ import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{FileTreeRepositories, PathWatcher, PathWatchers}
 import dependency._
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.Ops._
@@ -151,7 +151,7 @@ object Build {
       if (crossBuilds)
         value {
           options0.crossOptions.map(opt => doBuild(opt))
-            .traverse
+            .sequence
             .left.map(CompositeBuildException(_))
         }
       else

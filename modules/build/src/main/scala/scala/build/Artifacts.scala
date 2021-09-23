@@ -11,7 +11,7 @@ import dependency._
 import java.nio.file.Path
 
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
 import scala.build.internal.Util.ScalaDependencyOps
@@ -190,7 +190,7 @@ object Artifacts {
           artifacts(Seq(dep0), allExtraRepositories, params, logger)
             .map(_.map { case (url, path) => (dep0, url, path) })
         }
-        .traverse
+        .sequence
         .left.map(CompositeBuildException(_))
         .map(_.flatten)
     }

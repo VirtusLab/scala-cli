@@ -2,12 +2,12 @@ package scala.build
 
 object Ops {
   implicit class EitherSeqOps[E, T](private val seq: Seq[Either[E, T]]) extends AnyVal {
-    def traverse: Either[::[E], Seq[T]] =
-      EitherTraverse.traverse(seq)
+    def sequence: Either[::[E], Seq[T]] =
+      EitherSequence.sequence(seq)
   }
 
   implicit class EitherOptOps[E, T](private val opt: Option[Either[E, T]]) extends AnyVal {
-    def traverse: Either[E, Option[T]] =
+    def sequence: Either[E, Option[T]] =
       opt match {
         case None           => Right(None)
         case Some(Left(e))  => Left(e)

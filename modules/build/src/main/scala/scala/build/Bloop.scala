@@ -8,7 +8,7 @@ import java.io.File
 import java.nio.file.Path
 
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.ModuleFormatError
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.Ops._

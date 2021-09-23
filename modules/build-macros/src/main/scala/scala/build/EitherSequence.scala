@@ -2,8 +2,8 @@ package scala.build
 
 import scala.collection.mutable.ListBuffer
 
-object EitherTraverse {
-  def traverse[E, T](eithers: Seq[Either[E, T]]): Either[::[E], Seq[T]] = {
+object EitherSequence {
+  def sequence[E, T](eithers: Seq[Either[E, T]]): Either[::[E], Seq[T]] = {
     val errors = new ListBuffer[E]
     val values = new ListBuffer[T]
     eithers.foreach {

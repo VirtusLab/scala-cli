@@ -1,6 +1,6 @@
 package scala.build
 
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.CodeWrapper
 import scala.build.Ops._
@@ -78,7 +78,7 @@ object CrossSources {
           preprocessors.iterator.flatMap(p => p.preprocess(elem).iterator).toStream.headOption
             .getOrElse(Right(Nil)) // FIXME Warn about unprocessed stuff?
         }
-        .traverse
+        .sequence
         .left.map(CompositeBuildException(_))
         .map(_.flatten)
     }
@@ -118,7 +118,7 @@ object CrossSources {
               .getOrElse(Right(Nil))
               .map(_.flatMap(_.mainClassOpt.toSeq).headOption)
         }
-        .traverse
+        .sequence
         .map(_.flatten)
     }
 

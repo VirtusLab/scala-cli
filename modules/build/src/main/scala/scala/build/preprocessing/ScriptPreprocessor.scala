@@ -8,7 +8,7 @@ import scala.util.matching.Regex
 import java.nio.charset.StandardCharsets
 
 import scala.build.{Inputs, Os}
-import scala.build.EitherAwait.{either, value}
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{AmmUtil, CodeWrapper, Name}
 import scala.build.options.{BuildOptions, ClassPathOptions}
