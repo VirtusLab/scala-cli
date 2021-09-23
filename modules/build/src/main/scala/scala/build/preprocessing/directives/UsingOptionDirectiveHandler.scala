@@ -1,0 +1,29 @@
+package scala.build.preprocessing.directives
+
+import scala.build.options.{BuildOptions, ScalaOptions}
+
+case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
+  def name        = "Compiler options"
+  def description = "Add Scala compiler options"
+  def usage       = "using option _option_ | using options _option1_ _option2_ …"
+  override def usageMd =
+    """`using option `_option_
+      |
+      |`using options `_option1_ _option2_ …""".stripMargin
+  override def examples = Seq(
+    "using option -Xasync",
+    "using options -Xasync -Xfatal-warnings"
+  )
+
+  def handle(directive: Directive): Option[Either[String, BuildOptions]] =
+    directive.values match {
+      case Seq("option" | "options", options @ _*) =>
+        val opts = BuildOptions(
+          scalaOptions = ScalaOptions(
+            scalacOptions = options
+          )
+        )
+        Some(Right(opts))
+      case _ => None
+    }
+}

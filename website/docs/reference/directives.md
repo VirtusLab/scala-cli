@@ -5,6 +5,19 @@ sidebar_position: 2
 
 ## using directives
 
+### Compiler options
+
+Add Scala compiler options
+
+`using option `_option_
+
+`using options `_option1_ _option2_ …
+
+#### Examples
+`using option -Xasync`
+
+`using options -Xasync -Xfatal-warnings`
+
 ### Dependency
 
 Adds dependencies
@@ -15,6 +28,24 @@ Adds dependencies
 `using org.typelevel::cats-effect:3.2.9`
 
 `using dev.zio::zio:1.0.12`
+
+### Java home
+
+Sets Java home used to run your application or tests
+
+`using java-home `_path_ | `using javaHome `_path_
+
+#### Examples
+`using java-home "/Users/Me/jdks/11"`
+
+### Java options
+
+Adds Java options
+
+`using java-opt `_options_ | `using javaOpt `_options_
+
+#### Examples
+`using javaOpt -Xmx2g -Dsomething=a`
 
 ### Platform
 

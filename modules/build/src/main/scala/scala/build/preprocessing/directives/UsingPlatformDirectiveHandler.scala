@@ -12,27 +12,45 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     "using scala-native"
   )
 
-  def handle(directive: Directive): Option[Either[String, BuildOptions]] = {
-
-    val values       = directive.values
-    val maybeOptions =
-      // TODO Accept several platforms for cross-compilation
-      if (values.lengthCompare(1) == 0)
-        Platform.parse(Platform.normalize(values.head)).map {
+  def handle(directive: Directive): Option[Either[String, BuildOptions]] =
+    directive.values match {
+      case Seq(pfName) =>
+        Platform.parse(Platform.normalize(pfName)).map {
           case Platform.JVM =>
-            BuildOptions()
+            Right(BuildOptions())
           case Platform.JS =>
-            BuildOptions(
+            val options = BuildOptions(
               scalaJsOptions = ScalaJsOptions(enable = true)
             )
+            Right(options)
           case Platform.Native =>
-            BuildOptions(
+            val options = BuildOptions(
               scalaNativeOptions = ScalaNativeOptions(enable = true)
             )
+            Right(options)
         }
-      else
+      case Seq(pfName, pfVersion) =>
+        Platform.parse(Platform.normalize(pfName)).map {
+          case Platform.JVM =>
+            Left("Unexpected version specified for JVM platform")
+          case Platform.JS =>
+            val options = BuildOptions(
+              scalaJsOptions = ScalaJsOptions(
+                enable = true,
+                version = Some(pfVersion)
+              )
+            )
+            Right(options)
+          case Platform.Native =>
+            val options = BuildOptions(
+              scalaNativeOptions = ScalaNativeOptions(
+                enable = true,
+                version = Some(pfVersion)
+              )
+            )
+            Right(options)
+        }
+      case _ =>
         None
-
-    maybeOptions.map(Right(_))
-  }
+    }
 }
