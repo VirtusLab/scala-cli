@@ -2,13 +2,10 @@ package scala.build
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.math.BigInteger
-import java.net.URI
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
 import java.security.MessageDigest
 import java.util.zip.{ZipEntry, ZipInputStream}
 import scala.annotation.tailrec
-import scala.util.Properties
 import scala.util.matching.Regex
 
 final case class Inputs(
@@ -329,22 +326,8 @@ object Inputs {
     else
       forNonEmptyArgs(args, cwd, directories, baseProjectName, download, stdinOpt, acceptFds)
 
-  def default(cwd: os.Path = Os.pwd): Option[Inputs] = {
-    val hasConf = os.isFile(cwd / "scala.conf") ||
-      os.list(cwd).filter(os.isFile(_)).exists(_.last.endsWith(".scala.conf"))
-    if (hasConf)
-      Some {
-        Inputs(
-          Seq(Directory(cwd)),
-          mainClassElement = None,
-          workspace = cwd,
-          baseProjectName = "project",
-          mayAppendHash = true
-        )
-      }
-    else
-      None
-  }
+  def default(cwd: os.Path = Os.pwd): Option[Inputs] =
+    None
 
   def empty(workspace: os.Path): Inputs =
     Inputs(
