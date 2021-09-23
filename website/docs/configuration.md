@@ -30,7 +30,7 @@ scala-cli --dependency org.typelevel::cats-core:2.3.0 Test.scala
 
 The reference documentation lists [all available options](reference/cli-options.md).
 
-## In `.scala` files
+## Special imports
 
 Dependencies can be added right from `.scala` and `.sc` files, using the same
 syntax as Ammonite and Metals worksheets:
@@ -64,3 +64,16 @@ dependencies = [
 ```
 
 The reference documentation lists [all available options](reference/configuration-file.md).
+
+## Using directives
+
+Scala CLI can be configured from `.scala` files. You can specify `using` directives at the
+top of a `.scala` file, before any `package` or `import` statement.
+
+```scala
+using scala 2.13
+using scala-js
+using options -Xasync
+```
+
+The reference documentation lists [all available using directives](reference/using-directives.md).

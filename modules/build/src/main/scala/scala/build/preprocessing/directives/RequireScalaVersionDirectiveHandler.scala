@@ -3,6 +3,11 @@ package scala.build.preprocessing.directives
 import scala.build.options.BuildRequirements
 
 case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler {
+  def name              = ""
+  def description       = ""
+  def usage             = ""
+  override def examples = Nil
+
   def handle(directive: Directive): Option[Either[String, BuildRequirements]] =
     directive.values match {
       case Seq("scala", ">=", minVer) =>

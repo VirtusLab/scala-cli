@@ -30,7 +30,7 @@ import scala.collection.JavaConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
 
-  private val usingDirectiveHandlers = Seq[UsingDirectiveHandler](
+  val usingDirectiveHandlers = Seq(
     UsingDependencyDirectiveHandler,
     UsingScalaVersionDirectiveHandler,
     UsingRepositoryDirectiveHandler,

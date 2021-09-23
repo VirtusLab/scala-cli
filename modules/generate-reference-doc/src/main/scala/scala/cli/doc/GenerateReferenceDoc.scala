@@ -11,6 +11,8 @@ import java.util.{Arrays, Locale}
 
 import scala.build.config.ConfigFormat
 import scala.build.config.reader.DerivedConfigReader
+import scala.build.preprocessing.directives.UsingDirectiveHandler
+import scala.build.preprocessing.ScalaPreprocessor
 import scala.cli.ScalaCli
 
 object GenerateReferenceDoc extends CaseApp[Options] {
@@ -252,6 +254,46 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.toString
   }
 
+  private def usingContent(handlers: Seq[UsingDirectiveHandler]): String = {
+    val b = new StringBuilder
+
+    b.append(
+      """---
+        |title: Using directives
+        |sidebar_position: 2
+        |---
+        |
+        |""".stripMargin
+    )
+
+    for (handler <- handlers.sortBy(_.name)) {
+      b.append(
+        s"""### ${handler.name}
+           |
+           |${handler.descriptionMd}
+           |
+           |${handler.usageMd}
+           |
+           |""".stripMargin
+      )
+      val examples = handler.examples
+      if (examples.nonEmpty) {
+        b.append(
+          """#### Examples
+            |""".stripMargin
+        )
+        for (ex <- examples)
+          b.append(
+            s"""`$ex`
+               |
+               |""".stripMargin
+          )
+      }
+    }
+
+    b.toString
+  }
+
   def run(options: Options, args: RemainingArgs): Unit = {
 
     val commands      = ScalaCli.commands
@@ -261,6 +303,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)
     val commandsContent0   = commandsContent(commands, allArgs)
     val configContent0     = configContent(ConfigFormat.reader)
+    val usingContent0      = usingContent(ScalaPreprocessor.usingDirectiveHandlers)
 
     if (options.check) {
       val content = Seq(
@@ -289,6 +332,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
       maybeWrite(options.outputPath / "cli-options.md", cliOptionsContent0)
       maybeWrite(options.outputPath / "commands.md", commandsContent0)
       maybeWrite(options.outputPath / "configuration-file.md", configContent0)
+      maybeWrite(options.outputPath / "using-directives.md", usingContent0)
     }
   }
 }

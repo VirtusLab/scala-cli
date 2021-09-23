@@ -3,6 +3,15 @@ package scala.build.preprocessing.directives
 import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions}
 
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
+  def name             = "Platform"
+  def description      = "Set the default platform to Scala.JS or Scala Native"
+  def usage            = "using scala-js|scala-native"
+  override def usageMd = "`using scala-js`|`scala-native`"
+  override def examples = Seq(
+    "using scala-js",
+    "using scala-native"
+  )
+
   def handle(directive: Directive): Option[Either[String, BuildOptions]] = {
 
     val values       = directive.values

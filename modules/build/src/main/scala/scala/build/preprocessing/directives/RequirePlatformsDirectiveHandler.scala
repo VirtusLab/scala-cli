@@ -3,6 +3,11 @@ package scala.build.preprocessing.directives
 import scala.build.options.{BuildRequirements, Platform}
 
 case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
+  def name              = ""
+  def description       = ""
+  def usage             = ""
+  override def examples = Nil
+
   def handle(directive: Directive): Option[Either[String, BuildRequirements]] =
     Platform.parseSpec(directive.values.map(Platform.normalize)) match {
       case Some(platforms) =>
