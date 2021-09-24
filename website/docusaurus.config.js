@@ -16,9 +16,31 @@ module.exports = {
       title: 'Scala CLI',
       logo: {
         alt: 'Scala Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
       },
       items: [
+        {
+         // type: 'doc',
+          label: "Use cases",
+          items: [
+            {
+              to: '/education',
+              label: 'Education',
+            },
+            {
+              to: '/scripting',
+              label: 'Scriptting',
+            },
+            {
+              to: '/prototyping',
+              label: 'prototyping, experimenting, reproducing',
+            },
+            {
+              to: '/simple_projects',
+              label: 'Simple projects',
+            }
+          ]
+        },
         {
           type: 'doc',
           docId: 'installation',

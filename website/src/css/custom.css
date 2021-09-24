@@ -64,3 +64,39 @@
     display: block; 
   }
 }
+
+.red_border {
+  border: rgb(209, 30, 34) 3px dotted;
+  margin: 10px;
+}
+
+.content p:before {
+  content: ">_ ";
+  color: green;
+}
+
+.content h1:before {
+  content: ">_ ";
+  color: red;
+}
+
+.content h1 {
+  margin: 20px;
+}
+
+.content {
+  font-family: monospace;
+  font-size: 15px;
+}
+
+.no_monospace {
+  font-family: auto;
+}
+
+.feature-row:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.feature-row:nth-child(even) .col--1:first-child {
+  display: none;
+}

@@ -124,7 +124,9 @@ that embeds JARs of the scala-cli modules, and downloads their dependencies
 from Maven Central upon first launch (using the coursier cache, just like
 a coursier bootstrap).
 
-### Website commands
+### Website 
+
+Website uses [Docusaurus](https://v1.docusaurus.io/en/) and under the hood it uses [infima](https://infima.dev/docs/layout/spacing) framework to style the website. 
 
 #### Generate the website once
 
