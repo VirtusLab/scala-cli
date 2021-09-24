@@ -71,6 +71,8 @@ object CrossSources {
     preprocessors: Seq[Preprocessor]
   ): Either[BuildException, CrossSources] = either {
 
+    print(inputs.sourceFiles().find(_.path.last == "__init__.scala"))
+
     val preprocessedSources = value {
       inputs.flattened()
         .map { elem =>

@@ -29,4 +29,26 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("__init__ file".only) {
+    val simpleInputs2 = TestInputs(
+      Seq(
+        os.rel / "Color.scala" ->
+          """using scala 2
+            |object A{
+            | implicit val x = 1
+            |}
+            |//enum Color:
+            |  //case Red, Green
+            |
+            |""".stripMargin,
+        os.rel / "__init__.scala" -> "using scala 3"
+
+      )
+    )
+
+    simpleInputs2.fromRoot { root =>
+      val t = os.proc(TestUtil.cli, "compile", ".").call(cwd = root).out.text
+      println(t)
+    }
+  }
 }
