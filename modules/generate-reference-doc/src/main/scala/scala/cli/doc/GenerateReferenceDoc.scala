@@ -148,7 +148,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.toString
   }
 
-  private def commandsContent(commands: Seq[Command[_]], allArgs: Seq[Arg]): String = {
+  private def commandsContent(commands: Seq[Command[_]]): String = {
 
     val b = new StringBuilder
 
@@ -286,7 +286,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     val nameFormatter = ScalaCli.actualDefaultCommand.nameFormatter
 
     val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)
-    val commandsContent0   = commandsContent(commands, allArgs)
+    val commandsContent0   = commandsContent(commands)
     val usingContent0 = usingContent(
       ScalaPreprocessor.usingDirectiveHandlers,
       ScalaPreprocessor.requireDirectiveHandlers

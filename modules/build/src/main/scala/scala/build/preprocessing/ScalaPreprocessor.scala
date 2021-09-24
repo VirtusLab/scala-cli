@@ -15,11 +15,7 @@ import scala.build.errors.{
 }
 import scala.build.internal.AmmUtil
 import scala.build.Ops._
-import scala.build.options.{
-  BuildOptions,
-  BuildRequirements,
-  ClassPathOptions
-}
+import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -102,7 +98,7 @@ case object ScalaPreprocessor extends Preprocessor {
   ): Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = either {
 
     val afterUsing = value {
-      processUsing(content, printablePath)
+      processUsing(content)
         .sequence
     }
     val afterProcessImports =
@@ -181,11 +177,10 @@ case object ScalaPreprocessor extends Preprocessor {
   }
 
   private def processUsing(
-    content: String,
-    printablePath: String
+    content: String
   ): Option[Either[BuildException, (BuildRequirements, BuildOptions, String)]] =
     TemporaryDirectivesParser.parseDirectives(content).flatMap {
-      case (directives, updatedContent) =>
+      case (_, _) =>
         // TODO Warn about unrecognized directives
         // TODO Report via some diagnostics malformed directives
 
