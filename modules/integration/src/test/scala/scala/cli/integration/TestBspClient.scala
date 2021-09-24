@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 class TestBspClient extends b.BuildClient {
 
   private val lock      = new Object
-  private var messages0 = new mutable.ListBuffer[Object]
+  private val messages0 = new mutable.ListBuffer[Object]
   private def addMessage(params: Object): Unit =
     lock.synchronized {
       messages0.append(params)

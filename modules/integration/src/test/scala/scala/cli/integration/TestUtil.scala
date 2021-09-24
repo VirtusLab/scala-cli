@@ -62,7 +62,7 @@ object TestUtil {
   }
 
   def threadPool(prefix: String, size: Int): ExecutorService =
-    Executors.newFixedThreadPool(4, daemonThreadFactory(prefix))
+    Executors.newFixedThreadPool(size, daemonThreadFactory(prefix))
 
   def scheduler(prefix: String): ScheduledExecutorService =
     Executors.newSingleThreadScheduledExecutor(daemonThreadFactory(prefix))
