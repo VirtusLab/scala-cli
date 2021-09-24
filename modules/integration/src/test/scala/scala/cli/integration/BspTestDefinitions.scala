@@ -163,8 +163,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions,
         "--dependency",
         s"org.scalameta::munit:${Constants.munitVersion}"
-      ).call(cwd = root, check = false)
-      expect(p.exitCode == 0)
+      ).call(cwd = root)
     }
   }
 
