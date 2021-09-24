@@ -1,6 +1,8 @@
+import $ivy.`com.goyeau::mill-scalafix:0.2.5`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.9`
 import $file.deps, deps.{Deps, Docker}
 
+import com.goyeau.mill.scalafix.ScalafixModule
 import io.github.alexarchambault.millnativeimage.NativeImage
 import java.io.File
 import mill._, scalalib._
@@ -584,5 +586,12 @@ trait FormatNativeImageConf extends JavaModule {
       formattedCount += doFormatNativeImageConf(dir, format = true).length
     System.err.println(s"Formatted $formattedCount file(s).")
     ()
+  }
+}
+
+trait ScalaCliScalafixModule extends ScalafixModule {
+  def scalafixConfig = T {
+    if (scalaVersion().startsWith("2.")) super.scalafixConfig()
+    else Some(os.pwd / ".scalafix3.conf")
   }
 }

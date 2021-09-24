@@ -1,5 +1,4 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-import $ivy.`com.goyeau::mill-scalafix:0.2.5`
 import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.9`
 import $file.project.deps, deps.{Deps, Docker, Scala}
@@ -11,10 +10,10 @@ import $file.project.settings, settings.{
   HasTests,
   LocalRepo,
   PublishLocalNoFluff,
+  ScalaCliScalafixModule,
   localRepoResourcePath,
   platformExecutableJarExtension
 }
-import com.goyeau.mill.scalafix.ScalafixModule
 
 import java.io.File
 import java.nio.charset.Charset
@@ -86,7 +85,7 @@ object packager extends ScalaModule with Bloop.Module {
   def mainClass = Some("packager.cli.PackagerCli")
 }
 
-object `generate-reference-doc` extends SbtModule with ScalafixModule {
+object `generate-reference-doc` extends SbtModule with ScalaCliScalafixModule {
   def scalaVersion = Scala.defaultInternal
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Ywarn-unused")
@@ -125,7 +124,7 @@ object dummy extends Module {
 }
 
 class BuildMacros(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
-    with ScalafixModule {
+    with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Ywarn-unused")
   }
@@ -137,7 +136,7 @@ class BuildMacros(val crossScalaVersion: String) extends CrossSbtModule with Sca
 }
 
 class Build(val crossScalaVersion: String)
-    extends CrossSbtModule with ScalaCliPublishModule with HasTests with ScalafixModule {
+    extends CrossSbtModule with ScalaCliPublishModule with HasTests with ScalaCliScalafixModule {
   def moduleDeps = Seq(
     `bloop-rifle`(),
     `build-macros`(),
@@ -262,7 +261,7 @@ class Build(val crossScalaVersion: String)
 }
 
 trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf
-    with HasTests with HasMacroAnnotations with ScalafixModule {
+    with HasTests with HasMacroAnnotations with ScalaCliScalafixModule {
   def scalaVersion = Scala.defaultInternal
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused")
@@ -292,11 +291,11 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   def localRepoJar   = `local-repo`.localRepoJar()
   def graalVmVersion = deps.graalVmVersion
 
-  object test extends Tests with ScalafixModule
+  object test extends Tests with ScalaCliScalafixModule
 }
 
 trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTests
-    with ScalafixModule {
+    with ScalaCliScalafixModule {
   def scalaVersion = sv
   def testLauncher: T[PathRef]
   def cliKind: T[String]
@@ -327,7 +326,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
   )
 
   private def mainArtifactName = T { artifactName() }
-  trait Tests extends super.Tests with ScalafixModule {
+  trait Tests extends super.Tests with ScalaCliScalafixModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
       Deps.pprint,
@@ -418,9 +417,12 @@ trait JvmIntegration extends CliIntegration {
 }
 
 class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
-    with ScalafixModule {
+    with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++ {
+      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
+      else Nil
+    }
   }
   def mainClass = Some("scala.cli.runner.Runner")
   def ivyDeps =
@@ -454,9 +456,12 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
 }
 
 class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
-    with ScalafixModule {
+    with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++ {
+      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
+      else Nil
+    }
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
@@ -466,7 +471,7 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
 }
 
 class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
-    with ScalafixModule {
+    with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Ywarn-unused")
   }
@@ -499,9 +504,12 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
 }
 
 class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
-    with ScalafixModule {
+    with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++ {
+      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
+      else Nil
+    }
   }
 }
 
@@ -595,20 +603,6 @@ def unitTests() = T.command {
 
 def scala(args: String*) = T.command {
   cli.run(args: _*)()
-}
-
-def scalafix(args: String*) = T.command {
-  `bloop-rifle`.get(List(Scala.defaultInternal)).fix(args: _*)()
-  `build-macros`.get(List(Scala.defaultInternal)).fix(args: _*)()
-  build.get(List(Scala.defaultInternal)).fix(args: _*)()
-  cli.fix(args: _*)()
-  cli.test.fix(args: _*)()
-  `generate-reference-doc`.fix(args: _*)()
-  integration.jvm.fix(args: _*)()
-  integration.jvm.test.fix(args: _*)()
-  runner.get(List(Scala.defaultInternal)).fix(args: _*)()
-  `tasty-lib`.get(List(Scala.defaultInternal)).fix(args: _*)()
-  `test-runner`.get(List(Scala.defaultInternal)).fix(args: _*)()
 }
 
 def defaultNativeImage() =

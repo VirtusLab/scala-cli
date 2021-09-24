@@ -158,7 +158,7 @@ jobs:
       run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps.'
     - name: Scalafix check
       run: |
-        ./mill -i scalafix --check || (
+        ./mill -i __.fix --check || (
           echo "To remove unused import run"
           echo "  ./mill -i scalafix"
           exit 1
