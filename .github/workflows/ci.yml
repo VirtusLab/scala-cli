@@ -41,6 +41,33 @@ jobs:
     - name: JVM integration tests
       run: ./mill -i integration.jvm.test
 
+  docs-tests:
+    # for now, lets run those tests only on ubuntu
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1.1.1
+      with:
+        jvm: 8
+    - name: Copy launcher
+      run: ./mill -i copyJvmLauncher artifacts/
+      if: runner.os == 'Linux' || runner.os == 'Windows'
+    - uses: actions/upload-artifact@v2.2.4
+      if: runner.os == 'Linux' || runner.os == 'Windows'
+      with:
+        name: launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+    - name: Install coursier
+      run: ./mill -i scala add-path
+    - name: Test cookbooks
+      run: ./mill -i scala docs/cookbooks/check.scala -- docs/cookbooks
+
   native-tests:
     timeout-minutes: 80
     runs-on: ${{ matrix.OS }}

@@ -2,3 +2,5 @@ out/
 .bloop/
 .metals/
 .vscode/
+.scala
+.bsp

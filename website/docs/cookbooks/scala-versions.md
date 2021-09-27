@@ -4,14 +4,14 @@ Scala cli by default runs latest stable Scala version.
 
 Here is an unversal piece of code that detect Scala version in runtime
 
-```scala
+```scala name:ScalaVersion.scala
 object ScalaVersion extends App {
     val props = new java.util.Properties
     props.load(getClass.getResourceAsStream("/library.properties"))
     val line = props.getProperty("version.number")
-    val Version = """(\d\.\d\.\d).*""".r
+    val Version = """(\d\.\d+\.\d+).*""".r
     val Version(versionStr) = line
-    println(s"Using Scala version: $versions")
+    println(s"Using Scala version: $versionStr")
 }
 ```
 
@@ -22,7 +22,7 @@ scala-cli ScalaVersion.scala
 ```
 
 <!-- Expected-regex:
-Using Scala version: 3.*
+Using Scala version: 2.*
 -->
 
 
@@ -62,10 +62,42 @@ will use latest stable release of `2.12` `2.12.15`.
 
 We can also pin the version of the language withing the .scala file with `using directives`. You can read our more how using directives works in [documentation](/TODO) or this [examole](/TODO)
 
-::: info
+:::info
 Using directives sytax is still experimental and may change in future versions of scala-cli
 
 
+So when we will have:
 
-:::tip
-Not providing a Scala version or proving a partial one (in a form of `2` or `2.12`) is not recomended for projects that requires 
+```scala name:version.scala
+// using scala 2.12.5
+
+//rest of the config
+```
+
+and run
+
+```scala-cli
+scala-cli ScalaVersion.scala version.scala
+```
+
+We will reulst in using `2.12.5`. 
+
+scala-cli is command-line first so any configuration pass to command line will override using directives.
+
+So, running 
+
+```scala-cli
+scala-cli -S 2.13.5 ScalaVersion.scala version.scala
+```
+
+Will result in using `2.13.5`
+
+<!-- Expected:
+Using Scala version: 2\.12\..*
+-->
+
+# When should I provie a full version of scala?
+
+For protyping, scrittping and other usces that does not require to run code multiple times in the future proving version is not required. 
+
+Scala is source and bianry compatible within each major version (e.g. `2.12.x` or `3.1.x`) so providing version in `eopch.major` form (e.g. `2.12`, `2.13` or `3.1`) should be perfectly fine for most uscases. When your Scala code contains more advanced features that may be more sensitve for changes in minor version (e.g. from `2.13.4` to `2.13.5`) we recomend using complete Scala version.
