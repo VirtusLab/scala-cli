@@ -63,10 +63,8 @@ jobs:
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
-    - name: Install coursier
-      run: ./mill -i scala add-path
     - name: Test cookbooks
-      run: ./mill -i scala docs/cookbooks/check.scala -- docs/cookbooks
+      run: .github/scripts/check_docs.sh
 
   native-tests:
     timeout-minutes: 80
