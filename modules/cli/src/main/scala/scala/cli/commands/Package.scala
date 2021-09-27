@@ -362,7 +362,8 @@ object Package extends ScalaCommand[PackageOptions] {
       case Some(baseImage) => baseImage
       case None =>
         if (build.options.scalaJsOptions.enable) "node"
-        else if (build.options.scalaNativeOptions.enable) "frolvlad/alpine-glibc"
+        else if (build.options.scalaNativeOptions.enable)
+          "debian:stable-slim"
         else "openjdk:8-jre-slim"
     }
     val repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
