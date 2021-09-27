@@ -53,16 +53,6 @@ jobs:
     - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
-    - name: Copy launcher
-      run: ./mill -i copyJvmLauncher artifacts/
-      if: runner.os == 'Linux' || runner.os == 'Windows'
-    - uses: actions/upload-artifact@v2.2.4
-      if: runner.os == 'Linux' || runner.os == 'Windows'
-      with:
-        name: launchers
-        path: artifacts/
-        if-no-files-found: error
-        retention-days: 2
     - name: Test cookbooks
       run: .github/scripts/check_docs.sh
 

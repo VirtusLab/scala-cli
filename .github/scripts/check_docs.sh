@@ -8,4 +8,4 @@ export PATH=$dest:$PATH
 echo Adding $dest to classpath
 ls $dest
 
-./mill -i scala docs/cookbooks/check.scala -- docs/cookbooks 
+./mill -i scala docs_checker/check.scala -- docs/cookbooks 
