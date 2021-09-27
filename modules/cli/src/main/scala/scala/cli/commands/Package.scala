@@ -160,15 +160,10 @@ object Package extends ScalaCommand[PackageOptions] {
         assembly(build, destPath, mainClass(), () => alreadyExistsCheck())
 
       case PackageType.Js =>
-        val linkerConfig = build.options.scalaJsOptions.linkerConfig
-        linkJs(build, destPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
+        buildJs(build, destPath, mainClass())
 
       case PackageType.Native =>
-        val config = build.options.scalaNativeOptions.config.getOrElse(???)
-        val workDir =
-          build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
-
-        buildNative(build, mainClass(), destPath, config, workDir, logger.scalaNativeLogger)
+        buildNative(inputs, build, destPath, mainClass(), logger)
       case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
         bootstrap(build, bootstrapPath, mainClass(), () => alreadyExistsCheck())
@@ -249,57 +244,20 @@ object Package extends ScalaCommand[PackageOptions] {
             ).build()
         }
       case PackageType.Docker =>
-        val exec = if (build.options.scalaJsOptions.enable) "node" else "sh"
-        val from = build.options.packageOptions.dockerOptions.from match {
-          case Some(baseImage) => baseImage
-          case None => if (build.options.scalaJsOptions.enable) "node" else "openjdk:8-jre-slim"
-        }
-        val repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
-          "--docker-image-repository",
-          "docker"
-        )
-        val tag = build.options.packageOptions.dockerOptions.imageTag.getOrElse("latest")
-
-        val dockerSettings = DockerSettings(
-          from = from,
-          registry = build.options.packageOptions.dockerOptions.imageRegistry,
-          repository = repository,
-          tag = Some(tag),
-          exec = exec
-        )
-
-        val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
-        if (build.options.scalaJsOptions.enable) {
-          val linkerConfig = build.options.scalaJsOptions.linkerConfig
-          linkJs(build, appPath, Some(mainClass()), addTestInitializer = false, linkerConfig)
-        }
-        else {
-          bootstrap(build, appPath, mainClass(), () => alreadyExistsCheck())
-        }
-
-        logger.message(
-          "Started building docker image with your application, it would take some time"
-        )
-
-        DockerPackage(appPath, dockerSettings).build()
-
-        logger.message(
-          "Built docker image, run it with" + System.lineSeparator() +
-            s"  docker run $repository:$tag"
-        )
+        docker(inputs, build, mainClass(), () => alreadyExistsCheck(), logger)
     }
 
-    logger.message {
-      if (packageType.runnable)
-        s"Wrote $dest, run it with" + System.lineSeparator() +
-          "  " + printableDest
-      else if (packageType == PackageType.Js)
-        s"Wrote $dest, run it with" + System.lineSeparator() +
-          "  node " + printableDest
-      else if (packageType == PackageType.Docker)
-        "Wrote docker image"
-      else
-        s"Wrote $dest"
+    if (!build.options.packageOptions.isDockerEnabled) {
+      logger.message {
+        if (packageType.runnable)
+          s"Wrote $dest, run it with" + System.lineSeparator() +
+            "  " + printableDest
+        else if (packageType == PackageType.Js)
+          s"Wrote $dest, run it with" + System.lineSeparator() +
+            "  node " + printableDest
+        else
+          s"Wrote $dest"
+      }
     }
   }
 
@@ -380,6 +338,82 @@ object Package extends ScalaCommand[PackageOptions] {
     }
 
     baos.toByteArray
+  }
+
+  private def docker(
+    inputs: Inputs,
+    build: Build.Successful,
+    mainClass: String,
+    alreadyExistsCheck: () => Unit,
+    logger: Logger
+  ): Unit = {
+    if (Properties.isMac || Properties.isWin) {
+      System.err.println(
+        "Package scala native application to docker image is not supported on MacOs and Windows"
+      )
+      sys.exit(1)
+    }
+
+    val exec =
+      if (build.options.scalaJsOptions.enable) Some("node")
+      else if (build.options.scalaNativeOptions.enable) None
+      else Some("sh")
+    val from = build.options.packageOptions.dockerOptions.from match {
+      case Some(baseImage) => baseImage
+      case None =>
+        if (build.options.scalaJsOptions.enable) "node"
+        else if (build.options.scalaNativeOptions.enable) "frolvlad/alpine-glibc"
+        else "openjdk:8-jre-slim"
+    }
+    val repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
+      "--docker-image-repository",
+      "docker"
+    )
+    val tag = build.options.packageOptions.dockerOptions.imageTag.getOrElse("latest")
+
+    val dockerSettings = DockerSettings(
+      from = from,
+      registry = build.options.packageOptions.dockerOptions.imageRegistry,
+      repository = repository,
+      tag = Some(tag),
+      exec = exec
+    )
+
+    val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
+    if (build.options.scalaJsOptions.enable) buildJs(build, appPath, mainClass)
+    else if (build.options.scalaNativeOptions.enable)
+      buildNative(inputs, build, appPath, mainClass, logger)
+    else bootstrap(build, appPath, mainClass, alreadyExistsCheck)
+
+    logger.message(
+      "Started building docker image with your application, it would take some time"
+    )
+
+    DockerPackage(appPath, dockerSettings).build()
+
+    logger.message(
+      "Built docker image, run it with" + System.lineSeparator() +
+        s"  docker run $repository:$tag"
+    )
+  }
+
+  private def buildJs(build: Build.Successful, destPath: os.Path, mainClass: String): Unit = {
+    val linkerConfig = build.options.scalaJsOptions.linkerConfig
+    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig)
+  }
+
+  private def buildNative(
+    inputs: Inputs,
+    build: Build.Successful,
+    destPath: os.Path,
+    mainClass: String,
+    logger: Logger
+  ): Unit = {
+    val config = build.options.scalaNativeOptions.config.getOrElse(???)
+    val workDir =
+      build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
+
+    buildNative(build, mainClass, destPath, config, workDir, logger.scalaNativeLogger)
   }
 
   private def bootstrap(
