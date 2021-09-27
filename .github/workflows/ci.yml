@@ -298,7 +298,7 @@ jobs:
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
 
   website-nightly:
-    needs: publish
+    needs: [jvm-tests, format, checks, reference-doc]
     if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
@@ -317,7 +317,7 @@ jobs:
 
   # same as website-nightly above, but for the 'needs' and 'if' fields
   website-release:
-    needs: [publish, update-packages]
+    needs: [jvm-tests, format, checks, reference-doc, update-packages]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
