@@ -1,5 +1,11 @@
-./mill -i show cli.nativeImage  
+#!/usr/bin/env bash
 
-export PATH=out/cli/base-image/nativeImage/dest:$PATH
+dest=$(pwd)/.scala/bin
 
-./mill -i scala docs/cookbooks/check.scala -- docs/cookbooks
+./mill -i copyTo cli.launcher $dest/scala-cli 
+
+export PATH=$dest:$PATH
+echo Adding $dest to classpath
+ls $dest
+
+./mill -i scala docs/cookbooks/check.scala -- docs/cookbooks 

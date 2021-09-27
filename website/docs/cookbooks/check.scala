@@ -77,7 +77,7 @@ def checkFile(file: Path) =
     val content = Files.lines(file).iterator.asScala.toList
     val commands = parse(content, Vector(), Context(file.toString, 1))
     val out = Files.createTempDirectory("scala-cli-tests")
-    println(s"Using $out as output")
+    println(s"Using $out as output to process $file")
     var lastOutput = ""
     commands.foreach { cmd =>
         given Context = cmd.context
@@ -114,8 +114,9 @@ def checkFile(file: Path) =
 @main def check(args: String*) =
     val testCases = args.flatMap(a => checkPath(Paths.get(a)))
     val (failed, ok) = testCases.partition(_.failure.nonEmpty)
-    println(s"Completed:\n\t ${ok.map(_.path).mkString("\n\t")}")
+    println(s"Completed:\n\t${ok.map(_.path).mkString("\n\t")}")
     if failed.nonEmpty then
-        println(s"Failed:\n\t ${failed.map(_.path).mkString("\n\t")}")
+        println(s"Failed:\n\t${failed.map(_.path).mkString("\n\t")}")
         sys.exit(1)
+    println("---")
     
