@@ -591,6 +591,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
   val (tag, overwriteAssets) =
     if (version.endsWith("-SNAPSHOT")) ("nightly", true)
     else ("v" + version, false)
+  System.err.println(s"Uploading to tag $tag (overwrite assets: $overwriteAssets)")
   Upload.upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(
     launchers: _*
   )
@@ -902,5 +903,8 @@ object ci extends Module {
          |""".stripMargin
     val dest0 = os.Path(dest, os.pwd)
     os.write.over(dest0, content.getBytes(Charset.defaultCharset()), createFolders = true)
+  }
+  def setShouldPublish() = T.command {
+    publish.setShouldPublish()
   }
 }
