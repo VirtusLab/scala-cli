@@ -35,7 +35,7 @@ final case class ScalaJsOptions(
     else
       Nil
 
-  private def moduleKind: ModuleKind =
+  def moduleKind: ModuleKind =
     moduleKindStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
       case "commonjs" | "common" => ModuleKind.CommonJSModule
       case "esmodule" | "es"     => ModuleKind.ESModule

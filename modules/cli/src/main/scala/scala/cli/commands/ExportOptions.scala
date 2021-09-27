@@ -13,6 +13,10 @@ final case class ExportOptions(
     mainClass: MainClassOptions = MainClassOptions(),
 
   sbt: Option[Boolean] = None,
+  mill: Option[Boolean] = None,
+
+  @Name("setting")
+    sbtSetting: List[String] = Nil,
 
   @Name("o")
     output: Option[String] = None

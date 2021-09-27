@@ -1,8 +1,10 @@
 package scala.cli.commands
 
 import caseapp._
+import coursier.cache.FileCache
+import coursier.util.{Artifact, Task}
 
-import scala.build.{CrossSources, Inputs, Logger, Sources}
+import scala.build.{CrossSources, Inputs, Logger, Os, Sources}
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.CustomCodeWrapper
@@ -39,8 +41,31 @@ object Export extends ScalaCommand[ExportOptions] {
     (sources, options0)
   }
 
-  def sbtBuildTool     = Sbt("1.5.5")
-  def defaultBuildTool = sbtBuildTool
+  // FIXME Auto-update those
+  def sbtBuildTool(extraSettings: Seq[String]) = Sbt("1.5.5", extraSettings)
+  def millBuildTool(cache: FileCache[Task]) = {
+    val launcherArtifacts = Seq(
+      os.rel / "mill"     -> "https://github.com/lefou/millw/raw/main/millw",
+      os.rel / "mill.bat" -> "https://github.com/lefou/millw/raw/main/millw.bat"
+    )
+    val launcherTasks = launcherArtifacts.map {
+      case (path, url) =>
+        val art = Artifact(url).withChanging(true)
+        cache.file(art).run.flatMap {
+          case Left(e) => Task.fail(e)
+          case Right(f) => Task.delay {
+              val content = os.read.bytes(os.Path(f, Os.pwd))
+              path -> content
+            }
+        }
+    }
+    val launchersTask = cache.logger.using(Task.gather.gather(launcherTasks))
+    val launchers     = launchersTask.unsafeRun()(cache.ec)
+    Mill(
+      "0.9.8",
+      launchers
+    )
+  }
 
   def run(options: ExportOptions, args: RemainingArgs): Unit = {
 
@@ -52,11 +77,15 @@ object Export extends ScalaCommand[ExportOptions] {
       prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity)
         .orExit(logger)
 
+    def sbtBuildTool0 = sbtBuildTool(options.sbtSetting.map(_.trim).filter(_.nonEmpty))
+
     val buildTool =
-      if (options.sbt.getOrElse(true))
-        sbtBuildTool
+      if (options.sbt.getOrElse(false))
+        sbtBuildTool0
+      else if (options.mill.getOrElse(false))
+        millBuildTool(options.shared.coursierCache)
       else
-        defaultBuildTool
+        sbtBuildTool0
 
     val project = buildTool.export(options0, sources)
 

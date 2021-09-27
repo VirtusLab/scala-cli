@@ -223,6 +223,12 @@ Available in commands:
 
 #### `--sbt`
 
+#### `--mill`
+
+#### `--sbt-setting`
+
+Aliases: `--setting`
+
 #### `--output`
 
 Aliases: `-o`

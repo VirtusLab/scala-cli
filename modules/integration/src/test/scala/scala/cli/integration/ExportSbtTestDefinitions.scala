@@ -20,40 +20,29 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
   protected lazy val sbt: os.Shellable =
     Seq[os.Shellable](
       "java",
+      "-Xmx512m",
+      "-Xms128m",
       "-Djline.terminal=jline.UnsupportedTerminal",
       "-Dsbt.log.noformat=true",
       "-jar",
       sbtLaunchJar
     )
 
+  protected def simpleTest(
+    inputs: TestInputs,
+    extraExportArgs: Seq[String] = Nil,
+    sbtArgs: Seq[String] = Seq("run")
+  ): Unit =
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".", extraExportArgs)
+        .call(cwd = root, stdout = os.Inherit)
+      val res    = os.proc(sbt, sbtArgs).call(cwd = root / "sbt-proj")
+      val output = res.out.text(Charset.defaultCharset())
+      expect(output.contains("Hello from exported Scala CLI project"))
+    }
+
   test("JVM") {
-    val testFile =
-      if (actualScalaVersion.startsWith("3."))
-        s"""using scala $actualScalaVersion
-           |using org.scala-lang::scala3-compiler:$actualScalaVersion
-           |
-           |object Test {
-           |  def main(args: Array[String]): Unit = {
-           |    val message = "Hello from " + dotty.tools.dotc.config.Properties.simpleVersionString
-           |    println(message)
-           |  }
-           |}
-           |""".stripMargin
-      else
-        s"""using scala $actualScalaVersion
-           |
-           |object Test {
-           |  def main(args: Array[String]): Unit = {
-           |    val message = "Hello from " + scala.util.Properties.versionNumberString
-           |    println(message)
-           |  }
-           |}
-           |""".stripMargin
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "Test.scala" -> testFile
-      )
-    )
+    val inputs = ExportTestProjects.jvmTest(actualScalaVersion)
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".")
         .call(cwd = root, stdout = os.Inherit)
@@ -64,94 +53,12 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("Scala.JS") {
-    val testFile =
-      if (actualScalaVersion.startsWith("3."))
-        s"""using scala $actualScalaVersion
-           |using scala-js
-           |
-           |import scala.scalajs.js
-           |
-           |object Test:
-           |  def main(args: Array[String]): Unit =
-           |    val console = js.Dynamic.global.console
-           |    console.log("Hello from " + "sbt")
-           |""".stripMargin
-      else
-        s"""using scala $actualScalaVersion
-           |using scala-js
-           |
-           |import scala.scalajs.js
-           |
-           |object Test {
-           |  def main(args: Array[String]): Unit = {
-           |    val console = js.Dynamic.global.console
-           |    console.log("Hello from " + "sbt")
-           |  }
-           |}
-           |""".stripMargin
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "Test.scala" -> testFile
-      )
-    )
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".")
-        .call(cwd = root, stdout = os.Inherit)
-      val res    = os.proc(sbt, "run").call(cwd = root / "sbt-proj")
-      val output = res.out.text(Charset.defaultCharset())
-      expect(output.contains("Hello from sbt"))
-    }
+    simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
   }
 
-  def scalaNativeTest(): Unit = {
-    val nl = "\\n"
-    val testFile =
-      if (actualScalaVersion.startsWith("3."))
-        s"""using scala $actualScalaVersion
-           |using scala-native
-           |
-           |import scala.scalanative.libc._
-           |import scala.scalanative.unsafe._
-           |
-           |object Test:
-           |  def main(args: Array[String]): Unit =
-           |    val message = "Hello from " + "sbt" + "$nl"
-           |    Zone { implicit z =>
-           |      stdio.printf(toCString(message))
-           |    }
-           |""".stripMargin
-      else
-        s"""using scala $actualScalaVersion
-           |using scala-native
-           |
-           |import scala.scalanative.libc._
-           |import scala.scalanative.unsafe._
-           |
-           |object Test {
-           |  def main(args: Array[String]): Unit = {
-           |    val message = "Hello from " + "sbt" + "$nl"
-           |    Zone { implicit z =>
-           |      stdio.printf(toCString(message))
-           |    }
-           |  }
-           |}
-           |""".stripMargin
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "Test.scala" -> testFile
-      )
-    )
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".")
-        .call(cwd = root, stdout = os.Inherit)
-      val res    = os.proc(sbt, "run").call(cwd = root / "sbt-proj")
-      val output = res.out.text(Charset.defaultCharset())
-      expect(output.contains("Hello from sbt"))
-    }
-  }
   if (TestUtil.canRunNative && !actualScalaVersion.startsWith("3."))
     test("Scala Native") {
-      scalaNativeTest()
+      simpleTest(ExportTestProjects.nativeTest(actualScalaVersion))
     }
 
 }
