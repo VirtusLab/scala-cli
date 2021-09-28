@@ -36,8 +36,8 @@ module.exports = {
               label: 'prototyping, experimenting, reproducing',
             },
             {
-              to: '/simple_projects',
-              label: 'Simple projects',
+              to: '/projects',
+              label: 'Single-module projects',
             }
           ]
         },

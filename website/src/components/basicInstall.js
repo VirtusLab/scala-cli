@@ -3,11 +3,14 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import DownloadButton from './DownloadButton';
 
+const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE']
+
 export default function BasicInstall(props){
+  const defaultOS = window.navigator.userAgent.indexOf("Win") != -1 ? "win" : "mac/linux"
   return <div>
       <Tabs 
         groupId="operating-systems"
-        defaultValue="win"
+        defaultValue={defaultOS}
       values={[
         {label: 'Windows', value: 'win'},
         {label: 'macOS/Linux', value: 'mac/linux'},

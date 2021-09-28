@@ -69,6 +69,12 @@
   border: rgb(209, 30, 34) 3px dotted;
   margin: 10px;
 }
+.green_border {
+  border: green 3px dotted;
+  padding: 10px;
+  margin: 10px;
+}
+
 
 .content p:before {
   content: ">_ ";
@@ -85,8 +91,10 @@
 }
 
 .content {
-  font-family: monospace;
   font-size: 15px;
+}
+.content h1,h2 {
+  font-family: monospace;
 }
 
 .no_monospace {
