@@ -80,6 +80,15 @@ Adds a repository for dependency resolution
 
 `using repository https://maven-central.storage-download.googleapis.com/maven2`
 
+### Resources
+
+Manually adds a resource directory to the class path
+
+`using resource `_path_ | `using resources `_path1_ _path2_ …
+
+#### Examples
+`using resource "./resources"`
+
 ### Scala version
 
 Sets the default Scala version
