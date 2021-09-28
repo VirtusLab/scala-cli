@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 import java.nio.charset.Charset
+import scala.util.Properties
 
 abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
@@ -41,7 +42,7 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains("Hello from exported Scala CLI project"))
     }
 
-  test("JVM") {
+  def jvmTest(): Unit = {
     val inputs = ExportTestProjects.jvmTest(actualScalaVersion)
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".")
@@ -51,10 +52,15 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains("Hello from " + actualScalaVersion))
     }
   }
+  if (!Properties.isWin)
+    test("JVM") {
+      jvmTest()
+    }
 
-  test("Scala.JS") {
-    simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
-  }
+  if (!Properties.isWin)
+    test("Scala.JS") {
+      simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
+    }
 
   if (TestUtil.canRunNative && !actualScalaVersion.startsWith("3."))
     test("Scala Native") {
