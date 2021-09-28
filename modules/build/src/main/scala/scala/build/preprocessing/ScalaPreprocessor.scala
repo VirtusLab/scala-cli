@@ -96,7 +96,7 @@ case object ScalaPreprocessor extends Preprocessor {
     content: String,
     printablePath: String
   ): Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = either {
-    println(s"${printablePath}\n============\n ${content}\n\n")
+
     val afterUsing = value {
       processUsing(content)
         .sequence

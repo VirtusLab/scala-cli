@@ -1,5 +1,3 @@
-using scala 2.12
-
 import $ivy.`com.lihaoyi::pprint:0.6.6`
 
 object Test {
