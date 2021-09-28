@@ -13,6 +13,7 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Properties
 
 import coursier.core.Version
+import scala.build.blooprifle.internal.Constants
 
 
 // format: off
@@ -152,7 +153,7 @@ final case class SharedCompilationServerOptions(
   def bloopStartupTimeoutDuration: Option[FiniteDuration] =
     parseDuration("connection server startup timeout", bloopStartupTimeout)
 
-  def minimumBloopVersion = "1.4.8-124-49a6348a"
+  def minimumBloopVersion = Constants.bloopVersion
   def acceptBloopVersion  = Some((v: String) => Version(v) < Version(minimumBloopVersion))
 
   def bloopRifleConfig(

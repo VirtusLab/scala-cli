@@ -1,6 +1,13 @@
 package scala.build.blooprifle
 
-import java.io.{FileOutputStream, FileInputStream, InputStream, OutputStream, ByteArrayOutputStream}
+import java.io.{
+  File,
+  FileOutputStream,
+  FileInputStream,
+  InputStream,
+  OutputStream,
+  ByteArrayOutputStream
+}
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 import scala.build.blooprifle.internal.{Operations, Util}
@@ -30,16 +37,13 @@ object BloopRifle {
         logger
       )
     }
-    if (check()) {
+    check() && {
       !BloopRifle.shutdownBloopIfVersionIncompatible(
         config,
         logger,
-        os.Path(os.pwd.toIO.getCanonicalFile).toNIO,
+        new File(".").getCanonicalFile.toPath,
         scheduler
       )
-    }
-    else {
-      false
     }
   }
 
@@ -207,7 +211,7 @@ object BloopRifle {
       logger,
       scheduler
     )
-    extractVersionFromBloopAbout(new String(bufferedOStream.toByteArray()))
+    extractVersionFromBloopAbout(new String(bufferedOStream.toByteArray))
   }
 
   /** Sometimes we need some minimal requirements for Bloop version. This method kills Bloop if its
@@ -222,15 +226,15 @@ object BloopRifle {
     scheduler: ScheduledExecutorService
   ): Boolean = {
     val currentBloopVersion = getCurrentBloopVersion(config, logger, workdir, scheduler)
-    val bloopExitNeeded = config.acceptBloopVersion match {
-      case Some(f) => currentBloopVersion.map(f).getOrElse(true)
-      case None    => false
+    val bloopExitNeeded = config.acceptBloopVersion.exists { f =>
+      currentBloopVersion.map(f).getOrElse(true)
     }
     if (bloopExitNeeded) {
       logger.debug(
         s"Shutting down unsupported bloop v${currentBloopVersion}."
       )
-      exit(config, workdir, logger)
+      val retCode = exit(config, workdir, logger)
+      logger.debug(s"Bloop exit return code: $retCode")
     }
     else {
       logger.debug("No need to reset bloop")

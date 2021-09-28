@@ -3,7 +3,7 @@ package scala.build.blooprifle.internal
 import java.io.{File, InputStream, IOException, OutputStream}
 import java.net.{ConnectException, InetSocketAddress, Socket}
 import java.nio.file.Path
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
 import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.build.blooprifle.{BloopRifleLogger, BspConnection, BspConnectionAddress}
@@ -336,14 +336,14 @@ object Operations {
     out: OutputStream,
     err: OutputStream,
     logger: BloopRifleLogger,
-    scheduler: ScheduledExecutorService
+    scheduler: ExecutorService
   ): Int = {
 
     val stop0         = new AtomicBoolean
     val nailgunClient = TcpClient(host, port)
     val streams       = Streams(in, out, err)
 
-    timeout(1.minute, scheduler) {
+    timeout(1.minute, scheduler, logger) {
       nailgunClient.run(
         "about",
         Array.empty,
@@ -358,16 +358,22 @@ object Operations {
 
   }
 
-  def timeout[T](duration: Duration, scheduler: ScheduledExecutorService)(body: => T) = {
+  def timeout[T](
+    duration: Duration,
+    scheduler: ExecutorService,
+    logger: BloopRifleLogger
+  )(body: => T) = {
     val p = Promise[T]()
-    scheduler.schedule(
-      () => {
+    scheduler.execute { () =>
+      try {
         val retCode = body
         p.tryComplete(Success(retCode))
-      },
-      0,
-      SECONDS
-    )
+      }
+      catch {
+        case t: Throwable =>
+          logger.debug(s"Caught $t while trying to run code with timeout")
+      }
+    }
 
     Await.result(p.future, duration)
   }
