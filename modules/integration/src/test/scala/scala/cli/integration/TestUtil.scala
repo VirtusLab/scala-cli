@@ -16,7 +16,7 @@ object TestUtil {
     if (isNativeCli)
       Seq(path)
     else
-      Seq("java", "-Xmx512m", "-jar", path)
+      Seq("java", "-Xmx512m", "-Xms128m", "-jar", path)
   }
 
   // format: off
