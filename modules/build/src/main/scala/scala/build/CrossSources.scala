@@ -71,14 +71,13 @@ object CrossSources {
     preprocessors: Seq[Preprocessor]
   ): Either[BuildException, CrossSources] = either {
 
-    val initScala = inputs.sourceFiles().find(_.path.last == "__init__.scala")
+    val initScala = inputs.sourceFiles().find(_.path.last == "__init__.scala") // todo change the name
 
-    println(initScala)
+    pprint.pprintln(initScala)
 
     val preprocessedInit = preprocessors.iterator.flatMap(p => p.preprocess(initScala.get).toStream.headOption).toSeq.head.getOrElse(null).head
 
     pprint.pprintln(preprocessedInit)
-
 
     val preprocessedSources = value {
       inputs.flattened()
@@ -91,6 +90,7 @@ object CrossSources {
         .map(_.flatten)
     }
 
+    val buildOptions0 = preprocessedSources.headOption.get.options.get
     val buildOptions = preprocessedSources.flatMap {
       case d: PreprocessedSource.OnDisk =>
         d.options.toSeq.map { opt =>
