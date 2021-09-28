@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class ExportSbtTestsDefault extends CompileTestDefinitions(scalaVersionOpt = None)
+class ExportSbtTestsDefault extends ExportSbtTestDefinitions(scalaVersionOpt = None)

@@ -3,7 +3,7 @@ package scala.cli.integration
 import scala.util.Properties
 
 // format: off
-class ExportSbtTests3 extends ExportSbtTestDefinitions(
+class ExportMillTests3 extends ExportMillTestDefinitions(
   scalaVersionOpt = Some(Constants.scala3)
 ) {
   // format: on
@@ -25,7 +25,7 @@ class ExportSbtTests3 extends ExportSbtTestDefinitions(
     test("test framework") {
       simpleTest(
         ExportTestProjects.testFrameworkTest(actualScalaVersion),
-        sbtArgs = Seq("test")
+        millArgs = Seq("__.test")
       )
     }
 

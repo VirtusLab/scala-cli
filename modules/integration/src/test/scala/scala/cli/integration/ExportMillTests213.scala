@@ -3,7 +3,7 @@ package scala.cli.integration
 import scala.util.Properties
 
 // format: off
-class ExportSbtTests213 extends ExportSbtTestDefinitions(
+class ExportMillTests213 extends ExportMillTestDefinitions(
   scalaVersionOpt = Some(Constants.scala213)
 ) {
   // format: on
@@ -15,10 +15,7 @@ class ExportSbtTests213 extends ExportSbtTestDefinitions(
 
   if (!Properties.isWin)
     test("pure java") {
-      simpleTest(
-        ExportTestProjects.pureJavaTest,
-        extraExportArgs = Seq("--sbt-setting=fork := true")
-      )
+      simpleTest(ExportTestProjects.pureJavaTest)
     }
 
   if (!Properties.isWin)

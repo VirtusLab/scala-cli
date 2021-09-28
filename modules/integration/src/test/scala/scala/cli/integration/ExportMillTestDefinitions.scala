@@ -4,50 +4,52 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.nio.charset.Charset
 import scala.util.Properties
 
-abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
+abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
   protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
-  private lazy val sbtLaunchJar = {
-    val res =
-      os.proc(TestUtil.cs, "fetch", "--intransitive", "org.scala-sbt:sbt-launch:1.5.5").call()
-    val rawPath = res.out.text.trim
-    val path    = os.Path(rawPath, os.pwd)
-    if (os.isFile(path)) path
-    else sys.error(s"Something went wrong (invalid sbt launch JAR path '$rawPath')")
-  }
+  protected def launcher: os.RelPath =
+    if (Properties.isWin) os.rel / "mill.bat"
+    else os.rel / "mill"
 
-  protected lazy val sbt: os.Shellable =
-    Seq[os.Shellable](
-      "java",
-      "-Xmx512m",
-      "-Xms128m",
-      "-Djline.terminal=jline.UnsupportedTerminal",
-      "-Dsbt.log.noformat=true",
-      "-jar",
-      sbtLaunchJar
+  private def addMillJvmOpts(inputs: TestInputs): TestInputs =
+    inputs.add(
+      os.rel / ".mill-jvm-opts" ->
+        """-Xmx512m
+          |-Xms128m
+          |""".stripMargin
     )
 
   protected def simpleTest(
     inputs: TestInputs,
     extraExportArgs: Seq[String] = Nil,
-    sbtArgs: Seq[String] = Seq("run")
+    millArgs: Seq[String] = Seq("project.run")
   ): Unit =
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".", extraExportArgs)
+    addMillJvmOpts(inputs).fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "export",
+        extraOptions,
+        "--mill",
+        "-o",
+        "mill-proj",
+        ".",
+        extraExportArgs
+      )
         .call(cwd = root, stdout = os.Inherit)
-      val res    = os.proc(sbt, sbtArgs).call(cwd = root / "sbt-proj")
+      val res = os.proc(root / "mill-proj" / launcher, "-i", millArgs)
+        .call(cwd = root / "mill-proj")
       val output = res.out.text(Charset.defaultCharset())
       expect(output.contains("Hello from exported Scala CLI project"))
     }
 
   def jvmTest(): Unit = {
-    val inputs = ExportTestProjects.jvmTest(actualScalaVersion)
+    val inputs = addMillJvmOpts(ExportTestProjects.jvmTest(actualScalaVersion))
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".")
+      os.proc(TestUtil.cli, "export", extraOptions, "--mill", "-o", "mill-proj", ".")
         .call(cwd = root, stdout = os.Inherit)
-      val res    = os.proc(sbt, "run").call(cwd = root / "sbt-proj")
+      val res    = os.proc(root / "mill-proj" / launcher, "__.run").call(cwd = root / "mill-proj")
       val output = res.out.text(Charset.defaultCharset())
       expect(output.contains("Hello from " + actualScalaVersion))
     }

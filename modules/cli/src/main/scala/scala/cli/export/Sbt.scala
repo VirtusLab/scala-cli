@@ -1,7 +1,7 @@
 package scala.cli.export
 
 import scala.build.internal.Constants
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, ScalaJsOptions, ScalaNativeOptions}
 import scala.build.Sources
 
 import java.nio.charset.StandardCharsets
@@ -11,54 +11,122 @@ import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
 import dependency.{NoAttributes, ScalaNameAttributes}
 
-final case class Sbt(sbtVersion: String) {
-  def export(options: BuildOptions, sources: Sources): SbtProject = {
-    val q       = "\""
-    val nl      = System.lineSeparator()
-    val charset = StandardCharsets.UTF_8
+final case class Sbt(
+  sbtVersion: String,
+  extraSettings: Seq[String]
+) extends BuildTool {
 
-    val mainSources = sources.paths.map {
-      case (path, relPath) =>
-        val language =
-          if (path.last.endsWith(".java")) "java"
-          else "scala" // FIXME Others
-        // FIXME asSubPath might throw… Make it a SubPath earlier in the API?
-        (relPath.asSubPath, language, os.read.bytes(path))
-    }
+  private val charSet = StandardCharsets.UTF_8
+  private val q       = "\""
+  private val nl      = System.lineSeparator()
 
-    val extraMainSources = sources.inMemory.map {
-      case (_, relPath, content, _) =>
-        val language =
-          if (relPath.last.endsWith(".java")) "java"
-          else "scala"
-        (relPath.asSubPath, language, content.getBytes(charset))
-    }
-
-    // TODO Handle Scala CLI cross-builds
-
-    // TODO Detect pure Java projects?
-
-    val (plugins, pluginSettings) =
-      if (options.scalaJsOptions.enable)
+  private def mainSources(sources: Sources): SbtProject = {
+    val allSources = BuildTool.sources(sources, charSet)
+    SbtProject(
+      mainSources = allSources,
+      settings = Seq(
+        // Using main sources as test sources too, so that their test suites
+        // are run too.
         Seq(
-          """"org.scala-js" % "sbt-scalajs" % "1.7.0""""
-        ) -> Seq(
-          "enablePlugins(ScalaJSPlugin)",
-          "scalaJSUseMainModuleInitializer := true"
+          "// Scala CLI doesn't distinguish main and test sources for now.",
+          "Test / sources ++= (Compile / sources).value"
         )
-      else if (options.scalaNativeOptions.enable)
+      )
+    )
+  }
+
+  private def sbtVersionProject: SbtProject =
+    SbtProject(sbtVersion = Some(sbtVersion))
+
+  private def pureJavaSettings(options: BuildOptions, sources: Sources): SbtProject = {
+
+    val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
+      sources.paths.forall(_._1.last.endsWith(".java")) &&
+      sources.inMemory.forall(_._2.last.endsWith(".java")) &&
+      options.classPathOptions.extraDependencies.forall(_.nameAttributes == NoAttributes)
+
+    val settings =
+      if (pureJava)
         Seq(
-          """"org.scala-native" % "sbt-scala-native" % "0.4.0""""
-        ) -> Seq(
-          "enablePlugins(ScalaNativePlugin)"
+          "crossPaths := false",
+          "autoScalaLibrary := false"
         )
+      else if (options.scalaOptions.addScalaLibrary.getOrElse(true))
+        Nil
       else
-        Nil -> Nil
+        Seq(
+          "autoScalaLibrary := false"
+        )
+
+    SbtProject(settings = Seq(settings))
+  }
+
+  private def scalaJsSettings(options: ScalaJsOptions): SbtProject = {
+
+    val plugins = Seq(
+      s""""org.scala-js" % "sbt-scalajs" % "${options.finalVersion}""""
+    )
+    val pluginSettings = Seq(
+      "enablePlugins(ScalaJSPlugin)",
+      "scalaJSUseMainModuleInitializer := true"
+    )
+
+    val linkerConfigCalls = BuildTool.scalaJsLinkerCalls(options)
+    val linkerConfigSettings =
+      if (linkerConfigCalls.isEmpty) Nil
+      else
+        Seq(s"""scalaJSLinkerConfig ~= { _${linkerConfigCalls.mkString} }""")
+
+    // TODO options.dom
+
+    SbtProject(
+      plugins = plugins,
+      settings = Seq(pluginSettings, linkerConfigSettings)
+    )
+  }
+
+  private def scalaNativeSettings(options: ScalaNativeOptions): SbtProject = {
+
+    val plugins = Seq(
+      s""""org.scala-native" % "sbt-scala-native" % "${options.finalVersion}""""
+    )
+    val pluginSettings = Seq(
+      "enablePlugins(ScalaNativePlugin)"
+    )
+
+    val configCalls = {
+      var calls = Seq.empty[String]
+      calls
+    }
+
+    val (configImports, configSettings) =
+      if (configCalls.isEmpty) ("", Nil)
+      else
+        (
+          "import scala.scalanative.build._",
+          Seq(s"""nativeConfig ~= { _${configCalls.mkString} }""")
+        )
+
+    SbtProject(
+      plugins = plugins,
+      settings = Seq(pluginSettings, configSettings),
+      imports = Seq(configImports)
+    )
+  }
+
+  private def scalaVersionSettings(options: BuildOptions): SbtProject = {
 
     val scalaVerSetting = {
       val sv = options.scalaOptions.scalaVersion.getOrElse(Constants.defaultScalaVersion)
       s"""scalaVersion := "$sv""""
     }
+
+    SbtProject(
+      settings = Seq(Seq(scalaVerSetting))
+    )
+  }
+
+  private def repositorySettings(options: BuildOptions): SbtProject = {
 
     val repoSettings =
       if (options.classPathOptions.extraRepositories.isEmpty) Nil
@@ -81,26 +149,65 @@ final case class Sbt(sbtVersion: String) {
         Seq(s"""resolvers ++= Seq(${repos.mkString(", ")})""")
       }
 
-    val customJarsSettings =
+    SbtProject(
+      settings = Seq(repoSettings)
+    )
+  }
+
+  private def customJarsSettings(options: BuildOptions): SbtProject = {
+
+    val customCompileOnlyJarsSettings =
       if (options.classPathOptions.extraCompileOnlyJars.isEmpty) Nil
       else {
         val jars = options.classPathOptions.extraCompileOnlyJars.map(p => s"""file("$p")""")
         Seq(s"""Compile / unmanagedClasspath ++= Seq(${jars.mkString(", ")})""")
       }
 
-    // TODO options.classPathOptions.extraJars
+    val customJarsSettings =
+      if (options.classPathOptions.extraJars.isEmpty) Nil
+      else {
+        val jars = options.classPathOptions.extraJars.map(p => s"""file("$p")""")
+        Seq(
+          s"""Compile / unmanagedClasspath ++= Seq(${jars.mkString(", ")})""",
+          s"""Runtime / unmanagedClasspath ++= Seq(${jars.mkString(", ")})"""
+        )
+      }
 
-    // TODO options.javaOptions.javaOpts
-    // TODO options.scalaJsOptions.*
-    // TODO options.scalaNativeOptions.*
+    SbtProject(
+      settings = Seq(customCompileOnlyJarsSettings, customJarsSettings)
+    )
+  }
 
-    // TODO options.scalaOptions.addScalaLibrary
+  private def javaOptionsSettings(options: BuildOptions): SbtProject = {
+
+    val javaOptionsSettings =
+      if (options.javaOptions.javaOpts.isEmpty) Nil
+      else
+        Seq(
+          "run / javaOptions ++= Seq(" + nl +
+            options.javaOptions.javaOpts.map(opt => "  \"" + opt + "\"," + nl).mkString +
+            ")"
+        )
+
+    SbtProject(
+      settings = Seq(javaOptionsSettings)
+    )
+  }
+
+  private def mainClassSettings(options: BuildOptions): SbtProject = {
 
     val mainClassOptions = options.mainClass match {
       case None => Nil
       case Some(mainClass) =>
         Seq(s"""Compile / mainClass := Some("$mainClass")""")
     }
+
+    SbtProject(
+      settings = Seq(mainClassOptions)
+    )
+  }
+
+  private def scalacOptionsSettings(options: BuildOptions): SbtProject = {
 
     val scalacOptionsSettings =
       if (options.scalaOptions.scalacOptions.isEmpty) Nil
@@ -112,7 +219,25 @@ final case class Sbt(sbtVersion: String) {
         Seq(s"""scalacOptions ++= Seq(${options0.mkString(", ")})""")
       }
 
-    // TODO options.testOptions.frameworkOpt
+    SbtProject(
+      settings = Seq(scalacOptionsSettings)
+    )
+  }
+
+  private def testFrameworkSettings(options: BuildOptions): SbtProject = {
+
+    val testFrameworkSettings = options.testOptions.frameworkOpt match {
+      case None => Nil
+      case Some(fw) =>
+        Seq(s"""testFrameworks += new TestFramework("$fw")""")
+    }
+
+    SbtProject(
+      settings = Seq(testFrameworkSettings)
+    )
+  }
+
+  private def dependencySettings(options: BuildOptions): SbtProject = {
 
     val depSettings = {
       val depStrings = options.classPathOptions
@@ -143,27 +268,53 @@ final case class Sbt(sbtVersion: String) {
       if (depStrings.isEmpty) Nil
       else if (depStrings.lengthCompare(1) == 0)
         Seq(s"""libraryDependencies += ${depStrings.head}""")
-      else
-        Seq(s"""libraryDependencies ++= Seq($nl${depStrings.map("  " + _ + nl).mkString})""")
+      else {
+        val count = depStrings.length
+        val allDeps = depStrings
+          .iterator
+          .zipWithIndex
+          .map {
+            case (dep, idx) =>
+              val maybeComma = if (idx == count - 1) "" else ","
+              "  " + dep + maybeComma + nl
+          }
+          .mkString
+        Seq(s"""libraryDependencies ++= Seq($nl$allDeps)""")
+      }
     }
 
-    val settings =
-      Seq(
-        pluginSettings,
-        Seq(scalaVerSetting),
-        mainClassOptions,
-        scalacOptionsSettings,
-        repoSettings,
-        depSettings,
-        customJarsSettings
-      )
-
     SbtProject(
-      plugins,
-      settings,
-      "1.5.5",
-      mainSources ++ extraMainSources,
-      Nil
+      settings = Seq(depSettings)
     )
+  }
+
+  def export(options: BuildOptions, sources: Sources): SbtProject = {
+
+    // TODO Handle Scala CLI cross-builds
+
+    val projectChunks = Seq(
+      SbtProject(settings = Seq(extraSettings)),
+      mainSources(sources),
+      sbtVersionProject,
+      scalaVersionSettings(options),
+      scalacOptionsSettings(options),
+      mainClassSettings(options),
+      pureJavaSettings(options, sources),
+      javaOptionsSettings(options),
+      if (options.scalaJsOptions.enable)
+        scalaJsSettings(options.scalaJsOptions)
+      else
+        SbtProject(),
+      if (options.scalaNativeOptions.enable)
+        scalaNativeSettings(options.scalaNativeOptions)
+      else
+        SbtProject(),
+      customJarsSettings(options),
+      testFrameworkSettings(options),
+      repositorySettings(options),
+      dependencySettings(options)
+    )
+
+    projectChunks.foldLeft(SbtProject())(_ + _)
   }
 }

@@ -18,6 +18,15 @@ Add Scala compiler options
 
 `using options -Xasync -Xfatal-warnings`
 
+### Custom JAR
+
+Manually adds JAR to the class path
+
+`using jar `_path_ | `using jars `_path1_ _path2_ …
+
+#### Examples
+`using jar "/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"`
+
 ### Dependency
 
 Adds dependencies
@@ -83,6 +92,15 @@ Sets the default Scala version
 `using scala 2.13`
 
 `using scala 2`
+
+### Test framework
+
+Sets test framework
+
+`using test-framework `_class_name_
+
+#### Examples
+`using test-framework utest.runner.Framework`
 
 
 ## require directives
