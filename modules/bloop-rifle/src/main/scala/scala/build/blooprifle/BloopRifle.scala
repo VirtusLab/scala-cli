@@ -1,6 +1,5 @@
 package scala.build.blooprifle
 
-
 import java.io.{FileOutputStream, FileInputStream, InputStream, OutputStream, ByteArrayOutputStream}
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
@@ -223,10 +222,13 @@ object BloopRifle {
     scheduler: ScheduledExecutorService
   ): Boolean = {
     val currentBloopVersion = getCurrentBloopVersion(config, logger, workdir, scheduler)
-    val bloopExitNeeded     = !currentBloopVersion.exists(config.acceptBloopVersion(_))
+    val bloopExitNeeded = config.acceptBloopVersion match {
+      case Some(f) => currentBloopVersion.map(f).getOrElse(true)
+      case None    => false
+    }
     if (bloopExitNeeded) {
       logger.debug(
-        s"Shutting down unsupported bloop v${currentBloopVersion}. Expected bloop ${config.minimumBloopVersion}"
+        s"Shutting down unsupported bloop v${currentBloopVersion}."
       )
       exit(config, workdir, logger)
     }

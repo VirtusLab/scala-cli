@@ -5,13 +5,6 @@ import java.io.{File, InputStream, OutputStream}
 import scala.build.blooprifle.internal.Constants
 import scala.concurrent.duration._
 import scala.util.Try
-import org.apache.maven.artifact.versioning.ComparableVersion
-
-case class Version(v: String) {
-  def <(rhs: Version): Boolean = {
-    new ComparableVersion(v).compareTo(new ComparableVersion(rhs.v)) < 0
-  }
-}
 
 final case class BloopRifleConfig(
   host: String,
@@ -27,11 +20,9 @@ final case class BloopRifleConfig(
   timeout: FiniteDuration,
   startCheckPeriod: FiniteDuration,
   startCheckTimeout: FiniteDuration,
-  initTimeout: FiniteDuration
-) {
-  def minimumBloopVersion                 = Some(Version("1.4.8-124-49a6348a"))
-  def acceptBloopVersion(version: String) = !minimumBloopVersion.exists(Version(version) < _)
-}
+  initTimeout: FiniteDuration,
+  acceptBloopVersion: Option[String => Boolean]
+)
 
 object BloopRifleConfig {
 
@@ -94,7 +85,10 @@ object BloopRifleConfig {
       .getOrElse(hardCodedDefaultVersion)
   }
 
-  def default(bloopClassPath: () => Either[Throwable, Seq[File]]): BloopRifleConfig =
+  def default(
+    bloopClassPath: () => Either[Throwable, Seq[File]],
+    acceptBloopVersion: Option[String => Boolean]
+  ): BloopRifleConfig =
     BloopRifleConfig(
       host = defaultHost,
       port = defaultPort,
@@ -109,6 +103,7 @@ object BloopRifleConfig {
       timeout = 10.seconds,
       startCheckPeriod = 100.millis,
       startCheckTimeout = 1.minute,
-      initTimeout = 30.seconds
+      initTimeout = 30.seconds,
+      acceptBloopVersion = acceptBloopVersion
     )
 }
