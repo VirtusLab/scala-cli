@@ -132,10 +132,6 @@ object BloopRifle {
     logger: BloopRifleLogger
   ): Int = {
 
-    config.bspSocketOrPort.map(_()).getOrElse {
-      BspConnectionAddress.Tcp(Util.randomPort())
-    }
-
     val in = config.bspStdin.getOrElse {
       new InputStream {
         def read(): Int = -1

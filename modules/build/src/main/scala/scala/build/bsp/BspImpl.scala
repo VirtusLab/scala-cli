@@ -253,6 +253,15 @@ final class BspImpl(
     }
     val f = launcher.startListening()
 
+    val initiateFirstBuild: Runnable = { () =>
+      try build(actualLocalServer, remoteServer, notifyChanges = false, logger)
+      catch {
+        case t: Throwable =>
+          logger.debug(s"Caught $t during initial BSP build, ignoring it")
+      }
+    }
+    threads.prepareBuildExecutor.submit(initiateFirstBuild)
+
     registerWatchInputs(watcher)
 
     val es = ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc)
