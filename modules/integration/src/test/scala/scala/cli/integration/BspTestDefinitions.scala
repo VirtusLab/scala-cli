@@ -61,7 +61,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   def withBsp[T](
     inputs: TestInputs,
     args: Seq[String],
-    attempts: Int = 3
+    attempts: Int = 3,
+    pauseDuration: FiniteDuration = 5.seconds
   )(
     f: (
       os.Path,
@@ -100,18 +101,17 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
     @tailrec
     def helper(count: Int): T =
-      if (count <= 1)
-        attempt() match {
-          case Success(t)  => t
-          case Failure(ex) => throw new Exception(ex)
-        }
-      else
-        attempt() match {
-          case Success(t) => t
-          case Failure(ex) =>
-            System.err.println(s"Caught $ex, trying again…")
+      attempt() match {
+        case Success(t) => t
+        case Failure(ex) =>
+          if (count <= 1)
+            throw new Exception(ex)
+          else {
+            System.err.println(s"Caught $ex, trying again in $pauseDuration…")
+            Thread.sleep(pauseDuration.toMillis)
             helper(count - 1)
-        }
+          }
+      }
 
     helper(attempts)
   }
