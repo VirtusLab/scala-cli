@@ -928,29 +928,28 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     Seq(
       os.rel / "dir" / "Hello.scala" ->
         """object Hello {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello from " + "tests")
+          |  def main(args: Array[String]): Unit = {
+          |    val p = java.nio.file.Paths.get(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+          |    println(p)
+          |  }
           |}
           |""".stripMargin
     )
   )
   private def nonWritableTest(): Unit = {
     simpleDirInputs.fromRoot { root =>
-      def run(): Unit = {
+      def run(): String = {
         val res = os.proc(TestUtil.cli, "dir").call(cwd = root)
-        expect(res.out.text.trim == "Hello from tests")
+        res.out.text.trim
       }
 
-      run()
-      val dotScala = root / "dir" / ".scala"
-      expect(os.isDir(dotScala))
-      os.remove.all(dotScala)
-      expect(!os.exists(dotScala))
+      val classDirBefore = os.Path(run(), os.pwd)
+      expect(classDirBefore.startsWith(root))
 
       try {
         os.perms.set(root / "dir", "r-xr-xr-x")
-        run()
-        expect(!os.exists(dotScala))
+        val classDirAfter = os.Path(run(), os.pwd)
+        expect(!classDirAfter.startsWith(root))
       }
       finally {
         os.perms.set(root / "dir", "rwxr-xr-x")
@@ -964,19 +963,16 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   private def forbiddenDirTest(): Unit = {
     simpleDirInputs.fromRoot { root =>
-      def run(options: String*): Unit = {
+      def run(options: String*): String = {
         val res = os.proc(TestUtil.cli, "dir", options).call(cwd = root)
-        expect(res.out.text.trim == "Hello from tests")
+        res.out.text.trim
       }
 
-      run()
-      val dotScala = root / "dir" / ".scala"
-      expect(os.isDir(dotScala))
-      os.remove.all(dotScala)
-      expect(!os.exists(dotScala))
+      val classDirBefore = os.Path(run(), os.pwd)
+      expect(classDirBefore.startsWith(root))
 
-      run("--forbid", "./dir")
-      expect(!os.exists(dotScala))
+      val classDirAfter = os.Path(run("--forbid", "./dir"), os.pwd)
+      expect(!classDirAfter.startsWith(root))
     }
   }
   if (!Properties.isWin)
