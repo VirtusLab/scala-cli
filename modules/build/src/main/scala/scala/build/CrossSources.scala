@@ -71,13 +71,18 @@ object CrossSources {
     preprocessors: Seq[Preprocessor]
   ): Either[BuildException, CrossSources] = either {
 
-    val initScala = inputs.sourceFiles().find(_.path.last == "__init__.scala") // todo change the name
-
+    val initScala =
+      inputs.sourceFiles().find(_.path.last == "__init__.scala") // todo change the name
     pprint.pprintln(initScala)
 
-    val preprocessedInit = preprocessors.iterator.flatMap(p => p.preprocess(initScala.get).toStream.headOption).toSeq.head.getOrElse(null).head
+    val preprocessedInit = preprocessors.iterator.flatMap(p =>
+      p.preprocess(initScala.get).toStream.headOption
+    ).toSeq.head.getOrElse(null).head
 
-    pprint.pprintln(preprocessedInit)
+    val initRequirements0 = BuildRequirements()
+    val initRequirements  = preprocessedInit.requirements.getOrElse(BuildRequirements())
+
+    pprint.pprintln(initRequirements)
 
     val preprocessedSources = value {
       inputs.flattened()
@@ -90,25 +95,24 @@ object CrossSources {
         .map(_.flatten)
     }
 
-    val buildOptions0 = preprocessedSources.headOption.get.options.get
     val buildOptions = preprocessedSources.flatMap {
       case d: PreprocessedSource.OnDisk =>
-        d.options.toSeq.map { opt =>
+        Some(
           HasBuildRequirements(
-            d.requirements.getOrElse(BuildRequirements()),
-            (Right(d.path), opt)
+            d.requirements.getOrElse(BuildRequirements()) orElse initRequirements,
+            (Right(d.path), d.options.getOrElse(BuildOptions()))
           )
-        }
+        )
       case m: PreprocessedSource.InMemory =>
-        m.options.toSeq.map { opt =>
+        Some(
           HasBuildRequirements(
-            m.requirements.getOrElse(BuildRequirements()),
-            (m.reportingPath, opt)
+            m.requirements.getOrElse(BuildRequirements()) orElse initRequirements,
+            (m.reportingPath, m.options.getOrElse(BuildOptions()))
           )
-        }
+        )
       case n: PreprocessedSource.NoSourceCode =>
         val elem = HasBuildRequirements(
-          n.requirements.getOrElse(BuildRequirements()),
+          n.requirements.getOrElse(BuildRequirements()) orElse initRequirements,
           (Right(n.path), n.options.getOrElse(BuildOptions()))
         )
         Seq(elem)
@@ -133,14 +137,14 @@ object CrossSources {
     val paths = preprocessedSources.collect {
       case d: PreprocessedSource.OnDisk =>
         HasBuildRequirements(
-          d.requirements.getOrElse(BuildRequirements()),
+          d.requirements.getOrElse(BuildRequirements()) orElse initRequirements,
           (d.path, d.path.relativeTo(inputs.workspace))
         )
     }
     val inMemory = preprocessedSources.collect {
       case m: PreprocessedSource.InMemory =>
         HasBuildRequirements(
-          m.requirements.getOrElse(BuildRequirements()),
+          m.requirements.getOrElse(BuildRequirements()) orElse initRequirements,
           (m.reportingPath, m.relPath, m.code, m.ignoreLen)
         )
     }
@@ -149,7 +153,8 @@ object CrossSources {
       case r: Inputs.ResourceDirectory =>
         r.path
     }
-
+    pprint.pprintln(paths)
+    pprint.pprintln(inMemory)
     CrossSources(paths, inMemory, mainClassOpt, resourceDirs, buildOptions)
   }
 }

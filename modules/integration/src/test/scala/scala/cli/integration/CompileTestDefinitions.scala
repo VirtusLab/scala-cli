@@ -33,21 +33,23 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     val simpleInputs2 = TestInputs(
       Seq(
         os.rel / "Color.scala" ->
-          """using scala 2
+          """
             |object A{
-            | implicit val x = 1
+            |  val x = 1
             |}
-            |//enum Color:
-            |  //case Red, Green
+            |enum Color:
+            |  case Red, Green
             |
             |""".stripMargin,
-        os.rel / "__init__.scala" -> "using scala 3"
-
+        os.rel / "__init__.scala" -> "require scala == 3"
       )
     )
 
     simpleInputs2.fromRoot { root =>
-      val t = os.proc(TestUtil.cli, "compile", ".").call(cwd = root).out.text
+      val t = os.proc(TestUtil.cli, "compile", extraOptions, ".").call(
+        cwd = root,
+        stdout = os.Inherit
+      ).err.text
       println(t)
     }
   }
