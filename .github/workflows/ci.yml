@@ -160,7 +160,7 @@ jobs:
       run: |
         ./mill -i __.fix --check || (
           echo "To remove unused import run"
-          echo "  ./mill -i scalafix"
+          echo "  ./mill -i __.fix"
           exit 1
         )
 
