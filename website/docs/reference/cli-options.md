@@ -829,6 +829,12 @@ Aliases: `--source-jar`, `--source-jars`, `--extra-source-jar`
 
 Add extra source JARs
 
+#### `--resources`
+
+Aliases: `--resource`
+
+Add resource directory
+
 #### `--class-wrap`
 
 #### `--scala-library`

@@ -980,4 +980,28 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       forbiddenDirTest()
     }
 
+  private val resourcesInputs = {
+    val resourceContent = "Hello from resources"
+    TestInputs(
+      Seq(
+        os.rel / "resources" / "test" / "data" -> resourceContent,
+        os.rel / "Test.scala" ->
+          s"""object Test {
+             |  def main(args: Array[String]): Unit = {
+             |    val cl = Thread.currentThread().getContextClassLoader
+             |    val is = cl.getResourceAsStream("test/data")
+             |    val content = scala.io.Source.fromInputStream(is)(scala.io.Codec.UTF8).mkString
+             |    assert(content == "$resourceContent")
+             |  }
+             |}
+             |""".stripMargin
+      )
+    )
+  }
+  test("resources") {
+    resourcesInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "run", ".", "--resources", "./resources").call(cwd = root)
+    }
+  }
+
 }

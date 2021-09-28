@@ -74,6 +74,12 @@ final case class SharedOptions(
   @Name("extraSourceJar")
     extraSourceJars: List[String] = Nil,
 
+  @Group("Java")
+  @HelpMessage("Add resource directory")
+  @ValueDescription("paths")
+  @Name("resource")
+    resources: List[String] = Nil,
+
   @Hidden
     classWrap: Boolean = false,
 
@@ -188,6 +194,9 @@ final case class SharedOptions(
         .left.map(_.describe)
         .map(f => os.read.bytes(os.Path(f, Os.pwd)))
     }
+    val resourceInputs = resources
+      .map(os.Path(_, Os.pwd))
+      .map(Inputs.ResourceDirectory(_))
     val inputs = Inputs(
       args.remaining,
       Os.pwd,
@@ -206,6 +215,7 @@ final case class SharedOptions(
       (if (defaultForbiddenDirectories) SharedOptions.defaultForbiddenDirectories else Nil) ++
         forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
     inputs
+      .add(resourceInputs)
       .checkAttributes(directories.directories)
       .avoid(forbiddenDirs, directories.directories)
   }
