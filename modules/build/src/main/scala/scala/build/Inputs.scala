@@ -97,6 +97,26 @@ final case class Inputs(
 
   def generatedSrcRoot: os.Path =
     workspace / ".scala" / projectName / "src_generated"
+
+  private def inHomeDir(directories: Directories): Inputs =
+    copy(
+      workspace = Inputs.homeWorkspace(elements, directories),
+      mayAppendHash = false
+    )
+  def avoid(forbidden: Seq[os.Path], directories: Directories): Inputs =
+    if (forbidden.exists(workspace.startsWith)) inHomeDir(directories)
+    else this
+  def checkAttributes(directories: Directories): Inputs = {
+    def existingParent(p: os.Path): Option[os.Path] =
+      if (os.exists(p)) Some(p)
+      else if (p.segmentCount <= 0) None
+      else existingParent(p / os.up)
+    val canWrite = existingParent(workspace)
+      .map(_.toIO.canWrite()) // Wondering if there's a better way to do that…
+      .getOrElse(true)
+    if (canWrite) this
+    else inHomeDir(directories)
+  }
 }
 
 object Inputs {
@@ -167,6 +187,13 @@ object Inputs {
     String.format(s"%040x", calculatedSum).take(10)
   }
 
+  def homeWorkspace(elements: Seq[Element], directories: Directories) = {
+    val hash0 = inputsHash(elements)
+    val dir   = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
+    os.makeDir.all(dir)
+    dir
+  }
+
   private def forValidatedElems(
     validElems: Seq[Compiled],
     baseProjectName: String,
@@ -183,9 +210,7 @@ object Inputs {
         validElems.head match {
           case elem: SourceFile => (elem.path / os.up, true)
           case _: Virtual =>
-            val hash0 = inputsHash(validElems)
-            val dir   = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
-            os.makeDir.all(dir)
+            val dir = homeWorkspace(validElems, directories)
             (dir, false)
           case _: Directory => sys.error("Can't happen")
         }

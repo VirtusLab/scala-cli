@@ -187,6 +187,32 @@ Aliases: `-P`, `--plugin`
 
 Add compiler plugins dependencies
 
+## Directories options
+
+Available in commands:
+- [`bloop exit`](./commands#bloop-exit)
+- [`bloop start`](./commands#bloop-start)
+- [`bsp`](./commands#bsp)
+- [`clean`](./commands#clean)
+- [`compile`](./commands#compile)
+- [`directories`](./commands#directories)
+- [`export`](./commands#export)
+- [`fmt`](./commands#fmt)
+- [`install completions`](./commands#install-completions)
+- [`browse` / `metabrowse`](./commands#browse)
+- [`package`](./commands#package)
+- [`console` / `repl`](./commands#console)
+- [`run`](./commands#run)
+- [`setup-ide`](./commands#setup-ide)
+- [`test`](./commands#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--home-directory`
+
+Aliases: `--home`
+
 ## Export options
 
 Available in commands:
@@ -810,6 +836,10 @@ Add extra source JARs
 Generate SemanticDBs
 
 #### `--add-stubs`
+
+#### `--default-forbidden-directories`
+
+#### `--forbid`
 
 ## Test options
 
