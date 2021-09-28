@@ -32,7 +32,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   // warm-up run that downloads compiler bridges
   // The "Downloading compiler-bridge (from bloop?) pollute the output, and would make the first test fail.
-  lazy val warmupTest = simpleScriptTest(ignoreErrors = true)
+  lazy val warmupTest = {
+    System.err.println("Running RunTests warmup test…")
+    simpleScriptTest(ignoreErrors = true)
+    System.err.println("Done running RunTests warmup test.")
+  }
 
   override def test(name: String)(body: => Any)(implicit loc: munit.Location): Unit =
     super.test(name) { warmupTest; body }(loc)
@@ -918,6 +922,66 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   if (Properties.isLinux && TestUtil.cliKind == "native-mostly-static")
     test("simple distroless test") {
       simpleScriptDistrolessImage()
+    }
+
+  private def simpleDirInputs = TestInputs(
+    Seq(
+      os.rel / "dir" / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello from " + "tests")
+          |}
+          |""".stripMargin
+    )
+  )
+  private def nonWritableTest(): Unit = {
+    simpleDirInputs.fromRoot { root =>
+      def run(): Unit = {
+        val res = os.proc(TestUtil.cli, "dir").call(cwd = root)
+        expect(res.out.text.trim == "Hello from tests")
+      }
+
+      run()
+      val dotScala = root / "dir" / ".scala"
+      expect(os.isDir(dotScala))
+      os.remove.all(dotScala)
+      expect(!os.exists(dotScala))
+
+      try {
+        os.perms.set(root / "dir", "r-xr-xr-x")
+        run()
+        expect(!os.exists(dotScala))
+      }
+      finally {
+        os.perms.set(root / "dir", "rwxr-xr-x")
+      }
+    }
+  }
+  if (!Properties.isWin)
+    test("no .scala in non-writable directory") {
+      nonWritableTest()
+    }
+
+  private def forbiddenDirTest(): Unit = {
+    simpleDirInputs.fromRoot { root =>
+      def run(options: String*): Unit = {
+        val res = os.proc(TestUtil.cli, "dir", options).call(cwd = root)
+        expect(res.out.text.trim == "Hello from tests")
+      }
+
+      run()
+      val dotScala = root / "dir" / ".scala"
+      expect(os.isDir(dotScala))
+      os.remove.all(dotScala)
+      expect(!os.exists(dotScala))
+
+      run("--forbid", "./dir")
+      expect(!os.exists(dotScala))
+    }
+  }
+  if (!Properties.isWin)
+    test("no .scala in forbidden directory") {
+      forbiddenDirTest()
     }
 
 }

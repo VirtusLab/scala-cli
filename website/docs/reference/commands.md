@@ -13,6 +13,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
@@ -25,6 +26,7 @@ Accepts options:
 Clean-up workspace
 
 Accepts options:
+- [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 
 ## `compile`
@@ -37,6 +39,7 @@ Accepts options:
 - [coursier](./cli-options.md#coursier-options)
 - [cross](./cli-options.md#cross-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
@@ -47,12 +50,16 @@ Accepts options:
 
 ## `directories`
 
+Accepts options:
+- [directories](./cli-options.md#directories-options)
+
 ## `export`
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [export](./cli-options.md#export-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -70,6 +77,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [fmt](./cli-options.md#fmt-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -81,6 +89,7 @@ Accepts options:
 ## `install completions`
 
 Accepts options:
+- [directories](./cli-options.md#directories-options)
 - [install completions](./cli-options.md#install-completions-options)
 - [logging](./cli-options.md#logging-options)
 
@@ -95,6 +104,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [metabrowse](./cli-options.md#metabrowse-options)
@@ -115,6 +125,7 @@ Accepts options:
 - [compile cross](./cli-options.md#compile-cross-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -134,6 +145,7 @@ Accepts options:
 - [compile cross](./cli-options.md#compile-cross-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [main class](./cli-options.md#main-class-options)
@@ -158,6 +170,7 @@ Accepts options:
 - [compile cross](./cli-options.md#compile-cross-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -174,6 +187,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
@@ -190,6 +204,7 @@ Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -211,6 +226,7 @@ Accepts options:
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 
 ### `bloop start`
@@ -219,6 +235,7 @@ Accepts options:
 - [bloop start](./cli-options.md#bloop-start-options)
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
+- [directories](./cli-options.md#directories-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 

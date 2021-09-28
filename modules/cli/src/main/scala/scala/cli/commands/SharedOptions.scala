@@ -97,7 +97,12 @@ final case class SharedOptions(
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
   @Hidden
-    addStubs: Option[Boolean] = None
+    addStubs: Option[Boolean] = None,
+
+  @Hidden
+    defaultForbiddenDirectories: Boolean = true,
+  @Hidden
+    forbid: List[String] = Nil
 ) {
   // format: on
 
@@ -190,7 +195,7 @@ final case class SharedOptions(
         .left.map(_.describe)
         .map(f => os.read.bytes(os.Path(f, Os.pwd)))
     }
-    Inputs(
+    val inputs = Inputs(
       args.remaining,
       Os.pwd,
       directories.directories,
@@ -204,6 +209,12 @@ final case class SharedOptions(
         sys.exit(1)
       case Right(i) => i
     }
+    val forbiddenDirs =
+      (if (defaultForbiddenDirectories) SharedOptions.defaultForbiddenDirectories else Nil) ++
+        forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
+    inputs
+      .checkAttributes(directories.directories)
+      .avoid(forbiddenDirs, directories.directories)
   }
 }
 
@@ -232,5 +243,11 @@ object SharedOptions {
       logger.debug(s"Done reading stdin (${result.length} B)")
       Some(result)
     }
+
+  private def defaultForbiddenDirectories: Seq[os.Path] =
+    if (Properties.isWin)
+      Seq(os.Path("""C:\Windows\System32"""))
+    else
+      Nil
 
 }
