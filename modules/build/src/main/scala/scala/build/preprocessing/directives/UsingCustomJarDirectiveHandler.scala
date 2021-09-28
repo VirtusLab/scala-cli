@@ -19,7 +19,7 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
         val paths0 = paths.map(os.Path(_, Os.pwd))
         val options = BuildOptions(
           classPathOptions = ClassPathOptions(
-            extraJars = paths0
+            extraClassPath = paths0
           )
         )
         Some(Right(options))

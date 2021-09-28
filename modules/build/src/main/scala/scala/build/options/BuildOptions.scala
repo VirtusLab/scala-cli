@@ -78,7 +78,7 @@ final case class BuildOptions(
       scalaOptions.compilerPlugins
 
   def allExtraJars: Seq[Path] =
-    classPathOptions.extraJars.map(_.toNIO)
+    classPathOptions.extraClassPath.map(_.toNIO)
   def allExtraCompileOnlyJars: Seq[Path] =
     classPathOptions.extraCompileOnlyJars.map(_.toNIO)
   def allExtraSourceJars: Seq[Path] =
@@ -201,7 +201,7 @@ final case class BuildOptions(
       params = scalaParams,
       compilerPlugins = compilerPlugins,
       dependencies = dependencies,
-      extraJars = allExtraJars,
+      extraClassPath = allExtraJars,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,
       fetchSources = classPathOptions.fetchSources.getOrElse(false),

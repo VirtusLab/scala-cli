@@ -118,7 +118,7 @@ object Repl extends ScalaCommand[ReplOptions] {
           artifacts.params,
           options.replOptions.ammoniteVersion,
           artifacts.dependencies,
-          artifacts.extraJars,
+          artifacts.extraClassPath,
           artifacts.extraSourceJars,
           logger,
           directories
@@ -127,7 +127,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         ReplArtifacts.default(
           artifacts.params,
           artifacts.dependencies,
-          artifacts.extraJars,
+          artifacts.extraClassPath,
           logger,
           directories
         )

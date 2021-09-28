@@ -22,7 +22,7 @@ final case class Artifacts(
   compilerPlugins: Seq[(AnyDependency, String, Path)],
   dependencies: Seq[AnyDependency],
   detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, Path)],
-  extraJars: Seq[Path],
+  extraClassPath: Seq[Path],
   extraCompileOnlyJars: Seq[Path],
   extraSourceJars: Seq[Path],
   params: ScalaParameters
@@ -46,9 +46,9 @@ final case class Artifacts(
   lazy val compilerClassPath: Seq[Path] =
     compilerArtifacts.map(_._2)
   lazy val classPath: Seq[Path] =
-    artifacts.map(_._2) ++ extraJars
+    artifacts.map(_._2) ++ extraClassPath
   lazy val compileClassPath: Seq[Path] =
-    artifacts.map(_._2) ++ extraJars ++ extraCompileOnlyJars
+    artifacts.map(_._2) ++ extraClassPath ++ extraCompileOnlyJars
   lazy val sourcePath: Seq[Path] =
     sourceArtifacts.map(_._2) ++ extraSourceJars
 }
@@ -59,7 +59,7 @@ object Artifacts {
     params: ScalaParameters,
     compilerPlugins: Seq[AnyDependency],
     dependencies: Seq[AnyDependency],
-    extraJars: Seq[Path],
+    extraClassPath: Seq[Path],
     extraCompileOnlyJars: Seq[Path],
     extraSourceJars: Seq[Path],
     fetchSources: Boolean,
@@ -166,7 +166,7 @@ object Artifacts {
       compilerPlugins0,
       updatedDependencies,
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) => (d, p, a, f.toPath) },
-      extraJars ++ extraStubsJars,
+      extraClassPath ++ extraStubsJars,
       extraCompileOnlyJars,
       extraSourceJars,
       params

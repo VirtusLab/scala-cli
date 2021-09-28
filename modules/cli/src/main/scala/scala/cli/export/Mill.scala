@@ -97,9 +97,9 @@ final case class Mill(
       }
 
     val customJarsDecls =
-      if (options.classPathOptions.extraJars.isEmpty) Nil
+      if (options.classPathOptions.extraClassPath.isEmpty) Nil
       else {
-        val jars = options.classPathOptions.extraJars.map(p => s"""PathRef(os.Path("$p"))""")
+        val jars = options.classPathOptions.extraClassPath.map(p => s"""PathRef(os.Path("$p"))""")
         Seq(
           s"""def unmanagedClasspath = super.unmanagedClasspath() ++ Seq(${jars.mkString(", ")})"""
         )

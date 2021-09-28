@@ -153,7 +153,7 @@ final case class SharedOptions(
         runJmh = if (enableJmh) Some(true) else None
       ),
       classPathOptions = ClassPathOptions(
-        extraJars = extraJars
+        extraClassPath = extraJars
           .flatMap(_.split(File.pathSeparator).toSeq)
           .filter(_.nonEmpty)
           .map(os.Path(_, os.pwd)),
