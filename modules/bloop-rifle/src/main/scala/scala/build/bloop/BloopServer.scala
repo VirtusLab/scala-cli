@@ -43,7 +43,7 @@ object BloopServer {
     logger: BloopRifleLogger
   ): Unit = {
 
-    val isBloopRunning = BloopRifle.check(config, logger)
+    val isBloopRunning = BloopRifle.check(config, logger, startServerChecksPool)
 
     logger.debug(
       if (isBloopRunning) s"Bloop is running on ${config.host}:${config.port}"

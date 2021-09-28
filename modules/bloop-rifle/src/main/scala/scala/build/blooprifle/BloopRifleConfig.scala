@@ -20,7 +20,8 @@ final case class BloopRifleConfig(
   timeout: FiniteDuration,
   startCheckPeriod: FiniteDuration,
   startCheckTimeout: FiniteDuration,
-  initTimeout: FiniteDuration
+  initTimeout: FiniteDuration,
+  acceptBloopVersion: Option[String => Boolean]
 )
 
 object BloopRifleConfig {
@@ -84,7 +85,10 @@ object BloopRifleConfig {
       .getOrElse(hardCodedDefaultVersion)
   }
 
-  def default(bloopClassPath: () => Either[Throwable, Seq[File]]): BloopRifleConfig =
+  def default(
+    bloopClassPath: () => Either[Throwable, Seq[File]],
+    acceptBloopVersion: Option[String => Boolean]
+  ): BloopRifleConfig =
     BloopRifleConfig(
       host = defaultHost,
       port = defaultPort,
@@ -99,7 +103,7 @@ object BloopRifleConfig {
       timeout = 10.seconds,
       startCheckPeriod = 100.millis,
       startCheckTimeout = 1.minute,
-      initTimeout = 30.seconds
+      initTimeout = 30.seconds,
+      acceptBloopVersion = acceptBloopVersion
     )
-
 }

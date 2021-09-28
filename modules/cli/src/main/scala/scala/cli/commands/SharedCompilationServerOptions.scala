@@ -12,6 +12,10 @@ import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Properties
 
+import coursier.core.Version
+import scala.build.blooprifle.internal.Constants
+
+
 // format: off
 final case class SharedCompilationServerOptions(
   @Group("Compilation server")
@@ -149,13 +153,17 @@ final case class SharedCompilationServerOptions(
   def bloopStartupTimeoutDuration: Option[FiniteDuration] =
     parseDuration("connection server startup timeout", bloopStartupTimeout)
 
+  def minimumBloopVersion = Constants.bloopVersion
+  def acceptBloopVersion  = Some((v: String) => Version(v) < Version(minimumBloopVersion))
+
   def bloopRifleConfig(
     logger: Logger,
     verbosity: Int,
     javaPath: String,
     directories: => scala.build.Directories
   ): BloopRifleConfig = {
-    val baseConfig = BloopRifleConfig.default(() => Bloop.bloopClassPath(logger))
+    val baseConfig =
+      BloopRifleConfig.default(() => Bloop.bloopClassPath(logger), acceptBloopVersion)
     val portOpt = bloopPort.filter(_ != 0) match {
       case Some(n) if n < 0 =>
         Some(scala.build.blooprifle.internal.Util.randomPort())

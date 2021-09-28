@@ -20,6 +20,12 @@ object Scala {
   def defaultUser = scala3
 }
 
+object TestDeps {
+  // used in tests, should be older than the default one
+  def oldBloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.8-122-794af022"
+  def newBloopConfig = Deps.bloopConfig
+}
+
 object Deps {
   object Versions {
     def coursier      = "2.0.16+73-gddc6d9cc9"
