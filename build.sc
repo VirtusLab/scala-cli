@@ -362,6 +362,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def scala213 = "${Scala.scala213}"
            |  def scala3   = "${Scala.scala3}"
            |  def defaultScala = "${Scala.defaultUser}"
+           |  def bloopVersion = "${Deps.bloopConfig.dep.version}"
            |  def oldBloopVersion = "${TestDeps.oldBloopConfig.dep.version}"
            |  def newBloopVersion = "${TestDeps.newBloopConfig.dep.version}"
            |  def dockerTestImage = "${Docker.testImage}"
