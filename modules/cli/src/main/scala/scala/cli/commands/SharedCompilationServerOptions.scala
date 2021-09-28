@@ -54,7 +54,12 @@ final case class SharedCompilationServerOptions(
   @Group("Compilation server")
   @HelpMessage("Maximum duration to wait for compilation server to start up")
   @ValueDescription("duration")
-    bloopStartupTimeout: Option[String] = None
+    bloopStartupTimeout: Option[String] = None,
+
+  @Group("Compilation server")
+    bloopDefaultJavaOpts: Boolean = true,
+  @Group("Compilation server")
+    bloopJavaOpt: List[String] = Nil
 ) {
   // format: on
 
@@ -178,7 +183,8 @@ final case class SharedCompilationServerOptions(
       bspStderr = if (verbosity >= 3) Some(System.err) else None,
       period = bloopBspCheckPeriodDuration.getOrElse(baseConfig.period),
       timeout = bloopBspTimeoutDuration.getOrElse(baseConfig.timeout),
-      initTimeout = bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout)
+      initTimeout = bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout),
+      javaOpts = (if (bloopDefaultJavaOpts) baseConfig.javaOpts else Nil) ++ bloopJavaOpt
     )
   }
 
