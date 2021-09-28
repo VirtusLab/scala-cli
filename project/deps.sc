@@ -31,7 +31,7 @@ object Deps {
     def coursier      = "2.0.16+73-gddc6d9cc9"
     def scalaJs       = "1.5.1"
     def scalaNative   = "0.4.0"
-    def scalaPackager = "0.1.21"
+    def scalaPackager = "0.1.22"
   }
   def ammonite          = ivy"com.lihaoyi:::ammonite:2.4.0-20-f3d8171f"
   def asm               = ivy"org.ow2.asm:asm:9.1"

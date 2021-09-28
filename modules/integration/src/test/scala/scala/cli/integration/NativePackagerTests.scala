@@ -218,7 +218,6 @@ class NativePackagerTests extends munit.FunSuite {
         TestUtil.cli,
         "package", helloWorldFileName,
         "--docker",
-        "--docker-from", "adoptopenjdk/openjdk8",
         "--docker-image-repository", imageRepository,
         "--docker-image-tag", imageTag
       )
@@ -259,11 +258,52 @@ class NativePackagerTests extends munit.FunSuite {
         "package", helloWorldFileName,
         "--js",
         "--docker",
-        "--docker-from", "node",
         "--docker-image-repository", imageRepository,
         "--docker-image-tag", imageTag
       )
       // format: on
+
+        os.proc(cmd)
+          .call(
+            cwd = root,
+            stdin = os.Inherit,
+            stdout = os.Inherit
+          )
+
+        val expectedImage =
+          s"$imageRepository:$imageTag"
+
+        try {
+          val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
+          expect(output == message)
+
+        }
+        finally {
+          // clear
+          os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
+        }
+      }
+    }
+
+    test("building docker image with scala native app") {
+
+      testInputs.fromRoot { root =>
+
+        val appName         = helloWorldFileName.stripSuffix(".scala")
+        val imageRepository = appName.toLowerCase()
+        val imageTag        = "latest"
+
+        // format: off
+        val cmd = Seq[os.Shellable](
+          TestUtil.cli,
+          "package", helloWorldFileName,
+          "--native",
+          "-S", "2.13",
+          "--docker",
+          "--docker-image-repository", imageRepository,
+          "--docker-image-tag", imageTag
+        )
+        // format: on
 
         os.proc(cmd)
           .call(
