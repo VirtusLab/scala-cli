@@ -169,7 +169,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("setup-ide should fail for invalid dependencies") {
     importPprintOnlyProject.fromRoot { root =>
-      val invalidMunitVersion = "0.7.119999"
+
       val p = os.proc(
         TestUtil.cli,
         "setup-ide",
