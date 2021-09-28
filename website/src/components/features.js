@@ -29,7 +29,7 @@ const FeatureList = [
       </p>
 
       <p>
-        scala-cli install all its depenendencies
+        Scala CLI ships with all its dependencies
         <br/>
         No need to fluff with installing JVM or setting up PATH. 
       </p>

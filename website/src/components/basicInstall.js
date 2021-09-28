@@ -13,7 +13,7 @@ export default function BasicInstall(props){
         {label: 'macOS/Linux', value: 'mac/linux'},
       ]}>
         <TabItem value="win">
-          <a className="no_monospace" href="https://github.com/VirtuslabRnD/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi">
+          <a className="no_monospace" href="https://github.com/Virtuslab/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi">
             Download Scala CLI for Windows
           </a>
         </TabItem>
@@ -21,7 +21,7 @@ export default function BasicInstall(props){
           <p>Run the following one-line command in your terminal 
             <br/>
             <code> bash
-              curl -sSf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh
+              curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh
             </code>
           </p>
         </TabItem>

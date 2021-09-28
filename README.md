@@ -126,7 +126,7 @@ a coursier bootstrap).
 
 ### Website 
 
-Website uses [Docusaurus](https://v1.docusaurus.io/en/) and under the hood it uses [infima](https://infima.dev/docs/layout/spacing) framework to style the website. 
+The Scala CLI website is built with [Docusaurus](https://v1.docusaurus.io/en/) and uses [Infima](https://infima.dev/docs/layout/spacing) for styling. 
 
 #### Generate the website once
 

@@ -29,7 +29,7 @@ module.exports = {
             },
             {
               to: '/scripting',
-              label: 'Scriptting',
+              label: 'Scripting',
             },
             {
               to: '/prototyping',
