@@ -156,7 +156,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("setup-ide should succeed for valid dependencies") {
     importPprintOnlyProject.fromRoot { root =>
-      val p = os.proc(
+      os.proc(
         TestUtil.cli,
         "setup-ide",
         ".",
@@ -169,6 +169,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("setup-ide should fail for invalid dependencies") {
     importPprintOnlyProject.fromRoot { root =>
+      val invalidMunitVersion = "0.7.119999"
       val p = os.proc(
         TestUtil.cli,
         "setup-ide",
@@ -176,7 +177,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions,
         "--dependency",
         "org.scalameta::munit:0.7.119999"
-      ).call(cwd = root, check = false)
+      ).call(cwd = root, check = false, stderr = os.Pipe)
+      expect(p.err.text().contains(s"Error downloading org.scalameta:munit"))
       expect(p.exitCode == 1)
     }
   }
