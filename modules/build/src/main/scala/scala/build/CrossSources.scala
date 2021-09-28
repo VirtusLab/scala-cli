@@ -71,21 +71,15 @@ object CrossSources {
     preprocessors: Seq[Preprocessor]
   ): Either[BuildException, CrossSources] = either {
 
-    val initScala =
-      inputs.sourceFiles().find(_.path.last == "__init__.scala") // todo change the name
-//    pprint.pprintln(initScala)
-
-    val pp = for {
+    val directoryRequirements = for {
       initScala             <- inputs.sourceFiles().find(_.path.last == "__init__.scala")
       initScalaPreprocessed <- ScalaPreprocessor.preprocess(initScala)
-      preprocessedSeq       <- initScalaPreprocessed.toOption
+      preprocessedSeq       <- initScalaPreprocessed.toOption // todo don't lose error msg here
       preprocessedInit      <- preprocessedSeq.headOption
       initRequirements      <- preprocessedInit.requirements
     } yield initRequirements
 
-    val initRequirements = pp.getOrElse(BuildRequirements())
-
-//    pprint.pprintln(initRequirements)
+    val initRequirements = directoryRequirements.getOrElse(BuildRequirements())
 
     val preprocessedSources = value {
       inputs.flattened()
@@ -156,8 +150,6 @@ object CrossSources {
       case r: Inputs.ResourceDirectory =>
         r.path
     }
-
-//    pprint.pprintln(buildOptions)
 
     CrossSources(paths, inMemory, mainClassOpt, resourceDirs, buildOptions)
   }

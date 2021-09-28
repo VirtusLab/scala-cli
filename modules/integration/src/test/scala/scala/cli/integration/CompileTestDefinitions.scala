@@ -46,11 +46,10 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     )
 
     simpleInputs2.fromRoot { root =>
-      val t = os.proc(TestUtil.cli, "compile", extraOptions, ".").call(
+      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(
         cwd = root,
         stdout = os.Inherit
-      ).err.text
-      println(t)
+      )
     }
   }
 }
