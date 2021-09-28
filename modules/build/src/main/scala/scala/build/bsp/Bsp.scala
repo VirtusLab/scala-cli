@@ -2,9 +2,9 @@ package scala.build.bsp
 
 import java.io.{InputStream, OutputStream}
 
-import scala.build.{Inputs, Logger}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.options.BuildOptions
+import scala.build.{Inputs, Logger}
 import scala.concurrent.Future
 
 trait Bsp {

@@ -2,8 +2,8 @@ package scala.build.preprocessing
 
 import java.nio.charset.StandardCharsets
 
-import scala.build.errors.BuildException
 import scala.build.Inputs
+import scala.build.errors.BuildException
 
 case object JavaPreprocessor extends Preprocessor {
   def preprocess(input: Inputs.SingleElement)

@@ -4,11 +4,11 @@ import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
 import dependency.NoAttributes
 
+import java.nio.charset.StandardCharsets
+
+import scala.build.Sources
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, ScalaJsOptions, ScalaNativeOptions}
-import scala.build.Sources
-
-import java.nio.charset.StandardCharsets
 
 final case class Mill(
   millVersion: String,

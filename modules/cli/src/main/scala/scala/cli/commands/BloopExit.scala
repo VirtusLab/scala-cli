@@ -3,8 +3,8 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.Os
-import scala.build.blooprifle.BloopRifle
 import scala.build.bloop.BloopThreads
+import scala.build.blooprifle.BloopRifle
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {
   override def hidden = true

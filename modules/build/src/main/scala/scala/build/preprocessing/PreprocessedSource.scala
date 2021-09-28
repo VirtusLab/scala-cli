@@ -1,7 +1,6 @@
 package scala.build.preprocessing
 
-import scala.build.options.BuildOptions
-import scala.build.options.BuildRequirements
+import scala.build.options.{BuildOptions, BuildRequirements}
 
 sealed abstract class PreprocessedSource extends Product with Serializable {
   def options: Option[BuildOptions]

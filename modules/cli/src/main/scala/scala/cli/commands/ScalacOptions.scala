@@ -1,11 +1,9 @@
 package scala.cli.commands
 
 import caseapp._
-import caseapp.core.parser.NilParser
-import caseapp.core.parser.Argument
 import caseapp.core.Arg
+import caseapp.core.parser.{Argument, NilParser, StandardArgument}
 import caseapp.core.util.Formatter
-import caseapp.core.parser.StandardArgument
 
 // format: off
 final case class ScalacOptions(

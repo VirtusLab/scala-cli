@@ -2,14 +2,14 @@ package scala.cli.commands
 
 import caseapp.Name
 import caseapp.core.app.Command
-import caseapp.core.{Arg, Error}
 import caseapp.core.complete.{Completer, CompletionItem}
 import caseapp.core.help.{Help, HelpFormat}
 import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
+import caseapp.core.{Arg, Error}
 
-import scala.build.errors.BuildException
 import scala.build.Logger
+import scala.build.errors.BuildException
 import scala.util.Properties
 
 abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])

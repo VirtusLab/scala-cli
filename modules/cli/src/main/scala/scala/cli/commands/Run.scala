@@ -3,8 +3,8 @@ package scala.cli.commands
 import caseapp._
 import org.scalajs.linker.interface.StandardConfig
 
-import scala.build.{Build, Inputs, Logger}
 import scala.build.internal.{Constants, Runner}
+import scala.build.{Build, Inputs, Logger}
 import scala.scalanative.{build => sn}
 import scala.util.Properties
 

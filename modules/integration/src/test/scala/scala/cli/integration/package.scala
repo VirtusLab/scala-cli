@@ -1,10 +1,9 @@
 package scala.cli
 
 import java.util.concurrent.CompletableFuture
-import scala.concurrent.Future
-import scala.concurrent.Promise
-import scala.util.Success
-import scala.util.Failure
+
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
 package object integration {
 

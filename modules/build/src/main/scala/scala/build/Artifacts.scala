@@ -1,20 +1,19 @@
 package scala.build
 
-import coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
 import coursier.cache.FileCache
 import coursier.core.Classifier
-import coursier.Fetch
 import coursier.parse.RepositoryParser
+import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUtil}
 import dependency._
 
 import java.nio.file.Path
 
-import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.EitherCps.{either, value}
+import scala.build.Ops._
+import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.Ops._
 import scala.util.control.NonFatal
 
 final case class Artifacts(

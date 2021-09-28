@@ -1,15 +1,13 @@
 package scala.build.preprocessing
 
-import scala.util.matching.Regex
-
 import java.nio.charset.StandardCharsets
 
-import scala.build.{Inputs, Os}
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{AmmUtil, CodeWrapper}
-import scala.build.options.BuildOptions
-import scala.build.options.BuildRequirements
+import scala.build.options.{BuildOptions, BuildRequirements}
+import scala.build.{Inputs, Os}
+import scala.util.matching.Regex
 
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {
   def preprocess(input: Inputs.SingleElement)

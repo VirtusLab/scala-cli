@@ -1,11 +1,11 @@
 package scala.cli.commands
 
+import caseapp._
+import caseapp.core.complete.{Bash, Zsh}
+
 import java.io.File
 import java.nio.charset.Charset
 import java.util.Arrays
-
-import caseapp._
-import caseapp.core.complete.{Bash, Zsh}
 
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
 

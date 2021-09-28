@@ -2,9 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.Build
 import scala.build.internal.{Constants, Runner}
-import scala.build.Logger
+import scala.build.{Build, Logger}
 
 object Test extends ScalaCommand[TestOptions] {
   override def group                               = "Main"

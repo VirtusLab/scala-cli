@@ -1,12 +1,12 @@
 package scala.cli.commands
 
+import caseapp._
+
 import java.io.File
 import java.nio.file.Path
 
-import caseapp._
-
-import scala.build.{Build, Logger}
 import scala.build.internal.Runner
+import scala.build.{Build, Logger}
 import scala.cli.internal.FetchExternalBinary
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {

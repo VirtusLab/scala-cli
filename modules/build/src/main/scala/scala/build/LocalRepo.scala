@@ -1,12 +1,13 @@
 package scala.build
 
 import coursier.paths.Util
-import scala.build.internal.Constants
 
-import java.io.{ByteArrayOutputStream, BufferedInputStream, InputStream}
+import java.io.{BufferedInputStream, ByteArrayOutputStream, InputStream}
 import java.nio.channels.{FileChannel, FileLock}
 import java.nio.file.{Path, StandardOpenOption}
 import java.util.zip.{ZipEntry, ZipInputStream}
+
+import scala.build.internal.Constants
 
 object LocalRepo {
 

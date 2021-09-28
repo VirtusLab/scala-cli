@@ -7,14 +7,13 @@ import org.eclipse.lsp4j.jsonrpc
 import java.io.{InputStream, OutputStream}
 import java.util.concurrent.{CompletableFuture, Executor}
 
-import scala.build.{BloopBuildClient, Build, GeneratedSource, Inputs, Logger, Sources}
+import scala.build.EitherCps.{either, value}
+import scala.build.Ops._
+import scala.build._
 import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.CrossSources
-import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
-import scala.build.Ops._
 import scala.build.options.BuildOptions
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer

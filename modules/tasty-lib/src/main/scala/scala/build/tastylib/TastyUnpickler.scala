@@ -14,12 +14,11 @@
 
 package scala.build.tastylib
 
-import scala.collection.mutable
-import TastyFormat.NameTags._
-import TastyBuffer.NameRef
-import TastyName._
-
+import scala.build.tastylib.TastyBuffer.NameRef
+import scala.build.tastylib.TastyFormat.NameTags._
+import scala.build.tastylib.TastyName._
 import scala.build.tastylib.TastyReader.Bytes
+import scala.collection.mutable
 
 object TastyUnpickler {
 

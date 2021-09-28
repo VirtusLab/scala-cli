@@ -3,8 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.options.BuildOptions
-import scala.build.options.InternalOptions
+import scala.build.options.{BuildOptions, InternalOptions}
 
 // format: off
 final case class BloopStartOptions(

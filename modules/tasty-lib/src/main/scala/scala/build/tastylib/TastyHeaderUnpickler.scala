@@ -16,7 +16,7 @@ package scala.build.tastylib
 
 import java.util.UUID
 
-import TastyFormat.{MajorVersion, MinorVersion, ExperimentalVersion, header}
+import scala.build.tastylib.TastyFormat.{ExperimentalVersion, MajorVersion, MinorVersion, header}
 
 class TastyHeaderUnpickler(reader: TastyReader) {
   import TastyHeaderUnpickler._

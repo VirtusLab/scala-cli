@@ -3,15 +3,12 @@ package scala.cli.integration
 import ch.epfl.scala.{bsp4j => b}
 import org.eclipse.lsp4j.jsonrpc
 
-import scala.collection.mutable
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.{InputStream, OutputStream}
 import java.util.concurrent.ExecutorService
-import scala.concurrent.Promise
-import scala.concurrent.Future
-import scala.util.Success
-import scala.util.Failure
-import scala.concurrent.ExecutionContext
+
+import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.{Failure, Success}
 
 class TestBspClient extends b.BuildClient {
 

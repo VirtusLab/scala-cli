@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
+
 import scala.build.internal.Constants
 
 object About extends ScalaCommand[AboutOptions] {

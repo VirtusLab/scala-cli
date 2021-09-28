@@ -1,7 +1,7 @@
 package scala.build.preprocessing.directives
 
-import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.Os
+import scala.build.options.{BuildOptions, ClassPathOptions}
 
 case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Custom JAR"

@@ -1,20 +1,20 @@
 package scala.build.bloop
 
+import ch.epfl.scala.bsp4j
+import org.eclipse.lsp4j.jsonrpc
+
 import java.io.IOException
 import java.net.{ConnectException, Socket}
 import java.nio.file.{Files, Path}
 import java.util.concurrent.{Future => JFuture, ScheduledExecutorService, TimeoutException}
 
-import ch.epfl.scala.bsp4j
-import org.eclipse.lsp4j.jsonrpc
-
 import scala.annotation.tailrec
 import scala.build.bloop.bloop4j.BloopExtraBuildParams
 import scala.build.blooprifle.internal.Constants
+import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, BspConnection}
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, BspConnection}
 
 trait BloopServer {
   def server: BuildServer

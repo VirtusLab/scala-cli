@@ -1,24 +1,17 @@
 package scala.cli.commands
 
-import java.io.{ByteArrayOutputStream, File, InputStream}
 import caseapp._
 import caseapp.core.help.Help
 import coursier.util.Artifact
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
+import java.io.{ByteArrayOutputStream, File, InputStream}
+
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.{Inputs, LocalRepo, Logger, Os}
 import scala.build.internal.{CodeWrapper, Constants, CustomCodeClassWrapper}
-import scala.build.options.{
-  BuildOptions,
-  ClassPathOptions,
-  InternalDependenciesOptions,
-  InternalOptions,
-  JmhOptions,
-  ScalaOptions,
-  ScriptOptions
-}
+import scala.build.options._
+import scala.build.{Inputs, LocalRepo, Logger, Os}
 import scala.util.Properties
 
 // format: off

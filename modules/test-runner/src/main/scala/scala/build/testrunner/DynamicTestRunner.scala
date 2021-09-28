@@ -1,11 +1,11 @@
 package scala.build.testrunner
 
+import sbt.testing._
+
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
 import java.nio.file.{Files, Path}
 import java.util.ServiceLoader
-
-import sbt.testing._
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._

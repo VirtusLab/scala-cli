@@ -1,7 +1,7 @@
 package scala.build.options
 
 import coursier.cache.FileCache
-import coursier.jvm.{JvmCache, JvmIndex, JavaHome}
+import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import dependency._
 
 import java.math.BigInteger
@@ -9,10 +9,10 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
 
-import scala.build.{Artifacts, Logger, Os}
 import scala.build.errors.BuildException
 import scala.build.internal.Constants._
 import scala.build.internal.{Constants, OsLibc, Util}
+import scala.build.{Artifacts, Logger, Os}
 import scala.util.Properties
 
 final case class BuildOptions(

@@ -1,8 +1,8 @@
 package scala.cli.integration
 
-import scala.util.Properties
-
 import com.eed3si9n.expecty.Expecty.expect
+
+import scala.util.Properties
 
 // format: off
 class ReplTests213 extends ReplTestDefinitions(

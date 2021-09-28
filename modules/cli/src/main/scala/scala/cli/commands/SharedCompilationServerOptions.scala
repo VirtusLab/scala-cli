@@ -1,19 +1,18 @@
 package scala.cli.commands
 
 import caseapp._
+import coursier.core.Version
 
 import java.io.File
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
 import java.util.Random
 
+import scala.build.blooprifle.internal.Constants
 import scala.build.blooprifle.{BloopRifleConfig, BspConnectionAddress}
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Properties
-
-import coursier.core.Version
-import scala.build.blooprifle.internal.Constants
 
 
 // format: off

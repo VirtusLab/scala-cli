@@ -8,32 +8,30 @@ import coursier.launcher.{
   Parameters,
   Preamble
 }
-import packager.mac.dmg.DmgPackage
-import packager.mac.pkg.PkgPackage
-import packager.deb.DebianPackage
-import packager.rpm.RedHatPackage
-import packager.windows.WindowsPackage
 import org.scalajs.linker.interface.StandardConfig
 import packager.config._
-
-import scala.build.{Build, Inputs, Logger, Os}
-import scala.build.internal.ScalaJsConfig
-import scala.build.options.PackageType
-import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
-import scala.scalanative.{build => sn}
-import scala.scalanative.util.Scope
-import scala.cli.commands.OptionsHelper._
+import packager.deb.DebianPackage
+import packager.docker.DockerPackage
+import packager.mac.dmg.DmgPackage
+import packager.mac.pkg.PkgPackage
+import packager.rpm.RedHatPackage
+import packager.windows.WindowsPackage
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
 import java.nio.file.{Files, Path}
-import java.util.jar.{JarOutputStream, Attributes => JarAttributes}
+import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
+import scala.build.internal.ScalaJsConfig
+import scala.build.options.PackageType
+import scala.build.{Build, Inputs, Logger, Os}
+import scala.cli.commands.OptionsHelper._
+import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
+import scala.scalanative.util.Scope
+import scala.scalanative.{build => sn}
 import scala.util.Properties
-
-import packager.docker.DockerPackage
 
 object Package extends ScalaCommand[PackageOptions] {
   override def group                                  = "Main"

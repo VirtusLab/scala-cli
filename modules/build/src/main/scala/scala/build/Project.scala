@@ -1,8 +1,8 @@
 package scala.build
 
 import _root_.bloop.config.{Config => BloopConfig, ConfigCodecs => BloopCodecs}
-import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonToArray}
 import _root_.coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
+import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonToArray}
 import coursier.core.Classifier
 
 import java.nio.file.Path

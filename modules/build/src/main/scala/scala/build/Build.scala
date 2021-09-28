@@ -3,18 +3,18 @@ package scala.build
 import ch.epfl.scala.bsp4j
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{PathWatcher, PathWatchers}
-import scala.build.blooprifle.BloopRifleConfig
-import scala.build.EitherCps.{either, value}
-import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
-import scala.build.Ops._
-import scala.build.options.BuildOptions
-import scala.build.postprocessing._
 
 import java.io.File
 import java.nio.file.{FileSystemException, Path}
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
+import scala.build.EitherCps.{either, value}
+import scala.build.Ops._
+import scala.build.blooprifle.BloopRifleConfig
+import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
+import scala.build.options.BuildOptions
+import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.control.NonFatal

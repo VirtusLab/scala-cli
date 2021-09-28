@@ -4,12 +4,11 @@ import caseapp._
 import coursier.cache.FileCache
 import coursier.util.{Artifact, Task}
 
-import scala.build.{CrossSources, Inputs, Logger, Os, Sources}
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
-
+import scala.build.{CrossSources, Inputs, Logger, Os, Sources}
 import scala.cli.export._
 
 object Export extends ScalaCommand[ExportOptions] {

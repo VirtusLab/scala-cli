@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
+
 import scala.build.options
 
 // format: off

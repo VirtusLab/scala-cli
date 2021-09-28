@@ -1,7 +1,7 @@
 package scala.build.postprocessing
 
-import scala.build.{GeneratedSource, Logger}
 import scala.build.tastylib.TastyData
+import scala.build.{GeneratedSource, Logger}
 
 case object TastyPostProcessor extends PostProcessor {
   def postProcess(
