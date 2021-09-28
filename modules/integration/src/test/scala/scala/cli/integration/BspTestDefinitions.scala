@@ -101,7 +101,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     @tailrec
     def helper(count: Int): T =
       attempt() match {
-        case Success(t)  => t
+        case Success(t) => t
         case Failure(ex) =>
           if (count <= 1)
             throw new Exception(ex)
