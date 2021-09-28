@@ -6,7 +6,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.Paths
-import java.util.concurrent.TimeoutException
 
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
@@ -79,7 +78,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       var remoteServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer = null
 
       try {
-        val (localClient, remoteServer0, shutdownFuture) =
+        val (localClient, remoteServer0, _) =
           TestBspClient.connect(proc.stdout, proc.stdin, pool)
         remoteServer = remoteServer0
         Await.result(remoteServer.buildInitialize(initParams(root)).asScala, 3.minutes)
@@ -159,7 +158,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
 
-    withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
+    withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
@@ -173,7 +172,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val targets = List(target).asJava
 
-        val depSourcesResp = {
+        {
           val resp = await {
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
@@ -198,10 +197,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expect(foundDepSources.exists(_.startsWith("scala3-library_3-3")))
           }
           expect(foundDepSources.forall(_.endsWith("-sources.jar")))
-          resp
         }
 
-        val sourcesResp = {
+        {
           val resp = await(remoteServer.buildTargetSources(new b.SourcesParams(targets)).asScala)
           val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
@@ -215,7 +213,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             )
           )
           expect(foundSources == expectedSources)
-          resp
         }
 
         val scalacOptionsResp = {
@@ -240,7 +237,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           resp
         }
 
-        val javacOptionsResp = {
+        {
           val resp = await {
             remoteServer.buildTargetJavacOptions(new b.JavacOptionsParams(targets)).asScala
           }
@@ -250,17 +247,15 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             .map(_.getTarget.getUri)
             .map(TestUtil.normalizeUri)
           expect(foundTargets == Seq(targetUri))
-          resp
         }
 
         val classDir = os.Path(
           Paths.get(new URI(scalacOptionsResp.getItems.asScala.head.getClassDirectory))
         )
 
-        val compileResp = {
+        {
           val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
           expect(resp.getStatusCode == b.StatusCode.OK)
-          resp
         }
 
         val compileProducts = os.walk(classDir).filter(os.isFile(_)).map(_.relativeTo(classDir))
@@ -438,13 +433,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val targets = List(target).asJava
 
-        val compileResp = {
+        {
           val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
           expect(resp.getStatusCode == b.StatusCode.OK)
-          resp
         }
 
-        val depSourcesResp = {
+        {
           val resp = await {
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
@@ -469,7 +463,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expect(foundDepSources.exists(_.startsWith("scala3-library_3-3")))
           }
           expect(foundDepSources.forall(_.endsWith("-sources.jar")))
-          resp
         }
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
@@ -480,10 +473,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             |""".stripMargin
         os.write.over(root / "simple.sc", updatedContent)
 
-        val secondCompileResp = {
+        {
           val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
           expect(resp.getStatusCode == b.StatusCode.OK)
-          resp
         }
 
         val didChangeParamsOptFuture = Future.firstCompletedOf(Seq(
@@ -501,7 +493,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         expect(change.getTarget.getUri == targetUri)
         expect(change.getKind == b.BuildTargetEventKind.CHANGED)
 
-        val secondDepSourcesResp = {
+        {
           val resp = await {
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
@@ -552,13 +544,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val targets = List(target).asJava
 
-        val compileResp = {
+        {
           val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
           expect(resp.getStatusCode == b.StatusCode.OK)
-          resp
         }
 
-        val depSourcesResp = {
+        {
           val resp = await {
             remoteServer
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
@@ -583,7 +574,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expect(foundDepSources.exists(_.startsWith("scala3-library_3-3")))
           }
           expect(foundDepSources.forall(_.endsWith("-sources.jar")))
-          resp
         }
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
@@ -601,10 +591,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             |""".stripMargin
         os.write.over(root / "Test.scala", updatedContent)
 
-        val secondCompileResp = {
+        {
           val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
           expect(resp.getStatusCode == b.StatusCode.OK)
-          resp
         }
 
         val didChangeParamsOptFuture = Future.firstCompletedOf(Seq(

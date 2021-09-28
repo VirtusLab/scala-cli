@@ -18,9 +18,9 @@ case object CustomCodeClassWrapper extends CodeWrapper {
    * themselves processed by macros (definitions in objects are easier to process from
    * macros).
    */
-  private val userCodeNestingLevel    = 2
-  private val q                       = "\""
-  private val tq                      = "\"\"\""
+  private val userCodeNestingLevel = 2
+  private val q                    = "\""
+
   override val wrapperPath: Seq[Name] = Seq(Name("instance"))
   def apply(
     code: String,

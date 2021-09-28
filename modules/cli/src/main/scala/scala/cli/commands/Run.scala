@@ -3,11 +3,8 @@ package scala.cli.commands
 import caseapp._
 import org.scalajs.linker.interface.StandardConfig
 
-import java.nio.file.Path
-
-import scala.build.{Build, Inputs, Logger, Os}
+import scala.build.{Build, Inputs, Logger}
 import scala.build.internal.{Constants, Runner}
-import scala.build.options.BuildOptions
 import scala.scalanative.{build => sn}
 import scala.util.Properties
 
@@ -53,7 +50,7 @@ object Run extends ScalaCommand[RunOptions] {
         res.orReport(logger).map(_._1).foreach {
           case s: Build.Successful =>
             maybeRun(s, allowTerminate = false)
-          case f: Build.Failed =>
+          case _: Build.Failed =>
             System.err.println("Compilation failed")
         }
       }
@@ -67,7 +64,7 @@ object Run extends ScalaCommand[RunOptions] {
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)
-        case f: Build.Failed =>
+        case _: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
       }

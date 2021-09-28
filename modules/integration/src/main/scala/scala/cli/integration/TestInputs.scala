@@ -18,12 +18,12 @@ final case class TestInputs(
       os.write(path, content.getBytes(StandardCharsets.UTF_8), createFolders = true)
     }
   def root(): os.Path = {
-    val tmpDir = TestInputs.tmpDir("scala-cli-tests-")
+    val tmpDir = TestInputs.tmpDir
     writeIn(tmpDir)
     tmpDir
   }
   def fromRoot[T](f: os.Path => T): T =
-    TestInputs.withTmpDir("scala-cli-tests-") { tmpDir =>
+    TestInputs.withTmpDir { tmpDir =>
       writeIn(tmpDir)
       f(tmpDir)
     }
@@ -32,7 +32,7 @@ final case class TestInputs(
 object TestInputs {
 
   private lazy val baseTmpDir = {
-    val fromEnv = Option(System.getenv("SCALA_CLI_TMP")).getOrElse {
+    Option(System.getenv("SCALA_CLI_TMP")).getOrElse {
       sys.error("SCALA_CLI_TMP not set")
     }
     val base = os.Path(System.getenv("SCALA_CLI_TMP"), os.pwd)
@@ -45,7 +45,7 @@ object TestInputs {
         override def run(): Unit =
           try os.remove.all(d)
           catch {
-            case NonFatal(e) =>
+            case NonFatal(_) =>
               System.err.println(s"Could not remove $d, ignoring it.")
           }
       }
@@ -55,7 +55,7 @@ object TestInputs {
 
   private val tmpCount = new AtomicInteger
 
-  private def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
+  private def withTmpDir[T](f: os.Path => T): T = {
     val tmpDir = baseTmpDir / s"test-${tmpCount.incrementAndGet()}"
     os.makeDir.all(tmpDir)
     val tmpDir0 = os.Path(tmpDir.toIO.getCanonicalFile)
@@ -69,7 +69,7 @@ object TestInputs {
     }
   }
 
-  private def tmpDir(prefix: String): os.Path = {
+  private def tmpDir: os.Path = {
     val tmpDir = baseTmpDir / s"test-${tmpCount.incrementAndGet()}"
     os.makeDir.all(tmpDir)
     os.Path(tmpDir.toIO.getCanonicalFile)

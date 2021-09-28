@@ -32,7 +32,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
         .orExit(logger)
 
-    val successfulBuild = build.successfulOpt.getOrElse {
+    build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
       sys.exit(1)
     }
@@ -45,7 +45,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       allowExit: Boolean
     ): Unit =
       build match {
-        case s: Build.Successful =>
+        case _: Build.Successful =>
           val res = runRepl(
             buildOptions,
             artifacts,
@@ -61,7 +61,7 @@ object Repl extends ScalaCommand[ReplOptions] {
               else logger.log(ex)
             case Right(()) =>
           }
-        case f: Build.Failed =>
+        case _: Build.Failed =>
           System.err.println("Compilation failed")
           if (allowExit)
             sys.exit(1)

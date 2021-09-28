@@ -54,9 +54,9 @@ object PreprocessedSource {
             case (a0: InMemory, b0: InMemory) =>
               (a0.reportingPath, b0.reportingPath) match {
                 case (Left(ap), Left(bp))   => ap.compareTo(bp)
-                case (Left(ap), Right(bp))  => -1
+                case (Left(_), Right(_))    => -1
                 case (Right(ap), Right(bp)) => ap.toString.compareTo(bp.toString)
-                case (Right(ap), Left(bp))  => 1
+                case (Right(_), Left(_))    => 1
               }
             case (a0: OnDisk, b0: OnDisk) => a0.path.toString.compareTo(b0.path.toString)
             case _                        => ???

@@ -2,7 +2,6 @@ package scala.build
 
 import coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
 import coursier.cache.FileCache
-import coursier.cache.loggers.RefreshLogger
 import coursier.core.Classifier
 import coursier.Fetch
 import coursier.parse.RepositoryParser
@@ -16,7 +15,6 @@ import scala.build.internal.Constants
 import scala.build.internal.Constants._
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.Ops._
-import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 final case class Artifacts(
@@ -34,7 +32,7 @@ final case class Artifacts(
     detailedArtifacts
       .iterator
       .collect {
-        case (dep, pub, a, f) if pub.classifier != Classifier.sources =>
+        case (_, pub, a, f) if pub.classifier != Classifier.sources =>
           (a.url, f)
       }
       .toVector
@@ -42,7 +40,7 @@ final case class Artifacts(
     detailedArtifacts
       .iterator
       .collect {
-        case (dep, pub, a, f) if pub.classifier == Classifier.sources =>
+        case (_, pub, a, f) if pub.classifier == Classifier.sources =>
           (a.url, f)
       }
       .toVector
@@ -137,38 +135,6 @@ object Artifacts {
         classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty))
       )
     }
-    val artifacts0 = {
-      val a = fetchRes
-        .fullExtraArtifacts
-        .iterator
-        .collect {
-          case (a, Some(f)) =>
-            (None, a.url, f.toPath)
-        }
-        .toVector
-      val b = fetchRes
-        .fullDetailedArtifacts
-        .iterator
-        .collect {
-          case (dep, pub, a, Some(f)) if pub.classifier != Classifier.sources =>
-            (Some(dep.moduleVersion), a.url, f.toPath)
-        }
-        .toVector
-      (a ++ b).distinct
-    }
-    val sourceArtifacts =
-      if (fetchSources) {
-        val a = fetchRes
-          .fullDetailedArtifacts
-          .iterator
-          .collect {
-            case (dep, pub, a, Some(f)) if pub.classifier == Classifier.sources =>
-              (a.url, f.toPath)
-          }
-          .toVector
-        a.distinct
-      }
-      else Nil
 
     val extraStubsJars =
       if (addStubs)

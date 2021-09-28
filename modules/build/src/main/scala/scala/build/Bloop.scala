@@ -1,17 +1,14 @@
 package scala.build
 
 import ch.epfl.scala.bsp4j
-import dependency.{AnyDependency, Dependency, DependencyLike, ScalaParameters, ScalaVersion}
+import dependency.{AnyDependency, DependencyLike, ScalaParameters, ScalaVersion}
 import dependency.parser.ModuleParser
 
 import java.io.File
-import java.nio.file.Path
 
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.ModuleFormatError
-import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.Ops._
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Properties
@@ -21,7 +18,6 @@ object Bloop {
 
   def compile(
     projectName: String,
-    buildClient: bsp4j.BuildClient,
     bloopServer: bloop.BloopServer,
     logger: Logger,
     buildTargetsTimeout: FiniteDuration

@@ -10,7 +10,6 @@ import dataclass._
 
 @data class CustomWindowsEnvVarUpdater(
   powershellRunner: PowershellRunner = PowershellRunner(),
-  target: String = "User",
   @since
   useJni: Option[Boolean] = None
 ) extends EnvVarUpdater {

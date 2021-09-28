@@ -14,7 +14,6 @@ object SemanticdbProcessor {
   def postProcess(
     originalCode: String,
     originalPath: os.RelPath,
-    wd: Option[os.Path],
     adjust: Int => Option[Int],
     orig: os.Path,
     dest: os.Path

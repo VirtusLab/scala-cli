@@ -1,7 +1,5 @@
 package scala.build.preprocessing.directives
 
-import scala.build.options.BuildOptions
-
 trait DirectiveHandler {
   def name: String
   def description: String

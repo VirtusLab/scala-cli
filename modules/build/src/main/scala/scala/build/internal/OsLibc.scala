@@ -5,8 +5,6 @@ import coursier.jvm.{JavaHome, JvmIndex}
 import java.io.IOException
 import java.nio.charset.Charset
 
-import scala.util.Properties
-
 object OsLibc {
 
   lazy val isMusl: Option[Boolean] = {

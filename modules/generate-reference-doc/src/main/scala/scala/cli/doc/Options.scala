@@ -1,7 +1,5 @@
 package scala.cli.doc
 
-import caseapp._
-
 final case class Options(
   outputDir: String = "docs/reference",
   check: Boolean = false

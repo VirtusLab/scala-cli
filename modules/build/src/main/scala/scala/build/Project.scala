@@ -5,7 +5,7 @@ import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonTo
 import _root_.coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
 import coursier.core.Classifier
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 import java.util.Arrays
 
 final case class Project(
@@ -89,12 +89,12 @@ object Project {
     val modules = detailedArtifacts
       .groupBy(_._1.moduleVersion)
       .toVector
-      .sortBy { case (modVer, values) => indices.getOrElse(modVer, Int.MaxValue) }
+      .sortBy { case (modVer, _) => indices.getOrElse(modVer, Int.MaxValue) }
       .iterator
       .map {
         case ((mod, ver), values) =>
           val artifacts = values.toList.map {
-            case (dep, pub, art, f) =>
+            case (_, pub, _, f) =>
               val classifier =
                 if (pub.classifier == Classifier.empty) None
                 else Some(pub.classifier.value)

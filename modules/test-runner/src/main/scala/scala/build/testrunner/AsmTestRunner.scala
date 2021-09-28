@@ -1,10 +1,9 @@
 package scala.build.testrunner
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, InputStream, PrintStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentHashMap
-import java.util.ServiceLoader
 
 import org.objectweb.asm
 import sbt.testing._
@@ -85,7 +84,7 @@ object AsmTestRunner {
             parentInspector.allParents(checker.name)
               .contains(f.superclassName().replace('.', '/'))
 
-        case f: AnnotatedFingerprint =>
+        case _: AnnotatedFingerprint =>
           // val annotationCls = loader.loadClass(f.annotationName())
           //   .asInstanceOf[Class[Annotation]]
           // f.isModule == isModule && (

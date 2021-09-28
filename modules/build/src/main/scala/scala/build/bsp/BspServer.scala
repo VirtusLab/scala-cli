@@ -8,7 +8,6 @@ import scala.build.internal.Constants
 import scala.collection.JavaConverters._
 import scala.concurrent.Promise
 import scala.concurrent.Future
-import scala.build.GeneratedSource
 import scala.build.Logger
 
 class BspServer(

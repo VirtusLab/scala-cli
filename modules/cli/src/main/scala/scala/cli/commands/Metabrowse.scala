@@ -1,21 +1,13 @@
 package scala.cli.commands
 
-import java.io.{IOException, File, FileInputStream, FileOutputStream}
-import java.net.ServerSocket
+import java.io.File
 import java.nio.file.Path
-import java.util.UUID
-import java.util.zip.GZIPInputStream
 
 import caseapp._
-import coursier.jvm.ArchiveType
-import coursier.util.{Artifact, Task}
 
-import scala.build.{Build, BuildThreads, Inputs, Logger, Os}
+import scala.build.{Build, Logger}
 import scala.build.internal.Runner
-import scala.build.options.BuildOptions
 import scala.cli.internal.FetchExternalBinary
-import scala.concurrent.ExecutionContext.{global => ec}
-import scala.util.Properties
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
   override def group = "Miscellaneous"
@@ -39,7 +31,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         .orExit(logger)
 
     val successfulBuild = build match {
-      case f: Build.Failed =>
+      case _: Build.Failed =>
         System.err.println("Build failed")
         sys.exit(1)
       case s: Build.Successful => s
@@ -150,10 +142,4 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     Runner.run("metabrowse", command, logger, allowExecve = true)
   }
 
-  private def randomPort(): Int = {
-    val s    = new ServerSocket(0)
-    val port = s.getLocalPort
-    s.close()
-    port
-  }
 }
