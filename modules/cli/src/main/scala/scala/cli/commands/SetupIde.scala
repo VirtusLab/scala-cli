@@ -7,12 +7,10 @@ import com.google.gson.GsonBuilder
 import java.io.File
 import java.nio.charset.Charset
 
-import scala.build.Os
-import scala.build.internal.Constants
-import scala.collection.JavaConverters._
 import scala.build.internal.{Constants, CustomCodeWrapper}
-import scala.build.{Sources, CrossSources, Logger, Inputs}
 import scala.build.options.BuildOptions
+import scala.build.{CrossSources, Inputs, Logger, Os, Sources}
+import scala.collection.JavaConverters._
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
