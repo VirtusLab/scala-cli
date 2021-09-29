@@ -365,6 +365,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def bloopVersion = "${Deps.bloopConfig.dep.version}"
            |  def oldBloopVersion = "${TestDeps.oldBloopConfig.dep.version}"
            |  def newBloopVersion = "${TestDeps.newBloopConfig.dep.version}"
+           |  def pprintVersion = "${TestDeps.pprint.dep.version}"
+           |  def munitVersion = "${TestDeps.munit.dep.version}"
            |  def dockerTestImage = "${Docker.testImage}"
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
            |}

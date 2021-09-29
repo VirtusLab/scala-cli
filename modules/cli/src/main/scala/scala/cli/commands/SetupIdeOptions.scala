@@ -1,5 +1,6 @@
 package scala.cli.commands
 
+import scala.build.options.BuildOptions
 import caseapp._
 
 // format: off
@@ -11,9 +12,12 @@ final case class SetupIdeOptions(
   @Name("name")
     bspName: Option[String] = None,
   charset: Option[String] = None
-)
-// format: on
+) {
+  // format: on
+  def buildOptions: BuildOptions =
+    shared.buildOptions(enableJmh = false, jmhVersion = None)
 
+}
 object SetupIdeOptions {
   implicit val parser = Parser[SetupIdeOptions]
   implicit val help   = Help[SetupIdeOptions]

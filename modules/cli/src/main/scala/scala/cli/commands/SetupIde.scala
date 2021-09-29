@@ -10,8 +10,23 @@ import java.nio.charset.Charset
 import scala.build.Os
 import scala.build.internal.Constants
 import scala.collection.JavaConverters._
+import scala.build.internal.{Constants, CustomCodeWrapper}
+import scala.build.{Sources, CrossSources, Logger, Inputs}
+import scala.build.options.BuildOptions
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
+
+  def downloadDeps(inputs: Inputs, options: BuildOptions, logger: Logger) = {
+    val crossSources = CrossSources.forInputs(
+      inputs,
+      Sources.defaultPreprocessors(CustomCodeWrapper)
+    )
+
+    val sourcesBuildOptions = crossSources.map(_.sources(options).buildOptions)
+    val joinedBuildOpts     = sourcesBuildOptions.map(options orElse _).getOrElse(options)
+    joinedBuildOpts.artifacts(logger)
+  }
+
   def run(options: SetupIdeOptions, args: RemainingArgs): Unit = {
 
     val rawArgv = argvOpt.getOrElse {
@@ -20,6 +35,9 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     }
 
     def inputs = options.shared.inputsOrExit(args)
+    if (options.buildOptions.classPathOptions.extraDependencies.nonEmpty) {
+      downloadDeps(inputs, options.buildOptions, options.shared.logger)
+    }
 
     val argv = {
       val commandIndex = rawArgv.indexOf("setup-ide")

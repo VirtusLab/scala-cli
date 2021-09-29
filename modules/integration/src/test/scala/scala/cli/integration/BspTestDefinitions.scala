@@ -148,6 +148,41 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  val importPprintOnlyProject = TestInputs(
+    Seq(
+      os.rel / "simple.sc" -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`"
+    )
+  )
+
+  test("setup-ide should succeed for valid dependencies") {
+    importPprintOnlyProject.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "setup-ide",
+        ".",
+        extraOptions,
+        "--dependency",
+        s"org.scalameta::munit:${Constants.munitVersion}"
+      ).call(cwd = root)
+    }
+  }
+
+  test("setup-ide should fail for invalid dependencies") {
+    importPprintOnlyProject.fromRoot { root =>
+
+      val p = os.proc(
+        TestUtil.cli,
+        "setup-ide",
+        ".",
+        extraOptions,
+        "--dependency",
+        "org.scalameta::munit:0.7.119999"
+      ).call(cwd = root, check = false, stderr = os.Pipe)
+      expect(p.err.text().contains(s"Error downloading org.scalameta:munit"))
+      expect(p.exitCode == 1)
+    }
+  }
+
   test("simple") {
     val inputs = TestInputs(
       Seq(
