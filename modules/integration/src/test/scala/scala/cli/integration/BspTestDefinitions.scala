@@ -10,9 +10,9 @@ import java.nio.file.Paths
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.collection.JavaConverters._
-import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future, Promise}
 import scala.io.Codec
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}

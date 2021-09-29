@@ -1,6 +1,7 @@
 package scala.build.internal
 
-import fastparse._, ScalaWhitespace._
+import fastparse.ScalaWhitespace._
+import fastparse._
 import scalaparse._
 
 object ScalaParse {

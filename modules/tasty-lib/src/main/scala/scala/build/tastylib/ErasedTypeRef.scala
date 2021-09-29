@@ -14,7 +14,14 @@
 
 package scala.build.tastylib
 
-import TastyName.{ObjectName, QualifiedName, SimpleName, TypeName, Empty, PathSep}
+import scala.build.tastylib.TastyName.{
+  Empty,
+  ObjectName,
+  PathSep,
+  QualifiedName,
+  SimpleName,
+  TypeName
+}
 
 /** Represents an erased type of a scala class/object with the number of array dimensions.
   *

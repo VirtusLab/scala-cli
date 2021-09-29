@@ -1,11 +1,11 @@
 package scala.build
 
-import java.nio.file.Path
-
 import dependency._
 
-import scala.build.errors.BuildException
+import java.nio.file.Path
+
 import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, Path)],

@@ -1,7 +1,7 @@
 package scala.build.bloop
 
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, ExecutorService, ScheduledExecutorService, ThreadFactory}
+import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
 
 final case class BloopThreads(
   jsonrpc: ExecutorService,

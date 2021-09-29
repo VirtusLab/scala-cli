@@ -1,9 +1,9 @@
 package scala.cli.integration
 
+import com.eed3si9n.expecty.Expecty.expect
+
 import java.nio.file.Files
 import java.util.zip.ZipFile
-
-import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 

@@ -1,7 +1,7 @@
 package scala.build.preprocessing.directives
 
-import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.Os
+import scala.build.options.{BuildOptions, JavaOptions}
 
 case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Java home"

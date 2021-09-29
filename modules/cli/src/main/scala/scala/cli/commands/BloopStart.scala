@@ -2,10 +2,9 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.build.Os
 import scala.build.bloop.BloopThreads
 import scala.build.blooprifle.BloopRifle
-import scala.build.Os
-
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 

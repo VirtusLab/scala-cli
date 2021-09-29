@@ -1,6 +1,6 @@
 package scala.build.bsp
 
-import java.util.concurrent.{Executors, ExecutorService}
+import java.util.concurrent.{ExecutorService, Executors}
 
 import scala.build.BuildThreads
 import scala.build.internal.Util

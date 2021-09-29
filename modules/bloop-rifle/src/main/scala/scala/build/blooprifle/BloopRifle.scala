@@ -1,15 +1,16 @@
 package scala.build.blooprifle
 
 import java.io.{
+  ByteArrayOutputStream,
   File,
-  FileOutputStream,
   FileInputStream,
+  FileOutputStream,
   InputStream,
-  OutputStream,
-  ByteArrayOutputStream
+  OutputStream
 }
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
+
 import scala.build.blooprifle.internal.{Operations, Util}
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration

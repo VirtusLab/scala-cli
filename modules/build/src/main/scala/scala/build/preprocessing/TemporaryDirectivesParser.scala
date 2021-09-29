@@ -1,7 +1,7 @@
 package scala.build.preprocessing
 
-import fastparse._
 import fastparse.NoWhitespace.noWhitespaceImplicit
+import fastparse._
 
 import scala.build.preprocessing.directives.Directive
 

@@ -1,22 +1,19 @@
 package scala.build.blooprifle.internal
 
-import java.io.{File, InputStream, IOException, OutputStream}
-import java.net.{ConnectException, InetSocketAddress, Socket}
-import java.nio.file.Path
-import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
-import java.util.concurrent.atomic.AtomicBoolean
-
-import scala.build.blooprifle.{BloopRifleLogger, BspConnection, BspConnectionAddress}
-import scala.concurrent.{Future, Promise}
-import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.util.{Failure, Success, Try}
-
 import org.scalasbt.ipcsocket.NativeErrorException
 import snailgun.TcpClient
 import snailgun.protocol.Streams
 
-import scala.concurrent.Await
+import java.io.{File, IOException, InputStream, OutputStream}
+import java.net.{ConnectException, InetSocketAddress, Socket}
+import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
+
+import scala.build.blooprifle.{BloopRifleLogger, BspConnection, BspConnectionAddress}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future, Promise}
+import scala.util.{Failure, Success, Try}
 
 object Operations {
 

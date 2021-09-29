@@ -4,9 +4,9 @@ import caseapp._
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
 
+import scala.build.Logger
 import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.BuildException
-import scala.build.Logger
 import scala.scalanative.{build => sn}
 
 // format: off

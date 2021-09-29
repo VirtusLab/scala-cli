@@ -5,6 +5,7 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.zip.{ZipEntry, ZipInputStream}
+
 import scala.annotation.tailrec
 import scala.util.matching.Regex
 

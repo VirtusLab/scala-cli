@@ -1,21 +1,20 @@
 package scala.cli.export
 
-import scala.build.internal.Constants
-import scala.build.options.{BuildOptions, ScalaJsOptions, ScalaNativeOptions}
-import scala.build.Sources
-
-import java.nio.charset.StandardCharsets
-
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
 import dependency.{NoAttributes, ScalaNameAttributes}
 
+import java.nio.charset.StandardCharsets
+
+import scala.build.Sources
+import scala.build.internal.Constants
+import scala.build.options.{BuildOptions, ScalaJsOptions, ScalaNativeOptions}
+
 final case class Sbt(
   sbtVersion: String,
   extraSettings: Seq[String]
 ) extends BuildTool {
-
   private val charSet = StandardCharsets.UTF_8
   private val q       = "\""
   private val nl      = System.lineSeparator()

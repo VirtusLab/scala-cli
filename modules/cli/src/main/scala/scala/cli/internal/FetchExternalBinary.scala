@@ -5,11 +5,11 @@ import coursier.jvm.ArchiveType
 import coursier.util.{Artifact, Task}
 
 import java.io.{FileInputStream, FileOutputStream, IOException}
-import java.util.{Locale, UUID}
 import java.util.zip.GZIPInputStream
+import java.util.{Locale, UUID}
 
-import scala.build.internal.OsLibc
 import scala.build.Logger
+import scala.build.internal.OsLibc
 import scala.util.Properties
 
 object FetchExternalBinary {

@@ -1,12 +1,12 @@
 package scala.build.testrunner
 
+import org.objectweb.asm
+import sbt.testing._
+
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentHashMap
-
-import org.objectweb.asm
-import sbt.testing._
 
 import scala.collection.JavaConverters._
 

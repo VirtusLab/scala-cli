@@ -8,12 +8,12 @@ import munit.internal.difflib.Diff
 import java.nio.charset.StandardCharsets
 import java.util.{Arrays, Locale}
 
+import scala.build.preprocessing.ScalaPreprocessor
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
   RequireDirectiveHandler,
   UsingDirectiveHandler
 }
-import scala.build.preprocessing.ScalaPreprocessor
 import scala.cli.ScalaCli
 
 object GenerateReferenceDoc extends CaseApp[Options] {

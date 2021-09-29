@@ -1,9 +1,9 @@
 package scala.build.testrunner
 
+import sbt.testing._
+
 import java.io.{File, PrintStream}
 import java.nio.file.{Path, Paths}
-
-import sbt.testing._
 
 import scala.collection.mutable
 

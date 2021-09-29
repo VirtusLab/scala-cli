@@ -4,11 +4,10 @@ import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
 
+import scala.build.Logger
 import scala.build.internal.Constants
 import scala.collection.JavaConverters._
-import scala.concurrent.Promise
-import scala.concurrent.Future
-import scala.build.Logger
+import scala.concurrent.{Future, Promise}
 
 class BspServer(
   bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer,

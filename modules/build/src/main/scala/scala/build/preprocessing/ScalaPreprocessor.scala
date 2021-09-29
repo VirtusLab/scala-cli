@@ -6,7 +6,7 @@ import dependency.parser.DependencyParser
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
-import scala.build.{Inputs, Os}
+import scala.build.Ops._
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
@@ -14,9 +14,9 @@ import scala.build.errors.{
   UnusedDirectiveError
 }
 import scala.build.internal.AmmUtil
-import scala.build.Ops._
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
+import scala.build.{Inputs, Os}
 
 case object ScalaPreprocessor extends Preprocessor {
 

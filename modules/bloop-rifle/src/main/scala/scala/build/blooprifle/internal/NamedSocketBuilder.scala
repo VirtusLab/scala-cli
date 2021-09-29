@@ -1,10 +1,10 @@
 package scala.build.blooprifle.internal
 
-import scala.util.Properties
-
 import org.scalasbt.ipcsocket.{UnixDomainSocket, Win32NamedPipeSocket}
 
 import java.net.Socket
+
+import scala.util.Properties
 
 // mostly there for GraalVM substitutions (see UnixNamedSocketBuilder / WindowsNamedSocketBuilder)
 class NamedSocketBuilder {

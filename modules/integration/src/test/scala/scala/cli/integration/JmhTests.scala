@@ -1,8 +1,8 @@
 package scala.cli.integration
 
-import java.nio.charset.Charset
-
 import com.eed3si9n.expecty.Expecty.expect
+
+import java.nio.charset.Charset
 
 class JmhTests extends munit.FunSuite {
 

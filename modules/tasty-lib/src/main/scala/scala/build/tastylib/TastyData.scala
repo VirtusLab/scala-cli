@@ -1,11 +1,11 @@
 package scala.build.tastylib
 
-import java.util.UUID
-
-import scala.build.tastylib.TastyReader.Bytes
-import scala.build.tastylib.TastyFormat.NameTags._
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
+import java.util.UUID
+
+import scala.build.tastylib.TastyFormat.NameTags._
+import scala.build.tastylib.TastyReader.Bytes
 
 final case class TastyData(
   header: TastyData.Header,

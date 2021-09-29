@@ -1,10 +1,10 @@
 package scala.cli.integration
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
 
 import scala.util.Properties
-import java.util.concurrent.{Executors, ExecutorService, ScheduledExecutorService, ThreadFactory}
-import java.util.concurrent.atomic.AtomicInteger
 
 object TestUtil {
 
@@ -16,7 +16,7 @@ object TestUtil {
     if (isNativeCli)
       Seq(path)
     else
-      Seq("java", "-Xmx512m", "-jar", path)
+      Seq("java", "-Xmx512m", "-Xms128m", "-jar", path)
   }
 
   // format: off

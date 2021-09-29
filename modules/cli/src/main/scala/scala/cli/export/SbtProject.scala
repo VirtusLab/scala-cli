@@ -1,6 +1,7 @@
 package scala.cli.export
 
 import java.nio.charset.StandardCharsets
+
 import scala.build.options.ConfigMonoid
 
 final case class SbtProject(

@@ -1,9 +1,9 @@
 package scala.cli.commands
 
 import caseapp._
-import coursier.cache.FileCache
+import coursier.cache.{CacheLogger, FileCache}
+
 import scala.concurrent.duration.Duration
-import coursier.cache.CacheLogger
 
 // format: off
 final case class CoursierOptions(

@@ -14,9 +14,10 @@
 
 package scala.build.tastylib
 
-import TastyBuffer._
-import collection.mutable
 import java.io.OutputStream
+
+import scala.build.tastylib.TastyBuffer._
+import scala.collection.mutable
 
 class TastyReader(val bytes: Array[Byte], val start: Int, val end: Int, val base: Int = 0) {
 

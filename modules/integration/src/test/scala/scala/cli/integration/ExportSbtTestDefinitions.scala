@@ -1,7 +1,9 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+
 import java.nio.charset.Charset
+
 import scala.util.Properties
 
 abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])

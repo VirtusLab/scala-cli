@@ -5,8 +5,8 @@ import org.scalajs.linker.{PathIRContainer, PathOutputFile, StandardImpl}
 import org.scalajs.logging.{Level, ScalaConsoleLogger}
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
-import java.nio.file.Path
 import java.net.URI
+import java.nio.file.Path
 
 import scala.build.internal.ScalaJsConfig
 

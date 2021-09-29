@@ -594,4 +594,7 @@ trait ScalaCliScalafixModule extends ScalafixModule {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
     else Some(os.pwd / ".scalafix3.conf")
   }
+  def scalafixIvyDeps = super.scalafixIvyDeps() ++ Seq(
+    ivy"com.github.liancheng::organize-imports:0.5.0"
+  )
 }

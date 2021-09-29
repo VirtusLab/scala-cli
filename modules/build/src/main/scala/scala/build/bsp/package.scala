@@ -1,8 +1,8 @@
 package scala.build
 
-import java.util.concurrent.CompletableFuture
-
 import ch.epfl.scala.{bsp4j => b}
+
+import java.util.concurrent.CompletableFuture
 
 import scala.collection.JavaConverters._
 

@@ -2,8 +2,8 @@ package scala.build.blooprifle
 
 import java.net.Socket
 
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 
 trait BspConnection {
   def address: String
