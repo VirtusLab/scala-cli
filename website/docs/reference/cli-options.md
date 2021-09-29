@@ -92,6 +92,10 @@ Duration between checks of the BSP connection state
 
 Maximum duration to wait for compilation server to start up
 
+#### `--bloop-default-java-opts`
+
+#### `--bloop-java-opt`
+
 ## Compile options
 
 Available in commands:

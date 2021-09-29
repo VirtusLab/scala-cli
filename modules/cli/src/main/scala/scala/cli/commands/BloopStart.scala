@@ -15,7 +15,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
   )
   def run(options: BloopStartOptions, args: RemainingArgs): Unit = {
     val threads          = BloopThreads.create()
-    val bloopRifleConfig = options.bloopRifleConfig
+    val bloopRifleConfig = options.bloopRifleConfig()
     val logger           = options.logging.logger
 
     val isRunning =
