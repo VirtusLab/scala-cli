@@ -6,7 +6,7 @@ module.exports = {
   title: 'Scala CLI',
   tagline: 'More featureful Scala Command-Line',
   url: 'https://scala-cli.virtuslab.org/',
-  baseUrl = '/',
+  baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
