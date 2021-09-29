@@ -1,5 +1,6 @@
 // using scala 3.0.2
 // using "org.scalameta::munit:0.7.29"
+// using com.lihaoyi:ammonite-ops_2.13:2.4.0
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -10,6 +11,7 @@ import scala.util.matching.Regex
 
 import munit.Assertions.assert
 import java.io.File
+import ammonite.ops
 
 val ScalaCodeBlock = """ *```scala name\:([\w\.]+)+""".r
 val CodeBlockEnds  = """ *```""".r
@@ -58,68 +60,105 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
 
 case class TestCase(path: Path, failure: Option[Throwable])
 
-def checkPath(path: Path): Seq[TestCase] =
+def checkPath(dest: Option[Path])(path: Path): Seq[TestCase] =
   try
     if !Files.isDirectory(path) then
       if path.getFileName.toString.endsWith(".md") then
-        checkFile(path)
+        checkFile(path, dest)
         Seq(TestCase(path, None))
       else Nil
     else
       val toCheck =
         Files.list(path).iterator.asScala.filterNot(_.getFileName.toString.startsWith("."))
-      toCheck.toList.flatMap(checkPath)
+      toCheck.toList.flatMap(checkPath(dest))
   catch
     case e: Throwable =>
       e.printStackTrace()
       Seq(TestCase(path, Some(e)))
 
-def checkFile(file: Path) =
+def ammPath(p: Path) = os.Path(p.toAbsolutePath)
+
+val fakeLineMarker = "//fakeline"
+
+def checkFile(file: Path, dest: Option[Path]) =
   val content  = Files.lines(file).iterator.asScala.toList
   val commands = parse(content, Vector(), Context(file.toString, 1))
-  val out      = Files.createTempDirectory("scala-cli-tests")
-  println(s"Using $out as output to process $file")
+  val destName = file.getFileName.toString.stripSuffix(".md")
+  val out      = dest match
+    case None => Files.createTempDirectory(destName)
+    case Some(dir) =>
+      val out = dir.resolve(destName)
+      ops.rm(ammPath(out))
+      ops.mkdir(ammPath(out))
+      out
   var lastOutput = ""
-  commands.foreach { cmd =>
-    given Context = cmd.context
-    cmd match
-      case Commands.Run(cmd, _) =>
-        println(s"### Running: ${cmd.mkString(" ")}")
-        try lastOutput = Process(cmd, Some(out.toFile)).!!
-        catch
-          case e: Throwable =>
-            throw new RuntimeException(msg(s"Error running ${cmd.mkString(" ")}"), e)
-      case Commands.Snippet(name, code, c) =>
-        println(s"### Writting $name with:\n${code.mkString("\n")}\n---")
-        val prefix = "\n" * c.line
-        Files.write(out.resolve(name), code.mkString(prefix, "\n", "").getBytes)
-      case Commands.Check(patterns, regex, line) =>
-        assert(lastOutput != "")
-        val lines = lastOutput.linesIterator.toList
+  val allSources = Set.newBuilder[Path]
 
-        if regex then
-          patterns.foreach { pattern =>
-            val regex = pattern.r
-            assert(
-              lines.exists(regex.matches),
-              msg(s"Regex: $pattern, does not matches any line in:\n$lastOutput")
-            )
-          }
-        else
-          patterns.foreach { pattern =>
-            assert(
-              lines.exists(_.contains(pattern)),
-              msg(s"Pattern: $pattern does not exisits in  any line in:\n$lastOutput")
-            )
-          }
+  try 
+    println(s"Using $out as output to process $file")
+    
+   
 
-  }
+    commands.foreach { cmd =>
+      given Context = cmd.context
+      cmd match
+        case Commands.Run(cmd, _) =>
+          println(s"### Running: ${cmd.mkString(" ")}")
+          try lastOutput = Process(cmd, Some(out.toFile)).!!
+          catch
+            case e: Throwable =>
+              throw new RuntimeException(msg(s"Error running ${cmd.mkString(" ")}"), e)
+        case Commands.Snippet(name, code, c) =>
+          println(s"### Writting $name with:\n${code.mkString("\n")}\n---")
+          val prefix = (fakeLineMarker + "\n") * c.line
+          val file = out.resolve(name)
+          allSources += file
+          Files.write(file, code.mkString(prefix, "\n", "").getBytes)
+        case Commands.Check(patterns, regex, line) =>
+          assert(lastOutput != "")
+          val lines = lastOutput.linesIterator.toList
+
+          if regex then
+            patterns.foreach { pattern =>
+              val regex = pattern.r
+              assert(
+                lines.exists(regex.matches),
+                msg(s"Regex: $pattern, does not matches any line in:\n$lastOutput")
+              )
+            }
+          else
+            patterns.foreach { pattern =>
+              assert(
+                lines.exists(_.contains(pattern)),
+                msg(s"Pattern: $pattern does not exisits in  any line in:\n$lastOutput")
+              )
+            }
+    }
+  finally if dest.isEmpty then ops.rm(ammPath(out))
+
+  // remove empty space at begining of all files
+  if dest.nonEmpty then
+    val header = s"File was generated from based on ${file}, do not edit manually!"
+    allSources.result().foreach { s =>
+      val content = ops.read.lines(ammPath(s)).dropWhile(_ == fakeLineMarker)
+        .mkString(s"// $header\n\n","\n", "")
+      ops.write.over(ammPath(s), content)
+    }
+    val readmeLines = List("<!--", "  " + header, "-->", "") ++ content
+    ops.write(ammPath(out.resolve("README.md")), readmeLines.mkString("\n"))
 
 @main def check(args: String*) =
-  val testCases    = args.flatMap(a => checkPath(Paths.get(a)))
-  val (failed, ok) = testCases.partition(_.failure.nonEmpty)
-  println(s"Completed:\n\t${ok.map(_.path).mkString("\n\t")}")
-  if failed.nonEmpty then
-    println(s"Failed:\n\t${failed.map(_.path).mkString("\n\t")}")
-    sys.exit(1)
-  println("---")
+  def processFiles(dest: Option[Path], files: Seq[String]) = 
+    val testCases    = files.flatMap(a => checkPath(dest)(Paths.get(a)))
+    val (failed, ok) = testCases.partition(_.failure.nonEmpty)
+    println(s"Completed:\n\t${ok.map(_.path).mkString("\n\t")}")
+    if failed.nonEmpty then
+      println(s"Failed:\n\t${failed.map(_.path).mkString("\n\t")}")
+      sys.exit(1)
+    println("---")
+
+  args match 
+    case Nil =>
+      println("No inputs!")
+    case "--dest" :: dest :: files => processFiles(Some(Paths.get(dest)), files)
+    case files => processFiles(None, files)  

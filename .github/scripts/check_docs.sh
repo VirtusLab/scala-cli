@@ -8,4 +8,5 @@ export PATH=$dest:$PATH
 echo Adding $dest to classpath
 ls $dest
 
-./mill -i scala docs_checker/check.scala -- docs/cookbooks 
+# adding --resources is a hack to get file watching for free on .md files
+./mill -i scala docs_checker/check.scala --resources docs/cookbooks $@ -- --dest examples docs/cookbooks 

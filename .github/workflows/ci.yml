@@ -157,7 +157,7 @@ jobs:
       with:
         jvm: 8
     - name: Test cookbooks
-      run: .github/scripts/check_docs.sh
+      run: .github/scripts/check_docs.sh && && .github/scripts/check_examples.sh
 
   checks:
     timeout-minutes: 15
