@@ -11,14 +11,14 @@ final case class CrossSources(
   inMemory: Seq[HasBuildRequirements[(Either[String, os.Path], os.RelPath, String, Int)]],
   mainClass: Option[String],
   resourceDirs: Seq[os.Path],
-  buildOptions: Seq[HasBuildRequirements[(Either[String, os.Path], BuildOptions)]]
+  buildOptions: Seq[HasBuildRequirements[BuildOptions]]
 ) {
 
   def sources(baseOptions: BuildOptions): Sources = {
 
     val sharedOptions = buildOptions
       .filter(_.requirements.isEmpty)
-      .map(_.value._2)
+      .map(_.value)
       .foldLeft(baseOptions)(_ orElse _)
 
     val retainedScalaVersion = sharedOptions.scalaParams.scalaVersion
@@ -26,7 +26,7 @@ final case class CrossSources(
     val buildOptionsWithScalaVersion = buildOptions
       .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
       .filter(_.requirements.isEmpty)
-      .map(_.value._2)
+      .map(_.value)
       .foldLeft(sharedOptions)(_ orElse _)
 
     val platform =
@@ -56,7 +56,7 @@ final case class CrossSources(
       buildOptions
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
         .flatMap(_.withPlatform(platform).toSeq)
-        .map(_.value._2)
+        .map(_.value)
         .foldLeft(BuildOptions() /* not baseOptions */ )(_ orElse _)
     )
   }
@@ -81,29 +81,15 @@ object CrossSources {
         .map(_.flatten)
     }
 
-    val buildOptions = preprocessedSources.flatMap {
-      case d: PreprocessedSource.OnDisk =>
-        d.options.toSeq.map { opt =>
-          HasBuildRequirements(
-            d.requirements.getOrElse(BuildRequirements()),
-            (Right(d.path), opt)
-          )
-        }
-      case m: PreprocessedSource.InMemory =>
-        m.options.toSeq.map { opt =>
-          HasBuildRequirements(
-            m.requirements.getOrElse(BuildRequirements()),
-            (m.reportingPath, opt)
-          )
-        }
-      case n: PreprocessedSource.NoSourceCode =>
-        val elem = HasBuildRequirements(
-          n.requirements.getOrElse(BuildRequirements()),
-          (Right(n.path), n.options.getOrElse(BuildOptions()))
-        )
-        Seq(elem)
-      case _ =>
-        Nil
+    val buildOptions = for {
+      s   <- preprocessedSources
+      opt <- s.options.toSeq
+      if opt != BuildOptions()
+    } yield {
+      HasBuildRequirements(
+        s.requirements.getOrElse(BuildRequirements()),
+        opt
+      )
     }
 
     val mainClassOpt = value {
