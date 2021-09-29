@@ -345,7 +345,7 @@ object Inputs {
     else
       forNonEmptyArgs(args, cwd, directories, baseProjectName, download, stdinOpt, acceptFds)
 
-  def default(cwd: os.Path = Os.pwd): Option[Inputs] =
+  def default(): Option[Inputs] =
     None
 
   def empty(workspace: os.Path): Inputs =

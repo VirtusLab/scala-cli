@@ -12,7 +12,7 @@ object Clean extends ScalaCommand[CleanOptions] {
       args.all,
       Os.pwd,
       options.directories.directories,
-      defaultInputs = () => Inputs.default(Os.pwd)
+      defaultInputs = () => Inputs.default()
     ) match {
       case Left(message) =>
         System.err.println(message)
