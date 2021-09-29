@@ -182,22 +182,18 @@ case object ScalaPreprocessor extends Preprocessor {
   private def processUsing(
     content: String
   ): Option[Either[BuildException, (BuildRequirements, BuildOptions, String)]] =
-    TemporaryDirectivesParser.parseDirectives(content).flatMap {
-      case (_, _) =>
-        // TODO Warn about unrecognized directives
-        // TODO Report via some diagnostics malformed directives
-
-        TemporaryDirectivesParser.parseDirectives(content).map {
-          case (directives, updatedContent) =>
-            val tuple = (
-              directivesBuildRequirements(directives),
-              directivesBuildOptions(directives),
-              Right(updatedContent)
-            )
-            tuple
-              .traverseN
-              .left.map(CompositeBuildException(_))
-        }
+    // TODO Warn about unrecognized directives
+    // TODO Report via some diagnostics malformed directives
+    TemporaryDirectivesParser.parseDirectives(content).map {
+      case (directives, updatedContent) =>
+        val tuple = (
+          directivesBuildRequirements(directives),
+          directivesBuildOptions(directives),
+          Right(updatedContent)
+        )
+        tuple
+          .traverseN
+          .left.map(CompositeBuildException(_))
     }
 
   private def processSpecialImports(
