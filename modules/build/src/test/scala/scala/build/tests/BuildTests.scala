@@ -406,4 +406,21 @@ class BuildTests extends munit.FunSuite {
       )
     }
   }
+
+  test("Pass files with only commented directives as is to scalac") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """// using com.lihaoyi::pprint:0.6.6
+          |object Simple {
+          |  def main(args: Array[String]): Unit =
+          |    pprint.log("Hello " + "from tests")
+          |}
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, maybeBuild) =>
+      val sources = maybeBuild.toOption.get.sources
+      expect(sources.inMemory.isEmpty)
+      expect(sources.paths.lengthCompare(1) == 0)
+    }
+  }
 }

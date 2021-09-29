@@ -88,14 +88,14 @@ object ScriptPreprocessor {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, subPath)
 
-    val (requirements, options, updatedCode) =
+    val (requirements, options, updatedCodeOpt) =
       value(ScalaPreprocessor.process(contentIgnoredSheBangLines, printablePath))
-        .getOrElse((BuildRequirements(), BuildOptions(), contentIgnoredSheBangLines))
+        .getOrElse((BuildRequirements(), BuildOptions(), None))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
       wrapper,
-      updatedCode
+      updatedCodeOpt.getOrElse(contentIgnoredSheBangLines)
     )
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")

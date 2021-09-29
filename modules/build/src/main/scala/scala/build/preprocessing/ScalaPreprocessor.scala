@@ -47,15 +47,26 @@ case object ScalaPreprocessor extends Preprocessor {
           (pkg :+ wrapper).map(_.raw).mkString(".")
         }
         val res = either {
-          val source = value(process(f.path)) match {
+          val printablePath =
+            if (f.path.startsWith(Os.pwd)) f.path.relativeTo(Os.pwd).toString
+            else f.path.toString
+          val content = os.read(f.path)
+          val source = value(process(content, printablePath)) match {
             case None =>
               PreprocessedSource.OnDisk(f.path, None, None, Some(inferredClsName))
-            case Some((requirements, options, updatedCode)) =>
+            case Some((requirements, options, Some(updatedCode))) =>
               PreprocessedSource.InMemory(
                 Right(f.path),
                 f.subPath,
                 updatedCode,
                 0,
+                Some(options),
+                Some(requirements),
+                Some(inferredClsName)
+              )
+            case Some((requirements, options, None)) =>
+              PreprocessedSource.OnDisk(
+                f.path,
                 Some(options),
                 Some(requirements),
                 Some(inferredClsName)
@@ -68,12 +79,12 @@ case object ScalaPreprocessor extends Preprocessor {
       case v: Inputs.VirtualScalaFile =>
         val res = either {
           val content = new String(v.content, StandardCharsets.UTF_8)
-          val (requirements, options, updatedContent) = value(process(content, v.source))
-            .getOrElse((BuildRequirements(), BuildOptions(), content))
+          val (requirements, options, updatedContentOpt) = value(process(content, v.source))
+            .getOrElse((BuildRequirements(), BuildOptions(), None))
           val s = PreprocessedSource.InMemory(
             Left(v.source),
             v.subPath,
-            updatedContent,
+            updatedContentOpt.getOrElse(content),
             0,
             Some(options),
             Some(requirements),
@@ -87,25 +98,17 @@ case object ScalaPreprocessor extends Preprocessor {
         None
     }
 
-  def process(path: os.Path)
-    : Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = {
-    val printablePath =
-      if (path.startsWith(Os.pwd)) path.relativeTo(Os.pwd).toString
-      else path.toString
-    val content = os.read(path)
-    process(content, printablePath)
-  }
   def process(
     content: String,
     printablePath: String
-  ): Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = either {
+  ): Either[BuildException, Option[(BuildRequirements, BuildOptions, Option[String])]] = either {
 
     val afterUsing = value {
       processUsing(content)
         .sequence
     }
     val afterProcessImports =
-      processSpecialImports(afterUsing.map(_._3).getOrElse(content), printablePath)
+      processSpecialImports(afterUsing.flatMap(_._3).getOrElse(content), printablePath)
 
     if (afterUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
@@ -113,11 +116,10 @@ case object ScalaPreprocessor extends Preprocessor {
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
       val allOptions         = afterUsing.map(_._2).toSeq ++ afterProcessImports.map(_._2).toSeq
       val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
-      val lastContent = afterProcessImports
+      val lastContentOpt = afterProcessImports
         .map(_._3)
-        .orElse(afterUsing.map(_._3))
-        .getOrElse(content)
-      Some((summedRequirements, summedOptions, lastContent))
+        .orElse(afterUsing.flatMap(_._3))
+      Some((summedRequirements, summedOptions, lastContentOpt))
     }
   }
 
@@ -181,15 +183,15 @@ case object ScalaPreprocessor extends Preprocessor {
 
   private def processUsing(
     content: String
-  ): Option[Either[BuildException, (BuildRequirements, BuildOptions, String)]] =
+  ): Option[Either[BuildException, (BuildRequirements, BuildOptions, Option[String])]] =
     // TODO Warn about unrecognized directives
     // TODO Report via some diagnostics malformed directives
     TemporaryDirectivesParser.parseDirectives(content).map {
-      case (directives, updatedContent) =>
+      case (directives, updatedContentOpt) =>
         val tuple = (
           directivesBuildRequirements(directives),
           directivesBuildOptions(directives),
-          Right(updatedContent)
+          Right(updatedContentOpt)
         )
         tuple
           .traverseN
