@@ -142,3 +142,7 @@ npm run serve
 cd website
 yarn run start
 ```
+
+## Scala CLI logos
+
+Package with various logos for scala-cli can be found on [google drive](https://drive.google.com/drive/u/1/folders/1M6JeQXmO4DTBeRBKAFJ5HH2p_hbfQnqS)
