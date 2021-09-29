@@ -5,7 +5,8 @@ let isCI = process.env.CI || false;
 module.exports = {
   title: 'Scala CLI',
   tagline: 'More featureful Scala Command-Line',
-  url: 'https://virtuslab.github.io',
+  url: 'https://scala-cli.virtuslab.org/',
+  baseUrl = '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
@@ -19,6 +20,28 @@ module.exports = {
         src: 'img/logo.svg',
       },
       items: [
+        {
+         // type: 'doc',
+          label: "Use cases",
+          items: [
+            {
+              to: '/education',
+              label: 'Education',
+            },
+            {
+              to: '/scripting',
+              label: 'Scripting',
+            },
+            {
+              to: '/prototyping',
+              label: 'prototyping, experimenting, reproducing',
+            },
+            {
+              to: '/projects',
+              label: 'Single-module projects',
+            }
+          ]
+        },
         {
           type: 'doc',
           docId: 'installation',
@@ -83,9 +106,3 @@ module.exports = {
     ],
   ],
 };
-
-if (isCI) {
-  module.exports.baseUrl = '/scala-cli/';
-} else {
-  module.exports.baseUrl = '/';
-}

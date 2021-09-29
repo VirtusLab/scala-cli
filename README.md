@@ -124,7 +124,9 @@ that embeds JARs of the scala-cli modules, and downloads their dependencies
 from Maven Central upon first launch (using the coursier cache, just like
 a coursier bootstrap).
 
-### Website commands
+### Website 
+
+The Scala CLI website is built with [Docusaurus](https://v1.docusaurus.io/en/) and uses [Infima](https://infima.dev/docs/layout/spacing) for styling. 
 
 #### Generate the website once
 
@@ -140,3 +142,7 @@ npm run serve
 cd website
 yarn run start
 ```
+
+## Scala CLI logos
+
+Package with various logos for scala-cli can be found on [google drive](https://drive.google.com/drive/u/1/folders/1M6JeQXmO4DTBeRBKAFJ5HH2p_hbfQnqS)
