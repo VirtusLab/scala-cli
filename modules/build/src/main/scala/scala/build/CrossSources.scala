@@ -81,13 +81,22 @@ object CrossSources {
         .map(_.flatten)
     }
 
+    val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
+    val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)
+    def baseReqs(path: PreprocessedSource.ScopePath): BuildRequirements =
+      scopedRequirementsByRoot
+        .getOrElse(path.root, Nil)
+        .flatMap(_.valueFor(path).toSeq)
+        .foldLeft(BuildRequirements())(_ orElse _)
+
     val buildOptions = for {
       s   <- preprocessedSources
       opt <- s.options.toSeq
       if opt != BuildOptions()
     } yield {
+      val baseReqs0 = baseReqs(s.scopePath)
       HasBuildRequirements(
-        s.requirements.getOrElse(BuildRequirements()),
+        s.requirements.fold(baseReqs0)(_ orElse baseReqs0),
         opt
       )
     }
@@ -108,15 +117,17 @@ object CrossSources {
 
     val paths = preprocessedSources.collect {
       case d: PreprocessedSource.OnDisk =>
+        val baseReqs0 = baseReqs(d.scopePath)
         HasBuildRequirements(
-          d.requirements.getOrElse(BuildRequirements()),
+          d.requirements.fold(baseReqs0)(_ orElse baseReqs0),
           (d.path, d.path.relativeTo(inputs.workspace))
         )
     }
     val inMemory = preprocessedSources.collect {
       case m: PreprocessedSource.InMemory =>
+        val baseReqs0 = baseReqs(m.scopePath)
         HasBuildRequirements(
-          m.requirements.getOrElse(BuildRequirements()),
+          m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
           (m.reportingPath, m.relPath, m.code, m.ignoreLen)
         )
     }

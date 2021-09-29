@@ -10,7 +10,7 @@ case object JavaPreprocessor extends Preprocessor {
     : Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case j: Inputs.JavaFile =>
-        Some(Right(Seq(PreprocessedSource.OnDisk(j.path, None, None, None))))
+        Some(Right(Seq(PreprocessedSource.OnDisk(j.path, None, None, Nil, None))))
 
       case v: Inputs.VirtualJavaFile =>
         val content = new String(v.content, StandardCharsets.UTF_8)
@@ -21,7 +21,9 @@ case object JavaPreprocessor extends Preprocessor {
           0,
           None,
           None,
-          None
+          Nil,
+          None,
+          v.scopePath
         )
         Some(Right(Seq(s)))
 

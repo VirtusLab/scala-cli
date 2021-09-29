@@ -7,6 +7,7 @@ import java.security.MessageDigest
 import java.util.zip.{ZipEntry, ZipInputStream}
 
 import scala.annotation.tailrec
+import scala.build.preprocessing.PreprocessedSource
 import scala.util.matching.Regex
 
 final case class Inputs(
@@ -137,6 +138,9 @@ object Inputs {
       val idx = source.lastIndexOf('/')
       os.sub / source.drop(idx + 1)
     }
+
+    def scopePath: PreprocessedSource.ScopePath =
+      PreprocessedSource.ScopePath(source, subPath)
   }
 
   sealed trait SingleFile   extends OnDisk with SingleElement

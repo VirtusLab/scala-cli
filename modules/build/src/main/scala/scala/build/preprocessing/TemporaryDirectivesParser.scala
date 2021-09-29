@@ -38,19 +38,20 @@ object TemporaryDirectivesParser {
         P("\\\"").map(_ => "\"")
     )
     def quotedElem = P("\"" ~ charInQuote.rep ~ "\"").map(_.mkString)
-    def elem       = P(simpleElem | quotedElem)
+    def elem       = P(!("in" ~ (ws | "," | nl)) ~ (simpleElem | quotedElem))
 
     def parser = P(
       tpe ~ ws ~
-        elem.rep(1, sep = P(ws)).rep(1, sep = P(ws.? ~ "," ~ ws.?)) ~
+        (elem.rep(1, sep = P(ws)) ~ (ws ~ "in" ~ ws ~ elem).?).rep(1, sep = P(ws.? ~ "," ~ ws.?)) ~
         nl.? ~ sc.? ~
         nl.?
     )
 
     parser.map {
       case (tpe0, isComment, allElems) =>
-        allElems.map { elems =>
-          Directive(tpe0, elems, isComment)
+        allElems.map {
+          case (elems, scopeOpt) =>
+            Directive(tpe0, elems, scopeOpt, isComment)
         }
     }
   }
