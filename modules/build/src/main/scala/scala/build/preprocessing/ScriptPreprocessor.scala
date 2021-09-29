@@ -86,7 +86,7 @@ object ScriptPreprocessor {
 
     val contentIgnoredSheBangLines = ignoreSheBangLines(content)
 
-    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, subPath)
+    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
 
     val (requirements, options, updatedCodeOpt) =
       value(ScalaPreprocessor.process(contentIgnoredSheBangLines, printablePath))
@@ -100,8 +100,7 @@ object ScriptPreprocessor {
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
 
-    val components = className.split('.')
-    val relPath    = os.rel / components.init.toSeq / s"${components.last}.scala"
+    val relPath = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
     PreprocessedSource.InMemory(
       reportingPath,
       relPath,

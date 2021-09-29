@@ -43,7 +43,7 @@ case object ScalaPreprocessor extends Preprocessor {
     input match {
       case f: Inputs.ScalaFile =>
         val inferredClsName = {
-          val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, f.subPath)
+          val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(f.subPath)
           (pkg :+ wrapper).map(_.raw).mkString(".")
         }
         val res = either {
