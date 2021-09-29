@@ -2,7 +2,7 @@ package scala.build.options
 
 final case class BuildRequirements(
   scalaVersion: Seq[BuildRequirements.VersionRequirement] = Nil,
-  platform: Option[BuildRequirements.PlatformRequirement] = None
+  platform: Seq[BuildRequirements.PlatformRequirement] = Nil
 ) {
   def withScalaVersion(sv: String): Either[String, BuildRequirements] = {
     val dontPass = scalaVersion.filter(!_.valid(sv))
@@ -12,10 +12,10 @@ final case class BuildRequirements(
       Left(dontPass.map(_.failedMessage).mkString(", "))
   }
   def withPlatform(pf: Platform): Either[String, BuildRequirements] =
-    platform match {
+    BuildRequirements.PlatformRequirement.merge(platform) match {
       case None => Right(this)
       case Some(platform0) =>
-        if (platform0.valid(pf)) Right(copy(platform = None))
+        if (platform0.valid(pf)) Right(copy(platform = Nil))
         else Left(platform0.failedMessage)
     }
   def isEmpty: Boolean =
@@ -71,6 +71,18 @@ object BuildRequirements {
       platforms.contains(pf)
     def failedMessage: String =
       "Expected platform: " + platforms.toVector.map(_.repr).sorted.mkString(" or ")
+  }
+
+  object PlatformRequirement {
+    def merge(requirements: Seq[PlatformRequirement]): Option[PlatformRequirement] =
+      if (requirements.isEmpty) None
+      else if (requirements.lengthCompare(1) == 0) Some(requirements.head)
+      else {
+        val platforms = requirements.tail.foldLeft(requirements.head.platforms) { (acc, req) =>
+          acc.intersect(req.platforms)
+        }
+        Some(PlatformRequirement(platforms))
+      }
   }
 
   implicit val monoid: ConfigMonoid[BuildRequirements] = ConfigMonoid.derive

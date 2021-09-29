@@ -17,7 +17,7 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
     Platform.parseSpec(directive.values.map(Platform.normalize)) match {
       case Some(platforms) =>
         val reqs = BuildRequirements(
-          platform = Some(BuildRequirements.PlatformRequirement(platforms))
+          platform = Seq(BuildRequirements.PlatformRequirement(platforms))
         )
         Some(Right(reqs))
       case None =>
