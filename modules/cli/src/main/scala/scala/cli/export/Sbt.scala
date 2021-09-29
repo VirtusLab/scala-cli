@@ -163,9 +163,9 @@ final case class Sbt(
       }
 
     val customJarsSettings =
-      if (options.classPathOptions.extraJars.isEmpty) Nil
+      if (options.classPathOptions.extraClassPath.isEmpty) Nil
       else {
-        val jars = options.classPathOptions.extraJars.map(p => s"""file("$p")""")
+        val jars = options.classPathOptions.extraClassPath.map(p => s"""file("$p")""")
         Seq(
           s"""Compile / unmanagedClasspath ++= Seq(${jars.mkString(", ")})""",
           s"""Runtime / unmanagedClasspath ++= Seq(${jars.mkString(", ")})"""

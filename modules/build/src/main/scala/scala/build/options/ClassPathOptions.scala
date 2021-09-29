@@ -4,7 +4,7 @@ import dependency._
 
 final case class ClassPathOptions(
   extraRepositories: Seq[String] = Nil,
-  extraJars: Seq[os.Path] = Nil,
+  extraClassPath: Seq[os.Path] = Nil,
   extraCompileOnlyJars: Seq[os.Path] = Nil,
   extraSourceJars: Seq[os.Path] = Nil,
   fetchSources: Option[Boolean] = None,

@@ -306,21 +306,22 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   def testScalaTermination(
     currentBloopVersion: String,
     expectedBloopVersionAfterScalaCliRun: String
-  ) = {
-    def runBloop(args: String*) =
-      os.proc(TestUtil.cs, "launch", s"bloop-jvm:$currentBloopVersion", "--", args)
+  ): Unit =
+    TestUtil.retry() {
+      def runBloop(args: String*) =
+        os.proc(TestUtil.cs, "launch", s"bloop-jvm:$currentBloopVersion", "--", args)
 
-    def runScalaCli(args: String*) = os.proc(TestUtil.cli, args)
+      def runScalaCli(args: String*) = os.proc(TestUtil.cli, args)
 
-    runBloop("exit").call()
-    runBloop("about").call(stdout = os.Inherit, stderr = os.Inherit)
-    runScalaCli("bloop", "start", "-v", "-v", "-v").call(
-      stdout = os.Inherit,
-      stderr = os.Inherit
-    )
-    val versionLine = runBloop("about").call().out.lines()(0)
-    expect(versionLine == "bloop v" + expectedBloopVersionAfterScalaCliRun)
-  }
+      runBloop("exit").call()
+      runBloop("about").call(stdout = os.Inherit, stderr = os.Inherit)
+      runScalaCli("bloop", "start", "-v", "-v", "-v").call(
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
+      val versionLine = runBloop("about").call().out.lines()(0)
+      expect(versionLine == "bloop v" + expectedBloopVersionAfterScalaCliRun)
+    }
 
   test("scala-cli terminates incompatible bloop") {
     testScalaTermination(Constants.oldBloopVersion, Constants.bloopVersion)

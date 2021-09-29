@@ -1,7 +1,8 @@
 package scala.cli.commands
 
-import scala.build.options.BuildOptions
 import caseapp._
+
+import scala.build.options.BuildOptions
 
 // format: off
 final case class SetupIdeOptions(

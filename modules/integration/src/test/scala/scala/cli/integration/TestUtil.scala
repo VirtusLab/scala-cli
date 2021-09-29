@@ -4,6 +4,8 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
 
+import scala.annotation.tailrec
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.util.Properties
 
 object TestUtil {
@@ -81,4 +83,26 @@ object TestUtil {
   def normalizeUri(uri: String): String =
     if (uri.startsWith("file:///")) "file:/" + uri.stripPrefix("file:///")
     else uri
+
+  def retry[T](
+    maxAttempts: Int = 3,
+    waitDuration: FiniteDuration = 5.seconds
+  )(
+    run: => T
+  ): T = {
+    @tailrec
+    def helper(count: Int): T =
+      try run
+      catch {
+        case t: Throwable =>
+          if (count >= maxAttempts)
+            throw new Exception(t)
+          else {
+            System.err.println(s"Caught $t, trying again in $waitDuration…")
+            Thread.sleep(waitDuration.toMillis)
+            helper(count + 1)
+          }
+      }
+    helper(1)
+  }
 }

@@ -9,7 +9,7 @@ import scala.build.errors.BuildException
 
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, Path)],
-  extraJars: Seq[Path],
+  extraClassPath: Seq[Path],
   extraSourceJars: Seq[Path],
   replMainClass: String,
   replJavaOpts: Seq[String],
@@ -17,9 +17,9 @@ final case class ReplArtifacts(
 ) {
   lazy val replClassPath: Seq[Path] =
     if (addSourceJars)
-      extraJars ++ extraSourceJars ++ replArtifacts.map(_._2)
+      extraClassPath ++ extraSourceJars ++ replArtifacts.map(_._2)
     else
-      extraJars ++ replArtifacts.map(_._2)
+      extraClassPath ++ replArtifacts.map(_._2)
 }
 
 object ReplArtifacts {
@@ -36,7 +36,7 @@ object ReplArtifacts {
     scalaParams: ScalaParameters,
     ammoniteVersion: String,
     dependencies: Seq[AnyDependency],
-    extraJars: Seq[Path],
+    extraClassPath: Seq[Path],
     extraSourceJars: Seq[Path],
     logger: Logger,
     directories: Directories
@@ -53,7 +53,7 @@ object ReplArtifacts {
     )
     ReplArtifacts(
       value(replArtifacts) ++ value(replSourceArtifacts),
-      extraJars,
+      extraClassPath,
       extraSourceJars,
       "ammonite.Main",
       Nil,
@@ -64,7 +64,7 @@ object ReplArtifacts {
   def default(
     scalaParams: ScalaParameters,
     dependencies: Seq[AnyDependency],
-    extraJars: Seq[Path],
+    extraClassPath: Seq[Path],
     logger: Logger,
     directories: Directories
   ): Either[BuildException, ReplArtifacts] = either {
@@ -80,7 +80,7 @@ object ReplArtifacts {
       else "dotty.tools.repl.Main"
     ReplArtifacts(
       value(replArtifacts),
-      extraJars,
+      extraClassPath,
       Nil,
       mainClass,
       Seq("-Dscala.usejavacp=true"),
