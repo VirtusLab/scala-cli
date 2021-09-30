@@ -84,20 +84,19 @@ def checkFile(file: Path, dest: Option[Path]) =
   val content  = Files.lines(file).iterator.asScala.toList
   val commands = parse(content, Vector(), Context(file.toString, 1))
   val destName = file.getFileName.toString.stripSuffix(".md")
-  val out      = dest match
-    case None => Files.createTempDirectory(destName)
-    case Some(dir) =>
-      val out = dir.resolve(destName)
-      ops.rm(ammPath(out))
-      ops.mkdir(ammPath(out))
-      out
+  val out =
+    dest match
+      case None => Files.createTempDirectory(destName)
+      case Some(dir) =>
+        val out = dir.resolve(destName)
+        ops.rm(ammPath(out))
+        ops.mkdir(ammPath(out))
+        out
   var lastOutput = ""
   val allSources = Set.newBuilder[Path]
 
-  try 
+  try
     println(s"Using $out as output to process $file")
-    
-   
 
     commands.foreach { cmd =>
       given Context = cmd.context
@@ -111,7 +110,7 @@ def checkFile(file: Path, dest: Option[Path]) =
         case Commands.Snippet(name, code, c) =>
           println(s"### Writting $name with:\n${code.mkString("\n")}\n---")
           val prefix = (fakeLineMarker + "\n") * c.line
-          val file = out.resolve(name)
+          val file   = out.resolve(name)
           allSources += file
           Files.write(file, code.mkString(prefix, "\n", "").getBytes)
         case Commands.Check(patterns, regex, line) =>
@@ -141,14 +140,14 @@ def checkFile(file: Path, dest: Option[Path]) =
     val header = s"File was generated from based on ${file}, do not edit manually!"
     allSources.result().foreach { s =>
       val content = ops.read.lines(ammPath(s)).dropWhile(_ == fakeLineMarker)
-        .mkString(s"// $header\n\n","\n", "")
+        .mkString(s"// $header\n\n", "\n", "")
       ops.write.over(ammPath(s), content)
     }
     val readmeLines = List("<!--", "  " + header, "-->", "") ++ content
     ops.write(ammPath(out.resolve("README.md")), readmeLines.mkString("\n"))
 
 @main def check(args: String*) =
-  def processFiles(dest: Option[Path], files: Seq[String]) = 
+  def processFiles(dest: Option[Path], files: Seq[String]) =
     val testCases    = files.flatMap(a => checkPath(dest)(Paths.get(a)))
     val (failed, ok) = testCases.partition(_.failure.nonEmpty)
     println(s"Completed:\n\t${ok.map(_.path).mkString("\n\t")}")
@@ -157,8 +156,8 @@ def checkFile(file: Path, dest: Option[Path]) =
       sys.exit(1)
     println("---")
 
-  args match 
+  args match
     case Nil =>
       println("No inputs!")
     case "--dest" :: dest :: files => processFiles(Some(Paths.get(dest)), files)
-    case files => processFiles(None, files)  
+    case files                     => processFiles(None, files)

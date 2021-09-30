@@ -64,7 +64,7 @@ Using Scala version: 2\.12\..*
 will use latest stable release of `2.12` `2.12.15`.
 
 
-We can also pin the version of the language withing the .scala file with `using directives`. You can read our more how using directives works in [documentation](/TODO) or this [examole](/TODO)
+We can also pin the version of the language withing the .scala file with `using directives`. You can read our more how using directives works in documentation and examples.
 
 :::info
 Using directives sytax is still experimental and may change in future versions of scala-cli
