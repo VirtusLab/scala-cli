@@ -942,4 +942,8 @@
     "name":"org.apache.commons.logging.impl.NoOpLog",
     "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
   },
+  {
+    "name":"org.apache.commons.logging.impl.WeakHashtable",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  }
 ]
