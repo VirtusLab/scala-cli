@@ -205,23 +205,22 @@ class NativePackagerTests extends munit.FunSuite {
 
   if (Properties.isLinux) {
 
-    test("building docker image") {
-
+    def runTest(): Unit =
       testInputs.fromRoot { root =>
 
         val appName         = helloWorldFileName.stripSuffix(".scala")
         val imageRepository = appName.toLowerCase()
         val imageTag        = "latest"
 
-      // format: off
-      val cmd = Seq[os.Shellable](
-        TestUtil.cli,
-        "package", helloWorldFileName,
-        "--docker",
-        "--docker-image-repository", imageRepository,
-        "--docker-image-tag", imageTag
-      )
-      // format: on
+        // format: off
+        val cmd = Seq[os.Shellable](
+          TestUtil.cli,
+          "package", helloWorldFileName,
+          "--docker",
+          "--docker-image-repository", imageRepository,
+          "--docker-image-tag", imageTag
+        )
+        // format: on
 
         os.proc(cmd)
           .call(
@@ -242,26 +241,24 @@ class NativePackagerTests extends munit.FunSuite {
           os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
         }
       }
-    }
 
-    test("building docker image with scala.js app") {
-
+    def runJsTest(): Unit =
       testInputs.fromRoot { root =>
 
         val appName         = helloWorldFileName.stripSuffix(".scala")
         val imageRepository = appName.toLowerCase()
         val imageTag        = "latest"
 
-      // format: off
-      val cmd = Seq[os.Shellable](
-        TestUtil.cli,
-        "package", helloWorldFileName,
-        "--js",
-        "--docker",
-        "--docker-image-repository", imageRepository,
-        "--docker-image-tag", imageTag
-      )
-      // format: on
+        // format: off
+        val cmd = Seq[os.Shellable](
+          TestUtil.cli,
+          "package", helloWorldFileName,
+          "--js",
+          "--docker",
+          "--docker-image-repository", imageRepository,
+          "--docker-image-tag", imageTag
+        )
+        // format: on
 
         os.proc(cmd)
           .call(
@@ -283,10 +280,8 @@ class NativePackagerTests extends munit.FunSuite {
           os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
         }
       }
-    }
 
-    test("building docker image with scala native app") {
-
+    def runNativeTest(): Unit =
       testInputs.fromRoot { root =>
 
         val appName         = helloWorldFileName.stripSuffix(".scala")
@@ -324,6 +319,23 @@ class NativePackagerTests extends munit.FunSuite {
           // clear
           os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
         }
+      }
+
+    test("building docker image") {
+      TestUtil.retry() {
+        runTest()
+      }
+    }
+
+    test("building docker image with scala.js app") {
+      TestUtil.retry() {
+        runJsTest()
+      }
+    }
+
+    test("building docker image with scala native app") {
+      TestUtil.retry() {
+        runNativeTest()
       }
     }
 
