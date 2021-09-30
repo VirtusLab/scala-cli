@@ -224,7 +224,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def nativeImage =
-    if (Properties.isLinux)
+    if (Properties.isLinux && arch == "x86_64")
       `linux-docker-image`.nativeImage
     else
       `base-image`.nativeImage
