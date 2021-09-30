@@ -337,7 +337,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       check = false
     )
     expect(res.exitCode == 1)
-    expect(res.err.text().contains("Server didn't start"))
+    expect(res.err.text().contains("Server didn't start") || res.err.text().contains(
+      "java.lang.OutOfMemoryError: Garbage-collected heap size exceeded"
+    ))
   }
 
   test("invalid bloop options passed via global bloop config json file cause bloop start failure") {
