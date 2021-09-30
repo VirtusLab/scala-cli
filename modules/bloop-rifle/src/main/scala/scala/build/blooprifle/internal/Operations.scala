@@ -221,12 +221,14 @@ object Operations {
                 s"BSP connection at $socketFile not found, waiting $period"
             }
             Thread.sleep(period.toMillis)
-            if (socketFile.exists()) {
+            if (socketFile.exists())
               socket =
+                // format: off
                 try {
                   try {
                     (new NamedSocketBuilder).create(socketFile.getAbsolutePath)
                   }
+                // format: on
                   catch {
                     case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
                       throw ex.getCause
@@ -242,7 +244,6 @@ object Operations {
                     logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
                     null
                 }
-            }
             count += 1
           }
           if (socket != null) {
@@ -262,10 +263,12 @@ object Operations {
           while (socket == null && count < maxCount && closed.value.isEmpty) {
             Thread.sleep(period.toMillis)
             socket =
+              // format: off
               try {
                 try {
                   (new NamedSocketBuilder).create(p.name)
                 }
+              // format: on
                 catch {
                   case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
                     throw ex.getCause

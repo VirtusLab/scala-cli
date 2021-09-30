@@ -63,9 +63,7 @@ object AsmPositionUpdater {
             if (checker.mappedStuff) Some(writer.toByteArray)
             else None
           }
-          finally {
-            is.close()
-          }
+          finally is.close()
         for (b <- updateByteCodeOpt) {
           logger.debug(s"Overwriting ${path.relativeTo(Os.pwd)}")
           os.write.over(path, b)

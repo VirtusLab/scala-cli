@@ -49,9 +49,7 @@ object MainClass {
           reader.accept(checker, 0)
           checker.mainClassOpt.iterator
         }
-        finally {
-          is.close()
-        }
+        finally is.close()
       }
       .toVector
 }

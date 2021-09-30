@@ -178,10 +178,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         zf = new ZipFile(launcher.toIO)
         expect(zf.getEntry("cats/kernel/Monoid.class") != null)
       }
-      finally {
-        if (zf != null)
-          zf.close()
-      }
+      finally if (zf != null) zf.close()
 
       val runnableLauncher =
         if (Properties.isWin) {

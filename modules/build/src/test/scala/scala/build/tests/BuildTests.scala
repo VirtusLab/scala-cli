@@ -56,12 +56,11 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, maybeBuild) =>
-      if (checkResults) {
+      if (checkResults)
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple.class",
           "simple$.class"
         )
-      }
     }
   }
 

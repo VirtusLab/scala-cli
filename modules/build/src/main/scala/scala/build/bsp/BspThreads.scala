@@ -22,10 +22,7 @@ object BspThreads {
       threads = create()
       f(threads)
     }
-    finally {
-      if (threads != null)
-        threads.shutdown()
-    }
+    finally if (threads != null) threads.shutdown()
   }
   def create(): BspThreads =
     BspThreads(

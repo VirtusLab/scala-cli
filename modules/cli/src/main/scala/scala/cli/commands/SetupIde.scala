@@ -33,9 +33,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     }
 
     def inputs = options.shared.inputsOrExit(args)
-    if (options.buildOptions.classPathOptions.extraDependencies.nonEmpty) {
+    if (options.buildOptions.classPathOptions.extraDependencies.nonEmpty)
       downloadDeps(inputs, options.buildOptions, options.shared.logger)
-    }
 
     val argv = {
       val commandIndex = rawArgv.indexOf("setup-ide")

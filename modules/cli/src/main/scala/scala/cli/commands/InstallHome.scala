@@ -13,16 +13,15 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     val binDirPath      = scala.build.Directories.default().binRepoDir
     val scalaCliBinPath = binDirPath / "scala-cli"
 
-    if (os.exists(scalaCliBinPath)) {
+    if (os.exists(scalaCliBinPath))
       if (options.force) os.remove.all(scalaCliBinPath)
       else if (coursier.paths.Util.useAnsiOutput()) {
         println(
           "scala-cli already exists. Do you want to override it [Y/n]"
         )
         val replace = readLine()
-        if (replace == "Y") {
+        if (replace == "Y")
           os.remove.all(scalaCliBinPath)
-        }
         else {
           System.err.println("Abort")
           sys.exit(1)
@@ -34,7 +33,6 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
         )
         sys.exit(1)
       }
-    }
 
     os.copy(
       from = os.Path(options.scalaCliBinaryPath, os.pwd),
@@ -56,12 +54,10 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
         updater.applyUpdate(update)
       }
 
-    if (didUpdate) {
+    if (didUpdate)
       println("Successfully installed scala-cli")
-    }
-    else {
+    else
       System.err.println(s"scala-cli is already installed")
-    }
 
   }
 }

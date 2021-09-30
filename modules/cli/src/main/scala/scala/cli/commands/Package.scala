@@ -245,7 +245,7 @@ object Package extends ScalaCommand[PackageOptions] {
         docker(inputs, build, mainClass(), logger)
     }
 
-    if (!build.options.packageOptions.isDockerEnabled) {
+    if (!build.options.packageOptions.isDockerEnabled)
       logger.message {
         if (packageType.runnable)
           s"Wrote $dest, run it with" + System.lineSeparator() +
@@ -256,7 +256,6 @@ object Package extends ScalaCommand[PackageOptions] {
         else
           s"Wrote $dest"
       }
-    }
   }
 
   private def libraryJar(build: Build.Successful): Array[Byte] = {
@@ -286,10 +285,7 @@ object Package extends ScalaCommand[PackageOptions] {
         zos.closeEntry()
       }
     }
-    finally {
-      if (zos != null)
-        zos.close()
-    }
+    finally if (zos != null) zos.close()
 
     baos.toByteArray
   }
@@ -330,10 +326,7 @@ object Package extends ScalaCommand[PackageOptions] {
         zos.closeEntry()
       }
     }
-    finally {
-      if (zos != null)
-        zos.close()
-    }
+    finally if (zos != null) zos.close()
 
     baos.toByteArray
   }
@@ -448,9 +441,8 @@ object Package extends ScalaCommand[PackageOptions] {
             val path = os.Path(artifactPath)
             ClassPathEntry.Resource(path.last, os.mtime(path), os.read.bytes(path))
           }
-          else {
+          else
             ClassPathEntry.Url(url)
-          }
       }
     val byteCodeEntry = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
 
@@ -504,9 +496,7 @@ object Package extends ScalaCommand[PackageOptions] {
       Files.write(mainJar, mainJarContent)
       f(mainJar)
     }
-    finally {
-      Files.deleteIfExists(mainJar)
-    }
+    finally Files.deleteIfExists(mainJar)
   }
 
   def withSourceJar[T](
@@ -520,9 +510,7 @@ object Package extends ScalaCommand[PackageOptions] {
       Files.write(jar, jarContent)
       f(jar)
     }
-    finally {
-      Files.deleteIfExists(jar)
-    }
+    finally Files.deleteIfExists(jar)
   }
 
   def linkJs(

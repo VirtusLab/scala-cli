@@ -11,8 +11,8 @@ import scala.concurrent.duration._
 def ghOrg  = "Virtuslab"
 def ghName = "scala-cli"
 
-private def computePublishVersion(state: VcsState, simple: Boolean): String = {
-  if (state.commitsSinceLastTag > 0) {
+private def computePublishVersion(state: VcsState, simple: Boolean): String =
+  if (state.commitsSinceLastTag > 0)
     if (simple) {
       val versionOrEmpty = state.lastTag
         .filter(_ != "latest")
@@ -46,13 +46,11 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String = {
       if (idx >= 0) rawVersion.take(idx) + "+" + rawVersion.drop(idx + 1) + "-SNAPSHOT"
       else rawVersion
     }
-  }
   else
     state
       .lastTag
       .getOrElse(state.format())
       .stripPrefix("v")
-}
 
 def finalPublishVersion = {
   val isCI = System.getenv("CI") != null

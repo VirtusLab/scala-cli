@@ -61,7 +61,7 @@ object ScriptPreprocessor {
 
   private val sheBangRegex: Regex = s"""(^(#!.*(\\r\\n?|\\n)?)+(\\s*!#.*)?)""".r
 
-  private def ignoreSheBangLines(content: String): String = {
+  private def ignoreSheBangLines(content: String): String =
     if (content.startsWith("#!")) {
       val regexMatch = sheBangRegex.findFirstMatchIn(content)
       regexMatch match {
@@ -73,10 +73,8 @@ object ScriptPreprocessor {
         case None => content
       }
     }
-    else {
+    else
       content
-    }
-  }
 
   private def preprocess(
     reportingPath: Either[String, os.Path],

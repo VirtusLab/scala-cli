@@ -30,9 +30,8 @@ class ConsoleBloopBuildClient(
 
   private val diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
 
-  def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]) = {
+  def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]) =
     generatedSources = newGeneratedSources
-  }
   def setProjectParams(newParams: Seq[String]): Unit = {
     projectParams = newParams
   }

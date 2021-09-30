@@ -256,9 +256,8 @@ object Inputs {
         val isStdin = (arg == "-.scala" || arg == "_" || arg == "_.scala") &&
           stdinOpt0.nonEmpty
         if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>")))
-        else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty) {
+        else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
           Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
-        }
         else if (arg.contains("://")) {
           val url =
             if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) s"$arg/download" else arg
@@ -284,10 +283,9 @@ object Inputs {
                       while ({
                         read = zipInputStream.read(buf)
                         read >= 0
-                      }) {
+                      })
                         if (read > 0)
                           baos.write(buf, 0, read)
-                      }
                       baos.toByteArray
                     }
                     readArchive(resolve(entry.getName, content) +: acc)
@@ -296,9 +294,8 @@ object Inputs {
                 }
               readArchive(Nil)
             }
-            else {
+            else
               List(resolve(url, content))
-            }
           }
         }
         else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))

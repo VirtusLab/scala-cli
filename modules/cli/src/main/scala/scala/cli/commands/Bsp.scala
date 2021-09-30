@@ -40,9 +40,7 @@ object Bsp extends ScalaCommand[BspOptions] {
         val doneFuture = bsp.run()
         Await.result(doneFuture, Duration.Inf)
       }
-      finally {
-        bsp.shutdown()
-      }
+      finally bsp.shutdown()
     }
   }
 }

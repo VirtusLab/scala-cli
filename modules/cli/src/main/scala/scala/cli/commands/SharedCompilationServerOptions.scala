@@ -91,10 +91,7 @@ final case class SharedCompilationServerOptions(
           case _: FileAlreadyExistsException =>
         }
       }
-      finally {
-        if (os.exists(tmpDir))
-          os.remove(tmpDir)
-      }
+      finally if (os.exists(tmpDir)) os.remove(tmpDir)
     }
     dir
   }
@@ -172,7 +169,7 @@ final case class SharedCompilationServerOptions(
 
   def bloopDefaultJvmOptions(logger: Logger): List[String] = {
     val file = new File(bloopGlobalOptionsFile)
-    if (file.exists() && file.isFile()) {
+    if (file.exists() && file.isFile())
       try {
         val reader = new BufferedReader(new FileReader(file))
         val gson   = new Gson()
@@ -180,12 +177,10 @@ final case class SharedCompilationServerOptions(
         json.javaOptions.toList
       }
       catch {
-        case e: Throwable => {
+        case e: Throwable =>
           e.printStackTrace()
           List.empty
-        }
       }
-    }
     else {
       logger.debug(s"Bloop global options file '${file.toPath().toAbsolutePath()}' not found.")
       List.empty

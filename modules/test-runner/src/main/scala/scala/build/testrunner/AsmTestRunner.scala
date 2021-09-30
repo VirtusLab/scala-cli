@@ -64,10 +64,7 @@ object AsmTestRunner {
       val reader = new asm.ClassReader(is0)
       reader.accept(checker, 0)
     }
-    finally {
-      if (is0 != null)
-        is0.close()
-    }
+    finally if (is0 != null) is0.close()
 
     val isModule              = className.endsWith("$")
     val hasPublicConstructors = checker.publicConstructorCount > 0
@@ -117,10 +114,7 @@ object AsmTestRunner {
           .toVector // fully consume stream before closing it
           .iterator
       }
-      finally {
-        if (stream != null)
-          stream.close()
-      }
+      finally if (stream != null) stream.close()
     }
     else if (keepJars && Files.isRegularFile(classPathEntry)) {
       import java.util.zip._
@@ -146,18 +140,12 @@ object AsmTestRunner {
               def openStream() = new ByteArrayInputStream(baos.toByteArray)
               (clsName, openStream _)
             }
-            finally {
-              if (is != null)
-                is.close()
-            }
+            finally if (is != null) is.close()
           }
           .toVector // fully consume ZipFile before closing it
           .iterator
       }
-      finally {
-        if (zf != null)
-          zf.close()
-      }
+      finally if (zf != null) zf.close()
     }
     else Iterator.empty
 
@@ -191,16 +179,10 @@ object AsmTestRunner {
             }) baos.write(buf, 0, read)
             baos.toByteArray
           }
-          finally {
-            if (is != null)
-              is.close()
-          }
+          finally if (is != null) is.close()
         }
       }
-      finally {
-        if (zf != null)
-          zf.close()
-      }
+      finally if (zf != null) zf.close()
     }
     else None
 
@@ -251,10 +233,7 @@ object AsmTestRunner {
             val reader = new asm.ClassReader(is0)
             reader.accept(checker, 0)
           }
-          finally {
-            if (is0 != null)
-              is0.close()
-          }
+          finally if (is0 != null) is0.close()
           val isFramework = parentInspector.allParents(name).contains("sbt/testing/Framework")
           if (isFramework && !checker.isAbstract && checker.publicConstructorCount == 1)
             Iterator(name)

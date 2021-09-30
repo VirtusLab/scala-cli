@@ -238,10 +238,9 @@ object SharedOptions {
       while ({
         read = in.read(buf)
         read >= 0
-      }) {
+      })
         if (read > 0)
           baos.write(buf, 0, read)
-      }
       val result = baos.toByteArray
       logger.debug(s"Done reading stdin (${result.length} B)")
       Some(result)

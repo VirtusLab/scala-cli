@@ -112,7 +112,7 @@ object Test extends ScalaCommand[TestOptions] {
         )
       }
 
-    if (retCode != 0) {
+    if (retCode != 0)
       if (exitOnError)
         sys.exit(retCode)
       else {
@@ -121,6 +121,5 @@ object Test extends ScalaCommand[TestOptions] {
         val reset    = Console.RESET
         System.err.println(s"${red}Program exited with return code $lightRed$retCode$red.$reset")
       }
-    }
   }
 }

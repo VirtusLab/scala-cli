@@ -38,7 +38,7 @@ object LocalRepo {
             while ({
               ent = zis.getNextEntry()
               ent != null
-            }) {
+            })
               if (!ent.isDirectory) {
                 val baos = new ByteArrayOutputStream
                 var read = -1
@@ -54,7 +54,6 @@ object LocalRepo {
                   createFolders = true
                 )
               }
-            }
           }
           finally {
             if (zis != null) zis.close()
@@ -94,13 +93,9 @@ object LocalRepo {
             channel = null
           }
         }
-        finally {
-          if (lock != null) lock.release()
-        }
+        finally if (lock != null) lock.release()
       }
-      finally {
-        if (channel != null) channel.close()
-      }
+      finally if (channel != null) channel.close()
     }
 
 }

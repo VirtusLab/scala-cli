@@ -199,10 +199,12 @@ object BloopServer {
       )
       f(server)
     }
+    // format: off
     finally {
       if (server != null)
         server.shutdown()
     }
+    // format: on
   }
 
 }

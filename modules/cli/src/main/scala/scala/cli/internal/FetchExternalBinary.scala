@@ -41,6 +41,11 @@ object FetchExternalBinary {
         else {
           logger.debug(s"Unzipping $f under $dir")
           val tmpDir = baseDir / s".${f.last.stripSuffix(".zip")}-content-${UUID.randomUUID()}"
+          def removeAll(): Unit =
+            try os.remove.all(tmpDir)
+            catch {
+              case _: IOException if Properties.isWin =>
+            }
           try {
             coursier.jvm.UnArchiver.default().extract(
               ArchiveType.Zip,
@@ -48,21 +53,15 @@ object FetchExternalBinary {
               tmpDir.toIO,
               overwrite = false
             )
-            if (!os.exists(dir)) {
+            if (!os.exists(dir))
               try os.move(tmpDir, dir, atomicMove = true)
               catch {
                 case ex: IOException =>
                   if (!os.exists(dir))
                     throw new Exception(ex)
               }
-            }
           }
-          finally {
-            try os.remove.all(tmpDir)
-            catch {
-              case _: IOException if Properties.isWin =>
-            }
-          }
+          finally removeAll()
         }
 
         val dirContent = os.list(dir)
@@ -88,10 +87,9 @@ object FetchExternalBinary {
             while ({
               read = gzis.read(buf)
               read >= 0
-            }) {
+            })
               if (read > 0)
                 fos.write(buf, 0, read)
-            }
             fos.flush()
           }
           finally {
@@ -118,12 +116,11 @@ object FetchExternalBinary {
     }
     val os =
       if (Properties.isWin) "pc-win32"
-      else if (Properties.isLinux) {
+      else if (Properties.isLinux)
         if (supportsMusl && OsLibc.isMusl.getOrElse(false))
           "pc-linux-static"
         else
           "pc-linux"
-      }
       else if (Properties.isMac) "apple-darwin"
       else sys.error(s"Unrecognized OS: ${sys.props("os.name")}")
     s"$arch-$os"

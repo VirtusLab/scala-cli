@@ -82,16 +82,15 @@ object Name {
     * avoid loading FastParse and ScalaParse entirely if we're running a cached script, which shaves
     * off 200-300ms of startup time.
     */
-  def backtickWrap(s: String) = {
+  def backtickWrap(s: String) =
     if (s.isEmpty) "``"
     else if (s(0) == '`' && s.last == '`') s
     else {
       val chunks = s.split("_", -1)
-      def validOperator(c: Char) = {
+      def validOperator(c: Char) =
         c.getType == Character.MATH_SYMBOL ||
         c.getType == Character.OTHER_SYMBOL ||
         "!#%&*+-/:<=>?@\\^|~".contains(c)
-      }
       val validChunks = chunks.zipWithIndex.forall { case (chunk, index) =>
         chunk.forall(c => c.isLetter || c.isDigit || c == '$') ||
           (
@@ -115,5 +114,4 @@ object Name {
 
       if (valid) s else '`' + s + '`'
     }
-  }
 }

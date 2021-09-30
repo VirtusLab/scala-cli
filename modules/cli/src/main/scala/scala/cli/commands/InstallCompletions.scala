@@ -94,7 +94,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         Charset.defaultCharset()
       )
 
-      if (options.logging.verbosity >= 0) {
+      if (options.logging.verbosity >= 0)
         if (updated) {
           System.err.println(s"Updated $rcFile")
           System.err.println(
@@ -104,7 +104,6 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         }
         else
           System.err.println(s"$rcFile already up-to-date")
-      }
     }
   }
 }

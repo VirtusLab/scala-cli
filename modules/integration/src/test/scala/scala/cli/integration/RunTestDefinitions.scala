@@ -431,7 +431,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |${tab}at scala.sys.package$$.error(package.scala:30)
              |${tab}at Throws$$.something(Throws.scala:3)
              |${tab}at Throws$$.main(Throws.scala:5)
-             |${tab}... 1 more
+             |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
         else if (actualScalaVersion.startsWith("2.13."))
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
@@ -441,7 +441,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |${tab}at scala.sys.package$$.error(package.scala:27)
              |${tab}at Throws$$.something(Throws.scala:3)
              |${tab}at Throws$$.main(Throws.scala:5)
-             |${tab}... 1 more
+             |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
         else
           s"""Exception in thread main: java.lang.Exception: Caught exception during processing
@@ -492,24 +492,24 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |Caused by: java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.<init>(throws.sc:6)
              |${tab}at throws$$.<clinit>(throws.sc)
-             |${tab}... 1 more
+             |$tab... 1 more
              |Caused by: java.lang.RuntimeException: nope
              |${tab}at scala.sys.package$$.error(package.scala:30)
              |${tab}at throws$$.something(throws.sc:2)
              |${tab}at throws$$.<init>(throws.sc:3)
-             |${tab}... 2 more
+             |$tab... 2 more
              |""".stripMargin.linesIterator.toVector
         else
           s"""Exception in thread "main" java.lang.ExceptionInInitializerError
              |${tab}at throws.main(throws.sc)
              |Caused by: java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.<clinit>(throws.sc:6)
-             |${tab}... 1 more
+             |$tab... 1 more
              |Caused by: java.lang.RuntimeException: nope
              |${tab}at scala.sys.package$$.error(package.scala:27)
              |${tab}at throws$$.something(throws.sc:2)
              |${tab}at throws$$.<clinit>(throws.sc:3)
-             |${tab}... 1 more
+             |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
       if (exceptionLines != expectedLines) {
         pprint.log(exceptionLines)
@@ -556,12 +556,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |${tab}at throws.main(throws.sc)
            |Caused by: java.lang.Exception: Caught exception during processing
            |${tab}at throws$$.<clinit>(throws.sc:8)
-           |${tab}... 1 more
+           |$tab... 1 more
            |Caused by: java.lang.RuntimeException: nope
            |${tab}at scala.sys.package$$.error(package.scala:27)
            |${tab}at throws$$.something(throws.sc:3)
            |${tab}at throws$$.<clinit>(throws.sc:5)
-           |${tab}... 1 more
+           |$tab... 1 more
            |""".stripMargin.linesIterator.toVector
       expect(exceptionLines == expectedLines)
     }
@@ -951,9 +951,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         val classDirAfter = os.Path(run(), os.pwd)
         expect(!classDirAfter.startsWith(root))
       }
-      finally {
-        os.perms.set(root / "dir", "rwxr-xr-x")
-      }
+      finally os.perms.set(root / "dir", "rwxr-xr-x")
     }
   }
   if (!Properties.isWin)
