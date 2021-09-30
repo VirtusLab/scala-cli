@@ -48,11 +48,11 @@ def platformExecutableJarExtension: String =
   if (Properties.isWin) ".bat"
   else ""
 
+lazy val arch = sys.props("os.arch").toLowerCase(java.util.Locale.ROOT) match {
+  case "amd64" => "x86_64"
+  case other   => other
+}
 def platformSuffix: String = {
-  val arch = sys.props("os.arch").toLowerCase(java.util.Locale.ROOT) match {
-    case "amd64" => "x86_64"
-    case other   => other
-  }
   val os =
     if (Properties.isWin) "pc-win32"
     else if (Properties.isLinux) "pc-linux"
@@ -156,7 +156,7 @@ trait CliLaunchers extends SbtModule { self =>
       if (Properties.isMac)
         copyIpcsocketMacATo(dir)
 
-      if (Properties.isLinux)
+      if (Properties.isLinux && arch == "x86_64")
         copyIpcsocketLinuxATo(dir)
 
       PathRef(dir)
