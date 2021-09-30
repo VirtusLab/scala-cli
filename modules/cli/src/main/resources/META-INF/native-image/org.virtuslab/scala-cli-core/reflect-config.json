@@ -795,6 +795,13 @@
     "allDeclaredFields": true
   },
   {
+      "name":"scala.cli.commands.BloopJson",
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+  },
+  {
     "name":"com.google.cloud.tools.jib.cache.LayerEntriesSelector$LayerEntryTemplate",
     "allDeclaredFields":true,
     "allDeclaredMethods":true,
@@ -935,8 +942,4 @@
     "name":"org.apache.commons.logging.impl.NoOpLog",
     "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
   },
-  {
-    "name":"org.apache.commons.logging.impl.WeakHashtable",
-    "methods":[{"name":"<init>","parameterTypes":[] }]
-  }
 ]

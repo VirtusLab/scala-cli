@@ -163,8 +163,6 @@ final case class SharedCompilationServerOptions(
   def minimumBloopVersion = Constants.bloopVersion
   def acceptBloopVersion  = Some((v: String) => Version(v) < Version(minimumBloopVersion))
 
-  case class BloopJson(javaHome: String, javaOptions: Array[String])
-
   def bloopDefaultJvmOptions(logger: Logger): List[String] = {
     val file = new File(bloopGlobalOptionsFile)
     if (file.exists() && file.isFile()) {
@@ -222,3 +220,5 @@ object SharedCompilationServerOptions {
   implicit val parser = Parser[SharedCompilationServerOptions]
   implicit val help   = Help[SharedCompilationServerOptions]
 }
+
+case class BloopJson(javaHome: String, javaOptions: Array[String])
