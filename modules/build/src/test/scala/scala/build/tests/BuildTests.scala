@@ -19,7 +19,7 @@ import scala.build.Ops._
 class BuildTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
-  val bloopConfig  = BloopRifleConfig.default(() => Bloop.bloopClassPath(Logger.nop), None)
+  val bloopConfig  = BloopRifleConfig.default(() => Bloop.bloopClassPath(Logger.nop))
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories     = Directories.under(extraRepoTmpDir)

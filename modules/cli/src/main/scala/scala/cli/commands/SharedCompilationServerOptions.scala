@@ -1,9 +1,10 @@
 package scala.cli.commands
 
 import caseapp._
+import com.google.gson.Gson
 import coursier.core.Version
 
-import java.io.File
+import java.io.{BufferedReader, File, FileReader}
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
 import java.util.Random
 
@@ -12,8 +13,7 @@ import scala.build.blooprifle.{BloopRifleConfig, BspConnectionAddress}
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.util.Properties
-
+import scala.util.Properties;
 
 // format: off
 final case class SharedCompilationServerOptions(
@@ -58,7 +58,10 @@ final case class SharedCompilationServerOptions(
   @Group("Compilation server")
     bloopDefaultJavaOpts: Boolean = true,
   @Group("Compilation server")
-    bloopJavaOpt: List[String] = Nil
+    bloopJavaOpt: List[String] = Nil,
+  @Group("Compilation server")
+  @HelpMessage("Bloop global options file")
+    bloopGlobalOptionsFile: String = (os.home / ".bloop" / "bloop.json").toNIO.toAbsolutePath().toString(),
 ) {
   // format: on
 
@@ -160,6 +163,30 @@ final case class SharedCompilationServerOptions(
   def minimumBloopVersion = Constants.bloopVersion
   def acceptBloopVersion  = Some((v: String) => Version(v) < Version(minimumBloopVersion))
 
+  case class BloopJson(javaHome: String, javaOptions: Array[String])
+
+  def bloopDefaultJvmOptions(logger: Logger): List[String] = {
+    val file = new File(bloopGlobalOptionsFile)
+    if (file.exists() && file.isFile()) {
+      try {
+        val reader = new BufferedReader(new FileReader(file))
+        val gson   = new Gson()
+        val json   = gson.fromJson(reader, classOf[BloopJson])
+        json.javaOptions.toList
+      }
+      catch {
+        case e: Throwable => {
+          e.printStackTrace()
+          List.empty
+        }
+      }
+    }
+    else {
+      logger.debug(s"Bloop global options file '${file.toPath().toAbsolutePath()}' not found.")
+      List.empty
+    }
+  }
+
   def bloopRifleConfig(
     logger: Logger,
     verbosity: Int,
@@ -167,7 +194,7 @@ final case class SharedCompilationServerOptions(
     directories: => scala.build.Directories
   ): BloopRifleConfig = {
     val baseConfig =
-      BloopRifleConfig.default(() => Bloop.bloopClassPath(logger), acceptBloopVersion)
+      BloopRifleConfig.default(() => Bloop.bloopClassPath(logger))
     val portOpt = bloopPort.filter(_ != 0) match {
       case Some(n) if n < 0 =>
         Some(scala.build.blooprifle.internal.Util.randomPort())
@@ -183,10 +210,12 @@ final case class SharedCompilationServerOptions(
       period = bloopBspCheckPeriodDuration.getOrElse(baseConfig.period),
       timeout = bloopBspTimeoutDuration.getOrElse(baseConfig.timeout),
       initTimeout = bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout),
-      javaOpts = (if (bloopDefaultJavaOpts) baseConfig.javaOpts else Nil) ++ bloopJavaOpt
+      javaOpts =
+        (if (bloopDefaultJavaOpts) baseConfig.javaOpts
+         else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions(logger),
+      acceptBloopVersion = acceptBloopVersion
     )
   }
-
 }
 
 object SharedCompilationServerOptions {

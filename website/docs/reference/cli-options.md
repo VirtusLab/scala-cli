@@ -96,6 +96,10 @@ Maximum duration to wait for compilation server to start up
 
 #### `--bloop-java-opt`
 
+#### `--bloop-global-options-file`
+
+Bloop global options file
+
 ## Compile options
 
 Available in commands:
