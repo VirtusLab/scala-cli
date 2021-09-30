@@ -1,7 +1,7 @@
 import mill._, scalalib._
 
 object Scala {
-  def scala212  = "2.12.14"
+  def scala212  = "2.12.15"
   def scala213  = "2.13.6"
   def scala3    = "3.0.2"
   val allScala2 = Seq(scala213, scala212)
@@ -41,7 +41,7 @@ object Deps {
     def scalaNative   = "0.4.0"
     def scalaPackager = "0.1.22"
   }
-  def ammonite          = ivy"com.lihaoyi:::ammonite:2.4.0-20-f3d8171f"
+  def ammonite          = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
   def asm               = ivy"org.ow2.asm:asm:9.1"
   def bloopConfig       = ivy"ch.epfl.scala::bloop-config:1.4.8-124-49a6348a"
   def bsp4j             = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
@@ -70,7 +70,7 @@ object Deps {
   def scalaJsLinker              = ivy"org.scala-js::scalajs-linker:${Versions.scalaJs}"
   def scalaJsLinkerInterface     = ivy"org.scala-js::scalajs-linker-interface:${Versions.scalaJs}"
   def scalaJsTestAdapter         = ivy"org.scala-js::scalajs-sbt-test-adapter:${Versions.scalaJs}"
-  def scalametaTrees             = ivy"org.scalameta::trees:4.4.21"
+  def scalametaTrees             = ivy"org.scalameta::trees:4.4.28"
   def scalaPackager              = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
   def scalaPackagerCli           = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
   def scalaparse                 = ivy"com.lihaoyi::scalaparse:2.3.2"
