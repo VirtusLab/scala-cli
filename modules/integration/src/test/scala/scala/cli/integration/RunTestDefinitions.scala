@@ -1010,4 +1010,37 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  def argsAsIsTest(): Unit = {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "MyScript.scala" ->
+          """#!/usr/bin/env scala-cli
+            |object MyScript {
+            |  def main(args: Array[String]): Unit =
+            |    println("Hello" + args.map(" " + _).mkString)
+            |}
+            |""".stripMargin
+      )
+    )
+    val launcherPath = TestUtil.cli match {
+      case Seq(cli) => os.Path(cli, os.pwd)
+      case other => sys.error(s"Expected CLI command to be just a path to a launcher (got $other)")
+    }
+    inputs.fromRoot { root =>
+      os.perms.set(root / "MyScript.scala", "rwxrwxr-x")
+      val binDir = root / "bin"
+      os.makeDir.all(binDir)
+      os.copy(launcherPath, binDir / "scala-cli")
+      val updatedPath =
+        binDir.toString + File.pathSeparator + Option(System.getenv("PATH")).getOrElse("")
+      val res = os.proc("/bin/bash", "-c", "./MyScript.scala from tests")
+        .call(cwd = root, env = Map("PATH" -> updatedPath))
+      expect(res.out.text.trim == "Hello from tests")
+    }
+  }
+  if (TestUtil.isNativeCli && !Properties.isWin)
+    test("should pass arguments as is") {
+      argsAsIsTest()
+    }
+
 }

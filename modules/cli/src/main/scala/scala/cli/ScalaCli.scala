@@ -3,6 +3,8 @@ package scala.cli
 import caseapp.core.app.CommandsEntryPoint
 import caseapp.core.help.RuntimeCommandsHelp
 
+import java.nio.file.InvalidPathException
+
 import scala.cli.commands._
 import scala.cli.internal.Argv0
 import scala.util.Properties
@@ -52,6 +54,18 @@ object ScalaCli extends CommandsEntryPoint {
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
 
+  private def isShebangFile(arg: String): Boolean = {
+    val pathOpt =
+      try Some(os.Path(arg, os.pwd))
+      catch {
+        case _: InvalidPathException => None
+      }
+    pathOpt.filter(os.isFile(_)).filter(_.toIO.canRead).exists { path =>
+      val content = os.read(path) // FIXME Charset?
+      content.startsWith(s"#!/usr/bin/env $progName" + System.lineSeparator())
+    }
+  }
+
   override def main(args: Array[String]): Unit = {
 
     if (Properties.isWin && isGraalvmNativeImage)
@@ -74,6 +88,11 @@ object ScalaCli extends CommandsEntryPoint {
       case _                   =>
     }
 
-    super.main(args)
+    val processedArgs =
+      if (args.lengthCompare(1) > 0 && isShebangFile(args(0)))
+        Array(args(0), "--") ++ args.tail
+      else
+        args
+    super.main(processedArgs)
   }
 }
