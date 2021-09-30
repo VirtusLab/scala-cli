@@ -406,4 +406,66 @@ class BuildTests extends munit.FunSuite {
       )
     }
   }
+
+  test("ignore files if wrong Scala version requirement via in clause") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """// require scala == 2.12 in my-scala-2.12/
+          |object Simple {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "my-scala-2.12" / "Ignored.scala" ->
+        """object Ignored {
+          |  def foo = 2
+          |}
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, maybeBuild) =>
+      maybeBuild.orThrow.assertGeneratedEquals(
+        "Simple.class",
+        "Simple$.class"
+      )
+    }
+  }
+  test("ignore files if wrong Scala target requirement via in clause") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """require scala.js in js-sources/
+          |object Simple {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "js-sources" / "Ignored.scala" ->
+        """object Ignored {
+          |  def foo = 2
+          |}
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, maybeBuild) =>
+      maybeBuild.orThrow.assertGeneratedEquals(
+        "Simple.class",
+        "Simple$.class"
+      )
+    }
+  }
+
+  test("Pass files with only commented directives as is to scalac") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """// using com.lihaoyi::pprint:0.6.6
+          |object Simple {
+          |  def main(args: Array[String]): Unit =
+          |    pprint.log("Hello " + "from tests")
+          |}
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, maybeBuild) =>
+      val sources = maybeBuild.toOption.get.sources
+      expect(sources.inMemory.isEmpty)
+      expect(sources.paths.lengthCompare(1) == 0)
+    }
+  }
 }

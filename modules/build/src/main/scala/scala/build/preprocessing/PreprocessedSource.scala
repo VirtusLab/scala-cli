@@ -6,6 +6,9 @@ sealed abstract class PreprocessedSource extends Product with Serializable {
   def options: Option[BuildOptions]
   def requirements: Option[BuildRequirements]
   def mainClassOpt: Option[String]
+
+  def scopedRequirements: Seq[PreprocessedSource.Scoped[BuildRequirements]]
+  def scopePath: PreprocessedSource.ScopePath
 }
 
 object PreprocessedSource {
@@ -14,8 +17,12 @@ object PreprocessedSource {
     path: os.Path,
     options: Option[BuildOptions],
     requirements: Option[BuildRequirements],
+    scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String]
-  ) extends PreprocessedSource
+  ) extends PreprocessedSource {
+    def scopePath: ScopePath =
+      ScopePath.fromPath(path)
+  }
   final case class InMemory(
     reportingPath: Either[String, os.Path],
     relPath: os.RelPath,
@@ -23,14 +30,19 @@ object PreprocessedSource {
     ignoreLen: Int,
     options: Option[BuildOptions],
     requirements: Option[BuildRequirements],
-    mainClassOpt: Option[String]
+    scopedRequirements: Seq[Scoped[BuildRequirements]],
+    mainClassOpt: Option[String],
+    scopePath: ScopePath
   ) extends PreprocessedSource
   final case class NoSourceCode(
     options: Option[BuildOptions],
     requirements: Option[BuildRequirements],
+    scopedRequirements: Seq[Scoped[BuildRequirements]],
     path: os.Path
   ) extends PreprocessedSource {
     def mainClassOpt: None.type = None
+    def scopePath: ScopePath =
+      ScopePath.fromPath(path)
   }
 
   private def index(s: PreprocessedSource): Int =
@@ -63,5 +75,30 @@ object PreprocessedSource {
         else idxCmp
       }
     }
+
+  final case class ScopePath(
+    root: String,
+    path: os.SubPath
+  ) {
+    def /(subPath: os.PathChunk): ScopePath =
+      copy(path = path / subPath)
+  }
+
+  object ScopePath {
+    def fromPath(path: os.Path): ScopePath = {
+      def root(p: os.Path): os.Path =
+        if (p.segmentCount > 0) root(p / os.up) else p
+      val root0 = root(path)
+      ScopePath(root0.toString, path.subRelativeTo(root0))
+    }
+  }
+
+  final case class Scoped[T](path: ScopePath, value: T) {
+    def appliesTo(candidate: ScopePath): Boolean =
+      path.root == candidate.root &&
+      candidate.path.startsWith(path.path)
+    def valueFor(candidate: ScopePath): Option[T] =
+      if (appliesTo(candidate)) Some(value) else None
+  }
 
 }

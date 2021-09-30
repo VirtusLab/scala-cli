@@ -43,14 +43,19 @@ case object ScalaPreprocessor extends Preprocessor {
     input match {
       case f: Inputs.ScalaFile =>
         val inferredClsName = {
-          val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, f.subPath)
+          val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(f.subPath)
           (pkg :+ wrapper).map(_.raw).mkString(".")
         }
         val res = either {
-          val source = value(process(f.path)) match {
+          val printablePath =
+            if (f.path.startsWith(Os.pwd)) f.path.relativeTo(Os.pwd).toString
+            else f.path.toString
+          val content   = os.read(f.path)
+          val scopePath = PreprocessedSource.ScopePath.fromPath(f.path)
+          val source = value(process(content, printablePath, scopePath / os.up)) match {
             case None =>
-              PreprocessedSource.OnDisk(f.path, None, None, Some(inferredClsName))
-            case Some((requirements, options, updatedCode)) =>
+              PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
+            case Some((requirements, scopedRequirements, options, Some(updatedCode))) =>
               PreprocessedSource.InMemory(
                 Right(f.path),
                 f.subPath,
@@ -58,6 +63,16 @@ case object ScalaPreprocessor extends Preprocessor {
                 0,
                 Some(options),
                 Some(requirements),
+                scopedRequirements,
+                Some(inferredClsName),
+                scopePath
+              )
+            case Some((requirements, scopedRequirements, options, None)) =>
+              PreprocessedSource.OnDisk(
+                f.path,
+                Some(options),
+                Some(requirements),
+                scopedRequirements,
                 Some(inferredClsName)
               )
           }
@@ -68,16 +83,19 @@ case object ScalaPreprocessor extends Preprocessor {
       case v: Inputs.VirtualScalaFile =>
         val res = either {
           val content = new String(v.content, StandardCharsets.UTF_8)
-          val (requirements, options, updatedContent) = value(process(content, v.source))
-            .getOrElse((BuildRequirements(), BuildOptions(), content))
+          val (requirements, scopedRequirements, options, updatedContentOpt) =
+            value(process(content, v.source, v.scopePath / os.up))
+              .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
           val s = PreprocessedSource.InMemory(
             Left(v.source),
             v.subPath,
-            updatedContent,
+            updatedContentOpt.getOrElse(content),
             0,
             Some(options),
             Some(requirements),
-            None
+            scopedRequirements,
+            None,
+            v.scopePath
           )
           Seq(s)
         }
@@ -87,37 +105,35 @@ case object ScalaPreprocessor extends Preprocessor {
         None
     }
 
-  def process(path: os.Path)
-    : Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = {
-    val printablePath =
-      if (path.startsWith(Os.pwd)) path.relativeTo(Os.pwd).toString
-      else path.toString
-    val content = os.read(path)
-    process(content, printablePath)
-  }
   def process(
     content: String,
-    printablePath: String
-  ): Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = either {
+    printablePath: String,
+    scopeRoot: PreprocessedSource.ScopePath
+  ): Either[BuildException, Option[(
+    BuildRequirements,
+    Seq[PreprocessedSource.Scoped[BuildRequirements]],
+    BuildOptions,
+    Option[String]
+  )]] = either {
 
     val afterUsing = value {
-      processUsing(content)
+      processUsing(content, scopeRoot)
         .sequence
     }
     val afterProcessImports =
-      processSpecialImports(afterUsing.map(_._3).getOrElse(content), printablePath)
+      processSpecialImports(afterUsing.flatMap(_._4).getOrElse(content), printablePath)
 
     if (afterUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
       val allRequirements    = afterUsing.map(_._1).toSeq ++ afterProcessImports.map(_._1).toSeq
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
-      val allOptions         = afterUsing.map(_._2).toSeq ++ afterProcessImports.map(_._2).toSeq
+      val allOptions         = afterUsing.map(_._3).toSeq ++ afterProcessImports.map(_._2).toSeq
       val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
-      val lastContent = afterProcessImports
+      val lastContentOpt = afterProcessImports
         .map(_._3)
-        .orElse(afterUsing.map(_._3))
-        .getOrElse(content)
-      Some((summedRequirements, summedOptions, lastContent))
+        .orElse(afterUsing.flatMap(_._4))
+      val scopedRequirements = afterUsing.map(_._2).getOrElse(Nil)
+      Some((summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
     }
   }
 
@@ -150,8 +166,13 @@ case object ScalaPreprocessor extends Preprocessor {
       }
   }
 
-  private def directivesBuildRequirements(directives: Seq[Directive])
-    : Either[BuildException, BuildRequirements] = {
+  private def directivesBuildRequirements(
+    directives: Seq[Directive],
+    scopeRoot: PreprocessedSource.ScopePath
+  ): Either[
+    BuildException,
+    (BuildRequirements, Seq[PreprocessedSource.Scoped[BuildRequirements]])
+  ] = {
     val results = directives
       .filter(_.tpe == Directive.Require)
       .map { dir =>
@@ -165,7 +186,13 @@ case object ScalaPreprocessor extends Preprocessor {
           case None =>
             Left(new UnusedDirectiveError(dir))
           case Some(Right(reqs)) =>
-            Right(reqs)
+            val value = dir.scope match {
+              case None => (reqs, Nil)
+              case Some(sc) =>
+                val scopePath = scopeRoot / os.SubPath(sc.split("/").toVector)
+                (BuildRequirements(), Seq(PreprocessedSource.Scoped(scopePath, reqs)))
+            }
+            Right(value)
           case Some(Left(err)) =>
             Left(new InvalidDirectiveError(dir, err))
         }
@@ -174,30 +201,41 @@ case object ScalaPreprocessor extends Preprocessor {
     results
       .sequence
       .left.map(CompositeBuildException(_))
-      .map { allReqs =>
-        allReqs.foldLeft(BuildRequirements())(_ orElse _)
+      .map { allValues =>
+        val allReqs       = allValues.map(_._1)
+        val allScopedReqs = allValues.flatMap(_._2)
+        (allReqs.foldLeft(BuildRequirements())(_ orElse _), allScopedReqs)
       }
   }
 
   private def processUsing(
-    content: String
-  ): Option[Either[BuildException, (BuildRequirements, BuildOptions, String)]] =
-    TemporaryDirectivesParser.parseDirectives(content).flatMap {
-      case (_, _) =>
-        // TODO Warn about unrecognized directives
-        // TODO Report via some diagnostics malformed directives
-
-        TemporaryDirectivesParser.parseDirectives(content).map {
-          case (directives, updatedContent) =>
-            val tuple = (
-              directivesBuildRequirements(directives),
-              directivesBuildOptions(directives),
-              Right(updatedContent)
-            )
-            tuple
-              .traverseN
-              .left.map(CompositeBuildException(_))
-        }
+    content: String,
+    scopeRoot: PreprocessedSource.ScopePath
+  ): Option[Either[
+    BuildException,
+    (
+      BuildRequirements,
+      Seq[PreprocessedSource.Scoped[BuildRequirements]],
+      BuildOptions,
+      Option[String]
+    )
+  ]] =
+    // TODO Warn about unrecognized directives
+    // TODO Report via some diagnostics malformed directives
+    TemporaryDirectivesParser.parseDirectives(content).map {
+      case (directives, updatedContentOpt) =>
+        val tuple = (
+          directivesBuildRequirements(directives, scopeRoot),
+          directivesBuildOptions(directives),
+          Right(updatedContentOpt)
+        )
+        tuple
+          .traverseN
+          .left.map(CompositeBuildException(_))
+          .map {
+            case ((reqs, scopedReqs), options, contentOpt) =>
+              (reqs, scopedReqs, options, contentOpt)
+          }
     }
 
   private def processSpecialImports(

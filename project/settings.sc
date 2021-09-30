@@ -595,6 +595,10 @@ trait ScalaCliScalafixModule extends ScalafixModule {
     else Some(os.pwd / ".scalafix3.conf")
   }
   def scalafixIvyDeps = super.scalafixIvyDeps() ++ Seq(
-    ivy"com.github.liancheng::organize-imports:0.5.0"
+    Deps.organizeImports
   )
+  def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ {
+    if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
+    else Nil
+  }
 }

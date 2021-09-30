@@ -2,7 +2,9 @@ package scala.build.preprocessing.directives
 
 final case class Directive(
   tpe: Directive.Type,
-  values: Seq[String]
+  values: Seq[String],
+  scope: Option[String],
+  isComment: Boolean
 )
 
 object Directive {

@@ -12,10 +12,16 @@ object TemporaryDirectivesParser {
     def sc = P(";")
     def nl = P(("\r".? ~ "\n").rep(1))
     def tpe = {
-      def usingTpe = P(ws.? ~ ("using" | "@using" | "// using"))
-        .map(_ => (Directive.Using: Directive.Type))
-      def requireTpe = P(ws.? ~ ("require" | "@require" | "// require"))
-        .map(_ => (Directive.Require: Directive.Type))
+      def commentedUsingTpe = P("// using")
+        .map(_ => (Directive.Using: Directive.Type, true))
+      def usingKeywordTpe = P("using" | "@using")
+        .map(_ => (Directive.Using: Directive.Type, false))
+      def usingTpe = P(ws.? ~ (commentedUsingTpe | usingKeywordTpe))
+      def commentedRequireTpe = P("// require")
+        .map(_ => (Directive.Require: Directive.Type, true))
+      def requireKeywordTpe = P("require" | "@require")
+        .map(_ => (Directive.Require: Directive.Type, false))
+      def requireTpe = P(ws.? ~ (commentedRequireTpe | requireKeywordTpe))
       P(usingTpe | requireTpe)
     }
 
@@ -32,18 +38,21 @@ object TemporaryDirectivesParser {
         P("\\\"").map(_ => "\"")
     )
     def quotedElem = P("\"" ~ charInQuote.rep ~ "\"").map(_.mkString)
-    def elem       = P(simpleElem | quotedElem)
+    def elem       = P(!("in" ~ (ws | "," | nl)) ~ (simpleElem | quotedElem))
 
     def parser = P(
       tpe ~ ws ~
-        elem.rep(1, sep = P(ws)).rep(1, sep = P(ws.? ~ "," ~ ws.?)) ~
+        (elem.rep(1, sep = P(ws)) ~ (ws ~ "in" ~ ws ~ elem).?).rep(1, sep = P(ws.? ~ "," ~ ws.?)) ~
         nl.? ~ sc.? ~
         nl.?
     )
 
     parser.map {
-      case (tpe0, allElems) =>
-        allElems.map(elems => Directive(tpe0, elems))
+      case (tpe0, isComment, allElems) =>
+        allElems.map {
+          case (elems, scopeOpt) =>
+            Directive(tpe0, elems, scopeOpt, isComment)
+        }
     }
   }
 
@@ -58,7 +67,7 @@ object TemporaryDirectivesParser {
     res.fold((err, _, _) => sys.error(err), (dirOpt, idx) => dirOpt.map((_, idx + fromIndex)))
   }
 
-  def parseDirectives(content: String): Option[(List[Directive], String)] = {
+  def parseDirectives(content: String): Option[(List[Directive], Option[String])] = {
 
     def helper(fromIndex: Int, acc: List[Directive]): (List[Directive], Int) =
       parseDirective(content, fromIndex) match {
@@ -72,12 +81,17 @@ object TemporaryDirectivesParser {
       assert(directives.isEmpty)
       None
     }
-    else
-      Some((
-        directives,
-        content.take(codeStartsAt).map(c => if (c.isControl) c else ' ') ++
-          content.drop(codeStartsAt)
-      ))
+    else {
+      val onlyCommentedDirectives = directives.forall(_.isComment)
+      val updatedContentOpt =
+        if (onlyCommentedDirectives) None
+        else
+          Some {
+            content.take(codeStartsAt).map(c => if (c.isControl) c else ' ') ++
+              content.drop(codeStartsAt)
+          }
+      Some((directives, updatedContentOpt))
+    }
   }
 
 }

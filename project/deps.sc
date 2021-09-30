@@ -1,16 +1,22 @@
 import mill._, scalalib._
 
 object Scala {
-  def scala212  = "2.12.14"
+  def scala212  = "2.12.15"
   def scala213  = "2.13.6"
   def scala3    = "3.0.2"
   val allScala2 = Seq(scala213, scala212)
   val all       = allScala2 ++ Seq(scala3)
 
-  def listAll: Seq[String] =
-    (6 to 13).map(i => s"2.12.$i") ++ Seq(scala212) ++
-      (0 to 5).map(i => s"2.13.$i") ++ Seq(scala213) ++
-      (0 to 1).map(i => s"3.0.$i") ++ Seq(scala3)
+  def listAll: Seq[String] = {
+    def patchVer(sv: String): Int =
+      sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
+    val max212 = patchVer(scala212)
+    val max213 = patchVer(scala213)
+    val max3   = patchVer(scala3)
+    (6 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
+      (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
+      (0 until max3).map(i => s"3.0.$i") ++ Seq(scala3)
+  }
 
   // The Scala version used to build the CLI itself.
   // We should be able to switch to 2.13.x when bumping the scala-native version.
@@ -32,10 +38,11 @@ object Deps {
   object Versions {
     def coursier      = "2.0.16+73-gddc6d9cc9"
     def scalaJs       = "1.5.1"
+    def scalaMeta     = "4.4.28"
     def scalaNative   = "0.4.0"
     def scalaPackager = "0.1.22"
   }
-  def ammonite          = ivy"com.lihaoyi:::ammonite:2.4.0-20-f3d8171f"
+  def ammonite          = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
   def asm               = ivy"org.ow2.asm:asm:9.1"
   def bloopConfig       = ivy"ch.epfl.scala::bloop-config:1.4.8-124-49a6348a"
   def bsp4j             = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
@@ -53,6 +60,7 @@ object Deps {
   def munit             = ivy"org.scalameta::munit:0.7.25"
   def nativeTestRunner  = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools       = ivy"org.scala-native::tools:${Versions.scalaNative}"
+  def organizeImports   = ivy"com.github.liancheng::organize-imports:0.5.0"
   def osLib             = ivy"com.lihaoyi::os-lib:0.7.5"
   def pprint            = ivy"com.lihaoyi::pprint:0.6.6"
   def prettyStacktraces = ivy"org.virtuslab::pretty-stacktraces:0.0.0+27-b9d69198-SNAPSHOT"
@@ -64,11 +72,12 @@ object Deps {
   def scalaJsLinker              = ivy"org.scala-js::scalajs-linker:${Versions.scalaJs}"
   def scalaJsLinkerInterface     = ivy"org.scala-js::scalajs-linker-interface:${Versions.scalaJs}"
   def scalaJsTestAdapter         = ivy"org.scala-js::scalajs-sbt-test-adapter:${Versions.scalaJs}"
-  def scalametaTrees             = ivy"org.scalameta::trees:4.4.21"
+  def scalametaTrees             = ivy"org.scalameta::trees:${Versions.scalaMeta}"
   def scalaPackager              = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
   def scalaPackagerCli           = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
   def scalaparse                 = ivy"com.lihaoyi::scalaparse:2.3.2"
   def scalaReflect(sv: String)   = ivy"org.scala-lang:scala-reflect:$sv"
+  def semanticDbScalac           = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                  = ivy"com.chuusai::shapeless:2.3.7"
   def slf4jNop                   = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   def snailgun                   = ivy"me.vican.jorge::snailgun-core:0.4.0"

@@ -26,7 +26,8 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               content,
               printablePath,
               codeWrapper,
-              script.subPath
+              script.subPath,
+              PreprocessedSource.ScopePath.fromPath(script.path)
             )
           }
           Seq(preprocessed)
@@ -43,7 +44,8 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               content,
               script.source,
               codeWrapper,
-              script.wrapperPath
+              script.wrapperPath,
+              script.scopePath
             )
           }
           Seq(preprocessed)
@@ -81,27 +83,27 @@ object ScriptPreprocessor {
     content: String,
     printablePath: String,
     codeWrapper: CodeWrapper,
-    subPath: os.SubPath
+    subPath: os.SubPath,
+    scopePath: PreprocessedSource.ScopePath
   ): Either[BuildException, PreprocessedSource.InMemory] = either {
 
     val contentIgnoredSheBangLines = ignoreSheBangLines(content)
 
-    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(Nil, subPath)
+    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
 
-    val (requirements, options, updatedCode) =
-      value(ScalaPreprocessor.process(contentIgnoredSheBangLines, printablePath))
-        .getOrElse((BuildRequirements(), BuildOptions(), contentIgnoredSheBangLines))
+    val (requirements, scopedRequirements, options, updatedCodeOpt) =
+      value(ScalaPreprocessor.process(contentIgnoredSheBangLines, printablePath, scopePath / os.up))
+        .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
       wrapper,
-      updatedCode
+      updatedCodeOpt.getOrElse(contentIgnoredSheBangLines)
     )
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
 
-    val components = className.split('.')
-    val relPath    = os.rel / components.init.toSeq / s"${components.last}.scala"
+    val relPath = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
     PreprocessedSource.InMemory(
       reportingPath,
       relPath,
@@ -109,7 +111,9 @@ object ScriptPreprocessor {
       topWrapperLen,
       Some(options),
       Some(requirements),
-      Some(className)
+      scopedRequirements,
+      Some(className),
+      scopePath
     )
   }
 
