@@ -10,7 +10,7 @@ on:
 
 jobs:
   jvm-tests:
-    timeout-minutes: 80
+    timeout-minutes: 120
     runs-on: ${{ matrix.OS }}
     strategy:
       fail-fast: false
@@ -57,7 +57,7 @@ jobs:
       run: .github/scripts/check_docs.sh
 
   native-tests:
-    timeout-minutes: 80
+    timeout-minutes: 120
     runs-on: ${{ matrix.OS }}
     strategy:
       fail-fast: false
@@ -91,7 +91,7 @@ jobs:
         COURSIER_JNI: force
 
   native-mostly-static-tests:
-    timeout-minutes: 80
+    timeout-minutes: 120
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -131,7 +131,7 @@ jobs:
         docker push virtuslab/scala-cli:latest
 
   native-static-tests:
-    timeout-minutes: 80
+    timeout-minutes: 120
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
