@@ -5,7 +5,7 @@ import coursier.core.Version
 
 import java.io.File
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
-import java.util.Random
+import java.util.{Locale, Random}
 
 import scala.build.blooprifle.internal.Constants
 import scala.build.blooprifle.{BloopRifleConfig, BspConnectionAddress}
@@ -61,6 +61,8 @@ final case class SharedCompilationServerOptions(
     bloopJavaOpt: List[String] = Nil
 ) {
   // format: on
+
+  import SharedCompilationServerOptions.{arch, isGraalvmNativeImage}
 
   private lazy val pidOrRandom: Either[Int, Int] =
     Option((new Pid).get()).map(_.intValue()).map(Right(_)).getOrElse {
@@ -133,8 +135,13 @@ final case class SharedCompilationServerOptions(
         Some(() => BspConnectionAddress.WindowsNamedPipe(bspPipeName()))
       else
         Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile(directories)))
+    def default =
+      if (isGraalvmNativeImage && arch != "x86_64")
+        None // tcp
+      else
+        namedSocket
     bloopBspProtocol.filter(_ != "default") match {
-      case None          => namedSocket
+      case None          => default
       case Some("tcp")   => None
       case Some("local") => namedSocket
       case Some(other) =>
@@ -192,4 +199,11 @@ final case class SharedCompilationServerOptions(
 object SharedCompilationServerOptions {
   implicit val parser = Parser[SharedCompilationServerOptions]
   implicit val help   = Help[SharedCompilationServerOptions]
+
+  private def isGraalvmNativeImage: Boolean =
+    sys.props.contains("org.graalvm.nativeimage.imagecode")
+  private def arch = sys.props("os.arch").toLowerCase(Locale.ROOT) match {
+    case "amd64" => "x86_64"
+    case other   => other
+  }
 }
