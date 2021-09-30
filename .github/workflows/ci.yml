@@ -41,21 +41,6 @@ jobs:
     - name: JVM integration tests
       run: ./mill -i integration.jvm.test
 
-  docs-tests:
-    # for now, lets run those tests only on ubuntu
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
-      with:
-        jvm: 8
-    - name: Test cookbooks
-      run: .github/scripts/check_docs.sh
-
   native-tests:
     timeout-minutes: 120
     runs-on: ${{ matrix.OS }}
@@ -154,6 +139,21 @@ jobs:
         retention-days: 2
     - name: Native integration tests
       run: ./mill -i integration.native-static.test
+
+  docs-tests:
+    # for now, lets run those tests only on ubuntu
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1.1.1
+      with:
+        jvm: 8
+    - name: Test cookbooks
+      run: .github/scripts/check_docs.sh
 
   checks:
     timeout-minutes: 15
