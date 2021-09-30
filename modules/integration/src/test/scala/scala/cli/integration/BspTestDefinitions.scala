@@ -360,7 +360,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
         .call(stderr = os.Pipe, check = false)
       expect(res.exitCode == 1)
-      expect(res.err.text().contains("Server didn't start"))
+      expect(res.err.text().contains("Server didn't start") || res.err.text().contains(
+        "java.lang.OutOfMemoryError: Garbage-collected heap size exceeded"
+      ))
     }
   }
 
