@@ -92,8 +92,7 @@ object BloopRifleConfig {
       host = defaultHost,
       port = defaultPort,
       javaPath = "java",
-      javaOpts =
-        defaultJavaOpts,
+      javaOpts = defaultJavaOpts,
       classPath = bloopClassPath,
       bspSocketOrPort = None,
       bspStdin = None,

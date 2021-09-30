@@ -13,7 +13,7 @@ import scala.build.blooprifle.{BloopRifleConfig, BspConnectionAddress}
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.util.Properties;
+import scala.util.Properties
 
 // format: off
 final case class SharedCompilationServerOptions(
@@ -61,7 +61,7 @@ final case class SharedCompilationServerOptions(
     bloopJavaOpt: List[String] = Nil,
   @Group("Compilation server")
   @HelpMessage("Bloop global options file")
-    bloopGlobalOptionsFile: String = (os.home / ".bloop" / "bloop.json").toNIO.toAbsolutePath().toString(),
+    bloopGlobalOptionsFile: String = (os.home / ".bloop" / "bloop.json").toString,
 ) {
   // format: on
 
@@ -220,5 +220,3 @@ object SharedCompilationServerOptions {
   implicit val parser = Parser[SharedCompilationServerOptions]
   implicit val help   = Help[SharedCompilationServerOptions]
 }
-
-case class BloopJson(javaHome: String, javaOptions: Array[String])
