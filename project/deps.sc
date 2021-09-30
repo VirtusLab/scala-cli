@@ -7,10 +7,16 @@ object Scala {
   val allScala2 = Seq(scala213, scala212)
   val all       = allScala2 ++ Seq(scala3)
 
-  def listAll: Seq[String] =
-    (6 to 13).map(i => s"2.12.$i") ++ Seq(scala212) ++
-      (0 to 5).map(i => s"2.13.$i") ++ Seq(scala213) ++
-      (0 to 1).map(i => s"3.0.$i") ++ Seq(scala3)
+  def listAll: Seq[String] = {
+    def patchVer(sv: String): Int =
+      sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
+    val max212 = patchVer(scala212)
+    val max213 = patchVer(scala213)
+    val max3   = patchVer(scala3)
+    (6 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
+      (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
+      (0 until max3).map(i => s"3.0.$i") ++ Seq(scala3)
+  }
 
   // The Scala version used to build the CLI itself.
   // We should be able to switch to 2.13.x when bumping the scala-native version.
