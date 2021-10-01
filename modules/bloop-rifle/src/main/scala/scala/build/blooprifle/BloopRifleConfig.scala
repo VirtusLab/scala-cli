@@ -86,8 +86,7 @@ object BloopRifleConfig {
   }
 
   def default(
-    bloopClassPath: () => Either[Throwable, Seq[File]],
-    acceptBloopVersion: Option[String => Boolean]
+    bloopClassPath: () => Either[Throwable, Seq[File]]
   ): BloopRifleConfig =
     BloopRifleConfig(
       host = defaultHost,
@@ -104,6 +103,6 @@ object BloopRifleConfig {
       startCheckPeriod = 100.millis,
       startCheckTimeout = 1.minute,
       initTimeout = 30.seconds,
-      acceptBloopVersion = acceptBloopVersion
+      acceptBloopVersion = None
     )
 }

@@ -795,6 +795,13 @@
     "allDeclaredFields": true
   },
   {
+      "name":"scala.cli.commands.BloopJson",
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+  },
+  {
     "name":"com.google.cloud.tools.jib.cache.LayerEntriesSelector$LayerEntryTemplate",
     "allDeclaredFields":true,
     "allDeclaredMethods":true,
