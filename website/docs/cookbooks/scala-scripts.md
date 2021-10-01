@@ -5,7 +5,7 @@ sidebar_position: 3
 
 ### Run 
 
-To run your Scala scripts without any setup enviromnet, just use `scala-cli` to run it:
+You can use `scala-cli` to run Scala scripts (no further setup is required):
 
 ```scala name:HelloScript.sc
 val sv = scala.util.Properties.versionNumberString
@@ -26,7 +26,7 @@ Hello from Scala *, Java *
 -->
 
 
-Or you can add shebang header and run as Scala Script like `bash` scripts. Thus, to run Scala Script, `PATH` must contain` scala-cli` path.
+Alternatively, add a shebang header to your script, make your script executable, and execute it directly. `scala-cli` needs to be installed for this to work.
 
 ```scala name:HelloScriptSheBang.sc
 #!/usr/bin/env scala-cli
@@ -46,10 +46,10 @@ chmod +x HelloScriptSheBang.sc
 # Hello from Scala 2.13.6, Java 16.0.1
 ```
 
-### Debug 
+### Watch mode
 
-ScalaCli provides debug mode using the `--watch` parameter to observe all files and re-run project if it detects a change in at least one file.
+Pass `--watch` to the Scala CLI to watch all sources for changes, and re-run them upon changes.
 
 ```bash
-scala-cli run --watch HelloScript.sc
+scala-cli --watch HelloScript.sc
 ```

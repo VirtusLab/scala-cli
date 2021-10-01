@@ -1,5 +1,5 @@
 ---
-title: Picking Scala version with scala-cli
+title: Picking a Scala version with Scala CLI
 sidebar_position: 1
 ---
 

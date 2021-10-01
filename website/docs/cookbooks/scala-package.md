@@ -1,10 +1,10 @@
 ---
-title: Package scala application to executable file
+title: Package Scala application as an executable file
 sidebar_position: 2
 ---
 
-ScalaCli allows you to package your application into `bootstrap` JAR file, that can be easily run.
-It only contains the source byte code with no dependencies that must be automatically downloaded on first run.
+Scala CLI allows you to package your application into a lightweight JAR file, that can be easily run.
+It only contains the byte code of your sources, and automatically downloads its dependencies on its first run.
 
 The following snippet contains a short application to detect the OS:
 ```scala name:DetectOsApp.scala
@@ -17,9 +17,9 @@ object DetectOSApp extends App  {
 }
 ```
 
-### Default format (Bootstrap)
+### Default format (lightweight launcher)
 
-scala-cli `package` command generate executable `DetectOsApp` bootstrap file. 
+By default, the `package` sub-command generates a lightweight JAR.
 
 ```scala-cli
 scala-cli package DetectOsApp.scala
@@ -30,7 +30,7 @@ Wrote DetectOsApp, run it with
   ./DetectOsApp
 -->
 
-Bootstrap format require, that `java` command is available in the `PATH` and access to internet. 
+Lightweight JARs require the `java` command to be available, and access to internet if dependencies need to be downloaded.
 
 ```bash
 # Run DetectOsApp on MacOs 
@@ -47,13 +47,13 @@ root@b0459df02263:/app# ./DetectOsApp
 
 
 ### Assemblies
-scala-cli `package --assembly` command generate executable `assemblies` or `fat JARs` file. 
+Passing `--assembly` to the `package` sub-command generates so-called "assemblies" or "fat JARs". 
 
 ```scala-cli
 scala-cli package --assembly DetectOsApp.scala
 ```
 
-The Assemblies format also requires that the `java` command be available in` PATH`, but in this case all dependencies are packed into file, so there is no need to automatically download anything before first run.
+Assemblies also require the `java` command to be available in the `PATH`. As all dependencies are packaged into the assembly, nothing gets downloaded upon the first run and no internet access is required.
 
 ```bash
 # Run DetectOsApp on MacOs 
