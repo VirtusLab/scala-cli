@@ -52,10 +52,4 @@ ScalaCli provides debug mode using the `--watch` parameter to observe all files 
 
 ```bash
 scala-cli run --watch HelloScript.sc
-# Hello from Scala 2.13.6, Java 16.0.1
-# Watching sources, press Ctrl+C to exit.
-# Compiling project (Scala 3.0.2, JVM)
-# Compiled project (Scala 3.0.2, JVM)
-# Re-run using --watch mode - Hello from Scala 2.13.6, Java 16.0.1
-# Watching sources, press Ctrl+C to exit.
 ```

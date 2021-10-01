@@ -6,7 +6,7 @@ sidebar_position: 2
 ScalaCli allows you to package your application into `bootstrap` JAR file, that can be easily run.
 It only contains the source byte code with no dependencies that must be automatically downloaded on first run.
 
-The following snippect contains short application to detecting the OS:
+The following snippet contains a short application to detect the OS:
 ```scala name:DetectOsApp.scala
 object DetectOSApp extends App  {
     def getOperatingSystem(): String = {
