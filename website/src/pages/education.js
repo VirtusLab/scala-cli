@@ -1,20 +1,24 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
-import TitleSection from '../components/TitleSection';
-import Section from '../components/Section';
 import allFeatures from '../components/features';
+import {HeaderSection, TitledSection} from '../components/Layouts'
+
 
 const Index = (props) => {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout title="Education" description="Page describing why Scala CLI is good within educational purposes, mainly learning Scala.">
       <div className="container padding--sm content">
-        <TitleSection><h1>Scala CLI for Education</h1></TitleSection>
+        <HeaderSection
+          image="img/fast-scala-cli.gif"
+        >
+          <h1>Learn a language not a build tool</h1>
 
-        <Section>
-          <p>TODO: describe why Scala CLI is a perfect for learning Scala! Plus some image?</p>
-        </Section>
+          <p>Scala-cli is deigned in a way so you can focus on learning, not struggle with installation or build tool.</p>
+        </HeaderSection>
+      
+        <h1>Education with Scala CLI</h1>
 
         {allFeatures().filter(f => f.props.education)}
       </div>

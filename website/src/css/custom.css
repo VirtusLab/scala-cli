@@ -108,3 +108,13 @@
 .feature-row:nth-child(even) .col--1:first-child {
   display: none;
 }
+
+
+.headerSection {
+  border: gold 1px solid;
+  border-radius: 5px;
+}
+
+.headerSection img {
+  border-bottom: 3px red outset;
+}
