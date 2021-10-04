@@ -1,5 +1,5 @@
 ---
-title: Test your code with java 8 
+title: Test your code with different Java versions
 sidebar_position: 4
 ---
 
@@ -12,14 +12,12 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 object Main extends App {
-    val filePath = Files.writeString(
-      Files.createTempFile(
-        Paths.get("").toAbsolutePath(),
-        "scala-cli",
-        ".txt"
-      ),
-      "Hello from ScalaCli"
-    )
+    val dest = Files.createTempFile(
+       Paths.get("").toAbsolutePath(),
+       "scala-cli",
+       ".txt"
+    ) 
+    val filePath = Files.writeString(dest, "Hello from ScalaCli")
     val fileContent: String = Files.readString(filePath)
   }
  ```
@@ -28,7 +26,7 @@ object Main extends App {
 Passing `--jvm` to the `scala-cli` command and run your application with the specified java version.
 
 ```scala-cli 
-scala-cli Main.scala --jvm adopt:11
+scala-cli Main.scala --jvm 11
 ```
 
 <!-- Expected:
@@ -36,7 +34,7 @@ scala-cli Main.scala --jvm adopt:11
 
 To test your application with java 8, change the value of `--jvm` parameter.
 ```bash
-scala-cli Main.scala  --jvm adopt:8
+scala-cli Main.scala  --jvm 8
 # In this case, it raises an error because the `Files.createTempFile` method is not available in java 8
 #
 # Exception in thread main: java.lang.Exception: java.lang.NoSuchMethodError: java.nio.file.Files.writeString(Ljava/nio/file/Path;Ljava/lang/CharSequence;[Ljava/nio/file/OpenOption;)Ljava/nio/file/Path;
