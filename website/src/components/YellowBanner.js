@@ -1,5 +1,6 @@
 import React from 'react';
 import Section from './Section';
+import ThemedImage from '@theme/ThemedImage';
 
 export default function YellowBanner(props){ 
   return <Section className="section-yellow-banner">
@@ -12,7 +13,14 @@ export default function YellowBanner(props){
 			</div>
 			<div className="col col--6">
 				<div className="image-wrapper">
-					<div className="image" style={{ backgroundImage : `url(${props.image})` }}></div>
+          <ThemedImage
+            className="image"
+            alt={props.image}
+            sources={{
+              light: `img/${props.image}`,
+              dark: `img/dark/${props.image}`,
+            }}
+            />
 				</div>
 			</div>
 		</div>

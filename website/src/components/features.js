@@ -1,14 +1,9 @@
 import React from 'react';
-import Link from '@docusaurus/Link';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from '@theme/Layout';
-import BasicInstall from "../components/basicInstall"
-import ThemedImage from '@theme/ThemedImage';
 
 import ImageBox from '../components/ImageBox';
 
-const ImageBoxList = [
-    <ImageBox image="envs.gif" title="Scala versions, dependencies and JVMs" 
+const featuresList = [
+    <ImageBox image="versions.svg" title="Scala versions, dependencies and JVMs" 
       key="versions" projects="true"> 
       <p>
         Scala CLI is built on top of coursier
@@ -22,7 +17,7 @@ const ImageBoxList = [
         No need to fluff with installing JVM or setting up PATH. 
       </p>
     </ImageBox>,
-    <ImageBox image="envs.gif" title="Universal tool" key="universal" 
+    <ImageBox image="universal_tool.svg" title="Universal tool" key="universal" 
       projects="true">
       <p>
         If you want to use older <b>version of Scala</b> or
@@ -45,8 +40,8 @@ const ImageBoxList = [
         </p>
     </ImageBox>,
     <ImageBox 
-        image="todo.svg" 
-        title="Complete installation" key="complete-install" education="true">
+        image="complete-install.svg" title="Complete installation"
+        key="complete-install" education="true">
           <p>
             Scala CLI comes with batteries included. No additional installation is required, no more fluffing with setting up the correct Java version or <code>PATH</code>
           </p>
@@ -55,8 +50,8 @@ const ImageBoxList = [
           </p>
       </ImageBox>,
       <ImageBox 
-       image="todo.svg" 
-       title="Solid defaults" key="defaults" education="true">
+       image="defaults.svg" title="Solid defaults" 
+       key="defaults" education="true">
          <p>
            No additional configuration is needed to most Scala CLI commands.
          </p>
@@ -65,7 +60,8 @@ const ImageBoxList = [
          </p>
      </ImageBox>,
       <ImageBox 
-      image="todo.svg" title="No learning curve" key="curve" education="true">
+      image="learning_curve.svg" title="No learning curve" 
+      key="curve" education="true">
         <p>
           Scala CLI does not use complex configuration language, its options are simple and self-explanatory
         </p>
@@ -74,13 +70,13 @@ const ImageBoxList = [
         </p>
     </ImageBox>,
     <ImageBox 
-      image="todo.svg" title="Scripts are as powerful as other programs" key="scripts-as-apps" scripting="true">
+      image="powerful_scripts.svg" title="Scripts are as powerful as other programs" key="scripts-as-apps" scripting="true">
         <p>
-          Scripts in Scala CLI can use dependencies and other ImageBoxs as standard Scala programs. Scala CLI is command-line first giving access to all its ImageBox without need for any configuration file or specific project structure.
+          Scripts in Scala CLI can use dependencies and other features as standard Scala programs. Scala CLI is command-line first giving access to all its features without need for any configuration file or specific project structure.
         </p>
     </ImageBox>,
     <ImageBox 
-      image="todo.svg" title="Embbedale Scripts" key="embed-scripts" scripting="true">
+      image="embbedable_scripts.svg" title="Embbedale Scripts" key="embed-scripts" scripting="true">
         <p>
           Scala CLI can be included in shebangs making your .scala or .sc files runnable
         </p>
@@ -89,7 +85,7 @@ const ImageBoxList = [
         </p>
     </ImageBox>,
     <ImageBox 
-      image="todo.svg" title="Fast Scripts" key="fast-scripts" scripting="true">
+      image="fast-scripts.svg" title="Fast Scripts" key="fast-scripts" scripting="true">
         <p>
           Scala CLI provides multiple ways to reduce the biggest problem of JVM-based scripting solutions: slow start time. Scala CLI aggressively caches inputs removing need for recompilations.
         </p>
@@ -98,7 +94,7 @@ const ImageBoxList = [
         </p>
     </ImageBox>,
     <ImageBox 
-      image="todo.svg" title="Support for .sc files" key="sc-files-support" scripting="true">
+      image="sc-files-support.svg" title="Support for .sc files" key="sc-files-support" scripting="true">
         <p>
           Scala CLI is backwards compatible with ammonite scripts.
         </p>
@@ -110,18 +106,18 @@ const ImageBoxList = [
     // Prototyping
 
     <ImageBox 
-      image="todo.svg" title="Self-contained examples" key="self-contained-examples" prototyping="true">
+      image="self-contained-examples.svg" title="Self-contained examples" 
+      key="self-contained-examples" prototyping="true">
       <p>
         With Scala CLI, configuration can be included in source code so complex examples can be self-contained and shipped as e.g. gist. Moreover, Scala CLI can compile, run and test gists without any manual work!
       </p>
       <p>
         Scala CLI is a perfect tool to submit and reproduce bugs
       </p>
-    </ImageBox>,
-  
+    </ImageBox>
     
 ]
 
 export default function allImageBoxs() {  
-  return ImageBoxList 
+  return featuresList 
 }

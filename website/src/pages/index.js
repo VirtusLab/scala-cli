@@ -22,7 +22,7 @@ const Index = (props) => {
       <div className="container content">
 
 		{/* Headline */}
-		<YellowBanner title="Scala CLI is a command-line tool to interact with Scala language." image="img/envs.gif">
+		<YellowBanner title="Scala CLI is a command-line tool to interact with Scala language." image="demo.svg">
 			<p>
 				It allows to compile, run, test, package (and more) your Scala code.
 			</p>
