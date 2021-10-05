@@ -5,7 +5,7 @@ sidebar_position: 4
 
 You can use Scala CLI to test your code compatibility with various versions of `java` (no manual installation of java is required).It automatically downloads the specified version of java.
 
-The following snippet used the new method `Files.writeString` from `java` 11. 
+The following snippet uses the new method `Files.writeString` from Java 11. 
 
 ```scala name:Main.scala
 import java.nio.file.Files
@@ -23,7 +23,7 @@ object Main extends App {
  ```
 
 
-Passing `--jvm` to the `scala-cli` command and run your application with the specified java version.
+Pass `--jvm` to the `scala-cli` command to run your application with the specified java version.
 
 ```scala-cli 
 scala-cli Main.scala --jvm 11
@@ -32,7 +32,7 @@ scala-cli Main.scala --jvm 11
 <!-- Expected:
 -->
 
-To test your application with java 8, change the value of `--jvm` parameter.
+To test your application with Java 8, change the value of `--jvm` parameter.
 ```bash
 scala-cli Main.scala  --jvm 8
 # In this case, it raises an error because the `Files.createTempFile` method is not available in java 8
