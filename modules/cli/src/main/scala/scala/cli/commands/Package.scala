@@ -242,7 +242,7 @@ object Package extends ScalaCommand[PackageOptions] {
             ).build()
         }
       case PackageType.Docker =>
-        docker(inputs, build, mainClass(), () => alreadyExistsCheck(), logger)
+        docker(inputs, build, mainClass(), logger)
     }
 
     if (!build.options.packageOptions.isDockerEnabled) {
@@ -342,10 +342,9 @@ object Package extends ScalaCommand[PackageOptions] {
     inputs: Inputs,
     build: Build.Successful,
     mainClass: String,
-    alreadyExistsCheck: () => Unit,
     logger: Logger
   ): Unit = {
-    if (Properties.isMac || Properties.isWin) {
+    if (build.options.scalaNativeOptions.enable && (Properties.isMac || Properties.isWin)) {
       System.err.println(
         "Package scala native application to docker image is not supported on MacOs and Windows"
       )
@@ -382,7 +381,7 @@ object Package extends ScalaCommand[PackageOptions] {
     if (build.options.scalaJsOptions.enable) buildJs(build, appPath, mainClass)
     else if (build.options.scalaNativeOptions.enable)
       buildNative(inputs, build, appPath, mainClass, logger)
-    else bootstrap(build, appPath, mainClass, alreadyExistsCheck)
+    else bootstrap(build, appPath, mainClass, () => false)
 
     logger.message(
       "Started building docker image with your application, it would take some time"
