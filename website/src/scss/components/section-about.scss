@@ -1,0 +1,115 @@
+
+.section-about{
+
+    &__wrapper{
+        @media ( max-width: 375px){
+            padding: 0 20px;
+        }
+    }
+
+    .big-title{
+        font-family: Roboto Mono;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 36px;
+        line-height: 48px;
+
+        @media ( max-width: 998px){
+            font-size: 32px;
+            line-height: 44px;
+        }
+
+        @media ( max-width: 375px){
+            font-size: 28px;
+            line-height: 34px;
+
+            margin-bottom: 15px;
+        }
+
+        .pre-title-mobile{
+            color: #DE3D3B;
+
+            @media ( min-width: 376px){
+                display: none;
+            }
+        }
+
+        &.pre-title{
+            text-align: right;
+            padding-left: 20px;
+            color: #DE3D3B;
+
+            @media ( max-width: 375px){
+                display: none;
+            }
+        }
+    }
+
+    .description{
+        font-family: Segoe UI;
+        font-style: normal;
+        font-weight: normal;
+        font-size: 20px;
+        line-height: 36px;
+
+        @media ( max-width: 375px){
+            font-size: 17px;
+            line-height: 30px;
+        }
+
+        a{
+            color: #F23135;
+
+            &:hover,
+            &:focus{
+                color: #AF3A38;
+            }
+        }
+
+        span{
+            display: inline-block;
+            padding: 3px 10px;
+            background: #FFD583;
+            border-radius: 4px;
+
+            font-family: Roboto Mono;
+            font-style: normal;
+            font-weight: normal;
+            font-size: 16px;
+            line-height: 24px;
+
+            @media ( max-width: 375px){
+                font-size: 15px;
+                line-height: 20px;
+            }
+        }
+
+        p{
+            margin-bottom: 25px;
+
+            @media ( max-width: 375px){
+                margin-bottom: 15px;
+            }
+
+            &:last-child{
+                margin-bottom: 0;
+            }
+        }
+    }
+
+}
+
+html[data-theme="dark"]{
+    .section-about{
+        .description{
+            span{
+                background-color: #3F456E;
+            }
+        }
+    }
+
+    .big-title:not(.pre-title){
+        color: #FFD583;
+
+    }
+}

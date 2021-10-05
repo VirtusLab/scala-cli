@@ -18,8 +18,10 @@
     "@docusaurus/preset-classic": "2.0.0-alpha.73",
     "@mdx-js/react": "^1.6.21",
     "clsx": "^1.1.1",
+    "docusaurus-plugin-sass": "^0.2.1",
     "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react-dom": "^17.0.1",
+    "sass": "^1.42.1"
   },
   "browserslist": {
     "production": [

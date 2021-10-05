@@ -1,0 +1,131 @@
+
+
+.section-image-box{
+
+    &__row{
+        &.image-left{
+            .section-image-box__row-text{
+                order: 2;
+
+                @media ( max-width: 375px){
+                    order: 1;
+               } 
+            }
+            .section-image-box__row-image{
+                order: 1;
+
+                @media ( max-width: 375px){
+                     order: 2;
+                } 
+            }
+        }
+    }
+    
+    &__row{
+        margin-bottom: 80px;
+        align-items: center;
+
+        &:nth-child(even) {
+            flex-direction: row-reverse;
+            .left-margin-stub {
+                display: none;
+            }
+        }
+
+        &:nth-child(odd) {
+            .right-margin-stub {
+                display: none;
+            }
+        }
+
+
+
+        @media ( max-width: 375px){
+            margin-bottom: 80px;
+        }
+
+        &-image{
+            &-wrapper{
+                border: 1px dashed #828282;
+                border-radius: 12px;
+
+                @media ( max-width: 375px){
+                    border: none;
+                    border-radius: 0;
+                }
+
+                img{
+                    box-shadow: 0px 40px 40px -30px rgba(227, 50, 47, 0.25);
+                    filter: drop-shadow(0px 20px 40px rgba(227, 50, 47, 0.1));
+                    border-radius: 6px;
+                    margin: 20px;
+                    width: calc(100% - 40px);
+                    height: auto;
+
+                    @media ( max-width: 375px){
+                        margin: 30px 0 0 0;
+                        width: 100%;
+                    }
+                }
+            }
+        }
+
+        &-text{
+            &-wrapper{
+                @media ( max-width: 375px){
+                    padding: 0 20px !important;
+                }
+
+                h3{
+                    font-family: Roboto Mono;
+                    font-style: normal;
+                    font-weight: bold;
+
+                    font-size: 20px;
+                    line-height: 24px;
+                    margin-bottom: 30px;
+
+                    @media ( max-width: 375px){
+                        font-size: 18px;
+                        line-height: 24px;
+                        margin-bottom: 15px;
+                    }
+                }
+
+                .content{
+                    font-family: Segoe UI;
+                    font-style: normal;
+                    font-weight: normal;
+                    font-size: 16px;
+                    line-height: 28px;
+
+                    @media ( max-width: 375px){
+                        font-size: 15px;
+                        line-height: 25px;
+                    }
+
+                    p{
+                        margin-bottom: 25px;
+
+                        @media ( max-width: 375px){
+                            margin-bottom: 15px;
+                        }
+
+                        &:last-child{
+                            margin-bottom: 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+html[data-theme="dark"]{
+    .section-image-box{
+        .section-image-box__row-image-wrapper{
+            border-color: #F23135;
+        }
+    }
+}

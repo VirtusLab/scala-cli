@@ -1,7 +1,6 @@
 import React from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
-import TitleSection from '../components/TitleSection';
 import Section from '../components/Section';
 import allFeatures from '../components/features';
 import {HeaderSection, TitledSection} from '../components/Layouts'
@@ -23,7 +22,6 @@ const Index = (props) => {
         <h1>Scripting with Scala CLI</h1>
 
 
-        {allFeatures().filter(f => f.props.scripting)}
       </div>
     </Layout>
   );

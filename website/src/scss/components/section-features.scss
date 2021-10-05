@@ -1,0 +1,99 @@
+
+.section-features{
+
+    &__item{
+
+        @media ( max-width: 375px){
+            margin-bottom: 30px;
+        }
+
+        &-wrapper{
+            max-width: 300px;
+            margin: 0 auto;
+            text-align: center;
+ 
+            @media ( max-width: 375px){
+                text-align: left;
+            }
+
+            .icon{
+                margin-bottom: 25px;
+
+                @media ( max-width: 375px){
+                    margin-bottom: 15px;
+                }
+
+                img{
+                    border-radius: 500px;
+                    width: 65px; height: 65px;
+                    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+                    box-shadow: 0px 10px 15px rgba(227, 50, 47, 0.15), 0px 10px 10px -30px rgba(227, 50, 47, 0.25);
+
+                    @media ( max-width: 375px){
+                        width: 48px; height: 48px;
+                    }
+                }
+            }
+
+            .title{
+                font-family: Roboto Mono;
+                font-style: normal;
+                font-weight: 500;
+                font-size: 20px;
+                line-height: 24px;
+                margin-bottom: 20px;
+
+                @media ( max-width: 998px){
+                    font-size: 18px;
+                    line-height: 24px;
+                }
+
+                @media ( max-width: 375px){
+                    margin-bottom: 10px;
+                }
+                
+            }
+
+            .desc{
+                font-size: 16px;
+                line-height: 28px;
+                letter-spacing: 0.01em;
+                font-weight: 400;
+
+                @media ( max-width: 998px){
+                    font-size: 15px;
+                    line-height: 25px;
+                }
+
+                @media ( max-width: 375px){
+
+                }
+
+                strong{
+                    font-weight: 600;
+                }
+
+                a{
+                    color: #1c1c1c;
+
+                    &:hover{
+                        color: #F23135;
+                    }
+                }
+            }
+        }
+    }
+}
+
+html[data-theme="dark"] {
+    .section-features{
+        a{
+            color: #fafafa;
+
+            &:hover{
+                color: #F23135;
+            }
+        }
+    }
+}
+
