@@ -25,8 +25,8 @@ if [ ! -f "$CACHE_DEST" ]; then
   echo "Downloading $SCALA_CLI_URL"
   curl -fLo "$TMP_DEST" "$SCALA_CLI_URL"
   mv "$TMP_DEST" "$CACHE_DEST"
-  gunzip -k $CACHE_DEST
-  chmod +x $SCALA_CLI_BIN_PATH
+  gunzip -k "$CACHE_DEST"
+  chmod +x "$SCALA_CLI_BIN_PATH"
 fi
 
-exec $SCALA_CLI_BIN_PATH "$@"
+exec "$SCALA_CLI_BIN_PATH" "$@"
