@@ -11,8 +11,16 @@ final case class InstallHomeOptions(
   @Name("f")
   @HelpMessage("Overwrite scala-cli if exists")
     force: Boolean = false,
-)
-// format: on
+  @HelpMessage("Binary name")
+    binaryName: String = "scala-cli",
+  @HelpMessage("Print the env update")
+    env: Boolean = false,
+  @HelpMessage("Binary directory")
+    binDir: Option[String] = None
+) {
+  // format: on
+  lazy val binDirPath = binDir.map(os.Path(_, os.pwd))
+}
 
 object InstallHomeOptions {
   implicit lazy val parser: Parser[InstallHomeOptions] = Parser.derive

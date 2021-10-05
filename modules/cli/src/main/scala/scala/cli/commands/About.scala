@@ -9,6 +9,7 @@ object About extends ScalaCommand[AboutOptions] {
   def run(options: AboutOptions, args: RemainingArgs): Unit = {
     val version            = Constants.version
     val detailedVersionOpt = Some(Constants.detailedVersion).filter(_ != version)
-    println(s"Scala CLI version $version" + detailedVersionOpt.fold("")(" (" + _ + ")"))
+    if (options.version) println(version)
+    else println(s"Scala CLI version $version" + detailedVersionOpt.fold("")(" (" + _ + ")"))
   }
 }
