@@ -54,7 +54,7 @@ const FeatureList = [
       <p>Switching between platforms or Scala versions is as easy as changing a parameter.</p>
     </Feature>,
     <Feature 
-      image="https://user-images.githubusercontent.com/1408093/68486864-dd9f2b00-01f6-11ea-9291-d3a7ce6ef225.png" 
+      image="buildtools.png" 
       title="We do not call Scala CLI a build tool" key="buildtool" projects="true">
         <p>
           Scala CLI shares some similarities with build tools,
@@ -66,7 +66,7 @@ const FeatureList = [
         </p>
     </Feature>,
     <Feature 
-        image="todo.gif" 
+        image="todo.svg" 
         title="Complete installation" key="complete-install" education="true">
           <p>
             Scala CLI comes with batteries included. No additional installation is required, no more fluffing with setting up the correct Java version or <code>PATH</code>
@@ -76,7 +76,7 @@ const FeatureList = [
           </p>
       </Feature>,
       <Feature 
-       image="todo.gif" 
+       image="todo.svg" 
        title="Solid defaults" key="defaults" education="true">
          <p>
            No additional configuration is needed to most Scala CLI commands.
@@ -86,7 +86,7 @@ const FeatureList = [
          </p>
      </Feature>,
       <Feature 
-      image="todo.gif" title="No learning curve" key="curve" education="true">
+      image="todo.svg" title="No learning curve" key="curve" education="true">
         <p>
           Scala CLI does not use complex configuration language, its options are simple and self-explanatory
         </p>
@@ -95,13 +95,13 @@ const FeatureList = [
         </p>
     </Feature>,
     <Feature 
-      image="todo.gif" title="Scripts are as powerful as other programs" key="scripts-as-apps" scripting="true">
+      image="todo.svg" title="Scripts are as powerful as other programs" key="scripts-as-apps" scripting="true">
         <p>
           Scripts in Scala CLI can use dependencies and other features as standard Scala programs. Scala CLI is command-line first giving access to all its feature without need for any configuration file or specific project structure.
         </p>
     </Feature>,
     <Feature 
-      image="todo.gif" title="Embbedale Scripts" key="embed-scripts" scripting="true">
+      image="todo.svg" title="Embbedale Scripts" key="embed-scripts" scripting="true">
         <p>
           Scala CLI can be included in shebangs making your .scala or .sc files runnable
         </p>
@@ -110,7 +110,7 @@ const FeatureList = [
         </p>
     </Feature>,
     <Feature 
-      image="todo.gif" title="Fast Scripts" key="fast-scripts" scripting="true">
+      image="todo.svg" title="Fast Scripts" key="fast-scripts" scripting="true">
         <p>
           Scala CLI provides multiple ways to reduce the biggest problem of JVM-based scripting solutions: slow start time. Scala CLI aggressively caches inputs removing need for recompilations.
         </p>
@@ -119,7 +119,7 @@ const FeatureList = [
         </p>
     </Feature>,
     <Feature 
-      image="todo.gif" title="Support for .sc files" key="sc-files-support" scripting="true">
+      image="todo.svg" title="Support for .sc files" key="sc-files-support" scripting="true">
         <p>
           Scala CLI is backwards compatible with ammonite scripts.
         </p>
@@ -131,7 +131,7 @@ const FeatureList = [
     // Prototyping
 
     <Feature 
-      image="todo.gif" title="Self-contained examples" key="self-contained-examples" prototyping="true">
+      image="todo.svg" title="Self-contained examples" key="self-contained-examples" prototyping="true">
       <p>
         With Scala CLI, configuration can be included in source code so complex examples can be self-contained and shipped as e.g. gist. Moreover, Scala CLI can compile, run and test gists without any manual work!
       </p>

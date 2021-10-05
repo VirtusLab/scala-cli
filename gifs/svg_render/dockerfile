@@ -1,0 +1,11 @@
+FROM node:12.18.1
+
+RUN npm install -g svg-term-cli
+
+RUN mkdir /profiles
+
+COPY dark /profiles/
+COPY light /profiles/
+
+
+ENTRYPOINT ls -al /profiles && svg-term $*
