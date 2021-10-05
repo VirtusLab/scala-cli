@@ -45,6 +45,18 @@ Available in commands:
 
 Aliases: `-f`
 
+## Bsp options
+
+Available in commands:
+- [`bsp`](./commands#bsp)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--json-options`
+
+Path to a json file containing BSP configuration
+
 ## Compilation server options
 
 Available in commands:

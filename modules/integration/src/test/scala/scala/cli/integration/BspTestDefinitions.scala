@@ -125,34 +125,65 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     expect(expectedPrefixes.exists(uri.startsWith))
   }
 
-  test("setup-ide") {
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "simple.sc" ->
-          s"""val msg = "Hello"
-             |println(msg)
-             |""".stripMargin
-      )
+  def readBspConfig(root: os.Path, f: (Details) => Unit): Unit = {
+    val bspFile = root / ".bsp" / "scala-cli.json"
+    expect(os.isFile(bspFile))
+    val json = ujson.read(
+      os.read(bspFile: os.ReadablePath, charSet = Codec(Charset.defaultCharset()))
     )
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions).call(cwd = root, stdout = os.Inherit)
-      val bspFile = root / ".bsp" / "scala-cli.json"
-      expect(os.isFile(bspFile))
-      val json = ujson.read(
-        os.read(bspFile: os.ReadablePath, charSet = Codec(Charset.defaultCharset()))
-      )
-      // check that we can decode the connection details
-      val details = upickle.default.read(json)(detailsCodec)
-      expect(details.argv.length >= 2)
-      expect(details.argv(1) == "bsp")
-    }
+    // check that we can decode the connection details
+    val details = upickle.default.read(json)(detailsCodec)
+    f(details)
   }
+
+  for (command <- Seq("setup-ide", "compile", "run"))
+    test(command + " should result in generated bsp file") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "simple.sc" ->
+            s"""val msg = "Hello"
+               |println(msg)
+               |""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
+        readBspConfig(
+          root,
+          details => {
+            expect(details.argv.length >= 2)
+            expect(details.argv(1) == "bsp")
+            expect(details.argv(3) == "--json-options")
+            expect(Paths.get(details.argv(4)).isAbsolute())
+          }
+        )
+
+        val scalaCliBspConfigFile = root / ".scala" / "scala-cli-bsp.json"
+        expect(scalaCliBspConfigFile.toIO.exists())
+      }
+    }
+  })
 
   val importPprintOnlyProject = TestInputs(
     Seq(
       os.rel / "simple.sc" -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`"
     )
   )
+
+  test("setup-ide should have only absolute path if relative one was specified") {
+    importPprintOnlyProject.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", "./" + root.last, extraOptions).call(
+        cwd = os.Path(root.toIO.getParentFile().toPath()),
+        stdout = os.Inherit
+      )
+      readBspConfig(
+        root,
+        details => {
+          expect(details.argv.find(_ == root.toIO.getAbsolutePath()).isDefined)
+        }
+      )
+    }
+  }
 
   test("setup-ide should succeed for valid dependencies") {
     importPprintOnlyProject.fromRoot { root =>

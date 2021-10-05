@@ -10,6 +10,7 @@ object Compile extends ScalaCommand[CompileOptions] {
   override def group                                  = "Main"
   override def sharedOptions(options: CompileOptions) = Some(options.shared)
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
+    SetupIde.run(SetupIdeOptions(shared = options.shared), args, previousCommandName = Some(name))
 
     val inputs = options.shared.inputsOrExit(args)
 

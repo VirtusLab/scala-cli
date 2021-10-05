@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
+import upickle.default.{ReadWriter => RW, _}
 
 import scala.build.Logger
 import scala.cli.internal.CliLogger
@@ -32,4 +33,9 @@ object LoggingOptions {
   lazy val parser: Parser[LoggingOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[LoggingOptions, parser.D] = parser
   implicit lazy val help: Help[LoggingOptions]                      = Help.derive
+  implicit val rwCounter: RW[Int @@ Counter] = readwriter[ujson.Value].bimap[Int @@ Counter](
+    x => ujson.Num(Tag.unwrap(x)),
+    json => Tag.of(json.num.toInt)
+  )
+  implicit val rw: RW[LoggingOptions] = macroRW
 }

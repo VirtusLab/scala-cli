@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
+import upickle.default.{ReadWriter => RW, macroRW}
 
 import scala.build.options
 
@@ -43,4 +44,5 @@ object ScalaJsOptions {
   lazy val parser: Parser[ScalaJsOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[ScalaJsOptions, parser.D] = parser
   implicit lazy val help: Help[ScalaJsOptions]                      = Help.derive
+  implicit lazy val rw: RW[ScalaJsOptions] = macroRW
 }

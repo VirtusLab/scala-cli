@@ -20,7 +20,6 @@ object Run extends ScalaCommand[RunOptions] {
     run(options, args, () => Inputs.default())
 
   def run(options: RunOptions, args: RemainingArgs, defaultInputs: () => Option[Inputs]): Unit = {
-
     val inputs = options.shared.inputsOrExit(args, defaultInputs = defaultInputs)
 
     val initialBuildOptions = options.buildOptions
@@ -40,6 +39,7 @@ object Run extends ScalaCommand[RunOptions] {
       )
 
     val cross = options.compileCross.cross.getOrElse(false)
+    SetupIde.run(SetupIdeOptions(shared = options.shared), args, previousCommandName = Some(name))
 
     if (options.watch.watch) {
       val watcher = Build.watch(

@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.cache.{CacheLogger, FileCache}
+import upickle.default.{ReadWriter => RW, macroRW}
 
 import scala.concurrent.duration.Duration
 
@@ -26,4 +27,5 @@ object CoursierOptions {
   lazy val parser: Parser[CoursierOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[CoursierOptions, parser.D] = parser
   implicit lazy val help: Help[CoursierOptions]                      = Help.derive
+  implicit val jsonCodec: RW[CoursierOptions] = macroRW
 }

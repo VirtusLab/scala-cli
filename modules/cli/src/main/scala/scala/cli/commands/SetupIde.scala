@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 import ch.epfl.scala.bsp4j.BspConnectionDetails
 import com.google.gson.GsonBuilder
+import upickle.default._
 
 import java.io.File
 import java.nio.charset.Charset
@@ -40,7 +41,14 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     joinedBuildOpts.artifacts(logger)
   }
 
-  def run(options: SetupIdeOptions, args: RemainingArgs): Unit = {
+  def run(options: SetupIdeOptions, args: RemainingArgs): Unit =
+    run(options, args, previousCommandName = None)
+
+  def run(
+    options: SetupIdeOptions,
+    args: RemainingArgs,
+    previousCommandName: Option[String]
+  ): Unit = {
 
     val rawArgv = argvOpt.getOrElse {
       System.err.println("setup-ide called in a non-standard way :|")
@@ -52,41 +60,35 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     if (options.buildOptions.classPathOptions.extraDependencies.nonEmpty)
       downloadDeps(inputs, options.buildOptions, logger).orExit(logger)
 
-    val argv = {
-      val commandIndex = rawArgv.indexOf("setup-ide")
-      val withBspCommand =
-        if (commandIndex < 0) rawArgv // shouldn't happen
-        else rawArgv.take(commandIndex) ++ Array("bsp") ++ rawArgv.drop(commandIndex + 1)
-
-      // Ensure the path to the CLI is absolute
-      val progName = rawArgv(0)
-      if (progName.contains(File.pathSeparator)) {
-        val absoluteProgPath = os.FilePath(progName).resolveFrom(Os.pwd).toString
-        absoluteProgPath +: withBspCommand.drop(1)
-      }
-      else withBspCommand
-    }
-
-    val name = options.bspName.map(_.trim).filter(_.nonEmpty).getOrElse("scala-cli")
-
-    val details = new BspConnectionDetails(
-      name,
-      argv.toList.asJava,
-      Constants.version,
-      scala.build.blooprifle.internal.Constants.bspVersion,
-      List("scala", "java").asJava
-    )
-
-    val gson = new GsonBuilder().setPrettyPrinting().create()
-
-    val json = gson.toJson(details)
-
     val dir = options.bspDirectory
       .filter(_.nonEmpty)
       .map(os.Path(_, Os.pwd))
       .getOrElse(inputs.workspace / ".bsp")
 
-    val dest = dir / s"$name.json"
+    val bspName            = options.bspName.map(_.trim).filter(_.nonEmpty).getOrElse("scala-cli")
+    val bspJsonDestination = dir / s"$bspName.json"
+    val scalaCliBspJsonDestination = inputs.workspace / ".scala" / "scala-cli-bsp.json"
+
+    // Ensure the path to the CLI is absolute
+    val progName =
+      if (rawArgv(0).contains(File.separator)) {
+        os.FilePath(rawArgv(0)).resolveFrom(Os.pwd).toString
+      }
+      else rawArgv(0)
+
+    val details = new BspConnectionDetails(
+      bspName,
+      List(
+        progName,
+        "bsp",
+        inputs.workspace.toNIO.toAbsolutePath.toString(),
+        "--json-options",
+        scalaCliBspJsonDestination.toString
+      ).asJava,
+      Constants.version,
+      scala.build.blooprifle.internal.Constants.bspVersion,
+      List("scala", "java").asJava
+    )
 
     val charset = options.charset
       .map(_.trim)
@@ -94,9 +96,21 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       .map(Charset.forName)
       .getOrElse(Charset.defaultCharset()) // Should it be UTF-8?
 
-    os.write.over(dest, json.getBytes(charset), createFolders = true)
+    val gson = new GsonBuilder().setPrettyPrinting().create()
 
-    if (options.shared.logging.verbosity >= 0)
-      System.err.println(s"Wrote $dest")
+    val json                      = gson.toJson(details)
+    val scalaCliOptionsForBspJson = write(options.shared)
+
+    if (!previousCommandName.isDefined || !bspJsonDestination.toIO.exists()) {
+      os.write.over(bspJsonDestination, json.getBytes(charset), createFolders = true)
+      os.write.over(
+        scalaCliBspJsonDestination,
+        scalaCliOptionsForBspJson.getBytes(charset),
+        createFolders = true
+      )
+      if (options.shared.logging.verbosity >= 0) {
+        options.shared.logger.debug(s"Wrote $bspJsonDestination")
+      }
+    }
   }
 }
