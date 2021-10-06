@@ -226,7 +226,7 @@ object Runner {
         )
       }
     fwOpt match {
-      case Some(fw) => Right(fw.replace('/', '.'))
+      case Some(fw) => Right(fw.replace('/', '.').replace('\\', '.'))
       case None     => Left(new NoTestFrameworkFoundError)
     }
   }

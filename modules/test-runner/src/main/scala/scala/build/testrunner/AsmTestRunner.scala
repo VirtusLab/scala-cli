@@ -306,7 +306,12 @@ object AsmTestRunner {
       }
       .map {
         case (clsName, fp) =>
-          new TaskDef(clsName, fp, false, Array(new SuiteSelector))
+          new TaskDef(
+            clsName.replace('/', '.').replace('\\', '.'),
+            fp,
+            false,
+            Array(new SuiteSelector)
+          )
       }
 
   def main(args: Array[String]): Unit = {
@@ -320,6 +325,7 @@ object AsmTestRunner {
       .orElse(findFramework(classPath, TestRunner.commonTestFrameworks, parentCache))
       .getOrElse(sys.error("No test framework found"))
       .replace('/', '.')
+      .replace('\\', '.')
 
     val framework = classLoader
       .loadClass(frameworkClassName)

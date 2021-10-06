@@ -358,6 +358,8 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         Seq(
           os.rel / "MyTests.scala" ->
             """using "com.lihaoyi::utest::0.7.10"
+              |
+              |package mytests
               |import utest._
               |
               |object MyTests extends TestSuite {
