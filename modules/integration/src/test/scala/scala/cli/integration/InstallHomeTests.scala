@@ -64,6 +64,8 @@ class InstallHomeTests extends munit.FunSuite {
       // install 1 version
       installScalaCli(root, binDummyScalaCliFirst, force = true)
 
+      println(binDirPath / dummyScalaCliBinName)
+
       val v1Install = os.proc(binDirPath / dummyScalaCliBinName).call(
         cwd = root,
         stdin = os.Inherit

@@ -16,7 +16,8 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
 
   def run(options: InstallHomeOptions, args: RemainingArgs): Unit = {
 
-    val binDirPath         = scala.build.Directories.default().binRepoDir / "scala-cli"
+    val binDirPath =
+      options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
     val newScalaCliBinPath = os.Path(options.scalaCliBinaryPath, os.pwd)
 
     val newVersion: String =
