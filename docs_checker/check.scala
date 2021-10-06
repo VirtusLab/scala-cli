@@ -1,6 +1,6 @@
 // using scala 3.0.2
 // using "org.scalameta::munit:0.7.29"
-// using com.lihaoyi:ammonite-ops_2.13:2.4.0
+// using com.lihaoyi::os-lib:0.7.8
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -11,7 +11,6 @@ import scala.util.matching.Regex
 
 import munit.Assertions.assert
 import java.io.File
-import ammonite.ops
 
 val ScalaCodeBlock = """ *```scala name\:([\w\.]+)+""".r
 val CodeBlockEnds  = """ *```""".r
@@ -89,8 +88,8 @@ def checkFile(file: Path, dest: Option[Path]) =
       case None => Files.createTempDirectory(destName)
       case Some(dir) =>
         val out = dir.resolve(destName)
-        ops.rm(ammPath(out))
-        ops.mkdir(ammPath(out))
+        os.remove.all(ammPath(out))
+        os.makeDir(ammPath(out))
         out
   var lastOutput = ""
   val allSources = Set.newBuilder[Path]
@@ -133,18 +132,18 @@ def checkFile(file: Path, dest: Option[Path]) =
               )
             }
     }
-  finally if dest.isEmpty then ops.rm(ammPath(out))
+  finally if dest.isEmpty then os.remove(ammPath(out))
 
   // remove empty space at begining of all files
   if dest.nonEmpty then
     val header = s"File was generated from based on ${file}, do not edit manually!"
     allSources.result().foreach { s =>
-      val content = ops.read.lines(ammPath(s)).dropWhile(_ == fakeLineMarker)
+      val content = os.read.lines(ammPath(s)).dropWhile(_ == fakeLineMarker)
         .mkString(s"// $header\n\n", "\n", "")
-      ops.write.over(ammPath(s), content)
+      os.write.over(ammPath(s), content)
     }
     val readmeLines = List("<!--", "  " + header, "-->", "") ++ content
-    ops.write(ammPath(out.resolve("README.md")), readmeLines.mkString("\n"))
+    os.write(ammPath(out.resolve("README.md")), readmeLines.mkString("\n"))
 
 @main def check(args: String*) =
   def processFiles(dest: Option[Path], files: Seq[String]) =
