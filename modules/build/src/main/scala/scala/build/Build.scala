@@ -134,7 +134,10 @@ object Build {
 
     def doBuild(buildOptions: BuildOptions) = either {
 
-      val inputs0 = updateInputs(inputs, options)
+      val inputs0 = updateInputs(
+        inputs,
+        options // update hash in inputs with options coming from the CLI, not from the sources
+      )
 
       val generatedSources = sources.generateSources(inputs0.generatedSrcRoot)
       buildClient.setProjectParams(value(buildOptions.projectParams))
