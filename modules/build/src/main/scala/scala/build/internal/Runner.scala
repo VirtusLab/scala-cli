@@ -6,7 +6,14 @@ import sbt.testing.{Framework, Status}
 import java.io.File
 import java.nio.file.{Files, Path, Paths}
 
+import scala.build.EitherCps.{either, value}
 import scala.build.Logger
+import scala.build.errors.{
+  NoFrameworkFoundByBridgeError,
+  NoTestFrameworkFoundError,
+  TestError,
+  TooManyFrameworksFoundByBridgeError
+}
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
 import scala.scalanative.{build => sn}
 import scala.util.Properties
@@ -203,8 +210,8 @@ object Runner {
   private def frameworkName(
     classPath: Seq[Path],
     parentInspector: AsmTestRunner.ParentInspector
-  ): String =
-    AsmTestRunner.findFrameworkService(classPath)
+  ): Either[NoTestFrameworkFoundError, String] = {
+    val fwOpt = AsmTestRunner.findFrameworkService(classPath)
       .orElse {
         AsmTestRunner.findFramework(
           classPath,
@@ -212,15 +219,18 @@ object Runner {
           parentInspector
         )
       }
-      .getOrElse(sys.error("No test framework found"))
-      .replace('/', '.')
+    fwOpt match {
+      case Some(fw) => Right(fw.replace('/', '.'))
+      case None     => Left(new NoTestFrameworkFoundError)
+    }
+  }
 
   def testJs(
     classPath: Seq[Path],
     entrypoint: File,
     args: Seq[String],
     testFrameworkOpt: Option[String]
-  ): Int = {
+  ): Either[TestError, Int] = either {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
     import org.scalajs.logging.ScalaConsoleLogger
@@ -238,24 +248,30 @@ object Runner {
     var adapter: TestAdapter = null
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val frameworkName0  = testFrameworkOpt.getOrElse(frameworkName(classPath, parentInspector))
-
-    try {
-      adapter = new TestAdapter(jsEnv, inputs, adapterConfig)
-
-      val frameworks = adapter.loadFrameworks(List(List(frameworkName0))).flatten
-
-      if (frameworks.isEmpty)
-        sys.error("No framework found by Scala.JS test bridge")
-      else if (frameworks.length > 1)
-        sys.error("Too many frameworks found by Scala.JS test bridge")
-      else {
-        val framework = frameworks.head
-        val success   = runTests(classPath, framework, args, parentInspector)
-        if (success) 0 else 1
-      }
+    val frameworkName0 = testFrameworkOpt match {
+      case Some(fw) => fw
+      case None     => value(frameworkName(classPath, parentInspector))
     }
-    finally if (adapter != null) adapter.close()
+
+    val res =
+      try {
+        adapter = new TestAdapter(jsEnv, inputs, adapterConfig)
+
+        val frameworks = adapter.loadFrameworks(List(List(frameworkName0))).flatten
+
+        if (frameworks.isEmpty)
+          Left(new NoFrameworkFoundByBridgeError)
+        else if (frameworks.length > 1)
+          Left(new TooManyFrameworksFoundByBridgeError)
+        else {
+          val framework = frameworks.head
+          val success   = runTests(classPath, framework, args, parentInspector)
+          Right(if (success) 0 else 1)
+        }
+      }
+      finally if (adapter != null) adapter.close()
+
+    value(res)
   }
 
   def testNative(
@@ -264,12 +280,15 @@ object Runner {
     frameworkNameOpt: Option[String],
     args: Seq[String],
     nativeLogger: sn.Logger
-  ): Int = {
+  ): Either[TestError, Int] = either {
 
     import scala.scalanative.testinterface.adapter.TestAdapter
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val frameworkName0  = frameworkNameOpt.getOrElse(frameworkName(classPath, parentInspector))
+    val frameworkName0 = frameworkNameOpt match {
+      case Some(fw) => fw
+      case None     => value(frameworkName(classPath, parentInspector))
+    }
 
     val config = TestAdapter.Config()
       .withBinaryFile(launcher)
@@ -277,21 +296,25 @@ object Runner {
       .withLogger(nativeLogger)
 
     var adapter: TestAdapter = null
-    try {
-      adapter = new TestAdapter(config)
 
-      val frameworks = adapter.loadFrameworks(List(List(frameworkName0))).flatten
+    val res =
+      try {
+        adapter = new TestAdapter(config)
 
-      if (frameworks.isEmpty)
-        sys.error("No framework found by Scala-Native test bridge")
-      else if (frameworks.length > 1)
-        sys.error("Too many frameworks found by Scala-Native test bridge")
-      else {
-        val framework = frameworks.head
-        val success   = runTests(classPath, framework, args, parentInspector)
-        if (success) 0 else 1
+        val frameworks = adapter.loadFrameworks(List(List(frameworkName0))).flatten
+
+        if (frameworks.isEmpty)
+          Left(new NoFrameworkFoundByBridgeError)
+        else if (frameworks.length > 1)
+          Left(new TooManyFrameworksFoundByBridgeError)
+        else {
+          val framework = frameworks.head
+          val success   = runTests(classPath, framework, args, parentInspector)
+          Right(if (success) 0 else 1)
+        }
       }
-    }
-    finally if (adapter != null) adapter.close()
+      finally if (adapter != null) adapter.close()
+
+    value(res)
   }
 }
