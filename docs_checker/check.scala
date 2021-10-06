@@ -14,7 +14,7 @@ import java.io.File
 
 val ScalaCodeBlock = """ *```scala name\:([\w\.]+)+""".r
 val CodeBlockEnds  = """ *```""".r
-val ScalaCliBlock  = """ *```scala-cli""".r
+val ScalaCliBlock  = """ *```scala-cli( +fail)?""".r
 val CheckBlock     = """ *\<\!\-\- Expected(-regex):""".r
 val CheckBlockEnd  = """ *\-\-\>""".r
 
@@ -22,7 +22,7 @@ enum Commands:
   def context: Context
 
   case Snippet(name: String, lines: Seq[String], context: Context)
-  case Run(cmd: Seq[String], context: Context)
+  case Run(cmd: Seq[String], shouldFail: Boolean, context: Context)
   case Check(patterns: Seq[String], regex: Boolean, context: Context)
 
 case class Context(file: String, line: Int)
@@ -46,10 +46,10 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
       val (codeLines, rest, newContext) = untilEndOfSnippet(tail)(using context)
 
       parse(rest, currentCommands :+ Commands.Snippet(name, codeLines, context), newContext)
-    case ScalaCliBlock() :: tail =>
+    case ScalaCliBlock(failGroup) :: tail =>
       val (codeLines, rest, newContext) = untilEndOfSnippet(tail)
       assert(codeLines.size != 0)
-      val runCmd = Commands.Run(codeLines.head.split(" ").toList, newContext)
+      val runCmd = Commands.Run(codeLines.head.split(" ").toList, failGroup != null, newContext)
       parse(rest, currentCommands :+ runCmd, newContext)
     case CheckBlock(regexOpt) :: tail =>
       val isRegex                      = regexOpt == "-regex"
@@ -100,12 +100,21 @@ def checkFile(file: Path, dest: Option[Path]) =
     commands.foreach { cmd =>
       given Context = cmd.context
       cmd match
-        case Commands.Run(cmd, _) =>
+        case Commands.Run(cmd, shouldFail, _) =>
           println(s"### Running: ${cmd.mkString(" ")}")
-          try lastOutput = Process(cmd, Some(out.toFile)).!!
-          catch
-            case e: Throwable =>
-              throw new RuntimeException(msg(s"Error running ${cmd.mkString(" ")}"), e)
+          val res = os.proc(cmd).call(cwd=ammPath(out), check = false)
+          if shouldFail then 
+            assert(res.exitCode != 0) 
+          else 
+            assert(res.exitCode == 0)
+          val outputChunks = res.chunks.map{ 
+            case Left(c) =>
+              c
+            case Right(c) =>
+              c
+          }
+          lastOutput = geny.ByteData.Chunks(outputChunks).text()
+         
         case Commands.Snippet(name, code, c) =>
           println(s"### Writting $name with:\n${code.mkString("\n")}\n---")
           val prefix = (fakeLineMarker + "\n") * c.line
@@ -113,7 +122,7 @@ def checkFile(file: Path, dest: Option[Path]) =
           allSources += file
           Files.write(file, code.mkString(prefix, "\n", "").getBytes)
         case Commands.Check(patterns, regex, line) =>
-          assert(lastOutput != "")
+          assert(lastOutput != "", msg("No output stored from previous commands"))
           val lines = lastOutput.linesIterator.toList
 
           if regex then
@@ -132,7 +141,7 @@ def checkFile(file: Path, dest: Option[Path]) =
               )
             }
     }
-  finally if dest.isEmpty then os.remove(ammPath(out))
+  finally if dest.isEmpty then os.remove.all(ammPath(out))
 
   // remove empty space at begining of all files
   if dest.nonEmpty then
@@ -142,7 +151,10 @@ def checkFile(file: Path, dest: Option[Path]) =
         .mkString(s"// $header\n\n", "\n", "")
       os.write.over(ammPath(s), content)
     }
-    val readmeLines = List("<!--", "  " + header, "-->", "") ++ content
+    val withoutFrontMatter = if !content.head.startsWith("---") then content else
+      content.tail.dropWhile(l => !l.startsWith("---")).tail
+
+    val readmeLines = List("<!--", "  " + header, "-->", "") ++ withoutFrontMatter
     os.write(ammPath(out.resolve("README.md")), readmeLines.mkString("\n"))
 
 @main def check(args: String*) =

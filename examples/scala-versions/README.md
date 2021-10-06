@@ -2,6 +2,7 @@
   File was generated from based on docs/cookbooks/scala-versions.md, do not edit manually!
 -->
 
+
 # Picking Scala version with scala-cli
 
 Scala cli by default runs latest stable Scala version.

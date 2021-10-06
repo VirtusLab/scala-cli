@@ -1,7 +1,7 @@
----
-title: Test your code with different Java versions
-sidebar_position: 4
----
+<!--
+  File was generated from based on docs/cookbooks/scala-jvm.md, do not edit manually!
+-->
+
 
 # Test your code with different Java versions
 

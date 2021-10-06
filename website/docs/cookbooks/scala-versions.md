@@ -1,7 +1,9 @@
 ---
-title: Picking a Scala version with Scala CLI
-sidebar_position: 1
+title: Picking Scala version with scala-cli
+sidebar_position: 2
 ---
+
+# Picking Scala version with scala-cli
 
 Scala cli by default runs latest stable Scala version.
 
