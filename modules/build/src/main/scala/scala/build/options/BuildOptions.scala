@@ -267,8 +267,29 @@ final case class BuildOptions(
     }
   }
 
-  def crossOptions: Seq[BuildOptions] =
-    allCrossScalaVersionOptions.drop(1)
+  private def allCrossScalaPlatformOptions: Seq[BuildOptions] = {
+    val scalaOptions0 = scalaOptions.normalize
+    val sortedExtraPlatforms = scalaOptions0
+      .extraPlatforms
+      .toVector
+      .sorted
+    this +: sortedExtraPlatforms.map { pf =>
+      copy(
+        scalaOptions = scalaOptions0.copy(
+          platform = Some(pf),
+          extraPlatforms = Set.empty
+        )
+      )
+    }
+  }
+
+  def crossOptions: Seq[BuildOptions] = {
+    val allOptions = for {
+      svOpt   <- allCrossScalaVersionOptions
+      svPfOpt <- svOpt.allCrossScalaPlatformOptions
+    } yield svPfOpt
+    allOptions.drop(1) // First one if basically 'this', dropping it
+  }
 
   private def clearJsOptions: BuildOptions =
     copy(scalaJsOptions = ScalaJsOptions())

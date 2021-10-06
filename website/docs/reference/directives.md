@@ -60,12 +60,12 @@ Adds Java options
 
 Set the default platform to Scala.JS or Scala Native
 
-`using scala-js`|`scala-native`
+`using `(`jvm`|`scala-js`|`scala-native`)+
 
 #### Examples
 `using scala-js`
 
-`using scala-native`
+`using jvm scala-native`
 
 ### Repository
 
