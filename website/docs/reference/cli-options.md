@@ -120,6 +120,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`test`](./commands#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->

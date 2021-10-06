@@ -14,6 +14,8 @@ final case class TestOptions(
     sharedJava: SharedJavaOptions = SharedJavaOptions(),
   @Recurse
     watch: SharedWatchOptions = SharedWatchOptions(),
+  @Recurse
+    compileCross: CompileCrossOptions = CompileCrossOptions(),
 
   @Group("Test")
   @HelpMessage("Test framework to use to run tests")
