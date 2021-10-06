@@ -130,13 +130,15 @@ object Build {
 
     val sources = value(crossSources.sources(options))
 
-    val options0 = options.orElse(sources.buildOptions)
-    val inputs0  = updateInputs(inputs, options)
-
-    val generatedSources = sources.generateSources(inputs0.generatedSrcRoot)
+    val options0 = sources.buildOptions
 
     def doBuild(buildOptions: BuildOptions) = either {
+
+      val inputs0 = updateInputs(inputs, options)
+
+      val generatedSources = sources.generateSources(inputs0.generatedSrcRoot)
       buildClient.setProjectParams(value(buildOptions.projectParams))
+
       val res = build(
         inputs0,
         sources,

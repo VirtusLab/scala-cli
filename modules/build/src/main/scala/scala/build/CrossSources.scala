@@ -57,7 +57,7 @@ final case class CrossSources(
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
         .flatMap(_.withPlatform(platform).toSeq)
         .map(_.value)
-        .foldLeft(BuildOptions() /* not baseOptions */ )(_ orElse _)
+        .foldLeft(baseOptions)(_ orElse _)
     )
   }
 

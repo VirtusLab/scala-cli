@@ -60,7 +60,7 @@ final class BspImpl(
     if (verbosity >= 3)
       pprint.better.log(sources)
 
-    val options0 = buildOptions.orElse(sources.buildOptions)
+    val options0 = sources.buildOptions
 
     val generatedSources = sources.generateSources(inputs.generatedSrcRoot)
 
