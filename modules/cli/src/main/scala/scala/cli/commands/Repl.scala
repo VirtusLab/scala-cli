@@ -29,51 +29,45 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     val directories = options.shared.directories.directories
 
-    val builds =
-      Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
-        .orExit(logger)
-    val build = builds.main
-
-    build.successfulOpt.getOrElse {
+    def buildFailed(allowExit: Boolean): Unit = {
       System.err.println("Compilation failed")
-      sys.exit(1)
+      if (allowExit)
+        sys.exit(1)
+    }
+    def buildCancelled(allowExit: Boolean): Unit = {
+      System.err.println("Build cancelled")
+      if (allowExit)
+        sys.exit(1)
     }
 
-    def maybeRunRepl(
+    def doRunRepl(
       buildOptions: BuildOptions,
       artifacts: Artifacts,
       classDir: Option[os.Path],
-      logger: Logger,
       allowExit: Boolean
-    ): Unit =
-      build match {
-        case _: Build.Successful =>
-          val res = runRepl(
-            buildOptions,
-            artifacts,
-            classDir,
-            directories,
-            logger,
-            allowExit = allowExit,
-            options.replDryRun
-          )
-          res match {
-            case Left(ex) =>
-              if (allowExit) logger.exit(ex)
-              else logger.log(ex)
-            case Right(()) =>
-          }
-        case _: Build.Failed =>
-          System.err.println("Compilation failed")
-          if (allowExit)
-            sys.exit(1)
+    ): Unit = {
+      val res = runRepl(
+        buildOptions,
+        artifacts,
+        classDir,
+        directories,
+        logger,
+        allowExit = allowExit,
+        options.replDryRun
+      )
+      res match {
+        case Left(ex) =>
+          if (allowExit) logger.exit(ex)
+          else logger.log(ex)
+        case Right(()) =>
       }
+    }
 
     val cross = options.compileCross.cross.getOrElse(false)
 
     if (inputs.isEmpty) {
       val artifacts = initialBuildOptions.artifacts(logger).orExit(logger)
-      maybeRunRepl(initialBuildOptions, artifacts, None, logger, allowExit = !options.watch.watch)
+      doRunRepl(initialBuildOptions, artifacts, None, allowExit = !options.watch.watch)
       if (options.watch.watch) {
         // nothing to watch, just wait for Ctrl+C
         WatchUtil.printWatchMessage()
@@ -89,10 +83,12 @@ object Repl extends ScalaCommand[ReplOptions] {
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        for (builds <- res.orReport(logger)) {
-          val build = builds.main
-          maybeRunRepl(build.options, build.artifacts, build.outputOpt, logger, allowExit = false)
-        }
+        for (builds <- res.orReport(logger))
+          builds.main match {
+            case s: Build.Successful =>
+              doRunRepl(s.options, s.artifacts, s.outputOpt, allowExit = false)
+            case _: Build.Failed => buildFailed(allowExit = false)
+          }
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
@@ -101,8 +97,11 @@ object Repl extends ScalaCommand[ReplOptions] {
       val builds =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
           .orExit(logger)
-      val build = builds.main
-      maybeRunRepl(build.options, build.artifacts, build.outputOpt, logger, allowExit = true)
+      builds.main match {
+        case s: Build.Successful =>
+          doRunRepl(s.options, s.artifacts, s.outputOpt, allowExit = true)
+        case _: Build.Failed => buildFailed(allowExit = true)
+      }
     }
   }
 
