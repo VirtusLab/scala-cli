@@ -38,12 +38,16 @@ Lightweight JARs require the `java` command to be available, and access to inter
 # os: Mac OS X
 ```
 
+In the previous example, a Lightweight JAR that was built in a MacOs environment could also run on Linux.
+
 ```bash
-# Using docker to run DetectOsApp on linux
-docker run -it  -v $(pwd)/:/app -w /app openjdk:8-jre-slim bash
-root@b0459df02263:/app# ./DetectOsApp
+# Run DetectOsApp on Linux 
+./DetectOsApp
 # os: Linux
 ``` 
+
+ScalaCli supports building a Lightweight JARs in MacOS / Linux / Windows environments.
+Only Jars built on MacOs / Linux are easily portable between this system. The Lightweight JARs built on Windows can only be run on this system.
 
 
 ### Assemblies
@@ -60,10 +64,3 @@ Assemblies also require the `java` command to be available in the `PATH`. As all
 ./DetectOsApp
 # os: Mac OS X
 ```
-
-```bash
-# Using docker to run DetectOsApp on linux
-docker run -it  -v $(pwd)/:/app -w /app openjdk:8-jre-slim bash
-root@b0459df02263:/app# ./DetectOsApp
-# os: Linux
-``` 
