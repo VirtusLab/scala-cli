@@ -3,7 +3,7 @@ title: Test your code with different Java versions
 sidebar_position: 4
 ---
 
-You can use Scala CLI to test your code compatibility with various versions of `java` (no manual installation of java is required).It automatically downloads the specified version of java.
+You can use Scala CLI to test your code compatibility with various versions of `java` (no manual installation of jdk or sdk is required). It automatically downloads the specified version of java.
 
 The following snippet uses the new method `Files.writeString` from Java 11. 
 
@@ -12,14 +12,14 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 object Main extends App {
-    val dest = Files.createTempFile(
-       Paths.get("").toAbsolutePath(),
-       "scala-cli",
-       ".txt"
-    ) 
-    val filePath = Files.writeString(dest, "Hello from ScalaCli")
-    val fileContent: String = Files.readString(filePath)
-  }
+  val dest = Files.createTempFile(
+    Paths.get("").toAbsolutePath(),
+      "scala-cli",
+      ".txt"
+  ) 
+  val filePath = Files.writeString(dest, "Hello from ScalaCli")
+  val fileContent: String = Files.readString(filePath)
+}
  ```
 
 
