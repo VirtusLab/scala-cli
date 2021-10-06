@@ -21,7 +21,7 @@ import scala.build.errors.{
   SeveralMainClassesFoundError
 }
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
-import scala.build.options.{BuildOptions, Scope}
+import scala.build.options.{BuildOptions, Platform, Scope}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -489,7 +489,7 @@ object Build {
       else Seq("-sourceroot", inputs.workspace.toString)
 
     val scalaJsScalacOptions =
-      if (options.scalaJsOptions.enable && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
+      if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
       else Nil
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
@@ -509,8 +509,12 @@ object Build {
       workspace = inputs.workspace / ".scala",
       classesDir = classesDir0,
       scalaCompiler = scalaCompiler,
-      scalaJsOptions = options.scalaJsOptions.config,
-      scalaNativeOptions = options.scalaNativeOptions.bloopConfig,
+      scalaJsOptions =
+        if (options.platform == Platform.JS) Some(options.scalaJsOptions.config)
+        else None,
+      scalaNativeOptions =
+        if (options.platform == Platform.Native) Some(options.scalaNativeOptions.bloopConfig)
+        else None,
       projectName = inputs.scopeProjectName(scope),
       classPath = artifacts.compileClassPath,
       resolution = Some(Project.resolution(artifacts.detailedArtifacts)),

@@ -32,17 +32,21 @@ final case class BuildOptions(
   replOptions: ReplOptions = ReplOptions()
 ) {
 
+  lazy val platform: Platform =
+    scalaOptions.platform.getOrElse(Platform.JVM)
+
   lazy val projectParams: Either[BuildException, Seq[String]] = either {
-    val platform =
-      if (scalaJsOptions.enable) "Scala.JS"
-      else if (scalaNativeOptions.enable) "Scala Native"
-      else "JVM"
-    Seq(s"Scala ${value(scalaParams).scalaVersion}", platform)
+    val platform0 = platform match {
+      case Platform.JVM    => "JVM"
+      case Platform.JS     => "Scala.JS"
+      case Platform.Native => "Scala Native"
+    }
+    Seq(s"Scala ${value(scalaParams).scalaVersion}", platform0)
   }
 
   def addRunnerDependency: Option[Boolean] =
     internalDependencies.addRunnerDependencyOpt
-      .orElse(if (scalaJsOptions.enable || scalaNativeOptions.enable) Some(false) else None)
+      .orElse(if (platform == Platform.JVM) None else Some(false))
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (scalaOptions.addScalaLibrary.getOrElse(true)) {
@@ -57,9 +61,16 @@ final case class BuildOptions(
     else Nil
   }
 
+  private def maybeJsDependencies: Either[BuildException, Seq[AnyDependency]] = either {
+    if (platform == Platform.JS) scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion)
+    else Nil
+  }
+  private def maybeNativeDependencies: Seq[AnyDependency] =
+    if (platform == Platform.Native) scalaNativeOptions.nativeDependencies
+    else Nil
   private def dependencies: Either[BuildException, Seq[AnyDependency]] = either {
-    scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion) ++
-      scalaNativeOptions.nativeDependencies ++
+    value(maybeJsDependencies) ++
+      maybeNativeDependencies ++
       value(scalaLibraryDependencies) ++
       classPathOptions.extraDependencies
   }
@@ -75,9 +86,16 @@ final case class BuildOptions(
       Nil
   }
 
+  private def maybeJsCompilerPlugins: Either[BuildException, Seq[AnyDependency]] = either {
+    if (platform == Platform.JS) scalaJsOptions.compilerPlugins(value(scalaParams).scalaVersion)
+    else Nil
+  }
+  private def maybeNativeCompilerPlugins: Seq[AnyDependency] =
+    if (platform == Platform.Native) scalaNativeOptions.compilerPlugins
+    else Nil
   def compilerPlugins: Either[BuildException, Seq[AnyDependency]] = either {
-    scalaJsOptions.compilerPlugins(value(scalaParams).scalaVersion) ++
-      scalaNativeOptions.compilerPlugins ++
+    value(maybeJsCompilerPlugins) ++
+      maybeNativeCompilerPlugins ++
       value(semanticDbPlugins) ++
       scalaOptions.compilerPlugins
   }
@@ -90,8 +108,7 @@ final case class BuildOptions(
     classPathOptions.extraSourceJars.map(_.toNIO)
 
   private def addJvmTestRunner: Boolean =
-    !scalaJsOptions.enable &&
-    !scalaNativeOptions.enable &&
+    platform == Platform.JVM &&
     internalDependencies.addTestRunnerDependency
   private def addJsTestBridge: Option[String] =
     if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion)
@@ -196,9 +213,11 @@ final case class BuildOptions(
   lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
     val (scalaVersion, scalaBinaryVersion) =
       value(computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion))
-    val maybePlatformSuffix =
-      scalaJsOptions.platformSuffix
-        .orElse(scalaNativeOptions.platformSuffix)
+    val maybePlatformSuffix = platform match {
+      case Platform.JVM    => None
+      case Platform.JS     => Some(scalaJsOptions.platformSuffix)
+      case Platform.Native => Some(scalaNativeOptions.platformSuffix)
+    }
     ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
   }
 
@@ -225,8 +244,8 @@ final case class BuildOptions(
   // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
   def packageTypeOpt: Option[PackageType] =
     if (packageOptions.isDockerEnabled) Some(PackageType.Docker)
-    else if (scalaJsOptions.enable) Some(PackageType.Js)
-    else if (scalaNativeOptions.enable) Some(PackageType.Native)
+    else if (platform == Platform.JS) Some(PackageType.Js)
+    else if (platform == Platform.Native) Some(PackageType.Native)
     else packageOptions.packageTypeOpt
 
   def crossOptions: Seq[BuildOptions] = {
@@ -244,6 +263,23 @@ final case class BuildOptions(
     }
   }
 
+  private def clearJsOptions: BuildOptions =
+    copy(scalaJsOptions = ScalaJsOptions())
+  private def clearNativeOptions: BuildOptions =
+    copy(scalaNativeOptions = ScalaNativeOptions())
+  private def normalize: BuildOptions = {
+    var opt = this
+
+    if (platform != Platform.JS)
+      opt = opt.clearJsOptions
+    if (platform != Platform.Native)
+      opt = opt.clearNativeOptions
+
+    opt.copy(
+      scalaOptions = opt.scalaOptions.normalize
+    )
+  }
+
   lazy val hash: Option[String] = {
     val md = MessageDigest.getInstance("SHA-1")
 
@@ -251,7 +287,7 @@ final case class BuildOptions(
 
     BuildOptions.hasHashData.add(
       "",
-      this,
+      normalize,
       s => {
         val bytes = s.getBytes(StandardCharsets.UTF_8)
         if (bytes.length > 0) {

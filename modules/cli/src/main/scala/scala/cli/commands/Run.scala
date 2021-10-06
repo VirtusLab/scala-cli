@@ -6,6 +6,7 @@ import org.scalajs.linker.interface.StandardConfig
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner}
+import scala.build.options.Platform
 import scala.build.{Build, Inputs, Logger}
 import scala.scalanative.{build => sn}
 import scala.util.Properties
@@ -122,8 +123,8 @@ object Run extends ScalaCommand[RunOptions] {
     exitOnError: Boolean
   ): Boolean = {
 
-    val retCode =
-      if (build.options.scalaJsOptions.enable) {
+    val retCode = build.options.platform match {
+      case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig
         withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
           Runner.runJs(
@@ -133,12 +134,11 @@ object Run extends ScalaCommand[RunOptions] {
             allowExecve = allowExecve
           )
         }
-      }
-      else if (build.options.scalaNativeOptions.enable)
+      case Platform.Native =>
         withNativeLauncher(
           build,
           mainClass,
-          build.options.scalaNativeOptions.config.getOrElse(???),
+          build.options.scalaNativeOptions.config,
           build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
           logger.scalaNativeLogger
         ) { launcher =>
@@ -149,7 +149,7 @@ object Run extends ScalaCommand[RunOptions] {
             allowExecve = allowExecve
           )
         }
-      else
+      case Platform.JVM =>
         Runner.runJvm(
           build.options.javaCommand(),
           build.options.javaOptions.javaOpts,
@@ -159,6 +159,7 @@ object Run extends ScalaCommand[RunOptions] {
           logger,
           allowExecve = allowExecve
         )
+    }
 
     if (retCode != 0)
       if (exitOnError)

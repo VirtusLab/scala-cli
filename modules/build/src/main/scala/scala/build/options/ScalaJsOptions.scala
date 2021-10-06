@@ -9,7 +9,6 @@ import java.util.Locale
 import scala.build.internal.Constants
 
 final case class ScalaJsOptions(
-  enable: Boolean = false,
   version: Option[String] = None,
   mode: Option[String] = None,
   moduleKindStr: Option[String] = None,
@@ -17,19 +16,15 @@ final case class ScalaJsOptions(
   emitSourceMaps: Boolean = false,
   dom: Option[Boolean] = None
 ) {
-  def platformSuffix: Option[String] =
-    if (enable) Some("sjs" + ScalaVersion.jsBinary(finalVersion).getOrElse(finalVersion))
-    else None
+  def platformSuffix: String =
+    "sjs" + ScalaVersion.jsBinary(finalVersion).getOrElse(finalVersion)
   def jsDependencies(scalaVersion: String): Seq[AnyDependency] =
-    if (enable)
-      if (scalaVersion.startsWith("2."))
-        Seq(dep"org.scala-js::scalajs-library:$finalVersion")
-      else
-        Seq(dep"org.scala-js:scalajs-library_2.13:$finalVersion")
+    if (scalaVersion.startsWith("2."))
+      Seq(dep"org.scala-js::scalajs-library:$finalVersion")
     else
-      Nil
+      Seq(dep"org.scala-js:scalajs-library_2.13:$finalVersion")
   def compilerPlugins(scalaVersion: String): Seq[AnyDependency] =
-    if (enable && scalaVersion.startsWith("2."))
+    if (scalaVersion.startsWith("2."))
       Seq(dep"org.scala-js:::scalajs-compiler:$finalVersion")
     else
       Nil
@@ -64,9 +59,8 @@ final case class ScalaJsOptions(
     )
   }
 
-  def config: Option[BloopConfig.JsConfig] =
-    if (enable) Some(configUnsafe)
-    else None
+  def config: BloopConfig.JsConfig =
+    configUnsafe
 
   def linkerConfig: StandardConfig = {
     var config = StandardConfig()
@@ -98,8 +92,7 @@ object ScalaJsOptions {
   implicit val hasHashData: HasHashData[ScalaJsOptions] = {
     val underlying: HasHashData[ScalaJsOptions] = HasHashData.derive
     (prefix, t, update) =>
-      if (t.enable)
-        underlying.add(prefix, t, update)
+      underlying.add(prefix, t, update)
   }
   implicit val monoid: ConfigMonoid[ScalaJsOptions] = ConfigMonoid.derive
 }

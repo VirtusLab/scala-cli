@@ -42,4 +42,10 @@ object Platform {
   def parseSpec(input: Seq[String]): Option[Set[Platform]] =
     parseSpec0(input.toList, Set.empty)
 
+  implicit val ordering: Ordering[Platform] =
+    Ordering.by {
+      case Platform.JVM    => 0
+      case Platform.JS     => 1
+      case Platform.Native => 2
+    }
 }

@@ -35,4 +35,8 @@ object HashedType {
     wrapper => wrapper.toString
   }
 
+  implicit val platform: HashedType[Platform] = {
+    pf => pf.repr
+  }
+
 }

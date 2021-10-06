@@ -38,7 +38,6 @@ final case class ScalaNativeOptions(
 
   def buildOptions: options.ScalaNativeOptions =
     options.ScalaNativeOptions(
-      native,
       nativeVersion,
       nativeMode,
       nativeGc,

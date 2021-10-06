@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.Sources
 import scala.build.internal.Constants
-import scala.build.options.{BuildOptions, ScalaJsOptions, ScalaNativeOptions}
+import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions}
 
 final case class Sbt(
   sbtVersion: String,
@@ -300,11 +300,11 @@ final case class Sbt(
       mainClassSettings(options),
       pureJavaSettings(options, sources),
       javaOptionsSettings(options),
-      if (options.scalaJsOptions.enable)
+      if (options.platform == Platform.JS)
         scalaJsSettings(options.scalaJsOptions)
       else
         SbtProject(),
-      if (options.scalaNativeOptions.enable)
+      if (options.platform == Platform.Native)
         scalaNativeSettings(options.scalaNativeOptions)
       else
         SbtProject(),

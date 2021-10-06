@@ -1,6 +1,12 @@
 package scala.build.preprocessing.directives
 
-import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions}
+import scala.build.options.{
+  BuildOptions,
+  Platform,
+  ScalaJsOptions,
+  ScalaNativeOptions,
+  ScalaOptions
+}
 
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Platform"
@@ -15,19 +21,13 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def handle(directive: Directive): Option[Either[String, BuildOptions]] =
     directive.values match {
       case Seq(pfName) =>
-        Platform.parse(Platform.normalize(pfName)).map {
-          case Platform.JVM =>
-            Right(BuildOptions())
-          case Platform.JS =>
-            val options = BuildOptions(
-              scalaJsOptions = ScalaJsOptions(enable = true)
+        Platform.parse(Platform.normalize(pfName)).map { pf =>
+          val options = BuildOptions(
+            scalaOptions = ScalaOptions(
+              platform = Some(pf)
             )
-            Right(options)
-          case Platform.Native =>
-            val options = BuildOptions(
-              scalaNativeOptions = ScalaNativeOptions(enable = true)
-            )
-            Right(options)
+          )
+          Right(options)
         }
       case Seq(pfName, pfVersion) =>
         Platform.parse(Platform.normalize(pfName)).map {
@@ -35,16 +35,20 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
             Left("Unexpected version specified for JVM platform")
           case Platform.JS =>
             val options = BuildOptions(
+              scalaOptions = ScalaOptions(
+                platform = Some(Platform.JS)
+              ),
               scalaJsOptions = ScalaJsOptions(
-                enable = true,
                 version = Some(pfVersion)
               )
             )
             Right(options)
           case Platform.Native =>
             val options = BuildOptions(
+              scalaOptions = ScalaOptions(
+                platform = Some(Platform.Native)
+              ),
               scalaNativeOptions = ScalaNativeOptions(
-                enable = true,
                 version = Some(pfVersion)
               )
             )

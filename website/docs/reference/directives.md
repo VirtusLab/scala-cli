@@ -93,7 +93,7 @@ Manually adds a resource directory to the class path
 
 Sets the default Scala version
 
-`using scala `_version_
+`using scala `_version_+
 
 #### Examples
 `using scala 3.0.2`
@@ -101,6 +101,8 @@ Sets the default Scala version
 `using scala 2.13`
 
 `using scala 2`
+
+`using scala 2.13.6 2.12.15`
 
 ### Test framework
 

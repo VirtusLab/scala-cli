@@ -5,7 +5,7 @@ import caseapp._
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner}
-import scala.build.options.Scope
+import scala.build.options.{Platform, Scope}
 import scala.build.{Build, Logger}
 
 object Test extends ScalaCommand[TestOptions] {
@@ -74,8 +74,8 @@ object Test extends ScalaCommand[TestOptions] {
 
     val testFrameworkOpt = build.options.testOptions.frameworkOpt
 
-    val retCode: Int =
-      if (build.options.scalaJsOptions.enable) {
+    val retCode: Int = build.options.platform match {
+      case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig
         value {
           Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig) { js =>
@@ -89,13 +89,12 @@ object Test extends ScalaCommand[TestOptions] {
             )
           }
         }
-      }
-      else if (build.options.scalaNativeOptions.enable)
+      case Platform.Native =>
         value {
           Run.withNativeLauncher(
             build,
             "scala.scalanative.testinterface.TestMain",
-            build.options.scalaNativeOptions.config.getOrElse(???),
+            build.options.scalaNativeOptions.config,
             build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
             logger.scalaNativeLogger
           ) { launcher =>
@@ -109,7 +108,7 @@ object Test extends ScalaCommand[TestOptions] {
             )
           }
         }
-      else {
+      case Platform.JVM =>
         val extraArgs =
           (if (requireTests) Seq("--require-tests") else Nil) ++
             testFrameworkOpt.map(fw => s"--test-framework=$fw").toSeq ++
