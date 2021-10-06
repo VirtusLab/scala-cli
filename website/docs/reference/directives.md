@@ -140,3 +140,12 @@ Require a Scala version for the current file
 
 `require scala 3.0.2`
 
+### Scope
+
+Require a scope for the current file
+
+`require `_scope_
+
+#### Examples
+`require test`
+

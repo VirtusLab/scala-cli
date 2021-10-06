@@ -1041,4 +1041,42 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       argsAsIsTest()
     }
 
+  test("test scope") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Main.scala" ->
+          """using "com.lihaoyi::utest:0.7.10"
+            |
+            |object Main {
+            |  val err = utest.compileError("pprint.log(2)")
+            |  def message = "Hello from " + "tests"
+            |  def main(args: Array[String]): Unit = {
+            |    println(message)
+            |    println(err)
+            |  }
+            |}
+            |""".stripMargin,
+        os.rel / "Tests.scala" ->
+          """using "com.lihaoyi::pprint:0.6.6"
+            |require test
+            |
+            |import utest._
+            |
+            |object Tests extends TestSuite {
+            |  val tests = Tests {
+            |    test("message") {
+            |      assert(Main.message.startsWith("Hello"))
+            |    }
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root)
+      pprint.log(res.out.text)
+      expect(res.out.text.contains("Hello from tests"))
+    }
+  }
+
 }

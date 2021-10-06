@@ -7,6 +7,7 @@ import java.security.MessageDigest
 import java.util.zip.{ZipEntry, ZipInputStream}
 
 import scala.annotation.tailrec
+import scala.build.options.Scope
 import scala.build.preprocessing.PreprocessedSource
 import scala.util.matching.Regex
 
@@ -93,12 +94,16 @@ final case class Inputs(
     else baseProjectName
   }
 
+  def scopeProjectName(scope: Scope): String =
+    if (scope == Scope.Main) projectName
+    else projectName + "-" + scope.name
+
   def add(extraElements: Seq[Inputs.Element]): Inputs =
     if (elements.isEmpty) this
     else copy(elements = elements ++ extraElements)
 
-  def generatedSrcRoot: os.Path =
-    workspace / ".scala" / projectName / "src_generated"
+  def generatedSrcRoot(scope: Scope): os.Path =
+    workspace / ".scala" / projectName / "src_generated" / scope.name
 
   private def inHomeDir(directories: Directories): Inputs =
     copy(

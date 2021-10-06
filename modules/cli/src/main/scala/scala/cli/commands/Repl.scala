@@ -87,7 +87,8 @@ object Repl extends ScalaCommand[ReplOptions] {
           builds.main match {
             case s: Build.Successful =>
               doRunRepl(s.options, s.artifacts, s.outputOpt, allowExit = false)
-            case _: Build.Failed => buildFailed(allowExit = false)
+            case _: Build.Failed    => buildFailed(allowExit = false)
+            case _: Build.Cancelled => buildCancelled(allowExit = false)
           }
       }
       try WatchUtil.waitForCtrlC()
@@ -100,7 +101,8 @@ object Repl extends ScalaCommand[ReplOptions] {
       builds.main match {
         case s: Build.Successful =>
           doRunRepl(s.options, s.artifacts, s.outputOpt, allowExit = true)
-        case _: Build.Failed => buildFailed(allowExit = true)
+        case _: Build.Failed    => buildFailed(allowExit = true)
+        case _: Build.Cancelled => buildCancelled(allowExit = true)
       }
     }
   }

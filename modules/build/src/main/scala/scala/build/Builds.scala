@@ -1,6 +1,15 @@
 package scala.build
 
+import scala.build.options.Scope
+
 final case class Builds(
-  main: Build,
-  cross: Seq[Build]
-)
+  builds: Seq[Build],
+  crossBuilds: Seq[Seq[Build]]
+) {
+  def main: Build =
+    get(Scope.Main).getOrElse {
+      sys.error("No main build found")
+    }
+  def get(scope: Scope): Option[Build] =
+    builds.find(_.scope == scope)
+}

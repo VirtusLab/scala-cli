@@ -7,9 +7,10 @@ import com.google.gson.GsonBuilder
 import java.io.File
 import java.nio.charset.Charset
 
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
 import scala.collection.JavaConverters._
 
@@ -20,13 +21,22 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     options: BuildOptions,
     logger: Logger
   ): Either[BuildException, Artifacts] = {
-    val crossSources = CrossSources.forInputs(
-      inputs,
-      Sources.defaultPreprocessors(CustomCodeWrapper)
-    )
 
-    val sourcesBuildOptions = crossSources.flatMap(_.sources(options)).map(_.buildOptions)
-    val joinedBuildOpts     = sourcesBuildOptions.map(options orElse _).getOrElse(options)
+    // ignoring errors related to sources themselves
+    val maybeSourceBuildOptions = either {
+      val crossSources = value {
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper)
+        )
+      }
+
+      value(crossSources.scopedSources(options))
+        .sources(Scope.Main, options)
+        .buildOptions
+    }
+
+    val joinedBuildOpts = maybeSourceBuildOptions.toOption.map(options orElse _).getOrElse(options)
     joinedBuildOpts.artifacts(logger)
   }
 

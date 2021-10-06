@@ -3,31 +3,34 @@ package scala.build
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.options.{BuildOptions, BuildRequirements, HasBuildRequirements, Platform}
+import scala.build.options.{BuildOptions, BuildRequirements, HasBuildRequirements, Platform, Scope}
 import scala.build.preprocessing._
 
 final case class CrossSources(
   paths: Seq[HasBuildRequirements[(os.Path, os.RelPath)]],
   inMemory: Seq[HasBuildRequirements[(Either[String, os.Path], os.RelPath, String, Int)]],
   mainClass: Option[String],
-  resourceDirs: Seq[os.Path],
+  resourceDirs: Seq[HasBuildRequirements[os.Path]],
   buildOptions: Seq[HasBuildRequirements[BuildOptions]]
 ) {
 
-  def sources(baseOptions: BuildOptions): Either[BuildException, Sources] = either {
-
-    val sharedOptions = buildOptions
+  def sharedOptions(baseOptions: BuildOptions): BuildOptions =
+    buildOptions
       .filter(_.requirements.isEmpty)
       .map(_.value)
       .foldLeft(baseOptions)(_ orElse _)
 
-    val retainedScalaVersion = value(sharedOptions.scalaParams).scalaVersion
+  def scopedSources(baseOptions: BuildOptions): Either[BuildException, ScopedSources] = either {
+
+    val sharedOptions0 = sharedOptions(baseOptions)
+
+    val retainedScalaVersion = value(sharedOptions0.scalaParams).scalaVersion
 
     val buildOptionsWithScalaVersion = buildOptions
       .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
       .filter(_.requirements.isEmpty)
       .map(_.value)
-      .foldLeft(sharedOptions)(_ orElse _)
+      .foldLeft(sharedOptions0)(_ orElse _)
 
     val platform =
       if (buildOptionsWithScalaVersion.scalaJsOptions.enable)
@@ -42,22 +45,25 @@ final case class CrossSources(
     // version and platform, which might not be the version and platform of the final
     // BuildOptions).
 
-    Sources(
+    val defaultScope: Scope = Scope.Main
+    ScopedSources(
       paths
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
         .flatMap(_.withPlatform(platform).toSeq)
-        .map(_.value),
+        .map(_.scopedValue(defaultScope)),
       inMemory
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
         .flatMap(_.withPlatform(platform).toSeq)
-        .map(_.value),
+        .map(_.scopedValue(defaultScope)),
       mainClass,
-      resourceDirs,
+      resourceDirs
+        .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
+        .flatMap(_.withPlatform(platform).toSeq)
+        .map(_.scopedValue(defaultScope)),
       buildOptions
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
         .flatMap(_.withPlatform(platform).toSeq)
-        .map(_.value)
-        .foldLeft(baseOptions)(_ orElse _)
+        .map(_.scopedValue(defaultScope))
     )
   }
 
@@ -134,7 +140,7 @@ object CrossSources {
 
     val resourceDirs = inputs.elements.collect {
       case r: Inputs.ResourceDirectory =>
-        r.path
+        HasBuildRequirements(BuildRequirements(), r.path)
     }
 
     CrossSources(paths, inMemory, mainClassOpt, resourceDirs, buildOptions)

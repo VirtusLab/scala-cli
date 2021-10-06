@@ -5,6 +5,7 @@ import caseapp._
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner}
+import scala.build.options.Scope
 import scala.build.{Build, Logger}
 
 object Test extends ScalaCommand[TestOptions] {
@@ -46,7 +47,7 @@ object Test extends ScalaCommand[TestOptions] {
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
-          maybeTest(builds.main, allowExit = false)
+          maybeTest(builds.get(Scope.Test).getOrElse(builds.main), allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
@@ -55,7 +56,7 @@ object Test extends ScalaCommand[TestOptions] {
       val builds =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
           .orExit(logger)
-      maybeTest(builds.main, allowExit = true)
+      maybeTest(builds.get(Scope.Test).getOrElse(builds.main), allowExit = true)
     }
   }
 

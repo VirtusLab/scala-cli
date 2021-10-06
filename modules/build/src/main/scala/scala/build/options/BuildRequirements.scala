@@ -2,7 +2,8 @@ package scala.build.options
 
 final case class BuildRequirements(
   scalaVersion: Seq[BuildRequirements.VersionRequirement] = Nil,
-  platform: Seq[BuildRequirements.PlatformRequirement] = Nil
+  platform: Seq[BuildRequirements.PlatformRequirement] = Nil,
+  scope: Option[BuildRequirements.ScopeRequirement] = None
 ) {
   def withScalaVersion(sv: String): Either[String, BuildRequirements] = {
     val dontPass = scalaVersion.filter(!_.valid(sv))
@@ -84,6 +85,8 @@ object BuildRequirements {
         Some(PlatformRequirement(platforms))
       }
   }
+
+  final case class ScopeRequirement(scope: Scope)
 
   implicit val monoid: ConfigMonoid[BuildRequirements] = ConfigMonoid.derive
 
