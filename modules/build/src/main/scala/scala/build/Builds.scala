@@ -15,4 +15,11 @@ final case class Builds(
 
   def all: Seq[Build] =
     builds ++ crossBuilds.flatten
+  lazy val map: Map[CrossKey, Build.Successful] =
+    all
+      .collect {
+        case s: Build.Successful => s
+      }
+      .map(b => b.crossKey -> b)
+      .toMap
 }

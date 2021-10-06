@@ -339,6 +339,12 @@ final case class BuildOptions(
 }
 
 object BuildOptions {
+
+  final case class CrossKey(
+    scalaVersion: String,
+    platform: Platform
+  )
+
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive
 }

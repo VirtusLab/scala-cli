@@ -81,6 +81,15 @@ object Build {
         case None      => foundMainClass
       }
     }
+
+    def crossKey: CrossKey =
+      CrossKey(
+        BuildOptions.CrossKey(
+          scalaParams.scalaVersion,
+          options.platform
+        ),
+        scope
+      )
   }
 
   final case class Failed(
