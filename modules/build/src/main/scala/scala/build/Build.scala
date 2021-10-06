@@ -21,7 +21,7 @@ import scala.build.errors.{
   SeveralMainClassesFoundError
 }
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
-import scala.build.options.{BuildOptions, Platform, Scope}
+import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -133,11 +133,6 @@ object Build {
     crossBuilds: Boolean
   ): Either[BuildException, Builds] = either {
 
-    val inputs0 = updateInputs(
-      inputs,
-      options // update hash in inputs with options coming from the CLI, not from the sources
-    )
-
     val crossSources = value {
       CrossSources.forInputs(
         inputs,
@@ -148,9 +143,16 @@ object Build {
     val crossOptions  = sharedOptions.crossOptions
 
     def doBuild(
-      baseOptions: BuildOptions,
+      overrideOptions: BuildOptions,
       scope: Scope
     ): Either[BuildException, Build] = either {
+
+      val inputs0 = updateInputs(
+        inputs,
+        overrideOptions.orElse(options) // update hash in inputs with options coming from the CLI or cross-building, not from the sources
+      )
+
+      val baseOptions = overrideOptions.orElse(sharedOptions)
 
       val sources = value(crossSources.scopedSources(baseOptions))
         .sources(scope, baseOptions)
@@ -185,14 +187,14 @@ object Build {
       either {
         val mainBuild = value {
           parentBuildOpt match {
-            case None => doBuild(sharedOptions, scope)
+            case None => doBuild(BuildOptions(), scope)
             case Some(s: Build.Successful) =>
-              val updatedOptions = sharedOptions.copy(
-                classPathOptions = sharedOptions.classPathOptions.copy(
-                  extraClassPath = sharedOptions.classPathOptions.extraClassPath :+ s.output
+              val extraOptions = BuildOptions(
+                classPathOptions = ClassPathOptions(
+                  extraClassPath = Seq(s.output)
                 )
               )
-              doBuild(updatedOptions, scope)
+              doBuild(extraOptions, scope)
             case Some(_) =>
               Right(Build.Cancelled(
                 inputs,
