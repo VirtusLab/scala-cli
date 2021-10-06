@@ -19,6 +19,7 @@ object Main extends App {
   ) 
   val filePath = Files.writeString(dest, "Hello from ScalaCli")
   val fileContent: String = Files.readString(filePath)
+  println(fileContent)
 }
  ```
 
@@ -30,6 +31,7 @@ scala-cli Main.scala --jvm 11
 ```
 
 <!-- Expected:
+Hello from ScalaCli
 -->
 
 To test your application with Java 8, change the value of `--jvm` parameter.
