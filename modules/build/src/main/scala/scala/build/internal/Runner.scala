@@ -16,7 +16,6 @@ import scala.build.errors.{
   TooManyFrameworksFoundByBridgeError
 }
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
-import scala.scalanative.{build => sn}
 import scala.util.Properties
 
 object Runner {
@@ -237,7 +236,8 @@ object Runner {
     entrypoint: File,
     requireTests: Boolean,
     args: Seq[String],
-    testFrameworkOpt: Option[String]
+    testFrameworkOpt: Option[String],
+    logger: Logger
   ): Either[TestError, Int] = either {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
@@ -254,6 +254,8 @@ object Runner {
     val adapterConfig        = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
     val inputs               = Seq(Input.Script(entrypoint.toPath))
     var adapter: TestAdapter = null
+
+    logger.debug(s"JS tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
     val frameworkName0 = testFrameworkOpt match {
@@ -288,10 +290,12 @@ object Runner {
     frameworkNameOpt: Option[String],
     requireTests: Boolean,
     args: Seq[String],
-    nativeLogger: sn.Logger
+    logger: Logger
   ): Either[TestError, Int] = either {
 
     import scala.scalanative.testinterface.adapter.TestAdapter
+
+    logger.debug(s"Native tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
     val frameworkName0 = frameworkNameOpt match {
@@ -302,7 +306,7 @@ object Runner {
     val config = TestAdapter.Config()
       .withBinaryFile(launcher)
       .withEnvVars(sys.env.toMap)
-      .withLogger(nativeLogger)
+      .withLogger(logger.scalaNativeLogger)
 
     var adapter: TestAdapter = null
 

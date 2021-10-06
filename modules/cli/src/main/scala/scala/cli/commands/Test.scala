@@ -84,7 +84,8 @@ object Test extends ScalaCommand[TestOptions] {
               js.toIO,
               requireTests,
               args,
-              testFrameworkOpt
+              testFrameworkOpt,
+              logger
             )
           }
         }
@@ -104,7 +105,7 @@ object Test extends ScalaCommand[TestOptions] {
               testFrameworkOpt,
               requireTests,
               args,
-              logger.scalaNativeLogger
+              logger
             )
           }
         }
