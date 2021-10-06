@@ -248,20 +248,27 @@ final case class BuildOptions(
     else if (platform == Platform.Native) Some(PackageType.Native)
     else packageOptions.packageTypeOpt
 
-  def crossOptions: Seq[BuildOptions] = {
-    val extraScalaVersions =
-      scalaOptions.extraScalaVersions.filter(v => !scalaOptions.scalaVersion.contains(v))
-    val sortedExtraScalaVersions =
-      extraScalaVersions.toVector.map(coursier.core.Version(_)).sorted.map(_.repr).reverse
-    sortedExtraScalaVersions.map { sv =>
+  private def allCrossScalaVersionOptions: Seq[BuildOptions] = {
+    val scalaOptions0 = scalaOptions.normalize
+    val sortedExtraScalaVersions = scalaOptions0
+      .extraScalaVersions
+      .toVector
+      .map(coursier.core.Version(_))
+      .sorted
+      .map(_.repr)
+      .reverse
+    this +: sortedExtraScalaVersions.map { sv =>
       copy(
-        scalaOptions = scalaOptions.copy(
+        scalaOptions = scalaOptions0.copy(
           scalaVersion = Some(sv),
           extraScalaVersions = Set.empty
         )
       )
     }
   }
+
+  def crossOptions: Seq[BuildOptions] =
+    allCrossScalaVersionOptions.drop(1)
 
   private def clearJsOptions: BuildOptions =
     copy(scalaJsOptions = ScalaJsOptions())
