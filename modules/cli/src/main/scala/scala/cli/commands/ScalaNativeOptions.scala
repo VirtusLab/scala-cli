@@ -26,12 +26,12 @@ final case class ScalaNativeOptions(
   @Group("Scala Native")
     nativeLinking: List[String] = Nil,
   @Group("Scala Native")
-    nativeLinkingDefaults: Boolean = true,
+    nativeLinkingDefaults: Option[Boolean] = None,
 
   @Group("Scala Native")
     nativeCompile: List[String] = Nil,
   @Group("Scala Native")
-    nativeCompileDefaults: Boolean = true
+    nativeCompileDefaults: Option[Boolean] = None
 
 ) {
   // format: on

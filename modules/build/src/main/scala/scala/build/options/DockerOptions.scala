@@ -5,7 +5,7 @@ final case class DockerOptions(
   imageRegistry: Option[String] = None,
   imageRepository: Option[String] = None,
   imageTag: Option[String] = None,
-  isDockerEnabled: Option[Boolean] = Some(false)
+  isDockerEnabled: Option[Boolean] = None
 )
 
 object DockerOptions {

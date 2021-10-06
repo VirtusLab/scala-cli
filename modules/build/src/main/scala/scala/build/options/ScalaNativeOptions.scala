@@ -15,9 +15,9 @@ final case class ScalaNativeOptions(
   clang: Option[String] = None,
   clangpp: Option[String] = None,
   linkingOptions: List[String] = Nil,
-  linkingDefaults: Boolean = true,
+  linkingDefaults: Option[Boolean] = None,
   compileOptions: List[String] = Nil,
-  compileDefaults: Boolean = true
+  compileDefaults: Option[Boolean] = None
 ) {
 
   def nativeWorkDir(root: os.Path, projectName: String): os.Path =
@@ -45,9 +45,9 @@ final case class ScalaNativeOptions(
     .map(Paths.get(_))
     .getOrElse(sn.Discover.clangpp())
   private def finalLinkingOptions =
-    linkingOptions ++ (if (linkingDefaults) sn.Discover.linkingOptions() else Nil)
+    linkingOptions ++ (if (linkingDefaults.getOrElse(true)) sn.Discover.linkingOptions() else Nil)
   private def finalCompileOptions =
-    compileOptions ++ (if (compileDefaults) sn.Discover.compileOptions() else Nil)
+    compileOptions ++ (if (compileDefaults.getOrElse(true)) sn.Discover.compileOptions() else Nil)
 
   def platformSuffix: String =
     "native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion)
