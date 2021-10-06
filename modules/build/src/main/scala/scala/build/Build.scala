@@ -14,6 +14,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
+  JmhBuildFailedError,
   MainClassError,
   NoMainClassFoundError,
   SeveralMainClassesFoundError
@@ -189,7 +190,7 @@ object Build {
       case successful: Successful =>
         if (options.jmhOptions.runJmh.getOrElse(false))
           value {
-            jmhBuild(
+            val res = jmhBuild(
               inputs,
               successful,
               logger,
@@ -197,8 +198,10 @@ object Build {
               buildClient,
               bloopServer
             )
-          }.getOrElse {
-            sys.error("JMH build failed") // suppress stack trace?
+            res.flatMap {
+              case Some(b) => Right(b)
+              case None    => Left(new JmhBuildFailedError)
+            }
           }
         else
           build0
