@@ -11,7 +11,13 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  MainClassError,
+  NoMainClassFoundError,
+  SeveralMainClassesFoundError
+}
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.BuildOptions
 import scala.build.postprocessing._
@@ -50,28 +56,28 @@ object Build {
       Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
     def foundMainClasses(): Seq[String] =
       MainClass.find(output)
-    def retainedMainClassOpt(warnIfSeveral: Boolean = false): Option[String] = {
+    def retainedMainClass: Either[MainClassError, String] = {
       lazy val foundMainClasses0 = foundMainClasses()
       val defaultMainClassOpt = sources.mainClass
         .filter(name => foundMainClasses0.contains(name))
-      def foundMainClassOpt =
+      def foundMainClass =
         if (foundMainClasses0.isEmpty) {
           val msg = "No main class found"
           System.err.println(msg)
-          sys.error(msg)
+          Left(new NoMainClassFoundError)
         }
-        else if (foundMainClasses0.length == 1) foundMainClasses0.headOption
-        else {
-          if (warnIfSeveral) {
-            System.err.println("Found several main classes:")
-            for (name <- foundMainClasses0)
-              System.err.println(s"  $name")
-            System.err.println("Please specify which one to use with --main-class")
-          }
-          None
-        }
+        else if (foundMainClasses0.length == 1) Right(foundMainClasses0.head)
+        else
+          Left(
+            new SeveralMainClassesFoundError(
+              ::(foundMainClasses0.head, foundMainClasses0.tail.toList)
+            )
+          )
 
-      defaultMainClassOpt.orElse(foundMainClassOpt)
+      defaultMainClassOpt match {
+        case Some(cls) => Right(cls)
+        case None      => foundMainClass
+      }
     }
   }
 
