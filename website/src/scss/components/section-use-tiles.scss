@@ -1,0 +1,187 @@
+.section-use-tiles {
+    margin-top: 130px;
+    margin-bottom: 130px;
+
+    @media (max-width: 998px) {
+        margin-top: 110px;
+        margin-bottom: 110px;
+    }
+
+    @media (max-width: 375px) {
+        margin-top: 80px;
+        margin-bottom: 80px;
+    }
+
+    a{
+        text-decoration: none;
+    }
+
+    .section-title {
+        margin-bottom: 46px;
+
+        @media (max-width: 998px) {
+            margin-bottom: 50px;
+            margin-left: 25px;
+        }
+
+        @media (max-width: 375px) {
+            margin-bottom: 25px;
+            margin-left: 20px;
+        }
+    }
+
+    .use-boxes {
+        margin-bottom: -30px;
+
+        @media (max-width: 375px) {
+            margin-bottom: -20px;
+        }
+
+        .use-box-wrapper {
+            margin-bottom: 30px;
+
+            @media (max-width: 375px) {
+                margin-bottom: -20px;
+            }
+
+            &:hover {
+                text-decoration: none;
+
+                .read-more{
+                    color: #E3322F;
+                }
+            }
+
+            .use-box {
+                display: flex;
+                flex-direction: column;
+
+                height: 100%;
+                padding: 40px 30px 15px;
+
+                border: 1px solid #828282;
+                border-radius: 6px;
+                box-sizing: border-box;
+
+                background: #FFFFFF;
+                color: #444444;;
+                box-shadow: 0px 15px 15px rgba(49, 41, 47, 0.03);
+
+                @media (max-width: 998px) {
+                    padding: 30px 30px 15px;
+                }
+
+                @media (max-width: 375px) {
+                    padding: 30px 23px 20px;
+                }
+
+                &.your-case {
+                    background-color: $theme-yellow;
+                    color: #1C1C1C;
+                    box-shadow: 0px 15px 15px rgba(255, 213, 131, 0.15);
+                }
+
+                .icon-wrapper {
+                    margin-bottom: 25px;
+
+                    @media (max-width: 998px) {
+                        margin-bottom: 18px;
+                    }
+
+                    img {
+                        width: auto;
+                        height: 32px;
+
+                        &.dark-theme {
+                            display: none;
+                        }
+                    }
+                }
+
+                h3 {
+                    margin-bottom: 10px;
+
+                    font-family: "Roboto Mono", monospace;
+                    font-size: 16px;
+                    line-height: 24px;
+                    font-weight: 700;
+                    color: #1C1C1C;
+                }
+
+                p {
+                    flex-grow: 1;
+
+                    font-family: 'Segoe UI';
+                    font-size: 16px;
+                    line-height: 28px;
+                    letter-spacing: 0.01em;
+
+                    @media (max-width: 375px) {
+                        font-size: 15px;
+                        line-height: 25px;
+                    }
+                }
+
+                .read-more-wrap {
+                    text-align: right;
+
+                    .read-more {
+                        display: inline-block;
+                        transition: 0.3s ease all;
+
+                        font-family: 'Roboto Mono', monospace;
+                        font-size: 13px;
+                        line-height: 25px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                    }
+                }
+            }
+        }
+    }
+}
+
+html[data-theme="dark"] {
+    .section-use-tiles .use-boxes .use-box-wrapper .use-box {
+        border-color: #4F4F4F;
+        background: #242526;
+        color: #F3F3F3;
+
+        h3 {
+            color: #FFFFFF;
+        }
+
+        &.your-case {
+            border-color: $theme-yellow;
+            background: #242526;
+            color: $theme-yellow;
+            box-shadow: 0px 15px 15px rgba(255, 213, 131, 0.05);
+
+            h3 {
+                color: $theme-yellow;
+            }
+
+            .icon-wrapper img {
+                &.light-theme {
+                    display: none;
+                }
+
+                &.dark-theme {
+                    display: block;
+                }
+            }
+        }
+    }
+
+    .use-box-wrapper {
+        &:hover {
+            .read-more{
+                color: #FFD583 !important;
+
+                &:before{
+                    color: #FFD583 !important;
+                }
+            }
+        }
+    }
+}

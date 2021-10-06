@@ -12,6 +12,7 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'Virtuslab',
   projectName: 'scala-cli',
+  plugins: ['docusaurus-plugin-sass'],
   themeConfig: {
     navbar: {
       title: 'Scala CLI',
@@ -100,7 +101,8 @@ module.exports = {
             'https://github.com/Virtuslab/scala-cli/edit/master/website/',
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+         // customCss: require.resolve('./src/css/custom.css'),
+          customCss: [require.resolve('./src/scss/style.scss')],
         },
       },
     ],

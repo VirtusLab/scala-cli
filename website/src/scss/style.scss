@@ -1,0 +1,99 @@
+
+$theme-red: #F23135;
+$theme-yellow: #FFD583;
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
+
+@import 'components/section-base';
+
+@import 'components/section-image-box';
+@import 'components/section-features';
+@import 'components/section-about';
+
+@import "./components/section-yellow-banner";
+@import "./components/section-use-tiles";
+@import "./components/section-install-cli";
+
+@import "./components/tooltip";
+
+@font-face {
+    font-family: "Roboto Mono", monospace;
+    src: url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
+}
+
+/* You can override the default Infima variables here. */
+:root {
+    --ifm-container-width: 1204px;
+    --ifm-container-width-xl: 1204px;
+}
+
+.section-title {
+    font-family: "Roboto Mono", monospace;
+    font-size: 36px;
+    line-height: 48px;
+    font-weight: 700;
+    color: #1C1C1C;
+
+    @media (max-width: 998px) {
+        font-size: 32px;
+        line-height: 44px;
+    }
+
+    @media (max-width: 375px) {
+        font-size: 28px;
+        line-height: 36px;
+    }
+
+    &.with-before {
+        padding-left: 67px;
+
+        @media (max-width: 998px) {
+            padding-left: 53px;
+        }
+    
+        @media (max-width: 375px) {
+            padding-left: 40px;
+        }
+    }
+}
+
+*.with-before {
+    position: relative;
+    padding-left: 24px;
+
+    &:before {
+        content: '>_';
+        position: absolute;
+        top: 0; left: 0;
+        color: #DE3D3B;
+        transition: 0.3s ease all;
+    }
+}
+
+html[data-theme="dark"] {
+
+    .section-title {
+        color: $theme-yellow;
+    }
+
+    .section__header{
+        &-description{
+            span{
+                &:before{
+                    background-color: #3F456E;
+                }
+            }
+        }
+    }
+
+    .content{
+        h1, h2, h3, h4{
+            color: #FFD583;
+        }
+    }
+
+    .dropdown__link--active, .dropdown__link--active:hover {
+        --ifm-dropdown-link-color: #FFD583;
+    }
+}
+

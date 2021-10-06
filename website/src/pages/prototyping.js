@@ -1,25 +1,19 @@
 import React from 'react';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import Layout from '@theme/Layout';
-import TitleSection from '../components/TitleSection';
-import Section from '../components/Section';
-import allFeatures from '../components/features';
+
+import UseCase from "../components/UseCase"
 
 const Index = (props) => {
-  const { siteConfig } = useDocusaurusContext();
-  return (
-    <Layout title="Scripting" description="Page describing why Scala CLI is good for prototyping / experimenting / reproducing  Scala.">
-      <div className="container padding--sm content">
-        <TitleSection><h1>prototyping / experimenting / reproducing with Scala CLI</h1></TitleSection>
+  return <UseCase
+    title="Prototyping, experimenting, reproducing bugs with Scala CLI"
+    description="Page describing why Scala CLI is good for prototyping / experimenting / reproducing bugs."
+    headline="Move fast, break and things but be in control of your build"
+    image="prototyping.svg"
+    id="prototyping"
+    >
+    <p>If you ever waste time prototyping, experimenting or reproducing a nasty bug by testing different environment then you intendted?</p>
 
-        <Section>
-          <p>TODO: describe why Scala CLI is a perfect for prototyping / experimenting / reproducing Plus some image?</p>
-        </Section>
-
-        {allFeatures().filter(f => f.props.prototyping)}
-      </div>
-    </Layout>
-  );
+    <p>With Scala CLI defining Scala or JVM versions, platform, compiler options and dependencies is setting an argument.</p>
+  </UseCase>;
 };
 
 export default Index;

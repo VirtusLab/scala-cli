@@ -1,110 +1,25 @@
-/* stylelint-disable docusaurus/copyright-header */
-/**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
- */
-
-/* You can override the default Infima variables here. */
-:root {
-  --ifm-color-primary: rgb(209, 30, 34);
-  --ifm-color-primary-dark: rgb(33, 175, 144);
-  --ifm-color-primary-darker: rgb(31, 165, 136);
-  --ifm-color-primary-darkest: rgb(26, 136, 112);
-  --ifm-color-primary-light: rgb(70, 203, 174);
-  --ifm-color-primary-lighter: rgb(102, 212, 189);
-  --ifm-color-primary-lightest: rgb(146, 224, 208);
-  --ifm-code-font-size: 95%;
+.section {
+  margin-top: 130px;
+  margin-bottom: 130px;
 }
 
-.docusaurus-highlight-code-line {
-  background-color: rgb(72, 77, 91);
-  display: block;
-  margin: 0 calc(-1 * var(--ifm-pre-padding));
-  padding: 0 var(--ifm-pre-padding);
+.section-image-box.image-left .section-image-box__row-text {
+  order: 2;
+}
+.section-image-box.image-left .section-image-box__row-image {
+  order: 1;
+}
+.section-image-box__row {
+  margin-bottom: 80px;
 }
 
-
-.flex-row {
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-}
-
-.flex-row-reverse{
-  display: flex;
-  align-items: center;
+.section-image-box__row:nth-child(even) {
   flex-direction: row-reverse;
 }
 
-.img-holder {
-  min-width: 650px;
-}
-
-.img-holder img {
-  max-height: 350px;
-}
-
-@media only screen and (max-width: 1450px) {
-  .img-holder {
-    min-width: 450px;
-  }
-  
-  .img-holder img {
-    max-height: 350px;
-  }
-}
-
-@media only screen and (max-width: 1050px) {
-  .flex-row-reverse{
-    display: block;
-  }
-
-  .flex-row-reverse, .flex-row {
-    display: block; 
-  }
-}
-
-.red_border {
-  border: rgb(209, 30, 34) 3px dotted;
-  margin: 10px;
-}
-.green_border {
-  border: green 3px dotted;
-  padding: 10px;
-  margin: 10px;
-}
-
-
-.content p:before {
-  content: ">_ ";
-  color: green;
-}
-
-.content h1:before {
-  content: ">_ ";
-  color: red;
-}
-
-.content h1 {
-  margin: 20px;
-}
-
-.content {
-  font-size: 15px;
-}
-.content h1,h2 {
-  font-family: monospace;
-}
-
-.no_monospace {
-  font-family: auto;
-}
-
-.feature-row:nth-child(even) {
-  flex-direction: row-reverse;
-}
-
+/*TODO*/
 .feature-row:nth-child(even) .col--1:first-child {
   display: none;
 }
+
+/*# sourceMappingURL=custom.css.map */
