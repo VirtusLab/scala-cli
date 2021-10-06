@@ -18,7 +18,11 @@ final case class TestOptions(
   @Group("Test")
   @HelpMessage("Test framework to use to run tests")
   @ValueDescription("class-name")
-    testFramework: Option[String] = None
+    testFramework: Option[String] = None,
+
+  @Group("Test")
+  @HelpMessage("Fail if no test suites were run")
+    requireTests: Boolean = false
 ) {
   // format: on
   def buildOptions: BuildOptions = {

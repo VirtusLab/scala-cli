@@ -26,6 +26,7 @@ object Test extends ScalaCommand[TestOptions] {
             inputs.workspace,
             inputs.projectName,
             s,
+            options.requireTests,
             args.unparsed,
             logger,
             allowExecve = allowExit,
@@ -64,6 +65,7 @@ object Test extends ScalaCommand[TestOptions] {
     root: os.Path,
     projectName: String,
     build: Build.Successful,
+    requireTests: Boolean,
     args: Seq[String],
     logger: Logger,
     allowExecve: Boolean,
@@ -80,6 +82,7 @@ object Test extends ScalaCommand[TestOptions] {
             Runner.testJs(
               build.fullClassPath,
               js.toIO,
+              requireTests,
               args,
               testFrameworkOpt
             )
@@ -99,6 +102,7 @@ object Test extends ScalaCommand[TestOptions] {
               build.fullClassPath,
               launcher.toIO,
               testFrameworkOpt,
+              requireTests,
               args,
               logger.scalaNativeLogger
             )
@@ -106,7 +110,9 @@ object Test extends ScalaCommand[TestOptions] {
         }
       else {
         val extraArgs =
-          testFrameworkOpt.map(fw => s"--test-framework=$fw").toSeq ++ Seq("--") ++ args
+          (if (requireTests) Seq("--require-tests") else Nil) ++
+            testFrameworkOpt.map(fw => s"--test-framework=$fw").toSeq ++
+            Seq("--") ++ args
 
         Runner.runJvm(
           build.options.javaCommand(),

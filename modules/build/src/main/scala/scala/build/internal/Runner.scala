@@ -11,6 +11,7 @@ import scala.build.Logger
 import scala.build.errors.{
   NoFrameworkFoundByBridgeError,
   NoTestFrameworkFoundError,
+  NoTestsRun,
   TestError,
   TooManyFrameworksFoundByBridgeError
 }
@@ -180,9 +181,10 @@ object Runner {
   private def runTests(
     classPath: Seq[Path],
     framework: Framework,
+    requireTests: Boolean,
     args: Seq[String],
     parentInspector: AsmTestRunner.ParentInspector
-  ): Boolean = {
+  ): Either[NoTestsRun, Boolean] = {
 
     val taskDefs =
       AsmTestRunner.taskDefs(
@@ -200,11 +202,16 @@ object Runner {
     if (doneMsg.nonEmpty)
       System.out.println(doneMsg)
 
-    !events.exists { ev =>
-      ev.status == Status.Error ||
-      ev.status == Status.Failure ||
-      ev.status == Status.Canceled
-    }
+    if (requireTests && events.isEmpty)
+      Left(new NoTestsRun)
+    else
+      Right {
+        !events.exists { ev =>
+          ev.status == Status.Error ||
+          ev.status == Status.Failure ||
+          ev.status == Status.Canceled
+        }
+      }
   }
 
   private def frameworkName(
@@ -228,6 +235,7 @@ object Runner {
   def testJs(
     classPath: Seq[Path],
     entrypoint: File,
+    requireTests: Boolean,
     args: Seq[String],
     testFrameworkOpt: Option[String]
   ): Either[TestError, Int] = either {
@@ -265,19 +273,20 @@ object Runner {
           Left(new TooManyFrameworksFoundByBridgeError)
         else {
           val framework = frameworks.head
-          val success   = runTests(classPath, framework, args, parentInspector)
-          Right(if (success) 0 else 1)
+          runTests(classPath, framework, requireTests, args, parentInspector)
         }
       }
       finally if (adapter != null) adapter.close()
 
-    value(res)
+    if (value(res)) 0
+    else 1
   }
 
   def testNative(
     classPath: Seq[Path],
     launcher: File,
     frameworkNameOpt: Option[String],
+    requireTests: Boolean,
     args: Seq[String],
     nativeLogger: sn.Logger
   ): Either[TestError, Int] = either {
@@ -309,12 +318,12 @@ object Runner {
           Left(new TooManyFrameworksFoundByBridgeError)
         else {
           val framework = frameworks.head
-          val success   = runTests(classPath, framework, args, parentInspector)
-          Right(if (success) 0 else 1)
+          runTests(classPath, framework, requireTests, args, parentInspector)
         }
       }
       finally if (adapter != null) adapter.close()
 
-    value(res)
+    if (value(res)) 0
+    else 1
   }
 }

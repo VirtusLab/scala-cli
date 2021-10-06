@@ -399,4 +399,25 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
 
+  for ((platformName, platformArgs) <- platforms)
+    test(s"Fail if no tests were run $platformName") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "MyTests.scala" ->
+            """using "org.scalameta::munit::0.7.25"
+              |
+              |object MyTests
+              |""".stripMargin
+        )
+      )
+
+      inputs.fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "test", extraOptions, "--require-tests", platformArgs, ".")
+          .call(cwd = root, stderr = os.Pipe, mergeErrIntoOut = true, check = false)
+        expect(res.exitCode != 0)
+        val output = res.out.text
+        expect(output.contains("Error: no tests were run") || output.contains("No tests were run"))
+      }
+    }
+
 }

@@ -873,6 +873,10 @@ Available in commands:
 
 Test framework to use to run tests
 
+#### `--require-tests`
+
+Fail if no test suites were run
+
 ## Watch options
 
 Available in commands:

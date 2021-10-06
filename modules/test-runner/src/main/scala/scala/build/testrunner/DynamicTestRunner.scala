@@ -148,22 +148,24 @@ object DynamicTestRunner {
 
   def main(args: Array[String]): Unit = {
 
-    val (testFrameworkOpt, args0) = {
+    val (testFrameworkOpt, requireTests, args0) = {
       @tailrec
       def parse(
         testFrameworkOpt: Option[String],
         reverseTestArgs: List[String],
+        requireTests: Boolean,
         args: List[String]
-      ): (Option[String], List[String]) =
+      ): (Option[String], Boolean, List[String]) =
         args match {
-          case Nil       => (testFrameworkOpt, reverseTestArgs.reverse)
-          case "--" :: t => (testFrameworkOpt, reverseTestArgs.reverse ::: t)
+          case Nil       => (testFrameworkOpt, requireTests, reverseTestArgs.reverse)
+          case "--" :: t => (testFrameworkOpt, requireTests, reverseTestArgs.reverse ::: t)
           case h :: t if h.startsWith("--test-framework=") =>
-            parse(Some(h.stripPrefix("--test-framework=")), reverseTestArgs, t)
-          case h :: t => parse(testFrameworkOpt, h :: reverseTestArgs, t)
+            parse(Some(h.stripPrefix("--test-framework=")), reverseTestArgs, requireTests, t)
+          case "--require-tests" :: t => parse(testFrameworkOpt, reverseTestArgs, true, t)
+          case h :: t => parse(testFrameworkOpt, h :: reverseTestArgs, requireTests, t)
         }
 
-      parse(None, Nil, args.toList)
+      parse(None, Nil, false, args.toList)
     }
 
     val classLoader = Thread.currentThread().getContextClassLoader
@@ -201,6 +203,10 @@ object DynamicTestRunner {
     val doneMsg = runner.done()
     if (doneMsg.nonEmpty)
       out.println(doneMsg)
+    if (requireTests && events.isEmpty) {
+      System.err.println("Error: no tests were run.")
+      sys.exit(1)
+    }
     if (failed)
       sys.exit(1)
   }
