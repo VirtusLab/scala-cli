@@ -25,7 +25,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       Sources.defaultPreprocessors(CustomCodeWrapper)
     )
 
-    val sourcesBuildOptions = crossSources.map(_.sources(options).buildOptions)
+    val sourcesBuildOptions = crossSources.flatMap(_.sources(options)).map(_.buildOptions)
     val joinedBuildOpts     = sourcesBuildOptions.map(options orElse _).getOrElse(options)
     joinedBuildOpts.artifacts(logger)
   }

@@ -3,6 +3,7 @@ package scala.build
 import ch.epfl.scala.bsp4j
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{PathWatcher, PathWatchers}
+import dependency.ScalaParameters
 
 import java.io.File
 import java.nio.file.{FileSystemException, Path}
@@ -44,6 +45,7 @@ object Build {
   final case class Successful(
     inputs: Inputs,
     options: BuildOptions,
+    scalaParams: ScalaParameters,
     sources: Sources,
     artifacts: Artifacts,
     project: Project,
@@ -126,16 +128,16 @@ object Build {
       )
     }
 
-    val sources = crossSources.sources(options)
+    val sources = value(crossSources.sources(options))
 
     val options0 = options.orElse(sources.buildOptions)
     val inputs0  = updateInputs(inputs, options)
 
     val generatedSources = sources.generateSources(inputs0.generatedSrcRoot)
 
-    def doBuild(buildOptions: BuildOptions) = {
-      buildClient.setProjectParams(buildOptions.projectParams)
-      build(
+    def doBuild(buildOptions: BuildOptions) = either {
+      buildClient.setProjectParams(value(buildOptions.projectParams))
+      val res = build(
         inputs0,
         sources,
         inputs0.generatedSrcRoot,
@@ -145,6 +147,7 @@ object Build {
         buildClient,
         bloopServer
       )
+      value(res)
     }
 
     val mainBuild = value(doBuild(options0))
@@ -355,9 +358,9 @@ object Build {
     options: BuildOptions,
     logger: Logger,
     buildClient: BloopBuildClient
-  ): Either[BuildException, (os.Path, Artifacts, Project, Boolean)] = either {
+  ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
 
-    val params     = options.scalaParams
+    val params     = value(options.scalaParams)
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
@@ -436,7 +439,7 @@ object Build {
     buildClient.clear()
     buildClient.setGeneratedSources(generatedSources)
 
-    (classesDir0, artifacts, project, updatedBloopConfig)
+    (classesDir0, params, artifacts, project, updatedBloopConfig)
   }
 
   def buildOnce(
@@ -450,7 +453,7 @@ object Build {
     bloopServer: bloop.BloopServer
   ): Either[BuildException, Build] = either {
 
-    val (classesDir0, artifacts, project, updatedBloopConfig) = value {
+    val (classesDir0, scalaParams, artifacts, project, updatedBloopConfig) = value {
       prepareBuild(
         inputs,
         sources,
@@ -493,7 +496,16 @@ object Build {
         updateTasty = project.scalaCompiler.scalaVersion.startsWith("3.")
       )
 
-      Successful(inputs, options, sources, artifacts, project, classesDir0, buildClient.diagnostics)
+      Successful(
+        inputs,
+        options,
+        scalaParams,
+        sources,
+        artifacts,
+        project,
+        classesDir0,
+        buildClient.diagnostics
+      )
     }
     else
       Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)

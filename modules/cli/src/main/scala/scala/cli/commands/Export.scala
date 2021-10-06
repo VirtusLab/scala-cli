@@ -30,7 +30,7 @@ object Export extends ScalaCommand[ExportOptions] {
         )
       )
     }
-    val sources = crossSources.sources(buildOptions)
+    val sources = value(crossSources.sources(buildOptions))
 
     if (verbosity >= 3)
       pprint.better.log(sources)

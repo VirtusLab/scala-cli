@@ -38,7 +38,7 @@ class SourcesTests extends munit.FunSuite {
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
         CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
-      val sources = crossSources.sources(BuildOptions())
+      val sources = crossSources.sources(BuildOptions()).orThrow
 
       expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -68,7 +68,7 @@ class SourcesTests extends munit.FunSuite {
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
         CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
-      val sources = crossSources.sources(BuildOptions())
+      val sources = crossSources.sources(BuildOptions()).orThrow
 
       expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -96,7 +96,7 @@ class SourcesTests extends munit.FunSuite {
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
         CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
-      val sources = crossSources.sources(BuildOptions())
+      val sources = crossSources.sources(BuildOptions()).orThrow
 
       expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -154,7 +154,7 @@ class SourcesTests extends munit.FunSuite {
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
         CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
-      val sources = crossSources.sources(BuildOptions())
+      val sources = crossSources.sources(BuildOptions()).orThrow
 
       val parsedCodes: Seq[String] = sources.inMemory.map(_._3)
 
@@ -183,7 +183,7 @@ class SourcesTests extends munit.FunSuite {
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
         CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
-      val sources = crossSources.sources(BuildOptions())
+      val sources = crossSources.sources(BuildOptions()).orThrow
 
       expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
       expect(sources.paths.isEmpty)

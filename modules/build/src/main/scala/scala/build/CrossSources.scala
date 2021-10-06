@@ -14,14 +14,14 @@ final case class CrossSources(
   buildOptions: Seq[HasBuildRequirements[BuildOptions]]
 ) {
 
-  def sources(baseOptions: BuildOptions): Sources = {
+  def sources(baseOptions: BuildOptions): Either[BuildException, Sources] = either {
 
     val sharedOptions = buildOptions
       .filter(_.requirements.isEmpty)
       .map(_.value)
       .foldLeft(baseOptions)(_ orElse _)
 
-    val retainedScalaVersion = sharedOptions.scalaParams.scalaVersion
+    val retainedScalaVersion = value(sharedOptions.scalaParams).scalaVersion
 
     val buildOptionsWithScalaVersion = buildOptions
       .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
