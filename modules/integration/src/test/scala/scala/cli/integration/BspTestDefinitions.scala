@@ -308,7 +308,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   def testScalaTermination(
     currentBloopVersion: String,
     expectedBloopVersionAfterScalaCliRun: String
-  ): Unit = TestUtil.retry() {
+  ): Unit = TestUtil.retryOnCi() {
     def runBloop(args: String*) =
       os.proc(TestUtil.cs, "launch", s"bloop-jvm:$currentBloopVersion", "--", args)
 

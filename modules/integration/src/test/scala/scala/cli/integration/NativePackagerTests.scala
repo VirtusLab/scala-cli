@@ -315,19 +315,19 @@ class NativePackagerTests extends munit.FunSuite {
 
   if (Properties.isLinux) {
     test("building docker image") {
-      TestUtil.retry() {
+      TestUtil.retryOnCi() {
         runTest()
       }
     }
 
     test("building docker image with scala.js app") {
-      TestUtil.retry() {
+      TestUtil.retryOnCi() {
         runJsTest()
       }
     }
 
     test("building docker image with scala native app") {
-      TestUtil.retry() {
+      TestUtil.retryOnCi() {
         runNativeTest()
       }
     }
