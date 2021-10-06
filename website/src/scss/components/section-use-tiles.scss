@@ -41,7 +41,7 @@
             margin-bottom: 30px;
 
             @media (max-width: 375px) {
-                margin-bottom: -20px;
+                margin-bottom: 20px;
             }
 
             &:hover {
@@ -49,6 +49,16 @@
 
                 .read-more{
                     color: #E3322F;
+                }
+            }
+
+            &:active {
+                .read-more {
+                    color: #AF3A38;
+
+                    &:before {
+                        color: #AF3A38;
+                    }
                 }
             }
 
@@ -180,6 +190,16 @@ html[data-theme="dark"] {
 
                 &:before{
                     color: #FFD583 !important;
+                }
+            }
+        }
+
+        &:active {
+            .read-more{
+                color: #FBE5BB !important;
+
+                &:before{
+                    color: #FBE5BB !important;
                 }
             }
         }

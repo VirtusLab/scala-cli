@@ -85,6 +85,7 @@
     }
 
     .image-wrapper {
+        display: flex;
         border-radius: 6px;
         box-shadow: 0px 40px 40px -30px rgba(227, 50, 47, 0.25);
         filter: drop-shadow(0px 20px 40px rgba(227, 50, 47, 0.1));

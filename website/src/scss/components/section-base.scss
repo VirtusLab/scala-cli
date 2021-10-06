@@ -91,3 +91,12 @@
         }
     }
 }
+
+
+html[data-theme="dark"] {
+    .section {
+        a:not(:hover):not(:focus) {
+            color: #f5f6f7;
+        }
+    }
+}

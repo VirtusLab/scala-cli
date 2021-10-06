@@ -81,7 +81,7 @@
                 font-size: 13px;
             }
 
-            &:hover{
+            &:hover:not(.tabs__item--active) {
                 border: 1.5px solid #FFD583;
                 color: #FFD583;
             }
