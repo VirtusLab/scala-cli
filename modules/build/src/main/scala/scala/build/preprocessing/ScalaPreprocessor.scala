@@ -10,6 +10,7 @@ import scala.build.Ops._
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
+  FileNotFoundException,
   InvalidDirectiveError,
   UnusedDirectiveError
 }
@@ -38,6 +39,12 @@ case object ScalaPreprocessor extends Preprocessor {
     RequirePlatformsDirectiveHandler
   )
 
+  private def defaultCharSet = StandardCharsets.UTF_8
+
+  private def maybeRead(f: os.Path): Either[BuildException, String] =
+    if (os.isFile(f)) Right(os.read(f, defaultCharSet))
+    else Left(new FileNotFoundException(f))
+
   def preprocess(input: Inputs.SingleElement)
     : Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
@@ -50,7 +57,7 @@ case object ScalaPreprocessor extends Preprocessor {
           val printablePath =
             if (f.path.startsWith(Os.pwd)) f.path.relativeTo(Os.pwd).toString
             else f.path.toString
-          val content   = os.read(f.path)
+          val content   = value(maybeRead(f.path))
           val scopePath = PreprocessedSource.ScopePath.fromPath(f.path)
           val source = value(process(content, printablePath, scopePath / os.up)) match {
             case None =>
