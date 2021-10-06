@@ -1,11 +1,11 @@
 
 .section-features{
+    &__row {
+        margin-bottom: -30px;
+    }
 
     &__item{
-
-        @media ( max-width: 375px){
-            margin-bottom: 30px;
-        }
+        margin-bottom: 30px;
 
         &-wrapper{
             max-width: 300px;
