@@ -19,7 +19,7 @@ final case class BuildRequirements(
         else Left(platform0.failedMessage)
     }
   def isEmpty: Boolean =
-    scalaVersion.isEmpty
+    this == BuildRequirements()
   def orElse(other: BuildRequirements): BuildRequirements =
     BuildRequirements.monoid.orElse(this, other)
 }
