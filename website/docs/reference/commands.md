@@ -7,6 +7,9 @@ sidebar_position: 3
 
 Print details about this application
 
+Accepts options:
+- [about](./cli-options.md#about-options)
+
 ## `bsp`
 
 Accepts options:

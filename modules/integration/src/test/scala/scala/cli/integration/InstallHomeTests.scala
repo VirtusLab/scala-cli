@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.util.Properties
+
 class InstallHomeTests extends munit.FunSuite {
 
   val firstVersion            = "0.0.1"
@@ -51,45 +53,46 @@ class InstallHomeTests extends munit.FunSuite {
     )
   }
 
-  test("updating and downgrading dummy scala-cli using install-home command") {
+  if (!Properties.isWin && TestUtil.isCI) {
+    test("updating and downgrading dummy scala-cli using install-home command") {
 
-    testInputs.fromRoot { root =>
+      testInputs.fromRoot { root =>
 
-      val binDummyScalaCliFirst  = dummyScalaCliFirstName.stripSuffix(".scala").toLowerCase
-      val binDummyScalaCliSecond = dummyScalaCliSecondName.stripSuffix(".scala").toLowerCase
+        val binDummyScalaCliFirst  = dummyScalaCliFirstName.stripSuffix(".scala").toLowerCase
+        val binDummyScalaCliSecond = dummyScalaCliSecondName.stripSuffix(".scala").toLowerCase
 
-      packageDummyScalaCli(root, dummyScalaCliFirstName, binDummyScalaCliFirst)
-      packageDummyScalaCli(root, dummyScalaCliSecondName, binDummyScalaCliSecond)
+        packageDummyScalaCli(root, dummyScalaCliFirstName, binDummyScalaCliFirst)
+        packageDummyScalaCli(root, dummyScalaCliSecondName, binDummyScalaCliSecond)
 
-      // install 1 version
-      installScalaCli(root, binDummyScalaCliFirst, force = true)
+        // install 1 version
+        installScalaCli(root, binDummyScalaCliFirst, force = true)
 
-      println(binDirPath / dummyScalaCliBinName)
+        println(binDirPath / dummyScalaCliBinName)
 
-      val v1Install = os.proc(binDirPath / dummyScalaCliBinName).call(
-        cwd = root,
-        stdin = os.Inherit
-      ).out.text.trim
-      expect(v1Install == firstVersion)
+        val v1Install = os.proc(binDirPath / dummyScalaCliBinName).call(
+          cwd = root,
+          stdin = os.Inherit
+        ).out.text.trim
+        expect(v1Install == firstVersion)
 
-      // update to 2 version
-      installScalaCli(root, binDummyScalaCliSecond, force = false)
+        // update to 2 version
+        installScalaCli(root, binDummyScalaCliSecond, force = false)
 
-      val v2Update = os.proc(binDirPath / dummyScalaCliBinName).call(
-        cwd = root,
-        stdin = os.Inherit
-      ).out.text.trim
-      expect(v2Update == secondVersion)
+        val v2Update = os.proc(binDirPath / dummyScalaCliBinName).call(
+          cwd = root,
+          stdin = os.Inherit
+        ).out.text.trim
+        expect(v2Update == secondVersion)
 
-      // downgrade to 1 version with force
-      installScalaCli(root, binDummyScalaCliFirst, force = true)
+        // downgrade to 1 version with force
+        installScalaCli(root, binDummyScalaCliFirst, force = true)
 
-      val v1Downgrade = os.proc(binDirPath / dummyScalaCliBinName).call(
-        cwd = root,
-        stdin = os.Inherit
-      ).out.text.trim
-      expect(v1Downgrade == firstVersion)
+        val v1Downgrade = os.proc(binDirPath / dummyScalaCliBinName).call(
+          cwd = root,
+          stdin = os.Inherit
+        ).out.text.trim
+        expect(v1Downgrade == firstVersion)
+      }
     }
   }
-
 }
