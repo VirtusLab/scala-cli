@@ -49,7 +49,7 @@ object Run extends ScalaCommand[RunOptions] {
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        res.orReport(logger).map(_._1).foreach {
+        res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
             maybeRun(s, allowTerminate = false)
               .orReport(logger)
@@ -61,10 +61,10 @@ object Run extends ScalaCommand[RunOptions] {
       finally watcher.dispose()
     }
     else {
-      val (build, _) =
+      val builds =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
           .orExit(logger)
-      build match {
+      builds.main match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)
             .orExit(logger)

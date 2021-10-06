@@ -119,7 +119,7 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
     crossBuilds: Boolean
-  ): Either[BuildException, (Build, Seq[Build])] = either {
+  ): Either[BuildException, Builds] = either {
 
     val crossSources = value {
       CrossSources.forInputs(
@@ -167,7 +167,7 @@ object Build {
       else
         Nil
 
-    (mainBuild, extraBuilds)
+    Builds(mainBuild, extraBuilds)
   }
 
   private def build(
@@ -227,7 +227,7 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean
-  ): Either[BuildException, (Build, Seq[Build])] = {
+  ): Either[BuildException, Builds] = {
 
     val buildClient = BloopBuildClient.create(
       logger,
@@ -261,7 +261,7 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean
-  ): Either[BuildException, (Build, Seq[Build])] =
+  ): Either[BuildException, Builds] =
     build(inputs, options, BuildThreads.create(), bloopConfig, logger, crossBuilds = crossBuilds)
 
   def watch(
@@ -271,7 +271,7 @@ object Build {
     logger: Logger,
     crossBuilds: Boolean,
     postAction: () => Unit = () => ()
-  )(action: Either[BuildException, (Build, Seq[Build])] => Unit): Watcher = {
+  )(action: Either[BuildException, Builds] => Unit): Watcher = {
 
     val buildClient = BloopBuildClient.create(
       logger,
@@ -650,7 +650,7 @@ object Build {
           runJmh = build.options.jmhOptions.runJmh.map(_ => false)
         )
       )
-      val (jmhBuild, _) = value {
+      val jmhBuilds = value {
         Build.build(
           jmhInputs,
           updatedOptions,
@@ -660,7 +660,7 @@ object Build {
           crossBuilds = false
         )
       }
-      Some(jmhBuild)
+      Some(jmhBuilds.main)
     }
     else None
   }

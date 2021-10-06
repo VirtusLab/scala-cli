@@ -29,9 +29,10 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     val directories = options.shared.directories.directories
 
-    val (build, _) =
+    val builds =
       Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = false)
         .orExit(logger)
+    val build = builds.main
 
     build.successfulOpt.getOrElse {
       System.err.println("Compilation failed")
@@ -88,16 +89,19 @@ object Repl extends ScalaCommand[ReplOptions] {
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        for ((build, _) <- res.orReport(logger))
+        for (builds <- res.orReport(logger)) {
+          val build = builds.main
           maybeRunRepl(build.options, build.artifacts, build.outputOpt, logger, allowExit = false)
+        }
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
     }
     else {
-      val (build, _) =
+      val builds =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
           .orExit(logger)
+      val build = builds.main
       maybeRunRepl(build.options, build.artifacts, build.outputOpt, logger, allowExit = true)
     }
   }

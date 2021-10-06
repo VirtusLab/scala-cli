@@ -61,7 +61,7 @@ object Package extends ScalaCommand[PackageOptions] {
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        res.orReport(logger).map(_._1).foreach {
+        res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
             doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
               .orReport(logger)
@@ -73,10 +73,10 @@ object Package extends ScalaCommand[PackageOptions] {
       finally watcher.dispose()
     }
     else {
-      val (build, _) =
+      val builds =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
           .orExit(logger)
-      build match {
+      builds.main match {
         case s: Build.Successful =>
           doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
             .orExit(logger)

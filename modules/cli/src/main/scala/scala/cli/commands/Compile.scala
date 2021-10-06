@@ -40,8 +40,8 @@ object Compile extends ScalaCommand[CompileOptions] {
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        for ((build, _) <- res.orReport(logger))
-          postBuild(build)
+        for (builds <- res.orReport(logger))
+          postBuild(builds.main)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
@@ -54,8 +54,8 @@ object Compile extends ScalaCommand[CompileOptions] {
         logger,
         crossBuilds = cross
       )
-      val (build, _) = res.orExit(logger)
-      postBuild(build)
+      val builds = res.orExit(logger)
+      postBuild(builds.main)
     }
   }
 
