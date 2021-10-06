@@ -11,7 +11,7 @@ object Bsp extends ScalaCommand[BspOptions] {
   def run(options: BspOptions, args: RemainingArgs): Unit = {
 
     if (options.shared.logging.verbosity >= 3)
-      pprint.better.log(args)
+      pprint.stderr.log(args)
 
     val buildOptions     = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
@@ -20,7 +20,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     val inputs = {
       val initialInputs = options.shared.inputsOrExit(args)
       if (options.shared.logging.verbosity >= 3)
-        pprint.better.log(initialInputs)
+        pprint.stderr.log(initialInputs)
       Build.updateInputs(initialInputs, buildOptions)
     }
 

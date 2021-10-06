@@ -11,7 +11,7 @@ package object bsp {
   implicit class Ext[T](private val f: CompletableFuture[T]) extends AnyVal {
     def logF: CompletableFuture[T] =
       f.handle { (res, _) =>
-        pprint.better.log(res)
+        pprint.stderr.log(res)
         res
       }
   }

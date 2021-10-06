@@ -1,6 +1,6 @@
 package pprint
 
-object better {
+object stderr {
 
   // Same as pprint.log, except we log things to stderr rather than stdout
 

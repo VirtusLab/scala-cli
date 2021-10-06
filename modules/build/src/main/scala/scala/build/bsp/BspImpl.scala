@@ -53,18 +53,18 @@ final class BspImpl(
     }
 
     if (verbosity >= 3)
-      pprint.better.log(crossSources)
+      pprint.stderr.log(crossSources)
 
     val scopedSources = value(crossSources.scopedSources(buildOptions))
 
     if (verbosity >= 3)
-      pprint.better.log(scopedSources)
+      pprint.stderr.log(scopedSources)
 
     val scope   = Scope.Main
     val sources = scopedSources.sources(scope, buildOptions)
 
     if (verbosity >= 3)
-      pprint.better.log(sources)
+      pprint.stderr.log(sources)
 
     val options0 = sources.buildOptions
 

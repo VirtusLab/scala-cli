@@ -9,5 +9,5 @@ trait LoggingJavaBuildServer extends b.JavaBuildServer {
   override def buildTargetJavacOptions(
     params: b.JavacOptionsParams
   ): CompletableFuture[b.JavacOptionsResult] =
-    underlying.buildTargetJavacOptions(pprint.better.log(params)).logF
+    underlying.buildTargetJavacOptions(pprint.stderr.log(params)).logF
 }
