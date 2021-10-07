@@ -101,7 +101,7 @@ You can add dependencies on the command-line, via `--dependency`:
 scala-cli compile Hello.scala --dependency dev.zio::zio:1.0.9
 ```
 
-Note that `--dependency` is only meant as a convenience. You should favor
+Note that `--dependency` is only meant as a convenience. You should favour
 adding dependencies in the sources themselves (via `import $dep`)
 or in a configuration file.
 
@@ -129,6 +129,6 @@ java -cp "$(scala compile --class-path Hello.scala)" Hello
 # Hello
 ```
 
-Note that you should favor the [`run`](./run.md) command to run your code, rather than running `java -cp`.
+Note that you should favour the [`run`](./run.md) command to run your code, rather than running `java -cp`.
 The class path obtained this way is meant for scenarios where `scala-cli` doesn't offer a more
 convenient option.

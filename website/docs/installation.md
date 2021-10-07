@@ -3,7 +3,7 @@ title: Installation
 sidebar_position: 2
 ---
 
-We recomment following the [Quick start](#quick-start) instructions
+We recommend following the [Quick start](#quick-start) instructions
 to install Scala CLI. If the quick start instructions don't suit you,
 more installation options are offered in the [Advanced](#advanced) section.
 
