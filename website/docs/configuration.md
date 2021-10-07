@@ -16,13 +16,13 @@ to evolve in the future.
 ## Command-line
 
 Pass `--help` to any sub-command of `scala-cli` to list its options:
-```text
+```bash
 scala-cli --help
 scala-cli package --help
 ```
 
 For example, you can specify the Scala version, or add dependencies, on the command-line:
-```text
+```bash
 scala-cli --scala 3.0.0 Test.scala
 scala-cli --dependency org.typelevel::cats-core:2.3.0 Test.scala
 ```

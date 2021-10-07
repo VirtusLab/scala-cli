@@ -16,7 +16,7 @@ Two kind of support co-exist for VSCode:
 
 This Scala CLI support should work with any recent version of Metals. In order to
 open a Scala CLI project in Metals, run the `setup-ide` command first:
-```text
+```bash
 scala-cli setup-ide .
 ```
 (replace `.` with another set of inputs if these are different.) This should create

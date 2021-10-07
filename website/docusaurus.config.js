@@ -1,6 +1,7 @@
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 
-let isCI = process.env.CI || false;
+const lightCodeTheme = require('prism-react-renderer/themes/github');
+const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 module.exports = {
   title: 'Scala CLI',
@@ -14,6 +15,11 @@ module.exports = {
   projectName: 'scala-cli',
   plugins: ['docusaurus-plugin-sass'],
   themeConfig: {
+    prism: {
+      theme: lightCodeTheme,
+      darkTheme: darkCodeTheme,
+      additionalLanguages: ['java', 'scala', 'bash'],
+    },
     navbar: {
       title: 'Scala CLI',
       logo: {

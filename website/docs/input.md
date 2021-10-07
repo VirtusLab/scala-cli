@@ -23,6 +23,7 @@ This is the simplest input format. Just write a `.scala` file, and pass it to
 `scala-cli` to run it:
 
 - `Hello.scala`
+
 ```scala
 object Hello {
   def main(args: Array[String]): Unit =
