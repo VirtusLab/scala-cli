@@ -15,22 +15,21 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     Version(newVersion) > Version(oldVersion)
   }
 
-  private def loggingEqual(version: String) = {
+  private def logEqual(version: String) = {
     System.err.println(
       s"Scala-cli $version is already installed and up-to-date."
     )
     sys.exit(0)
   }
 
-  private def loggingUpdate(env: Boolean, newVersion: String, oldVersion: String) = {
+  private def logUpdate(env: Boolean, newVersion: String, oldVersion: String) =
     if (!env) println(
       s"""scala-cli $oldVersion is already installed and out-of-date.
          |scala-cli will be updated to version $newVersion
          |""".stripMargin
     )
-  }
 
-  private def loggingDowngrade(env: Boolean, newVersion: String, oldVersion: String) = {
+  private def logDowngrade(env: Boolean, newVersion: String, oldVersion: String) =
     if (!env && coursier.paths.Util.useAnsiOutput()) {
       println(s"scala-cli $oldVersion is already installed and up-to-date.")
       println(s"Do you want to downgrade scala-cli to version $newVersion [Y/n]")
@@ -46,7 +45,6 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
       )
       sys.exit(1)
     }
-  }
 
   def run(options: InstallHomeOptions, args: RemainingArgs): Unit = {
 
@@ -62,13 +60,12 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
       os.proc(binDirPath / options.binaryName, "version").call(cwd = os.pwd).out.text.trim
     }.toOption.getOrElse("0.0.0")
 
-    if (os.exists(binDirPath)) {
+    if (os.exists(binDirPath))
       if (options.force) () // skip logging
-      else if (newVersion == oldVersion) loggingEqual(newVersion)
+      else if (newVersion == oldVersion) logEqual(newVersion)
       else if (isOutOfDate(newVersion, oldVersion))
-        loggingUpdate(options.env, newVersion, oldVersion)
-      else loggingDowngrade(options.env, newVersion, oldVersion)
-    }
+        logUpdate(options.env, newVersion, oldVersion)
+      else logDowngrade(options.env, newVersion, oldVersion)
 
     os.remove.all(binDirPath)
 
@@ -80,9 +77,8 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     if (!Properties.isWin)
       os.perms.set(binDirPath / options.binaryName, os.PermSet.fromString("rwxr-xr-x"))
 
-    if (options.env) {
-      println(s""" export PATH="$$PATH:$binDirPath" """)
-    }
+    if (options.env)
+      println(s"""export PATH="$binDirPath:$$PATH"""")
     else {
 
       val update = EnvironmentUpdate(Nil, Seq("PATH" -> binDirPath.toString()))
