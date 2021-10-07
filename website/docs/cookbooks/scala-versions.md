@@ -7,16 +7,37 @@ sidebar_position: 2
 
 Scala cli by default runs latest stable Scala version.
 
-Here is an universal piece of code that detect Scala version in runtime
+Here is an universal piece of code that detect Scala version in runtime. Code is a bit complicated so we suggest to skip reading the whole file and just focus on what it prints.
 
 ```scala name:ScalaVersion.scala
 object ScalaVersion extends App {
-    val props = new java.util.Properties
-    props.load(getClass.getResourceAsStream("/library.properties"))
-    val line = props.getProperty("version.number")
-    val Version = """(\d\.\d+\.\d+).*""".r
-    val Version(versionStr) = line
-    println(s"Using Scala version: $versionStr")
+  def props(url: java.net.URL): java.util.Properties = {
+    val properties = new java.util.Properties()
+    val is = url.openStream()
+    try {
+      properties.load(is)
+      properties
+    } finally is.close()    
+  }
+
+  def scala2Version: String = 
+    props(getClass.getResource("/library.properties")).getProperty("version.number")
+    
+  def checkScala3(res: java.util.Enumeration[java.net.URL]): String = 
+    if (!res.hasMoreElements) scala2Version else {
+      val manifest = props(res.nextElement)
+      manifest.getProperty("Specification-Title") match {
+        case "scala3-library-bootstrapped" =>
+          manifest.getProperty("Implementation-Version")
+        case _ => checkScala3(res)
+      }
+    }
+  val manifests = getClass.getClassLoader.getResources("META-INF/MANIFEST.MF")
+    
+  val scalaVersion = checkScala3(manifests)
+  val javaVersion = System.getProperty("java.version")
+
+  println(s"Scala: $scalaVersion Java: $javaVersion")
 }
 ```
 
@@ -27,7 +48,7 @@ scala-cli ScalaVersion.scala
 ```
 
 <!-- Expected-regex:
-Using Scala version: 2.*
+Using Scala version: 3.*
 -->
 
 
