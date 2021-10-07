@@ -158,7 +158,10 @@ sealed abstract class TastyName extends Product with Serializable { self =>
 
   final override def toString: String = source
 
-  final def isObjectName: Boolean = self.isInstanceOf[ObjectName]
+  final def isObjectName: Boolean = self match {
+    case _: ObjectName => true
+    case _             => false
+  }
 
   final def asSimpleName: SimpleName = self match {
     case self: SimpleName => self
