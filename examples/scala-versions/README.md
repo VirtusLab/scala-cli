@@ -7,7 +7,7 @@
 
 Scala cli by default runs latest stable Scala version.
 
-Here is an unversal piece of code that detect Scala version in runtime
+Here is an universal piece of code that detect Scala version in runtime
 
 ```scala name:ScalaVersion.scala
 object ScalaVersion extends App {
@@ -31,7 +31,7 @@ Using Scala version: 2.*
 -->
 
 
-It will run using latest stable release of Scala (3.0.2 by the time of writting this doc.)
+It will run using latest stable release of Scala (3.0.2 by the time of writing this doc.)
 
 Scala version can be also provided from command line using `--scala` (with `-S` and `--scala-version` aliases)
 
@@ -53,7 +53,7 @@ scala-cli -S 2 ScalaVersion.scala
 Using Scala version: 2/.*
 -->
 
-will result in picking up a lates stable release for Scala 2 (`2.13.6` as of when this doc is written) and
+will result in picking up a latest stable release for Scala 2 (`2.13.6` as of when this doc is written) and
 
 ```scala-cli
 scala-cli -S 2.12 ScalaVersion.scala
@@ -65,10 +65,10 @@ Using Scala version: 2\.12\..*
 will use latest stable release of `2.12` `2.12.15`.
 
 
-We can also pin the version of the language withing the .scala file with `using directives`. You can read our more how using directives works in documentation and examples.
+We can also pin the version of the language within the .scala file with `using directives`. You can read our more how using directives works in documentation and examples.
 
 :::info
-Using directives sytax is still experimental and may change in future versions of scala-cli
+Using directives syntax is still experimental and may change in future versions of scala-cli
 
 
 So when we will have:
@@ -101,8 +101,8 @@ Will result in using `2.13.5`
 Using Scala version: 2\.12\..*
 -->
 
-# When should I provie a full version of scala?
+# When should I provide a full version of scala?
 
-For protyping, scrittping and other usces that does not require to run code multiple times in the future proving version is not required. 
+For prototyping, scripting and other use cases that does not require to run code multiple times in the future proving version is not required. 
 
-Scala is source and bianry compatible within each major version (e.g. `2.12.x` or `3.1.x`) so providing version in `eopch.major` form (e.g. `2.12`, `2.13` or `3.1`) should be perfectly fine for most uscases. When your Scala code contains more advanced features that may be more sensitve for changes in minor version (e.g. from `2.13.4` to `2.13.5`) we recomend using complete Scala version.
+Scala is source and binary compatible within each major version (e.g. `2.12.x` or `3.1.x`) so providing version in `eopch.major` form (e.g. `2.12`, `2.13` or `3.1`) should be perfectly fine for most use cases. When your Scala code contains more advanced features that may be more sensitive for changes in minor version (e.g. from `2.13.4` to `2.13.5`) we recommend using complete Scala version.
