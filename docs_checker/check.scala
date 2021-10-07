@@ -1,19 +1,14 @@
 // using scala 3.0.2
 // using "org.scalameta::munit:0.7.29"
+// using com.lihaoyi::os-lib:0.7.8
 
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.Files
-import collection.JavaConverters.*
-import scala.sys.process.*
 import scala.util.matching.Regex
 
 import munit.Assertions.assert
-import java.io.File
 
 val ScalaCodeBlock = """ *```scala name\:([\w\.]+)+""".r
 val CodeBlockEnds  = """ *```""".r
-val ScalaCliBlock  = """ *```scala-cli""".r
+val ScalaCliBlock  = """ *```scala-cli( +fail)?""".r
 val CheckBlock     = """ *\<\!\-\- Expected(-regex):""".r
 val CheckBlockEnd  = """ *\-\-\>""".r
 
@@ -21,7 +16,7 @@ enum Commands:
   def context: Context
 
   case Snippet(name: String, lines: Seq[String], context: Context)
-  case Run(cmd: Seq[String], context: Context)
+  case Run(cmd: Seq[String], shouldFail: Boolean, context: Context)
   case Check(patterns: Seq[String], regex: Boolean, context: Context)
 
 case class Context(file: String, line: Int)
@@ -45,10 +40,10 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
       val (codeLines, rest, newContext) = untilEndOfSnippet(tail)(using context)
 
       parse(rest, currentCommands :+ Commands.Snippet(name, codeLines, context), newContext)
-    case ScalaCliBlock() :: tail =>
+    case ScalaCliBlock(failGroup) :: tail =>
       val (codeLines, rest, newContext) = untilEndOfSnippet(tail)
       assert(codeLines.size != 0)
-      val runCmd = Commands.Run(codeLines.head.split(" ").toList, newContext)
+      val runCmd = Commands.Run(codeLines.head.split(" ").toList, failGroup != null, newContext)
       parse(rest, currentCommands :+ runCmd, newContext)
     case CheckBlock(regexOpt) :: tail =>
       val isRegex                      = regexOpt == "-regex"
@@ -56,70 +51,119 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
       parse(rest, currentCommands :+ Commands.Check(patterns, isRegex, context), newContext)
     case _ :: tail => parse(tail, currentCommands, context.copy(line = context.line + 1))
 
-case class TestCase(path: Path, failure: Option[Throwable])
+case class TestCase(path: os.Path, failure: Option[Throwable])
 
-def checkPath(path: Path): Seq[TestCase] =
+def checkPath(dest: Option[os.Path])(path: os.Path): Seq[TestCase] =
   try
-    if !Files.isDirectory(path) then
-      if path.getFileName.toString.endsWith(".md") then
-        checkFile(path)
+    if !os.isDir(path) then
+      if path.last.endsWith(".md") then
+        checkFile(path, dest)
         Seq(TestCase(path, None))
       else Nil
     else
       val toCheck =
-        Files.list(path).iterator.asScala.filterNot(_.getFileName.toString.startsWith("."))
-      toCheck.toList.flatMap(checkPath)
+        os.list(path).filterNot(_.last.startsWith("."))
+      toCheck.toList.flatMap(checkPath(dest))
   catch
     case e: Throwable =>
       e.printStackTrace()
       Seq(TestCase(path, Some(e)))
 
-def checkFile(file: Path) =
-  val content  = Files.lines(file).iterator.asScala.toList
+val fakeLineMarker = "//fakeline"
+
+def checkFile(file: os.Path, dest: Option[os.Path]) =
+  val content  = os.read.lines(file).toList
   val commands = parse(content, Vector(), Context(file.toString, 1))
-  val out      = Files.createTempDirectory("scala-cli-tests")
-  println(s"Using $out as output to process $file")
+  val destName = file.last.stripSuffix(".md")
+  val out      = os.temp.dir(prefix = destName)
+
   var lastOutput = ""
-  commands.foreach { cmd =>
-    given Context = cmd.context
-    cmd match
-      case Commands.Run(cmd, _) =>
-        println(s"### Running: ${cmd.mkString(" ")}")
-        try lastOutput = Process(cmd, Some(out.toFile)).!!
-        catch
-          case e: Throwable =>
-            throw new RuntimeException(msg(s"Error running ${cmd.mkString(" ")}"), e)
-      case Commands.Snippet(name, code, c) =>
-        println(s"### Writting $name with:\n${code.mkString("\n")}\n---")
-        val prefix = "\n" * c.line
-        Files.write(out.resolve(name), code.mkString(prefix, "\n", "").getBytes)
-      case Commands.Check(patterns, regex, line) =>
-        assert(lastOutput != "")
-        val lines = lastOutput.linesIterator.toList
+  val allSources = Set.newBuilder[os.Path]
 
-        if regex then
-          patterns.foreach { pattern =>
-            val regex = pattern.r
-            assert(
-              lines.exists(regex.matches),
-              msg(s"Regex: $pattern, does not matches any line in:\n$lastOutput")
-            )
-          }
-        else
-          patterns.foreach { pattern =>
-            assert(
-              lines.exists(_.contains(pattern)),
-              msg(s"Pattern: $pattern does not exisits in  any line in:\n$lastOutput")
-            )
-          }
+  try
+    println(s"Using $out as output to process $file")
 
-  }
+    commands.foreach { cmd =>
+      given Context = cmd.context
+      cmd match
+        case Commands.Run(cmd, shouldFail, _) =>
+          println(s"### Running: ${cmd.mkString(" ")}")
+          val res = os.proc(cmd).call(cwd = out, check = false)
+          if shouldFail then
+            assert(res.exitCode != 0)
+          else
+            assert(res.exitCode == 0)
+          val outputChunks = res.chunks.map {
+            case Left(c) =>
+              c
+            case Right(c) =>
+              c
+          }
+          lastOutput = geny.ByteData.Chunks(outputChunks).text()
+
+        case Commands.Snippet(name, code, c) =>
+          println(s"### Writting $name with:\n${code.mkString("\n")}\n---")
+          val prefix = (fakeLineMarker + "\n") * c.line
+          val file   = out / name
+          allSources += file
+          os.write(file, code.mkString(prefix, "\n", ""))
+        case Commands.Check(patterns, regex, line) =>
+          assert(lastOutput != "", msg("No output stored from previous commands"))
+          val lines = lastOutput.linesIterator.toList
+
+          if regex then
+            patterns.foreach { pattern =>
+              val regex = pattern.r
+              assert(
+                lines.exists(regex.matches),
+                msg(s"Regex: $pattern, does not matches any line in:\n$lastOutput")
+              )
+            }
+          else
+            patterns.foreach { pattern =>
+              assert(
+                lines.exists(_.contains(pattern)),
+                msg(s"Pattern: $pattern does not exisits in  any line in:\n$lastOutput")
+              )
+            }
+    }
+  finally if dest.isEmpty then os.remove.all(out)
+
+  // remove empty space at begining of all files
+  if dest.nonEmpty then
+    val exampleDir = dest.get / destName
+    os.remove.all(exampleDir)
+    os.makeDir(exampleDir)
+
+    val relFile = file.relativeTo(os.pwd)
+    val header  = s"File was generated from based on $relFile, do not edit manually!"
+    allSources.result().foreach { s =>
+      val content = os.read.lines(s).dropWhile(_ == fakeLineMarker)
+        .mkString(s"// $header\n\n", "\n", "")
+      os.write.over(s, content)
+    }
+    val withoutFrontMatter =
+      if !content.head.startsWith("---") then content
+      else
+        content.tail.dropWhile(l => !l.startsWith("---")).tail
+
+    val readmeLines = List("<!--", "  " + header, "-->", "") ++ withoutFrontMatter
+    os.write(exampleDir / "README.md", readmeLines.mkString("\n"))
+
+    os.list(out).filter(_.toString.endsWith(".scala")).foreach(p => os.copy.into(p, exampleDir))
 
 @main def check(args: String*) =
-  val testCases    = args.flatMap(a => checkPath(Paths.get(a)))
-  val (failed, ok) = testCases.partition(_.failure.nonEmpty)
-  println(s"Completed:\n\t${ok.map(_.path).mkString("\n\t")}")
-  if failed.nonEmpty then
-    println(s"Failed:\n\t${failed.map(_.path).mkString("\n\t")}")
-    sys.exit(1)
-  println("---")
+  def processFiles(dest: Option[os.Path], files: Seq[String]) =
+    val testCases    = files.flatMap(a => checkPath(dest)(os.pwd / os.RelPath(a)))
+    val (failed, ok) = testCases.partition(_.failure.nonEmpty)
+    println(s"Completed:\n\t${ok.map(_.path).mkString("\n\t")}")
+    if failed.nonEmpty then
+      println(s"Failed:\n\t${failed.map(_.path).mkString("\n\t")}")
+      sys.exit(1)
+    println("---")
+
+  args match
+    case Nil =>
+      println("No inputs!")
+    case "--dest" :: dest :: files => processFiles(Some(os.pwd / dest), files)
+    case files                     => processFiles(None, files)

@@ -1,7 +1,7 @@
----
-title: Picking Scala version with scala-cli
-sidebar_position: 2
----
+<!--
+  File was generated from based on docs/cookbooks/scala-versions.md, do not edit manually!
+-->
+
 
 # Picking Scala version with scala-cli
 
