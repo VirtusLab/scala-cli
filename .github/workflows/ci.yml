@@ -339,6 +339,11 @@ jobs:
           KEYGRIP: ${{ secrets.KEYGRIP }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
+      - run: ./mill -i ci.updateStandaloneLauncher
+        if: env.SHOULD_PUBLISH == 'true'
+        env:
+          UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   website-nightly:
     needs: [jvm-tests, format, checks, reference-doc]

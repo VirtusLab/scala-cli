@@ -3,17 +3,17 @@ set -eu
 
 # This script automatically download scala-cli from latest release and cache via coursier
 
-# https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c
-LATATEST_TAG=$(
-    curl --silent "https://api.github.com/repos/VirtusLab/scala-cli/releases/latest" | grep '"tag_name":' | sed 's/.*"\(v.*\)",/\1/'
-)
+LATEST_TAG="0.0.4"
 
 if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
-  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/$LATATEST_TAG/scala-cli-x86_64-pc-linux.gz"
+  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$LATEST_TAG/scala-cli-x86_64-pc-linux.gz"
   CACHE_BASE="$HOME/.cache/coursier/v1"
-else
-  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/$LATATEST_TAG/scala-cli-x86_64-apple-darwin.gz"
+elif [ "$(uname)" == "Darwin" ]; then
+  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$LATEST_TAG/scala-cli-x86_64-apple-darwin.gz"
   CACHE_BASE="$HOME/Library/Caches/Coursier/v1"
+else
+   echo "This standalone scala-cli launcher is supported only in Linux and Darwin OS. If you are using Windows, please use the dedicated launcher scala-cli.bat"
+   exit 1
 fi
 
 CACHE_DEST="$CACHE_BASE/$(echo "$SCALA_CLI_URL" | sed 's@://@/@')"

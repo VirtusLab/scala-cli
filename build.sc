@@ -595,14 +595,11 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
   val launchers = os.list(path).filter(os.isFile(_)).map { path =>
     path.toNIO -> path.last
   }
-  val ghToken = Option(System.getenv("UPLOAD_GH_TOKEN")).getOrElse {
-    sys.error("UPLOAD_GH_TOKEN not set")
-  }
   val (tag, overwriteAssets) =
     if (version.endsWith("-SNAPSHOT")) ("nightly", true)
     else ("v" + version, false)
   System.err.println(s"Uploading to tag $tag (overwrite assets: $overwriteAssets)")
-  Upload.upload(ghOrg, ghName, ghToken, tag, dryRun = false, overwrite = overwriteAssets)(
+  Upload.upload(ghOrg, ghName, ghToken(), tag, dryRun = false, overwrite = overwriteAssets)(
     launchers: _*
   )
 }
@@ -652,7 +649,9 @@ def copyStaticLauncher(directory: String = "artifacts") = T.command {
     suffix = "-static"
   )
 }
-
+private def ghToken(): String = Option(System.getenv("UPLOAD_GH_TOKEN")).getOrElse {
+  sys.error("UPLOAD_GH_TOKEN not set")
+}
 private def gitClone(repo: String, branch: String, workDir: os.Path) =
   os.proc("git", "clone", repo, "-q", "-b", branch).call(cwd = workDir)
 private def setupGithubRepo(repoDir: os.Path) = {
@@ -677,6 +676,32 @@ private def commitChanges(name: String, branch: String, repoDir: os.Path): Unit 
 
 // TODO Move most CI-specific tasks there
 object ci extends Module {
+  def updateStandaloneLauncher() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir              = os.pwd / "target"
+    val scalaCliDir            = targetDir / "scala-cli"
+    val standAloneLauncherPath = scalaCliDir / "scala-cli.sh"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+    os.makeDir.all(targetDir)
+
+    val branch = "master"
+    val repo   = s"https://oauth2:${ghToken()}@github.com/VirtusLab/scala-cli.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(scalaCliDir)
+
+    val launcherScript = os.read(standAloneLauncherPath)
+    val latestTagRegex = "LATEST_TAG=\".*\"".r
+    val updatedLauncherScript =
+      latestTagRegex.replaceFirstIn(launcherScript, s"LATEST_TAG=$version")
+    os.write.over(standAloneLauncherPath, updatedLauncherScript)
+
+    commitChanges(s"Update scala-cli.sh launcher for $version", branch, scalaCliDir)
+  }
   def updateBrewFormula() = T.command {
     val version = cli.publishVersion()
 
