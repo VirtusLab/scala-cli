@@ -23,6 +23,7 @@ This is the simplest input format. Just write a `.scala` file, and pass it to
 `scala-cli` to run it:
 
 - `Hello.scala`
+
 ```scala
 object Hello {
   def main(args: Array[String]): Unit =
@@ -105,6 +106,7 @@ It'll download gists zip archive, cache their content, and run them.
 ```bash
 scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec
 # Hello
+```
 
 ## Piping
 
@@ -149,7 +151,7 @@ object hello {
   def main(args: Array[String]): Unit = ()
 }
 ```
-(reformated for clarity)
+(reformatted for clarity)
 The name `hello` comes straight from the file name `hello.sc`.
 
 When a script is in a sub-directory of a directory passed to `scala-cli` , a package is inferred too:

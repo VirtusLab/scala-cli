@@ -9,7 +9,7 @@ run your code and inspect its results.
 It uses on the [Ammonite](http://ammonite.io) REPL, which is more featureful
 and user-friendly than the REPL that comes up with the Scala compiler.
 
-```text
+```bash
 cat Messages.scala
 # package mylibrary
 # object Messages {

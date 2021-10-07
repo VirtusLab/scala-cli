@@ -13,15 +13,10 @@ In order to run Scala.JS sources, `node` is required.
 
 ## Configuration
 
-Enable Scala.JS support either by passing `--js` to `scala-cli` , like `scala Test.scala --js`,
-or by setting the `scala.platform` key to `""`
+Enable Scala.JS support either by passing `--js` to `scala-cli` , like `scala Test.scala --js`
 
 ## Dependencies
 
-- enable it either on the command-line, or in conf file
-
 - beware platform dependencies
-
-- options?
 
 - `run` / `test` / `package` should all work
