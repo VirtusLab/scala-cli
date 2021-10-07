@@ -36,7 +36,9 @@ object TestDeps {
 
 object Deps {
   object Versions {
-    def coursier      = "2.0.16+73-gddc6d9cc9"
+    // jni-utils version may need to be sync-ed when bumping the coursier version
+    def coursier = "2.0.16-161-g8a1b8eae5"
+
     def scalaJs       = "1.5.1"
     def scalaMeta     = "4.4.28"
     def scalaNative   = "0.4.0"
@@ -56,7 +58,7 @@ object Deps {
   def guava             = ivy"com.google.guava:guava:18.0"
   def ipcSocket         = ivy"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-2"
   def jimfs             = ivy"com.google.jimfs:jimfs:1.2"
-  def jniUtils          = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.1"
+  def jniUtils          = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.2"
   def macroParadise     = ivy"org.scalamacros:::paradise:2.1.1"
   def munit             = ivy"org.scalameta::munit:0.7.25"
   def nativeTestRunner  = ivy"org.scala-native::test-runner:${Versions.scalaNative}"

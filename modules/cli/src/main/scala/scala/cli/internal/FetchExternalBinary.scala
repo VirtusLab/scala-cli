@@ -1,7 +1,6 @@
 package scala.cli.internal
 
-import coursier.cache.FileCache
-import coursier.jvm.ArchiveType
+import coursier.cache.{ArchiveType, FileCache, UnArchiver}
 import coursier.util.{Artifact, Task}
 
 import java.io.{FileInputStream, FileOutputStream, IOException}
@@ -47,7 +46,7 @@ object FetchExternalBinary {
               case _: IOException if Properties.isWin =>
             }
           try {
-            coursier.jvm.UnArchiver.default().extract(
+            UnArchiver.default().extract(
               ArchiveType.Zip,
               f.toIO,
               tmpDir.toIO,
