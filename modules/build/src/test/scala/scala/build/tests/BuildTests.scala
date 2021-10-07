@@ -467,4 +467,24 @@ class BuildTests extends munit.FunSuite {
       expect(sources.paths.lengthCompare(1) == 0)
     }
   }
+
+  test("Ignore malformed import $ivy") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """#!/usr/bin/env scala-cli
+          |import $ivy"com.lihaoyi::os-lib:0.7.8"
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (root, inputs, maybeBuild) =>
+      val diagnostics = maybeBuild.orThrow.diagnostics.getOrElse(Nil).map(_._2)
+      expect(
+        diagnostics.exists(_.getMessage.contains("identifier expected but string literal found"))
+      )
+    }
+  }
 }
