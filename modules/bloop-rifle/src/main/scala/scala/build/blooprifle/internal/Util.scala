@@ -13,6 +13,7 @@ object Util {
       socket = new Socket
       f(socket)
     }
+    // format: off
     finally {
       if (socket != null)
         try {
@@ -22,6 +23,7 @@ object Util {
         }
         catch { case _: IOException => }
     }
+    // format: on
   }
 
   def devNull: File =

@@ -66,10 +66,7 @@ object DynamicTestRunner {
           .toVector // fully consume stream before closing it
           .iterator
       }
-      finally {
-        if (stream != null)
-          stream.close()
-      }
+      finally if (stream != null) stream.close()
     }
     else if (keepJars && Files.isRegularFile(classPathEntry)) {
       import java.util.zip._
@@ -84,10 +81,7 @@ object DynamicTestRunner {
           .toVector // full consume ZipFile before closing it
           .iterator
       }
-      finally {
-        if (zf != null)
-          zf.close()
-      }
+      finally if (zf != null) zf.close()
     }
     else Iterator.empty
 

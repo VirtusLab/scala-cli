@@ -20,7 +20,7 @@ object EitherCps {
       c.internal.markForAsyncTransform(c.internal.enclosingOwner, t, awaitSym, Map.empty)
     val name = TypeName("stateMachine$async")
     val body0 = mark(
-      q"""override def apply(tr$$async: _root_.scala.Either[_root_.scala.AnyRef, _root_.scala.AnyRef]) = ${body}"""
+      q"""override def apply(tr$$async: _root_.scala.Either[_root_.scala.AnyRef, _root_.scala.AnyRef]) = $body"""
     )
     q"""
       final class $name extends _root_.scala.build.EitherStateMachine {
@@ -45,9 +45,8 @@ abstract class EitherStateMachine
   protected def completeFailure(t: Throwable): Unit         = throw t
   protected def completeSuccess(value: AnyRef): Unit        = result$async = Right(value)
   protected def onComplete(f: Either[AnyRef, AnyRef]): Unit = ???
-  protected def getCompleted(f: Either[AnyRef, AnyRef]): Either[AnyRef, AnyRef] = {
+  protected def getCompleted(f: Either[AnyRef, AnyRef]): Either[AnyRef, AnyRef] =
     f
-  }
   protected def tryGet(tr: Either[AnyRef, AnyRef]): AnyRef = tr match {
     case Right(value) =>
       value.asInstanceOf[AnyRef]

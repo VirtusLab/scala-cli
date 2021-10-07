@@ -170,7 +170,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
       val headerPrefix = "#" * additionalIndentation
       val names        = c.names.map(_.mkString(" "))
       b.append(
-        s"""${headerPrefix}## `${names.head}`
+        s"""$headerPrefix## `${names.head}`
            |
            |""".stripMargin
       )

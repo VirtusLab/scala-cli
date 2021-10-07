@@ -43,7 +43,7 @@ object ScalaParse {
     def BulkImport = P(`_`).map(_ => Seq("_" -> None))
     def Prefix     = P(IdParser.rep(1, sep = "."))
     def Suffix     = P("." ~/ (BulkImport | Selectors))
-    def ImportExpr: P[ImportTree] = {
+    def ImportExpr: P[ImportTree] =
       // Manually use `WL0` parser here, instead of relying on WhitespaceApi, as
       // we do not want the whitespace to be consumed even if the WL0 parser parses
       // to the end of the input (which is the default behavior for WhitespaceApi)
@@ -51,7 +51,6 @@ object ScalaParse {
         case (start, idSeq, selectors, end) =>
           ImportTree(idSeq, selectors, start, end)
       }
-    }
     P(`import` ~/ ImportExpr.rep(1, sep = ","./))
   }
 

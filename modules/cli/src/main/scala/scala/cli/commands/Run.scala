@@ -155,7 +155,7 @@ object Run extends ScalaCommand[RunOptions] {
           allowExecve = allowExecve
         )
 
-    if (retCode != 0) {
+    if (retCode != 0)
       if (exitOnError)
         sys.exit(retCode)
       else {
@@ -164,7 +164,6 @@ object Run extends ScalaCommand[RunOptions] {
         val reset    = Console.RESET
         System.err.println(s"${red}Program exited with return code $lightRed$retCode$red.$reset")
       }
-    }
 
     retCode == 0
   }
@@ -180,10 +179,7 @@ object Run extends ScalaCommand[RunOptions] {
       Package.linkJs(build, dest, mainClassOpt, addTestInitializer, config)
       f(dest)
     }
-    finally {
-      if (os.exists(dest))
-        os.remove(dest)
-    }
+    finally if (os.exists(dest)) os.remove(dest)
   }
 
   def withNativeLauncher[T](
@@ -198,9 +194,6 @@ object Run extends ScalaCommand[RunOptions] {
       Package.buildNative(build, mainClass, dest, config, workDir, logger)
       f(dest)
     }
-    finally {
-      if (os.exists(dest))
-        os.remove(dest)
-    }
+    finally if (os.exists(dest)) os.remove(dest)
   }
 }

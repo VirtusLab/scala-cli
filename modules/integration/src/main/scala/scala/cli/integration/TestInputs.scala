@@ -59,14 +59,14 @@ object TestInputs {
     val tmpDir = baseTmpDir / s"test-${tmpCount.incrementAndGet()}"
     os.makeDir.all(tmpDir)
     val tmpDir0 = os.Path(tmpDir.toIO.getCanonicalFile)
-    try f(tmpDir0)
-    finally {
+    def removeAll(): Unit =
       try os.remove.all(tmpDir0)
       catch {
         case ex: IOException =>
           System.err.println(s"Ignoring $ex while removing $tmpDir0")
       }
-    }
+    try f(tmpDir0)
+    finally removeAll()
   }
 
   private def tmpDir: os.Path = {

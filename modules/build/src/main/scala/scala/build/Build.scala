@@ -296,7 +296,7 @@ object Build {
 
     val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), bloopServer.shutdown())
 
-    try {
+    def doWatch(): Unit =
       for (elem <- inputs.elements) {
         val depth = elem match {
           case _: Inputs.SingleFile => -1
@@ -328,7 +328,8 @@ object Build {
           }
         }
       }
-    }
+
+    try doWatch()
     catch {
       case NonFatal(e) =>
         watcher.dispose()
@@ -360,7 +361,7 @@ object Build {
     }
 
     val semanticDbScalacOptions =
-      if (options.scalaOptions.generateSemanticDbs.getOrElse(false)) {
+      if (options.scalaOptions.generateSemanticDbs.getOrElse(false))
         if (params.scalaVersion.startsWith("2."))
           Seq(
             "-Yrangepos",
@@ -372,7 +373,6 @@ object Build {
           Seq(
             "-Xsemanticdb"
           )
-      }
       else Nil
 
     val sourceRootScalacOptions =

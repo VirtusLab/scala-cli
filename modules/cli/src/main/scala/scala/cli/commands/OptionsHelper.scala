@@ -2,7 +2,7 @@ package scala.cli.commands
 
 object OptionsHelper {
   implicit class Mandatory[A](x: Option[A]) {
-    def mandatory(parameter: String, group: String): A = {
+    def mandatory(parameter: String, group: String): A =
       x match {
         case Some(v) => v
         case None =>
@@ -11,6 +11,5 @@ object OptionsHelper {
           )
           sys.exit(1)
       }
-    }
   }
 }

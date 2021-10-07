@@ -26,9 +26,7 @@ class BspServer(
       n <- projectNameOpt.iterator
       if n.targetUriOpt.isEmpty
       target <- res.getTargets.asScala.iterator.find(_.getDisplayName == n.name)
-    } {
-      n.targetUriOpt = Some(target.getId.getUri)
-    }
+    } n.targetUriOpt = Some(target.getId.getUri)
 
   private def stripInvalidTargets(params: b.WorkspaceBuildTargetsResult): Unit = {
     val updatedTargets = params

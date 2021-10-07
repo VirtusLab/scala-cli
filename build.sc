@@ -325,7 +325,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     Deps.osLib
   )
 
-  private def mainArtifactName = T { artifactName() }
+  private def mainArtifactName = T(artifactName())
   trait Tests extends super.Tests with ScalaCliScalafixModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
@@ -647,9 +647,8 @@ def copyStaticLauncher(directory: String = "artifacts") = T.command {
   )
 }
 
-private def gitClone(repo: String, branch: String, workDir: os.Path) = {
+private def gitClone(repo: String, branch: String, workDir: os.Path) =
   os.proc("git", "clone", repo, "-q", "-b", branch).call(cwd = workDir)
-}
 private def setupGithubRepo(repoDir: os.Path) = {
   val gitUserName = "gh-actions"
   val gitEmail    = "actions@github.com"
@@ -659,9 +658,8 @@ private def setupGithubRepo(repoDir: os.Path) = {
 }
 
 private def commitChanges(name: String, branch: String, repoDir: os.Path): Unit = {
-  if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit")) {
+  if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit"))
     println("Nothing Changes")
-  }
   else {
     os.proc("git", "add", "-A").call(cwd = repoDir)
     os.proc("git", "commit", "-am", name).call(cwd = repoDir)
@@ -753,8 +751,8 @@ object ci extends Module {
     os.proc("apt-ftparchive", "release", ".").call(cwd = debianDir, stdout = releasePath)
 
     val pgpPassphrase =
-      Option(System.getenv("PGP_PASSPHRASE")).getOrElse { sys.error("PGP_PASSPHRASE not set") }
-    val keyName = Option(System.getenv("GPG_EMAIL")).getOrElse { sys.error("GPG_EMAIL not set") }
+      Option(System.getenv("PGP_PASSPHRASE")).getOrElse(sys.error("PGP_PASSPHRASE not set"))
+    val keyName = Option(System.getenv("GPG_EMAIL")).getOrElse(sys.error("GPG_EMAIL not set"))
     val releaseGpgPath = debianDir / "Release.gpg"
     val inReleasePath  = debianDir / "InRelease"
     os.proc(

@@ -56,10 +56,9 @@ object TemporaryDirectivesParser {
     }
   }
 
-  private def maybeDirective[_: P] = {
+  private def maybeDirective[_: P] =
     // TODO Use some cuts above to also catch malformed directives?
     P(directive.?)
-  }
 
   private def parseDirective(content: String, fromIndex: Int): Option[(Seq[Directive], Int)] = {
     // TODO Don't create a new String here

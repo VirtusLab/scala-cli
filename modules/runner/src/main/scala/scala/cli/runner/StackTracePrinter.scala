@@ -73,7 +73,7 @@ final case class StackTracePrinter(
           else if (elem.getFileName == null) "Unknown Source"
           else if (elem.getLineNumber >= 0) s"${elem.getFileName}:${elem.getLineNumber}"
           else elem.getFileName
-        val str = s"${bold}${elem.getClassName}.${elem.getMethodName}$reset" +
+        val str = s"$bold${elem.getClassName}.${elem.getMethodName}$reset" +
           s"$gray($reset$location$gray)$reset"
         System.err.println(s"\t${gray}at$reset $str")
       }

@@ -24,11 +24,9 @@ object SemanticdbProcessor {
         for {
           startLine <- adjust(range.startLine)
           endLine   <- adjust(range.endLine)
-        } yield {
-          range
-            .withStartLine(startLine)
-            .withEndLine(endLine)
-        }
+        } yield range
+          .withStartLine(startLine)
+          .withEndLine(endLine)
     }
 
     def updateTrees(trees: Seq[Tree]): Option[Seq[Tree]] =

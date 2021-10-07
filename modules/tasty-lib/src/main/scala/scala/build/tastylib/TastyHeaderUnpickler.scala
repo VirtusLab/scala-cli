@@ -62,11 +62,9 @@ class TastyHeaderUnpickler(reader: TastyReader) {
           val producedByAddendum =
             s"\nThe TASTy file was produced by $toolingVersion.$toolingAddendum"
           val msg =
-            (
-              if (fileExperimental != 0) unstableAddendum
-              else if (fileMajor < MajorVersion) backIncompatAddendum
-              else forwardIncompatAddendum
-            )
+            if (fileExperimental != 0) unstableAddendum
+            else if (fileMajor < MajorVersion) backIncompatAddendum
+            else forwardIncompatAddendum
           signature + msg + producedByAddendum
         }
       )

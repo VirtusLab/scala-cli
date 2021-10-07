@@ -47,9 +47,8 @@ private class TastyUnpickler(reader: TastyReader) { self =>
     val ref = readInt()
     if (ref < 0)
       Left(ref.abs)
-    else {
+    else
       Right(ErasedTypeRef(nameTable(NameRef(ref))))
-    }
   }
 
   private def readNameContents(): (TastyName, Bytes) = {

@@ -31,10 +31,9 @@ object TastyFormat {
     compilerExperimental: Int
   ): Boolean =
     fileMajor == compilerMajor && {
-      if (fileExperimental == compilerExperimental) {
+      if (fileExperimental == compilerExperimental)
         if (compilerExperimental == 0) fileMinor <= compilerMinor
         else fileMinor == compilerMinor
-      }
       else
         fileExperimental == 0 && fileMinor < compilerMinor
     }

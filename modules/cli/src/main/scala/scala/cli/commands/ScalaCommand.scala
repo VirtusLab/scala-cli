@@ -102,13 +102,12 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
         ""
       )))
       .withTerminalWidthOpt {
-        if (Properties.isWin) {
+        if (Properties.isWin)
           if (coursier.paths.Util.useJni()) {
             val size = coursier.jniutils.WindowsAnsiTerminal.terminalSize()
             Some(size.getWidth)
           }
           else None
-        }
         else
           // That's how Ammonite gets the terminal width, but I'd rather not spawn a sub-process upfront in Scala CLI…
           //   val pathedTput = if (os.isFile(os.Path("/usr/bin/tput"))) "/usr/bin/tput" else "tput"

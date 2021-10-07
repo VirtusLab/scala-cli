@@ -255,10 +255,7 @@ object Runner {
         if (success) 0 else 1
       }
     }
-    finally {
-      if (adapter != null)
-        adapter.close()
-    }
+    finally if (adapter != null) adapter.close()
   }
 
   def testNative(
@@ -295,9 +292,6 @@ object Runner {
         if (success) 0 else 1
       }
     }
-    finally {
-      if (adapter != null)
-        adapter.close()
-    }
+    finally if (adapter != null) adapter.close()
   }
 }

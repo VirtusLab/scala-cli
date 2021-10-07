@@ -11,7 +11,7 @@ object WatchUtil {
     val shortCut = if (isDevMode) "Ctrl+D" else "Ctrl+C"
     val gray     = "\u001b[90m"
     val reset    = Console.RESET
-    s"${gray}$message, press $shortCut to exit.$reset"
+    s"$gray$message, press $shortCut to exit.$reset"
   }
 
   def printWatchMessage(): Unit =

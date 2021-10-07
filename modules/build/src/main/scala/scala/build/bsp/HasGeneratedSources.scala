@@ -17,9 +17,8 @@ trait HasGeneratedSources {
       .map(uri => new b.BuildTargetIdentifier(uri))
 
   def setProjectName(workspace: os.Path, name: String): Unit =
-    if (!projectNameOpt.exists(n => n.bloopWorkspace == workspace && n.name == name)) {
+    if (!projectNameOpt.exists(n => n.bloopWorkspace == workspace && n.name == name))
       projectNameOpt = Some(ProjectName(workspace, name))
-    }
   def setGeneratedSources(sources: Seq[GeneratedSource]): Unit = {
     generatedSources = GeneratedSources(sources)
   }

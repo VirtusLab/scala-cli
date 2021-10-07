@@ -236,10 +236,8 @@ class NativePackagerTests extends munit.FunSuite {
           val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
           expect(output == message)
         }
-        finally {
-          // clear
-          os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
-        }
+        // clear
+        finally os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
       }
 
     def runJsTest(): Unit =
@@ -275,10 +273,8 @@ class NativePackagerTests extends munit.FunSuite {
           expect(output == message)
 
         }
-        finally {
-          // clear
-          os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
-        }
+        // clear
+        finally os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
       }
 
     def runNativeTest(): Unit =
@@ -315,10 +311,8 @@ class NativePackagerTests extends munit.FunSuite {
           expect(output == message)
 
         }
-        finally {
-          // clear
-          os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
-        }
+        // clear
+        finally os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
       }
 
     test("building docker image") {

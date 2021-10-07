@@ -31,13 +31,12 @@ object BloopRifle {
     logger: BloopRifleLogger,
     scheduler: ScheduledExecutorService
   ): Boolean = {
-    def check() = {
+    def check() =
       Operations.check(
         config.host,
         config.port,
         logger
       )
-    }
     check() && {
       !BloopRifle.shutdownBloopIfVersionIncompatible(
         config,
@@ -189,11 +188,10 @@ object BloopRifle {
 
   def nullInputStream() = new FileInputStream(Util.devNull)
 
-  def extractVersionFromBloopAbout(stdoutFromBloopAbout: String): Option[String] = {
+  def extractVersionFromBloopAbout(stdoutFromBloopAbout: String): Option[String] =
     stdoutFromBloopAbout.split("\n").find(_.startsWith("bloop v")).map(
       _.split(" ")(1).trim().drop(1)
     )
-  }
 
   def getCurrentBloopVersion(
     config: BloopRifleConfig,
@@ -232,14 +230,13 @@ object BloopRifle {
     }
     if (bloopExitNeeded) {
       logger.debug(
-        s"Shutting down unsupported bloop v${currentBloopVersion}."
+        s"Shutting down unsupported bloop v$currentBloopVersion."
       )
       val retCode = exit(config, workdir, logger)
       logger.debug(s"Bloop exit return code: $retCode")
     }
-    else {
+    else
       logger.debug("No need to reset bloop")
-    }
     bloopExitNeeded
   }
 }

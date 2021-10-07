@@ -63,12 +63,11 @@ def platformSuffix: String = {
 
 def localRepoResourcePath = "local-repo.zip"
 
-def getGhToken(): String = {
+def getGhToken(): String =
   Option(System.getenv("UPLOAD_GH_TOKEN"))
     .getOrElse {
       sys.error("UPLOAD_GH_TOKEN not set")
     }
-}
 
 trait CliLaunchers extends SbtModule { self =>
 
@@ -213,7 +212,7 @@ trait CliLaunchers extends SbtModule { self =>
 
     T {
       mill.define.Target.traverse(allModuleDeps(this :: Nil).distinct)(m =>
-        T.task { m.jar() }
+        T.task(m.jar())
       )()
     }
   }
@@ -313,14 +312,13 @@ trait CliLaunchers extends SbtModule { self =>
   def standaloneLauncher = T {
 
     val cachePath = os.Path(coursier.cache.FileCache().location, os.pwd)
-    def urlOf(path: os.Path): Option[String] = {
+    def urlOf(path: os.Path): Option[String] =
       if (path.startsWith(cachePath)) {
         val segments = path.relativeTo(cachePath).segments
         val url      = segments.head + "://" + segments.tail.mkString("/")
         Some(url)
       }
       else None
-    }
 
     import coursier.launcher.{
       AssemblyGenerator,
