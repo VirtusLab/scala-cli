@@ -292,7 +292,8 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val dependencyTrees = importTrees.filter { t =>
       val firstSegmentOpt = t.prefix.headOption
-      firstSegmentOpt.contains("$ivy") || firstSegmentOpt.contains("$dep")
+      (firstSegmentOpt.contains("$ivy") || firstSegmentOpt.contains("$dep")) &&
+      t.prefix.lengthCompare(1) > 0
     }
 
     if (dependencyTrees.isEmpty) None
