@@ -12,7 +12,6 @@ Scala CLI is an experimental tool to run/compile/test Scala that aims at being a
 
 Building Scala CLI requires:
 - a JVM (>= 8)
-- [`cs`](https://get-coursier.io/docs/cli-installation#native-launcher) in the `PATH` (running just `cs` in the terminal needs to work)
 
 The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need to be installed on your system.
 

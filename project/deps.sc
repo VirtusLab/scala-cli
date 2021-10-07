@@ -93,6 +93,8 @@ def graalVmVersion = "21.2.0"
 
 def csDockerVersion = "2.0.16"
 
+def buildCsVersion = "2.0.16"
+
 object Docker {
   def muslBuilder =
     "messense/rust-musl-cross@sha256:12d0dd535ef7364bf49cb2608ae7eaf60e40d07834eb4d9160c592422a08d3b3"
