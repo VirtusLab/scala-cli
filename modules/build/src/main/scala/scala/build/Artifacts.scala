@@ -10,11 +10,15 @@ import java.nio.file.Path
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  FetchingDependenciesError,
+  RepositoryFormatError
+}
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.util.control.NonFatal
 
 final case class Artifacts(
   compilerDependencies: Seq[AnyDependency],
@@ -200,15 +204,16 @@ object Artifacts {
     params: ScalaParameters,
     logger: Logger,
     classifiersOpt: Option[Set[String]]
-  ): Either[BuildException, Fetch.Result] = {
+  ): Either[BuildException, Fetch.Result] = either {
     logger.debug {
       s"Fetching $dependencies" +
         (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories")
     }
 
-    val extraRepositories0 = RepositoryParser.repositories(extraRepositories).either match {
-      case Left(errors) => sys.error(s"Error parsing repositories: ${errors.mkString(", ")}")
-      case Right(repos) => repos
+    val extraRepositories0 = value {
+      RepositoryParser.repositories(extraRepositories)
+        .either
+        .left.map(errors => new RepositoryFormatError(errors))
     }
 
     val cache = FileCache().withLogger(logger.coursierLogger)
@@ -225,10 +230,9 @@ object Artifacts {
         .addClassifiers(classifiers.toSeq.filter(_ != "_").map(coursier.Classifier(_)): _*)
     }
 
-    try Right(fetcher.runResult())
-    catch {
-      case NonFatal(e) =>
-        throw new Exception(e)
+    value {
+      fetcher.eitherResult()
+        .left.map(ex => new FetchingDependenciesError(ex))
     }
   }
 

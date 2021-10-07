@@ -24,6 +24,8 @@ import java.nio.file.{Files, Path}
 import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.ScalaJsConfig
 import scala.build.options.PackageType
 import scala.build.{Build, Inputs, Logger, Os}
@@ -62,6 +64,7 @@ object Package extends ScalaCommand[PackageOptions] {
         res.orReport(logger).map(_._1).foreach {
           case s: Build.Successful =>
             doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+              .orReport(logger)
           case _: Build.Failed =>
             System.err.println("Compilation failed")
         }
@@ -76,6 +79,7 @@ object Package extends ScalaCommand[PackageOptions] {
       build match {
         case s: Build.Successful =>
           doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+            .orExit(logger)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -89,7 +93,7 @@ object Package extends ScalaCommand[PackageOptions] {
     outputOpt: Option[String],
     force: Boolean,
     build: Build.Successful
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
 
     val packageType = build.options.packageTypeOpt
       .getOrElse(PackageType.Bootstrap)
@@ -141,30 +145,31 @@ object Package extends ScalaCommand[PackageOptions] {
 
     alreadyExistsCheck()
 
-    lazy val mainClassOpt =
-      build.options.mainClass
-        .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
-    def mainClass() = mainClassOpt.getOrElse(sys.error("No main class"))
+    def mainClass: Either[BuildException, String] =
+      build.options.mainClass match {
+        case Some(cls) => Right(cls)
+        case None      => build.retainedMainClass
+      }
 
     packageType match {
       case PackageType.Bootstrap =>
-        bootstrap(build, destPath, mainClass(), () => alreadyExistsCheck())
+        bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
       case PackageType.LibraryJar =>
         val content = libraryJar(build)
         alreadyExistsCheck()
         if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
       case PackageType.Assembly =>
-        assembly(build, destPath, mainClass(), () => alreadyExistsCheck())
+        assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
 
       case PackageType.Js =>
-        buildJs(build, destPath, mainClass())
+        buildJs(build, destPath, value(mainClass))
 
       case PackageType.Native =>
-        buildNative(inputs, build, destPath, mainClass(), logger)
+        buildNative(inputs, build, destPath, value(mainClass), logger)
       case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
-        bootstrap(build, bootstrapPath, mainClass(), () => alreadyExistsCheck())
+        bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck())
         val sharedSettings = SharedSettings(
           sourceAppPath = bootstrapPath,
           version = build.options.packageOptions.packageVersion,
@@ -242,7 +247,7 @@ object Package extends ScalaCommand[PackageOptions] {
             ).build()
         }
       case PackageType.Docker =>
-        docker(inputs, build, mainClass(), logger)
+        docker(inputs, build, value(mainClass), logger)
     }
 
     if (!build.options.packageOptions.isDockerEnabled)

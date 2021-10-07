@@ -57,7 +57,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       .map(os.Path(_, os.pwd))
       .getOrElse {
         val (url, changing) =
-          options.metabrowseBinaryUrl(successfulBuild.options.scalaParams.scalaVersion)
+          options.metabrowseBinaryUrl(successfulBuild.scalaParams.scalaVersion)
         FetchExternalBinary.fetch(
           url,
           changing,
@@ -115,7 +115,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     }
 
     def defaultDialect = {
-      val sv = successfulBuild.options.scalaParams.scalaVersion
+      val sv = successfulBuild.scalaParams.scalaVersion
       if (sv.startsWith("2.12.")) "Scala212"
       else if (sv.startsWith("2.13.")) "Scala213"
       else "Scala3"

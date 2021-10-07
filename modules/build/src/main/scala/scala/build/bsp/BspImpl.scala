@@ -55,7 +55,7 @@ final class BspImpl(
     if (verbosity >= 3)
       pprint.better.log(crossSources)
 
-    val sources = crossSources.sources(buildOptions)
+    val sources = value(crossSources.sources(buildOptions))
 
     if (verbosity >= 3)
       pprint.better.log(sources)
@@ -67,7 +67,7 @@ final class BspImpl(
     actualLocalServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
     actualLocalServer.setGeneratedSources(generatedSources)
 
-    val (classesDir0, artifacts, project, buildChanged) = value {
+    val (classesDir0, scalaParams, artifacts, project, buildChanged) = value {
       Build.prepareBuild(
         inputs,
         sources,
@@ -78,7 +78,16 @@ final class BspImpl(
       )
     }
 
-    (sources, options0, classesDir0, artifacts, project, generatedSources, buildChanged)
+    (
+      sources,
+      options0,
+      classesDir0,
+      scalaParams,
+      artifacts,
+      project,
+      generatedSources,
+      buildChanged
+    )
   }
 
   private def buildE(
@@ -86,7 +95,7 @@ final class BspImpl(
     bloopServer: BloopServer,
     notifyChanges: Boolean
   ): Either[BuildException, Unit] = either {
-    val (sources, buildOptions, _, _, _, generatedSources, buildChanged) =
+    val (sources, buildOptions, _, _, _, _, generatedSources, buildChanged) =
       value(prepareBuild(actualLocalServer))
     if (notifyChanges && buildChanged)
       notifyBuildChange(actualLocalServer)
@@ -120,7 +129,7 @@ final class BspImpl(
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () => {
-        val (_, _, classesDir0, artifacts, project, generatedSources, buildChanged) =
+        val (_, _, classesDir0, _, artifacts, project, generatedSources, buildChanged) =
           prepareBuild(actualLocalServer).orThrow
         if (buildChanged)
           notifyBuildChange(actualLocalServer)
@@ -241,7 +250,7 @@ final class BspImpl(
     val remoteClient = launcher.getRemoteProxy
     actualLocalClient.forwardToOpt = Some(remoteClient)
 
-    prepareBuild(actualLocalServer)
+    prepareBuild(actualLocalServer) // FIXME We're discarding the error here
 
     logger.log {
       val hasConsole = System.console() != null

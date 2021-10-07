@@ -3,6 +3,8 @@ package scala.cli.commands
 import caseapp._
 import org.scalajs.linker.interface.StandardConfig
 
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner}
 import scala.build.{Build, Inputs, Logger}
 import scala.scalanative.{build => sn}
@@ -24,7 +26,7 @@ object Run extends ScalaCommand[RunOptions] {
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
 
-    def maybeRun(build: Build.Successful, allowTerminate: Boolean): Unit =
+    def maybeRun(build: Build.Successful, allowTerminate: Boolean): Either[BuildException, Unit] =
       maybeRunOnce(
         inputs.workspace,
         inputs.projectName,
@@ -50,6 +52,7 @@ object Run extends ScalaCommand[RunOptions] {
         res.orReport(logger).map(_._1).foreach {
           case s: Build.Successful =>
             maybeRun(s, allowTerminate = false)
+              .orReport(logger)
           case _: Build.Failed =>
             System.err.println("Compilation failed")
         }
@@ -64,6 +67,7 @@ object Run extends ScalaCommand[RunOptions] {
       build match {
         case s: Build.Successful =>
           maybeRun(s, allowTerminate = true)
+            .orExit(logger)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -80,30 +84,31 @@ object Run extends ScalaCommand[RunOptions] {
     allowExecve: Boolean,
     exitOnError: Boolean,
     jvmRunner: Boolean
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
       .orElse {
         if (build.options.jmhOptions.runJmh.contains(false)) Some("org.openjdk.jmh.Main")
         else None
       }
-      .orElse(build.retainedMainClassOpt(warnIfSeveral = true))
-
-    for (mainClass <- mainClassOpt) {
-      val (finalMainClass, finalArgs) =
-        if (jvmRunner) (Constants.runnerMainClass, mainClass +: args)
-        else (mainClass, args)
-      runOnce(
-        root,
-        projectName,
-        build,
-        finalMainClass,
-        finalArgs,
-        logger,
-        allowExecve,
-        exitOnError
-      )
+    val mainClass = mainClassOpt match {
+      case Some(cls) => cls
+      case None      => value(build.retainedMainClass)
     }
+
+    val (finalMainClass, finalArgs) =
+      if (jvmRunner) (Constants.runnerMainClass, mainClass +: args)
+      else (mainClass, args)
+    runOnce(
+      root,
+      projectName,
+      build,
+      finalMainClass,
+      finalArgs,
+      logger,
+      allowExecve,
+      exitOnError
+    )
   }
 
   private def runOnce(

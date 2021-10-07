@@ -9,7 +9,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
 
-import scala.build.errors.BuildException
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.{BuildException, InvalidBinaryScalaVersionError}
 import scala.build.internal.Constants._
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.{Artifacts, Logger, Os}
@@ -31,38 +32,41 @@ final case class BuildOptions(
   replOptions: ReplOptions = ReplOptions()
 ) {
 
-  lazy val projectParams: Seq[String] = {
+  lazy val projectParams: Either[BuildException, Seq[String]] = either {
     val platform =
       if (scalaJsOptions.enable) "Scala.JS"
       else if (scalaNativeOptions.enable) "Scala Native"
       else "JVM"
-    Seq(s"Scala ${scalaParams.scalaVersion}", platform)
+    Seq(s"Scala ${value(scalaParams).scalaVersion}", platform)
   }
 
   def addRunnerDependency: Option[Boolean] =
     internalDependencies.addRunnerDependencyOpt
       .orElse(if (scalaJsOptions.enable || scalaNativeOptions.enable) Some(false) else None)
 
-  private def scalaLibraryDependencies: Seq[AnyDependency] =
+  private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (scalaOptions.addScalaLibrary.getOrElse(true)) {
+      val scalaParams0 = value(scalaParams)
       val lib =
-        if (scalaParams.scalaVersion.startsWith("3."))
-          dep"org.scala-lang::scala3-library::${scalaParams.scalaVersion}"
+        if (scalaParams0.scalaVersion.startsWith("3."))
+          dep"org.scala-lang::scala3-library::${scalaParams0.scalaVersion}"
         else
-          dep"org.scala-lang:scala-library:${scalaParams.scalaVersion}"
+          dep"org.scala-lang:scala-library:${scalaParams0.scalaVersion}"
       Seq(lib)
     }
     else Nil
+  }
 
-  private def dependencies: Seq[AnyDependency] =
-    scalaJsOptions.jsDependencies(scalaParams.scalaVersion) ++
+  private def dependencies: Either[BuildException, Seq[AnyDependency]] = either {
+    scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion) ++
       scalaNativeOptions.nativeDependencies ++
-      scalaLibraryDependencies ++
+      value(scalaLibraryDependencies) ++
       classPathOptions.extraDependencies
+  }
 
-  private def semanticDbPlugins: Seq[AnyDependency] = {
+  private def semanticDbPlugins: Either[BuildException, Seq[AnyDependency]] = either {
     val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false) &&
-      scalaParams.scalaVersion.startsWith("2.")
+      value(scalaParams).scalaVersion.startsWith("2.")
     if (generateSemDbs)
       Seq(
         dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
@@ -71,11 +75,12 @@ final case class BuildOptions(
       Nil
   }
 
-  def compilerPlugins: Seq[AnyDependency] =
-    scalaJsOptions.compilerPlugins(scalaParams.scalaVersion) ++
+  def compilerPlugins: Either[BuildException, Seq[AnyDependency]] = either {
+    scalaJsOptions.compilerPlugins(value(scalaParams).scalaVersion) ++
       scalaNativeOptions.compilerPlugins ++
-      semanticDbPlugins ++
+      value(semanticDbPlugins) ++
       scalaOptions.compilerPlugins
+  }
 
   def allExtraJars: Seq[Path] =
     classPathOptions.extraClassPath.map(_.toNIO)
@@ -144,7 +149,7 @@ final case class BuildOptions(
   private def computeScalaVersions(
     scalaVersion: Option[String],
     scalaBinaryVersion: Option[String]
-  ): (String, String) = {
+  ): Either[BuildException, (String, String)] = either {
     import coursier.core.Version
     lazy val allVersions = {
       import coursier._
@@ -170,37 +175,38 @@ final case class BuildOptions(
       }
       modules.flatMap(moduleVersions).distinct
     }
-    val sv = scalaVersion match {
-      case None => Constants.defaultScalaVersion
+    val maybeSv = scalaVersion match {
+      case None => Right(Constants.defaultScalaVersion)
       case Some(sv0) =>
-        if (Util.isFullScalaVersion(sv0)) sv0
+        if (Util.isFullScalaVersion(sv0)) Right(sv0)
         else {
           val prefix           = if (sv0.endsWith(".")) sv0 else sv0 + "."
           val matchingVersions = allVersions.filter(_.startsWith(prefix))
           if (matchingVersions.isEmpty)
-            sys.error(s"Cannot find matching Scala version for '$sv0'")
+            Left(new InvalidBinaryScalaVersionError(sv0))
           else
-            matchingVersions.map(Version(_)).max.repr
+            Right(matchingVersions.map(Version(_)).max.repr)
         }
     }
+    val sv  = value(maybeSv)
     val sbv = scalaBinaryVersion.getOrElse(ScalaVersion.binary(sv))
     (sv, sbv)
   }
 
-  lazy val scalaParams: ScalaParameters = {
+  lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
     val (scalaVersion, scalaBinaryVersion) =
-      computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion)
+      value(computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion))
     val maybePlatformSuffix =
       scalaJsOptions.platformSuffix
         .orElse(scalaNativeOptions.platformSuffix)
     ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
   }
 
-  def artifacts(logger: Logger): Either[BuildException, Artifacts] =
-    Artifacts(
-      params = scalaParams,
-      compilerPlugins = compilerPlugins,
-      dependencies = dependencies,
+  def artifacts(logger: Logger): Either[BuildException, Artifacts] = either {
+    val maybeArtifacts = Artifacts(
+      params = value(scalaParams),
+      compilerPlugins = value(compilerPlugins),
+      dependencies = value(dependencies),
       extraClassPath = allExtraJars,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,
@@ -213,6 +219,8 @@ final case class BuildOptions(
       extraRepositories = finalRepositories,
       logger = logger
     )
+    value(maybeArtifacts)
+  }
 
   // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
   def packageTypeOpt: Option[PackageType] =

@@ -3,6 +3,7 @@ package scala.build
 import ch.epfl.scala.bsp4j
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{PathWatcher, PathWatchers}
+import dependency.ScalaParameters
 
 import java.io.File
 import java.nio.file.{FileSystemException, Path}
@@ -11,7 +12,14 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  JmhBuildFailedError,
+  MainClassError,
+  NoMainClassFoundError,
+  SeveralMainClassesFoundError
+}
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.BuildOptions
 import scala.build.postprocessing._
@@ -37,6 +45,7 @@ object Build {
   final case class Successful(
     inputs: Inputs,
     options: BuildOptions,
+    scalaParams: ScalaParameters,
     sources: Sources,
     artifacts: Artifacts,
     project: Project,
@@ -50,28 +59,28 @@ object Build {
       Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
     def foundMainClasses(): Seq[String] =
       MainClass.find(output)
-    def retainedMainClassOpt(warnIfSeveral: Boolean = false): Option[String] = {
+    def retainedMainClass: Either[MainClassError, String] = {
       lazy val foundMainClasses0 = foundMainClasses()
       val defaultMainClassOpt = sources.mainClass
         .filter(name => foundMainClasses0.contains(name))
-      def foundMainClassOpt =
+      def foundMainClass =
         if (foundMainClasses0.isEmpty) {
           val msg = "No main class found"
           System.err.println(msg)
-          sys.error(msg)
+          Left(new NoMainClassFoundError)
         }
-        else if (foundMainClasses0.length == 1) foundMainClasses0.headOption
-        else {
-          if (warnIfSeveral) {
-            System.err.println("Found several main classes:")
-            for (name <- foundMainClasses0)
-              System.err.println(s"  $name")
-            System.err.println("Please specify which one to use with --main-class")
-          }
-          None
-        }
+        else if (foundMainClasses0.length == 1) Right(foundMainClasses0.head)
+        else
+          Left(
+            new SeveralMainClassesFoundError(
+              ::(foundMainClasses0.head, foundMainClasses0.tail.toList)
+            )
+          )
 
-      defaultMainClassOpt.orElse(foundMainClassOpt)
+      defaultMainClassOpt match {
+        case Some(cls) => Right(cls)
+        case None      => foundMainClass
+      }
     }
   }
 
@@ -119,16 +128,16 @@ object Build {
       )
     }
 
-    val sources = crossSources.sources(options)
+    val sources = value(crossSources.sources(options))
 
     val options0 = options.orElse(sources.buildOptions)
     val inputs0  = updateInputs(inputs, options)
 
     val generatedSources = sources.generateSources(inputs0.generatedSrcRoot)
 
-    def doBuild(buildOptions: BuildOptions) = {
-      buildClient.setProjectParams(buildOptions.projectParams)
-      build(
+    def doBuild(buildOptions: BuildOptions) = either {
+      buildClient.setProjectParams(value(buildOptions.projectParams))
+      val res = build(
         inputs0,
         sources,
         inputs0.generatedSrcRoot,
@@ -138,6 +147,7 @@ object Build {
         buildClient,
         bloopServer
       )
+      value(res)
     }
 
     val mainBuild = value(doBuild(options0))
@@ -183,7 +193,7 @@ object Build {
       case successful: Successful =>
         if (options.jmhOptions.runJmh.getOrElse(false))
           value {
-            jmhBuild(
+            val res = jmhBuild(
               inputs,
               successful,
               logger,
@@ -191,8 +201,10 @@ object Build {
               buildClient,
               bloopServer
             )
-          }.getOrElse {
-            sys.error("JMH build failed") // suppress stack trace?
+            res.flatMap {
+              case Some(b) => Right(b)
+              case None    => Left(new JmhBuildFailedError)
+            }
           }
         else
           build0
@@ -346,9 +358,9 @@ object Build {
     options: BuildOptions,
     logger: Logger,
     buildClient: BloopBuildClient
-  ): Either[BuildException, (os.Path, Artifacts, Project, Boolean)] = either {
+  ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
 
-    val params     = options.scalaParams
+    val params     = value(options.scalaParams)
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName)
@@ -427,7 +439,7 @@ object Build {
     buildClient.clear()
     buildClient.setGeneratedSources(generatedSources)
 
-    (classesDir0, artifacts, project, updatedBloopConfig)
+    (classesDir0, params, artifacts, project, updatedBloopConfig)
   }
 
   def buildOnce(
@@ -441,7 +453,7 @@ object Build {
     bloopServer: bloop.BloopServer
   ): Either[BuildException, Build] = either {
 
-    val (classesDir0, artifacts, project, updatedBloopConfig) = value {
+    val (classesDir0, scalaParams, artifacts, project, updatedBloopConfig) = value {
       prepareBuild(
         inputs,
         sources,
@@ -484,7 +496,16 @@ object Build {
         updateTasty = project.scalaCompiler.scalaVersion.startsWith("3.")
       )
 
-      Successful(inputs, options, sources, artifacts, project, classesDir0, buildClient.diagnostics)
+      Successful(
+        inputs,
+        options,
+        scalaParams,
+        sources,
+        artifacts,
+        project,
+        classesDir0,
+        buildClient.diagnostics
+      )
     }
     else
       Failed(inputs, options, sources, artifacts, project, buildClient.diagnostics)

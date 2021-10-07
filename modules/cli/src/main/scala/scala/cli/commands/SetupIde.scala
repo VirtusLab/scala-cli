@@ -7,20 +7,25 @@ import com.google.gson.GsonBuilder
 import java.io.File
 import java.nio.charset.Charset
 
+import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.BuildOptions
-import scala.build.{CrossSources, Inputs, Logger, Os, Sources}
+import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
 import scala.collection.JavaConverters._
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
-  def downloadDeps(inputs: Inputs, options: BuildOptions, logger: Logger) = {
+  def downloadDeps(
+    inputs: Inputs,
+    options: BuildOptions,
+    logger: Logger
+  ): Either[BuildException, Artifacts] = {
     val crossSources = CrossSources.forInputs(
       inputs,
       Sources.defaultPreprocessors(CustomCodeWrapper)
     )
 
-    val sourcesBuildOptions = crossSources.map(_.sources(options).buildOptions)
+    val sourcesBuildOptions = crossSources.flatMap(_.sources(options)).map(_.buildOptions)
     val joinedBuildOpts     = sourcesBuildOptions.map(options orElse _).getOrElse(options)
     joinedBuildOpts.artifacts(logger)
   }
@@ -33,8 +38,9 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     }
 
     def inputs = options.shared.inputsOrExit(args)
+    val logger = options.shared.logger
     if (options.buildOptions.classPathOptions.extraDependencies.nonEmpty)
-      downloadDeps(inputs, options.buildOptions, options.shared.logger)
+      downloadDeps(inputs, options.buildOptions, logger).orExit(logger)
 
     val argv = {
       val commandIndex = rawArgv.indexOf("setup-ide")
