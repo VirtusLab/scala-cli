@@ -53,7 +53,8 @@ object TestUtil {
 
     candidates
       .filter(_.canExecute)
-      .toStream
+      .take(1)
+      .toList
       .headOption
       .map(_.getAbsolutePath)
   }

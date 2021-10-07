@@ -4,7 +4,7 @@ package scala.cli.integration
 class CompileTests212 extends CompileTestDefinitions(
   scalaVersionOpt = Some(Constants.scala212)
 ) {
-// format: on 
+// format: on
 
   val pluginInputs = TestInputs(
     Seq(
@@ -33,7 +33,7 @@ class CompileTests212 extends CompileTestDefinitions(
         ".",
         "--compiler-plugin",
         kindProjectPlugin
-      ).call(cwd = root).out.text
+      ).call(cwd = root).out.text()
     }
   }
 }

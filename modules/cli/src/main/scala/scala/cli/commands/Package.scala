@@ -377,7 +377,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
     build.options.platform match {
-      case Platform.JVM    => bootstrap(build, appPath, mainClass, () => false)
+      case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
       case Platform.JS     => buildJs(build, appPath, mainClass)
       case Platform.Native => buildNative(inputs, build, appPath, mainClass, logger)
     }

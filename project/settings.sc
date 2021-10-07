@@ -103,7 +103,7 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         "lib"
       ).call()
-      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "csjniutils.lib")
     }
     private def copyIpcsocketDllTo(destDir: os.Path): Unit = {
@@ -116,7 +116,7 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         "lib"
       ).call()
-      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "ipcsocket.lib")
     }
     private def copyIpcsocketMacATo(destDir: os.Path): Unit = {
@@ -129,7 +129,7 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         "a"
       ).call()
-      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "libipcsocket.a")
     }
     private def copyIpcsocketLinuxATo(destDir: os.Path): Unit = {
@@ -142,7 +142,7 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         "a"
       ).call()
-      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "libipcsocket.a")
     }
     def staticLibDir = T {

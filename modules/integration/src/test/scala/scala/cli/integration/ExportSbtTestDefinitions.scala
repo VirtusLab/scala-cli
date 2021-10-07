@@ -14,7 +14,7 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
   private lazy val sbtLaunchJar = {
     val res =
       os.proc(TestUtil.cs, "fetch", "--intransitive", "org.scala-sbt:sbt-launch:1.5.5").call()
-    val rawPath = res.out.text.trim
+    val rawPath = res.out.text().trim
     val path    = os.Path(rawPath, os.pwd)
     if (os.isFile(path)) path
     else sys.error(s"Something went wrong (invalid sbt launch JAR path '$rawPath')")

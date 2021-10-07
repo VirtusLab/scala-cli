@@ -241,7 +241,7 @@ object ExportTestProjects {
         scalaVersion
       )
         .call()
-      val path  = res.out.text.trim
+      val path  = res.out.text().trim
       val path0 = os.Path(path, os.pwd)
       expect(os.isFile(path0))
       path0

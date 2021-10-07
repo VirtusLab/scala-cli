@@ -9,11 +9,11 @@ import java.nio.file.Paths
 
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
 import scala.io.Codec
+import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
@@ -213,9 +213,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
           }
-          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundDepSources = resp.getItems.asScala
+          val foundDepSources = resp.getItems().asScala
             .flatMap(_.getSources.asScala)
             .toSeq
             .map { uri =>
@@ -236,9 +236,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         {
           val resp = await(remoteServer.buildTargetSources(new b.SourcesParams(targets)).asScala)
-          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundSources = resp.getItems.asScala
+          val foundSources = resp.getItems().asScala
             .map(_.getSources.asScala.map(_.getUri).toSeq)
             .toSeq
             .map(_.map(TestUtil.normalizeUri))
@@ -257,12 +257,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .asScala
           }
           val foundTargets = resp
-            .getItems
+            .getItems()
             .asScala
             .map(_.getTarget.getUri)
             .map(TestUtil.normalizeUri)
           expect(foundTargets == Seq(targetUri))
-          val foundOptions = resp.getItems.asScala.flatMap(_.getOptions.asScala).toSeq
+          val foundOptions = resp.getItems().asScala.flatMap(_.getOptions.asScala).toSeq
           if (actualScalaVersion.startsWith("2."))
             expect(foundOptions.exists { opt =>
               opt.startsWith("-Xplugin:") && opt.contains("semanticdb-scalac")
@@ -277,7 +277,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             remoteServer.buildTargetJavacOptions(new b.JavacOptionsParams(targets)).asScala
           }
           val foundTargets = resp
-            .getItems
+            .getItems()
             .asScala
             .map(_.getTarget.getUri)
             .map(TestUtil.normalizeUri)
@@ -285,7 +285,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         }
 
         val classDir = os.Path(
-          Paths.get(new URI(scalacOptionsResp.getItems.asScala.head.getClassDirectory))
+          Paths.get(new URI(scalacOptionsResp.getItems().asScala.head.getClassDirectory))
         )
 
         {
@@ -544,9 +544,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
           }
-          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundDepSources = resp.getItems.asScala
+          val foundDepSources = resp.getItems().asScala
             .flatMap(_.getSources.asScala)
             .toSeq
             .map { uri =>
@@ -599,9 +599,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
           }
-          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundDepSources = resp.getItems.asScala
+          val foundDepSources = resp.getItems().asScala
             .flatMap(_.getSources.asScala)
             .toSeq
             .map { uri =>
@@ -655,9 +655,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
           }
-          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundDepSources = resp.getItems.asScala
+          val foundDepSources = resp.getItems().asScala
             .flatMap(_.getSources.asScala)
             .toSeq
             .map { uri =>

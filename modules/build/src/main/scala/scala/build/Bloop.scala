@@ -9,8 +9,8 @@ import java.io.File
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.{BuildException, ModuleFormatError}
-import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 object Bloop {

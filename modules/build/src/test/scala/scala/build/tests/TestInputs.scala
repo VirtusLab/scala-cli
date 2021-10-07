@@ -1,14 +1,13 @@
 package scala.build.tests
 
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.ExecutorService
 
 import scala.build.{Build, BuildThreads, Directories, Inputs}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
-import scala.util.{Properties, Try}
+import scala.util.Try
 
 final case class TestInputs(
   files: Seq[(os.RelPath, String)],
@@ -64,7 +63,7 @@ object TestInputs {
               try os.remove.all(f)
               catch {
                 case NonFatal(e) =>
-                  System.err.println(s"Could not remove $f, ignoring it.")
+                  System.err.println(s"Caught $e while trying to remove $f, ignoring it.")
               }
           }
         )

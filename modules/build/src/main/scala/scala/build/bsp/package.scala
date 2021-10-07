@@ -4,7 +4,7 @@ import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 package object bsp {
 
@@ -42,7 +42,7 @@ package object bsp {
 
   implicit class SourcesResultExt(private val res: b.SourcesResult) extends AnyVal {
     def duplicate(): b.SourcesResult =
-      new b.SourcesResult(res.getItems.asScala.toList.map(_.duplicate()).asJava)
+      new b.SourcesResult(res.getItems().asScala.toList.map(_.duplicate()).asJava)
   }
 
   implicit class BuildTargetCapabilitiesExt(

@@ -152,7 +152,7 @@ class Build(val crossScalaVersion: String)
     `tasty-lib`()
   )
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused")
+    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
   }
   def repositories = super.repositories ++ Seq(
     coursier.Repositories.sonatype("snapshots")
@@ -163,6 +163,7 @@ class Build(val crossScalaVersion: String)
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.bloopConfig,
+    Deps.collectionCompat,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections")),
@@ -266,7 +267,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     with HasTests with HasMacroAnnotations with ScalaCliScalafixModule {
   def scalaVersion = Scala.defaultInternal
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused")
+    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
   }
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
@@ -310,7 +311,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     PathRef(T.dest / "working-dir")
   }
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
   }
 
   def sources = T.sources {
@@ -465,12 +466,13 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ {
-      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
+      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused", "-deprecation")
       else Nil
     }
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
+    Deps.collectionCompat,
     Deps.testInterface
   )
   def mainClass = Some("scala.build.testrunner.DynamicTestRunner")
@@ -479,10 +481,11 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
 class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
+    Deps.collectionCompat,
     Deps.ipcSocket,
     Deps.snailgun
   )
@@ -856,7 +859,8 @@ object ci extends Module {
         .filter(os.isDir(_))
         .map(_ / distName)
         .filter(os.isFile(_))
-        .toStream
+        .take(1)
+        .toList
         .headOption
         .getOrElse {
           sys.error(
@@ -893,7 +897,7 @@ object ci extends Module {
             .iterator
         } yield path
 
-      candidatesIt.toStream.headOption.getOrElse {
+      candidatesIt.take(1).toList.headOption.getOrElse {
         sys.error(s"$fileNamePrefix*$fileNameSuffix not found")
       }
     }

@@ -93,10 +93,7 @@ final case class Sbt(
       "enablePlugins(ScalaNativePlugin)"
     )
 
-    val configCalls = {
-      var calls = Seq.empty[String]
-      calls
-    }
+    val configCalls = Seq.empty[String]
 
     val (configImports, configSettings) =
       if (configCalls.isEmpty) ("", Nil)

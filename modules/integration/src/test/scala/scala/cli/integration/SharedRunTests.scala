@@ -25,7 +25,7 @@ class SharedRunTests extends munit.FunSuite {
     printScalaVersionInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2.12")
         .call(cwd = root)
-        .out.text.trim
+        .out.text().trim
       expect(output.startsWith("2.12."))
     }
   }
@@ -33,7 +33,7 @@ class SharedRunTests extends munit.FunSuite {
     printScalaVersionInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2.13")
         .call(cwd = root)
-        .out.text.trim
+        .out.text().trim
       expect(output.startsWith("2.13."))
     }
   }
@@ -41,7 +41,7 @@ class SharedRunTests extends munit.FunSuite {
     printScalaVersionInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "2")
         .call(cwd = root)
-        .out.text.trim
+        .out.text().trim
       expect(output.startsWith("2.13."))
     }
   }
@@ -49,7 +49,7 @@ class SharedRunTests extends munit.FunSuite {
     printScalaVersionInputs3.fromRoot { root =>
       val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "3")
         .call(cwd = root)
-        .out.text.trim
+        .out.text().trim
       // Scala 3.0 uses the 2.13 standard library
       expect(output.startsWith("2.13."))
     }
@@ -66,7 +66,8 @@ class SharedRunTests extends munit.FunSuite {
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".").call(cwd = root).out.text.trim
+      val output =
+        os.proc(TestUtil.cli, TestUtil.extraOptions, ".").call(cwd = root).out.text().trim
       expect(output == confSv)
     }
   }

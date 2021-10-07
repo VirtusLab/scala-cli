@@ -6,8 +6,6 @@ import dependency._
 import scala.build.Ops._
 import scala.build.Sources
 import scala.build.internal.CustomCodeWrapper
-import scala.build.internal.Util._
-import scala.build.tests.TestUtil._
 import scala.build.CrossSources
 import scala.build.options.{BuildOptions, Scope}
 

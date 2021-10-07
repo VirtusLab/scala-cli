@@ -106,7 +106,7 @@ object Runner {
         path = Paths.get(dir).resolve(app0)
         if Files.isExecutable(path)
       } yield path
-      matches.toStream.headOption
+      matches.take(1).toList.headOption
     }
   }
 

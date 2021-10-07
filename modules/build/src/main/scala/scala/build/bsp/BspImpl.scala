@@ -15,9 +15,9 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
-import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
 
 final class BspImpl(
