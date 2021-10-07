@@ -3,8 +3,10 @@ import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.9`
 import $file.deps, deps.{Deps, Docker}
 
 import com.goyeau.mill.scalafix.ScalafixModule
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.NativeImage
 import java.io.File
+import java.nio.charset.StandardCharsets
 import mill._, scalalib._
 import scala.util.Properties
 
@@ -421,7 +423,19 @@ trait LocalRepo extends Module {
     define.Task.sequence(tasks)
   }
 
+  private def vcsState = {
+    val isCI = System.getenv("CI") != null
+    if (isCI)
+      T.persistent {
+        VcsVersion.vcsState()
+      }
+    else
+      T {
+        VcsVersion.vcsState()
+      }
+  }
   def localRepoZip = T {
+    val repoVer   = vcsState().format()
     val ver       = version()
     val something = localRepo()
     val repoDir   = os.pwd / "out" / "repo" / ver
@@ -436,6 +450,13 @@ trait LocalRepo extends Module {
     try {
       fos = new FileOutputStream(dest.toIO)
       zos = new ZipOutputStream(new BufferedOutputStream(fos))
+
+      val versionEntry = new ZipEntry("version")
+      versionEntry.setTime(0L)
+      zos.putNextEntry(versionEntry)
+      zos.write(repoVer.getBytes(StandardCharsets.UTF_8))
+      zos.flush()
+
       os.walk(repoDir).filter(_ != repoDir).foreach { p =>
         val isDir = os.isDir(p)
         val name  = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")

@@ -229,7 +229,6 @@ class Build(val crossScalaVersion: String)
          |  def semanticDbPluginVersion = "${Deps.scalametaTrees.dep.version}"
          |
          |  def localRepoResourcePath = "$localRepoResourcePath"
-         |  def localRepoVersion = "${vcsState().format()}"
          |
          |  def jmhVersion = "1.29"
          |

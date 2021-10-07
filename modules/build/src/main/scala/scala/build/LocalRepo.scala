@@ -4,6 +4,7 @@ import coursier.paths.Util
 
 import java.io.{BufferedInputStream, ByteArrayOutputStream, Closeable, InputStream}
 import java.nio.channels.{FileChannel, FileLock}
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, StandardOpenOption}
 import java.util.zip.{ZipEntry, ZipInputStream}
 
@@ -12,7 +13,6 @@ import scala.build.internal.Constants
 object LocalRepo {
 
   private def resourcePath = Constants.localRepoResourcePath
-  private def version      = Constants.localRepoVersion
 
   private def using[S <: Closeable, T](is: => S)(f: S => T): T = {
     var is0 = Option.empty[S]
@@ -54,6 +54,22 @@ object LocalRepo {
       }
   }
 
+  private def entryContent(zis: ZipInputStream, entryPath: String): Option[Array[Byte]] = {
+    var ent: ZipEntry = null
+    while ({
+      ent = zis.getNextEntry()
+      ent != null && (ent.isDirectory || ent.getName != entryPath)
+    }) {}
+    if (ent == null) None
+    else {
+      assert(ent.getName == entryPath)
+
+      val content = readContent(zis)
+      zis.closeEntry()
+      Some(content)
+    }
+  }
+
   def localRepo(
     baseDir: os.Path,
     loader: ClassLoader = Thread.currentThread().getContextClassLoader
@@ -62,6 +78,17 @@ object LocalRepo {
 
     if (archiveUrl == null) None
     else {
+
+      val version =
+        using(archiveUrl.openStream()) { is =>
+          using(new ZipInputStream(new BufferedInputStream(is))) { zis =>
+            val b = entryContent(zis, "version").getOrElse {
+              sys.error(s"Malformed local repo JAR $archiveUrl (no version file)")
+            }
+            new String(b, StandardCharsets.UTF_8)
+          }
+        }
+
       val repoDir = baseDir / version
 
       if (!os.exists(repoDir))
