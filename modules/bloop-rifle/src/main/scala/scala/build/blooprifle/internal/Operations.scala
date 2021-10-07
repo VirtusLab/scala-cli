@@ -235,10 +235,8 @@ object Operations {
                   }
                 }
                 catch {
-                  case ex: IOException
-                      if ex.getCause.isInstanceOf[NativeErrorException] &&
-                        ignoredErrnos(ex.getCause.asInstanceOf[NativeErrorException].returnCode) =>
-                    logger.debug(s"Error when connecting to $socketFile: ${ex.getMessage}")
+                  case ExCause(ex0: NativeErrorException) if ignoredErrnos(ex0.returnCode) =>
+                    logger.debug(s"Error when connecting to $socketFile: ${ex0.getMessage}")
                     null
                   case e: NativeErrorException if ignoredErrnos(e.returnCode) =>
                     logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
@@ -376,5 +374,10 @@ object Operations {
     }
 
     Await.result(p.future, duration)
+  }
+
+  private object ExCause {
+    def unapply(ex: Throwable): Option[Throwable] =
+      Option(ex.getCause)
   }
 }
