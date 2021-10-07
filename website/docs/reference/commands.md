@@ -7,9 +7,6 @@ sidebar_position: 3
 
 Print details about this application
 
-Accepts options:
-- [about](./cli-options.md#about-options)
-
 ## `bsp`
 
 Accepts options:
@@ -218,6 +215,10 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [test](./cli-options.md#test-options)
 - [watch](./cli-options.md#watch-options)
+
+## `version`
+
+Print scala-cli version
 
 ## Hidden commands
 

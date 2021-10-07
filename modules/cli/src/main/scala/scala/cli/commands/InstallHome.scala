@@ -10,8 +10,42 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
   override def hidden: Boolean = true
 
   private def isOutOfDate(newVersion: String, oldVersion: String): Boolean = {
-    val versionOrdering = Ordering.by { (_: String).split("""\.""").map(_.toInt).toIterable }
-    versionOrdering.gt(newVersion, oldVersion)
+    import coursier.core.Version
+
+    Version(newVersion) > Version(oldVersion)
+  }
+
+  private def loggingEqual(version: String) = {
+    System.err.println(
+      s"Scala-cli $version is already installed and up-to-date."
+    )
+    sys.exit(0)
+  }
+
+  private def loggingUpdate(env: Boolean, newVersion: String, oldVersion: String) = {
+    if (!env) println(
+      s"""scala-cli $oldVersion is already installed and out-of-date.
+         |scala-cli will be updated to version $newVersion
+         |""".stripMargin
+    )
+  }
+
+  private def loggingDowngrade(env: Boolean, newVersion: String, oldVersion: String) = {
+    if (!env && coursier.paths.Util.useAnsiOutput()) {
+      println(s"scala-cli $oldVersion is already installed and up-to-date.")
+      println(s"Do you want to downgrade scala-cli to version $newVersion [Y/n]")
+      val response = readLine()
+      if (response != "Y") {
+        System.err.println("Abort")
+        sys.exit(1)
+      }
+    }
+    else {
+      System.err.println(
+        s"Error: scala-cli is already installed $oldVersion and up-to-date. Downgrade to $newVersion pass -f or --force."
+      )
+      sys.exit(1)
+    }
   }
 
   def run(options: InstallHomeOptions, args: RemainingArgs): Unit = {
@@ -21,49 +55,22 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     val newScalaCliBinPath = os.Path(options.scalaCliBinaryPath, os.pwd)
 
     val newVersion: String =
-      os.proc(newScalaCliBinPath, "about", "--version").call(cwd = os.pwd).out.text.trim
+      os.proc(newScalaCliBinPath, "version").call(cwd = os.pwd).out.text.trim
 
     // Backward compatibility - previous versions not have the `--version` parameter
     val oldVersion: String = Try {
-      os.proc(binDirPath / options.binaryName, "about", "--version").call(cwd =
-        os.pwd).out.text.trim
+      os.proc(binDirPath / options.binaryName, "version").call(cwd = os.pwd).out.text.trim
     }.toOption.getOrElse("0.0.0")
 
     if (os.exists(binDirPath)) {
-      if (options.force) os.remove.all(binDirPath)
-      else if (newVersion == oldVersion) {
-        System.err.println(
-          s"Scala-cli $newVersion is already installed and up-to-date."
-        )
-        sys.exit(1)
-      }
-      else if (isOutOfDate(newVersion, oldVersion)) {
-        if (!options.env) println(
-          s"""scala-cli $oldVersion is already installed and out-of-date.
-             |scala-cli will be updated to version $newVersion
-             |""".stripMargin
-        )
-        os.remove.all(binDirPath)
-      }
-      else {
-        if (!options.env && coursier.paths.Util.useAnsiOutput()) {
-          println(s"scala-cli $oldVersion is already installed and up-to-date.")
-          println(s"Do you want to downgrade scala-cli to version $newVersion [Y/n]")
-          val response = readLine()
-          if (response != "Y") {
-            System.err.println("Abort")
-            sys.exit(1)
-          }
-          else
-            os.remove.all(binDirPath)
-        }
-        else {
-          System.err.println(
-            s"Error: scala-cli is already installed $oldVersion and up-to-date. Downgrade to $newVersion pass -f or --force."
-          )
-          sys.exit(1)
-        }
-      }
+      if (options.force) () // skip logging
+      else if (newVersion == oldVersion) loggingEqual(newVersion)
+      else if (isOutOfDate(newVersion, oldVersion))
+        loggingUpdate(options.env, newVersion, oldVersion)
+      else loggingDowngrade(options.env, newVersion, oldVersion)
+    }
+
+    os.remove.all(binDirPath)
 
     os.copy(
       from = newScalaCliBinPath,
@@ -71,7 +78,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
       createFolders = true
     )
     if (!Properties.isWin)
-      os.perms.set(binDirPath / options.binaryName, os.PermSet.fromString("rwxrwxr-x"))
+      os.perms.set(binDirPath / options.binaryName, os.PermSet.fromString("rwxr-xr-x"))
 
     if (options.env) {
       println(s""" export PATH="$$PATH:$binDirPath" """)

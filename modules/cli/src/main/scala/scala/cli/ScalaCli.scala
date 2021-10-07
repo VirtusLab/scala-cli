@@ -31,7 +31,8 @@ object ScalaCli extends CommandsEntryPoint {
     Package,
     Run,
     SetupIde,
-    Test
+    Test,
+    Version
   )
 
   lazy val progName                 = (new Argv0).get("scala-cli")

@@ -3,20 +3,6 @@ title: Command-line options
 sidebar_position: 1
 ---
 
-## About options
-
-Available in commands:
-- [`about`](./commands#about)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--version`
-
-Aliases: `-v`
-
-Print only the scala-cli version
-
 ## Add path options
 
 Available in commands:
@@ -299,6 +285,7 @@ Available in commands:
 - [`run`](./commands#run)
 - [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
+- [`version`](./commands#version)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
