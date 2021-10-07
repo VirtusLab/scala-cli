@@ -313,7 +313,12 @@ class NativePackagerTests extends munit.FunSuite {
       finally os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
     }
 
-  if (Properties.isLinux) {
+  val hasDocker =
+    Properties.isLinux ||
+    // no docker command or no Linux from it on Github actions macOS / Windows runners
+    ((Properties.isMac || Properties.isWin) && !TestUtil.isCI)
+
+  if (hasDocker) {
     test("building docker image") {
       TestUtil.retryOnCi() {
         runTest()
@@ -325,13 +330,13 @@ class NativePackagerTests extends munit.FunSuite {
         runJsTest()
       }
     }
+  }
 
+  if (Properties.isLinux)
     test("building docker image with scala native app") {
       TestUtil.retryOnCi() {
         runNativeTest()
       }
     }
-
-  }
 
 }
