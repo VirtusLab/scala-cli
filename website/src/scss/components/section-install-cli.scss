@@ -45,95 +45,97 @@
         }
     }
 
-    .tabs-container {
-        .tabs {
-            overflow: visible;
-            flex-wrap: wrap;
-
-            margin: -5px;
-
-            @media (max-width: 375px) {
-                margin: -10px;
-            }
+    div[role=tabpanel] {
+        a, p {
+            font-family: 'Segoe UI';
+            font-size: 16px;
+            line-height: 24px;
         }
 
-        .tabs__item {
-            margin: 5px !important;
+        a {
+            color: $theme-red;
+            text-decoration: underline;
+        }
 
-            padding: 9px 25px;
-            background-color: #453E43;
-            border: 1.5px solid #453E43;
+        p {
+            margin-bottom: 15px;
+
+            color: #F2F4F8;
+        }
+
+        code {
+            display: block;
+            padding: 6px 14px;
+
+            background: #453E43;
+            border: 1px solid rgba(229, 229, 229, 0.3);
             box-sizing: border-box;
-            border-radius: 30px;
+            border-radius: 4px;
 
             font-family: "Roboto Mono", monospace;
             font-size: 14px;
-            line-height: 22px;
-            font-weight: 700;
+            line-height: 24px;
             color: #ffffff;
 
-            transition: 0.3s background-color ease-out,
-                        0.3s color ease-out,
-                        0.3s border-color ease-out;
-
-            @media (max-width: 375px) {
-                margin: 10px !important;
+            @media (max-width: 998px) {
+                padding: 6px 17px;
                 font-size: 13px;
-            }
-
-            &:hover:not(.tabs__item--active) {
-                border: 1.5px solid #FFD583;
-                color: #FFD583;
-            }
-
-            &--active {
-                background: $theme-yellow;
-                border-color: $theme-yellow;
-                color: #1C1C1C;
-
-                box-shadow: 0px 8px 15px rgba(255, 213, 131, 0.1);
-            }
-        }
-
-        div[role=tabpanel] {
-            a, p {
-                font-family: 'Segoe UI';
-                font-size: 16px;
-                line-height: 24px;
-            }
-
-            a {
-                color: $theme-red;
-                text-decoration: underline;
-            }
-
-            p {
-                margin-bottom: 15px;
-
-                color: #F2F4F8;
-            }
-
-            code {
-                display: block;
-                padding: 6px 14px;
-
-                background: #453E43;
-                border: 1px solid rgba(229, 229, 229, 0.3);
-                box-sizing: border-box;
-                border-radius: 4px;
-
-                font-family: "Roboto Mono", monospace;
-                font-size: 14px;
-                line-height: 24px;
-                color: #ffffff;
-
-                @media (max-width: 998px) {
-                    padding: 6px 17px;
-                    font-size: 13px;
-                }
             }
         }
     }
+
+}
+
+.tabs-container {
+    .tabs {
+        overflow: visible;
+        flex-wrap: wrap;
+
+        margin: -5px;
+
+        @media (max-width: 375px) {
+            margin: -10px;
+        }
+    }
+
+    .tabs__item {
+        margin: 5px !important;
+
+        padding: 9px 25px;
+        background-color: #453E43;
+        border: 1.5px solid #453E43;
+        box-sizing: border-box;
+        border-radius: 30px;
+
+        font-family: "Roboto Mono", monospace;
+        font-size: 14px;
+        line-height: 22px;
+        font-weight: 700;
+        color: #ffffff;
+
+        transition: 0.3s background-color ease-out,
+                    0.3s color ease-out,
+                    0.3s border-color ease-out;
+
+        @media (max-width: 375px) {
+            margin: 10px !important;
+            font-size: 13px;
+        }
+
+        &:hover:not(.tabs__item--active) {
+            border: 1.5px solid #FFD583;
+            color: #FFD583;
+        }
+
+        &--active {
+            background: $theme-yellow;
+            border-color: $theme-yellow;
+            color: #1C1C1C;
+
+            box-shadow: 0px 8px 15px rgba(255, 213, 131, 0.1);
+        }
+    }
+
 }
 
 html[data-theme="dark"] {
