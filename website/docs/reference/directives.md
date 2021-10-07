@@ -60,12 +60,12 @@ Adds Java options
 
 Set the default platform to Scala.JS or Scala Native
 
-`using scala-js`|`scala-native`
+`using `(`jvm`|`scala-js`|`scala-native`)+
 
 #### Examples
 `using scala-js`
 
-`using scala-native`
+`using jvm scala-native`
 
 ### Repository
 
@@ -93,7 +93,7 @@ Manually adds a resource directory to the class path
 
 Sets the default Scala version
 
-`using scala `_version_
+`using scala `_version_+
 
 #### Examples
 `using scala 3.0.2`
@@ -101,6 +101,8 @@ Sets the default Scala version
 `using scala 2.13`
 
 `using scala 2`
+
+`using scala 2.13.6 2.12.15`
 
 ### Test framework
 
@@ -139,4 +141,13 @@ Require a Scala version for the current file
 `require scala 2.13`
 
 `require scala 3.0.2`
+
+### Scope
+
+Require a scope for the current file
+
+`require `_scope_
+
+#### Examples
+`require test`
 

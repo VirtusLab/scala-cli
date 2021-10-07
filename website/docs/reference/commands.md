@@ -202,6 +202,7 @@ Compile and test Scala code
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [compile cross](./cli-options.md#compile-cross-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)

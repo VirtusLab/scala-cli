@@ -462,7 +462,7 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, inputs, maybeBuild) =>
-      val sources = maybeBuild.toOption.get.sources
+      val sources = maybeBuild.toOption.get.successfulOpt.get.sources
       expect(sources.inMemory.isEmpty)
       expect(sources.paths.lengthCompare(1) == 0)
     }

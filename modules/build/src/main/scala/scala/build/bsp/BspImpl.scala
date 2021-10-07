@@ -14,7 +14,7 @@ import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, Scope}
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -53,16 +53,22 @@ final class BspImpl(
     }
 
     if (verbosity >= 3)
-      pprint.better.log(crossSources)
+      pprint.stderr.log(crossSources)
 
-    val sources = value(crossSources.sources(buildOptions))
+    val scopedSources = value(crossSources.scopedSources(buildOptions))
 
     if (verbosity >= 3)
-      pprint.better.log(sources)
+      pprint.stderr.log(scopedSources)
 
-    val options0 = buildOptions.orElse(sources.buildOptions)
+    val scope   = Scope.Main
+    val sources = scopedSources.sources(scope, buildOptions)
 
-    val generatedSources = sources.generateSources(inputs.generatedSrcRoot)
+    if (verbosity >= 3)
+      pprint.stderr.log(sources)
+
+    val options0 = sources.buildOptions
+
+    val generatedSources = sources.generateSources(inputs.generatedSrcRoot(scope))
 
     actualLocalServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
     actualLocalServer.setGeneratedSources(generatedSources)
@@ -73,6 +79,7 @@ final class BspImpl(
         sources,
         generatedSources,
         options0,
+        Scope.Main,
         logger,
         localClient
       )
@@ -102,9 +109,10 @@ final class BspImpl(
     Build.buildOnce(
       inputs,
       sources,
-      inputs.generatedSrcRoot,
+      inputs.generatedSrcRoot(Scope.Main),
       generatedSources,
       buildOptions,
+      Scope.Main,
       logger,
       actualLocalClient,
       bloopServer
@@ -147,7 +155,7 @@ final class BspImpl(
             () => {
               Build.postProcess(
                 generatedSources,
-                inputs.generatedSrcRoot,
+                inputs.generatedSrcRoot(Scope.Main),
                 classesDir0,
                 logger,
                 inputs.workspace,
@@ -212,7 +220,7 @@ final class BspImpl(
 
   def run(): Future[Unit] = {
 
-    val classesDir = Build.classesDir(inputs.workspace, inputs.projectName)
+    val classesDir = Build.classesDir(inputs.workspace, inputs.projectName, Scope.Main)
 
     remoteServer = BloopServer.buildServer(
       bloopRifleConfig,

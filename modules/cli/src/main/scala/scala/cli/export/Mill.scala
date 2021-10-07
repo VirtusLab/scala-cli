@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.Sources
 import scala.build.internal.Constants
-import scala.build.options.{BuildOptions, ScalaJsOptions, ScalaNativeOptions}
+import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions}
 
 final case class Mill(
   millVersion: String,
@@ -139,8 +139,9 @@ final case class Mill(
       scalaVersionSettings(options, sources),
       dependencySettings(options),
       repositorySettings(options),
-      if (options.scalaJsOptions.enable) scalaJsSettings(options.scalaJsOptions) else MillProject(),
-      if (options.scalaNativeOptions.enable) scalaNativeSettings(options.scalaNativeOptions)
+      if (options.platform == Platform.JS) scalaJsSettings(options.scalaJsOptions)
+      else MillProject(),
+      if (options.platform == Platform.Native) scalaNativeSettings(options.scalaNativeOptions)
       else MillProject(),
       customJarsSettings(options),
       testFrameworkSettings(options)

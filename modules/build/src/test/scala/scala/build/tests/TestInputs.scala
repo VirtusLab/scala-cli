@@ -36,7 +36,7 @@ final case class TestInputs(
     withInputs { (root, inputs) =>
       val res =
         Build.build(inputs, options, buildThreads, bloopConfig, TestLogger(), crossBuilds = false)
-      f(root, inputs, res.map(_._1))
+      f(root, inputs, res.map(_.main))
     }
 }
 

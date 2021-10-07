@@ -36,7 +36,8 @@ case object ScalaPreprocessor extends Preprocessor {
 
   val requireDirectiveHandlers = Seq[RequireDirectiveHandler](
     RequireScalaVersionDirectiveHandler,
-    RequirePlatformsDirectiveHandler
+    RequirePlatformsDirectiveHandler,
+    RequireScopeDirectiveHandler
   )
 
   private def defaultCharSet = StandardCharsets.UTF_8
@@ -196,7 +197,7 @@ case object ScalaPreprocessor extends Preprocessor {
             val value = dir.scope match {
               case None => (reqs, Nil)
               case Some(sc) =>
-                val scopePath = scopeRoot / os.SubPath(sc.split("/").toVector)
+                val scopePath = scopeRoot / os.RelPath(sc).asSubPath
                 (BuildRequirements(), Seq(PreprocessedSource.Scoped(scopePath, reqs)))
             }
             Right(value)

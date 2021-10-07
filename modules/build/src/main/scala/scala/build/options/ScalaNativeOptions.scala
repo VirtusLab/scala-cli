@@ -9,16 +9,15 @@ import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
 final case class ScalaNativeOptions(
-  enable: Boolean = false,
   version: Option[String] = None,
   modeStr: Option[String] = None,
   gcStr: Option[String] = None,
   clang: Option[String] = None,
   clangpp: Option[String] = None,
   linkingOptions: List[String] = Nil,
-  linkingDefaults: Boolean = true,
+  linkingDefaults: Option[Boolean] = None,
   compileOptions: List[String] = Nil,
-  compileDefaults: Boolean = true
+  compileDefaults: Option[Boolean] = None
 ) {
 
   def nativeWorkDir(root: os.Path, projectName: String): os.Path =
@@ -46,22 +45,17 @@ final case class ScalaNativeOptions(
     .map(Paths.get(_))
     .getOrElse(sn.Discover.clangpp())
   private def finalLinkingOptions =
-    linkingOptions ++ (if (linkingDefaults) sn.Discover.linkingOptions() else Nil)
+    linkingOptions ++ (if (linkingDefaults.getOrElse(true)) sn.Discover.linkingOptions() else Nil)
   private def finalCompileOptions =
-    compileOptions ++ (if (compileDefaults) sn.Discover.compileOptions() else Nil)
+    compileOptions ++ (if (compileDefaults.getOrElse(true)) sn.Discover.compileOptions() else Nil)
 
-  def platformSuffix: Option[String] =
-    if (enable) Some("native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion))
-    else None
+  def platformSuffix: String =
+    "native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion)
   def nativeDependencies: Seq[AnyDependency] =
-    if (enable)
-      Seq("nativelib", "javalib", "auxlib", "scalalib")
-        .map(name => dep"org.scala-native::$name::$finalVersion")
-    else
-      Nil
+    Seq("nativelib", "javalib", "auxlib", "scalalib")
+      .map(name => dep"org.scala-native::$name::$finalVersion")
   def compilerPlugins: Seq[AnyDependency] =
-    if (enable) Seq(dep"org.scala-native:::nscplugin:$finalVersion")
-    else Nil
+    Seq(dep"org.scala-native:::nscplugin:$finalVersion")
 
   private def bloopConfigUnsafe: BloopConfig.NativeConfig =
     BloopConfig.NativeConfig(
@@ -85,9 +79,8 @@ final case class ScalaNativeOptions(
       output = None
     )
 
-  def bloopConfig: Option[BloopConfig.NativeConfig] =
-    if (enable) Some(bloopConfigUnsafe)
-    else None
+  def bloopConfig: BloopConfig.NativeConfig =
+    bloopConfigUnsafe
 
   private def configUnsafe: sn.NativeConfig =
     sn.NativeConfig.empty
@@ -99,9 +92,8 @@ final case class ScalaNativeOptions(
       .withLinkingOptions(linkingOptions)
       .withCompileOptions(compileOptions)
 
-  def config: Option[sn.NativeConfig] =
-    if (enable) Some(configUnsafe)
-    else None
+  def config: sn.NativeConfig =
+    configUnsafe
 
 }
 
@@ -109,8 +101,7 @@ object ScalaNativeOptions {
   implicit val hasHashData: HasHashData[ScalaNativeOptions] = {
     val underlying: HasHashData[ScalaNativeOptions] = HasHashData.derive
     (prefix, t, update) =>
-      if (t.enable)
-        underlying.add(prefix, t, update)
+      underlying.add(prefix, t, update)
   }
   implicit val monoid: ConfigMonoid[ScalaNativeOptions] = ConfigMonoid.derive
 }

@@ -7,7 +7,7 @@ import coursier.util.{Artifact, Task}
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.CustomCodeWrapper
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Inputs, Logger, Os, Sources}
 import scala.cli.export._
 
@@ -30,10 +30,11 @@ object Export extends ScalaCommand[ExportOptions] {
         )
       )
     }
-    val sources = value(crossSources.sources(buildOptions))
+    val scopedSources = value(crossSources.scopedSources(buildOptions))
+    val sources       = scopedSources.sources(Scope.Main, buildOptions)
 
     if (verbosity >= 3)
-      pprint.better.log(sources)
+      pprint.stderr.log(sources)
 
     val options0 = buildOptions.orElse(sources.buildOptions)
 

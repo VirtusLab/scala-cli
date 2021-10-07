@@ -27,7 +27,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.ScalaJsConfig
-import scala.build.options.PackageType
+import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.commands.OptionsHelper._
 import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
@@ -61,7 +61,7 @@ object Package extends ScalaCommand[PackageOptions] {
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        res.orReport(logger).map(_._1).foreach {
+        res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
             doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
               .orReport(logger)
@@ -73,10 +73,10 @@ object Package extends ScalaCommand[PackageOptions] {
       finally watcher.dispose()
     }
     else {
-      val (build, _) =
+      val builds =
         Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
           .orExit(logger)
-      build match {
+      builds.main match {
         case s: Build.Successful =>
           doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
             .orExit(logger)
@@ -342,24 +342,24 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     logger: Logger
   ): Unit = {
-    if (build.options.scalaNativeOptions.enable && (Properties.isMac || Properties.isWin)) {
+    if (build.options.platform == Platform.Native && (Properties.isMac || Properties.isWin)) {
       System.err.println(
         "Package scala native application to docker image is not supported on MacOs and Windows"
       )
       sys.exit(1)
     }
 
-    val exec =
-      if (build.options.scalaJsOptions.enable) Some("node")
-      else if (build.options.scalaNativeOptions.enable) None
-      else Some("sh")
-    val from = build.options.packageOptions.dockerOptions.from match {
-      case Some(baseImage) => baseImage
-      case None =>
-        if (build.options.scalaJsOptions.enable) "node"
-        else if (build.options.scalaNativeOptions.enable)
-          "debian:stable-slim"
-        else "openjdk:8-jre-slim"
+    val exec = build.options.platform match {
+      case Platform.JVM    => Some("sh")
+      case Platform.JS     => Some("node")
+      case Platform.Native => None
+    }
+    val from = build.options.packageOptions.dockerOptions.from.getOrElse {
+      build.options.platform match {
+        case Platform.JVM    => "openjdk:8-jre-slim"
+        case Platform.JS     => "node"
+        case Platform.Native => "debian:stable-slim"
+      }
     }
     val repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
       "--docker-image-repository",
@@ -376,10 +376,11 @@ object Package extends ScalaCommand[PackageOptions] {
     )
 
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
-    if (build.options.scalaJsOptions.enable) buildJs(build, appPath, mainClass)
-    else if (build.options.scalaNativeOptions.enable)
-      buildNative(inputs, build, appPath, mainClass, logger)
-    else bootstrap(build, appPath, mainClass, () => false)
+    build.options.platform match {
+      case Platform.JVM    => bootstrap(build, appPath, mainClass, () => false)
+      case Platform.JS     => buildJs(build, appPath, mainClass)
+      case Platform.Native => buildNative(inputs, build, appPath, mainClass, logger)
+    }
 
     logger.message(
       "Started building docker image with your application, it would take some time"
@@ -405,7 +406,7 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     logger: Logger
   ): Unit = {
-    val config = build.options.scalaNativeOptions.config.getOrElse(???)
+    val config = build.options.scalaNativeOptions.config
     val workDir =
       build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
 

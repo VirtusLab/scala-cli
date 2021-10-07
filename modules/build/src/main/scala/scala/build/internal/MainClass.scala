@@ -18,7 +18,7 @@ object MainClass {
       superName: String,
       interfaces: Array[String]
     ): Unit = {
-      nameOpt = Some(name.replace('/', '.'))
+      nameOpt = Some(name.replace('/', '.').replace('\\', '.'))
     }
     override def visitMethod(
       access: Int,

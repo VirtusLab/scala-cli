@@ -11,11 +11,11 @@ import scala.build.Logger
 import scala.build.errors.{
   NoFrameworkFoundByBridgeError,
   NoTestFrameworkFoundError,
+  NoTestsRun,
   TestError,
   TooManyFrameworksFoundByBridgeError
 }
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
-import scala.scalanative.{build => sn}
 import scala.util.Properties
 
 object Runner {
@@ -180,9 +180,10 @@ object Runner {
   private def runTests(
     classPath: Seq[Path],
     framework: Framework,
+    requireTests: Boolean,
     args: Seq[String],
     parentInspector: AsmTestRunner.ParentInspector
-  ): Boolean = {
+  ): Either[NoTestsRun, Boolean] = {
 
     val taskDefs =
       AsmTestRunner.taskDefs(
@@ -200,11 +201,16 @@ object Runner {
     if (doneMsg.nonEmpty)
       System.out.println(doneMsg)
 
-    !events.exists { ev =>
-      ev.status == Status.Error ||
-      ev.status == Status.Failure ||
-      ev.status == Status.Canceled
-    }
+    if (requireTests && events.isEmpty)
+      Left(new NoTestsRun)
+    else
+      Right {
+        !events.exists { ev =>
+          ev.status == Status.Error ||
+          ev.status == Status.Failure ||
+          ev.status == Status.Canceled
+        }
+      }
   }
 
   private def frameworkName(
@@ -220,7 +226,7 @@ object Runner {
         )
       }
     fwOpt match {
-      case Some(fw) => Right(fw.replace('/', '.'))
+      case Some(fw) => Right(fw.replace('/', '.').replace('\\', '.'))
       case None     => Left(new NoTestFrameworkFoundError)
     }
   }
@@ -228,8 +234,10 @@ object Runner {
   def testJs(
     classPath: Seq[Path],
     entrypoint: File,
+    requireTests: Boolean,
     args: Seq[String],
-    testFrameworkOpt: Option[String]
+    testFrameworkOpt: Option[String],
+    logger: Logger
   ): Either[TestError, Int] = either {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
@@ -246,6 +254,8 @@ object Runner {
     val adapterConfig        = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
     val inputs               = Seq(Input.Script(entrypoint.toPath))
     var adapter: TestAdapter = null
+
+    logger.debug(s"JS tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
     val frameworkName0 = testFrameworkOpt match {
@@ -265,24 +275,27 @@ object Runner {
           Left(new TooManyFrameworksFoundByBridgeError)
         else {
           val framework = frameworks.head
-          val success   = runTests(classPath, framework, args, parentInspector)
-          Right(if (success) 0 else 1)
+          runTests(classPath, framework, requireTests, args, parentInspector)
         }
       }
       finally if (adapter != null) adapter.close()
 
-    value(res)
+    if (value(res)) 0
+    else 1
   }
 
   def testNative(
     classPath: Seq[Path],
     launcher: File,
     frameworkNameOpt: Option[String],
+    requireTests: Boolean,
     args: Seq[String],
-    nativeLogger: sn.Logger
+    logger: Logger
   ): Either[TestError, Int] = either {
 
     import scala.scalanative.testinterface.adapter.TestAdapter
+
+    logger.debug(s"Native tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
     val frameworkName0 = frameworkNameOpt match {
@@ -293,7 +306,7 @@ object Runner {
     val config = TestAdapter.Config()
       .withBinaryFile(launcher)
       .withEnvVars(sys.env.toMap)
-      .withLogger(nativeLogger)
+      .withLogger(logger.scalaNativeLogger)
 
     var adapter: TestAdapter = null
 
@@ -309,12 +322,12 @@ object Runner {
           Left(new TooManyFrameworksFoundByBridgeError)
         else {
           val framework = frameworks.head
-          val success   = runTests(classPath, framework, args, parentInspector)
-          Right(if (success) 0 else 1)
+          runTests(classPath, framework, requireTests, args, parentInspector)
         }
       }
       finally if (adapter != null) adapter.close()
 
-    value(res)
+    if (value(res)) 0
+    else 1
   }
 }

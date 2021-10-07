@@ -2,7 +2,7 @@ package scala.build.tests
 
 import bloop.config.{Config => BloopConfig}
 import scala.build.{Build, Project}
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, Platform}
 import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
@@ -42,8 +42,8 @@ object TestUtil {
         toolchain = Nil
       )
       options.copy(
-        scalaJsOptions = options.scalaJsOptions.copy(
-          enable = true
+        scalaOptions = options.scalaOptions.copy(
+          platform = Some(Platform.JS)
         )
       )
     }
@@ -66,8 +66,8 @@ object TestUtil {
         output = None
       )
       options.copy(
-        scalaNativeOptions = options.scalaNativeOptions.copy(
-          enable = true
+        scalaOptions = options.scalaOptions.copy(
+          platform = Some(Platform.Native)
         )
       )
     }

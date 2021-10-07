@@ -4,7 +4,7 @@ import caseapp._
 
 import java.io.File
 
-import scala.build.Build
+import scala.build.{Build, Builds}
 
 object Compile extends ScalaCommand[CompileOptions] {
   override def group                                  = "Main"
@@ -19,12 +19,31 @@ object Compile extends ScalaCommand[CompileOptions] {
       sys.exit(1)
     }
 
-    def postBuild(build: Build): Unit =
-      if (options.classPath)
-        for (s <- build.successfulOpt) {
+    def postBuild(builds: Builds, allowExit: Boolean): Unit = {
+      val failed = builds.all.exists {
+        case _: Build.Failed => true
+        case _               => false
+      }
+      val cancelled = builds.all.exists {
+        case _: Build.Cancelled => true
+        case _                  => false
+      }
+      if (failed) {
+        System.err.println("Compilation failed")
+        if (allowExit)
+          sys.exit(1)
+      }
+      else if (cancelled) {
+        System.err.println("Compilation cancelled")
+        if (allowExit)
+          sys.exit(1)
+      }
+      else if (options.classPath)
+        for (s <- builds.main.successfulOpt) {
           val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
           println(cp)
         }
+    }
 
     val buildOptions     = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
@@ -40,8 +59,8 @@ object Compile extends ScalaCommand[CompileOptions] {
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
-        for ((build, _) <- res.orReport(logger))
-          postBuild(build)
+        for (builds <- res.orReport(logger))
+          postBuild(builds, allowExit = false)
       }
       try WatchUtil.waitForCtrlC()
       finally watcher.dispose()
@@ -54,8 +73,8 @@ object Compile extends ScalaCommand[CompileOptions] {
         logger,
         crossBuilds = cross
       )
-      val (build, _) = res.orExit(logger)
-      postBuild(build)
+      val builds = res.orExit(logger)
+      postBuild(builds, allowExit = true)
     }
   }
 

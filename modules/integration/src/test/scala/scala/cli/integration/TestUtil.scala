@@ -84,7 +84,7 @@ object TestUtil {
     if (uri.startsWith("file:///")) "file:/" + uri.stripPrefix("file:///")
     else uri
 
-  def retry[T](
+  def retryOnCi[T](
     maxAttempts: Int = 3,
     waitDuration: FiniteDuration = 5.seconds
   )(
@@ -103,6 +103,6 @@ object TestUtil {
             helper(count + 1)
           }
       }
-    helper(1)
+    helper(if (isCI) 1 else maxAttempts)
   }
 }

@@ -12,4 +12,6 @@ final case class HasBuildRequirements[+T](
     requirements.withPlatform(pf).map { updatedRequirements =>
       copy(requirements = updatedRequirements)
     }
+  def scopedValue(defaultScope: Scope): HasScope[T] =
+    HasScope(requirements.scope.map(_.scope).getOrElse(defaultScope), value)
 }

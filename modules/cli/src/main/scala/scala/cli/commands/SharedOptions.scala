@@ -126,7 +126,11 @@ final case class SharedOptions(
     enableJmh: Boolean,
     jmhVersion: Option[String],
     ignoreErrors: Boolean = false
-  ): BuildOptions =
+  ): BuildOptions = {
+    val platformOpt =
+      if (js.js) Some(Platform.JS)
+      else if (native.native) Some(Platform.Native)
+      else None
     BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
@@ -134,7 +138,8 @@ final case class SharedOptions(
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         generateSemanticDbs = semanticDb,
         scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
-        compilerPlugins = parseDependencies(dependencies.compilerPlugin, ignoreErrors)
+        compilerPlugins = parseDependencies(dependencies.compilerPlugin, ignoreErrors),
+        platform = platformOpt
       ),
       scriptOptions = ScriptOptions(
         codeWrapper = codeWrapper
@@ -169,6 +174,7 @@ final case class SharedOptions(
         localRepository = LocalRepo.localRepo(directories.directories.localRepoDir)
       )
     )
+  }
 
   def bloopRifleConfig(): BloopRifleConfig =
     compilationServer.bloopRifleConfig(

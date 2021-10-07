@@ -30,7 +30,6 @@ final case class ScalaJsOptions(
 
   def buildOptions: options.ScalaJsOptions =
     options.ScalaJsOptions(
-      enable = js,
       version = jsVersion,
       mode = jsMode,
       moduleKindStr = jsModuleKind,

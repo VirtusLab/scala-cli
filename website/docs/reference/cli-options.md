@@ -120,6 +120,7 @@ Available in commands:
 - [`package`](./commands#package)
 - [`console` / `repl`](./commands#console)
 - [`run`](./commands#run)
+- [`test`](./commands#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -872,6 +873,10 @@ Available in commands:
 #### `--test-framework`
 
 Test framework to use to run tests
+
+#### `--require-tests`
+
+Fail if no test suites were run
 
 ## Watch options
 
