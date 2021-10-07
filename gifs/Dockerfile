@@ -13,6 +13,9 @@ RUN cd /data
 RUN echo 'def a = 123' > a.scala
 RUN scala-cli compile a.scala || echo "Problems with bloop"
 
+RUN apt-get install -y rubygems
+RUN gem install rouge
+
 COPY *.sh /data/
 COPY scenarios /data/scenarios
 
