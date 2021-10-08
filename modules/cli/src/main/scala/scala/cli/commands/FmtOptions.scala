@@ -39,3 +39,8 @@ final case class FmtOptions(
   }
 
 }
+
+object FmtOptions {
+  implicit lazy val parser: Parser[FmtOptions] = Parser.derive
+  implicit lazy val help: Help[FmtOptions]     = Help.derive
+}
