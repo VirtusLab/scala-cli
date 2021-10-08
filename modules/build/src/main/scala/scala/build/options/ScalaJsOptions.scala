@@ -89,10 +89,6 @@ final case class ScalaJsOptions(
 }
 
 object ScalaJsOptions {
-  implicit val hasHashData: HasHashData[ScalaJsOptions] = {
-    val underlying: HasHashData[ScalaJsOptions] = HasHashData.derive
-    (prefix, t, update) =>
-      underlying.add(prefix, t, update)
-  }
-  implicit val monoid: ConfigMonoid[ScalaJsOptions] = ConfigMonoid.derive
+  implicit val hasHashData: HasHashData[ScalaJsOptions] = HasHashData.derive
+  implicit val monoid: ConfigMonoid[ScalaJsOptions]     = ConfigMonoid.derive
 }

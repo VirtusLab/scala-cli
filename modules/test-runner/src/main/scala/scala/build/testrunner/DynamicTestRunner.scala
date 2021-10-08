@@ -8,7 +8,7 @@ import java.nio.file.{Files, Path}
 import java.util.ServiceLoader
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object DynamicTestRunner {
 
@@ -92,7 +92,8 @@ object DynamicTestRunner {
     ServiceLoader.load(classOf[Framework], loader)
       .iterator()
       .asScala
-      .toStream
+      .take(1)
+      .toList
       .headOption
 
   def loadFramework(
@@ -142,7 +143,8 @@ object DynamicTestRunner {
           case _: NoSuchMethodException => Iterator.empty
         }
       }
-      .toStream
+      .take(1)
+      .toList
       .headOption
   }
 

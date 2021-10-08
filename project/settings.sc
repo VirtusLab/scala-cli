@@ -1,41 +1,169 @@
 import $ivy.`com.goyeau::mill-scalafix:0.2.5`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.9`
-import $file.deps, deps.{Deps, Docker}
+import $file.deps, deps.{Deps, Docker, buildCsVersion}
 
 import com.goyeau.mill.scalafix.ScalafixModule
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.NativeImage
-import java.io.File
+import java.io.{ByteArrayOutputStream, File, FileInputStream, InputStream}
+import java.nio.charset.StandardCharsets
+import java.util.Locale
+import java.util.zip.{GZIPInputStream, ZipFile}
 import mill._, scalalib._
+import scala.collection.JavaConverters._
 import scala.util.Properties
 
-lazy val cs: String =
-  if (Properties.isWin) {
-    val pathExt = Option(System.getenv("PATHEXT"))
-      .toSeq
-      .flatMap(_.split(File.pathSeparator).toSeq)
-    val path = Option(System.getenv("PATH"))
-      .toSeq
-      .flatMap(_.split(File.pathSeparator))
-      .map(new File(_))
-
-    def candidates =
-      for {
-        dir <- path.iterator
-        ext <- pathExt.iterator
-      } yield new File(dir, s"cs$ext")
-
-    candidates
-      .filter(_.canExecute)
-      .toStream
-      .headOption
-      .map(_.getAbsolutePath)
-      .getOrElse {
-        System.err.println("Warning: could not find cs in PATH.")
-        "cs"
-      }
+private def withGzipContent[T](gzFile: File)(f: InputStream => T): T = {
+  var fis: FileInputStream  = null
+  var gzis: GZIPInputStream = null
+  try {
+    fis = new FileInputStream(gzFile)
+    gzis = new GZIPInputStream(fis)
+    f(gzis)
   }
+  finally {
+    if (gzis != null) gzis.close()
+    if (fis != null) fis.close()
+  }
+}
+
+private def withFirstFileInZip[T](zip: File)(f: InputStream => T): T = {
+  var zf: ZipFile     = null
+  var is: InputStream = null
+  try {
+    zf = new ZipFile(zip)
+    val ent = zf.entries().asScala.find(e => !e.isDirectory).getOrElse {
+      throw new NoSuchElementException(s"No file found in $zip")
+    }
+    is = zf.getInputStream(ent)
+    f(is)
+  }
+  finally {
+    if (zf != null)
+      zf.close()
+    if (is != null)
+      is.close()
+  }
+}
+
+private def readFully(is: InputStream): Array[Byte] = {
+  val buffer = new ByteArrayOutputStream
+  val data   = Array.ofDim[Byte](16384)
+  var nRead  = 0
+  while ({
+    nRead = is.read(data, 0, data.length)
+    nRead != -1
+  })
+    buffer.write(data, 0, nRead)
+  buffer.flush()
+  buffer.toByteArray
+}
+
+def cs: T[String] = T.persistent {
+
+  val ext  = if (Properties.isWin) ".exe" else ""
+  val dest = T.dest / s"cs-$buildCsVersion$ext"
+
+  def downloadOpt(): Option[String] = {
+    val arch = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT)
+    val urlOpt = arch match {
+      case "x86_64" | "amd64" =>
+        if (Properties.isWin) Some(
+          if (buildCsVersion == "2.0.16")
+            "https://github.com/coursier/coursier/releases/download/v2.0.13/cs-x86_64-pc-win32.exe"
+          else
+            s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-x86_64-pc-win32.zip"
+        )
+        else if (Properties.isMac) Some(
+          if (buildCsVersion == "2.0.16")
+            "https://github.com/coursier/coursier/releases/download/v2.0.16/cs-x86_64-apple-darwin"
+          else
+            s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-x86_64-apple-darwin.gz"
+        )
+        else if (Properties.isLinux) Some(
+          if (buildCsVersion == "2.0.16")
+            "https://github.com/coursier/coursier/releases/download/v2.0.16/cs-x86_64-pc-linux"
+          else
+            s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-x86_64-pc-linux.gz"
+        )
+        else None
+      case "aarch64" =>
+        if (Properties.isLinux) Some(
+          if (buildCsVersion == "2.0.16")
+            "https://github.com/coursier/coursier/releases/download/v2.0.16/cs-aarch64-pc-linux"
+          else
+            s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-aarch64-pc-linux.gz"
+        )
+        else None
+      case _ =>
+        None
+    }
+
+    urlOpt.map { url =>
+      val cache = coursier.cache.FileCache()
+      val task  = cache.logger.using(cache.file(coursier.util.Artifact(url)).run)
+      val maybeFile =
+        try task.unsafeRun()(cache.ec)
+        catch {
+          case t: Throwable =>
+            throw new Exception(t)
+        }
+      val f = maybeFile.fold(ex => throw new Exception(ex), identity)
+      val exec =
+        if (f.getName.endsWith(".gz")) {
+          val b = withGzipContent(f)(readFully)
+          os.write(dest, b)
+          dest
+        }
+        else if (f.getName.endsWith(".zip")) {
+          val b = withFirstFileInZip(f)(readFully)
+          os.write(dest, b)
+          dest
+        }
+        else
+          os.Path(f, os.pwd)
+
+      if (!Properties.isWin)
+        exec.toIO.setExecutable(true)
+
+      exec.toString
+    }
+  }
+
+  def fromPath: String =
+    if (Properties.isWin) {
+      val pathExt = Option(System.getenv("PATHEXT"))
+        .toSeq
+        .flatMap(_.split(File.pathSeparator).toSeq)
+      val path = Option(System.getenv("PATH"))
+        .toSeq
+        .flatMap(_.split(File.pathSeparator))
+        .map(new File(_))
+
+      def candidates =
+        for {
+          dir <- path.iterator
+          ext <- pathExt.iterator
+        } yield new File(dir, s"cs$ext")
+
+      candidates
+        .filter(_.canExecute)
+        .toStream
+        .headOption
+        .map(_.getAbsolutePath)
+        .getOrElse {
+          System.err.println("Warning: could not find cs in PATH.")
+          "cs"
+        }
+    }
+    else
+      "cs"
+
+  if (os.isFile(dest))
+    dest.toString
   else
-    "cs"
+    (downloadOpt().getOrElse(fromPath): String)
+}
 
 // should be the default index in the upcoming coursier release (> 2.0.16)
 def jvmIndex = "https://github.com/coursier/jvm-index/raw/master/index.json"
@@ -72,7 +200,7 @@ def getGhToken(): String =
 trait CliLaunchers extends SbtModule { self =>
 
   trait CliNativeImage extends NativeImage {
-    def nativeImageCsCommand    = Seq(cs)
+    def nativeImageCsCommand    = Seq(cs())
     def nativeImagePersist      = System.getenv("CI") != null
     def nativeImageGraalVmJvmId = s"graalvm-java11:${deps.graalVmVersion}"
     def nativeImageOptions = T {
@@ -91,7 +219,7 @@ trait CliLaunchers extends SbtModule { self =>
 
     private def staticLibDirName = "native-libs"
 
-    private def copyCsjniutilTo(destDir: os.Path): Unit = {
+    private def copyCsjniutilTo(cs: String, destDir: os.Path): Unit = {
       val jniUtilsVersion = Deps.jniUtils.dep.version
       val libRes = os.proc(
         cs,
@@ -101,10 +229,10 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         "lib"
       ).call()
-      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "csjniutils.lib")
     }
-    private def copyIpcsocketDllTo(destDir: os.Path): Unit = {
+    private def copyIpcsocketDllTo(cs: String, destDir: os.Path): Unit = {
       val ipcsocketVersion = Deps.ipcSocket.dep.version
       val libRes = os.proc(
         cs,
@@ -114,10 +242,10 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         "lib"
       ).call()
-      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "ipcsocket.lib")
     }
-    private def copyIpcsocketMacATo(destDir: os.Path): Unit = {
+    private def copyIpcsocketMacATo(cs: String, destDir: os.Path): Unit = {
       val ipcsocketVersion = Deps.ipcSocket.dep.version
       val libRes = os.proc(
         cs,
@@ -127,10 +255,10 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         "a"
       ).call()
-      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "libipcsocket.a")
     }
-    private def copyIpcsocketLinuxATo(destDir: os.Path): Unit = {
+    private def copyIpcsocketLinuxATo(cs: String, destDir: os.Path): Unit = {
       val ipcsocketVersion = Deps.ipcSocket.dep.version
       val libRes = os.proc(
         cs,
@@ -140,7 +268,7 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         "a"
       ).call()
-      val libPath = os.Path(libRes.out.text.trim, os.pwd)
+      val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "libipcsocket.a")
     }
     def staticLibDir = T {
@@ -148,15 +276,15 @@ trait CliLaunchers extends SbtModule { self =>
       os.makeDir.all(dir)
 
       if (Properties.isWin) {
-        copyCsjniutilTo(dir)
-        copyIpcsocketDllTo(dir)
+        copyCsjniutilTo(cs(), dir)
+        copyIpcsocketDllTo(cs(), dir)
       }
 
       if (Properties.isMac)
-        copyIpcsocketMacATo(dir)
+        copyIpcsocketMacATo(cs(), dir)
 
       if (Properties.isLinux && arch == "x86_64")
-        copyIpcsocketLinuxATo(dir)
+        copyIpcsocketLinuxATo(cs(), dir)
 
       PathRef(dir)
     }
@@ -240,7 +368,7 @@ trait CliLaunchers extends SbtModule { self =>
       import sys.process._
       // format: off
       Seq(
-        cs, "java-home",
+        cs(), "java-home",
         "--jvm", s"graalvm-java11:$graalVmVersion",
         "--jvm-index", jvmIndex
       ).!!.trim
@@ -421,7 +549,19 @@ trait LocalRepo extends Module {
     define.Task.sequence(tasks)
   }
 
+  private def vcsState = {
+    val isCI = System.getenv("CI") != null
+    if (isCI)
+      T.persistent {
+        VcsVersion.vcsState()
+      }
+    else
+      T {
+        VcsVersion.vcsState()
+      }
+  }
   def localRepoZip = T {
+    val repoVer   = vcsState().format()
     val ver       = version()
     val something = localRepo()
     val repoDir   = os.pwd / "out" / "repo" / ver
@@ -436,6 +576,13 @@ trait LocalRepo extends Module {
     try {
       fos = new FileOutputStream(dest.toIO)
       zos = new ZipOutputStream(new BufferedOutputStream(fos))
+
+      val versionEntry = new ZipEntry("version")
+      versionEntry.setTime(0L)
+      zos.putNextEntry(versionEntry)
+      zos.write(repoVer.getBytes(StandardCharsets.UTF_8))
+      zos.flush()
+
       os.walk(repoDir).filter(_ != repoDir).foreach { p =>
         val isDir = os.isDir(p)
         val name  = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")

@@ -56,7 +56,7 @@ class NativePackagerTests extends munit.FunSuite {
           val home = sys.props("user.home")
           val output = os.proc(s"$home/Applications/$appName.app/Contents/MacOS/$appName")
             .call(cwd = os.root)
-            .out.text.trim
+            .out.text().trim
           expect(output == message)
         }
       }
@@ -94,7 +94,7 @@ class NativePackagerTests extends munit.FunSuite {
 
           val output = os.proc(s"/Volumes/$appName/$appName.app/Contents/MacOS/$appName")
             .call(cwd = os.root)
-            .out.text.trim
+            .out.text().trim
           expect(output == message)
 
           os.proc("hdiutil", "detach", s"/Volumes/$appName").call(
@@ -140,7 +140,8 @@ class NativePackagerTests extends munit.FunSuite {
             stdout = os.Inherit
           )
 
-          val output = os.proc(s"$root/usr/share/scala/$appName").call(cwd = os.root).out.text.trim
+          val output =
+            os.proc(s"$root/usr/share/scala/$appName").call(cwd = os.root).out.text().trim
           expect(output == message)
         }
       }
@@ -231,7 +232,7 @@ class NativePackagerTests extends munit.FunSuite {
         s"$imageRepository:$imageTag"
 
       try {
-        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
+        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text().trim
         expect(output == message)
       }
       // clear
@@ -267,7 +268,7 @@ class NativePackagerTests extends munit.FunSuite {
         s"$imageRepository:$imageTag"
 
       try {
-        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
+        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text().trim
         expect(output == message)
 
       }
@@ -305,7 +306,7 @@ class NativePackagerTests extends munit.FunSuite {
         s"$imageRepository:$imageTag"
 
       try {
-        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text.trim
+        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text().trim
         expect(output == message)
 
       }
@@ -313,7 +314,12 @@ class NativePackagerTests extends munit.FunSuite {
       finally os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
     }
 
-  if (Properties.isLinux) {
+  val hasDocker =
+    Properties.isLinux ||
+    // no docker command or no Linux from it on Github actions macOS / Windows runners
+    ((Properties.isMac || Properties.isWin) && !TestUtil.isCI)
+
+  if (hasDocker) {
     test("building docker image") {
       TestUtil.retryOnCi() {
         runTest()
@@ -325,13 +331,13 @@ class NativePackagerTests extends munit.FunSuite {
         runJsTest()
       }
     }
+  }
 
+  if (Properties.isLinux)
     test("building docker image with scala native app") {
       TestUtil.retryOnCi() {
         runNativeTest()
       }
     }
-
-  }
 
 }

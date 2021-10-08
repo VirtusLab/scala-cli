@@ -38,7 +38,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text.trim
+      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
       expect(output == message)
     }
   }
@@ -67,7 +67,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text.trim
+      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
       expect(output == message)
     }
   }
@@ -97,7 +97,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
 
       val nodePath = TestUtil.fromPath("node").getOrElse("node")
-      val output   = os.proc(nodePath, launcher.toString).call(cwd = root).out.text.trim
+      val output   = os.proc(nodePath, launcher.toString).call(cwd = root).out.text().trim
       expect(output == message)
     }
   }
@@ -138,7 +138,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text.trim
+      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
       expect(output == message)
     }
   }
@@ -191,7 +191,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
           launcher
         }
 
-      val output = os.proc(runnableLauncher.toString).call(cwd = root).out.text.trim
+      val output = os.proc(runnableLauncher.toString).call(cwd = root).out.text().trim
       expect(output == message)
     }
   }

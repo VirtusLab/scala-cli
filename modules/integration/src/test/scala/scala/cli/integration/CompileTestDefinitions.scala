@@ -27,7 +27,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("no arg") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root).out.text
+      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root).out.text()
     }
   }
 
@@ -121,7 +121,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           "not found: value pprint"
         else
           "Not found: pprint"
-      expect(res.out.text.contains(expectedInOutput))
+      expect(res.out.text().contains(expectedInOutput))
     }
   }
 

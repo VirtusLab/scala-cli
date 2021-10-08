@@ -98,10 +98,6 @@ final case class ScalaNativeOptions(
 }
 
 object ScalaNativeOptions {
-  implicit val hasHashData: HasHashData[ScalaNativeOptions] = {
-    val underlying: HasHashData[ScalaNativeOptions] = HasHashData.derive
-    (prefix, t, update) =>
-      underlying.add(prefix, t, update)
-  }
-  implicit val monoid: ConfigMonoid[ScalaNativeOptions] = ConfigMonoid.derive
+  implicit val hasHashData: HasHashData[ScalaNativeOptions] = HasHashData.derive
+  implicit val monoid: ConfigMonoid[ScalaNativeOptions]     = ConfigMonoid.derive
 }

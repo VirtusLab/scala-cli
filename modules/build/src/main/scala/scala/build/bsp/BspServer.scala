@@ -6,8 +6,8 @@ import java.util.concurrent.CompletableFuture
 
 import scala.build.Logger
 import scala.build.internal.Constants
-import scala.collection.JavaConverters._
 import scala.concurrent.{Future, Promise}
+import scala.jdk.CollectionConverters._
 
 class BspServer(
   bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer,
@@ -77,7 +77,7 @@ class BspServer(
   private def mapGeneratedSources(res: b.SourcesResult): Unit = {
     val gen = generatedSources
     for {
-      item <- res.getItems.asScala
+      item <- res.getItems().asScala
       if validTarget(item.getTarget)
       sourceItem <- item.getSources.asScala
       genSource  <- gen.uriMap.get(sourceItem.getUri)
@@ -119,7 +119,7 @@ class BspServer(
     params: b.DependencySourcesParams
   ): CompletableFuture[b.DependencySourcesResult] =
     super.buildTargetDependencySources(check(params)).thenApply { res =>
-      val updatedItems = res.getItems.asScala.map {
+      val updatedItems = res.getItems().asScala.map {
         case item if validTarget(item.getTarget) =>
           val updatedSources = item.getSources.asScala ++ extraDependencySources.map { sourceJar =>
             sourceJar.toNIO.toUri.toASCIIString

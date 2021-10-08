@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService
 
 import scala.build.postprocessing.LineConversion
 import scala.build.{BloopBuildClient, GeneratedSource, Logger}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class BspClient(
   readFilesEs: ExecutorService,

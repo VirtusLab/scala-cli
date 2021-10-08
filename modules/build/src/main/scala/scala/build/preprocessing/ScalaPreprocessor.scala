@@ -153,7 +153,8 @@ case object ScalaPreprocessor extends Preprocessor {
         val fromHandlersOpt = usingDirectiveHandlers
           .iterator
           .flatMap(_.handle(dir).iterator)
-          .toStream
+          .take(1)
+          .toList
           .headOption
 
         fromHandlersOpt match {
@@ -187,7 +188,8 @@ case object ScalaPreprocessor extends Preprocessor {
         val fromHandlersOpt = requireDirectiveHandlers
           .iterator
           .flatMap(_.handle(dir).iterator)
-          .toStream
+          .take(1)
+          .toList
           .headOption
 
         fromHandlersOpt match {

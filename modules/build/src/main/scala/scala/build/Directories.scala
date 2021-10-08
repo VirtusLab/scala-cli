@@ -1,6 +1,6 @@
 package scala.build
 
-import dev.dirs.{GetWinDirs, ProjectDirectories}
+import coursier.cache.shaded.dirs.{GetWinDirs, ProjectDirectories}
 
 trait Directories {
   def localRepoDir: os.Path

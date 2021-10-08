@@ -73,7 +73,12 @@ object CrossSources {
     val preprocessedSources = value {
       inputs.flattened()
         .map { elem =>
-          preprocessors.iterator.flatMap(p => p.preprocess(elem).iterator).toStream.headOption
+          preprocessors
+            .iterator
+            .flatMap(p => p.preprocess(elem).iterator)
+            .take(1)
+            .toList
+            .headOption
             .getOrElse(Right(Nil)) // FIXME Warn about unprocessed stuff?
         }
         .sequence
@@ -107,7 +112,7 @@ object CrossSources {
           case elem: Inputs.SingleElement =>
             preprocessors.iterator
               .flatMap(p => p.preprocess(elem).iterator)
-              .toStream.headOption
+              .take(1).toList.headOption
               .getOrElse(Right(Nil))
               .map(_.flatMap(_.mainClassOpt.toSeq).headOption)
         }

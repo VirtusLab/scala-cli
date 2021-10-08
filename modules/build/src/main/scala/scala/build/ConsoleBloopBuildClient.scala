@@ -6,8 +6,8 @@ import java.io.{File, PrintStream}
 import java.net.URI
 import java.nio.file.Paths
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 class ConsoleBloopBuildClient(
   logger: Logger,

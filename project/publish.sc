@@ -38,7 +38,7 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
         .getOrElse(state.format())
     }
     else {
-      val rawVersion = os.proc("git", "describe", "--tags").call().out.text.trim
+      val rawVersion = os.proc("git", "describe", "--tags").call().out.text().trim
         .stripPrefix("v")
         .replace("latest", "0.0.0")
         .replace("nightly", "0.0.0")

@@ -12,7 +12,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 

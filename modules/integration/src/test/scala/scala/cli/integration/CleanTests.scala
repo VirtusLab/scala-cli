@@ -20,7 +20,7 @@ class CleanTests extends munit.FunSuite {
       val dir = root / ".scala"
 
       val res = os.proc(TestUtil.cli, "run", ".").call(cwd = root)
-      expect(res.out.text.trim == "Hello")
+      expect(res.out.text().trim == "Hello")
       expect(os.exists(dir))
 
       os.proc(TestUtil.cli, "clean", ".").call(cwd = root)

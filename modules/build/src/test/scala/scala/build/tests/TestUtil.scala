@@ -1,10 +1,7 @@
 package scala.build.tests
 
-import bloop.config.{Config => BloopConfig}
-import scala.build.{Build, Project}
+import scala.build.Build
 import scala.build.options.{BuildOptions, Platform}
-import scala.build.internal.Constants
-import scala.scalanative.{build => sn}
 
 object TestUtil {
 
@@ -30,47 +27,18 @@ object TestUtil {
   }
 
   implicit class TestBuildOptionsOps(private val options: BuildOptions) extends AnyVal {
-    def enableJs = {
-      val config = BloopConfig.JsConfig(
-        version = Constants.scalaJsVersion,
-        mode = BloopConfig.LinkerMode.Debug,
-        kind = BloopConfig.ModuleKindJS.CommonJSModule,
-        emitSourceMaps = false,
-        jsdom = None,
-        output = None,
-        nodePath = None,
-        toolchain = Nil
-      )
+    def enableJs =
       options.copy(
         scalaOptions = options.scalaOptions.copy(
           platform = Some(Platform.JS)
         )
       )
-    }
-    def enableNative = {
-      val config = BloopConfig.NativeConfig(
-        version = Constants.scalaNativeVersion,
-        mode = BloopConfig.LinkerMode.Debug,
-        gc = "default",
-        targetTriple = None,
-        clang = sn.Discover.clang(),
-        clangpp = sn.Discover.clangpp(),
-        toolchain = Nil,
-        options = BloopConfig.NativeOptions(
-          linker = sn.Discover.linkingOptions().toList,
-          compiler = sn.Discover.compileOptions().toList
-        ),
-        linkStubs = false,
-        check = false,
-        dump = false,
-        output = None
-      )
+    def enableNative =
       options.copy(
         scalaOptions = options.scalaOptions.copy(
           platform = Some(Platform.Native)
         )
       )
-    }
   }
 
   implicit class TestAnyOps[T](private val x: T) extends AnyVal {

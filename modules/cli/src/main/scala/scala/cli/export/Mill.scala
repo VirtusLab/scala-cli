@@ -69,10 +69,9 @@ final case class Mill(
       else {
         val repos = options.classPathOptions
           .extraRepositories
-          .map(repo => (repo, RepositoryParser.repository(repo)))
-          .zipWithIndex
+          .map(repo => RepositoryParser.repository(repo))
           .map {
-            case ((repoStr, Right(repo: MavenRepository)), idx) =>
+            case Right(repo: MavenRepository) =>
               // TODO repo.authentication?
               s"""coursier.maven.MavenRepository("${repo.root}")"""
             case _ =>

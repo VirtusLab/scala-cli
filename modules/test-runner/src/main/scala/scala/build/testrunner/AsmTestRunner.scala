@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentHashMap
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object AsmTestRunner {
 
@@ -190,7 +190,8 @@ object AsmTestRunner {
     classPath
       .iterator
       .flatMap(findInClassPath(_, name).iterator)
-      .toStream
+      .take(1)
+      .toList
       .headOption
 
   def findFrameworkService(classPath: Seq[Path]): Option[String] =
@@ -240,7 +241,8 @@ object AsmTestRunner {
           else
             Iterator.empty
       }
-      .toStream
+      .take(1)
+      .toList
       .headOption
   }
 

@@ -163,7 +163,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("successful test") {
     successfulTestInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
       expect(output.contains("Hello from tests"))
     }
   }
@@ -172,7 +172,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
         .call(cwd = root)
-        .out.text
+        .out.text()
       expect(output.contains("Hello from tests"))
     }
 
@@ -185,7 +185,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
         .call(cwd = root)
-        .out.text
+        .out.text()
       expect(output.contains("Hello from tests"))
     }
 
@@ -198,7 +198,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     failingTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".")
         .call(cwd = root, check = false)
-        .out.text
+        .out.text()
       expect(output.contains("Hello from tests"))
     }
   }
@@ -207,7 +207,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     failingTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
         .call(cwd = root, check = false)
-        .out.text
+        .out.text()
       expect(output.contains("Hello from tests"))
     }
 
@@ -220,7 +220,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     failingTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
         .call(cwd = root, check = false)
-        .out.text
+        .out.text()
       expect(output.contains("Hello from tests"))
     }
 
@@ -243,7 +243,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("utest") {
     successfulUtestInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
       expect(output.contains("Hello from tests"))
     }
   }
@@ -252,7 +252,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     successfulUtestJsInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
         .call(cwd = root)
-        .out.text
+        .out.text()
       expect(output.contains("Hello from tests"))
     }
 
@@ -265,7 +265,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     successfulUtestNativeInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
         .call(cwd = root)
-        .out.text
+        .out.text()
       expect(output.contains("Hello from tests"))
     }
 
@@ -276,14 +276,14 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("junit") {
     successfulJunitInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
       expect(output.contains("Hello from tests"))
     }
   }
 
   test("several tests") {
     severalTestsInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
       expect(output.contains("Hello from tests1"))
       expect(output.contains("Hello from tests2"))
     }
@@ -299,7 +299,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
           ".",
           "-r",
           "sonatype:snapshots"
-        ).call(cwd = root).out.text
+        ).call(cwd = root).out.text()
       expect(output.contains("Hello from tests"))
     }
   }
@@ -335,7 +335,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
           .call(cwd = root)
-        val baseOutput = baseRes.out.text
+        val baseOutput = baseRes.out.text()
         expect(baseOutput.contains("A thing"))
         expect(baseOutput.contains("should thing"))
         val baseShouldThingLine = baseRes.out
@@ -346,7 +346,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
         val res = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".", "--", "-oD")
           .call(cwd = root)
-        val output = res.out.text
+        val output = res.out.text()
         expect(output.contains("A thing"))
         expect(output.contains("should thing"))
         val shouldThingLine = res.out.lines().find(_.contains("should thing")).getOrElse(???)
@@ -386,7 +386,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
           .call(cwd = root)
-        val baseOutput = baseRes.out.text
+        val baseOutput = baseRes.out.text()
         expect(baseOutput.contains("Hello from tests"))
         expect(!baseOutput.contains("Hello from CustomFramework"))
 
@@ -397,7 +397,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         )
         // format: on
         val res    = os.proc(cmd).call(cwd = root)
-        val output = res.out.text
+        val output = res.out.text()
         expect(output.contains("Hello from tests"))
         expect(output.contains("Hello from CustomFramework"))
       }
@@ -419,7 +419,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         val res = os.proc(TestUtil.cli, "test", extraOptions, "--require-tests", platformArgs, ".")
           .call(cwd = root, stderr = os.Pipe, mergeErrIntoOut = true, check = false)
         expect(res.exitCode != 0)
-        val output = res.out.text
+        val output = res.out.text()
         expect(output.contains("Error: no tests were run") || output.contains("No tests were run"))
       }
     }
@@ -499,7 +499,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
     inputs.fromRoot { root =>
       val res    = os.proc(TestUtil.cli, "test", extraOptions, ".", "--cross").call(cwd = root)
-      val output = res.out.text
+      val output = res.out.text()
       val expectedCount = 1 + (if (TestUtil.canRunJs) 1 else 0) + (if (supportsNative) 1 else 0)
       expect(countSubStrings(output, "Hello from shared") == expectedCount)
       expect(output.contains("Hello from jvm"))

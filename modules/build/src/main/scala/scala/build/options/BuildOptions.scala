@@ -1,6 +1,6 @@
 package scala.build.options
 
-import coursier.cache.FileCache
+import coursier.cache.{ArchiveCache, FileCache}
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import dependency._
 
@@ -154,7 +154,7 @@ final case class BuildOptions(
     val indexTask = JvmIndex.load(finalCache, indexUrl)
     val jvmCache = JvmCache()
       .withIndex(indexTask)
-      .withCache(finalCache)
+      .withArchiveCache(ArchiveCache().withCache(finalCache))
       .withOs(javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs))
       .withArchitecture(javaOptions.jvmIndexArch.getOrElse(JvmIndex.defaultArchitecture()))
     JavaHome().withCache(jvmCache)
