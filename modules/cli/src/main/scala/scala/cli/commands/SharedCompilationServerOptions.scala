@@ -115,7 +115,10 @@ final case class SharedCompilationServerOptions(
           .map("proc-" + _)
           .left.map("conn-" + _)
           .merge
-        (dir / fileName, true)
+        val path = dir / fileName
+        if (os.exists(path)) // isFile is false for domain sockets
+          os.remove(path)
+        (path, true)
     }
     if (deleteOnExit)
       Runtime.getRuntime.addShutdownHook(
