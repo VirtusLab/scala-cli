@@ -694,7 +694,7 @@ object ci extends Module {
     gitClone(repo, branch, targetDir)
     setupGithubRepo(scalaCliDir)
 
-    val launcherScript = os.read(standaloneLauncherPath)
+    val launcherScript       = os.read(standaloneLauncherPath)
     val scalaCliVersionRegex = "SCALA_CLI_VERSION=\".*\"".r
     val updatedLauncherScript =
       scalaCliVersionRegex.replaceFirstIn(launcherScript, s"SCALA_CLI_VERSION=$version")
