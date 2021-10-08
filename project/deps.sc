@@ -95,7 +95,7 @@ def graalVmVersion = "21.2.0"
 
 def csDockerVersion = "2.0.16"
 
-def buildCsVersion = "2.0.16"
+def buildCsVersion = "2.0.16-161-g8a1b8eae5"
 
 object Docker {
   def muslBuilder =
