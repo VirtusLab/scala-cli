@@ -59,5 +59,5 @@ final case class SbtProject(
 }
 
 object SbtProject {
-  implicit val monoid = ConfigMonoid[SbtProject]
+  implicit val monoid: ConfigMonoid[SbtProject] = ConfigMonoid.derive
 }
