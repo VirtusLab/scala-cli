@@ -25,6 +25,6 @@ final case class SharedDependencyOptions(
 // format: on
 
 object SharedDependencyOptions {
-  implicit val parser = Parser[SharedDependencyOptions]
-  implicit val help   = Help[SharedDependencyOptions]
+  implicit lazy val parser                              = Parser[SharedDependencyOptions]
+  implicit lazy val help: Help[SharedDependencyOptions] = Help.derive
 }

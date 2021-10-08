@@ -44,6 +44,6 @@ final case class TestOptions(
 }
 
 object TestOptions {
-  implicit val parser = Parser[TestOptions]
-  implicit val help   = Help[TestOptions]
+  implicit lazy val parser: Parser[TestOptions] = Parser.derive
+  implicit lazy val help: Help[TestOptions]     = Help.derive
 }

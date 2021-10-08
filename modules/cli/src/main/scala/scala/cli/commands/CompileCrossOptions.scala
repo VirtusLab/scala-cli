@@ -10,6 +10,6 @@ final case class CompileCrossOptions(
 // format: on
 
 object CompileCrossOptions {
-  implicit val parser = Parser[CompileCrossOptions]
-  implicit val help   = Help[CompileCrossOptions]
+  implicit lazy val parser                          = Parser[CompileCrossOptions]
+  implicit lazy val help: Help[CompileCrossOptions] = Help.derive
 }

@@ -11,6 +11,6 @@ final case class AddPathOptions(
 // format: on
 
 object AddPathOptions {
-  implicit val parser = Parser[AddPathOptions]
-  implicit val help   = Help[AddPathOptions]
+  implicit lazy val parser: Parser[AddPathOptions] = Parser.derive
+  implicit lazy val help: Help[AddPathOptions]     = Help.derive
 }

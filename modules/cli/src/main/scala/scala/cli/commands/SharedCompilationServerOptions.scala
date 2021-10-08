@@ -222,8 +222,8 @@ final case class SharedCompilationServerOptions(
 }
 
 object SharedCompilationServerOptions {
-  implicit val parser = Parser[SharedCompilationServerOptions]
-  implicit val help   = Help[SharedCompilationServerOptions]
+  implicit lazy val parser = Parser[SharedCompilationServerOptions]
+  implicit lazy val help: Help[SharedCompilationServerOptions] = Help.derive
 
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")

@@ -40,6 +40,6 @@ final case class ScalaJsOptions(
 }
 
 object ScalaJsOptions {
-  implicit val parser = Parser[ScalaJsOptions]
-  implicit val help   = Help[ScalaJsOptions]
+  implicit lazy val parser                     = Parser[ScalaJsOptions]
+  implicit lazy val help: Help[ScalaJsOptions] = Help.derive
 }

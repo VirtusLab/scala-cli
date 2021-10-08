@@ -41,6 +41,6 @@ final case class RunOptions(
 }
 
 object RunOptions {
-  implicit val parser = Parser[RunOptions]
-  implicit val help   = Help[RunOptions]
+  implicit lazy val parser: Parser[RunOptions] = Parser.derive
+  implicit lazy val help: Help[RunOptions]     = Help.derive
 }

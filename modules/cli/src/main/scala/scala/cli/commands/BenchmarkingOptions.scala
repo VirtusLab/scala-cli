@@ -15,6 +15,6 @@ final case class BenchmarkingOptions(
 // format: on
 
 object BenchmarkingOptions {
-  implicit val parser = Parser[BenchmarkingOptions]
-  implicit val help   = Help[BenchmarkingOptions]
+  implicit lazy val parser                          = Parser[BenchmarkingOptions]
+  implicit lazy val help: Help[BenchmarkingOptions] = Help.derive
 }

@@ -228,8 +228,8 @@ final case class SharedOptions(
 }
 
 object SharedOptions {
-  implicit val parser = Parser[SharedOptions]
-  implicit val help   = Help[SharedOptions]
+  implicit lazy val parser: Parser[SharedOptions] = Parser.derive
+  implicit lazy val help: Help[SharedOptions]     = Help.derive
 
   def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
     if (in == null) {

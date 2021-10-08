@@ -42,6 +42,6 @@ final case class BloopStartOptions(
 }
 
 object BloopStartOptions {
-  implicit val parser = Parser[BloopStartOptions]
-  implicit val help   = Help[BloopStartOptions]
+  implicit lazy val parser: Parser[BloopStartOptions] = Parser.derive
+  implicit lazy val help: Help[BloopStartOptions]     = Help.derive
 }

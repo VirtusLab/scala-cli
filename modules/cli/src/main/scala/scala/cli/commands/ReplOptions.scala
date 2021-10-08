@@ -59,6 +59,6 @@ final case class ReplOptions(
 }
 
 object ReplOptions {
-  implicit val parser = Parser[ReplOptions]
-  implicit val help   = Help[ReplOptions]
+  implicit lazy val parser: Parser[ReplOptions] = Parser.derive
+  implicit lazy val help: Help[ReplOptions]     = Help.derive
 }

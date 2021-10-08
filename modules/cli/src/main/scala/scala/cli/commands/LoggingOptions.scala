@@ -98,6 +98,6 @@ final case class LoggingOptions(
 }
 
 object LoggingOptions {
-  implicit val parser = Parser[LoggingOptions]
-  implicit val help   = Help[LoggingOptions]
+  implicit lazy val parser                     = Parser[LoggingOptions]
+  implicit lazy val help: Help[LoggingOptions] = Help.derive
 }

@@ -7,6 +7,6 @@ final case class CrossOptions(
 )
 
 object CrossOptions {
-  implicit val parser = Parser[CrossOptions]
-  implicit val help   = Help[CrossOptions]
+  implicit lazy val parser                   = Parser[CrossOptions]
+  implicit lazy val help: Help[CrossOptions] = Help.derive
 }

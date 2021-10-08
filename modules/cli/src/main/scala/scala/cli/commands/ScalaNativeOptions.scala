@@ -52,6 +52,6 @@ final case class ScalaNativeOptions(
 }
 
 object ScalaNativeOptions {
-  implicit val parser = Parser[ScalaNativeOptions]
-  implicit val help   = Help[ScalaNativeOptions]
+  implicit lazy val parser                         = Parser[ScalaNativeOptions]
+  implicit lazy val help: Help[ScalaNativeOptions] = Help.derive
 }

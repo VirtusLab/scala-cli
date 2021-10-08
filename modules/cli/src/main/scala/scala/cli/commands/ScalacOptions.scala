@@ -47,11 +47,11 @@ object ScalacOptions {
         Right(acc.getOrElse(Nil))
     }
 
-  implicit val parser = {
+  implicit lazy val parser = {
     val baseParser =
       scalacOptionsArgument ::
         NilParser
     baseParser.to[ScalacOptions]
   }
-  implicit val help = Help[SharedOptions]
+  implicit lazy val help: Help[SharedOptions] = Help.derive
 }

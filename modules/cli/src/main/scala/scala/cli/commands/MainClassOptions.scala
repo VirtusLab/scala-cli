@@ -13,6 +13,6 @@ final case class MainClassOptions(
 // format: on
 
 object MainClassOptions {
-  implicit val parser = Parser[MainClassOptions]
-  implicit val help   = Help[MainClassOptions]
+  implicit lazy val parser                       = Parser[MainClassOptions]
+  implicit lazy val help: Help[MainClassOptions] = Help.derive
 }
