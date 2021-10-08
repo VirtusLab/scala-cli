@@ -23,6 +23,7 @@ final case class SharedJavaOptions(
 }
 
 object SharedJavaOptions {
-  implicit lazy val parser                        = Parser[SharedJavaOptions]
-  implicit lazy val help: Help[SharedJavaOptions] = Help.derive
+  lazy val parser: Parser[SharedJavaOptions]                           = Parser.derive
+  implicit lazy val parserAux: Parser.Aux[SharedJavaOptions, parser.D] = parser
+  implicit lazy val help: Help[SharedJavaOptions]                      = Help.derive
 }

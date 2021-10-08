@@ -22,6 +22,7 @@ final case class SharedDirectoriesOptions(
 }
 
 object SharedDirectoriesOptions {
-  implicit lazy val parser                               = Parser[SharedDirectoriesOptions]
-  implicit lazy val help: Help[SharedDirectoriesOptions] = Help.derive
+  lazy val parser: Parser[SharedDirectoriesOptions]                           = Parser.derive
+  implicit lazy val parserAux: Parser.Aux[SharedDirectoriesOptions, parser.D] = parser
+  implicit lazy val help: Help[SharedDirectoriesOptions]                      = Help.derive
 }

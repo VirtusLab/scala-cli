@@ -23,6 +23,7 @@ final case class CoursierOptions(
 }
 
 object CoursierOptions {
-  implicit lazy val parser                      = Parser[CoursierOptions]
-  implicit lazy val help: Help[CoursierOptions] = Help.derive
+  lazy val parser: Parser[CoursierOptions]                           = Parser.derive
+  implicit lazy val parserAux: Parser.Aux[CoursierOptions, parser.D] = parser
+  implicit lazy val help: Help[CoursierOptions]                      = Help.derive
 }

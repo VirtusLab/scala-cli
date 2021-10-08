@@ -10,6 +10,7 @@ final case class DirectoriesOptions(
 // format: on
 
 object DirectoriesOptions {
-  implicit lazy val parser                         = Parser[DirectoriesOptions]
-  implicit lazy val help: Help[DirectoriesOptions] = Help.derive
+  lazy val parser: Parser[DirectoriesOptions]                           = Parser.derive
+  implicit lazy val parserAux: Parser.Aux[DirectoriesOptions, parser.D] = parser
+  implicit lazy val help: Help[DirectoriesOptions]                      = Help.derive
 }
