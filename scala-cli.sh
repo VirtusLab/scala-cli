@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
+
+# This is the launcher script of Scala CLI (https://github.com/VirtusLab/scala-cli).
+# This script downloads and runs the Scala CLI version set by VERSION below.
+#
+# Download the latest version of this script at https://github.com/VirtusLab/scala-cli/raw/master/scala-cli.sh
+
 set -eu
 
-# This script automatically download scala-cli from latest release and cache via coursier
-
-LATEST_TAG="0.0.4"
+SCALA_CLI_VERSION="0.0.4"
 
 if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
-  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$LATEST_TAG/scala-cli-x86_64-pc-linux.gz"
+  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$SCALA_CLI_VERSION/scala-cli-x86_64-pc-linux.gz"
   CACHE_BASE="$HOME/.cache/coursier/v1"
 elif [ "$(uname)" == "Darwin" ]; then
-  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$LATEST_TAG/scala-cli-x86_64-apple-darwin.gz"
+  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$SCALA_CLI_VERSION/scala-cli-x86_64-apple-darwin.gz"
   CACHE_BASE="$HOME/Library/Caches/Coursier/v1"
 else
    echo "This standalone scala-cli launcher is supported only in Linux and Darwin OS. If you are using Windows, please use the dedicated launcher scala-cli.bat"
