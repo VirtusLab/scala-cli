@@ -695,9 +695,9 @@ object ci extends Module {
     setupGithubRepo(scalaCliDir)
 
     val launcherScript = os.read(standaloneLauncherPath)
-    val latestTagRegex = "SCALA_CLI_VERSION=\".*\"".r
+    val scalaCliVersionRegex = "SCALA_CLI_VERSION=\".*\"".r
     val updatedLauncherScript =
-      latestTagRegex.replaceFirstIn(launcherScript, s"SCALA_CLI_VERSION=$version")
+      scalaCliVersionRegex.replaceFirstIn(launcherScript, s"SCALA_CLI_VERSION=$version")
     os.write.over(standaloneLauncherPath, updatedLauncherScript)
 
     commitChanges(s"Update scala-cli.sh launcher for $version", branch, scalaCliDir)
