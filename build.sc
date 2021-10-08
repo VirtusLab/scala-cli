@@ -681,7 +681,7 @@ object ci extends Module {
 
     val targetDir              = os.pwd / "target"
     val scalaCliDir            = targetDir / "scala-cli"
-    val standAloneLauncherPath = scalaCliDir / "scala-cli.sh"
+    val standaloneLauncherPath = scalaCliDir / "scala-cli.sh"
 
     // clean target directory
     if (os.exists(targetDir)) os.remove.all(targetDir)
@@ -694,11 +694,11 @@ object ci extends Module {
     gitClone(repo, branch, targetDir)
     setupGithubRepo(scalaCliDir)
 
-    val launcherScript = os.read(standAloneLauncherPath)
-    val latestTagRegex = "LATEST_TAG=\".*\"".r
+    val launcherScript = os.read(standaloneLauncherPath)
+    val latestTagRegex = "SCALA_CLI_VERSION=\".*\"".r
     val updatedLauncherScript =
-      latestTagRegex.replaceFirstIn(launcherScript, s"LATEST_TAG=$version")
-    os.write.over(standAloneLauncherPath, updatedLauncherScript)
+      latestTagRegex.replaceFirstIn(launcherScript, s"SCALA_CLI_VERSION=$version")
+    os.write.over(standaloneLauncherPath, updatedLauncherScript)
 
     commitChanges(s"Update scala-cli.sh launcher for $version", branch, scalaCliDir)
   }

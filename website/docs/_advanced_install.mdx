@@ -183,7 +183,7 @@ move scala-cli.exe "%USERPROFILE%/scala-cli"
 
 Download MSI installer with Scala CLI for Windows
 
-<DownloadButton desc= 'Scala CLI for Windows' href='https://github.com/Virtuslab/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi'></DownloadButton>
+<DownloadButton desc= 'Scala CLI for Windows' href='https://github.com/Virtuslab/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi' width = '190px'></DownloadButton>
 
 </TabItem>
 </Tabs>
@@ -238,6 +238,35 @@ brew install Virtuslab/scala-cli/scala-cli
 
 </div></div>
 
+
+<SectionAbout title="Standalone launcher">
+    <div class="margin--lg"/>
+    <Tabs
+        defaultValue="macOS/Linux"
+        groupId="standalone-launcher"
+        values={[
+        {label: 'macOS/Linux', value: 'macOS/Linux'},
+        ]}
+    />
+</SectionAbout>
+
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
+Script to automatically download and cache standalone scala-cli launcher. 
+
+<Tabs groupId="launcher" 
+      defaultValue="macOS/Linux"
+      values={[
+        {label: 'macOS/Linux', value: 'macOS/Linux'},
+        ]}>
+<TabItem value="macOS/Linux">
+
+<DownloadButton desc= 'ScalaCLI launcher for macOs/Linux' href='https://github.com/VirtusLab/scala-cli/blob/master/scala-cli.sh' width = '250px' ></DownloadButton>
+</TabItem>
+</Tabs>
+</div></div>
+
+
 <SectionAbout title="Shell completions">
     <div class="margin--lg"/>
     <Tabs
@@ -266,8 +295,13 @@ scala-cli install completions
 
 If any of the `scala-cli install completions` command complained that your shell cannot be determined, specify it
 with `--shell`
-<Tabs groupId="shell-specific" defaultValue="bash">
-    <TabItem value="bash">
+<Tabs groupId="shell-specific" 
+      defaultValue="bash"
+      values={[
+        {label: 'Bash', value: 'bash'},
+        {label: 'zsh', value: 'zsh'},
+        ]}>
+<TabItem value="bash">
 
 ```bash
 scala-cli install completions --shell bash
