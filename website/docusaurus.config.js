@@ -28,8 +28,13 @@ module.exports = {
       },
       items: [
         {
+          to: 'install',
+          label: 'Installation'
+        },
+        {
          // type: 'doc',
           label: "Use cases",
+          to: '/#use_cases',
           items: [
             {
               to: '/education',
@@ -50,8 +55,12 @@ module.exports = {
           ]
         },
         {
+          to: '/docs/cookbooks/index',
+          label: 'Cookbook'
+        },
+        {
           type: 'doc',
-          docId: 'installation',
+          docId: 'overview',
           position: 'left',
           label: 'Documentation',
         },
@@ -112,5 +121,5 @@ module.exports = {
         },
       },
     ],
-  ],
+  ]
 };

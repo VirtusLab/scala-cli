@@ -113,3 +113,19 @@ html[data-theme="dark"]{
 
     }
 }
+
+.advanced-install {
+    .big-title {
+        font-size: 32px;
+    }
+
+    .advanced_install_methods {
+        [role=tabpanel] {
+            min-height: 120px;
+        }
+    }
+}
+
+.advanced_install_methods>.tabs-container>.tabs {
+    display: none;
+}

@@ -71,6 +71,9 @@ const Index = (props) => {
 		</Section>
 
 
+
+		<div id="use_cases"/>
+
 		{/* Who is Scala CLI designed for? */}
 		<Section className="section-use-tiles">
           <div className="row">

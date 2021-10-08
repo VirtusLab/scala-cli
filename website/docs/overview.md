@@ -36,4 +36,4 @@ but requires Node to be installed for Scala.JS to work fine, and the
 [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) for Scala Native.
 
 The next pages help you install the Scala CLI, and walk you through many of its features. Head on
-to [Installation](./installation.md) next!
+to [Installation](/install) next!

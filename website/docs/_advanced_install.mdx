@@ -1,43 +1,24 @@
----
-title: Installation
-sidebar_position: 2
----
-
-We recommend following the [Quick start](#quick-start) instructions
-to install Scala CLI. If the quick start instructions don't suit you,
-more installation options are offered in the [Advanced](#advanced) section.
-
-import DownloadButton from '../src/components/DownloadButton';
-
-## Quick start
-
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import SectionAbout from "../src/components/SectionAbout"
+import DownloadButton from "../src/components/DownloadButton"
 
-<Tabs 
-    groupId="operating-systems"
-    defaultValue="win"
-   values={[
-    {label: 'Windows', value: 'win'},
-    {label: 'macOS/Linux', value: 'mac/linux'},
-  ]}
->
-<TabItem value="win">
+<SectionAbout title="Advanced Installation">
+    <div class="margin--lg"/>
+    <Tabs
+        groupId="operating-systems-specific"
+        defaultValue="windows"
+        values={[
+        {label: 'Windows', value: 'windows'},
+        {label: 'MacOs', value: 'macOs'},
+        {label: 'Linux', value: 'linux'},
+        ]}
+    />
+</SectionAbout>
 
-Download Scala CLI for Windows
-<DownloadButton desc= 'Scala CLI for Windows' href='https://github.com/Virtuslab/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi'></DownloadButton>
-</TabItem>
-<TabItem value="mac/linux">
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
 
-Run the following one-line command in your terminal
-
-```bash
-curl -sSf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh
-```
-</TabItem>
-</Tabs>
-
-## Advanced
+Pick the installation method:
 
 <Tabs
 groupId="operating-systems-specific"
@@ -201,7 +182,9 @@ move scala-cli.exe "%USERPROFILE%/scala-cli"
 <TabItem value="installer">
 
 Download MSI installer with Scala CLI for Windows
+
 <DownloadButton desc= 'Scala CLI for Windows' href='https://github.com/Virtuslab/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi'></DownloadButton>
+
 </TabItem>
 </Tabs>
 
@@ -253,9 +236,22 @@ brew install Virtuslab/scala-cli/scala-cli
 </TabItem>
 </Tabs>
 
-## Shell completions
+</div></div>
 
-Only bash and zsh completions are offered for now.
+<SectionAbout title="Shell completions">
+    <div class="margin--lg"/>
+    <Tabs
+        defaultValue="bash"
+        groupId="shell-specific"
+        values={[
+        {label: 'Bash', value: 'bash'},
+        {label: 'zsh', value: 'zsh'},
+        ]}
+    />
+</SectionAbout>
+
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
 
 Try the completions with
 ```
@@ -269,7 +265,21 @@ scala-cli install completions
 ```
 
 If any of the `scala-cli install completions` command complained that your shell cannot be determined, specify it
-with `--shell`, like
+with `--shell`
+<Tabs groupId="shell-specific" defaultValue="bash">
+    <TabItem value="bash">
+
+```bash
+scala-cli install completions --shell bash
+```
+
+</TabItem>
+<TabItem value="zsh">
+
 ```bash
 scala-cli install completions --shell zsh
 ```
+
+</TabItem>
+</Tabs>
+</div></div>
