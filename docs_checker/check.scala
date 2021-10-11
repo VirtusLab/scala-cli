@@ -6,17 +6,17 @@ import scala.util.matching.Regex
 
 import munit.Assertions.assert
 
-val ScalaCodeBlock = """ *```scala name\:([\w\.]+)+""".r
-val CodeBlockEnds  = """ *```""".r
-val ScalaCliBlock  = """ *```scala-cli( +fail)?""".r
-val CheckBlock     = """ *\<\!\-\- Expected(-regex):""".r
-val CheckBlockEnd  = """ *\-\-\>""".r
+val ScalaCodeBlock = """ *```scala title=([\w\.]+) *""".r
+val CodeBlockEnds  = """ *``` *""".r
+val ScalaCliBlock  = """ *```bash *(fail)? *""".r
+val CheckBlock     = """ *\<\!\-\- Expected(-regex)?: *""".r
+val CheckBlockEnd  = """ *\-\-\> *""".r
 
 enum Commands:
   def context: Context
 
   case Snippet(name: String, lines: Seq[String], context: Context)
-  case Run(cmd: Seq[String], shouldFail: Boolean, context: Context)
+  case Run(cmd: Seq[Seq[String]], shouldFail: Boolean, context: Context)
   case Check(patterns: Seq[String], regex: Boolean, context: Context)
 
 case class Context(file: String, line: Int)
@@ -38,18 +38,19 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
     case Nil => currentCommands
     case ScalaCodeBlock(name) :: tail =>
       val (codeLines, rest, newContext) = untilEndOfSnippet(tail)(using context)
-
+      
       parse(rest, currentCommands :+ Commands.Snippet(name, codeLines, context), newContext)
     case ScalaCliBlock(failGroup) :: tail =>
       val (codeLines, rest, newContext) = untilEndOfSnippet(tail)
       assert(codeLines.size != 0)
-      val runCmd = Commands.Run(codeLines.head.split(" ").toList, failGroup != null, newContext)
+      val runCmd = Commands.Run(codeLines.filterNot(_.trim.startsWith("#")).map(_.split(" ").toList), failGroup != null, newContext)
       parse(rest, currentCommands :+ runCmd, newContext)
     case CheckBlock(regexOpt) :: tail =>
       val isRegex                      = regexOpt == "-regex"
       val (patterns, rest, newContext) = untilEndOfSnippet(tail, CheckBlockEnd)
       parse(rest, currentCommands :+ Commands.Check(patterns, isRegex, context), newContext)
-    case _ :: tail => parse(tail, currentCommands, context.copy(line = context.line + 1))
+    case _ :: tail => 
+      parse(tail, currentCommands, context.copy(line = context.line + 1))
 
 case class TestCase(path: os.Path, failure: Option[Throwable])
 
@@ -77,7 +78,7 @@ def checkFile(file: os.Path, dest: Option[os.Path]) =
   val destName = file.last.stripSuffix(".md")
   val out      = os.temp.dir(prefix = destName)
 
-  var lastOutput = ""
+  var lastOutput: String = null
   val allSources = Set.newBuilder[os.Path]
 
   try
@@ -86,29 +87,39 @@ def checkFile(file: os.Path, dest: Option[os.Path]) =
     commands.foreach { cmd =>
       given Context = cmd.context
       cmd match
-        case Commands.Run(cmd, shouldFail, _) =>
-          println(s"### Running: ${cmd.mkString(" ")}")
-          val res = os.proc(cmd).call(cwd = out, check = false)
-          if shouldFail then
-            assert(res.exitCode != 0)
-          else
-            assert(res.exitCode == 0)
-          val outputChunks = res.chunks.map {
-            case Left(c) =>
-              c
-            case Right(c) =>
-              c
+        case Commands.Run(cmds, shouldFail, _) =>
+          cmds.foreach { cmd =>
+            println(s"### Running: ${cmd.mkString(" ")}:")
+            val res = os.proc(cmd).call(cwd = out,mergeErrIntoOut=true, check = false)
+            println(res.out.text())
+            if shouldFail then
+              assert(res.exitCode != 0)
+            else
+              assert(res.exitCode == 0)
+            
+            val outputChunks = res.chunks.map {
+              case Left(c) =>
+                c
+              case Right(c) =>
+                c
+            }
+            lastOutput = res.out.text()
           }
-          lastOutput = geny.ByteData.Chunks(outputChunks).text()
-
         case Commands.Snippet(name, code, c) =>
-          println(s"### Writting $name with:\n${code.mkString("\n")}\n---")
-          val prefix = (fakeLineMarker + "\n") * c.line
+          val (prefixLines, codeLines) = code match
+          case shbang :: tail if shbang.startsWith("#!") =>
+             List(shbang + "\n") -> tail
+          case other =>
+            Nil -> other
+
           val file   = out / name
           allSources += file
+          println(s"### Writting $name with:\n${codeLines.mkString("\n")}\n---")
+          
+          val prefix = prefixLines.mkString("", "",s"$fakeLineMarker\n" * c.line)
           os.write(file, code.mkString(prefix, "\n", ""))
         case Commands.Check(patterns, regex, line) =>
-          assert(lastOutput != "", msg("No output stored from previous commands"))
+          assert(lastOutput != null, msg("No output stored from previous commands"))
           val lines = lastOutput.linesIterator.toList
 
           if regex then
@@ -123,7 +134,7 @@ def checkFile(file: os.Path, dest: Option[os.Path]) =
             patterns.foreach { pattern =>
               assert(
                 lines.exists(_.contains(pattern)),
-                msg(s"Pattern: $pattern does not exisits in  any line in:\n$lastOutput")
+                msg(s"Pattern: $pattern does not exists in  any line in:\n$lastOutput")
               )
             }
     }
