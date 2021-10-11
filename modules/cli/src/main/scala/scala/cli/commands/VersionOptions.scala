@@ -6,6 +6,6 @@ import caseapp._
 final case class VersionOptions()
 
 object VersionOptions {
-  implicit val parser = Parser[VersionOptions]
-  implicit val help   = Help[VersionOptions]
+  implicit lazy val parser: Parser[VersionOptions] = Parser.derive
+  implicit lazy val help: Help[RunOptions]         = Help.derive
 }
