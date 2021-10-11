@@ -836,6 +836,56 @@ object ci extends Module {
 
     commitChanges(s"Update CentOS packages for $version", branch, packagesDir)
   }
+  def updateSnapcraft() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir         = os.pwd / "target"
+    val snapcraftDir      = targetDir / "snap"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(snapcraftDir)
+
+    val templatePath         = os.pwd / ".github" / "scripts" / "snapcraft.yaml.template"
+    val updateScriptPath     = os.pwd / ".github" / "scripts" / "update-snapcraft.sh"
+    val scalaCliLauncherPath = targetDir / "scala-cli-x86_64-pc-linux.gz"
+    val launcherBinPath      = snapcraftDir / "scala-cli"
+
+    // copy scala-cli launcher to snapcraft directory
+    os.copy(
+      os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.gz",
+      scalaCliLauncherPath
+    )
+    // format: off
+    val cmd =  Seq[os.Shellable](
+      "gunzip", "-k","-c", scalaCliLauncherPath
+    )
+    // format: on
+    os.proc(cmd).call(cwd = snapcraftDir, stdout = launcherBinPath)
+    os.perms.set(launcherBinPath, os.PermSet.fromString("rwxr-xr-x"))
+
+    val template = os.read(templatePath)
+    val snapcraftConfig = template
+      .replace("\"@LAUNCHER_VERSION@\"", s""""$version"""")
+
+    val snapcraftConfigPath = snapcraftDir / "snapcraft.yaml"
+    os.write.over(snapcraftConfigPath, snapcraftConfig)
+    os.copy(updateScriptPath, targetDir / "update-snapcraft.sh")
+
+    // format: off
+    val dockerCmd = Seq[os.Shellable](
+      "docker", "run",
+      "-v", s"$targetDir:/snapcraft",
+      "-w", "/snapcraft",
+      "--env", "SNAPCRAFT_LOGIN_FILE",
+      "snapcore/snapcraft",
+      "bash", "update-snapcraft.sh"
+    )
+    // format: on
+
+    os.proc(dockerCmd).call(cwd = targetDir)
+  }
   private def vsBasePath = os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
   def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") =
     T.command {
