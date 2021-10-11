@@ -179,7 +179,8 @@ class Build(val crossScalaVersion: String)
     Deps.scalametaTrees,
     Deps.scalaparse,
     Deps.shapeless,
-    Deps.swoval
+    Deps.swoval,
+    Deps.usingDirectives
   )
 
   private def vcsState = T.persistent {
