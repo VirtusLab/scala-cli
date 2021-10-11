@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.errors.BuildException
 import scala.build.options.{BuildRequirements, Scope}
 
 case object RequireScopeDirectiveHandler extends RequireDirectiveHandler {
@@ -13,7 +14,7 @@ case object RequireScopeDirectiveHandler extends RequireDirectiveHandler {
 
   private val scopesByName = Scope.all.map(s => s.name -> s).toMap
 
-  def handle(directive: Directive): Option[Either[String, BuildRequirements]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildRequirements]] =
     directive.values match {
       case Seq(name) if scopesByName.contains(name) =>
         val scope = scopesByName(name)

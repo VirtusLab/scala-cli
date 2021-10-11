@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.errors.BuildException
 import scala.build.options.{BuildRequirements, Platform}
 
 case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
@@ -13,7 +14,7 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
     "require jvm"
   )
 
-  def handle(directive: Directive): Option[Either[String, BuildRequirements]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildRequirements]] =
     Platform.parseSpec(directive.values.map(Platform.normalize)) match {
       case Some(platforms) =>
         val reqs = BuildRequirements(

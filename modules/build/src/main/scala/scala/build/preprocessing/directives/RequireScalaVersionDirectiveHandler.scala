@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.errors.BuildException
 import scala.build.options.BuildRequirements
 
 case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler {
@@ -13,7 +14,7 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
     "require scala 3.0.2"
   )
 
-  def handle(directive: Directive): Option[Either[String, BuildRequirements]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildRequirements]] =
     directive.values match {
       case Seq("scala", ">=", minVer) =>
         val req = BuildRequirements(

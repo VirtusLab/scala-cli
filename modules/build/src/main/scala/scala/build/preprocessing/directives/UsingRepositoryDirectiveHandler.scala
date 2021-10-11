@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
 
 case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
@@ -13,7 +14,7 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
     "using repository https://maven-central.storage-download.googleapis.com/maven2"
   )
 
-  def handle(directive: Directive): Option[Either[String, BuildOptions]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq("repository", repo) if repo.nonEmpty =>
         val options = BuildOptions(

@@ -1,6 +1,12 @@
 package scala.build.preprocessing.directives
 
 import scala.build.Ops._
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  MalformedPlatformError,
+  UnexpectedJvmPlatformVersionError
+}
 import scala.build.options.{
   BuildOptions,
   Platform,
@@ -29,14 +35,14 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     inputs.nonEmpty &&
     Platform.parse(Platform.normalize(split(inputs.head)._1)).nonEmpty
 
-  def handle(directive: Directive): Option[Either[String, BuildOptions]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq(rawPfStrs @ _*) if maybePlatforms(rawPfStrs) =>
         val res = rawPfStrs
           .map { rawPfStr =>
             val (pfStr, pfVerOpt) = split(rawPfStr)
             Platform.parse(Platform.normalize(pfStr))
-              .toRight(s"Unrecognized platform: $pfStr")
+              .toRight(new MalformedPlatformError(pfStr))
               .flatMap {
                 case Platform.JVM =>
                   pfVerOpt match {
@@ -48,7 +54,7 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
                       )
                       Right(options)
                     case Some(_) =>
-                      Left("Unexpected version specified for JVM platform")
+                      Left(new UnexpectedJvmPlatformVersionError)
                   }
                 case Platform.JS =>
                   val options = BuildOptions(
@@ -73,7 +79,7 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
               }
           }
           .sequence
-          .left.map(_.mkString(", "))
+          .left.map(CompositeBuildException(_))
           .map { options =>
             val merged    = options.foldLeft(BuildOptions())(_ orElse _)
             val platforms = options.flatMap(_.scalaOptions.platform.toSeq).distinct

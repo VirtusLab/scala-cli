@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, TestOptions}
 
 case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
@@ -12,7 +13,7 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
     "using test-framework utest.runner.Framework"
   )
 
-  def handle(directive: Directive): Option[Either[String, BuildOptions]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq("test-framework", fw) =>
         val options = BuildOptions(

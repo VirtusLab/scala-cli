@@ -13,7 +13,6 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   FileNotFoundException,
-  InvalidDirectiveError,
   UnusedDirectiveError
 }
 import scala.build.internal.AmmUtil
@@ -167,13 +166,8 @@ case object ScalaPreprocessor extends Preprocessor {
           .toList
           .headOption
 
-        fromHandlersOpt match {
-          case None =>
-            Left(new UnusedDirectiveError(dir))
-          case Some(Right(options)) =>
-            Right(options)
-          case Some(Left(err)) =>
-            Left(new InvalidDirectiveError(dir, err))
+        fromHandlersOpt.getOrElse {
+          Left(new UnusedDirectiveError(dir))
         }
       }
 
@@ -214,7 +208,7 @@ case object ScalaPreprocessor extends Preprocessor {
             }
             Right(value)
           case Some(Left(err)) =>
-            Left(new InvalidDirectiveError(dir, err))
+            Left(err)
         }
       }
 
