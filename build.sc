@@ -839,8 +839,8 @@ object ci extends Module {
   def updateSnapcraft() = T.command {
     val version = cli.publishVersion()
 
-    val targetDir         = os.pwd / "target"
-    val snapcraftDir      = targetDir / "snap"
+    val targetDir    = os.pwd / "target"
+    val snapcraftDir = targetDir / "snap"
 
     // clean target directory
     if (os.exists(targetDir)) os.remove.all(targetDir)
