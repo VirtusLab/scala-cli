@@ -1,24 +1,22 @@
 package scala.cli.integration
 
-import scala.util.Properties
-
 // format: off
 class ExportMillTests213 extends ExportMillTestDefinitions(
   scalaVersionOpt = Some(Constants.scala213)
 ) {
   // format: on
 
-  if (!Properties.isWin)
+  if (runExportTests)
     test("scalac options") {
       simpleTest(ExportTestProjects.scalacOptionsScala2Test(actualScalaVersion))
     }
 
-  if (!Properties.isWin)
+  if (runExportTests)
     test("pure java") {
       simpleTest(ExportTestProjects.pureJavaTest)
     }
 
-  if (!Properties.isWin)
+  if (runExportTests)
     test("custom JAR") {
       simpleTest(ExportTestProjects.customJarTest(actualScalaVersion))
     }

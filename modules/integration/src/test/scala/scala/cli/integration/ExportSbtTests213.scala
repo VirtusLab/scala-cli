@@ -1,19 +1,17 @@
 package scala.cli.integration
 
-import scala.util.Properties
-
 // format: off
 class ExportSbtTests213 extends ExportSbtTestDefinitions(
   scalaVersionOpt = Some(Constants.scala213)
 ) {
   // format: on
 
-  if (!Properties.isWin)
+  if (runExportTests)
     test("scalac options") {
       simpleTest(ExportTestProjects.scalacOptionsScala2Test(actualScalaVersion))
     }
 
-  if (!Properties.isWin)
+  if (runExportTests)
     test("pure java") {
       simpleTest(
         ExportTestProjects.pureJavaTest,
@@ -21,7 +19,7 @@ class ExportSbtTests213 extends ExportSbtTestDefinitions(
       )
     }
 
-  if (!Properties.isWin)
+  if (runExportTests)
     test("custom JAR") {
       simpleTest(ExportTestProjects.customJarTest(actualScalaVersion))
     }
