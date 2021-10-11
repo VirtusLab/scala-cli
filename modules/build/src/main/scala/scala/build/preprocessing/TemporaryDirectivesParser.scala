@@ -12,18 +12,20 @@ object TemporaryDirectivesParser {
   private def emptyLine[_: P] = P(ws.rep() ~ nl)
 
   private def singleLineComment[_: P] =
-    P(ws.rep() ~ !"// require" ~ !"// using" ~ "//" ~ P(CharPred(c => c != '\n')).rep() ~ nl)
+    P(ws.rep() ~ !("//" ~ ws ~ "require") ~ !("//" ~ ws ~ "using") ~ "//" ~ P(CharPred(c =>
+      c != '\n'
+    )).rep() ~ nl)
       .map(_ => ())
 
   private def directive[_: P] = {
     def sc = P(";")
     def tpe = {
-      def commentedUsingTpe = P("// using")
+      def commentedUsingTpe = P("//" ~ ws ~ "using")
         .map(_ => (Directive.Using: Directive.Type, true))
       def usingKeywordTpe = P("using")
         .map(_ => (Directive.Using: Directive.Type, false))
       def usingTpe = P(ws.? ~ (commentedUsingTpe | usingKeywordTpe))
-      def commentedRequireTpe = P("// require")
+      def commentedRequireTpe = P("//" ~ ws ~ "require")
         .map(_ => (Directive.Require: Directive.Type, true))
       def requireKeywordTpe = P("require")
         .map(_ => (Directive.Require: Directive.Type, false))
