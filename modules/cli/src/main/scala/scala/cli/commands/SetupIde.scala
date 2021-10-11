@@ -71,9 +71,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     // Ensure the path to the CLI is absolute
     val progName =
-      if (rawArgv(0).contains(File.separator)) {
+      if (rawArgv(0).contains(File.separator))
         os.FilePath(rawArgv(0)).resolveFrom(Os.pwd).toString
-      }
       else rawArgv(0)
 
     val details = new BspConnectionDetails(
@@ -108,9 +107,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         scalaCliOptionsForBspJson.getBytes(charset),
         createFolders = true
       )
-      if (options.shared.logging.verbosity >= 0) {
+      if (options.shared.logging.verbosity >= 0)
         options.shared.logger.debug(s"Wrote $bspJsonDestination")
-      }
     }
   }
 }

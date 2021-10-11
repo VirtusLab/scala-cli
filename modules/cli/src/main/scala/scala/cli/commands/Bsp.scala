@@ -16,15 +16,12 @@ object Bsp extends ScalaCommand[BspOptions] {
     if (options.shared.logging.verbosity >= 3)
       pprint.stderr.log(args)
 
-    val sharedOptions: SharedOptions = {
-      options.jsonOptions.map(optionsPath => {
+    val sharedOptions: SharedOptions =
+      options.jsonOptions.map { optionsPath =>
         val source = Source.fromFile(optionsPath.toFile())
-        try {
-          read[SharedOptions](source.mkString)
-        }
+        try read[SharedOptions](source.mkString)
         finally source.close()
-      }).getOrElse(options.shared)
-    }
+      }.getOrElse(options.shared)
 
     val buildOptionsToUse = buildOptions(sharedOptions)
     val bloopRifleConfig  = sharedOptions.bloopRifleConfig()

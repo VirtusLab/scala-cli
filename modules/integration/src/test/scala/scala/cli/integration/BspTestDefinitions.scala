@@ -162,7 +162,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         expect(scalaCliBspConfigFile.toIO.exists())
       }
     }
-  })
 
   val importPprintOnlyProject = TestInputs(
     Seq(
@@ -178,9 +177,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
       readBspConfig(
         root,
-        details => {
+        details =>
           expect(details.argv.find(_ == root.toIO.getAbsolutePath()).isDefined)
-        }
       )
     }
   }

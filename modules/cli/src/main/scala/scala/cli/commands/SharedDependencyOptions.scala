@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import upickle.default.{ReadWriter => RW, macroRW}
+import upickle.default.{ReadWriter, macroRW}
 
 // format: off
 final case class SharedDependencyOptions(
@@ -29,5 +29,5 @@ object SharedDependencyOptions {
   lazy val parser: Parser[SharedDependencyOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[SharedDependencyOptions, parser.D] = parser
   implicit lazy val help: Help[SharedDependencyOptions]                      = Help.derive
-  implicit lazy val rw: RW[SharedCompilationServerOptions] = macroRW
+  implicit lazy val jsonCodec: ReadWriter[SharedDependencyOptions]           = macroRW
 }

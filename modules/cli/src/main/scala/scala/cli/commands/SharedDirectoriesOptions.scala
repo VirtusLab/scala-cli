@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import upickle.default.{ReadWriter => RW, macroRW}
+import upickle.default.{ReadWriter, macroRW}
 
 import scala.build.Os
 
@@ -26,5 +26,5 @@ object SharedDirectoriesOptions {
   lazy val parser: Parser[SharedDirectoriesOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[SharedDirectoriesOptions, parser.D] = parser
   implicit lazy val help: Help[SharedDirectoriesOptions]                      = Help.derive
-  implicit lazy val rw: RW[SharedCompilationServerOptions] = macroRW
+  implicit lazy val jsonCodec: ReadWriter[SharedDirectoriesOptions]           = macroRW
 }

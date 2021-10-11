@@ -5,7 +5,7 @@ import caseapp.core.help.Help
 import coursier.util.Artifact
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
-import upickle.default.{ReadWriter => RW, macroRW}
+import upickle.default.{ReadWriter, macroRW}
 
 import java.io.{ByteArrayOutputStream, File, InputStream}
 
@@ -228,9 +228,9 @@ final case class SharedOptions(
 }
 
 object SharedOptions {
-  implicit lazy val parser: Parser[SharedOptions] = Parser.derive
-  implicit lazy val help: Help[SharedOptions]     = Help.derive
-  implicit lazy val rw: RW[SharedOptions] = macroRW
+  implicit lazy val parser: Parser[SharedOptions]        = Parser.derive
+  implicit lazy val help: Help[SharedOptions]            = Help.derive
+  implicit lazy val jsonCodec: ReadWriter[SharedOptions] = macroRW
 
   def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
     if (in == null) {

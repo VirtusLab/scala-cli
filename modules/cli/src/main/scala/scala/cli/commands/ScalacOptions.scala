@@ -4,7 +4,7 @@ import caseapp._
 import caseapp.core.Arg
 import caseapp.core.parser.{Argument, NilParser, StandardArgument}
 import caseapp.core.util.Formatter
-import upickle.default.{ReadWriter => RW, macroRW}
+import upickle.default.{ReadWriter, macroRW}
 
 // format: off
 final case class ScalacOptions(
@@ -54,6 +54,6 @@ object ScalacOptions {
         NilParser
     baseParser.to[ScalacOptions]
   }
-  implicit lazy val help: Help[SharedOptions] = Help.derive
-  implicit lazy val rw: RW[ScalacOptions] = macroRW
+  implicit lazy val help: Help[SharedOptions]            = Help.derive
+  implicit lazy val jsonCodec: ReadWriter[ScalacOptions] = macroRW
 }
