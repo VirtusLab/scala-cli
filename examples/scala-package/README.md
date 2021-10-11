@@ -37,26 +37,6 @@ Lightweight JARs require the `java` command to be available, and access to inter
 ./DetectOsApp
 # os: Mac OS X
 ```
-<details open><summary>
-os: Mac OS X
-</summary>
-os: Mac OS X
-</details>
-
-
-```bash
-# Run DetectOsApp on MacOs 
-./DetectOsApp
-# os: Mac OS X
-```
-<details open><summary></summary>
-
-```
-os: Mac OS X
-```
-
-</details>
-
 
 In the previous example, a Lightweight JAR that was built in a MacOs environment could also run on Linux.
 

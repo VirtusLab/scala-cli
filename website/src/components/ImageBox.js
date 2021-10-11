@@ -21,8 +21,8 @@ export default function ImageBox(props){
 					<ThemedImage
 					alt={props.image}
 					sources={{
-						light: `img/${props.image}`,
-						dark: `img/dark/${props.image}`,
+						light: `/img/${props.image}`,
+						dark: `/img/dark/${props.image}`,
 					}}
 					/>
 				</div>}
