@@ -37,4 +37,48 @@ class TemporaryDirectivesParserTests extends munit.FunSuite {
     expect(res == expectedRes)
   }
 
+  test("ignore comment") {
+    val res = TemporaryDirectivesParser.parseDirectives(
+      """// not require foo
+        |require foo
+        |""".stripMargin
+    ).map(_._1)
+    val expectedRes = Some(
+      Seq(
+        Directive(Directive.Require, Seq("foo"), None, isComment = false)
+      )
+    )
+    expect(res == expectedRes)
+  }
+
+  test("ignore empty line") {
+    val res = TemporaryDirectivesParser.parseDirectives(
+      """
+        |require foo
+        |""".stripMargin
+    ).map(_._1)
+    val expectedRes = Some(
+      Seq(
+        Directive(Directive.Require, Seq("foo"), None, isComment = false)
+      )
+    )
+    expect(res == expectedRes)
+  }
+
+  test("ignore empty lines and comments") {
+    val res = TemporaryDirectivesParser.parseDirectives(
+      """
+        | // aa
+        |
+        |require foo
+        |""".stripMargin
+    ).map(_._1)
+    val expectedRes = Some(
+      Seq(
+        Directive(Directive.Require, Seq("foo"), None, isComment = false)
+      )
+    )
+    expect(res == expectedRes)
+  }
+
 }
