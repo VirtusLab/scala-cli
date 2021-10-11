@@ -37,7 +37,7 @@ object TestDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier = "2.0.16-161-g8a1b8eae5"
+    def coursier = "2.0.16-169-g194ebc55c"
 
     def scalaJs       = "1.5.1"
     def scalaMeta     = "4.4.28"
@@ -93,9 +93,9 @@ object Deps {
 
 def graalVmVersion = "21.2.0"
 
-def csDockerVersion = "2.0.16"
+def csDockerVersion = Deps.Versions.coursier
 
-def buildCsVersion = "2.0.16"
+def buildCsVersion = Deps.Versions.coursier
 
 object Docker {
   def muslBuilder =

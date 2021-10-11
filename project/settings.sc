@@ -298,7 +298,7 @@ trait CliLaunchers extends SbtModule { self =>
         imageName = "ubuntu:18.04",
         prepareCommand = "apt-get update -q -y && apt-get install -q -y build-essential libz-dev",
         csUrl =
-          s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux",
+          s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz",
         extraNativeImageArgs = Nil
       )
     )
@@ -308,7 +308,7 @@ trait CliLaunchers extends SbtModule { self =>
     def nativeImageDockerParams = Some(
       NativeImage.linuxStaticParams(
         Docker.muslBuilder,
-        s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux"
+        s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
       )
     )
   }
@@ -317,7 +317,7 @@ trait CliLaunchers extends SbtModule { self =>
     def nativeImageDockerParams = Some(
       NativeImage.linuxMostlyStaticParams(
         "ubuntu:18.04", // TODO Pin that
-        s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux"
+        s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
       )
     )
   }
