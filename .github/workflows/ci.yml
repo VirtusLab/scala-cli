@@ -19,8 +19,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Running into https://github.com/oracle/graal/issues/3171 on windows-latest / windows-2019
-        OS: ["ubuntu-latest", "macos-latest", "windows-2016"]
+        # If adding Windows here, use windows-2016 rather than windows-latest or windows-2019.
+        # Running into https://github.com/oracle/graal/issues/3171 on windows-latest / windows-2019.
+        OS: ["ubuntu-latest"]
     steps:
     - uses: actions/checkout@v2
       with:
