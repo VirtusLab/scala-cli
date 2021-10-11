@@ -1,8 +1,8 @@
 name: scala-cli
 version: "@LAUNCHER_VERSION@"
-summary: ScalaCLI combines all the features you need to learn and use Scala
+summary: Scala CLI combines all the features you need to learn and use Scala
 description: |
-  The scala-cli CLI aims at making it easier to run, test, and package, Scala sources.
+  Scala CLI aims at making it easier to run, test, and package, Scala sources.
   It can:
     * compile Scala code
     * run it
@@ -11,7 +11,7 @@ description: |
     * compile and run tests suites
 base: core18
 grade: stable
-confinement: strict
+confinement: classic
 
 apps:
  scala-cli:

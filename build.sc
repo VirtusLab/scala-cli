@@ -695,7 +695,7 @@ object ci extends Module {
     gitClone(repo, branch, targetDir)
     setupGithubRepo(homebrewFormulaDir)
 
-    val launcherPath = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
+    val launcherPath = os.pwd / "artifacts" / "scala-cli-x86_64-apple-darwin.gz"
     val launcherURL =
       s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-x86_64-apple-darwin.gz"
 
@@ -745,7 +745,7 @@ object ci extends Module {
 
     // copy deb package to repository
     os.copy(
-      os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.deb",
+      os.pwd / "artifacts" / "scala-cli-x86_64-pc-linux.deb",
       debianDir / s"scala-cli_$version.deb"
     )
 
@@ -813,7 +813,7 @@ object ci extends Module {
 
     // copy rpm package to repository
     os.copy(
-      os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.rpm",
+      os.pwd / "artifacts" / "scala-cli-x86_64-pc-linux.rpm",
       centOsDir / "Packages" / s"scala-cli_$version.rpm"
     )
 
@@ -854,7 +854,7 @@ object ci extends Module {
 
     // copy scala-cli launcher to snapcraft directory
     os.copy(
-      os.Path("artifacts", os.pwd) / "scala-cli-x86_64-pc-linux.gz",
+      os.pwd / "artifacts" / "scala-cli-x86_64-pc-linux.gz",
       scalaCliLauncherPath
     )
     // format: off
