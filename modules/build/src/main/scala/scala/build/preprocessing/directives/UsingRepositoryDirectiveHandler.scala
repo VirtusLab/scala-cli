@@ -26,4 +26,15 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
       case _ =>
         None
     }
+
+  override def keys = Seq("repository", "repositories")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = {
+    val repositories = DirectiveUtil.stringValues(values)
+    val options = BuildOptions(
+      classPathOptions = ClassPathOptions(
+        extraRepositories = repositories
+      )
+    )
+    Right(options)
+  }
 }

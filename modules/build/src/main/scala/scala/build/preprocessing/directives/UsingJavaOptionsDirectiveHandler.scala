@@ -25,4 +25,15 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
       case _ =>
         None
     }
+
+  override def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = {
+    val javaOpts = DirectiveUtil.stringValues(values)
+    val options = BuildOptions(
+      javaOptions = JavaOptions(
+        javaOpts = javaOpts
+      )
+    )
+    Right(options)
+  }
 }

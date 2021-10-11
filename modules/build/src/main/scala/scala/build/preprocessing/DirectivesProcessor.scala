@@ -1,51 +1,14 @@
 package scala.build.preprocessing
 
 import com.virtuslab.using_directives.custom.model.{Path, Value}
-import dependency.AnyDependency
-import dependency.parser.DependencyParser
 
-import scala.build.options.{BuildOptions, ClassPathOptions, ScalaOptions}
+import scala.build.Ops._
+import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.options.{BuildOptions, ScalaOptions}
+import scala.build.preprocessing.directives.DirectiveHandler
 import scala.collection.JavaConverters._
 
 object DirectivesProcessor {
-
-  private val processors = Map(
-    "lib" -> (processLib _)
-  )
-
-  private def processLib(values: Seq[Any]): BuildOptions = {
-
-    pprint.stderr.log(values)
-
-    val extraDependencies = values
-      .collect {
-        case list: java.util.List[_] =>
-          list
-            .asScala
-            .map {
-              case v: Value[_] => v.get()
-            }
-            .collect {
-              case s: String => s
-            }
-            .toVector
-        case s: String =>
-          Vector(s)
-      }
-      .flatten
-      .map { dep =>
-        // Really necessary? (might already be handled by the coursier-dependency library)
-        val dep0 = dep.filter(!_.isSpaceChar)
-
-        parseDependency(dep0)
-      }
-
-    BuildOptions(
-      classPathOptions = ClassPathOptions(
-        extraDependencies = extraDependencies
-      )
-    )
-  }
 
   private def processScala(value: Any): BuildOptions = {
 
@@ -80,27 +43,31 @@ object DirectivesProcessor {
     }
   }
 
-  def process(directives: Map[Path, Seq[Value[_]]]): BuildOptions = {
+  def process(
+    directives: Map[Path, Seq[Value[_]]],
+    handlers: Seq[DirectiveHandler]
+  ): Either[BuildException, BuildOptions] = {
 
     val values = directives.map {
       case (k, v) =>
         k.getPath.asScala.mkString(".") -> v.map(_.get: Any)
     }
 
+    val handlersMap = handlers
+      .flatMap { handler =>
+        handler.keys.map(k => k -> (handler.handleValues _))
+      }
+      .toMap
+
     values
       .iterator
       .flatMap {
         case (k, v) =>
-          processors.get(k).iterator.map { f =>
-            f(v)
-          }
+          handlersMap.get(k).iterator.map(_(v))
       }
-      .foldLeft(BuildOptions())(_ orElse _)
+      .toVector
+      .sequence
+      .left.map(CompositeBuildException(_))
+      .map(_.foldLeft(BuildOptions())(_ orElse _))
   }
-
-  private def parseDependency(str: String): AnyDependency =
-    DependencyParser.parse(str) match {
-      case Left(msg)  => sys.error(s"Malformed dependency '$str': $msg")
-      case Right(dep) => dep
-    }
 }

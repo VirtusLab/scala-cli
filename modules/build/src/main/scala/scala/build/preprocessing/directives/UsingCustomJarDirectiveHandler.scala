@@ -27,4 +27,22 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
       case _ =>
         None
     }
+
+  override def keys = Seq("jar", "jars")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = {
+
+    val extraJars = DirectiveUtil.stringValues(values).map { p =>
+      // FIXME Not the right cwd
+      // FIXME Handle malformed paths here
+      os.Path(p, Os.pwd)
+    }
+
+    val options = BuildOptions(
+      classPathOptions = ClassPathOptions(
+        extraClassPath = extraJars
+      )
+    )
+
+    Right(options)
+  }
 }

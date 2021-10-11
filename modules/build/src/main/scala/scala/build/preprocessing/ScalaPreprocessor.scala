@@ -126,7 +126,7 @@ case object ScalaPreprocessor extends Preprocessor {
     Option[String]
   )]] = either {
 
-    val afterStrictUsing = processStrictUsing(content)
+    val afterStrictUsing = value(processStrictUsing(content))
     val afterUsing = value {
       processUsing(afterStrictUsing.map(_._2).getOrElse(content), scopeRoot)
         .sequence
@@ -327,7 +327,9 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
-  private def processStrictUsing(content: String): Option[(BuildOptions, String)] = {
+  private def processStrictUsing(
+    content: String
+  ): Either[BuildException, Option[(BuildOptions, String)]] = either {
 
     val processor = {
       val reporter = new DirectivesOutputStreamReporter(System.err) // TODO Get that via a logger
@@ -341,14 +343,18 @@ case object ScalaPreprocessor extends Preprocessor {
     val contentChars = content.toCharArray
     val directives   = processor.extract(contentChars)
 
-    val updatedOptions = DirectivesProcessor.process {
-      directives
-        .getFlattenedMap
-        .asScala
-        .map {
-          case (k, l) => k -> l.asScala
-        }
-        .toMap
+    val directives0 = directives
+      .getFlattenedMap
+      .asScala
+      .map {
+        case (k, l) => k -> l.asScala
+      }
+      .toMap
+    val updatedOptions = value {
+      DirectivesProcessor.process(
+        directives0,
+        usingDirectiveHandlers ++ requireDirectiveHandlers
+      )
     }
     val codeOffset = directives.getCodeOffset()
     val updatedContentOpt =

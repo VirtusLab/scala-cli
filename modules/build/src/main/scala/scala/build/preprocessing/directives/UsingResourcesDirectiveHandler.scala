@@ -17,7 +17,7 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
   def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq("resource" | "resources", paths @ _*) =>
-        val paths0 = paths.map(os.Path(_, Os.pwd))
+        val paths0 = paths.map(os.Path(_, Os.pwd)) // FIXME Wrong cwd, might throw too
         val options = BuildOptions(
           classPathOptions = ClassPathOptions(
             extraClassPath = paths0
@@ -27,4 +27,16 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
       case _ =>
         None
     }
+
+  override def keys = Seq("resource", "resources")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = {
+    val paths  = DirectiveUtil.stringValues(values)
+    val paths0 = paths.map(os.Path(_, Os.pwd)) // FIXME Wrong cwd, might throw too
+    val options = BuildOptions(
+      classPathOptions = ClassPathOptions(
+        extraClassPath = paths0
+      )
+    )
+    Right(options)
+  }
 }

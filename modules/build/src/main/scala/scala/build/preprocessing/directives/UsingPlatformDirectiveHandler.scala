@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{
   BuildException,
@@ -35,62 +36,70 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     inputs.nonEmpty &&
     Platform.parse(Platform.normalize(split(inputs.head)._1)).nonEmpty
 
+  private def handle(rawPfStrs: Seq[String]): Either[BuildException, BuildOptions] = either {
+    val options = value {
+      rawPfStrs
+        .map { rawPfStr =>
+          val (pfStr, pfVerOpt) = split(rawPfStr)
+          Platform.parse(Platform.normalize(pfStr))
+            .toRight(new MalformedPlatformError(pfStr))
+            .flatMap {
+              case Platform.JVM =>
+                pfVerOpt match {
+                  case None =>
+                    val options = BuildOptions(
+                      scalaOptions = ScalaOptions(
+                        platform = Some(Platform.JVM)
+                      )
+                    )
+                    Right(options)
+                  case Some(_) =>
+                    Left(new UnexpectedJvmPlatformVersionError)
+                }
+              case Platform.JS =>
+                val options = BuildOptions(
+                  scalaOptions = ScalaOptions(
+                    platform = Some(Platform.JS)
+                  ),
+                  scalaJsOptions = ScalaJsOptions(
+                    version = pfVerOpt
+                  )
+                )
+                Right(options)
+              case Platform.Native =>
+                val options = BuildOptions(
+                  scalaOptions = ScalaOptions(
+                    platform = Some(Platform.Native)
+                  ),
+                  scalaNativeOptions = ScalaNativeOptions(
+                    version = pfVerOpt
+                  )
+                )
+                Right(options)
+            }
+        }
+        .sequence
+        .left.map(CompositeBuildException(_))
+    }
+
+    val merged    = options.foldLeft(BuildOptions())(_ orElse _)
+    val platforms = options.flatMap(_.scalaOptions.platform.toSeq).distinct
+    merged.copy(
+      scalaOptions = merged.scalaOptions.copy(
+        extraPlatforms = merged.scalaOptions.extraPlatforms ++ platforms.tail.toSet
+      )
+    )
+  }
+
   def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq(rawPfStrs @ _*) if maybePlatforms(rawPfStrs) =>
-        val res = rawPfStrs
-          .map { rawPfStr =>
-            val (pfStr, pfVerOpt) = split(rawPfStr)
-            Platform.parse(Platform.normalize(pfStr))
-              .toRight(new MalformedPlatformError(pfStr))
-              .flatMap {
-                case Platform.JVM =>
-                  pfVerOpt match {
-                    case None =>
-                      val options = BuildOptions(
-                        scalaOptions = ScalaOptions(
-                          platform = Some(Platform.JVM)
-                        )
-                      )
-                      Right(options)
-                    case Some(_) =>
-                      Left(new UnexpectedJvmPlatformVersionError)
-                  }
-                case Platform.JS =>
-                  val options = BuildOptions(
-                    scalaOptions = ScalaOptions(
-                      platform = Some(Platform.JS)
-                    ),
-                    scalaJsOptions = ScalaJsOptions(
-                      version = pfVerOpt
-                    )
-                  )
-                  Right(options)
-                case Platform.Native =>
-                  val options = BuildOptions(
-                    scalaOptions = ScalaOptions(
-                      platform = Some(Platform.Native)
-                    ),
-                    scalaNativeOptions = ScalaNativeOptions(
-                      version = pfVerOpt
-                    )
-                  )
-                  Right(options)
-              }
-          }
-          .sequence
-          .left.map(CompositeBuildException(_))
-          .map { options =>
-            val merged    = options.foldLeft(BuildOptions())(_ orElse _)
-            val platforms = options.flatMap(_.scalaOptions.platform.toSeq).distinct
-            merged.copy(
-              scalaOptions = merged.scalaOptions.copy(
-                extraPlatforms = merged.scalaOptions.extraPlatforms ++ platforms.tail.toSet
-              )
-            )
-          }
-        Some(res)
+        Some(handle(rawPfStrs))
       case _ =>
         None
     }
+
+  override def keys = Seq("platform", "platforms")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] =
+    handle(DirectiveUtil.stringValues(values))
 }

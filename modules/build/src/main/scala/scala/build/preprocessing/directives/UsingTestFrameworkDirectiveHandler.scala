@@ -1,6 +1,10 @@
 package scala.build.preprocessing.directives
 
-import scala.build.errors.BuildException
+import scala.build.errors.{
+  BuildException,
+  NoTestFrameworkValueProvidedError,
+  TooManyTestFrameworksProvidedError
+}
 import scala.build.options.{BuildOptions, TestOptions}
 
 case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
@@ -24,5 +28,21 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
         Some(Right(options))
       case _ =>
         None
+    }
+
+  override def keys = Seq("test-framework")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] =
+    DirectiveUtil.stringValues(values) match {
+      case Seq() =>
+        Left(new NoTestFrameworkValueProvidedError)
+      case Seq(fw) =>
+        val options = BuildOptions(
+          testOptions = TestOptions(
+            frameworkOpt = Some(fw)
+          )
+        )
+        Right(options)
+      case _ =>
+        Left(new TooManyTestFrameworksProvidedError)
     }
 }
