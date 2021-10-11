@@ -141,9 +141,9 @@ case object ScalaPreprocessor extends Preprocessor {
     else {
       val allRequirements    = afterUsing.map(_._1).toSeq ++ afterProcessImports.map(_._1).toSeq
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
-      val allOptions = afterStrictUsing.map(_._1).toSeq ++ afterUsing.map(
-        _._3
-      ).toSeq ++ afterProcessImports.map(_._2).toSeq
+      val allOptions = afterStrictUsing.map(_._1).toSeq ++
+        afterUsing.map(_._3).toSeq ++
+        afterProcessImports.map(_._2).toSeq
       val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContentOpt = afterProcessImports
         .map(_._3)
