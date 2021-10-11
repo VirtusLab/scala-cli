@@ -12,7 +12,7 @@ object TemporaryDirectivesParser {
   private def emptyLine[_: P] = P(ws.rep() ~ nl)
 
   private def singleLineComment[_: P] =
-    P(ws.rep() ~ "// require".! ~ "// using".! ~ "//" ~ P(CharPred(c => c != '\n')).rep() ~ nl)
+    P(ws.rep() ~ !"// require" ~ !"// using" ~ "//" ~ P(CharPred(c => c != '\n')).rep() ~ nl)
       .map(_ => ())
 
   private def directive[_: P] = {
