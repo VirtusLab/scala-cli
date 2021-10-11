@@ -37,7 +37,7 @@ object ScalaVersion extends App {
   val scalaVersion = checkScala3(manifests)
   val javaVersion = System.getProperty("java.version")
 
-  println(s"Scala: $scalaVersion Java: $javaVersion")
+  println(s"Scala: $scalaVersion")
 }
 ```
 
@@ -48,7 +48,7 @@ scala-cli ScalaVersion.scala
 ```
 
 <!-- Expected-regex:
-Scala: 3\..* Java: 11\..+
+Scala: 3\..*
 -->
 
 
@@ -60,7 +60,7 @@ Scala version can be also provided from command line using `--scala` (with `-S` 
 scala-cli -S 2.13.5 ScalaVersion.scala
 ```
 <!-- Expected-regex:
-Scala: 2\.13\.5 Java: .+
+Scala: 2\.13\.5
 -->
 
 In most cases we do not care for a precise Scala version and 'any Scala 2' or `2.13` is good enough for us. 
@@ -71,7 +71,7 @@ Scala cli accepts version prefixes so:
 scala-cli -S 2 ScalaVersion.scala
 ```
 <!-- Expected-regex:
-Scala: 2\..+ Java: 11\..+
+Scala: 2\..+
 -->
 
 will result in picking up a latest stable release for Scala 2 (`2.13.6` as of when this doc is written) and
@@ -80,7 +80,7 @@ will result in picking up a latest stable release for Scala 2 (`2.13.6` as of wh
 scala-cli -S 2.12 ScalaVersion.scala
 ```
 <!-- Expected-regex:
-Scala: 2\.12\.15 Java: 11\..+
+Scala: 2\.12\.15
 -->
 
 will use latest stable release of `2.12` `2.12.15`.
@@ -108,7 +108,7 @@ scala-cli ScalaVersion.scala version.scala
 ```
 
 <!-- Expected-regex: TODO - 
-Scala: 2\.12\.5 Java: 11\..+
+Scala: 2\.12\.5
 -->
 
 We will results in using `2.12.5`. 
@@ -124,7 +124,7 @@ scala-cli -S 2.13.5 ScalaVersion.scala version.scala
 Will result in using `2.13.5`
 
 <!-- Expected-regex:
-Scala: 2\.13\.5 Java: 11\..+
+Scala: 2\.13\.5
 -->
 
 ## When should I provide a full version of scala?

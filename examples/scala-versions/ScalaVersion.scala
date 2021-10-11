@@ -27,5 +27,5 @@ object ScalaVersion extends App {
   val scalaVersion = checkScala3(manifests)
   val javaVersion = System.getProperty("java.version")
 
-  println(s"Scala: $scalaVersion Java: $javaVersion")
+  println(s"Scala: $scalaVersion")
 }

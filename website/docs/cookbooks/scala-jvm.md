@@ -23,16 +23,16 @@ object Main extends App {
 
 Pass `--jvm` to the `scala-cli` command to run your application with the specified java version.
 
-```bash 
+```bash ignore
 scala-cli --jvm adopt:11 Main.scala
 ```
 
-<!-- Expected:
+<!-- ignored Expected:
 Hello from ScalaCli
 -->
 
 To test your application with Java 8, change the value of `--jvm` parameter.
-```bash fail
+```bash ignore fail 
 scala-cli --jvm 8 Main.scala  
 # In this case, it raises an error because the `Files.createTempFile` method is not available in java 8
 #
@@ -42,7 +42,7 @@ scala-cli --jvm 8 Main.scala
 #     at method main in modules/runner/src/main/scala/scala/cli/runner/Runner.scala:22 inside runner_3.jar
 ```
 
-<!-- Expected:
+<!-- ignored Expected:
 java.lang.NoSuchMethodError
 java.nio.file.Files.writeString
 -->
