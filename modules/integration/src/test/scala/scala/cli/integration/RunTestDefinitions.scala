@@ -1058,7 +1058,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             |""".stripMargin,
         os.rel / "Tests.scala" ->
           """using "com.lihaoyi::pprint:0.6.6"
-            |require test
+            |using target test
             |
             |import utest._
             |

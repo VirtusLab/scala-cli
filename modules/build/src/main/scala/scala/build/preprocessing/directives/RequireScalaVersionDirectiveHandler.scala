@@ -6,12 +6,12 @@ import scala.build.options.BuildRequirements
 case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Scala version"
   def description      = "Require a Scala version for the current file"
-  def usage            = "require scala _version_"
-  override def usageMd = "`require scala `_version_"
+  def usage            = "using target scala _version_"
+  override def usageMd = "`using target scala `_version_"
   override def examples = Seq(
-    "require scala 3",
-    "require scala 2.13",
-    "require scala 3.0.2"
+    "using target scala 3",
+    "using target scala 2.13",
+    "using target scala 3.0.2"
   )
 
   def handle(directive: Directive): Option[Either[BuildException, BuildRequirements]] =

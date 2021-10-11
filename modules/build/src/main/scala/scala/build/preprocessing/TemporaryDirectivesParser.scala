@@ -24,12 +24,18 @@ object TemporaryDirectivesParser {
         .map(_ => (Directive.Using: Directive.Type, true))
       def usingKeywordTpe = P("using")
         .map(_ => (Directive.Using: Directive.Type, false))
-      def usingTpe = P(ws.? ~ (commentedUsingTpe | usingKeywordTpe))
+      def usingTpe = P(ws.? ~ (commentedUsingTpe | usingKeywordTpe) ~ !(ws ~ "target"))
       def commentedRequireTpe = P("//" ~ ws ~ "require")
         .map(_ => (Directive.Require: Directive.Type, true))
       def requireKeywordTpe = P("require")
         .map(_ => (Directive.Require: Directive.Type, false))
-      def requireTpe = P(ws.? ~ (commentedRequireTpe | requireKeywordTpe))
+      def commentedUsingTargetTpe = P("//" ~ ws ~ "using" ~ ws ~ "target")
+        .map(_ => (Directive.Require: Directive.Type, true))
+      def usingTargetKeywordTpe = P("using" ~ ws ~ "target")
+        .map(_ => (Directive.Require: Directive.Type, false))
+      def requireTpe = P(
+        ws.? ~ (commentedRequireTpe | requireKeywordTpe | commentedUsingTargetTpe | usingTargetKeywordTpe)
+      )
       P(usingTpe | requireTpe)
     }
 

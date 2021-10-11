@@ -1,5 +1,5 @@
 // using scala 2.13
-// require scala-js
+// using target scala-js
 
 import scala.scalajs.js
 

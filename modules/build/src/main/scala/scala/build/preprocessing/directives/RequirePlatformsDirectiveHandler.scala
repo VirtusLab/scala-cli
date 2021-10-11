@@ -6,12 +6,12 @@ import scala.build.options.{BuildRequirements, Platform}
 case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Platform"
   def description      = "Require a Scala platform for the current file"
-  def usage            = "require _platform_"
-  override def usageMd = "`require `_platform_"
+  def usage            = "using target _platform_"
+  override def usageMd = "`using target `_platform_"
   override def examples = Seq(
-    "require scala-js",
-    "require scala-js scala-native",
-    "require jvm"
+    "using target scala-js",
+    "using target scala-js scala-native",
+    "using target jvm"
   )
 
   def handle(directive: Directive): Option[Either[BuildException, BuildRequirements]] =

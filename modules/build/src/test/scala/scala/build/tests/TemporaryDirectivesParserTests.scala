@@ -22,4 +22,19 @@ class TemporaryDirectivesParserTests extends munit.FunSuite {
     expect(res == expectedRes)
   }
 
+  test("using target as require") {
+    val res = TemporaryDirectivesParser.parseDirectives(
+      """require foo
+        |using target aa bb
+        |""".stripMargin
+    ).map(_._1)
+    val expectedRes = Some(
+      Seq(
+        Directive(Directive.Require, Seq("foo"), None, isComment = false),
+        Directive(Directive.Require, Seq("aa", "bb"), None, isComment = false)
+      )
+    )
+    expect(res == expectedRes)
+  }
+
 }

@@ -114,40 +114,40 @@ Sets test framework
 `using test-framework utest.runner.Framework`
 
 
-## require directives
+## target directives
 
 ### Platform
 
 Require a Scala platform for the current file
 
-`require `_platform_
+`using target `_platform_
 
 #### Examples
-`require scala-js`
+`using target scala-js`
 
-`require scala-js scala-native`
+`using target scala-js scala-native`
 
-`require jvm`
+`using target jvm`
 
 ### Scala version
 
 Require a Scala version for the current file
 
-`require scala `_version_
+`using target scala `_version_
 
 #### Examples
-`require scala 3`
+`using target scala 3`
 
-`require scala 2.13`
+`using target scala 2.13`
 
-`require scala 3.0.2`
+`using target scala 3.0.2`
 
 ### Scope
 
 Require a scope for the current file
 
-`require `_scope_
+`using target `_scope_
 
 #### Examples
-`require test`
+`using target test`
 

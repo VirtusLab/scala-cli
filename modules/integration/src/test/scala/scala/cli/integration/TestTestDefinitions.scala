@@ -461,7 +461,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
                |}
                |""".stripMargin,
           os.rel / "MyJvmTests.scala" ->
-            """require jvm
+            """using target jvm
               |
               |class MyJvmTests extends munit.FunSuite {
               |  test("jvm") {
@@ -474,7 +474,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       if (TestUtil.canRunJs)
         inputs0 = inputs0.add(
           os.rel / "MyJsTests.scala" ->
-            """require js
+            """using target js
               |
               |class MyJsTests extends munit.FunSuite {
               |  test("js") {
@@ -486,7 +486,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       if (supportsNative)
         inputs0 = inputs0.add(
           os.rel / "MyNativeTests.scala" ->
-            """require native
+            """using target native
               |
               |class MyNativeTests extends munit.FunSuite {
               |  test("native") {
