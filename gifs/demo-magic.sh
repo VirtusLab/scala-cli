@@ -186,6 +186,19 @@ function check_pv() {
   }
 }
 
+function updateFile(){
+  rm -f $1
+  if [ $# -eq 1 ]; then
+    while IFS= read -r data; do echo "$data" >> $1 ; done;
+  else
+    echo $2 > $1
+  fi
+
+  p "cat $1"
+  rougify --theme tulip $1
+  sleep 1
+}
+
 check_pv
 #
 # handle some default params

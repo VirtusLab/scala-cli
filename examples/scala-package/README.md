@@ -7,7 +7,7 @@ Scala CLI allows you to package your application into a lightweight JAR file, th
 It only contains the byte code of your sources, and automatically downloads its dependencies on its first run.
 
 The following snippet contains a short application to detect the OS:
-```scala name:DetectOsApp.scala
+```scala title=DetectOsApp.scala
 object DetectOSApp extends App  {
     def getOperatingSystem(): String = {
         val os: String = System.getProperty("os.name")
@@ -21,7 +21,7 @@ object DetectOSApp extends App  {
 
 By default, the `package` sub-command generates a lightweight JAR.
 
-```scala-cli
+```bash
 scala-cli package DetectOsApp.scala
 ```
 
@@ -53,7 +53,7 @@ Only Jars built on MacOs / Linux are easily portable between this system. The Li
 ### Assemblies
 Passing `--assembly` to the `package` sub-command generates so-called "assemblies" or "fat JARs". 
 
-```scala-cli
+```bash
 scala-cli package --assembly DetectOsApp.scala
 ```
 

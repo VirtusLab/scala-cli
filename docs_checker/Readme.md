@@ -1,18 +1,18 @@
 # Docs checker - simple tool to verify scala-cli cookbooks
 
 Docs checker tests documentation is using simple regexes to run following actions:
- - extract/override code snippet to file in workspace for snippets starting with ````scala name:<file-name>` for example:
+ - extract/override code snippet to file in workspace for snippets starting with ````scala title=<file-name>` for example:
 
 ````
-```scala-cli
+```bash
 scala-cli ScalaVersion.scala
 ```
 ````
     
- - run scala-cli commands (or any commands) for snippets starting with ````scala-cli` for example:
+ - run scala-cli commands (or any commands) for snippets starting with ````bash` for example:
 
 ````
-```scala name:ScalaVersion.scala
+```scala title=ScalaVersion.scala
 object ScalaVersion extends App 
 ```
 ````
