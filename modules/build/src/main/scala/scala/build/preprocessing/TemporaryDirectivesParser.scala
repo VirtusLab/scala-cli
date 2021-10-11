@@ -67,9 +67,9 @@ object TemporaryDirectivesParser {
   }
 
   def parseDirectives(content: String): Option[(List[Directive], Option[String])] = {
-
+    val content0 = content.trim()
     def helper(fromIndex: Int, acc: List[Directive]): (List[Directive], Int) =
-      parseDirective(content, fromIndex) match {
+      parseDirective(content0, fromIndex) match {
         case None                  => (acc.reverse, fromIndex)
         case Some((dir, newIndex)) => helper(newIndex, dir.toList ::: acc)
       }
@@ -86,8 +86,8 @@ object TemporaryDirectivesParser {
         if (onlyCommentedDirectives) None
         else
           Some {
-            content.take(codeStartsAt).map(c => if (c.isControl) c else ' ') ++
-              content.drop(codeStartsAt)
+            content0.take(codeStartsAt).map(c => if (c.isControl) c else ' ') ++
+              content0.drop(codeStartsAt)
           }
       Some((directives, updatedContentOpt))
     }

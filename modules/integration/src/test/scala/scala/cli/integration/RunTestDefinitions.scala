@@ -234,6 +234,32 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("Scripts may contain whitespace before using directives") {
+    val inputs = TestInputs(
+      Seq(os.rel / "print.sc" ->
+        s"""
+           |using com.lihaoyi::pprint:${Constants.pprintVersion}
+           |println("Foo")""".stripMargin)
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, extraOptions, root / "print.sc").call(cwd = root)
+    }
+  }
+
+  test("Scripts with shebangs work".only) {
+    val inputs = TestInputs(
+      Seq(os.rel / "print.sc" ->
+        s"""|#!/usr/bin/env ${TestUtil.cli.last}
+            |using com.lihaoyi::pprint:${Constants.pprintVersion}
+            |println("Foo")""".stripMargin)
+    )
+
+    inputs.fromRoot { root =>
+      os.perms.set(root / "print.sc", "r-x------")
+      os.proc(root / "print.sc", extraOptions).call(cwd = root)
+    }
+  }
+
   test("Pass arguments") {
     val inputs = TestInputs(
       Seq(
