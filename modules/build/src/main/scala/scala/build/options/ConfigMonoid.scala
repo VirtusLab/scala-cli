@@ -46,7 +46,7 @@ object ConfigMonoid {
 
   }
 
-  implicit def generic[T, R <: HList](implicit
+  def generic[T, R <: HList](implicit
     gen: Generic.Aux[T, R],
     instance: Lazy[HListConfigMonoid[R]]
   ): ConfigMonoid[T] =

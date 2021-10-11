@@ -6,6 +6,6 @@ import caseapp._
 final case class AboutOptions()
 
 object AboutOptions {
-  implicit val parser = Parser[AboutOptions]
-  implicit val help = Help[AboutOptions]
+  implicit lazy val parser: Parser[AboutOptions] = Parser.derive
+  implicit lazy val help: Help[AboutOptions]   = Help.derive
 }

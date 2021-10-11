@@ -30,6 +30,6 @@ final case class BspOptions(
 }
 
 object BspOptions {
-  implicit val parser = Parser[BspOptions]
-  implicit val help   = Help[BspOptions]
+  implicit lazy val parser: Parser[BspOptions] = Parser.derive
+  implicit lazy val help: Help[BspOptions]     = Help.derive
 }

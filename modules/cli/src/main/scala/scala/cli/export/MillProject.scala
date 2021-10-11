@@ -117,5 +117,5 @@ final case class MillProject(
 }
 
 object MillProject {
-  implicit val monoid = ConfigMonoid[MillProject]
+  implicit val monoid: ConfigMonoid[MillProject] = ConfigMonoid.derive
 }

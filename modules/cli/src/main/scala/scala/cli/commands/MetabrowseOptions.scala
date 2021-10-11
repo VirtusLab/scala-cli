@@ -64,6 +64,6 @@ final case class MetabrowseOptions(
 }
 
 object MetabrowseOptions {
-  implicit val parser = Parser[MetabrowseOptions]
-  implicit val help   = Help[MetabrowseOptions]
+  implicit lazy val parser: Parser[MetabrowseOptions] = Parser.derive
+  implicit lazy val help: Help[MetabrowseOptions]     = Help.derive
 }

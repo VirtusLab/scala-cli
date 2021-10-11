@@ -112,6 +112,6 @@ final case class PackageOptions(
 }
 
 object PackageOptions {
-  implicit val parser = Parser[PackageOptions]
-  implicit val help   = Help[PackageOptions]
+  implicit lazy val parser: Parser[PackageOptions] = Parser.derive
+  implicit lazy val help: Help[PackageOptions]     = Help.derive
 }

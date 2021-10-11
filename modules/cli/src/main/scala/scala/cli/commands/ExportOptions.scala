@@ -30,3 +30,8 @@ final case class ExportOptions(
     )
   }
 }
+
+object ExportOptions {
+  implicit lazy val parser: Parser[ExportOptions] = Parser.derive
+  implicit lazy val help: Help[ExportOptions]     = Help.derive
+}

@@ -25,7 +25,7 @@ object HasHashData {
       tailInstance.value.add(prefix, l.tail, update)
   }
 
-  implicit def generic[T, R <: HList](implicit
+  def generic[T, R <: HList](implicit
     gen: LabelledGeneric.Aux[T, R],
     instance: Lazy[HasHashData[R]]
   ): HasHashData[T] =

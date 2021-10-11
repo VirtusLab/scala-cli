@@ -332,14 +332,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("invalid bloop options passed via cli cause bloop start failure") {
     runScalaCli("bloop", "exit").call()
-    val res = runScalaCli("bloop", "start", "--bloop-java-opt", "-Xmx1k").call(
+    val res = runScalaCli("bloop", "start", "--bloop-java-opt", "-zzefhjzl").call(
       stderr = os.Pipe,
-      check = false
+      check = false,
+      mergeErrIntoOut = true
     )
     expect(res.exitCode == 1)
-    expect(res.err.text().contains("Server didn't start") || res.err.text().contains(
-      "java.lang.OutOfMemoryError: Garbage-collected heap size exceeded"
-    ))
+    expect(res.out.text().contains("Server didn't start"))
   }
 
   test("invalid bloop options passed via global bloop config json file cause bloop start failure") {

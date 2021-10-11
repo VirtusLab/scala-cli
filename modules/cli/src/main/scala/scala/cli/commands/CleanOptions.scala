@@ -13,6 +13,6 @@ final case class CleanOptions(
 // format: on
 
 object CleanOptions {
-  implicit val parser = Parser[CleanOptions]
-  implicit val help   = Help[CleanOptions]
+  implicit lazy val parser: Parser[CleanOptions] = Parser.derive
+  implicit lazy val help: Help[CleanOptions]     = Help.derive
 }

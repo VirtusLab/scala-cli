@@ -115,7 +115,10 @@ final case class SharedCompilationServerOptions(
           .map("proc-" + _)
           .left.map("conn-" + _)
           .merge
-        (dir / fileName, true)
+        val path = dir / fileName
+        if (os.exists(path)) // isFile is false for domain sockets
+          os.remove(path)
+        (path, true)
     }
     if (deleteOnExit)
       Runtime.getRuntime.addShutdownHook(
@@ -219,8 +222,9 @@ final case class SharedCompilationServerOptions(
 }
 
 object SharedCompilationServerOptions {
-  implicit val parser = Parser[SharedCompilationServerOptions]
-  implicit val help   = Help[SharedCompilationServerOptions]
+  lazy val parser: Parser[SharedCompilationServerOptions]                           = Parser.derive
+  implicit lazy val parserAux: Parser.Aux[SharedCompilationServerOptions, parser.D] = parser
+  implicit lazy val help: Help[SharedCompilationServerOptions]                      = Help.derive
 
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")

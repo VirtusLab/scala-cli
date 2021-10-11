@@ -1,6 +1,6 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.9`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.12`
 import $file.project.deps, deps.{Deps, Docker, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{

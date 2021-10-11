@@ -27,6 +27,6 @@ final case class CompileOptions(
 }
 
 object CompileOptions {
-  implicit val parser = Parser[CompileOptions]
-  implicit val help   = Help[CompileOptions]
+  implicit lazy val parser: Parser[CompileOptions] = Parser.derive
+  implicit lazy val help: Help[CompileOptions]     = Help.derive
 }
