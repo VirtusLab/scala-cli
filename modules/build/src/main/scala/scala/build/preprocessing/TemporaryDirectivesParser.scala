@@ -7,10 +7,16 @@ import scala.build.preprocessing.directives.Directive
 
 object TemporaryDirectivesParser {
 
+  private def ws[_: P]        = P(" ".rep(1))
+  private def nl[_: P]        = P(("\r".? ~ "\n").rep(1))
+  private def emptyLine[_: P] = P(ws.rep() ~ nl)
+
+  private def singleLineComment[_: P] =
+    P(ws.rep() ~ "// require".! ~ "// using".! ~ "//" ~ P(CharPred(c => c != '\n')).rep() ~ nl)
+      .map(_ => ())
+
   private def directive[_: P] = {
-    def ws = P(" ".rep(1))
     def sc = P(";")
-    def nl = P(("\r".? ~ "\n").rep(1))
     def tpe = {
       def commentedUsingTpe = P("// using")
         .map(_ => (Directive.Using: Directive.Type, true))
@@ -58,7 +64,7 @@ object TemporaryDirectivesParser {
 
   private def maybeDirective[_: P] =
     // TODO Use some cuts above to also catch malformed directives?
-    P(directive.?)
+    P((emptyLine | singleLineComment).rep() ~ directive.?)
 
   private def parseDirective(content: String, fromIndex: Int): Option[(Seq[Directive], Int)] = {
     // TODO Don't create a new String here
