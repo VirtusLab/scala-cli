@@ -60,7 +60,7 @@ Scala version can be also provided from command line using `--scala` (with `-S` 
 scala-cli -S 2.13.5 ScalaVersion.scala
 ```
 <!-- Expected-regex:
-Scala: 2\.13\.5 Java: 11\..+
+Scala: 2\.13\.5 Java: .+
 -->
 
 In most cases we do not care for a precise Scala version and 'any Scala 2' or `2.13` is good enough for us. 

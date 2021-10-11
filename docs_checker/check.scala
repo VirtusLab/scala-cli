@@ -1,10 +1,7 @@
 // using scala 3.0.2
-// using "org.scalameta::munit:0.7.29"
 // using com.lihaoyi::os-lib:0.7.8
 
 import scala.util.matching.Regex
-
-import munit.Assertions.assert
 
 val ScalaCodeBlock = """ *```scala title=([\w\.]+) *""".r
 val CodeBlockEnds  = """ *``` *""".r
