@@ -338,7 +338,7 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """require scala == 2.12
+        """using target scala == 2.12
           |object Ignored {
           |  def foo = 2
           |}
@@ -360,7 +360,7 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """require scala.js
+        """using target scala.js
           |object Ignored {
           |  def foo = 2
           |}
@@ -383,13 +383,13 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """require jvm
+        """using target jvm
           |object Ignored {
           |  def foo = 2
           |}
           |""".stripMargin,
       os.rel / "IgnoredToo.scala" ->
-        """require native
+        """using target native
           |object IgnoredToo {
           |  def foo = 2
           |}
@@ -409,7 +409,7 @@ class BuildTests extends munit.FunSuite {
   test("ignore files if wrong Scala version requirement via in clause") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """// require scala == 2.12 in my-scala-2.12/
+        """// using target scala == 2.12 in my-scala-2.12/
           |object Simple {
           |  def main(args: Array[String]): Unit =
           |    println("Hello")
@@ -431,7 +431,7 @@ class BuildTests extends munit.FunSuite {
   test("ignore files if wrong Scala target requirement via in clause") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """require scala.js in js-sources/
+        """using target scala.js in js-sources/
           |object Simple {
           |  def main(args: Array[String]): Unit =
           |    println("Hello")

@@ -7,21 +7,35 @@ import scala.build.preprocessing.directives.Directive
 
 object TemporaryDirectivesParser {
 
+  private def ws[_: P]        = P(" ".rep(1))
+  private def nl[_: P]        = P(("\r".? ~ "\n").rep(1))
+  private def emptyLine[_: P] = P(ws.rep() ~ nl)
+
+  private def singleLineComment[_: P] =
+    P(ws.rep() ~ !("//" ~ ws ~ "require") ~ !("//" ~ ws ~ "using") ~ "//" ~ P(CharPred(c =>
+      c != '\n'
+    )).rep() ~ nl)
+      .map(_ => ())
+
   private def directive[_: P] = {
-    def ws = P(" ".rep(1))
     def sc = P(";")
-    def nl = P(("\r".? ~ "\n").rep(1))
     def tpe = {
-      def commentedUsingTpe = P("// using")
+      def commentedUsingTpe = P("//" ~ ws ~ "using")
         .map(_ => (Directive.Using: Directive.Type, true))
-      def usingKeywordTpe = P("using" | "@using")
+      def usingKeywordTpe = P("using")
         .map(_ => (Directive.Using: Directive.Type, false))
-      def usingTpe = P(ws.? ~ (commentedUsingTpe | usingKeywordTpe))
-      def commentedRequireTpe = P("// require")
+      def usingTpe = P(ws.? ~ (commentedUsingTpe | usingKeywordTpe) ~ !(ws ~ "target"))
+      def commentedRequireTpe = P("//" ~ ws ~ "require")
         .map(_ => (Directive.Require: Directive.Type, true))
-      def requireKeywordTpe = P("require" | "@require")
+      def requireKeywordTpe = P("require")
         .map(_ => (Directive.Require: Directive.Type, false))
-      def requireTpe = P(ws.? ~ (commentedRequireTpe | requireKeywordTpe))
+      def commentedUsingTargetTpe = P("//" ~ ws ~ "using" ~ ws ~ "target")
+        .map(_ => (Directive.Require: Directive.Type, true))
+      def usingTargetKeywordTpe = P("using" ~ ws ~ "target")
+        .map(_ => (Directive.Require: Directive.Type, false))
+      def requireTpe = P(
+        ws.? ~ (commentedRequireTpe | requireKeywordTpe | commentedUsingTargetTpe | usingTargetKeywordTpe)
+      )
       P(usingTpe | requireTpe)
     }
 
@@ -58,7 +72,7 @@ object TemporaryDirectivesParser {
 
   private def maybeDirective[_: P] =
     // TODO Use some cuts above to also catch malformed directives?
-    P(directive.?)
+    P((emptyLine | singleLineComment).rep() ~ directive.?)
 
   private def parseDirective(content: String, fromIndex: Int): Option[(Seq[Directive], Int)] = {
     // TODO Don't create a new String here

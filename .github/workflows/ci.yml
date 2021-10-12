@@ -305,36 +305,28 @@ jobs:
       - uses: coursier/setup-action@v1.1.1
         with:
           jvm: 8
-      - run: ./mill -i ci.setShouldPublish
       - uses: actions/download-artifact@v2
-        if: env.SHOULD_PUBLISH == 'true'
         with:
           name: launchers
           path: artifacts/
       - name: Display structure of downloaded files
-        if: env.SHOULD_PUBLISH == 'true'
         run: ls -R
         working-directory: artifacts/
       - uses: webfactory/ssh-agent@5f066a372ec13036ab7cb9a8adf18c936f8d2043
-        if: env.SHOULD_PUBLISH == 'true'
         with:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
             ${{ secrets.HOMEBREW_SCALA_CLI_KEY }}
       - run: ./mill -i ci.updateBrewFormula
-        if: env.SHOULD_PUBLISH == 'true'
       - name: GPG setup
         run: .github/scripts/gpg-setup.sh
-        if: env.SHOULD_PUBLISH == 'true'
         env:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
       - run: ./mill -i ci.updateDebianPackages
-        if: env.SHOULD_PUBLISH == 'true'
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
       - run: ./mill -i ci.updateCentOsPackages
-        if: env.SHOULD_PUBLISH == 'true'
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           KEYGRIP: ${{ secrets.KEYGRIP }}
@@ -385,13 +377,10 @@ jobs:
     - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
-    - run: ./mill -i ci.setShouldPublish
     - uses: actions/setup-node@v2.4.1
-      if: env.SHOULD_PUBLISH == 'true'
       with:
         node-version: '12.x'
     - run: .github/scripts/update-website.sh
-      if: env.SHOULD_PUBLISH == 'true'
       env:
         GIT_USER: Virtuslab
         DEPLOYMENT_BRANCH: gh-pages

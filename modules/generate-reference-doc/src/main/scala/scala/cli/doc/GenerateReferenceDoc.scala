@@ -269,7 +269,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
     b.append(
       """
-        |## require directives
+        |## target directives
         |
         |""".stripMargin
     )

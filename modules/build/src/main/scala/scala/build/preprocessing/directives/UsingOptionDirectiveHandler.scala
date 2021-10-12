@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaOptions}
 
 case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
@@ -15,7 +16,7 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
     "using options -Xasync -Xfatal-warnings"
   )
 
-  def handle(directive: Directive): Option[Either[String, BuildOptions]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq("option" | "options", options @ _*) =>
         val opts = BuildOptions(
@@ -26,4 +27,15 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
         Some(Right(opts))
       case _ => None
     }
+
+  override def keys = Seq("options", "options")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = {
+    val scalacOptions = DirectiveUtil.stringValues(values)
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalacOptions = scalacOptions
+      )
+    )
+    Right(options)
+  }
 }

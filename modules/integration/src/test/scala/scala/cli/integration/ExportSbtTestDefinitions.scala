@@ -11,6 +11,9 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
 
   protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
+  protected def runExportTests: Boolean =
+    Properties.isLinux
+
   private lazy val sbtLaunchJar = {
     val res =
       os.proc(TestUtil.cs, "fetch", "--intransitive", "org.scala-sbt:sbt-launch:1.5.5").call()
@@ -54,17 +57,17 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains("Hello from " + actualScalaVersion))
     }
   }
-  if (!Properties.isWin)
+  if (runExportTests)
     test("JVM") {
       jvmTest()
     }
 
-  if (!Properties.isWin)
+  if (runExportTests)
     test("Scala.JS") {
       simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
     }
 
-  if (TestUtil.canRunNative && !actualScalaVersion.startsWith("3."))
+  if (runExportTests && TestUtil.canRunNative && !actualScalaVersion.startsWith("3."))
     test("Scala Native") {
       simpleTest(ExportTestProjects.nativeTest(actualScalaVersion))
     }

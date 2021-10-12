@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.errors.{BuildException, NoScalaVersionProvidedError}
 import scala.build.options.{BuildOptions, ScalaOptions}
 
 case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
@@ -14,7 +15,7 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
     "using scala 2.13.6 2.12.15"
   )
 
-  def handle(directive: Directive): Option[Either[String, BuildOptions]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq("scala", scalaVersions @ _*) if scalaVersions.nonEmpty =>
         val options = BuildOptions(
@@ -28,4 +29,20 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
       case _ =>
         None
     }
+
+  override def keys = Seq("scala")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = {
+    val scalaVersions = DirectiveUtil.stringValues(values)
+    if (scalaVersions.isEmpty)
+      Left(new NoScalaVersionProvidedError)
+    else {
+      val options = BuildOptions(
+        scalaOptions = ScalaOptions(
+          scalaVersion = Some(scalaVersions.head),
+          extraScalaVersions = scalaVersions.tail.toSet
+        )
+      )
+      Right(options)
+    }
+  }
 }

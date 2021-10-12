@@ -66,7 +66,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
             |""".stripMargin,
         os.rel / "Tests.scala" ->
           """using "com.lihaoyi::pprint:0.6.6"
-            |require test
+            |using target test
             |
             |import utest._
             |
@@ -97,7 +97,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
             |""".stripMargin,
         os.rel / "Tests.scala" ->
           """using "com.lihaoyi::utest:0.7.10"
-            |require test
+            |using target test
             |
             |import utest._
             |

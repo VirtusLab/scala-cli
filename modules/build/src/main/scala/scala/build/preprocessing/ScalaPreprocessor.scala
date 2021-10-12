@@ -1,5 +1,7 @@
 package scala.build.preprocessing
 
+import com.virtuslab.using_directives.config.Settings
+import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
@@ -11,13 +13,13 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   FileNotFoundException,
-  InvalidDirectiveError,
   UnusedDirectiveError
 }
 import scala.build.internal.AmmUtil
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
 import scala.build.{Inputs, Os}
+import scala.jdk.CollectionConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
 
@@ -124,22 +126,29 @@ case object ScalaPreprocessor extends Preprocessor {
     Option[String]
   )]] = either {
 
+    val afterStrictUsing = value(processStrictUsing(content))
     val afterUsing = value {
-      processUsing(content, scopeRoot)
+      processUsing(afterStrictUsing.map(_._2).getOrElse(content), scopeRoot)
         .sequence
     }
     val afterProcessImports =
-      processSpecialImports(afterUsing.flatMap(_._4).getOrElse(content), printablePath)
+      processSpecialImports(
+        afterUsing.flatMap(_._4).orElse(afterStrictUsing.map(_._2)).getOrElse(content),
+        printablePath
+      )
 
-    if (afterUsing.isEmpty && afterProcessImports.isEmpty) None
+    if (afterStrictUsing.isEmpty && afterUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
       val allRequirements    = afterUsing.map(_._1).toSeq ++ afterProcessImports.map(_._1).toSeq
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
-      val allOptions         = afterUsing.map(_._3).toSeq ++ afterProcessImports.map(_._2).toSeq
-      val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
+      val allOptions = afterStrictUsing.map(_._1).toSeq ++
+        afterUsing.map(_._3).toSeq ++
+        afterProcessImports.map(_._2).toSeq
+      val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContentOpt = afterProcessImports
         .map(_._3)
         .orElse(afterUsing.flatMap(_._4))
+        .orElse(afterStrictUsing.map(_._2))
       val scopedRequirements = afterUsing.map(_._2).getOrElse(Nil)
       Some((summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
     }
@@ -157,13 +166,8 @@ case object ScalaPreprocessor extends Preprocessor {
           .toList
           .headOption
 
-        fromHandlersOpt match {
-          case None =>
-            Left(new UnusedDirectiveError(dir))
-          case Some(Right(options)) =>
-            Right(options)
-          case Some(Left(err)) =>
-            Left(new InvalidDirectiveError(dir, err))
+        fromHandlersOpt.getOrElse {
+          Left(new UnusedDirectiveError(dir))
         }
       }
 
@@ -204,7 +208,7 @@ case object ScalaPreprocessor extends Preprocessor {
             }
             Right(value)
           case Some(Left(err)) =>
-            Left(new InvalidDirectiveError(dir, err))
+            Left(err)
         }
       }
 
@@ -321,6 +325,54 @@ case object ScalaPreprocessor extends Preprocessor {
       )
       Some((BuildRequirements(), options, newCode))
     }
+  }
+
+  private def processStrictUsing(
+    content: String
+  ): Either[BuildException, Option[(BuildOptions, String)]] = either {
+
+    val processor = {
+      val reporter = new DirectivesOutputStreamReporter(System.err) // TODO Get that via a logger
+      val settings = new Settings
+      settings.setAllowStartWithoutAt(false)
+      settings.setAllowRequire(false)
+      val context = new Context(reporter, settings)
+      new UsingDirectivesProcessor(context)
+    }
+
+    val contentChars = content.toCharArray
+    val directives   = processor.extract(contentChars)
+
+    val directives0 = directives
+      .getFlattenedMap
+      .asScala
+      .map {
+        case (k, l) => k -> l.asScala
+      }
+      .toMap
+    val updatedOptions = value {
+      DirectivesProcessor.process(
+        directives0,
+        usingDirectiveHandlers ++ requireDirectiveHandlers
+      )
+    }
+    val codeOffset = directives.getCodeOffset()
+    val updatedContentOpt =
+      if (codeOffset > 0) {
+        val headerBytes = contentChars
+          .iterator
+          .take(codeOffset)
+          .map(c => if (c.isControl) c else ' ')
+          .toArray
+        val mainBytes      = contentChars.drop(codeOffset)
+        val updatedContent = new String(headerBytes ++ mainBytes)
+        if (updatedContent == content) None
+        else Some(updatedContent)
+      }
+      else None
+
+    if (updatedContentOpt.isEmpty) None
+    else Some((updatedOptions, updatedContentOpt.getOrElse(content)))
   }
 
   private def parseDependency(str: String): AnyDependency =

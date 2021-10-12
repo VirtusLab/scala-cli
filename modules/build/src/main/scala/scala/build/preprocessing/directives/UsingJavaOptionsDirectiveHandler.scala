@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
 
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
@@ -12,7 +13,7 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
     "using javaOpt -Xmx2g -Dsomething=a"
   )
 
-  def handle(directive: Directive): Option[Either[String, BuildOptions]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq("javaOpt" | "java-opt", javaOpts @ _*) =>
         val options = BuildOptions(
@@ -24,4 +25,15 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
       case _ =>
         None
     }
+
+  override def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = {
+    val javaOpts = DirectiveUtil.stringValues(values)
+    val options = BuildOptions(
+      javaOptions = JavaOptions(
+        javaOpts = javaOpts
+      )
+    )
+    Right(options)
+  }
 }

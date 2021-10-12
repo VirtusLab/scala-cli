@@ -1,6 +1,8 @@
 package scala.build.preprocessing.directives
 
+import scala.build.EitherCps.{either, value}
 import scala.build.Os
+import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
 
 case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
@@ -12,7 +14,7 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
     "using java-home \"/Users/Me/jdks/11\""
   )
 
-  def handle(directive: Directive): Option[Either[String, BuildOptions]] =
+  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq("java-home" | "javaHome", path) =>
         val home = os.Path(path, Os.pwd) // FIXME Might throw on invalid path
@@ -24,4 +26,21 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
         Some(Right(options))
       case _ => None
     }
+
+  override def keys = Seq("java-home", "javaHome")
+  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = either {
+    val rawHome = value {
+      DirectiveUtil.stringValues(values)
+        .lastOption
+        .toRight("No value passed to javaHome directive")
+    }
+    // FIXME Might throw
+    // FIXME Wrong cwd
+    val home = os.Path(rawHome, Os.pwd)
+    BuildOptions(
+      javaOptions = JavaOptions(
+        javaHomeOpt = Some(home)
+      )
+    )
+  }
 }
