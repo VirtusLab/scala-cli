@@ -2,8 +2,6 @@ package scala.cli.commands
 
 import caseapp._
 
-import java.nio.file.Path
-
 // format: off
 final case class BspOptions(
   // FIXME There might be too many options in SharedOptions for the bsp command…
@@ -13,7 +11,7 @@ final case class BspOptions(
   @HelpMessage("Command-line options JSON file")
   @ValueDescription("path")
   @Hidden
-  jsonOptions: Option[Path] = None
+  jsonOptions: Option[String] = None
 ) {
   // format: on
 }

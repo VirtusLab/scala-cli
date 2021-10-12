@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
+import os.Path
 
 import java.net.URI
 import java.nio.charset.Charset
@@ -136,6 +137,27 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     f(details)
   }
 
+  test("setup-ide") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "simple.sc" ->
+          s"""val msg = "Hello"
+             |println(msg)
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions).call(cwd = root, stdout = os.Inherit)
+      readBspConfig(
+        root,
+        details => {
+          expect(details.argv.length >= 2)
+          expect(details.argv(1) == "bsp")
+        }
+      )
+    }
+  }
+
   for (command <- Seq("setup-ide", "compile", "run"))
     test(command + " should result in generated bsp file") {
       val inputs = TestInputs(
@@ -154,7 +176,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expect(details.argv.length >= 2)
             expect(details.argv(1) == "bsp")
             expect(details.argv(3) == "--json-options")
-            expect(Paths.get(details.argv(4)).isAbsolute())
+            expect(Paths.get(details.argv(4)).isAbsolute)
           }
         )
 
@@ -170,15 +192,28 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   test("setup-ide should have only absolute path if relative one was specified") {
-    importPprintOnlyProject.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", "./" + root.last, extraOptions).call(
-        cwd = os.Path(root.toIO.getParentFile().toPath()),
-        stdout = os.Inherit
+    val path = os.rel / "directory" / "simple.sc"
+    TestInputs(
+      Seq(
+        path -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`"
       )
+    ).fromRoot { root =>
+      val absolutePathFromRoot: Path = root / "directory" / "simple.sc"
+      os.proc(TestUtil.cli, "setup-ide", path, extraOptions).call(cwd = root, stdout = os.Inherit)
+
       readBspConfig(
-        root,
-        details =>
-          expect(details.argv.contains(root.toString))
+        root / "directory",
+        details => {
+          val expectedArgv = List(
+            "bsp",
+            absolutePathFromRoot.toString(),
+            "--json-options",
+            (root / "directory" / ".scala" / "ide-options.json").toString()
+          )
+          // We assert tails as JVM tests are run via `java -jar` and others are run normally, via launcher
+          // therefore we will get just `scala-cli` for JVM but some absolute path for other
+          expect(details.argv.tail == expectedArgv)
+        }
       )
     }
   }

@@ -8,7 +8,6 @@ import scala.build.bsp.BspThreads
 import scala.build.options.BuildOptions
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.io.Source
 
 object Bsp extends ScalaCommand[BspOptions] {
   def run(options: BspOptions, args: RemainingArgs): Unit = {

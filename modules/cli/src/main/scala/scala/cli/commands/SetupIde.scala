@@ -14,6 +14,7 @@ import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
 import scala.jdk.CollectionConverters._
+import scala.util.Try
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
@@ -89,11 +90,10 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       val absolutePathToScalaCli: String = {
         if (rawArgv(0).contains(File.separator))
           os.Path(rawArgv(0), Os.pwd).toString
-        else {
-          val absoluteScalaCliPath =
+        else
+          Try(
             this.getClass.getProtectionDomain.getCodeSource.getLocation.toURI.getPath.trim
-          if (absoluteScalaCliPath.isEmpty) rawArgv(0) else absoluteScalaCliPath
-        }
+          ).filter(name => name.nonEmpty && !name.endsWith(".jar")).getOrElse(rawArgv(0))
       }
 
       val unparsedArgs =
