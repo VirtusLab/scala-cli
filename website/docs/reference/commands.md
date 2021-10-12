@@ -216,6 +216,10 @@ Accepts options:
 - [test](./cli-options.md#test-options)
 - [watch](./cli-options.md#watch-options)
 
+## `version`
+
+Print scala-cli version
+
 ## Hidden commands
 
 ### `add-path`

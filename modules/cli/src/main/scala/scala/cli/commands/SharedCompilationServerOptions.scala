@@ -2,7 +2,6 @@ package scala.cli.commands
 
 import caseapp._
 import com.google.gson.Gson
-import coursier.core.Version
 
 import java.io.{BufferedReader, File, FileReader}
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
@@ -168,7 +167,9 @@ final case class SharedCompilationServerOptions(
     parseDuration("connection server startup timeout", bloopStartupTimeout)
 
   def minimumBloopVersion = Constants.bloopVersion
-  def acceptBloopVersion  = Some((v: String) => Version(v) < Version(minimumBloopVersion))
+
+  import coursier.core.Version
+  def acceptBloopVersion = Some((v: String) => Version(v) < Version(minimumBloopVersion))
 
   def bloopDefaultJvmOptions(logger: Logger): List[String] = {
     val file = new File(bloopGlobalOptionsFile)

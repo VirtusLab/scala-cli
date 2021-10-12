@@ -285,6 +285,7 @@ Available in commands:
 - [`run`](./commands#run)
 - [`setup-ide`](./commands#setup-ide)
 - [`test`](./commands#test)
+- [`version`](./commands#version)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -342,6 +343,18 @@ Available in commands:
 Aliases: `-f`
 
 Overwrite scala-cli if exists
+
+#### `--binary-name`
+
+Binary name
+
+#### `--env`
+
+Print the env update
+
+#### `--bin-dir`
+
+Binary directory
 
 ## Java options
 
