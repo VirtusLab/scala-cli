@@ -13,16 +13,16 @@ case object CustomCodeWrapper extends CodeWrapper {
   ) = {
     val name = mainClassObject(indexedWrapperName).backticked
     val mainObjectCode = AmmUtil.normalizeNewlines(s"""|object $name {
-                                                       |  private var argsOpt0 = Option.empty[Array[String]]
-                                                       |  def setArgs(args: Array[String]): Unit = {
-                                                       |    argsOpt0 = Some(args)
+                                                       |  private var args$$opt0 = Option.empty[Array[String]]
+                                                       |  def args$$set(args: Array[String]): Unit = {
+                                                       |    args$$opt0 = Some(args)
                                                        |  }
-                                                       |  def argsOpt: Option[Array[String]] = argsOpt0
-                                                       |  def args: Array[String] = argsOpt.getOrElse {
+                                                       |  def args$$opt: Option[Array[String]] = args$$opt0
+                                                       |  def args$$: Array[String] = args$$opt.getOrElse {
                                                        |    sys.error("No arguments passed to this script")
                                                        |  }
                                                        |  def main(args: Array[String]): Unit = {
-                                                       |    setArgs(args)
+                                                       |    args$$set(args)
                                                        |    ${indexedWrapperName.backticked}
                                                        |  }
                                                        |}
@@ -40,7 +40,7 @@ $packageDirective
 object ${indexedWrapperName.backticked} {
 """)
     val bottom = AmmUtil.normalizeNewlines(s"""
-  def args = $name.args
+  def args = $name.args$$
   $extraCode
 }
 $mainObjectCode
