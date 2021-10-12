@@ -17,9 +17,13 @@ object Test extends ScalaCommand[TestOptions] {
   private def reset = Console.RESET
 
   def run(options: TestOptions, args: RemainingArgs): Unit = {
-    SetupIde.run(SetupIdeOptions(shared = options.shared), args, previousCommandName = Some(name))
-
     val inputs = options.shared.inputsOrExit(args)
+    SetupIde.runSafe(
+      SetupIdeOptions(shared = options.shared),
+      args,
+      previousCommandName = Some(name),
+      inputs = inputs
+    )
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()

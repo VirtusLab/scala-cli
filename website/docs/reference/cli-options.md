@@ -55,7 +55,7 @@ Available in commands:
 
 #### `--json-options`
 
-Path to a json file containing BSP configuration
+Command-line options JSON file
 
 ## Compilation server options
 

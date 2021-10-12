@@ -39,7 +39,12 @@ object Run extends ScalaCommand[RunOptions] {
       )
 
     val cross = options.compileCross.cross.getOrElse(false)
-    SetupIde.run(SetupIdeOptions(shared = options.shared), args, previousCommandName = Some(name))
+    SetupIde.runSafe(
+      SetupIdeOptions(shared = options.shared),
+      args,
+      previousCommandName = Some(name),
+      inputs = inputs
+    )
 
     if (options.watch.watch) {
       val watcher = Build.watch(
