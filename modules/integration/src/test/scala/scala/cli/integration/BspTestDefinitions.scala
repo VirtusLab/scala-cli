@@ -178,7 +178,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       readBspConfig(
         root,
         details =>
-          expect(details.argv.find(_ == root.toIO.getAbsolutePath()).isDefined)
+          expect(details.argv.contains(root.toString))
       )
     }
   }

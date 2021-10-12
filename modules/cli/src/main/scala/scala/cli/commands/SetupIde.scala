@@ -88,7 +88,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       // Ensure the path to the CLI is absolute
       val absolutePathToScalaCli: String = {
         if (rawArgv(0).contains(File.separator))
-          os.FilePath(rawArgv(0)).resolveFrom(Os.pwd).toString
+          os.Path(rawArgv(0), Os.pwd).toString
         else {
           val absoluteScalaCliPath =
             this.getClass.getProtectionDomain.getCodeSource.getLocation.toURI.getPath.trim
@@ -101,9 +101,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
           args.unparsed
         else "--" +: args.unparsed
       val remainingArgs = args.remaining.map { arg =>
-        if (arg.contains(File.separator))
-          os.FilePath(arg).resolveFrom(Os.pwd).toString
-        else arg
+        os.Path(arg, Os.pwd).toString
       }
 
       val details = new BspConnectionDetails(

@@ -18,9 +18,8 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     val sharedOptions: SharedOptions =
       options.jsonOptions.map { optionsPath =>
-        val source = Source.fromFile(optionsPath.toFile())
-        try read[SharedOptions](source.mkString)
-        finally source.close()
+        val source = os.read(os.Path(optionsPath, os.pwd))
+        read[SharedOptions](source)
       }.getOrElse(options.shared)
 
     val buildOptionsToUse = buildOptions(sharedOptions)
