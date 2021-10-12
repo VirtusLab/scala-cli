@@ -680,9 +680,10 @@ object ci extends Module {
   def updateStandaloneLauncher() = T.command {
     val version = cli.publishVersion()
 
-    val targetDir              = os.pwd / "target"
-    val scalaCliDir            = targetDir / "scala-cli"
-    val standaloneLauncherPath = scalaCliDir / "scala-cli.sh"
+    val targetDir                     = os.pwd / "target"
+    val scalaCliDir                   = targetDir / "scala-cli"
+    val standaloneLauncherPath        = scalaCliDir / "scala-cli.sh"
+    val standaloneWindowsLauncherPath = scalaCliDir / "scala-cli.bat"
 
     // clean target directory
     if (os.exists(targetDir)) os.remove.all(targetDir)
@@ -700,6 +701,15 @@ object ci extends Module {
     val updatedLauncherScript =
       scalaCliVersionRegex.replaceFirstIn(launcherScript, s"SCALA_CLI_VERSION=$version")
     os.write.over(standaloneLauncherPath, updatedLauncherScript)
+
+    val launcherWindowsScript       = os.read(standaloneWindowsLauncherPath)
+    val scalaCliWindowsVersionRegex = "SCALA_CLI_VERSION=.*\"".r
+    val updatedWindowsLauncherScript =
+      scalaCliWindowsVersionRegex.replaceFirstIn(
+        launcherWindowsScript,
+        s"""SCALA_CLI_VERSION=$version""""
+      )
+    os.write.over(standaloneWindowsLauncherPath, updatedWindowsLauncherScript)
 
     commitChanges(s"Update scala-cli.sh launcher for $version", branch, scalaCliDir)
   }
