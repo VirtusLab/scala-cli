@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.internal.{AmmUtil, CodeWrapper}
+import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
 import scala.build.{Inputs, Os}
 import scala.util.matching.Regex
@@ -30,7 +30,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               PreprocessedSource.ScopePath.fromPath(script.path)
             )
           }
-          Seq(preprocessed)
+          preprocessed
         }
         Some(res)
 
@@ -48,7 +48,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               script.scopePath
             )
           }
-          Seq(preprocessed)
+          preprocessed
         }
         Some(res)
 
@@ -83,7 +83,7 @@ object ScriptPreprocessor {
     codeWrapper: CodeWrapper,
     subPath: os.SubPath,
     scopePath: PreprocessedSource.ScopePath
-  ): Either[BuildException, PreprocessedSource.InMemory] = either {
+  ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
 
     val contentIgnoredSheBangLines = ignoreSheBangLines(content)
 
@@ -100,9 +100,9 @@ object ScriptPreprocessor {
     )
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
+    val relPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
 
-    val relPath = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
-    PreprocessedSource.InMemory(
+    val file = PreprocessedSource.InMemory(
       reportingPath,
       relPath,
       code,
@@ -110,9 +110,10 @@ object ScriptPreprocessor {
       Some(options),
       Some(requirements),
       scopedRequirements,
-      Some(className),
+      Some(CustomCodeWrapper.mainClassObject(Name(className)).backticked),
       scopePath
     )
+    List(file)
   }
 
 }

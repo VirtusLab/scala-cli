@@ -35,6 +35,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       )
 
       val launcher = root / launcherName
+
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
@@ -143,7 +144,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!Properties.isWin && actualScalaVersion.startsWith("2."))
+  if (!Properties.isWin && actualScalaVersion.startsWith("2.13"))
     test("simple native") {
       simpleNativeTest()
     }

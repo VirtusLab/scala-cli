@@ -1,20 +1,19 @@
 package scala.build.tests
 
-import java.io.IOException
-
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.IOException
+
+import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Bloop, BuildThreads, Directories}
 import scala.build.options.{BuildOptions, InternalOptions, ScalaOptions}
+import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
+import scala.build.{Bloop, BuildThreads, Directories, LocalRepo, Logger}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
-import scala.build.tastylib.TastyData
-import scala.build.Logger
-import scala.build.LocalRepo
-import scala.build.Ops._
 
 class BuildTests extends munit.FunSuite {
 
@@ -59,7 +58,9 @@ class BuildTests extends munit.FunSuite {
       if (checkResults)
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple.class",
-          "simple$.class"
+          "simple_sc.class",
+          "simple$.class",
+          "simple_sc$.class"
         )
     }
   }
@@ -84,8 +85,11 @@ class BuildTests extends munit.FunSuite {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple.class",
+          "simple_sc.class",
+          "simple_sc.tasty",
           "simple$.class",
-          "simple.tasty"
+          "simple.tasty",
+          "simple_sc$.class"
         )
     }
   }
@@ -106,7 +110,9 @@ class BuildTests extends munit.FunSuite {
       val build = maybeBuild.orThrow
       build.assertGeneratedEquals(
         "simple.class",
+        "simple_sc.class",
         "simple$.class",
+        "simple_sc$.class",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
 
@@ -134,8 +140,11 @@ class BuildTests extends munit.FunSuite {
       val build = maybeBuild.orThrow
       build.assertGeneratedEquals(
         "simple.class",
+        "simple_sc.class",
+        "simple_sc.tasty",
         "simple$.class",
         "simple.tasty",
+        "simple_sc$.class",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
 
@@ -157,9 +166,13 @@ class BuildTests extends munit.FunSuite {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple.class",
-          "simple$.class",
+          "simple_sc.class",
           "simple.sjsir",
-          "simple$.sjsir"
+          "simple$.sjsir",
+          "simple_sc.sjsir",
+          "simple$.class",
+          "simple_sc$.class",
+          "simple_sc$.sjsir"
         )
     }
   }
@@ -175,9 +188,13 @@ class BuildTests extends munit.FunSuite {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple.class",
+          "simple_sc.class",
+          "simple$.nir",
           "simple$.class",
+          "simple_sc$$$Lambda$1.nir",
+          "simple_sc$.class",
+          "simple_sc$.nir"
           // "simple.nir", // not sure why Scala Native doesn't generate this one.
-          "simple$.nir"
         )
     }
   }
@@ -198,7 +215,9 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
-        "simple$.class"
+        "simple_sc.class",
+        "simple$.class",
+        "simple_sc$.class"
       )
     }
   }
@@ -214,7 +233,9 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
-        "simple$.class"
+        "simple_sc.class",
+        "simple$.class",
+        "simple_sc$.class"
       )
     }
   }
@@ -230,7 +251,9 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
-        "simple$.class"
+        "simple_sc.class",
+        "simple$.class",
+        "simple_sc$.class"
       )
     }
   }
@@ -248,7 +271,9 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
-        "simple$.class"
+        "simple_sc.class",
+        "simple$.class",
+        "simple_sc$.class"
       )
     }
   }
@@ -266,7 +291,9 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
-        "simple$.class"
+        "simple_sc.class",
+        "simple$.class",
+        "simple_sc$.class"
       )
     }
   }
