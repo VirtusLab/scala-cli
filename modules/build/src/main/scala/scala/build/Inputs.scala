@@ -132,6 +132,8 @@ object Inputs {
 
   sealed trait SingleElement extends Element
 
+  sealed trait AnyScript extends Element
+
   sealed abstract class OnDisk extends Element {
     def path: os.Path
   }
@@ -154,7 +156,7 @@ object Inputs {
   sealed trait AnyScalaFile extends Compiled
 
   final case class Script(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with AnyScalaFile {
+      extends OnDisk with SourceFile with AnyScalaFile with AnyScript {
     lazy val path = base / subPath
   }
   final case class ScalaFile(base: os.Path, subPath: os.SubPath)
@@ -169,7 +171,7 @@ object Inputs {
   final case class ResourceDirectory(path: os.Path) extends OnDisk
 
   final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
-      extends Virtual with AnyScalaFile
+      extends Virtual with AnyScalaFile with AnyScript
   final case class VirtualScalaFile(content: Array[Byte], source: String)
       extends Virtual with AnyScalaFile
   final case class VirtualJavaFile(content: Array[Byte], source: String)

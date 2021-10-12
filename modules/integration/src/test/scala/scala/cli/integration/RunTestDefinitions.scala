@@ -118,9 +118,25 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2."))
+  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.13"))
     test("simple script native") {
       simpleNativeTests()
+    }
+  else
+    test("Descriptive error message for unsupported native/script configurations") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "a.sc" -> "println(1)"
+        )
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, extraOptions, "--native", "a.sc").call(
+          cwd = root,
+          check = false,
+          stderr = os.Pipe
+        ).err.text.trim
+        expect(output.startsWith("scala-cli: invalid option:"))
+      }
     }
 
   test("Multiple scripts") {
@@ -193,7 +209,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2."))
+  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.13"))
     test("Multiple scripts native") {
       multipleScriptsNative()
     }
@@ -211,7 +227,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", "print").call(cwd =
+      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", "print_sc").call(cwd =
         root).out.text().trim
       expect(output == message)
     }
@@ -295,7 +311,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--js", "--main-class", "print")
+      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--js", "--main-class", "print_sc")
         .call(cwd = root)
         .out.text().trim
       expect(output == message)
@@ -325,14 +341,16 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print")
-        .call(cwd = root)
-        .out.text().trim
+      val output =
+        os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print_sc")
+          .call(cwd = root)
+          .out.text().trim
       expect(output == message)
     }
   }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2."))
+  // TODO: make nice messages that the scenario is unsupported with 2.12
+  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.13"))
     test("Directory native") {
       directoryNative()
     }
@@ -488,34 +506,36 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val expectedLines =
         if (actualScalaVersion.startsWith("2.12."))
           s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-             |${tab}at throws.main(throws.sc)
+             |${tab}at throws_sc$$.main(throws.sc:23)
+             |${tab}at throws_sc.main(throws.sc)
              |Caused by: java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.<init>(throws.sc:6)
              |${tab}at throws$$.<clinit>(throws.sc)
-             |$tab... 1 more
+             |$tab... 2 more
              |Caused by: java.lang.RuntimeException: nope
              |${tab}at scala.sys.package$$.error(package.scala:30)
              |${tab}at throws$$.something(throws.sc:2)
              |${tab}at throws$$.<init>(throws.sc:3)
-             |$tab... 2 more
-             |""".stripMargin.linesIterator.toVector
+             |$tab... 3 more""".stripMargin.linesIterator.toVector
         else
           s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-             |${tab}at throws.main(throws.sc)
+             |${tab}at throws_sc$$.main(throws.sc:23)
+             |${tab}at throws_sc.main(throws.sc)
              |Caused by: java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.<clinit>(throws.sc:6)
-             |$tab... 1 more
+             |$tab... 2 more
              |Caused by: java.lang.RuntimeException: nope
              |${tab}at scala.sys.package$$.error(package.scala:27)
              |${tab}at throws$$.something(throws.sc:2)
              |${tab}at throws$$.<clinit>(throws.sc:3)
-             |$tab... 1 more
+             |$tab... 2 more
              |""".stripMargin.linesIterator.toVector
       if (exceptionLines != expectedLines) {
-        pprint.log(exceptionLines)
-        pprint.log(expectedLines)
+        println(exceptionLines.mkString("\n"))
+        println(expectedLines)
       }
-      expect(exceptionLines == expectedLines)
+      expect(exceptionLines.length == expectedLines.length)
+      for { i <- Range(0, exceptionLines.length) } expect(exceptionLines(i) == expectedLines(i))
     }
   }
   if (actualScalaVersion.startsWith("2."))
@@ -553,17 +573,18 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val tab = "\t"
       val expectedLines =
         s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-           |${tab}at throws.main(throws.sc)
+           |${tab}at throws_sc$$.main(throws.sc:25)
+           |${tab}at throws_sc.main(throws.sc)
            |Caused by: java.lang.Exception: Caught exception during processing
            |${tab}at throws$$.<clinit>(throws.sc:8)
-           |$tab... 1 more
+           |$tab... 2 more
            |Caused by: java.lang.RuntimeException: nope
            |${tab}at scala.sys.package$$.error(package.scala:27)
            |${tab}at throws$$.something(throws.sc:3)
            |${tab}at throws$$.<clinit>(throws.sc:5)
-           |$tab... 1 more
-           |""".stripMargin.linesIterator.toVector
-      expect(exceptionLines == expectedLines)
+           |$tab... 2 more""".stripMargin.linesIterator.toVector
+      expect(exceptionLines.length == expectedLines.length)
+      for { i <- Range(0, exceptionLines.length) } expect(exceptionLines(i) == expectedLines(i))
     }
   }
 
@@ -1076,6 +1097,31 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val res = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root)
       pprint.log(res.out.text())
       expect(res.out.text().contains("Hello from tests"))
+    }
+  }
+  test("interconnection between scripts") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "f.sc"     -> "def f(x: String) = println(x + x + x)",
+        os.rel / "main0.sc" -> "f.f(args(0))"
+      )
+    )
+    inputs.fromRoot { root =>
+      val p =
+        os.proc(TestUtil.cli, "main0.sc", "f.sc", "--", "20").call(cwd = root)
+      val res = p.out.text.trim
+      expect(res == "202020")
+    }
+  }
+  test("CLI args passed to script") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "f.sc" -> "println(args(0))"
+      )
+    )
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "f.sc", "--", "16").call(cwd = root)
+      expect(p.out.text.trim == "16")
     }
   }
 

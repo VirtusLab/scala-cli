@@ -12,19 +12,13 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  JmhBuildFailedError,
-  MainClassError,
-  NoMainClassFoundError,
-  SeveralMainClassesFoundError
-}
+import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
+import scala.util.Properties
 import scala.util.control.NonFatal
 
 trait Build {
@@ -316,6 +310,18 @@ object Build {
   def classesDir(root: os.Path, projectName: String, scope: Scope): os.Path =
     classesRootDir(root, projectName) / scope.name
 
+  def scalaNativeSupported(options: BuildOptions, inputs: Inputs) = either {
+    val version = value(options.scalaParams).scalaVersion
+    if (version.startsWith("3")) false
+    else if (version.startsWith("2.13")) Properties.isMac || Properties.isLinux
+    else if (version.startsWith("2.12"))
+      !inputs.sourceFiles().exists {
+        case _: Inputs.AnyScript => true
+        case _                   => false
+      }
+    else false
+  }
+
   def build(
     inputs: Inputs,
     options: BuildOptions,
@@ -324,7 +330,6 @@ object Build {
     logger: Logger,
     crossBuilds: Boolean
   ): Either[BuildException, Builds] = {
-
     val buildClient = BloopBuildClient.create(
       logger,
       keepDiagnostics = options.internal.keepDiagnostics
@@ -565,6 +570,10 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ): Either[BuildException, Build] = either {
+    if (options.platform == Platform.Native && !value(scalaNativeSupported(options, inputs)))
+      value(Left(new ScalaNativeCompatibilityError()))
+    else
+      value(Right(0))
 
     val (classesDir0, scalaParams, artifacts, project, updatedBloopConfig) = value {
       prepareBuild(
@@ -811,5 +820,4 @@ object Build {
       .start()
       .waitFor()
   }
-
 }

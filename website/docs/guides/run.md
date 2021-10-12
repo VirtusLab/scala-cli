@@ -22,10 +22,11 @@ scala-cli Hello.scala
 
 ## Passing arguments
 
-You can pass arguments to the application you're launching after `--`:
+You can pass arguments to the application or script you're launching after `--`:
 ```bash
 scala-cli MyApp.scala -- first-arg second-arg
 # MyApp called with arguments: first-arg second-arg
+
 ```
 
 ## Main class
@@ -77,6 +78,16 @@ scala-cli run HelloScript.sc
 # Hello world from scala script
 ```
 
+You may also pass args to your script, it is referenced via `args` special variable
+
+```bash
+cat p.sc
+# !/usr/bin/env scala-cli
+# println(args(1))
+./p.sc hello world
+# world
+```
+
 ## ScalaCli from docker
 
 Scala applications can also be compiled and run using docker image with `scala-cli`.
@@ -91,6 +102,6 @@ cat HelloWorld.scala
 # object HelloWorld extends App {
 #     println("Hello world")
 # }
-docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala 
+docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala
 # Hello world
 ```
