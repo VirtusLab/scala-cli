@@ -29,7 +29,7 @@ EOF
 
   pe "scala-cli demo.scala -- Ala jake Mike"
   
-  sleep 2
+  sleep 5
 
   clear
 
