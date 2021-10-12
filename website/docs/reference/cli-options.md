@@ -857,8 +857,6 @@ Aliases: `--resource`
 
 Add resource directory
 
-#### `--class-wrap`
-
 #### `--scala-library`
 
 #### `--java`
