@@ -19,14 +19,14 @@ export default function BasicInstall(props){
         ]}>
           
           <TabItem value="win">
-            <a className="no_monospace" href="https://github.com/Virtuslab/scala-cli/releases/download/nightly/scala-cli-x86_64-pc-win32.msi">
+            <a className="no_monospace" href="https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-win32.msi">
               Download Scala CLI for Windows
             </a>
           </TabItem>
 
           <TabItem value="mac/linux">
             <p>Run the following one-line command in your terminal</p>
-            <code> bash
+            <code>
               curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh
             </code>
           </TabItem>
