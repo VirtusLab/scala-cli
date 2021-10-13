@@ -49,7 +49,7 @@ object Bloop {
     logger: Logger
   ): Either[BuildException, Seq[File]] =
     either {
-      value(Artifacts.artifacts(Seq(dep), Nil, params, logger))
+      value(Artifacts.artifacts(Positioned.none(Seq(dep)), Nil, params, logger))
         .map(_._2.toFile)
     }
 

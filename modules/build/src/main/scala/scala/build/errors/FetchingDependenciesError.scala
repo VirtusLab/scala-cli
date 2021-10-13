@@ -2,9 +2,13 @@ package scala.build.errors
 
 import coursier.error.CoursierError
 
-final class FetchingDependenciesError(underlying: CoursierError)
-    extends BuildException(
-      s"Error fetching dependencies: ${underlying.getMessage}",
-      Nil,
+import scala.build.Position
+
+final class FetchingDependenciesError(
+  underlying: CoursierError,
+  positions: Seq[Position]
+) extends BuildException(
+      underlying.getMessage,
+      positions,
       underlying
     )

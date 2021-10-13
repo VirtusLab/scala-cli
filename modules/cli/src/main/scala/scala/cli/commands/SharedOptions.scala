@@ -11,7 +11,7 @@ import java.io.{ByteArrayOutputStream, File, InputStream}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.Constants
 import scala.build.options._
-import scala.build.{Inputs, LocalRepo, Logger, Os}
+import scala.build.{Inputs, LocalRepo, Logger, Os, Positioned}
 import scala.util.Properties
 
 // format: off
@@ -104,14 +104,18 @@ final case class SharedOptions(
 
   def logger = logging.logger
 
-  private def parseDependencies(deps: List[String], ignoreErrors: Boolean): Seq[AnyDependency] =
-    deps.map(_.trim).filter(_.nonEmpty)
-      .flatMap { depStr =>
+  private def parseDependencies(
+    deps: List[Positioned[String]],
+    ignoreErrors: Boolean
+  ): Seq[Positioned[AnyDependency]] =
+    deps.map(_.map(_.trim)).filter(_.value.nonEmpty)
+      .flatMap { posDepStr =>
+        val depStr = posDepStr.value
         DependencyParser.parse(depStr) match {
           case Left(err) =>
             if (ignoreErrors) Nil
             else sys.error(s"Error parsing dependency '$depStr': $err")
-          case Right(dep) => Seq(dep)
+          case Right(dep) => Seq(posDepStr.map(_ => dep))
         }
       }
 
@@ -131,7 +135,8 @@ final case class SharedOptions(
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         generateSemanticDbs = semanticDb,
         scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
-        compilerPlugins = parseDependencies(dependencies.compilerPlugin, ignoreErrors),
+        compilerPlugins =
+          parseDependencies(dependencies.compilerPlugin.map(Positioned.none(_)), ignoreErrors),
         platform = platformOpt
       ),
       scriptOptions = ScriptOptions(
@@ -160,7 +165,8 @@ final case class SharedOptions(
           .filter(_.nonEmpty)
           .map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
-        extraDependencies = parseDependencies(dependencies.dependency, ignoreErrors)
+        extraDependencies =
+          parseDependencies(dependencies.dependency.map(Positioned.none(_)), ignoreErrors)
       ),
       internal = InternalOptions(
         cache = Some(coursierCache),

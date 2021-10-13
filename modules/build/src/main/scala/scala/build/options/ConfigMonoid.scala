@@ -10,7 +10,7 @@ trait ConfigMonoid[T] {
 object ConfigMonoid {
   def apply[T](implicit instance: ConfigMonoid[T]): ConfigMonoid[T] = instance
 
-  private def instance[T](zeroValue: => T)(orElseFn: (T, T) => T): ConfigMonoid[T] =
+  def instance[T](zeroValue: => T)(orElseFn: (T, T) => T): ConfigMonoid[T] =
     new ConfigMonoid[T] {
       def zero                         = zeroValue
       def orElse(main: T, defaults: T) = orElseFn(main, defaults)

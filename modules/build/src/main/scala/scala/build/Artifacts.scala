@@ -61,8 +61,8 @@ object Artifacts {
 
   def apply(
     params: ScalaParameters,
-    compilerPlugins: Seq[AnyDependency],
-    dependencies: Seq[AnyDependency],
+    compilerPlugins: Seq[Positioned[AnyDependency]],
+    dependencies: Seq[Positioned[AnyDependency]],
     extraClassPath: Seq[Path],
     extraCompileOnlyJars: Seq[Path],
     extraSourceJars: Seq[Path],
@@ -119,19 +119,20 @@ object Artifacts {
 
     val allExtraRepositories = maybeSnapshotRepo ++ extraRepositories
 
-    val updatedDependencies = dependencies ++
-      jvmRunnerDependencies ++
-      jvmTestRunnerDependencies ++
-      jsTestBridgeDependencies ++
-      jmhDependencies
+    val updatedDependencies =
+      dependencies ++
+        jvmRunnerDependencies.map(Positioned.none(_)) ++
+        jvmTestRunnerDependencies.map(Positioned.none(_)) ++
+        jsTestBridgeDependencies.map(Positioned.none(_)) ++
+        jmhDependencies.map(Positioned.none(_))
 
     val compilerArtifacts = value {
-      artifacts(compilerDependencies, allExtraRepositories, params, logger)
+      artifacts(Positioned.none(compilerDependencies), allExtraRepositories, params, logger)
     }
 
     val fetchRes = value {
       fetch(
-        updatedDependencies,
+        Positioned.sequence(updatedDependencies),
         allExtraRepositories,
         params,
         logger,
@@ -143,7 +144,7 @@ object Artifacts {
       if (addStubs)
         value {
           artifacts(
-            Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion"),
+            Positioned.none(Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion")),
             allExtraRepositories,
             params,
             logger
@@ -154,10 +155,11 @@ object Artifacts {
 
     val compilerPlugins0 = value {
       compilerPlugins
-        .map { dep =>
-          val dep0 = dep.copy(userParams = dep.userParams + ("intransitive" -> None))
-          artifacts(Seq(dep0), allExtraRepositories, params, logger)
-            .map(_.map { case (url, path) => (dep0, url, path) })
+        .map { posDep =>
+          val posDep0 =
+            posDep.map(dep => dep.copy(userParams = dep.userParams + ("intransitive" -> None)))
+          artifacts(posDep0.map(Seq(_)), allExtraRepositories, params, logger)
+            .map(_.map { case (url, path) => (posDep0.value, url, path) })
         }
         .sequence
         .left.map(CompositeBuildException(_))
@@ -168,7 +170,7 @@ object Artifacts {
       compilerDependencies,
       compilerArtifacts,
       compilerPlugins0,
-      updatedDependencies,
+      updatedDependencies.map(_.value),
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) => (d, p, a, f.toPath) },
       extraClassPath ++ extraStubsJars,
       extraCompileOnlyJars,
@@ -178,7 +180,7 @@ object Artifacts {
   }
 
   private[build] def artifacts(
-    dependencies: Seq[AnyDependency],
+    dependencies: Positioned[Seq[AnyDependency]],
     extraRepositories: Seq[String],
     params: ScalaParameters,
     logger: Logger,
@@ -199,14 +201,14 @@ object Artifacts {
   }
 
   private[build] def fetch(
-    dependencies: Seq[AnyDependency],
+    dependencies: Positioned[Seq[AnyDependency]],
     extraRepositories: Seq[String],
     params: ScalaParameters,
     logger: Logger,
     classifiersOpt: Option[Set[String]]
   ): Either[BuildException, Fetch.Result] = either {
     logger.debug {
-      s"Fetching $dependencies" +
+      s"Fetching ${dependencies.value}" +
         (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories")
     }
 
@@ -222,7 +224,7 @@ object Artifacts {
     var fetcher = coursier.Fetch()
       .withCache(cache)
       .addRepositories(extraRepositories0: _*)
-      .addDependencies(dependencies.map(_.toCs(params)): _*)
+      .addDependencies(dependencies.value.map(_.toCs(params)): _*)
     for (classifiers <- classifiersOpt) {
       if (classifiers("_"))
         fetcher = fetcher.withMainArtifacts()
@@ -232,7 +234,7 @@ object Artifacts {
 
     value {
       fetcher.eitherResult()
-        .left.map(ex => new FetchingDependenciesError(ex))
+        .left.map(ex => new FetchingDependenciesError(ex, dependencies.positions))
     }
   }
 

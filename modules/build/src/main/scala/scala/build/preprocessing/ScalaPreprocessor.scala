@@ -8,7 +8,6 @@ import dependency.parser.DependencyParser
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Inputs
 import scala.build.Ops._
 import scala.build.errors.{
   BuildException,
@@ -19,6 +18,7 @@ import scala.build.errors.{
 import scala.build.internal.{AmmUtil, Util}
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
+import scala.build.{Inputs, Positioned}
 import scala.jdk.CollectionConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -318,7 +318,9 @@ case object ScalaPreprocessor extends Preprocessor {
       val deps    = dependencyTrees.map(_.prefix.drop(1).mkString("."))
       val options = BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraDependencies = deps.map(parseDependency)
+          extraDependencies = deps
+            .map(parseDependency)
+            .map(Positioned.none(_)) // TODO Keep positions here
         )
       )
       Some((BuildRequirements(), options, newCode))
