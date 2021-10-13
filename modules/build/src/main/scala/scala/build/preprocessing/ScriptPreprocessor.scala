@@ -3,10 +3,10 @@ package scala.build.preprocessing
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Inputs
 import scala.build.errors.BuildException
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
-import scala.build.{Inputs, Os}
 import scala.util.matching.Regex
 
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {
@@ -15,16 +15,12 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
     input match {
       case script: Inputs.Script =>
         val content = os.read(script.path)
-        val printablePath =
-          if (script.path.startsWith(Os.pwd)) script.path.relativeTo(Os.pwd).toString
-          else script.path.toString
 
         val res = either {
           val preprocessed = value {
             ScriptPreprocessor.preprocess(
               Right(script.path),
               content,
-              printablePath,
               codeWrapper,
               script.subPath,
               PreprocessedSource.ScopePath.fromPath(script.path)
@@ -42,7 +38,6 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
             ScriptPreprocessor.preprocess(
               Left(script.source),
               content,
-              script.source,
               codeWrapper,
               script.wrapperPath,
               script.scopePath
@@ -79,7 +74,6 @@ object ScriptPreprocessor {
   private def preprocess(
     reportingPath: Either[String, os.Path],
     content: String,
-    printablePath: String,
     codeWrapper: CodeWrapper,
     subPath: os.SubPath,
     scopePath: PreprocessedSource.ScopePath
@@ -90,7 +84,7 @@ object ScriptPreprocessor {
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
 
     val (requirements, scopedRequirements, options, updatedCodeOpt) =
-      value(ScalaPreprocessor.process(contentIgnoredSheBangLines, printablePath, scopePath / os.up))
+      value(ScalaPreprocessor.process(contentIgnoredSheBangLines, reportingPath, scopePath / os.up))
         .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(

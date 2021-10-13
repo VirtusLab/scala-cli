@@ -8,6 +8,7 @@ import dependency.parser.DependencyParser
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Inputs
 import scala.build.Ops._
 import scala.build.errors.{
   BuildException,
@@ -15,10 +16,9 @@ import scala.build.errors.{
   FileNotFoundException,
   UnusedDirectiveError
 }
-import scala.build.internal.AmmUtil
+import scala.build.internal.{AmmUtil, Util}
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
-import scala.build.{Inputs, Os}
 import scala.jdk.CollectionConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -57,12 +57,9 @@ case object ScalaPreprocessor extends Preprocessor {
           (pkg :+ wrapper).map(_.raw).mkString(".")
         }
         val res = either {
-          val printablePath =
-            if (f.path.startsWith(Os.pwd)) f.path.relativeTo(Os.pwd).toString
-            else f.path.toString
           val content   = value(maybeRead(f.path))
           val scopePath = PreprocessedSource.ScopePath.fromPath(f.path)
-          val source = value(process(content, printablePath, scopePath / os.up)) match {
+          val source = value(process(content, Right(f.path), scopePath / os.up)) match {
             case None =>
               PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
             case Some((requirements, scopedRequirements, options, Some(updatedCode))) =>
@@ -94,7 +91,7 @@ case object ScalaPreprocessor extends Preprocessor {
         val res = either {
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
-            value(process(content, v.source, v.scopePath / os.up))
+            value(process(content, Left(v.source), v.scopePath / os.up))
               .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
           val s = PreprocessedSource.InMemory(
             Left(v.source),
@@ -117,7 +114,7 @@ case object ScalaPreprocessor extends Preprocessor {
 
   def process(
     content: String,
-    printablePath: String,
+    path: Either[String, os.Path],
     scopeRoot: PreprocessedSource.ScopePath
   ): Either[BuildException, Option[(
     BuildRequirements,
@@ -128,13 +125,13 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val afterStrictUsing = value(processStrictUsing(content))
     val afterUsing = value {
-      processUsing(afterStrictUsing.map(_._2).getOrElse(content), scopeRoot)
+      processUsing(path, afterStrictUsing.map(_._2).getOrElse(content), scopeRoot)
         .sequence
     }
     val afterProcessImports =
       processSpecialImports(
         afterUsing.flatMap(_._4).orElse(afterStrictUsing.map(_._2)).getOrElse(content),
-        printablePath
+        path.fold(identity, Util.printablePath(_))
       )
 
     if (afterStrictUsing.isEmpty && afterUsing.isEmpty && afterProcessImports.isEmpty) None
@@ -223,6 +220,7 @@ case object ScalaPreprocessor extends Preprocessor {
   }
 
   private def processUsing(
+    path: Either[String, os.Path],
     content: String,
     scopeRoot: PreprocessedSource.ScopePath
   ): Option[Either[
@@ -236,7 +234,7 @@ case object ScalaPreprocessor extends Preprocessor {
   ]] =
     // TODO Warn about unrecognized directives
     // TODO Report via some diagnostics malformed directives
-    TemporaryDirectivesParser.parseDirectives(content).map {
+    TemporaryDirectivesParser.parseDirectives(path, content).map {
       case (directives, updatedContentOpt) =>
         val tuple = (
           directivesBuildRequirements(directives, scopeRoot),

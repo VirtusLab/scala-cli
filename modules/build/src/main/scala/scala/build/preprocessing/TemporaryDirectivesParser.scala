@@ -3,6 +3,7 @@ package scala.build.preprocessing
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._
 
+import scala.build.Position
 import scala.build.preprocessing.directives.Directive
 
 object TemporaryDirectivesParser {
@@ -55,17 +56,19 @@ object TemporaryDirectivesParser {
     def elem       = P(!("in" ~ (ws | "," | nl)) ~ (simpleElem | quotedElem))
 
     def parser = P(
-      tpe ~ ws ~
+      Index ~ tpe ~ ws ~
         (elem.rep(1, sep = P(ws)) ~ (ws ~ "in" ~ ws ~ elem).?).rep(1, sep = P(ws.? ~ "," ~ ws.?)) ~
+        Index ~
         nl.? ~ sc.? ~
         nl.?
     )
 
     parser.map {
-      case (tpe0, isComment, allElems) =>
+      case (startIdx, (tpe0, isComment), allElems, endIdx) =>
         allElems.map {
           case (elems, scopeOpt) =>
-            Directive(tpe0, elems, scopeOpt, isComment)
+            val pos = Position.Raw(startIdx, endIdx)
+            Directive(tpe0, elems, scopeOpt, isComment, pos)
         }
     }
   }
@@ -77,10 +80,27 @@ object TemporaryDirectivesParser {
   private def parseDirective(content: String, fromIndex: Int): Option[(Seq[Directive], Int)] = {
     // TODO Don't create a new String here
     val res = parse(content.drop(fromIndex), maybeDirective(_))
-    res.fold((err, _, _) => sys.error(err), (dirOpt, idx) => dirOpt.map((_, idx + fromIndex)))
+    res.fold(
+      (err, _, _) => sys.error(err),
+      (dirOpt, idx) => {
+        def updatePos(pos: Position): Position =
+          pos match {
+            case r: Position.Raw => r + fromIndex
+            case _               => pos
+          }
+        dirOpt
+          .map { directives =>
+            directives.map(dir => dir.copy(position = updatePos(dir.position)))
+          }
+          .map((_, idx + fromIndex))
+      }
+    )
   }
 
-  def parseDirectives(content: String): Option[(List[Directive], Option[String])] = {
+  def parseDirectives(
+    path: Either[String, os.Path],
+    content: String
+  ): Option[(List[Directive], Option[String])] = {
 
     def helper(fromIndex: Int, acc: List[Directive]): (List[Directive], Int) =
       parseDirective(content, fromIndex) match {
@@ -88,7 +108,16 @@ object TemporaryDirectivesParser {
         case Some((dir, newIndex)) => helper(newIndex, dir.toList ::: acc)
       }
 
-    val (directives, codeStartsAt) = helper(0, Nil)
+    val (rawDirectives, codeStartsAt) = helper(0, Nil)
+    val f                             = Position.Raw.filePos(path, content)
+    def updatePos(pos: Position): Position =
+      pos match {
+        case r: Position.Raw => f(r)
+        case _               => pos
+      }
+    val directives = rawDirectives.map { dir =>
+      dir.copy(position = updatePos(dir.position))
+    }
 
     if (codeStartsAt == 0) {
       assert(directives.isEmpty)

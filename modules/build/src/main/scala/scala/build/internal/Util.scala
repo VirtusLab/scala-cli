@@ -1,8 +1,10 @@
 package scala.build.internal
 
-import java.io.PrintStream
+import java.io.{File, PrintStream}
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
+
+import scala.build.Os
 
 object Util {
 
@@ -56,4 +58,10 @@ object Util {
 
   def isFullScalaVersion(sv: String): Boolean =
     sv.count(_ == '.') >= 2 && !sv.endsWith(".")
+
+  def printablePath(p: os.Path): String =
+    printablePath(p, Os.pwd, File.separator)
+  def printablePath(p: os.Path, cwd: os.Path, sep: String): String =
+    if (p.startsWith(cwd)) (Iterator(".") ++ p.relativeTo(cwd).segments.iterator).mkString(sep)
+    else p.toString
 }
