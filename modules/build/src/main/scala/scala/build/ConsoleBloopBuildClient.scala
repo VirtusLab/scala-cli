@@ -180,7 +180,8 @@ object ConsoleBloopBuildClient {
         code.linesIterator.map(prefix + _).foreach(out.println(_))
       val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
         diag.getRange.getStart.getCharacter != null &&
-        diag.getRange.getEnd.getCharacter != null
+        diag.getRange.getEnd.getCharacter != null &&
+        diag.getCode != null
       if (canPrintUnderline)
         out.println(
           prefix + " " * diag.getRange.getStart.getCharacter + "^" * (diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter + 1)
