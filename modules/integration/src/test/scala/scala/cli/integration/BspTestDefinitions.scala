@@ -505,6 +505,48 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("directive diagnostics") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Test.scala" ->
+          s"""// using com.lihaoyi::pprint:0.0.0.0.0.1
+             |
+             |object Test {
+             |  val msg = "Hello"
+             |  println(msg)
+             |}
+             |""".stripMargin
+      )
+    )
+
+    withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
+      async {
+        await(remoteServer.workspaceBuildTargets().asScala)
+
+        val diagnosticsParams = localClient.latestDiagnostics().getOrElse {
+          sys.error("No diagnostics found")
+        }
+
+        val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
+        expect(diagnostics.length == 1)
+
+        val diag = diagnostics.head
+
+        expect(diag.getSeverity == b.DiagnosticSeverity.ERROR)
+        expect(diag.getRange.getStart.getLine == 0)
+        expect(diag.getRange.getStart.getCharacter == 0)
+        expect(diag.getRange.getEnd.getLine == 0)
+        expect(diag.getRange.getEnd.getCharacter == 40)
+        val sbv =
+          if (actualScalaVersion.startsWith("2.12.")) "2.12"
+          else if (actualScalaVersion.startsWith("2.13.")) "2.13"
+          else if (actualScalaVersion.startsWith("3.")) "3"
+          else ???
+        expect(diag.getMessage.contains(s"Error downloading com.lihaoyi:pprint_$sbv:0.0.0.0.0.1"))
+      }
+    }
+  }
+
   test("workspace update") {
     val inputs = TestInputs(
       Seq(

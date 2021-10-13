@@ -9,7 +9,6 @@ import java.io.{InputStream, OutputStream}
 import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
 import scala.build._
 import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
@@ -126,12 +125,17 @@ final class BspImpl(
   private def build(
     actualLocalServer: BspServer,
     bloopServer: BloopServer,
+    client: BspClient,
     notifyChanges: Boolean,
     logger: Logger
   ): Unit =
     buildE(actualLocalServer, bloopServer, notifyChanges) match {
-      case Left(ex)  => logger.debug(s"Caught $ex during BSP build, ignoring it")
+      case Left(ex) =>
+        client.reportBuildException(actualLocalServer.targetIdOpt, ex)
+        logger.debug(s"Caught $ex during BSP build, ignoring it")
       case Right(()) =>
+        for (targetId <- actualLocalServer.targetIdOpt)
+          client.resetBuildExceptionDiagnostics(targetId)
     }
 
   def compile(
@@ -140,42 +144,56 @@ final class BspImpl(
     doCompile: () => CompletableFuture[b.CompileResult]
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
-      () => {
-        val preBuildData = prepareBuild(actualLocalServer).orThrow
-        if (preBuildData.buildChanged)
-          notifyBuildChange(actualLocalServer)
-        (
-          preBuildData.classesDir,
-          preBuildData.artifacts,
-          preBuildData.project,
-          preBuildData.generatedSources
-        )
-      },
+      () =>
+        prepareBuild(actualLocalServer) match {
+          case Right(preBuildData) =>
+            if (preBuildData.buildChanged)
+              notifyBuildChange(actualLocalServer)
+            Right((
+              preBuildData.classesDir,
+              preBuildData.artifacts,
+              preBuildData.project,
+              preBuildData.generatedSources
+            ))
+          case Left(ex) =>
+            notifyBuildChange(actualLocalServer)
+            Left(ex)
+        },
       executor
     )
 
-    preBuild.thenCompose { params =>
-      doCompile().thenCompose { res =>
-        val (classesDir0, artifacts, project, generatedSources) = params
-        (classesDir0, artifacts, project, generatedSources, res)
-        if (res.getStatusCode == b.StatusCode.OK)
-          CompletableFuture.supplyAsync(
-            () => {
-              Build.postProcess(
-                generatedSources,
-                inputs.generatedSrcRoot(Scope.Main),
-                classesDir0,
-                logger,
-                inputs.workspace,
-                updateSemanticDbs = true,
-                updateTasty = true
-              )
-              res
-            },
-            executor
+    preBuild.thenCompose { maybeParams =>
+      maybeParams match {
+        case Left(ex) =>
+          actualLocalClient.reportBuildException(actualLocalServer.targetIdOpt, ex)
+          CompletableFuture.completedFuture(
+            new b.CompileResult(b.StatusCode.ERROR)
           )
-        else
-          CompletableFuture.completedFuture(res)
+        case Right(params) =>
+          for (targetId <- actualLocalServer.targetIdOpt)
+            actualLocalClient.resetBuildExceptionDiagnostics(targetId)
+          doCompile().thenCompose { res =>
+            val (classesDir0, artifacts, project, generatedSources) = params
+            (classesDir0, artifacts, project, generatedSources, res)
+            if (res.getStatusCode == b.StatusCode.OK)
+              CompletableFuture.supplyAsync(
+                () => {
+                  Build.postProcess(
+                    generatedSources,
+                    inputs.generatedSrcRoot(Scope.Main),
+                    classesDir0,
+                    logger,
+                    inputs.workspace,
+                    updateSemanticDbs = true,
+                    updateTasty = true
+                  )
+                  res
+                },
+                executor
+              )
+            else
+              CompletableFuture.completedFuture(res)
+          }
       }
     }
   }
@@ -222,7 +240,7 @@ final class BspImpl(
   val watcher = new Build.Watcher(
     ListBuffer(),
     threads.buildThreads.fileWatcher,
-    build(actualLocalServer, remoteServer, notifyChanges = true, logger),
+    build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = true, logger),
     ()
   )
 
@@ -266,7 +284,19 @@ final class BspImpl(
     val remoteClient = launcher.getRemoteProxy
     actualLocalClient.forwardToOpt = Some(remoteClient)
 
-    prepareBuild(actualLocalServer) // FIXME We're discarding the error here
+    for (targetId <- actualLocalServer.targetIdOpt)
+      inputs.flattened().foreach {
+        case f: Inputs.SingleFile =>
+          actualLocalClient.resetDiagnostics(f.path, targetId)
+        case _: Inputs.Virtual =>
+      }
+
+    prepareBuild(actualLocalServer) match {
+      case Left(ex) =>
+        actualLocalClient.reportBuildException(actualLocalServer.targetIdOpt, ex)
+        logger.log(ex)
+      case Right(_) =>
+    }
 
     logger.log {
       val hasConsole = System.console() != null
@@ -278,7 +308,7 @@ final class BspImpl(
     val f = launcher.startListening()
 
     val initiateFirstBuild: Runnable = { () =>
-      try build(actualLocalServer, remoteServer, notifyChanges = false, logger)
+      try build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = false, logger)
       catch {
         case t: Throwable =>
           logger.debug(s"Caught $t during initial BSP build, ignoring it")

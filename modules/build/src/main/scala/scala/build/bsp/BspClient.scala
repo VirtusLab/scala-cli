@@ -2,12 +2,14 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 
+import java.lang.{Boolean => JBoolean}
 import java.net.URI
 import java.nio.file.Paths
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
+import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.postprocessing.LineConversion
-import scala.build.{BloopBuildClient, GeneratedSource, Logger}
+import scala.build.{BloopBuildClient, GeneratedSource, Logger, Position}
 import scala.jdk.CollectionConverters._
 
 class BspClient(
@@ -69,12 +71,20 @@ class BspClient(
   }
 
   override def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
+    val path = os.Path(Paths.get(new URI(params.getTextDocument.getUri)))
+    buildExceptionDiagnosticsDocs.remove((path, params.getBuildTarget))
+
+    actualBuildPublishDiagnostics(params)
+  }
+
+  private def actualBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
     val updatedParamsOpt =
       if (validTarget(params.getBuildTarget))
         generatedSources.uriMap.get(params.getTextDocument.getUri).map { genSource =>
           updatedPublishDiagnosticsParams(params, genSource)
         }
       else None
+
     def call(updatedParams0: b.PublishDiagnosticsParams): Unit =
       super.onBuildPublishDiagnostics(updatedParams0)
     updatedParamsOpt match {
@@ -99,4 +109,95 @@ class BspClient(
   def setProjectParams(newParams: Seq[String]): Unit = {}
   def diagnostics: Option[Seq[(Either[String, os.Path], b.Diagnostic)]] = None
   def clear(): Unit = {}
+
+  private val buildExceptionDiagnosticsDocs =
+    new ConcurrentHashMap[(os.Path, b.BuildTargetIdentifier), JBoolean]
+
+  def resetDiagnostics(path: os.Path, targetId: b.BuildTargetIdentifier): Unit = {
+    val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+    val params = new b.PublishDiagnosticsParams(
+      id,
+      targetId,
+      List.empty[b.Diagnostic].asJava,
+      true
+    )
+    actualBuildPublishDiagnostics(params)
+  }
+
+  def resetBuildExceptionDiagnostics(targetId: b.BuildTargetIdentifier): Unit =
+    for {
+      (key @ (path, elemTargetId), _) <- buildExceptionDiagnosticsDocs.asScala.toVector
+      if elemTargetId == targetId
+    } {
+      val removedValue = buildExceptionDiagnosticsDocs.remove(key)
+      if (removedValue != null) {
+        val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+        val params = new b.PublishDiagnosticsParams(
+          id,
+          targetId,
+          List.empty[b.Diagnostic].asJava,
+          true
+        )
+        actualBuildPublishDiagnostics(params)
+      }
+    }
+
+  def reportBuildException(
+    targetIdOpt: Option[b.BuildTargetIdentifier],
+    ex: BuildException,
+    isFirst: Boolean = true
+  ): Unit =
+    targetIdOpt match {
+      case None =>
+        logger.debug(s"Not reporting $ex to users (no build target id)")
+      case Some(targetId) =>
+        val allExceptions = ex match {
+          case c: CompositeBuildException => c.exceptions
+          case _                          => Seq(ex)
+        }
+        var touchedFiles = Set.empty[os.Path]
+        for {
+          ex   <- allExceptions
+          pos  <- ex.positions.distinct.collect { case f: Position.File => f }
+          path <- pos.path.toOption
+        } {
+          val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+          val diag = {
+            val startPos = new b.Position(pos.startPos._1, pos.startPos._2)
+            val endPos   = new b.Position(pos.endPos._1, pos.endPos._2)
+            val range    = new b.Range(startPos, endPos)
+            new b.Diagnostic(range, ex.message)
+          }
+          diag.setSeverity(b.DiagnosticSeverity.ERROR)
+          val params = new b.PublishDiagnosticsParams(
+            id,
+            targetId,
+            List(diag).asJava,
+            isFirst
+          )
+          touchedFiles = touchedFiles + path
+          buildExceptionDiagnosticsDocs.put((path, targetId), JBoolean.TRUE)
+          actualBuildPublishDiagnostics(params)
+        }
+
+        // Small chance of us wiping some Bloop diagnostics, if these happen
+        // between the call to remove and the call to actualBuildPublishDiagnostics.
+        for {
+          (key @ (path, elemTargetId), _) <- buildExceptionDiagnosticsDocs.asScala.toVector
+          if elemTargetId == targetId && !touchedFiles(path)
+        } {
+          val removedValue = buildExceptionDiagnosticsDocs.remove(key)
+          if (removedValue != null) {
+            val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+            val params = new b.PublishDiagnosticsParams(
+              id,
+              targetId,
+              List.empty[b.Diagnostic].asJava,
+              true
+            )
+            actualBuildPublishDiagnostics(params)
+          }
+        }
+    }
+
 }
