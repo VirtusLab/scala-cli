@@ -15,6 +15,7 @@ const featuresList = [
         Scala CLI ships with all its dependencies
         <br/>
         No need to fluff with installing JVM or setting up PATH. 
+        <i>some additional setup may be required for <a href="/install#scala-js">JS</a> and <a href="/install#scala-native">Native</a></i>
       </p>
     </ImageBox>,
     <ImageBox image="universal_tool.svg" title="Universal tool" key="universal" 
@@ -23,7 +24,7 @@ const featuresList = [
         If you want to use older <b>version of Scala</b> or
         run your code in <b>JS</b> or <b>Native</b> environments we've got you covered.
         <br/>
-        <i>some additional <a href="TODO?">setup</a> may be required for JS and Native</i>
+        <i>some additional setup may be required for <a href="/install#scala-js">JS</a> and <a href="/install#scala-native">Native</a></i>
       </p>
       <p>Switching between platforms or Scala versions is as easy as changing a parameter.</p>
     </ImageBox>,

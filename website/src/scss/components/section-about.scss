@@ -26,18 +26,20 @@
             margin-bottom: 15px;
         }
 
-        .pre-title-mobile{
+        .pre-title-mobile a{
             color: #DE3D3B;
+            text-decoration: none;
 
             @media ( min-width: 376px){
                 display: none;
             }
         }
 
-        &.pre-title{
+        &.pre-title a{
             text-align: right;
             padding-left: 20px;
             color: #DE3D3B;
+            text-decoration: none;
 
             @media ( max-width: 375px){
                 display: none;
