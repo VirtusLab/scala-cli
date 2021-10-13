@@ -36,7 +36,6 @@ groupId="linux"
 defaultValue="manual"
 values={[
 {label: 'Manual', value: 'manual'},
-{label: 'Snap', value: 'snap'},
 {label: 'Apt', value: 'apt'},
 {label: 'Deb', value: 'deb'},
 {label: 'Yum', value: 'yum'},
@@ -68,14 +67,6 @@ curl -s --compressed "https://virtuslab.github.io/scala-cli-packages/KEY.gpg" | 
 sudo curl -s --compressed -o /etc/apt/sources.list.d/scala_cli_packages.list "https://virtuslab.github.io/scala-cli-packages/debian/scala_cli_packages.list"
 sudo apt update
 sudo apt install scala-cli
-```
-</TabItem>
-<TabItem value="snap">
-
-Scala CLI can be installed via [snap](https://snapcraft.io/#) with
-
-```bash
-snap install scala-cli
 ```
 </TabItem>
 <TabItem value="deb">
