@@ -509,5 +509,4 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         expect(output.contains("Hello from native"))
     }
   }
-
 }
