@@ -435,7 +435,8 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
     super.scalacOptions() ++ {
       if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
       else Nil
-    }
+    } ++ Seq("-release", "8")
+
   }
   def mainClass = Some("scala.cli.runner.Runner")
   def ivyDeps =
@@ -474,7 +475,7 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
     super.scalacOptions() ++ {
       if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused", "-deprecation")
       else Nil
-    }
+    } ++ Seq("-release", "8")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
@@ -524,12 +525,13 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
 
 class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  def scalacOptions = T {
+  def scalacOptions = T(
     super.scalacOptions() ++ {
       if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
       else Nil
-    }
-  }
+    } ++ Seq("-release", "8")
+  )
+
 }
 
 object `local-repo` extends LocalRepo {

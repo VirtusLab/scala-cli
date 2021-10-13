@@ -1141,6 +1141,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(p.out.text().trim == "16")
     }
   }
+
   if (!Properties.isWin)
     test("CLI args passed to shebang script") {
       val inputs = TestInputs(
@@ -1156,4 +1157,16 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         expect(p.out.text().trim == "List(1, 2, 3, -v)")
       }
     }
+
+  test("Runs with JVM 8") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "run.scala" -> """object Main extends App { println("hello")}"""
+      )
+    )
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "run.scala", "--jvm", "8").call(cwd = root)
+      expect(p.out.text().trim == "hello")
+    }
+  }
 }

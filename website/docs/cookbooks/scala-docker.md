@@ -18,7 +18,7 @@ Passing `--docker` to the `package` sub-command generates a Docker image. When c
 The following command generates a `hello-docker` image with the `latest` tag:
 
 ```bash
-scala-cli package --docker HelloDocker.scala --docker-image-repository hello-docker
+scala-cli package --jvm 8 --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 
 <!-- Expected:
@@ -51,12 +51,9 @@ Built docker image, run it with
 This command creates a Scala Native Docker image:
 
 ```bash ignore
-scala-cli package --native --docker HelloDocker.scala --docker-image-repository hello-docker
+scala-cli package --native --jvm 8 --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 
 :::note
 Packaging a Scala Native application to a Docker image is supported only on Linux.
 :::
-
-
-

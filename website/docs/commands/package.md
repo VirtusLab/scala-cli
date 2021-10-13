@@ -35,7 +35,7 @@ scala-cli package Hello.scala -o hello
 # Hello
 ```
 
-<!-- Expected 
+<!-- Expected
 Hello
 -->
 
@@ -114,7 +114,7 @@ The docker image name parameter `--docker-image-repository` is mandatory.
 The following command generates a `hello-docker` image with the `latest` tag:
 
 ```bash
-scala-cli package --docker HelloDocker.scala --docker-image-repository hello-docker
+scala-cli package --jvm 8 --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 
 <!-- Expected:
@@ -280,7 +280,7 @@ scala-cli package --rpm --output 'path.rpm' Hello.scala
 ### macOS (PKG)
 
 PKG is the software package format for macOs.
-To build a PKG you will need to have [`pkgbuild`](https://www.unix.com/man-page/osx/1/pkgbuild/) installed. 
+To build a PKG you will need to have [`pkgbuild`](https://www.unix.com/man-page/osx/1/pkgbuild/) installed.
 
 Example:
 

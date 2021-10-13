@@ -214,7 +214,7 @@ class NativePackagerTests extends munit.FunSuite {
       // format: off
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
-        "package", helloWorldFileName,
+        "package", "--jvm", "8", helloWorldFileName,
         "--docker",
         "--docker-image-repository", imageRepository,
         "--docker-image-tag", imageTag
