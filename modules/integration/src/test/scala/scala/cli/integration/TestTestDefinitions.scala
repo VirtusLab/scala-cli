@@ -168,6 +168,15 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  if (actualScalaVersion.startsWith("2"))
+    test("successful test JVM 8") {
+      successfulTestInputs.fromRoot { root =>
+        val output =
+          os.proc(TestUtil.cli, "test", "--jvm", "8", extraOptions, ".").call(cwd = root).out.text()
+        expect(output.contains("Hello from tests"))
+      }
+    }
+
   def successfulJsTest(): Unit =
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
