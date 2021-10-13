@@ -126,15 +126,14 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     expect(expectedPrefixes.exists(uri.startsWith))
   }
 
-  def readBspConfig(root: os.Path, f: (Details) => Unit): Unit = {
+  private def readBspConfig(root: os.Path): Details = {
     val bspFile = root / ".bsp" / "scala-cli.json"
     expect(os.isFile(bspFile))
     val json = ujson.read(
       os.read(bspFile: os.ReadablePath, charSet = Codec(Charset.defaultCharset()))
     )
     // check that we can decode the connection details
-    val details = upickle.default.read(json)(detailsCodec)
-    f(details)
+    upickle.default.read(json)(detailsCodec)
   }
 
   test("setup-ide") {
@@ -148,13 +147,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "setup-ide", ".", extraOptions).call(cwd = root, stdout = os.Inherit)
-      readBspConfig(
-        root,
-        details => {
-          expect(details.argv.length >= 2)
-          expect(details.argv(1) == "bsp")
-        }
-      )
+      val details = readBspConfig(root)
+      expect(details.argv.length >= 2)
+      expect(details.argv(1) == "bsp")
     }
   }
 
@@ -170,15 +165,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
       inputs.fromRoot { root =>
         os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
-        readBspConfig(
-          root,
-          details => {
-            expect(details.argv.length >= 2)
-            expect(details.argv(1) == "bsp")
-            expect(details.argv(3) == "--json-options")
-            expect(Paths.get(details.argv(4)).isAbsolute)
-          }
-        )
+        val details = readBspConfig(root)
+        expect(details.argv.length >= 2)
+        expect(details.argv(1) == "bsp")
+        expect(details.argv(3) == "--json-options")
+        expect(Paths.get(details.argv(4)).isAbsolute)
 
         val scalaCliBspConfigFile = root / ".scala" / "ide-options.json"
         expect(os.exists(scalaCliBspConfigFile))
@@ -201,20 +192,16 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       val absolutePathFromRoot: Path = root / "directory" / "simple.sc"
       os.proc(TestUtil.cli, "setup-ide", path, extraOptions).call(cwd = root, stdout = os.Inherit)
 
-      readBspConfig(
-        root / "directory",
-        details => {
-          val expectedArgv = List(
-            "bsp",
-            absolutePathFromRoot.toString(),
-            "--json-options",
-            (root / "directory" / ".scala" / "ide-options.json").toString()
-          )
-          // We assert tails as JVM tests are run via `java -jar` and others are run normally, via launcher
-          // therefore we will get just `scala-cli` for JVM but some absolute path for other
-          expect(details.argv.tail == expectedArgv)
-        }
+      val details = readBspConfig(root / "directory")
+      val expectedArgv = List(
+        "bsp",
+        absolutePathFromRoot.toString(),
+        "--json-options",
+        (root / "directory" / ".scala" / "ide-options.json").toString()
       )
+      // We assert tails as JVM tests are run via `java -jar` and others are run normally, via launcher
+      // therefore we will get just `scala-cli` for JVM but some absolute path for other
+      expect(details.argv.tail == expectedArgv)
     }
   }
 
