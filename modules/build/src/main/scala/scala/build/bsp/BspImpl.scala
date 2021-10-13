@@ -174,20 +174,20 @@ final class BspImpl(
 
   def registerWatchInputs(watcher: Build.Watcher): Unit =
     inputs.elements.foreach {
-      case dir: Inputs.Directory =>
+      case elem: Inputs.OnDisk =>
         val eventFilter: PathWatchers.Event => Boolean = { event =>
           val newOrDeletedFile =
             event.getKind == PathWatchers.Event.Kind.Create ||
             event.getKind == PathWatchers.Event.Kind.Delete
           lazy val p        = os.Path(event.getTypedPath.getPath.toAbsolutePath)
-          lazy val relPath  = p.relativeTo(dir.path)
+          lazy val relPath  = p.relativeTo(elem.path)
           lazy val isHidden = relPath.segments.exists(_.startsWith("."))
           def isScalaFile   = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
           def isJavaFile    = relPath.last.endsWith(".java")
           newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile)
         }
         val watcher0 = watcher.newWatcher()
-        watcher0.register(dir.path.toNIO, Int.MaxValue)
+        watcher0.register(elem.path.toNIO, Int.MaxValue)
         watcher0.addObserver {
           Build.onChangeBufferedObserver { event =>
             if (eventFilter(event))
