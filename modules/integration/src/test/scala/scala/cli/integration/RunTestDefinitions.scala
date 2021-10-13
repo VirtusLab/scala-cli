@@ -535,7 +535,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         println(expectedLines)
       }
       expect(exceptionLines.length == expectedLines.length)
-      for { i <- Range(0, exceptionLines.length) } expect(exceptionLines(i) == expectedLines(i))
+      for { i <- 0 until exceptionLines.length } expect(exceptionLines(i) == expectedLines(i))
     }
   }
   if (actualScalaVersion.startsWith("2."))
@@ -584,7 +584,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |${tab}at throws$$.<clinit>(throws.sc:5)
            |$tab... 2 more""".stripMargin.linesIterator.toVector
       expect(exceptionLines.length == expectedLines.length)
-      for { i <- Range(0, exceptionLines.length) } expect(exceptionLines(i) == expectedLines(i))
+      for { i <- 0 until exceptionLines.length } expect(exceptionLines(i) == expectedLines(i))
     }
   }
 
