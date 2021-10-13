@@ -47,5 +47,8 @@ object HasGeneratedSources {
     bloopWorkspace: os.Path,
     name: String,
     var targetUriOpt: Option[String] = None
-  )
+  ) {
+    targetUriOpt =
+      Some((bloopWorkspace / ".scala").toIO.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name)
+  }
 }
