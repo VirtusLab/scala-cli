@@ -181,7 +181,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         )
 
         val scalaCliBspConfigFile = root / ".scala" / "ide-options.json"
-        expect(scalaCliBspConfigFile.toIO.exists())
+        expect(os.exists(scalaCliBspConfigFile))
       }
     }
 
