@@ -64,4 +64,7 @@ object Util {
   def printablePath(p: os.Path, cwd: os.Path, sep: String): String =
     if (p.startsWith(cwd)) (Iterator(".") ++ p.relativeTo(cwd).segments.iterator).mkString(sep)
     else p.toString
+
+  def printablePath(p: Either[String, os.Path]): String =
+    p.fold(identity, printablePath(_))
 }
