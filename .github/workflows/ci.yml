@@ -109,13 +109,13 @@ jobs:
     - name: Docker integration tests
       run: ./mill integration.docker.test
     - name: Login to GitHub Container Registry
-      if: github.event_name == 'push'
+      if: startsWith(github.ref, 'refs/tags/v')
       uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Push scala-cli to github container registry
-      if: github.event_name == 'push'
+      if: startsWith(github.ref, 'refs/tags/v')
       run: |
         docker tag scala-cli virtuslab/scala-cli:latest
         docker push virtuslab/scala-cli:latest
