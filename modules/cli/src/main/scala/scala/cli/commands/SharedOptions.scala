@@ -12,8 +12,8 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.Constants
 import scala.build.options._
 import scala.build.{Inputs, LocalRepo, Logger, Os, Positioned}
+import scala.concurrent.duration._
 import scala.util.Properties
-
 // format: off
 final case class SharedOptions(
   @Recurse
@@ -193,7 +193,7 @@ final case class SharedOptions(
     val download: String => Either[String, Array[Byte]] = { url =>
       val artifact = Artifact(url).withChanging(true)
       val res = coursierCache.logger.use {
-        coursierCache.file(artifact).run.unsafeRun()(coursierCache.ec)
+        coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
       }
       res
         .left.map(_.describe)
