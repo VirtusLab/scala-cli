@@ -101,7 +101,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
           args.unparsed
         else "--" +: args.unparsed
       val remainingArgs = args.remaining.map { arg =>
-        os.Path(arg, Os.pwd).toString
+        if (arg.contains(File.separator)) Try(os.Path(arg, Os.pwd).toString).getOrElse(arg)
+        else arg
       }
 
       val details = new BspConnectionDetails(
