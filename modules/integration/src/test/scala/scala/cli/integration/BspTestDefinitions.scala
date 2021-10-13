@@ -60,7 +60,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   def withBsp[T](
     inputs: TestInputs,
     args: Seq[String],
-    attempts: Int = 3,
+    attempts: Int = if (TestUtil.isCI) 3 else 1,
     pauseDuration: FiniteDuration = 5.seconds
   )(
     f: (
