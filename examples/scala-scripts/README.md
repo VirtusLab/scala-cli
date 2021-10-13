@@ -7,7 +7,7 @@
 
 Scala Scripts are files containing Scala code without main method required. These codes of scala do not require build-tools configurations. To run Scala Scripts very quickly without waiting for warn-up build-tools, you can use `scala-cli`.
 
-### Run 
+### Run
 
 You can use `scala-cli` to run Scala scripts (no further setup is required):
 
@@ -52,9 +52,27 @@ chmod +x HelloScriptSheBang.sc
 Hello from Scala .*, Java .*
 -->
 
+It is also possible to pass command-line arguments to the script
+
+```scala title=ScriptArguments.sc
+#!/usr/bin/env scala-cli
+println(args(1))
+```
+
+```bash
+chmod +x ScriptArguments.sc
+./ScriptArguments.sc foo bar
+# bar
+```
+
+<!-- Expected-regex:
+bar
+-->
+
+
 ## Features
 
-All the features from non-scripts are working with Scala Scripts, such as waiting for changes (watch mode), dependencies menagement, packaging, compiling and many others. 
+All the features from non-scripts are working with Scala Scripts, such as waiting for changes (watch mode), dependencies menagement, packaging, compiling and many others.
 
 ### Package
 
@@ -73,6 +91,6 @@ Hello from Scala .*, Java .*
 
 Pass `--watch` to the Scala CLI to watch all sources for changes, and re-run them upon changes.
 
-```bash ignore 
+```bash ignore
 scala-cli --watch HelloScript.sc
 ```
