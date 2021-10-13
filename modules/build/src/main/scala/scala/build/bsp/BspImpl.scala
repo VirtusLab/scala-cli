@@ -2,6 +2,7 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 import com.swoval.files.PathWatchers
+import dependency.ScalaParameters
 import org.eclipse.lsp4j.jsonrpc
 
 import java.io.{InputStream, OutputStream}
@@ -31,6 +32,8 @@ final class BspImpl(
   out: OutputStream
 ) extends Bsp {
 
+  import BspImpl.PreBuildData
+
   def notifyBuildChange(actualLocalServer: BspServer): Unit =
     for (targetId <- actualLocalServer.targetIdOpt) {
       val event = new b.BuildTargetEvent(targetId)
@@ -39,7 +42,9 @@ final class BspImpl(
       actualLocalClient.onBuildTargetDidChange(params)
     }
 
-  private def prepareBuild(actualLocalServer: BspServer) = either {
+  private def prepareBuild(
+    actualLocalServer: BspServer
+  ): Either[BuildException, PreBuildData] = either {
 
     logger.log("Preparing build")
 
@@ -85,7 +90,7 @@ final class BspImpl(
       )
     }
 
-    (
+    PreBuildData(
       sources,
       options0,
       classesDir0,
@@ -102,16 +107,15 @@ final class BspImpl(
     bloopServer: BloopServer,
     notifyChanges: Boolean
   ): Either[BuildException, Unit] = either {
-    val (sources, buildOptions, _, _, _, _, generatedSources, buildChanged) =
-      value(prepareBuild(actualLocalServer))
-    if (notifyChanges && buildChanged)
+    val preBuildData = value(prepareBuild(actualLocalServer))
+    if (notifyChanges && preBuildData.buildChanged)
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
       inputs,
-      sources,
+      preBuildData.sources,
       inputs.generatedSrcRoot(Scope.Main),
-      generatedSources,
-      buildOptions,
+      preBuildData.generatedSources,
+      preBuildData.buildOptions,
       Scope.Main,
       logger,
       actualLocalClient,
@@ -137,11 +141,15 @@ final class BspImpl(
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () => {
-        val (_, _, classesDir0, _, artifacts, project, generatedSources, buildChanged) =
-          prepareBuild(actualLocalServer).orThrow
-        if (buildChanged)
+        val preBuildData = prepareBuild(actualLocalServer).orThrow
+        if (preBuildData.buildChanged)
           notifyBuildChange(actualLocalServer)
-        (classesDir0, artifacts, project, generatedSources)
+        (
+          preBuildData.classesDir,
+          preBuildData.artifacts,
+          preBuildData.project,
+          preBuildData.generatedSources
+        )
       },
       executor
     )
@@ -326,4 +334,15 @@ object BspImpl {
     def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]) =
       underlying.setGeneratedSources(newGeneratedSources)
   }
+
+  private final case class PreBuildData(
+    sources: Sources,
+    buildOptions: BuildOptions,
+    classesDir: os.Path,
+    scalaParams: ScalaParameters,
+    artifacts: Artifacts,
+    project: Project,
+    generatedSources: Seq[GeneratedSource],
+    buildChanged: Boolean
+  )
 }
