@@ -124,7 +124,7 @@ case object ScalaPreprocessor extends Preprocessor {
     Option[String]
   )]] = either {
 
-    val afterStrictUsing = value(processStrictUsing(content))
+    val afterStrictUsing = value(processStrictUsing(content, scopeRoot))
     val afterUsing = value {
       processUsing(path, afterStrictUsing.map(_._2).getOrElse(content), scopeRoot)
         .sequence
@@ -153,14 +153,16 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
-  private def directivesBuildOptions(directives: Seq[Directive])
-    : Either[BuildException, BuildOptions] = {
+  private def directivesBuildOptions(
+    directives: Seq[Directive],
+    cwd: ScopePath
+  ): Either[BuildException, BuildOptions] = {
     val results = directives
       .filter(_.tpe == Directive.Using)
       .map { dir =>
         val fromHandlersOpt = usingDirectiveHandlers
           .iterator
-          .flatMap(_.handle(dir).iterator)
+          .flatMap(_.handle(dir, cwd).iterator)
           .take(1)
           .toList
           .headOption
@@ -190,7 +192,7 @@ case object ScalaPreprocessor extends Preprocessor {
       .map { dir =>
         val fromHandlersOpt = requireDirectiveHandlers
           .iterator
-          .flatMap(_.handle(dir).iterator)
+          .flatMap(_.handle(dir, scopeRoot).iterator)
           .take(1)
           .toList
           .headOption
@@ -240,7 +242,7 @@ case object ScalaPreprocessor extends Preprocessor {
       case (directives, updatedContentOpt) =>
         val tuple = (
           directivesBuildRequirements(directives, scopeRoot),
-          directivesBuildOptions(directives),
+          directivesBuildOptions(directives, scopeRoot),
           Right(updatedContentOpt)
         )
         tuple
@@ -339,7 +341,8 @@ case object ScalaPreprocessor extends Preprocessor {
   }
 
   private def processStrictUsing(
-    content: String
+    content: String,
+    cwd: ScopePath
   ): Either[BuildException, Option[(BuildOptions, String)]] = either {
 
     val processor = {
@@ -364,7 +367,8 @@ case object ScalaPreprocessor extends Preprocessor {
     val updatedOptions = value {
       DirectivesProcessor.process(
         directives0,
-        usingDirectiveHandlers ++ requireDirectiveHandlers
+        usingDirectiveHandlers ++ requireDirectiveHandlers,
+        cwd
       )
     }
     val codeOffset = directives.getCodeOffset()

@@ -15,6 +15,7 @@ import scala.build.options.{
   ScalaNativeOptions,
   ScalaOptions
 }
+import scala.build.preprocessing.ScopePath
 
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Platform"
@@ -91,7 +92,7 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     )
   }
 
-  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
+  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq(rawPfStrs @ _*) if maybePlatforms(rawPfStrs) =>
         Some(handle(rawPfStrs))
@@ -100,6 +101,9 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     }
 
   override def keys = Seq("platform", "platforms")
-  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] =
+  override def handleValues(
+    values: Seq[Any],
+    cwd: ScopePath
+  ): Either[BuildException, BuildOptions] =
     handle(DirectiveUtil.stringValues(values))
 }

@@ -6,6 +6,7 @@ import scala.build.errors.{
   TooManyTestFrameworksProvidedError
 }
 import scala.build.options.{BuildOptions, TestOptions}
+import scala.build.preprocessing.ScopePath
 
 case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Test framework"
@@ -17,7 +18,7 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
     "using test-framework utest.runner.Framework"
   )
 
-  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
+  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq("test-framework", fw) =>
         val options = BuildOptions(
@@ -31,7 +32,10 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
     }
 
   override def keys = Seq("test-framework")
-  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] =
+  override def handleValues(
+    values: Seq[Any],
+    cwd: ScopePath
+  ): Either[BuildException, BuildOptions] =
     DirectiveUtil.stringValues(values) match {
       case Seq() =>
         Left(new NoTestFrameworkValueProvidedError)
