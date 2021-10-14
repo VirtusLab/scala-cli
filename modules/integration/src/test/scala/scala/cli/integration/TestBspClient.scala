@@ -31,7 +31,7 @@ class TestBspClient extends b.BuildClient {
 
   def latestDiagnostics(): Option[b.PublishDiagnosticsParams] =
     lock.synchronized {
-      messages0.collectFirst {
+      messages0.reverseIterator.collectFirst {
         case p: b.PublishDiagnosticsParams => p
       }
     }

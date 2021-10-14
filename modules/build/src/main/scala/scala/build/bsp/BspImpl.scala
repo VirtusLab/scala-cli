@@ -2,13 +2,13 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 import com.swoval.files.PathWatchers
+import dependency.ScalaParameters
 import org.eclipse.lsp4j.jsonrpc
 
 import java.io.{InputStream, OutputStream}
 import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
 import scala.build._
 import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
@@ -31,6 +31,8 @@ final class BspImpl(
   out: OutputStream
 ) extends Bsp {
 
+  import BspImpl.PreBuildData
+
   def notifyBuildChange(actualLocalServer: BspServer): Unit =
     for (targetId <- actualLocalServer.targetIdOpt) {
       val event = new b.BuildTargetEvent(targetId)
@@ -39,7 +41,9 @@ final class BspImpl(
       actualLocalClient.onBuildTargetDidChange(params)
     }
 
-  private def prepareBuild(actualLocalServer: BspServer) = either {
+  private def prepareBuild(
+    actualLocalServer: BspServer
+  ): Either[BuildException, PreBuildData] = either {
 
     logger.log("Preparing build")
 
@@ -85,7 +89,7 @@ final class BspImpl(
       )
     }
 
-    (
+    PreBuildData(
       sources,
       options0,
       classesDir0,
@@ -102,16 +106,15 @@ final class BspImpl(
     bloopServer: BloopServer,
     notifyChanges: Boolean
   ): Either[BuildException, Unit] = either {
-    val (sources, buildOptions, _, _, _, _, generatedSources, buildChanged) =
-      value(prepareBuild(actualLocalServer))
-    if (notifyChanges && buildChanged)
+    val preBuildData = value(prepareBuild(actualLocalServer))
+    if (notifyChanges && preBuildData.buildChanged)
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
       inputs,
-      sources,
+      preBuildData.sources,
       inputs.generatedSrcRoot(Scope.Main),
-      generatedSources,
-      buildOptions,
+      preBuildData.generatedSources,
+      preBuildData.buildOptions,
       Scope.Main,
       logger,
       actualLocalClient,
@@ -122,12 +125,17 @@ final class BspImpl(
   private def build(
     actualLocalServer: BspServer,
     bloopServer: BloopServer,
+    client: BspClient,
     notifyChanges: Boolean,
     logger: Logger
   ): Unit =
     buildE(actualLocalServer, bloopServer, notifyChanges) match {
-      case Left(ex)  => logger.debug(s"Caught $ex during BSP build, ignoring it")
+      case Left(ex) =>
+        client.reportBuildException(actualLocalServer.targetIdOpt, ex)
+        logger.debug(s"Caught $ex during BSP build, ignoring it")
       case Right(()) =>
+        for (targetId <- actualLocalServer.targetIdOpt)
+          client.resetBuildExceptionDiagnostics(targetId)
     }
 
   def compile(
@@ -136,58 +144,76 @@ final class BspImpl(
     doCompile: () => CompletableFuture[b.CompileResult]
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
-      () => {
-        val (_, _, classesDir0, _, artifacts, project, generatedSources, buildChanged) =
-          prepareBuild(actualLocalServer).orThrow
-        if (buildChanged)
-          notifyBuildChange(actualLocalServer)
-        (classesDir0, artifacts, project, generatedSources)
-      },
+      () =>
+        prepareBuild(actualLocalServer) match {
+          case Right(preBuildData) =>
+            if (preBuildData.buildChanged)
+              notifyBuildChange(actualLocalServer)
+            Right((
+              preBuildData.classesDir,
+              preBuildData.artifacts,
+              preBuildData.project,
+              preBuildData.generatedSources
+            ))
+          case Left(ex) =>
+            notifyBuildChange(actualLocalServer)
+            Left(ex)
+        },
       executor
     )
 
-    preBuild.thenCompose { params =>
-      doCompile().thenCompose { res =>
-        val (classesDir0, artifacts, project, generatedSources) = params
-        (classesDir0, artifacts, project, generatedSources, res)
-        if (res.getStatusCode == b.StatusCode.OK)
-          CompletableFuture.supplyAsync(
-            () => {
-              Build.postProcess(
-                generatedSources,
-                inputs.generatedSrcRoot(Scope.Main),
-                classesDir0,
-                logger,
-                inputs.workspace,
-                updateSemanticDbs = true,
-                updateTasty = true
-              )
-              res
-            },
-            executor
+    preBuild.thenCompose { maybeParams =>
+      maybeParams match {
+        case Left(ex) =>
+          actualLocalClient.reportBuildException(actualLocalServer.targetIdOpt, ex)
+          CompletableFuture.completedFuture(
+            new b.CompileResult(b.StatusCode.ERROR)
           )
-        else
-          CompletableFuture.completedFuture(res)
+        case Right(params) =>
+          for (targetId <- actualLocalServer.targetIdOpt)
+            actualLocalClient.resetBuildExceptionDiagnostics(targetId)
+          doCompile().thenCompose { res =>
+            val (classesDir0, artifacts, project, generatedSources) = params
+            (classesDir0, artifacts, project, generatedSources, res)
+            if (res.getStatusCode == b.StatusCode.OK)
+              CompletableFuture.supplyAsync(
+                () => {
+                  Build.postProcess(
+                    generatedSources,
+                    inputs.generatedSrcRoot(Scope.Main),
+                    classesDir0,
+                    logger,
+                    inputs.workspace,
+                    updateSemanticDbs = true,
+                    updateTasty = true
+                  )
+                  res
+                },
+                executor
+              )
+            else
+              CompletableFuture.completedFuture(res)
+          }
       }
     }
   }
 
   def registerWatchInputs(watcher: Build.Watcher): Unit =
     inputs.elements.foreach {
-      case dir: Inputs.Directory =>
+      case elem: Inputs.OnDisk =>
         val eventFilter: PathWatchers.Event => Boolean = { event =>
           val newOrDeletedFile =
             event.getKind == PathWatchers.Event.Kind.Create ||
             event.getKind == PathWatchers.Event.Kind.Delete
           lazy val p        = os.Path(event.getTypedPath.getPath.toAbsolutePath)
-          lazy val relPath  = p.relativeTo(dir.path)
+          lazy val relPath  = p.relativeTo(elem.path)
           lazy val isHidden = relPath.segments.exists(_.startsWith("."))
           def isScalaFile   = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
           def isJavaFile    = relPath.last.endsWith(".java")
           newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile)
         }
         val watcher0 = watcher.newWatcher()
-        watcher0.register(dir.path.toNIO, Int.MaxValue)
+        watcher0.register(elem.path.toNIO, Int.MaxValue)
         watcher0.addObserver {
           Build.onChangeBufferedObserver { event =>
             if (eventFilter(event))
@@ -214,7 +240,7 @@ final class BspImpl(
   val watcher = new Build.Watcher(
     ListBuffer(),
     threads.buildThreads.fileWatcher,
-    build(actualLocalServer, remoteServer, notifyChanges = true, logger),
+    build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = true, logger),
     ()
   )
 
@@ -258,7 +284,19 @@ final class BspImpl(
     val remoteClient = launcher.getRemoteProxy
     actualLocalClient.forwardToOpt = Some(remoteClient)
 
-    prepareBuild(actualLocalServer) // FIXME We're discarding the error here
+    for (targetId <- actualLocalServer.targetIdOpt)
+      inputs.flattened().foreach {
+        case f: Inputs.SingleFile =>
+          actualLocalClient.resetDiagnostics(f.path, targetId)
+        case _: Inputs.Virtual =>
+      }
+
+    prepareBuild(actualLocalServer) match {
+      case Left(ex) =>
+        actualLocalClient.reportBuildException(actualLocalServer.targetIdOpt, ex)
+        logger.log(ex)
+      case Right(_) =>
+    }
 
     logger.log {
       val hasConsole = System.console() != null
@@ -270,7 +308,7 @@ final class BspImpl(
     val f = launcher.startListening()
 
     val initiateFirstBuild: Runnable = { () =>
-      try build(actualLocalServer, remoteServer, notifyChanges = false, logger)
+      try build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = false, logger)
       catch {
         case t: Throwable =>
           logger.debug(s"Caught $t during initial BSP build, ignoring it")
@@ -326,4 +364,15 @@ object BspImpl {
     def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]) =
       underlying.setGeneratedSources(newGeneratedSources)
   }
+
+  private final case class PreBuildData(
+    sources: Sources,
+    buildOptions: BuildOptions,
+    classesDir: os.Path,
+    scalaParams: ScalaParameters,
+    artifacts: Artifacts,
+    project: Project,
+    generatedSources: Seq[GeneratedSource],
+    buildChanged: Boolean
+  )
 }

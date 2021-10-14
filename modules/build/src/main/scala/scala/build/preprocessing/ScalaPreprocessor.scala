@@ -12,13 +12,14 @@ import scala.build.Ops._
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
+  DependencyFormatError,
   FileNotFoundException,
   UnusedDirectiveError
 }
-import scala.build.internal.AmmUtil
+import scala.build.internal.{AmmUtil, Util}
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
-import scala.build.{Inputs, Os}
+import scala.build.{Inputs, Position, Positioned}
 import scala.jdk.CollectionConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -57,12 +58,9 @@ case object ScalaPreprocessor extends Preprocessor {
           (pkg :+ wrapper).map(_.raw).mkString(".")
         }
         val res = either {
-          val printablePath =
-            if (f.path.startsWith(Os.pwd)) f.path.relativeTo(Os.pwd).toString
-            else f.path.toString
           val content   = value(maybeRead(f.path))
           val scopePath = PreprocessedSource.ScopePath.fromPath(f.path)
-          val source = value(process(content, printablePath, scopePath / os.up)) match {
+          val source = value(process(content, Right(f.path), scopePath / os.up)) match {
             case None =>
               PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
             case Some((requirements, scopedRequirements, options, Some(updatedCode))) =>
@@ -94,7 +92,7 @@ case object ScalaPreprocessor extends Preprocessor {
         val res = either {
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
-            value(process(content, v.source, v.scopePath / os.up))
+            value(process(content, Left(v.source), v.scopePath / os.up))
               .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
           val s = PreprocessedSource.InMemory(
             Left(v.source),
@@ -117,7 +115,7 @@ case object ScalaPreprocessor extends Preprocessor {
 
   def process(
     content: String,
-    printablePath: String,
+    path: Either[String, os.Path],
     scopeRoot: PreprocessedSource.ScopePath
   ): Either[BuildException, Option[(
     BuildRequirements,
@@ -128,14 +126,15 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val afterStrictUsing = value(processStrictUsing(content))
     val afterUsing = value {
-      processUsing(afterStrictUsing.map(_._2).getOrElse(content), scopeRoot)
+      processUsing(path, afterStrictUsing.map(_._2).getOrElse(content), scopeRoot)
         .sequence
     }
-    val afterProcessImports =
+    val afterProcessImports = value {
       processSpecialImports(
         afterUsing.flatMap(_._4).orElse(afterStrictUsing.map(_._2)).getOrElse(content),
-        printablePath
+        path
       )
+    }
 
     if (afterStrictUsing.isEmpty && afterUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
@@ -223,6 +222,7 @@ case object ScalaPreprocessor extends Preprocessor {
   }
 
   private def processUsing(
+    path: Either[String, os.Path],
     content: String,
     scopeRoot: PreprocessedSource.ScopePath
   ): Option[Either[
@@ -236,7 +236,7 @@ case object ScalaPreprocessor extends Preprocessor {
   ]] =
     // TODO Warn about unrecognized directives
     // TODO Report via some diagnostics malformed directives
-    TemporaryDirectivesParser.parseDirectives(content).map {
+    TemporaryDirectivesParser.parseDirectives(path, content).map {
       case (directives, updatedContentOpt) =>
         val tuple = (
           directivesBuildRequirements(directives, scopeRoot),
@@ -254,8 +254,8 @@ case object ScalaPreprocessor extends Preprocessor {
 
   private def processSpecialImports(
     content: String,
-    printablePath: String
-  ): Option[(BuildRequirements, BuildOptions, String)] = {
+    path: Either[String, os.Path]
+  ): Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = either {
 
     import fastparse._
     import scala.build.internal.ScalaParse._
@@ -270,7 +270,7 @@ case object ScalaPreprocessor extends Preprocessor {
         val res1    = parse(newCode, Header(_))
         res1 match {
           case f: Parsed.Failure =>
-            val msg = formatFastparseError(printablePath, content, f)
+            val msg = formatFastparseError(Util.printablePath(path), content, f)
             Left(msg)
           case s: Parsed.Success[Seq[(Int, Int)]] =>
             Right(s.value)
@@ -316,11 +316,22 @@ case object ScalaPreprocessor extends Preprocessor {
         assert(substitute.length == (t.end - t.start))
         System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
       }
-      val newCode = new String(buf)
-      val deps    = dependencyTrees.map(_.prefix.drop(1).mkString("."))
+      val newCode   = new String(buf)
+      val toFilePos = Position.Raw.filePos(path, content)
+      val deps = value {
+        dependencyTrees
+          .map { t =>
+            val pos      = toFilePos(Position.Raw(t.start, t.end))
+            val strDep   = t.prefix.drop(1).mkString(".")
+            val maybeDep = parseDependency(strDep, pos)
+            maybeDep.map(dep => Positioned(Seq(pos), dep))
+          }
+          .sequence
+          .left.map(CompositeBuildException(_))
+      }
       val options = BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraDependencies = deps.map(parseDependency)
+          extraDependencies = deps
         )
       )
       Some((BuildRequirements(), options, newCode))
@@ -375,9 +386,9 @@ case object ScalaPreprocessor extends Preprocessor {
     else Some((updatedOptions, updatedContentOpt.getOrElse(content)))
   }
 
-  private def parseDependency(str: String): AnyDependency =
+  private def parseDependency(str: String, pos: Position): Either[BuildException, AnyDependency] =
     DependencyParser.parse(str) match {
-      case Left(msg)  => sys.error(s"Malformed dependency '$str': $msg")
-      case Right(dep) => dep
+      case Left(msg)  => Left(new DependencyFormatError(str, msg, positionOpt = Some(pos)))
+      case Right(dep) => Right(dep)
     }
 }

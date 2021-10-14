@@ -60,7 +60,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   def withBsp[T](
     inputs: TestInputs,
     args: Seq[String],
-    attempts: Int = 3,
+    attempts: Int = if (TestUtil.isCI) 3 else 1,
     pauseDuration: FiniteDuration = 5.seconds
   )(
     f: (
@@ -303,70 +303,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def runScalaCli(args: String*) = os.proc(TestUtil.cli, args)
-
-  def testScalaTermination(
-    currentBloopVersion: String,
-    expectedBloopVersionAfterScalaCliRun: String
-  ): Unit = TestUtil.retryOnCi() {
-    def runBloop(args: String*) =
-      os.proc(TestUtil.cs, "launch", s"bloop-jvm:$currentBloopVersion", "--", args)
-
-    runBloop("exit").call()
-    runBloop("about").call(stdout = os.Inherit, stderr = os.Inherit)
-    runScalaCli("bloop", "start", "-v", "-v", "-v").call(
-      stdout = os.Inherit,
-      stderr = os.Inherit
-    )
-    val versionLine = runBloop("about").call().out.lines()(0)
-    expect(versionLine == "bloop v" + expectedBloopVersionAfterScalaCliRun)
-  }
-
-  test("scala-cli terminates incompatible bloop") {
-    testScalaTermination(Constants.oldBloopVersion, Constants.bloopVersion)
-  }
-
-  test("scala-cli keeps compatible bloop running") {
-    testScalaTermination(Constants.newBloopVersion, Constants.newBloopVersion)
-  }
-
-  test("invalid bloop options passed via cli cause bloop start failure") {
-    runScalaCli("bloop", "exit").call()
-    val res = runScalaCli("bloop", "start", "--bloop-java-opt", "-zzefhjzl").call(
-      stderr = os.Pipe,
-      check = false,
-      mergeErrIntoOut = true
-    )
-    expect(res.exitCode == 1)
-    expect(res.out.text().contains("Server didn't start"))
-  }
-
-  test("invalid bloop options passed via global bloop config json file cause bloop start failure") {
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "bloop.json" ->
-          """|{
-             | "javaOptions" : ["-Xmx1k"]
-             | }""".stripMargin
-      )
-    )
-
-    inputs.fromRoot { root =>
-      runScalaCli("bloop", "exit").call()
-      val res = runScalaCli(
-        "bloop",
-        "start",
-        "--bloop-global-options-file",
-        (root / "bloop.json").toString()
-      )
-        .call(stderr = os.Pipe, check = false)
-      expect(res.exitCode == 1)
-      expect(res.err.text().contains("Server didn't start") || res.err.text().contains(
-        "java.lang.OutOfMemoryError: Garbage-collected heap size exceeded"
-      ))
-    }
-  }
-
   test("diagnostics") {
     val inputs = TestInputs(
       Seq(
@@ -501,6 +437,48 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           expect(diag.getMessage == "Not found: zz")
           expect(diag.getRange.getEnd.getCharacter == 2)
         }
+      }
+    }
+  }
+
+  test("directive diagnostics") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Test.scala" ->
+          s"""// using com.lihaoyi::pprint:0.0.0.0.0.1
+             |
+             |object Test {
+             |  val msg = "Hello"
+             |  println(msg)
+             |}
+             |""".stripMargin
+      )
+    )
+
+    withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
+      async {
+        await(remoteServer.workspaceBuildTargets().asScala)
+
+        val diagnosticsParams = localClient.latestDiagnostics().getOrElse {
+          sys.error("No diagnostics found")
+        }
+
+        val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
+        expect(diagnostics.length == 1)
+
+        val diag = diagnostics.head
+
+        expect(diag.getSeverity == b.DiagnosticSeverity.ERROR)
+        expect(diag.getRange.getStart.getLine == 0)
+        expect(diag.getRange.getStart.getCharacter == 3)
+        expect(diag.getRange.getEnd.getLine == 0)
+        expect(diag.getRange.getEnd.getCharacter == 40)
+        val sbv =
+          if (actualScalaVersion.startsWith("2.12.")) "2.12"
+          else if (actualScalaVersion.startsWith("2.13.")) "2.13"
+          else if (actualScalaVersion.startsWith("3.")) "3"
+          else ???
+        expect(diag.getMessage.contains(s"Error downloading com.lihaoyi:pprint_$sbv:0.0.0.0.0.1"))
       }
     }
   }

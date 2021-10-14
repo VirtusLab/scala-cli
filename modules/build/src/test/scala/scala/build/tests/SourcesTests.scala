@@ -39,7 +39,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
-      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
+      expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
       expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
@@ -70,7 +70,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
-      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
+      expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
       expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
@@ -101,7 +101,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
-      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
+      expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
       expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
@@ -130,7 +130,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
-      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
+      expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
       expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
@@ -219,7 +219,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
-      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
+      expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
       expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
@@ -248,7 +248,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
-      expect(sources.buildOptions.classPathOptions.extraDependencies == expectedDeps)
+      expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
       expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))

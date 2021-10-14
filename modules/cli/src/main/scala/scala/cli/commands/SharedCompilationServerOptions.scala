@@ -38,6 +38,12 @@ final case class SharedCompilationServerOptions(
   @Hidden
     bloopPort: Option[Int] = None,
 
+  @Group("Compilation server")
+  @HelpMessage("If Bloop isn't already running, the version we should start")
+  @ValueDescription("version")
+  @Hidden
+    bloopVersion: Option[String] = None,
+
   @Hidden
   @Group("Compilation server")
   @HelpMessage("Maximum duration to wait for BSP connection to be opened")
@@ -166,10 +172,11 @@ final case class SharedCompilationServerOptions(
   def bloopStartupTimeoutDuration: Option[FiniteDuration] =
     parseDuration("connection server startup timeout", bloopStartupTimeout)
 
-  def minimumBloopVersion = Constants.bloopVersion
-
-  import coursier.core.Version
-  def acceptBloopVersion = Some((v: String) => Version(v) < Version(minimumBloopVersion))
+  lazy val retainedBloopVersion: String =
+    bloopVersion
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .getOrElse(Constants.bloopVersion)
 
   def bloopDefaultJvmOptions(logger: Logger): List[String] = {
     val file = new File(bloopGlobalOptionsFile)
@@ -198,7 +205,7 @@ final case class SharedCompilationServerOptions(
     directories: => scala.build.Directories
   ): BloopRifleConfig = {
     val baseConfig =
-      BloopRifleConfig.default(() => Bloop.bloopClassPath(logger))
+      BloopRifleConfig.default(() => Bloop.bloopClassPath(logger, retainedBloopVersion))
     val portOpt = bloopPort.filter(_ != 0) match {
       case Some(n) if n < 0 =>
         Some(scala.build.blooprifle.internal.Util.randomPort())
@@ -217,7 +224,10 @@ final case class SharedCompilationServerOptions(
       javaOpts =
         (if (bloopDefaultJavaOpts) baseConfig.javaOpts
          else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions(logger),
-      acceptBloopVersion = acceptBloopVersion
+      acceptBloopVersion = Some { v =>
+        import coursier.core.Version
+        Version(retainedBloopVersion) <= Version(v)
+      }
     )
   }
 }

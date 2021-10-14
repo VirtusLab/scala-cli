@@ -13,7 +13,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, InvalidBinaryScalaVersionError}
 import scala.build.internal.Constants._
 import scala.build.internal.{Constants, OsLibc, Util}
-import scala.build.{Artifacts, Logger, Os}
+import scala.build.{Artifacts, Logger, Os, Positioned}
 import scala.util.Properties
 
 final case class BuildOptions(
@@ -68,10 +68,10 @@ final case class BuildOptions(
   private def maybeNativeDependencies: Seq[AnyDependency] =
     if (platform == Platform.Native) scalaNativeOptions.nativeDependencies
     else Nil
-  private def dependencies: Either[BuildException, Seq[AnyDependency]] = either {
-    value(maybeJsDependencies) ++
-      maybeNativeDependencies ++
-      value(scalaLibraryDependencies) ++
+  private def dependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
+    value(maybeJsDependencies).map(Positioned.none(_)) ++
+      maybeNativeDependencies.map(Positioned.none(_)) ++
+      value(scalaLibraryDependencies).map(Positioned.none(_)) ++
       classPathOptions.extraDependencies
   }
 
@@ -93,10 +93,10 @@ final case class BuildOptions(
   private def maybeNativeCompilerPlugins: Seq[AnyDependency] =
     if (platform == Platform.Native) scalaNativeOptions.compilerPlugins
     else Nil
-  def compilerPlugins: Either[BuildException, Seq[AnyDependency]] = either {
-    value(maybeJsCompilerPlugins) ++
-      maybeNativeCompilerPlugins ++
-      value(semanticDbPlugins) ++
+  def compilerPlugins: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
+    value(maybeJsCompilerPlugins).map(Positioned.none(_)) ++
+      maybeNativeCompilerPlugins.map(Positioned.none(_)) ++
+      value(semanticDbPlugins).map(Positioned.none(_)) ++
       scalaOptions.compilerPlugins
   }
 

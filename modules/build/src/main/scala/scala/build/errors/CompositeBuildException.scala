@@ -5,8 +5,14 @@ final class CompositeBuildException private (
   val others: Seq[BuildException]
 ) extends BuildException(
       s"${others.length + 1} exceptions, first one: ${mainException.getMessage}",
+      Nil,
       mainException
-    )
+    ) {
+
+  def exceptions: Seq[BuildException] =
+    mainException +: others
+
+}
 
 object CompositeBuildException {
   private def flatten(list: ::[BuildException]): ::[BuildException] = {

@@ -67,42 +67,6 @@ class ConsoleBloopBuildClient(
         (originalPath, updatedDiag)
     }
 
-  private def printDiagnostic(path: Either[String, os.Path], diag: bsp4j.Diagnostic): Unit = {
-    val isWarningOrError = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
-      diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING
-    if (isWarningOrError) {
-      val red    = Console.RED
-      val yellow = Console.YELLOW
-      val reset  = Console.RESET
-      val prefix =
-        if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR) s"[${red}error$reset] "
-        else s"[${yellow}warn$reset] "
-
-      val line  = (diag.getRange.getStart.getLine + 1).toString + ":"
-      val col   = (diag.getRange.getStart.getCharacter + 1).toString + ":"
-      val msgIt = diag.getMessage.linesIterator
-
-      val path0 = path match {
-        case Left(source) => source
-        case Right(p) if p.startsWith(Os.pwd) =>
-          "." + File.separator + p.relativeTo(Os.pwd).toString
-        case Right(p) => p.toString
-      }
-      out.println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
-      for (line <- msgIt)
-        out.println(prefix + line)
-      for (code <- Option(diag.getCode))
-        code.linesIterator.map(prefix + _).foreach(out.println(_))
-      val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
-        diag.getRange.getStart.getCharacter != null &&
-        diag.getRange.getEnd.getCharacter != null
-      if (canPrintUnderline)
-        out.println(
-          prefix + " " * diag.getRange.getStart.getCharacter + "^" * (diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter + 1)
-        )
-    }
-  }
-
   override def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit = {
     logger.debug("Received onBuildPublishDiagnostics from bloop: " + params)
     for (diag <- params.getDiagnostics.asScala) {
@@ -121,7 +85,7 @@ class ConsoleBloopBuildClient(
         .getOrElse((Right(path), diag))
       if (keepDiagnostics)
         diagnostics0 += updatedPath -> updatedDiag
-      printDiagnostic(updatedPath, updatedDiag)
+      ConsoleBloopBuildClient.printDiagnostic(out, updatedPath, updatedDiag)
     }
   }
 
@@ -180,4 +144,64 @@ class ConsoleBloopBuildClient(
     diagnostics0.clear()
     printedStart = false
   }
+}
+
+object ConsoleBloopBuildClient {
+
+  def printDiagnostic(
+    out: PrintStream,
+    path: Either[String, os.Path],
+    diag: bsp4j.Diagnostic
+  ): Unit = {
+    val isWarningOrError = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
+      diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING
+    if (isWarningOrError) {
+      val red    = Console.RED
+      val yellow = Console.YELLOW
+      val reset  = Console.RESET
+      val prefix =
+        if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR) s"[${red}error$reset] "
+        else s"[${yellow}warn$reset] "
+
+      val line  = (diag.getRange.getStart.getLine + 1).toString + ":"
+      val col   = (diag.getRange.getStart.getCharacter + 1).toString + ":"
+      val msgIt = diag.getMessage.linesIterator
+
+      val path0 = path match {
+        case Left(source) => source
+        case Right(p) if p.startsWith(Os.pwd) =>
+          "." + File.separator + p.relativeTo(Os.pwd).toString
+        case Right(p) => p.toString
+      }
+      out.println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
+      for (line <- msgIt)
+        out.println(prefix + line)
+      val codeOpt = Option(diag.getCode).orElse {
+        val lineOpt =
+          if (diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine)
+            Option(diag.getRange.getStart.getLine)
+          else None
+        for {
+          line <- lineOpt
+          p    <- path.toOption
+          lines = os.read.lines(p)
+          line <- if (line < lines.length) Some(lines(line)) else None
+        } yield line
+      }
+      for (code <- codeOpt)
+        code.linesIterator.map(prefix + _).foreach(out.println(_))
+      val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
+        diag.getRange.getStart.getCharacter != null &&
+        diag.getRange.getEnd.getCharacter != null &&
+        codeOpt.nonEmpty
+      if (canPrintUnderline) {
+        val len =
+          math.max(1, diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter)
+        out.println(
+          prefix + " " * diag.getRange.getStart.getCharacter + "^" * len
+        )
+      }
+    }
+  }
+
 }

@@ -42,7 +42,7 @@ final case class Sbt(
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_._2.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.forall(_.nameAttributes == NoAttributes)
+      options.classPathOptions.extraDependencies.forall(_.value.nameAttributes == NoAttributes)
 
     val settings =
       if (pureJava)
@@ -238,6 +238,7 @@ final case class Sbt(
     val depSettings = {
       val depStrings = options.classPathOptions
         .extraDependencies
+        .map(_.value)
         .map { dep =>
           val org  = dep.organization
           val name = dep.name

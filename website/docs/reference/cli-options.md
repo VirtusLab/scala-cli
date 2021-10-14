@@ -80,6 +80,10 @@ Host the compilation server should bind to
 
 Port the compilation server should bind to (pass -1 to pick a random port)
 
+#### `--bloop-version`
+
+If Bloop isn't already running, the version we should start
+
 #### `--bloop-bsp-timeout`
 
 Maximum duration to wait for BSP connection to be opened

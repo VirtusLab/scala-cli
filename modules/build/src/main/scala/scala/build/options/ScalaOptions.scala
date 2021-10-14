@@ -2,6 +2,8 @@ package scala.build.options
 
 import dependency.AnyDependency
 
+import scala.build.Positioned
+
 final case class ScalaOptions(
   scalaVersion: Option[String] = None,
   scalaBinaryVersion: Option[String] = None,
@@ -9,7 +11,7 @@ final case class ScalaOptions(
   generateSemanticDbs: Option[Boolean] = None,
   scalacOptions: Seq[String] = Nil,
   extraScalaVersions: Set[String] = Set.empty,
-  compilerPlugins: Seq[AnyDependency] = Nil,
+  compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
   platform: Option[Platform] = None,
   extraPlatforms: Set[Platform] = Set.empty
 ) {

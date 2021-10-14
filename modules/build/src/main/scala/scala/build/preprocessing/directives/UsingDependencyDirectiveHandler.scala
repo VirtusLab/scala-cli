@@ -5,6 +5,7 @@ import dependency.parser.DependencyParser
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
+import scala.build.Positioned
 import scala.build.errors.{BuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ClassPathOptions}
 
@@ -25,7 +26,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
           parseDependency(depStr).map { dep =>
             BuildOptions(
               classPathOptions = ClassPathOptions(
-                extraDependencies = Seq(dep)
+                extraDependencies = Seq(Positioned(Seq(directive.position), dep))
               )
             )
           }
@@ -55,6 +56,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     BuildOptions(
       classPathOptions = ClassPathOptions(
         extraDependencies = extraDependencies
+          .map(Positioned.none(_))
       )
     )
   }

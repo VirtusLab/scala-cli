@@ -53,11 +53,11 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     val newScalaCliBinPath = os.Path(options.scalaCliBinaryPath, os.pwd)
 
     val newVersion: String =
-      os.proc(newScalaCliBinPath, "version").call(cwd = os.pwd).out.text.trim
+      os.proc(newScalaCliBinPath, "version").call(cwd = os.pwd).out.text().trim
 
     // Backward compatibility - previous versions not have the `--version` parameter
     val oldVersion: String = Try {
-      os.proc(binDirPath / options.binaryName, "version").call(cwd = os.pwd).out.text.trim
+      os.proc(binDirPath / options.binaryName, "version").call(cwd = os.pwd).out.text().trim
     }.toOption.getOrElse("0.0.0")
 
     if (os.exists(binDirPath))
