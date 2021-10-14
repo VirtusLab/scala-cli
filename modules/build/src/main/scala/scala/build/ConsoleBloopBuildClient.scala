@@ -194,10 +194,13 @@ object ConsoleBloopBuildClient {
         diag.getRange.getStart.getCharacter != null &&
         diag.getRange.getEnd.getCharacter != null &&
         codeOpt.nonEmpty
-      if (canPrintUnderline)
+      if (canPrintUnderline) {
+        val len =
+          math.max(1, diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter)
         out.println(
-          prefix + " " * diag.getRange.getStart.getCharacter + "^" * (diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter + 1)
+          prefix + " " * diag.getRange.getStart.getCharacter + "^" * len
         )
+      }
     }
   }
 
