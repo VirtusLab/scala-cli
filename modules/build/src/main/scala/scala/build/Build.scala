@@ -20,7 +20,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.util.matching.Regex
 
 trait Build {
   def inputs: Inputs
@@ -509,11 +508,10 @@ object Build {
       if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
       else Nil
 
-
-    val jvmVersionRegex= """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
+    val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
     val jvmStandardVersion = for {
-      jvmOpt <- options.javaOptions.jvmIdOpt
-      m <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
+      jvmOpt  <- options.javaOptions.jvmIdOpt
+      m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
     } yield version
 

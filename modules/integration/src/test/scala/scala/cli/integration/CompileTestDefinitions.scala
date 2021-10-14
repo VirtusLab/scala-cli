@@ -176,7 +176,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("bloop jvm does not support this jdk spec".only) {
     //todo  Assert this should not contain "Error: -release"
-    compileToADifferentJvmThanBloops("8", "11", true, code="") // should warn bloop is too old
+    compileToADifferentJvmThanBloops("8", "11", true, code = "") // should warn bloop is too old
   }
 
   test("compilation fails if jvm version is mismatched4") {
@@ -188,19 +188,30 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     compileToADifferentJvmThanBloops("11", "adopt:11", true)
   }
 
-
-  def compileToADifferentJvmThanBloops(bloopJvm: String, targetJvm: String, shouldSucceed: Boolean,
-    code: String = "java.util.Optional.of(1).isEmpty") = {
+  def compileToADifferentJvmThanBloops(
+    bloopJvm: String,
+    targetJvm: String,
+    shouldSucceed: Boolean,
+    code: String = "java.util.Optional.of(1).isEmpty"
+  ) = {
     val inputs = TestInputs(
       Seq(
         os.rel / "Main.scala" -> s"object Main{$code}" // isEmpty came in JDK11
       )
     )
-    inputs.fromRoot{ root =>
-      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop","--", "exit").call(cwd=root, check=false, stdout = os.Inherit)
-      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop","--", "about").call(cwd=root, check=false, stdout = os.Inherit)
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop", "--", "exit").call(
+        cwd = root,
+        check = false,
+        stdout = os.Inherit
+      )
+      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop", "--", "about").call(
+        cwd = root,
+        check = false,
+        stdout = os.Inherit
+      )
       val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", targetJvm, ".")
-        .call(cwd=root, check=false)
+        .call(cwd = root, check = false)
       expect((res.exitCode == 0) == shouldSucceed)
     }
   }
