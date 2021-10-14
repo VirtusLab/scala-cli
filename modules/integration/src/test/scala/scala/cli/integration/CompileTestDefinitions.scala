@@ -179,7 +179,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     compileToADifferentJvmThanBloops("9", "11", false)
   }
 
-  test("adopt option".only) {
+  test("adopt option") {
     compileToADifferentJvmThanBloops("11", "adopt:11", true)
   }
 
