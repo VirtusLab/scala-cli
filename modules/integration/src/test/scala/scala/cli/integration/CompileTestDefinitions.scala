@@ -174,6 +174,11 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     compileToADifferentJvmThanBloops("8", "11", false) // should warn bloop is too old
   }
 
+  test("bloop jvm does not support this jdk spec".only) {
+    //todo  Assert this should not contain "Error: -release"
+    compileToADifferentJvmThanBloops("8", "11", true, code="") // should warn bloop is too old
+  }
+
   test("compilation fails if jvm version is mismatched4") {
     // whitebox test, jvms newer than 8 are handled separately in code
     compileToADifferentJvmThanBloops("9", "11", false)
@@ -184,10 +189,11 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
 
-  def compileToADifferentJvmThanBloops(bloopJvm: String, targetJvm: String, shouldSucceed: Boolean) = {
+  def compileToADifferentJvmThanBloops(bloopJvm: String, targetJvm: String, shouldSucceed: Boolean,
+    code: String = "java.util.Optional.of(1).isEmpty") = {
     val inputs = TestInputs(
       Seq(
-        os.rel / "Main.scala" -> "object Main{java.util.Optional.of(1).isEmpty}" // isEmpty came in JDK11
+        os.rel / "Main.scala" -> s"object Main{$code}" // isEmpty came in JDK11
       )
     )
     inputs.fromRoot{ root =>

@@ -517,9 +517,7 @@ object Build {
       version <- Option(m.group(3))
     } yield version
 
-
-    val releaseOption = List("-release", jvmStandardVersion.getOrElse("8"))
-
+    val releaseOption = List("-release", jvmStandardVersion.getOrElse("11"))
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
