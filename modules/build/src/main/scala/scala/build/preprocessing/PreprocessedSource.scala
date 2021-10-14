@@ -7,7 +7,7 @@ sealed abstract class PreprocessedSource extends Product with Serializable {
   def requirements: Option[BuildRequirements]
   def mainClassOpt: Option[String]
 
-  def scopedRequirements: Seq[PreprocessedSource.Scoped[BuildRequirements]]
+  def scopedRequirements: Seq[Scoped[BuildRequirements]]
   def scopePath: ScopePath
 }
 
@@ -75,13 +75,5 @@ object PreprocessedSource {
         else idxCmp
       }
     }
-
-  final case class Scoped[T](path: ScopePath, value: T) {
-    def appliesTo(candidate: ScopePath): Boolean =
-      path.root == candidate.root &&
-      candidate.path.startsWith(path.path)
-    def valueFor(candidate: ScopePath): Option[T] =
-      if (appliesTo(candidate)) Some(value) else None
-  }
 
 }

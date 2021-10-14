@@ -119,7 +119,7 @@ case object ScalaPreprocessor extends Preprocessor {
     scopeRoot: ScopePath
   ): Either[BuildException, Option[(
     BuildRequirements,
-    Seq[PreprocessedSource.Scoped[BuildRequirements]],
+    Seq[Scoped[BuildRequirements]],
     BuildOptions,
     Option[String]
   )]] = either {
@@ -183,7 +183,7 @@ case object ScalaPreprocessor extends Preprocessor {
     scopeRoot: ScopePath
   ): Either[
     BuildException,
-    (BuildRequirements, Seq[PreprocessedSource.Scoped[BuildRequirements]])
+    (BuildRequirements, Seq[Scoped[BuildRequirements]])
   ] = {
     val results = directives
       .filter(_.tpe == Directive.Require)
@@ -203,7 +203,7 @@ case object ScalaPreprocessor extends Preprocessor {
               case None => (reqs, Nil)
               case Some(sc) =>
                 val scopePath = scopeRoot / os.RelPath(sc).asSubPath
-                (BuildRequirements(), Seq(PreprocessedSource.Scoped(scopePath, reqs)))
+                (BuildRequirements(), Seq(Scoped(scopePath, reqs)))
             }
             Right(value)
           case Some(Left(err)) =>
@@ -229,7 +229,7 @@ case object ScalaPreprocessor extends Preprocessor {
     BuildException,
     (
       BuildRequirements,
-      Seq[PreprocessedSource.Scoped[BuildRequirements]],
+      Seq[Scoped[BuildRequirements]],
       BuildOptions,
       Option[String]
     )
