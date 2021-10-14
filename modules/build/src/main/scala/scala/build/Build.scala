@@ -513,9 +513,9 @@ object Build {
       jvmOpt  <- options.javaOptions.jvmIdOpt
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
-    } yield version
+    } yield List("-release", version)
 
-    val releaseOption = List("-release", jvmStandardVersion.getOrElse("11"))
+    val releaseOption = jvmStandardVersion.getOrElse(List.empty)
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
