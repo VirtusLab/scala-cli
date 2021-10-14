@@ -3,19 +3,23 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 
-const windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE']
-
-function defaultOS(){ return window ? (window.navigator.userAgent.indexOf("Win") != -1 ? "win" : "mac/linux") : "mac/linux" }
+const currentOs = () => {
+  const isCurrentOsEqual = (osShortName) => window.navigator.userAgent.indexOf(osShortName) !== -1
+  if(isCurrentOsEqual("Win")) return "win"
+  if(isCurrentOsEqual("Mac")) return "mac"
+  else return "linux"
+}
 
 export default function BasicInstall(props){
   return  <BrowserOnly>{() =>
       <div>
         <Tabs 
           groupId="operating-systems"
-          defaultValue={defaultOS()}
+          defaultValue={currentOs()}
           values={[
           {label: 'Windows', value: 'win'},
-          {label: 'macOS/Linux', value: 'mac/linux'},
+          {label: 'macOS', value: 'mac'},
+          {label: 'Linux', value: 'linux'},
         ]}>
           
           <TabItem value="win">
@@ -24,10 +28,17 @@ export default function BasicInstall(props){
             </a>
           </TabItem>
 
-          <TabItem value="mac/linux">
+          <TabItem value="linux" >
             <p>Run the following one-line command in your terminal</p>
             <code>
               curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh
+            </code>
+          </TabItem>
+
+          <TabItem value="mac">
+            <p>Run the following one-line command in your terminal</p>
+            <code>
+              brew install Virtuslab/scala-cli/scala-cli
             </code>
           </TabItem>
 
