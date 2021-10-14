@@ -163,17 +163,57 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("compilation fails if jvm version is mismatched".only) {
+    compileToADifferentJvmThanBloops("11", "8", false)
+  }
+
+  test("compilation fails if jvm version is mismatched2".only) {
+    compileToADifferentJvmThanBloops("11", "11", true)
+  }
+
+  test("bloop jvm too old".only) {
+    compileToADifferentJvmThanBloops("8", "11", false) // should warn bloop is too old
+  }
+
+  test("compilation fails if jvm version is mismatched4") {
+    // whitebox test, jvms newer than 8 are handled separately in code
+    compileToADifferentJvmThanBloops("9", "11", false)
+  }
+
+
+  def compileToADifferentJvmThanBloops(bloopJvm: String, targetJvm: String, shouldSucceed: Boolean) = {
     val inputs = TestInputs(
       Seq(
-        os.rel / "Main.scala" -> "object Main{java.util.Optional.of(1).isEmpty}" // isEmpty came in JDK9
+        os.rel / "Main.scala" -> "object Main{java.util.Optional.of(1).isEmpty}" // isEmpty came in JDK11
       )
     )
     inputs.fromRoot{ root =>
-      os.proc(TestUtil.cs,"--jvm","11", "bloop","exit").call(cwd=root, check=false)
-      os.proc(TestUtil.cs,"--jvm","11", "bloop","about").call(cwd=root, check=false)
-      val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "8", ".")
+      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop","--", "exit").call(cwd=root, check=false, stdout = os.Inherit)
+      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop","--", "about").call(cwd=root, check=false, stdout = os.Inherit)
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", targetJvm, ".")
         .call(cwd=root, check=false)
-      expect(res.exitCode != 0)
+      expect((res.exitCode == 0) == shouldSucceed)
     }
   }
+
+  // test("compilation fails if jvm version is mismatched4".only) {
+  //   val inputs = TestInputs(
+  //     Seq(
+  //       os.rel / "Main.scala" ->
+  //         "object Main{java.util.Optional.of(1).isEmpty}" // isEmpty came in JDK11
+  //     )
+  //   )
+  //   inputs.fromRoot{ root =>
+  //     os.proc(TestUtil.cs,"--jvm", "8", "launch","bloop", "--", "exit").call(cwd=root, stdout=os.Inherit)
+  //     os.proc(TestUtil.cs,"--jvm", "8", "launch","bloop", "--", "about").call(cwd=root, stdout=os.Inherit)
+  //     val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
+  //       .call(cwd=root, check=false)
+  //     expect(res.exitCode != 0)
+  //     os.proc(TestUtil.cs,"--jvm", "11", "launch", "bloop", "--", "exit").call(cwd=root)
+  //     os.proc(TestUtil.cs,"--jvm", "11", "launch", "bloop", "--", "about").call(cwd=root)
+  //     val res2 = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
+  //       .call(cwd=root, check=false)
+  //     expect(res2.exitCode == 0)
+  //   }
+  // }
+
 }
