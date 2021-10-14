@@ -59,7 +59,7 @@ case object ScalaPreprocessor extends Preprocessor {
         }
         val res = either {
           val content   = value(maybeRead(f.path))
-          val scopePath = PreprocessedSource.ScopePath.fromPath(f.path)
+          val scopePath = ScopePath.fromPath(f.path)
           val source = value(process(content, Right(f.path), scopePath / os.up)) match {
             case None =>
               PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
@@ -116,15 +116,15 @@ case object ScalaPreprocessor extends Preprocessor {
   def process(
     content: String,
     path: Either[String, os.Path],
-    scopeRoot: PreprocessedSource.ScopePath
+    scopeRoot: ScopePath
   ): Either[BuildException, Option[(
     BuildRequirements,
-    Seq[PreprocessedSource.Scoped[BuildRequirements]],
+    Seq[Scoped[BuildRequirements]],
     BuildOptions,
     Option[String]
   )]] = either {
 
-    val afterStrictUsing = value(processStrictUsing(content))
+    val afterStrictUsing = value(processStrictUsing(content, scopeRoot))
     val afterUsing = value {
       processUsing(path, afterStrictUsing.map(_._2).getOrElse(content), scopeRoot)
         .sequence
@@ -153,14 +153,16 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
-  private def directivesBuildOptions(directives: Seq[Directive])
-    : Either[BuildException, BuildOptions] = {
+  private def directivesBuildOptions(
+    directives: Seq[Directive],
+    cwd: ScopePath
+  ): Either[BuildException, BuildOptions] = {
     val results = directives
       .filter(_.tpe == Directive.Using)
       .map { dir =>
         val fromHandlersOpt = usingDirectiveHandlers
           .iterator
-          .flatMap(_.handle(dir).iterator)
+          .flatMap(_.handle(dir, cwd).iterator)
           .take(1)
           .toList
           .headOption
@@ -180,17 +182,17 @@ case object ScalaPreprocessor extends Preprocessor {
 
   private def directivesBuildRequirements(
     directives: Seq[Directive],
-    scopeRoot: PreprocessedSource.ScopePath
+    scopeRoot: ScopePath
   ): Either[
     BuildException,
-    (BuildRequirements, Seq[PreprocessedSource.Scoped[BuildRequirements]])
+    (BuildRequirements, Seq[Scoped[BuildRequirements]])
   ] = {
     val results = directives
       .filter(_.tpe == Directive.Require)
       .map { dir =>
         val fromHandlersOpt = requireDirectiveHandlers
           .iterator
-          .flatMap(_.handle(dir).iterator)
+          .flatMap(_.handle(dir, scopeRoot).iterator)
           .take(1)
           .toList
           .headOption
@@ -203,7 +205,7 @@ case object ScalaPreprocessor extends Preprocessor {
               case None => (reqs, Nil)
               case Some(sc) =>
                 val scopePath = scopeRoot / os.RelPath(sc).asSubPath
-                (BuildRequirements(), Seq(PreprocessedSource.Scoped(scopePath, reqs)))
+                (BuildRequirements(), Seq(Scoped(scopePath, reqs)))
             }
             Right(value)
           case Some(Left(err)) =>
@@ -224,12 +226,12 @@ case object ScalaPreprocessor extends Preprocessor {
   private def processUsing(
     path: Either[String, os.Path],
     content: String,
-    scopeRoot: PreprocessedSource.ScopePath
+    scopeRoot: ScopePath
   ): Option[Either[
     BuildException,
     (
       BuildRequirements,
-      Seq[PreprocessedSource.Scoped[BuildRequirements]],
+      Seq[Scoped[BuildRequirements]],
       BuildOptions,
       Option[String]
     )
@@ -240,7 +242,7 @@ case object ScalaPreprocessor extends Preprocessor {
       case (directives, updatedContentOpt) =>
         val tuple = (
           directivesBuildRequirements(directives, scopeRoot),
-          directivesBuildOptions(directives),
+          directivesBuildOptions(directives, scopeRoot),
           Right(updatedContentOpt)
         )
         tuple
@@ -339,7 +341,8 @@ case object ScalaPreprocessor extends Preprocessor {
   }
 
   private def processStrictUsing(
-    content: String
+    content: String,
+    cwd: ScopePath
   ): Either[BuildException, Option[(BuildOptions, String)]] = either {
 
     val processor = {
@@ -364,7 +367,8 @@ case object ScalaPreprocessor extends Preprocessor {
     val updatedOptions = value {
       DirectivesProcessor.process(
         directives0,
-        usingDirectiveHandlers ++ requireDirectiveHandlers
+        usingDirectiveHandlers ++ requireDirectiveHandlers,
+        cwd
       )
     }
     val codeOffset = directives.getCodeOffset()

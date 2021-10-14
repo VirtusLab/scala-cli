@@ -1,9 +1,10 @@
 package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Os
+import scala.build.Position
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
+import scala.build.preprocessing.ScopePath
 
 case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Java home"
@@ -14,29 +15,36 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
     "using java-home \"/Users/Me/jdks/11\""
   )
 
-  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
+  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq("java-home" | "javaHome", path) =>
-        val home = os.Path(path, Os.pwd) // FIXME Might throw on invalid path
-        val options = BuildOptions(
-          javaOptions = JavaOptions(
-            javaHomeOpt = Some(home)
+        val res = either {
+          val root = value(Directive.osRoot(cwd, Some(directive.position)))
+          val home = os.Path(path, root)
+          BuildOptions(
+            javaOptions = JavaOptions(
+              javaHomeOpt = Some(home)
+            )
           )
-        )
-        Some(Right(options))
+        }
+        Some(res)
       case _ => None
     }
 
   override def keys = Seq("java-home", "javaHome")
-  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = either {
+  override def handleValues(
+    values: Seq[Any],
+    cwd: ScopePath,
+    positionOpt: Option[Position]
+  ): Either[BuildException, BuildOptions] = either {
     val rawHome = value {
       DirectiveUtil.stringValues(values)
         .lastOption
         .toRight("No value passed to javaHome directive")
     }
+    val root = value(Directive.osRoot(cwd, positionOpt))
     // FIXME Might throw
-    // FIXME Wrong cwd
-    val home = os.Path(rawHome, Os.pwd)
+    val home = os.Path(rawHome, root)
     BuildOptions(
       javaOptions = JavaOptions(
         javaHomeOpt = Some(home)

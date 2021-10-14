@@ -23,7 +23,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               content,
               codeWrapper,
               script.subPath,
-              PreprocessedSource.ScopePath.fromPath(script.path)
+              ScopePath.fromPath(script.path)
             )
           }
           preprocessed
@@ -76,7 +76,7 @@ object ScriptPreprocessor {
     content: String,
     codeWrapper: CodeWrapper,
     subPath: os.SubPath,
-    scopePath: PreprocessedSource.ScopePath
+    scopePath: ScopePath
   ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
 
     val contentIgnoredSheBangLines = ignoreSheBangLines(content)

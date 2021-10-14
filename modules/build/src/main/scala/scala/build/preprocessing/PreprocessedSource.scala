@@ -7,8 +7,8 @@ sealed abstract class PreprocessedSource extends Product with Serializable {
   def requirements: Option[BuildRequirements]
   def mainClassOpt: Option[String]
 
-  def scopedRequirements: Seq[PreprocessedSource.Scoped[BuildRequirements]]
-  def scopePath: PreprocessedSource.ScopePath
+  def scopedRequirements: Seq[Scoped[BuildRequirements]]
+  def scopePath: ScopePath
 }
 
 object PreprocessedSource {
@@ -75,30 +75,5 @@ object PreprocessedSource {
         else idxCmp
       }
     }
-
-  final case class ScopePath(
-    root: String,
-    path: os.SubPath
-  ) {
-    def /(subPath: os.PathChunk): ScopePath =
-      copy(path = path / subPath)
-  }
-
-  object ScopePath {
-    def fromPath(path: os.Path): ScopePath = {
-      def root(p: os.Path): os.Path =
-        if (p.segmentCount > 0) root(p / os.up) else p
-      val root0 = root(path)
-      ScopePath(root0.toString, path.subRelativeTo(root0))
-    }
-  }
-
-  final case class Scoped[T](path: ScopePath, value: T) {
-    def appliesTo(candidate: ScopePath): Boolean =
-      path.root == candidate.root &&
-      candidate.path.startsWith(path.path)
-    def valueFor(candidate: ScopePath): Option[T] =
-      if (appliesTo(candidate)) Some(value) else None
-  }
 
 }

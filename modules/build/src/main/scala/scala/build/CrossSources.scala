@@ -88,7 +88,7 @@ object CrossSources {
 
     val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
     val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)
-    def baseReqs(path: PreprocessedSource.ScopePath): BuildRequirements =
+    def baseReqs(path: ScopePath): BuildRequirements =
       scopedRequirementsByRoot
         .getOrElse(path.root, Nil)
         .flatMap(_.valueFor(path).toSeq)

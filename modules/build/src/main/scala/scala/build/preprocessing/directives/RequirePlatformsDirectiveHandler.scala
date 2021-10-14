@@ -2,6 +2,7 @@ package scala.build.preprocessing.directives
 
 import scala.build.errors.BuildException
 import scala.build.options.{BuildRequirements, Platform}
+import scala.build.preprocessing.ScopePath
 
 case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Platform"
@@ -14,7 +15,10 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
     "using target jvm"
   )
 
-  def handle(directive: Directive): Option[Either[BuildException, BuildRequirements]] =
+  def handle(
+    directive: Directive,
+    cwd: ScopePath
+  ): Option[Either[BuildException, BuildRequirements]] =
     Platform.parseSpec(directive.values.map(Platform.normalize)) match {
       case Some(platforms) =>
         val reqs = BuildRequirements(

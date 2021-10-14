@@ -2,6 +2,7 @@ package scala.build.preprocessing.directives
 
 import scala.build.errors.BuildException
 import scala.build.options.BuildRequirements
+import scala.build.preprocessing.ScopePath
 
 case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Scala version"
@@ -14,7 +15,10 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
     "using target scala 3.0.2"
   )
 
-  def handle(directive: Directive): Option[Either[BuildException, BuildRequirements]] =
+  def handle(
+    directive: Directive,
+    cwd: ScopePath
+  ): Option[Either[BuildException, BuildRequirements]] =
     directive.values match {
       case Seq("scala", ">=", minVer) =>
         val req = BuildRequirements(

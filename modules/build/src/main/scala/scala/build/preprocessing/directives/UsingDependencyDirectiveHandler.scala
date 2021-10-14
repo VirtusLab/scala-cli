@@ -5,9 +5,10 @@ import dependency.parser.DependencyParser
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.Positioned
 import scala.build.errors.{BuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ClassPathOptions}
+import scala.build.preprocessing.ScopePath
+import scala.build.{Position, Positioned}
 
 case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Dependency"
@@ -19,7 +20,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     "using dev.zio::zio:1.0.12"
   )
 
-  def handle(directive: Directive): Option[Either[BuildException, BuildOptions]] =
+  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq(depStr) if depStr.split(":").count(_.trim.nonEmpty) == 3 =>
         val res =
@@ -39,7 +40,11 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
       .left.map(err => new DependencyFormatError(depStr, err))
 
   override def keys = Seq("lib")
-  override def handleValues(values: Seq[Any]): Either[BuildException, BuildOptions] = either {
+  override def handleValues(
+    values: Seq[Any],
+    cwd: ScopePath,
+    positionOpt: Option[Position]
+  ): Either[BuildException, BuildOptions] = either {
 
     val extraDependencies = value {
       DirectiveUtil.stringValues(values)

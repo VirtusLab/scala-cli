@@ -66,7 +66,7 @@ Available in commands:
 
 #### `--bloop-bsp-protocol`
 
-Protocol to use to open a BSP connection with Bloop (ignored on Windows for now)
+Protocol to use to open a BSP connection with Bloop
 
 #### `--bloop-bsp-socket`
 
@@ -198,7 +198,7 @@ Add repositories
 
 Aliases: `-P`, `--plugin`
 
-Add compiler plugins dependencies
+Add compiler plugin dependencies
 
 ## Directories options
 
@@ -262,7 +262,7 @@ Check that sources are well formatted
 
 #### `--scalafmt-tag`
 
-#### `--scalafmt-git-hub-org-name`
+#### `--scalafmt-github-org-name`
 
 #### `--scalafmt-extension`
 
@@ -501,7 +501,7 @@ Bind to port
 
 #### `--metabrowse-tag`
 
-#### `--metabrowse-git-hub-org-name`
+#### `--metabrowse-github-org-name`
 
 #### `--metabrowse-extension`
 

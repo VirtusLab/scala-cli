@@ -17,7 +17,7 @@ import scala.util.Properties
 // format: off
 final case class SharedCompilationServerOptions(
   @Group("Compilation server")
-  @HelpMessage("Protocol to use to open a BSP connection with Bloop (ignored on Windows for now)")
+  @HelpMessage("Protocol to use to open a BSP connection with Bloop")
   @ValueDescription("tcp|local|default")
   @Hidden
     bloopBspProtocol: Option[String] = None,

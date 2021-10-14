@@ -29,7 +29,7 @@ final case class MetabrowseOptions(
   @Hidden
     metabrowseTag: Option[String] = None,
   @Hidden
-    metabrowseGitHubOrgName: Option[String] = None,
+    metabrowseGithubOrgName: Option[String] = None,
   @Hidden
     metabrowseExtension: Option[String] = None,
   @Hidden
@@ -43,10 +43,10 @@ final case class MetabrowseOptions(
     val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
       .getOrElse(FetchExternalBinary.platformSuffix(supportsMusl = false))
     val metabrowseTag0           = metabrowseTag.getOrElse("latest")
-    val metabrowseGitHubOrgName0 = metabrowseGitHubOrgName.getOrElse("alexarchambault/metabrowse")
+    val metabrowseGithubOrgName0 = metabrowseGithubOrgName.getOrElse("alexarchambault/metabrowse")
     val metabrowseExtension0     = if (Properties.isWin) ".zip" else ".gz"
     val url =
-      s"https://github.com/$metabrowseGitHubOrgName0/releases/download/$metabrowseTag0/metabrowse-$scalaVersion-$osArchSuffix0$metabrowseExtension0"
+      s"https://github.com/$metabrowseGithubOrgName0/releases/download/$metabrowseTag0/metabrowse-$scalaVersion-$osArchSuffix0$metabrowseExtension0"
     (url, !metabrowseTag0.startsWith("v"))
   }
 
