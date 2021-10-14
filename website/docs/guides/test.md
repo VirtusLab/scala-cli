@@ -7,8 +7,8 @@ The `test` command allows to run test suites.
 
 ## Test framework
 
-In order to run tests with it, add a testing framework dependency to your
-application. Some of the most popular testing frameworks in Scala are
+In order to run tests with it, add a test framework dependency to your
+application. Some of the most popular test frameworks in Scala are
 - [munit](https://scalameta.org/munit): `org.scalameta::munit::0.7.27`
 - [utest](https://github.com/com-lihaoyi/utest): `com.lihaoyi::utest::0.7.10`
 - [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.9`
@@ -38,7 +38,7 @@ You can pass test arguments to your test framework, by passing them after a `--`
 ```bash
 cat MyTests.scala
 # import $ivy.`org.scalatest::scalatest::3.2.9`
-# 
+#
 # import org.scalatest._
 # import org.scalatest.flatspec._
 # import org.scalatest.matchers._

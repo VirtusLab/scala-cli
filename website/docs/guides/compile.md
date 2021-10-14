@@ -3,7 +3,7 @@ title: Compile
 sidebar_position: 5
 ---
 
-The Scala CLI can compile your code with its `compile` command:
+Scala CLI can compile your code with its `compile` command:
 ```bash
 cat Hello.scala
 # object Hello {
