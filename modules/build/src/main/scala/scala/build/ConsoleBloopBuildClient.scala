@@ -176,12 +176,24 @@ object ConsoleBloopBuildClient {
       out.println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       for (line <- msgIt)
         out.println(prefix + line)
-      for (code <- Option(diag.getCode))
+      val codeOpt = Option(diag.getCode).orElse {
+        val lineOpt =
+          if (diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine)
+            Option(diag.getRange.getStart.getLine)
+          else None
+        for {
+          line <- lineOpt
+          p    <- path.toOption
+          lines = os.read.lines(p)
+          line <- if (line < lines.length) Some(lines(line)) else None
+        } yield line
+      }
+      for (code <- codeOpt)
         code.linesIterator.map(prefix + _).foreach(out.println(_))
       val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
         diag.getRange.getStart.getCharacter != null &&
         diag.getRange.getEnd.getCharacter != null &&
-        diag.getCode != null
+        codeOpt.nonEmpty
       if (canPrintUnderline)
         out.println(
           prefix + " " * diag.getRange.getStart.getCharacter + "^" * (diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter + 1)

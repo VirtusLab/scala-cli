@@ -125,4 +125,34 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("code in test error") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Main.scala" ->
+          """object Main {
+            |  def message = "Hello from " + "tests"
+            |  def main(args: Array[String]): Unit = {
+            |    zz // zz value
+            |    println(message)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+        .call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
+      expect(res.exitCode == 1)
+      val expectedInOutput =
+        if (actualScalaVersion.startsWith("2."))
+          "not found: value zz"
+        else
+          "Not found: zz"
+      val output = res.out.text()
+      expect(output.contains(expectedInOutput))
+      // errored line should be printed too
+      expect(output.contains("zz // zz value"))
+    }
+  }
+
 }
