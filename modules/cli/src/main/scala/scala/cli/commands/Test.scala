@@ -21,7 +21,6 @@ object Test extends ScalaCommand[TestOptions] {
     val logger = options.shared.logger
     SetupIde.runSafe(
       options.shared,
-      args,
       inputs,
       logger,
       Some(name)

@@ -14,7 +14,6 @@ object Compile extends ScalaCommand[CompileOptions] {
     val logger = options.shared.logger
     SetupIde.runSafe(
       options.shared,
-      args,
       inputs,
       logger,
       Some(name)

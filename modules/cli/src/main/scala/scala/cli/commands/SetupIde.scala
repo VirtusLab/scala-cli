@@ -14,6 +14,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
+import scala.cli.errors.FoundVirtualInputsError
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -46,32 +47,35 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   def run(options: SetupIdeOptions, args: RemainingArgs): Unit =
     doRun(
       options,
-      args,
       inputs = options.shared.inputsOrExit(args),
       previousCommandName = None
     ).orExit(options.shared.logging.logger)
 
   def runSafe(
     options: SharedOptions,
-    args: RemainingArgs,
     inputs: Inputs,
     logger: Logger,
     previousCommandName: Option[String]
   ): Unit =
-    doRun(SetupIdeOptions(shared = options), args, inputs, previousCommandName) match {
+    doRun(SetupIdeOptions(shared = options), inputs, previousCommandName) match {
       case Left(ex) =>
-        logger.debug(s"Caught $ex during setup-ide, ignoring it.")
+        logger.debug(s"Ignoring error during setup-ide: ${ex.message}")
       case Right(()) =>
     }
 
   private def doRun(
     options: SetupIdeOptions,
-    args: RemainingArgs,
     inputs: Inputs,
     previousCommandName: Option[String]
   ): Either[BuildException, Unit] = either {
 
-    val rawArgv = argvOpt.getOrElse {
+    val virtualInputs = inputs.elements.collect {
+      case v: Inputs.Virtual => v
+    }
+    if (virtualInputs.nonEmpty)
+      value(Left(new FoundVirtualInputsError(virtualInputs)))
+
+    val progName = argvOpt.flatMap(_.headOption).getOrElse {
       sys.error("setup-ide called in a non-standard way :|")
     }
 
@@ -91,8 +95,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     // Ensure the path to the CLI is absolute
     val absolutePathToScalaCli: String = {
-      if (rawArgv(0).contains(File.separator))
-        os.Path(rawArgv(0), Os.pwd).toString
+      if (progName.contains(File.separator))
+        os.Path(progName, Os.pwd).toString
       else
         /*
           In order to get absolute path we first try to get it from coursier.mainJar (this works for standalone launcher)
@@ -108,19 +112,17 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
                 .toString
             ).toOption
           }
-          .getOrElse(rawArgv(0))
+          .getOrElse(progName)
     }
 
-    val remainingArgs = args.remaining.map(arg => os.Path(arg, Os.pwd).toString)
-    val unparsedArgs =
-      if (args.unparsed.isEmpty) Nil
-      else "--" +: args.unparsed.map(arg => os.Path(arg, Os.pwd).toString)
+    val inputArgs = inputs.elements.collect {
+      case d: Inputs.OnDisk => d.path.toString
+    }
 
     val bspArgs =
       List(absolutePathToScalaCli, "bsp") ++
-        remainingArgs ++
-        List("--json-options", scalaCliBspJsonDestination.toString) ++
-        unparsedArgs
+        List("--json-options", scalaCliBspJsonDestination.toString, "--") ++
+        inputArgs
     val details = new BspConnectionDetails(
       bspName,
       bspArgs.asJava,
