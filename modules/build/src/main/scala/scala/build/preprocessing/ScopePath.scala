@@ -1,7 +1,7 @@
 package scala.build.preprocessing
 
 final case class ScopePath(
-  root: String,
+  root: Either[String, os.Path],
   path: os.SubPath
 ) {
   def /(subPath: os.PathChunk): ScopePath =
@@ -13,6 +13,6 @@ object ScopePath {
     def root(p: os.Path): os.Path =
       if (p.segmentCount > 0) root(p / os.up) else p
     val root0 = root(path)
-    ScopePath(root0.toString, path.subRelativeTo(root0))
+    ScopePath(Right(root0), path.subRelativeTo(root0))
   }
 }

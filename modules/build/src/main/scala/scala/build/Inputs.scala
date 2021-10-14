@@ -147,7 +147,7 @@ object Inputs {
     }
 
     def scopePath: ScopePath =
-      ScopePath(source, subPath)
+      ScopePath(Left(source), subPath)
   }
 
   sealed trait SingleFile   extends OnDisk with SingleElement
