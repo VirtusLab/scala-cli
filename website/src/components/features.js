@@ -34,7 +34,7 @@ const featuresList = [
           Scala CLI shares some similarities with build tools,
           but doesn't aim at supporting multi-module projects,
           nor to be extended via a task system known from sbt, mill or bazel.
-        </p>,
+        </p>
         <p>
           Scala ecosystem has multiple amazing build tools, there is no need to create another one.
         </p>
