@@ -19,7 +19,7 @@ final case class SharedDependencyOptions(
   @Group("Scala")
   @Name("P")
   @Name("plugin")
-  @HelpMessage("Add compiler plugins dependencies")
+  @HelpMessage("Add compiler plugin dependencies")
   compilerPlugin: List[String] = Nil
 )
 // format: on

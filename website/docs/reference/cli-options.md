@@ -66,7 +66,7 @@ Available in commands:
 
 #### `--bloop-bsp-protocol`
 
-Protocol to use to open a BSP connection with Bloop (ignored on Windows for now)
+Protocol to use to open a BSP connection with Bloop
 
 #### `--bloop-bsp-socket`
 
@@ -198,7 +198,7 @@ Add repositories
 
 Aliases: `-P`, `--plugin`
 
-Add compiler plugins dependencies
+Add compiler plugin dependencies
 
 ## Directories options
 
