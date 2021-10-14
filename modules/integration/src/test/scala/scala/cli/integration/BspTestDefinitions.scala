@@ -194,14 +194,17 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
       val details = readBspConfig(root / "directory")
       val expectedArgv = List(
+        os.Path(TestUtil.CIPath).toString(),
         "bsp",
         absolutePathFromRoot.toString(),
         "--json-options",
         (root / "directory" / ".scala" / "ide-options.json").toString()
       )
-      // We assert tails as JVM tests are run via `java -jar` and others are run normally, via launcher
-      // therefore we will get just `scala-cli` for JVM but some absolute path for other
-      expect(details.argv.tail == expectedArgv)
+      expect(details.argv == expectedArgv)
+
+      val processPath = Paths.get(details.argv.head)
+      expect(processPath.isAbsolute)
+      expect(processPath.toFile.exists())
     }
   }
 

@@ -7,6 +7,7 @@ import upickle.default._
 
 import java.io.File
 import java.nio.charset.Charset
+import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
@@ -91,9 +92,20 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         if (rawArgv(0).contains(File.separator))
           os.Path(rawArgv(0), Os.pwd).toString
         else
-          Try(
-            this.getClass.getProtectionDomain.getCodeSource.getLocation.toURI.getPath.trim
-          ).filter(name => name.nonEmpty && !name.endsWith(".jar")).getOrElse(rawArgv(0))
+          /*
+            In order to get absolute path we first try to get it from coursier.mainJar (this works for standalone launcher)
+            If this fails we fallback to getting it from this class and finally we may also use rawArg if there is nothing left
+           */
+          sys.props.get("coursier.mainJar").map(Paths.get(_)) match {
+            case Some(value) => value.toAbsolutePath.toString
+            case None =>
+              Try(
+                //This is weird but on windows we get /D:\a\scala-cli...
+                Paths.get(
+                  this.getClass.getProtectionDomain.getCodeSource.getLocation.toURI
+                ).toAbsolutePath.toString
+              ).getOrElse(rawArgv(0))
+          }
       }
 
       val unparsedArgs =
@@ -133,8 +145,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
           scalaCliOptionsForBspJson.getBytes(charset),
           createFolders = true
         )
-        if (options.shared.logging.verbosity >= 0)
-          logger.debug(s"Wrote $bspJsonDestination")
+        logger.debug(s"Wrote $bspJsonDestination")
       }
     }
   }
