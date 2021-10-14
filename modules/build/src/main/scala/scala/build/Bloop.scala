@@ -52,13 +52,19 @@ object Bloop {
         .map(_._2.toFile)
     }
 
-  def bloopClassPath(logger: Logger): Either[BuildException, Seq[File]] = either {
+  def bloopClassPath(logger: Logger): Either[BuildException, Seq[File]] =
+    bloopClassPath(logger, BloopRifleConfig.defaultVersion)
+
+  def bloopClassPath(
+    logger: Logger,
+    bloopVersion: String
+  ): Either[BuildException, Seq[File]] = either {
     val moduleStr = BloopRifleConfig.defaultModule
     val mod = value {
       ModuleParser.parse(moduleStr)
         .left.map(err => new ModuleFormatError(moduleStr, err, Some("Bloop")))
     }
-    val dep    = DependencyLike(mod, BloopRifleConfig.defaultVersion)
+    val dep    = DependencyLike(mod, bloopVersion)
     val sv     = BloopRifleConfig.defaultScalaVersion
     val sbv    = ScalaVersion.binary(sv)
     val params = ScalaParameters(sv, sbv)
