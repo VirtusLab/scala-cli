@@ -134,7 +134,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           cwd = root,
           check = false,
           stderr = os.Pipe
-        ).err.text.trim
+        ).err.text().trim
         expect(output.startsWith("scala-cli: invalid option:"))
       }
     }
@@ -1109,7 +1109,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val p =
         os.proc(TestUtil.cli, "main0.sc", "f.sc", "--", "20").call(cwd = root)
-      val res = p.out.text.trim
+      val res = p.out.text().trim
       expect(res == "202020")
     }
   }
@@ -1121,7 +1121,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val p = os.proc(TestUtil.cli, "f.sc", "--", "16").call(cwd = root)
-      expect(p.out.text.trim == "16")
+      expect(p.out.text().trim == "16")
     }
   }
 

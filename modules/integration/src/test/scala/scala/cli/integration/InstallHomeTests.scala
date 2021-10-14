@@ -47,10 +47,10 @@ class InstallHomeTests extends munit.FunSuite {
   ) = {
     // format: off
     val cmdInstallVersion = Seq[os.Shellable](
-      TestUtil.cli, "install-home", 
-      "--env", 
-      "--scala-cli-binary-path", binVersion , 
-      "--binary-name", dummyScalaCliBinName, 
+      TestUtil.cli, "install-home",
+      "--env",
+      "--scala-cli-binary-path", binVersion,
+      "--binary-name", dummyScalaCliBinName,
       "--bin-dir", binDirPath
     ) ++ (if(force) Seq[os.Shellable]("--force") else Seq.empty)
     // format: on
@@ -80,7 +80,7 @@ class InstallHomeTests extends munit.FunSuite {
       val v1Install = os.proc(binDirPath / dummyScalaCliBinName).call(
         cwd = root,
         stdin = os.Inherit
-      ).out.text.trim
+      ).out.text().trim
       expect(v1Install == firstVersion)
 
       // update to 2 version
@@ -89,7 +89,7 @@ class InstallHomeTests extends munit.FunSuite {
       val v2Update = os.proc(binDirPath / dummyScalaCliBinName).call(
         cwd = root,
         stdin = os.Inherit
-      ).out.text.trim
+      ).out.text().trim
       expect(v2Update == secondVersion)
 
       // downgrade to 1 version with force
@@ -98,7 +98,7 @@ class InstallHomeTests extends munit.FunSuite {
       val v1Downgrade = os.proc(binDirPath / dummyScalaCliBinName).call(
         cwd = root,
         stdin = os.Inherit
-      ).out.text.trim
+      ).out.text().trim
       expect(v1Downgrade == firstVersion)
     }
   }
