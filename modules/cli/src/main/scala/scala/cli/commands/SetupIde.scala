@@ -64,7 +64,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       case Right(()) =>
     }
 
-  def doRun(
+  private def doRun(
     options: SetupIdeOptions,
     args: RemainingArgs,
     inputs: Inputs,
