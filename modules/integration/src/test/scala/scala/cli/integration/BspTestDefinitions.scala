@@ -164,14 +164,18 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
       inputs.fromRoot { root =>
         os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
-        val details = readBspConfig(root)
-        expect(details.argv.length >= 2)
-        expect(details.argv(1) == "bsp")
-        expect(details.argv(3) == "--json-options")
-        expect(Paths.get(details.argv(4)).isAbsolute)
-
-        val scalaCliBspConfigFile = root / ".scala" / "ide-options.json"
-        expect(os.exists(scalaCliBspConfigFile))
+        val details                = readBspConfig(root)
+        val expectedIdeOptionsFile = root / ".scala" / "ide-options.json"
+        val expectedArgv = Seq(
+          TestUtil.cliPath,
+          "bsp",
+          "--json-options",
+          expectedIdeOptionsFile.toString,
+          "--",
+          root.toString
+        )
+        expect(details.argv == expectedArgv)
+        expect(os.isFile(expectedIdeOptionsFile))
       }
     }
 
@@ -181,7 +185,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     )
   )
 
-  test("setup-ide should have only absolute path if relative one was specified") {
+  test("setup-ide should have only absolute paths even if relative ones were specified") {
     val path = os.rel / "directory" / "simple.sc"
     val inputs = TestInputs(
       Seq(
@@ -189,22 +193,21 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val absolutePathFromRoot = root / "directory" / "simple.sc"
-      os.proc(TestUtil.cli, "setup-ide", path, extraOptions).call(cwd = root, stdout = os.Inherit)
+      val relativeCliCommand =
+        TestUtil.cliCommand(os.Path(TestUtil.cliPath).relativeTo(root).toString)
+      os.proc(relativeCliCommand, "setup-ide", path, extraOptions)
+        .call(cwd = root, stdout = os.Inherit)
 
       val details = readBspConfig(root / "directory")
       val expectedArgv = List(
-        os.Path(TestUtil.cliPath).toString,
+        TestUtil.cliPath,
         "bsp",
-        absolutePathFromRoot.toString,
         "--json-options",
-        (root / "directory" / ".scala" / "ide-options.json").toString
+        (root / "directory" / ".scala" / "ide-options.json").toString,
+        "--",
+        (root / "directory" / "simple.sc").toString
       )
       expect(details.argv == expectedArgv)
-
-      val processPath = Paths.get(details.argv.head)
-      expect(processPath.isAbsolute)
-      expect(os.exists(os.Path(processPath)))
     }
   }
 
