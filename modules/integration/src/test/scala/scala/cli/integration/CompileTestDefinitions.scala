@@ -162,21 +162,25 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("compilation fails if jvm version is mismatched".only) {
+  test("compilation fails if jvm version is mismatched") {
     compileToADifferentJvmThanBloops("11", "8", false)
   }
 
-  test("compilation fails if jvm version is mismatched2".only) {
+  test("compilation fails if jvm version is mismatched2") {
     compileToADifferentJvmThanBloops("11", "11", true)
   }
 
-  test("bloop jvm too old".only) {
+  test("bloop jvm too old") {
     compileToADifferentJvmThanBloops("8", "11", false) // should warn bloop is too old
   }
 
   test("compilation fails if jvm version is mismatched4") {
     // whitebox test, jvms newer than 8 are handled separately in code
     compileToADifferentJvmThanBloops("9", "11", false)
+  }
+
+  test("adopt option".only) {
+    compileToADifferentJvmThanBloops("11", "adopt:11", true)
   }
 
 

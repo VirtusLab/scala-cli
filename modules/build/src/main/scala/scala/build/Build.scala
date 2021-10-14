@@ -20,6 +20,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
+import scala.util.matching.Regex
 
 trait Build {
   def inputs: Inputs
@@ -508,11 +509,16 @@ object Build {
       if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
       else Nil
 
-    val bloopJvmVersion =  "1" // value(Left[ScalaNativeCompatibilityError, String](new ScalaNativeCompatibilityError))
-    val releaseOption = if(bloopJvmVersion.startsWith("1.8.") && false) // todo handle more older jvm versions? apart from this,bloop jvm version should be checked, not the scala-cli
-      List.empty
-    else
-      List("-release", options.javaOptions.jvmIdOpt.getOrElse("8"))
+
+    val jvmVersionRegex= """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
+    val jvmStandardVersion = for {
+      jvmOpt <- options.javaOptions.jvmIdOpt
+      m <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
+      version <- Option(m.group(3))
+    } yield version
+
+
+    val releaseOption = List("-release", jvmStandardVersion.getOrElse("8"))
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
