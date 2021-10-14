@@ -1,7 +1,7 @@
----
-title: Package Scala application as a docker image
-sidebar_position: 5
----
+<!--
+  File was generated from based on docs/cookbooks/scala-docker.md, do not edit manually!
+-->
+
 
 # Package Scala application as a docker image
 
