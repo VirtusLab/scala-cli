@@ -27,11 +27,8 @@ object Scala {
 }
 
 object TestDeps {
-  // used in tests, should be older than the default one
-  def oldBloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.8-122-794af022"
-  def newBloopConfig = Deps.bloopConfig
-  def pprint         = Deps.pprint
-  def munit          = Deps.munit
+  def pprint = Deps.pprint
+  def munit  = Deps.munit
 }
 
 object Deps {

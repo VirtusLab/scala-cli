@@ -221,22 +221,20 @@ object BloopRifle {
   def shutdownBloopIfVersionIncompatible(
     config: BloopRifleConfig,
     logger: BloopRifleLogger,
-    workdir: Path,
+    workDir: Path,
     scheduler: ScheduledExecutorService
   ): Boolean = {
-    val currentBloopVersion = getCurrentBloopVersion(config, logger, workdir, scheduler)
-    val bloopExitNeeded = config.acceptBloopVersion.exists { f =>
-      currentBloopVersion.map(f).getOrElse(true)
+    val currentBloopVersion = getCurrentBloopVersion(config, logger, workDir, scheduler)
+    val isOk = config.acceptBloopVersion.forall { f =>
+      currentBloopVersion.forall(f(_))
     }
-    if (bloopExitNeeded) {
-      logger.debug(
-        s"Shutting down unsupported bloop v$currentBloopVersion."
-      )
-      val retCode = exit(config, workdir, logger)
-      logger.debug(s"Bloop exit return code: $retCode")
+    if (isOk)
+      logger.debug("No need to restart Bloop")
+    else {
+      logger.debug(s"Shutting down unsupported Bloop $currentBloopVersion.")
+      val retCode = exit(config, workDir, logger)
+      logger.debug(s"Bloop exit code: $retCode")
     }
-    else
-      logger.debug("No need to reset bloop")
-    bloopExitNeeded
+    !isOk
   }
 }

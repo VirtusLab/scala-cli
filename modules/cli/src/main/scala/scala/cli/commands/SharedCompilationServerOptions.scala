@@ -178,11 +178,6 @@ final case class SharedCompilationServerOptions(
       .filter(_.nonEmpty)
       .getOrElse(Constants.bloopVersion)
 
-  def minimumBloopVersion = retainedBloopVersion
-
-  import coursier.core.Version
-  def acceptBloopVersion = Some((v: String) => Version(v) < Version(minimumBloopVersion))
-
   def bloopDefaultJvmOptions(logger: Logger): List[String] = {
     val file = new File(bloopGlobalOptionsFile)
     if (file.exists() && file.isFile())
@@ -229,7 +224,10 @@ final case class SharedCompilationServerOptions(
       javaOpts =
         (if (bloopDefaultJavaOpts) baseConfig.javaOpts
          else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions(logger),
-      acceptBloopVersion = acceptBloopVersion
+      acceptBloopVersion = Some { v =>
+        import coursier.core.Version
+        Version(retainedBloopVersion) <= Version(v)
+      }
     )
   }
 }
