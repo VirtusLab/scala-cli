@@ -13,12 +13,12 @@ object TestUtil {
   val cliKind     = System.getenv("SCALA_CLI_KIND")
   val isNativeCli = cliKind.startsWith("native")
   val isCI        = System.getenv("CI") != null
-  val CIPath      = System.getenv("SCALA_CLI")
+  val cliPath     = System.getenv("SCALA_CLI")
   val cli = {
     if (isNativeCli)
-      Seq(CIPath)
+      Seq(cliPath)
     else
-      Seq("java", "-Xmx512m", "-Xms128m", "-jar", CIPath)
+      Seq("java", "-Xmx512m", "-Xms128m", "-jar", cliPath)
   }
 
   // format: off

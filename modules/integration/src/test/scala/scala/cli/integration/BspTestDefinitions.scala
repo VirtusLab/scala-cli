@@ -2,7 +2,6 @@ package scala.cli.integration
 
 import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
-import os.Path
 
 import java.net.URI
 import java.nio.charset.Charset
@@ -184,27 +183,28 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("setup-ide should have only absolute path if relative one was specified") {
     val path = os.rel / "directory" / "simple.sc"
-    TestInputs(
+    val inputs = TestInputs(
       Seq(
         path -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`"
       )
-    ).fromRoot { root =>
-      val absolutePathFromRoot: Path = root / "directory" / "simple.sc"
+    )
+    inputs.fromRoot { root =>
+      val absolutePathFromRoot = root / "directory" / "simple.sc"
       os.proc(TestUtil.cli, "setup-ide", path, extraOptions).call(cwd = root, stdout = os.Inherit)
 
       val details = readBspConfig(root / "directory")
       val expectedArgv = List(
-        os.Path(TestUtil.CIPath).toString(),
+        os.Path(TestUtil.cliPath).toString,
         "bsp",
-        absolutePathFromRoot.toString(),
+        absolutePathFromRoot.toString,
         "--json-options",
-        (root / "directory" / ".scala" / "ide-options.json").toString()
+        (root / "directory" / ".scala" / "ide-options.json").toString
       )
       expect(details.argv == expectedArgv)
 
       val processPath = Paths.get(details.argv.head)
       expect(processPath.isAbsolute)
-      expect(processPath.toFile.exists())
+      expect(os.exists(os.Path(processPath)))
     }
   }
 

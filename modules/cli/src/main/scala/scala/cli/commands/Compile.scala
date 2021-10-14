@@ -11,11 +11,13 @@ object Compile extends ScalaCommand[CompileOptions] {
   override def sharedOptions(options: CompileOptions) = Some(options.shared)
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
     val inputs = options.shared.inputsOrExit(args)
+    val logger = options.shared.logger
     SetupIde.runSafe(
-      SetupIdeOptions(shared = options.shared),
+      options.shared,
       args,
-      previousCommandName = Some(name),
-      inputs = inputs
+      inputs,
+      logger,
+      Some(name)
     )
 
     val cross = options.cross.cross.getOrElse(false)
@@ -52,8 +54,6 @@ object Compile extends ScalaCommand[CompileOptions] {
 
     val buildOptions     = options.buildOptions
     val bloopRifleConfig = options.shared.bloopRifleConfig()
-
-    val logger = options.shared.logger
 
     if (options.watch.watch) {
       val watcher = Build.watch(

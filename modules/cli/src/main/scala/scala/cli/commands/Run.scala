@@ -40,10 +40,11 @@ object Run extends ScalaCommand[RunOptions] {
 
     val cross = options.compileCross.cross.getOrElse(false)
     SetupIde.runSafe(
-      SetupIdeOptions(shared = options.shared),
+      options.shared,
       args,
-      previousCommandName = Some(name),
-      inputs = inputs
+      inputs,
+      logger,
+      Some(name)
     )
 
     if (options.watch.watch) {
