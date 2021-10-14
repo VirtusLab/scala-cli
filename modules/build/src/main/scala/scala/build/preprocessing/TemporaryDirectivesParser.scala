@@ -21,19 +21,19 @@ object TemporaryDirectivesParser {
   private def directive[_: P] = {
     def sc = P(";")
     def tpe = {
-      def commentedUsingTpe = P("//" ~ ws ~ "using")
-        .map(_ => (Directive.Using: Directive.Type, true))
+      def commentedUsingTpe = P("//" ~ ws ~ Index ~ "using")
+        .map(actualStartIdx => (Directive.Using: Directive.Type, Some(actualStartIdx)))
       def usingKeywordTpe = P("using")
-        .map(_ => (Directive.Using: Directive.Type, false))
+        .map(_ => (Directive.Using: Directive.Type, None))
       def usingTpe = P(ws.? ~ (commentedUsingTpe | usingKeywordTpe) ~ !(ws ~ "target"))
-      def commentedRequireTpe = P("//" ~ ws ~ "require")
-        .map(_ => (Directive.Require: Directive.Type, true))
+      def commentedRequireTpe = P("//" ~ ws ~ Index ~ "require")
+        .map(actualStartIdx => (Directive.Require: Directive.Type, Some(actualStartIdx)))
       def requireKeywordTpe = P("require")
-        .map(_ => (Directive.Require: Directive.Type, false))
-      def commentedUsingTargetTpe = P("//" ~ ws ~ "using" ~ ws ~ "target")
-        .map(_ => (Directive.Require: Directive.Type, true))
+        .map(_ => (Directive.Require: Directive.Type, None))
+      def commentedUsingTargetTpe = P("//" ~ ws ~ Index ~ "using" ~ ws ~ "target")
+        .map(actualStartIdx => (Directive.Require: Directive.Type, Some(actualStartIdx)))
       def usingTargetKeywordTpe = P("using" ~ ws ~ "target")
-        .map(_ => (Directive.Require: Directive.Type, false))
+        .map(_ => (Directive.Require: Directive.Type, None))
       def requireTpe = P(
         ws.? ~ (commentedRequireTpe | requireKeywordTpe | commentedUsingTargetTpe | usingTargetKeywordTpe)
       )
@@ -64,10 +64,11 @@ object TemporaryDirectivesParser {
     )
 
     parser.map {
-      case (startIdx, (tpe0, isComment), allElems, endIdx) =>
+      case (startIdx, (tpe0, actualStartIdxOpt), allElems, endIdx) =>
+        val isComment = actualStartIdxOpt.nonEmpty
         allElems.map {
           case (elems, scopeOpt) =>
-            val pos = Position.Raw(startIdx, endIdx)
+            val pos = Position.Raw(actualStartIdxOpt.getOrElse(startIdx), endIdx)
             Directive(tpe0, elems, scopeOpt, isComment, pos)
         }
     }

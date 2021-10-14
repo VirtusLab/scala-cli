@@ -534,7 +534,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         expect(diag.getSeverity == b.DiagnosticSeverity.ERROR)
         expect(diag.getRange.getStart.getLine == 0)
-        expect(diag.getRange.getStart.getCharacter == 0)
+        expect(diag.getRange.getStart.getCharacter == 3)
         expect(diag.getRange.getEnd.getLine == 0)
         expect(diag.getRange.getEnd.getCharacter == 40)
         val sbv =
