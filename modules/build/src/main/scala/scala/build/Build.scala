@@ -512,7 +512,7 @@ object Build {
       pluginScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions ++
-      scalaJsScalacOptions
+      scalaJsScalacOptions ++ List("-release", options.javaOptions.jvmIdOpt.getOrElse("8"))
 
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,

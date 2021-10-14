@@ -39,6 +39,7 @@ final case class Project(
     }
     val scalaConfig =
       bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler.scalaVersion).copy(
+        // todo - "-releas" is not supported if Bloop run with jvm <9
         options = scalaCompiler.scalacOptions.toList,
         jars = scalaCompiler.compilerClassPath.toList
       )

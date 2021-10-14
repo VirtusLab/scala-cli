@@ -162,4 +162,19 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("compilation fails if jvm version is mismatched".only) {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Main.scala" -> "object Main{java.util.Optional.of(1).isEmpty}" // isEmpty came in JDK9
+      )
+    )
+    inputs.fromRoot{ root =>
+      os.proc(TestUtil.cs,"--jvm","11", "bloop","exit").call(cwd=root, check=false)
+      os.proc(TestUtil.cs,"--jvm","11", "bloop","about").call(cwd=root, check=false)
+      val res = os.proc(TestUtil.cli, "compile",extraOptions, "--jvm", "8", ".").call(cwd=root, check=false)
+      expect(res.exitCode != 0)
+
+
+    }
+  }
 }
