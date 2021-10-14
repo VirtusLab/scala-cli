@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.Position
 import scala.build.errors.{
   BuildException,
   NoTestFrameworkValueProvidedError,
@@ -34,7 +35,8 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("test-framework")
   override def handleValues(
     values: Seq[Any],
-    cwd: ScopePath
+    cwd: ScopePath,
+    positionOpt: Option[Position]
   ): Either[BuildException, BuildOptions] =
     DirectiveUtil.stringValues(values) match {
       case Seq() =>

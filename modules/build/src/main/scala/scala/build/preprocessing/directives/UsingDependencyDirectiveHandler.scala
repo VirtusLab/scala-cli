@@ -5,10 +5,10 @@ import dependency.parser.DependencyParser
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.Positioned
 import scala.build.errors.{BuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
+import scala.build.{Position, Positioned}
 
 case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Dependency"
@@ -42,7 +42,8 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("lib")
   override def handleValues(
     values: Seq[Any],
-    cwd: ScopePath
+    cwd: ScopePath,
+    positionOpt: Option[Position]
   ): Either[BuildException, BuildOptions] = either {
 
     val extraDependencies = value {

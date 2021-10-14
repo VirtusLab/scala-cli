@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.Position
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
@@ -32,7 +33,8 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("options", "options")
   override def handleValues(
     values: Seq[Any],
-    cwd: ScopePath
+    cwd: ScopePath,
+    positionOpt: Option[Position]
   ): Either[BuildException, BuildOptions] = {
     val scalacOptions = DirectiveUtil.stringValues(values)
     val options = BuildOptions(

@@ -1,6 +1,8 @@
 package scala.build.preprocessing.directives
 
+import scala.build.EitherCps.{either, value}
 import scala.build.Os
+import scala.build.Position
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
@@ -32,7 +34,8 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("jar", "jars")
   override def handleValues(
     values: Seq[Any],
-    cwd: ScopePath
+    cwd: ScopePath,
+    positionOpt: Option[Position]
   ): Either[BuildException, BuildOptions] = {
 
     val extraJars = DirectiveUtil.stringValues(values).map { p =>

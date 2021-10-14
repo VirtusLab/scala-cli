@@ -3,6 +3,7 @@ package scala.build.preprocessing
 import com.virtuslab.using_directives.custom.model.{Path, Value}
 
 import scala.build.Ops._
+import scala.build.Position
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.directives.DirectiveHandler
@@ -64,7 +65,9 @@ object DirectivesProcessor {
       .iterator
       .flatMap {
         case (k, v) =>
-          handlersMap.get(k).iterator.map(_(v, cwd))
+          // FIXME using_directives needs to give us positions here
+          val positionOpt = Option.empty[Position]
+          handlersMap.get(k).iterator.map(_(v, cwd, positionOpt))
       }
       .toVector
       .sequence

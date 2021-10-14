@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.Position
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.build.preprocessing.ScopePath
@@ -14,7 +15,11 @@ trait DirectiveHandler {
 
   // Strict / using_directives-based directives
   def keys: Seq[String] = Nil
-  def handleValues(values: Seq[Any], cwd: ScopePath): Either[BuildException, BuildOptions] =
+  def handleValues(
+    values: Seq[Any],
+    cwd: ScopePath,
+    positionOpt: Option[Position]
+  ): Either[BuildException, BuildOptions] =
     if (keys.isEmpty)
       sys.error("Cannot happen")
     else

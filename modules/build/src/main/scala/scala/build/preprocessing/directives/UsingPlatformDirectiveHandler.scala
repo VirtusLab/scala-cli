@@ -2,6 +2,7 @@ package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
+import scala.build.Position
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
@@ -103,7 +104,8 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("platform", "platforms")
   override def handleValues(
     values: Seq[Any],
-    cwd: ScopePath
+    cwd: ScopePath,
+    positionOpt: Option[Position]
   ): Either[BuildException, BuildOptions] =
     handle(DirectiveUtil.stringValues(values))
 }
