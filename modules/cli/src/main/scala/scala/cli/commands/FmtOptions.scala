@@ -19,7 +19,7 @@ final case class FmtOptions(
   @Hidden
     scalafmtTag: Option[String] = None,
   @Hidden
-    scalafmtGitHubOrgName: Option[String] = None,
+    scalafmtGithubOrgName: Option[String] = None,
   @Hidden
     scalafmtExtension: Option[String] = None,
   @Hidden
@@ -31,7 +31,7 @@ final case class FmtOptions(
     val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
       .getOrElse(FetchExternalBinary.platformSuffix())
     val tag0           = scalafmtTag.getOrElse("v" + Constants.defaultScalafmtVersion)
-    val gitHubOrgName0 = scalafmtGitHubOrgName.getOrElse("alexarchambault/scalafmt-native-image")
+    val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse("alexarchambault/scalafmt-native-image")
     val extension0     = if (Properties.isWin) ".zip" else ".gz"
     val url =
       s"https://github.com/$gitHubOrgName0/releases/download/$tag0/scalafmt-$osArchSuffix0$extension0"

@@ -262,7 +262,7 @@ Check that sources are well formatted
 
 #### `--scalafmt-tag`
 
-#### `--scalafmt-git-hub-org-name`
+#### `--scalafmt-github-org-name`
 
 #### `--scalafmt-extension`
 
@@ -501,7 +501,7 @@ Bind to port
 
 #### `--metabrowse-tag`
 
-#### `--metabrowse-git-hub-org-name`
+#### `--metabrowse-github-org-name`
 
 #### `--metabrowse-extension`
 
