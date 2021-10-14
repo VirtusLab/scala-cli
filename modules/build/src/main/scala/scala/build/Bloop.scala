@@ -11,7 +11,6 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.{BuildException, ModuleFormatError}
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
-import scala.util.Properties
 
 object Bloop {
 
@@ -60,7 +59,7 @@ object Bloop {
         .left.map(err => new ModuleFormatError(moduleStr, err, Some("Bloop")))
     }
     val dep    = DependencyLike(mod, BloopRifleConfig.defaultVersion)
-    val sv     = Properties.versionNumberString
+    val sv     = BloopRifleConfig.defaultScalaVersion
     val sbv    = ScalaVersion.binary(sv)
     val params = ScalaParameters(sv, sbv)
     value(bloopClassPath(dep, params, logger))

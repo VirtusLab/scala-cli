@@ -69,6 +69,8 @@ object BloopRifleConfig {
     "ch.epfl.scala:bloop-frontend_2.12"
   def hardCodedDefaultVersion: String =
     Constants.bloopVersion
+  def hardCodedDefaultScalaVersion: String =
+    Constants.bloopScalaVersion
 
   lazy val defaultModule: String = {
     val fromEnv   = Option(System.getenv("BLOOP_MODULE")).map(_.trim).filter(_.nonEmpty)
@@ -83,6 +85,13 @@ object BloopRifleConfig {
     fromEnv
       .orElse(fromProps)
       .getOrElse(hardCodedDefaultVersion)
+  }
+  lazy val defaultScalaVersion: String = {
+    val fromEnv   = Option(System.getenv("BLOOP_SCALA_VERSION")).filter(_.nonEmpty)
+    def fromProps = sys.props.get("bloop.scala-version").filter(_.nonEmpty)
+    fromEnv
+      .orElse(fromProps)
+      .getOrElse(hardCodedDefaultScalaVersion)
   }
 
   def default(
