@@ -1003,8 +1003,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val resourceContent = "Hello from resources"
     TestInputs(
       Seq(
-        os.rel / "resources" / "test" / "data" -> resourceContent,
-        os.rel / "Test.scala" ->
+        os.rel / "src" / "proj" / "resources" / "test" / "data" -> resourceContent,
+        os.rel / "src" / "proj" / "Test.scala" ->
           s"""$directive
              |object Test {
              |  def main(args: Array[String]): Unit = {
@@ -1020,7 +1020,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
   test("resources") {
     resourcesInputs().fromRoot { root =>
-      os.proc(TestUtil.cli, "run", ".", "--resources", "./resources").call(cwd = root)
+      os.proc(TestUtil.cli, "run", "src", "--resources", "./src/proj/resources").call(cwd = root)
     }
   }
   test("resources via directive") {
