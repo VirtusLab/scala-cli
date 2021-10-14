@@ -8,7 +8,7 @@ import java.util.zip.{ZipEntry, ZipInputStream}
 
 import scala.annotation.tailrec
 import scala.build.options.Scope
-import scala.build.preprocessing.PreprocessedSource
+import scala.build.preprocessing.ScopePath
 import scala.util.matching.Regex
 
 final case class Inputs(
@@ -146,8 +146,8 @@ object Inputs {
       os.sub / source.drop(idx + 1)
     }
 
-    def scopePath: PreprocessedSource.ScopePath =
-      PreprocessedSource.ScopePath(source, subPath)
+    def scopePath: ScopePath =
+      ScopePath(source, subPath)
   }
 
   sealed trait SingleFile   extends OnDisk with SingleElement

@@ -59,7 +59,7 @@ case object ScalaPreprocessor extends Preprocessor {
         }
         val res = either {
           val content   = value(maybeRead(f.path))
-          val scopePath = PreprocessedSource.ScopePath.fromPath(f.path)
+          val scopePath = ScopePath.fromPath(f.path)
           val source = value(process(content, Right(f.path), scopePath / os.up)) match {
             case None =>
               PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
@@ -116,7 +116,7 @@ case object ScalaPreprocessor extends Preprocessor {
   def process(
     content: String,
     path: Either[String, os.Path],
-    scopeRoot: PreprocessedSource.ScopePath
+    scopeRoot: ScopePath
   ): Either[BuildException, Option[(
     BuildRequirements,
     Seq[PreprocessedSource.Scoped[BuildRequirements]],
@@ -180,7 +180,7 @@ case object ScalaPreprocessor extends Preprocessor {
 
   private def directivesBuildRequirements(
     directives: Seq[Directive],
-    scopeRoot: PreprocessedSource.ScopePath
+    scopeRoot: ScopePath
   ): Either[
     BuildException,
     (BuildRequirements, Seq[PreprocessedSource.Scoped[BuildRequirements]])
@@ -224,7 +224,7 @@ case object ScalaPreprocessor extends Preprocessor {
   private def processUsing(
     path: Either[String, os.Path],
     content: String,
-    scopeRoot: PreprocessedSource.ScopePath
+    scopeRoot: ScopePath
   ): Option[Either[
     BuildException,
     (
