@@ -508,11 +508,16 @@ object Build {
       if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
       else Nil
 
+    val releaseOption = if(System.getProperty("java.version").startsWith("1.8.")) // todo handle more older jvm versions? apart from this,bloop jvm version should be checked, not the scala-cli
+      List.empty
+    else
+      List("-release", options.javaOptions.jvmIdOpt.getOrElse("8"))
+
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions ++
-      scalaJsScalacOptions ++ List("-release", options.javaOptions.jvmIdOpt.getOrElse("8"))
+      scalaJsScalacOptions ++ releaseOption
 
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,
