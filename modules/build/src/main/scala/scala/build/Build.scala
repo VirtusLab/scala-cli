@@ -508,13 +508,14 @@ object Build {
       if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
       else Nil
 
-    val isBloop8 = // todo remove this!!!!
+    val bloopVersionString = // todo remove this!!!!
       os.proc("cs", "launch", "bloop", "--", "about")
         .call().out.lines()
         .find(_.startsWith("Running on Java JDK"))
         .get
-        .split(" ")(4)
-        .startsWith("v1.8")
+        .split(" ")(4).stripPrefix("v")
+
+    val isBloop8 = bloopVersionString.startsWith("1.8")
 
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
     val jvmStandardVersion = for {

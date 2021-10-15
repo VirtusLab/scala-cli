@@ -162,29 +162,31 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("compilation fails if jvm version is mismatched") {
+  val jvmT = new munit.Tag("jvm")
+
+  test("compilation fails if jvm version is mismatched".tag(jvmT)) {
     compileToADifferentJvmThanBloops("11", "8", false)
   }
 
-  test("compilation fails if jvm version is mismatched2") {
+  test("compilation fails if jvm version is mismatched2".tag(jvmT)) {
     compileToADifferentJvmThanBloops("11", "11", true)
   }
 
-  test("bloop jvm too old") {
+  test("bloop jvm too old".tag(jvmT)) {
     compileToADifferentJvmThanBloops("8", "11", false) // should warn bloop is too old
   }
 
-  test("bloop jvm does not support this jdk spec".only) {
+  test("bloop jvm does not support this jdk spec".tag(jvmT)) {
     //todo  Assert this should not contain "Error: -release"
     compileToADifferentJvmThanBloops("8", "11", true, code = "") // should warn bloop is too old
   }
 
-  test("compilation fails if jvm version is mismatched4") {
+  test("compilation fails if jvm version is mismatched4".tag(jvmT)) {
     // whitebox test, jvms newer than 8 are handled separately in code
     compileToADifferentJvmThanBloops("9", "11", false)
   }
 
-  test("adopt option") {
+  test("adopt option".tag(jvmT)) {
     compileToADifferentJvmThanBloops("11", "adopt:11", true)
   }
 
@@ -216,25 +218,24 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  // test("compilation fails if jvm version is mismatched4".only) {
-  //   val inputs = TestInputs(
-  //     Seq(
-  //       os.rel / "Main.scala" ->
-  //         "object Main{java.util.Optional.of(1).isEmpty}" // isEmpty came in JDK11
-  //     )
-  //   )
-  //   inputs.fromRoot{ root =>
-  //     os.proc(TestUtil.cs,"--jvm", "8", "launch","bloop", "--", "exit").call(cwd=root, stdout=os.Inherit)
-  //     os.proc(TestUtil.cs,"--jvm", "8", "launch","bloop", "--", "about").call(cwd=root, stdout=os.Inherit)
-  //     val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
-  //       .call(cwd=root, check=false)
-  //     expect(res.exitCode != 0)
-  //     os.proc(TestUtil.cs,"--jvm", "11", "launch", "bloop", "--", "exit").call(cwd=root)
-  //     os.proc(TestUtil.cs,"--jvm", "11", "launch", "bloop", "--", "about").call(cwd=root)
-  //     val res2 = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
-  //       .call(cwd=root, check=false)
-  //     expect(res2.exitCode == 0)
-  //   }
-  // }
-
+  test("ensure bloop version is indeed taken into account".tag(jvmT)) {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Main.scala" ->
+          "object Main{java.util.Optional.of(1).isEmpty}" // isEmpty came in JDK11
+      )
+    )
+    inputs.fromRoot{ root =>
+      os.proc(TestUtil.cs,"launch","--jvm", "8", "bloop", "--", "exit").call(cwd=root, stdout=os.Inherit)
+      os.proc(TestUtil.cs, "launch","--jvm", "8","bloop", "--", "about").call(cwd=root, stdout=os.Inherit)
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
+        .call(cwd=root, check=false)
+      expect(res.exitCode != 0)
+      os.proc(TestUtil.cs,"launch","--jvm", "11", "bloop", "--", "exit").call(cwd=root, stdout=os.Inherit)
+      os.proc(TestUtil.cs, "launch","--jvm", "11","bloop", "--", "about").call(cwd=root, stdout=os.Inherit)
+      val res2 = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
+        .call(cwd=root, check=false)
+      expect(res2.exitCode == 0)
+    }
+  }
 }
