@@ -20,6 +20,8 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
+import scala.build.blooprifle.BloopRifle
+import java.util.concurrent.ScheduledThreadPoolExecutor
 
 trait Build {
   def inputs: Inputs
@@ -133,7 +135,8 @@ object Build {
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
-    crossBuilds: Boolean
+    crossBuilds: Boolean,
+    bloopJvmVersion : Option[String] = None
   ): Either[BuildException, Builds] = either {
 
     val crossSources = value {
@@ -177,7 +180,8 @@ object Build {
         scope,
         logger,
         buildClient,
-        bloopServer
+        bloopServer,
+        bloopJvmVersion
       )
       value(res)
     }
@@ -265,7 +269,8 @@ object Build {
     scope: Scope,
     logger: Logger,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    bloopServer: bloop.BloopServer,
+    bloopJvmVersion: Option[String]
   ): Either[BuildException, Build] = either {
 
     val build0 = value {
@@ -278,7 +283,8 @@ object Build {
         scope,
         logger,
         buildClient,
-        bloopServer
+        bloopServer,
+        bloopJvmVersion = bloopJvmVersion
       )
     }
 
@@ -335,6 +341,9 @@ object Build {
       keepDiagnostics = options.internal.keepDiagnostics
     )
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
+
+    val bloopJvmVersionString = BloopRifle.getBloopJvmVersion(bloopConfig, logger.bloopRifleLogger, inputs.workspace.toNIO , new ScheduledThreadPoolExecutor(4)) // todo use other executor
+
     bloop.BloopServer.withBuildServer(
       bloopConfig,
       "scala-cli",
@@ -351,7 +360,8 @@ object Build {
         logger = logger,
         buildClient = buildClient,
         bloopServer = bloopServer,
-        crossBuilds = crossBuilds
+        crossBuilds = crossBuilds,
+        bloopJvmVersion = Some(bloopJvmVersionString)
       )
     }
   }
@@ -470,7 +480,8 @@ object Build {
     options: BuildOptions,
     scope: Scope,
     logger: Logger,
-    buildClient: BloopBuildClient
+    buildClient: BloopBuildClient,
+    bloopJvmVersion: Option[String] = None
   ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
 
     val params     = value(options.scalaParams)
@@ -508,6 +519,7 @@ object Build {
       if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
       else Nil
 
+
     val bloopVersionString = // todo remove this!!!!
       os.proc("cs", "launch", "bloop", "--", "about")
         .call().out.lines()
@@ -515,9 +527,10 @@ object Build {
         .get
         .split(" ")(4).stripPrefix("v")
 
-    val isBloop8 = bloopVersionString.startsWith("1.8")
-
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
+    val bloopV= jvmVersionRegex.findFirstMatchIn(bloopJvmVersion.getOrElse("8")).grouped(3)            // todo no .getOrElse
+    val isBloop8 = bloopV == "8"
+
     val jvmStandardVersion = for {
       jvmOpt  <- options.javaOptions.jvmIdOpt
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
@@ -585,7 +598,8 @@ object Build {
     scope: Scope,
     logger: Logger,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    bloopServer: bloop.BloopServer,
+    bloopJvmVersion: Option[String] = None,
   ): Either[BuildException, Build] = either {
     if (options.platform == Platform.Native && !value(scalaNativeSupported(options, inputs)))
       value(Left(new ScalaNativeCompatibilityError()))
@@ -600,7 +614,8 @@ object Build {
         options,
         scope,
         logger,
-        buildClient
+        buildClient,
+        bloopJvmVersion = bloopJvmVersion
       )
     }
 
