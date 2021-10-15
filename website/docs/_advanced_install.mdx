@@ -2,15 +2,16 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import SectionAbout from "../src/components/SectionAbout"
 import DownloadButton from "../src/components/DownloadButton"
+import {currentOs} from "../src/components/osUtils";
 
 <SectionAbout title="Advanced Installation">
     <div class="margin--lg"/>
     <Tabs
         groupId="operating-systems-specific"
-        defaultValue="windows"
+        defaultValue={currentOs()}
         values={[
         {label: 'Windows', value: 'windows'},
-        {label: 'MacOs', value: 'macOs'},
+        {label: 'MacOs', value: 'mac'},
         {label: 'Linux', value: 'linux'},
         ]}
     />
@@ -22,10 +23,10 @@ Pick the installation method:
 
 <Tabs
 groupId="operating-systems-specific"
-defaultValue="windows"
+defaultValue={currentOs()}
 values={[
 {label: 'Windows', value: 'windows'},
-{label: 'MacOs', value: 'macOs'},
+{label: 'MacOs', value: 'mac'},
 {label: 'Linux', value: 'linux'},
 ]}
 >
@@ -180,11 +181,11 @@ Download MSI installer with Scala CLI for Windows
 </Tabs>
 
 </TabItem>
-<TabItem value="macOs">
+<TabItem value="mac">
 
 <Tabs
-groupId="macOs"
-defaultValue="manual"
+groupId="mac"
+defaultValue="brew"
 values={[
 {label: 'Manual', value: 'manual'},
 {label: 'Installer', value: 'installer'},
@@ -233,7 +234,7 @@ brew install Virtuslab/scala-cli/scala-cli
 <SectionAbout title="Standalone launcher">
     <div class="margin--lg"/>
     <Tabs
-        defaultValue="macOS/Linux"
+        defaultValue={currentOs() == 'win' ? 'windows' : 'macOS/Linux'}
         groupId="specific-standalone-launcher"
         values={[
         {label: 'macOS/Linux', value: 'macOS/Linux'},
@@ -269,7 +270,7 @@ Script to automatically download and cache standalone `scala-cli` launcher.
 <SectionAbout title="Shell completions">
     <div class="margin--lg"/>
     <Tabs
-        defaultValue="bash"
+        defaultValue={currentOs() == 'mac' ? 'zsh' : 'bash'}
         groupId="shell-specific"
         values={[
         {label: 'Bash', value: 'bash'},
@@ -294,8 +295,7 @@ scala-cli install completions
 
 If any of the `scala-cli install completions` command complained that your shell cannot be determined, specify it
 with `--shell`
-<Tabs groupId="shell-specific" 
-      defaultValue="bash"
+<Tabs groupId="shell-specific"
       values={[
         {label: 'Bash', value: 'bash'},
         {label: 'zsh', value: 'zsh'},
