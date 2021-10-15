@@ -10,10 +10,11 @@ import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
 
 class BspServer(
-  bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer,
+  bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
+    with ScalaDebugServerForwardStubs
     with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs with HasGeneratedSources {
 
   private var extraDependencySources: Seq[os.Path] = Nil
@@ -163,8 +164,9 @@ class BspServer(
       for (target <- res0.getTargets.asScala) {
         val capabilities = target.getCapabilities
         // TODO Re-enable once we support this via BSP
-        capabilities.setCanRun(false)
-        capabilities.setCanTest(false)
+        capabilities.setCanDebug(true)
+        capabilities.setCanRun(true)
+        capabilities.setCanTest(true)
       }
       res0
     }
