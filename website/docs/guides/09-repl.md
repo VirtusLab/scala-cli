@@ -1,6 +1,5 @@
 ---
 title: REPL
-sidebar_position: 9
 ---
 
 The `repl` command starts a Scala REPL, that allows you to interactively

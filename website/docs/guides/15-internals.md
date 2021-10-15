@@ -1,6 +1,5 @@
 ---
 title: Internals
-sidebar_position: 15
 ---
 
 Even though Scala CLI exposes a simple interface to users, quite a number of steps happen

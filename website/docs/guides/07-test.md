@@ -1,6 +1,5 @@
 ---
 title: Test
-sidebar_position: 7
 ---
 
 The `test` command allows to run test suites.

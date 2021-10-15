@@ -1,6 +1,5 @@
 ---
 title: Package
-sidebar_position: 8
 ---
 
 The `package` command packages your Scala code in various formats, such as

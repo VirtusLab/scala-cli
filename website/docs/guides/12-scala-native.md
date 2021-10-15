@@ -1,6 +1,5 @@
 ---
 title: Scala Native
-sidebar_position: 12
 ---
 
 - requires LLVM toolchain, see requirements on Scala Native website

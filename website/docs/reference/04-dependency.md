@@ -1,6 +1,5 @@
 ---
 title: Dependency format
-sidebar_position: 4
 ---
 
 - Same as mill

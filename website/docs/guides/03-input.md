@@ -1,7 +1,7 @@
 ---
 title: Input format
-sidebar_position: 3
 ---
+
 
 The `scala-cli` CLI commands accept input in a number of ways, most notably:
 - as `.scala` files

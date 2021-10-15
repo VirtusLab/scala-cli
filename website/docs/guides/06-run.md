@@ -1,6 +1,5 @@
 ---
 title: Run
-sidebar_position: 6
 ---
 
 The `run` command offers to run your Scala code:

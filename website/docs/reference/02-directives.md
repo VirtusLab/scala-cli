@@ -1,6 +1,5 @@
 ---
 title: Directives
-sidebar_position: 2
 ---
 
 ## using directives

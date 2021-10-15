@@ -1,6 +1,5 @@
 ---
 title: IDE support
-sidebar_position: 10
 ---
 
 IDE support for sources managed by the Scala CLI is experimental, and limited to

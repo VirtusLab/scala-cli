@@ -1,6 +1,5 @@
 ---
 title: Configuration
-sidebar_position: 4
 ---
 
 `scala-cli` can be configured in several ways:

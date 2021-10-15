@@ -1,6 +1,5 @@
 ---
 title: Compile
-sidebar_position: 5
 ---
 
 Scala CLI can compile your code with its `compile` command:

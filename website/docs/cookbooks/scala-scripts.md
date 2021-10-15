@@ -76,7 +76,7 @@ All the features from non-scripts are working with Scala Scripts, such as waitin
 
 ### Package
 
-Run `package` to the Scala CLI to package your script to Leighweight JAR file.
+Run `package` to the Scala CLI to package your script to lightweight executable JAR file.
 
 ```bash
 scala-cli package HelloScript.sc

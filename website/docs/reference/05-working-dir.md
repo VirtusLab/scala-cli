@@ -1,6 +1,5 @@
 ---
 title: Working directory
-sidebar_position: 5
 ---
 
 - Scala CLI needs a working directory:
