@@ -5,7 +5,7 @@ import DownloadButton from "../src/components/DownloadButton"
 import {currentOs} from "../src/components/osUtils";
 
 <SectionAbout title="Advanced Installation">
-    <div class="margin--lg"/>
+    <div className="margin--lg"/>
     <Tabs
         groupId="operating-systems-specific"
         defaultValue={currentOs()}
@@ -232,7 +232,7 @@ brew install Virtuslab/scala-cli/scala-cli
 
 
 <SectionAbout title="Standalone launcher">
-    <div class="margin--lg"/>
+    <div className="margin--lg"/>
     <Tabs
         defaultValue={currentOs() == 'win' ? 'windows' : 'macOS/Linux'}
         groupId="specific-standalone-launcher"
@@ -268,7 +268,7 @@ Script to automatically download and cache standalone `scala-cli` launcher.
 
 
 <SectionAbout title="Shell completions">
-    <div class="margin--lg"/>
+    <div className="margin--lg"/>
     <Tabs
         defaultValue={currentOs() == 'mac' ? 'zsh' : 'bash'}
         groupId="shell-specific"
@@ -283,10 +283,30 @@ Script to automatically download and cache standalone `scala-cli` launcher.
 
 
 Try the completions with
+
+<Tabs groupId="shell-specific" 
+      defaultValue="bash"
+      values={[
+        {label: 'Bash', value: 'bash'},
+        {label: 'zsh', value: 'zsh'},
+        ]}>
+<TabItem value="bash">
+
 ```
-eval "$(scala-cli install completions --env)"
+eval "$(scala-cli install completions --env --shell bash)"
 scala-cli --<TAB>
 ```
+
+</TabItem>
+<TabItem value="zsh">
+
+```
+eval "$(scala-cli install completions --env --shell zsh)"
+scala-cli --<TAB>
+```
+
+</TabItem>
+</Tabs>
 
 Install them on your system with
 ```bash
@@ -315,4 +335,22 @@ scala-cli install completions --shell zsh
 
 </TabItem>
 </Tabs>
+</div></div>
+
+<div id="scala-js"/>
+<SectionAbout title="Scala JS"/>
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
+To run Scala JS applications [Node.js](https://nodejs.org/) needs to be installed. Scala CLI at this moment does not manage Node.js however it may change in the future.
+
+</div></div>
+
+<div id="scala-native"/>
+<SectionAbout title="Scala Native"/>
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
+[Clang](https://llvm.org/docs/GettingStarted.html#requirements) is required to compile and run Scala Native applications. Using some functionalities known from JDK (like using `java.util.zip` package) require additional packages to be installed. 
+
+Scala Native page contains detailed [installation guide](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies).
+
 </div></div>
