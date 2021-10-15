@@ -2,13 +2,7 @@ import React from 'react';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import BrowserOnly from '@docusaurus/BrowserOnly';
-
-const currentOs = () => {
-  const isCurrentOsEqual = (osShortName) => window.navigator.userAgent.indexOf(osShortName) !== -1
-  if(isCurrentOsEqual("Win")) return "win"
-  if(isCurrentOsEqual("Mac")) return "mac"
-  else return "linux"
-}
+import {currentOs} from "./osUtils";
 
 export default function BasicInstall(props){
   return  <BrowserOnly>{() =>
