@@ -94,15 +94,6 @@ const featuresList = [
           Scripts can be packaged into the native applications (using e.g. Scala Native) for even faster cold startups.
         </p>
     </ImageBox>,
-    <ImageBox 
-      image="sc-files-support.svg" title="Support for .sc files" key="sc-files-support" scripting="true">
-        <p>
-          Scala CLI is backwards compatible with ammonite scripts.
-        </p>
-        <p>
-          No need to migrate your existing scripts to use all the powers of Scala CLI.
-        </p>
-    </ImageBox>,
 
     // Prototyping
 

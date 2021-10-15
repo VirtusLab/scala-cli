@@ -4,27 +4,24 @@ title: Input format
 
 
 The `scala-cli` CLI commands accept input in a number of ways, most notably:
-- as `.scala` files
-- as one or several directories, containing Scala sources
-- as URLs, pointing to Scala sources
-- by piping or process substitution
-
-Note that it accepts two kinds of Scala sources:
-- standard `.scala` files
-- scripts, ending in `.sc`, accepting any kind of top-level statement
-
-Java sources are also accepted.
+- as source files
+- as one or several directories, containing sources
+- as URLs, pointing to sources
+- by piping or process substitution source code directly
 
 Lastly, note that all these input formats can used alongside each other.
 
-## Scala files
+## Source files
 
-This is the simplest input format. Just write a `.scala` file, and pass it to
+Scala CLI accepts following kinds of source:
+ - `.scala` files containing Scala code
+ - `.sc` files, containing Scala scripts (see more in [Scripts guide](/docs/guides/scripts))
+ - `.java` files containing Java code
+
+This is the simplest input format. Just write a source file, and pass it to
 `scala-cli` to run it:
 
-- `Hello.scala`
-
-```scala
+```scala title=Hello.scala
 object Hello {
   def main(args: Array[String]): Unit =
     println("Hello from Scala")
@@ -39,15 +36,13 @@ scala-cli Hello.scala
 
 You can also split your code in multiple files, and pass all of them to `scala-cli` :
 
-- `Messages.scala`
-```scala
+```scala title=Messages.scala
 object Messages {
   def hello = "Hello from Scala"
 }
 ```
 
-- `Hello.scala`
-```scala
+```scala title=Hello.scala
 object Hello {
   def main(args: Array[String]): Unit =
     println(Messages.hello)
@@ -58,24 +53,34 @@ Run them with
 ```bash
 scala-cli Hello.scala Messages.scala
 # Hello from Scala
+``` 
+
+:::note
+Scala CLI compiles together only the provided inputs.
+:::
+
+If we provide only one of the files above:
+
+```bash fail
+scala-cli Hello.scala
 ```
 
-Passing many files this way can be cumbersome. Directories can help.
+compilation will fail even though a moment ago files compiled together without any problem.
+
+Passing many files this way can be cumbersome and error-prone. Directories can help.
 
 ## Directories
 
 `scala-cli` accepts whole directories as input. This is convenient when you have many
 `.scala` files, and passing them all one-by-one on the command line isn't practical:
 
-- `my-app/Messages.scala`
-```scala
+```scala title=my-app/Messages.scala
 object Messages {
   def hello = "Hello from Scala"
 }
 ```
 
-- `my-app/Hello.scala`
-```scala
+```scala title=my-app/Hello.scala
 object Hello {
   def main(args: Array[String]): Unit =
     println(Messages.hello)
@@ -88,17 +93,30 @@ scala-cli my-app
 # Hello from Scala
 ```
 
+From our experience, `scala-cli .` is the most used command (it will compile and run all sources from within current directory.)
+
+:::note
+Scala CLI will process all files within the directories and all its subdirectories.
+
+Scala CLI ignores all subdirectories that starts with `.` like `.scala` or `.vscode`. Such directories needs to be explicitly provided as inputs.
+:::
 ## URLs
 
+:::warning
+Running unverified code from the internet may be really dangerous since Scala CLI does not provide any sandboxing at this moment.
+
+Make sure that you trust the code that you are about to run.
+:::
+
 `scala-cli` accepts input via URLs pointing at `.scala` files.
-It'll download and cache their content, and run them.
+It will download their content, and run them.
 
 ```bash
 scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala
 # Hello from Scala GitHub Gist
 ```
 
-## GitHub Gist
+### GitHub Gist
 
 `scala-cli` accepts input via Github Gists url.
 It'll download gists zip archive, cache their content, and run them.
@@ -123,86 +141,3 @@ echo 'println("Hello")' | scala-cli -
 scala-cli <(echo 'println("Hello")')
 # Hello
 ```
-
-## Scripts
-
-`scala-cli` accept Scala scripts, ending in `.sc`. Unlike `.scala` files,
-any kind of statement is accepted at the top-level:
-
-- `hello.sc`
-```scala
-val message = "Hello from Scala script"
-println(message)
-```
-
-Run it with
-```bash
-scala-cli hello.sc
-# Hello from Scala script
-```
-
-In more detail, such a script is wrapped in an `object` before being passed to
-the Scala compiler, and a `main` class is added to it. `hello.sc` is passed as
-```scala
-object hello {
-  val message = "Hello from Scala script"
-  println(message)
-
-  def main(args: Array[String]): Unit = ()
-}
-```
-(reformatted for clarity)
-The name `hello` comes straight from the file name `hello.sc`.
-
-When a script is in a sub-directory of a directory passed to `scala-cli` , a package is inferred too:
-
-- `my-app/constants/messages.sc`
-```scala
-def hello = "Hello from Scala scripts"
-```
-
-- `my-app/main.sc`
-```
-import constants.messages
-println(messages.hello)
-```
-
-Run them with
-```bash
-scala-cli my-app --main-class main
-# Hello from Scala scripts
-```
-
-Note that we pass an explicit main class. Both scripts automatically get a main class, so this
-is required to disambiguate them.
-
-### Self executable Scala Script
-
-You can define file with shebang header to self executable. It could be also run as a normal script.
-
-```bash
-cat HelloScript.sc
-# #!/usr/bin/env scala-cli
-# println("Hello world")
-
-scala-cli run HelloScript.sc
-# Hello world
-chmod +x HelloScript.sc
-./HelloScript.sc
-# Hello world
-```
-
-### Difference with Ammonite scripts
-
-[Ammonite](http://ammonite.io) is a popular REPL for Scala, that is also able to compile and run
-`.sc` files.
-
-`scala-cli` and Ammonite differ significantly when your code is split in multiple scripts:
-- in Ammonite, a script needs to use `import $file` directives to use values defined in another script
-- with `scala-cli` , all scripts passed can reference each other, without such directives
-
-On the other hand,
-- you can pass a single "entry point" script as input to Ammonite, and Ammonite finds the scripts
-it depends on via the `import $file` directives
-- `scala-cli` requires all scripts to be passed beforehand, either one-by-one, or by putting them in a
-directory, and passing the directory to `scala-cli`
