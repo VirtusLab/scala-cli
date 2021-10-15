@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import com.google.gson.Gson
+import upickle.default.{ReadWriter, macroRW}
 
 import java.io.{BufferedReader, File, FileReader}
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
@@ -236,6 +237,7 @@ object SharedCompilationServerOptions {
   lazy val parser: Parser[SharedCompilationServerOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[SharedCompilationServerOptions, parser.D] = parser
   implicit lazy val help: Help[SharedCompilationServerOptions]                      = Help.derive
+  implicit lazy val jsonCodec: ReadWriter[SharedCompilationServerOptions]           = macroRW
 
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")

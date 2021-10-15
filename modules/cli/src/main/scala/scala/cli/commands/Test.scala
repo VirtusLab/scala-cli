@@ -17,12 +17,17 @@ object Test extends ScalaCommand[TestOptions] {
   private def reset = Console.RESET
 
   def run(options: TestOptions, args: RemainingArgs): Unit = {
-
     val inputs = options.shared.inputsOrExit(args)
+    val logger = options.shared.logger
+    SetupIde.runSafe(
+      options.shared,
+      inputs,
+      logger,
+      Some(name)
+    )
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
-    val logger              = options.shared.logger
 
     val cross = options.compileCross.cross.getOrElse(false)
 

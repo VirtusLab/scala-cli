@@ -13,13 +13,14 @@ object TestUtil {
   val cliKind     = System.getenv("SCALA_CLI_KIND")
   val isNativeCli = cliKind.startsWith("native")
   val isCI        = System.getenv("CI") != null
-  val cli = {
-    val path = System.getenv("SCALA_CLI")
+  val cliPath     = System.getenv("SCALA_CLI")
+  val cli         = cliCommand(cliPath)
+
+  def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)
-      Seq(path)
+      Seq(cliPath)
     else
-      Seq("java", "-Xmx512m", "-Xms128m", "-jar", path)
-  }
+      Seq("java", "-Xmx512m", "-Xms128m", "-jar", cliPath)
 
   // format: off
   val extraOptions = List(
@@ -103,4 +104,8 @@ object TestUtil {
       }
     helper(if (isCI) 1 else maxAttempts)
   }
+
+  // Same as os.RelPath.toString, but for the use of File.separator instead of "/"
+  def relPathStr(relPath: os.RelPath): String =
+    (Seq.fill(relPath.ups)("..") ++ relPath.segments).mkString(File.separator)
 }

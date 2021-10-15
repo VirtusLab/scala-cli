@@ -10,6 +10,7 @@ Print details about this application
 ## `bsp`
 
 Accepts options:
+- [bsp](./cli-options.md#bsp-options)
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)

@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
+import upickle.default.{ReadWriter, macroRW}
 
 import scala.build.options
 
@@ -55,4 +56,5 @@ object ScalaNativeOptions {
   lazy val parser: Parser[ScalaNativeOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[ScalaNativeOptions, parser.D] = parser
   implicit lazy val help: Help[ScalaNativeOptions]                      = Help.derive
+  implicit lazy val jsonCodec: ReadWriter[ScalaNativeOptions]           = macroRW
 }

@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
+import upickle.default.{ReadWriter, macroRW}
 
 import scala.build.Os
 import scala.build.options.JavaOptions
@@ -47,4 +48,5 @@ object SharedJvmOptions {
   lazy val parser: Parser[SharedJvmOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[SharedJvmOptions, parser.D] = parser
   implicit lazy val help: Help[SharedJvmOptions]                      = Help.derive
+  implicit lazy val jsonCodec: ReadWriter[SharedJvmOptions]           = macroRW
 }
