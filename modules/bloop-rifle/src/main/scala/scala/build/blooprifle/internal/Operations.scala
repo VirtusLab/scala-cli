@@ -341,7 +341,7 @@ object Operations {
     val nailgunClient = TcpClient(host, port)
     val streams       = Streams(in, out, err)
 
-    timeout(1.minute, scheduler, logger) {
+    timeout(5.minutes, scheduler, logger) {
       nailgunClient.run(
         "about",
         Array.empty,
