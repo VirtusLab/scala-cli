@@ -528,8 +528,8 @@ object Build {
         .split(" ")(4).stripPrefix("v")
 
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
-    val bloopV= jvmVersionRegex.findFirstMatchIn(bloopJvmVersion.getOrElse("8")).grouped(3)            // todo no .getOrElse
-    val isBloop8 = bloopV == "8"
+    val bloopV= jvmVersionRegex.findFirstMatchIn(bloopJvmVersion.getOrElse("8")).map(_.group(3)).getOrElse("8") // todo no getorelse
+    val isBloop8 = bloopV == Some("8")
 
     val jvmStandardVersion = for {
       jvmOpt  <- options.javaOptions.jvmIdOpt
