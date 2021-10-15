@@ -6,7 +6,7 @@ import scala.build.errors.BuildException
 final class FoundVirtualInputsError(
   val virtualInputs: Seq[Inputs.Virtual]
 ) extends BuildException(
-      s"Found virtual inputs: ${virtualInputs.map(_.source)}"
+      s"Found virtual inputs: ${virtualInputs.map(_.source).mkString(", ")}"
     ) {
   assert(virtualInputs.nonEmpty)
 }

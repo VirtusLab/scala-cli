@@ -104,4 +104,8 @@ object TestUtil {
       }
     helper(if (isCI) 1 else maxAttempts)
   }
+
+  // Same as os.RelPath.toString, but for the use of File.separator instead of "/"
+  def relPathStr(relPath: os.RelPath): String =
+    (Seq.fill(relPath.ups)("..") ++ relPath.segments).mkString(File.separator)
 }
