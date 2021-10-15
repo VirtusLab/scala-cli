@@ -280,6 +280,12 @@ Check that sources are well formatted
 
 #### `--scalafmt-launcher`
 
+#### `--scalafmt-arg`
+
+Aliases: `-F`
+
+#### `--dialect`
+
 ## Help options
 
 Available in commands:
