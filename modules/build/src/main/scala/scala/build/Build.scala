@@ -136,7 +136,7 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
     crossBuilds: Boolean,
-    bloopJvmVersion : Option[String] = None
+    bloopJvmVersion : Option[String]
   ): Either[BuildException, Builds] = either {
 
     val crossSources = value {
@@ -334,7 +334,8 @@ object Build {
     threads: BuildThreads,
     bloopConfig: BloopRifleConfig,
     logger: Logger,
-    crossBuilds: Boolean
+    crossBuilds: Boolean,
+    bloopJvmVersion :Option[String],
   ): Either[BuildException, Builds] = {
     val buildClient = BloopBuildClient.create(
       logger,
@@ -342,7 +343,6 @@ object Build {
     )
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
 
-    val bloopJvmVersionString = BloopRifle.getBloopJvmVersion(bloopConfig, logger.bloopRifleLogger, inputs.workspace.toNIO , new ScheduledThreadPoolExecutor(4)) // todo use other executor
 
     bloop.BloopServer.withBuildServer(
       bloopConfig,
@@ -361,7 +361,7 @@ object Build {
         buildClient = buildClient,
         bloopServer = bloopServer,
         crossBuilds = crossBuilds,
-        bloopJvmVersion = Some(bloopJvmVersionString)
+        bloopJvmVersion = bloopJvmVersion
       )
     }
   }
@@ -372,14 +372,18 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean
-  ): Either[BuildException, Builds] =
+  ): Either[BuildException, Builds] ={
+        val bloopJvmVersionString = BloopRifle.getBloopJvmVersion(bloopConfig, logger.bloopRifleLogger, inputs.workspace.toNIO , new ScheduledThreadPoolExecutor(4)) // todo use other executor
+
     build(
       inputs,
       options, /*scope,*/ BuildThreads.create(),
       bloopConfig,
       logger,
-      crossBuilds = crossBuilds
+      crossBuilds = crossBuilds,
+      Some(bloopJvmVersionString)
     )
+  }
 
   def watch(
     inputs: Inputs,
@@ -415,7 +419,8 @@ object Build {
           logger,
           buildClient,
           bloopServer,
-          crossBuilds = crossBuilds
+          crossBuilds = crossBuilds,
+          bloopJvmVersion = None// todo don't None!!!!
         )
         action(res)
       }
@@ -518,14 +523,6 @@ object Build {
     val scalaJsScalacOptions =
       if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
       else Nil
-
-
-    val bloopVersionString = // todo remove this!!!!
-      os.proc("cs", "launch", "bloop", "--", "about")
-        .call().out.lines()
-        .find(_.startsWith("Running on Java JDK"))
-        .get
-        .split(" ")(4).stripPrefix("v")
 
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
     val bloopV= jvmVersionRegex.findFirstMatchIn(bloopJvmVersion.getOrElse("8")).map(_.group(3)).getOrElse("8") // todo no getorelse
@@ -820,7 +817,8 @@ object Build {
           logger,
           buildClient,
           bloopServer,
-          crossBuilds = false
+          crossBuilds = false,
+          None // todo: just don't !!!!!!!!!1
         )
       }
       Some(jmhBuilds.main)
