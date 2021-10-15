@@ -508,6 +508,11 @@ object Build {
       if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
       else Nil
 
+
+    val isBloop8 = // todo remove this!!!!
+      os.proc("cs", "launch", "bloop", "--", "about").call().out.lines().find(_.startsWith("Running on Java JDK")).get.split(" ")(4).startsWith("v1.8")
+
+
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
     val jvmStandardVersion = for {
       jvmOpt  <- options.javaOptions.jvmIdOpt
@@ -520,8 +525,7 @@ object Build {
       pluginScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions ++
-      scalaJsScalacOptions ++
-      releaseOption
+      scalaJsScalacOptions ++ (if(!isBloop8) releaseOption else List())
 
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,
