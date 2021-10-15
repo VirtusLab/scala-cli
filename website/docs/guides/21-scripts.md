@@ -53,6 +53,22 @@ scala-cli my-app --main-class main
 Note that we pass an explicit main class. Both scripts automatically get a main class, so this
 is required to disambiguate them.
 
+### Aguments
+
+You may also pass args to your script, it is referenced via `args` special variable
+
+```scala title=p.sc
+#!/usr/bin/env scala-cli
+
+println(args(1))
+```
+
+```bash
+chmod +x p.sc
+./p.sc hello world
+# world
+```
+
 ### Self executable Scala Script
 
 You can define file with shebang header to self executable. It could be also run as a normal script.

@@ -4,6 +4,7 @@ title: Test
 
 The `test` command allows to run test suites.
 
+
 ## Test framework
 
 In order to run tests with it, add a test framework dependency to your

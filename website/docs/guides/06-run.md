@@ -3,12 +3,15 @@ title: Run
 ---
 
 The `run` command offers to run your Scala code:
+
+```scala title=Hello.scala
+object Hello {
+  def main(args: Array[String]): Unit =
+    println("Hello")
+}
+```
+
 ```bash
-cat Hello.scala
-# object Hello {
-#   def main(args: Array[String]): Unit =
-#     println("Hello")
-# }
 scala-cli run Hello.scala
 # Hello
 ```
@@ -32,8 +35,13 @@ scala-cli MyApp.scala -- first-arg second-arg
 
 `--main-class` allows to specify an explicit main class, in case your application
 defines several main classes for example:
+
+```scala title=hi.sc
+println("Hi")
+```
+
 ```bash
-scala-cli my-app/ --main-class app.Main
+scala-cli Hello.scala hi.sc --main-class hi
 ```
 
 If you application only defines a single main class, you can just omit `--main-class`.
@@ -45,62 +53,63 @@ If you application only defines a single main class, you can just omit `--main-c
 scala-cli my-app/ --jvm adopt:14
 ```
 
-JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms).
+JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms) and are based on the [index](https://github.com/shyiko/jabba/blob/master/index.json) from the command-line tool [jabba](https://github.com/shyiko/jabba).
 
 ## Scala.JS
 
 Scala.JS applications can also be compiled and run, with the `--js` option. Note that this requires `node`
-to be installed on your system.
+to be [installed](/install#scala-js) on your system.
+
 ```bash
-scala-cli my-scala-js-app/ --js
+scala-cli Hello.scala --js
 ```
+
+We have a dedicated [Scala.js guide](/docs/guides/scala-js).
 
 ## Scala Native
 
 Scala Native applications can also be compiled and run, with the `--native` option.
-Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be installed for this to work fine,
+Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](install#scala-native) for this to work fine,
 and that Scala Native only supports Linux and macOS for now.
+
 ```bash
-scala-cli my-scala-native-app/ --native
+scala-cli Hello.scala --native
 ```
+
+We have a dedicated [Scala Native guide](/docs/guides/scala-native) as well.
 
 ## Scala Scripts
 
 Scala CLI can also compile and run Scala scripts.
+
+```scala title=HelloScript.sc
+#!/usr/bin/env scala-cli
+
+println("Hello world from scala script")
+```
+
 ```bash
-cat HelloScript.sc
-# #!/usr/bin/env scala-cli
-
-# println("Hello world from scala script")
-
 scala-cli run HelloScript.sc
 # Hello world from scala script
 ```
 
-You may also pass args to your script, it is referenced via `args` special variable
+[Scripts guide](/docs/guides/scripts) provides much more details.
 
-```bash
-cat p.sc
-# !/usr/bin/env scala-cli
-# println(args(1))
-./p.sc hello world
-# world
-```
+## Scala CLI from docker
 
-## ScalaCli from docker
-
-Scala applications can also be compiled and run using docker image with `scala-cli`.
+Scala applications can also be compiled and run using [docker](https://docs.docker.com/get-started/) image with `scala-cli` without a need to install Scala CLI manually.
 
 ```bash
 docker run virtuslab/scala-cli:latest about
 ```
 
-###
+```scala title=HelloWorld.scala
+object HelloWorld extends App {
+  println("Hello world")
+}
+```
+
 ```bash
-cat HelloWorld.scala
-# object HelloWorld extends App {
-#     println("Hello world")
-# }
 docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala
 # Hello world
 ```

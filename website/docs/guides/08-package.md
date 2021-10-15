@@ -6,6 +6,7 @@ The `package` command packages your Scala code in various formats, such as
 - [lightweight launcher JARs](#default-package-format)
 - [standard library JARs](#library-jars)
 - so called ["assemblies" or "fat JARs"](#assemblies)
+- [docker container](#docker-container)
 - [JavaScript files](#scalajs) for Scala.JS code
 - [native executables](#scala-native) for Scala Native code
 - [OS-specific formats](#os-specific-packages), such as deb or rpm (Linux), pkg (macOS), or MSI (Windows)
@@ -69,6 +70,58 @@ scala-cli package Hello.scala -o hello --assembly
 # Hello
 ```
 
+## Docker container
+
+ScalaCLI can create an executable application and package it into a docker image.
+
+Here is a simple piece of code that will be executed in the docker container.
+
+```scala title=HelloDocker.scala
+object HelloDocker extends App {
+    println("Hello from Docker")
+}
+```
+
+Passing `--docker` to the `package` sub-command generates a docker image. The docker image name parameter `--docker-image-repository` is mandatory.
+
+The following command will generate `hello-docker` image with `latest` tag:
+
+```bash
+scala-cli package --docker HelloDocker.scala --docker-image-repository hello-docker
+```
+
+<!-- Expected:
+Started building docker image with your application, it would take some time
+Built docker image, run it with
+  docker run hello-docker:latest
+-->
+
+```bash
+docker run hello-docker
+# Hello from Docker
+```
+
+<!-- Expected:
+Hello from Docker
+-->
+
+It is also supported to package your app in `JS` or `Native` environments (see below).
+
+```bash
+scala-cli package --js --docker HelloDocker.scala --docker-image-repository hello-docker
+```
+<!-- Expected:
+Started building docker image with your application, it would take some time
+Built docker image, run it with
+  docker run hello-docker:latest
+-->
+
+Package scala native application to docker image is supported only on Linux.
+
+```bash ignore
+scala-cli package --native --docker HelloDocker.scala --docker-image-repository hello-docker
+```
+
 ## Scala.JS
 
 Packaging Scala.JS applications results in a `.js` file, that can be run with `node` for example:
@@ -105,17 +158,19 @@ file hello
 
 Scala CLI also offers to package Scala code as OS-specific packages. This feature is somewhat experimental,
 and supports the following formats, provided they're compatible with the operating system you're running `scala-cli` on:
-- DEB (Linux)
-- RPM (Linux)
-- PKG (macOS)
-- MSI (Windows)
+- [DEB](#debian) (Linux)
+- [RPM](#redhat) (Linux)
+- [PKG](#macos---pkg) (macOS)
+- [MSI](#windows) (Windows)
+
+```scala Hello.scala
+object Hello {
+  def main(args: Array[String]): Unit =
+    println("Hello")
+}
+```
 
 ```bash
-cat Hello.scala
-# object Hello {
-#   def main(args: Array[String]): Unit =
-#     println("Hello")
-# }
 scala-cli package --deb Hello.scala -o hello.deb
 file hello
 # hello: Mach-O 64-bit executable x86_64
@@ -123,28 +178,25 @@ file hello
 # Hello
 ```
 
-## Native package
-
 ### Debian
 
 The package format for the Debian Linux distribution.
 
-#### To build a Debian package, you will need to have these applications installed
-* dpkg-deb
+To build a Debian package, you will need to have [`dpkg-deb`](http://manpages.ubuntu.com/manpages/trusty/pl/man1/dpkg-deb.1.html) installed. 
 
-### Run
+Example:
 
 ```bash
-scala-cli package ..arguments... --deb --output 'path.deb`
+scala-cli package --deb --output 'path.deb` Hello.scala
 ```
 
-### Mandatory arguments
+#### Mandatory arguments
 * version
 * maintainer
 * description
 * output-path
 
-### Optional arguments
+#### Optional arguments
 * force
 * launcher-app
 * debian-conflicts
@@ -155,22 +207,21 @@ scala-cli package ..arguments... --deb --output 'path.deb`
 
 The software package format for RedHat distributions.
 
-#### To build a RedHat Package, you will need to have these applications installed
-* rpmbuild
+To build a RedHat Package, you will need to have [`rpmbuild`](https://linux.die.net/man/8/rpmbuild) installed.
 
-### Run
+Example:
 
 ```bash
-scala-cli package ..arguments... --rpm --output 'path.rpm`
+scala-cli package --rpm --output 'path.rpm` Hello.scala
 ```
 
-### Mandatory arguments
+#### Mandatory arguments
 * version
 * description
 * license
 * output-path
 
-### Optional arguments
+#### Optional arguments
 * force
 * launcher-app
 * release
@@ -180,21 +231,20 @@ scala-cli package ..arguments... --rpm --output 'path.rpm`
 
 The software package format for macOs.
 
-#### To build a Pkg, you will need to have these applications installed
-* pkgbuild
+To build a Pkg, you will need to have [`pkgbuild`](https://www.unix.com/man-page/osx/1/pkgbuild/) installed. 
 
-### Run
+Example:
 
 ```bash
-`scala-cli package ..arguments... --pkg --output 'path.pkg`
+`scala-cli package --pkg --output 'path.pkg` Hello.scala
 ```
 
-### Mandatory arguments
+#### Mandatory arguments
 * version
 * identifier
 * output-path
 
-### Optional arguments
+#### Optional arguments
 * force
 * launcher-app
 
@@ -202,23 +252,23 @@ The software package format for macOs.
 
 The software package format for Windows distributions.
 
-#### To build a Windows installer, you will need to have these applications installed
-* WIX Toolset
+To build a Windows installer, you will need to have [`WIX Toolset`](https://wixtoolset.org/) installed.
 
-### Run
 
-```bash
-scala-cli package ..arguments... --msi --output 'path.msi`
+Example:
+
+```cmd
+scala-cli package . --msi --output 'path.msi` Hello.scala
 ```
 
-### Mandatory arguments
+#### Mandatory arguments
 * version
 * maintainer
 * licence-path
 * product-name
 * output-path
 
-### Optional arguments
+#### Optional arguments
 * force
 * launcher-app
 * exit-dialog

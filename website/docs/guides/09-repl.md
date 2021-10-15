@@ -5,15 +5,40 @@ title: REPL
 The `repl` command starts a Scala REPL, that allows you to interactively
 run your code and inspect its results.
 
-```bash
-cat Messages.scala
-# package mylibrary
-# object Messages {
-#   def message = "Hello"
-#   def print(): Unit = println(message)
-# }
+```bash ignore
+scala-cli repl                                                                         01:25:25
+# scala> println("Hello Scala")
+# Hello Scala
+#
+# scala> :exit
+```
 
-scala-cli repl Messages.scalascala-cli repl Messages.scala
+Scala CLI by default uses REPL shiped together with scala compiler.
+
+Pass `--amm` to launch an [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), rather than the default Scala REPL:
+
+```bash ignore
+scala-cli repl --amm                                                                   01:24:05
+# Loading...
+# Welcome to the Ammonite Repl 2.4.0-23-76673f7f (Scala 3.0.2 Java 11.0.11)
+# @ println("Hello ammonite") 
+# Hello ammonite
+# @ exit 
+# Bye!
+```
+
+`repl` commands accepts same arguments like [compile](/docs/guides/compile) commands. It first compile provided sources and then exposes results as well as provided dependencies to the REPL session:
+
+```scala title=mylibrary/Messages.scala
+package mylibrary
+
+object Messages {
+  def message = "Hello"
+  def print(): Unit = println(message)
+}
+```
+```bash
+scala-cli repl mylibrary/Messages.scala
 # Compiling project (Scala 3.0.2, JVM)
 # Compiled project (Scala 3.0.2, JVM)
 # scala> import mylibrary._
@@ -22,21 +47,4 @@ scala-cli repl Messages.scalascala-cli repl Messages.scala
 # Hello
 #
 # scala> :quit
-```
-
-Pass `--amm` to launch an Ammonite REPL, rather than the default Scala REPL:
-```bash
-scala-cli repl Messages.scala --amm
-# Compiling project (Scala 3.0.2, JVM)
-# Compiled project (Scala 3.0.2, JVM)
-# Loading...
-# Welcome to the Ammonite Repl 2.4.0-23-76673f7f (Scala 3.0.2 Java 11.0.7)
-# @ import mylibrary._
-# import mylibrary._
-#
-# @ Messages.print()
-# Hello
-#
-# @ exit
-# Bye!
 ```

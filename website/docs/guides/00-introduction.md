@@ -15,7 +15,7 @@ Scala CLI can be run without any command provided and that will default to the `
 
 Scala CLI supports most recent Scala versions (3.x, 2.13.x and 2.12.x) and changing the Scala version as easy as providing `--scala` parameter (more in [the cookbook](#/docs/cookbooks/scala-versions)). 
 
-Scala CLI supports as well compiling and running Scala to JVM (by default), [Scala.js](/docs/guides/scala-js) and [Scala Native](http://localhost:3000/docs/guides/scala-native).
+Scala CLI supports as well compiling and running Scala to JVM (by default), [Scala.js](/docs/guides/scala-js) and [Scala Native](/docs/guides/scala-native).
 
 ## Under the hood
 
