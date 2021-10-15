@@ -196,8 +196,18 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       val relativeCliCommand = TestUtil.cliCommand(
         TestUtil.relPathStr(os.Path(TestUtil.cliPath).relativeTo(root))
       )
-      os.proc(relativeCliCommand, "setup-ide", path, extraOptions)
-        .call(cwd = root, stdout = os.Inherit)
+
+      val proc =
+        if (Properties.isWin && TestUtil.isNativeCli)
+          os.proc(
+            "cmd",
+            "/c",
+            (relativeCliCommand ++ Seq("setup-ide", path.toString) ++ extraOptions)
+              .mkString(" ")
+          )
+        else
+          os.proc(relativeCliCommand, "setup-ide", path, extraOptions)
+      proc.call(cwd = root, stdout = os.Inherit)
 
       val details = readBspConfig(root / "directory")
       val expectedArgv = List(
