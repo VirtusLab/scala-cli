@@ -47,10 +47,11 @@ object Fmt extends ScalaCommand[FmtOptions] {
       }
 
       def dialectOpt = options.dialect.map(_.trim).filter(_.nonEmpty).orElse {
-        scalaVerOpt.map {
-          case v if v.startsWith("2.12.") => "Scala212"
-          case v if v.startsWith("2.13.") => "Scala213"
-          case v if v.startsWith("3.")    => "Scala3"
+        scalaVerOpt.flatMap {
+          case v if v.startsWith("2.12.") => Some("Scala212")
+          case v if v.startsWith("2.13.") => Some("Scala213")
+          case v if v.startsWith("3.")    => Some("Scala3")
+          case _                          => None
         }
       }
 
