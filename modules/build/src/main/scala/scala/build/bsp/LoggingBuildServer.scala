@@ -1,5 +1,6 @@
 package scala.build.bsp
 
+import ch.epfl.scala.bsp4j.{DependencyModulesParams, DependencyModulesResult}
 import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
@@ -44,4 +45,7 @@ trait LoggingBuildServer extends b.BuildServer {
     underlying.workspaceBuildTargets().logF
   override def workspaceReload(): CompletableFuture[Object] =
     underlying.workspaceReload().logF
+  override def buildTargetDependencyModules(params: DependencyModulesParams)
+    : CompletableFuture[DependencyModulesResult] =
+    underlying.buildTargetDependencyModules(pprint.stderr.log(params)).logF
 }
