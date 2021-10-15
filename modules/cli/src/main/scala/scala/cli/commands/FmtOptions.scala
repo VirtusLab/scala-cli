@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.internal.Constants
+import scala.build.options.BuildOptions
 import scala.cli.internal.FetchExternalBinary
 import scala.util.Properties
 
@@ -11,19 +12,34 @@ import scala.util.Properties
 final case class FmtOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
+
+  @Group("Format")
   @HelpMessage("Check that sources are well formatted")
     check: Boolean = false,
 
+  @Group("Format")
   @Hidden
     osArchSuffix: Option[String] = None,
+  @Group("Format")
   @Hidden
     scalafmtTag: Option[String] = None,
+  @Group("Format")
   @Hidden
     scalafmtGithubOrgName: Option[String] = None,
+  @Group("Format")
   @Hidden
     scalafmtExtension: Option[String] = None,
+  @Group("Format")
   @Hidden
-    scalafmtLauncher: Option[String] = None
+    scalafmtLauncher: Option[String] = None,
+
+  @Group("Format")
+  @Name("F")
+  @Hidden
+    scalafmtArg: List[String] = Nil,
+
+  @Group("Format")
+    dialect: Option[String] = None
 ) {
   // format: on
 
@@ -37,6 +53,9 @@ final case class FmtOptions(
       s"https://github.com/$gitHubOrgName0/releases/download/$tag0/scalafmt-$osArchSuffix0$extension0"
     (url, !tag0.startsWith("v"))
   }
+
+  def buildOptions: BuildOptions =
+    shared.buildOptions(enableJmh = false, jmhVersion = None, ignoreErrors = false)
 
 }
 
