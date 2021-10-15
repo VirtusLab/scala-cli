@@ -3,6 +3,7 @@ package scala.cli.integration
 import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
 import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.Paths
@@ -193,8 +194,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val relativeCliCommand =
-        TestUtil.cliCommand(os.Path(TestUtil.cliPath).relativeTo(root).toString)
+      val relativeCliCommand = TestUtil.cliCommand(
+        os.Path(TestUtil.cliPath)
+          .relativeTo(root)
+          .segments
+          .mkString(File.separator)
+      )
       os.proc(relativeCliCommand, "setup-ide", path, extraOptions)
         .call(cwd = root, stdout = os.Inherit)
 
