@@ -88,11 +88,18 @@ object CrossSources {
 
     val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
     val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)
-    def baseReqs(path: ScopePath): BuildRequirements =
-      scopedRequirementsByRoot
-        .getOrElse(path.root, Nil)
-        .flatMap(_.valueFor(path).toSeq)
-        .foldLeft(BuildRequirements())(_ orElse _)
+    def baseReqs(path: ScopePath): BuildRequirements = {
+      val fromDirectives =
+        scopedRequirementsByRoot
+          .getOrElse(path.root, Nil)
+          .flatMap(_.valueFor(path).toSeq)
+          .foldLeft(BuildRequirements())(_ orElse _)
+
+        // If no scope if defined in file and file ends with `.test.scala` treat it as test
+        if (fromDirectives.scope.isEmpty && path.path.last.endsWith(".test.scala"))
+          fromDirectives.copy(scope = Some(BuildRequirements.ScopeRequirement(Scope.Test)))
+        else fromDirectives
+    }
 
     val buildOptions = for {
       s   <- preprocessedSources

@@ -31,9 +31,9 @@ object CompositeBuildException {
       case h :: t   => new CompositeBuildException(h, t)
     }
 
-    def apply(exceptions: Seq[BuildException]): BuildException =
-      exceptions.distinct match {
-        case Seq(head) => head
-        case head +: tail => new CompositeBuildException(head, tail)
-      }
+  def apply(exceptions: Seq[BuildException]): BuildException =
+    exceptions.distinct match {
+      case Seq(head)    => head
+      case head +: tail => new CompositeBuildException(head, tail)
+    }
 }

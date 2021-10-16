@@ -63,6 +63,11 @@ final case class Inputs(
     elements.flatMap {
       case f: Inputs.SingleFile => Seq(f)
       case d: Inputs.Directory =>
+        val files = os.walk.stream(d.path)
+          .filter { p =>
+            !p.relativeTo(d.path).segments.exists(_.startsWith("."))
+          }.toList
+        println(files)
         os.walk.stream(d.path)
           .filter { p =>
             !p.relativeTo(d.path).segments.exists(_.startsWith("."))
@@ -75,6 +80,9 @@ final case class Inputs(
               Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
             case p if p.last.endsWith(".sc") =>
               Inputs.Script(d.path, p.subRelativeTo(d.path))
+            case other =>
+              println(other)
+              ???
           }
           .toVector
       case _: Inputs.ResourceDirectory =>

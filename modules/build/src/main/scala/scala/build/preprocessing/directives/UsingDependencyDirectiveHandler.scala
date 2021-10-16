@@ -5,11 +5,10 @@ import dependency.parser.DependencyParser
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.errors.{BuildException, DependencyFormatError}
+import scala.build.errors.{BuildException, DependencyFormatError, CompositeBuildException}
 import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Position, Positioned}
-import scala.build.errors.CompositeBuildException
 
 case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Dependency"
@@ -25,17 +24,17 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     directive.values match {
       case Seq("lib" | "libs", depStr @ _*) =>
         val parsedDeps = depStr.map(parseDependency)
-        val errors = parsedDeps.flatMap(_.left.toOption)
-        
+        val errors     = parsedDeps.flatMap(_.left.toOption)
+
         Some(
           if (errors.nonEmpty) Left(CompositeBuildException(errors))
           else {
             val deps = parsedDeps.flatMap(_.right.toOption)
             Right(BuildOptions(
-                classPathOptions = ClassPathOptions(
-                  extraDependencies = deps.map(dep => Positioned(Seq(directive.position), dep))
-                )
-              ))
+              classPathOptions = ClassPathOptions(
+                extraDependencies = deps.map(dep => Positioned(Seq(directive.position), dep))
+              )
+            ))
           }
         )
       case _ => None
