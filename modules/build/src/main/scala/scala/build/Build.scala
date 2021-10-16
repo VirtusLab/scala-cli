@@ -7,11 +7,11 @@ import dependency.ScalaParameters
 
 import java.io.File
 import java.nio.file.{FileSystemException, Path}
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.blooprifle.BloopRifleConfig
+import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope}
@@ -20,8 +20,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.build.blooprifle.BloopRifle
-import java.util.concurrent.ScheduledThreadPoolExecutor
 
 trait Build {
   def inputs: Inputs
