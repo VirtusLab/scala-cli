@@ -513,7 +513,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Test.scala" ->
-          s"""// using com.lihaoyi::pprint:0.0.0.0.0.1
+          s"""// using lib com.lihaoyi::pprint:0.0.0.0.0.1
              |
              |object Test {
              |  val msg = "Hello"
@@ -612,7 +612,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
         val updatedContent =
-          """using "com.lihaoyi::pprint:0.6.6"
+          """using lib "com.lihaoyi::pprint:0.6.6"
             |val msg = "Hello"
             |pprint.log(msg)
             |""".stripMargin

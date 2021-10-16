@@ -30,12 +30,12 @@ Manually adds JAR to the class path
 
 Adds dependencies
 
-`using `_org_`:`name`:`ver
+`using lib `_org_`:`name`:`ver
 
 #### Examples
-`using org.typelevel::cats-effect:3.2.9`
+`using lib org.typelevel::cats-effect:3.2.9`
 
-`using dev.zio::zio:1.0.12`
+`using lib dev.zio::zio:1.0.12`
 
 ### Java home
 
