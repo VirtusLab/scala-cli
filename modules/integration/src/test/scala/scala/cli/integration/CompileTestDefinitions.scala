@@ -225,16 +225,28 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           "object Main{java.util.Optional.of(1).isEmpty}" // isEmpty came in JDK11
       )
     )
-    inputs.fromRoot{ root =>
-      os.proc(TestUtil.cs,"launch","--jvm", "8", "bloop", "--", "exit").call(cwd=root, stdout=os.Inherit)
-      os.proc(TestUtil.cs, "launch","--jvm", "8","bloop", "--", "about").call(cwd=root, stdout=os.Inherit)
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cs, "launch", "--jvm", "8", "bloop", "--", "exit").call(
+        cwd = root,
+        stdout = os.Inherit
+      )
+      os.proc(TestUtil.cs, "launch", "--jvm", "8", "bloop", "--", "about").call(
+        cwd = root,
+        stdout = os.Inherit
+      )
       val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
-        .call(cwd=root, check=false)
+        .call(cwd = root, check = false)
       expect(res.exitCode != 0)
-      os.proc(TestUtil.cs,"launch","--jvm", "11", "bloop", "--", "exit").call(cwd=root, stdout=os.Inherit)
-      os.proc(TestUtil.cs, "launch","--jvm", "11","bloop", "--", "about").call(cwd=root, stdout=os.Inherit)
+      os.proc(TestUtil.cs, "launch", "--jvm", "11", "bloop", "--", "exit").call(
+        cwd = root,
+        stdout = os.Inherit
+      )
+      os.proc(TestUtil.cs, "launch", "--jvm", "11", "bloop", "--", "about").call(
+        cwd = root,
+        stdout = os.Inherit
+      )
       val res2 = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
-        .call(cwd=root, check=false)
+        .call(cwd = root, check = false)
       expect(res2.exitCode == 0)
     }
   }

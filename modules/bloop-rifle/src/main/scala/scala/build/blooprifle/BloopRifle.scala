@@ -214,28 +214,27 @@ object BloopRifle {
   }
 
   def getBloopJvmVersion(
-  config: BloopRifleConfig,
-  logger: BloopRifleLogger,
-  workdir: Path,
-  scheduler: ScheduledExecutorService
-) = {
-  val bufferedOStream = new ByteArrayOutputStream(100000)
-  Operations.about(
-    config.host,
-    config.port,
-    workdir,
-    nullInputStream(),
-    bufferedOStream,
-    nullOutputStream(),
-    logger,
-    scheduler
-  )
+    config: BloopRifleConfig,
+    logger: BloopRifleLogger,
+    workdir: Path,
+    scheduler: ScheduledExecutorService
+  ) = {
+    val bufferedOStream = new ByteArrayOutputStream(100000)
+    Operations.about(
+      config.host,
+      config.port,
+      workdir,
+      nullInputStream(),
+      bufferedOStream,
+      nullOutputStream(),
+      logger,
+      scheduler
+    )
     new String(bufferedOStream.toByteArray()).split("\n")
-        .find(_.startsWith("Running on Java JDK"))
-        .get
-        .split(" ")(4).stripPrefix("v")
-}
-
+      .find(_.startsWith("Running on Java JDK"))
+      .get
+      .split(" ")(4).stripPrefix("v")
+  }
 
   /** Sometimes we need some minimal requirements for Bloop version. This method kills Bloop if its
     * version is unsupported.

@@ -134,7 +134,7 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
     crossBuilds: Boolean,
-    bloopJvmVersion : Option[String]
+    bloopJvmVersion: Option[String]
   ): Either[BuildException, Builds] = either {
 
     val crossSources = value {
@@ -333,14 +333,13 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean,
-    bloopJvmVersion :Option[String],
+    bloopJvmVersion: Option[String]
   ): Either[BuildException, Builds] = {
     val buildClient = BloopBuildClient.create(
       logger,
       keepDiagnostics = options.internal.keepDiagnostics
     )
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
-
 
     bloop.BloopServer.withBuildServer(
       bloopConfig,
@@ -370,8 +369,13 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean
-  ): Either[BuildException, Builds] ={
-        val bloopJvmVersionString = BloopRifle.getBloopJvmVersion(bloopConfig, logger.bloopRifleLogger, inputs.workspace.toNIO , new ScheduledThreadPoolExecutor(4)) // todo use other executor
+  ): Either[BuildException, Builds] = {
+    val bloopJvmVersionString = BloopRifle.getBloopJvmVersion(
+      bloopConfig,
+      logger.bloopRifleLogger,
+      inputs.workspace.toNIO,
+      new ScheduledThreadPoolExecutor(4)
+    ) // todo use other executor
 
     build(
       inputs,
@@ -418,7 +422,7 @@ object Build {
           buildClient,
           bloopServer,
           crossBuilds = crossBuilds,
-          bloopJvmVersion = None// todo don't None!!!!
+          bloopJvmVersion = None // todo don't None!!!!
         )
         action(res)
       }
@@ -523,7 +527,9 @@ object Build {
       else Nil
 
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
-    val bloopV= jvmVersionRegex.findFirstMatchIn(bloopJvmVersion.getOrElse("8")).map(_.group(3)).getOrElse("8") // todo no getorelse
+    val bloopV = jvmVersionRegex.findFirstMatchIn(bloopJvmVersion.getOrElse("8")).map(
+      _.group(3)
+    ).getOrElse("8") // todo no getorelse
     val isBloop8 = bloopV == Some("8")
 
     val jvmStandardVersion = for {
@@ -594,7 +600,7 @@ object Build {
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
-    bloopJvmVersion: Option[String] = None,
+    bloopJvmVersion: Option[String] = None
   ): Either[BuildException, Build] = either {
     if (options.platform == Platform.Native && !value(scalaNativeSupported(options, inputs)))
       value(Left(new ScalaNativeCompatibilityError()))
