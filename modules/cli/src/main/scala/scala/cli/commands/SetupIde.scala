@@ -121,7 +121,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val bspArgs =
       List(absolutePathToScalaCli, "bsp") ++
-        List("--json-options", scalaCliBspJsonDestination.toString, "--") ++
+        List("--json-options", scalaCliBspJsonDestination.toString) ++
         inputArgs
     val details = new BspConnectionDetails(
       bspName,

@@ -70,7 +70,9 @@ object CrossSources {
       val fullPath =  path / p.path
       inputs.elements.exists {
         case Inputs.Directory(path) =>
-           fullPath.startsWith(path) && fullPath.relativeTo(path).segments.contains("test")
+          // Is this file subdirectory of given dir and if we have a subdiretory 'test' on the way 
+          fullPath.startsWith(path) &&
+            fullPath.relativeTo(path).segments.contains("test") 
         case _ => false
       }
     }
