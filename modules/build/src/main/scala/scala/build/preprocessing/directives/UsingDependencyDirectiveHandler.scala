@@ -44,7 +44,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     DependencyParser.parse(depStr)
       .left.map(err => new DependencyFormatError(depStr, err))
 
-  override def keys = Seq("lib")
+  override def keys = Seq("lib", "libs")
   override def handleValues(
     values: Seq[Any],
     cwd: ScopePath,

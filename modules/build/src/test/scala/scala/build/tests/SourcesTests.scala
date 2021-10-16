@@ -127,7 +127,7 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("dependencies in tests/name.scala - using") {
+  test("dependencies in test/name.scala") {
     val files = Seq(
       os.rel / "test" / "something.scala" ->
         """using libs "org1:name1:1.1" "org2::name2:2.2"
@@ -137,7 +137,7 @@ class SourcesTests extends munit.FunSuite {
           |object Something {
           |  def a = 1
           |}
-          |""".stripMargin,
+          |""".stripMargin
     )
     val testInputs = TestInputs(files, Seq("."))
     testInputs.withInputs { (_, inputs) =>

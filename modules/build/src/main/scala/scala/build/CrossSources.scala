@@ -65,6 +65,17 @@ final case class CrossSources(
 
 object CrossSources {
 
+  private def withinTestDirectory(p: ScopePath, inputs: Inputs): Boolean = {
+    p.root.exists { path =>
+      val fullPath =  path / p.path
+      inputs.elements.exists {
+        case Inputs.Directory(path) =>
+           fullPath.startsWith(path) && fullPath.relativeTo(path).segments.contains("test")
+        case _ => false
+      }
+    }
+  }
+
   def forInputs(
     inputs: Inputs,
     preprocessors: Seq[Preprocessor]
@@ -96,7 +107,8 @@ object CrossSources {
           .foldLeft(BuildRequirements())(_ orElse _)
 
         // If no scope if defined in file and file ends with `.test.scala` treat it as test
-        if (fromDirectives.scope.isEmpty && path.path.last.endsWith(".test.scala"))
+        if (fromDirectives.scope.isEmpty && 
+          (path.path.last.endsWith(".test.scala") || withinTestDirectory(path, inputs)))
           fromDirectives.copy(scope = Some(BuildRequirements.ScopeRequirement(Scope.Test)))
         else fromDirectives
     }

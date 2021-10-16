@@ -261,6 +261,11 @@ class Build(val crossScalaVersion: String)
     def runClasspath = T {
       super.runClasspath() ++ Seq(localRepoJar())
     }
+
+    // uncomment below to debug tests in attach mode on 5005 port
+    // def forkArgs = T {
+    //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
+    // }
   }
 }
 
