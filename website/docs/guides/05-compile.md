@@ -59,7 +59,7 @@ scala-cli compile Hello.scala --dependency dev.zio::zio:1.0.9
 ```
 
 Note that `--dependency` is only meant as a convenience. You should favour
-adding dependencies in the sources themselves via [using directives](/docs/guides/using-directives) or [special imports](docs/guides/configuration#special-imports).
+adding dependencies in the sources themselves via [using directives](/docs/guides/using-directives) or [special imports](/docs/guides/configuration#special-imports).
 
 You can also add simple JAR files as dependencies, with `--jar`:
 ```bash
