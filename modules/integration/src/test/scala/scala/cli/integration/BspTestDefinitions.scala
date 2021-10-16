@@ -171,7 +171,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           "bsp",
           "--json-options",
           expectedIdeOptionsFile.toString,
-          "--",
           root.toString
         )
         expect(details.argv == expectedArgv)
@@ -215,7 +214,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         "bsp",
         "--json-options",
         (root / "directory" / ".scala" / "ide-options.json").toString,
-        "--",
         (root / "directory" / "simple.sc").toString
       )
       expect(details.argv == expectedArgv)
@@ -540,7 +538,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         expect(diag.getRange.getStart.getLine == 0)
         expect(diag.getRange.getStart.getCharacter == 3)
         expect(diag.getRange.getEnd.getLine == 0)
-        expect(diag.getRange.getEnd.getCharacter == 40)
+        expect(diag.getRange.getEnd.getCharacter == 44)
         val sbv =
           if (actualScalaVersion.startsWith("2.12.")) "2.12"
           else if (actualScalaVersion.startsWith("2.13.")) "2.13"
