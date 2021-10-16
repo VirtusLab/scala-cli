@@ -45,6 +45,8 @@ Please note that e.scala was not treated as test source since it lacks directory
 
 `scala-cli example/src/test` will result in no test sources since the relative path to `b.scala` does not contains `test` (the fact that directory provided as input is named `test` does not make its content a test sources).
 
+Directives take precedence over file or path names, so `using target main` can be used to force `test/a.scala` or `a.test.scala` to not be treated as tests.
+
 As a rule of thumb, we recommend to simply name all your tests file with `.tests.scala` suffix.
 
 ## Test framework

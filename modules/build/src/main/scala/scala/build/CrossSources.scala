@@ -65,18 +65,17 @@ final case class CrossSources(
 
 object CrossSources {
 
-  private def withinTestDirectory(p: ScopePath, inputs: Inputs): Boolean = {
+  private def withinTestSubDirectory(p: ScopePath, inputs: Inputs): Boolean =
     p.root.exists { path =>
-      val fullPath =  path / p.path
+      val fullPath = path / p.path
       inputs.elements.exists {
         case Inputs.Directory(path) =>
-          // Is this file subdirectory of given dir and if we have a subdiretory 'test' on the way 
+          // Is this file subdirectory of given dir and if we have a subdiretory 'test' on the way
           fullPath.startsWith(path) &&
-            fullPath.relativeTo(path).segments.contains("test") 
+            fullPath.relativeTo(path).segments.contains("test")
         case _ => false
       }
     }
-  }
 
   def forInputs(
     inputs: Inputs,
@@ -108,11 +107,15 @@ object CrossSources {
           .flatMap(_.valueFor(path).toSeq)
           .foldLeft(BuildRequirements())(_ orElse _)
 
-        // If no scope if defined in file and file ends with `.test.scala` treat it as test
-        if (fromDirectives.scope.isEmpty && 
-          (path.path.last.endsWith(".test.scala") || withinTestDirectory(path, inputs)))
-          fromDirectives.copy(scope = Some(BuildRequirements.ScopeRequirement(Scope.Test)))
-        else fromDirectives
+      // Scala-cli treats all `.test.scala` files tests as well as
+      // files from witin `test` subdirectory from provided input directories
+      // If file has `using target <scope>` directive this take precendeces.
+      if (
+        fromDirectives.scope.isEmpty &&
+        (path.path.last.endsWith(".test.scala") || withinTestSubDirectory(path, inputs))
+      )
+        fromDirectives.copy(scope = Some(BuildRequirements.ScopeRequirement(Scope.Test)))
+      else fromDirectives
     }
 
     val buildOptions = for {

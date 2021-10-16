@@ -102,7 +102,7 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-   test("dependencies in .test.scala - using") {
+  test("dependencies in .test.scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.test.scala" ->
         """using libs "org1:name1:1.1" "org2::name2:2.2"
