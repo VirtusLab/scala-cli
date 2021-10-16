@@ -94,7 +94,6 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.append(
       """---
         |title: Command-line options
-        |sidebar_position: 1
         |---
         |
         |""".stripMargin
@@ -155,7 +154,6 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.append(
       """---
         |title: Commands
-        |sidebar_position: 3
         |---
         |
         |""".stripMargin
@@ -197,7 +195,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
             .split("\\s+")
             .map(_.toLowerCase(Locale.ROOT).filter(_ != '.'))
             .mkString("-")
-          s"[$cleanedUp](./cli-options.md#$linkPart-options)"
+          s"[$cleanedUp](/docs/reference/cli-options#$linkPart-options)"
         }
         b.append(
           """Accepts options:
@@ -231,7 +229,6 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.append(
       """---
         |title: Directives
-        |sidebar_position: 2
         |---
         |
         |## using directives
@@ -294,8 +291,8 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
     if (options.check) {
       val content = Seq(
-        (os.rel / "cli-options.md") -> cliOptionsContent0,
-        (os.rel / "commands.md")    -> commandsContent0
+        (os.rel / "01-cli-options.md") -> cliOptionsContent0,
+        (os.rel / "03-commands.md")    -> commandsContent0
       )
       var anyDiff = false
       for ((dest, content0) <- content) {
@@ -316,9 +313,9 @@ object GenerateReferenceDoc extends CaseApp[Options] {
         sys.exit(1)
     }
     else {
-      maybeWrite(options.outputPath / "cli-options.md", cliOptionsContent0)
-      maybeWrite(options.outputPath / "commands.md", commandsContent0)
-      maybeWrite(options.outputPath / "directives.md", usingContent0)
+      maybeWrite(options.outputPath / "01-cli-options.md", cliOptionsContent0)
+      maybeWrite(options.outputPath / "03-commands.md", commandsContent0)
+      maybeWrite(options.outputPath / "02-directives.md", usingContent0)
     }
   }
 }

@@ -2,6 +2,10 @@
 title: IDE support
 ---
 
+:::warning
+This guide is outdated!
+:::
+
 IDE support for sources managed by the Scala CLI is experimental, and limited to
 [Metals](https://scalameta.org/metals/) with [VS
 Code](https://scalameta.org/metals/docs/editors/vscode) or

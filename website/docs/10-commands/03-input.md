@@ -1,7 +1,19 @@
 ---
-title: Input format
+title: Inputs
 ---
 
+Scala CLI is a command line tools that execute given command on provided [inputs](/docs/guides/input) with given [configuration](/docs/guides/configuration) to produce a result. Most important commands are:
+
+  - [compile](/docs/guides/compile) to compile you code (this exclude tests)
+  - [run](/docs/guides/run) - to run your code using provided arguments (also used when no other command is provided)
+  - [test](/docs/guides/test) - to compile and run tests defined in your code
+  - [package](/docs/guides/package) - to package your code into a jar or other format
+  - [repl](/docs/guides/repl) / [console](/docs/guides/repl) - to run interactive Scala shell
+  - [fmt](/docs/guides/fmt) - to format your code
+
+Scala CLI can be run without any command provided and that will default to the `run` command, so `scala-cli a.scala` will run your a.scala file.
+
+## Input formats
 
 The `scala-cli` CLI commands accept input in a number of ways, most notably:
 - as source files
