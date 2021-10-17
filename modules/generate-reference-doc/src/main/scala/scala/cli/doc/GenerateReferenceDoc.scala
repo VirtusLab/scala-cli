@@ -154,7 +154,6 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.append(
       """---
         |title: Commands
-        |---
         |
         |""".stripMargin
     )

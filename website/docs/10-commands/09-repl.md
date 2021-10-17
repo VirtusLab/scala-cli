@@ -6,7 +6,7 @@ The `repl` command starts a Scala REPL, that allows you to interactively
 run your code and inspect its results.
 
 ```bash ignore
-scala-cli repl                                                                         01:25:25
+scala-cli repl
 # scala> println("Hello Scala")
 # Hello Scala
 #
@@ -18,7 +18,7 @@ Scala CLI by default uses REPL shiped together with scala compiler.
 Pass `--amm` to launch an [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), rather than the default Scala REPL:
 
 ```bash ignore
-scala-cli repl --amm                                                                   01:24:05
+scala-cli repl --amm
 # Loading...
 # Welcome to the Ammonite Repl 2.4.0-23-76673f7f (Scala 3.0.2 Java 11.0.11)
 # @ println("Hello ammonite") 
