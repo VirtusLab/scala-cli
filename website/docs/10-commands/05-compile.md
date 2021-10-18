@@ -18,7 +18,7 @@ or know of compilation warnings, without running it or packaging it for example.
 
 We list below some options the `compile` command accepts. For a full list of options,
 run `scala compile --help`, or check the options linked in the
-[reference documentation](./reference/commands.md#compile).
+[reference documentation](/reference/commands#compile).
 
 ## Watch mode
 
@@ -126,6 +126,6 @@ java -cp "$(scala compile --class-path Hello.scala)" Hello
 # Hello
 ```
 
-Note that you should favour the [`run`](./run.md) command to run your code, rather than running `java -cp`.
+Note that you should favour the [`run`](/commands/run) command to run your code, rather than running `java -cp`.
 The class path obtained this way is meant for scenarios where `scala-cli` doesn't offer a more
 convenient option.
