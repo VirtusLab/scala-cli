@@ -168,17 +168,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     compileToADifferentJvmThanBloops("11", "8", false)
   }
 
-  test("compilation fails if jvm version is mismatched2".tag(jvmT)) {
-    compileToADifferentJvmThanBloops("11", "11", true)
-  }
-
   test("compilation fails if target release too low".tag(jvmT)) {
-    compileToADifferentJvmThanBloops("8", "11", false) // should warn bloop is too old
-  }
-
-  test("bloop jvm does not support this jdk spec".tag(jvmT)) {
-    //todo  Assert this should not contain "Error: -release"
-    compileToADifferentJvmThanBloops("8", "11", true, code = "") // should warn bloop is too old
+    compileToADifferentJvmThanBloops("8", "11", true)
   }
 
   test("adopt option".tag(jvmT)) {
@@ -210,39 +201,6 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", targetJvm, ".")
         .call(cwd = root, check = false)
       expect((res.exitCode == 0) == shouldSucceed)
-    }
-  }
-
-  test("ensure bloop version is indeed taken into account".tag(jvmT)) {
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "Main.scala" ->
-          "object Main{java.util.Optional.of(1).isEmpty}" // isEmpty came in JDK11
-      )
-    )
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cs, "launch", "--jvm", "8", "bloop", "--", "exit").call(
-        cwd = root,
-        stdout = os.Inherit
-      )
-      os.proc(TestUtil.cs, "launch", "--jvm", "8", "bloop", "--", "about").call(
-        cwd = root,
-        stdout = os.Inherit
-      )
-      val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
-        .call(cwd = root, check = false)
-      expect(res.exitCode != 0)
-      os.proc(TestUtil.cs, "launch", "--jvm", "11", "bloop", "--", "exit").call(
-        cwd = root,
-        stdout = os.Inherit
-      )
-      os.proc(TestUtil.cs, "launch", "--jvm", "11", "bloop", "--", "about").call(
-        cwd = root,
-        stdout = os.Inherit
-      )
-      val res2 = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", "11", ".")
-        .call(cwd = root, check = false)
-      expect(res2.exitCode == 0)
     }
   }
 }
