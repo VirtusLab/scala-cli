@@ -65,7 +65,7 @@ to be [installed](/install#scala-js) on your system.
 scala-cli Hello.scala --js
 ```
 
-We have a dedicated [Scala.js guide](../20-guides/21-scala-js.md).
+We have a dedicated [Scala.js guide](../guides/scala-js.md).
 
 ## Scala Native
 
@@ -77,7 +77,7 @@ and that Scala Native only supports Linux and macOS for now.
 scala-cli Hello.scala --native
 ```
 
-We have a dedicated [Scala Native guide](../20-guides/22-scala-native.md) as well.
+We have a dedicated [Scala Native guide](../guides/scala-native.md) as well.
 
 ## Scala Scripts
 
@@ -94,7 +94,7 @@ scala-cli run HelloScript.sc
 # Hello world from scala script
 ```
 
-[Scripts guide](../20-guides/scripts) provides much more details.
+[Scripts guide](../guides/scripts.md) provides much more details.
 
 ## Scala CLI from docker
 

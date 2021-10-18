@@ -6,7 +6,7 @@ sidebar_position: 31
 :::note
 This page is intersted in the future of Scala ecosystem.
 
-If you just want to learn Scala CLI just head out to the [Commands section](http://localhost:3000/docs/commands/input)
+If you just want to learn Scala CLI just head out to the [Commands section](./commands/input.md)
 :::
 
 :::warning

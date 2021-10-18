@@ -19,7 +19,7 @@ or know of compilation warnings, without running it or packaging it for example.
 
 We list below some options the `compile` command accepts. For a full list of options,
 run `scala compile --help`, or check the options linked in the
-[reference documentation](/reference/commands#compile).
+[reference documentation](../reference/commands.md#compile).
 
 ## Watch mode
 
@@ -60,14 +60,14 @@ scala-cli compile Hello.scala --dependency dev.zio::zio:1.0.9
 ```
 
 Note that `--dependency` is only meant as a convenience. You should favour
-adding dependencies in the sources themselves via [using directives](/docs/20-guides/using-directives) or [special imports](/docs/20-guides/configuration#special-imports).
+adding dependencies in the sources themselves via [using directives](../guides/configuration.md#special-imports).
 
 You can also add simple JAR files as dependencies, with `--jar`:
 ```bash
 scala-cli compile Hello.scala --jar /path/to/library.jar
 ```
 
-We have a guide dedicated [Dependency management](/docs/20-guides/dependencies)
+We have a guide dedicated [Dependency management](../guides/dependencies.md)
 
 ## Scala compiler options
 
@@ -127,6 +127,6 @@ java -cp "$(scala compile --class-path Hello.scala)" Hello
 # Hello
 ```
 
-Note that you should favour the [`run`](/commands/run) command to run your code, rather than running `java -cp`.
+Note that you should favour the [`run`](./run.md) command to run your code, rather than running `java -cp`.
 The class path obtained this way is meant for scenarios where `scala-cli` doesn't offer a more
 convenient option.

@@ -19,15 +19,15 @@ on Windows. Native image allows Scala CLI to be responsive as proper command lin
 
 ### Caching and incrementality
 
-Since most of the tasks requires compilation or dependency resolution under the hood, Scala CLI heavily use caches and incrementality under the hood to provide output as quickly as possible. Incremental compilation or caching are not perfect. In some cases, we need to be 100% that our problems are caused by our code (or e.g. bug in compiler) not the stale state of our project. For that reason we have introduce [clean](/docs/20-guides/clean) command that invalidates local caches and forces next compilation to be complete (non-incremental).
+Since most of the tasks requires compilation or dependency resolution under the hood, Scala CLI heavily use caches and incrementality under the hood to provide output as quickly as possible. Incremental compilation or caching are not perfect. In some cases, we need to be 100% that our problems are caused by our code (or e.g. bug in compiler) not the stale state of our project. For that reason we have introduce [clean](./commands/clean.md) command that invalidates local caches and forces next compilation to be complete (non-incremental.md).
 
 In cases something goes wrong withing incremental compilation or caching or when one would be 100% sure that the problems are caused by code not under-compilation.
 
-We provide more in-depth overview about our caching in the guide dedicated to [Scala CLI internals](/docs/20-guides/internals).
+We provide more in-depth overview about our caching in the guide dedicated to [Scala CLI internals](./guides/internals.md).
 
 ### Bloop and coursier
 
-To ensure the quickest compilation, Scala CLI uses and manages [Bloop](https://scalacenter.github.io/bloop/) compilation server. We have a [detailed guide](/docs/reference/bloop) how Scala CLI interacts with local bloop server. It takes care of fetching and starting Bloop if needed, so that you don't have to worry
+To ensure the quickest compilation, Scala CLI uses and manages [Bloop](https://scalacenter.github.io/bloop/) compilation server. We have a [detailed guide](./reference/bloop.md) how Scala CLI interacts with local bloop server. It takes care of fetching and starting Bloop if needed, so that you don't have to worry
 about it.
 
 Scala CLI uses [coursier](https://get-coursier.io/) to manage dependecies. It automatically downloads and unpacks a JVM if none is installed on your system, so that all its commands work fine even if a JVM isn't already installed. Scala-cli shares coursier caches with other tools like [sbt](https://www.scala-sbt.org/) or [mill](https://github.com/com-lihaoyi/mill) or [Metals](https://scalameta.org/metals/).

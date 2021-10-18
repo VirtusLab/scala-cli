@@ -3,14 +3,14 @@ title: Inputs
 sidebar_position: 3
 ---
 
-Scala CLI is a command line tools that execute given command on provided inputs with given [configuration](../14-guides/20-configuration.md) to produce a result. Most important commands are:
+Scala CLI is a command line tools that execute given command on provided inputs with given [configuration](../guides/configuration.md) to produce a result. Most important commands are:
 
-  - [compile](./05-compile.md) to compile you code (this exclude tests)
-  - [run](./06-run.md) - to run your code using provided arguments (also used when no other command is provided)
-  - [test](./07-test.md) - to compile and run tests defined in your code
-  - [package](./08-package.md) - to package your code into a jar or other format
-  - [repl](./09-repl.md) / [console](/docs/20-guides/repl) - to run interactive Scala shell
-  - [fmt](./15-fmt.md) - to format your code
+  - [compile](./compile.md) to compile you code (this exclude tests)
+  - [run](./run.md) - to run your code using provided arguments (also used when no other command is provided)
+  - [test](./test.md) - to compile and run tests defined in your code
+  - [package](./package.md) - to package your code into a jar or other format
+  - [repl](./repl.md) / [console](./repl.md) - to run interactive Scala shell
+  - [fmt](./fmt.md) - to format your code
 
 Scala CLI can be run without any command provided and that will default to the `run` command, so `scala-cli a.scala` will run your a.scala file.
 
@@ -28,7 +28,7 @@ Lastly, note that all these input formats can used alongside each other.
 
 Scala CLI accepts following kinds of source:
  - `.scala` files containing Scala code
- - `.sc` files, containing Scala scripts (see more in [Scripts guide](../14-guides/21-scripts.md))
+ - `.sc` files, containing Scala scripts (see more in [Scripts guide](../guides/scripts.md))
  - `.java` files containing Java code
 
 This is the simplest input format. Just write a source file, and pass it to

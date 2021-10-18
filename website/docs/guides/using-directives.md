@@ -35,12 +35,12 @@ The only exception are `using target` directives that applies only to the given 
 
 ## Using directives in Scala CLI
 
-Below is the list of most important using directives that Scala CLI supports and full list can be found in the [Reference section of this documentation](/docs/reference/directives).
+Below is the list of most important using directives that Scala CLI supports and full list can be found in the [Reference section of this documentation](./reference/directives.md).
 
 ### Most important using directives supported by Scala CLI
 
 - `// using scala <scala-version>` - defines version of Scala used
-- `// using lib org::name:version` - defines dependency to given library [more in dedicated guide](http://localhost:3000/docs/20-guides/dependencies)
+- `// using lib org::name:version` - defines dependency to given library [more in dedicated guide](http://localhost:3000/docs/guides/dependencies)
 - `// using resource <file-or-dir>` - marks file/directory as resources. Resources accessible at runtime and packaged together with compiled code.
 - `// using java-opt <opt>` - use given java options when running application or tests
 - `// using target [test|main]` used to marked or unmarked given source as test

@@ -27,7 +27,7 @@ scala-cli --scala 3.0.0 Test.scala
 scala-cli --dependency org.typelevel::cats-core:2.3.0 Test.scala
 ```
 
-The reference documentation lists [all available options](17-reference/01-cli-options.md).
+The reference documentation lists [all available options](../reference/cli-options.md).
 
 ## Special imports
 
@@ -53,4 +53,4 @@ using scala-js
 using options -Xasync
 ```
 
-The reference documentation lists [all available using directives](/reference/directives#using-directives).
+The reference documentation lists [all available using directives](../reference/directives.md#using-directives).

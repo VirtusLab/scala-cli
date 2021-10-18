@@ -28,7 +28,7 @@ scala-cli repl --amm
 # Bye!
 ```
 
-`repl` commands accepts same arguments like [compile](/docs/20-guides/compile) commands. It first compile provided sources and then exposes results as well as provided dependencies to the REPL session:
+`repl` commands accepts same arguments like [compile](./compile.md) commands. It first compile provided sources and then exposes results as well as provided dependencies to the REPL session:
 
 ```scala title=mylibrary/Messages.scala
 package mylibrary

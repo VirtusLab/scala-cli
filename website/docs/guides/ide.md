@@ -19,7 +19,7 @@ In such case, just run one of the commands above commands to recreate connection
 
 Since Scala CLI has a command-line-first approach and it is reflected in IDE integration. By default, Scala CLI stores options passed to last `compile`, `run` or `test` and use those options to configure IDE. 
 
-For more control we also expose [`setup-ide` command](#) that allows to fine tune options passed to IDE. 
+For more control we also expose [`setup-ide` command](../commands/setup-ide.md) that allows to fine tune options passed to IDE. 
 
 Once `setup-ide` is used, Scala CLI does not update configuration based on latest command. 
 
