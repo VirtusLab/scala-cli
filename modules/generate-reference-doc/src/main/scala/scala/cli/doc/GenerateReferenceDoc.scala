@@ -94,6 +94,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.append(
       """---
         |title: Command-line options
+        |sidebar_position: 1
         |---
         |
         |""".stripMargin
@@ -107,7 +108,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
         // https://scala-cli.virtuslab.org/docs/reference/commands#install-completions
         val names = c.names.map(_.mkString(" "))
         val text  = names.map("`" + _ + "`").mkString(" / ")
-        s"[$text](./commands#${names.head.replace(" ", "-")})"
+        s"[$text](./commands.md#${names.head.replace(" ", "-")})"
       }
       val availableIn = "Available in commands:\n" + formattedCommands.map("- " + _ + "\n").mkString
       b.append(
@@ -154,6 +155,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.append(
       """---
         |title: Commands
+        |sidebar_position: 3
         |---
         |
         |""".stripMargin
@@ -195,7 +197,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
             .split("\\s+")
             .map(_.toLowerCase(Locale.ROOT).filter(_ != '.'))
             .mkString("-")
-          s"[$cleanedUp](/docs/reference/cli-options#$linkPart-options)"
+          s"[$cleanedUp](./cli-options.md#$linkPart-options)"
         }
         b.append(
           """Accepts options:
@@ -229,6 +231,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.append(
       """---
         |title: Directives
+        |sidebar_position: 2
         |---
         |
         |## using directives
@@ -291,8 +294,8 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
     if (options.check) {
       val content = Seq(
-        (os.rel / "01-cli-options.md") -> cliOptionsContent0,
-        (os.rel / "03-commands.md")    -> commandsContent0
+        (os.rel / "cli-options.md") -> cliOptionsContent0,
+        (os.rel / "commands.md")    -> commandsContent0
       )
       var anyDiff = false
       for ((dest, content0) <- content) {
@@ -313,9 +316,9 @@ object GenerateReferenceDoc extends CaseApp[Options] {
         sys.exit(1)
     }
     else {
-      maybeWrite(options.outputPath / "01-cli-options.md", cliOptionsContent0)
-      maybeWrite(options.outputPath / "03-commands.md", commandsContent0)
-      maybeWrite(options.outputPath / "02-directives.md", usingContent0)
+      maybeWrite(options.outputPath / "cli-options.md", cliOptionsContent0)
+      maybeWrite(options.outputPath / "commands.md", commandsContent0)
+      maybeWrite(options.outputPath / "directives.md", usingContent0)
     }
   }
 }

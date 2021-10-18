@@ -1,7 +1,7 @@
 package scala.cli.doc
 
 final case class Options(
-  outputDir: String = "docs/17-reference",
+  outputDir: String = "website/docs/reference",
   check: Boolean = false
 ) {
   lazy val outputPath: os.Path =
