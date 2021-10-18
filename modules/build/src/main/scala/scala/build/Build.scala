@@ -616,8 +616,9 @@ object Build {
         logger,
         inputs.workspace,
         updateSemanticDbs = true,
-        updateTasty = project.scalaCompiler.scalaVersion.startsWith("3.")
+        scalaVersion = project.scalaCompiler.scalaVersion
       )
+        .left.foreach(_.foreach(logger.message(_)))
 
       Successful(
         inputs,
@@ -650,8 +651,8 @@ object Build {
     logger: Logger,
     workspace: os.Path,
     updateSemanticDbs: Boolean,
-    updateTasty: Boolean
-  ): Unit = {
+    scalaVersion: String
+  ): Either[Seq[String], Unit] = {
 
     // TODO Write classes to a separate directory during post-processing
     logger.debug("Post-processing class files of pre-processed sources")
@@ -668,10 +669,13 @@ object Build {
     val postProcessors =
       Seq(ByteCodePostProcessor) ++
         (if (updateSemanticDbs) Seq(SemanticDbPostProcessor) else Nil) ++
-        (if (updateTasty) Seq(TastyPostProcessor) else Nil)
+        Seq(TastyPostProcessor)
 
-    for (p <- postProcessors)
-      p.postProcess(generatedSources, mappings, workspace, classesDir, logger)
+    val failures = postProcessors.flatMap(
+      _.postProcess(generatedSources, mappings, workspace, classesDir, logger, scalaVersion)
+        .fold(e => Seq(e), _ => Nil)
+    )
+    if (failures.isEmpty) Right(()) else Left(failures)
   }
 
   def onChangeBufferedObserver(onEvent: PathWatchers.Event => Unit): Observer[PathWatchers.Event] =

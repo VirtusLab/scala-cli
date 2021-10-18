@@ -138,6 +138,18 @@ final class BspImpl(
           client.resetBuildExceptionDiagnostics(targetId)
     }
 
+  private val shownGlobalMessages =
+    new java.util.concurrent.ConcurrentHashMap[String, Unit]()
+
+  private def showGlobalWarningOnce(msg: String) =
+    shownGlobalMessages.computeIfAbsent(
+      msg,
+      _ => {
+        val params = new b.ShowMessageParams(b.MessageType.WARNING, msg)
+        actualLocalClient.onBuildShowMessage(params)
+      }
+    )
+
   def compile(
     actualLocalServer: BspServer,
     executor: Executor,
@@ -185,8 +197,8 @@ final class BspImpl(
                     logger,
                     inputs.workspace,
                     updateSemanticDbs = true,
-                    updateTasty = true
-                  )
+                    scalaVersion = project.scalaCompiler.scalaVersion
+                  ).left.foreach(_.foreach(showGlobalWarningOnce))
                   res
                 },
                 executor

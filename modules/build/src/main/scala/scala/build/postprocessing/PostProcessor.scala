@@ -8,6 +8,7 @@ trait PostProcessor {
     mappings: Map[String, (String, Int)],
     workspace: os.Path,
     output: os.Path,
-    logger: Logger
-  ): Unit
+    logger: Logger,
+    scalaVersion: String
+  ): Either[String, Unit]
 }
