@@ -105,10 +105,10 @@ object GenerateReferenceDoc extends CaseApp[Options] {
       val originCommands  = commandOriginsMap.getOrElse(origin, Nil)
       val formattedOrigin = formatOrigin(origin)
       val formattedCommands = originCommands.map { c =>
-        // http://localhost:3000/docs/reference/commands#install-completions
+        // https://scala-cli.virtuslab.org/docs/reference/commands#install-completions
         val names = c.names.map(_.mkString(" "))
         val text  = names.map("`" + _ + "`").mkString(" / ")
-        s"[$text](./commands#${names.head.replace(" ", "-")})"
+        s"[$text](./commands.md#${names.head.replace(" ", "-")})"
       }
       val availableIn = "Available in commands:\n" + formattedCommands.map("- " + _ + "\n").mkString
       b.append(

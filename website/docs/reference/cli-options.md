@@ -6,7 +6,7 @@ sidebar_position: 1
 ## Add path options
 
 Available in commands:
-- [`add-path`](./commands#add-path)
+- [`add-path`](./commands.md#add-path)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -20,7 +20,7 @@ Aliases: `-q`
 ## Benchmarking options
 
 Available in commands:
-- [`run`](./commands#run)
+- [`run`](./commands.md#run)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -36,7 +36,7 @@ Set JMH version
 ## Bloop start options
 
 Available in commands:
-- [`bloop start`](./commands#bloop-start)
+- [`bloop start`](./commands.md#bloop-start)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -48,7 +48,7 @@ Aliases: `-f`
 ## Bsp options
 
 Available in commands:
-- [`bsp`](./commands#bsp)
+- [`bsp`](./commands.md#bsp)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -60,18 +60,18 @@ Command-line options JSON file
 ## Compilation server options
 
 Available in commands:
-- [`bloop exit`](./commands#bloop-exit)
-- [`bloop start`](./commands#bloop-start)
-- [`bsp`](./commands#bsp)
-- [`compile`](./commands#compile)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop start`](./commands.md#bloop-start)
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -119,7 +119,7 @@ Bloop global options file
 ## Compile options
 
 Available in commands:
-- [`compile`](./commands#compile)
+- [`compile`](./commands.md#compile)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -133,10 +133,10 @@ Print resulting class path
 ## Compile cross options
 
 Available in commands:
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`test`](./commands#test)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -148,17 +148,17 @@ Cross-compile sources
 ## Coursier options
 
 Available in commands:
-- [`bloop start`](./commands#bloop-start)
-- [`bsp`](./commands#bsp)
-- [`compile`](./commands#compile)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bloop start`](./commands.md#bloop-start)
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -170,7 +170,7 @@ Specify a TTL for changing dependencies, such as snapshots
 ## Cross options
 
 Available in commands:
-- [`compile`](./commands#compile)
+- [`compile`](./commands.md#compile)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -180,16 +180,16 @@ Available in commands:
 ## Dependency options
 
 Available in commands:
-- [`bsp`](./commands#bsp)
-- [`compile`](./commands#compile)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -215,21 +215,21 @@ Add compiler plugin dependencies
 ## Directories options
 
 Available in commands:
-- [`bloop exit`](./commands#bloop-exit)
-- [`bloop start`](./commands#bloop-start)
-- [`bsp`](./commands#bsp)
-- [`clean`](./commands#clean)
-- [`compile`](./commands#compile)
-- [`directories`](./commands#directories)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`install completions`](./commands#install-completions)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop start`](./commands.md#bloop-start)
+- [`bsp`](./commands.md#bsp)
+- [`clean`](./commands.md#clean)
+- [`compile`](./commands.md#compile)
+- [`directories`](./commands.md#directories)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`install completions`](./commands.md#install-completions)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -241,7 +241,7 @@ Aliases: `--home`
 ## Export options
 
 Available in commands:
-- [`export`](./commands#export)
+- [`export`](./commands.md#export)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -261,7 +261,7 @@ Aliases: `-o`
 ## Fmt options
 
 Available in commands:
-- [`fmt`](./commands#fmt)
+- [`fmt`](./commands.md#fmt)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -289,25 +289,25 @@ Aliases: `-F`
 ## Help options
 
 Available in commands:
-- [`about`](./commands#about)
-- [`add-path`](./commands#add-path)
-- [`bloop exit`](./commands#bloop-exit)
-- [`bloop start`](./commands#bloop-start)
-- [`bsp`](./commands#bsp)
-- [`clean`](./commands#clean)
-- [`compile`](./commands#compile)
-- [`directories`](./commands#directories)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`install completions`](./commands#install-completions)
-- [`install-home`](./commands#install-home)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
-- [`version`](./commands#version)
+- [`about`](./commands.md#about)
+- [`add-path`](./commands.md#add-path)
+- [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop start`](./commands.md#bloop-start)
+- [`bsp`](./commands.md#bsp)
+- [`clean`](./commands.md#clean)
+- [`compile`](./commands.md#compile)
+- [`directories`](./commands.md#directories)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`install completions`](./commands.md#install-completions)
+- [`install-home`](./commands.md#install-home)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
+- [`version`](./commands.md#version)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -331,7 +331,7 @@ Print help message, including hidden options, and exit
 ## Install completions options
 
 Available in commands:
-- [`install completions`](./commands#install-completions)
+- [`install completions`](./commands.md#install-completions)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -353,7 +353,7 @@ Aliases: `--shell`
 ## Install home options
 
 Available in commands:
-- [`install-home`](./commands#install-home)
+- [`install-home`](./commands.md#install-home)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -381,9 +381,9 @@ Binary directory
 ## Java options
 
 Available in commands:
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`test`](./commands#test)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -401,17 +401,17 @@ Set Java properties
 ## Jvm options
 
 Available in commands:
-- [`bloop start`](./commands#bloop-start)
-- [`bsp`](./commands#bsp)
-- [`compile`](./commands#compile)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bloop start`](./commands.md#bloop-start)
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -441,20 +441,20 @@ CPU architecture to use when looking up in the JVM index
 ## Logging options
 
 Available in commands:
-- [`bloop exit`](./commands#bloop-exit)
-- [`bloop start`](./commands#bloop-start)
-- [`bsp`](./commands#bsp)
-- [`clean`](./commands#clean)
-- [`compile`](./commands#compile)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`install completions`](./commands#install-completions)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop start`](./commands.md#bloop-start)
+- [`bsp`](./commands.md#bsp)
+- [`clean`](./commands.md#clean)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`install completions`](./commands.md#install-completions)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -478,9 +478,9 @@ Use progress bars
 ## Main class options
 
 Available in commands:
-- [`export`](./commands#export)
-- [`package`](./commands#package)
-- [`run`](./commands#run)
+- [`export`](./commands.md#export)
+- [`package`](./commands.md#package)
+- [`run`](./commands.md#run)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -494,7 +494,7 @@ Specify which main class to run
 ## Metabrowse options
 
 Available in commands:
-- [`browse` / `metabrowse`](./commands#browse)
+- [`browse` / `metabrowse`](./commands.md#browse)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -530,7 +530,7 @@ Bind to port
 ## Package options
 
 Available in commands:
-- [`package`](./commands#package)
+- [`package`](./commands.md#package)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -586,7 +586,7 @@ Build docker image
 ## Packager options
 
 Available in commands:
-- [`package`](./commands#package)
+- [`package`](./commands.md#package)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -688,7 +688,7 @@ The image tag, the default tag is latest
 ## Repl options
 
 Available in commands:
-- [`console` / `repl`](./commands#console)
+- [`console` / `repl`](./commands.md#console)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -716,16 +716,16 @@ Don't actually run the REPL, only fetch it
 ## Scala.JS options
 
 Available in commands:
-- [`bsp`](./commands#bsp)
-- [`compile`](./commands#compile)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -749,16 +749,16 @@ Enable Scala.JS
 ## Scala Native options
 
 Available in commands:
-- [`bsp`](./commands#bsp)
-- [`compile`](./commands#compile)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -788,16 +788,16 @@ Enable Scala Native
 ## Scalac options
 
 Available in commands:
-- [`bsp`](./commands#bsp)
-- [`compile`](./commands#compile)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -811,7 +811,7 @@ Add scalac option
 ## Setup IDE options
 
 Available in commands:
-- [`setup-ide`](./commands#setup-ide)
+- [`setup-ide`](./commands.md#setup-ide)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -829,16 +829,16 @@ Aliases: `--name`
 ## Shared options
 
 Available in commands:
-- [`bsp`](./commands#bsp)
-- [`compile`](./commands#compile)
-- [`export`](./commands#export)
-- [`fmt`](./commands#fmt)
-- [`browse` / `metabrowse`](./commands#browse)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`setup-ide`](./commands#setup-ide)
-- [`test`](./commands#test)
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -898,7 +898,7 @@ Generate SemanticDBs
 ## Test options
 
 Available in commands:
-- [`test`](./commands#test)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -914,11 +914,11 @@ Fail if no test suites were run
 ## Watch options
 
 Available in commands:
-- [`compile`](./commands#compile)
-- [`package`](./commands#package)
-- [`console` / `repl`](./commands#console)
-- [`run`](./commands#run)
-- [`test`](./commands#test)
+- [`compile`](./commands.md#compile)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`test`](./commands.md#test)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->

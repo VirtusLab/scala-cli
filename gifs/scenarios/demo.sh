@@ -9,7 +9,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
   echo "println(1)" | scala-cli -
-  echo "// using \"org.scalameta::munit:0.7.29\"" | scala-cli test -
+  echo "// using lib \"org.scalameta::munit:0.7.29\"" | scala-cli test -
   # or do other preparation (e.g. create code)
 else
   . $SCRIPT_DIR/../demo-magic.sh
@@ -34,7 +34,7 @@ EOF
   clear
 
   cat <<EOF | updateFile demo.test.scala
-// using "org.scalameta::munit:0.7.29"
+// using lib "org.scalameta::munit:0.7.29"
 
 class demoTest extends munit.FunSuite {
   test("test nice args") {

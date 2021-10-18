@@ -35,10 +35,10 @@ const Index = (props) => {
 
 			<SectionAbout title="Why Scala CLI?">
 				<p>
-					Scala CLI combines all the features you need to learn and use Scala in your (single-module) projects. Scala CLI is intuitive <span>and interactive</span>
+					Scala CLI combines all the features you need to learn and use Scala in your scripts, playgrounds and (single-module) projects.
 				</p>
 				<p>
-					If you are bored with reading documentation or landing pages you can just <a href="#install">install</a> and <a href="#enjoy">enjoy `scala-cli`</a>.
+					If you are bored with reading <a href="/docs/overview">documentation</a> or landing pages you can just <a href="/install">install</a> and enjoy <code>scala-cli</code>.
 				</p>
 			</SectionAbout>
 
@@ -48,9 +48,7 @@ const Index = (props) => {
 		{/* Who is Scala CLI designed for? */}
 		<Section className="section-features">
 
-			<SmallHeader title="Caught your interest?">
-				Let us convince you why Scala CLI is <span>worth to give it a go.</span>
-			</SmallHeader>
+
 
 			<div className="section-features__row row">
 				
@@ -59,7 +57,7 @@ const Index = (props) => {
 				</IconBox>
 
 				<IconBox title="Fast" icon="img/rocket.png">
-					<strong>Scala CLI is optimize to respond as quickly as possible.</strong> CLI is compiled to native code and compilations are <a href="#href">offloaded to bloop</a>
+					<strong>Scala CLI is optimize to respond as quickly as possible.</strong> CLI is compiled to native code and compilations are <a href="/docs/reference/bloop">offloaded to bloop</a>
 				</IconBox>
 
 				<IconBox title="Command-line first" icon="img/monitor.png">
@@ -105,7 +103,8 @@ const Index = (props) => {
 
                 <UseCaseTile title="/// your use case"
                              slug={false}
-                             description="If you see other use case for Scala CLI let us know using github discussions!">
+                             description=
+                             {<span>If you see other use case for Scala CLI let us know using <a href="https://github.com/VirtusLab/scala-cli/discussions/categories/ideas">github discussions!</a></span>}>
                 </UseCaseTile>
 
               </div>

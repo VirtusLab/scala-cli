@@ -12,7 +12,7 @@ print all files located in path passed as the first argument
 Create a file name `ls.sc`
 ```scala
 #!/usr/bin/env scala-cli
-using "com.lihaoyi::os-lib:0.7.8"
+// using lib "com.lihaoyi::os-lib:0.7.8"
 val cwd = if(args.nonEmpty) os.Path(args(0), os.pwd) else os.pwd
 println(os.list(cwd).map(_.last).mkString("\n"))
 ```

@@ -9,7 +9,7 @@ object ExportTestProjects {
     val testFile =
       if (scalaVersion.startsWith("3."))
         s"""using scala $scalaVersion
-           |using org.scala-lang::scala3-compiler:$scalaVersion
+           |using lib org.scala-lang::scala3-compiler:$scalaVersion
            |
            |object Test {
            |  def main(args: Array[String]): Unit = {
@@ -112,7 +112,7 @@ object ExportTestProjects {
   def repositoryScala3Test(scalaVersion: String): TestInputs = {
     val testFile =
       s"""using scala $scalaVersion
-         |using com.github.jupyter:jvm-repr:0.4.0
+         |using lib com.github.jupyter:jvm-repr:0.4.0
          |using repository jitpack
          |import jupyter._
          |object Test:
@@ -153,8 +153,8 @@ object ExportTestProjects {
   def scalacOptionsScala2Test(scalaVersion: String): TestInputs = {
     val testFile =
       s"""using scala $scalaVersion
-         |using org.scala-lang.modules::scala-async:0.10.0
-         |using org.scala-lang:scala-reflect:$scalaVersion
+         |using lib org.scala-lang.modules::scala-async:0.10.0
+         |using lib org.scala-lang:scala-reflect:$scalaVersion
          |import scala.async.Async.{async, await}
          |import scala.concurrent.{Await, Future}
          |import scala.concurrent.duration.Duration
@@ -209,7 +209,7 @@ object ExportTestProjects {
   def testFrameworkTest(scalaVersion: String): TestInputs = {
     val testFile =
       s"""using scala $scalaVersion
-         |using "com.lihaoyi::utest:0.7.10"
+         |using lib "com.lihaoyi::utest:0.7.10"
          |using test-framework "utest.runner.Framework"
          |
          |import utest._

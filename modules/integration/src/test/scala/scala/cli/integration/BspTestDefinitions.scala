@@ -171,7 +171,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           "bsp",
           "--json-options",
           expectedIdeOptionsFile.toString,
-          "--",
           root.toString
         )
         expect(details.argv == expectedArgv)
@@ -215,7 +214,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         "bsp",
         "--json-options",
         (root / "directory" / ".scala" / "ide-options.json").toString,
-        "--",
         (root / "directory" / "simple.sc").toString
       )
       expect(details.argv == expectedArgv)
@@ -513,7 +511,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Test.scala" ->
-          s"""// using com.lihaoyi::pprint:0.0.0.0.0.1
+          s"""// using lib com.lihaoyi::pprint:0.0.0.0.0.1
              |
              |object Test {
              |  val msg = "Hello"
@@ -540,7 +538,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         expect(diag.getRange.getStart.getLine == 0)
         expect(diag.getRange.getStart.getCharacter == 3)
         expect(diag.getRange.getEnd.getLine == 0)
-        expect(diag.getRange.getEnd.getCharacter == 40)
+        expect(diag.getRange.getEnd.getCharacter == 44)
         val sbv =
           if (actualScalaVersion.startsWith("2.12.")) "2.12"
           else if (actualScalaVersion.startsWith("2.13.")) "2.13"
@@ -612,7 +610,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
         val updatedContent =
-          """using "com.lihaoyi::pprint:0.6.6"
+          """using lib "com.lihaoyi::pprint:0.6.6"
             |val msg = "Hello"
             |pprint.log(msg)
             |""".stripMargin

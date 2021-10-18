@@ -1066,7 +1066,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Main.scala" ->
-          """using "com.lihaoyi::utest:0.7.10"
+          """using lib "com.lihaoyi::utest:0.7.10"
             |
             |object Main {
             |  val err = utest.compileError("pprint.log(2)")
@@ -1078,7 +1078,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             |}
             |""".stripMargin,
         os.rel / "Tests.scala" ->
-          """using "com.lihaoyi::pprint:0.6.6"
+          """using lib "com.lihaoyi::pprint:0.6.6"
             |using target test
             |
             |import utest._

@@ -30,7 +30,7 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
       case _ => None
     }
 
-  override def keys = Seq("options", "options")
+  override def keys = Seq("option", "options")
   override def handleValues(
     values: Seq[Any],
     cwd: ScopePath,

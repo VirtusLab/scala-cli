@@ -19,7 +19,7 @@ or know of compilation warnings, without running it or packaging it for example.
 
 We list below some options the `compile` command accepts. For a full list of options,
 run `scala compile --help`, or check the options linked in the
-[reference documentation](./reference/commands.md#compile).
+[reference documentation](../reference/commands.md#compile).
 
 ## Watch mode
 
@@ -33,6 +33,41 @@ scala-cli compile --watch Hello.scala
 # Compiled 'project-cef76d561e'
 # Watching sources, press Ctrl+C to exit.
 ```
+
+## Scala version
+
+Scala CLI uses latest stable version of Scala by default (`3.0.2` when this guide was written). You can specify the Scala version you'd like to use with `--scala`:
+
+```bash ignore
+scala-cli compile --scala 2.13.6 Hello.scala
+```
+
+`scala-cli` should work with all major `2.12.x`, `2.13.x`, and `3.x` Scala versions.
+
+`--scala` also accepts "short" Scala versions, such as `2.12`, `2`, or `3`. In that
+case, it picks the highest corresponding stable Scala version:
+```bash ignore
+scala-cli compile --scala 2.12 Hello.scala
+scala-cli compile --scala 2 Hello.scala
+scala-cli compile --scala 3 Hello.scala
+```
+
+## Dependencies
+
+You can add dependencies on the command-line, via `--dependency`:
+```bash
+scala-cli compile Hello.scala --dependency dev.zio::zio:1.0.9
+```
+
+Note that `--dependency` is only meant as a convenience. You should favour
+adding dependencies in the sources themselves via [using directives](../guides/configuration.md#special-imports).
+
+You can also add simple JAR files as dependencies, with `--jar`:
+```bash
+scala-cli compile Hello.scala --jar /path/to/library.jar
+```
+
+We have a guide dedicated [Dependency management](../guides/dependencies.md)
 
 ## Scala compiler options
 
@@ -77,43 +112,6 @@ Use `--compiler-plugin` to add compiler plugin dependencies:
 scala-cli compile Main.scala --compiler-plugin org.typelevel:::kind-projector:0.13.2 --scala 2.12.14
 ```
 
-## Scala version
-
-Specify the Scala version you'd like to use with `--scala`:
-```bash
-scala-cli compile --scala 2.13.6 Hello.scala
-```
-
-`scala-cli` should work with all major `2.12.x`, `2.13.x`, and `3.x` Scala versions.
-
-`--scala` also accepts "short" Scala versions, such as `2.12`, `2`, or `3`. In that
-case, it picks the highest corresponding stable Scala version:
-```bash
-scala-cli compile --scala 2.12 Hello.scala
-scala-cli compile --scala 2 Hello.scala
-scala-cli compile --scala 3 Hello.scala
-```
-
-## Dependencies
-
-You can add dependencies on the command-line, via `--dependency`:
-```bash
-scala-cli compile Hello.scala --dependency dev.zio::zio:1.0.9
-```
-
-Note that `--dependency` is only meant as a convenience. You should favour
-adding dependencies in the sources themselves (via `import $dep`)
-or in a configuration file.
-
-You can also add repositories on the command-line, via `--repository`:
-```bash
-scala-cli compile Hello.scala --dependency com.pany::util:33.1.0 --repo https://artifacts.pany.com/maven
-```
-
-Lastly, you can also add simple JAR files as dependencies, with `--jar`:
-```bash
-scala-cli compile Hello.scala --jar /path/to/library.jar
-```
 
 ## Printing a class path
 

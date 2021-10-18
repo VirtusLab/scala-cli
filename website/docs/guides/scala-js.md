@@ -1,6 +1,6 @@
 ---
 title: Scala.JS
-sidebar_position: 11
+sidebar_position: 21
 ---
 
 Scala CLI can compile, run, package, etc. Scala.JS sources.

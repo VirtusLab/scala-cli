@@ -49,9 +49,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """using "org1:name1:1.1"
-          |using "org2::name2:2.2"
-          |using "org3:::name3:3.3"
+        """using libs "org1:name1:1.1" "org2::name2:2.2"
+          |using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -74,6 +73,82 @@ class SourcesTests extends munit.FunSuite {
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
       expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+    }
+  }
+
+  test("dependencies in .scala - using witin tests") {
+    val testInputs = TestInputs(
+      os.rel / "something.scala" ->
+        """using target test
+          |using libs "org1:name1:1.1" "org2::name2:2.2"
+          |using lib "org3:::name3:3.3"
+          |import scala.collection.mutable
+          |
+          |object Something {
+          |  def a = 1
+          |}
+          |""".stripMargin
+    )
+    val expectedDeps = Nil
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+
+      expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
+      expect(sources.paths.isEmpty)
+      expect(sources.inMemory.length == 0)
+    }
+  }
+
+  test("dependencies in .test.scala - using") {
+    val testInputs = TestInputs(
+      os.rel / "something.test.scala" ->
+        """using libs "org1:name1:1.1" "org2::name2:2.2"
+          |using lib "org3:::name3:3.3"
+          |import scala.collection.mutable
+          |
+          |object Something {
+          |  def a = 1
+          |}
+          |""".stripMargin
+    )
+    val expectedDeps = Nil
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+
+      expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
+      expect(sources.paths.isEmpty)
+      expect(sources.inMemory.length == 0)
+    }
+  }
+
+  test("dependencies in test/name.scala") {
+    val files = Seq(
+      os.rel / "test" / "something.scala" ->
+        """using libs "org1:name1:1.1" "org2::name2:2.2"
+          |using lib "org3:::name3:3.3"
+          |import scala.collection.mutable
+          |
+          |object Something {
+          |  def a = 1
+          |}
+          |""".stripMargin
+    )
+    val testInputs = TestInputs(files, Seq("."))
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+
+      expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value).isEmpty)
+      expect(sources.paths.isEmpty)
+      expect(sources.inMemory.isEmpty)
     }
   }
 
@@ -200,9 +275,7 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .sc - using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """using "org1:name1:1.1"
-          |using "org2::name2:2.2"
-          |using "org3:::name3:3.3"
+        """using libs org1:name1:1.1 org2::name2:2.2 org3:::name3:3.3
           |import scala.collection.mutable
           |
           |def a = 1

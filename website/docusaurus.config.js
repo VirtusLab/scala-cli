@@ -55,14 +55,22 @@ module.exports = {
           ]
         },
         {
-          to: '/docs/cookbooks/index',
-          label: 'Cookbook'
-        },
-        {
           type: 'doc',
           docId: 'overview',
           position: 'left',
           label: 'Documentation',
+        },
+        {
+          to: '/docs/commands/input',
+          label: 'Commands'
+        },
+        {
+          to: '/docs/guides/ide',
+          label: 'Guides'
+        },
+        {
+          to: '/docs/cookbooks/index',
+          label: 'Cookbook'
         },
         {
           href: 'https://github.com/Virtuslab/scala-cli',

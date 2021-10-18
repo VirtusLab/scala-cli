@@ -6,6 +6,8 @@
 
 Scala CLI is an experimental tool to run/compile/test Scala that aims at being a better `scala` command. It shares some similarities with build tools, but doesn't aim at supporting multi-module projects, nor to be extended via a task system.
 
+User-facing documentation can be found on our website: [scala-cli.virtuslab.org](https://scala-cli.virtuslab.org/).
+
 ## Developer docs
 
 ### Requirements

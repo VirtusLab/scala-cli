@@ -15,7 +15,9 @@ const featuresList = [
         Scala CLI ships with all its dependencies
         <br/>
         No need to fluff with installing JVM or setting up PATH. 
-        <i>some additional setup may be required for <a href="/install#scala-js">JS</a> and <a href="/install#scala-native">Native</a></i>
+      </p>
+      <p>
+        <i>Some additional setup may be required for <a href="/install#scala-js">JS</a> and <a href="/install#scala-native">Native</a></i>
       </p>
     </ImageBox>,
     <ImageBox image="universal_tool.svg" title="Universal tool" key="universal" 
@@ -24,9 +26,9 @@ const featuresList = [
         If you want to use older <b>version of Scala</b> or
         run your code in <b>JS</b> or <b>Native</b> environments we've got you covered.
         <br/>
-        <i>some additional setup may be required for <a href="/install#scala-js">JS</a> and <a href="/install#scala-native">Native</a></i>
       </p>
       <p>Switching between platforms or Scala versions is as easy as changing a parameter.</p>
+      <p> <i>Some additional setup may be required for <a href="/install#scala-js">JS</a> and <a href="/install#scala-native">Native</a></i></p>
     </ImageBox>,
     <ImageBox 
       image="buildtools.png" 
@@ -37,7 +39,7 @@ const featuresList = [
           nor to be extended via a task system known from sbt, mill or bazel.
         </p>
         <p>
-          Scala ecosystem has multiple amazing build tools, there is no need to create another one.
+          Scala ecosystem has multiple amazing build tools, there is no need to create another multipurpose build tool.
         </p>
     </ImageBox>,
     <ImageBox 
@@ -92,15 +94,6 @@ const featuresList = [
         </p>
         <p>
           Scripts can be packaged into the native applications (using e.g. Scala Native) for even faster cold startups.
-        </p>
-    </ImageBox>,
-    <ImageBox 
-      image="sc-files-support.svg" title="Support for .sc files" key="sc-files-support" scripting="true">
-        <p>
-          Scala CLI is backwards compatible with ammonite scripts.
-        </p>
-        <p>
-          No need to migrate your existing scripts to use all the powers of Scala CLI.
         </p>
     </ImageBox>,
 

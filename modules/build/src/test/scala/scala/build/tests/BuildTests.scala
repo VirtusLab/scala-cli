@@ -242,7 +242,7 @@ class BuildTests extends munit.FunSuite {
   test("dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """using "com.lihaoyi::geny:0.6.5"
+        """using lib "com.lihaoyi::geny:0.6.5"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |println(g.mkString)
@@ -281,8 +281,8 @@ class BuildTests extends munit.FunSuite {
   test("several dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """using "com.lihaoyi::geny:0.6.5"
-          |using "com.lihaoyi::pprint:0.6.6"
+        """using lib "com.lihaoyi::geny:0.6.5"
+          |using lib "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
@@ -481,7 +481,7 @@ class BuildTests extends munit.FunSuite {
   test("Pass files with only commented directives as is to scalac") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """// using com.lihaoyi::pprint:0.6.6
+        """// using lib com.lihaoyi::pprint:0.6.6
           |object Simple {
           |  def main(args: Array[String]): Unit =
           |    pprint.log("Hello " + "from tests")
