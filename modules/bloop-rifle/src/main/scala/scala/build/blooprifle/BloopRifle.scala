@@ -188,10 +188,21 @@ object BloopRifle {
 
   def nullInputStream() = new FileInputStream(Util.devNull)
 
-  def extractVersionFromBloopAbout(stdoutFromBloopAbout: String): Option[String] =
-    stdoutFromBloopAbout.split("\n").find(_.startsWith("bloop v")).map(
+  def extractVersionFromBloopAbout(stdoutFromBloopAbout: String): BloopServerRuntimeInfo = {
+    val bloopVersion = stdoutFromBloopAbout.split("\n").find(_.startsWith("bloop v")).map(
       _.split(" ")(1).trim().drop(1)
     )
+    val bloopJvm = stdoutFromBloopAbout.split("\n")
+      .find(_.startsWith("Running on Java JDK"))
+      .get
+      .split(" ")(4).stripPrefix("v")
+    BloopServerRuntimeInfo(bloopVersion = bloopVersion, bloopJvm = bloopJvm)
+  }
+
+  case class BloopServerRuntimeInfo(
+    bloopVersion: Option[String],
+    bloopJvm: String
+  )
 
   def getCurrentBloopVersion(
     config: BloopRifleConfig,
@@ -213,29 +224,6 @@ object BloopRifle {
     extractVersionFromBloopAbout(new String(bufferedOStream.toByteArray))
   }
 
-  def getBloopJvmVersion(
-    config: BloopRifleConfig,
-    logger: BloopRifleLogger,
-    workdir: Path,
-    scheduler: ScheduledExecutorService
-  ) = {
-    val bufferedOStream = new ByteArrayOutputStream(100000)
-    Operations.about(
-      config.host,
-      config.port,
-      workdir,
-      nullInputStream(),
-      bufferedOStream,
-      nullOutputStream(),
-      logger,
-      scheduler
-    )
-    new String(bufferedOStream.toByteArray()).split("\n")
-      .find(_.startsWith("Running on Java JDK"))
-      .get
-      .split(" ")(4).stripPrefix("v")
-  }
-
   /** Sometimes we need some minimal requirements for Bloop version. This method kills Bloop if its
     * version is unsupported.
     * @returns
@@ -249,8 +237,8 @@ object BloopRifle {
   ): Boolean = {
     val currentBloopVersion = getCurrentBloopVersion(config, logger, workDir, scheduler)
     val isOk = config.acceptBloopVersion.forall { f =>
-      currentBloopVersion.forall(f(_))
-    }
+      currentBloopVersion.bloopVersion.forall(f(_))
+    } && config.acceptBloopJvm.forall(_(currentBloopVersion.bloopJvm))
     if (isOk)
       logger.debug("No need to restart Bloop")
     else {

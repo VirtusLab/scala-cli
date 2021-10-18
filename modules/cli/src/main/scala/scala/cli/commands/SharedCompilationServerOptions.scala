@@ -207,7 +207,8 @@ final case class SharedCompilationServerOptions(
     logger: Logger,
     verbosity: Int,
     javaPath: String,
-    directories: => scala.build.Directories
+    directories: => scala.build.Directories,
+    jvmOptID: Option[String] = None
   ): BloopRifleConfig = {
     val baseConfig =
       BloopRifleConfig.default(() => Bloop.bloopClassPath(logger, retainedBloopVersion))
@@ -232,7 +233,12 @@ final case class SharedCompilationServerOptions(
       acceptBloopVersion = Some { v =>
         import coursier.core.Version
         Version(retainedBloopVersion) <= Version(v)
-      }
+      },
+      acceptBloopJvm =
+        Some { // todo, we have to ensure that if we reload bloop, it's versoin is not older than the current one. Otherwise, it'll potentially conflict with metals running with a different project
+          import coursier.core.Version
+          v => Version(jvmOptID.getOrElse("8")) <= Version(v) // todo handle jvm distribution
+        }
     )
   }
 }

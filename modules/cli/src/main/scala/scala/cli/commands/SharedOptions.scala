@@ -176,14 +176,18 @@ final case class SharedOptions(
     )
   }
 
-  def bloopRifleConfig(): BloopRifleConfig =
+  def bloopRifleConfig(): BloopRifleConfig = {
+    val bo    = buildOptions(false, None)
+    val jvmId = bo.javaOptions.jvmIdOpt
     compilationServer.bloopRifleConfig(
       logging.logger,
       logging.verbosity,
       // This might download a JVM if --jvm … is passed or no system JVM is installed
-      buildOptions(false, None).javaCommand(),
-      directories.directories
+      bo.javaCommand(),
+      directories.directories,
+      jvmId
     )
+  }
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger)
 
