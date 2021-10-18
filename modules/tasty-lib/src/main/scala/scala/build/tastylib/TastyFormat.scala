@@ -19,7 +19,7 @@ object TastyFormat {
   final val header: Array[Int] = Array(0x5c, 0xa1, 0xab, 0x1f)
 
   final val MajorVersion: Int        = 28
-  final val MinorVersion: Int        = 0
+  final val MinorVersion: Int        = 1
   final val ExperimentalVersion: Int = 0
 
   def isVersionCompatible(
