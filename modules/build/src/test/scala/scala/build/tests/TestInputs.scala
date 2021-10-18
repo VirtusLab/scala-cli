@@ -41,8 +41,7 @@ final case class TestInputs(
           bloopConfig,
           TestLogger(),
           crossBuilds = false,
-          bloopJvmVersion = None
-        ) // todo don't!!!
+        )
       f(root, inputs, res.map(_.main))
     }
 }

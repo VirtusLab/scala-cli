@@ -207,8 +207,9 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         check = false,
         stdout = os.Inherit
       )
-      os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", targetJvm, ".")
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", targetJvm, ".")
         .call(cwd = root, check = false)
+      expect((res.exitCode == 0) == shouldSucceed)
     }
   }
 
