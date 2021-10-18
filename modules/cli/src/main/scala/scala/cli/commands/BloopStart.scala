@@ -7,6 +7,7 @@ import scala.build.bloop.BloopThreads
 import scala.build.blooprifle.BloopRifle
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.build.blooprifle.internal.Constants
 
 object BloopStart extends ScalaCommand[BloopStartOptions] {
   override def hidden = true
@@ -41,7 +42,8 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
       val f = BloopRifle.startServer(
         bloopRifleConfig,
         threads.startServerChecks,
-        logger.bloopRifleLogger
+        logger.bloopRifleLogger,
+        Constants.bloopVersion
       )
       Await.result(f, Duration.Inf)
       logger.message("Bloop server started.")

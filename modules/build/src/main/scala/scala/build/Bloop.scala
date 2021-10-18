@@ -52,8 +52,8 @@ object Bloop {
         .map(_._2.toFile)
     }
 
-  def bloopClassPath(logger: Logger): Either[BuildException, Seq[File]] =
-    bloopClassPath(logger, BloopRifleConfig.defaultVersion)
+//  def bloopClassPath(logger: Logger, version: String): Either[BuildException, Seq[File]] =
+//    bloopClassPath(logger, version)
 
   def bloopClassPath(
     logger: Logger,

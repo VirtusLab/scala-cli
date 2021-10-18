@@ -15,6 +15,7 @@ import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, B
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.jdk.CollectionConverters._
+import java.io.File
 
 trait BloopServer {
   def server: BuildServer
@@ -43,24 +44,31 @@ object BloopServer {
     logger: BloopRifleLogger
   ): Unit = {
 
-    val isBloopRunning = BloopRifle.check(config, logger, startServerChecksPool)
+//    val isBloopRunning = BloopRifle.check(config, logger, startServerChecksPool)
 
-    logger.debug(
-      if (isBloopRunning) s"Bloop is running on ${config.host}:${config.port}"
-      else s"No bloop daemon found on ${config.host}:${config.port}"
+    BloopRifle.shutdownBloopIfVersionIncompatible(
+      config,
+      logger,
+      new File(".").getCanonicalFile.toPath,
+      startServerChecksPool
     )
 
-    if (!isBloopRunning) {
-      logger.debug("Starting bloop server")
-      val serverStartedFuture = BloopRifle.startServer(
-        config,
-        startServerChecksPool,
-        logger
-      )
+//    logger.debug(
+//      if (isBloopRunning) s"Bloop is running on ${config.host}:${config.port}"
+//      else s"No bloop daemon found on ${config.host}:${config.port}"
+//    )
 
-      Await.result(serverStartedFuture, Duration.Inf)
-      logger.debug("Bloop server started")
-    }
+    //  if (!isBloopRunning) {
+//      logger.debug("Starting bloop server")
+//      val serverStartedFuture = BloopRifle.startServer(
+//        config,
+//        startServerChecksPool,
+//        logger
+//      )
+
+    //    Await.result(serverStartedFuture, Duration.Inf)
+    logger.debug("Bloop server started")
+//    }
 
   }
 

@@ -211,7 +211,7 @@ final case class SharedCompilationServerOptions(
     jvmOptID: Option[String] = None
   ): BloopRifleConfig = {
     val baseConfig =
-      BloopRifleConfig.default(() => Bloop.bloopClassPath(logger, retainedBloopVersion))
+      BloopRifleConfig.default(v => Bloop.bloopClassPath(logger, v))
     val portOpt = bloopPort.filter(_ != 0) match {
       case Some(n) if n < 0 =>
         Some(scala.build.blooprifle.internal.Util.randomPort())

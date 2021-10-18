@@ -15,6 +15,8 @@ import scala.build.blooprifle.internal.{Operations, Util}
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 object BloopRifle {
 
@@ -58,9 +60,10 @@ object BloopRifle {
   def startServer(
     config: BloopRifleConfig,
     scheduler: ScheduledExecutorService,
-    logger: BloopRifleLogger
+    logger: BloopRifleLogger,
+    version: String
   ): Future[Unit] =
-    config.classPath() match {
+    config.classPath(version) match {
       case Left(ex) => Future.failed(new Exception("Error getting Bloop class path", ex))
       case Right(cp) =>
         Operations.startServer(
@@ -245,6 +248,8 @@ object BloopRifle {
       logger.debug(s"Shutting down unsupported Bloop $currentBloopVersion.")
       val retCode = exit(config, workDir, logger)
       logger.debug(s"Bloop exit code: $retCode")
+      val fut = startServer(config, scheduler, logger, currentBloopVersion.bloopVersion.get) //todo must be max(retained, current) here
+      Await.result(fut, Duration.Inf) // todo no inf!!
     }
     !isOk
   }
