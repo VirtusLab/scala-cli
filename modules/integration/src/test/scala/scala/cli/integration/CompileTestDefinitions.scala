@@ -172,8 +172,12 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     compileToADifferentJvmThanBloops("8", "11", true)
   }
 
-  test("adopt option".tag(jvmT)) {
+  test("JVM release is set correctly if --jvm contains specific distribition link".tag(jvmT)) {
     compileToADifferentJvmThanBloops("11", "adopt:11", true)
+  }
+
+  test("----".tag(jvmT)) { //todo name this test
+    compileToADifferentJvmThanBloops("8", "adopt:11", true)
   }
 
   def compileToADifferentJvmThanBloops(
