@@ -11,7 +11,7 @@ scala-cli compile Hello.scala --dependency dev.zio::zio:1.0.9
 ```
 
 Note that `--dependency` is only meant as a convenience. You should favour
-adding dependencies in the sources themselves via [using directives](./guides/configuration.md#special-imports).
+adding dependencies in the sources themselves via [using directives](./guides/configuration.md#special-imports). However, `--dependency` CLI option takes precedence over using directives, so it can be used to override version temporarily.
 
 You can also add repositories on the command-line, via `--repository`:
 ```bash

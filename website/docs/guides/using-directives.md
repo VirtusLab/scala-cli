@@ -4,7 +4,7 @@ sidebar_position: 24
 ---
 
 :::warning
-Using directives are experimental and may change in future versions of Scala CLI
+Using directives is an experimental language extension that may change in future versions of Scala CLI
 :::
 
 Using directives mechanism allows to define configuration within the .scala sources itself eliminating need for build tools to define dedicated configuration syntax. Scala compiler treats using directives like special kinds of comments.
@@ -25,7 +25,7 @@ For now we recommend using comment-flavor (e.g. `// using scala 3.0.2`) and we w
 Until using directives becomes a part of Scala specification, this is the only way that guarantee that your code will work well with IDE, formatters or similar tool.
 :::
 
-Using directives can be declared **before any other scala code**.
+Using directives can be declared only **before any other scala code**.
 
 Using directives contributes settings to the whole compilation scope where given .scala file is defined so a library or compiler option defined in one file applies to the whole application or test dependeding if source is test or not.
 
