@@ -19,7 +19,8 @@ final case class Project(
   sources: Seq[os.Path],
   resolution: Option[BloopConfig.Resolution],
   resourceDirs: Seq[os.Path],
-  javaHomeOpt: Option[os.Path]
+  javaHomeOpt: Option[os.Path],
+  javacOptions: List[String]
 ) {
 
   import Project._
@@ -56,7 +57,7 @@ final case class Project(
         resources = Some(resourceDirs).filter(_.nonEmpty).map(_.iterator.map(_.toNIO).toList),
         platform = Some(platform),
         `scala` = Some(scalaConfig),
-        java = Some(BloopConfig.Java(Nil)),
+        java = Some(BloopConfig.Java(javacOptions)),
         resolution = resolution
       )
   }
