@@ -18,7 +18,7 @@ final case class TestOptions(
     compileCross: CompileCrossOptions = CompileCrossOptions(),
 
   @Group("Test")
-  @HelpMessage("Test framework to use to run tests")
+  @HelpMessage("Name of test framework's runner class to use while running tests")
   @ValueDescription("class-name")
     testFramework: Option[String] = None,
 

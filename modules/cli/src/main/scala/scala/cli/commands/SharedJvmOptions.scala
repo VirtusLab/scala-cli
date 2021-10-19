@@ -22,14 +22,17 @@ final case class SharedJvmOptions(
   @Group("Java")
   @HelpMessage("JVM index URL")
   @ValueDescription("url")
+  @Hidden
     jvmIndex: Option[String] = None,
   @Group("Java")
   @HelpMessage("Operating system to use when looking up in the JVM index")
   @ValueDescription("linux|linux-musl|darwin|windows|…")
+  @Hidden
     jvmIndexOs: Option[String] = None,
   @Group("Java")
   @HelpMessage("CPU architecture to use when looking up in the JVM index")
   @ValueDescription("amd64|arm64|arm|…")
+  @Hidden
     jvmIndexArch: Option[String] = None
 ) {
   // format: on
