@@ -15,14 +15,6 @@ module.exports = {
   projectName: 'scala-cli',
   plugins: ['docusaurus-plugin-sass'],
   themeConfig: {
-    gtag: {
-      // You can also use your "G-" Measurement ID here.
-      trackingID: 'GTM-5TZTCGF',
-      anonymizeIP: true,
-    },
-    googleAnalytics: {
-      trackingID: 'GTM-5TZTCGF',
-    },
     prism: {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
