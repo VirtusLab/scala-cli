@@ -7,16 +7,17 @@ import java.io.IOException
 import java.net.{ConnectException, Socket}
 import java.nio.file.{Files, Path}
 import java.util.concurrent.{Future => JFuture, ScheduledExecutorService, TimeoutException}
+import scala.concurrent.Await
+import scala.concurrent.duration.FiniteDuration
 
 import scala.annotation.tailrec
 import scala.build.bloop.bloop4j.BloopExtraBuildParams
 import scala.build.blooprifle.internal.Constants
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, BspConnection}
-import scala.concurrent.Await
-import scala.concurrent.duration.{Duration, FiniteDuration}
+
 import scala.jdk.CollectionConverters._
 import java.io.File
-
+import scala.concurrent.duration._
 trait BloopServer {
   def server: BuildServer
 
@@ -24,7 +25,6 @@ trait BloopServer {
 }
 
 object BloopServer {
-
   private case class BloopServerImpl(
     server: BuildServer,
     listeningFuture: JFuture[Void],
@@ -43,33 +43,29 @@ object BloopServer {
     startServerChecksPool: ScheduledExecutorService,
     logger: BloopRifleLogger
   ): Unit = {
-
-//    val isBloopRunning = BloopRifle.check(config, logger, startServerChecksPool)
-
-    BloopRifle.shutdownBloopIfVersionIncompatible(
-      config,
-      logger,
-      new File(".").getCanonicalFile.toPath,
-      startServerChecksPool
-    )
-
-//    logger.debug(
-//      if (isBloopRunning) s"Bloop is running on ${config.host}:${config.port}"
-//      else s"No bloop daemon found on ${config.host}:${config.port}"
-//    )
-
-    //  if (!isBloopRunning) {
-//      logger.debug("Starting bloop server")
-//      val serverStartedFuture = BloopRifle.startServer(
-//        config,
-//        startServerChecksPool,
-//        logger
-//      )
-
-    //    Await.result(serverStartedFuture, Duration.Inf)
+    val workdir = new File(".").getCanonicalFile.toPath
+    val isRunning = BloopRifle.check(config, logger, startServerChecksPool)
+    if (isRunning) {
+      val bloopInfo =
+        BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool).get
+      val isOk = config.acceptBloopJvm.forall {
+        _(bloopInfo.bloopJvm)
+      } && config.acceptBloopVersion.forall(_(bloopInfo.bloopVersion))
+      if (isOk)
+        println("isOk")
+      else {
+        if(isRunning) BloopRifle.exit(config, workdir, logger)
+        import VersionOps._
+        val bloopVersionToSpawn =
+          if (bloopInfo.bloopVersion isNewerThan Constants.bloopVersion)
+            bloopInfo.bloopVersion
+          else
+            Constants.bloopVersion
+        val fut = BloopRifle.startServer(config, startServerChecksPool, logger, bloopVersionToSpawn)
+        Await.result(fut, 10.seconds)
+      }
+    }
     logger.debug("Bloop server started")
-//    }
-
   }
 
   private def connect(

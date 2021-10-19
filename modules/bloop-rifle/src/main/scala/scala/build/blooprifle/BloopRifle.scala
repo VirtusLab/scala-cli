@@ -17,6 +17,7 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.build.blooprifle.internal.Constants
 
 object BloopRifle {
 
@@ -39,14 +40,7 @@ object BloopRifle {
         config.port,
         logger
       )
-    check() && {
-      !BloopRifle.shutdownBloopIfVersionIncompatible(
-        config,
-        logger,
-        new File(".").getCanonicalFile.toPath,
-        scheduler
-      )
-    }
+    check()
   }
 
   /** Starts a new bloop server.
@@ -191,19 +185,19 @@ object BloopRifle {
 
   def nullInputStream() = new FileInputStream(Util.devNull)
 
-  def extractVersionFromBloopAbout(stdoutFromBloopAbout: String): BloopServerRuntimeInfo = {
+  def extractVersionFromBloopAbout(stdoutFromBloopAbout: String): Option[BloopServerRuntimeInfo] = {
     val bloopVersion = stdoutFromBloopAbout.split("\n").find(_.startsWith("bloop v")).map(
       _.split(" ")(1).trim().drop(1)
-    )
+    ).get
     val bloopJvm = stdoutFromBloopAbout.split("\n")
       .find(_.startsWith("Running on Java JDK"))
       .get
       .split(" ")(4).stripPrefix("v")
-    BloopServerRuntimeInfo(bloopVersion = bloopVersion, bloopJvm = bloopJvm)
+    Some(BloopServerRuntimeInfo(bloopVersion = bloopVersion, bloopJvm = bloopJvm))
   }
 
   case class BloopServerRuntimeInfo(
-    bloopVersion: Option[String],
+    bloopVersion: String,
     bloopJvm: String
   )
 
@@ -225,38 +219,5 @@ object BloopRifle {
       scheduler
     )
     extractVersionFromBloopAbout(new String(bufferedOStream.toByteArray))
-  }
-
-  /** Sometimes we need some minimal requirements for Bloop version. This method kills Bloop if its
-    * version is unsupported.
-    * @returns
-    *   true if the 'exit' command has actually been sent to Bloop
-    */
-  def shutdownBloopIfVersionIncompatible(
-    config: BloopRifleConfig,
-    logger: BloopRifleLogger,
-    workDir: Path,
-    scheduler: ScheduledExecutorService
-  ): Boolean = {
-    val running = Operations.check(
-            config.host,
-            config.port,
-            logger)
-    val currentBloopVersionOpt = if(running) Some(getCurrentBloopVersion(config, logger, workDir, scheduler)) else None //todo get rid of this lazy vals
-
-    val isOk = currentBloopVersionOpt.map{ currentBloopVersion =>
-      running && config.acceptBloopVersion.forall { f =>
-        currentBloopVersion.bloopVersion.forall(f(_))
-      } && config.acceptBloopJvm.forall(_(currentBloopVersion.bloopJvm))
-    }.getOrElse(false)
-    if (isOk)
-      logger.debug("No need to restart Bloop")
-    else {
-      logger.debug(s"Shutting down unsupported Bloop") // todo log old bloop version here
-      if(running) exit(config, workDir, logger) //todo clean this!!!!
-      val fut = startServer(config, scheduler, logger, currentBloopVersionOpt.map(_.bloopVersion.get).getOrElse("1.4.9")) //todo must be max(retained, current) here and clean me!!!!!!
-      Await.result(fut, Duration.Inf) // todo no inf!!
-    }
-    !isOk
   }
 }
