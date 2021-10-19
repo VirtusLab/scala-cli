@@ -70,7 +70,7 @@ We have a dedicated [Scala.js guide](../guides/scala-js.md).
 ## Scala Native
 
 Scala Native applications can also be compiled and run, with the `--native` option.
-Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](install#scala-native) for this to work fine,
+Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](/install#scala-native) for this to work fine,
 and that Scala Native only supports Linux and macOS for now.
 
 ```bash

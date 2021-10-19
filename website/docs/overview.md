@@ -16,7 +16,7 @@ It can:
 
 Scala CLI supports most recent Scala versions (`3.x`, `2.13.x` and `2.12.x`) and changing the Scala version as easy as providing `--scala` parameter (more in [the cookbook](./cookbooks/scala-versions.md)). 
 
-Scala CLI supports as well compiling and running Scala to JVM (by default), [Scala.js](./guides/scala-native.md).
+Scala CLI supports as well compiling and running Scala to JVM (by default), [Scala.js](./guides/scala-js.md) and [Scala Native](./guides/scala-native.md).
 
 ## Installation
 
@@ -30,9 +30,9 @@ Prefer some other way to install Scala CLI? Head out to [Advanced installaion gu
 ## What next?
 
 Scala-cli documentation is split into 3 main section:
- - [Commands](./commands/input.md) where you learn how to use most important commands that Scala CLI offers
- - [Guides](./guides/ide.md) where you can read about core aspects of Scala CLI and learn how Scala CLI interacts with other tools like IDE
- - Scala CLI [Cookbook](./cookbooks/index.md) where you can learn how to solve particular problems with Scala CLI
+ - [Commands](./commands/basics.md) where you learn how to use most important commands that Scala CLI offers
+ - [Guides](./guides/intro.md) where you can read about core aspects of Scala CLI and learn how Scala CLI interacts with other tools like IDE
+ - Scala CLI [Cookbook](./cookbooks/intro.md) where you can learn how to solve particular problems with Scala CLI
 
 **Happy hackking with Scala CLI!**
 
