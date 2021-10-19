@@ -242,7 +242,7 @@ object BloopRifle {
             config.host,
             config.port,
             logger)
-    lazy val currentBloopVersion = getCurrentBloopVersion(config, logger, workDir, scheduler) //todo get rid of this lazy vals
+    def currentBloopVersion = getCurrentBloopVersion(config, logger, workDir, scheduler) //todo get rid of this lazy vals
     val isOk = running && config.acceptBloopVersion.forall { f =>
       currentBloopVersion.bloopVersion.forall(f(_))
     } && config.acceptBloopJvm.forall(_(currentBloopVersion.bloopJvm))
