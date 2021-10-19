@@ -242,7 +242,7 @@ object BloopRifle {
             config.host,
             config.port,
             logger)
-    def currentBloopVersionOpt = if(running) Some(getCurrentBloopVersion(config, logger, workDir, scheduler)) else None //todo get rid of this lazy vals
+    val currentBloopVersionOpt = if(running) Some(getCurrentBloopVersion(config, logger, workDir, scheduler)) else None //todo get rid of this lazy vals
 
     val isOk = currentBloopVersionOpt.map{ currentBloopVersion =>
       running && config.acceptBloopVersion.forall { f =>
