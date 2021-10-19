@@ -241,7 +241,8 @@ final case class SharedCompilationServerOptions(
             Version(jvmOptID.map(_.split(":").last).getOrElse("8")) <= Version(
               v
             ) // todo handle jvm distribution
-        }
+        },
+      retainedBloopVersion = retainedBloopVersion
     )
   }
 }

@@ -43,6 +43,7 @@ object BloopServer {
     startServerChecksPool: ScheduledExecutorService,
     logger: BloopRifleLogger
   ): Unit = {
+    import VersionOps._
     val workdir   = new File(".").getCanonicalFile.toPath
     val isRunning = BloopRifle.check(config, logger, startServerChecksPool)
     val bloopInfo =
@@ -50,16 +51,13 @@ object BloopServer {
         BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool)
       else None
 
-    val isOk = isRunning && config.acceptBloopJvm.forall {
-      _(bloopInfo.get.bloopJvm)
-    } && config.acceptBloopVersion.forall(_(bloopInfo.get.bloopVersion))
+    val isOk = isRunning && config.acceptBloopJvm.forall (_(bloopInfo.get.bloopJvm)) && (bloopInfo.get.bloopVersion isNewerThan config.retainedBloopVersion)
     if (isOk)
       logger.debug("No need to restart bloop")
     else {
       if (isRunning) BloopRifle.exit(config, workdir, logger)
-      import VersionOps._
       val bloopVersionToSpawn =
-        if (isRunning && (bloopInfo.get.bloopVersion isNewerThan Constants.bloopVersion))
+        if (isRunning && (bloopInfo.get.bloopVersion isNewerThan config.retainedBloopVersion)) // todo remove .get
           bloopInfo.get.bloopVersion
         else
           Constants.bloopVersion
@@ -211,5 +209,4 @@ object BloopServer {
     }
     // format: on
   }
-
 }

@@ -1,13 +1,6 @@
 package scala.build.blooprifle
 
-import java.io.{
-  ByteArrayOutputStream,
-  File,
-  FileInputStream,
-  FileOutputStream,
-  InputStream,
-  OutputStream
-}
+import java.io.{ByteArrayOutputStream, FileInputStream, FileOutputStream, InputStream, OutputStream}
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 
@@ -15,9 +8,6 @@ import scala.build.blooprifle.internal.{Operations, Util}
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.control.NonFatal
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import scala.build.blooprifle.internal.Constants
 
 object BloopRifle {
 
