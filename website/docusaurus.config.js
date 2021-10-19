@@ -13,7 +13,7 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'Virtuslab',
   projectName: 'scala-cli',
-  plugins: ['docusaurus-plugin-sass', '@docusaurus/plugin-google-gtag'],
+  plugins: ['docusaurus-plugin-sass'],
   themeConfig: {
     gtag: {
       // You can also use your "G-" Measurement ID here.
