@@ -62,11 +62,15 @@ final case class SharedCompilationServerOptions(
     bloopStartupTimeout: Option[String] = None,
 
   @Group("Compilation server")
+  @HelpMessage("Include default jvm opts for bloop")
+  @Hidden
     bloopDefaultJavaOpts: Boolean = true,
   @Group("Compilation server")
+  @Hidden
     bloopJavaOpt: List[String] = Nil,
   @Group("Compilation server")
   @HelpMessage("Bloop global options file")
+  @Hidden
     bloopGlobalOptionsFile: String = (os.home / ".bloop" / "bloop.json").toString,
 ) {
   // format: on

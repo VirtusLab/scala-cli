@@ -9,6 +9,8 @@ Print details about this application
 
 ## `bsp`
 
+Start BSP server
+
 Accepts options:
 - [bsp](./cli-options.md#bsp-options)
 - [compilation server](./cli-options.md#compilation-server-options)
@@ -49,12 +51,9 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [watch](./cli-options.md#watch-options)
 
-## `directories`
-
-Accepts options:
-- [directories](./cli-options.md#directories-options)
-
 ## `export`
+
+Export current project to SBT or Mill
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
@@ -88,6 +87,11 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 
 ## `install completions`
+
+Aliases:
+- `install-completions`
+
+Installs completions into your shell
 
 Accepts options:
 - [directories](./cli-options.md#directories-options)
@@ -184,6 +188,8 @@ Accepts options:
 
 ## `setup-ide`
 
+Generate BSP file required for successful IDE import
+
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
@@ -244,6 +250,13 @@ Accepts options:
 - [directories](./cli-options.md#directories-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
+
+### `directories`
+
+Prints directories used by scala-cli
+
+Accepts options:
+- [directories](./cli-options.md#directories-options)
 
 ### `install-home`
 

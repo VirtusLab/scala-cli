@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 // format: off
+@HelpMessage("Start BSP server")
 final case class BspOptions(
   // FIXME There might be too many options in SharedOptions for the bsp command…
   @Recurse

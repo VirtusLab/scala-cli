@@ -13,26 +13,38 @@ final case class ScalaNativeOptions(
     native: Boolean = false,
 
   @Group("Scala Native")
+  @HelpMessage("Scala Native version")
     nativeVersion: Option[String] = None,
   @Group("Scala Native")
+  @HelpMessage("Scala Native compilation mode")
     nativeMode: Option[String] = None,
   @Group("Scala Native")
+  @HelpMessage("Scala Native garbage collector")
     nativeGc: Option[String] = None,
 
   @Group("Scala Native")
+  @HelpMessage("Path to Clang command")
     nativeClang: Option[String] = None,
   @Group("Scala Native")
+  @HelpMessage("Path to Clang++ command")
     nativeClangpp: Option[String] = None,
 
   @Group("Scala Native")
+  @HelpMessage("Extra options passed to clang verbatim during linking")
     nativeLinking: List[String] = Nil,
   @Group("Scala Native")
-    nativeLinkingDefaults: Option[Boolean] = None,
+  @HelpMessage("Use default linking settings")
+  @Hidden
+    nativeLinkingDefaults: Option[Boolean] = None, //TODO does it even work when we default it to true while handling?
 
   @Group("Scala Native")
+  @HelpMessage("List of compile options")
     nativeCompile: List[String] = Nil,
+
   @Group("Scala Native")
-    nativeCompileDefaults: Option[Boolean] = None
+  @Hidden
+  @HelpMessage("Use default compile options")
+    nativeCompileDefaults: Option[Boolean] = None //TODO does it even work when we default it to true while handling?
 
 ) {
   // format: on

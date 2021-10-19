@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 // format: off
+@HelpMessage("Installs completions into your shell")
 final case class InstallCompletionsOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -10,12 +11,25 @@ final case class InstallCompletionsOptions(
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
 
   @Name("shell")
+  @HelpMessage("Name of the shell, either zsh or bash")
     format: Option[String] = None,
 
+  @HelpMessage("Path to *rc file, defaults to .bashrc or .zshrc depending on shell")
   rcFile: Option[String] = None,
-  directory: Option[String] = None,
+
+  @HelpMessage("Completions output directory")
+  @Name("o")
+  output: Option[String] = None,
+
+  @Hidden
+  @HelpMessage("Custom banner in comment placed in rc file")
   banner: String = "{NAME} completions",
+
+  @Hidden
+  @HelpMessage("Custom completions name")
   name: Option[String] = None,
+
+  @HelpMessage("Print completions to stdout")
   env: Boolean = false
 )
 // format: on

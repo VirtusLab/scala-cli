@@ -11,6 +11,7 @@ final case class CoursierOptions(
   @Group("Dependency")
   @HelpMessage("Specify a TTL for changing dependencies, such as snapshots")
   @ValueDescription("duration|Inf")
+  @Hidden
     ttl: Option[String] = None
 ) {
   // format: on

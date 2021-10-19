@@ -110,6 +110,8 @@ Maximum duration to wait for compilation server to start up
 
 #### `--bloop-default-java-opts`
 
+Include default jvm opts for bloop
+
 #### `--bloop-java-opt`
 
 #### `--bloop-global-options-file`
@@ -223,7 +225,7 @@ Available in commands:
 - [`directories`](./commands.md#directories)
 - [`export`](./commands.md#export)
 - [`fmt`](./commands.md#fmt)
-- [`install completions`](./commands.md#install-completions)
+- [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -299,7 +301,7 @@ Available in commands:
 - [`directories`](./commands.md#directories)
 - [`export`](./commands.md#export)
 - [`fmt`](./commands.md#fmt)
-- [`install completions`](./commands.md#install-completions)
+- [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
@@ -331,7 +333,7 @@ Print help message, including hidden options, and exit
 ## Install completions options
 
 Available in commands:
-- [`install completions`](./commands.md#install-completions)
+- [`install completions` / `install-completions`](./commands.md#install-completions)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -340,15 +342,29 @@ Available in commands:
 
 Aliases: `--shell`
 
+Name of the shell, either zsh or bash
+
 #### `--rc-file`
 
-#### `--directory`
+Path to *rc file, defaults to .bashrc or .zshrc depending on shell
+
+#### `--output`
+
+Aliases: `-o`
+
+Completions output directory
 
 #### `--banner`
 
+Custom banner in comment placed in rc file
+
 #### `--name`
 
+Custom completions name
+
 #### `--env`
+
+Print completions to stdout
 
 ## Install home options
 
@@ -448,7 +464,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt`](./commands.md#fmt)
-- [`install completions`](./commands.md#install-completions)
+- [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -736,15 +752,25 @@ Enable Scala.JS
 
 #### `--js-version`
 
+Scala JS version
+
 #### `--js-mode`
 
+Scala JS mode, either "dev" or "release"
+
 #### `--js-module-kind`
+
+Scala JS module kind: commonjs/common, esmodule/es, nomodule/none
 
 #### `--js-check-ir`
 
 #### `--js-emit-source-maps`
 
+Emit source maps
+
 #### `--js-dom`
+
+Enable jsdom
 
 ## Scala Native options
 
@@ -769,21 +795,39 @@ Enable Scala Native
 
 #### `--native-version`
 
+Scala Native version
+
 #### `--native-mode`
+
+Scala Native compilation mode
 
 #### `--native-gc`
 
+Scala Native garbage collector
+
 #### `--native-clang`
+
+Path to Clang command
 
 #### `--native-clangpp`
 
+Path to Clang++ command
+
 #### `--native-linking`
+
+Extra options passed to clang verbatim during linking
 
 #### `--native-linking-defaults`
 
+Use default linking settings
+
 #### `--native-compile`
 
+List of compile options
+
 #### `--native-compile-defaults`
+
+Use default compile options
 
 ## Scalac options
 
@@ -820,9 +864,13 @@ Available in commands:
 
 Aliases: `--bsp-dir`
 
+Custom BSP configuration location
+
 #### `--bsp-name`
 
 Aliases: `--name`
+
+Name of BSP
 
 #### `--charset`
 
@@ -905,7 +953,7 @@ Available in commands:
 
 #### `--test-framework`
 
-Test framework to use to run tests
+Name of test framework's runner class to use while running tests
 
 #### `--require-tests`
 

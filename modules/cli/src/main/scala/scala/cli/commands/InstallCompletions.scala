@@ -11,13 +11,14 @@ import scala.cli.internal.{Argv0, ProfileFileUpdater}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   override def names = List(
-    List("install", "completions")
+    List("install", "completions"),
+    List("install-completions")
   )
   private lazy val home = os.Path(sys.props("user.home"), os.pwd)
   def run(options: InstallCompletionsOptions, args: RemainingArgs): Unit = {
 
     lazy val completionsDir =
-      options.directory
+      options.output
         .map(os.Path(_, os.pwd))
         .getOrElse(options.directories.directories.completionsDir)
 
