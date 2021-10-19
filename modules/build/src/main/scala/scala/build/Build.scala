@@ -514,14 +514,14 @@ object Build {
       jvmOpt  <- options.javaOptions.jvmIdOpt
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
-    } yield List("-release", version)
+    } yield version
 
-    val releaseOption = jvmStandardVersion.getOrElse(List.empty)
+    val releaseOption = jvmStandardVersion
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions ++
-      scalaJsScalacOptions ++ releaseOption
+      scalaJsScalacOptions ++ jvmStandardVersion.map(v => List("-release", v)).getOrElse(List())
 
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,
@@ -546,7 +546,7 @@ object Build {
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       javaHomeOpt = options.javaHomeLocationOpt(),
-      javacOptions = releaseOption
+      javacOptions = jvmStandardVersion.map(v => List("--release", v)).getOrElse(List())
     )
 
     val updatedBloopConfig = project.writeBloopFile(logger)

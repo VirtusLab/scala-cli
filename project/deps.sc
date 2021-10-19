@@ -64,8 +64,8 @@ object Deps {
   def osLib             = ivy"com.lihaoyi::os-lib:0.7.5"
   def pprint            = ivy"com.lihaoyi::pprint:0.6.6"
   def prettyStacktraces = ivy"org.virtuslab::pretty-stacktraces:0.0.0+27-b9d69198-SNAPSHOT"
-  def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
-  def scalaAsync                 = ivy"org.scala-lang.modules::scala-async:0.10.0"
+  def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv".exclude("*" -> "*")
+  def scalaAsync                 = ivy"org.scala-lang.modules::scala-async:0.10.0".exclude("*" -> "*")
   def scalac(sv: String)         = ivy"org.scala-lang:scala-compiler:$sv".exclude("*" -> "*")
   def scalafmtCli                = ivy"org.scalameta::scalafmt-cli:3.0.3"
   def scalaJsEnvNodeJs           = ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
@@ -76,7 +76,7 @@ object Deps {
   def scalaPackager              = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
   def scalaPackagerCli           = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
   def scalaparse                 = ivy"com.lihaoyi::scalaparse:2.3.2"
-  def scalaReflect(sv: String)   = ivy"org.scala-lang:scala-reflect:$sv"
+  def scalaReflect(sv: String)   = ivy"org.scala-lang:scala-reflect:$sv".exclude("*" -> "*")
   def semanticDbScalac           = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                  = ivy"com.chuusai::shapeless:2.3.7"
   def slf4jNop                   = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
