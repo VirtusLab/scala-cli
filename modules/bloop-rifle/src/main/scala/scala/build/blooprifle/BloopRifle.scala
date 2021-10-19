@@ -238,16 +238,19 @@ object BloopRifle {
     workDir: Path,
     scheduler: ScheduledExecutorService
   ): Boolean = {
-    val currentBloopVersion = getCurrentBloopVersion(config, logger, workDir, scheduler)
-    val isOk = config.acceptBloopVersion.forall { f =>
+    val running = Operations.check(
+            config.host,
+            config.port,
+            logger)
+    lazy val currentBloopVersion = getCurrentBloopVersion(config, logger, workDir, scheduler) //todo get rid of this lazy vals
+    val isOk = running && config.acceptBloopVersion.forall { f =>
       currentBloopVersion.bloopVersion.forall(f(_))
     } && config.acceptBloopJvm.forall(_(currentBloopVersion.bloopJvm))
     if (isOk)
       logger.debug("No need to restart Bloop")
     else {
       logger.debug(s"Shutting down unsupported Bloop $currentBloopVersion.")
-      val retCode = exit(config, workDir, logger)
-      logger.debug(s"Bloop exit code: $retCode")
+      if(running) exit(config, workDir, logger) //todo clean this!!!!
       val fut = startServer(config, scheduler, logger, currentBloopVersion.bloopVersion.get) //todo must be max(retained, current) here
       Await.result(fut, Duration.Inf) // todo no inf!!
     }
