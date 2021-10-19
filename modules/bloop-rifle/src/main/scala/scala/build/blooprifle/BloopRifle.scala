@@ -242,16 +242,19 @@ object BloopRifle {
             config.host,
             config.port,
             logger)
-    def currentBloopVersion = getCurrentBloopVersion(config, logger, workDir, scheduler) //todo get rid of this lazy vals
-    val isOk = running && config.acceptBloopVersion.forall { f =>
-      currentBloopVersion.bloopVersion.forall(f(_))
-    } && config.acceptBloopJvm.forall(_(currentBloopVersion.bloopJvm))
+    def currentBloopVersionOpt = if(running) Some(getCurrentBloopVersion(config, logger, workDir, scheduler)) else None //todo get rid of this lazy vals
+
+    val isOk = currentBloopVersionOpt.map{ currentBloopVersion =>
+      running && config.acceptBloopVersion.forall { f =>
+        currentBloopVersion.bloopVersion.forall(f(_))
+      } && config.acceptBloopJvm.forall(_(currentBloopVersion.bloopJvm))
+    }.getOrElse(false)
     if (isOk)
       logger.debug("No need to restart Bloop")
     else {
-      logger.debug(s"Shutting down unsupported Bloop $currentBloopVersion.")
+      logger.debug(s"Shutting down unsupported Bloop") // todo log old bloop version here
       if(running) exit(config, workDir, logger) //todo clean this!!!!
-      val fut = startServer(config, scheduler, logger, currentBloopVersion.bloopVersion.get) //todo must be max(retained, current) here
+      val fut = startServer(config, scheduler, logger, currentBloopVersionOpt.map(_.bloopVersion.get).getOrElse("1.4.9")) //todo must be max(retained, current) here and clean me!!!!!!
       Await.result(fut, Duration.Inf) // todo no inf!!
     }
     !isOk
