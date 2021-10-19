@@ -13,8 +13,13 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'Virtuslab',
   projectName: 'scala-cli',
-  plugins: ['docusaurus-plugin-sass'],
+  plugins: ['docusaurus-plugin-sass', '@docusaurus/plugin-google-gtag'],
   themeConfig: {
+    gtag: {
+      // You can also use your "G-" Measurement ID here.
+      trackingID: 'GTM-5TZTCGF',
+      anonymizeIP: true,
+    },
     prism: {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
@@ -129,5 +134,5 @@ module.exports = {
         },
       },
     ],
-  ]
+  ],
 };

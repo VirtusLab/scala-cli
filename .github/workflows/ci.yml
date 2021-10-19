@@ -338,7 +338,7 @@ jobs:
 
 
   website-nightly:
-    needs: [jvm-tests, format, checks, reference-doc]
+    # needs: [jvm-tests, format, checks, reference-doc]
     if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
