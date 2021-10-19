@@ -546,7 +546,7 @@ object Build {
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       javaHomeOpt = options.javaHomeLocationOpt(),
-      javacOptions = jvmStandardVersion.map(v => List("--release", v)).getOrElse(List())
+      javacOptions = jvmStandardVersion.map(v => List("--release", v)).getOrElse(List("--release", "8")) // todo rethink this
     )
 
     val updatedBloopConfig = project.writeBloopFile(logger)
