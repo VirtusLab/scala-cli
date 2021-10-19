@@ -1,6 +1,6 @@
 ---
 title: Managing dependencies
-sidebar_position: 23
+sidebar_position: 9
 ---
 
 # Dependencies

@@ -1,5 +1,5 @@
 ---
-title: Inputs
+title: Basics
 sidebar_position: 3
 ---
 

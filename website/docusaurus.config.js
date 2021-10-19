@@ -61,15 +61,15 @@ module.exports = {
           label: 'Documentation',
         },
         {
-          to: '/docs/commands/input',
+          to: '/docs/commands/basics',
           label: 'Commands'
         },
         {
-          to: '/docs/guides/ide',
+          to: '/docs/guides/intro',
           label: 'Guides'
         },
         {
-          to: '/docs/cookbooks/index',
+          to: '/docs/cookbooks/intro',
           label: 'Cookbook'
         },
         {
