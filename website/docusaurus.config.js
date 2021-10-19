@@ -20,6 +20,9 @@ module.exports = {
       trackingID: 'GTM-5TZTCGF',
       anonymizeIP: true,
     },
+    googleAnalytics: {
+      trackingID: 'GTM-5TZTCGF',
+    },
     prism: {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
