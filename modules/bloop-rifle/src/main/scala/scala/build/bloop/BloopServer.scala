@@ -43,27 +43,28 @@ object BloopServer {
     startServerChecksPool: ScheduledExecutorService,
     logger: BloopRifleLogger
   ): Unit = {
-    val workdir = new File(".").getCanonicalFile.toPath
+    val workdir   = new File(".").getCanonicalFile.toPath
     val isRunning = BloopRifle.check(config, logger, startServerChecksPool)
-    if (isRunning) {
-      val bloopInfo =
-        BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool).get
-      val isOk = config.acceptBloopJvm.forall {
-        _(bloopInfo.bloopJvm)
-      } && config.acceptBloopVersion.forall(_(bloopInfo.bloopVersion))
-      if (isOk)
-        println("isOk")
-      else {
-        if(isRunning) BloopRifle.exit(config, workdir, logger)
-        import VersionOps._
-        val bloopVersionToSpawn =
-          if (bloopInfo.bloopVersion isNewerThan Constants.bloopVersion)
-            bloopInfo.bloopVersion
-          else
-            Constants.bloopVersion
-        val fut = BloopRifle.startServer(config, startServerChecksPool, logger, bloopVersionToSpawn)
-        Await.result(fut, 10.seconds)
-      }
+    val bloopInfo =
+      if (isRunning)
+        BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool)
+      else None
+
+    val isOk = isRunning && config.acceptBloopJvm.forall {
+      _(bloopInfo.get.bloopJvm)
+    } && config.acceptBloopVersion.forall(_(bloopInfo.get.bloopVersion))
+    if (isOk)
+      logger.debug("No need to restart bloop")
+    else {
+      if (isRunning) BloopRifle.exit(config, workdir, logger)
+      import VersionOps._
+      val bloopVersionToSpawn =
+        if (isRunning && (bloopInfo.get.bloopVersion isNewerThan Constants.bloopVersion))
+          bloopInfo.get.bloopVersion
+        else
+          Constants.bloopVersion
+      val fut = BloopRifle.startServer(config, startServerChecksPool, logger, bloopVersionToSpawn)
+      Await.result(fut, 10.seconds)
     }
     logger.debug("Bloop server started")
   }
