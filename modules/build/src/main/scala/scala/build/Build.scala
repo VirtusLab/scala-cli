@@ -20,6 +20,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
+import scala.build.bloop.BloopServer
 
 trait Build {
   def inputs: Inputs
@@ -471,7 +472,8 @@ object Build {
     options: BuildOptions,
     scope: Scope,
     logger: Logger,
-    buildClient: BloopBuildClient
+    buildClient: BloopBuildClient,
+    bloopServer: Option[BloopServer]
   ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
 
     val params     = value(options.scalaParams)
@@ -511,7 +513,7 @@ object Build {
 
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
     val jvmStandardVersion = for {
-      jvmOpt  <- options.javaOptions.jvmIdOpt
+      jvmOpt  <- options.javaOptions.jvmIdOpt.orElse(bloopServer.map(_.jvmVersion))
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
     } yield version
@@ -546,7 +548,7 @@ object Build {
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       javaHomeOpt = options.javaHomeLocationOpt(),
-      javacOptions = jvmStandardVersion.map(v => List("--release", v)).getOrElse(List("--release", "8")) // todo rethink this
+      javacOptions = jvmStandardVersion.map(v => List("--release", v)).getOrElse(List())
     )
 
     val updatedBloopConfig = project.writeBloopFile(logger)
@@ -593,7 +595,8 @@ object Build {
         options,
         scope,
         logger,
-        buildClient
+        buildClient,
+        Some(bloopServer)
       )
     }
 

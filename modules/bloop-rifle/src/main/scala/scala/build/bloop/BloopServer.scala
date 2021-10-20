@@ -22,13 +22,19 @@ trait BloopServer {
   def server: BuildServer
 
   def shutdown(): Unit
+
+  def jvmVersion: String
+
+  def bloopVersion: String
 }
 
 object BloopServer {
   private case class BloopServerImpl(
     server: BuildServer,
     listeningFuture: JFuture[Void],
-    socket: Socket
+    socket: Socket,
+    jvmVersion: String,
+    bloopVersion: String
   ) extends BloopServer {
     def shutdown(): Unit = {
       // Close the jsonrpc thread listening to input messages
@@ -42,7 +48,7 @@ object BloopServer {
     config: BloopRifleConfig,
     startServerChecksPool: ScheduledExecutorService,
     logger: BloopRifleLogger
-  ): Unit = {
+  ) : BloopRifle.BloopServerRuntimeInfo = {
     import VersionOps._
     val workdir   = new File(".").getCanonicalFile.toPath
     val isRunning = BloopRifle.check(config, logger, startServerChecksPool)
@@ -65,6 +71,7 @@ object BloopServer {
       Await.result(fut, 10.seconds)
     }
     logger.debug("Bloop server started")
+    BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool).getOrElse(throw new RuntimeException("Could not get bloop version")) // todo better exception
   }
 
   private def connect(
@@ -102,9 +109,9 @@ object BloopServer {
     logger: BloopRifleLogger,
     period: FiniteDuration,
     timeout: FiniteDuration
-  ): (BspConnection, Socket) = {
+  ): (BspConnection, Socket, BloopRifle.BloopServerRuntimeInfo) = {
 
-    ensureBloopRunning(config, threads.startServerChecks, logger)
+    val bloopInfo = ensureBloopRunning(config, threads.startServerChecks, logger)
 
     logger.debug("Opening BSP connection with bloop")
     Files.createDirectories(workspace.resolve(".scala/.bloop"))
@@ -119,7 +126,7 @@ object BloopServer {
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
-    (conn, socket)
+    (conn, socket, bloopInfo)
   }
 
   def buildServer(
@@ -133,7 +140,7 @@ object BloopServer {
     logger: BloopRifleLogger
   ): BloopServer = {
 
-    val (conn, socket) = bsp(config, workspace, threads, logger, config.period, config.timeout)
+    val (conn, socket, bloopInfo) = bsp(config, workspace, threads, logger, config.period, config.timeout)
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
@@ -175,7 +182,7 @@ object BloopServer {
     }
 
     server.onBuildInitialized()
-    BloopServerImpl(server, f, socket)
+    BloopServerImpl(server, f, socket, bloopInfo.bloopJvm, bloopInfo.bloopVersion)
   }
 
   def withBuildServer[T](
