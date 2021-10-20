@@ -16,7 +16,16 @@ else
   clear
 
   # Put your stuff here
-  pe "echo 'println(\"TODO: turn gifs/scenarios/self-contained-examples.sh into proper scenario showing Self-contained examples\")' | scala-cli -"
+  pe "scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec"
+
+  sleep 3
+  clear 
+
+  pe "scala-cli https://gist.github.com/lwronski/99bb89d1962d2c5e21da01f1ad60e92f"
+
+  sleep 2
+  
+  pe "scala-cli https://gist.github.com/lwronski/99bb89d1962d2c5e21da01f1ad60e92f -M ScalaCli"
 
   # Wait a bit to read output of last command
   sleep 2
