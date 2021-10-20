@@ -690,9 +690,9 @@ object ci extends Module {
     val standaloneLauncherPath        = scalaCliDir / "scala-cli.sh"
     val standaloneWindowsLauncherPath = scalaCliDir / "scala-cli.bat"
 
-    // clean target directory
-    if (os.exists(targetDir)) os.remove.all(targetDir)
-    os.makeDir.all(targetDir)
+    // clean scala-cli directory
+    if (os.exists(scalaCliDir)) os.remove.all(scalaCliDir)
+    if (!os.exists(targetDir)) os.makeDir.all(targetDir)
 
     val branch = "master"
     val repo   = s"https://oauth2:${ghToken()}@github.com/VirtusLab/scala-cli.git"
