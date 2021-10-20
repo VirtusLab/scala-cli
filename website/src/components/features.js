@@ -87,15 +87,15 @@ const featuresList = [
           Scala CLI support piping inputs in and is designed to be embeddable in other scripts turning Scala into proper scripting language
         </p>
     </ImageBox>,
-    <ImageBox 
-      image="fast-scripts.svg" title="Fast Scripts" key="fast-scripts" scripting="true">
-        <p>
-          Scala CLI provides multiple ways to reduce the biggest problem of JVM-based scripting solutions: slow start time. Scala CLI aggressively caches inputs removing need for recompilations.
-        </p>
-        <p>
-          Scripts can be packaged into the native applications (using e.g. Scala Native) for even faster cold startups.
-        </p>
-    </ImageBox>,
+//    <ImageBox 
+//      image="fast-scripts.svg" title="Fast Scripts" key="fast-scripts" scripting="true">
+//        <p>
+//          Scala CLI provides multiple ways to reduce the biggest problem of JVM-based scripting solutions: slow start time. Scala CLI aggressively caches inputs removing need for recompilations.
+//        </p>
+//        <p>
+//          Scripts can be packaged into the native applications (using e.g. Scala Native) for even faster cold startups.
+//        </p>
+//    </ImageBox>,
 
     // Prototyping
 
