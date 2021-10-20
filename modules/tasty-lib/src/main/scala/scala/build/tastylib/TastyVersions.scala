@@ -16,7 +16,7 @@ object TastyVersions {
     scalaVersion: String,
     scalaCliVersion: String
   ): Either[String, Boolean] =
-    if (!scalaVersion.startsWith("3.") && scalaVersion != "3" ) Right(false)
+    if (!scalaVersion.startsWith("3.") && scalaVersion != "3") Right(false)
     else
       scalaVersion.split('.')(1).toInt match {
         case scalaMinor if scalaMinor > LatestSupportedScala.MinorVersion =>
