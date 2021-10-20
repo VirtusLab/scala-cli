@@ -71,6 +71,10 @@ Accepts options:
 
 ## `fmt`
 
+Aliases:
+- `format`
+- `scalafmt`
+
 Format Scala code
 
 Accepts options:
