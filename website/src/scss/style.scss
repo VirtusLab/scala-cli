@@ -97,3 +97,10 @@ html[data-theme="dark"] {
     }
 }
 
+.header-vl-link{
+    &>span {
+        content:  url("/static/img/vl_logo_small.png");
+        max-height: 48px;
+        margin-top: -9px;
+    }
+}
