@@ -20,9 +20,11 @@ else
   cat <<EOF | updateFile stat.sc
 using lib "com.lihaoyi::os-lib:0.7.8"
 using lib "com.lihaoyi::pprint:0.6.6"
+import pprint._
+import os._
 
-val path = os.Path(args(0), os.pwd)
-pprint.pprintln(os.stat(path))
+val path = Path(args(0), pwd)
+pprintln(os.stat(path))
 
 EOF
   sleep 3
