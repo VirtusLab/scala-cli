@@ -9,6 +9,11 @@ import scala.cli.internal.FetchExternalBinary
 object Fmt extends ScalaCommand[FmtOptions] {
   override def group                              = "Miscellaneous"
   override def sharedOptions(options: FmtOptions) = Some(options.shared)
+  override def names = List(
+    List("fmt"),
+    List("format"),
+    List("scalafmt")
+  )
   def run(options: FmtOptions, args: RemainingArgs): Unit = {
 
     // TODO If no input is given, just pass '.' to scalafmt?
