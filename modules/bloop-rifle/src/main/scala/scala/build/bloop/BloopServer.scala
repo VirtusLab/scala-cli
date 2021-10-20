@@ -48,7 +48,7 @@ object BloopServer {
     config: BloopRifleConfig,
     startServerChecksPool: ScheduledExecutorService,
     logger: BloopRifleLogger
-  ) : BloopRifle.BloopServerRuntimeInfo = {
+  ): BloopRifle.BloopServerRuntimeInfo = {
     import VersionOps._
     val workdir   = new File(".").getCanonicalFile.toPath
     val isRunning = BloopRifle.check(config, logger, startServerChecksPool)
@@ -57,13 +57,17 @@ object BloopServer {
         BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool)
       else None
 
-    val isOk = isRunning && config.acceptBloopJvm.forall (_(bloopInfo.get.bloopJvm)) && (bloopInfo.get.bloopVersion isNewerThan config.retainedBloopVersion)
+    val isOk = isRunning && config.acceptBloopJvm.forall(
+      _(bloopInfo.get.bloopJvm)
+    ) && (bloopInfo.get.bloopVersion isNewerThan config.retainedBloopVersion)
     if (isOk)
       logger.debug("No need to restart bloop")
     else {
       if (isRunning) BloopRifle.exit(config, workdir, logger)
       val bloopVersionToSpawn =
-        if (isRunning && (bloopInfo.get.bloopVersion isNewerThan config.retainedBloopVersion)) // todo remove .get
+        if (
+          isRunning && (bloopInfo.get.bloopVersion isNewerThan config.retainedBloopVersion)
+        ) // todo remove .get
           bloopInfo.get.bloopVersion
         else
           Constants.bloopVersion
@@ -71,7 +75,9 @@ object BloopServer {
       Await.result(fut, 10.seconds)
     }
     logger.debug("Bloop server started")
-    BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool).getOrElse(throw new RuntimeException("Could not get bloop version")) // todo better exception
+    BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool).getOrElse(
+      throw new RuntimeException("Could not get bloop version")
+    ) // todo better exception
   }
 
   private def connect(
@@ -140,7 +146,8 @@ object BloopServer {
     logger: BloopRifleLogger
   ): BloopServer = {
 
-    val (conn, socket, bloopInfo) = bsp(config, workspace, threads, logger, config.period, config.timeout)
+    val (conn, socket, bloopInfo) =
+      bsp(config, workspace, threads, logger, config.period, config.timeout)
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 

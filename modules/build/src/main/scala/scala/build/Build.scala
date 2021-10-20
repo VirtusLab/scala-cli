@@ -513,10 +513,10 @@ object Build {
 
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
     val releaseOption = for {
-      jvmOpt  <- bloopServer.map(_.jvmVersion)
-      m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
-      version <- Option(m.group(3))
-      filtered8 <- if (version.startsWith("8")) Some(version) else None // todo java 8 compiler does not accept `-release` flag
+      jvmOpt    <- bloopServer.map(_.jvmVersion)
+      m         <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
+      version   <- Option(m.group(3))
+      filtered8 <- if (version.startsWith("8")) None else Some(version)
     } yield filtered8
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
