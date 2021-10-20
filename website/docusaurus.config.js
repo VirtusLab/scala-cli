@@ -73,6 +73,13 @@ module.exports = {
           label: 'Cookbook'
         },
         {
+          href: 'https://virtuslab.com/',
+          position: 'right',
+          className: 'header-vl-link',
+          label: "by",
+          'aria-label': 'GitHub repository',
+        },
+        {
           href: 'https://github.com/Virtuslab/scala-cli',
           label: 'GitHub',
           position: 'right',

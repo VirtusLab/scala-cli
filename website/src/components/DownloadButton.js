@@ -15,7 +15,7 @@ class DownloadButton extends React.Component {
   render() {
     return (
       <button 
-      style={{height: '55px', width : this.props.width, fontSize: 15,  borderRadius: '3px', color: '#fff', background: '#DC332D', borderColor: '#DC332D', fontWeight: 500 }}
+      class="button button--danger button--outline"
       onClick={this.handleClick}
       >
         {this.props.desc}
