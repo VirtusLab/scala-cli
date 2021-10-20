@@ -21,11 +21,13 @@ else
 using scala 3.0.2
 import scala.io.StdIn.readLine
 import LazyList.continually
+
 println(continually(readLine).takeWhile(_ != null).length)
 EOF
+  sleep 2
   pe "chmod +x count_lines.sc"
   pe 'echo -e "abc\ndef" | ./count_lines.sc'
   pe 'echo -e "abc\ndef\nghi" | ./count_lines.sc'
-  sleep 2
+  sleep 4
   echo " "
 fi
