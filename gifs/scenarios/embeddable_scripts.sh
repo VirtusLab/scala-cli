@@ -16,9 +16,16 @@ else
   clear
 
   # Put your stuff here
-  pe "echo 'println(\"TODO: turn gifs/scenarios/embbedable_scripts.sh into proper scenario showing Embbedale Scripts" key="embed-scripts" scripting="true\")' | scala-cli -"
-
-  # Wait a bit to read output of last command
+    cat <<EOF | updateFile count_lines.sc
+#!/usr/bin/env scala-cli
+using scala 3.0.2
+import scala.io.StdIn.readLine
+import LazyList.continually
+println(continually(readLine).takeWhile(_ != null).length)
+EOF
+  pe "chmod +x count_lines.sc"
+  pe 'echo -e "abc\ndef" | ./count_lines.sc'
+  pe 'echo -e "abc\ndef\nghi" | ./count_lines.sc'
   sleep 2
   echo " "
 fi
