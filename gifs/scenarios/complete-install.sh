@@ -25,8 +25,6 @@ else
   
   pe "curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh"
   pe 'source ~/.profile'
-  # pe "echo 'println(\"TODO: turn gifs/scenarios/complete-install.sh into proper scenario showing Complete installation\")' | scala-cli -"
-
   pe "echo 'println(\"Hello from scala-cli\")' | scala-cli -"
 
 
