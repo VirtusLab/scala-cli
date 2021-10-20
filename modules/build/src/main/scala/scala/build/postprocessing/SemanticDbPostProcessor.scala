@@ -4,15 +4,16 @@ import java.nio.file.FileSystemException
 
 import scala.annotation.tailrec
 import scala.build.{GeneratedSource, Logger}
-
+import scala.util.{Either, Right}
 case object SemanticDbPostProcessor extends PostProcessor {
   def postProcess(
     generatedSources: Seq[GeneratedSource],
     mappings: Map[String, (String, Int)],
     workspace: os.Path,
     output: os.Path,
-    logger: Logger
-  ): Unit = {
+    logger: Logger,
+    scalaVersion: String
+  ): Either[String, Unit] = Right {
     logger.debug("Moving semantic DBs around")
     val semDbRoot = output / "META-INF" / "semanticdb"
     for (source <- generatedSources; originalSource <- source.reportingPath) {
