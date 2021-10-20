@@ -15,10 +15,26 @@ else
   # # hide the evidence
   clear
 
+    cat <<EOF | updateFile HelloWorld.scala
+object HelloWorld {
+    def main(args: Array[String]) = {
+        println("Hello world from ScalaCLI")
+    }
+}
+EOF
+
   # Put your stuff here
-  pe "echo 'println(\"TODO: turn gifs/scenarios/education.sh into proper scenario Scala CLI within scope of learning Scala\")' | scala-cli -"
+  pe "scala-cli HelloWorld.scala"
 
   # Wait a bit to read output of last command
-  sleep 2
+  sleep 5
+  clear 
+      cat <<EOF | updateFile HelloWorld.sc
+println("Hello world from script")
+EOF
+
+  pe "scala-cli HelloWorld.sc"
+
+  sleep 5
   echo " "
 fi
