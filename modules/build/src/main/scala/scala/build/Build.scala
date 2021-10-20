@@ -512,18 +512,18 @@ object Build {
       else Nil
 
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
-    val jvmStandardVersion = for {
-      jvmOpt  <- options.javaOptions.jvmIdOpt.orElse(bloopServer.map(_.jvmVersion))
+    val releaseOption = for {
+      jvmOpt  <- bloopServer.map(_.jvmVersion)
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
-    } yield version
+      filtered8 <- if (version.startsWith("8")) Some(version) else None // todo java 8 compiler does not accept `-release` flag
+    } yield filtered8
 
-    val releaseOption = jvmStandardVersion
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions ++
-      scalaJsScalacOptions ++ jvmStandardVersion.map(v => List("-release", v)).getOrElse(List())
+      scalaJsScalacOptions ++ releaseOption.map(v => List("-release", v)).getOrElse(List())
 
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,
@@ -548,7 +548,7 @@ object Build {
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       javaHomeOpt = options.javaHomeLocationOpt(),
-      javacOptions = jvmStandardVersion.map(v => List("--release", v)).getOrElse(List())
+      javacOptions = releaseOption.map(v => List("--release", v)).getOrElse(List())
     )
 
     val updatedBloopConfig = project.writeBloopFile(logger)
