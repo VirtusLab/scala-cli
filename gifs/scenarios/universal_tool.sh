@@ -31,7 +31,7 @@ EOF
   cat <<EOF | updateFile native.scala
 object Native extends App {
   import scala.scalanative.posix.limits
-  println(s"Max path lenght in this OS is \${limits.PATH_MAX}")
+  println(s"Max path length in this OS is \${limits.PATH_MAX}")
 }
 EOF
 

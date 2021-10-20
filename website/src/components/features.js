@@ -79,12 +79,12 @@ const featuresList = [
         </p>
     </ImageBox>,
     <ImageBox 
-      image="embbedable_scripts.svg" title="Embbedale Scripts" key="embed-scripts" scripting="true">
+      image="embeddable_scripts.svg" title="Embeddable Scripts" key="embed-scripts" scripting="true">
         <p>
-          Scala CLI can be included in shebangs making your .scala or .sc files runnable
+         Scala CLI can be set up in shebang lines, making your *.scala or *.sc files runnable
         </p>
         <p>
-          Scala CLI support piping inputs in and is designed to be embeddable in other scripts turning Scala into proper scripting language
+         Scala CLI supports piping inputs and is designed to be embeddable in other scripts, turning Scala into proper scripting language
         </p>
     </ImageBox>,
 //    <ImageBox 
