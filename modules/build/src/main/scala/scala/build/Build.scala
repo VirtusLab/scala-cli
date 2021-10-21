@@ -536,7 +536,8 @@ object Build {
       resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
       sources = allSources,
       resourceDirs = sources.resourceDirs,
-      javaHomeOpt = options.javaHomeLocationOpt()
+      javaHomeOpt = options.javaHomeLocationOpt(),
+      scope = scope
     )
 
     val updatedBloopConfig = project.writeBloopFile(logger)

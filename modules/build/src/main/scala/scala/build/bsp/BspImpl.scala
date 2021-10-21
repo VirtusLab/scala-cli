@@ -43,7 +43,7 @@ final class BspImpl(
 
   private def prepareBuild(
     actualLocalServer: BspServer
-  ): Either[BuildException, PreBuildData] = either {
+  ): Either[BuildException, (PreBuildData, PreBuildData)] = either {
 
     logger.log("Preparing build")
 
@@ -64,41 +64,68 @@ final class BspImpl(
     if (verbosity >= 3)
       pprint.stderr.log(scopedSources)
 
-    val scope   = Scope.Main
-    val sources = scopedSources.sources(scope, buildOptions)
+    val sourcesMain = scopedSources.sources(Scope.Main, buildOptions)
+    val sourcesTest = scopedSources.sources(Scope.Test, buildOptions)
 
     if (verbosity >= 3)
-      pprint.stderr.log(sources)
+      pprint.stderr.log(sourcesMain)
 
-    val options0 = sources.buildOptions
+    val options0Main = sourcesMain.buildOptions
+    val options0Test = sourcesTest.buildOptions
 
-    val generatedSources = sources.generateSources(inputs.generatedSrcRoot(scope))
+    val generatedSourcesMain = sourcesMain.generateSources(inputs.generatedSrcRoot(Scope.Main))
+    val generatedSourcesTest = sourcesTest.generateSources(inputs.generatedSrcRoot(Scope.Test))
 
     actualLocalServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
-    actualLocalServer.setGeneratedSources(generatedSources)
+    actualLocalServer.setGeneratedSources(generatedSourcesMain ++ generatedSourcesTest)
 
-    val (classesDir0, scalaParams, artifacts, project, buildChanged) = value {
+    val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
       Build.prepareBuild(
         inputs,
-        sources,
-        generatedSources,
-        options0,
+        sourcesMain,
+        generatedSourcesMain,
+        options0Main,
         Scope.Main,
         logger,
         localClient
       )
     }
 
-    PreBuildData(
-      sources,
-      options0,
-      classesDir0,
-      scalaParams,
-      artifacts,
-      project,
-      generatedSources,
-      buildChanged
+    val (classesDir0Test, scalaParamsTest, artifactsTest, projectTest, buildChangedTest) = value {
+      Build.prepareBuild(
+        inputs,
+        sourcesTest,
+        generatedSourcesTest,
+        options0Test,
+        Scope.Test,
+        logger,
+        localClient
+      )
+    }
+
+    val main = PreBuildData(
+      sourcesMain,
+      options0Main,
+      classesDir0Main,
+      scalaParamsMain,
+      artifactsMain,
+      projectMain,
+      generatedSourcesMain,
+      buildChangedMain
     )
+
+    val test = PreBuildData(
+      sourcesTest,
+      options0Test,
+      classesDir0Test,
+      scalaParamsTest,
+      artifactsTest,
+      projectTest,
+      generatedSourcesTest,
+      buildChangedTest
+    )
+
+    (main, test)
   }
 
   private def buildE(
@@ -107,15 +134,26 @@ final class BspImpl(
     notifyChanges: Boolean
   ): Either[BuildException, Unit] = either {
     val preBuildData = value(prepareBuild(actualLocalServer))
-    if (notifyChanges && preBuildData.buildChanged)
+    if (notifyChanges && preBuildData._1.buildChanged && preBuildData._2.buildChanged)
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
       inputs,
-      preBuildData.sources,
+      preBuildData._1.sources,
       inputs.generatedSrcRoot(Scope.Main),
-      preBuildData.generatedSources,
-      preBuildData.buildOptions,
+      preBuildData._1.generatedSources,
+      preBuildData._1.buildOptions,
       Scope.Main,
+      logger,
+      actualLocalClient,
+      bloopServer
+    )
+    Build.buildOnce(
+      inputs,
+      preBuildData._2.sources,
+      inputs.generatedSrcRoot(Scope.Test),
+      preBuildData._2.generatedSources,
+      preBuildData._2.buildOptions,
+      Scope.Test,
       logger,
       actualLocalClient,
       bloopServer
@@ -159,13 +197,15 @@ final class BspImpl(
       () =>
         prepareBuild(actualLocalServer) match {
           case Right(preBuildData) =>
-            if (preBuildData.buildChanged)
+            if (preBuildData._1.buildChanged && preBuildData._2.buildChanged)
               notifyBuildChange(actualLocalServer)
             Right((
-              preBuildData.classesDir,
-              preBuildData.artifacts,
-              preBuildData.project,
-              preBuildData.generatedSources
+              preBuildData._1.classesDir,
+              preBuildData._1.project,
+              preBuildData._1.generatedSources,
+              preBuildData._2.classesDir,
+              preBuildData._2.project,
+              preBuildData._2.generatedSources
             ))
           case Left(ex) =>
             notifyBuildChange(actualLocalServer)
@@ -185,8 +225,14 @@ final class BspImpl(
           for (targetId <- actualLocalServer.targetIdOpt)
             actualLocalClient.resetBuildExceptionDiagnostics(targetId)
           doCompile().thenCompose { res =>
-            val (classesDir0, artifacts, project, generatedSources) = params
-            (classesDir0, artifacts, project, generatedSources, res)
+            val (
+              classesDir0,
+              project,
+              generatedSources,
+              classesDir0Test,
+              projectTest,
+              generatedSourcesTest
+            ) = params
             if (res.getStatusCode == b.StatusCode.OK)
               CompletableFuture.supplyAsync(
                 () => {
@@ -198,6 +244,15 @@ final class BspImpl(
                     inputs.workspace,
                     updateSemanticDbs = true,
                     scalaVersion = project.scalaCompiler.scalaVersion
+                  ).left.foreach(_.foreach(showGlobalWarningOnce))
+                  Build.postProcess(
+                    generatedSourcesTest,
+                    inputs.generatedSrcRoot(Scope.Test),
+                    classesDir0Test,
+                    logger,
+                    inputs.workspace,
+                    updateSemanticDbs = true,
+                    scalaVersion = projectTest.scalaCompiler.scalaVersion
                   ).left.foreach(_.foreach(showGlobalWarningOnce))
                   res
                 },
@@ -258,7 +313,7 @@ final class BspImpl(
 
   def run(): Future[Unit] = {
 
-    val classesDir = Build.classesDir(inputs.workspace, inputs.projectName, Scope.Main)
+    val classesDir = Build.classesRootDir(inputs.workspace, inputs.projectName)
 
     remoteServer = BloopServer.buildServer(
       bloopRifleConfig,
@@ -279,6 +334,7 @@ final class BspImpl(
         logger = logger
       )
     actualLocalServer.setProjectName(inputs.workspace, inputs.projectName)
+    actualLocalServer.setProjectTestName(inputs.workspace, inputs.projectName)
 
     val localServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer =
       if (verbosity >= 3)

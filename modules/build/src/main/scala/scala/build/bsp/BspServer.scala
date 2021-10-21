@@ -24,7 +24,7 @@ class BspServer(
 
   private def maybeUpdateProjectTargetUri(res: b.WorkspaceBuildTargetsResult): Unit =
     for {
-      n <- projectNameOpt.iterator
+      n <- projectNames.iterator
       if n.targetUriOpt.isEmpty
       target <- res.getTargets.asScala.iterator.find(_.getDisplayName == n.name)
     } n.targetUriOpt = Some(target.getId.getUri)
@@ -141,7 +141,7 @@ class BspServer(
     val target = params.getTarget
     if (!validTarget(target))
       logger.debug(
-        s"Got invalid target in Run request: ${target.getUri} (expected ${projectNameOpt.flatMap(_.targetUriOpt).orNull})"
+        s"Got invalid target in Run request: ${target.getUri} (expected ${projectNames.flatMap(_.targetUriOpt).headOption.orNull})" // TODO resolve target targetUriOpt
       )
     super.buildTargetRun(params)
   }
@@ -163,10 +163,7 @@ class BspServer(
       stripInvalidTargets(res0)
       for (target <- res0.getTargets.asScala) {
         val capabilities = target.getCapabilities
-        // TODO Re-enable once we support this via BSP
         capabilities.setCanDebug(true)
-        capabilities.setCanRun(true)
-        capabilities.setCanTest(true)
       }
       res0
     }
