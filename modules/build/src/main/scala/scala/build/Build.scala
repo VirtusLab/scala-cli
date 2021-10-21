@@ -524,12 +524,15 @@ object Build {
       version <- Option(m.group(3))
     } yield version
 
-
-    val javaV0 = os.proc(options.javaHomeLocation() / "bin" / "javac", "-version").call(cwd=os.pwd, stdout=os.Pipe, stderr=os.Pipe, mergeErrIntoOut=true).out.text()
+    val javaV0 = os.proc(options.javaHomeLocation() / "bin" / "javac", "-version").call(
+      cwd = os.pwd,
+      stdout = os.Pipe,
+      stderr = os.Pipe,
+      mergeErrIntoOut = true
+    ).out.text()
     val javaV = javaV0.stripPrefix("javac ").stripPrefix("1.").split("[.]").head
 
-
-    val releaseV = if(javaV == "8") None else Some(javaV)
+    val releaseV = if (javaV == "8") None else Some(javaV)
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
