@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ${{ matrix.OS }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         # If adding Windows here, use windows-2016 rather than windows-latest or windows-2019.
         # Running into https://github.com/oracle/graal/issues/3171 on windows-latest / windows-2019.
@@ -31,20 +31,20 @@ jobs:
     - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
-    - name: Copy launcher
-      run: ./mill -i copyJvmLauncher artifacts/
-      if: runner.os == 'Linux'
-    - uses: actions/upload-artifact@v2.2.4
-      if: runner.os == 'Linux'
-      with:
-        name: launchers
-        path: artifacts/
-        if-no-files-found: error
-        retention-days: 2
-    - name: Unit tests
-      run: ./mill -i unitTests
+#    - name: Copy launcher
+#      run: ./mill -i copyJvmLauncher artifacts/
+#      if: runner.os == 'Linux'
+#    - uses: actions/upload-artifact@v2.2.4
+#      if: runner.os == 'Linux'
+#      with:
+#        name: launchers
+#        path: artifacts/
+#        if-no-files-found: error
+#        retention-days: 2
+#    - name: Unit tests
+#      run: ./mill -i unitTests
     - name: JVM integration tests
-      run: ./mill -i integration.jvm.test
+      run: ./mill -i integration.jvm.test.test scala.cli.integration.RunTestsDefault
 
   native-tests:
     timeout-minutes: 120

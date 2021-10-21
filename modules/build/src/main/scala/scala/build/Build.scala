@@ -524,13 +524,14 @@ object Build {
       version <- Option(m.group(3))
     } yield version
 
+    pprint.stderr.log(bloopJvmOption)
+    pprint.stderr.log(cliJvmOption)
+
     val releaseV = {
       if (bloopJvmOption.isDefined && bloopJvmOption.get == "8") None
       else if (bloopJvmOption.isEmpty) None
       else if (cliJvmOption.isDefined) cliJvmOption
       else {
-        pprint.log(bloopJvmOption)
-        pprint.log(cliJvmOption)
         Some("8")
       }
     }

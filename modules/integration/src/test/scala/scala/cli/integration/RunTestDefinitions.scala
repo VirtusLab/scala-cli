@@ -681,7 +681,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         .call(cwd = root)
         .out.text().trim
       expect(output == message)
+      os.proc(TestUtil.cs, "launch", "bloop", "--", "about").call(cwd = root, stdout=os.Inherit, stdin=os.Inherit)
     }
+
   }
 
   test("Github Gists Script URL") {
