@@ -531,9 +531,8 @@ object Build {
       if (bloopJvmOption.isDefined && bloopJvmOption.get == "8") None
       else if (bloopJvmOption.isEmpty) None
       else if (cliJvmOption.isDefined) cliJvmOption
-      else {
+      else
         Some("8")
-      }
     }
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
