@@ -42,6 +42,7 @@ values={[
 {label: 'Yum', value: 'yum'},
 {label: 'Rpm', value: 'rpm'},
 {label: 'Alpine', value: 'alpine'},
+{label: 'Nix', value: 'nix'},
 ]}
 >
 <TabItem value="manual">
@@ -124,6 +125,19 @@ Check that it runs fine by running its `about` command:
 scala-cli about
 ```
 </TabItem>
+
+<TabItem value="nix">
+
+Scala CLI can be installed with [Nix](https://nixos.org) with
+
+```bash
+nix-env -if https://github.com/kubukoz/scala-cli.nix/archive/refs/heads/main.tar.gz
+```
+
+or other methods listed in [the unofficial package's README](https://github.com/kubukoz/scala-cli.nix).
+
+</TabItem>
+
 </Tabs>
 
 </TabItem>
