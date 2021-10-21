@@ -142,8 +142,8 @@ final case class BuildOptions(
       }
   }
 
-  def javaHomeLocation(): os.Path ={
-   pprint.stderr.log(javaHomeLocationOpt())
+  def javaHomeLocation(): os.Path = {
+    pprint.stderr.log(javaHomeLocationOpt())
     javaHomeLocationOpt().getOrElse {
       implicit val ec = finalCache.ec
       finalCache.logger.use {

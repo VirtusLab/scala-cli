@@ -524,13 +524,15 @@ object Build {
       version <- Option(m.group(3))
     } yield version
 
-    val javaV0 = os.proc(options.javaHomeLocation() / "bin" / "javac", "-version").call(
+    val javaV0 = os.proc(options.javaHomeLocation() / "bin" / "java", "-version").call(
       cwd = os.pwd,
       stdout = os.Pipe,
       stderr = os.Pipe,
       mergeErrIntoOut = true
     ).out.text().trim()
-    val javaV = javaV0.stripPrefix("javac ").stripPrefix("1.").split("[.]").head
+    val javaV = javaV0.lines.toList().get(0).split(" ")(2).replace("\"", "").trim.stripPrefix(
+      "1."
+    ).split("[.]").head
 
     val releaseV = if (javaV == "8") None else Some(javaV)
 
