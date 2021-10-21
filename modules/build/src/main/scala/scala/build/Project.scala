@@ -36,8 +36,9 @@ final case class Project(
         )
       case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
       case (_, Some(nativeConfig)) =>
-        BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
+        BloopConfig.Platform.Native(config = nativeConfig, mainClass = None) //todo: we don't pass
     }
+    pprint.stderr.log(platform)
     val scalaConfig =
       bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler.scalaVersion).copy(
         // todo - "-releas" is not supported if Bloop run with jvm <9
