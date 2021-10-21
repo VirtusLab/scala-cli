@@ -16,6 +16,11 @@ module.exports = {
   plugins: ['docusaurus-plugin-sass'],
   themeConfig: {
     image: "img/logo.png",
+    algolia: {
+      apiKey: '254542739498a46e1392862504c0b4a1',
+      indexName: 'scala-cli',
+      appId: 'BH4D9OD16A',
+    },
     prism: {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
