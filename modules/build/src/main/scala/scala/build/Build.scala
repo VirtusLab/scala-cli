@@ -515,7 +515,6 @@ object Build {
     val bloopJvmOption = for {
       jvmOpt    <- bloopServer.map(_.jvmVersion)
       m         <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
-      _         = pprint.pprintln(m)
       version   <- Option(m.group(3))
     } yield version
 
