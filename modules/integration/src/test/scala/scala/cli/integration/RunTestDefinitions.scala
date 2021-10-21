@@ -681,18 +681,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       ) // todo this should be working without passing --jvm
         .call(cwd = root)
         .out.text().trim
-os.proc(TestUtil.cs, "launch", "bloop", "--", "about").call(
-  cwd = root,
-  stdout = os.Inherit,
-  stdin = os.Inherit
-)
-
       expect(output == message)
-      os.proc(TestUtil.cs, "launch", "bloop", "--", "about").call(
-        cwd = root,
-        stdout = os.Inherit,
-        stdin = os.Inherit
-      )
     }
 
   }

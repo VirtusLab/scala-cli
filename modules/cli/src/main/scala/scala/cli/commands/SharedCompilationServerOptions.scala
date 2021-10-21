@@ -208,7 +208,7 @@ final case class SharedCompilationServerOptions(
     verbosity: Int,
     javaPath: String,
     directories: => scala.build.Directories,
-    jvmOptID: Option[String] = None
+    javaV: Option[String] = None
   ): BloopRifleConfig = {
     val baseConfig =
       BloopRifleConfig.default(v => Bloop.bloopClassPath(logger, v))
@@ -217,6 +217,7 @@ final case class SharedCompilationServerOptions(
         Some(scala.build.blooprifle.internal.Util.randomPort())
       case other => other
     }
+
     baseConfig.copy(
       host = bloopHost.filter(_.nonEmpty).getOrElse(baseConfig.host),
       port = portOpt.getOrElse(baseConfig.port),
@@ -238,9 +239,7 @@ final case class SharedCompilationServerOptions(
         Some { // todo, we have to ensure that if we reload bloop, it's versoin is not older than the current one. Otherwise, it'll potentially conflict with metals running with a different project
           import coursier.core.Version
           v =>
-            Version(jvmOptID.map(_.split(":").last).getOrElse("8")) <= Version(
-              v
-            ) // todo handle jvm distribution
+            Version(javaV.getOrElse("8")) <= Version(v) // todo handle jvm distribution
         },
       retainedBloopVersion = retainedBloopVersion
     )
