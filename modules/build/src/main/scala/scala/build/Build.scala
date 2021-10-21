@@ -11,6 +11,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
+import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
@@ -20,7 +21,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.build.bloop.BloopServer
 
 trait Build {
   def inputs: Inputs
@@ -513,21 +513,21 @@ object Build {
 
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
     val bloopJvmOption = for {
-      jvmOpt    <- bloopServer.map(_.jvmVersion)
-      m         <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
-      version   <- Option(m.group(3))
+      jvmOpt  <- bloopServer.map(_.jvmVersion)
+      m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
+      version <- Option(m.group(3))
     } yield version
 
     val cliJvmOption = for {
-      jvmOpt    <- options.javaOptions.jvmIdOpt
-      m         <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
-      version   <- Option(m.group(3))
+      jvmOpt  <- options.javaOptions.jvmIdOpt
+      m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
+      version <- Option(m.group(3))
     } yield version
 
     val releaseV = {
-      if(bloopJvmOption.isDefined && bloopJvmOption.get == "8") None
+      if (bloopJvmOption.isDefined && bloopJvmOption.get == "8") None
       else if (bloopJvmOption.isEmpty) None
-      else if(cliJvmOption.isDefined) cliJvmOption
+      else if (cliJvmOption.isDefined) cliJvmOption
       else Some("8")
     }
 

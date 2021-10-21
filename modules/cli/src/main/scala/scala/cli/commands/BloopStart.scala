@@ -5,9 +5,9 @@ import caseapp._
 import scala.build.Os
 import scala.build.bloop.BloopThreads
 import scala.build.blooprifle.BloopRifle
+import scala.build.blooprifle.internal.Constants
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.build.blooprifle.internal.Constants
 
 object BloopStart extends ScalaCommand[BloopStartOptions] {
   override def hidden = true
