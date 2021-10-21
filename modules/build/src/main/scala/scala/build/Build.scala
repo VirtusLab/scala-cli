@@ -512,18 +512,30 @@ object Build {
       else Nil
 
     val jvmVersionRegex = """([a-zA-Z0-9]+:)?(1\.)?(\d+).*""".r
-    val releaseOption = for {
+    val bloopJvmOption = for {
       jvmOpt    <- bloopServer.map(_.jvmVersion)
       m         <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version   <- Option(m.group(3))
-      filtered8 <- if (version.startsWith("8")) None else Some(version)
-    } yield filtered8
+    } yield version
+
+    val cliJvmOption = for {
+      jvmOpt    <- options.javaOptions.jvmIdOpt
+      m         <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
+      version   <- Option(m.group(3))
+    } yield version
+
+    val releaseV = {
+      if(bloopJvmOption.isDefined && bloopJvmOption.get == "8") None
+      else if (bloopJvmOption.isEmpty) None
+      else if(cliJvmOption.isDefined) cliJvmOption
+      else None
+    }
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions ++
-      scalaJsScalacOptions ++ releaseOption.map(v => List("-release", v)).getOrElse(List())
+      scalaJsScalacOptions ++ releaseV.map(v => List("-release", v)).getOrElse(List())
 
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,
@@ -548,7 +560,7 @@ object Build {
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       javaHomeOpt = options.javaHomeLocationOpt(),
-      javacOptions = releaseOption.map(v => List("--release", v)).getOrElse(List())
+      javacOptions = releaseV.map(v => List("--release", v)).getOrElse(List())
     )
 
     val updatedBloopConfig = project.writeBloopFile(logger)
