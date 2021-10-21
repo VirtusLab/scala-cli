@@ -15,7 +15,7 @@ module.exports = {
   projectName: 'scala-cli',
   plugins: ['docusaurus-plugin-sass'],
   themeConfig: {
-    image: "/static/img/logo.svg",
+    image: "img/logo.png",
     prism: {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
