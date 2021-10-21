@@ -288,7 +288,7 @@ class NativePackagerTests extends munit.FunSuite {
         TestUtil.cli,
         "package", helloWorldFileName,
         "--native",
-        "-S", "2.13",
+        "-S", "2.13.6",
         "--docker",
         "--docker-image-repository", imageRepository,
         "--docker-image-tag", imageTag
