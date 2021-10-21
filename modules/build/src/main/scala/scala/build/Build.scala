@@ -515,6 +515,7 @@ object Build {
     val bloopJvmOption = for {
       jvmOpt    <- bloopServer.map(_.jvmVersion)
       m         <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
+      _         = pprint.pprintln(m)
       version   <- Option(m.group(3))
     } yield version
 
@@ -528,7 +529,7 @@ object Build {
       if(bloopJvmOption.isDefined && bloopJvmOption.get == "8") None
       else if (bloopJvmOption.isEmpty) None
       else if(cliJvmOption.isDefined) cliJvmOption
-      else None
+      else Some("8")
     }
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
