@@ -44,7 +44,7 @@ jobs:
 #    - name: Unit tests
 #      run: ./mill -i unitTests
     - name: JVM integration tests
-      run: ./mill -i integration.jvm.test.test scala.cli.integration.RunTestsDefault
+      run: ./mill -i integration.jvm.test scala.cli.integration.RunTestsDefault
 
   native-tests:
     timeout-minutes: 120
