@@ -185,9 +185,8 @@ final case class SharedOptions(
       stderr = os.Pipe,
       mergeErrIntoOut = true
     ).out.text().trim()
-    val javaV = javaV0.lines.toList().get(0).split(" ")(2).replace("\"", "").trim.stripPrefix(
-      "1."
-    ).split("[.]").head
+    val javaV = javaV0.split(" ")(2).replace("\"", "").trim.stripPrefix("1.").split("[.]").head
+
     pprint.stderr.log(javaV0)
     val jvmId = bo.javaOptions.jvmIdOpt
     compilationServer.bloopRifleConfig(

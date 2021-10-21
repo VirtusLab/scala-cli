@@ -530,9 +530,7 @@ object Build {
       stderr = os.Pipe,
       mergeErrIntoOut = true
     ).out.text().trim()
-    val javaV = javaV0.lines.toList().get(0).split(" ")(2).replace("\"", "").trim.stripPrefix(
-      "1."
-    ).split("[.]").head
+    val javaV = javaV0.split(" ")(2).replace("\"", "").trim.stripPrefix("1.").split("[.]").head
 
     val releaseV = if (javaV == "8") None else Some(javaV)
 
