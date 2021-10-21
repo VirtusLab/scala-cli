@@ -35,7 +35,8 @@ class BuildTests extends munit.FunSuite {
       scalaBinaryVersion = None
     ),
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir)
+      localRepository = LocalRepo.localRepo(directories.localRepoDir),
+      keepDiagnostics = true
     )
   )
 
@@ -91,6 +92,29 @@ class BuildTests extends munit.FunSuite {
           "simple.tasty",
           "simple_sc$.class"
         )
+        maybeBuild.orThrow.assertNoDiagnostics
+    }
+  }
+
+  // Test if we do not print any warnings
+  test("scala 3 class in .sc file") {
+    val testInputs = TestInputs(
+      os.rel / "other.sc" ->
+        "class A"
+    )
+    testInputs.withBuild(defaultScala3Options, buildThreads, bloopConfig) {
+      (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        build.assertGeneratedEquals(
+          "other$A.class",
+          "other$.class",
+          "other.tasty",
+          "other.class",
+          "other_sc$.class",
+          "other_sc.class",
+          "other_sc.tasty"
+        )
+        maybeBuild.orThrow.assertNoDiagnostics
     }
   }
 
@@ -115,6 +139,7 @@ class BuildTests extends munit.FunSuite {
         "simple_sc$.class",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
+      maybeBuild.orThrow.assertNoDiagnostics
 
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
       val semDb     = os.read.bytes(outputDir / "META-INF" / "semanticdb" / "simple.sc.semanticdb")
@@ -147,7 +172,7 @@ class BuildTests extends munit.FunSuite {
         "simple_sc$.class",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
-
+      maybeBuild.orThrow.assertNoDiagnostics
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
       val tastyData = TastyData.read(os.read.bytes(outputDir / "simple.tasty"))
       val names     = tastyData.names.simpleNames
@@ -174,6 +199,7 @@ class BuildTests extends munit.FunSuite {
           "simple_sc$.class",
           "simple_sc$.sjsir"
         )
+        maybeBuild.orThrow.assertNoDiagnostics
     }
   }
 
@@ -196,6 +222,7 @@ class BuildTests extends munit.FunSuite {
           "simple_sc$.nir"
           // "simple.nir", // not sure why Scala Native doesn't generate this one.
         )
+        maybeBuild.orThrow.assertNoDiagnostics
     }
   }
   if (!Properties.isWin)
@@ -219,6 +246,7 @@ class BuildTests extends munit.FunSuite {
         "simple$.class",
         "simple_sc$.class"
       )
+      maybeBuild.orThrow.assertNoDiagnostics
     }
   }
   test("dependencies - $dep") {
@@ -237,6 +265,7 @@ class BuildTests extends munit.FunSuite {
         "simple$.class",
         "simple_sc$.class"
       )
+      maybeBuild.orThrow.assertNoDiagnostics
     }
   }
   test("dependencies - using") {
@@ -255,6 +284,7 @@ class BuildTests extends munit.FunSuite {
         "simple$.class",
         "simple_sc$.class"
       )
+      maybeBuild.orThrow.assertNoDiagnostics
     }
   }
 
@@ -275,6 +305,7 @@ class BuildTests extends munit.FunSuite {
         "simple$.class",
         "simple_sc$.class"
       )
+      maybeBuild.orThrow.assertNoDiagnostics
     }
   }
 
@@ -295,6 +326,7 @@ class BuildTests extends munit.FunSuite {
         "simple$.class",
         "simple_sc$.class"
       )
+      maybeBuild.orThrow.assertNoDiagnostics
     }
   }
 

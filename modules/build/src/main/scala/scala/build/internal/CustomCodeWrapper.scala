@@ -12,6 +12,7 @@ case object CustomCodeWrapper extends CodeWrapper {
     extraCode: String
   ) = {
     val name = mainClassObject(indexedWrapperName).backticked
+    // We need to call hashCode (or any other method so compiler does not report a warning)
     val mainObjectCode = AmmUtil.normalizeNewlines(s"""|object $name {
                                                        |  private var args$$opt0 = Option.empty[Array[String]]
                                                        |  def args$$set(args: Array[String]): Unit = {
@@ -23,7 +24,7 @@ case object CustomCodeWrapper extends CodeWrapper {
                                                        |  }
                                                        |  def main(args: Array[String]): Unit = {
                                                        |    args$$set(args)
-                                                       |    ${indexedWrapperName.backticked}
+                                                       |    ${indexedWrapperName.backticked}.hashCode()
                                                        |  }
                                                        |}
                                                        |""".stripMargin)
@@ -40,7 +41,7 @@ $packageDirective
 object ${indexedWrapperName.backticked} {
 """)
     val bottom = AmmUtil.normalizeNewlines(s"""
-  def args = $name.args$$
+def args = $name.args$$
   $extraCode
 }
 $mainObjectCode

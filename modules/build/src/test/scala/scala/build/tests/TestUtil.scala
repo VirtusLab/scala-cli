@@ -2,6 +2,7 @@ package scala.build.tests
 
 import scala.build.Build
 import scala.build.options.{BuildOptions, Platform}
+import munit.Assertions.assertEquals
 
 object TestUtil {
 
@@ -24,6 +25,9 @@ object TestUtil {
         }
       )
     }
+
+    def assertNoDiagnostics = assertEquals(build.diagnostics.toSeq.flatten, Nil)
+
   }
 
   implicit class TestBuildOptionsOps(private val options: BuildOptions) extends AnyVal {
