@@ -62,19 +62,19 @@ jobs:
     - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
-    - name: Generate native launcher
-      run: ./mill -i show defaultNativeImage
-    - name: Build OS packages
-      run: .github/scripts/generate-os-packages.sh
-      shell: bash
-    - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
-      with:
-        name: launchers
-        path: artifacts/
-        if-no-files-found: error
-        retention-days: 2
+#    - name: Generate native launcher
+#      run: ./mill -i show defaultNativeImage
+#    - name: Build OS packages
+#      run: .github/scripts/generate-os-packages.sh
+#      shell: bash
+#    - name: Copy artifacts
+#      run: ./mill -i copyDefaultLauncher artifacts/
+#    - uses: actions/upload-artifact@v2.2.4
+#      with:
+#        name: launchers
+#        path: artifacts/
+#        if-no-files-found: error
+#        retention-days: 2
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
