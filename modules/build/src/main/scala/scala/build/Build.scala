@@ -522,7 +522,7 @@ object Build {
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
     } yield version
-    val javaV0 = os.proc(options.javaHomeLocation() / "bin" / "java", "-version").call(
+    val javaV0 = os.proc(options.javaCommand(), "-version").call(
       cwd = os.pwd,
       stdout = os.Pipe,
       stderr = os.Pipe,
