@@ -291,7 +291,7 @@ object Build {
               inputs,
               successful,
               logger,
-              successful.options.javaCommand(),
+              successful.options.javaCommand().javaCommand,
               buildClient,
               bloopServer
             )
@@ -522,13 +522,7 @@ object Build {
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
     } yield version
-    val javaV0 = os.proc(options.javaCommand(), "-version").call(
-      cwd = os.pwd,
-      stdout = os.Pipe,
-      stderr = os.Pipe,
-      mergeErrIntoOut = true
-    ).out.text().trim()
-    val javaV = javaV0.split(" ")(2).replace("\"", "").trim.stripPrefix("1.").split("[.]").head
+    val javaV          = options.javaCommand().version.toString
     val scalacReleaseV = if (bloopJvmOption.contains("8")) Nil else List("-release", javaV)
     val javacReleaseV  = if (javaV == "8") Nil else List("--release", javaV)
 

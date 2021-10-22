@@ -116,10 +116,32 @@ final case class BuildOptions(
 
   private lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
-  private lazy val javaCommand0: String = {
+
+  case class JavaHomeInfo(javaCommand: String, version: Int)
+
+  private lazy val javaCommand0: JavaHomeInfo = {
     val javaHome = javaHomeLocation()
     val ext      = if (Properties.isWin) ".exe" else ""
-    (javaHome / "bin" / s"java$ext").toString
+    val javaCmd  = (javaHome / "bin" / s"java$ext").toString
+
+    val javaV0 = os.proc(javaCmd, "-version").call(
+      cwd = os.pwd,
+      stdout = os.Pipe,
+      stderr = os.Pipe,
+      mergeErrIntoOut = true
+    ).out.text().trim()
+    val javaV = javaV0.split(" ")(2).replace("\"", "").trim.stripPrefix("1.").split("[.]").head
+
+    val javaVersion =
+      try javaV.toInt
+      catch {
+        case e =>
+          pprint.stderr.log(e)
+          pprint.stderr.log(javaV0)
+          pprint.stderr.log(javaV)
+          8
+      }
+    JavaHomeInfo(javaCmd, javaVersion)
   }
 
   def javaHomeLocationOpt(): Option[os.Path] =
@@ -147,7 +169,7 @@ final case class BuildOptions(
       }
     }
 
-  def javaCommand(): String = javaCommand0
+  def javaCommand(): JavaHomeInfo = javaCommand0
 
   private lazy val javaHomeManager = {
     val indexUrl  = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
