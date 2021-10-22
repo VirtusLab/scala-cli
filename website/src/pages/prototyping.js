@@ -6,7 +6,7 @@ const Index = (props) => {
   return <UseCase
     title="Prototyping, experimenting, reproducing bugs with Scala CLI"
     description="Page describing why Scala CLI is good for prototyping / experimenting / reproducing bugs."
-    headline="Move fast, break and things but be in control of your build"
+    headline="Move fast and break things but be in control of your build"
     image="prototyping.svg"
     id="prototyping"
     >
