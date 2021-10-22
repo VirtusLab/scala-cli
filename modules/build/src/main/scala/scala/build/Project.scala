@@ -30,9 +30,7 @@ final case class Project(
       case (None, None) =>
         val baseJvmConf = bloopJvmPlatform
         baseJvmConf.copy(
-          config = baseJvmConf.config.copy(
-            home = javaHomeOpt.map(_.toNIO).orElse(baseJvmConf.config.home)
-          )
+          config = baseJvmConf.config.copy(home = None)
         )
       case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
       case (_, Some(nativeConfig)) =>
