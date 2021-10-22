@@ -187,6 +187,16 @@ final case class SharedOptions(
     ).out.text().trim()
     val javaV = javaV0.split(" ")(2).replace("\"", "").trim.stripPrefix("1.").split("[.]").head
 
+    try {
+      javaV.toInt
+    } catch {
+      case e => {
+        pprint.stderr.log(e)
+        pprint.stderr.log(javaV0)
+        pprint.stderr.log(javaV)
+      }
+    }
+
     val jvmId = bo.javaOptions.jvmIdOpt
     compilationServer.bloopRifleConfig(
       logging.logger,
