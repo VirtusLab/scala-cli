@@ -57,7 +57,7 @@ const Index = (props) => {
 				</IconBox>
 
 				<IconBox title="Fast" icon="img/rocket.png">
-					<strong>Scala CLI is optimize to respond as quickly as possible.</strong> CLI is compiled to native code and compilations are <a href="/docs/reference/bloop">offloaded to bloop</a>
+					<strong>Scala CLI is optimized to respond as quickly as possible.</strong> CLI is compiled to native code and compilations are <a href="/docs/reference/bloop">offloaded to bloop</a>
 				</IconBox>
 
 				<IconBox title="Command-line first" icon="img/monitor.png">
