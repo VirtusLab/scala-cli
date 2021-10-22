@@ -523,7 +523,7 @@ object Build {
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
     } yield version
-pprint.stderr.log(cliJvmOption)
+    pprint.stderr.log(cliJvmOption)
     val javaV0 = os.proc(options.javaHomeLocation() / "bin" / "java", "-version").call(
       cwd = os.pwd,
       stdout = os.Pipe,
@@ -562,7 +562,7 @@ pprint.stderr.log(cliJvmOption)
       resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
       sources = allSources,
       resourceDirs = sources.resourceDirs,
-      javaHomeOpt = options.javaHomeLocationOpt(),
+      javaHomeOpt = Option(options.javaHomeLocation()),
       javacOptions = releaseV.map(v => List("--release", v)).getOrElse(List())
     )
 
