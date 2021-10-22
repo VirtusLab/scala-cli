@@ -517,13 +517,11 @@ object Build {
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
     } yield version
-    pprint.stderr.log(bloopJvmOption)
     val cliJvmOption = for {
       jvmOpt  <- options.javaOptions.jvmIdOpt
       m       <- jvmVersionRegex.findAllMatchIn(jvmOpt).toList.headOption
       version <- Option(m.group(3))
     } yield version
-    pprint.stderr.log(cliJvmOption)
     val javaV0 = os.proc(options.javaHomeLocation() / "bin" / "java", "-version").call(
       cwd = os.pwd,
       stdout = os.Pipe,
@@ -531,7 +529,6 @@ object Build {
       mergeErrIntoOut = true
     ).out.text().trim()
     val javaV = javaV0.split(" ")(2).replace("\"", "").trim.stripPrefix("1.").split("[.]").head
-    pprint.stderr.log(javaV)
     val releaseV = if (javaV == "8") None else Some(javaV)
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
