@@ -231,10 +231,6 @@ final case class SharedCompilationServerOptions(
       javaOpts =
         (if (bloopDefaultJavaOpts) baseConfig.javaOpts
          else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions(logger),
-      acceptBloopVersion = Some { v =>
-        import coursier.core.Version
-        Version(retainedBloopVersion) <= Version(v)
-      },
       acceptBloopJvm =
         Some { // todo, we have to ensure that if we reload bloop, it's versoin is not older than the current one. Otherwise, it'll potentially conflict with metals running with a different project
           import coursier.core.Version

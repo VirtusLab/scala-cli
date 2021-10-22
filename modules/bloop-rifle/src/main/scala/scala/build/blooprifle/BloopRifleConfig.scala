@@ -21,7 +21,6 @@ final case class BloopRifleConfig(
   startCheckPeriod: FiniteDuration,
   startCheckTimeout: FiniteDuration,
   initTimeout: FiniteDuration,
-  acceptBloopVersion: Option[String => Boolean],
   acceptBloopJvm: Option[String => Boolean],
   retainedBloopVersion: String
 )
@@ -114,7 +113,6 @@ object BloopRifleConfig {
       startCheckPeriod = 100.millis,
       startCheckTimeout = 1.minute,
       initTimeout = 30.seconds,
-      acceptBloopVersion = None,
       acceptBloopJvm = None,
       retainedBloopVersion = Constants.bloopVersion
     )

@@ -53,25 +53,19 @@ object BloopServer {
       if (isRunning)
         BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool)
       else None
+    val bloopVersionIsOk =
+      isRunning && (bloopInfo.get.bloopVersion isNewerThan config.retainedBloopVersion)
+    val bloopJvmIsOk = isRunning && (config.acceptBloopJvm.forall(_(bloopInfo.get.bloopJvm)))
+    val isOk         = isRunning && bloopVersionIsOk && bloopJvmIsOk
 
-    val isOk = isRunning && config.acceptBloopJvm.forall(
-      _(bloopInfo.get.bloopJvm)
-    ) && (bloopInfo.get.bloopVersion isNewerThan config.retainedBloopVersion)
-    if (isOk)
-      logger.debug("No need to restart bloop")
-    else {
-      if (isRunning) BloopRifle.exit(config, workdir, logger)
+    if (isRunning && !isOk) BloopRifle.exit(config, workdir, logger)
+    if (!isOk) {
       val bloopVersionToSpawn =
-        if (
-          isRunning && (bloopInfo.get.bloopVersion isNewerThan config.retainedBloopVersion)
-        ) // todo remove .get
-          bloopInfo.get.bloopVersion
-        else
-          Constants.bloopVersion
+        if (isRunning && bloopVersionIsOk) bloopInfo.get.bloopVersion else Constants.bloopVersion
       val fut = BloopRifle.startServer(config, startServerChecksPool, logger, bloopVersionToSpawn)
+      logger.debug("Bloop server started")
       Await.result(fut, 10.seconds)
     }
-    logger.debug("Bloop server started")
     BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool).getOrElse(
       throw new RuntimeException("Could not get bloop version")
     ) // todo better exception
