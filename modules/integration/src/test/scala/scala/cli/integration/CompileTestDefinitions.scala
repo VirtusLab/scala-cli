@@ -164,8 +164,12 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   val jvmT = new munit.Tag("jvm")
 
-  test("compilation succeeds if jvm version is mismatched".tag(jvmT)) {
-    compileToADifferentJvmThanBloops("11", "8", true)
+  test("compilation  if jvm version is mismatched".tag(jvmT)) {
+    compileToADifferentJvmThanBloops("11", "8", false) // should send -release 8 and fail
+  }
+
+  test("compilation  if jvm version is mismatched".tag(jvmT)) {
+    compileToADifferentJvmThanBloops("8", "8", false)
   }
 
   test("compilation succeeds if target release too low".tag(jvmT)) {

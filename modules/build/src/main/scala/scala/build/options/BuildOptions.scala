@@ -122,7 +122,7 @@ final case class BuildOptions(
     (javaHome / "bin" / s"java$ext").toString
   }
 
-  def javaHomeLocationOpt(): Option[os.Path] = {
+  def javaHomeLocationOpt(): Option[os.Path] =
     javaOptions.javaHomeOpt
       .orElse {
         if (javaOptions.jvmIdOpt.isEmpty) sys.props.get("java.home").map(os.Path(_, Os.pwd))
@@ -137,9 +137,8 @@ final case class BuildOptions(
           }
         }
       }
-  }
 
-  def javaHomeLocation(): os.Path = {
+  def javaHomeLocation(): os.Path =
     javaHomeLocationOpt().getOrElse {
       implicit val ec = finalCache.ec
       finalCache.logger.use {
@@ -147,7 +146,6 @@ final case class BuildOptions(
         os.Path(path)
       }
     }
-  }
 
   def javaCommand(): String = javaCommand0
 

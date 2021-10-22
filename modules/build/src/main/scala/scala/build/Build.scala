@@ -529,13 +529,14 @@ object Build {
       mergeErrIntoOut = true
     ).out.text().trim()
     val javaV = javaV0.split(" ")(2).replace("\"", "").trim.stripPrefix("1.").split("[.]").head
-    val releaseV = if (javaV == "8") None else Some(javaV)
+    val scalacReleaseV = if (bloopJvmOption.contains("8")) Nil else List("-release", javaV)
+    val javacReleaseV  = if (javaV == "8") Nil else List("--release", javaV)
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions ++
-      scalaJsScalacOptions ++ releaseV.map(v => List("-release", v)).getOrElse(List())
+      scalaJsScalacOptions ++ scalacReleaseV
 
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,
@@ -560,7 +561,7 @@ object Build {
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       javaHomeOpt = Option(options.javaHomeLocation()),
-      javacOptions = releaseV.map(v => List("--release", v)).getOrElse(List())
+      javacOptions = javacReleaseV
     )
 
     val updatedBloopConfig = project.writeBloopFile(logger)

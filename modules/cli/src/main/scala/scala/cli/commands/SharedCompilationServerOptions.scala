@@ -238,8 +238,7 @@ final case class SharedCompilationServerOptions(
       acceptBloopJvm =
         Some { // todo, we have to ensure that if we reload bloop, it's versoin is not older than the current one. Otherwise, it'll potentially conflict with metals running with a different project
           import coursier.core.Version
-          v =>
-            Version(javaV.getOrElse("8")) <= Version(v) // todo handle jvm distribution
+          v => Version(javaV.getOrElse("8")) <= Version(v) // todo handle jvm distribution
         },
       retainedBloopVersion = retainedBloopVersion
     )
