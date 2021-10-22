@@ -179,22 +179,7 @@ final case class SharedOptions(
   def bloopRifleConfig(): BloopRifleConfig = {
 
     val bo = buildOptions(false, None)
-    val javaV0 = os.proc(bo.javaCommand().javaCommand, "-version").call(
-      cwd = os.pwd,
-      stdout = os.Pipe,
-      stderr = os.Pipe,
-      mergeErrIntoOut = true
-    ).out.text().trim()
-    val javaV = javaV0.split(" ")(2).replace("\"", "").trim.stripPrefix("1.").split("[.]").head
-
-    try javaV.toInt
-    catch {
-      case e =>
-        pprint.stderr.log(e)
-        pprint.stderr.log(javaV0)
-        pprint.stderr.log(javaV)
-    }
-
+    val javaV = bo.javaCommand().version.toString
     compilationServer.bloopRifleConfig(
       logging.logger,
       logging.verbosity,

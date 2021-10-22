@@ -42,7 +42,8 @@ final class BspImpl(
     }
 
   private def prepareBuild(
-    actualLocalServer: BspServer
+    actualLocalServer: BspServer,
+    bloopServer: BloopServer
   ): Either[BuildException, PreBuildData] = either {
 
     logger.log("Preparing build")
@@ -86,7 +87,7 @@ final class BspImpl(
         Scope.Main,
         logger,
         localClient,
-        None // todo no None!!!!onenone
+        Some(bloopServer)
       )
     }
 
@@ -107,7 +108,7 @@ final class BspImpl(
     bloopServer: BloopServer,
     notifyChanges: Boolean
   ): Either[BuildException, Unit] = either {
-    val preBuildData = value(prepareBuild(actualLocalServer))
+    val preBuildData = value(prepareBuild(actualLocalServer, bloopServer))
     if (notifyChanges && preBuildData.buildChanged)
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
