@@ -524,7 +524,7 @@ object Build {
     } yield version
     val javaV          = options.javaCommand().version.toString
     val scalacReleaseV = if (bloopJvmOption.contains("8")) Nil else List("-release", javaV)
-    val javacReleaseV  = if (javaV == "8") Nil else List("--release", javaV)
+    val javacReleaseV  = if (bloopJvmOption.contains("8")) Nil else List("--release", javaV)
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
