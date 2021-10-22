@@ -43,7 +43,7 @@ final class BspImpl(
 
   private def prepareBuild(
     actualLocalServer: BspServer,
-    bloopServer: BloopServer
+    bloopServer: Option[BloopServer]
   ): Either[BuildException, PreBuildData] = either {
 
     logger.log("Preparing build")
@@ -87,7 +87,7 @@ final class BspImpl(
         Scope.Main,
         logger,
         localClient,
-        Some(bloopServer)
+        bloopServer
       )
     }
 
@@ -108,7 +108,7 @@ final class BspImpl(
     bloopServer: BloopServer,
     notifyChanges: Boolean
   ): Either[BuildException, Unit] = either {
-    val preBuildData = value(prepareBuild(actualLocalServer, bloopServer))
+    val preBuildData = value(prepareBuild(actualLocalServer, Some(bloopServer)))
     if (notifyChanges && preBuildData.buildChanged)
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
@@ -155,11 +155,12 @@ final class BspImpl(
   def compile(
     actualLocalServer: BspServer,
     executor: Executor,
-    doCompile: () => CompletableFuture[b.CompileResult]
+    doCompile: () => CompletableFuture[b.CompileResult],
+    bloopServer: BloopServer
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () =>
-        prepareBuild(actualLocalServer) match {
+        prepareBuild(actualLocalServer, Some(bloopServer)) match {
           case Right(preBuildData) =>
             if (preBuildData.buildChanged)
               notifyBuildChange(actualLocalServer)
@@ -277,7 +278,8 @@ final class BspImpl(
     actualLocalServer =
       new BspServer(
         remoteServer.server,
-        compile = doCompile => compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
+        compile = doCompile =>
+          compile(actualLocalServer, threads.prepareBuildExecutor, doCompile, remoteServer),
         logger = logger
       )
     actualLocalServer.setProjectName(inputs.workspace, inputs.projectName)
@@ -305,7 +307,7 @@ final class BspImpl(
         case _: Inputs.Virtual =>
       }
 
-    prepareBuild(actualLocalServer) match {
+    prepareBuild(actualLocalServer, Some(remoteServer)) match {
       case Left(ex) =>
         actualLocalClient.reportBuildException(actualLocalServer.targetIdOpt, ex)
         logger.log(ex)
