@@ -148,8 +148,11 @@ final case class SharedCompilationServerOptions(
         Some(() => BspConnectionAddress.WindowsNamedPipe(bspPipeName()))
       else
         Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile(directories)))
+
+    // FreeBSD throws a java.lang.UnsatisfiedLinkError when trying the
+    // UnixDomainSocket, so stick with TCP
     def default =
-      if (isGraalvmNativeImage && arch != "x86_64")
+      if ((isGraalvmNativeImage && arch != "x86_64") || Properties.osName == "FreeBSD")
         None // tcp
       else
         namedSocket
