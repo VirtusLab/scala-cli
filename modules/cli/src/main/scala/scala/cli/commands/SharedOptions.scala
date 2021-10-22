@@ -178,7 +178,7 @@ final case class SharedOptions(
 
   def bloopRifleConfig(): BloopRifleConfig = {
 
-    val bo = buildOptions(false, None)
+    val bo    = buildOptions(false, None)
     val javaV = bo.javaCommand().version.toString
     compilationServer.bloopRifleConfig(
       logging.logger,
