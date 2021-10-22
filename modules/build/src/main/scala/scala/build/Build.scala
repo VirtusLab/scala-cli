@@ -480,7 +480,7 @@ object Build {
 
     val artifacts = value(options.artifacts(logger))
 
-    val pluginScalacOptions = artifacts.compilerPlugins.map {
+    val pluginScalacOptions = artifacts.compilerPlugins.distinct.map {
       case (_, _, path) =>
         s"-Xplugin:${path.toAbsolutePath}"
     }
