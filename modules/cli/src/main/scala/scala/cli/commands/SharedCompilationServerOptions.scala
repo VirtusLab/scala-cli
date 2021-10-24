@@ -149,10 +149,11 @@ final case class SharedCompilationServerOptions(
       else
         Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile(directories)))
 
-    // FreeBSD throws a java.lang.UnsatisfiedLinkError when trying the
-    // UnixDomainSocket, so stick with TCP
+    // FreeBSD and others throw a java.lang.UnsatisfiedLinkError when trying the
+    // UnixDomainSocket, because of the ipcsocket JNI stuff, so stick with TCP for them.
+    def isStandardOs = Properties.isLinux || Properties.isWin || Properties.isMac
     def default =
-      if ((isGraalvmNativeImage && arch != "x86_64") || Properties.osName == "FreeBSD")
+      if ((isGraalvmNativeImage && arch != "x86_64") || !isStandardOs)
         None // tcp
       else
         namedSocket
