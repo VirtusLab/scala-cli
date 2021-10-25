@@ -514,4 +514,27 @@ class BuildTests extends munit.FunSuite {
       )
     }
   }
+
+  test("Compiler plugins from using directives") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """using scala 2.13
+          |using plugins com.olegpy::better-monadic-for:0.3.1 
+          |
+          |def getCounts: Either[String, (Int, Int)] = ???
+          |
+          |for {
+          |  (x, y) <- getCounts
+          |} yield x + y
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(clue(maybeBuild.orThrow.diagnostics).toSeq.flatten.isEmpty)
+    }
+  }
 }
