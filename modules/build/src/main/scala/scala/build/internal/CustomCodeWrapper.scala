@@ -24,7 +24,7 @@ case object CustomCodeWrapper extends CodeWrapper {
                                                        |  }
                                                        |  def main(args: Array[String]): Unit = {
                                                        |    args$$set(args)
-                                                       |    ${indexedWrapperName.backticked}.hashCode()
+                                                       |    ${indexedWrapperName.backticked}.hashCode() // hasCode to clear scalac warning about pure expression in statement position
                                                        |  }
                                                        |}
                                                        |""".stripMargin)
