@@ -152,7 +152,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       .filter(os.isFile(_)) // just in case
       .map(_.last.stripSuffix(".class"))
       .sorted
-    if (rootClasses.nonEmpty)
+    if (rootClasses.nonEmpty && options.replOptions.useAmmoniteOpt.exists(_ == true))
       logger.message(
         s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")})." +
           " These will not be accessible from the REPL."
