@@ -3,36 +3,40 @@ title: Basics
 sidebar_position: 3
 ---
 
-Scala CLI is a command line tool that executes a given command on provided inputs with given [configuration](../guides/configuration.md) to produce a result. Most important commands are:
+Scala CLI is a command line tool that executes a given command on the inputs it’s provided with a given [configuration](../guides/configuration.md) to produce a result.
 
-  - [compile](./compile.md) to compile you code (this exclude tests)
-  - [run](./run.md) - to run your code using provided arguments (also used when no other command is provided)
-  - [test](./test.md) - to compile and run tests defined in your code
-  - [package](./package.md) - to package your code into a jar or other format
-  - [repl](./repl.md) / [console](./repl.md) - to run interactive Scala shell
-  - [fmt](./fmt.md) - to format your code
+The most important commands are:
 
-If Scala CLI is run without any command provided, it will default to the `run` command, so `scala-cli a.scala` will run your `a.scala` file.
+  - [compile](./compile.md) compiles your code (excluding tests)
+  - [run](./run.md) runs your code using the provided arguments (it’s also used when no other command is provided)
+  - [test](./test.md) compiles and runs the tests defined in your code
+  - [package](./package.md) packages your code into a jar or other format
+  - [repl](./repl.md) / [console](./repl.md) runs the interactive Scala shell
+  - [fmt](./fmt.md) formats your code
+
+When Scala CLI is run without any commands, it defaults to the `run` command, so <br/>`scala-cli a.scala` runs your `a.scala` file.
 
 ## Input formats
 
 The `scala-cli` CLI commands accept input in a number of ways, most notably:
-- as source files
-- as one or several directories, containing sources
-- as URLs, pointing to sources
-- by piping or process substitution source code directly
 
-Lastly, note that all these input formats can used alongside each other.
+- as source files
+- as one or several directories that contain source files
+- as URLs, pointing to sources
+- by processing source code via piping or process substitution
+
+Note that all of these input formats can used alongside each other.
 
 ## Source files
 
-Scala CLI accepts following kinds of source:
- - `.scala` files containing Scala code
- - `.sc` files, containing Scala scripts (see more in [Scripts guide](../guides/scripts.md))
- - `.java` files containing Java code
+Scala CLI accepts the following types of source code:
 
-This is the simplest input format. Just write a source file, and pass it to
-`scala-cli` to run it:
+- `.scala` files, containing Scala code
+- `.sc` files, containing Scala scripts (see more in [Scripts guide](../guides/scripts.md))
+- `.java` files, containing Java code
+
+This example shows the simplest input format.
+First, create a source file:
 
 ```scala title=Hello.scala
 object Hello {
@@ -41,13 +45,14 @@ object Hello {
 }
 ```
 
-Run it with
+The run it by passing it to `scala-cli`:
+
 ```bash
 scala-cli Hello.scala
 # Hello from Scala
 ```
 
-You can also split your code in multiple files, and pass all of them to `scala-cli` :
+You can also split your code into multiple files:
 
 ```scala title=Messages.scala
 object Messages {
@@ -62,30 +67,33 @@ object Hello {
 }
 ```
 
-Run them with
+and the run them with `scala-cli`:
+
 ```bash
 scala-cli Hello.scala Messages.scala
 # Hello from Scala
 ```
 
 :::note
-Scala CLI compiles together only the provided inputs.
-:::
-
-If we provide only one of the files above:
+Scala CLI compiles only the provided inputs.
+For example, if we provide only one of the files above:
 
 ```bash fail
 scala-cli Hello.scala
 ```
 
-compilation will fail even though a moment ago files compiled together without any problem.
+compilation will fail. `scala-cli` compiles only the files it’s given.
+:::
 
-Passing many files this way can be cumbersome and error-prone. Directories can help.
+While this is *very* convenient for projects with just a few files, passing many files this way can be cumbersome and error-prone.
+For larger projects, directories can help.
+
 
 ## Directories
 
-`scala-cli` accepts whole directories as input. This is convenient when you have many
-`.scala` files and passing them all one-by-one on the command line isn't practical:
+`scala-cli` accepts whole directories as input.
+
+This is convenient when you have many `.scala` files, and passing them all one-by-one on the command line isn't practical:
 
 ```scala title=my-app/Messages.scala
 object Messages {
@@ -100,30 +108,32 @@ object Hello {
 }
 ```
 
-Run them with
+For this case, run all the source code files in `my-app` by supplying the directory name:
+
 ```bash
 scala-cli my-app
 # Hello from Scala
 ```
 
-From our experience, `scala-cli .` is the most used command (it will compile and run all sources from within current directory.)
+In our experience, `scala-cli .` is the most used command; it compiles and runs all sources in the current directory.
 
 :::note
-Scala CLI will process all files within the directories and all its subdirectories.
+Scala CLI process all files within the specified directories and all of its subdirectories.
 
-Scala CLI ignores all subdirectories that starts with `.` like `.scala` or `.vscode`. (But such directories can be explicitly provided as inputs.)
-
+Scala CLI ignores all subdirectories that start with `.` like `.scala` or `.vscode`.
+Such directories needs to be explicitly provided as inputs.
 :::
+
 ## URLs
 
 :::warning
-Running unverified code from the internet may be really dangerous since Scala CLI does not provide any sandboxing at this moment.
+Running unverified code from the internet can be very handy for *trusted* sources, but it can also be really dangerous, since Scala CLI does not provide any sandboxing at this moment.
 
 Make sure that you trust the code that you are about to run.
 :::
 
 `scala-cli` accepts input via URLs pointing at `.scala` files.
-It will download their content, and run them.
+It downloads their content, and runs them:
 
 ```bash
 scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala
@@ -132,8 +142,8 @@ scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d63
 
 ### GitHub Gist
 
-`scala-cli` accepts input via the URLs of GitHub gists.
-It wil download the gists' zip archives, cache their content, and run them.
+`scala-cli` accepts input via Github Gist’s urls.
+It downloads the gist zip archive and runs it:
 
 ```bash
 scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec
@@ -142,7 +152,8 @@ scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540
 
 ## Piping
 
-You can just pipe Scala code to `scala-cli` for execution:
+You can also pipe Scala code to `scala-cli` for execution:
+
 ```bash
 echo 'println("Hello")' | scala-cli -
 # Hello
@@ -150,7 +161,8 @@ echo 'println("Hello")' | scala-cli -
 
 ## Process substitution
 
-`scala-cli` accepts input via shell process substitution:
+Lastly, `scala-cli` also accepts input via shell process substitution:
+
 ```bash
 scala-cli <(echo 'println("Hello")')
 # Hello

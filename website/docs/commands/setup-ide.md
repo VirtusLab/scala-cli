@@ -1,34 +1,29 @@
 ---
-title: Setup IDE
+title: IDE Setup
 sidebar_position: 15
 ---
 
-Scala CLI can help you setup your IDE of choice, whether it is VS Code or IntelliJ,
-by generating files necessary for it to provide you with full-blown support.
+Whether it's VS Code or IntelliJ, Scala CLI can help you setup your IDE of choice by generating the files that are necessary for it, providing you with full-blown IDE support.
 
-Using Scala CLI should be as simple as possible,
-therefore under the hood this command is also run before first `run`, `compile` or `test` commands.
-As a result in most cases you do not need to run this command manually.
+Using Scala CLI should be as simple as possible, so under the hood this command is run before every `run`, `compile`, or `test` command.
+As a result, in most cases you don't need to run this command manually.
 
-You can invoke `setup-ide` like:
+But if you want to, invoke `setup-ide` like:
 
 ```bash
 scala-cli setup-ide . --scala 2.13
 ```
 
-Please keep in mind that if you change any of those options it may be required to restart or reimport
-the project within IDE.
+Keep in mind that if you change any of those options, you may need to restart your IDE, or re-import your project.
 
 ### IDE support internals
 
-After invoking `setup-ide` two files should be generated:
+After invoking `setup-ide`, two files should be generated:
 - `.bsp/scala-cli.json`
 - `.scala/ide-options.json`
 
-First one is a file specifically created for Build Server Protocol (BSP) support in your IDE.
-This protocol is supported by two most popular IDEs: VS Code (with Metals extension) and IntelliJ (with Scala plugin)
-and defines a way in which IDEs gather information about the project you are working on.
+The first file is specifically created for Build Server Protocol (BSP) support in your IDE.
+BSP is supported by VS Code (via the Metals extension) and IntelliJ (with the Scala plugin), and defines the way in which IDEs gather information about the project you are working on.
 
-Second file is designed to store settings used by Scala CLI while generating BSP configuration.
-This covers all options like Scala version, custom arguments and more but fortunately you shouldn't
-be forced to edit it.
+The second file is designed to store settings used by the Scala CLI while generating BSP configuration.
+This includes all options, such as the Scala version, custom arguments, and more, but fortunately you shouldn't need to edit it.

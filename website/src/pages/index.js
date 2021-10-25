@@ -24,7 +24,7 @@ const Index = (props) => {
 		{/* Headline */}
 		<YellowBanner title="Scala CLI is a command-line tool to interact with the Scala language." image="demo.svg">
 			<p>
-				It allows to compile, run, test, package (and more) your Scala code.
+				It lets you compile, run, test, and package your Scala code (and more!)
 			</p>
 		</YellowBanner>
 			
@@ -35,10 +35,10 @@ const Index = (props) => {
 
 			<SectionAbout title="Why Scala CLI?">
 				<p>
-					Scala CLI combines all the features you need to learn and use Scala in your scripts, playgrounds and (single-module) projects.
+					Scala CLI combines <em>all</em> the features you need to learn and use Scala in your scripts, playgrounds and (single-module) projects.
 				</p>
 				<p>
-					If you are bored with reading <a href="/docs/overview">documentation</a> or landing pages you can just <a href="/install">install</a> and enjoy <code>scala-cli</code>.
+					To get started you can read <a href="/docs/overview">the documentation</a>, or just <a href="/install">install</a> and enjoy <code>scala-cli</code>.
 				</p>
 			</SectionAbout>
 
@@ -53,15 +53,15 @@ const Index = (props) => {
 			<div className="section-features__row row">
 				
 				<IconBox title="Intuitive, simple" icon="img/hand.png">
-					<strong>No complicated mechanism, tasks, plugins or extension.</strong> Single-module only. All our commands have multiple aliases and follow well-known conventions.
+					<strong>No complicated mechanisms, tasks, plugins or extensions:</strong> just a single-module. All our commands have multiple aliases and follow well-known conventions.
 				</IconBox>
 
 				<IconBox title="Fast" icon="img/rocket.png">
-					<strong>Scala CLI is optimized to respond as quickly as possible.</strong> CLI is compiled to native code and compilations are <a href="/docs/reference/bloop">offloaded to bloop</a>
+					<strong>Scala CLI is optimized to be as fast as possible.</strong> CLI is compiled to native code and compilations are <a href="/docs/reference/bloop">offloaded to bloop</a>.
 				</IconBox>
 
 				<IconBox title="Command-line first" icon="img/monitor.png">
-					<strong>Scala CLI does not require any configuration file and all in-file configuration can be overridden by command-line.</strong> No additional installation or setup of environment (like specific working directory) required.
+					<strong>Scala CLI does not require a configuration file, and all in-file configurations can be overridden by command-line.</strong> No additional installation or setup of an environment (such as a specific working directory) are required.
 				</IconBox>
 
 			</div>
@@ -83,28 +83,28 @@ const Index = (props) => {
 
                 <UseCaseTile title="Education"
                              slug="education"
-                             description="Scala CLI is a help not a distraction while learning Scala, a library or programming in general.">
+                             description="Scala CLI is a help — not a distraction — while learning Scala, a library or programming in general.">
                 </UseCaseTile>
 
                 <UseCaseTile title="Scripting"
                              slug="scripting"
-                             description="Scala CLI has all tools to create or be integrated into scripts with whole power of Scala ecosystem.">
+                             description="Scala CLI has all the tools to create (or be integrated into) scripts with the whole power of the Scala ecosystem.">
                 </UseCaseTile>
 
                 <UseCaseTile title="Prototyping, Experimenting, Reproducing"
                              slug="prototyping"
-                             description="With Scala CLI, experimenting with different libraries, Scala or JVM versions or compiler options just easy and fun.">
+                             description="With Scala CLI, experimenting with different libraries, Scala or JVM versions, or compiler options is easy and fun.">
                 </UseCaseTile>
 
                 <UseCaseTile title="Single-module projects"
                              slug="projects"
-                             description="Scala CLI provides all tools to manage single-module project like CLI or basic web applications or sever-less lambdas.">
+                             description="Scala CLI provides all the tools you need to manage single-module projects like CLI or basic web applications, or server-less lambdas.">
                 </UseCaseTile>
 
-                <UseCaseTile title="/// your use case"
+                <UseCaseTile title="Your use case"
                              slug={false}
                              description=
-                             {<span>If you see other use case for Scala CLI let us know using <a href="https://github.com/VirtusLab/scala-cli/discussions/categories/ideas">github discussions!</a></span>}>
+                             {<span>If you see other use cases for Scala CLI, let us know using <a href="https://github.com/VirtusLab/scala-cli/discussions/categories/ideas">GitHub Discussions!</a></span>}>
                 </UseCaseTile>
 
               </div>

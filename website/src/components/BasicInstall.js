@@ -23,14 +23,14 @@ export default function BasicInstall(props){
           </TabItem>
 
           <TabItem value="linux" >
-            <p>Run the following one-line command in your terminal</p>
+            <p>Run the following one-line command in your terminal:</p>
             <code>
               curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh
             </code>
           </TabItem>
 
           <TabItem value="mac">
-            <p>Run the following one-line command in your terminal</p>
+            <p>Run the following one-line command in your terminal:</p>
             <code>
               brew install Virtuslab/scala-cli/scala-cli
             </code>
