@@ -3,6 +3,7 @@ package scala.build.bsp
 import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
+
 import scala.build.Logger
 import scala.build.internal.Constants
 import scala.build.options.Scope

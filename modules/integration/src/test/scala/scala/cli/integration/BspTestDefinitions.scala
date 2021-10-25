@@ -7,6 +7,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.Paths
+
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -60,6 +61,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   private def extractMainTargets(targets: Seq[BuildTargetIdentifier]): BuildTargetIdentifier =
     targets.collectFirst {
       case t if !t.getUri.contains("-test") => t
+    }.get
+
+  private def extractTestTargets(targets: Seq[BuildTargetIdentifier]): BuildTargetIdentifier =
+    targets.collectFirst {
+      case t if t.getUri.contains("-test") => t
     }.get
 
   def withBsp[T](
@@ -479,6 +485,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           val diagnostics = localClient.diagnostics()
           val params      = diagnostics(2)
           expect(params.getBuildTarget.getUri == targetUri)
+          println(TestUtil.normalizeUri(params.getTextDocument.getUri))
           expect(
             TestUtil.normalizeUri(params.getTextDocument.getUri) ==
               TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
@@ -757,6 +764,92 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         val change = changes.head
         expect(change.getTarget.getUri == targetUri)
         expect(change.getKind == b.BuildTargetEventKind.CHANGED)
+      }
+    }
+  }
+
+  test("test workspace update after adding file to main scope") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Messages.scala" ->
+          """object Messages {
+            |  def msg = "Hello"
+            |}
+            |""".stripMargin,
+        os.rel / "MyTests.test.scala" ->
+          """// using lib "com.lihaoyi::utest::0.7.10"
+            |import utest._
+            |
+            |object MyTests extends TestSuite {
+            |  val tests = Tests {
+            |    test("foo") {
+            |      assert(Messages.msg == "Hello")
+            |    }
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+
+    withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
+      async {
+        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        val target = {
+          val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
+          expect(targets.length == 2)
+          extractTestTargets(targets)
+        }
+
+        val targetUri = TestUtil.normalizeUri(target.getUri)
+        checkTargetUri(root, targetUri)
+
+        val targets = List(target).asJava
+
+        {
+          val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          expect(resp.getStatusCode == b.StatusCode.OK)
+        }
+
+        {
+          val resp = await {
+            remoteServer
+              .buildTargetDependencySources(new b.DependencySourcesParams(targets))
+              .asScala
+          }
+          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
+          expect(foundTargets == Seq(targetUri))
+          val foundDepSources = resp.getItems().asScala
+            .flatMap(_.getSources.asScala)
+            .toSeq
+            .map { uri =>
+              val idx = uri.lastIndexOf('/')
+              uri.drop(idx + 1)
+            }
+
+          if (actualScalaVersion.startsWith("2.13"))
+            expect(foundDepSources.exists(_.startsWith("utest_2.13-0.7.10")))
+          else if (actualScalaVersion.startsWith("2.12"))
+            expect(foundDepSources.exists(_.startsWith("utest_2.12-0.7.10")))
+          else
+            expect(foundDepSources.exists(_.startsWith("utest_3-0.7.10")))
+
+          expect(foundDepSources.exists(_.startsWith("test-interface-1.0")))
+          expect(foundDepSources.forall(_.endsWith("-sources.jar")))
+        }
+
+        localClient.buildTargetDidChange()
+
+        val newFileContent =
+          """object Messages {
+            |  def msg = "Hello2"
+            |}
+            |""".stripMargin
+        os.write.over(root / "Messages.scala", newFileContent)
+
+        {
+          val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+          expect(resp.getStatusCode == b.StatusCode.OK)
+        }
       }
     }
   }

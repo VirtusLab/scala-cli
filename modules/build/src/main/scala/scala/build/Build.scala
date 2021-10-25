@@ -521,6 +521,11 @@ object Build {
       compilerClassPath = artifacts.compilerClassPath
     )
 
+    val mainClassesPath =
+      if (scope == Scope.Test)
+        List(classesDir(inputs.workspace, inputs.projectName, Scope.Main).toNIO)
+      else Nil
+
     val project = Project(
       workspace = inputs.workspace / ".scala",
       classesDir = classesDir0,
@@ -532,7 +537,7 @@ object Build {
         if (options.platform == Platform.Native) Some(options.scalaNativeOptions.bloopConfig)
         else None,
       projectName = inputs.scopeProjectName(scope),
-      classPath = artifacts.compileClassPath,
+      classPath = artifacts.compileClassPath ++ mainClassesPath,
       resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
       sources = allSources,
       resourceDirs = sources.resourceDirs,

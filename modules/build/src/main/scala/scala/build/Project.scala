@@ -7,6 +7,7 @@ import coursier.core.Classifier
 
 import java.nio.file.Path
 import java.util.Arrays
+
 import scala.build.options.Scope
 
 final case class Project(
@@ -127,7 +128,9 @@ object Project {
         if (scope == Scope.Test) List(name.stripSuffix("-test"))
         else Nil,
       classpath = Nil,
-      out = out,
+      out =
+        if (scope == Scope.Test) os.Path(os.Path(out).toString().stripSuffix("-test")).toNIO
+        else out,
       classesDir = classesDir,
       resources = None,
       `scala` = None,
