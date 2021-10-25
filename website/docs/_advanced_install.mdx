@@ -42,6 +42,7 @@ values={[
 {label: 'Yum', value: 'yum'},
 {label: 'Rpm', value: 'rpm'},
 {label: 'Alpine', value: 'alpine'},
+{label: 'Nix', value: 'nix'},
 ]}
 >
 <TabItem value="manual">
@@ -96,7 +97,7 @@ gpgcheck=1
 gpgkey=https://virtuslab.github.io/scala-cli-packages/KEY.gpg
 EOF
 sudo yum repo-pkgs virtuslab-repo list
-sudo yum install scala-cli    
+sudo yum install scala-cli
 ```
 </TabItem>
 <TabItem value="rpm">
@@ -124,6 +125,23 @@ Check that it runs fine by running its `about` command:
 scala-cli about
 ```
 </TabItem>
+
+<TabItem value="nix">
+
+:::info
+This method is provided and supported by the community, not the core team of Scala CLI
+:::
+
+Scala CLI can be installed with [Nix](https://nixos.org) with
+
+```bash
+nix-env -if https://github.com/kubukoz/scala-cli.nix/archive/refs/heads/main.tar.gz
+```
+
+or other methods listed in [the unofficial package's README](https://github.com/kubukoz/scala-cli.nix).
+
+</TabItem>
+
 </Tabs>
 
 </TabItem>
@@ -190,6 +208,7 @@ values={[
 {label: 'Manual', value: 'manual'},
 {label: 'Installer', value: 'installer'},
 {label: 'Brew', value: 'brew'},
+{label: 'Nix', value: 'nix'},
 ]}
 >
 <TabItem value="manual">
@@ -220,8 +239,24 @@ Once downloaded, right-click on `scala-cli-x86_64-apple-darwin.pkg` from Finder,
 Scala CLI can be installed via [homebrew](https://brew.sh) with
 
 ```bash
-brew install Virtuslab/scala-cli/scala-cli 
+brew install Virtuslab/scala-cli/scala-cli
 ```
+</TabItem>
+<TabItem value="nix">
+
+:::info
+This method is provided and supported by the community, not the core team of Scala CLI
+:::
+
+
+Scala CLI can be installed with [Nix](https://nixos.org) with
+
+```bash
+nix-env -if https://github.com/kubukoz/scala-cli.nix/archive/refs/heads/main.tar.gz
+```
+
+or other methods listed in [the unofficial package's README](https://github.com/kubukoz/scala-cli.nix).
+
 </TabItem>
 </Tabs>
 
@@ -245,9 +280,9 @@ brew install Virtuslab/scala-cli/scala-cli
 
 <div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
 
-Script to automatically download and cache standalone `scala-cli` launcher. 
+Script to automatically download and cache standalone `scala-cli` launcher.
 
-<Tabs groupId="specific-standalone-launcher" 
+<Tabs groupId="specific-standalone-launcher"
       defaultValue="macOS/Linux"
       values={[
         {label: 'macOS/Linux', value: 'macOS/Linux'},
@@ -284,7 +319,7 @@ Script to automatically download and cache standalone `scala-cli` launcher.
 
 Try the completions with
 
-<Tabs groupId="shell-specific" 
+<Tabs groupId="shell-specific"
       defaultValue="bash"
       values={[
         {label: 'Bash', value: 'bash'},
@@ -349,7 +384,7 @@ To run Scala JS applications [Node.js](https://nodejs.org/) needs to be installe
 <SectionAbout title="Scala Native"/>
 <div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
 
-[Clang](https://llvm.org/docs/GettingStarted.html#requirements) is required to compile and run Scala Native applications. Using some functionalities known from JDK (like using `java.util.zip` package) require additional packages to be installed. 
+[Clang](https://llvm.org/docs/GettingStarted.html#requirements) is required to compile and run Scala Native applications. Using some functionalities known from JDK (like using `java.util.zip` package) require additional packages to be installed.
 
 Scala Native page contains detailed [installation guide](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies).
 
