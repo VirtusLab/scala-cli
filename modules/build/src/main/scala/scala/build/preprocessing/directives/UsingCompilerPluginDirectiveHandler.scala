@@ -16,7 +16,7 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
   def usage            = "using plugin org:name:ver | using plugins org:name:ver org2:name2:ver2"
   override def usageMd = "`using plugin `_org_`:`name`:`ver"
   override def examples = Seq(
-    "using lib org.typelevel:::kind-projector:0.13.2"
+    "using plugin org.typelevel:::kind-projector:0.13.2"
   )
 
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
