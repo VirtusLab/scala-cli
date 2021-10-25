@@ -33,13 +33,17 @@ final class BspImpl(
 
   import BspImpl.PreBuildData
 
-  def notifyBuildChange(actualLocalServer: BspServer): Unit =
-    for (targetId <- actualLocalServer.targetIdOpt) {
-      val event = new b.BuildTargetEvent(targetId)
-      event.setKind(b.BuildTargetEventKind.CHANGED)
-      val params = new b.DidChangeBuildTarget(List(event).asJava)
-      actualLocalClient.onBuildTargetDidChange(params)
-    }
+  def notifyBuildChange(actualLocalServer: BspServer): Unit = {
+    val events =
+      for (targetId <- actualLocalServer.targetIdOpt)
+        yield {
+          val event = new b.BuildTargetEvent(targetId)
+          event.setKind(b.BuildTargetEventKind.CHANGED)
+          event
+        }
+    val params = new b.DidChangeBuildTarget(events.asJava)
+    actualLocalClient.onBuildTargetDidChange(params)
+  }
 
   private def prepareBuild(
     actualLocalServer: BspServer
@@ -133,15 +137,15 @@ final class BspImpl(
     bloopServer: BloopServer,
     notifyChanges: Boolean
   ): Either[BuildException, Unit] = either {
-    val preBuildData = value(prepareBuild(actualLocalServer))
-    if (notifyChanges && preBuildData._1.buildChanged && preBuildData._2.buildChanged)
+    val (preBuildDataMain, preBuildDataTest) = value(prepareBuild(actualLocalServer))
+    if (notifyChanges && (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged))
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
       inputs,
-      preBuildData._1.sources,
+      preBuildDataMain.sources,
       inputs.generatedSrcRoot(Scope.Main),
-      preBuildData._1.generatedSources,
-      preBuildData._1.buildOptions,
+      preBuildDataMain.generatedSources,
+      preBuildDataMain.buildOptions,
       Scope.Main,
       logger,
       actualLocalClient,
@@ -149,10 +153,10 @@ final class BspImpl(
     )
     Build.buildOnce(
       inputs,
-      preBuildData._2.sources,
+      preBuildDataTest.sources,
       inputs.generatedSrcRoot(Scope.Test),
-      preBuildData._2.generatedSources,
-      preBuildData._2.buildOptions,
+      preBuildDataTest.generatedSources,
+      preBuildDataTest.buildOptions,
       Scope.Test,
       logger,
       actualLocalClient,
@@ -196,16 +200,16 @@ final class BspImpl(
     val preBuild = CompletableFuture.supplyAsync(
       () =>
         prepareBuild(actualLocalServer) match {
-          case Right(preBuildData) =>
-            if (preBuildData._1.buildChanged && preBuildData._2.buildChanged)
+          case Right((preBuildDataMain, preBuildDataTest)) =>
+            if (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged)
               notifyBuildChange(actualLocalServer)
             Right((
-              preBuildData._1.classesDir,
-              preBuildData._1.project,
-              preBuildData._1.generatedSources,
-              preBuildData._2.classesDir,
-              preBuildData._2.project,
-              preBuildData._2.generatedSources
+              preBuildDataMain.classesDir,
+              preBuildDataMain.project,
+              preBuildDataMain.generatedSources,
+              preBuildDataTest.classesDir,
+              preBuildDataTest.project,
+              preBuildDataTest.generatedSources
             ))
           case Left(ex) =>
             notifyBuildChange(actualLocalServer)

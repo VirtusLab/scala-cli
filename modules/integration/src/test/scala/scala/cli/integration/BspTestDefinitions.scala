@@ -1,12 +1,12 @@
 package scala.cli.integration
 
+import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.Paths
-
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -56,6 +56,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   override def afterAll(): Unit = {
     pool.shutdown()
   }
+
+  private def extractMainTargets(targets: Seq[BuildTargetIdentifier]): BuildTargetIdentifier =
+    targets.collectFirst {
+      case t if !t.getUri.contains("-test") => t
+    }.get
 
   def withBsp[T](
     inputs: TestInputs,
@@ -264,8 +269,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
           val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
-          expect(targets.length == 1)
-          targets.head
+          expect(targets.length == 2)
+          extractMainTargets(targets)
         }
 
         val targetUri = TestUtil.normalizeUri(target.getUri)
@@ -387,8 +392,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
           val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
-          expect(targets.length == 1)
-          targets.head
+          expect(targets.length == 2)
+          extractMainTargets(targets)
         }
 
         val targetUri = TestUtil.normalizeUri(target.getUri)
@@ -452,28 +457,29 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val target = {
+        val targets = {
           val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
-          expect(targets.length == 1)
-          targets.head
+          expect(targets.length == 2)
+          targets
         }
 
-        val targetUri = TestUtil.normalizeUri(target.getUri)
+        val targetUri = TestUtil.normalizeUri(targets.head.getUri)
         checkTargetUri(root, targetUri)
-
-        val targets = List(target).asJava
 
         val compileResp = await {
           remoteServer
-            .buildTargetCompile(new b.CompileParams(targets))
+            .buildTargetCompile(new b.CompileParams(targets.asJava))
             .asScala
         }
         expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
         val diagnosticsParams = {
-          val params = localClient.latestDiagnostics().getOrElse {
-            sys.error("No diagnostics found")
-          }
+          val diagnostics = localClient.diagnostics()
+//          val params = localClient.latestDiagnostics().getOrElse {
+//            sys.error("No diagnostics found")
+//          }
+          println(diagnostics)
+          val params = diagnostics(2)
           expect(params.getBuildTarget.getUri == targetUri)
           expect(
             TestUtil.normalizeUri(params.getTextDocument.getUri) ==
@@ -567,8 +573,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
           val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
-          expect(targets.length == 1)
-          targets.head
+          expect(targets.length == 2)
+          extractMainTargets(targets)
         }
 
         val targetUri = TestUtil.normalizeUri(target.getUri)
@@ -630,7 +636,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         }
 
         val changes = didChangeParams.getChanges.asScala.toSeq
-        expect(changes.length == 1)
+        expect(changes.length == 2)
 
         val change = changes.head
         expect(change.getTarget.getUri == targetUri)
@@ -678,8 +684,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
           val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
-          expect(targets.length == 1)
-          targets.head
+          expect(targets.length == 2)
+          extractMainTargets(targets)
         }
 
         val targetUri = TestUtil.normalizeUri(target.getUri)
@@ -748,7 +754,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         }
 
         val changes = didChangeParams.getChanges.asScala.toSeq
-        expect(changes.length == 1)
+        expect(changes.length == 2)
 
         val change = changes.head
         expect(change.getTarget.getUri == targetUri)
