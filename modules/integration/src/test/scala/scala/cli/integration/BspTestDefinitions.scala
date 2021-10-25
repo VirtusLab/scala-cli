@@ -457,29 +457,27 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val targets = {
+        val target = {
           val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
           expect(targets.length == 2)
-          targets
+          extractMainTargets(targets)
         }
 
-        val targetUri = TestUtil.normalizeUri(targets.head.getUri)
+        val targetUri = TestUtil.normalizeUri(target.getUri)
         checkTargetUri(root, targetUri)
+
+        val targets = List(target).asJava
 
         val compileResp = await {
           remoteServer
-            .buildTargetCompile(new b.CompileParams(targets.asJava))
+            .buildTargetCompile(new b.CompileParams(targets))
             .asScala
         }
         expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
         val diagnosticsParams = {
           val diagnostics = localClient.diagnostics()
-//          val params = localClient.latestDiagnostics().getOrElse {
-//            sys.error("No diagnostics found")
-//          }
-          println(diagnostics)
-          val params = diagnostics(2)
+          val params      = diagnostics(2)
           expect(params.getBuildTarget.getUri == targetUri)
           expect(
             TestUtil.normalizeUri(params.getTextDocument.getUri) ==

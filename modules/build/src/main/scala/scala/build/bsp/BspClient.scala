@@ -143,11 +143,11 @@ class BspClient(
     }
 
   def reportBuildException(
-    targetIdOpt: List[b.BuildTargetIdentifier],
+    targetIdOpt: Option[b.BuildTargetIdentifier],
     ex: BuildException,
     isFirst: Boolean = true
   ): Unit =
-    targetIdOpt.headOption match { // TODO resolve target Id
+    targetIdOpt match {
       case None =>
         logger.debug(s"Not reporting $ex to users (no build target id)")
       case Some(targetId) =>

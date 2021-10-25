@@ -3,9 +3,9 @@ package scala.build.bsp
 import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
-
 import scala.build.Logger
 import scala.build.internal.Constants
+import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
 
@@ -141,7 +141,7 @@ class BspServer(
     val target = params.getTarget
     if (!validTarget(target))
       logger.debug(
-        s"Got invalid target in Run request: ${target.getUri} (expected ${projectNames.flatMap(_.targetUriOpt).headOption.orNull})" // TODO resolve target targetUriOpt
+        s"Got invalid target in Run request: ${target.getUri} (expected ${targetScopeIdOpt(Scope.Main).orNull})" // TODO resolve target targetUriOpt
       )
     super.buildTargetRun(params)
   }
