@@ -56,7 +56,8 @@ scala-cli compile --scala 3 Hello.scala
 
 You can add dependencies on the command-line, via `--dependency`:
 ```bash
-scala-cli compile Hello.scala --dependency dev.zio::zio:1.0.9
+scala-cli compile Hello.scala \
+  --dependency org.scala-lang.modules::scala-parallel-collections:1.0.4
 ```
 
 Note that `--dependency` is only meant as a convenience. You should favour

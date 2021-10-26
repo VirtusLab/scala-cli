@@ -34,9 +34,9 @@ Adds dependencies
 `using lib `_org_`:`name`:`ver
 
 #### Examples
-`using lib org.typelevel::cats-effect:3.2.9`
 
-`using lib dev.zio::zio:1.0.12`
+`using lib org.scalatest::scalatest:3.2.10`
+`using lib org.scalameta::munit:0.7.29`
 
 ### Java home
 
