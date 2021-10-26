@@ -17,7 +17,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   override def usageMd = "`using lib `_org_`:`name`:`ver"
   override def examples = Seq(
     "using lib org.scalatest::scalatest:3.2.10",
-    "using lib org.scalameta::munit:0.7.29",
+    "using lib org.scalameta::munit:0.7.29"
   )
 
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
