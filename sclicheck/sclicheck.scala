@@ -113,8 +113,8 @@ def checkPath(options: Options)(path: os.Path): Seq[TestCase] =
 
 val fakeLineMarker = "//fakeline"
 
-def shoulAlignContent(file: String | os.Path) =
-  file.toString.endsWith(".scala") || file.toString.endsWith(".java")
+def shouldAlignContent(file: String | os.Path) =
+  file.toString.endsWith(".scala") || file.toString.endsWith(".java") || file.toString.endsWith(".sc")
 
 def mkBashScript(content: Seq[String]) =
   s"""#!/usr/bin/env bash
@@ -164,7 +164,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         codeLines.foreach(log)
 
         val prefix =
-          if !shoulAlignContent(file) then prefixLines.mkString("")
+          if !shouldAlignContent(file) then prefixLines.mkString("")
           else prefixLines.mkString("", "", s"$fakeLineMarker\n" * c.line)
 
         os.write.over(file, code.mkString(prefix, "\n", ""), createFolders = true)
@@ -236,7 +236,7 @@ def checkFile(file: os.Path, options: Options): Unit =
     allSources.result().foreach { s =>
       val content = os.read.lines(s)
       val cleared =
-        if !shoulAlignContent(s) || content.size < 2 then content
+        if !shouldAlignContent(s) || content.size < 2 then content
         else
           val head = content.take(1).dropWhile(_ == fakeLineMarker)
           val tail = content.drop(1).dropWhile(_ == fakeLineMarker)
