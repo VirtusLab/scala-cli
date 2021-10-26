@@ -8,6 +8,8 @@ import coursier.core.Classifier
 import java.nio.file.Path
 import java.util.Arrays
 
+import scala.build.options.Scope
+
 final case class Project(
   workspace: os.Path,
   classesDir: os.Path,
@@ -19,7 +21,8 @@ final case class Project(
   sources: Seq[os.Path],
   resolution: Option[BloopConfig.Resolution],
   resourceDirs: Seq[os.Path],
-  javaHomeOpt: Option[os.Path]
+  javaHomeOpt: Option[os.Path],
+  scope: Scope
 ) {
 
   import Project._
@@ -46,7 +49,8 @@ final case class Project(
       projectName,
       workspace.toNIO,
       (workspace / ".bloop" / projectName).toNIO,
-      classesDir.toNIO
+      classesDir.toNIO,
+      scope
     )
       .copy(
         workspaceDir = Some(workspace.toNIO),
@@ -106,13 +110,26 @@ object Project {
     BloopConfig.Resolution(modules)
   }
 
+  private def setProjectTestConfig(p: BloopConfig.Project): BloopConfig.Project =
+    p.copy(
+      dependencies = List(p.name.stripSuffix("-test")),
+      test = Some(
+        BloopConfig.Test(
+          frameworks = BloopConfig.TestFramework.DefaultFrameworks,
+          options = BloopConfig.TestOptions.empty
+        )
+      ),
+      tags = Some(List("test"))
+    )
+
   private def baseBloopProject(
     name: String,
     directory: Path,
     out: Path,
-    classesDir: Path
-  ): BloopConfig.Project =
-    BloopConfig.Project(
+    classesDir: Path,
+    scope: Scope
+  ): BloopConfig.Project = {
+    val project = BloopConfig.Project(
       name = name,
       directory = directory,
       workspaceDir = None,
@@ -130,8 +147,13 @@ object Project {
       test = None,
       platform = None,
       resolution = None,
-      tags = None
+      tags = Some(List("library"))
     )
+    if (scope == Scope.Test)
+      setProjectTestConfig(project)
+    else project
+  }
+
   private def bloopJvmPlatform: BloopConfig.Platform.Jvm =
     BloopConfig.Platform.Jvm(
       config = BloopConfig.JvmConfig(None, Nil),
