@@ -11,7 +11,8 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.blooprifle.BloopRifleConfig
+import scala.build.bloop.BloopServer
+import scala.build.blooprifle.{BloopRifleConfig, VersionUtil}
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope}
@@ -290,7 +291,7 @@ object Build {
               inputs,
               successful,
               logger,
-              successful.options.javaCommand(),
+              successful.options.javaHome().javaCommand,
               buildClient,
               bloopServer
             )
@@ -335,6 +336,7 @@ object Build {
       keepDiagnostics = options.internal.keepDiagnostics
     )
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
+
     bloop.BloopServer.withBuildServer(
       bloopConfig,
       "scala-cli",
@@ -470,7 +472,8 @@ object Build {
     options: BuildOptions,
     scope: Scope,
     logger: Logger,
-    buildClient: BloopBuildClient
+    buildClient: BloopBuildClient,
+    bloopServer: Option[BloopServer]
   ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
 
     val params     = value(options.scalaParams)
@@ -508,11 +511,22 @@ object Build {
       if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
       else Nil
 
+    val bloopJvmRelease = for {
+      bloopServer0 <- bloopServer
+      version      <- VersionUtil.jvmRelease(bloopServer0.jvmVersion)
+    } yield version
+    val javaV            = options.javaHome().version.toString
+    val isReleaseFlagSet = options.scalaOptions.scalacOptions.contains("-release")
+    val scalacReleaseV =
+      if (bloopJvmRelease.contains(8) || isReleaseFlagSet) Nil else List("-release", javaV)
+    val javacReleaseV =
+      if (bloopJvmRelease.contains(8) || isReleaseFlagSet) Nil else List("--release", javaV)
+
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions ++
-      scalaJsScalacOptions
+      scalaJsScalacOptions ++ scalacReleaseV
 
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,
@@ -542,8 +556,9 @@ object Build {
       resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
       sources = allSources,
       resourceDirs = sources.resourceDirs,
-      javaHomeOpt = options.javaHomeLocationOpt(),
-      scope = scope
+      scope = scope,
+      javaHomeOpt = Option(options.javaHomeLocation()),
+      javacOptions = javacReleaseV
     )
 
     val updatedBloopConfig = project.writeBloopFile(logger)
@@ -590,7 +605,8 @@ object Build {
         options,
         scope,
         logger,
-        buildClient
+        buildClient,
+        Some(bloopServer)
       )
     }
 

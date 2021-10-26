@@ -47,7 +47,7 @@ class SharedRunTests extends munit.FunSuite {
   }
   test("Scala version 3") {
     printScalaVersionInputs3.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "3")
+      val output = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--scala", "3.0.2")
         .call(cwd = root)
         .out.text().trim
       // Scala 3.0 uses the 2.13 standard library

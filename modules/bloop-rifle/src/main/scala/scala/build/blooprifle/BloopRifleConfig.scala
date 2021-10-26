@@ -11,7 +11,7 @@ final case class BloopRifleConfig(
   port: Int,
   javaPath: String,
   javaOpts: Seq[String],
-  classPath: () => Either[Throwable, Seq[File]],
+  classPath: String => Either[Throwable, Seq[File]],
   bspSocketOrPort: Option[() => BspConnectionAddress],
   bspStdin: Option[InputStream],
   bspStdout: Option[OutputStream],
@@ -21,10 +21,15 @@ final case class BloopRifleConfig(
   startCheckPeriod: FiniteDuration,
   startCheckTimeout: FiniteDuration,
   initTimeout: FiniteDuration,
-  acceptBloopVersion: Option[String => Boolean]
+  minimumBloopJvm: Int,
+  retainedBloopVersion: BloopRifleConfig.BloopVersionConstraint
 )
 
 object BloopRifleConfig {
+
+  sealed trait BloopVersionConstraint { def version: BloopVersion }
+  case class AtLeast(version: BloopVersion) extends BloopVersionConstraint
+  case class Strict(version: BloopVersion)  extends BloopVersionConstraint
 
   def hardCodedDefaultHost = "127.0.0.1"
   def hardCodedDefaultPort = 8212
@@ -95,7 +100,7 @@ object BloopRifleConfig {
   }
 
   def default(
-    bloopClassPath: () => Either[Throwable, Seq[File]]
+    bloopClassPath: String => Either[Throwable, Seq[File]]
   ): BloopRifleConfig =
     BloopRifleConfig(
       host = defaultHost,
@@ -112,6 +117,7 @@ object BloopRifleConfig {
       startCheckPeriod = 100.millis,
       startCheckTimeout = 1.minute,
       initTimeout = 30.seconds,
-      acceptBloopVersion = None
+      minimumBloopJvm = 8,
+      retainedBloopVersion = AtLeast(BloopVersion(Constants.bloopVersion))
     )
 }

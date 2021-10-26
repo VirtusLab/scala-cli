@@ -23,7 +23,7 @@ final case class BloopStartOptions(
 ) {
   // format: on
 
-  private def buildOptions: BuildOptions =
+  def buildOptions: BuildOptions =
     BuildOptions(
       javaOptions = jvm.javaOptions,
       internal = InternalOptions(
@@ -35,7 +35,7 @@ final case class BloopStartOptions(
     compilationServer.bloopRifleConfig(
       logging.logger,
       logging.verbosity,
-      buildOptions.javaCommand(),
+      buildOptions.javaHome().javaCommand,
       directories.directories
     )
 

@@ -42,7 +42,9 @@ jobs:
         if-no-files-found: error
         retention-days: 2
     - name: Unit tests
-      run: ./mill -i unitTests
+      run: |
+        ./mill -i unitTests
+        ./mill -i bloop-rifle._.test
     - name: JVM integration tests
       run: ./mill -i integration.jvm.test
 
