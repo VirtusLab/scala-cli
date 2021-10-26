@@ -13,8 +13,11 @@ import {currentOs} from "../src/components/osUtils";
         {label: 'Windows', value: 'windows'},
         {label: 'MacOs', value: 'mac'},
         {label: 'Linux', value: 'linux'},
-        ]}
-    />
+        ]}>
+     <TabItem value="windows"></TabItem>
+     <TabItem value="mac"></TabItem>
+     <TabItem value="linux"></TabItem>
+    </Tabs>
 </SectionAbout>
 
 <div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
@@ -274,8 +277,10 @@ or other methods listed in [the unofficial package's README](https://github.com/
         values={[
         {label: 'macOS/Linux', value: 'macOS/Linux'},
         {label: 'Windows', value: 'windows'},
-        ]}
-    />
+        ]}>
+     <TabItem value="macOS/Linux"></TabItem>
+     <TabItem value="windows"></TabItem>
+    </Tabs>
 </SectionAbout>
 
 <div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
@@ -310,8 +315,10 @@ Script to automatically download and cache standalone `scala-cli` launcher.
         values={[
         {label: 'Bash', value: 'bash'},
         {label: 'zsh', value: 'zsh'},
-        ]}
-    />
+        ]}>
+     <TabItem value="bash"></TabItem>
+     <TabItem value="zsh"></TabItem>
+    </Tabs>
 </SectionAbout>
 
 <div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
