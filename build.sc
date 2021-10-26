@@ -682,6 +682,9 @@ private def commitChanges(name: String, branch: String, repoDir: os.Path): Unit 
 
 // TODO Move most CI-specific tasks there
 object ci extends Module {
+  def publishVersion() = T.command {
+    println(cli.publishVersion())
+  }
   def updateStandaloneLauncher() = T.command {
     val version = cli.publishVersion()
 

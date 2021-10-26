@@ -116,9 +116,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Push scala-cli to github container registry
       if: startsWith(github.ref, 'refs/tags/v')
-      run: |
-        docker tag scala-cli virtuslab/scala-cli:latest
-        docker push virtuslab/scala-cli:latest
+      run: .github/scripts/publish-docker-images.sh
 
   native-static-tests:
     timeout-minutes: 120
