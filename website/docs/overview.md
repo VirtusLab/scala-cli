@@ -3,7 +3,7 @@ title: Overview
 sidebar_position: 1
 ---
 
-The `scala-cli` CLI aims at making it easier to run, test, and package, Scala sources.
+The `scala-cli` CLI aims to make it easier to run, test, and package Scala sources.
 
 It can:
 - [compile](./commands/compile.md) Scala code,
@@ -24,16 +24,16 @@ import BasicInstall from "../src/components/BasicInstall"
 
 <BasicInstall/>
 
-Prefer some other way to install Scala CLI? Head out to [Advanced installaion guide](/install#advanced-installation)
+Prefer some other way to install Scala CLI? Head out to [Advanced installation guide](/install#advanced-installation)
 
 
 ## What next?
 
-Scala-cli documentation is split into 3 main section:
+Scala-cli documentation is split into three main sections:
  - [Commands](./commands/basics.md) where you learn how to use most important commands that Scala CLI offers
  - [Guides](./guides/intro.md) where you can read about core aspects of Scala CLI and learn how Scala CLI interacts with other tools like IDE
  - Scala CLI [Cookbook](./cookbooks/intro.md) where you can learn how to solve particular problems with Scala CLI
 
-**Happy hackking with Scala CLI!**
+**Happy hacking with Scala CLI!**
 
 ![Demo](/img/dark/demo.svg)

@@ -14,7 +14,7 @@ scala-cli repl
 # scala> :exit
 ```
 
-Scala CLI by default uses REPL shiped together with scala compiler.
+Scala CLI by default uses the normal Scala REPL.
 
 Pass `--amm` to launch an [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), rather than the default Scala REPL:
 
@@ -22,13 +22,13 @@ Pass `--amm` to launch an [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), r
 scala-cli repl --amm
 # Loading...
 # Welcome to the Ammonite Repl 2.4.0-23-76673f7f (Scala 3.0.2 Java 11.0.11)
-# @ println("Hello ammonite") 
+# @ println("Hello ammonite")
 # Hello ammonite
-# @ exit 
+# @ exit
 # Bye!
 ```
 
-`repl` commands accepts same arguments like [compile](./compile.md) commands. It first compile provided sources and then exposes results as well as provided dependencies to the REPL session:
+`repl` commands accepts the same arguments as [compile](./compile.md). It first compiles provided sources, then exposes results as well as provided dependencies to the REPL session:
 
 ```scala title=mylibrary/Messages.scala
 package mylibrary

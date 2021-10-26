@@ -15,7 +15,7 @@ scala-cli compile Hello.scala
 
 Note that most commands of the Scala CLI will automatically compile your code if necessary.
 The `compile` command is useful if you'd like to simply check that your code compiles,
-or know of compilation warnings, without running it or packaging it for example.
+or see compilation warnings, without running it or packaging it for example.
 
 We list below some options the `compile` command accepts. For a full list of options,
 run `scala compile --help`, or check the options linked in the
@@ -36,7 +36,7 @@ scala-cli compile --watch Hello.scala
 
 ## Scala version
 
-Scala CLI uses latest stable version of Scala by default (`3.0.2` when this guide was written). You can specify the Scala version you'd like to use with `--scala`:
+Scala CLI uses the latest stable version of Scala by default (`3.1.0` when this guide was written). You can specify the Scala version you'd like to use with `--scala`:
 
 ```bash ignore
 scala-cli compile --scala 2.13.6 Hello.scala
@@ -68,7 +68,7 @@ You can also add simple JAR files as dependencies, with `--jar`:
 scala-cli compile Hello.scala --jar /path/to/library.jar
 ```
 
-We have a guide dedicated [Dependency management](../guides/dependencies.md)
+We have a guide dedicated to [Dependency management](../guides/dependencies.md)
 
 ## Scala compiler options
 

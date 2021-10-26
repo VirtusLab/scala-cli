@@ -33,7 +33,7 @@ Wrote DetectOsApp, run it with
 Lightweight JARs require the `java` command to be available, and access to internet if dependencies need to be downloaded.
 
 ```bash
-# Run DetectOsApp on MacOs 
+# Run DetectOsApp on MacOs
 ./DetectOsApp
 # os: Mac OS X
 ```
@@ -41,17 +41,17 @@ Lightweight JARs require the `java` command to be available, and access to inter
 In the previous example, a Lightweight JAR that was built in a MacOs environment could also run on Linux.
 
 ```bash
-# Run DetectOsApp on Linux 
+# Run DetectOsApp on Linux
 ./DetectOsApp
 # os: Linux
-``` 
+```
 
-ScalaCli supports building a Lightweight JARs in MacOS / Linux / Windows environments.
-Only Jars built on MacOs / Linux are easily portable between this system. The Lightweight JARs built on Windows can only be run on this system.
+Scala-cli supports building Lightweight JARs in the MacOS, Linux, and Windows environments.
+JARs built on macOS and Linux are portable between these two OSs. The Lightweight JARs built on Windows can only be run on Windows.
 
 
 ### Assemblies
-Passing `--assembly` to the `package` sub-command generates so-called "assemblies" or "fat JARs". 
+Passing `--assembly` to the `package` sub-command generates so-called "assemblies" or "fat JARs".
 
 ```bash
 scala-cli package --assembly DetectOsApp.scala
@@ -60,7 +60,7 @@ scala-cli package --assembly DetectOsApp.scala
 Assemblies also require the `java` command to be available in the `PATH`. As all dependencies are packaged into the assembly, nothing gets downloaded upon the first run and no internet access is required.
 
 ```bash
-# Run DetectOsApp on MacOs 
+# Run DetectOsApp on MacOs
 ./DetectOsApp
 # os: Mac OS X
 ```

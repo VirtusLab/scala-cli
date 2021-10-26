@@ -3,19 +3,19 @@ title: Test
 sidebar_position: 7
 ---
 
-The `test` command allows to run test suites that come from the test sources. 
-Test sources are complied separately (after the 'main' sources) and may use different dependencies, compiler options and other configuration. 
+The `test` command runs test suites that come from the test sources.
+Test sources are compiled separately (after the main sources) and may use different dependencies, compiler options and other configuration.
 
-All command line options applies to the both main and test sources so [using directives](http://localhost:3000/docs/guides/using-directives) (or [special imports](../guides/configuration#special-imports).md) can be used to provide test-specific configuration. 
+All command line options applies to the both main and test sources so [using directives](../guides/using-directives) (or [special imports](../guides/configuration#special-imports).md) can be used to provide test-specific configuration.
 
 ## Test sources
 
-Given source file is treated as test source if:
- - contains `using target test` directive
- - file name ends with `.test.scala`
- - file comes from a directory that is provided as input, and relative path from that file to its original directory contains `test` directory.
+A given source file is treated as a test source if:
+ - it contains `using target test` directive
+ - its file name ends with `.test.scala`
+ - its file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a `test` directory.
 
-The last rule may sound a bit more complicated so lets explain it using following file structure:
+The last rule may sound a bit complicated, so let's explain it using following file structure:
 
 ```bash ignore
 example/
@@ -33,13 +33,13 @@ example/
             └── e.scala
 ```
 
-Now, lets analyze what file will be treated as tests based on the provided inputs.
+Now, let's analyze what file will be treated as tests based on the provided inputs.
 
 `scala-cli example` will result in following files treated as test sources:
 - `a.test.scala` - since it ends with `.test.scala`
 - `src/test/scala/b.scala` - since it comes from a directory and relative path to that directory contains `test`
 
-Please note that e.scala was not treated as test source since it lacks directory named precisly `test` on its relative path to one of inputs (`test_unit` only starts with `test`).
+Please note that `e.scala` was not treated as test source since it lacks directory named precisly `test` on its relative path to one of inputs (`test_unit` only starts with `test`).
 
 `scala-cli example/src` will result in `src/test/scala/b.scala` being treated as tests since again its relative path to the one of the input directories (`test/scala/b.scala`) contains test directory.
 

@@ -18,9 +18,9 @@ You can check formatting correctness using a `--check` flag:
 scala-cli fmt --check
 ```
 
-### Dialects 
-Scala-cli also supports dialects that are passed to the formatter. 
-This value will only be used if there is no `.scalafmt.conf` file, as if it exists then all configuration should be placed there.
+### Dialects
+Scala-cli also supports dialects that are passed to the formatter.
+This value will only be used if there is no `.scalafmt.conf` file. If that file exists, then all configuration should be placed there.
 For a list of all possible values you may want to consult the [official documentation](https://scalameta.org/scalafmt/docs/configuration.html#scala-dialects)
 
 ```bash
@@ -28,7 +28,7 @@ scala-cli fmt --dialect scala212
 ```
 
 ### Current limitations
-Right now scala-cli doesn't read the `.scalafmt.conf` files 
+Right now scala-cli doesn't read the `.scalafmt.conf` files,
 therefore in some scenarios versions of those two may be mismatched.
 It is possible to set the version manually if you encounter any issues:
 

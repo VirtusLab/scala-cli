@@ -3,7 +3,7 @@ title: Introduction
 sidebar_position: 1
 ---
 
-This section guides dedicated various aspects of Scala CLI that applies across various commands.
+This section contains guides dedicated to various aspects of Scala CLI that apply across various commands.
 
 Our guides covers many aspects that sometimes may be quite detailed that is why we recommend starting:
  - [Configuration guide](./configuration.md) - to learn how to configure various options and what style of configuration are best for the given use case

@@ -4,7 +4,7 @@ sidebar_position: 10
 ---
 
 :::warning
-IDE support is under devlopment mainly because changes needs to be done in both Metals and IntelliJ.
+IDE support is under development mainly because changes needs to be done in both Metals and IntelliJ.
 :::
 
 
@@ -17,11 +17,11 @@ In such case, just run one of the commands above commands to recreate connection
 :::
 
 
-Since Scala CLI has a command-line-first approach and it is reflected in IDE integration. By default, Scala CLI stores options passed to last `compile`, `run` or `test` and use those options to configure IDE. 
+Since Scala CLI has a command-line-first approach and it is reflected in IDE integration. By default, Scala CLI stores options passed to last `compile`, `run` or `test` and use those options to configure IDE.
 
-For more control we also expose [`setup-ide` command](../commands/setup-ide.md) that allows to fine tune options passed to IDE. 
+For more control we also expose [`setup-ide` command](../commands/setup-ide.md) that allows to fine tune options passed to IDE.
 
-Once `setup-ide` is used, Scala CLI does not update configuration based on latest command. 
+Once `setup-ide` is used, Scala CLI does not update configuration based on latest command.
 
 To enable automatic updates again, remove `.bsp` directory and run `compile`, `run` or `test` to recreate connection details file.
 
@@ -46,12 +46,12 @@ Main classes and tests are at this moment to recognized in Metals.
 
 Generally, mainly due to problems with keeping project structure up to date Metals can assists with writing code using Scala CLI, however it cannot be the source of true and we recommend falling back to command line in such cases.
 
-## Intellij
+## IntelliJ
 
-In terms of Intellij, the most significant problem is that Intellij requires sources to be placed within a directory. This means that top level sources are not recognized as proper sources.
+In terms of IntelliJ, the most significant problem is that IntelliJ requires sources to be placed within a directory. This means that top level sources are not recognized as proper sources.
 
-With Intellij, we strongly suggested to placed your sources within a directory (like `src`).
+With IntelliJ, we strongly suggested to placed your sources within a directory (like `src`).
 
-Intellij currently does not pick up automatically changes in project structure so any change in dependencies, compiler options etc. needs manual reload.
+IntelliJ currently does not automatically pick up changes in project structure so any change in dependencies, compiler options etc. needs manual reload.
 
-Similarly to Metals, currently we do not advise using Intellij as a source of true and we recommend falling back to command line in such cases.
+Similarly to Metals, currently we do not advise using IntelliJ as a source of truth. We recommend falling back to command line in such cases.

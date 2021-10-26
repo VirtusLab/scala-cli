@@ -3,7 +3,7 @@ title: Run
 sidebar_position: 6
 ---
 
-The `run` command offers to run your Scala code:
+The `run` command runs your Scala code:
 
 ```scala title=Hello.scala
 object Hello {
@@ -17,7 +17,7 @@ scala-cli run Hello.scala
 # Hello
 ```
 
-This is the default command, so you're not required to specify it explicitly:
+`run` is the default command, so you're not required to specify it explicitly:
 ```bash
 scala-cli Hello.scala
 # Hello
@@ -35,7 +35,7 @@ scala-cli MyApp.scala -- first-arg second-arg
 ## Main class
 
 `--main-class` allows to specify an explicit main class, in case your application
-defines several main classes for example:
+defines several main classes. For example:
 
 ```scala title=hi.sc
 println("Hi")
@@ -45,7 +45,7 @@ println("Hi")
 scala-cli Hello.scala hi.sc --main-class hi
 ```
 
-If you application only defines a single main class, you can just omit `--main-class`.
+If your application only defines a single main class, you can just omit `--main-class`.
 
 ## Custom JVM
 
