@@ -521,6 +521,7 @@ object Build {
       compilerClassPath = artifacts.compilerClassPath
     )
 
+    // `test` scope should contains class path to main scope
     val mainClassesPath =
       if (scope == Scope.Test)
         List(classesDir(inputs.workspace, inputs.projectName, Scope.Main).toNIO)

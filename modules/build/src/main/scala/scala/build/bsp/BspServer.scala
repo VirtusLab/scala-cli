@@ -142,7 +142,7 @@ class BspServer(
     val target = params.getTarget
     if (!validTarget(target))
       logger.debug(
-        s"Got invalid target in Run request: ${target.getUri} (expected ${targetScopeIdOpt(Scope.Main).orNull})" // TODO resolve target targetUriOpt
+        s"Got invalid target in Run request: ${target.getUri} (expected ${targetScopeIdOpt(Scope.Main).orNull})"
       )
     super.buildTargetRun(params)
   }

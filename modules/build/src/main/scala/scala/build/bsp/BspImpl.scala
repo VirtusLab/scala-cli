@@ -92,7 +92,10 @@ final class BspImpl(
         Scope.Main,
         logger,
         localClient
-      ).swap.map(e => (e, Scope.Main)).swap
+      ) match {
+        case Right(v) => Right(v)
+        case Left(e)  => Left((e, Scope.Main))
+      }
     }
 
     val (classesDir0Test, scalaParamsTest, artifactsTest, projectTest, buildChangedTest) = value {
@@ -104,7 +107,10 @@ final class BspImpl(
         Scope.Test,
         logger,
         localClient
-      ).swap.map(e => (e, Scope.Test)).swap
+      ) match {
+        case Right(v) => Right(v)
+        case Left(e)  => Left((e, Scope.Main))
+      }
     }
 
     val mainScope = PreBuildData(

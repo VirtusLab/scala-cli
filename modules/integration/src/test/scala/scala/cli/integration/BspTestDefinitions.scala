@@ -485,7 +485,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           val diagnostics = localClient.diagnostics()
           val params      = diagnostics(2)
           expect(params.getBuildTarget.getUri == targetUri)
-          println(TestUtil.normalizeUri(params.getTextDocument.getUri))
           expect(
             TestUtil.normalizeUri(params.getTextDocument.getUri) ==
               TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)

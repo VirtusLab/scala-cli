@@ -110,46 +110,50 @@ object Project {
     BloopConfig.Resolution(modules)
   }
 
+  private def setProjectTestConfig(p: BloopConfig.Project): BloopConfig.Project =
+    p.copy(
+      dependencies = List(p.name.stripSuffix("-test")),
+      test = Some(
+        BloopConfig.Test(
+          frameworks = BloopConfig.TestFramework.DefaultFrameworks,
+          options = BloopConfig.TestOptions.empty
+        )
+      ),
+      tags = Some(List("test"))
+    )
+
   private def baseBloopProject(
     name: String,
     directory: Path,
     out: Path,
     classesDir: Path,
     scope: Scope
-  ): BloopConfig.Project =
-    BloopConfig.Project(
+  ): BloopConfig.Project = {
+    val project = BloopConfig.Project(
       name = name,
       directory = directory,
       workspaceDir = None,
       sources = Nil,
       sourcesGlobs = None,
       sourceRoots = None,
-      dependencies =
-        if (scope == Scope.Test) List(name.stripSuffix("-test"))
-        else Nil,
+      dependencies = Nil,
       classpath = Nil,
-      out =
-        if (scope == Scope.Test) os.Path(os.Path(out).toString().stripSuffix("-test")).toNIO
-        else out,
+      out = out,
       classesDir = classesDir,
       resources = None,
       `scala` = None,
       java = None,
       sbt = None,
-      test =
-        if (scope == Scope.Test) Some(
-          BloopConfig.Test(
-            frameworks = BloopConfig.TestFramework.DefaultFrameworks,
-            options = BloopConfig.TestOptions.empty
-          )
-        )
-        else None,
+      test = None,
       platform = None,
       resolution = None,
-      tags =
-        if (scope == Scope.Test) Some(List("test"))
-        else Some(List("library"))
+      tags = Some(List("library"))
     )
+    if (scope == Scope.Test)
+      setProjectTestConfig(project)
+    else project
+  }
+
   private def bloopJvmPlatform: BloopConfig.Platform.Jvm =
     BloopConfig.Platform.Jvm(
       config = BloopConfig.JvmConfig(None, Nil),
