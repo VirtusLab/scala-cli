@@ -3,8 +3,7 @@ title: REPL
 sidebar_position: 9
 ---
 
-The `repl` command starts a Scala REPL, that allows you to interactively
-run your code and inspect its results.
+The `repl` command starts a Scala REPL, which lets you interactively run your code and inspect its results:
 
 ```bash ignore
 scala-cli repl
@@ -16,7 +15,7 @@ scala-cli repl
 
 Scala CLI by default uses the normal Scala REPL.
 
-Pass `--amm` to launch an [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), rather than the default Scala REPL:
+If you prefer to use the [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), specify `--amm` to launch it rather than the default REPL:
 
 ```bash ignore
 scala-cli repl --amm
@@ -28,7 +27,7 @@ scala-cli repl --amm
 # Bye!
 ```
 
-`repl` commands accepts the same arguments as [compile](./compile.md). It first compiles provided sources, then exposes results as well as provided dependencies to the REPL session:
+The `repl` command accepts the same arguments as the [compile](./compile.md) command. It first compiles any provided sources, and then exposes those results and any provided dependencies to the REPL session:
 
 ```scala title=mylibrary/Messages.scala
 package mylibrary

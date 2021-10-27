@@ -3,20 +3,20 @@ title: Overview
 sidebar_position: 1
 ---
 
-The `scala-cli` CLI aims to make it easier to run, test, and package Scala sources.
+The `scala-cli` CLI makes it easier to compile, run, test, and package Scala code.
 
 It can:
-- [compile](./commands/compile.md) Scala code,
-- [run](./commands/run.md) it,
-- [package](./commands/package.md) it as a JAR or in formats such as deb, rpm, MSI, …,
-- fire up a [REPL](./commands/repl.md) allowing you to quickly play with the code,
-- compile and run [tests](./commands/test.md) suites,
+- [compile](./commands/compile.md) Scala code
+- [run](./commands/run.md) it
+- [package](./commands/package.md) it as a JAR file, or in formats such as deb, rpm, MSI, ...
+- fire up a [REPL](./commands/repl.md), letting you quickly play with the code
+- compile and run [tests](./commands/test.md) suites
 
-... and many other things.
+... and more!
 
-Scala CLI supports most recent Scala versions (`3.x`, `2.13.x` and `2.12.x`) and changing the Scala version as easy as providing `--scala` parameter (more in [the cookbook](./cookbooks/scala-versions.md)). 
+Scala CLI supports most recent Scala versions (`3.x`, `2.13.x` and `2.12.x`), and changing the Scala version as easy as providing the `--scala` parameter. (See [the cookbook](./cookbooks/scala-versions.md) for more information.)
 
-Scala CLI supports as well compiling and running Scala to JVM (by default), [Scala.js](./guides/scala-js.md) and [Scala Native](./guides/scala-native.md).
+As well as compiling and running Scala code with the JVM (the default), Scala CLI also supports [Scala.js](./guides/scala-js.md) and [Scala Native](./guides/scala-native.md).
 
 ## Installation
 
@@ -24,16 +24,17 @@ import BasicInstall from "../src/components/BasicInstall"
 
 <BasicInstall/>
 
-Prefer some other way to install Scala CLI? Head out to [Advanced installation guide](/install#advanced-installation)
+Prefer another way to install Scala CLI? See our [Advanced installation guide](/install#advanced-installation).
 
 
-## What next?
+## What’s next?
 
-Scala-cli documentation is split into three main sections:
- - [Commands](./commands/basics.md) where you learn how to use most important commands that Scala CLI offers
- - [Guides](./guides/intro.md) where you can read about core aspects of Scala CLI and learn how Scala CLI interacts with other tools like IDE
- - Scala CLI [Cookbook](./cookbooks/intro.md) where you can learn how to solve particular problems with Scala CLI
+Scala-CLI documentation is split into three main sections:
+- [Commands](./commands/basics.md), where you learn the most important Scala CLI commands
+- [Guides](./guides/intro.md), where you can read about the core aspects of Scala CLI, and learn how Scala CLI interacts with other tools, like your IDE
+- Scala CLI [Cookbook](./cookbooks/intro.md), where you can learn how to solve specific problems with Scala CLI
 
 **Happy hacking with Scala CLI!**
 
 ![Demo](/img/dark/demo.svg)
+

@@ -3,7 +3,8 @@ title: Compile
 sidebar_position: 5
 ---
 
-Scala CLI can compile your code with its `compile` command:
+Scala CLI compiles your code with its `compile` command:
+
 ```bash
 cat Hello.scala
 # object Hello {
@@ -13,17 +14,18 @@ cat Hello.scala
 scala-cli compile Hello.scala
 ```
 
-Note that most commands of the Scala CLI will automatically compile your code if necessary.
-The `compile` command is useful if you'd like to simply check that your code compiles,
-or see compilation warnings, without running it or packaging it for example.
+Note that most Scala CLI commands automatically compile your code, if necessary.
+The `compile` command is useful if you'd like to check that your code compiles,
+or know of compilation warnings, without running it or packaging it.
 
-We list below some options the `compile` command accepts. For a full list of options,
-run `scala compile --help`, or check the options linked in the
+The most common `compile` options are shown below. 
+For a full list of options, run `scala compile --help`, or check the options linked in the
 [reference documentation](../reference/commands.md#compile).
 
 ## Watch mode
 
-`--watch` makes `scala-cli` watch your code for changes, and re-compiles it upon change:
+`--watch` makes `scala-cli` watch your code for changes, and re-compiles it upon any change:
+
 ```bash
 scala-cli compile --watch Hello.scala
 # Compiling project-cef76d561e (1 Scala source)
@@ -42,10 +44,11 @@ Scala CLI uses the latest stable version of Scala by default (`3.1.0` when this 
 scala-cli compile --scala 2.13.6 Hello.scala
 ```
 
-`scala-cli` should work with all major `2.12.x`, `2.13.x`, and `3.x` Scala versions.
+`scala-cli` works with all major `2.12.x`, `2.13.x`, and `3.x` Scala versions.
 
-`--scala` also accepts "short" Scala versions, such as `2.12`, `2`, or `3`. In that
+`--scala` also accepts "short" Scala versions, such as `2.12`, `2`, or `3`. In this
 case, it picks the highest corresponding stable Scala version:
+
 ```bash ignore
 scala-cli compile --scala 2.12 Hello.scala
 scala-cli compile --scala 2 Hello.scala
@@ -54,26 +57,28 @@ scala-cli compile --scala 3 Hello.scala
 
 ## Dependencies
 
-You can add dependencies on the command-line, via `--dependency`:
+You can add dependencies on the command-line with `--dependency`:
+
 ```bash
 scala-cli compile Hello.scala \
   --dependency org.scala-lang.modules::scala-parallel-collections:1.0.4
 ```
 
-Note that `--dependency` is only meant as a convenience. You should favour
-adding dependencies in the sources themselves via [using directives](../guides/configuration.md#special-imports).
+Note that `--dependency` is only meant as a convenience. You should favor
+adding dependencies in the source files themselves via [`using` directives](../guides/configuration.md#special-imports).
 
-You can also add simple JAR files as dependencies, with `--jar`:
+You can also add simple JAR files — those that don’t have transitive dependencies — as dependencies, with `--jar`:
+
 ```bash
 scala-cli compile Hello.scala --jar /path/to/library.jar
 ```
 
-We have a guide dedicated to [Dependency management](../guides/dependencies.md)
+See the [Dependency management](../guides/dependencies.md) guide for more details.
 
 ## Scala compiler options
 
-Most [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-options) can be passed as
-is to `scala-cli` :
+Most [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-options) can be passed as-is to `scala-cli`:
+
 ```bash
 scala-cli compile Hello.scala -Xlint:infer-any
 # Compiling project_b729aa2200-cef76d561e (1 Scala source)
@@ -83,7 +88,8 @@ scala-cli compile Hello.scala -Xlint:infer-any
 # Compiled 'project_b729aa2200-cef76d561e'
 ```
 
-In more detail, all options starting with
+All `scala-cli` options that start with:
+
 - `-g`
 - `-language`
 - `-opt`
@@ -96,7 +102,8 @@ In more detail, all options starting with
 
 are assumed to be Scala compiler options.
 
-Compiler options can also be passed with `-O`:
+Scala compiler options can also be passed with `-O`:
+
 ```bash
 scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
 # [warn] ./Hello.scala:3:7: method x in class Some is deprecated (since 2.12.0): Use .value instead.
@@ -104,7 +111,7 @@ scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
 # [warn]       ^
 ```
 
-`-O` accepts both options with the prefixes above and those without such a prefix.
+`-O` accepts both options with the prefixes shown above, and those without such a prefix.
 
 ## Scala compiler plugins
 Use `--compiler-plugin` to add compiler plugin dependencies:
@@ -116,18 +123,18 @@ scala-cli compile Main.scala --compiler-plugin org.typelevel:::kind-projector:0.
 
 ## Printing a class path
 
-`--class-path` makes `scala compile` print a class path that can be passed to other tools:
+`--class-path` makes `scala-cli compile` print a class path:
 ```bash
 scala-cli compile --class-path Hello.scala
 # /work/.scala/project-cef76d561e/classes:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/runner_2.12/0.0.1-SNAPSHOT/jars/runner_2.12.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/stubs/0.0.1-SNAPSHOT/jars/stubs.jar
 ```
 
-You can pass this class path to `java -cp` for example:
+This is handy when working with other tools.
+For example, you can pass this class path to `java -cp`:
 ```bash
 java -cp "$(scala compile --class-path Hello.scala)" Hello
 # Hello
 ```
 
-Note that you should favour the [`run`](./run.md) command to run your code, rather than running `java -cp`.
-The class path obtained this way is meant for scenarios where `scala-cli` doesn't offer a more
-convenient option.
+Note that you should favor the [`run`](./run.md) command to run your code, rather than running `java -cp`.
+The class path obtained this way is only meant for scenarios where `scala-cli` doesn't offer a more convenient option.
