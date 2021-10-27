@@ -16,7 +16,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
   cat <<EOF | updateFile Enum.scala
@@ -31,11 +31,11 @@ EOF
 
   pe "scala-cli Enum.scala -S 3.0.2"
 
-  sleep 2
+  doSleep 2
 
   pe "scala-cli Enum.scala -S 2.13.6"
 
   # Wait a bit to read output of last command
-  sleep 5
+  doSleep 5
   echo " " && echo "ok" > status.txt
 fi

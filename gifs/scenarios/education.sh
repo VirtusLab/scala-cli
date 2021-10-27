@@ -15,7 +15,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
     cat <<EOF | updateFile HelloWorld.scala
 object HelloWorld {
@@ -29,14 +29,14 @@ EOF
   pe "scala-cli HelloWorld.scala"
 
   # Wait a bit to read output of last command
-  sleep 5
-  clear 
+  doSleep 5
+  clearConsole 
       cat <<EOF | updateFile HelloWorld.sc
 println("Hello world from script")
 EOF
 
   pe "scala-cli HelloWorld.sc"
 
-  sleep 5
+  doSleep 5
   echo " " && echo "ok" > status.txt
 fi

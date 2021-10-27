@@ -20,7 +20,7 @@ EOF
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsoleConsole
 
   cat <<EOF | updateFile demo.scala
 @main def demo(args: String *) = 
@@ -29,9 +29,9 @@ EOF
 
   pe "scala-cli compile demo.scala" || true
 
-  sleep 5
+  doSleep 5
 
-  clear
+  clearConsoleConsole
 
   cat <<EOF | updateFile demo.scala
 def niceArgs(args: String*): String = 
@@ -40,11 +40,11 @@ def niceArgs(args: String*): String =
 @main def demo(args: String*) = println(niceArgs(args*))
 EOF
 
-  pe "scala-cli demo.scala -- Ala jake Mike"
+  pe "scala-cli demo.scala -- Ala jake Mike" || echo "FAILED!"
   
-  sleep 5
+  doSleep 5
 
-  clear
+  clearConsoleConsole
 
   cat <<EOF | updateFile demo.test.scala
 // using lib "org.scalameta::munit:0.7.29"
@@ -62,6 +62,6 @@ EOF
   pe "scala-cli test demo.scala demo.test.scala" || true
 
   # Wait a bit to read output of last command
-  sleep 5
+  doSleep 5
   echo " " && echo "ok" > status.txt
 fi

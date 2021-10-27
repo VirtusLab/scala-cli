@@ -16,7 +16,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
    cat <<EOF | updateFile Hello.scala
@@ -28,8 +28,8 @@ EOF
   pe "scala-cli Hello.scala"
 
   # Wait a bit to read output of last command
-  sleep 2
-  clear 
+  doSleep 2
+  clearConsole 
 
  cat <<EOF | updateFile Hello.scala
 // using scala 2

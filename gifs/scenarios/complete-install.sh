@@ -15,7 +15,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
   p scala-cli
@@ -23,7 +23,7 @@ else
   p java
   java
 
-  sleep 2
+  doSleep 2
   
   pe "curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh"
   pe 'source ~/.profile'
@@ -31,6 +31,6 @@ else
 
 
   # Wait a bit to read output of last command
-  sleep 2
+  doSleep 2
   echo " " && echo "ok" > status.txt
 fi

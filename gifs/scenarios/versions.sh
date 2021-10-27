@@ -67,7 +67,7 @@ EOF
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
 
@@ -75,16 +75,16 @@ else
   pe "scala-cli versions.scala"
   pe "scala-cli --scala 2 versions.scala"
   pe "scala-cli --scala 2.12.12 versions.scala"
-  sleep 2
-  clear
+  doSleep 2
+  clearConsole
   pe "scala-cli --jvm 8 versions.scala"
   pe "scala-cli --jvm adopt:9 versions.scala"
-  sleep 2
-  clear
+  doSleep 2
+  clearConsole
   pe "scala-cli --dep org.scalameta::munit:0.7.29 classpath.scala"
   pe "scala-cli --scala 2 --dep org.typelevel::cats-core:2.3.0 classpath.scala"
 
   # Wait a bit to read output of last command
-  sleep 2
+  doSleep 2
   echo " " && echo "ok" > status.txt
 fi

@@ -13,7 +13,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
     cat <<EOF | updateFile count_lines.sc
@@ -24,10 +24,10 @@ import LazyList.continually
 
 println(continually(readLine).takeWhile(_ != null).length)
 EOF
-  sleep 2
+  doSleep 2
   pe "chmod +x count_lines.sc"
   pe 'echo -e "abc\ndef" | ./count_lines.sc'
   pe 'echo -e "abc\ndef\nghi" | ./count_lines.sc'
-  sleep 4
+  doSleep 4
   echo " " && echo "ok" > status.txt
 fi

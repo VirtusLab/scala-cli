@@ -196,7 +196,16 @@ function updateFile(){
 
   p "cat $1"
   rougify --theme tulip $1
+  
   sleep 1
+}
+
+function clearConsole(){
+  clear
+}
+
+function doSleep(){
+  sleep $1
 }
 
 check_pv

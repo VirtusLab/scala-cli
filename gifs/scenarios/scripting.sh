@@ -16,7 +16,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
   cat <<EOF | updateFile file
@@ -33,9 +33,9 @@ EOF
 
   pe "scala-cli script.sc"
 
-  sleep 5
+  doSleep 5
 
-  clear
+  clearConsole
   
   cat <<EOF | updateFile hello.sc
 val message = "Hello from Scala script"
@@ -44,8 +44,8 @@ EOF
 
   pe "scala-cli hello.sc"
 
-  sleep 5
-  clear
+  doSleep 5
+  clearConsole
   
   cat <<EOF | updateFile scala-script.sc
 #!/usr/bin/env scala-cli
@@ -58,6 +58,6 @@ EOF
 
   echo " "
   # Wait a bit to read output of last command
-  sleep 2
+  doSleep 2
   echo " " && echo "ok" > status.txt
 fi

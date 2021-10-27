@@ -23,7 +23,16 @@ echo "Done with $?"
 test -f status.txt && rm status.txt
 
 #do recording
-asciinema rec --overwrite --command="$script -n" $SCRIPT_DIR/out/$name.cast
+tty &&
+  # do recording with tty
+  asciinema rec --overwrite --command="$script -n" $SCRIPT_DIR/out/$name.cast ||
+  # without just run the command 
+  ( 
+    export ASCIINEMA_REC=true &&
+    # remove magic from demo...
+    cp $SCRIPT_DIR/demo-no-magic.sh $SCRIPT_DIR/demo-magic.sh &&
+    $script -n
+  )
 
 test -f status.txt || (
   echo "Scenarion $sctip failed." &&

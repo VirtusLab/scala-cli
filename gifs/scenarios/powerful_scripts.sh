@@ -16,7 +16,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
   cat <<EOF | updateFile stat.sc
@@ -29,11 +29,11 @@ val path = Path(args(0), pwd)
 pprintln(os.stat(path))
 
 EOF
-  sleep 3
+  doSleep 3
   pe "chmod +x stat.sc"
   pe 'echo "Hello" > my_file'
   pe "scala-cli ./stat.sc -- my_file"
   # Wait a bit to read output of last command
-  sleep 4
+  doSleep 4
   echo " " && echo "ok" > status.txt
 fi
