@@ -30,9 +30,9 @@ scala-cli fmt --dialect scala212
 ```
 
 ### Current limitations
-At this time, `scala-cli` doesn't read `.scalafmt.conf` files.
-Therefore, in some scenarios, versions of those two may be mismatched.
-It is possible to set the version manually if you encounter any issues:
+
+At this time, `scala-cli` doesn't read a `scalafmt` version from `.scalafmt.conf` files.
+Therefore, in some scenarios, wrong version may be used. In such situations,  it is possible to set the version manually if you encounter any issues:
 
 ```bash
 scala-cli fmt --scalafmt-tag v3.0.3

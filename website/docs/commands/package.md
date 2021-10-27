@@ -168,7 +168,7 @@ This feature is somewhat experimental, and supports the following formats, provi
 
 - [DEB](#debian) (Linux)
 - [RPM](#redhat) (Linux)
-- [PKG](#macos---pkg) (macOS)
+- [PKG](#macos-pkg) (macOS)
 - [MSI](#windows) (Windows)
 
 ```scala Hello.scala
@@ -261,7 +261,7 @@ To build a Windows installer, you will need to have [`WIX Toolset`](https://wixt
 Example:
 
 ```cmd
-scala-cli package . --msi --output 'path.msi` Hello.scala
+scala-cli package --msi --output 'path.msi` Hello.scala
 ```
 
 #### Mandatory arguments
