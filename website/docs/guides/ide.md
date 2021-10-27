@@ -8,11 +8,11 @@ IDE support is under development mainly because changes needs to be done in both
 :::
 
 
-Scala CLI currently implements the [BSP protocol](https://build-server-protocol.github.io/) by functioning as a build server. At this moment Scala CLI is not automatically detected so we need to use [Build Server Discovery](https://build-server-protocol.github.io/docs/server-discovery.html) from the BSP protocol. This is the main reason we create the (`.bsp/scala-cli.json`) file for your editor to pick up.
+Scala CLI currently Scala integrates with IDEs using [BSP protocol](https://build-server-protocol.github.io/). At this moment Scala CLI is not automatically detected so we need to use [Build Server Discovery](https://build-server-protocol.github.io/docs/server-discovery.html) from the BSP protocol. This is the main reason we create the BSP connection details file (`.bsp/scala-cli.json`) for your editor to pick up.
 
 :::note
 If none of the following commands were ran: `compile`, `run`, `test`,
-`setup-ide` or a `.bsp/scala-cli.json` file has yet to be created, your editor
+`setup-ide` or a `.bsp/scala-cli.json` file has yet to be created (or was deleted), your editor
 won't pick up scala-cli as a build server. In that case, simply run one of the
 those commands and the file will be created.
 :::
@@ -20,8 +20,6 @@ those commands and the file will be created.
 Since Scala CLI has a command-line-first approach that is reflected in the IDE
 integrations. By default, Scala CLI stores options passed to the last `compile`,
 `run` or `test` commands and use those options to configure your IDE. 
-
-Since Scala CLI has a command-line-first approach and it is reflected in IDE integration. By default, Scala CLI stores options passed to last `compile`, `run` or `test` and use those options to configure IDE.
 
 For more control we also expose a [`setup-ide` command](../commands/setup-ide.md) that allows to fine tune options passed to IDE.
 
