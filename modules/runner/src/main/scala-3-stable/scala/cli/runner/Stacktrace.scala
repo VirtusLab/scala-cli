@@ -11,16 +11,16 @@ object Stacktrace {
       case e: Exception => e
       case _            => new Exception(t) // meh
     }
-    try 
+    try
       val prettyStackTrace = Stacktraces.convertToPrettyStackTrace(e)
       Console.out.print(prefix)
       PrettyExceptionPrinter.printStacktrace(prettyStackTrace)
       true
-    catch 
+    catch
       case e: Throwable => // meh meh
         Console.out.print("Failed to process exception, failure:")
         e.printStackTrace()
-         Console.out.println("----\n")
+        Console.out.println("----\n")
         false
   }
 

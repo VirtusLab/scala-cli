@@ -11,10 +11,10 @@ ls $dest
 
 if [ $# -eq 0 ]
   then
-    toCheck=website/docs/cookbooks
+    toCheck=website/docs/cookbooks website/docs/getting_started.md
   else
     toCheck=$@
 fi
 
 # adding --resources is a hack to get file watching for free on .md files
-scala-cli docs_checker/check.scala --resources docs -- $toCheck 
+scala-cli sclicheck/sclicheck.scala --resources docs -- $toCheck 

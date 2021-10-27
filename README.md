@@ -144,6 +144,25 @@ cd website
 yarn run start
 ```
 
+### Verifying the documentation
+
+We have a built-in tool to validate `.md` files called [Sclicheck](/sclicheck/Readme.md). To check all douments (and this is what we run on CI) run:
+
+```.github/scripts/check_docs.sh```
+
+You can also check single documents or directories using 
+
+
+```
+.github/scripts/check_docs.sh <file> <dir>
+```
+
+To debug failing document, Sclicheck has build-in following options: `--step` (stop after each command) or `--stopAtFailure` (to stop after a failure). To debug  getting started guide run following command:
+
+```
+.github/scripts/check_docs.sh --stopAtFailure docs/getting_started.md
+```
+
 ## Scala CLI logos
 
 Package with various logos for scala-cli can be found on [google drive](https://drive.google.com/drive/u/1/folders/1M6JeQXmO4DTBeRBKAFJ5HH2p_hbfQnqS)
