@@ -37,7 +37,7 @@ object Messages {
   def print(): Unit = println(message)
 }
 ```
-```bash
+```bash ignore
 scala-cli repl mylibrary/Messages.scala
 # Compiling project (Scala 3.0.2, JVM)
 # Compiled project (Scala 3.0.2, JVM)

@@ -219,7 +219,11 @@ def checkFile(file: os.Path, options: Options): Unit =
           if options.stopAtFailure then pause()
           throw e
     }
-  finally if options.dest.isEmpty then os.remove.all(out)
+  finally
+    if options.dest.isEmpty then
+      try os.remove.all(out)
+      catch
+        case ex: Throwable => ex.printStackTrace()
 
   // remove empty space at beginning of all files
   if options.dest.nonEmpty then

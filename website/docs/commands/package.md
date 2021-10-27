@@ -22,28 +22,38 @@ and download their dependencies upon first launch, via [coursier](https://get-co
 These can be copied onto other machines, and will run fine there.
 Their only requirement is that the `java` command needs to be available in the `PATH`:
 
+```scala title=Hello.scala
+object Hello {
+  def main(args: Array[String]): Unit =
+    println("Hello")
+}
+```
+
 ```bash
-cat Hello.scala
-# object Hello {
-#   def main(args: Array[String]): Unit =
-#     println("Hello")
-# }
 scala-cli package Hello.scala -o hello
 ./hello
 # Hello
 ```
+
+<!-- Expected 
+Hello
+-->
 
 ## Library JARs
 
 *Library JARs* are suitable if you plan to put the resulting JAR in a class path, rather than running it as is.
 These follow the same format as the JARs of libraries published to Maven Central:
 
+```scala title=MyLibrary.scala
+package mylib
+
+class MyLibrary {
+  def message = "Hello"
+}
+```
+
+
 ```bash
-cat MyLibrary.scala
-# package mylib
-# class MyLibrary {
-#   def message = "Hello"
-# }
 scala-cli package MyLibrary.scala -o my-library.jar --library
 javap -cp my-library.jar mylib.MyLibrary
 # Compiled from "MyLibrary.scala"
@@ -53,6 +63,13 @@ javap -cp my-library.jar mylib.MyLibrary
 # }
 ```
 
+<!-- Expected:
+MyLibrary.scala
+public class mylib.MyLibrary
+public java.lang.String message();
+public mylib.MyLibrary();
+-->
+
 ## Assemblies
 
 *Assemblies* blend your dependencies and your sources' byte code together in a single JAR file.
@@ -60,16 +77,24 @@ As a result, assemblies can be run as is, just like [bootstraps](#default-packag
 anything upon first launch.
 Because of that, assemblies also tend to be bigger, and somewhat slower to generate:
 
+<!-- clear -->
+
+```scala title=Hello.scala
+object Hello {
+  def main(args: Array[String]): Unit =
+    println("Hello")
+}
+```
+
 ```bash
-cat Hello.scala
-# object Hello {
-#   def main(args: Array[String]): Unit =
-#     println("Hello")
-# }
 scala-cli package Hello.scala -o hello --assembly
 ./hello
 # Hello
 ```
+
+<!-- Expected:
+Hello
+-->
 
 ## Docker container
 
@@ -131,16 +156,25 @@ scala-cli package --native --docker HelloDocker.scala --docker-image-repository 
 
 Packaging Scala.JS applications results in a `.js` file, that can be run with `node`:
 
+<!-- TODO: add something js specific -->
+
+```scala title=HelloJs.scala
+object Hello {
+  def main(args: Array[String]): Unit =
+    println("Hello")
+}
+```
+
 ```bash
-cat Hello.scala
-# object Hello {
-#   def main(args: Array[String]): Unit =
-#     println("Hello")
-# }
-scala-cli package --js Hello.scala -o hello.js
+scala-cli package --js HelloJs.scala -o hello.js
 node hello.js
 # Hello
 ```
+
+<!-- Expected:
+Hello
+-->
+
 
 Note that the Scala CLI doesn't offer to link the resulting JavaScript with linkers, such as Webpack (yet).
 
@@ -148,18 +182,28 @@ Note that the Scala CLI doesn't offer to link the resulting JavaScript with link
 
 Packaging a Scala Native application results in a native executable:
 
+<!-- clear -->
+
+<!-- TODO: add something native specific -->
+
+```scala title=HelloNative.scala
+object Hello {
+  def main(args: Array[String]): Unit =
+    println("Hello")
+}
+```
+
 ```bash
-cat Hello.scala
-# object Hello {
-#   def main(args: Array[String]): Unit =
-#     println("Hello")
-# }
-scala-cli package --native Hello.scala -o hello
+scala-cli package --native HelloNative.scala -S 2.13 -o hello
 file hello
 # hello: Mach-O 64-bit executable x86_64
 ./hello
 # Hello
 ```
+
+<!-- Expected:
+Hello
+-->
 
 ## OS-specific packages
 
@@ -178,7 +222,7 @@ object Hello {
 }
 ```
 
-```bash
+```bash ignore
 scala-cli package --deb Hello.scala -o hello.deb
 file hello
 # hello: Mach-O 64-bit executable x86_64
@@ -193,8 +237,8 @@ To build a Debian package, you will need to have [`dpkg-deb`](http://manpages.ub
 
 Example:
 
-```bash
-scala-cli package --deb --output 'path.deb` Hello.scala
+```bash ignore
+scala-cli package --deb --output 'path.deb' Hello.scala
 ```
 
 #### Mandatory arguments
@@ -217,8 +261,8 @@ To build a RedHat Package, you will need to have [`rpmbuild`](https://linux.die.
 
 Example:
 
-```bash
-scala-cli package --rpm --output 'path.rpm` Hello.scala
+```bash ignore
+scala-cli package --rpm --output 'path.rpm' Hello.scala
 ```
 
 #### Mandatory arguments
@@ -240,7 +284,7 @@ To build a PKG you will need to have [`pkgbuild`](https://www.unix.com/man-page/
 
 Example:
 
-```bash
+```bash ignore
 `scala-cli package --pkg --output 'path.pkg` Hello.scala
 ```
 

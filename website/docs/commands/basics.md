@@ -166,6 +166,7 @@ Lastly, `scala-cli` also accepts input via shell process substitution:
 ```bash
 scala-cli <(echo 'println("Hello")')
 # Hello
-```lo")')
-# Hello
 ```
+<!-- Expected:
+Hello
+-->

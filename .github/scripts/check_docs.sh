@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
+set -e
+
 dest=$(pwd)/.scala/bin
 
-# TODO
-# ./mill -i copyTo cli.launcher $dest/scala-cli 
+./mill -i copyTo cli.launcher $dest/scala-cli 
 
 export PATH=$dest:$PATH
 echo Adding $dest to classpath
@@ -11,7 +12,7 @@ ls $dest
 
 if [ $# -eq 0 ]
   then
-    toCheck=website/docs/cookbooks website/docs/getting_started.md
+    toCheck="website/docs/cookbooks website/docs/commands"
   else
     toCheck=$@
 fi

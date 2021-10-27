@@ -26,11 +26,19 @@ scala-cli Hello.scala
 ## Passing arguments
 
 You can pass arguments to the application or script you're launching after `--`:
-```bash
-scala-cli MyApp.scala -- first-arg second-arg
-# MyApp called with arguments: first-arg second-arg
 
+```scala title=app.sc
+println(args.mkString("App called with arguments: ", ", ", ""))
 ```
+
+```bash
+scala-cli app.sc -- first-arg second-arg
+# App called with arguments: first-arg, second-arg
+```
+
+<!-- Expected:
+App called with arguments: first-arg, second-arg
+-->
 
 ## Main class
 
@@ -41,7 +49,7 @@ println("Hi")
 ```
 
 ```bash
-scala-cli Hello.scala hi.sc --main-class hi
+scala-cli Hello.scala hi.sc --main-class hi_sc
 ```
 
 ## Custom JVM
@@ -49,7 +57,7 @@ scala-cli Hello.scala hi.sc --main-class hi
 `--jvm` lets you run your application with a custom JVM:
 
 ```bash
-scala-cli my-app/ --jvm adopt:14
+scala-cli Hello.scala --jvm adopt:14
 ```
 
 JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms), and are based on the [index](https://github.com/shyiko/jabba/blob/master/index.json) of the [jabba](https://github.com/shyiko/jabba) command-line tool.
@@ -68,10 +76,10 @@ See our dedicated [Scala.js guide](../guides/scala-js.md) for more information.
 ## Scala Native
 
 Scala Native applications can be compiled and run with the `--native` option.
-Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](/install#scala-native) for this to work, and that Scala Native only supports Linux and macOS at this time:
+Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](/install#scala-native) for this to work, and that Scala Native only supports Linux and macOS at this time and can only use Scala 2.13 and 2.12 for now:
 
 ```bash
-scala-cli Hello.scala --native
+scala-cli Hello.scala --native -S 2.13
 ```
 
 We have a dedicated [Scala Native guide](../guides/scala-native.md) as well.
@@ -107,7 +115,7 @@ object HelloWorld extends App {
 }
 ```
 
-```bash
+```bash ignore
 docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala
 # Hello world
 ```

@@ -80,6 +80,11 @@ scala-cli test MyTests.scala
 #   + foo 0.143s
 ```
 
+<!-- Expected:
+MyTests
+foo
+-->
+
 ## Test arguments
 
 You can pass test arguments to your test framework by passing them after `--`:
@@ -111,3 +116,10 @@ scala-cli test MyTests.scala -- -oD
 # Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
 # All tests passed.
 ```
+
+<!-- Expected:
+Tests:
+A thing
+should thing
+All tests passed.
+-->
