@@ -5,8 +5,8 @@ sidebar_position: 19
 
 # Scripts
 
-`scala-cli` accept Scala scripts, ending in `.sc`. Unlike `.scala` files,
-any kind of statement is accepted at the top-level:
+Scala-cli accepts Scala scripts, ending in `.sc`. Unlike `.scala` files,
+any kind of statement is accepted at the top level:
 
 ```scala title=hello.sc
 val message = "Hello from Scala script"
@@ -56,7 +56,7 @@ is required to disambiguate them.
 
 ### Aguments
 
-You may also pass args to your script, it is referenced via `args` special variable
+You may also pass args to your script, it is referenced via the special variable `args`:
 
 ```scala title=p.sc
 #!/usr/bin/env scala-cli
@@ -72,7 +72,7 @@ chmod +x p.sc
 
 ### Self executable Scala Script
 
-You can define file with shebang header to self executable. It could be also run as a normal script.
+You can define file with a "shebang" header, to make it executable in itself. It could be also run as a normal script.
 
 ```scala title=HelloScript.sc
 #!/usr/bin/env scala-cli

@@ -5,7 +5,7 @@ sidebar_position: 3
 
 ## Scala Scripts
 
-Scala Scripts are files containing Scala code without main method required. These codes of scala do not require build-tools configurations. To run Scala Scripts very quickly without waiting for warn-up build-tools, you can use `scala-cli`.
+Scala Scripts are files containing Scala code without main method required. These codes of Scala do not require build-tools configurations. To run Scala Scripts very quickly without waiting for warn-up build-tools, you can use `scala-cli`.
 
 ### Run
 
@@ -27,7 +27,7 @@ Hello from Scala .*, Java .*
 -->
 
 
-Alternatively, add a shebang header to your script, make your script executable, and execute it directly. `scala-cli` needs to be installed for this to work.
+Alternatively, add a "shebang" header to your script, make your script executable, and execute it directly. `scala-cli` needs to be installed for this to work.
 
 ```scala title=HelloScriptSheBang.sc
 #!/usr/bin/env scala-cli
@@ -72,11 +72,11 @@ bar
 
 ## Features
 
-All the features from non-scripts are working with Scala Scripts, such as waiting for changes (watch mode), dependencies menagement, packaging, compiling and many others.
+All the features from non-scripts work for Scala scripts too, such as waiting for changes (watch mode), dependencies menagement, packaging, compiling and many others.
 
 ### Package
 
-Run `package` to the Scala CLI to package your script to lightweight executable JAR file.
+Run `package` to the Scala CLI to package your script to a lightweight executable JAR file.
 
 ```bash
 scala-cli package HelloScript.sc

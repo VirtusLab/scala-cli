@@ -13,7 +13,7 @@ If you just want to learn Scala CLI just head out to the [Commands section](./co
 Page under construction!
 :::
 
-Project evoultion and the area before build tools.
+Project evolution and the area before build tools.
 
 ## Why not better sbt or mill?
 

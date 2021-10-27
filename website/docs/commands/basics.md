@@ -3,7 +3,7 @@ title: Basics
 sidebar_position: 3
 ---
 
-Scala CLI is a command line tools that execute given command on provided inputs with given [configuration](../guides/configuration.md) to produce a result. Most important commands are:
+Scala CLI is a command line tool that executes a given command on provided inputs with given [configuration](../guides/configuration.md) to produce a result. Most important commands are:
 
   - [compile](./compile.md) to compile you code (this exclude tests)
   - [run](./run.md) - to run your code using provided arguments (also used when no other command is provided)
@@ -12,7 +12,7 @@ Scala CLI is a command line tools that execute given command on provided inputs 
   - [repl](./repl.md) / [console](./repl.md) - to run interactive Scala shell
   - [fmt](./fmt.md) - to format your code
 
-Scala CLI can be run without any command provided and that will default to the `run` command, so `scala-cli a.scala` will run your a.scala file.
+If Scala CLI is run without any command provided, it will default to the `run` command, so `scala-cli a.scala` will run your `a.scala` file.
 
 ## Input formats
 
@@ -66,7 +66,7 @@ Run them with
 ```bash
 scala-cli Hello.scala Messages.scala
 # Hello from Scala
-``` 
+```
 
 :::note
 Scala CLI compiles together only the provided inputs.
@@ -85,7 +85,7 @@ Passing many files this way can be cumbersome and error-prone. Directories can h
 ## Directories
 
 `scala-cli` accepts whole directories as input. This is convenient when you have many
-`.scala` files, and passing them all one-by-one on the command line isn't practical:
+`.scala` files and passing them all one-by-one on the command line isn't practical:
 
 ```scala title=my-app/Messages.scala
 object Messages {
@@ -111,7 +111,8 @@ From our experience, `scala-cli .` is the most used command (it will compile and
 :::note
 Scala CLI will process all files within the directories and all its subdirectories.
 
-Scala CLI ignores all subdirectories that starts with `.` like `.scala` or `.vscode`. Such directories needs to be explicitly provided as inputs.
+Scala CLI ignores all subdirectories that starts with `.` like `.scala` or `.vscode`. (But such directories can be explicitly provided as inputs.)
+
 :::
 ## URLs
 
@@ -131,8 +132,8 @@ scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d63
 
 ### GitHub Gist
 
-`scala-cli` accepts input via Github Gists url.
-It'll download gists zip archive, cache their content, and run them.
+`scala-cli` accepts input via the URLs of GitHub gists.
+It wil download the gists' zip archives, cache their content, and run them.
 
 ```bash
 scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec

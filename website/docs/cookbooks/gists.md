@@ -1,14 +1,14 @@
 ---
-title: Sharing and testing code with Github Gists
+title: Sharing and testing code with GitHub gists
 sidebar_position: 6
 ---
 
-# Sharing and testing code with Github Gists
+# Sharing and testing code with GitHub gists
 
-## Running code from Gists
+## Running code from gists
 
-`scala-cli` allows running Scala code straight from Github Gists, without the need for manually downloading them first.
-This is done by just passing the link to a Gist as an argument to `scala-cli`.
+`scala-cli` allows running Scala code straight from GitHub gists, without the need for manually downloading them first.
+This is done by just passing the link to a gist as an argument to `scala-cli`.
 
 For example, having a given gist `https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec`:
 ```scala title=Messages.scala
@@ -29,15 +29,15 @@ Hello
 Will print `Hello` to the standard output.
 
 :::note
-Note that the gist doesn't necesarily have to be one file.
-`scala-cli` downloads the Gists archive and unzips it, so the Gist can contain multiple files depending on each other.
+Note that the gist doesn't necessarily have to be one file.
+`scala-cli` downloads the gist's archive and unzips it, so the gist can contain multiple files depending on each other.
 
 `scala-cli` also caches the project sources using `coursier`'s cache.
 :::
 
 ## Sharing code snippets
 
-Together with github-cli it becomes really easy to share Scala code.
+Together with the GitHub CLI (`gh`), it becomes really easy to share Scala code.
 
 If you wants to share a code file, just run:
 ```sh

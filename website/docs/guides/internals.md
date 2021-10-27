@@ -4,7 +4,7 @@ sidebar_position: 45
 ---
 
 Even though Scala CLI exposes a simple interface to users, quite a number of steps happen
-under-the-hood when compiling or running even a single source file.
+under the hood when compiling or running even a single source file.
 
 
 ### Bloop
@@ -12,7 +12,7 @@ under-the-hood when compiling or running even a single source file.
 Scala CLI uses Bloop to compile code. That way, it doesn't interface directly with scalac / dotty,
 and newly released Scala versions work out-of-the-box - no need to update Scala CLI itself.
 
-In more detail, Scala CLI connects to Bloop on the local machine via the default Bloop port (`8212`).
+In more detail: Scala CLI connects to Bloop on the local machine via the default Bloop port (`8212`).
 If no Bloop instance listens on this port, Scala CLI fetches Bloop (via coursier), and starts it.
 
 Right now, Scala CLI connects to Bloop via an open TCP port on your local machine, although this may change in

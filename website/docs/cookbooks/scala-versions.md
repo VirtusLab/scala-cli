@@ -7,7 +7,7 @@ sidebar_position: 2
 
 Scala cli by default runs latest stable Scala version.
 
-Here is an universal piece of code that detect Scala version in runtime. Code is a bit complicated so we suggest to skip reading the whole file and just focus on what it prints.
+Here is an universal piece of code that detects Scala version at runtime. Code is a bit complicated so we suggest to skip reading the whole file and just focus on what it prints.
 
 ```scala title=ScalaVersion.scala
 object ScalaVersion extends App {
@@ -17,13 +17,13 @@ object ScalaVersion extends App {
     try {
       properties.load(is)
       properties
-    } finally is.close()    
+    } finally is.close()
   }
 
-  def scala2Version: String = 
+  def scala2Version: String =
     props(getClass.getResource("/library.properties")).getProperty("version.number")
-    
-  def checkScala3(res: java.util.Enumeration[java.net.URL]): String = 
+
+  def checkScala3(res: java.util.Enumeration[java.net.URL]): String =
     if (!res.hasMoreElements) scala2Version else {
       val manifest = props(res.nextElement)
       manifest.getProperty("Specification-Title") match {
@@ -33,7 +33,7 @@ object ScalaVersion extends App {
       }
     }
   val manifests = getClass.getClassLoader.getResources("META-INF/MANIFEST.MF")
-    
+
   val scalaVersion = checkScala3(manifests)
   val javaVersion = System.getProperty("java.version")
 
@@ -52,7 +52,7 @@ Scala: 3\..*
 -->
 
 
-It will run using latest stable release of Scala (3.0.2 by the time of writing this doc.)
+It will run using latest stable release of Scala (3.1.0 at the time of writing this doc.)
 
 Scala version can be also provided from command line using `--scala` (with `-S` and `--scala-version` aliases)
 
@@ -63,7 +63,7 @@ scala-cli -S 2.13.5 ScalaVersion.scala
 Scala: 2\.13\.5
 -->
 
-In most cases we do not care for a precise Scala version and 'any Scala 2' or `2.13` is good enough for us. 
+In most cases we do not care for a precise Scala version and 'any Scala 2' or `2.13` is good enough for us.
 
 Scala cli accepts version prefixes so:
 
@@ -107,15 +107,15 @@ and run
 scala-cli ScalaVersion.scala version.scala
 ```
 
-<!-- Expected-regex: TODO - 
+<!-- Expected-regex: TODO -
 Scala: 2\.12\.5
 -->
 
-We will results in using `2.12.5`. 
+We will results in using `2.12.5`.
 
 scala-cli is command-line first so any configuration pass to command line will override using directives.
 
-So, running 
+So, running
 
 ```bash
 scala-cli -S 2.13.5 ScalaVersion.scala version.scala
@@ -127,8 +127,8 @@ Will result in using `2.13.5`
 Scala: 2\.13\.5
 -->
 
-## When should I provide a full version of scala?
+## When should I provide a full version of Scala?
 
-For prototyping, scripting and other use cases that does not require to run code multiple times in the future proving version is not required. 
+For prototyping, scripting and other use cases that does not require to run code multiple times in the future proving version is not required.
 
 Scala is source and binary compatible within each major version (e.g. `2.12.x` or `3.1.x`) so providing version in `eopch.major` form (e.g. `2.12`, `2.13` or `3.1`) should be perfectly fine for most use cases. When your Scala code contains more advanced features that may be more sensitive for changes in minor version (e.g. from `2.13.4` to `2.13.5`) we recommend using complete Scala version.
