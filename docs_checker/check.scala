@@ -82,6 +82,28 @@ def checkFile(file: os.Path, dest: Option[os.Path]) =
   var lastOutput: String = null
   val allSources         = Set.newBuilder[os.Path]
 
+  val SingleQuoted = """'(.*)'""".r
+  val Quoted = """"(.*)"""".r
+  val Unsupported = """.*[\$`].*"""
+
+  def parseArg(arg: String)(using Context): String = arg match
+    case SingleQuoted(arg) => arg
+    case Quoted(arg) => parseArg(arg)
+    case Unsupported =>
+      throw new AssertionError(msg("Commands with variables or subprocess are not supported"))
+    case _ => arg
+
+
+  def run(args: Seq[String], prev: Option[os.SubProcess] = None): os.CommandResult = 
+    val untilPipe = args.takeWhile(_ != "|")
+    val in = prev.fold(os.Pipe)(p => os.ProcessInput.SourceInput(p.stdout))
+    val toRun = args.dropWhile(_ != "|").drop(1)
+    if toRun.isEmpty then
+      os.proc(untilPipe).call(cwd = out, mergeErrIntoOut = true, check = false, stdin = in)
+    else 
+      val subProcess = os.proc(untilPipe).spawn(cwd = out, stdin = in)
+      run(toRun, Some(subProcess))
+
   try
     println(s"Using $out as output to process $file")
 
@@ -89,14 +111,16 @@ def checkFile(file: os.Path, dest: Option[os.Path]) =
       given Context = cmd.context
       cmd match
         case Commands.Run(cmds, shouldFail, _) =>
-          cmds.foreach { cmd =>
-            println(s"### Running: ${cmd.mkString(" ")}:")
-            val res = os.proc(cmd).call(cwd = out, mergeErrIntoOut = true, check = false)
+          cmds.map(_.map(parseArg)).foreach { cmd =>
+            val cmdString = cmd.mkString(" ")
+            println(s">>> Running: $cmdString:")
+            val res = run(cmd)
             println(res.out.text())
+            println("<<<")
             if shouldFail then
               assert(res.exitCode != 0)
             else
-              assert(res.exitCode == 0)
+              assert(res.exitCode == 0, msg(s"Command $cmdString failed."))
 
             val outputChunks = res.chunks.map {
               case Left(c) =>
@@ -106,6 +130,7 @@ def checkFile(file: os.Path, dest: Option[os.Path]) =
             }
             lastOutput = res.out.text()
           }
+
         case Commands.Snippet(name, code, c) =>
           val (prefixLines, codeLines) =
             code match
@@ -120,6 +145,7 @@ def checkFile(file: os.Path, dest: Option[os.Path]) =
 
           val prefix = prefixLines.mkString("", "", s"$fakeLineMarker\n" * c.line)
           os.write(file, code.mkString(prefix, "\n", ""))
+
         case Commands.Check(patterns, regex, line) =>
           assert(lastOutput != null, msg("No output stored from previous commands"))
           val lines = lastOutput.linesIterator.toList
@@ -167,7 +193,12 @@ def checkFile(file: os.Path, dest: Option[os.Path]) =
 
 @main def check(args: String*) =
   def processFiles(dest: Option[os.Path], files: Seq[String]) =
-    val testCases    = files.flatMap(a => checkPath(dest)(os.pwd / os.RelPath(a)))
+    val paths = files.map { str =>
+      val path = os.pwd / os.RelPath(str)
+      assert(os.exists(path), s"Provided path $str does not exists in ${os.pwd}")
+      path
+    }
+    val testCases    = paths.flatMap(checkPath(dest))
     val (failed, ok) = testCases.partition(_.failure.nonEmpty)
     println(s"Completed:\n\t${ok.map(_.path).mkString("\n\t")}")
     if failed.nonEmpty then
