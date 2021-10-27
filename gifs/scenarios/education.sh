@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -36,5 +38,5 @@ EOF
   pe "scala-cli HelloWorld.sc"
 
   sleep 5
-  echo " "
+  echo " " && echo "ok" > status.txt
 fi

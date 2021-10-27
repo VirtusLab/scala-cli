@@ -29,5 +29,5 @@ EOF
   pe 'echo -e "abc\ndef" | ./count_lines.sc'
   pe 'echo -e "abc\ndef\nghi" | ./count_lines.sc'
   sleep 4
-  echo " "
+  echo " " && echo "ok" > status.txt
 fi

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -27,5 +29,5 @@ EOF
   rougify --theme tulip Main.scala
   pe 'scala-cli package .'
   sleep 4
-  echo " "
+  echo " " && echo "ok" > status.txt
 fi

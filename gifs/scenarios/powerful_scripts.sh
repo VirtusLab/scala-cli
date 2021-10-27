@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -33,5 +35,5 @@ EOF
   pe "scala-cli ./stat.sc -- my_file"
   # Wait a bit to read output of last command
   sleep 4
-  echo " "
+  echo " " && echo "ok" > status.txt
 fi

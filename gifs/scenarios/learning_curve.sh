@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -38,5 +40,5 @@ object Hello extends App {
 EOF
 
   pe "scala-cli Hello.scala"
-  echo " "
+  echo " " && echo "ok" > status.txt
 fi

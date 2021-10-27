@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -39,5 +41,5 @@ EOF
   pe "scala-cli --native -S 2 native.scala"
   sleep 3
 
-  echo " "
+  echo " " && echo "ok" > status.txt
 fi

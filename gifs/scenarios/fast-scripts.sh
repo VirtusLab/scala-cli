@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -20,5 +22,5 @@ else
 
   # Wait a bit to read output of last command
   sleep 2
-  echo " "
+  echo " " && echo "ok" > status.txt
 fi
