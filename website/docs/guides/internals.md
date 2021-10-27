@@ -3,39 +3,37 @@ title: Internals
 sidebar_position: 45
 ---
 
-Even though Scala CLI exposes a simple interface to users, quite a number of steps happen
-under the hood when compiling or running even a single source file.
+Even though Scala CLI exposes a simple interface to users, quite a number of steps happen when compiling or running even a single source file.
+This page describes what happens under the hood when you run a Scala CLI command.
 
 
 ### Bloop
 
-Scala CLI uses Bloop to compile code. That way, it doesn't interface directly with scalac / dotty,
-and newly released Scala versions work out-of-the-box - no need to update Scala CLI itself.
+Scala CLI uses Bloop to compile code.
+That way, it doesn't interface directly with `scalac`, and newly released Scala versions work out of the box: there's no need to update Scala CLI itself.
 
-In more detail: Scala CLI connects to Bloop on the local machine via the default Bloop port (`8212`).
-If no Bloop instance listens on this port, Scala CLI fetches Bloop (via coursier), and starts it.
+The way this works is that Scala CLI connects to Bloop on the local machine at the default Bloop port, `8212`.
+If no Bloop instance is found on this port, Scala CLI fetches Bloop (via Coursier), and starts it.
 
-Right now, Scala CLI connects to Bloop via an open TCP port on your local machine, although this may change in
-the future for security reasons (see [`scalacenter/bloop#1562`](https://github.com/scalacenter/bloop/pull/1562)).
+:::note
+Right now, Scala CLI connects to Bloop via an open TCP port on your local machine, but this may change in the future for security reasons (see [`scalacenter/bloop#1562`](https://github.com/scalacenter/bloop/pull/1562)).
+:::
 
-Once connected to Bloop, Scala CLI writes a Bloop project file (under `.scala/.bloop`), describing
-the current Scala CLI project (its Scala version, its dependencies, its compiler plugins and options, etc.).
+Once it’s connected to Bloop, Scala CLI writes a Bloop project file under a `.scala/.bloop` directory. This file describes the current Scala CLI project, including its Scala version, dependencies, compiler plugins and options, etc.
 
-It then initiates a [BSP](https://github.com/build-server-protocol/build-server-protocol) connection with Bloop
-Even though the request to open a BSP connection is initiated on the TCP port above, BSP communication itself
-happens on a domain socket (Linux / macOS) or named pipe (Windows).
+It then initiates a [BSP](https://github.com/build-server-protocol/build-server-protocol) connection with Bloop.
+Even though the request to open a BSP connection is initiated on the TCP port above, BSP communication itself happens on a domain socket (Linux/macOS) or named pipe (Windows).
 
-That BSP connection then allows Scala CLI to ask Bloop to compile sources, and get diagnostics (warnings / errors)
-and byte code.
+That BSP connection then allows Scala CLI to ask Bloop to compile sources, and get diagnostics (warnings/errors) and the compiled byte code.
 
 ### `.scala` directory
 
-Scala CLI uses a directory named `.scala` to write:
+In the directory where you run your `scala-cli` commands, Scala CLI creates a subdirectory named `.scala`, where it writes:
 - [Bloop project files](#bloop)
 - [generated sources](#preprocessing)
-- byte code and TASTy files resulting from compiling the user sources
+- byte code and TASTy files that result from compiling the user sources
 
-The typical content of `.scala` looks like
+The typical content of the `.scala` directory looks like this:
 ```text
 .scala
 ├── .bloop
@@ -65,59 +63,62 @@ The typical content of `.scala` looks like
             └── test.scala
 ```
 
-In particular, `.scala/.bloop` contains Bloop project files and Bloop's own working directories, and
-`.scala/project_*` contains byte code and TASTy files, and generated sources.
+In particular, `.scala/.bloop` contains Bloop project files and Bloop's own working directories, and `.scala/project_*` contains byte code, TASTy files, and generated sources.
 
 ## Preprocessing
 
-Some sources that Scala CLI accepts cannot be passed as is to scalac / dotty. That's the case for
-- `.sc` files, that can contain top-level definitions not accepted by scalac or dotty
-- `.scala` files with non-commented `using` directives
-- `.sc` or `.scala` files with `import $ivy`s.
+Some source code files that Scala CLI accepts cannot be passed as-is to `scalac`.
+This is the case for:
+- `.sc` files, which can contain top-level definitions not accepted by `scalac`
+- `.scala` files that have uncommented `using` directives
+- `.sc` or `.scala` files with `import $ivy` statements
 
 In all of those cases, Scala CLI parses the top of those files, and looks for `import $ivy` or `using` directives.
-It then replaces those either by dummy imports (for the `import $ivy`s) or space characters
-(for non-commented `using` directives).
+It then replaces those with either dummy imports (for the `import $ivy` statements) or space characters (for non-commented `using` directives).
 
-`.sc` files are also "wrapped" in an `object`, and a `main` class is added to them, so that `.sc` files
-can be run as is and can access arguments via `args`.
+As described in [Scripts](scripts.md), `.sc` files are also "wrapped" in an `object`, and a `main` class is added to them, so that `.sc` files can be run as-is, and can access arguments via a special `args` variable.
 
-The resulting processed sources are written in the `.scala/project_…/src_generated` directory, and passed
-to Bloop from there.
+In all cases, the resulting processed sources are written in the `.scala/project_…/src_generated` directory, and passed to Bloop from there.
 
 ## Postprocessing
 
-Because of [preprocessing](#preprocessing), some outputs we get from scalac / dotty might not match
-the original sources. Processed sources might have shifted line numbers (for `.sc` files, because
+Because of [preprocessing](#preprocessing), some outputs we get from `scalac` might not match the original sources.
+Processed sources might have shifted line numbers (for `.sc` files, because
 of the wrapping in an `object`), or wrong relative paths (as they're written in `src_generated`).
 
-For those files, most outputs from scalac / dotty is postprocessed, to match the original sources. That
-includes:
-- diagnostics (errors / warning, whose file names and line / column numbers are adjusted)
+For those files, most outputs from `scalac` are postprocessed, so they match the original sources.
+That includes:
+- diagnostics (errors/warnings, whose file names and line/column numbers are adjusted)
 - byte code (whole line numbers, reported in exception stack traces or used by debuggers, needs to be shifted)
 - semantic DBs (used for IDE support, whose path fields and positions need to be adjusted)
-- TASTy files (whole path fields need to be adjusted)
+- TASTy files (whose path fields need to be adjusted)
 
 ## Runner
 
-When running your code, if your code crashes, Scala CLI processes the stack traces of the exception to make them
-more readable. This is achieved by adding to the class path a module (called `runner`), that is actually used as
-entry point. The [`Runner` class](https://github.com/VirtusLab/scala-cli/blob/60eae701abc74bdd634efa5157740578bd6c4162/modules/runner/src/main/scala/scala/cli/runner/Runner.scala)
-of the runner module starts your main class, catches any exception it might throw,
-and pretty-prints it. (With Scala 3, pretty printing of stack traces is handled by the
+When running your code, if the code crashes, Scala CLI processes the stack traces of the exception to make them more readable.
+This is achieved by adding a module (called `runner`) to the class path, and this module is actually used as the entry point of your application.
+The [`Runner` class](https://github.com/VirtusLab/scala-cli/blob/60eae701abc74bdd634efa5157740578bd6c4162/modules/runner/src/main/scala/scala/cli/runner/Runner.scala)
+of the `runner` module starts your main class, catches any exceptions it might throw, and pretty-prints it.
+(With Scala 3, pretty-printing of stack traces is handled by the
 [pretty-stacktraces](https://github.com/Virtuslab/pretty-stacktraces) library.)
 
 ## Logging
 
-To have a glimpse at what Scala CLI is doing, increase its verbosity with `-v`. `-v` can be specified up to 3 times,
-and prints numerous details. These details are mostly meant to help debug issues.
-When reporting bugs, increasing the verbosity to its maximum can be helpful.
+To get a glimpse at what Scala CLI is doing, increase its verbosity with `-v`.
+The `-v` option can be specified up to 3 times, which increases its verbosity level.
+
+Using this option can be a good way to learn how Scala CLI works, though it's mostly meant to help debug issues.
+When reporting bugs, increasing the verbosity to its maximum level can be helpful.
+
+Here's some example output for the first verbosity level:
 
 ```text
 $ scala-cli . -v
 Running /Users/alexandre/Library/Caches/Coursier/jvm/adopt@1.11.0-7/Contents/Home/bin/java -cp /Users/alexandre/projects/scala-cli/test/.scala/project_940fb43dce/classes/main:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.0.2/scala3-library_3-3.0.2.jar:/Users/alexandre/Library/Caches/ScalaCli/local-repo/v0.0.5-43-60eae7/org.virtuslab.scala-cli/runner_3/0.0.5+43-g60eae701-SNAPSHOT/jars/runner_3.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/oss.sonatype.org/content/repositories/snapshots/org/virtuslab/pretty-stacktraces_3/0.0.0%2B27-b9d69198-SNAPSHOT/pretty-stacktraces_3-0.0.0%2B27-b9d69198-SNAPSHOT.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-tasty-inspector_3/3.0.0/scala3-tasty-inspector_3-3.0.0.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.0.0/scala3-compiler_3-3.0.0.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.0.0/scala3-interfaces-3.0.0.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.0.0/tasty-core_3-3.0.0.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.1.0-scala-1/scala-asm-9.1.0-scala-1.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.3.5/compiler-interface-1.3.5.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.7.0/protobuf-java-3.7.0.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.3.0/util-interface-1.3.0.jar:/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar:/Users/alexandre/Library/Caches/ScalaCli/local-repo/v0.0.5-43-60eae7/org.virtuslab.scala-cli/stubs/0.0.5+43-g60eae701-SNAPSHOT/jars/stubs.jar scala.cli.runner.Runner test_sc
 Hello
 ```
+
+Next, this output shows how much more detail is available when `-v` is specified twice:
 
 ```text
 $ scala-cli . -v -v
@@ -348,6 +349,8 @@ test_sc
 execve available
 Hello
 ```
+
+Finally, this example shows the detail that's available when `-v` is specified three times:
 
 ```text
 $ scala-cli . -v -v -v
@@ -628,3 +631,5 @@ execve available
 Hello
 Client in /Users/alexandre/projects/scala-cli/test/.scala/.bloop disconnected with a 'SocketError' event. Cancelling tasks...
 ```
+
+If you want to understand how Scala CLI works, the `-v` option shows you the details of what's happening when your command is run.
