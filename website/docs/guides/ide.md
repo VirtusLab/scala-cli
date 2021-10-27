@@ -40,13 +40,13 @@ mainly due to how fresh Scala CLI is and also due to our radical approach to the
 project structure using a Scala CLI-powered projects with your favourite IDE may
 not be as amazing as we would like to be.
 
-Proper IDE integration is our top priority at them moment.
+Proper IDE integration is our top priority at the moment.
 
 ## Metals
 
 Once Metals picks up proper project structure then basic features like navigation, diagnostics or code completion should work.
 
-The Current release Metals (0.10.7) is not able to pick changes in the build
+The Current release Metals (0.10.8) is not able to pick changes in the build
 structure automatically and this includes adding new source files. In order
 for Metals to pick up new files or changes in build structure you'll need to
 trigger the 'Restart build server' command.
@@ -61,19 +61,9 @@ source of truth and we recommend falling back to command line in such cases.
 
 In terms of IntelliJ, the most significant problem is that IntelliJ requires sources to be placed within a directory. This means that top level sources are not recognized as proper sources.
 
-<<<<<<< HEAD
 With IntelliJ, we strongly suggested to placed your sources within a directory (like `src`).
 
 IntelliJ currently does not automatically pick up changes in project structure so any change in dependencies, compiler options etc. needs manual reload.
 
-Similarly to Metals, currently we do not advise using IntelliJ as a source of truth. We recommend falling back to command line in such cases.
-=======
-With Intellij, it's strongly suggested to place your sources within a directory (like `src`).
-
-Intellij currently does not automatically pick up changes in your project
-structure so any change in dependencies, compiler options etc. needs a manual
-reload.
-
 Similarly to Metals, we don't currently advise using Intellij as a source of
 truth and we recommend falling back to command line in such cases.
->>>>>>> be56190 (docs: fix typos and clarify a few things on the ide page)
