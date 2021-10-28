@@ -6,7 +6,7 @@ sidebar_position: 1
 The `scala-cli` CLI makes it easier to compile, run, test, and package Scala code.
 
 It can:
-- [compile](./commands/compile.md) Scala code
+- [compile](./commands/compile.mdx) Scala code
 - [run](./commands/run.md) it
 - [package](./commands/package.md) it as a JAR file, or in formats such as deb, rpm, MSI, ...
 - fire up a [REPL](./commands/repl.md), letting you quickly play with the code

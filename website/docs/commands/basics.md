@@ -7,7 +7,7 @@ Scala CLI is a command line tool that executes a given command on the inputs itâ
 
 The most important commands are:
 
-  - [compile](./compile.md) compiles your code (excluding tests)
+  - [compile](./compile.mdx) compiles your code (excluding tests)
   - [run](./run.md) runs your code using the provided arguments (itâ€™s also used when no other command is provided)
   - [test](./test.md) compiles and runs the tests defined in your code
   - [package](./package.md) packages your code into a jar or other format

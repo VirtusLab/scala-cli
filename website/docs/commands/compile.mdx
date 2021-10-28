@@ -1,7 +1,10 @@
----
-title: Compile
-sidebar_position: 5
----
+import {RunnableCommand} from "../../src/components/RunnableCommand";
+
+<RunnableCommand
+    command={"scala-cli run"}
+    output={"Hello world"}
+    // title={"test.js"}
+/>
 
 Scala CLI compiles your code with its `compile` command:
 

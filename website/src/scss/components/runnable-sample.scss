@@ -1,0 +1,9 @@
+.runnable-command {
+  .codeBlockContainer_node_modules-\@docusaurus-theme-classic-lib-next-theme-CodeBlock-styles-module {
+    margin-bottom: 2px;
+  }
+
+  .token-line::before {
+    content: "$ ";
+  }
+}
