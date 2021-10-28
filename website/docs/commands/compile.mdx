@@ -1,10 +1,9 @@
-import {RunnableCommand} from "../../src/components/RunnableCommand";
+---
+title: Compile
+sidebar_position: 5
+---
 
-<RunnableCommand
-    command={"scala-cli run"}
-    output={"Hello world"}
-    // title={"test.js"}
-/>
+import {RunnableCommand} from "../../src/components/RunnableCommand";
 
 Scala CLI compiles your code with its `compile` command:
 
@@ -15,6 +14,11 @@ object Hello {
 }
 ```
 
+<RunnableCommand
+    command={"scala-cli compile Hello.scala"}
+    output={`Hello`}
+/>
+
 ```bash
 scala-cli compile Hello.scala
 ```
@@ -23,7 +27,7 @@ Note that most Scala CLI commands automatically compile your code, if necessary.
 The `compile` command is useful if you'd like to check that your code compiles,
 or know of compilation warnings, without running it or packaging it.
 
-The most common `compile` options are shown below. 
+The most common `compile` options are shown below.
 For a full list of options, run `scala compile --help`, or check the options linked in the
 [reference documentation](../reference/commands.md#compile).
 
@@ -31,15 +35,18 @@ For a full list of options, run `scala compile --help`, or check the options lin
 
 `--watch` makes `scala-cli` watch your code for changes, and re-compiles it upon any change:
 
-```bash ignore
-scala-cli compile --watch Hello.scala
-# Compiling project-cef76d561e (1 Scala source)
-# Compiled 'project-cef76d561e'
-# Watching sources, press Ctrl+C to exit.
-# Compiling project-cef76d561e (1 Scala source)
-# Compiled 'project-cef76d561e'
-# Watching sources, press Ctrl+C to exit.
-```
+<RunnableCommand
+    command={"scala-cli compile --watch Hello.scala"}
+    output={
+`Compiling project-cef76d561e (1 Scala source)
+Compiled 'project-cef76d561e'
+Watching sources, press Ctrl+C to exit.
+Compiling project-cef76d561e (1 Scala source)
+Compiled 'project-cef76d561e'
+Watching sources, press Ctrl+C to exit.`
+    }
+    outputLanguage="bash"
+/>
 
 ## Scala version
 
@@ -84,14 +91,17 @@ See the [Dependency management](../guides/dependencies.md) guide for more detail
 
 Most [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-options) can be passed as-is to `scala-cli`:
 
-```bash
-scala-cli compile Hello.scala -Xlint:infer-any
-# Compiling project_b729aa2200-cef76d561e (1 Scala source)
-# [warn] ./Hello.scala:2:11: a type was inferred to be `Any`; this may indicate a programming error.
-# [warn]   val l = List("a", true, 2, new Object)
-# [warn]           ^
-# Compiled 'project_b729aa2200-cef76d561e'
-```
+<RunnableCommand
+    command={"scala-cli compile Hello.scala -Xlint:infer-any"}
+    output={
+`Compiling project_b729aa2200-cef76d561e (1 Scala source)
+[warn] ./Hello.scala:2:11: a type was inferred to be \`Any\`; this may indicate a programming error.
+[warn]   val l = List("a", true, 2, new Object)
+[warn]           ^
+Compiled 'project_b729aa2200-cef76d561e'`
+    }
+    outputLanguage="bash"
+/>
 
 All `scala-cli` options that start with:
 
@@ -109,12 +119,15 @@ are assumed to be Scala compiler options.
 
 Scala compiler options can also be passed with `-O`:
 
-```bash
-scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
-# [warn] ./Hello.scala:3:7: method x in class Some is deprecated (since 2.12.0): Use .value instead.
-# [warn]   opt.x
-# [warn]       ^
-```
+<RunnableCommand
+    command={"scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any"}
+    output={
+`[warn] ./Hello.scala:3:7: method x in class Some is deprecated (since 2.12.0): Use .value instead.
+[warn]   opt.x
+[warn]       ^`
+    }
+    outputLanguage="bash"
+/>
 
 `-O` accepts both options with the prefixes shown above, and those without such a prefix.
 
@@ -129,17 +142,20 @@ scala-cli compile Hello.scala --compiler-plugin org.typelevel:::kind-projector:0
 ## Printing a class path
 
 `--class-path` makes `scala-cli compile` print a class path:
-```bash
-scala-cli compile --class-path Hello.scala
-# /work/.scala/project-cef76d561e/classes:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/runner_2.12/0.0.1-SNAPSHOT/jars/runner_2.12.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/stubs/0.0.1-SNAPSHOT/jars/stubs.jar
-```
+<RunnableCommand
+    command={"scala-cli compile --class-path Hello.scala"}
+    output={
+`/work/.scala/project-cef76d561e/classes:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/runner_2.12/0.0.1-SNAPSHOT/jars/runner_2.12.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/stubs/0.0.1-SNAPSHOT/jars/stubs.jar`
+    }
+    outputLanguage="bash"
+/>
 
 This is handy when working with other tools.
-For example, you can pass this class path to `java -cp`:
-```bash
-java -cp "$(scala-cli compile --class-path Hello.scala)" Hello
-# Hello
-```
+<RunnableCommand
+    command={`java -cp "$(scala compile --class-path Hello.scala)" Hello`}
+    output={"Hello"}
+    outputLanguage="bash"
+/>
 
 Note that you should favor the [`run`](./run.md) command to run your code, rather than running `java -cp`.
 The class path obtained this way is only meant for scenarios where `scala-cli` doesn't offer a more convenient option.

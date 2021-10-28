@@ -1,12 +1,16 @@
 import React from 'react';
 import CodeBlock from '@theme/CodeBlock';
 
-export const RunnableCommand = ({command, output, title, language}) => {
-    const languageStyle = language ? "language-" + language : "language-bash"
+export const RunnableCommand = ({command, commandLanguage, output, outputLanguage, title}) => {
+    const languageToClass = (language, defaultClass) => language ? "language-" + language : defaultClass
+
+    const _command = typeof command == "string" ? command.trim() : command
     return (
         <div className="runnable-command">
-            <CodeBlock className={languageStyle} title={title}>{command}</CodeBlock>
-            <pre className="output">{output}</pre>
+            <CodeBlock className={languageToClass(commandLanguage, "language-bash")} title={title}>{_command}</CodeBlock>
+            <CodeBlock className={"output " + languageToClass(outputLanguage, "language-scala")}>
+                {output}
+            </CodeBlock>
         </div>
     )
 }
