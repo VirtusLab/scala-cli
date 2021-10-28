@@ -43,20 +43,26 @@ object BloopServer {
     }
   }
 
+  private case class ResolvedBloopParameters(
+    bloopVersion: BloopVersion,
+    jvmRelease: Int,
+    javaPath: String
+  )
+
   private def resolveBloopInfo(
-    value: BloopServerRuntimeInfo,
+    bloopInfo: BloopServerRuntimeInfo,
     config: BloopRifleConfig
-  ): (BloopVersion, Int, String) = {
+  ): ResolvedBloopParameters = {
     val bloopV: BloopVersion = config.retainedBloopVersion match {
       case AtLeast(version) =>
         val ord = Ordering.fromLessThan[BloopVersion](_ isOlderThan _)
-        Seq(value.bloopVersion, version).max(ord)
+        Seq(bloopInfo.bloopVersion, version).max(ord)
       case Strict(version) => version
     }
-    val jvmV          = List(value.jvmVersion, config.minimumBloopJvm).max
-    val bloopInfoJava = Paths.get(value.javaHome, "bin", "java").toString()
-    val expectedJava  = if (jvmV >= value.jvmVersion) config.javaPath else bloopInfoJava
-    (bloopV, jvmV, expectedJava)
+    val jvmV          = List(bloopInfo.jvmVersion, config.minimumBloopJvm).max
+    val bloopInfoJava = Paths.get(bloopInfo.javaHome, "bin", "java").toString()
+    val expectedJava  = if (jvmV >= bloopInfo.jvmVersion) config.javaPath else bloopInfoJava
+    ResolvedBloopParameters(bloopV, jvmV, expectedJava)
   }
 
   private def ensureBloopRunning(
@@ -81,16 +87,17 @@ object BloopServer {
     val bloopInfo =
       BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool)
     val isRunning = BloopRifle.check(config, logger, startServerChecksPool)
-    val (expectedBloopVersion, expectedBloopJvmRelease, javaPath) = bloopInfo match {
-      case Left(error) =>
-        error match {
-          case BloopNotRunning =>
-          case ParsingFailed(bloopAboutOutput) =>
-            logger.info(s"Failed to parse output of 'bloop about':\n$bloopAboutOutput")
-        }
-        (config.retainedBloopVersion.version, config.minimumBloopJvm, config.javaPath)
-      case Right(value) => resolveBloopInfo(value, config)
-    }
+    val ResolvedBloopParameters(expectedBloopVersion, expectedBloopJvmRelease, javaPath) =
+      bloopInfo match {
+        case Left(error) =>
+          error match {
+            case BloopNotRunning =>
+            case ParsingFailed(bloopAboutOutput) =>
+              logger.info(s"Failed to parse output of 'bloop about':\n$bloopAboutOutput")
+          }
+          (config.retainedBloopVersion.version, config.minimumBloopJvm, config.javaPath)
+        case Right(value) => resolveBloopInfo(value, config)
+      }
     val bloopVersionIsOk = bloopInfo.exists(_.bloopVersion == expectedBloopVersion)
     val bloopJvmIsOk     = bloopInfo.exists(_.jvmVersion == expectedBloopJvmRelease)
     val isOk             = bloopVersionIsOk && bloopJvmIsOk
