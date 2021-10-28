@@ -309,6 +309,7 @@ Available in commands:
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
 - [`test`](./commands.md#test)
+- [`update`](./commands.md#update)
 - [`version`](./commands.md#version)
 
 
@@ -958,6 +959,28 @@ Name of test framework's runner class to use while running tests
 #### `--require-tests`
 
 Fail if no test suites were run
+
+## Update options
+
+Available in commands:
+- [`update`](./commands.md#update)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--binary-name`
+
+Binary name
+
+#### `--bin-dir`
+
+Binary directory
+
+#### `--force`
+
+Aliases: `-f`
+
+Update scala-cli if is outdated
 
 ## Watch options
 

@@ -18,6 +18,15 @@ Add Scala compiler options
 
 `using options -Xasync -Xfatal-warnings`
 
+### Compiler plugins
+
+Adds compiler plugins
+
+`using plugin `_org_`:`name`:`ver
+
+#### Examples
+`using plugin org.typelevel:::kind-projector:0.13.2`
+
 ### Custom JAR
 
 Manually adds JAR to the class path
@@ -34,8 +43,8 @@ Adds dependencies
 `using lib `_org_`:`name`:`ver
 
 #### Examples
-
 `using lib org.scalatest::scalatest:3.2.10`
+
 `using lib org.scalameta::munit:0.7.29`
 
 ### Java home
