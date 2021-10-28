@@ -1,13 +1,6 @@
 package scala.build.blooprifle
 
-import java.io.{
-  ByteArrayOutputStream,
-  File,
-  FileInputStream,
-  FileOutputStream,
-  InputStream,
-  OutputStream
-}
+import java.io.{ByteArrayOutputStream, FileInputStream, FileOutputStream, InputStream, OutputStream}
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 
@@ -37,14 +30,7 @@ object BloopRifle {
         config.port,
         logger
       )
-    check() && {
-      !BloopRifle.shutdownBloopIfVersionIncompatible(
-        config,
-        logger,
-        new File(".").getCanonicalFile.toPath,
-        scheduler
-      )
-    }
+    check()
   }
 
   /** Starts a new bloop server.
@@ -58,15 +44,17 @@ object BloopRifle {
   def startServer(
     config: BloopRifleConfig,
     scheduler: ScheduledExecutorService,
-    logger: BloopRifleLogger
+    logger: BloopRifleLogger,
+    version: String,
+    bloopJava: String
   ): Future[Unit] =
-    config.classPath() match {
+    config.classPath(version) match {
       case Left(ex) => Future.failed(new Exception("Error getting Bloop class path", ex))
       case Right(cp) =>
         Operations.startServer(
           config.host,
           config.port,
-          config.javaPath,
+          bloopJava,
           config.javaOpts,
           cp.map(_.toPath),
           scheduler,
@@ -188,53 +176,63 @@ object BloopRifle {
 
   def nullInputStream() = new FileInputStream(Util.devNull)
 
-  def extractVersionFromBloopAbout(stdoutFromBloopAbout: String): Option[String] =
-    stdoutFromBloopAbout.split("\n").find(_.startsWith("bloop v")).map(
-      _.split(" ")(1).trim().drop(1)
+  // Probably we should implement an endpoint in Bloop to get this
+  // information in better form. I'm not sure error here should be escalated or ignored.
+  private def extractVersionFromBloopAbout(stdoutFromBloopAbout: String)
+    : Option[BloopServerRuntimeInfo] = {
+
+    val bloopVersionRegex = "bloop v(.*)\\s".r
+    val bloopJvmRegex     = "Running on Java JDK v([0-9._A-Za-z]+) [(](.*)[)]".r
+
+    for {
+      bloopVersion    <- bloopVersionRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(1))
+      bloopJvmVersion <- bloopJvmRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(1))
+      javaHome        <- bloopJvmRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(2))
+      jvmRelease      <- VersionUtil.jvmRelease(bloopJvmVersion)
+    } yield BloopServerRuntimeInfo(
+      bloopVersion = BloopVersion(bloopVersion),
+      jvmVersion = jvmRelease,
+      javaHome = javaHome
     )
+  }
 
   def getCurrentBloopVersion(
     config: BloopRifleConfig,
     logger: BloopRifleLogger,
     workdir: Path,
     scheduler: ScheduledExecutorService
-  ) = {
-    val bufferedOStream = new ByteArrayOutputStream(100000)
-    Operations.about(
-      config.host,
-      config.port,
-      workdir,
-      nullInputStream(),
-      bufferedOStream,
-      nullOutputStream(),
-      logger,
-      scheduler
-    )
-    extractVersionFromBloopAbout(new String(bufferedOStream.toByteArray))
-  }
+  ): Either[BloopAboutFailure, BloopServerRuntimeInfo] = {
+    val isRunning = BloopRifle.check(config, logger, scheduler)
 
-  /** Sometimes we need some minimal requirements for Bloop version. This method kills Bloop if its
-    * version is unsupported.
-    * @returns
-    *   true if the 'exit' command has actually been sent to Bloop
-    */
-  def shutdownBloopIfVersionIncompatible(
-    config: BloopRifleConfig,
-    logger: BloopRifleLogger,
-    workDir: Path,
-    scheduler: ScheduledExecutorService
-  ): Boolean = {
-    val currentBloopVersion = getCurrentBloopVersion(config, logger, workDir, scheduler)
-    val isOk = config.acceptBloopVersion.forall { f =>
-      currentBloopVersion.forall(f(_))
+    if (isRunning) {
+      val bufferedOStream = new ByteArrayOutputStream(100000)
+      Operations.about(
+        config.host,
+        config.port,
+        workdir,
+        nullInputStream(),
+        bufferedOStream,
+        nullOutputStream(),
+        logger,
+        scheduler
+      )
+      val bloopAboutOutput = new String(bufferedOStream.toByteArray)
+      extractVersionFromBloopAbout(bloopAboutOutput) match {
+        case Some(value) => Right(value)
+        case None        => Left(ParsingFailed(bloopAboutOutput))
+      }
     }
-    if (isOk)
-      logger.debug("No need to restart Bloop")
-    else {
-      logger.debug(s"Shutting down unsupported Bloop $currentBloopVersion.")
-      val retCode = exit(config, workDir, logger)
-      logger.debug(s"Bloop exit code: $retCode")
-    }
-    !isOk
+    else
+      Left(BloopNotRunning)
   }
 }
+
+sealed trait BloopAboutFailure
+case object BloopNotRunning                        extends BloopAboutFailure
+case class ParsingFailed(bloopAboutOutput: String) extends BloopAboutFailure
+
+case class BloopServerRuntimeInfo(
+  bloopVersion: BloopVersion,
+  jvmVersion: Int,
+  javaHome: String
+)

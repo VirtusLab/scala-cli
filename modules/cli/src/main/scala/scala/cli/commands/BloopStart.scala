@@ -5,6 +5,7 @@ import caseapp._
 import scala.build.Os
 import scala.build.bloop.BloopThreads
 import scala.build.blooprifle.BloopRifle
+import scala.build.blooprifle.internal.Constants
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -41,7 +42,9 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
       val f = BloopRifle.startServer(
         bloopRifleConfig,
         threads.startServerChecks,
-        logger.bloopRifleLogger
+        logger.bloopRifleLogger,
+        Constants.bloopVersion,
+        options.buildOptions.javaHome().javaCommand
       )
       Await.result(f, Duration.Inf)
       logger.message("Bloop server started.")

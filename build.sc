@@ -485,6 +485,7 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
 }
 
 class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+    with HasTests
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
@@ -517,6 +518,8 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
     PathRef(dest)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
+
+  object test extends Tests with ScalaCliScalafixModule
 }
 
 class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule

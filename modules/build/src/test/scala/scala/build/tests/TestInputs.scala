@@ -34,7 +34,14 @@ final case class TestInputs(
   )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
     withInputs { (root, inputs) =>
       val res =
-        Build.build(inputs, options, buildThreads, bloopConfig, TestLogger(), crossBuilds = false)
+        Build.build(
+          inputs,
+          options,
+          buildThreads,
+          bloopConfig,
+          TestLogger(),
+          crossBuilds = false
+        )
       f(root, inputs, res.map(_.main))
     }
 }

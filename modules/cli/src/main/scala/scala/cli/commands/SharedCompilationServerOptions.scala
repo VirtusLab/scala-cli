@@ -9,7 +9,7 @@ import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsExceptio
 import java.util.{Locale, Random}
 
 import scala.build.blooprifle.internal.Constants
-import scala.build.blooprifle.{BloopRifleConfig, BspConnectionAddress}
+import scala.build.blooprifle.{BloopRifleConfig, BloopVersion, BspConnectionAddress}
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -181,11 +181,13 @@ final case class SharedCompilationServerOptions(
   def bloopStartupTimeoutDuration: Option[FiniteDuration] =
     parseDuration("connection server startup timeout", bloopStartupTimeout)
 
-  lazy val retainedBloopVersion: String =
+  lazy val retainedBloopVersion: BloopRifleConfig.BloopVersionConstraint =
     bloopVersion
       .map(_.trim)
       .filter(_.nonEmpty)
-      .getOrElse(Constants.bloopVersion)
+      .fold[BloopRifleConfig.BloopVersionConstraint](BloopRifleConfig.AtLeast(
+        BloopVersion(Constants.bloopVersion)
+      ))(v => BloopRifleConfig.Strict(BloopVersion(v)))
 
   def bloopDefaultJvmOptions(logger: Logger): List[String] = {
     val file = new File(bloopGlobalOptionsFile)
@@ -211,15 +213,17 @@ final case class SharedCompilationServerOptions(
     logger: Logger,
     verbosity: Int,
     javaPath: String,
-    directories: => scala.build.Directories
+    directories: => scala.build.Directories,
+    javaV: Option[Int] = None
   ): BloopRifleConfig = {
     val baseConfig =
-      BloopRifleConfig.default(() => Bloop.bloopClassPath(logger, retainedBloopVersion))
+      BloopRifleConfig.default(v => Bloop.bloopClassPath(logger, v))
     val portOpt = bloopPort.filter(_ != 0) match {
       case Some(n) if n < 0 =>
         Some(scala.build.blooprifle.internal.Util.randomPort())
       case other => other
     }
+
     baseConfig.copy(
       host = bloopHost.filter(_.nonEmpty).getOrElse(baseConfig.host),
       port = portOpt.getOrElse(baseConfig.port),
@@ -233,10 +237,8 @@ final case class SharedCompilationServerOptions(
       javaOpts =
         (if (bloopDefaultJavaOpts) baseConfig.javaOpts
          else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions(logger),
-      acceptBloopVersion = Some { v =>
-        import coursier.core.Version
-        Version(retainedBloopVersion) <= Version(v)
-      }
+      minimumBloopJvm = javaV.getOrElse(8),
+      retainedBloopVersion = retainedBloopVersion
     )
   }
 }

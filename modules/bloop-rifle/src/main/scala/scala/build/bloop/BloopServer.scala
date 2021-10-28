@@ -3,31 +3,37 @@ package scala.build.bloop
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
-import java.io.IOException
+import java.io.{File, IOException}
 import java.net.{ConnectException, Socket}
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import java.util.concurrent.{Future => JFuture, ScheduledExecutorService, TimeoutException}
 
 import scala.annotation.tailrec
 import scala.build.bloop.bloop4j.BloopExtraBuildParams
+import scala.build.blooprifle.BloopRifleConfig.{AtLeast, Strict}
+import scala.build.blooprifle._
 import scala.build.blooprifle.internal.Constants
-import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, BspConnection}
 import scala.concurrent.Await
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 trait BloopServer {
   def server: BuildServer
 
   def shutdown(): Unit
+
+  def jvmVersion: String
+
+  def bloopVersion: String
 }
 
 object BloopServer {
-
   private case class BloopServerImpl(
     server: BuildServer,
     listeningFuture: JFuture[Void],
-    socket: Socket
+    socket: Socket,
+    jvmVersion: String,
+    bloopVersion: String
   ) extends BloopServer {
     def shutdown(): Unit = {
       // Close the jsonrpc thread listening to input messages
@@ -37,31 +43,77 @@ object BloopServer {
     }
   }
 
+  private case class ResolvedBloopParameters(
+    bloopVersion: BloopVersion,
+    jvmRelease: Int,
+    javaPath: String
+  )
+
+  private def resolveBloopInfo(
+    bloopInfo: BloopServerRuntimeInfo,
+    config: BloopRifleConfig
+  ): ResolvedBloopParameters = {
+    val bloopV: BloopVersion = config.retainedBloopVersion match {
+      case AtLeast(version) =>
+        val ord = Ordering.fromLessThan[BloopVersion](_ isOlderThan _)
+        Seq(bloopInfo.bloopVersion, version).max(ord)
+      case Strict(version) => version
+    }
+    val jvmV          = List(bloopInfo.jvmVersion, config.minimumBloopJvm).max
+    val bloopInfoJava = Paths.get(bloopInfo.javaHome, "bin", "java").toString()
+    val expectedJava  = if (jvmV >= bloopInfo.jvmVersion) config.javaPath else bloopInfoJava
+    ResolvedBloopParameters(bloopV, jvmV, expectedJava)
+  }
+
   private def ensureBloopRunning(
     config: BloopRifleConfig,
     startServerChecksPool: ScheduledExecutorService,
     logger: BloopRifleLogger
-  ): Unit = {
-
-    val isBloopRunning = BloopRifle.check(config, logger, startServerChecksPool)
-
-    logger.debug(
-      if (isBloopRunning) s"Bloop is running on ${config.host}:${config.port}"
-      else s"No bloop daemon found on ${config.host}:${config.port}"
-    )
-
-    if (!isBloopRunning) {
-      logger.debug("Starting bloop server")
-      val serverStartedFuture = BloopRifle.startServer(
+  ): BloopServerRuntimeInfo = {
+    val workdir = new File(".").getCanonicalFile.toPath
+    def startBloop(bloopVersion: String, bloopJava: String) = {
+      logger.info(s"Starting bloop $bloopVersion on $bloopJava")
+      val fut = BloopRifle.startServer(
         config,
         startServerChecksPool,
-        logger
+        logger,
+        bloopVersion,
+        bloopJava
       )
+      Await.result(fut, 30.seconds)
+    }
+    def exitBloop() = BloopRifle.exit(config, workdir, logger)
 
-      Await.result(serverStartedFuture, Duration.Inf)
-      logger.debug("Bloop server started")
+    val bloopInfo =
+      BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool)
+    val isRunning = BloopRifle.check(config, logger, startServerChecksPool)
+    val ResolvedBloopParameters(expectedBloopVersion, expectedBloopJvmRelease, javaPath) =
+      bloopInfo match {
+        case Left(error) =>
+          error match {
+            case BloopNotRunning =>
+            case ParsingFailed(bloopAboutOutput) =>
+              logger.info(s"Failed to parse output of 'bloop about':\n$bloopAboutOutput")
+          }
+          ResolvedBloopParameters(
+            config.retainedBloopVersion.version,
+            config.minimumBloopJvm,
+            config.javaPath
+          )
+        case Right(value) => resolveBloopInfo(value, config)
+      }
+    val bloopVersionIsOk = bloopInfo.exists(_.bloopVersion == expectedBloopVersion)
+    val bloopJvmIsOk     = bloopInfo.exists(_.jvmVersion == expectedBloopJvmRelease)
+    val isOk             = bloopVersionIsOk && bloopJvmIsOk
+
+    if (!isOk) {
+      logger.info(s"Bloop currently running: $bloopInfo")
+      if (isRunning) exitBloop()
+      startBloop(expectedBloopVersion.raw, javaPath)
     }
 
+    BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool)
+      .getOrElse(throw new RuntimeException("Fatal error, could not spawn Bloop"))
   }
 
   private def connect(
@@ -99,9 +151,9 @@ object BloopServer {
     logger: BloopRifleLogger,
     period: FiniteDuration,
     timeout: FiniteDuration
-  ): (BspConnection, Socket) = {
+  ): (BspConnection, Socket, BloopServerRuntimeInfo) = {
 
-    ensureBloopRunning(config, threads.startServerChecks, logger)
+    val bloopInfo = ensureBloopRunning(config, threads.startServerChecks, logger)
 
     logger.debug("Opening BSP connection with bloop")
     Files.createDirectories(workspace.resolve(".scala/.bloop"))
@@ -116,7 +168,7 @@ object BloopServer {
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
-    (conn, socket)
+    (conn, socket, bloopInfo)
   }
 
   def buildServer(
@@ -130,7 +182,8 @@ object BloopServer {
     logger: BloopRifleLogger
   ): BloopServer = {
 
-    val (conn, socket) = bsp(config, workspace, threads, logger, config.period, config.timeout)
+    val (conn, socket, bloopInfo) =
+      bsp(config, workspace, threads, logger, config.period, config.timeout)
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
@@ -172,7 +225,7 @@ object BloopServer {
     }
 
     server.onBuildInitialized()
-    BloopServerImpl(server, f, socket)
+    BloopServerImpl(server, f, socket, bloopInfo.jvmVersion.toString(), bloopInfo.bloopVersion.raw)
   }
 
   def withBuildServer[T](
@@ -206,5 +259,4 @@ object BloopServer {
     }
     // format: on
   }
-
 }

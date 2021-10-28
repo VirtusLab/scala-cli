@@ -156,7 +156,7 @@ object Run extends ScalaCommand[RunOptions] {
         }
       case Platform.JVM =>
         Runner.runJvm(
-          build.options.javaCommand(),
+          build.options.javaHome().javaCommand,
           build.options.javaOptions.javaOpts,
           build.fullClassPath.map(_.toFile),
           mainClass,

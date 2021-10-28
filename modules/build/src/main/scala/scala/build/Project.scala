@@ -22,7 +22,8 @@ final case class Project(
   resolution: Option[BloopConfig.Resolution],
   resourceDirs: Seq[os.Path],
   javaHomeOpt: Option[os.Path],
-  scope: Scope
+  scope: Scope,
+  javacOptions: List[String]
 ) {
 
   import Project._
@@ -32,9 +33,8 @@ final case class Project(
       case (None, None) =>
         val baseJvmConf = bloopJvmPlatform
         baseJvmConf.copy(
-          config = baseJvmConf.config.copy(
-            home = javaHomeOpt.map(_.toNIO).orElse(baseJvmConf.config.home)
-          )
+          // We don't pass jvm home here, because it applies only to java files compilation
+          config = baseJvmConf.config.copy(home = None)
         )
       case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
       case (_, Some(nativeConfig)) =>
@@ -59,7 +59,7 @@ final case class Project(
         resources = Some(resourceDirs).filter(_.nonEmpty).map(_.iterator.map(_.toNIO).toList),
         platform = Some(platform),
         `scala` = Some(scalaConfig),
-        java = Some(BloopConfig.Java(Nil)),
+        java = Some(BloopConfig.Java(javacOptions)),
         resolution = resolution
       )
   }

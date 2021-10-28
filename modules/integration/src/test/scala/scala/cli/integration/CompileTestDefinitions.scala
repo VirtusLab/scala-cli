@@ -162,4 +162,93 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  val jvmT = new munit.Tag("jvm-resolution")
+
+  val scalaJvm8Project = TestInputs(
+    Seq(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isPresent}")
+  )
+  val scalaJvm11Project = TestInputs(
+    Seq(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isEmpty}")
+  )
+  val javaJvm8Project =
+    TestInputs(Seq(os.rel / "Main.java" -> """|public class Main{
+                                              |  public static void main(String[] args) {
+                                              |      java.util.Optional.of(1).isPresent();
+                                              |  }
+                                              |}""".stripMargin))
+
+  val javaJvm11Project =
+    TestInputs(Seq(os.rel / "Main.java" -> """|public class Main{
+                                              |  public static void main(String[] args) {
+                                              |      java.util.Optional.of(1).isEmpty();
+                                              |  }
+                                              |}""".stripMargin))
+
+  val inputs = Map(
+    ("scala", 8)  -> scalaJvm8Project,
+    ("scala", 11) -> scalaJvm11Project,
+    ("java", 8)   -> javaJvm8Project,
+    ("java", 11)  -> javaJvm11Project
+  )
+
+  for {
+    bloopJvm                      <- List(8, 11)
+    targetJvm                     <- List(8, 11)
+    ((lang, sourcesJvm), project) <- inputs
+  } test(s"JvmCompatibilityTest: bloopJvm:$bloopJvm/targetJvm:$targetJvm/lang:$lang/sourcesJvm:$sourcesJvm"
+    .tag(jvmT)) {
+    compileToADifferentJvmThanBloops(
+      bloopJvm.toString,
+      targetJvm.toString,
+      targetJvm >= sourcesJvm,
+      project
+    )
+  }
+
+  test("Scala CLI should not infer scalac's--release if 'O --release' is passed".tag(jvmT)) {
+    scalaJvm11Project.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "compile",
+        extraOptions,
+        "--jvm",
+        "11",
+        "-O",
+        "-release",
+        "-O",
+        "8",
+        "."
+      ).call(cwd = root, check = false, stderr = os.Pipe)
+      expect(res.exitCode != 0)
+      expect(res.err.text().contains("isEmpty is not a member"))
+    }
+  }
+
+  def compileToADifferentJvmThanBloops(
+    bloopJvm: String,
+    targetJvm: String,
+    shouldSucceed: Boolean,
+    inputs: TestInputs
+  ) =
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop", "--", "exit").call(
+        cwd = root,
+        check = false,
+        stdout = os.Inherit
+      )
+      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop", "--", "about").call(
+        cwd = root,
+        check = false,
+        stdout = os.Inherit
+      )
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, "--jvm", targetJvm, ".")
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      expect((res.exitCode == 0) == shouldSucceed)
+      if (!shouldSucceed)
+        expect(
+          res.err.text().contains("value isEmpty is not a member") || res.err.text().contains(
+            "cannot find symbol"
+          )
+        )
+    }
 }
