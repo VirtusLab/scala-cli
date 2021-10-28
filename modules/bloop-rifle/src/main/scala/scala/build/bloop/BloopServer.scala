@@ -95,7 +95,11 @@ object BloopServer {
             case ParsingFailed(bloopAboutOutput) =>
               logger.info(s"Failed to parse output of 'bloop about':\n$bloopAboutOutput")
           }
-          (config.retainedBloopVersion.version, config.minimumBloopJvm, config.javaPath)
+          ResolvedBloopParameters(
+            config.retainedBloopVersion.version,
+            config.minimumBloopJvm,
+            config.javaPath
+          )
         case Right(value) => resolveBloopInfo(value, config)
       }
     val bloopVersionIsOk = bloopInfo.exists(_.bloopVersion == expectedBloopVersion)
