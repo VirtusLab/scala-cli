@@ -93,9 +93,18 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
           updater.applyUpdate(update)
         }
 
-      if (didUpdate) "Profile was updated"
-
       println(s"Successfully installed scala-cli $newVersion")
+
+      if (didUpdate) {
+        if (Properties.isLinux)
+          println(
+            s"""|Profile file(s) updated.
+                |To run scala-cli, log out and log back in, or run 'source ~/.profile'""".stripMargin
+          )
+        if (Properties.isMac)
+          println("To run scala-cli, open new terminal or run 'source ~/.profile'")
+      }
+
     }
   }
 }

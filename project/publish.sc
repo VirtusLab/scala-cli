@@ -52,6 +52,19 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
       .getOrElse(state.format())
       .stripPrefix("v")
 
+def isTagReleasedVersion = {
+  val isCI = System.getenv("CI") != null
+  if (isCI)
+    T.persistent {
+      val state = VcsVersion.vcsState()
+      state.commitsSinceLastTag < 0
+    }
+  else
+    T {
+      false
+    }
+}
+
 def finalPublishVersion = {
   val isCI = System.getenv("CI") != null
   if (isCI)
@@ -80,6 +93,8 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
   )
   def publishVersion =
     finalPublishVersion()
+  def isReleasedVersion: T[Boolean] =
+    isTagReleasedVersion()
 }
 
 def publishSonatype(

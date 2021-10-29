@@ -14,6 +14,8 @@ final case class UpdateOptions(
   @Name("f")
   @HelpMessage("Update scala-cli if is outdated")
     force: Boolean = true,
+  @HelpMessage("Update scala-cli to specified version")
+    version: Option[String] = None,
 ) {
   // format: on
   lazy val binDirPath = binDir.map(os.Path(_, os.pwd))

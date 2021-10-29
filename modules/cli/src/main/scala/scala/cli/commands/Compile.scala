@@ -4,6 +4,7 @@ import caseapp._
 
 import java.io.File
 
+import scala.build.internal.Constants
 import scala.build.{Build, Builds}
 
 object Compile extends ScalaCommand[CompileOptions] {
@@ -18,7 +19,8 @@ object Compile extends ScalaCommand[CompileOptions] {
       logger,
       Some(name)
     )
-    if (scala.util.Random.nextInt(10) == 1) Update.checkUpdate(logger)
+    if (Constants.isReleasedVersion && scala.util.Random.nextInt(10) == 1)
+      Update.checkUpdate(logger)
 
     val cross = options.cross.cross.getOrElse(false)
     if (options.classPath && cross) {

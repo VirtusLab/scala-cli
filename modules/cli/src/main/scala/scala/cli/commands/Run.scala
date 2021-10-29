@@ -45,7 +45,8 @@ object Run extends ScalaCommand[RunOptions] {
       logger,
       Some(name)
     )
-    if (scala.util.Random.nextInt % 10 == 1) Update.checkUpdate(logger)
+    if (Constants.isReleasedVersion && scala.util.Random.nextInt % 10 == 1)
+      Update.checkUpdate(logger)
 
     if (options.watch.watch) {
       val watcher = Build.watch(

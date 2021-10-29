@@ -25,7 +25,8 @@ object Test extends ScalaCommand[TestOptions] {
       logger,
       Some(name)
     )
-    if (scala.util.Random.nextInt(10) == 1) Update.checkUpdate(logger)
+    if (Constants.isReleasedVersion && scala.util.Random.nextInt(10) == 1)
+      Update.checkUpdate(logger)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
