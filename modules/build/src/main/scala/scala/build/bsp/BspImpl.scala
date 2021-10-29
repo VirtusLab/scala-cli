@@ -222,7 +222,6 @@ final class BspImpl(
               preBuildDataTest.generatedSources
             ))
           case Left((ex, scope)) =>
-            notifyBuildChange(actualLocalServer)
             Left((ex, scope))
         },
       executor
