@@ -3,6 +3,8 @@ title: Command-line options
 sidebar_position: 1
 ---
 
+This is a summary of options that are available for each subcommand of the `scala-cli` command.
+
 ## Add path options
 
 Available in commands:
@@ -45,7 +47,7 @@ Available in commands:
 
 Aliases: `-f`
 
-## Bsp options
+## BSP options
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
@@ -82,7 +84,7 @@ Protocol to use to open a BSP connection with Bloop
 
 #### `--bloop-bsp-socket`
 
-Socket file to use to open a BSP connection with Bloop (on Windows, pipe name like "\\.\pipe\…")
+Socket file to use to open a BSP connection with Bloop (on Windows, a pipe name like "`\\.\pipe\…`")
 
 #### `--bloop-host`
 
@@ -90,7 +92,7 @@ Host the compilation server should bind to
 
 #### `--bloop-port`
 
-Port the compilation server should bind to (pass -1 to pick a random port)
+Port the compilation server should bind to (pass `-1` to pick a random port)
 
 #### `--bloop-version`
 
@@ -98,7 +100,7 @@ If Bloop isn't already running, the version we should start
 
 #### `--bloop-bsp-timeout`
 
-Maximum duration to wait for BSP connection to be opened
+Maximum duration to wait for the BSP connection to be opened
 
 #### `--bloop-bsp-check-period`
 
@@ -106,11 +108,11 @@ Duration between checks of the BSP connection state
 
 #### `--bloop-startup-timeout`
 
-Maximum duration to wait for compilation server to start up
+Maximum duration to wait for the compilation server to start up
 
 #### `--bloop-default-java-opts`
 
-Include default jvm opts for bloop
+Include default JVM options for Bloop
 
 #### `--bloop-java-opt`
 
@@ -130,7 +132,7 @@ Available in commands:
 
 Aliases: `-p`, `--classpath`
 
-Print resulting class path
+Print the resulting class path
 
 ## Compile cross options
 
@@ -260,7 +262,7 @@ Aliases: `--setting`
 
 Aliases: `-o`
 
-## Fmt options
+## Scalafmt options
 
 Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -347,7 +349,7 @@ Name of the shell, either zsh or bash
 
 #### `--rc-file`
 
-Path to *rc file, defaults to .bashrc or .zshrc depending on shell
+Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell
 
 #### `--output`
 
@@ -381,7 +383,7 @@ Available in commands:
 
 Aliases: `-f`
 
-Overwrite scala-cli if exists
+Overwrite `scala-cli`, if it exists
 
 #### `--binary-name`
 
@@ -389,7 +391,7 @@ Binary name
 
 #### `--env`
 
-Print the env update
+Print the `env` variable
 
 #### `--bin-dir`
 
@@ -409,7 +411,7 @@ Available in commands:
 
 Aliases: `-J`
 
-Set Java options, such as -Xmx1g
+Set Java options, such as `-Xmx1g`
 
 #### `--java-prop`
 
@@ -435,13 +437,13 @@ Available in commands:
 
 #### `--java-home`
 
-Set Java home
+Set the Java home directory
 
 #### `--jvm`
 
 Aliases: `-j`
 
-Use a specific JVM, such as 14, adopt:11, or graalvm:21, or system
+Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`
 
 #### `--jvm-index`
 
@@ -518,7 +520,7 @@ Available in commands:
 
 #### `--add-rt-jar`
 
-Download and add rt.jar in the class path
+Download and add `rt.jar` in the class path
 
 #### `--host`
 
@@ -556,13 +558,13 @@ Available in commands:
 
 Aliases: `-o`
 
-Set destination path
+Set the destination path
 
 #### `--force`
 
 Aliases: `-f`
 
-Overwrite destination file if it exists
+Overwrite the destination file, if it exists
 
 #### `--library`
 
@@ -578,7 +580,7 @@ Package standalone JARs
 
 #### `--deb`
 
-Build debian package, available only on linux
+Build Debian package, available only on Linux
 
 #### `--dmg`
 
@@ -586,11 +588,11 @@ Build dmg package, available only on macOS
 
 #### `--rpm`
 
-Build rpm package, available only on linux
+Build rpm package, available only on Linux
 
 #### `--msi`
 
-Build msi package, available only on windows
+Build msi package, available only on Windows
 
 #### `--pkg`
 
@@ -598,7 +600,7 @@ Build pkg package, available only on macOS
 
 #### `--docker`
 
-Build docker image
+Build Docker image
 
 ## Packager options
 
@@ -610,15 +612,15 @@ Available in commands:
 
 #### `--version`
 
-The version of generated package
+Set the version of the generated package
 
 #### `--logo-path`
 
-Path to application logo in png format, it will be used to generate icon and banner/dialog in msi installer
+Path to application logo in PNG format, it will be used to generate icon and banner/dialog in msi installer
 
 #### `--launcher-app`
 
-Set launcher app name which will be linked to PATH
+Set launcher app name, which will be linked to the PATH
 
 #### `--description`
 
@@ -626,19 +628,19 @@ Set launcher app name which will be linked to PATH
 
 Aliases: `-m`
 
-It should contains names and email addresses of co-maintainers of the package
+This should contain names and email addresses of co-maintainers of the package
 
 #### `--debian-conflicts`
 
-The list of debian package that this package is absolute incompatibility
+The list of Debian package that this package is absolute incompatibility
 
 #### `--debian-dependencies`
 
-The list of debian package that this package depends on
+The list of Debian packages that this package depends on
 
 #### `--deb-architecture`
 
-Architecture that are supported by the repository, default: all
+Architectures that are supported by the repository (default: all)
 
 #### `--identifier`
 
@@ -646,27 +648,27 @@ CF Bundle Identifier
 
 #### `--license`
 
-License that are supported by the repository - list of licenses https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing
+Licenses that are supported by the repository (list of licenses: https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing)
 
 #### `--release`
 
-The number of times this version of the software was released, default: 1
+The number of times this version of the software was released (default: 1)
 
 #### `--rpm-architecture`
 
-Architecture that are supported by the repository, default: noarch
+Architectures that are supported by the repository (default: noarch)
 
 #### `--license-path`
 
-Path to license file
+Path to the license file
 
 #### `--product-name`
 
-Name of product, default: Scala packager
+Name of product (default: Scala packager)
 
 #### `--exit-dialog`
 
-Text will be displayed on exit dialog
+Text that will be displayed on the exit dialog
 
 #### `--suppress-validation`
 
@@ -674,13 +676,13 @@ Suppress Wix ICE validation (required for users that are neither interactive, no
 
 #### `--extra-config`
 
-Path to extra WIX config content
+Path to extra WIX configuration content
 
 #### `--is64-bits`
 
 Aliases: `--64`
 
-Whether a 64-bit executable is getting packaged
+Whether a 64-bit executable is being packaged
 
 #### `--installer-version`
 
@@ -692,7 +694,7 @@ Building the container from base image
 
 #### `--docker-image-registry`
 
-The image registry, if will be empty it will be used default registry
+The image registry; if empty, it will use the default registry
 
 #### `--docker-image-repository`
 
@@ -700,9 +702,9 @@ The image repository
 
 #### `--docker-image-tag`
 
-The image tag, the default tag is latest
+The image tag; the default tag is `latest`
 
-## Repl options
+## REPL options
 
 Available in commands:
 - [`console` / `repl`](./commands.md#console)
@@ -714,13 +716,13 @@ Available in commands:
 
 Aliases: `-A`, `--amm`
 
-Use Ammonite rather than the default Scala REPL
+Use Ammonite (instead of the default Scala REPL)
 
 #### `--ammonite-version`
 
 Aliases: `--ammonite-ver`
 
-Set Ammonite version
+Set the Ammonite version
 
 #### `--ammonite-arg`
 
@@ -728,7 +730,7 @@ Aliases: `-a`
 
 #### `--repl-dry-run`
 
-Don't actually run the REPL, only fetch it
+Don't actually run the REPL, just fetch it
 
 ## Scala.JS options
 
@@ -753,15 +755,15 @@ Enable Scala.JS
 
 #### `--js-version`
 
-Scala JS version
+The Scala JS version
 
 #### `--js-mode`
 
-Scala JS mode, either "dev" or "release"
+The Scala JS mode, either `dev` or `release`
 
 #### `--js-module-kind`
 
-Scala JS module kind: commonjs/common, esmodule/es, nomodule/none
+The Scala JS module kind: commonjs/common, esmodule/es, nomodule/none
 
 #### `--js-check-ir`
 
@@ -796,27 +798,27 @@ Enable Scala Native
 
 #### `--native-version`
 
-Scala Native version
+Set the Scala Native version
 
 #### `--native-mode`
 
-Scala Native compilation mode
+Set Scala Native compilation mode
 
 #### `--native-gc`
 
-Scala Native garbage collector
+Set the Scala Native garbage collector
 
 #### `--native-clang`
 
-Path to Clang command
+Path to the Clang command
 
 #### `--native-clangpp`
 
-Path to Clang++ command
+Path to the Clang++ command
 
 #### `--native-linking`
 
-Extra options passed to clang verbatim during linking
+Extra options passed to `clang` verbatim during linking
 
 #### `--native-linking-defaults`
 
@@ -851,7 +853,7 @@ Available in commands:
 
 Aliases: `--scala-opt`, `-O`, `-P`, `-W`, `-g`, `-X`, `-language`, `-Y`, `-V`, `-target`, `-opt`
 
-Add scalac option
+Add a `scalac` option
 
 ## Setup IDE options
 
@@ -896,13 +898,13 @@ Available in commands:
 
 Aliases: `--scala`, `-S`
 
-Set Scala version
+Set the Scala version
 
 #### `--scala-binary-version`
 
 Aliases: `--scala-binary`, `--scala-bin`, `-B`
 
-Set Scala binary version
+Set the Scala binary version
 
 #### `--extra-jars`
 
@@ -914,7 +916,7 @@ Add extra JARs in the class path
 
 Aliases: `--compile-only-jar`, `--compile-only-jars`, `--extra-compile-only-jar`
 
-Add extra JARs in the class path during compilation only
+Add extra JARs in the class path, during compilation only
 
 #### `--extra-source-jars`
 
@@ -926,7 +928,7 @@ Add extra source JARs
 
 Aliases: `--resource`
 
-Add resource directory
+Add a resource directory
 
 #### `--scala-library`
 
@@ -954,7 +956,7 @@ Available in commands:
 
 #### `--test-framework`
 
-Name of test framework's runner class to use while running tests
+Name of the test framework's runner class to use while running tests
 
 #### `--require-tests`
 
@@ -1000,5 +1002,4 @@ Available in commands:
 
 Aliases: `-w`
 
-Watch sources for changes
-
+Watch source files for changes

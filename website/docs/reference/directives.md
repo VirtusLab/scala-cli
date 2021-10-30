@@ -3,7 +3,7 @@ title: Directives
 sidebar_position: 2
 ---
 
-## using directives
+## `using` directives
 
 ### Compiler options
 
@@ -29,16 +29,18 @@ Adds compiler plugins
 
 ### Custom JAR
 
-Manually adds JAR to the class path
+Manually add JAR(s) to the class path
 
-`using jar `_path_ | `using jars `_path1_ _path2_ …
+`using jar `_path_
+
+`using jars `_path1_ _path2_ …
 
 #### Examples
 `using jar "/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"`
 
 ### Dependency
 
-Adds dependencies
+Add dependencies
 
 `using lib `_org_`:`name`:`ver
 
@@ -49,18 +51,22 @@ Adds dependencies
 
 ### Java home
 
-Sets Java home used to run your application or tests
+Sets the Java home directory used to run your application or tests
 
-`using java-home `_path_ | `using javaHome `_path_
+`using java-home `_path_
+
+`using javaHome `_path_
 
 #### Examples
 `using java-home "/Users/Me/jdks/11"`
 
 ### Java options
 
-Adds Java options
+Add Java options
 
-`using java-opt `_options_ | `using javaOpt `_options_
+`using java-opt `_options_
+
+`using javaOpt `_options_
 
 #### Examples
 `using javaOpt -Xmx2g -Dsomething=a`
@@ -78,7 +84,7 @@ Set the default platform to Scala.JS or Scala Native
 
 ### Repository
 
-Adds a repository for dependency resolution
+Add a repository for dependency resolution
 
 `using repository `_repository_
 
@@ -91,16 +97,18 @@ Adds a repository for dependency resolution
 
 ### Resources
 
-Manually adds a resource directory to the class path
+Manually add a resource directory to the class path
 
-`using resource `_path_ | `using resources `_path1_ _path2_ …
+`using resource `_path_
+
+`using resources `_path1_ _path2_ …
 
 #### Examples
 `using resource "./resources"`
 
 ### Scala version
 
-Sets the default Scala version
+Set the default Scala version
 
 `using scala `_version_+
 
@@ -115,7 +123,7 @@ Sets the default Scala version
 
 ### Test framework
 
-Sets test framework
+Set the test framework
 
 `using test-framework `_class_name_
 
