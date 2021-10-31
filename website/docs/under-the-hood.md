@@ -6,7 +6,7 @@ sidebar_position: 32
 :::note
 This page is dedicated for people already familiar with Scala / JVM ecosystem.
 
-If you just want to learn Scala CLI just head out to the [Commands section](http://localhost:3000/docs/commands/input)
+If you just want to learn Scala CLI just head out to the [Commands section](./commands/basics.md)
 :::
 
 
