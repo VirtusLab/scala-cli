@@ -25,11 +25,7 @@ object Test extends ScalaCommand[TestOptions] {
       logger,
       Some(name)
     )
-    if (
-      Constants.isReleasedVersion &&
-      System.getenv("CI") != null &&
-      scala.util.Random.nextInt(10) == 1
-    )
+    if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdate(logger)
 
     val initialBuildOptions = options.buildOptions

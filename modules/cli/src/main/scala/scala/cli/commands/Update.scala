@@ -8,9 +8,9 @@ import scala.util.{Failure, Properties, Success, Try}
 
 object Update extends ScalaCommand[UpdateOptions] {
 
-  private def updateScalaCli(options: UpdateOptions, updateToVersion: String) = {
+  private def updateScalaCli(options: UpdateOptions, newVersion: String) = {
     if (coursier.paths.Util.useAnsiOutput()) {
-      println(s"Do you want to update scala-cli to version $updateToVersion [Y/n]")
+      println(s"Do you want to update scala-cli to version $newVersion [Y/n]")
       val response = readLine()
       if (response != "Y") {
         System.err.println("Abort")
@@ -18,7 +18,7 @@ object Update extends ScalaCommand[UpdateOptions] {
       }
     }
     else if (!options.force) {
-      System.err.println(s"To update scala-cli to $updateToVersion pass -f or --force")
+      System.err.println(s"To update scala-cli to $newVersion pass -f or --force")
       sys.exit(1)
     }
 
@@ -27,18 +27,25 @@ object Update extends ScalaCommand[UpdateOptions] {
         .spawn(stderr = os.Inherit)
 
     // format: off
-    os.proc(
+    val res = os.proc(
       "sh", "-s", "--",
       "--force",
       "--binary-name", options.binaryName,
       "--bin-dir", options.installDirPath,
-      updateToVersion
+      newVersion
     ).call(
       cwd = os.pwd,
       stdin = installScript.stdout,
-      stdout = os.Inherit
-    ).out.text().trim
+      stdout = os.Inherit,
+      check = false,
+      mergeErrIntoOut = true
+    )
     // format: on
+    val output = res.out.text().trim
+    if (res.exitCode != 0) {
+      System.err.println(s"Error during updating scala-cli: $output")
+      sys.exit(1)
+    }
   }
 
   def update(options: UpdateOptions, scalaCliBinPath: os.Path) = {
@@ -49,7 +56,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     lazy val newestScalaCliVersion = {
       val resp =
         os.proc("curl", "--silent", "https://github.com/VirtusLab/scala-cli/releases/latest")
-          .call(cwd = os.pwd)
+          .call(cwd = os.pwd, mergeErrIntoOut = true, check = false)
           .out.text().trim
 
       val scalaCliVersionRegex = "tag/v(.*)\"".r
@@ -74,7 +81,11 @@ object Update extends ScalaCommand[UpdateOptions] {
 
     val scalaCliBinPath = options.installDirPath / options.binaryName
 
-    lazy val execScalaCliPath = os.proc("which", "scala-cli").call(cwd = os.pwd).out.text().trim
+    lazy val execScalaCliPath = os.proc("which", "scala-cli").call(
+      cwd = os.pwd,
+      mergeErrIntoOut = true,
+      check = false
+    ).out.text().trim
     lazy val isScalaCliInPath = // if binDir is non empty, we not except scala-cli in PATH, it is useful in tests
       execScalaCliPath.contains(options.installDirPath.toString()) || options.binDir.isDefined
 
@@ -99,9 +110,14 @@ object Update extends ScalaCommand[UpdateOptions] {
     checkUpdate(options)
 
   def checkUpdate(logger: Logger): Unit = {
-    Try(
-      checkUpdate(UpdateOptions(isInternalRun = true))
-    ) match {
+    Try {
+      val classesDir =
+        this.getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toString
+      val binRepoDir = build.Directories.default().binRepoDir.toString()
+      // log about update only if scala-cli was installed from installation script
+      if (classesDir.contains(binRepoDir))
+        checkUpdate(UpdateOptions(isInternalRun = true))
+    } match {
       case Failure(ex) =>
         logger.debug(s"Ignoring error during checking update: $ex")
       case Success(_) => ()
