@@ -5,7 +5,7 @@ export const currentOs = () => {
         }
         return false
     }
-    if(isCurrentOsEqual("Win")) return "win"
+    if(isCurrentOsEqual("Win")) return "windows"
     if(isCurrentOsEqual("Mac")) return "mac"
     else return "linux"
 }
