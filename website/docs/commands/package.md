@@ -194,7 +194,7 @@ object Hello {
 ```
 
 ```bash
-scala-cli package --native HelloNative.scala -S 2.13 -o hello
+scala-cli package --native HelloNative.scala -S 2.13.6 -o hello
 file hello
 # hello: Mach-O 64-bit executable x86_64
 ./hello

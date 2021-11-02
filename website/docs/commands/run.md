@@ -79,7 +79,7 @@ Scala Native applications can be compiled and run with the `--native` option.
 Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](/install#scala-native) for this to work, and that Scala Native only supports Linux and macOS at this time and can only use Scala 2.13 and 2.12 for now:
 
 ```bash
-scala-cli Hello.scala --native -S 2.13
+scala-cli Hello.scala --native -S 2.13.6
 ```
 
 We have a dedicated [Scala Native guide](../guides/scala-native.md) as well.

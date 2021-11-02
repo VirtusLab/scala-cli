@@ -6,7 +6,7 @@ import scala.util.matching.Regex
 import scala.io.StdIn.readLine
 import fansi.Color.{Red, Blue, Green}
 
-val SnippetBlock  = """ *```[^ ]+ title=([\w\d\.-\/_]+) *""".r
+val SnippetBlock  = """ *```[^ ]+ title=([\w\d\.\-\/_]+) *""".r
 val CodeBlockEnds = """ *``` *""".r
 val BashCommand   = """ *```bash *(fail)? *""".r
 val CheckBlock    = """ *\<\!-- Expected(-regex)?: *""".r
@@ -283,9 +283,9 @@ def checkFile(file: os.Path, options: Options): Unit =
     case "--stopAtFailure" :: rest =>
       parseArgs(rest, options.copy(stopAtFailure = true))
     case "--dest" :: dest :: rest =>
-      if dest.startsWith("--") then 
+      if dest.startsWith("--") then
         println(s"Please provide file name not an option: $dest")
-        
+
       parseArgs(rest, options.copy(dest = Some(os.pwd / dest)))
     case "--dest" :: Nil =>
       println(Red("Exptected a destanation after `--dest` parameter"))
