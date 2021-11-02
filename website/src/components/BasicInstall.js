@@ -11,7 +11,7 @@ export default function BasicInstall(props){
           groupId="operating-systems"
           defaultValue={currentOs()}
           values={[
-          {label: 'Windows', value: 'winows'},
+          {label: 'Windows', value: 'windows'},
           {label: 'macOS', value: 'mac'},
           {label: 'Linux', value: 'linux'},
         ]}>
