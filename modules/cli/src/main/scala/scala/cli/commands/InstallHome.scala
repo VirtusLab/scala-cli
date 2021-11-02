@@ -9,12 +9,6 @@ import scala.util.{Properties, Try}
 object InstallHome extends ScalaCommand[InstallHomeOptions] {
   override def hidden: Boolean = true
 
-  private def isOutOfDate(newVersion: String, oldVersion: String): Boolean = {
-    import coursier.core.Version
-
-    Version(newVersion) > Version(oldVersion)
-  }
-
   private def logEqual(version: String) = {
     System.err.println(
       s"Scala-cli $version is already installed and up-to-date."
@@ -63,7 +57,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     if (os.exists(binDirPath))
       if (options.force) () // skip logging
       else if (newVersion == oldVersion) logEqual(newVersion)
-      else if (isOutOfDate(newVersion, oldVersion))
+      else if (CommandUtils.isOutOfDateVersion(newVersion, oldVersion))
         logUpdate(options.env, newVersion, oldVersion)
       else logDowngrade(options.env, newVersion, oldVersion)
 

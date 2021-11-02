@@ -8,13 +8,7 @@ import scala.util.{Failure, Properties, Success, Try}
 
 object Update extends ScalaCommand[UpdateOptions] {
 
-  private def isOutOfDate(newVersion: String, oldVersion: String): Boolean = {
-    import coursier.core.Version
-
-    Version(newVersion) > Version(oldVersion)
-  }
-
-  private def updateScalaCli(updateToVersion: String) = {
+  private def updateScalaCli(options: UpdateOptions, updateToVersion: String) = {
     if (coursier.paths.Util.useAnsiOutput()) {
       println(s"Do you want to update scala-cli to version $updateToVersion [Y/n]")
       val response = readLine()
@@ -23,18 +17,31 @@ object Update extends ScalaCommand[UpdateOptions] {
         sys.exit(1)
       }
     }
+    else if (!options.force) {
+      System.err.println(s"To update scala-cli to $updateToVersion pass -f or --force")
+      sys.exit(1)
+    }
 
     val installScript =
       os.proc("curl", "-sSLf", "https://virtuslab.github.io/scala-cli-packages/scala-setup.sh")
         .spawn(stderr = os.Inherit)
 
-    os.proc("sh", "-v", updateToVersion).call(
+    // format: off
+    os.proc(
+      "sh", "-s", "--",
+      "--force",
+      "--binary-name", options.binaryName,
+      "--bin-dir", options.installDirPath,
+      updateToVersion
+    ).call(
       cwd = os.pwd,
-      stdin = installScript.stdout
+      stdin = installScript.stdout,
+      stdout = os.Inherit
     ).out.text().trim
+    // format: on
   }
 
-  def update(options: UpdateOptions, scalaCliBinPath: os.Path, isExternalRun: Boolean) = {
+  def update(options: UpdateOptions, scalaCliBinPath: os.Path) = {
     val currentVersion = Try {
       os.proc(scalaCliBinPath, "version").call(cwd = os.pwd).out.text().trim
     }.toOption.getOrElse("0.0.0")
@@ -51,13 +58,9 @@ object Update extends ScalaCommand[UpdateOptions] {
       sys.error("Can not resolve ScalaCLI version to update")
     )
 
-    val updateToVersion = options.version
-
-    if (options.force && isExternalRun)
-      if (updateToVersion.nonEmpty)
-        updateScalaCli(updateToVersion.get)
-      else if (isOutOfDate(newestScalaCliVersion, currentVersion))
-        updateScalaCli(newestScalaCliVersion)
+    if (!options.isInternalRun)
+      if (CommandUtils.isOutOfDateVersion(newestScalaCliVersion, currentVersion))
+        updateScalaCli(options, newestScalaCliVersion)
       else println("ScalaCLI is up-to-date")
     else
       println(
@@ -67,31 +70,37 @@ object Update extends ScalaCommand[UpdateOptions] {
       )
   }
 
-  def checkUpdate(options: UpdateOptions, isExternalRun: Boolean) = {
-    val installDir =
-      options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
-    val scalaCliBinPath = installDir / options.binaryName
+  def checkUpdate(options: UpdateOptions) = {
+
+    val scalaCliBinPath = options.installDirPath / options.binaryName
 
     lazy val execScalaCliPath = os.proc("which", "scala-cli").call(cwd = os.pwd).out.text().trim
+    lazy val isScalaCliInPath = // if binDir is non empty, we not except scala-cli in PATH, it is useful in tests
+      execScalaCliPath.contains(options.installDirPath.toString()) || options.binDir.isDefined
 
-    if (!os.exists(scalaCliBinPath) || !execScalaCliPath.contains(installDir.toString())) {
-      if (isExternalRun)
+    if (!os.exists(scalaCliBinPath) || !isScalaCliInPath) {
+      if (!options.isInternalRun) {
         System.err.println(
           "Scala CLI was not installed by the installation script, please use your package manager to update scala-cli."
         )
+        sys.exit(1)
+      }
     }
     else if (Properties.isWin) {
-      if (isExternalRun) System.err.println("ScalaCLI update is not supported on Windows.")
+      if (!options.isInternalRun) {
+        System.err.println("ScalaCLI update is not supported on Windows.")
+        sys.exit(1)
+      }
     }
-    else update(options, scalaCliBinPath, isExternalRun)
+    else update(options, scalaCliBinPath)
   }
 
   def run(options: UpdateOptions, args: RemainingArgs): Unit =
-    checkUpdate(options, isExternalRun = true)
+    checkUpdate(options)
 
   def checkUpdate(logger: Logger): Unit = {
     Try(
-      checkUpdate(UpdateOptions(force = false), isExternalRun = false)
+      checkUpdate(UpdateOptions(isInternalRun = true))
     ) match {
       case Failure(ex) =>
         logger.debug(s"Ignoring error during checking update: $ex")

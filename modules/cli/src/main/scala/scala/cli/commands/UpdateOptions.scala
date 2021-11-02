@@ -13,12 +13,14 @@ final case class UpdateOptions(
     binDir: Option[String] = None,
   @Name("f")
   @HelpMessage("Update scala-cli if is outdated")
-    force: Boolean = true,
-  @HelpMessage("Update scala-cli to specified version")
-    version: Option[String] = None,
+    force: Boolean = false,
+  @Hidden
+    isInternalRun: Boolean = false
 ) {
   // format: on
   lazy val binDirPath = binDir.map(os.Path(_, os.pwd))
+  lazy val installDirPath =
+    binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / binaryName)
 }
 
 object UpdateOptions {

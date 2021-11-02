@@ -982,11 +982,7 @@ Aliases: `-f`
 
 Update scala-cli if is outdated
 
-#### `--version`
-
-Update scala-cli to specified version
-
-#### `--enable-logging`
+#### `--is-internal-run`
 
 ## Watch options
 
