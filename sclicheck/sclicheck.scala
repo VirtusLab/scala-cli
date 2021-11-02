@@ -6,11 +6,11 @@ import scala.util.matching.Regex
 import scala.io.StdIn.readLine
 import fansi.Color.{Red, Blue, Green}
 
-val SnippetBlock  = """ *```[^ ]+ title=([\w\.\-\/_]+) *""".r
+val SnippetBlock  = """ *```[^ ]+ title=([\w\d\.-\/_]+) *""".r
 val CodeBlockEnds = """ *``` *""".r
 val BashCommand   = """ *```bash *(fail)? *""".r
-val CheckBlock    = """ *\<\!\-\- Expected(-regex)?: *""".r
-val CheckBlockEnd = """ *\-\-\> *""".r
+val CheckBlock    = """ *\<\!-- Expected(-regex)?: *""".r
+val CheckBlockEnd = """ *\--> *""".r
 val Clear         = """ *<!--+ *clear *-+-> *""".r
 
 case class Options(
@@ -31,11 +31,11 @@ enum Commands:
     case Run(cmd, shouldFail, _) =>
       val prefix = if shouldFail then "[failure expected] " else ""
       cmd.mkString(prefix, " ", "")
-    case Snippet(name, _, _) =>
+    case Write(name, _, _) =>
       name
   }
 
-  case Snippet(fileName: String, lines: Seq[String], context: Context)
+  case Write(fileName: String, lines: Seq[String], context: Context)
   case Run(scriptLines: Seq[String], shouldFail: Boolean, context: Context)
   case Check(patterns: Seq[String], regex: Boolean, context: Context)
   case Clear(context: Context)
@@ -72,7 +72,7 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
     case Nil => currentCommands
 
     case SnippetBlock(name) :: tail =>
-      parseMultiline(tail, Commands.Snippet(name, _, context))
+      parseMultiline(tail, Commands.Write(name, _, context))
 
     case BashCommand(failGroup) :: tail =>
       parseMultiline(tail, Commands.Run(_, failGroup != null, context))
@@ -152,7 +152,7 @@ def checkFile(file: os.Path, options: Options): Unit =
 
         lastOutput = res.out.text()
 
-      case Commands.Snippet(name, code, c) =>
+      case Commands.Write(name, code, c) =>
         val (prefixLines, codeLines) =
           code match
             case shbang :: tail if shbang.startsWith("#!") =>
@@ -283,6 +283,9 @@ def checkFile(file: os.Path, options: Options): Unit =
     case "--stopAtFailure" :: rest =>
       parseArgs(rest, options.copy(stopAtFailure = true))
     case "--dest" :: dest :: rest =>
+      if dest.startsWith("--") then 
+        println(s"Please provide file name not an option: $dest")
+        
       parseArgs(rest, options.copy(dest = Some(os.pwd / dest)))
     case "--dest" :: Nil =>
       println(Red("Exptected a destanation after `--dest` parameter"))

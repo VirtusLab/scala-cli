@@ -8,7 +8,7 @@ Sclicheck extracts commands from `.md` file and then run this commands as define
 
 Currently following commands are supported:
  - [Write code](#write-code) - stores snippet into a file
- - [Run code](#run-code) - runs provided commands as a bash scrip
+ - [Run code](#run-code) - runs provided commands as a bash script
  - [Check output](#check-output) - check if lates optput contains provided patterns
  - [Clear](#clear) - clears all file in workspace
 
