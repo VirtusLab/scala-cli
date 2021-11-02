@@ -11,12 +11,12 @@ export default function BasicInstall(props){
           groupId="operating-systems"
           defaultValue={currentOs()}
           values={[
-          {label: 'Windows', value: 'win'},
+          {label: 'Windows', value: 'winows'},
           {label: 'macOS', value: 'mac'},
           {label: 'Linux', value: 'linux'},
         ]}>
           
-          <TabItem value="win">
+          <TabItem value="windows">
             <a className="no_monospace" href="https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-win32.msi">
               Download Scala CLI for Windows
             </a>
