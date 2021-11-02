@@ -3,6 +3,8 @@ title: Scripts
 sidebar_position: 19
 ---
 
+import {RunnableCommand} from "../../src/components/RunnableCommand";
+
 # Scripts
 
 Scala-cli accepts Scala scripts, ending in `.sc`. Unlike `.scala` files,
@@ -15,10 +17,10 @@ println(message)
 
 Run it with:
 
-```bash
-scala-cli hello.sc
-# Hello from Scala script
-```
+<RunnableCommand
+    command={`scala-cli hello.sc`}
+    output={`Hello from Scala script`}
+/>
 
 In more detail, such a script is wrapped in an `object` before being passed to
 the Scala compiler, and a `main` class is added to it. `hello.sc` is passed as
@@ -45,11 +47,11 @@ import constants.messages
 println(messages.hello)
 ```
 
-Run them with
-```bash
-scala-cli my-app --main-class main
-# Hello from Scala scripts
-```
+Run them with:
+<RunnableCommand
+    command={`scala-cli my-app --main-class main`}
+    output={`Hello from Scala scripts`}
+/>
 
 Note that we pass an explicit main class. Both scripts automatically get a main class, so this
 is required to disambiguate them.
@@ -64,11 +66,12 @@ You may also pass args to your script, it is referenced via the special variable
 println(args(1))
 ```
 
-```bash
-chmod +x p.sc
-./p.sc hello world
-# world
-```
+<RunnableCommand
+    command={
+`chmod +x p.sc
+./p.sc hello world`}
+    output={`world`}
+/>
 
 ### Self executable Scala Script
 
@@ -82,11 +85,12 @@ println("Hello world")
 
 Make it executable and run it as an any other script:
 
-```bash
-chmod +x HelloScript.sc
-./HelloScript.sc
-# Hello world
-```
+<RunnableCommand
+    command={
+`chmod +x HelloScript.sc
+./HelloScript.sc`}
+    output={`Hello world`}
+/>
 
 ### Difference with Ammonite scripts
 

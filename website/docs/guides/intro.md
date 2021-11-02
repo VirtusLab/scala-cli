@@ -11,5 +11,5 @@ Our guides covers many aspects that sometimes may be quite detailed that is why 
  - [Using directives guide](./using-directives.md) - experimental syntax used to store configuration within .scala or .sc files used in Scala CLI
  - [Scala.js](./scala-js.md) and [Scala Native](./scala-native.md) guides - to learn how Scala CLI supports other platforms then JVM
  - [sbt/mill export](./sbt-mill.md) guide - to learn how to convert your Scala CLI project into sbt or mill (when you need more powerful build tool)
- - [Scripting guide](./scripts.md) covers how Scala CLI allows for powerful scripting with Scala
+ - [Scripting guide](./scripts.mdx) covers how Scala CLI allows for powerful scripting with Scala
 `

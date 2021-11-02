@@ -3,6 +3,8 @@ title: Use scala-cli to run Scala Scripts
 sidebar_position: 3
 ---
 
+import {RunnableCommand} from "../../src/components/RunnableCommand";
+
 ## Scala Scripts
 
 Scala Scripts are files containing Scala code without main method required. These codes of Scala do not require build-tools configurations. To run Scala Scripts very quickly without waiting for warn-up build-tools, you can use `scala-cli`.
@@ -41,12 +43,13 @@ def printMessage(): Unit =
 printMessage()
 ```
 
-
-```bash
-chmod +x HelloScriptSheBang.sc
-./HelloScriptSheBang.sc
-# Hello from Scala 2.13.6, Java 16.0.1
-```
+<RunnableCommand
+    command={
+`chmod +x HelloScriptSheBang.sc
+./HelloScriptSheBang.sc`}
+    output={`Hello from Scala 2.13.6, Java 16.0.1`}
+    outputLanguage="bash"
+/>
 
 <!-- Expected-regex:
 Hello from Scala .*, Java .*
@@ -59,11 +62,12 @@ It is also possible to pass command-line arguments to the script
 println(args(1))
 ```
 
-```bash
-chmod +x ScriptArguments.sc
-./ScriptArguments.sc foo bar
-# bar
-```
+<RunnableCommand
+    command={
+`chmod +x ScriptArguments.sc
+./ScriptArguments.sc foo bar`}
+    output={`bar`}
+/>
 
 <!-- Expected-regex:
 bar

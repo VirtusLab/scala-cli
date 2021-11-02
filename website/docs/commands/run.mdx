@@ -3,6 +3,8 @@ title: Run
 sidebar_position: 6
 ---
 
+import {RunnableCommand} from "../../src/components/RunnableCommand";
+
 The `run` command runs your Scala code:
 
 ```scala title=Hello.scala
@@ -12,16 +14,16 @@ object Hello {
 }
 ```
 
-```bash
-scala-cli run Hello.scala
-# Hello
-```
+<RunnableCommand
+    command={"scala-cli run Hello.scala"}
+    output={"Hello"}
+/>
 
 This is the default command, so you don’t have to specify it explicitly:
-```bash
-scala-cli Hello.scala
-# Hello
-```
+<RunnableCommand
+    command={"scala-cli Hello.scala"}
+    output={"Hello"}
+/>
 
 ## Passing arguments
 
@@ -31,10 +33,11 @@ You can pass arguments to the application or script you're launching after `--`:
 println(args.mkString("App called with arguments: ", ", ", ""))
 ```
 
-```bash
-scala-cli app.sc -- first-arg second-arg
-# App called with arguments: first-arg, second-arg
-```
+<RunnableCommand
+    command={"scala-cli app.sc -- first-arg second-arg"}
+    output={"App called with arguments: first-arg, second-arg"}
+    outputLanguage="text"
+/>
 
 <!-- Expected:
 App called with arguments: first-arg, second-arg
@@ -94,12 +97,12 @@ Scala CLI can also compile and run Scala scripts:
 println("Hello world from scala script")
 ```
 
-```bash
-scala-cli run HelloScript.sc
-# Hello world from scala script
-```
+<RunnableCommand
+    command={"scala-cli run HelloScript.sc"}
+    output={"Hello world from scala script"}
+/>
 
-Our [scripts guide](../guides/scripts.md) provides many more details.
+Our [scripts guide](../guides/scripts.mdx) provides many more details.
 
 ## Scala CLI from docker
 
@@ -115,7 +118,7 @@ object HelloWorld extends App {
 }
 ```
 
-```bash ignore
-docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala
-# Hello world
-```
+<RunnableCommand
+    command={"docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala"}
+    output={"Hello world"}
+/>

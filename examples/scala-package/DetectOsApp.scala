@@ -1,4 +1,4 @@
-// File was generated from based on docs/cookbooks/scala-package.md, do not edit manually!
+// File was generated from based on docs/cookbooks/scala-package.mdx, do not edit manually!
 
 object DetectOSApp extends App  {
     def getOperatingSystem(): String = {

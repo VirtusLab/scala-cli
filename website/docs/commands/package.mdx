@@ -3,6 +3,8 @@ title: Package
 sidebar_position: 8
 ---
 
+import {RunnableCommand} from "../../src/components/RunnableCommand";
+
 The `package` command can package your Scala code in various formats, such as:
 - [lightweight launcher JARs](#default-package-format)
 - [standard library JARs](#library-jars)
@@ -29,13 +31,13 @@ object Hello {
 }
 ```
 
-```bash
-scala-cli package Hello.scala -o hello
-./hello
-# Hello
-```
+<RunnableCommand
+    command={`scala-cli package Hello.scala -o hello
+./hello`}
+    output={"Hello"}
+/>
 
-<!-- Expected 
+<!-- Expected
 Hello
 -->
 
@@ -53,15 +55,16 @@ class MyLibrary {
 ```
 
 
-```bash
-scala-cli package MyLibrary.scala -o my-library.jar --library
-javap -cp my-library.jar mylib.MyLibrary
-# Compiled from "MyLibrary.scala"
-# public class mylib.MyLibrary {
-#   public java.lang.String message();
-#   public mylib.MyLibrary();
-# }
-```
+<RunnableCommand
+    command={`scala-cli package MyLibrary.scala -o my-library.jar --library
+javap -cp my-library.jar mylib.MyLibrary`}
+    output={
+`Compiled from "MyLibrary.scala"
+public class mylib.MyLibrary {
+  public java.lang.String message();
+  public mylib.MyLibrary();
+}`}
+/>
 
 <!-- Expected:
 MyLibrary.scala
@@ -86,11 +89,11 @@ object Hello {
 }
 ```
 
-```bash
-scala-cli package Hello.scala -o hello --assembly
-./hello
-# Hello
-```
+<RunnableCommand
+    command={`scala-cli package Hello.scala -o hello --assembly
+./hello`}
+    output={"Hello"}
+/>
 
 <!-- Expected:
 Hello
@@ -123,10 +126,11 @@ Built docker image, run it with
   docker run hello-docker:latest
 -->
 
-```bash
-docker run hello-docker
-# Hello from Docker
-```
+
+<RunnableCommand
+    command={`docker run hello-docker`}
+    output={"Hello from Docker"}
+/>
 
 <!-- Expected:
 Hello from Docker
@@ -158,25 +162,25 @@ Packaging Scala.JS applications results in a `.js` file, that can be run with `n
 
 <!-- TODO: add something js specific -->
 
-```scala title=HelloJs.scala
+```scala title=Hello.scala
 object Hello {
   def main(args: Array[String]): Unit =
     println("Hello")
 }
 ```
 
-```bash
-scala-cli package --js HelloJs.scala -o hello.js
-node hello.js
-# Hello
-```
+<RunnableCommand
+    command={`scala-cli package --js Hello.scala -o hello.js
+node hello.js`}
+    output={"Hello"}
+/>
 
 <!-- Expected:
 Hello
 -->
 
 
-Note that the Scala CLI doesn't offer to link the resulting JavaScript with linkers, such as Webpack (yet).
+Note that the Scala CLI doesn't offer to link the resulting JavaScript with linkers, such as Webpack, yet.
 
 ## Scala Native
 
@@ -195,11 +199,17 @@ object Hello {
 
 ```bash
 scala-cli package --native HelloNative.scala -S 2.13.6 -o hello
-file hello
-# hello: Mach-O 64-bit executable x86_64
-./hello
-# Hello
 ```
+
+<RunnableCommand
+    command={`file hello`}
+    output={"hello: Mach-O 64-bit executable x86_64"}
+/>
+
+<RunnableCommand
+    command={`./hello`}
+    output={"Hello"}
+/>
 
 <!-- Expected:
 Hello
@@ -221,14 +231,19 @@ object Hello {
     println("Hello")
 }
 ```
-
 ```bash ignore
 scala-cli package --deb Hello.scala -o hello.deb
-file hello
-# hello: Mach-O 64-bit executable x86_64
-./hello
-# Hello
 ```
+
+<RunnableCommand
+    command={`file hello`}
+    output={"hello: Mach-O 64-bit executable x86_64"}
+/>
+
+<RunnableCommand
+    command={`./hello`}
+    output={"Hello"}
+/>
 
 ### Debian
 
@@ -280,7 +295,7 @@ scala-cli package --rpm --output 'path.rpm' Hello.scala
 ### macOS (PKG)
 
 PKG is the software package format for macOs.
-To build a PKG you will need to have [`pkgbuild`](https://www.unix.com/man-page/osx/1/pkgbuild/) installed. 
+To build a PKG you will need to have [`pkgbuild`](https://www.unix.com/man-page/osx/1/pkgbuild/) installed.
 
 Example:
 

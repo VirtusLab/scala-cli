@@ -1,5 +1,5 @@
 <!--
-  File was generated from based on docs/cookbooks/scala-jvm.md, do not edit manually!
+  File was generated from based on docs/cookbooks/scala-jvm.mdx, do not edit manually!
 -->
 
 

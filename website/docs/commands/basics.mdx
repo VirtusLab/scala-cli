@@ -3,15 +3,17 @@ title: Basics
 sidebar_position: 3
 ---
 
+import {RunnableCommand} from "../../src/components/RunnableCommand";
+
 Scala CLI is a command line tool that executes a given command on the inputs it’s provided with a given [configuration](../guides/configuration.md) to produce a result.
 
 The most important commands are:
 
   - [compile](./compile.mdx) compiles your code (excluding tests)
-  - [run](./run.md) runs your code using the provided arguments (it’s also used when no other command is provided)
-  - [test](./test.md) compiles and runs the tests defined in your code
-  - [package](./package.md) packages your code into a jar or other format
-  - [repl](./repl.md) / [console](./repl.md) runs the interactive Scala shell
+  - [run](./run.mdx) runs your code using the provided arguments (it’s also used when no other command is provided)
+  - [test](./test.mdx) compiles and runs the tests defined in your code
+  - [package](./package.mdx) packages your code into a jar or other format
+  - [repl](./repl.mdx) / [console](./repl.mdx) runs the interactive Scala shell
   - [fmt](./fmt.md) formats your code
 
 When Scala CLI is run without any commands, it defaults to the `run` command, so <br/>`scala-cli a.scala` runs your `a.scala` file.
@@ -32,7 +34,7 @@ Note that all of these input formats can used alongside each other.
 Scala CLI accepts the following types of source code:
 
 - `.scala` files, containing Scala code
-- `.sc` files, containing Scala scripts (see more in [Scripts guide](../guides/scripts.md))
+- `.sc` files, containing Scala scripts (see more in [Scripts guide](../guides/scripts.mdx))
 - `.java` files, containing Java code
 
 This example shows the simplest input format.
@@ -47,10 +49,10 @@ object Hello {
 
 The run it by passing it to `scala-cli`:
 
-```bash
-scala-cli Hello.scala
-# Hello from Scala
-```
+<RunnableCommand
+    command={"scala-cli Hello.scala"}
+    output={"Hello from Scala"}
+/>
 
 You can also split your code into multiple files:
 
@@ -69,10 +71,10 @@ object Hello {
 
 and the run them with `scala-cli`:
 
-```bash
-scala-cli Hello.scala Messages.scala
-# Hello from Scala
-```
+<RunnableCommand
+    command={"scala-cli Hello.scala Messages.scala"}
+    output={"Hello from Scala"}
+/>
 
 :::note
 Scala CLI compiles only the provided inputs.
@@ -110,10 +112,10 @@ object Hello {
 
 For this case, run all the source code files in `my-app` by supplying the directory name:
 
-```bash
-scala-cli my-app
-# Hello from Scala
-```
+<RunnableCommand
+    command={"scala-cli my-app"}
+    output={"Hello from Scala"}
+/>
 
 In our experience, `scala-cli .` is the most used command; it compiles and runs all sources in the current directory.
 
@@ -135,38 +137,39 @@ Make sure that you trust the code that you are about to run.
 `scala-cli` accepts input via URLs pointing at `.scala` files.
 It downloads their content, and runs them:
 
-```bash
-scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala
-# Hello from Scala GitHub Gist
-```
+<RunnableCommand
+    command={`scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala`}
+    output={"Hello from Scala GitHub Gist"}
+/>
 
 ### GitHub Gist
 
 `scala-cli` accepts input via Github Gist’s urls.
 It downloads the gist zip archive and runs it:
 
-```bash
-scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec
-# Hello
-```
+<RunnableCommand
+    command={`scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec`}
+    output={"Hello"}
+/>
 
 ## Piping
 
 You can also pipe Scala code to `scala-cli` for execution:
 
-```bash
-echo 'println("Hello")' | scala-cli -
-# Hello
-```
+<RunnableCommand
+    command={`echo 'println("Hello")' | scala-cli -`}
+    output={"Hello"}
+/>
 
 ## Process substitution
 
 Lastly, `scala-cli` also accepts input via shell process substitution:
 
-```bash
-scala-cli <(echo 'println("Hello")')
-# Hello
-```
+<RunnableCommand
+    command={`scala-cli <(echo 'println("Hello")')`}
+    output={"Hello"}
+/>
+
 <!-- Expected:
 Hello
 -->

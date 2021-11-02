@@ -3,6 +3,8 @@ title: Package Scala application as an executable file
 sidebar_position: 2
 ---
 
+import {RunnableCommand} from "../../src/components/RunnableCommand";
+
 Scala CLI allows you to package your application into a lightweight JAR file, that can be easily run.
 It only contains the byte code of your sources, and automatically downloads its dependencies on its first run.
 
@@ -32,19 +34,17 @@ Wrote DetectOsApp, run it with
 
 Lightweight JARs require the `java` command to be available, and access to internet if dependencies need to be downloaded.
 
-```bash
-# Run DetectOsApp on MacOs
-./DetectOsApp
-# os: Mac OS X
-```
+<RunnableCommand
+    command={`./DetectOsApp`}
+    output={`os: Mac OS X`}
+/>
 
 In the previous example, a Lightweight JAR that was built in a MacOs environment could also run on Linux.
 
-```bash
-# Run DetectOsApp on Linux
-./DetectOsApp
-# os: Linux
-```
+<RunnableCommand
+    command={`./DetectOsApp`}
+    output={`os: Linux`}
+/>
 
 Scala-cli supports building Lightweight JARs in the MacOS, Linux, and Windows environments.
 JARs built on macOS and Linux are portable between these two OSs. The Lightweight JARs built on Windows can only be run on Windows.
@@ -59,8 +59,7 @@ scala-cli package --assembly DetectOsApp.scala
 
 Assemblies also require the `java` command to be available in the `PATH`. As all dependencies are packaged into the assembly, nothing gets downloaded upon the first run and no internet access is required.
 
-```bash
-# Run DetectOsApp on MacOs
-./DetectOsApp
-# os: Mac OS X
-```
+<RunnableCommand
+    command={`./DetectOsApp`}
+    output={`os: Mac OS X`}
+/>

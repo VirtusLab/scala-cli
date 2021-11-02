@@ -3,6 +3,8 @@ title: Package Scala application as a docker image
 sidebar_position: 5
 ---
 
+import {RunnableCommand} from "../../src/components/RunnableCommand";
+
 # Package Scala application as a docker image
 
 ScalaCLI can create an executable application and package it into a docker image.
@@ -29,10 +31,11 @@ Built docker image, run it with
   docker run hello-docker:latest
 -->
 
-```bash
-docker run hello-docker
-# Hello from Docker
-```
+<RunnableCommand
+    command={`docker run hello-docker`}
+    output={`Hello from Docker`}
+    outputLanguage="bash"
+/>
 
 <!-- Expected:
 Hello from Docker

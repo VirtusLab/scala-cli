@@ -3,6 +3,8 @@ title: Test
 sidebar_position: 7
 ---
 
+import {RunnableCommand} from "../../src/components/RunnableCommand";
+
 The `test` command runs test suites in the test sources.
 Test sources are complied separately (after the 'main' sources), and may use different dependencies, compiler options, and other configurations.
 
@@ -72,13 +74,16 @@ class MyTests extends munit.FunSuite {
 }
 ```
 
-```bash
-scala-cli test MyTests.scala
-# Compiling project_8686a5fa42 (1 Scala source)
-# Compiled 'project_8686a5fa42'
-# MyTests:
-#   + foo 0.143s
-```
+<RunnableCommand
+    command={"scala-cli test MyTests.scala"}
+    output={
+`Compiling project_8686a5fa42 (1 Scala source)
+Compiled 'project_8686a5fa42'
+MyTests:
+  + foo 0.143s
+`}
+    outputLanguage="bash"
+/>
 
 <!-- Expected:
 MyTests
@@ -103,19 +108,22 @@ class Tests extends AnyFlatSpec with should.Matchers {
 }
 ```
 
-```bash
-scala-cli test MyTests.scala -- -oD
-# Compiling project_8686a5fa42-4bae49baeb (1 Scala source)
-# Compiled 'project_8686a5fa42-4bae49baeb'
-# Tests:
-# A thing
-# - should thing (22 milliseconds)
-# Run completed in 359 milliseconds.
-# Total number of tests run: 1
-# Suites: completed 1, aborted 0
-# Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
-# All tests passed.
-```
+<RunnableCommand
+    command={"scala-cli test MyTests.scala -- -oD"}
+    output={
+`Compiling project_8686a5fa42-4bae49baeb (1 Scala source)
+Compiled 'project_8686a5fa42-4bae49baeb'
+Tests:
+A thing
+- should thing (22 milliseconds)
+Run completed in 359 milliseconds.
+Total number of tests run: 1
+Suites: completed 1, aborted 0
+Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
+All tests passed.
+`}
+    outputLanguage="bash"
+/>
 
 <!-- Expected:
 Tests:
