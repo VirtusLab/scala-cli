@@ -12,7 +12,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
   echo "println(1)" | scala-cli -
   echo "println(1)" | scala-cli --js - &&
-    echo "println(1)" | scala-cli --native -S 2 -
+    echo "println(1)" | scala-cli --native -S 2.13.6 -
    
   # or do other preparation (e.g. create code)
 else
@@ -38,7 +38,7 @@ object Native extends App {
 EOF
 
   pe "# Scala Native works only with Scala 2.x so far"
-  pe "scala-cli --native -S 2 native.scala"
+  pe "scala-cli --native -S 2.13.6 native.scala"
   doSleep 3
 
   echo " " && echo "ok" > status.txt

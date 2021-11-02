@@ -161,9 +161,7 @@ jobs:
       run: .github/scripts/check_docs.sh
 
     - name: Test gifs
-      run: |
-        SKIP_RENDER=true
-        gifs/generate_gifs.sh $(ls gifs/scenarios/) 
+      run: gifs/generate_gifs.sh $(ls gifs/scenarios/) 
 
   checks:
     timeout-minutes: 15

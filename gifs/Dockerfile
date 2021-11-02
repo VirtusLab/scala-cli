@@ -26,4 +26,4 @@ RUN dpkg -i scala-cli.deb
 COPY *.sh /data/
 COPY scenarios /data/scenarios
 
-ENTRYPOINT ./run_scenario.sh $1
+ENTRYPOINT ./run_scenario.sh "$1"

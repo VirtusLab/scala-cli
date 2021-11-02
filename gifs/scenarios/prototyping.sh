@@ -33,7 +33,8 @@ EOF
 
   doSleep 2
 
-  pe "scala-cli Enum.scala -S 2.13.6"
+  pe "scala-cli Enum.scala -S 2.13.6" || true
+  
 
   # Wait a bit to read output of last command
   doSleep 5

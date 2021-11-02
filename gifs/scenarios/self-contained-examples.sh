@@ -23,7 +23,7 @@ else
   doSleep 3
   clearConsole 
 
-  pe "scala-cli https://gist.github.com/lwronski/99bb89d1962d2c5e21da01f1ad60e92f"
+  pe "scala-cli https://gist.github.com/lwronski/99bb89d1962d2c5e21da01f1ad60e92f" || true
 
   doSleep 2
   

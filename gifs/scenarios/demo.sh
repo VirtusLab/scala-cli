@@ -20,7 +20,7 @@ EOF
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clearConsoleConsole
+  clearConsole
 
   cat <<EOF | updateFile demo.scala
 @main def demo(args: String *) = 
@@ -31,7 +31,7 @@ EOF
 
   doSleep 5
 
-  clearConsoleConsole
+  clearConsole
 
   cat <<EOF | updateFile demo.scala
 def niceArgs(args: String*): String = 
@@ -44,7 +44,7 @@ EOF
   
   doSleep 5
 
-  clearConsoleConsole
+  clearConsole
 
   cat <<EOF | updateFile demo.test.scala
 // using lib "org.scalameta::munit:0.7.29"

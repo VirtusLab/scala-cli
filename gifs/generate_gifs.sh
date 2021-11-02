@@ -1,43 +1,113 @@
 #!/usr/bin/env bash
 
-set -e
+set -exo pipefail
 
 # Generate svg files for arguments based on create scripts with scenarios
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 OUT=$SCRIPT_DIR/.scala
 
-test -d $OUT || mkdir $OUT 
-test -f $OUT/failures.txt && rm $OUT/failures.txt
+mkdir -p $OUT 
+rm -f $OUT/failures.txt
 
-docker build gifs --tag gif-renderer  
-docker build gifs/svg_render/ --tag svg_rendrer
 tty && TTY_OPS="-it"
+
+columns=70
+rows=20
+no_record=
+no_build=
+no_gifs=
+no_svgs=
 
 for name in "$@"
 do
-  echo processing $name
-  svg_render_mappings="-v $SCRIPT_DIR/../website/static/img:/data -v $OUT/.scala:/out"
-  svg_render_ops="--in /out/$name.cast --width 70 --height 20 --term iterm2 --padding 20"
-  echo "start with $TTY_OPS" 
 
-  # Run the scenario
-  docker run --rm $TTY_OPS -v  $OUT/.scala:/data/out gif-renderer ./run_scenario.sh  $name || (
-    echo "Scenario failed: $name" &&
-    echo $name >> $OUT/failures.txt
-  )
+  case $name in
 
-  # do not render gifs without TTY
-  if [ -n "$TTY_OPS" ]; then
-    docker run --rm $svg_render_mappings svg_rendrer a $svg_render_ops --out /data/$name.svg --profile "/profiles/light"
-    docker run --rm $svg_render_mappings svg_rendrer a $svg_render_ops --out /data/dark/$name.svg --profile "/profiles/dark"
-  fi
+    "--no-record")
+      no_record=true
+      ;;
 
-  echo "done" 
+    "--no-gifs")
+      no_gifs=true
+      ;;
+
+    "--no-svgs")
+      no_svgs=true
+      ;;
+
+    "--no-build")
+      no_build=true
+      ;;
+
+
+    *)
+      ;;
+  esac
+
 done
 
-test -f $OUT/failures.txt && (
+if [ -z "$no_build" ]; then
+  docker build $SCRIPT_DIR --tag gif-renderer  
+  docker build $SCRIPT_DIR/svg_render/ --tag svg_rendrer
+fi
+
+echo "Option build $no_build gifs $no_gifs svg $no_svgs record $no_record"
+
+for arg in "$@"
+do
+
+
+  if [[ "$arg" == --* ]]; then 
+    echo "Skipping $name" 
+  else
+    fileName=$(basename "$arg")
+    name=${fileName%%.sh} 
+
+    echo processing $name with $TTY_OPS
+    svg_render_mappings="-v $SCRIPT_DIR/../website/static/img:/data -v $OUT/.scala:/out"
+    svg_render_ops="--in /out/$name.cast --width $columns --height $rows --term iterm2 --padding 20"
+
+    # Run the scenario
+    failure=
+
+    if [ -z "$no_record" ]; then  
+      docker run --rm $TTY_OPS -v  $OUT/.scala:/data/out gif-renderer ./run_scenario.sh $name || (
+        echo "Scenario failed: $name" &&
+        echo $name >> $OUT/failures.txt &&
+        failure=true
+      )
+    fi
+
+    # do not render gifs without TTY
+    if [ -n "$TTY_OPS" ] && [ -z "$failure" ]; then
+      if [ -z "$no_svgs" ]; then
+        docker run --rm $svg_render_mappings svg_rendrer a $svg_render_ops --out /data/$name.svg --profile "/profiles/light" &&
+        docker run --rm $svg_render_mappings svg_rendrer a $svg_render_ops --out /data/dark/$name.svg --profile "/profiles/dark" || (
+          echo "Scenario failed: $name" &&
+          echo $name >> $OUT/failures.txt &&
+          failure=true
+        )
+      fi
+      if [ -z "$no_gifs" ]; then
+        docker run --rm $svg_render_mappings asciinema/asciicast2gif -w $columns -h $rows -t monokai /out/$name.cast /data/gifs/$name.gif || (
+          echo "Scenario failed: $name" &&
+          echo $name >> $OUT/failures.txt &&
+          failure=true
+        )
+      fi
+    fi
+    echo "done" 
+  fi
+done
+
+failures=
+test -f "$OUT/failures.txt" && failures=$(cat "$OUT/failures.txt") 
+
+if [ -n "$failures" ]; then
   echo "Scenarios failed:" &&
-  cat $OUT/failures.txt &&
+  echo "$failures" &&
   exit 1
-) || echo "All scenarios succeded!"
+else
+  echo "All scenarios succeded!"
+fi

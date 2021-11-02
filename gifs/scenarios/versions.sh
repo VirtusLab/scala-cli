@@ -57,11 +57,11 @@ object Main extends App {
 EOF
 
   scala-cli versions.scala
-  scala-cli --scala 2 versions.scala
+  scala-cli --scala 2.13.6 versions.scala
   scala-cli --scala 2.12.12 versions.scala
   scala-cli --jvm 8 versions.scala
   scala-cli --jvm adopt:9 versions.scala
-  scala-cli --scala 2 --dep org.typelevel::cats-core:2.3.0 classpath.scala
+  scala-cli --scala 2.13.6 --dep org.typelevel::cats-core:2.3.0 classpath.scala
   scala-cli --dep org.scalameta::munit:0.7.29 classpath.scala
 
 else
@@ -73,7 +73,7 @@ else
 
 
   pe "scala-cli versions.scala"
-  pe "scala-cli --scala 2 versions.scala"
+  pe "scala-cli --scala 2.13.6 versions.scala"
   pe "scala-cli --scala 2.12.12 versions.scala"
   doSleep 2
   clearConsole
@@ -82,7 +82,7 @@ else
   doSleep 2
   clearConsole
   pe "scala-cli --dep org.scalameta::munit:0.7.29 classpath.scala"
-  pe "scala-cli --scala 2 --dep org.typelevel::cats-core:2.3.0 classpath.scala"
+  pe "scala-cli --scala 2.13.6 --dep org.typelevel::cats-core:2.3.0 classpath.scala"
 
   # Wait a bit to read output of last command
   doSleep 2
