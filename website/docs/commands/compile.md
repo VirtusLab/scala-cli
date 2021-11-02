@@ -5,12 +5,14 @@ sidebar_position: 5
 
 Scala CLI compiles your code with its `compile` command:
 
+```scala title=Hello.scala
+object Hello {
+  def main(args: Array[String]): Unit =
+    println("Hello")
+}
+```
+
 ```bash
-cat Hello.scala
-# object Hello {
-#   def main(args: Array[String]): Unit =
-#     println("Hello")
-# }
 scala-cli compile Hello.scala
 ```
 
@@ -26,7 +28,7 @@ For a full list of options, run `scala compile --help`, or check the options lin
 
 `--watch` makes `scala-cli` watch your code for changes, and re-compiles it upon any change:
 
-```bash
+```bash ignore
 scala-cli compile --watch Hello.scala
 # Compiling project-cef76d561e (1 Scala source)
 # Compiled 'project-cef76d561e'
@@ -117,7 +119,7 @@ scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
 Use `--compiler-plugin` to add compiler plugin dependencies:
 
 ```bash
-scala-cli compile Main.scala --compiler-plugin org.typelevel:::kind-projector:0.13.2 --scala 2.12.14
+scala-cli compile Hello.scala --compiler-plugin org.typelevel:::kind-projector:0.13.2 --scala 2.12.14
 ```
 
 
@@ -132,7 +134,7 @@ scala-cli compile --class-path Hello.scala
 This is handy when working with other tools.
 For example, you can pass this class path to `java -cp`:
 ```bash
-java -cp "$(scala compile --class-path Hello.scala)" Hello
+java -cp "$(scala-cli compile --class-path Hello.scala)" Hello
 # Hello
 ```
 

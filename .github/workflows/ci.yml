@@ -157,8 +157,8 @@ jobs:
     - uses: coursier/setup-action@v1.1.1
       with:
         jvm: 8
-    - name: Test cookbooks
-      run: .github/scripts/check_docs.sh && .github/scripts/check_examples.sh
+    - name: Test documentation
+      run: .github/scripts/check_docs.sh
 
   checks:
     timeout-minutes: 15
