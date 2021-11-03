@@ -26,7 +26,7 @@ object Test extends ScalaCommand[TestOptions] {
       Some(name)
     )
     if (CommandUtils.shouldCheckUpdate)
-      Update.checkUpdate(logger)
+      Update.checkUpdateSafe(logger)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()

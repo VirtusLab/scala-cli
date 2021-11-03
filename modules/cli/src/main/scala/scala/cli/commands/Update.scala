@@ -29,10 +29,10 @@ object Update extends ScalaCommand[UpdateOptions] {
     // format: off
     val res = os.proc(
       "sh", "-s", "--",
+      "--version", newVersion,
       "--force",
       "--binary-name", options.binaryName,
       "--bin-dir", options.installDirPath,
-      newVersion
     ).call(
       cwd = os.pwd,
       stdin = installScript.stdout,
@@ -65,14 +65,15 @@ object Update extends ScalaCommand[UpdateOptions] {
       sys.error("Can not resolve ScalaCLI version to update")
     )
 
+    val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion, currentVersion)
+
     if (!options.isInternalRun)
-      if (CommandUtils.isOutOfDateVersion(newestScalaCliVersion, currentVersion))
+      if (isOutdated)
         updateScalaCli(options, newestScalaCliVersion)
       else println("ScalaCLI is up-to-date")
-    else
+    else if (isOutdated)
       println(
-        s"""Your ScalaCLI $currentVersion is outdated, please update ScalaCLI to $newestScalaCliVersion
-
+        s"""Your ScalaCLI $currentVersion is outdated, please update ScalaCLI to $newestScalaCliVersion 
            |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update ScalaCLI.""".stripMargin
       )
   }
@@ -109,7 +110,7 @@ object Update extends ScalaCommand[UpdateOptions] {
   def run(options: UpdateOptions, args: RemainingArgs): Unit =
     checkUpdate(options)
 
-  def checkUpdate(logger: Logger): Unit = {
+  def checkUpdateSafe(logger: Logger): Unit = {
     Try {
       val classesDir =
         this.getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toString
