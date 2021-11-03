@@ -13,24 +13,24 @@ final case class ScalaNativeOptions(
     native: Boolean = false,
 
   @Group("Scala Native")
-  @HelpMessage("Scala Native version")
+  @HelpMessage("Set the Scala Native version")
     nativeVersion: Option[String] = None,
   @Group("Scala Native")
-  @HelpMessage("Scala Native compilation mode")
+  @HelpMessage("Set Scala Native compilation mode")
     nativeMode: Option[String] = None,
   @Group("Scala Native")
-  @HelpMessage("Scala Native garbage collector")
+  @HelpMessage("Set the Scala Native garbage collector")
     nativeGc: Option[String] = None,
 
   @Group("Scala Native")
-  @HelpMessage("Path to Clang command")
+  @HelpMessage("Path to the Clang command")
     nativeClang: Option[String] = None,
   @Group("Scala Native")
-  @HelpMessage("Path to Clang++ command")
+  @HelpMessage("Path to the Clang++ command")
     nativeClangpp: Option[String] = None,
 
   @Group("Scala Native")
-  @HelpMessage("Extra options passed to clang verbatim during linking")
+  @HelpMessage("Extra options passed to `clang` verbatim during linking")
     nativeLinking: List[String] = Nil,
   @Group("Scala Native")
   @HelpMessage("Use default linking settings")

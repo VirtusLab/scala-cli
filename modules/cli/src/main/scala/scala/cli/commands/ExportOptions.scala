@@ -5,7 +5,7 @@ import caseapp._
 import scala.build.options.BuildOptions
 
 // format: off
-@HelpMessage("Export current project to SBT or Mill")
+@HelpMessage("Export current project to sbt or Mill")
 final case class ExportOptions(
   // FIXME There might be too many options for 'scala-cli export' there
   @Recurse

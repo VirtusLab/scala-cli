@@ -23,7 +23,7 @@ final case class SharedCompilationServerOptions(
   @Hidden
     bloopBspProtocol: Option[String] = None,
   @Group("Compilation server")
-  @HelpMessage("Socket file to use to open a BSP connection with Bloop (on Windows, pipe name like \"\\\\.\\pipe\\…\")")
+  @HelpMessage("Socket file to use to open a BSP connection with Bloop (on Windows, a pipe name like \"`\\\\.\\pipe\\…`\")")
   @ValueDescription("path")
   @Hidden
     bloopBspSocket: Option[String] = None,
@@ -34,7 +34,7 @@ final case class SharedCompilationServerOptions(
   @Hidden
     bloopHost: Option[String] = None,
   @Group("Compilation server")
-  @HelpMessage("Port the compilation server should bind to (pass -1 to pick a random port)")
+  @HelpMessage("Port the compilation server should bind to (pass `-1` to pick a random port)")
   @ValueDescription("port|-1")
   @Hidden
     bloopPort: Option[Int] = None,
@@ -47,7 +47,7 @@ final case class SharedCompilationServerOptions(
 
   @Hidden
   @Group("Compilation server")
-  @HelpMessage("Maximum duration to wait for BSP connection to be opened")
+  @HelpMessage("Maximum duration to wait for the BSP connection to be opened")
   @ValueDescription("duration")
     bloopBspTimeout: Option[String] = None,
   @Hidden
@@ -57,12 +57,12 @@ final case class SharedCompilationServerOptions(
     bloopBspCheckPeriod: Option[String] = None,
   @Hidden
   @Group("Compilation server")
-  @HelpMessage("Maximum duration to wait for compilation server to start up")
+  @HelpMessage("Maximum duration to wait for the compilation server to start up")
   @ValueDescription("duration")
     bloopStartupTimeout: Option[String] = None,
 
   @Group("Compilation server")
-  @HelpMessage("Include default jvm opts for bloop")
+  @HelpMessage("Include default JVM options for Bloop")
   @Hidden
     bloopDefaultJavaOpts: Boolean = true,
   @Group("Compilation server")

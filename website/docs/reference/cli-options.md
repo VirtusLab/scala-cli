@@ -47,7 +47,7 @@ Available in commands:
 
 Aliases: `-f`
 
-## BSP options
+## Bsp options
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
@@ -262,7 +262,7 @@ Aliases: `--setting`
 
 Aliases: `-o`
 
-## Scalafmt options
+## Fmt options
 
 Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -391,7 +391,7 @@ Binary name
 
 #### `--env`
 
-Print the `env` variable
+Print the update to `env` variable
 
 #### `--bin-dir`
 
@@ -632,7 +632,7 @@ This should contain names and email addresses of co-maintainers of the package
 
 #### `--debian-conflicts`
 
-The list of Debian package that this package is absolute incompatibility
+The list of Debian package that this package is not compatible with
 
 #### `--debian-dependencies`
 
@@ -704,7 +704,7 @@ The image repository
 
 The image tag; the default tag is `latest`
 
-## REPL options
+## Repl options
 
 Available in commands:
 - [`console` / `repl`](./commands.md#console)
@@ -1003,3 +1003,4 @@ Available in commands:
 Aliases: `-w`
 
 Watch source files for changes
+

@@ -3,7 +3,7 @@ title: Directives
 sidebar_position: 2
 ---
 
-## `using` directives
+## using directives
 
 ### Compiler options
 
@@ -31,9 +31,9 @@ Adds compiler plugins
 
 Manually add JAR(s) to the class path
 
-`using jar `_path_
+using jar _path_ 
 
-`using jars `_path1_ _path2_ …
+using jars _path1_ _path2_ …
 
 #### Examples
 `using jar "/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"`
@@ -51,9 +51,9 @@ Add dependencies
 
 ### Java home
 
-Sets the Java home directory used to run your application or tests
+Sets Java home used to run your application or tests
 
-`using java-home `_path_
+`using java-home `_path_ 
 
 `using javaHome `_path_
 

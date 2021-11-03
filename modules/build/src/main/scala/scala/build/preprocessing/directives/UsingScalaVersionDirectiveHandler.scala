@@ -7,7 +7,7 @@ import scala.build.preprocessing.ScopePath
 
 case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Scala version"
-  def description      = "Sets the default Scala version"
+  def description      = "Set the default Scala version"
   def usage            = "using scala _version_+"
   override def usageMd = "`using scala `_version_+"
   override def examples = Seq(

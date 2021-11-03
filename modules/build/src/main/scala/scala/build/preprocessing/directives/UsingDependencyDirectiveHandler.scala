@@ -12,7 +12,7 @@ import scala.build.{Position, Positioned}
 
 case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Dependency"
-  def description      = "Adds dependencies"
+  def description      = "Add dependencies"
   def usage            = "using lib org:name:ver | using libs org:name:ver org2:name2:ver2"
   override def usageMd = "`using lib `_org_`:`name`:`ver"
   override def examples = Seq(

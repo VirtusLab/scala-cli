@@ -3,17 +3,17 @@ package scala.cli.commands
 import caseapp._
 
 // format: off
-@HelpMessage("Install scala-cli in a sub-directory of the home directory")
+@HelpMessage("Install `scala-cli` in a sub-directory of the home directory")
 final case class InstallHomeOptions(
   @Group("InstallHome")
     scalaCliBinaryPath: String,
   @Group("InstallHome")
   @Name("f")
-  @HelpMessage("Overwrite scala-cli if exists")
+  @HelpMessage("Overwrite `scala-cli`, if it exists")
     force: Boolean = false,
   @HelpMessage("Binary name")
     binaryName: String = "scala-cli",
-  @HelpMessage("Print the env update")
+  @HelpMessage("Print the update to `env` variable")
     env: Boolean = false,
   @HelpMessage("Binary directory")
     binDir: Option[String] = None

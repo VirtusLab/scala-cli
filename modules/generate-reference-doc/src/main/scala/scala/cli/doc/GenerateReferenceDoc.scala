@@ -97,6 +97,8 @@ object GenerateReferenceDoc extends CaseApp[Options] {
         |sidebar_position: 1
         |---
         |
+        |This is a summary of options that are available for each subcommand of the `scala-cli` command.
+        |
         |""".stripMargin
     )
 

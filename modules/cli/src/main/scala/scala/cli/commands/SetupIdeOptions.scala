@@ -5,7 +5,7 @@ import caseapp._
 import scala.build.options.BuildOptions
 
 // format: off
-@HelpMessage("Generate BSP file required for successful IDE import")
+@HelpMessage("Generate a BSP file that you can import into your IDE")
 final case class SetupIdeOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

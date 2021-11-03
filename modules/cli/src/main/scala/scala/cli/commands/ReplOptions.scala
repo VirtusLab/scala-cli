@@ -17,13 +17,13 @@ final case class ReplOptions(
     compileCross: CompileCrossOptions = CompileCrossOptions(),
 
   @Group("Repl")
-  @HelpMessage("Use Ammonite rather than the default Scala REPL")
+  @HelpMessage("Use Ammonite (instead of the default Scala REPL)")
   @Name("A")
   @Name("amm")
     ammonite: Option[Boolean] = None,
 
   @Group("Repl")
-  @HelpMessage("Set Ammonite version")
+  @HelpMessage("Set the Ammonite version")
   @Name("ammoniteVer")
     ammoniteVersion: Option[String] = None,
 
@@ -34,7 +34,7 @@ final case class ReplOptions(
 
   @Group("Repl")
   @Hidden
-  @HelpMessage("Don't actually run the REPL, only fetch it")
+  @HelpMessage("Don't actually run the REPL, just fetch it")
     replDryRun: Boolean = false
 ) {
   // format: on
