@@ -9,7 +9,7 @@ import upickle.default.{ReadWriter, macroRW}
 // format: off
 final case class ScalacOptions(
   @Group("Scala")
-  @HelpMessage("Add scalac option")
+  @HelpMessage("Add a scalac option")
   @ValueDescription("option")
   @Name("scala-opt")
   @Name("O")
@@ -22,7 +22,7 @@ object ScalacOptions {
   private val scalacOptionsArg = Arg("scalacOption")
     .withExtraNames(Seq(Name("scala-opt"), Name("O")))
     .withValueDescription(Some(ValueDescription("option")))
-    .withHelpMessage(Some(HelpMessage("Add scalac option")))
+    .withHelpMessage(Some(HelpMessage("Add a `scalac` option")))
     .withGroup(Some(Group("Scala")))
     .withOrigin(Some("ScalacOptions"))
   // .withIsFlag(true) // The scalac options we handle accept no value after the -… argument

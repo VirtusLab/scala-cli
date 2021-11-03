@@ -26,7 +26,7 @@ Accepts options:
 
 ## `clean`
 
-Clean-up workspace
+Clean the workspace
 
 Accepts options:
 - [directories](./cli-options.md#directories-options)
@@ -53,7 +53,7 @@ Accepts options:
 
 ## `export`
 
-Export current project to SBT or Mill
+Export current project to sbt or Mill
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
@@ -170,8 +170,11 @@ Accepts options:
 
 Compile and run Scala code.
 
-To pass arguments to the application, just add them after '--', like:
+To pass arguments to the application, just add them after `--`, like:
+
+```sh
 scala-cli MyApp.scala -- first-arg second-arg
+```
 
 Accepts options:
 - [benchmarking](./cli-options.md#benchmarking-options)
@@ -192,7 +195,7 @@ Accepts options:
 
 ## `setup-ide`
 
-Generate BSP file required for successful IDE import
+Generate a BSP file that you can import into your IDE
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
@@ -236,7 +239,7 @@ Accepts options:
 
 ## `version`
 
-Print scala-cli version
+Print `scala-cli` version
 
 ## Hidden commands
 
@@ -264,14 +267,14 @@ Accepts options:
 
 ### `directories`
 
-Prints directories used by scala-cli
+Prints directories used by `scala-cli`
 
 Accepts options:
 - [directories](./cli-options.md#directories-options)
 
 ### `install-home`
 
-Install scala-cli in a sub-directory of the home directory
+Install `scala-cli` in a sub-directory of the home directory
 
 Accepts options:
 - [install home](./cli-options.md#install-home-options)

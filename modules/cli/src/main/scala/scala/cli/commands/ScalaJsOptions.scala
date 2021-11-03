@@ -13,12 +13,12 @@ final case class ScalaJsOptions(
     js: Boolean = false,
 
   @Group("Scala.JS")
-  @HelpMessage("Scala JS version")
+  @HelpMessage("The Scala JS version")
     jsVersion: Option[String] = None,
   @Group("Scala.JS")
-  @HelpMessage("Scala JS mode, either \"dev\" or \"release\"")
+  @HelpMessage("The Scala JS mode, either `dev` or `release`")
     jsMode: Option[String] = None,
-  @HelpMessage("Scala JS module kind: commonjs/common, esmodule/es, nomodule/none")
+  @HelpMessage("The Scala JS module kind: commonjs/common, esmodule/es, nomodule/none")
   @Group("Scala.JS")
     jsModuleKind: Option[String] = None,
 

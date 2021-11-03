@@ -7,10 +7,13 @@ import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.preprocessing.ScopePath
 
 case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
-  def name             = "Java home"
-  def description      = "Sets Java home used to run your application or tests"
-  def usage            = "using java-home|javaHome _path_"
-  override def usageMd = "`using java-home `_path_ | `using javaHome `_path_"
+  def name        = "Java home"
+  def description = "Sets Java home used to run your application or tests"
+  def usage       = "using java-home|javaHome _path_"
+  override def usageMd =
+    """`using java-home `_path_ 
+      |
+      |`using javaHome `_path_""".stripMargin
   override def examples = Seq(
     "using java-home \"/Users/Me/jdks/11\""
   )

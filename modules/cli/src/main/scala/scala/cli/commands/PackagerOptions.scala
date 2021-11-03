@@ -4,32 +4,32 @@ import caseapp.{Group, Help, HelpMessage, Name, Parser, ValueDescription}
 
 // format: off
 final case class PackagerOptions(
-  @HelpMessage("The version of generated package")
+  @HelpMessage("Set the version of the generated package")
     version: String = "1.0.0",
   @HelpMessage(
-    "Path to application logo in png format, it will be used to generate icon and banner/dialog in msi installer"
+    "Path to application logo in PNG format, it will be used to generate icon and banner/dialog in msi installer"
   )
     logoPath: Option[String] = None,
-  @HelpMessage("Set launcher app name which will be linked to PATH")
+  @HelpMessage("Set launcher app name, which will be linked to the PATH")
     launcherApp: Option[String] = None,
   @ValueDescription("Description")
     description: Option[String] = None,
-  @HelpMessage("It should contains names and email addresses of co-maintainers of the package")
+  @HelpMessage("This should contain names and email addresses of co-maintainers of the package")
   @Name("m")
     maintainer: Option[String] = None,
   @Group("Debian")
   @HelpMessage(
-    "The list of debian package that this package is absolute incompatibility"
+    "The list of Debian package that this package is not compatible with"
   )
-  @ValueDescription("debian dependencies conflicts")
+  @ValueDescription("Debian dependencies conflicts")
     debianConflicts: List[String] = Nil,
   @Group("Debian")
-  @HelpMessage("The list of debian package that this package depends on")
-  @ValueDescription("debian dependencies")
+  @HelpMessage("The list of Debian packages that this package depends on")
+  @ValueDescription("Debian dependencies")
     debianDependencies: List[String] = Nil,
   @Group("Debian")
   @HelpMessage(
-    "Architecture that are supported by the repository, default: all"
+    "Architectures that are supported by the repository (default: all)"
   )
     debArchitecture: String = "all",
   @Group("MacOS")
@@ -39,34 +39,34 @@ final case class PackagerOptions(
     identifier: Option[String] = None,
   @Group("RedHat")
   @HelpMessage(
-    "License that are supported by the repository - list of licenses https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing"
+    "Licenses that are supported by the repository (list of licenses: https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing)"
   )
     license: Option[String] = None,
   @Group("RedHat")
   @HelpMessage(
-    "The number of times this version of the software was released, default: 1"
+    "The number of times this version of the software was released (default: 1)"
   )
     release: String = "1",
-  @HelpMessage("Architecture that are supported by the repository, default: noarch")
+  @HelpMessage("Architectures that are supported by the repository (default: noarch)")
     rpmArchitecture: String = "noarch",
   @Group("Windows")
-  @HelpMessage("Path to license file")
+  @HelpMessage("Path to the license file")
     licensePath: Option[String] = None,
   @Group("Windows")
-  @HelpMessage("Name of product, default: Scala packager")
+  @HelpMessage("Name of product (default: Scala packager)")
     productName: String = "Scala packager",
   @Group("Windows")
-  @HelpMessage("Text will be displayed on exit dialog")
+  @HelpMessage("Text that will be displayed on the exit dialog")
     exitDialog: Option[String] = None,
   @Group("Windows")
   @HelpMessage("Suppress Wix ICE validation (required for users that are neither interactive, not local administrators)")
     suppressValidation: Option[Boolean] = None,
   @Group("Windows")
-  @HelpMessage("Path to extra WIX config content")
+  @HelpMessage("Path to extra WIX configuration content")
   @ValueDescription("path")
     extraConfig: List[String] = Nil,
   @Group("Windows")
-  @HelpMessage("Whether a 64-bit executable is getting packaged")
+  @HelpMessage("Whether a 64-bit executable is being packaged")
   @Name("64")
     is64Bits: Boolean = true,
   @Group("Windows")
@@ -79,7 +79,7 @@ final case class PackagerOptions(
   dockerFrom: Option[String] = None,
   @Group("Docker")
   @HelpMessage(
-    "The image registry, if will be empty it will be used default registry"
+    "The image registry; if empty, it will use the default registry"
   )
   dockerImageRegistry: Option[String] = None,
   @Group("Docker")
@@ -89,7 +89,7 @@ final case class PackagerOptions(
   dockerImageRepository: Option[String] = None,
   @Group("Docker")
   @HelpMessage(
-    "The image tag, the default tag is latest"
+    "The image tag; the default tag is `latest`"
   )
   dockerImageTag: Option[String] = None,
 )

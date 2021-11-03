@@ -11,7 +11,7 @@ import scala.build.preprocessing.ScopePath
 
 case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Test framework"
-  def description = "Sets test framework"
+  def description = "Set the test framework"
   def usage       = "using test-framework _class_name_"
   override def usageMd =
     "`using test-framework `_class_name_"

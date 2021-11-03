@@ -7,7 +7,7 @@ import scala.build.preprocessing.ScopePath
 
 case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Repository"
-  def description      = "Adds a repository for dependency resolution"
+  def description      = "Add a repository for dependency resolution"
   def usage            = "using repository _repository_"
   override def usageMd = "`using repository `_repository_"
   override def examples = Seq(

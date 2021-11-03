@@ -10,12 +10,12 @@ import scala.build.options.JavaOptions
 final case class SharedJvmOptions(
 
   @Group("Java")
-  @HelpMessage("Set Java home")
+  @HelpMessage("Set the Java home directory")
   @ValueDescription("path")
     javaHome: Option[String] = None,
 
   @Group("Java")
-  @HelpMessage("Use a specific JVM, such as 14, adopt:11, or graalvm:21, or system")
+  @HelpMessage("Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`")
   @ValueDescription("jvm-name")
   @Name("j")
     jvm: Option[String] = None,

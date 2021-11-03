@@ -37,13 +37,13 @@ final case class SharedOptions(
     coursier: CoursierOptions = CoursierOptions(),
 
   @Group("Scala")
-  @HelpMessage("Set Scala version")
+  @HelpMessage("Set the Scala version")
   @ValueDescription("version")
   @Name("scala")
   @Name("S")
     scalaVersion: Option[String] = None,
   @Group("Scala")
-  @HelpMessage("Set Scala binary version")
+  @HelpMessage("Set the Scala binary version")
   @ValueDescription("version")
   @Hidden
   @Name("scalaBinary")
@@ -60,7 +60,7 @@ final case class SharedOptions(
     extraJars: List[String] = Nil,
 
   @Group("Java")
-  @HelpMessage("Add extra JARs in the class path during compilation only")
+  @HelpMessage("Add extra JARs in the class path, during compilation only")
   @ValueDescription("paths")
   @Name("compileOnlyJar")
   @Name("compileOnlyJars")
@@ -76,7 +76,7 @@ final case class SharedOptions(
     extraSourceJars: List[String] = Nil,
 
   @Group("Java")
-  @HelpMessage("Add resource directory")
+  @HelpMessage("Add a resource directory")
   @ValueDescription("paths")
   @Name("resource")
     resources: List[String] = Nil,

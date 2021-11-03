@@ -18,11 +18,11 @@ final case class PackageOptions(
     mainClass: MainClassOptions = MainClassOptions(),
 
   @Group("Package")
-  @HelpMessage("Set destination path")
+  @HelpMessage("Set the destination path")
   @Name("o")
     output: Option[String] = None,
   @Group("Package")
-  @HelpMessage("Overwrite destination file if it exists")
+  @HelpMessage("Overwrite the destination file, if it exists")
   @Name("f")
     force: Boolean = false,
 
@@ -38,22 +38,22 @@ final case class PackageOptions(
   @Recurse
     packager: PackagerOptions = PackagerOptions(),
   @Group("Package")
-  @HelpMessage("Build debian package, available only on linux")
+  @HelpMessage("Build Debian package, available only on Linux")
     deb: Boolean = false,
   @Group("Package")
   @HelpMessage("Build dmg package, available only on macOS")
     dmg: Boolean = false,
   @Group("Package")
-  @HelpMessage("Build rpm package, available only on linux")
+  @HelpMessage("Build rpm package, available only on Linux")
     rpm: Boolean = false,
   @Group("Package")
-  @HelpMessage("Build msi package, available only on windows")
+  @HelpMessage("Build msi package, available only on Windows")
     msi: Boolean = false,
   @Group("Package")
   @HelpMessage("Build pkg package, available only on macOS")
     pkg: Boolean = false,
   @Group("Package")
-  @HelpMessage("Build docker image")
+  @HelpMessage("Build Docker image")
     docker: Boolean = false,
 ) {
   // format: on
