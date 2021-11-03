@@ -11,7 +11,7 @@ Parameters on the command line take precedence over parameters in sources.
 That way, you can quickly override parameters from the command line.
 
 :::warning
-The configuration options and syntax in `.scala` files is likely to evolve in the future.
+The configuration options and syntax in `.scala` (and `.sc`) files is likely to evolve in the future.
 :::
 
 ## Command-line

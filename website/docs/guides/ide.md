@@ -46,14 +46,8 @@ In an ideal world we would replace the rest of this guide with something along t
 
 Once Metals picks up the project structure that’s created by Scala CLI, basic features like navigation, diagnostics, and code completion should work.
 
-Here are a few notes related to Metals support:
 
-- The current release of Metals (0.10.8) is not able to pick up changes in the build structure automatically, including the addition of new source files.
-  In order for Metals to pick up new files or changes in the build structure, you need to trigger the Metals 'Restart build server' command.
-- At this moment, main classes and tests are not recognized in Metals.
-- Generally, mainly due to problems with keeping the project structure up to date, Metals can assist with writing code while using Scala CLI, *but*, it cannot be considered the “source of truth,” and we recommend falling back to the command line in such cases.
 
-That last line means that, at this moment, Scala CLI should be considered the correct and accurate source of project configuration information.
 
 ## IntelliJ
 
@@ -61,4 +55,4 @@ Here are a few notes related to IntelliJ support:
 
 - The most significant problem with IntelliJ is that it requires sources to be placed within a directory. Therefore, if you use IntelliJ, we strongly suggest that you place your sources in a directory (like `src`).
 - IntelliJ currently does not automatically pick up changes in the project structure, so any change in dependencies, compiler options, etc., need to be manually reloaded.
-- Similarly to Metals, we currently don’t advise using IntelliJ as a source of truth, and we recommend falling back to command line in such cases.
+- We currently don’t advise using IntelliJ as a source of truth, and we recommend falling back to command line in such cases.
