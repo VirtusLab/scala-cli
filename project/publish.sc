@@ -52,7 +52,6 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
       .getOrElse(state.format())
       .stripPrefix("v")
 
-
 def finalPublishVersion = {
   val isCI = System.getenv("CI") != null
   if (isCI)

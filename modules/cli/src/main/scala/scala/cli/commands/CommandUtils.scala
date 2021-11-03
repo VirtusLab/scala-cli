@@ -1,7 +1,5 @@
 package scala.cli.commands
 
-import scala.build.internal.Constants
-
 object CommandUtils {
 
   def isOutOfDateVersion(newVersion: String, oldVersion: String): Boolean = {
