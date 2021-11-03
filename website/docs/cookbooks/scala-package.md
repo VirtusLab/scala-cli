@@ -1,12 +1,12 @@
 ---
-title: Package Scala application as an executable file
+title: Packaging Scala applications as executable files
 sidebar_position: 2
 ---
 
-Scala CLI allows you to package your application into a lightweight JAR file, that can be easily run.
-It only contains the byte code of your sources, and automatically downloads its dependencies on its first run.
+Scala CLI lets you package your application into a lightweight JAR file that can be easily run.
+The JAR file only contains the byte code that’s generated from your source code files, and automatically downloads its dependencies on its first run.
 
-The following snippet contains a short application to detect the OS:
+As an example, the following snippet contains a short application to detect the OS:
 ```scala title=DetectOsApp.scala
 object DetectOSApp extends App  {
     def getOperatingSystem(): String = {
@@ -19,7 +19,7 @@ object DetectOSApp extends App  {
 
 ### Default format (lightweight launcher)
 
-By default, the `package` sub-command generates a lightweight JAR.
+By default, the `package` sub-command generates a lightweight JAR that contains only your bytecode. This is how you create a lightweight JAR named `DetectOsApp.jar`:
 
 ```bash
 scala-cli package DetectOsApp.scala
@@ -30,15 +30,15 @@ Wrote DetectOsApp, run it with
   ./DetectOsApp
 -->
 
-Lightweight JARs require the `java` command to be available, and access to internet if dependencies need to be downloaded.
+Lightweight JARs require the `java` command to be available, and access to the internet, if dependencies need to be downloaded. This is how you run it on macOS:
 
 ```bash
-# Run DetectOsApp on MacOs
+# Run DetectOsApp on macOS
 ./DetectOsApp
 # os: Mac OS X
 ```
 
-In the previous example, a Lightweight JAR that was built in a MacOs environment could also run on Linux.
+The lightweight JAR that was just built on macOS can also run on Linux:
 
 ```bash
 # Run DetectOsApp on Linux
@@ -46,21 +46,22 @@ In the previous example, a Lightweight JAR that was built in a MacOs environment
 # os: Linux
 ```
 
-Scala-cli supports building Lightweight JARs in the MacOS, Linux, and Windows environments.
-JARs built on macOS and Linux are portable between these two OSs. The Lightweight JARs built on Windows can only be run on Windows.
+`scala-cli` supports building Lightweight JARs in the macOS, Linux, and Windows environments.
+JARs built on macOS and Linux are portable between these two operating systems.
+Lightweight JARs built on Windows can only be run on Windows.
 
 
 ### Assemblies
-Passing `--assembly` to the `package` sub-command generates so-called "assemblies" or "fat JARs".
+Passing `--assembly` to the `package` sub-command generates so-called "assemblies," or "fat JARs":
 
 ```bash
 scala-cli package --assembly DetectOsApp.scala
 ```
 
-Assemblies also require the `java` command to be available in the `PATH`. As all dependencies are packaged into the assembly, nothing gets downloaded upon the first run and no internet access is required.
+Assemblies also require the `java` command to be available in the `PATH`. But in this case, all of the dependencies that are needed are packaged into the assembly, so nothing gets downloaded upon the first run, and no internet access is required.
 
 ```bash
-# Run DetectOsApp on MacOs
+# Run DetectOsApp on macOS
 ./DetectOsApp
 # os: Mac OS X
 ```
