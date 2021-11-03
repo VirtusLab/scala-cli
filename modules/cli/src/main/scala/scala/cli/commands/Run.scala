@@ -45,6 +45,8 @@ object Run extends ScalaCommand[RunOptions] {
       logger,
       Some(name)
     )
+    if (CommandUtils.shouldCheckUpdate)
+      Update.checkUpdateSafe(logger)
 
     if (options.watch.watch) {
       val watcher = Build.watch(

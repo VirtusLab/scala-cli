@@ -227,6 +227,13 @@ Accepts options:
 - [test](./cli-options.md#test-options)
 - [watch](./cli-options.md#watch-options)
 
+## `update`
+
+Update scala-cli - it works only for installation script
+
+Accepts options:
+- [update](./cli-options.md#update-options)
+
 ## `version`
 
 Print scala-cli version
