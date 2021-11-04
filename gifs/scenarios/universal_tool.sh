@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -10,13 +12,13 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
   echo "println(1)" | scala-cli -
   echo "println(1)" | scala-cli --js - &&
-    echo "println(1)" | scala-cli --native -S 2 -
+    echo "println(1)" | scala-cli --native -S 2.13.6 -
    
   # or do other preparation (e.g. create code)
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   cat <<EOF | updateFile js.scala
 @main def jsMain =
@@ -25,8 +27,8 @@ else
 EOF
 
   pe "scala-cli --js js.scala"
-  sleep 3
-  clear
+  doSleep 3
+  clearConsole
 
   cat <<EOF | updateFile native.scala
 object Native extends App {
@@ -36,8 +38,8 @@ object Native extends App {
 EOF
 
   pe "# Scala Native works only with Scala 2.x so far"
-  pe "scala-cli --native -S 2 native.scala"
-  sleep 3
+  pe "scala-cli --native -S 2.13.6 native.scala"
+  doSleep 3
 
-  echo " "
+  echo " " && echo "ok" > status.txt
 fi

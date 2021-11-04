@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -13,12 +15,12 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
   pe "echo 'println(\"TODO: turn gifs/scenarios/projects.sh into proper scenario Scala CLI to manage single-module projects\")' | scala-cli -"
 
   # Wait a bit to read output of last command
-  sleep 2
-  echo " "
+  doSleep 2
+  echo " " && echo "ok" > status.txt
 fi

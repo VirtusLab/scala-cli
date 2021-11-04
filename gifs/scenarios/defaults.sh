@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -14,18 +16,18 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
     cat <<EOF | updateFile Main.scala
 @main def hello() = {println("Hello "+"world")}
 EOF
-  sleep 2
+  doSleep 2
   pe 'scala-cli .'
   pe 'scala-cli fmt .'
   p "cat Main.scala"
   rougify --theme tulip Main.scala
   pe 'scala-cli package .'
-  sleep 4
-  echo " "
+  doSleep 4
+  echo " " && echo "ok" > status.txt
 fi
