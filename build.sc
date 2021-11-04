@@ -710,7 +710,7 @@ object ci extends Module {
     val launcherScript       = os.read(standaloneLauncherPath)
     val scalaCliVersionRegex = "SCALA_CLI_VERSION=\".*\"".r
     val updatedLauncherScript =
-      scalaCliVersionRegex.replaceFirstIn(launcherScript, s"SCALA_CLI_VERSION=$version")
+      scalaCliVersionRegex.replaceFirstIn(launcherScript, s"""SCALA_CLI_VERSION="$version"""")
     os.write.over(standaloneLauncherPath, updatedLauncherScript)
 
     val launcherWindowsScript       = os.read(standaloneWindowsLauncherPath)
@@ -770,6 +770,33 @@ object ci extends Module {
     os.write.over(formulaPath, updatedFormula)
 
     commitChanges(s"Update for $version", branch, homebrewFormulaDir)
+  }
+  def updateInstallationScript() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir              = os.pwd / "target"
+    val packagesDir            = targetDir / "scala-cli-packages"
+    val installationScriptPath = packagesDir / "scala-setup.sh"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val branch = "master"
+    val repo   = s"git@github.com:Virtuslab/scala-cli-packages.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(packagesDir)
+
+    val installationScript   = os.read(installationScriptPath)
+    val scalaCliVersionRegex = "SCALA_CLI_VERSION=\".*\"".r
+    val updatedInstallationScript =
+      scalaCliVersionRegex.replaceFirstIn(installationScript, s"""SCALA_CLI_VERSION="$version"""")
+    os.write.over(installationScriptPath, updatedInstallationScript)
+
+    commitChanges(s"Update installation script for $version", branch, packagesDir)
   }
   def updateDebianPackages() = T.command {
     val version = cli.publishVersion()

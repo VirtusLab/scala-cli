@@ -317,6 +317,7 @@ jobs:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
             ${{ secrets.HOMEBREW_SCALA_CLI_KEY }}
+      - run: ./mill -i ci.updateInstallationScript
       - run: ./mill -i ci.updateBrewFormula
       - name: GPG setup
         run: .github/scripts/gpg-setup.sh
