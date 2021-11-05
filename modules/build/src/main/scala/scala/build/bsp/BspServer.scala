@@ -5,6 +5,7 @@ import ch.epfl.scala.{bsp4j => b}
 import java.util.concurrent.CompletableFuture
 
 import scala.build.Logger
+import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
 import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
