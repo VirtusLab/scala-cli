@@ -4,6 +4,7 @@ import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
 import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.Paths
@@ -225,7 +226,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         "bsp",
         "--json-options",
         (root / "directory" / ".scala" / "ide-options.json").toString,
-        s"${(root / "directory").toString}/"
+        s"${(root / "directory").toString}${File.separator}"
       )
       expect(details.argv == expectedArgv)
     }
