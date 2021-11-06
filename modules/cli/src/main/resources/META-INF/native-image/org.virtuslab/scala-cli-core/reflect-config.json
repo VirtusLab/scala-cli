@@ -704,6 +704,20 @@
     "allDeclaredFields": true
   },
   {
+    "name": "scala.build.bloop.ScalaDebugServer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.bloop.ScalaDebugServerForwardStubs",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "scala.build.bloop.bloop4j.BloopExtraBuildParams",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,

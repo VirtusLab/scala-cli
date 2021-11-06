@@ -1,4 +1,4 @@
-package scala.build.bsp
+package scala.build.bloop
 
 import ch.epfl.scala.{bsp4j => b}
 

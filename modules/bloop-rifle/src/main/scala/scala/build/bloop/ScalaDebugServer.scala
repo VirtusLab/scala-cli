@@ -1,4 +1,4 @@
-package scala.build.bsp;
+package scala.build.bloop;
 
 import ch.epfl.scala.bsp4j.{DebugSessionAddress, DebugSessionParams}
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest

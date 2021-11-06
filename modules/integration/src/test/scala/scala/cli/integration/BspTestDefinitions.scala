@@ -225,7 +225,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         "bsp",
         "--json-options",
         (root / "directory" / ".scala" / "ide-options.json").toString,
-        (root / "directory" / "simple.sc").toString
+        s"${(root / "directory").toString}/"
       )
       expect(details.argv == expectedArgv)
     }

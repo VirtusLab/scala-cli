@@ -116,7 +116,11 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     }
 
     val inputArgs = inputs.elements.collect {
-      case d: Inputs.OnDisk => d.path.toString
+      case d: Inputs.OnDisk =>
+        val path = d.path
+        if (os.isFile(path))
+          path.toString().stripSuffix(s"${path.last}")
+        else path.toString
     }
 
     val bspArgs =
