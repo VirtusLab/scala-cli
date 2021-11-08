@@ -9,11 +9,12 @@ import scala.build.preprocessing.directives.Directive
 object TemporaryDirectivesParser {
 
   private def ws[_: P]        = P(" ".rep(1))
+  private def optWs[_: P]     = P(" ".rep(0))
   private def nl[_: P]        = P(("\r".? ~ "\n").rep(1))
   private def emptyLine[_: P] = P(ws.rep() ~ nl)
 
   private def singleLineComment[_: P] =
-    P(ws.rep() ~ !("//" ~ ws ~ "require") ~ !("//" ~ ws ~ "using") ~ "//" ~ P(CharPred(c =>
+    P(ws.rep() ~ !("//" ~ optWs ~ "require") ~ !("//" ~ optWs ~ "using") ~ "//" ~ P(CharPred(c =>
       c != '\n'
     )).rep() ~ nl)
       .map(_ => ())
@@ -21,16 +22,16 @@ object TemporaryDirectivesParser {
   private def directive[_: P] = {
     def sc = P(";")
     def tpe = {
-      def commentedUsingTpe = P("//" ~ ws ~ Index ~ "using")
+      def commentedUsingTpe = P("//" ~ optWs ~ Index ~ "using")
         .map(actualStartIdx => (Directive.Using: Directive.Type, Some(actualStartIdx)))
       def usingKeywordTpe = P("using")
         .map(_ => (Directive.Using: Directive.Type, None))
       def usingTpe = P(ws.? ~ (commentedUsingTpe | usingKeywordTpe) ~ !(ws ~ "target"))
-      def commentedRequireTpe = P("//" ~ ws ~ Index ~ "require")
+      def commentedRequireTpe = P("//" ~ optWs ~ Index ~ "require")
         .map(actualStartIdx => (Directive.Require: Directive.Type, Some(actualStartIdx)))
       def requireKeywordTpe = P("require")
         .map(_ => (Directive.Require: Directive.Type, None))
-      def commentedUsingTargetTpe = P("//" ~ ws ~ Index ~ "using" ~ ws ~ "target")
+      def commentedUsingTargetTpe = P("//" ~ optWs ~ Index ~ "using" ~ ws ~ "target")
         .map(actualStartIdx => (Directive.Require: Directive.Type, Some(actualStartIdx)))
       def usingTargetKeywordTpe = P("using" ~ ws ~ "target")
         .map(_ => (Directive.Require: Directive.Type, None))
