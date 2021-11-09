@@ -6,7 +6,7 @@ import dependency.parser.DependencyParser
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
-import scala.build.options.{BuildOptions, ClassPathOptions, ScalaOptions}
+import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Position, Positioned}
 
@@ -43,7 +43,7 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
     DependencyParser.parse(depStr)
       .left.map(err => new DependencyFormatError(depStr, err))
 
-  override def keys = Seq("lib", "libs")
+  override def keys = Seq("plugin", "plugins")
   override def handleValues(
     values: Seq[Any],
     cwd: ScopePath,
@@ -63,9 +63,8 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
     }
 
     BuildOptions(
-      classPathOptions = ClassPathOptions(
-        extraDependencies = extraDependencies
-          .map(Positioned.none(_))
+      scalaOptions = ScalaOptions(
+        compilerPlugins = extraDependencies.map(Positioned.none(_))
       )
     )
   }
