@@ -129,32 +129,27 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
 
-    val afterStrictUsing = value(processStrictUsing(content0, scopeRoot))
-    val afterUsing = value {
-      processUsing(path, afterStrictUsing.map(_._2).getOrElse(content0), scopeRoot)
-        .sequence
-    }
+    val afterStrictUsing = value(processStrictUsing(content, scopeRoot))
     val afterProcessImports = value {
       processSpecialImports(
-        afterUsing.flatMap(_._4).orElse(afterStrictUsing.map(_._2)).getOrElse(content0),
+        afterStrictUsing.map(_._2).getOrElse(content),
         path
       )
     }
 
-    if (afterStrictUsing.isEmpty && afterUsing.isEmpty && afterProcessImports.isEmpty) None
+    if (afterStrictUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
-      val allRequirements    = afterUsing.map(_._1).toSeq ++ afterProcessImports.map(_._1).toSeq
+      val allRequirements    = afterProcessImports.map(_._1).toSeq
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
       val allOptions = afterStrictUsing.map(_._1).toSeq ++
-        afterUsing.map(_._3).toSeq ++
         afterProcessImports.map(_._2).toSeq
       val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContentOpt = afterProcessImports
         .map(_._3)
-        .orElse(afterUsing.flatMap(_._4))
         .orElse(afterStrictUsing.map(_._2))
         .orElse(if (isSheBang) Some(content0) else None)
-      val scopedRequirements = afterUsing.map(_._2).getOrElse(Nil)
+
+      val scopedRequirements = Nil
       Some((summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
     }
   }
@@ -373,11 +368,11 @@ case object ScalaPreprocessor extends Preprocessor {
     val updatedOptions = value {
       DirectivesProcessor.process(
         directives0,
-        usingDirectiveHandlers ++ requireDirectiveHandlers,
+        usingDirectiveHandlers,
         cwd
       )
     }
-    val codeOffset = directives.getCodeOffset()
+    val codeOffset = directives.getCodeOffset
     val updatedContentOpt =
       if (codeOffset > 0) {
         val headerBytes = contentChars

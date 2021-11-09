@@ -1,6 +1,7 @@
 package scala.build.preprocessing.directives
 
-import scala.build.Position
+import com.virtuslab.using_directives.custom.model.Value
+
 import scala.build.errors.{
   BuildException,
   NoTestFrameworkValueProvidedError,
@@ -34,9 +35,8 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("test-framework")
   override def handleValues(
-    values: Seq[Any],
-    cwd: ScopePath,
-    positionOpt: Option[Position]
+    values: Seq[Value[_]],
+    cwd: ScopePath
   ): Either[BuildException, BuildOptions] =
     DirectiveUtil.stringValues(values) match {
       case Seq() =>
@@ -44,7 +44,7 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
       case Seq(fw) =>
         val options = BuildOptions(
           testOptions = TestOptions(
-            frameworkOpt = Some(fw)
+            frameworkOpt = Some(fw._1)
           )
         )
         Right(options)

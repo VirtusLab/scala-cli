@@ -1,5 +1,7 @@
 package scala.build.preprocessing.directives
 
+import com.virtuslab.using_directives.custom.model.Value
+
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
@@ -36,18 +38,17 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("java-home", "javaHome")
   override def handleValues(
-    values: Seq[Any],
-    cwd: ScopePath,
-    positionOpt: Option[Position]
+    values: Seq[Value[_]],
+    cwd: ScopePath
   ): Either[BuildException, BuildOptions] = either {
     val rawHome = value {
       DirectiveUtil.stringValues(values)
         .lastOption
         .toRight("No value passed to javaHome directive")
     }
-    val root = value(Directive.osRoot(cwd, positionOpt))
+    val root = value(Directive.osRoot(cwd, Some(rawHome._2)))
     // FIXME Might throw
-    val home = os.Path(rawHome, root)
+    val home = os.Path(rawHome._1, root)
     BuildOptions(
       javaOptions = JavaOptions(
         javaHomeOpt = Some(Positioned(positionOpt.toSeq, home))

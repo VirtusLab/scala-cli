@@ -1,25 +1,16 @@
 package scala.build.preprocessing.directives
 
-import com.virtuslab.using_directives.custom.model.Value
+import com.virtuslab.using_directives.custom.model.{StringValue, Value}
 
-import scala.jdk.CollectionConverters._
+import scala.build.Position
 
 object DirectiveUtil {
-  def stringValues(values: Seq[Any]): Seq[String] =
+  def stringValues(values: Seq[Value[_]]): Seq[(String, Position)] =
     values
       .collect {
-        case list: java.util.List[_] =>
-          list
-            .asScala
-            .map {
-              case v: Value[_] => v.get()
-            }
-            .collect {
-              case s: String => s
-            }
-            .toVector
-        case s: String =>
-          Vector(s)
+        case v: StringValue =>
+          val offset = v.getRelatedASTNode.getPosition.getOffset
+          Seq((v.get, Position.Raw(offset, offset)))
       }
       .flatten
 }

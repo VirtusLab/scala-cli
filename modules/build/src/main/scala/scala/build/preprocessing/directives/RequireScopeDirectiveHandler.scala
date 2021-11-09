@@ -13,6 +13,8 @@ case object RequireScopeDirectiveHandler extends RequireDirectiveHandler {
     "using target test"
   )
 
+  override def keys: Seq[String] = Seq.empty
+
   private val scopesByName = Scope.all.map(s => s.name -> s).toMap
 
   def handle(

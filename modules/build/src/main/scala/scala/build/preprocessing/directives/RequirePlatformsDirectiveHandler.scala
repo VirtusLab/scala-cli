@@ -1,5 +1,4 @@
 package scala.build.preprocessing.directives
-
 import scala.build.errors.BuildException
 import scala.build.options.{BuildRequirements, Platform}
 import scala.build.preprocessing.ScopePath
@@ -15,7 +14,9 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
     "using target jvm"
   )
 
-  def handle(
+  override def keys: Seq[String] = Seq.empty
+
+  override def handle(
     directive: Directive,
     cwd: ScopePath
   ): Option[Either[BuildException, BuildRequirements]] =

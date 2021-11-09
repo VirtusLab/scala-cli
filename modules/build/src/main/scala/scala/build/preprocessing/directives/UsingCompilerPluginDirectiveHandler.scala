@@ -1,14 +1,15 @@
 package scala.build.preprocessing.directives
 
+import com.virtuslab.using_directives.custom.model.Value
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
+import scala.build.Positioned
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
-import scala.build.{Position, Positioned}
 
 case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Compiler plugins"
@@ -45,18 +46,18 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("plugin", "plugins")
   override def handleValues(
-    values: Seq[Any],
-    cwd: ScopePath,
-    positionOpt: Option[Position]
+    values: Seq[Value[_]],
+    cwd: ScopePath
   ): Either[BuildException, BuildOptions] = either {
 
     val extraDependencies = value {
       DirectiveUtil.stringValues(values)
-        .map { dep =>
-          // Really necessary? (might already be handled by the coursier-dependency library)
-          val dep0 = dep.filter(!_.isSpaceChar)
+        .map {
+          case (dep, pos) =>
+            // Really necessary? (might already be handled by the coursier-dependency library)
+            val dep0 = dep.filter(!_.isSpaceChar)
 
-          parseDependency(dep0)
+            parseDependency(dep0).map(_ -> pos)
         }
         .sequence
         .left.map(errors => errors.mkString(", "))
@@ -64,7 +65,10 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
 
     BuildOptions(
       scalaOptions = ScalaOptions(
-        compilerPlugins = extraDependencies.map(Positioned.none(_))
+        compilerPlugins = extraDependencies
+          .map {
+            case (dep, pos) => Positioned(Seq(pos), dep)
+          }
       )
     )
   }

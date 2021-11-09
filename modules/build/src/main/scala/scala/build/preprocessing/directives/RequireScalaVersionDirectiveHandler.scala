@@ -15,6 +15,8 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
     "using target scala 3.0.2"
   )
 
+  override def keys: Seq[String] = Seq.empty
+
   def handle(
     directive: Directive,
     cwd: ScopePath
