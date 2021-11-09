@@ -34,9 +34,10 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
   override def handleValues(
     values: Seq[Value[_]],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] = {
-    val javaOpts = DirectiveUtil.stringValues(values)
+    val javaOpts = DirectiveUtil.stringValues(values, path)
     val options = BuildOptions(
       javaOptions = JavaOptions(
         javaOpts = javaOpts.map(o => scala.build.Positioned(Seq(o._2), o._1))

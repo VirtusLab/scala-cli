@@ -34,9 +34,10 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("option", "options")
   override def handleValues(
     values: Seq[Value[_]],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] = {
-    val scalacOptions = DirectiveUtil.stringValues(values)
+    val scalacOptions = DirectiveUtil.stringValues(values, path)
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalacOptions = scalacOptions.map(_._1)

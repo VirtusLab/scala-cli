@@ -39,10 +39,11 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("java-home", "javaHome")
   override def handleValues(
     values: Seq[Value[_]],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] = either {
     val rawHome = value {
-      DirectiveUtil.stringValues(values)
+      DirectiveUtil.stringValues(values, path)
         .lastOption
         .toRight("No value passed to javaHome directive")
     }

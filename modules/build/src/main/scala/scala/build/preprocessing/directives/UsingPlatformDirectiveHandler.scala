@@ -110,10 +110,11 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("platform", "platforms")
   override def handleValues(
     values: Seq[Value[_]],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] = {
     handle(
-      DirectiveUtil.stringValues(values),
+      DirectiveUtil.stringValues(values, path),
     )
   }
 }

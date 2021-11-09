@@ -126,10 +126,9 @@ case object ScalaPreprocessor extends Preprocessor {
     BuildOptions,
     Option[String]
   )]] = either {
-
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
+    val afterStrictUsing = value(processStrictUsing(content, path, scopeRoot))
 
-    val afterStrictUsing = value(processStrictUsing(content, scopeRoot))
     val afterProcessImports = value {
       processSpecialImports(
         afterStrictUsing.map(_._2).getOrElse(content),
@@ -343,6 +342,7 @@ case object ScalaPreprocessor extends Preprocessor {
 
   private def processStrictUsing(
     content: String,
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, Option[(BuildOptions, String)]] = either {
 
@@ -369,6 +369,7 @@ case object ScalaPreprocessor extends Preprocessor {
       DirectivesProcessor.process(
         directives0,
         usingDirectiveHandlers,
+        path,
         cwd
       )
     }

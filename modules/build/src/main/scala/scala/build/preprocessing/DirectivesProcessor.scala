@@ -46,6 +46,7 @@ object DirectivesProcessor {
   def process(
     directives: Map[Path, Seq[Value[_]]],
     handlers: Seq[UsingDirectiveHandler],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] = {
 
@@ -64,7 +65,7 @@ object DirectivesProcessor {
       .iterator
       .flatMap {
         case (k, v) =>
-          handlersMap.get(k).iterator.map(_(v, cwd))
+          handlersMap.get(k).iterator.map(_(v, path, cwd))
       }
       .toVector
       .sequence

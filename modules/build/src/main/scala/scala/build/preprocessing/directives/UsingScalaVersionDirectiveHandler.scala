@@ -36,9 +36,10 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("scala")
   override def handleValues(
     values: Seq[Value[_]],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] = {
-    val scalaVersions = DirectiveUtil.stringValues(values)
+    val scalaVersions = DirectiveUtil.stringValues(values, path)
     if (scalaVersions.isEmpty)
       Left(new NoScalaVersionProvidedError)
     else {

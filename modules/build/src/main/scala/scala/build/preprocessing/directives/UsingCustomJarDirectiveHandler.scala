@@ -40,9 +40,10 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("jar", "jars")
   override def handleValues(
     values: Seq[Value[_]],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] = either {
-    val extraJars: Seq[Either[BuildException, os.Path]] = DirectiveUtil.stringValues(values).map {
+    val extraJars: Seq[Either[BuildException, os.Path]] = DirectiveUtil.stringValues(values, path).map {
       case (p, pos) =>
         val root = Directive.osRoot(cwd, Some(pos))
         // FIXME Handle malformed paths here

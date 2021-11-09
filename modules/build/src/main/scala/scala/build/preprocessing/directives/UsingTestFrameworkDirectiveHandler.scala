@@ -36,9 +36,10 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("test-framework")
   override def handleValues(
     values: Seq[Value[_]],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] =
-    DirectiveUtil.stringValues(values) match {
+    DirectiveUtil.stringValues(values, path) match {
       case Seq() =>
         Left(new NoTestFrameworkValueProvidedError)
       case Seq(fw) =>

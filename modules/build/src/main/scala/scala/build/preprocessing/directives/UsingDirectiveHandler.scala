@@ -11,6 +11,7 @@ trait UsingDirectiveHandler extends DirectiveHandler {
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]]
   def handleValues(
     values: Seq[Value[_]],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] =
     if (keys.isEmpty)

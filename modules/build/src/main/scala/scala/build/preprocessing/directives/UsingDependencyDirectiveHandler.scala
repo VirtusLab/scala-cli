@@ -48,11 +48,12 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("lib", "libs")
   override def handleValues(
     values: Seq[Value[_]],
+    path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, BuildOptions] = either {
 
     val extraDependencies = value {
-      DirectiveUtil.stringValues(values)
+      DirectiveUtil.stringValues(values, path)
         .map {
           case (dep, pos) =>
             // Really necessary? (might already be handled by the coursier-dependency library)
