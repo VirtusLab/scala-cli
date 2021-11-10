@@ -113,10 +113,10 @@ def checkPath(options: Options)(path: os.Path): Seq[TestCase] =
 
 val fakeLineMarker = "//fakeline"
 
-def shouldAlignContent(file: String | os.Path) =
-  file.toString.endsWith(".scala") || file.toString.endsWith(".java") || file.toString.endsWith(
-    ".sc"
-  )
+def shouldAlignContent(file: String | os.Path) = 
+  val isSourceFile = Seq(".scala", ".sc", ".java").exists(file.toString.endsWith)
+  !sys.env.contains("SCLICHECK_REMOVE_MARKERS") && isSourceFile
+
 
 def mkBashScript(content: Seq[String]) =
   s"""#!/usr/bin/env bash
@@ -130,7 +130,13 @@ def checkFile(file: os.Path, options: Options): Unit =
   val content  = os.read.lines(file).toList
   val commands = parse(content, Vector(), Context(file.relativeTo(os.pwd), 1))
   val destName = file.last.stripSuffix(".md")
-  val out      = os.temp.dir(prefix = destName)
+  val out      = sys.env.get("SCLICHECK_DEST") match
+    case None => os.temp.dir(prefix = destName)
+    case Some(path) =>
+      val dest = os.Path(path)
+      println(s"Cleaning dest directory $dest")
+      os.remove.all(dest)
+      dest
 
   var lastOutput: String = null
   val allSources         = Set.newBuilder[os.Path]

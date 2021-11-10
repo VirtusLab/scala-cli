@@ -3,13 +3,15 @@ title: Getting started
 sidebar_position: 2
 ---
 
+import {RunnableCommand} from "../src/components/RunnableCommand";
+
 :::info
 This article requires knowledge of Scala language (how to define class or method) as well as Scala tooling (repl, basics of dependency management and unit tests). 
-
-<!-- If you are new to the Scala or Scala ecosystem we have dedicated guide: [Learning Scala with Scala CLI](#TODO) -->
 ::: 
 
 In this article we will show how to get started with Scala CLI - entry point to the Scala Ecosystem. 
+
+We will start with simple scripts, and then we will create a small project with things like tests and IDE support. This guide should provide you knowledge how to create and develop your first project using Scala CLI.
 
 Fist, lets verify if Scala CLI is properly installed with a hello world:
 
@@ -19,7 +21,7 @@ echo 'println("Hello")' | scala-cli -
 
 Running commands above should end up with `Hello` printed in the last line of the output. Running the command for the first time may take a bit longer then usual and print a bit logs because Scala CLI needs to download all artifacts needed to compile and run the code.
 
-# Scripting
+## Scripting
 
 In fact, we just created a Scala Script, so let's create a script in a hello.sc file, that will actually greet properly.
 
@@ -30,24 +32,36 @@ def helloMessage(names: Seq[String]) = names match
   case names =>
     names.mkString("Hello: ", ", ", "!")
 
-println(helloMessage(args))
+println(helloMessage(args.toSeq))
 ```
 
 Now let run it with 
 
+
+<RunnableCommand>
+
 ```bash
 scala-cli hello.sc
 ```
-// TODO: output: `Hello!`
 
+```
+Hello
+```
+</RunnableCommand>
 
 To provide arguments we need to add them after `--`:
+
+<RunnableCommand>
 
 ```bash
 scala-cli hello.sc -- Jenny Jake
 ```
 
-TODO output: `Hello Jenny, Jake!`
+```
+Hello Jenny, Jake!
+```
+
+</RunnableCommand>
 
 You may wonder what kind of Scala version was used under the hood. The answer is the latest stable one. If we want to specify the Scala version we can use `-S` or `--scala` option. More about setting Scala version in a dedicated [cookbook](./cookbooks/scala-versions.md).
 
@@ -63,14 +77,21 @@ One of the main strengths of Scala is its ecosystem. Scala CLI is designed in a 
 
 Let's start prototyping with [os-lib](https://github.com/com-lihaoyi/os-lib) - a Scala interface to common OS filesystem and subprocess. To experiment with `os-lib` in repl we simply need to add a parameter `--dep com.lihaoyi::os-lib:0.7.8`
 
-```scala ignore
+<RunnableCommand>
+
+```bash ignore
 scala-cli repl --dep com.lihaoyi::os-lib:0.7.8
+```
+
+```scala ignore
 scala> os.pwd
 val res0: os.Path = ...
 
 scala> os.walk(os.pwd)
 val res1: IndexedSeq[os.Path] = ArraySeq(...)
 ```
+
+</RunnableCommand>
 
 ## A project
 
@@ -93,7 +114,7 @@ def filesByExtension(extension: String, dir: os.Path = os.pwd): Seq[os.Path] =
   os.walk(os.pwd).filter(f => f.last.endsWith(s".$extension") && os.isFile(f))
 ```
 
-As you may have noticed we secified a dependency within the `.scala` using `// using lib com.lihaoyi::os-lib:0.7.8`. In Scala CLI configuration can provided through so called using directives - a dedicated syntax that can be embedded in any `.scala` file. We have a dedicated [guide for using directives](./guides/using-directives.md).
+As you may have noticed we specified a dependency within the `.scala` using `// using lib com.lihaoyi::os-lib:0.7.8`. In Scala CLI configuration can provided through so called using directives - a dedicated syntax that can be embedded in any `.scala` file. We have a dedicated [guide for using directives](./guides/using-directives.md).
 
 Let's check if our code compiles. We can do that by simply running:
 
@@ -130,9 +151,13 @@ class TestSuite extends munit.FunSuite {
 }
 ```
 
-Now we can run our tests with `scala-cli test .` or directly within Metals:
+Now we can run our tests in command line:   
 
-// TODO gif
+<RunnableCommand>
+
+```bash
+scala-cli test .
+```
 
 ```
 Compiling project (test, Scala 3.0.2, JVM)
@@ -140,6 +165,14 @@ Compiled project (test, Scala 3.0.2, JVM)
 TestSuite:
   + hello 0.058s
 ```
+
+</RunnableCommand>
+
+or directly within Metals:
+
+// TODO gif
+
+
 
 ## A project, vol 2
 
@@ -163,15 +196,19 @@ As you probably noticed, we are using `os-lib` in our script without any using d
 
 Let's try it:
 
-```scala-cli . -- scala```
+<RunnableCommand>
 
-TODO output:
+```bash
+scala-cli . -- scala
+```
 
 ```
 files.scala
 .scala/project_940fb43dce/src_generated/main/countByExtension.scala
 files.test.scala
 ```
+
+</RunnableCommand>
 
 Why do we have an additional `.scala` file inside `.scala` dir? Actually, under the hood, Scala CLI needs sometimes to preprocess provided source file (e.g. for scripts) and we compile such file from within `.scala` directory. 
 

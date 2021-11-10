@@ -12,26 +12,36 @@ html[data-theme="dark"] {
   padding-right: var(--ifm-pre-padding);
   border-radius: var(--ifm-global-radius);
   box-shadow: var(--ifm-global-shadow-lw);
+  padding-bottom: 8px;
+  padding-top: 8px;
+
+  .codeBlockContainer_node_modules-\@docusaurus-theme-classic-lib-next-theme-CodeBlock-styles-module {
+    margin-bottom: 0px;
+  }
+
+  margin-bottom: var(--ifm-leading);
 
   .codeBlockContainer_node_modules-\@docusaurus-theme-classic-lib-next-theme-CodeBlock-styles-module,
   div[class^='codeBlockContainer'] {
     box-shadow: none;
     border-radius: unset;
-
-    &:first-of-type {
-      margin-bottom: 0;
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-      border-bottom: 1px solid var(--ifm-blockquote-border-color)
-    }
-
-    &:first-of-type .token-line::before {
-      content: "$ ";
-    }
   }
 
   code[class^="codeBlockLines"] {
     padding-left: 0;
     padding-right: 0;
+    padding-bottom: 8px;
+    padding-top: 8px;
+    &:hover {
+      opacity: .80;
+    }
+    
+  }
+}
+
+.bash .prism-code  {
+  .token-line::before {
+    content: "$ ";
+    color: rgb(189, 147, 249)
   }
 }
