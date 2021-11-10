@@ -114,7 +114,9 @@ def checkPath(options: Options)(path: os.Path): Seq[TestCase] =
 val fakeLineMarker = "//fakeline"
 
 def shouldAlignContent(file: String | os.Path) =
-  file.toString.endsWith(".scala") || file.toString.endsWith(".java") || file.toString.endsWith(".sc")
+  file.toString.endsWith(".scala") || file.toString.endsWith(".java") || file.toString.endsWith(
+    ".sc"
+  )
 
 def mkBashScript(content: Seq[String]) =
   s"""#!/usr/bin/env bash

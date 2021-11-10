@@ -35,10 +35,6 @@ EOF
 
   clearConsole
 
-  sleep 5
-
-  clear
-
   cat <<EOF | updateFile demo.scala
 def niceArgs(args: String*): String = 
   args.map(_.capitalize).mkString("Hello: ", ", ", "!")
