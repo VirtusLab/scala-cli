@@ -20,7 +20,8 @@ object Clean extends ScalaCommand[CleanOptions] {
       case Right(i) => i
     }
 
-    val workDir = inputs.workspace / ".scala"
+    val workDir       = inputs.workspace / ".scala"
+    val (_, bspEntry) = options.bspFile.bspDetails(inputs.workspace)
 
     val logger = options.logging.logger
     if (os.exists(workDir)) {
@@ -32,5 +33,12 @@ object Clean extends ScalaCommand[CleanOptions] {
       else
         logger.log(s"$workDir is not a directory, ignoring it.")
     }
+
+    if (os.exists(bspEntry)) {
+      logger.log(s"Removing $bspEntry")
+      os.remove(bspEntry)
+    }
+    else
+      logger.log(s"No BSP entry found, so ignoring.")
   }
 }

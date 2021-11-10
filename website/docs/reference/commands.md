@@ -29,6 +29,7 @@ Accepts options:
 Clean the workspace
 
 Accepts options:
+- [bsp file](./cli-options.md#bsp-file-options)
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 

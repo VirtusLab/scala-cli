@@ -62,6 +62,7 @@ Command-line options JSON file
 ## Bsp file options
 
 Available in commands:
+- [`clean`](./commands.md#clean)
 - [`setup-ide`](./commands.md#setup-ide)
 
 
