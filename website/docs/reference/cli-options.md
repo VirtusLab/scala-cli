@@ -59,6 +59,26 @@ Available in commands:
 
 Command-line options JSON file
 
+## Bsp file options
+
+Available in commands:
+- [`setup-ide`](./commands.md#setup-ide)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--bsp-directory`
+
+Aliases: `--bsp-dir`
+
+Custom BSP configuration location
+
+#### `--bsp-name`
+
+Aliases: `--name`
+
+Name of BSP
+
 ## Compilation server options
 
 Available in commands:
@@ -862,18 +882,6 @@ Available in commands:
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--bsp-directory`
-
-Aliases: `--bsp-dir`
-
-Custom BSP configuration location
-
-#### `--bsp-name`
-
-Aliases: `--name`
-
-Name of BSP
 
 #### `--charset`
 
