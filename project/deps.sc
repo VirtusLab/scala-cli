@@ -51,7 +51,7 @@ object Deps {
   def coursierLauncher  = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
   def dataClass         = ivy"io.github.alexarchambault::data-class:0.2.5"
   def dependency        = ivy"io.get-coursier::dependency:0.2.0"
-  def expecty           = ivy"com.eed3si9n.expecty::expecty:0.15.1"
+  def expecty           = ivy"com.eed3si9n.expecty::expecty:0.15.4"
   def guava             = ivy"com.google.guava:guava:18.0"
   def ipcSocket         = ivy"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-2"
   def jimfs             = ivy"com.google.jimfs:jimfs:1.2"
