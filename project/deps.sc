@@ -57,7 +57,7 @@ object Deps {
   def jimfs             = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils          = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.2"
   def macroParadise     = ivy"org.scalamacros:::paradise:2.1.1"
-  def munit             = ivy"org.scalameta::munit:0.7.25"
+  def munit             = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner  = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools       = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def organizeImports   = ivy"com.github.liancheng::organize-imports:0.5.0"
