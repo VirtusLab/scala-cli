@@ -42,7 +42,7 @@ object Deps {
     def scalaPackager = "0.1.24"
   }
   def ammonite          = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
-  def asm               = ivy"org.ow2.asm:asm:9.1"
+  def asm               = ivy"org.ow2.asm:asm:9.2"
   def bloopConfig       = ivy"ch.epfl.scala::bloop-config:1.4.11"
   def bsp4j             = ivy"ch.epfl.scala:bsp4j:2.0.0-M14"
   def caseApp           = ivy"com.github.alexarchambault::case-app:2.1.0-M7"
