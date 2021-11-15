@@ -75,7 +75,7 @@ object Deps {
   def scalametaTrees           = ivy"org.scalameta::trees:${Versions.scalaMeta}"
   def scalaPackager            = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
   def scalaPackagerCli         = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
-  def scalaparse               = ivy"com.lihaoyi::scalaparse:2.3.2"
+  def scalaparse               = ivy"com.lihaoyi::scalaparse:2.3.3"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                = ivy"com.chuusai::shapeless:2.3.7"
