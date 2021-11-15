@@ -45,7 +45,7 @@ object Deps {
   def asm               = ivy"org.ow2.asm:asm:9.1"
   def bloopConfig       = ivy"ch.epfl.scala::bloop-config:1.4.11"
   def bsp4j             = ivy"ch.epfl.scala:bsp4j:2.0.0-M14"
-  def caseApp           = ivy"com.github.alexarchambault::case-app:2.1.0-M7"
+  def caseApp           = ivy"com.github.alexarchambault::case-app:2.1.0-M9"
   def collectionCompat  = ivy"org.scala-lang.modules::scala-collection-compat:2.5.0"
   def coursierJvm       = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
   def coursierLauncher  = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
