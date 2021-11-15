@@ -8,7 +8,9 @@ final case class CleanOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
   @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions()
+    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
+  @Recurse
+    bspFile: SharedBspFileOptions = SharedBspFileOptions()
 )
 // format: on
 
