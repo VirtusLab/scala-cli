@@ -61,7 +61,7 @@ object Deps {
   def nativeTestRunner  = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools       = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def organizeImports   = ivy"com.github.liancheng::organize-imports:0.5.0"
-  def osLib             = ivy"com.lihaoyi::os-lib:0.7.5"
+  def osLib             = ivy"com.lihaoyi::os-lib:0.7.8"
   def pprint            = ivy"com.lihaoyi::pprint:0.6.6"
   def prettyStacktraces = ivy"org.virtuslab::pretty-stacktraces:0.0.0+27-b9d69198-SNAPSHOT"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
