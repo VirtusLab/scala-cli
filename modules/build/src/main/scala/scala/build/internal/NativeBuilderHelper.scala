@@ -6,7 +6,7 @@ import java.security.MessageDigest
 import scala.build.Build
 import scala.scalanative.{build => sn}
 
-case object NativeBuilderHelper {
+object NativeBuilderHelper {
 
   private def resolveProjectShaPath(nativeWorkDir: os.Path) = nativeWorkDir / ".project_sha"
   private def resolveOutputShaPath(nativeWorkDir: os.Path)  = nativeWorkDir / ".output_sha"
@@ -24,6 +24,7 @@ case object NativeBuilderHelper {
     val md = MessageDigest.getInstance("SHA-1")
     md.update(build.inputs.sourceHash().getBytes)
     md.update(nativeConfig.toString.getBytes)
+    md.update(Constants.version.getBytes)
     md.update(build.options.hash.getOrElse("").getBytes)
 
     val digest        = md.digest()
