@@ -402,11 +402,10 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     logger: Logger
   ): Unit = {
-    val config = build.options.scalaNativeOptions.config
     val workDir =
       build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
 
-    buildNative(build, mainClass, destPath, config, workDir, logger.scalaNativeLogger)
+    buildNative(build, mainClass, destPath, workDir, logger.scalaNativeLogger)
   }
 
   private def bootstrap(
@@ -537,10 +536,11 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful,
     mainClass: String,
     dest: os.Path,
-    nativeConfig: sn.NativeConfig,
     nativeWorkDir: os.Path,
     nativeLogger: sn.Logger
   ): Unit = {
+
+    val nativeConfig = build.options.scalaNativeOptions.config
 
     os.makeDir.all(nativeWorkDir)
     val changed = NativeBuilderHelper.shouldBuildIfChanged(build, nativeConfig, dest, nativeWorkDir)

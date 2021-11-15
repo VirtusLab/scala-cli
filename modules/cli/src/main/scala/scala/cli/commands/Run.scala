@@ -145,7 +145,6 @@ object Run extends ScalaCommand[RunOptions] {
         withNativeLauncher(
           build,
           mainClass,
-          build.options.scalaNativeOptions.config,
           build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
           logger.scalaNativeLogger
         ) { launcher =>
@@ -198,12 +197,11 @@ object Run extends ScalaCommand[RunOptions] {
   def withNativeLauncher[T](
     build: Build.Successful,
     mainClass: String,
-    config: sn.NativeConfig,
     workDir: os.Path,
     logger: sn.Logger
   )(f: os.Path => T): T = {
     val dest = workDir / s"main${if (Properties.isWin) ".exe" else ""}"
-    Package.buildNative(build, mainClass, dest, config, workDir, logger)
+    Package.buildNative(build, mainClass, dest, workDir, logger)
     f(dest)
   }
 }
