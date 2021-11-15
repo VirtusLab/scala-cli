@@ -37,7 +37,7 @@ object Deps {
     def coursier = "2.0.16-169-g194ebc55c"
 
     def scalaJs       = "1.5.1"
-    def scalaMeta     = "4.4.28"
+    def scalaMeta     = "4.4.30"
     def scalaNative   = "0.4.0"
     def scalaPackager = "0.1.24"
   }
