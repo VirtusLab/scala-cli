@@ -540,7 +540,7 @@ object Package extends ScalaCommand[PackageOptions] {
     nativeLogger: sn.Logger
   ): Unit = {
 
-    val nativeConfig = build.options.scalaNativeOptions.config
+    val nativeConfig = build.options.scalaNativeOptions.config()
 
     os.makeDir.all(nativeWorkDir)
     val changed = NativeBuilderHelper.shouldBuildIfChanged(build, nativeConfig, dest, nativeWorkDir)
