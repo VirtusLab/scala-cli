@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
+import caseapp.core.Error
 
 class DefaultBase(
   defaultHelp: => String,
@@ -12,7 +13,7 @@ class DefaultBase(
   override def group                              = "Main"
   override def sharedOptions(options: RunOptions) = Some(options.shared)
   private[cli] var anyArgs                        = false
-  override def helpAsked(progName: String): Nothing = {
+  override def helpAsked(progName: String, maybeOptions: Either[Error, RunOptions]): Nothing = {
     println(defaultHelp)
     sys.exit(0)
   }
@@ -24,5 +25,5 @@ class DefaultBase(
     if (anyArgs)
       Run.run(options, args, defaultInputs = () => None)
     else
-      helpAsked(finalHelp.progName)
+      helpAsked(finalHelp.progName, Right(options))
 }
