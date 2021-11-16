@@ -29,6 +29,7 @@ Accepts options:
 Clean the workspace
 
 Accepts options:
+- [bsp file](./cli-options.md#bsp-file-options)
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 
@@ -198,6 +199,7 @@ Accepts options:
 Generate a BSP file that you can import into your IDE
 
 Accepts options:
+- [bsp file](./cli-options.md#bsp-file-options)
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
