@@ -1,13 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import coursier.launcher.{
-  AssemblyGenerator,
-  BootstrapGenerator,
-  ClassPathEntry,
-  Parameters,
-  Preamble
-}
+import coursier.launcher._
 import org.scalajs.linker.interface.StandardConfig
 import packager.config._
 import packager.deb.DebianPackage
@@ -26,7 +20,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.internal.ScalaJsConfig
+import scala.build.internal.{NativeBuilderHelper, ScalaJsConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.commands.OptionsHelper._
@@ -549,18 +543,22 @@ object Package extends ScalaCommand[PackageOptions] {
   ): Unit = {
 
     os.makeDir.all(nativeWorkDir)
+    val changed = NativeBuilderHelper.shouldBuildIfChanged(build, nativeConfig, dest, nativeWorkDir)
 
-    withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
-      val config = sn.Config.empty
-        .withCompilerConfig(nativeConfig)
-        .withMainClass(mainClass + "$")
-        .withClassPath(mainJar +: build.artifacts.classPath)
-        .withWorkdir(nativeWorkDir.toNIO)
-        .withLogger(nativeLogger)
+    if (changed)
+      withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
+        val config = sn.Config.empty
+          .withCompilerConfig(nativeConfig)
+          .withMainClass(mainClass + "$")
+          .withClassPath(mainJar +: build.artifacts.classPath)
+          .withWorkdir(nativeWorkDir.toNIO)
+          .withLogger(nativeLogger)
 
-      Scope { implicit scope =>
-        sn.Build.build(config, dest.toNIO)
+        Scope { implicit scope =>
+          sn.Build.build(config, dest.toNIO)
+        }
+
+        NativeBuilderHelper.updateOutputSha(dest, nativeWorkDir)
       }
-    }
   }
 }

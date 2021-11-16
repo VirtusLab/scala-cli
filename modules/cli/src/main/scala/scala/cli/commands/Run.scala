@@ -202,11 +202,8 @@ object Run extends ScalaCommand[RunOptions] {
     workDir: os.Path,
     logger: sn.Logger
   )(f: os.Path => T): T = {
-    val dest = os.temp(prefix = "main", suffix = if (Properties.isWin) ".exe" else "")
-    try {
-      Package.buildNative(build, mainClass, dest, config, workDir, logger)
-      f(dest)
-    }
-    finally if (os.exists(dest)) os.remove(dest)
+    val dest = workDir / s"main${if (Properties.isWin) ".exe" else ""}"
+    Package.buildNative(build, mainClass, dest, config, workDir, logger)
+    f(dest)
   }
 }
