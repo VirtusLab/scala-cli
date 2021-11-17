@@ -338,20 +338,20 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     logger: Logger
   ): Unit = {
-    if (build.options.platform == Platform.Native && (Properties.isMac || Properties.isWin)) {
+    if (build.options.platform.value == Platform.Native && (Properties.isMac || Properties.isWin)) {
       System.err.println(
         "Package scala native application to docker image is not supported on MacOs and Windows"
       )
       sys.exit(1)
     }
 
-    val exec = build.options.platform match {
+    val exec = build.options.platform.value match {
       case Platform.JVM    => Some("sh")
       case Platform.JS     => Some("node")
       case Platform.Native => None
     }
     val from = build.options.packageOptions.dockerOptions.from.getOrElse {
-      build.options.platform match {
+      build.options.platform.value match {
         case Platform.JVM    => "openjdk:11-jre-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
@@ -372,7 +372,7 @@ object Package extends ScalaCommand[PackageOptions] {
     )
 
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
-    build.options.platform match {
+    build.options.platform.value match {
       case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
       case Platform.JS     => buildJs(build, appPath, mainClass)
       case Platform.Native => buildNative(inputs, build, appPath, mainClass, logger)

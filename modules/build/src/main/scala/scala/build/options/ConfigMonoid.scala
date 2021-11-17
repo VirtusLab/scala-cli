@@ -85,5 +85,4 @@ object ConfigMonoid {
     (main, defaults) =>
       main || defaults
   }
-
 }

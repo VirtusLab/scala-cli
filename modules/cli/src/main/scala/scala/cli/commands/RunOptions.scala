@@ -3,8 +3,8 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
+import scala.build.Positioned
 import scala.build.options.BuildOptions
-
 // format: off
 @HelpMessage("""|Compile and run Scala code.
                 |
@@ -37,7 +37,8 @@ final case class RunOptions(
     baseOptions.copy(
       mainClass = mainClass.mainClass,
       javaOptions = baseOptions.javaOptions.copy(
-        javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
+        javaOpts =
+          baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts.map(Positioned.commandLine _)
       )
     )
   }

@@ -138,9 +138,9 @@ final case class Mill(
       scalaVersionSettings(options, sources),
       dependencySettings(options),
       repositorySettings(options),
-      if (options.platform == Platform.JS) scalaJsSettings(options.scalaJsOptions)
+      if (options.platform.value == Platform.JS) scalaJsSettings(options.scalaJsOptions)
       else MillProject(),
-      if (options.platform == Platform.Native) scalaNativeSettings(options.scalaNativeOptions)
+      if (options.platform.value == Platform.Native) scalaNativeSettings(options.scalaNativeOptions)
       else MillProject(),
       customJarsSettings(options),
       testFrameworkSettings(options)

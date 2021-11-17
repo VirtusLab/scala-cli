@@ -124,7 +124,7 @@ object Test extends ScalaCommand[TestOptions] {
 
     val testFrameworkOpt = build.options.testOptions.frameworkOpt
 
-    build.options.platform match {
+    build.options.platform.value match {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig
         value {
@@ -165,7 +165,7 @@ object Test extends ScalaCommand[TestOptions] {
 
         Runner.runJvm(
           build.options.javaHome().javaCommand,
-          build.options.javaOptions.javaOpts,
+          build.options.javaOptions.javaOpts.map(_.value),
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,
           extraArgs,

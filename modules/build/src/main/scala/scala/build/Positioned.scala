@@ -26,6 +26,9 @@ object Positioned {
   def none[T](value: T): Positioned[T] =
     Positioned(Nil, value)
 
+  def commandLine[T](value: T): Positioned[T] =
+    Positioned(List(Position.CommandLine()), value)
+
   def sequence[T](seq: Seq[Positioned[T]]): Positioned[Seq[T]] = {
     val allPositions = seq.flatMap(_.positions)
     val value        = seq.map(_.value)
@@ -42,4 +45,7 @@ object Positioned {
       (a, b) =>
         Positioned(a.positions ++ b.positions, underlying.orElse(a.value, b.value))
     }
+
+  implicit def ordering[T](implicit underlying: Ordering[T]): Ordering[Positioned[T]] =
+    Ordering.by(_.value)
 }

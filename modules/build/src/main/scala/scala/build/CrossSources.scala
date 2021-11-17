@@ -43,20 +43,20 @@ final case class CrossSources(
     ScopedSources(
       paths
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform).toSeq)
+        .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope)),
       inMemory
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform).toSeq)
+        .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope)),
       mainClass,
       resourceDirs
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform).toSeq)
+        .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope)),
       buildOptions
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform).toSeq)
+        .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope))
     )
   }

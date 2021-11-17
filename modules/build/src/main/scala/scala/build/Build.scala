@@ -81,7 +81,7 @@ object Build {
       CrossKey(
         BuildOptions.CrossKey(
           scalaParams.scalaVersion,
-          options.platform
+          options.platform.value
         ),
         scope
       )
@@ -508,7 +508,8 @@ object Build {
       else Seq("-sourceroot", inputs.workspace.toString)
 
     val scalaJsScalacOptions =
-      if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
+      if (options.platform.value == Platform.JS && !params.scalaVersion.startsWith("2."))
+        Seq("-scalajs")
       else Nil
 
     val bloopJvmRelease = for {
@@ -540,16 +541,17 @@ object Build {
       if (scope == Scope.Test)
         List(classesDir(inputs.workspace, inputs.projectName, Scope.Main).toNIO)
       else Nil
-
+    value(options.validate)
     val project = Project(
       workspace = inputs.workspace / ".scala",
       classesDir = classesDir0,
       scalaCompiler = scalaCompiler,
       scalaJsOptions =
-        if (options.platform == Platform.JS) Some(options.scalaJsOptions.config)
+        if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config)
         else None,
       scalaNativeOptions =
-        if (options.platform == Platform.Native) Some(options.scalaNativeOptions.bloopConfig())
+        if (options.platform.value == Platform.Native)
+          Some(options.scalaNativeOptions.bloopConfig())
         else None,
       projectName = inputs.scopeProjectName(scope),
       classPath = artifacts.compileClassPath ++ mainClassesPath,
@@ -592,7 +594,7 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ): Either[BuildException, Build] = either {
-    if (options.platform == Platform.Native && !value(scalaNativeSupported(options, inputs)))
+    if (options.platform.value == Platform.Native && !value(scalaNativeSupported(options, inputs)))
       value(Left(new ScalaNativeCompatibilityError()))
     else
       value(Right(0))

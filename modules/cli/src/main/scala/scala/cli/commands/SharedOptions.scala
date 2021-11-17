@@ -12,7 +12,7 @@ import java.io.{ByteArrayOutputStream, File, InputStream}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.Constants
 import scala.build.options._
-import scala.build.{Inputs, LocalRepo, Logger, Os, Positioned}
+import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
 import scala.util.Properties
 // format: off
@@ -138,7 +138,7 @@ final case class SharedOptions(
         scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
         compilerPlugins =
           parseDependencies(dependencies.compilerPlugin.map(Positioned.none(_)), ignoreErrors),
-        platform = platformOpt
+        platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
       ),
       scriptOptions = ScriptOptions(
         codeWrapper = None

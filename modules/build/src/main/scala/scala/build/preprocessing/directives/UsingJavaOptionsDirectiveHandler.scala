@@ -22,7 +22,7 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
       case Seq("javaOpt" | "java-opt", javaOpts @ _*) =>
         val options = BuildOptions(
           javaOptions = JavaOptions(
-            javaOpts = javaOpts
+            javaOpts = javaOpts.map(o => scala.build.Positioned(List(directive.position), o))
           )
         )
         Some(Right(options))
@@ -39,7 +39,7 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
     val javaOpts = DirectiveUtil.stringValues(values)
     val options = BuildOptions(
       javaOptions = JavaOptions(
-        javaOpts = javaOpts
+        javaOpts = javaOpts.map(o => scala.build.Positioned(positionOpt.toList, o))
       )
     )
     Right(options)

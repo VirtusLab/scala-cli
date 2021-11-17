@@ -163,7 +163,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     else
       Runner.runJvm(
         options.javaHome().javaCommand,
-        replArtifacts.replJavaOpts ++ options.javaOptions.javaOpts,
+        replArtifacts.replJavaOpts ++ options.javaOptions.javaOpts.map(_.value),
         classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toFile),
         replArtifacts.replMainClass,
         if (Properties.isWin)

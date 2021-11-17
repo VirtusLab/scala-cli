@@ -11,7 +11,7 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   def description = "Manually add JAR(s) to the class path"
   def usage       = "`using jar `_path_ | `using jars `_path1_ _path2_ …"
   override def usageMd =
-    """using jar _path_ 
+    """using jar _path_
       |
       |using jars _path1_ _path2_ …""".stripMargin
 

@@ -114,5 +114,12 @@ object Position {
         File(path, startPos, endPos)
     }
   }
+  final case class CommandLine() extends Position {
+    def render(cwd: os.Path, sep: String): String = "COMMAND_LINE"
+  }
+
+  final case class Custom(msg: String) extends Position {
+    def render(cwd: os.Path, sep: String): String = msg
+  }
 
 }

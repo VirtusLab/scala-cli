@@ -1,6 +1,6 @@
 package scala.build.tests
 
-import scala.build.Build
+import scala.build.{Build, Positioned}
 import scala.build.options.{BuildOptions, Platform}
 import munit.Assertions.assertEquals
 
@@ -34,13 +34,13 @@ object TestUtil {
     def enableJs =
       options.copy(
         scalaOptions = options.scalaOptions.copy(
-          platform = Some(Platform.JS)
+          platform = Some(Positioned.none(Platform.JS))
         )
       )
     def enableNative =
       options.copy(
         scalaOptions = options.scalaOptions.copy(
-          platform = Some(Platform.Native)
+          platform = Some(Positioned.none(Platform.Native))
         )
       )
   }

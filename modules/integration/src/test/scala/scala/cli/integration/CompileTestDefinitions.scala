@@ -251,4 +251,19 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           )
         )
     }
+
+  test("JVM options only for JVM platform") {
+    val inputs = TestInputs(
+      Seq(os.rel / "Main.scala" -> "// using java-opt -Xss1g")
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, "--native", ".").call(
+        cwd = root,
+        check = false,
+        stderr = os.Pipe
+      )
+      expect(res.err.text().contains("Conflicting options"))
+    }
+  }
+
 }

@@ -12,8 +12,8 @@ final case class ScalaOptions(
   scalacOptions: Seq[String] = Nil,
   extraScalaVersions: Set[String] = Set.empty,
   compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
-  platform: Option[Platform] = None,
-  extraPlatforms: Set[Platform] = Set.empty
+  platform: Option[Positioned[Platform]] = None,
+  extraPlatforms: Set[Positioned[Platform]] = Set.empty
 ) {
   def normalize: ScalaOptions = {
     var opt = this
@@ -21,9 +21,9 @@ final case class ScalaOptions(
       opt = opt.copy(
         extraScalaVersions = opt.extraScalaVersions - sv
       )
-    for (pf <- opt.platform if opt.extraPlatforms.contains(pf))
+    for (pf <- opt.platform.map(_.value) if opt.extraPlatforms.map(_.value).contains(pf))
       opt = opt.copy(
-        extraPlatforms = opt.extraPlatforms - pf
+        extraPlatforms = opt.extraPlatforms.filterNot(_.value == pf)
       )
     opt
   }
