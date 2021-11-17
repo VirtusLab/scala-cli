@@ -1,12 +1,9 @@
 package scala.build.preprocessing.directives
 
-import scala.build.errors.BuildException
-import scala.build.options.BuildOptions
-import scala.build.preprocessing.ScopePath
 import scala.build.Position
-import scala.build.options.ScalaOptions
-import scala.build.options.ScalaNativeOptions
-import scala.build.errors.DirectiveErrors
+import scala.build.errors.BuildException
+import scala.build.options.{BuildOptions, ScalaNativeOptions}
+import scala.build.preprocessing.ScopePath
 
 case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name: String = "Scala Native options"
