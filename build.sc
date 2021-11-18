@@ -184,6 +184,7 @@ class Build(val crossScalaVersion: String)
     Deps.scalaparse,
     Deps.shapeless,
     Deps.swoval,
+    Deps.upickle,
     Deps.usingDirectives
   )
 
