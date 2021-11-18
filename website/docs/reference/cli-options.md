@@ -872,9 +872,9 @@ Available in commands:
 
 #### `--scalac-option`
 
-Aliases: `--scala-opt`, `-O`, `-P`, `-W`, `-g`, `-X`, `-language`, `-Y`, `-V`, `-target`, `-opt`
+Aliases: `--scala-opt`, `-O`
 
-Add a `scalac` option
+Add a `scalac` option. All options starts with (-g, -language, -opt, -P, -target, -V, -W, -X, -Y) are assumed to be Scala compiler options
 
 ## Setup IDE options
 
