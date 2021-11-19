@@ -113,10 +113,9 @@ def checkPath(options: Options)(path: os.Path): Seq[TestCase] =
 
 val fakeLineMarker = "//fakeline"
 
-def shouldAlignContent(file: String | os.Path) = 
+def shouldAlignContent(file: String | os.Path) =
   val isSourceFile = Seq(".scala", ".sc", ".java").exists(file.toString.endsWith)
   !sys.env.contains("SCLICHECK_REMOVE_MARKERS") && isSourceFile
-
 
 def mkBashScript(content: Seq[String]) =
   s"""#!/usr/bin/env bash
@@ -130,13 +129,14 @@ def checkFile(file: os.Path, options: Options): Unit =
   val content  = os.read.lines(file).toList
   val commands = parse(content, Vector(), Context(file.relativeTo(os.pwd), 1))
   val destName = file.last.stripSuffix(".md")
-  val out      = sys.env.get("SCLICHECK_DEST") match
-    case None => os.temp.dir(prefix = destName)
-    case Some(path) =>
-      val dest = os.Path(path)
-      println(s"Cleaning dest directory $dest")
-      os.remove.all(dest)
-      dest
+  val out =
+    sys.env.get("SCLICHECK_DEST") match
+      case None => os.temp.dir(prefix = destName)
+      case Some(path) =>
+        val dest = os.Path(path)
+        println(s"Cleaning dest directory $dest")
+        os.remove.all(dest)
+        dest
 
   var lastOutput: String = null
   val allSources         = Set.newBuilder[os.Path]
@@ -205,8 +205,9 @@ def checkFile(file: os.Path, options: Options): Unit =
     commands.foreach { cmd =>
       val logs = List.newBuilder[String]
 
-      def printResult(success: Boolean) =
-        val commandName = "[" + cmd.name + "]"
+      def printResult(success: Boolean, startTime: Long) =
+        val duration    = System.currentTimeMillis - startTime
+        val commandName = s"[${cmd.name} in $duration ms]"
         val cmdLog =
           if success then Green(commandName)
           else Red(commandName)
@@ -217,13 +218,14 @@ def checkFile(file: os.Path, options: Options): Unit =
         println(s"After [${cmd.context}] using $out. Press ENTER key to continue...")
         readLine()
 
+      val start = System.currentTimeMillis
       try
         runCommand(cmd, logs.addOne)
-        printResult(success = true)
+        printResult(success = true, start)
         if options.step then pause()
       catch
         case e: Throwable =>
-          printResult(success = false)
+          printResult(success = false, start)
           if options.stopAtFailure then pause()
           throw e
     }

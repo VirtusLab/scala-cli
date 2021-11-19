@@ -3,27 +3,37 @@ title: Getting started
 sidebar_position: 2
 ---
 
-import {RunnableCommand} from "../src/components/RunnableCommand";
+import {ChainedSnippets, GiflikeVideo} from "../src/components/MarkdownComponents.js";
 
 :::info
 This article requires knowledge of Scala language (how to define class or method) as well as Scala tooling (repl, basics of dependency management and unit tests). 
 ::: 
 
-In this article we will show how to get started with Scala CLI - entry point to the Scala Ecosystem. 
+In this article we will show how to use Scala CLI to create basic script followed by small project with things like dependencies, tests and IDE support. We aime to provide you with a knowledge how to create and develop your first projects using Scala CLI.
 
-We will start with simple scripts, and then we will create a small project with things like tests and IDE support. This guide should provide you knowledge how to create and develop your first project using Scala CLI.
+Firstly, lets verify if Scala CLI is properly [installed](/install) with a simple hello world command:
 
-Fist, lets verify if Scala CLI is properly installed with a hello world:
+<ChainedSnippets>
 
 ```bash
 echo 'println("Hello")' | scala-cli -
 ```
 
-Running commands above should end up with `Hello` printed in the last line of the output. Running the command for the first time may take a bit longer then usual and print a bit logs because Scala CLI needs to download all artifacts needed to compile and run the code.
+```
+Hello
+```
+
+<!-- Expected:
+Hello
+-->
+
+</ChainedSnippets>
+
+Running the command for the first time may take a bit longer then usual and print a bit logs because Scala CLI needs to download all artifacts needed to compile and run the code.
 
 ## Scripting
 
-In fact, we just created a Scala Script, so let's create a script in a hello.sc file, that will actually greet properly.
+In fact, we have just created a Scala Script, so let's create a script in a hello.sc file, that will actually greet properly.
 
 ```scala title=hello.sc
 def helloMessage(names: Seq[String]) = names match
@@ -35,10 +45,10 @@ def helloMessage(names: Seq[String]) = names match
 println(helloMessage(args.toSeq))
 ```
 
-Now let run it with 
+Now let run it with:
 
 
-<RunnableCommand>
+<ChainedSnippets>
 
 ```bash
 scala-cli hello.sc
@@ -47,11 +57,11 @@ scala-cli hello.sc
 ```
 Hello
 ```
-</RunnableCommand>
+</ChainedSnippets>
 
-To provide arguments we need to add them after `--`:
+To provide arguments to the script we need to add them after `--`:
 
-<RunnableCommand>
+<ChainedSnippets>
 
 ```bash
 scala-cli hello.sc -- Jenny Jake
@@ -61,11 +71,11 @@ scala-cli hello.sc -- Jenny Jake
 Hello Jenny, Jake!
 ```
 
-</RunnableCommand>
+</ChainedSnippets>
 
 You may wonder what kind of Scala version was used under the hood. The answer is the latest stable one. If we want to specify the Scala version we can use `-S` or `--scala` option. More about setting Scala version in a dedicated [cookbook](./cookbooks/scala-versions.md).
 
-Scala CLI offers much more features dedicated for scripting described in the [dedicated guide](./guides/scripting.md)
+Scala CLI offers much more features dedicated for scripting described in the [dedicated guide](./guides/scripts.md)
 
 ## Dependencies
 
@@ -77,7 +87,7 @@ One of the main strengths of Scala is its ecosystem. Scala CLI is designed in a 
 
 Let's start prototyping with [os-lib](https://github.com/com-lihaoyi/os-lib) - a Scala interface to common OS filesystem and subprocess. To experiment with `os-lib` in repl we simply need to add a parameter `--dep com.lihaoyi::os-lib:0.7.8`
 
-<RunnableCommand>
+<ChainedSnippets>
 
 ```bash ignore
 scala-cli repl --dep com.lihaoyi::os-lib:0.7.8
@@ -91,7 +101,7 @@ scala> os.walk(os.pwd)
 val res1: IndexedSeq[os.Path] = ArraySeq(...)
 ```
 
-</RunnableCommand>
+</ChainedSnippets>
 
 ## A project
 
@@ -110,11 +120,15 @@ Now we can write our logic in `files.scala`:
 ```scala title=files.scala
 // using lib com.lihaoyi::os-lib:0.7.8
 
-def filesByExtension(extension: String, dir: os.Path = os.pwd): Seq[os.Path] = 
-  os.walk(os.pwd).filter(f => f.last.endsWith(s".$extension") && os.isFile(f))
+def filesByExtension(
+  extension: String, 
+  dir: os.Path = os.pwd): Seq[os.Path] = 
+    os.walk(dir).filter { f =>
+      f.last.endsWith(s".$extension") && os.isFile(f)
+    }
 ```
 
-As you may have noticed we specified a dependency within the `.scala` using `// using lib com.lihaoyi::os-lib:0.7.8`. In Scala CLI configuration can provided through so called using directives - a dedicated syntax that can be embedded in any `.scala` file. We have a dedicated [guide for using directives](./guides/using-directives.md).
+As you may have noticed we specified a dependency within the `.scala` using `// using lib com.lihaoyi::os-lib:0.7.8`. In Scala CLI configuration can be provided through so called using directives - a dedicated syntax that can be embedded in any `.scala` file. We have a dedicated [guide for using directives](./guides/using-directives.md).
 
 Let's check if our code compiles. We can do that by simply running:
 
@@ -126,9 +140,10 @@ This time we did not provide path to single files but rather used a (current) di
 
 ## IDE support
 
-Some people are fine working using command line only, but most Scala Developers use an IDE. Let's open Metals with your favorite editor inside `scala-cli-getting-started` directory. 
+Some people are fine working using command line only, but most Scala Developers use an IDE. Let's open Metals with your favorite editor inside `scala-cli-getting-started` directory.
 
-// TODO GIF
+
+<GiflikeVideo url='/img/scala-cli-getting-started-1.mp4'/>
 
 At this moment support for IntelliJ is often problematic. We are working on making it as rock solid as Metals one.
 
@@ -145,15 +160,16 @@ We also need to add a test framework. Scala CLI support most popular test framew
 
 class TestSuite extends munit.FunSuite {
   test("hello") {
-    val expectedNames = Seq("files.scala", "files.test.scala")
-    assertEquals(expectedNames, filesByExtension("scala").map(_.last))
+    val expected = Seq("files.scala", "files.test.scala")
+    val obtained = filesByExtension("scala").map(_.last)
+    assertEquals(obtained, expected)
   }
 }
 ```
 
 Now we can run our tests in command line:   
 
-<RunnableCommand>
+<ChainedSnippets>
 
 ```bash
 scala-cli test .
@@ -166,17 +182,15 @@ TestSuite:
   + hello 0.058s
 ```
 
-</RunnableCommand>
+</ChainedSnippets>
 
 or directly within Metals:
 
-// TODO gif
-
-
+<GiflikeVideo url='/img/scala-cli-getting-started-2.mp4'/>
 
 ## A project, vol 2
 
-With our code ready and tested it is now time to turn it into a usable tool. Let's make a command-line tool to count files by extension. For that we can write a simple script. With Scala CLI, scripts and scala sources can be mixed.
+With our code ready and tested it is now time to turn it into a command-line tool to count files by extension. For that we can write a simple script. With Scala CLI, scripts and scala sources can be mixed.
 
 ```scala title=countByExtension.sc
 val (ext, directory) = args.toSeq match 
@@ -190,13 +204,13 @@ val files = filesByExtension(ext, directory)
 files.map(_.relativeTo(directory)).foreach(println)
 ```
 
-As you probably noticed, we are using `os-lib` in our script without any using directive, how is that possible? Actually, configuration provided by using directives are global and applies to all files. Since `files.scala` and `countByExtension.sc` are compiled together, defining a dependency to a library in more then one file is an anti-pattern. 
+As you probably noticed, we are using `os-lib` in our script without any using directive, how is that possible? Actually, configuration provided by using directives are global and applies to all files. Since `files.scala` and `countByExtension.sc` are compiled together. Defining a library dependency in more then one file is an anti-pattern. 
 
 <!-- TODO add pice about scala-cli warnings in such case -->
 
 Let's try it:
 
-<RunnableCommand>
+<ChainedSnippets>
 
 ```bash
 scala-cli . -- scala
@@ -208,13 +222,13 @@ files.scala
 files.test.scala
 ```
 
-</RunnableCommand>
+</ChainedSnippets>
 
 Why do we have an additional `.scala` file inside `.scala` dir? Actually, under the hood, Scala CLI needs sometimes to preprocess provided source file (e.g. for scripts) and we compile such file from within `.scala` directory. 
 
 ## Packaging
 
-We could stop here and call scala-cli on set of sources every time. Scala CLI uses caches aggressively so rollup runs are reasonable fast (less then 2 seconds on my machine) but sometimes it is not fast enough or shipping sources and compiling them may be not convenient.
+We could stop here and call scala-cli on set of sources every time. Scala CLI uses caches aggressively so rollup runs are reasonable fast (less around 1500 milliseconds on my machine) but sometimes it is not fast enough or shipping sources and compiling them may be not convenient.
 
 Scala CLI offers means to package your project. We can simply run:
 
@@ -228,9 +242,9 @@ It will generate a thin, executable jar with the compiled code inside. We provid
 ./countByExtension scala   
 ```
 
-This time it took less then second so we have a big improvement. Created binary (a runnable jar) is self-contained and can be shipped to your colleagues or deployed.
+This time it took 350 milliseconds so we have a big improvement. Created binary (a runnable jar) is self-contained and can be shipped to your colleagues or deployed.
 
- We can reduce the start up time even further using [Scala Native](./guides/scala-native.md) or package our application to other formats like [Docker container](./commands/package.md#docker-container), [assembly](./commands/package.md#assemblies) or even [os-specific packages](./commands/package.md#os-specific-packages) (.dep, .pgk etc.) All of this is outside of the scope of this guide.
+We can reduce the start up time even further using [Scala Native](./guides/scala-native.md) or package our application to other formats like [Docker container](./commands/package.md#docker-container), [assembly](./commands/package.md#assemblies) or even [os-specific packages](./commands/package.md#os-specific-packages) (.dep, .pgk etc.) All of this is outside of the scope of this guide.
 
 ## Summary
 
