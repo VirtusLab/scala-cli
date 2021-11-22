@@ -212,6 +212,25 @@ Accepts options:
 - [setup IDE](./cli-options.md#setup-ide-options)
 - [shared](./cli-options.md#shared-options)
 
+## `shebang`
+
+Accepts options:
+- [benchmarking](./cli-options.md#benchmarking-options)
+- [compilation server](./cli-options.md#compilation-server-options)
+- [compile cross](./cli-options.md#compile-cross-options)
+- [coursier](./cli-options.md#coursier-options)
+- [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
+- [java](./cli-options.md#java-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [main class](./cli-options.md#main-class-options)
+- [Scala.JS](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [shared](./cli-options.md#shared-options)
+- [watch](./cli-options.md#watch-options)
+
 ## `test`
 
 Compile and test Scala code

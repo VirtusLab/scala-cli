@@ -1050,7 +1050,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "MyScript.scala" ->
-          """#!/usr/bin/env scala-cli
+          """#!/usr/bin/env -S scala-cli shebang
             |object MyScript {
             |  def main(args: Array[String]): Unit =
             |    println("Hello" + args.map(" " + _).mkString)
@@ -1141,5 +1141,19 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(p.out.text().trim == "16")
     }
   }
-
+  if (!Properties.isWin)
+    test("CLI args passed to shebang script") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "f.sc" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
+                                 |using scala $actualScalaVersion
+                                 |println(args.toList)""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        os.perms.set(root / "f.sc", os.PermSet.fromString("rwx------"))
+        val p = os.proc("./f.sc", "1", "2", "3", "-v").call(cwd = root)
+        expect(p.out.text().trim == "List(1, 2, 3, -v)")
+      }
+    }
 }
