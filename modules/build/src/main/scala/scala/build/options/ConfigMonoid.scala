@@ -81,6 +81,11 @@ object ConfigMonoid {
       main ++ defaults
   }
 
+  implicit def map[K, V]: ConfigMonoid[Map[K, V]] = instance(Map.empty[K, V]) {
+    (main, defaults) =>
+      main ++ defaults
+  }
+
   implicit val boolean: ConfigMonoid[Boolean] = instance(false) {
     (main, defaults) =>
       main || defaults

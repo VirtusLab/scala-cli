@@ -5,11 +5,11 @@ import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 
 trait BuildOptionsRule {
-  def validate(options: BuildOptions): Either[BuildException, Unit]
+  def validate(options: BuildOptions): Either[ValidationException, Unit]
 }
 
 object BuildOptionsRule {
-  def validateAll(options: BuildOptions): Either[BuildException, Unit] =
+  def validateAll(options: BuildOptions): Either[ValidationException, Unit] =
     List(JvmOptionsForNonJvmBuild).map(_.validate(options)).partition(_.isLeft) match {
       case (Nil, _)  => Right(())
       case (some, _) => some.head
@@ -22,7 +22,7 @@ class ValidationException(
 ) extends BuildException(message, positions)
 
 object JvmOptionsForNonJvmBuild extends BuildOptionsRule {
-  def validate(options: BuildOptions): Either[BuildException, Unit] = {
+  def validate(options: BuildOptions): Either[ValidationException, Unit] = {
     val jvmOptions = options.javaOptions.javaOpts.find(p => p.value.nonEmpty)
     if (jvmOptions.nonEmpty && options.platform.value != scala.build.options.Platform.JVM)
       Left(new ValidationException(

@@ -90,7 +90,9 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     val platforms = options.flatMap(_.scalaOptions.platform.toSeq).distinct
     merged.copy(
       scalaOptions = merged.scalaOptions.copy(
-        extraPlatforms = merged.scalaOptions.extraPlatforms ++ platforms.tail.toSet
+        extraPlatforms = merged.scalaOptions.extraPlatforms ++ platforms.tail.map(p =>
+          (p.value -> Positioned(p.positions, ()))
+        ).toMap
       )
     )
   }

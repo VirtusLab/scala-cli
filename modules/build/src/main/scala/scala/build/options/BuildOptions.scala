@@ -295,12 +295,11 @@ final case class BuildOptions(
     val sortedExtraPlatforms = scalaOptions0
       .extraPlatforms
       .toVector
-      .sortBy(_.value)
-    this +: sortedExtraPlatforms.map { pf =>
+    this +: sortedExtraPlatforms.map { case (pf, pos) =>
       copy(
         scalaOptions = scalaOptions0.copy(
-          platform = Some(pf),
-          extraPlatforms = Set.empty
+          platform = Some(Positioned(List(pos.positions.head), pf)),
+          extraPlatforms = Map.empty
         )
       )
     }

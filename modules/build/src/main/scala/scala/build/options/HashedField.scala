@@ -41,6 +41,17 @@ object HashedField extends LowPriorityHashedField {
         update(s"$name+=${hasher.value.hashedValue(t)}")
   }
 
+  implicit def map[K, V](
+    implicit
+    hasherK: Lazy[HashedType[K]],
+    hasherV: Lazy[HashedType[V]],
+    ordering: Ordering[K]
+  ): HashedField[Map[K, V]] = {
+    (name, map0, update) =>
+      for (t <- map0.keys.toVector.sorted(ordering))
+        update(s"$name+=${hasherK.value.hashedValue(t) + hasherV.value.hashedValue(map0(t))}")
+  }
+
 }
 
 abstract class LowPriorityHashedField {
