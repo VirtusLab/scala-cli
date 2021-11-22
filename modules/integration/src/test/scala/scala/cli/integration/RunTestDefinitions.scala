@@ -894,6 +894,22 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("Main class in config file") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "simple.scala" ->
+          s"""using main-class hello
+             |object hello extends App { println("hello") }
+             |object world extends App { println("world") }
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.text().trim
+      expect(output == "hello")
+    }
+  }
+
   def simpleScriptDistrolessImage(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"

@@ -36,7 +36,8 @@ case object ScalaPreprocessor extends Preprocessor {
     UsingTestFrameworkDirectiveHandler,
     UsingCustomJarDirectiveHandler,
     UsingResourcesDirectiveHandler,
-    UsingCompilerPluginDirectiveHandler
+    UsingCompilerPluginDirectiveHandler,
+    UsingMainClassDirectiveHandler
   )
 
   val requireDirectiveHandlers = Seq[RequireDirectiveHandler](
