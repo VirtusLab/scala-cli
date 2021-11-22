@@ -23,7 +23,7 @@ object ScalacOptions {
     .withExtraNames(Seq(Name("scala-opt"), Name("O")))
     .withValueDescription(Some(ValueDescription("option")))
     .withHelpMessage(Some(HelpMessage(
-      "Add a `scalac` option. All options starts with (-g, -language, -opt, -P, -target, -V, -W, -X, -Y) are assumed to be Scala compiler options"
+      "Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`."
     )))
     .withGroup(Some(Group("Scala")))
     .withOrigin(Some("ScalacOptions"))
