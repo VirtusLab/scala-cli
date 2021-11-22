@@ -373,6 +373,20 @@ object Build {
       crossBuilds = crossBuilds
     )
 
+  def validate(
+    logger: Logger,
+    options: BuildOptions
+  ): Either[BuildException, Unit] = {
+    val (errors, otherDiagnostics) = options.validate.toSeq.partition(_.severity == Severity.ERROR)
+    otherDiagnostics.foreach { e =>
+      logger.log(e, e.severity)
+    }
+    if (errors.nonEmpty)
+      Left(CompositeBuildException(errors))
+    else
+      Right(())
+  }
+
   def watch(
     inputs: Inputs,
     options: BuildOptions,
@@ -541,7 +555,9 @@ object Build {
       if (scope == Scope.Test)
         List(classesDir(inputs.workspace, inputs.projectName, Scope.Main).toNIO)
       else Nil
-    value(options.validate)
+
+    value(validate(logger, options))
+
     val project = Project(
       workspace = inputs.workspace / ".scala",
       classesDir = classesDir0,

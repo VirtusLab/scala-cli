@@ -259,7 +259,6 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         val res = os.proc(TestUtil.cli, "compile", extraOptions, "--native", ".").call(
           cwd = root,
-          check = false,
           stderr = os.Pipe
         )
         expect(res.err.text().contains("Conflicting options"))

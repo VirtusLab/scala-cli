@@ -4,7 +4,7 @@ import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
 
 import scala.build.blooprifle.BloopRifleLogger
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, Severity}
 import scala.build.Logger
 import scala.scalanative.{build => sn}
 
@@ -24,7 +24,7 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
     if (debug)
       System.err.println(s)
 
-  def log(ex: BuildException): Unit =
+  def log(ex: BuildException, severity: Severity): Unit =
     System.err.println(ex.getMessage)
   def exit(ex: BuildException): Nothing =
     throw new Exception(ex)

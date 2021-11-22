@@ -3,7 +3,7 @@ package scala.build
 import java.io.{OutputStream, PrintStream}
 
 import scala.build.blooprifle.BloopRifleLogger
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, Severity}
 import scala.scalanative.{build => sn}
 
 trait Logger {
@@ -13,7 +13,7 @@ trait Logger {
   def log(s: => String, debug: => String): Unit
   def debug(s: => String): Unit
 
-  def log(ex: BuildException): Unit
+  def log(ex: BuildException, severity: Severity = Severity.ERROR): Unit
   def exit(ex: BuildException): Nothing
 
   def coursierLogger: coursier.cache.CacheLogger
@@ -30,7 +30,7 @@ object Logger {
     def log(s: => String, debug: => String): Unit = ()
     def debug(s: => String): Unit                 = ()
 
-    def log(ex: BuildException): Unit = ()
+    def log(ex: BuildException, severity: Severity): Unit = ()
     def exit(ex: BuildException): Nothing =
       throw new Exception(ex)
 

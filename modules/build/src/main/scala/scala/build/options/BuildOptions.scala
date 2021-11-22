@@ -13,6 +13,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, InvalidBinaryScalaVersionError}
 import scala.build.internal.Constants._
 import scala.build.internal.{Constants, OsLibc, Util}
+import scala.build.options.validation.{BuildOptionsRule, ValidationException}
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
 
@@ -359,8 +360,7 @@ final case class BuildOptions(
   def orElse(other: BuildOptions): BuildOptions =
     BuildOptions.monoid.orElse(this, other)
 
-  def validate: Either[BuildException, Unit] =
-    scala.build.options.validation.BuildOptionsRule.validateAll(this)
+  def validate: Seq[ValidationException] = BuildOptionsRule.validateAll(this)
 }
 
 object BuildOptions {
