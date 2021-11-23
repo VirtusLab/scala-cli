@@ -51,7 +51,7 @@ object TestInputs {
   def apply(files: (os.RelPath, String)*): TestInputs =
     TestInputs(files, Nil)
 
-  private def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
+  def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
     val tmpDir = os.temp.dir(prefix = prefix)
     try f(tmpDir)
     finally tryRemoveAll(tmpDir)

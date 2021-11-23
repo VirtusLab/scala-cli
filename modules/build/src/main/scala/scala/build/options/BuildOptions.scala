@@ -167,13 +167,18 @@ final case class BuildOptions(
       }
     }
 
-  def latestSupportedScalaVersion(prefixScalaVersion: Option[String])
-    : Option[coursier.core.Version] = {
-    val supportedScalaVersionUrl =
-      "https://raw.githubusercontent.com/VirtusLab/scala-cli/master/scala-version.scala"
+  def latestSupportedScalaVersion(prefixScalaVersion: Option[String]): coursier.core.Version = {
+
+    // used when downloading is fail
+    lazy val defaultStableScalaVersions = StableScalaVersion(
+      version,
+      Seq(defaultScala212Version, defaultScala213Version, defaultScalaVersion)
+    )
+
+    val supportedScalaVersionsUrl = scalaOptions.scalaVersionsUrl
 
     val task = {
-      val art = Artifact(supportedScalaVersionUrl).withChanging(true)
+      val art = Artifact(supportedScalaVersionsUrl).withChanging(true)
       finalCache.file(art).run.flatMap {
         case Left(e) => Task.fail(e)
         case Right(f) => Task.delay {
@@ -185,22 +190,30 @@ final case class BuildOptions(
 
     val launchersTask = finalCache.logger.using(Task.gather.gather(Seq(task)))
 
-    //  If an error occurred while downloading stable versions, we use scala version from Constants.defaultScalaVersion
-    val stablesScalaVersion = Try {
-      val scalaVersionJson = launchersTask.unsafeRun()(finalCache.ec).flatten.map(_.toChar).mkString
+    //  If an error occurred while downloading stable versions,
+    //  it uses stable scala versions from Deps.sc
+    val supportedScalaVersions = Try {
+      val scalaVersionJson =
+        launchersTask.unsafeRun()(finalCache.ec).flatten.map(_.toChar).mkString
 
       upickle.default.read[Seq[StableScalaVersion]](scalaVersionJson)
-    }.getOrElse(Seq.empty)
+    }.getOrElse(Seq(defaultStableScalaVersions))
 
-    val stableScalaVersion  = stablesScalaVersion.find(v => version.contains(v.scalaCliVersion))
-    val prefixScalaVersion0 = prefixScalaVersion.getOrElse(defaultScalaVersion)
+    val scalaCliVersion = version
+    val stableVersionsForScalaCLI0 = supportedScalaVersions
+      .find(v => scalaCliVersion.contains(v.scalaCliVersion))
+      .map(_.supportedScalaVersions).toSeq.flatten
 
-    stableScalaVersion.map(
-      _.supportedScalaVersion
-        .filter(_.startsWith(prefixScalaVersion0))
-        .map(coursier.core.Version(_))
-        .max
-    )
+    val stableScalaVersions =
+      if (stableVersionsForScalaCLI0.isEmpty) defaultStableScalaVersions.supportedScalaVersions
+      else stableVersionsForScalaCLI0
+
+    val prefixScalaVersion0 = prefixScalaVersion.getOrElse("")
+
+    stableScalaVersions
+      .filter(_.startsWith(prefixScalaVersion0))
+      .map(coursier.core.Version(_))
+      .max
   }
 
   def javaHome(): JavaHomeInfo = javaCommand0
@@ -250,7 +263,7 @@ final case class BuildOptions(
     }
     def matchNewestScalaVersion(sv: Option[String]) = {
       lazy val latestSupportedScala =
-        latestSupportedScalaVersion(sv).getOrElse(Version(defaultScalaVersion))
+        latestSupportedScalaVersion(sv)
 
       sv match {
         case Some(sv0) =>
