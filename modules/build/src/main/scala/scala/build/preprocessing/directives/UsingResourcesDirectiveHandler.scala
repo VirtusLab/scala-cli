@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import scala.build.EitherCps.{either, value}
+import scala.build.EitherCps.either
 import scala.build.Position
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
@@ -24,11 +24,15 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     directive.values match {
       case Seq("resourceDir" | "resourceDirs", paths @ _*) =>
         val res = either {
-          val root   = value(Directive.osRoot(cwd, Some(directive.position)))
-          val paths0 = paths.map(os.Path(_, root))
+          val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
+          val paths0                    = rootOpt.map(root => paths.map(os.Path(_, root)))
+          val virtualPaths = virtualRootOpt.map(virtualRoot =>
+            paths.map(path => virtualRoot / os.SubPath(path)).map(_.toString())
+          )
           BuildOptions(
             classPathOptions = ClassPathOptions(
-              extraClassPath = paths0
+              extraClassPath = paths0.toList.flatten,
+              resourceVirtualDir = virtualPaths.toList.flatten
             )
           )
         }
@@ -43,12 +47,16 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     cwd: ScopePath,
     positionOpt: Option[Position]
   ): Either[BuildException, BuildOptions] = either {
-    val root   = value(Directive.osRoot(cwd, positionOpt))
-    val paths  = DirectiveUtil.stringValues(values)
-    val paths0 = paths.map(os.Path(_, root))
+    val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
+    val paths                     = DirectiveUtil.stringValues(values)
+    val paths0                    = rootOpt.map(root => paths.map(os.Path(_, root)))
+    val virtualPaths = virtualRootOpt.map(virtualRoot =>
+      paths.map(path => virtualRoot / os.SubPath(path)).map(_.toString())
+    )
     BuildOptions(
       classPathOptions = ClassPathOptions(
-        extraClassPath = paths0
+        extraClassPath = paths0.toList.flatten,
+        resourceVirtualDir = virtualPaths.toList.flatten
       )
     )
   }

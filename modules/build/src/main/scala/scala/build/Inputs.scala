@@ -195,6 +195,8 @@ object Inputs {
       extends Virtual with AnyScalaFile
   final case class VirtualJavaFile(content: Array[Byte], source: String)
       extends Virtual with Compiled
+  final case class VirtualData(content: Array[Byte], source: String)
+      extends Virtual
 
   private def inputsHash(elements: Seq[Element]): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
@@ -226,7 +228,7 @@ object Inputs {
   }
 
   private def forValidatedElems(
-    validElems: Seq[Compiled],
+    validElems: Seq[Element],
     baseProjectName: String,
     directories: Directories
   ): Inputs = {
@@ -288,18 +290,19 @@ object Inputs {
           val url =
             if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) s"$arg/download" else arg
           download(url).map { content =>
-            def resolve(path: String, content: Array[Byte]): Compiled = {
+            def resolve(path: String, content: Array[Byte]): Element = {
               val wrapperPath =
                 os.sub / path.split("/").last
 
               if (path.endsWith(".scala")) VirtualScalaFile(content, path)
               else if (path.endsWith(".java")) VirtualJavaFile(content, path)
-              else VirtualScript(content, path, wrapperPath)
+              else if (path.endsWith(".sc")) VirtualScript(content, path, wrapperPath)
+              else VirtualData(content, path)
             }
             if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) {
               val zipInputStream = new ZipInputStream(new ByteArrayInputStream(content))
               @tailrec
-              def readArchive(acc: Seq[Compiled]): Seq[Compiled] =
+              def readArchive(acc: Seq[Element]): Seq[Element] =
                 zipInputStream.getNextEntry() match {
                   case entry: ZipEntry if !entry.isDirectory =>
                     val content = {

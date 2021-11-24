@@ -45,3 +45,37 @@ gh gist create file.scala
 ```
 
 Then you (and others) can run it quickly, using the `scala-cli` approach shown above.
+
+
+## Resources from gists 
+
+You can also use resources from gists archive. This is done by passing `resourceDir` in using directives.
+
+For example, given the gist `https://gist.github.com/lwronski/7ee12fa4b8b8bac3211841273df82080` which containing Scala code and text file:
+
+```scala title=Hello.scala
+// using resourceDir "./"
+import scala.io.Source
+
+object Hello extends App {
+    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+    println(inputs.mkString(","))
+}
+```
+```scala title=input
+1
+2
+3
+4
+```
+
+and run them:
+```bash
+scala-cli https://gist.github.com/lwronski/7ee12fa4b8b8bac3211841273df82080
+# 1,2,3,4
+```
+<!-- Expected:
+1,2,3,4
+-->
+
+it will print `1,2,3,4` to the standard output.

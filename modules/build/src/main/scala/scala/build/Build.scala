@@ -158,7 +158,9 @@ object Build {
 
       val baseOptions = overrideOptions.orElse(sharedOptions)
 
-      val sources = value(crossSources.scopedSources(baseOptions))
+      val crossSources0 = crossSources.withVirtualDir(inputs0, scope, baseOptions)
+
+      val sources = value(crossSources0.scopedSources(baseOptions))
         .sources(scope, baseOptions)
 
       val generatedSources = sources.generateSources(inputs0.generatedSrcRoot(scope))

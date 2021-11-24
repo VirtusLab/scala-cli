@@ -692,6 +692,30 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("Github Gists Scala URL with resource in directive") {
+    val url =
+      "https://gist.github.com/lwronski/7ee12fa4b8b8bac3211841273df82080"
+    val message = "1,2,3,4"
+    emptyInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
+        .call(cwd = root)
+        .out.text().trim
+      expect(output == message)
+    }
+  }
+
+  test("Github Gists Scala Script URL with resource in directive") {
+    val url =
+      "https://gist.github.com/lwronski/c2f6e847f0c90dbd1f883317c0e1baad"
+    val message = "1,2,3,4"
+    emptyInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
+        .call(cwd = root)
+        .out.text().trim
+      expect(output == message)
+    }
+  }
+
   def compileTimeOnlyJars(): Unit = {
     // format: off
     val cmd = Seq[os.Shellable](
