@@ -71,6 +71,17 @@ Add Java options
 #### Examples
 `using javaOpt -Xmx2g -Dsomething=a`
 
+### Main class
+
+Specify default main class
+
+`using main-class `_main class_
+
+`using mainClass `_main class_
+
+#### Examples
+`using main-class helloWorld`
+
 ### Platform
 
 Set the default platform to Scala.JS or Scala Native
@@ -95,16 +106,22 @@ Add a repository for dependency resolution
 
 `using repository https://maven-central.storage-download.googleapis.com/maven2`
 
-### Resources
+### Resource directories
 
 Manually add a resource directory to the class path
 
-`using resource `_path_
+`using resourceDir `_path_
 
-`using resources `_path1_ _path2_ …
+`using resourceDirs `_path1_ _path2_ …
 
 #### Examples
-`using resource "./resources"`
+`using resourceDir "./resources"`
+
+### Scala Native options
+
+Add Scala Native options
+
+directive using usage
 
 ### Scala version
 

@@ -78,8 +78,8 @@ final case class SharedOptions(
   @Group("Java")
   @HelpMessage("Add a resource directory")
   @ValueDescription("paths")
-  @Name("resource")
-    resources: List[String] = Nil,
+  @Name("resourceDir")
+    resourceDirs: List[String] = Nil,
 
   @Group("Scala")
   @Hidden
@@ -205,7 +205,7 @@ final case class SharedOptions(
         .left.map(_.describe)
         .map(f => os.read.bytes(os.Path(f, Os.pwd)))
     }
-    val resourceInputs = resources
+    val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
       .map(Inputs.ResourceDirectory(_))
     val inputs = Inputs(

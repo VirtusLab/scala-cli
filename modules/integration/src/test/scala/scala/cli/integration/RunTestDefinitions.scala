@@ -1036,11 +1036,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
   test("resources") {
     resourcesInputs().fromRoot { root =>
-      os.proc(TestUtil.cli, "run", "src", "--resources", "./src/proj/resources").call(cwd = root)
+      os.proc(TestUtil.cli, "run", "src", "--resource-dirs", "./src/proj/resources").call(cwd =
+        root)
     }
   }
   test("resources via directive") {
-    resourcesInputs("using resources ./resources").fromRoot { root =>
+    resourcesInputs("using resourceDirs ./resources").fromRoot { root =>
       os.proc(TestUtil.cli, "run", ".").call(cwd = root)
     }
   }
