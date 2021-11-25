@@ -3,6 +3,7 @@ package scala.build.bsp
 import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
+import java.{util => ju}
 
 import scala.build.Logger
 import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
@@ -93,8 +94,24 @@ class BspServer(
 
   protected def forwardTo = bloopServer
 
-  private def capabilities: b.BuildServerCapabilities =
-    new b.BuildServerCapabilities
+  private val supportedLanguages: ju.List[String] = List("scala", "java").asJava
+
+  private def capabilities: b.BuildServerCapabilities = {
+    val capabilities = new b.BuildServerCapabilities
+    capabilities.setCompileProvider(new b.CompileProvider(supportedLanguages))
+    capabilities.setTestProvider(new b.TestProvider(supportedLanguages))
+    capabilities.setRunProvider(new b.RunProvider(supportedLanguages))
+    capabilities.setDebugProvider(new b.DebugProvider(supportedLanguages))
+    capabilities.setInverseSourcesProvider(true)
+    capabilities.setDependencySourcesProvider(true)
+    capabilities.setResourcesProvider(true)
+    capabilities.setBuildTargetChangedProvider(true)
+    capabilities.setJvmRunEnvironmentProvider(true)
+    capabilities.setJvmTestEnvironmentProvider(true)
+    capabilities.setCanReload(true)
+    capabilities.setDependencyModulesProvider(true)
+    capabilities
+  }
 
   override def buildInitialize(
     params: b.InitializeBuildParams
