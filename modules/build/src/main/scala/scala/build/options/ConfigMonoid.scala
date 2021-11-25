@@ -1,6 +1,7 @@
 package scala.build.options
 
 import shapeless._
+import scala.build.Positioned
 
 trait ConfigMonoid[T] {
   def zero: T
@@ -81,13 +82,23 @@ object ConfigMonoid {
       main ++ defaults
   }
 
-  implicit def map[K, V]: ConfigMonoid[Map[K, V]] = instance(Map.empty[K, V]) {
-    (main, defaults) =>
-      main ++ defaults
-  }
+  implicit def map[K, V](implicit valueMonoid: ConfigMonoid[V]): ConfigMonoid[Map[K, V]] =
+    instance(Map.empty[K, V]) {
+      (main, defaults) =>
+        (main.keySet ++ defaults.keySet).map {
+          key =>
+            val mainVal     = main.getOrElse(key, valueMonoid.zero)
+            val defaultsVal = defaults.getOrElse(key, valueMonoid.zero)
+            key -> valueMonoid.orElse(mainVal, defaultsVal)
+        }.toMap
+    }
 
   implicit val boolean: ConfigMonoid[Boolean] = instance(false) {
     (main, defaults) =>
       main || defaults
+  }
+
+  implicit val unit: ConfigMonoid[Unit] = instance(()) {
+    (_, _) => ()
   }
 }
