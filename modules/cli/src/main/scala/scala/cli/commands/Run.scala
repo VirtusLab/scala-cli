@@ -17,10 +17,20 @@ object Run extends ScalaCommand[RunOptions] {
   override def sharedOptions(options: RunOptions) = Some(options.shared)
 
   def run(options: RunOptions, args: RemainingArgs): Unit =
-    run(options, args, () => Inputs.default())
+    run(
+      options,
+      args.remaining,
+      args.unparsed,
+      () => Inputs.default()
+    )
 
-  def run(options: RunOptions, args: RemainingArgs, defaultInputs: () => Option[Inputs]): Unit = {
-    val inputs = options.shared.inputsOrExit(args, defaultInputs = defaultInputs)
+  def run(
+    options: RunOptions,
+    inputArgs: Seq[String],
+    programArgs: Seq[String],
+    defaultInputs: () => Option[Inputs]
+  ): Unit = {
+    val inputs = options.shared.inputsOrExit(inputArgs, defaultInputs = defaultInputs)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
@@ -31,7 +41,7 @@ object Run extends ScalaCommand[RunOptions] {
         inputs.workspace,
         inputs.projectName,
         build,
-        args.unparsed,
+        programArgs,
         logger,
         allowExecve = allowTerminate,
         exitOnError = allowTerminate,

@@ -23,6 +23,7 @@ Aliases: `-q`
 
 Available in commands:
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -94,6 +95,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -161,6 +163,7 @@ Available in commands:
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -183,6 +186,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -214,6 +218,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -254,6 +259,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -331,6 +337,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 - [`update`](./commands.md#update)
 - [`version`](./commands.md#version)
@@ -423,6 +430,7 @@ Binary directory
 Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -451,6 +459,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -494,6 +503,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -521,6 +531,7 @@ Available in commands:
 - [`export`](./commands.md#export)
 - [`package`](./commands.md#package)
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -765,6 +776,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -808,6 +820,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -865,6 +878,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -898,6 +912,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -1002,6 +1017,7 @@ Available in commands:
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 

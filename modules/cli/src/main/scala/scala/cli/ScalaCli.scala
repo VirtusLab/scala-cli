@@ -31,6 +31,7 @@ object ScalaCli extends CommandsEntryPoint {
     Package,
     Run,
     SetupIde,
+    Shebang,
     Test,
     Update,
     Version

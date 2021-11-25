@@ -99,7 +99,7 @@ final case class SharedOptions(
   @Hidden
     defaultForbiddenDirectories: Boolean = true,
   @Hidden
-    forbid: List[String] = Nil
+    forbid: List[String] = Nil,
 ) {
   // format: on
 
@@ -195,6 +195,11 @@ final case class SharedOptions(
   def inputsOrExit(
     args: RemainingArgs,
     defaultInputs: () => Option[Inputs] = () => Inputs.default()
+  ): Inputs = inputsOrExit(args.remaining, defaultInputs)
+
+  def inputsOrExit(
+    args: Seq[String],
+    defaultInputs: () => Option[Inputs]
   ): Inputs = {
     val download: String => Either[String, Array[Byte]] = { url =>
       val artifact = Artifact(url).withChanging(true)
@@ -209,7 +214,7 @@ final case class SharedOptions(
       .map(os.Path(_, Os.pwd))
       .map(Inputs.ResourceDirectory(_))
     val inputs = Inputs(
-      args.remaining,
+      args,
       Os.pwd,
       directories.directories,
       defaultInputs = defaultInputs,

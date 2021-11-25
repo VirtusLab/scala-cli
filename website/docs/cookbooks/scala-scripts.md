@@ -33,7 +33,7 @@ Hello from Scala .*, Java .*
 Alternatively, you can add a "shebang" header to your script, make it executable, and execute it directly with `scala-cli`. For example, given this script with a header that invokes `scala-cli`:
 
 ```scala title=HelloScriptSheBang.sc
-#!/usr/bin/env scala-cli
+#!/usr/bin/env -S scala-cli shebang
 
 val sv = scala.util.Properties.versionNumberString
 
@@ -59,7 +59,7 @@ Hello from Scala .*, Java .*
 You can also pass command line arguments to Scala scripts:
 
 ```scala title=ScriptArguments.sc
-#!/usr/bin/env scala-cli
+#!/usr/bin/env -S scala-cli shebang
 println(args(1))
 ```
 
