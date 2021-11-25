@@ -25,6 +25,9 @@ import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
+import scala.build.internal.{OsLibc, StableScalaVersion, Util}
+import scala.build.{Artifacts, Logger, Os, Positioned}
+import scala.util.Properties
 
 final case class BuildOptions(
   scalaOptions: ScalaOptions = ScalaOptions(),
