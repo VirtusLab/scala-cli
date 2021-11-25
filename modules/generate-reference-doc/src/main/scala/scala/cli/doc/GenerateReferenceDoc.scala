@@ -297,7 +297,8 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     if (options.check) {
       val content = Seq(
         (os.rel / "cli-options.md") -> cliOptionsContent0,
-        (os.rel / "commands.md")    -> commandsContent0
+        (os.rel / "commands.md")    -> commandsContent0,
+        (os.rel / "directives.md")  -> usingContent0
       )
       var anyDiff = false
       for ((dest, content0) <- content) {
