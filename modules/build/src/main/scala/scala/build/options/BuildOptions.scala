@@ -14,6 +14,12 @@ import java.security.MessageDigest
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.build.errors.{BuildException, Diagnostic, InvalidBinaryScalaVersionError}
+import scala.build.errors.{
+  BuildException,
+  InvalidBinaryScalaVersionError,
+  NoValidScalaVersionFoundError,
+  UnsupportedScalaVersionError
+}
 import scala.build.internal.Constants._
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.options.validation.BuildOptionsRule
