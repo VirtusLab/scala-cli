@@ -31,7 +31,7 @@ Adds compiler plugins
 
 Manually add JAR(s) to the class path
 
-using jar _path_ 
+using jar _path_
 
 using jars _path1_ _path2_ …
 

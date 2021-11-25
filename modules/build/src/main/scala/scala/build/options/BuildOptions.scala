@@ -10,10 +10,10 @@ import java.nio.file.Path
 import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.{BuildException, InvalidBinaryScalaVersionError}
+import scala.build.errors.{BuildException, Diagnostic, InvalidBinaryScalaVersionError}
 import scala.build.internal.Constants._
 import scala.build.internal.{Constants, OsLibc, Util}
-import scala.build.options.validation.{BuildOptionsRule, ValidationException}
+import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
 
@@ -360,7 +360,7 @@ final case class BuildOptions(
   def orElse(other: BuildOptions): BuildOptions =
     BuildOptions.monoid.orElse(this, other)
 
-  def validate: Seq[ValidationException] = BuildOptionsRule.validateAll(this)
+  def validate: Seq[Diagnostic] = BuildOptionsRule.validateAll(this)
 }
 
 object BuildOptions {

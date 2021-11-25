@@ -1,7 +1,6 @@
 package scala.build.options
 
 import shapeless._
-import scala.build.Positioned
 
 trait ConfigMonoid[T] {
   def zero: T

@@ -15,6 +15,7 @@ import scala.build.bloop.BloopServer
 import scala.build.blooprifle.{BloopRifleConfig, VersionUtil}
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
+import scala.build.options.validation.ValidationException
 import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
@@ -378,11 +379,9 @@ object Build {
     options: BuildOptions
   ): Either[BuildException, Unit] = {
     val (errors, otherDiagnostics) = options.validate.toSeq.partition(_.severity == Severity.ERROR)
-    otherDiagnostics.foreach { e =>
-      logger.log(e, e.severity)
-    }
+    logger.log(otherDiagnostics)
     if (errors.nonEmpty)
-      Left(CompositeBuildException(errors))
+      Left(CompositeBuildException(errors.map(new ValidationException(_))))
     else
       Right(())
   }
