@@ -204,12 +204,12 @@ final case class BuildOptions(
     //  it uses stable scala versions from Deps.sc
     val supportedScalaVersions =
       launchersTask.attempt.unsafeRun()(finalCache.ec) match {
-        case Left(ex) =>
-          // FIXME Log ex
+        case Left(_) =>
+          // FIXME Log the exception
           defaultStableScalaVersions
         case Right(versions) =>
           versions
-            .find(_ == scalaCliVersion)
+            .find(_.scalaCliVersion == scalaCliVersion)
             .map(_.supportedScalaVersions)
             .getOrElse {
               // FIXME Log that: logger.debug(s"Couldn't find Scala CLI version $scalaCliVersion in $versions")
