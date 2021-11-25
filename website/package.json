@@ -21,6 +21,7 @@
     "docusaurus-plugin-sass": "^0.2.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-player": "^2.9.0",
     "sass": "^1.42.1"
   },
   "browserslist": {

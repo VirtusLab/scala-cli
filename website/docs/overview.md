@@ -30,6 +30,7 @@ Prefer another way to install Scala CLI? See our [Advanced installation guide](/
 ## What’s next?
 
 Scala-CLI documentation is split into three main sections:
+- [Getting started](./getting_started.md), where you learn how to start with Scala CLI
 - [Commands](./commands/basics.md), where you learn the most important Scala CLI commands
 - [Guides](./guides/intro.md), where you can read about the core aspects of Scala CLI, and learn how Scala CLI interacts with other tools, like your IDE
 - Scala CLI [Cookbook](./cookbooks/intro.md), where you can learn how to solve specific problems with Scala CLI

@@ -11,7 +11,6 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
   echo "println(1)" | scala-cli -
-
   cat <<EOF > demo.test.scala | 
 // using lib "org.scalameta::munit:0.7.29"
 EOF
@@ -29,7 +28,10 @@ EOF
 
   pe "scala-cli compile demo.scala" || true
 
-  doSleep 5
+  cat <<EOF | updateFile demo.scala
+@main def demo(args: String *) = 
+  println(args.mkStrink) // Oops, a typo!
+EOF
 
   clearConsole
 
