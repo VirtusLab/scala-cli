@@ -352,7 +352,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     val from = build.options.packageOptions.dockerOptions.from.getOrElse {
       build.options.platform match {
-        case Platform.JVM    => "openjdk:8-jre-slim"
+        case Platform.JVM    => "openjdk:11-jre-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
       }
