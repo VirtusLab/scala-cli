@@ -48,8 +48,8 @@ object HashedField extends LowPriorityHashedField {
     ordering: Ordering[K]
   ): HashedField[Map[K, V]] = {
     (name, map0, update) =>
-      for (t <- map0.keys.toVector.sorted(ordering))
-        update(s"$name+=${hasherK.value.hashedValue(t) + hasherV.value.hashedValue(map0(t))}")
+      for ((k, v) <- map0.toVector.sortBy(_._1)(ordering))
+        update(s"$name+=${hasherK.value.hashedValue(k)}${hasherV.value.hashedValue(v)}")
   }
 
 }
