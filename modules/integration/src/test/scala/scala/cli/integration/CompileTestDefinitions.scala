@@ -261,7 +261,9 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           cwd = root,
           stderr = os.Pipe
         )
-        expect(res.err.text().contains("Conflicting options"))
+        val stderr = res.err.text()
+        expect(s"\\[.*warn.*\\].*Conflicting options.*".r.findFirstMatchIn(stderr).isDefined)
+
       }
     }
 }
