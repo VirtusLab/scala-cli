@@ -21,7 +21,7 @@ final case class ScalaOptions(
       opt = opt.copy(
         extraScalaVersions = opt.extraScalaVersions - sv
       )
-    for (pf <- opt.platform.map(_.value) if opt.extraPlatforms.keys.toList.contains(pf))
+    for (pf <- opt.platform.map(_.value) if opt.extraPlatforms.keySet.contains(pf))
       opt = opt.copy(
         extraPlatforms = opt.extraPlatforms - pf
       )
