@@ -299,7 +299,7 @@ final case class BuildOptions(
     this +: sortedExtraPlatforms.map { case (pf, pos) =>
       copy(
         scalaOptions = scalaOptions0.copy(
-          platform = Some(Positioned(List(pos.positions.head), pf)),
+          platform = Some(Positioned(pos.positions, pf)),
           extraPlatforms = Map.empty
         )
       )
