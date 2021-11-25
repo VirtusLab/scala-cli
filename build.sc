@@ -33,12 +33,16 @@ implicit def millModuleBasePath: define.BasePath =
 object cli            extends Cli
 object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal)
 object build          extends Cross[Build](Scala.defaultInternal)
-object stubs          extends JavaModule with ScalaCliPublishModule
 object runner         extends Cross[Runner](Scala.all: _*)
 object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
 object `bloop-rifle`  extends Cross[BloopRifle](Scala.allScala2: _*)
 object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
 
+object stubs extends JavaModule with ScalaCliPublishModule {
+  def javacOptions = T {
+    super.javacOptions() ++ Seq("-target", "8", "-source", "8")
+  }
+}
 object integration extends Module {
   object docker extends CliIntegrationDocker {
     object test extends Tests {
@@ -529,7 +533,7 @@ class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaC
     super.scalacOptions() ++ {
       if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
       else Nil
-    } ++ Seq("-release", "8")
+    }
   )
 
 }
