@@ -1,6 +1,6 @@
 package scala.build.errors
 
-sealed trait Severity
+sealed abstract class Severity extends Product with Serializable
 
 object Severity {
   case object Error   extends Severity
