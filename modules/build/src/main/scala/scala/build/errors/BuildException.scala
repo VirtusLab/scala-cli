@@ -3,9 +3,9 @@ package scala.build.errors
 import scala.build.Position
 
 case class Diagnostic(
-  val message: String,
-  val positions: Seq[Position] = Nil,
-  val severity: Severity
+  message: String,
+  severity: Severity,
+  positions: Seq[Position] = Nil
 )
 
 abstract class BuildException(
