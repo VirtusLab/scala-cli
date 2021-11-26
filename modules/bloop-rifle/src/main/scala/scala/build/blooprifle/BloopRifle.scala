@@ -176,26 +176,6 @@ object BloopRifle {
 
   def nullInputStream() = new FileInputStream(Util.devNull)
 
-  // Probably we should implement an endpoint in Bloop to get this
-  // information in better form. I'm not sure error here should be escalated or ignored.
-  private def extractVersionFromBloopAbout(stdoutFromBloopAbout: String)
-    : Option[BloopServerRuntimeInfo] = {
-
-    val bloopVersionRegex = "bloop v(.*)\\s".r
-    val bloopJvmRegex     = "Running on Java JDK v([0-9._A-Za-z]+) [(](.*)[)]".r
-
-    for {
-      bloopVersion    <- bloopVersionRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(1))
-      bloopJvmVersion <- bloopJvmRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(1))
-      javaHome        <- bloopJvmRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(2))
-      jvmRelease      <- VersionUtil.jvmRelease(bloopJvmVersion)
-    } yield BloopServerRuntimeInfo(
-      bloopVersion = BloopVersion(bloopVersion),
-      jvmVersion = jvmRelease,
-      javaHome = javaHome
-    )
-  }
-
   def getCurrentBloopVersion(
     config: BloopRifleConfig,
     logger: BloopRifleLogger,
@@ -217,7 +197,7 @@ object BloopRifle {
         scheduler
       )
       val bloopAboutOutput = new String(bufferedOStream.toByteArray)
-      extractVersionFromBloopAbout(bloopAboutOutput) match {
+      VersionUtil.parseBloopAbout(bloopAboutOutput) match {
         case Some(value) => Right(value)
         case None        => Left(ParsingFailed(bloopAboutOutput))
       }
