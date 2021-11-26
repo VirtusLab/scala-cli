@@ -315,7 +315,7 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: artifacts/
-      - uses: webfactory/ssh-agent@5f066a372ec13036ab7cb9a8adf18c936f8d2043
+      - uses: webfactory/ssh-agent@fc49353b67b2b7c1e0e6a600572d01a69f2672dd
         with:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
