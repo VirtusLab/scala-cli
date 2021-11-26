@@ -378,7 +378,7 @@ object Build {
     logger: Logger,
     options: BuildOptions
   ): Either[BuildException, Unit] = {
-    val (errors, otherDiagnostics) = options.validate.toSeq.partition(_.severity == Severity.ERROR)
+    val (errors, otherDiagnostics) = options.validate.toSeq.partition(_.severity == Severity.Error)
     logger.log(otherDiagnostics)
     if (errors.nonEmpty)
       Left(CompositeBuildException(errors.map(new ValidationException(_))))

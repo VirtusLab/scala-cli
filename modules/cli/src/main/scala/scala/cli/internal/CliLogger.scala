@@ -69,8 +69,8 @@ class CliLogger(
         val range    = new b.Range(startPos, endPos)
         val diag     = new b.Diagnostic(range, message)
         diag.setSeverity(severity match {
-          case Severity.ERROR   => b.DiagnosticSeverity.ERROR
-          case Severity.WARNING => b.DiagnosticSeverity.WARNING
+          case Severity.Error   => b.DiagnosticSeverity.ERROR
+          case Severity.Warning => b.DiagnosticSeverity.WARNING
         })
 
         for (file <- f.path) {
@@ -104,7 +104,7 @@ class CliLogger(
         for (ex <- c.exceptions)
           printEx(ex, contentCache)
       case _ =>
-        printDiagnostic(ex.positions, Severity.ERROR, ex.getMessage(), contentCache)
+        printDiagnostic(ex.positions, Severity.Error, ex.getMessage(), contentCache)
     }
 
   def log(ex: BuildException): Unit =

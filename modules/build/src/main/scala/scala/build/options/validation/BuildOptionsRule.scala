@@ -21,8 +21,8 @@ object JvmOptionsForNonJvmBuild extends BuildOptionsRule {
     if (jvmOptions.nonEmpty && options.platform.value != scala.build.options.Platform.JVM)
       List(Diagnostic(
         "Conflicting options. Jvm Options are valid only for jvm platform.",
-        options.platform.positions ++ jvmOptions.get.positions,
-        Severity.WARNING
+        Severity.Warning,
+        options.platform.positions ++ jvmOptions.get.positions
       ))
     else Nil
   }
