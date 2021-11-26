@@ -8,7 +8,8 @@ class ParsingTests extends munit.FunSuite {
 
   implicit class BV(s: String) {
     implicit def v = BloopVersion(s)
-    implicit def p = parseBloopAbout(_)
+    implicit def p = parseBloopAbout(s)
+    implicit def j = jvmRelease(s)
   }
 
   test("bloop version comparisons test") {
@@ -21,15 +22,13 @@ class ParsingTests extends munit.FunSuite {
   }
 
   test("jvm release parsing test") {
-    def j = jvmRelease _
-    expect(j("1.8") == Some(8))
-    expect(j("1.8.75") == Some(8))
-    expect(j("1.8.64_3") == Some(8))
-    expect(j("1.8_3") == Some(8))
-    expect(j("9") == Some(9))
-    expect(j("14") == Some(14))
-    expect(j("17") == Some(17))
-
+    expect("1.8".j == Some(8))
+    expect("1.8.75".j == Some(8))
+    expect("1.8.64_3".j == Some(8))
+    expect("1.8_3".j == Some(8))
+    expect("9".j == Some(9))
+    expect("14".j == Some(14))
+    expect("17".j == Some(17))
   }
 
   val jreBloopOutput =
