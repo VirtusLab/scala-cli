@@ -11,7 +11,7 @@ final case class ClassPathOptions(
   extraSourceJars: Seq[os.Path] = Nil,
   fetchSources: Option[Boolean] = None,
   extraDependencies: Seq[Positioned[AnyDependency]] = Nil,
-  resourceVirtualDir: Seq[String] = Nil
+  resourceVirtualDir: Seq[os.SubPath] = Nil
 )
 
 object ClassPathOptions {

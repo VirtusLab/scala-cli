@@ -27,7 +27,7 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
           val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
           val paths0                    = rootOpt.map(root => paths.map(os.Path(_, root)))
           val virtualPaths = virtualRootOpt.map(virtualRoot =>
-            paths.map(path => virtualRoot / os.SubPath(path)).map(_.toString())
+            paths.map(path => virtualRoot / os.SubPath(path))
           )
           BuildOptions(
             classPathOptions = ClassPathOptions(
@@ -51,7 +51,7 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     val paths                     = DirectiveUtil.stringValues(values)
     val paths0                    = rootOpt.map(root => paths.map(os.Path(_, root)))
     val virtualPaths = virtualRootOpt.map(virtualRoot =>
-      paths.map(path => virtualRoot / os.SubPath(path)).map(_.toString())
+      paths.map(path => virtualRoot / os.SubPath(path))
     )
     BuildOptions(
       classPathOptions = ClassPathOptions(

@@ -264,7 +264,7 @@ object Inputs {
   }
 
   private val githubGistsArchiveRegex: Regex =
-    s""":\\/\\/gist\\.github\\.com\\/[^\\/]*?\\/[^\\/]*$$""".r
+    s"""gist\\.github\\.com\\/[^\\/]*?\\/[^\\/]*$$""".r
 
   private def forNonEmptyArgs(
     args: Seq[String],

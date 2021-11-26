@@ -19,6 +19,10 @@ object HashedType {
     path => path.toString
   }
 
+  implicit val subPath: HashedType[os.SubPath] = {
+    path => path.toString
+  }
+
   implicit val boolean: HashedType[Boolean] = {
     bool => bool.toString
   }
