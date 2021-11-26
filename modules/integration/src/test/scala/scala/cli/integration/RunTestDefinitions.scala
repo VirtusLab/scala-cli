@@ -894,6 +894,22 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("Main class in config file") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "simple.scala" ->
+          s"""using main-class hello
+             |object hello extends App { println("hello") }
+             |object world extends App { println("world") }
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.text().trim
+      expect(output == "hello")
+    }
+  }
+
   def simpleScriptDistrolessImage(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -1020,11 +1036,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
   test("resources") {
     resourcesInputs().fromRoot { root =>
-      os.proc(TestUtil.cli, "run", "src", "--resources", "./src/proj/resources").call(cwd = root)
+      os.proc(TestUtil.cli, "run", "src", "--resource-dirs", "./src/proj/resources").call(cwd =
+        root)
     }
   }
   test("resources via directive") {
-    resourcesInputs("using resources ./resources").fromRoot { root =>
+    resourcesInputs("using resourceDirs ./resources").fromRoot { root =>
       os.proc(TestUtil.cli, "run", ".").call(cwd = root)
     }
   }
@@ -1033,7 +1050,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "MyScript.scala" ->
-          """#!/usr/bin/env scala-cli
+          """#!/usr/bin/env -S scala-cli shebang
             |object MyScript {
             |  def main(args: Array[String]): Unit =
             |    println("Hello" + args.map(" " + _).mkString)
@@ -1125,4 +1142,31 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  if (!Properties.isWin)
+    test("CLI args passed to shebang script") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "f.sc" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
+                                 |using scala $actualScalaVersion
+                                 |println(args.toList)""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        os.perms.set(root / "f.sc", os.PermSet.fromString("rwx------"))
+        val p = os.proc("./f.sc", "1", "2", "3", "-v").call(cwd = root)
+        expect(p.out.text().trim == "List(1, 2, 3, -v)")
+      }
+    }
+
+  test("Runs with JVM 8") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "run.scala" -> """object Main extends App { println("hello")}"""
+      )
+    )
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "run.scala", "--jvm", "8").call(cwd = root)
+      expect(p.out.text().trim == "hello")
+    }
+  }
 }

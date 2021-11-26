@@ -1,13 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import coursier.launcher.{
-  AssemblyGenerator,
-  BootstrapGenerator,
-  ClassPathEntry,
-  Parameters,
-  Preamble
-}
+import coursier.launcher._
 import org.scalajs.linker.interface.StandardConfig
 import packager.config._
 import packager.deb.DebianPackage
@@ -26,7 +20,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.internal.ScalaJsConfig
+import scala.build.internal.{NativeBuilderHelper, ScalaJsConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.commands.OptionsHelper._
@@ -358,7 +352,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     val from = build.options.packageOptions.dockerOptions.from.getOrElse {
       build.options.platform match {
-        case Platform.JVM    => "openjdk:8-jre-slim"
+        case Platform.JVM    => "openjdk:11-jre-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
       }
@@ -408,11 +402,10 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     logger: Logger
   ): Unit = {
-    val config = build.options.scalaNativeOptions.config
     val workDir =
       build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
 
-    buildNative(build, mainClass, destPath, config, workDir, logger.scalaNativeLogger)
+    buildNative(build, mainClass, destPath, workDir, logger.scalaNativeLogger)
   }
 
   private def bootstrap(
@@ -543,24 +536,29 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful,
     mainClass: String,
     dest: os.Path,
-    nativeConfig: sn.NativeConfig,
     nativeWorkDir: os.Path,
     nativeLogger: sn.Logger
   ): Unit = {
 
+    val nativeConfig = build.options.scalaNativeOptions.config()
+
     os.makeDir.all(nativeWorkDir)
+    val changed = NativeBuilderHelper.shouldBuildIfChanged(build, nativeConfig, dest, nativeWorkDir)
 
-    withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
-      val config = sn.Config.empty
-        .withCompilerConfig(nativeConfig)
-        .withMainClass(mainClass + "$")
-        .withClassPath(mainJar +: build.artifacts.classPath)
-        .withWorkdir(nativeWorkDir.toNIO)
-        .withLogger(nativeLogger)
+    if (changed)
+      withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
+        val config = sn.Config.empty
+          .withCompilerConfig(nativeConfig)
+          .withMainClass(mainClass + "$")
+          .withClassPath(mainJar +: build.artifacts.classPath)
+          .withWorkdir(nativeWorkDir.toNIO)
+          .withLogger(nativeLogger)
 
-      Scope { implicit scope =>
-        sn.Build.build(config, dest.toNIO)
+        Scope { implicit scope =>
+          sn.Build.build(config, dest.toNIO)
+        }
+
+        NativeBuilderHelper.updateOutputSha(dest, nativeWorkDir)
       }
-    }
   }
 }

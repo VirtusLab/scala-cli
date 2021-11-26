@@ -22,7 +22,9 @@ object ScalacOptions {
   private val scalacOptionsArg = Arg("scalacOption")
     .withExtraNames(Seq(Name("scala-opt"), Name("O")))
     .withValueDescription(Some(ValueDescription("option")))
-    .withHelpMessage(Some(HelpMessage("Add a `scalac` option")))
+    .withHelpMessage(Some(HelpMessage(
+      "Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`."
+    )))
     .withGroup(Some(Group("Scala")))
     .withOrigin(Some("ScalacOptions"))
   // .withIsFlag(true) // The scalac options we handle accept no value after the -… argument
@@ -33,9 +35,8 @@ object ScalacOptions {
 
       val underlying = StandardArgument[List[String]](scalacOptionsArg)
 
-      val arg = scalacOptionsArg.withExtraNames(
-        scalacOptionsArg.extraNames ++ scalacOptionsPrefixes.toVector.map(Name(_))
-      )
+      val arg = scalacOptionsArg
+
       def withDefaultOrigin(origin: String) = this
       def init                              = Some(Nil)
       def step(args: List[String], acc: Option[List[String]], formatter: Formatter[Name]) =

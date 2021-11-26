@@ -14,6 +14,8 @@ import scala.build.tests.TestUtil._
 import scala.build.{Bloop, BuildThreads, Directories, LocalRepo, Logger}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
+import scala.build.errors.BuildException
+import scala.build.preprocessing.directives.SingleValueExpected
 
 class BuildTests extends munit.FunSuite {
 
@@ -567,6 +569,43 @@ class BuildTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(clue(maybeBuild.orThrow.diagnostics).toSeq.flatten.isEmpty)
+    }
+  }
+
+  test("ScalaNative Options with multiple values") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """using native-gc 78 12
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.isLeft)
+      assert(maybeBuild.left.get == SingleValueExpected("native-gc", Seq("78", "12")))
+    }
+
+  }
+
+  test("ScalaNative Options for native-gc") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """using native-gc 78
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.gcStr.get == "78")
     }
   }
 }

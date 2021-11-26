@@ -89,7 +89,7 @@ We have a dedicated [Scala Native guide](../guides/scala-native.md) as well.
 Scala CLI can also compile and run Scala scripts:
 
 ```scala title=HelloScript.sc
-#!/usr/bin/env scala-cli
+#!/usr/bin/env -S scala-cli shebang
 
 println("Hello world from scala script")
 ```

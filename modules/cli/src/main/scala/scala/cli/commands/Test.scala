@@ -144,7 +144,6 @@ object Test extends ScalaCommand[TestOptions] {
           Run.withNativeLauncher(
             build,
             "scala.scalanative.testinterface.TestMain",
-            build.options.scalaNativeOptions.config,
             build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
             logger.scalaNativeLogger
           ) { launcher =>

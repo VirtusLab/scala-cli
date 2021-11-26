@@ -25,28 +25,28 @@ final case class ScalaNativeOptions(
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
 
-  private def gc: sn.GC =
+  private def gc(): sn.GC =
     gcStr.map(_.trim).filter(_.nonEmpty) match {
       case Some("default") | None => sn.GC.default
       case Some(other)            => sn.GC(other)
     }
-  private def mode: sn.Mode =
+  private def mode(): sn.Mode =
     modeStr.map(_.trim).filter(_.nonEmpty) match {
       case Some("default") | None => sn.Discover.mode()
       case Some(other)            => sn.Mode(other)
     }
 
-  private def clangPath = clang
+  private def clangPath() = clang
     .filter(_.nonEmpty)
     .map(Paths.get(_))
     .getOrElse(sn.Discover.clang())
-  private def clangppPath = clangpp
+  private def clangppPath() = clangpp
     .filter(_.nonEmpty)
     .map(Paths.get(_))
     .getOrElse(sn.Discover.clangpp())
-  private def finalLinkingOptions =
+  private def finalLinkingOptions() =
     linkingOptions ++ (if (linkingDefaults.getOrElse(true)) sn.Discover.linkingOptions() else Nil)
-  private def finalCompileOptions =
+  private def finalCompileOptions() =
     compileOptions ++ (if (compileDefaults.getOrElse(true)) sn.Discover.compileOptions() else Nil)
 
   def platformSuffix: String =
@@ -57,21 +57,21 @@ final case class ScalaNativeOptions(
   def compilerPlugins: Seq[AnyDependency] =
     Seq(dep"org.scala-native:::nscplugin:$finalVersion")
 
-  private def bloopConfigUnsafe: BloopConfig.NativeConfig =
+  def bloopConfig(): BloopConfig.NativeConfig =
     BloopConfig.NativeConfig(
       version = finalVersion,
       // there are more modes than bloop allows, but that setting here shouldn't end up being used anyway
       mode =
-        if (mode.name == "release") BloopConfig.LinkerMode.Release
+        if (mode().name == "release") BloopConfig.LinkerMode.Release
         else BloopConfig.LinkerMode.Debug,
-      gc = gc.name,
+      gc = gc().name,
       targetTriple = None,
-      clang = clangPath,
-      clangpp = clangppPath,
+      clang = clangPath(),
+      clangpp = clangppPath(),
       toolchain = Nil,
       options = BloopConfig.NativeOptions(
-        linker = finalLinkingOptions,
-        compiler = finalCompileOptions
+        linker = finalLinkingOptions(),
+        compiler = finalCompileOptions()
       ),
       linkStubs = false,
       check = false,
@@ -79,21 +79,15 @@ final case class ScalaNativeOptions(
       output = None
     )
 
-  def bloopConfig: BloopConfig.NativeConfig =
-    bloopConfigUnsafe
-
-  private def configUnsafe: sn.NativeConfig =
+  def config(): sn.NativeConfig =
     sn.NativeConfig.empty
-      .withGC(gc)
-      .withMode(mode)
+      .withGC(gc())
+      .withMode(mode())
       .withLinkStubs(false)
-      .withClang(clangPath)
-      .withClangPP(clangppPath)
+      .withClang(clangPath())
+      .withClangPP(clangppPath())
       .withLinkingOptions(linkingOptions)
       .withCompileOptions(compileOptions)
-
-  def config: sn.NativeConfig =
-    configUnsafe
 
 }
 

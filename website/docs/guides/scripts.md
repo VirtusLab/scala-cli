@@ -54,29 +54,13 @@ scala-cli my-app --main-class main
 
 Both of the previous scripts (`hello.sc` and `main.sc`) automatically get a main class, so this is required to disambiguate them.
 
-### Aguments
-
-You may also pass arguments to your script, and they are referenced with the special `args` variable:
-
-```scala title=p.sc
-#!/usr/bin/env scala-cli
-
-println(args(1))
-```
-
-```bash
-chmod +x p.sc
-./p.sc hello world
-# world
-```
-
 ### Self executable Scala Script
 
-You can define a file with the “shebang” header to be self-executable. For example, given this script:
+You can define a file with the “shebang” header to be self-executable. Please remember to use `scala-cli shebang`
+command, which makes `scala-cli` compatible with Unix shebang interpreter directive.  For example, given this script:
 
 ```scala title=HelloScript.sc
-#!/usr/bin/env scala-cli
-
+#!/usr/bin/env -S scala-cli shebang
 println("Hello world")
 ```
 
@@ -86,6 +70,27 @@ You can make it executable and run it, just like any other shell script:
 chmod +x HelloScript.sc
 ./HelloScript.sc
 # Hello world
+```
+
+It is also possible to set `scala-cli` command-line options in the shebang line, for example
+```scala title=Shebang213.sc
+#!/usr/bin/env -S scala-cli shebang --scala-version 2.13
+```
+
+### Aguments
+
+You may also pass arguments to your script, and they are referenced with the special `args` variable:
+
+```scala title=p.sc
+#!/usr/bin/env -S scala-cli shebang
+
+println(args(1))
+```
+
+```bash
+chmod +x p.sc
+./p.sc hello world
+# world
 ```
 
 ### Difference with Ammonite scripts

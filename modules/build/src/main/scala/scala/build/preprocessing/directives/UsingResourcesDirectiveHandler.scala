@@ -7,22 +7,22 @@ import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
 
 case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
-  def name        = "Resources"
+  def name        = "Resource directories"
   def description = "Manually add a resource directory to the class path"
   def usage = """using resource _path_
                 |
                 |using resources _path1_ _path2_ …""".stripMargin
   override def usageMd =
-    """`using resource `_path_
+    """`using resourceDir `_path_
       |
-      |`using resources `_path1_ _path2_ …""".stripMargin
+      |`using resourceDirs `_path1_ _path2_ …""".stripMargin
   override def examples = Seq(
-    "using resource \"./resources\""
+    "using resourceDir \"./resources\""
   )
 
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
-      case Seq("resource" | "resources", paths @ _*) =>
+      case Seq("resourceDir" | "resourceDirs", paths @ _*) =>
         val res = either {
           val root   = value(Directive.osRoot(cwd, Some(directive.position)))
           val paths0 = paths.map(os.Path(_, root))
@@ -37,7 +37,7 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
         None
     }
 
-  override def keys = Seq("resource", "resources")
+  override def keys = Seq("resourceDir", "resourceDirs")
   override def handleValues(
     values: Seq[Any],
     cwd: ScopePath,

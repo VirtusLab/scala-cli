@@ -57,6 +57,3 @@ scala-cli package --native --docker HelloDocker.scala --docker-image-repository 
 :::note
 Packaging a Scala Native application to a Docker image is supported only on Linux.
 :::
-
-
-

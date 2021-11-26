@@ -549,7 +549,7 @@ object Build {
         if (options.platform == Platform.JS) Some(options.scalaJsOptions.config)
         else None,
       scalaNativeOptions =
-        if (options.platform == Platform.Native) Some(options.scalaNativeOptions.bloopConfig)
+        if (options.platform == Platform.Native) Some(options.scalaNativeOptions.bloopConfig())
         else None,
       projectName = inputs.scopeProjectName(scope),
       classPath = artifacts.compileClassPath ++ mainClassesPath,

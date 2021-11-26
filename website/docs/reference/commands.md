@@ -29,6 +29,7 @@ Accepts options:
 Clean the workspace
 
 Accepts options:
+- [bsp file](./cli-options.md#bsp-file-options)
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 
@@ -198,6 +199,7 @@ Accepts options:
 Generate a BSP file that you can import into your IDE
 
 Accepts options:
+- [bsp file](./cli-options.md#bsp-file-options)
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
@@ -209,6 +211,49 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [setup IDE](./cli-options.md#setup-ide-options)
 - [shared](./cli-options.md#shared-options)
+
+## `shebang`
+
+This command is an equivalent of `run`, but it changes the way how
+`scala-cli` parses it's command-line arguments in order to be compatibility
+with shebang scripts.
+
+Normally, inputs and scala-cli options can be mixed. Program have to be specified after `--`
+
+```sh
+scala-cli [command] [scala_cli_options | input]... -- [program_arguments]...
+```
+
+Contrary, for shebang command, only a single input file can be set, all scala-cli options
+have to be set before the input file, and program arguments after the input file
+```sh
+scala-cli shebang [scala_cli_options]... input [program_arguments]...
+```
+
+Using this, it is possible to conveniently set up Unix shebang scripts. For example:
+```sh
+#!/usr/bin/env -S scala-cli shebang --scala-version 2.13
+println("Hello, world)
+```
+
+
+
+Accepts options:
+- [benchmarking](./cli-options.md#benchmarking-options)
+- [compilation server](./cli-options.md#compilation-server-options)
+- [compile cross](./cli-options.md#compile-cross-options)
+- [coursier](./cli-options.md#coursier-options)
+- [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
+- [java](./cli-options.md#java-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [main class](./cli-options.md#main-class-options)
+- [Scala.JS](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [shared](./cli-options.md#shared-options)
+- [watch](./cli-options.md#watch-options)
 
 ## `test`
 

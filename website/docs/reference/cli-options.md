@@ -23,6 +23,7 @@ Aliases: `-q`
 
 Available in commands:
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -59,6 +60,27 @@ Available in commands:
 
 Command-line options JSON file
 
+## Bsp file options
+
+Available in commands:
+- [`clean`](./commands.md#clean)
+- [`setup-ide`](./commands.md#setup-ide)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--bsp-directory`
+
+Aliases: `--bsp-dir`
+
+Custom BSP configuration location
+
+#### `--bsp-name`
+
+Aliases: `--name`
+
+Name of BSP
+
 ## Compilation server options
 
 Available in commands:
@@ -73,6 +95,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -140,6 +163,7 @@ Available in commands:
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -162,6 +186,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -193,6 +218,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -233,6 +259,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -310,6 +337,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 - [`update`](./commands.md#update)
 - [`version`](./commands.md#version)
@@ -402,6 +430,7 @@ Binary directory
 Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -430,6 +459,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -473,6 +503,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -500,6 +531,7 @@ Available in commands:
 - [`export`](./commands.md#export)
 - [`package`](./commands.md#package)
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -744,6 +776,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -787,6 +820,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -844,6 +878,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -851,9 +886,9 @@ Available in commands:
 
 #### `--scalac-option`
 
-Aliases: `--scala-opt`, `-O`, `-P`, `-W`, `-g`, `-X`, `-language`, `-Y`, `-V`, `-target`, `-opt`
+Aliases: `--scala-opt`, `-O`
 
-Add a `scalac` option
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
 
 ## Setup IDE options
 
@@ -862,18 +897,6 @@ Available in commands:
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--bsp-directory`
-
-Aliases: `--bsp-dir`
-
-Custom BSP configuration location
-
-#### `--bsp-name`
-
-Aliases: `--name`
-
-Name of BSP
 
 #### `--charset`
 
@@ -889,6 +912,7 @@ Available in commands:
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 
@@ -924,9 +948,9 @@ Aliases: `--source-jar`, `--source-jars`, `--extra-source-jar`
 
 Add extra source JARs
 
-#### `--resources`
+#### `--resource-dirs`
 
-Aliases: `--resource`
+Aliases: `--resource-dir`
 
 Add a resource directory
 
@@ -993,6 +1017,7 @@ Available in commands:
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
 

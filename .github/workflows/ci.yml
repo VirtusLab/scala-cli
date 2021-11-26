@@ -28,9 +28,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher artifacts/
       if: runner.os == 'Linux'
@@ -61,9 +61,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Generate native launcher
       run: ./mill -i show defaultNativeImage
     - name: Build OS packages
@@ -91,9 +91,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Generate native launcher
       run: ./mill -i show cli.nativeImageMostlyStatic
     - name: Build docker image
@@ -129,9 +129,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Generate native launcher
       run: ./mill -i show cli.nativeImageStatic
     - name: Copy artifacts
@@ -154,14 +154,14 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Test documentation
       run: .github/scripts/check_docs.sh
 
     - name: Test gifs
-      run: gifs/generate_gifs.sh $(ls gifs/scenarios/) 
+      run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
 
   checks:
     timeout-minutes: 15
@@ -172,9 +172,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
@@ -196,9 +196,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
         apps: scalafmt:3.0.0
     - run: scalafmt --check
 
@@ -211,9 +211,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Check that reference doc is up-to-date
       run: |
         ./mill -i generate-reference-doc.run --check || (
@@ -233,9 +233,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - run: ./mill -i ci.copyVcRedist
     - uses: actions/upload-artifact@v2.2.4
       with:
@@ -254,9 +254,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: GPG setup
       run: .github/scripts/gpg-setup.sh
       env:
@@ -280,9 +280,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - run: ./mill -i ci.setShouldPublish
     - uses: actions/download-artifact@v2
       if: env.SHOULD_PUBLISH == 'true'
@@ -305,9 +305,9 @@ jobs:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v6.3
-      - uses: coursier/setup-action@v1.1.1
+      - uses: coursier/setup-action@v1.1.2
         with:
-          jvm: 8
+          jvm: 11
       - uses: actions/download-artifact@v2
         with:
           name: launchers
@@ -315,7 +315,7 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: artifacts/
-      - uses: webfactory/ssh-agent@5f066a372ec13036ab7cb9a8adf18c936f8d2043
+      - uses: webfactory/ssh-agent@fc49353b67b2b7c1e0e6a600572d01a69f2672dd
         with:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
@@ -351,9 +351,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - run: ./mill -i ci.setShouldPublish
     - uses: actions/setup-node@v2.4.1
       if: env.SHOULD_PUBLISH == 'true'
@@ -377,9 +377,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - uses: actions/setup-node@v2.4.1
       with:
         node-version: '12.x'
