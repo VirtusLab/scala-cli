@@ -6,7 +6,7 @@ object MainClass {
 
   private def stringArrayDescriptor = "([Ljava/lang/String;)V"
 
-  private class MainMethodChecker extends asm.ClassVisitor(asm.Opcodes.ASM4) {
+  private class MainMethodChecker extends asm.ClassVisitor(asm.Opcodes.ASM9) {
     private var foundMainClass = false
     private var nameOpt        = Option.empty[String]
     def found: Boolean         = foundMainClass

@@ -9,7 +9,7 @@ object AsmPositionUpdater {
   private class LineNumberTableMethodVisitor(
     lineShift: Int,
     delegate: asm.MethodVisitor
-  ) extends asm.MethodVisitor(asm.Opcodes.ASM5, delegate) {
+  ) extends asm.MethodVisitor(asm.Opcodes.ASM9, delegate) {
     override def visitLineNumber(line: Int, start: asm.Label): Unit =
       super.visitLineNumber(line + lineShift, start)
   }
@@ -17,7 +17,7 @@ object AsmPositionUpdater {
   private class LineNumberTableClassVisitor(
     mappings: Map[String, (String, Int)],
     cw: asm.ClassWriter
-  ) extends asm.ClassVisitor(asm.Opcodes.ASM4, cw) {
+  ) extends asm.ClassVisitor(asm.Opcodes.ASM9, cw) {
     private var lineShiftOpt = Option.empty[Int]
     def mappedStuff          = lineShiftOpt.nonEmpty
     override def visitSource(source: String, debug: String): Unit =
