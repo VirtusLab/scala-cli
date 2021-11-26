@@ -113,7 +113,7 @@ object BloopServer {
     }
 
     BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool)
-      .getOrElse(throw new RuntimeException("Fatal error, could not spawn Bloop"))
+      .fold(e => throw new RuntimeException(s"Fatal error, could not spawn Bloop: $e"), identity)
   }
 
   private def connect(
