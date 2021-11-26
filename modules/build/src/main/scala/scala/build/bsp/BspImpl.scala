@@ -143,7 +143,8 @@ final class BspImpl(
   private def buildE(
     actualLocalServer: BspServer,
     bloopServer: BloopServer,
-    notifyChanges: Boolean
+    notifyChanges: Boolean,
+    settings: BloopServer.BuildServerSettings
   ): Either[(BuildException, Scope), Unit] = either {
     val (preBuildDataMain, preBuildDataTest) =
       value(prepareBuild(actualLocalServer, Some(bloopServer)))
@@ -158,7 +159,7 @@ final class BspImpl(
       Scope.Main,
       logger,
       actualLocalClient,
-      bloopServer
+      settings
     ).swap.map(e => (e, Scope.Main)).swap
     Build.buildOnce(
       inputs,
@@ -169,7 +170,7 @@ final class BspImpl(
       Scope.Test,
       logger,
       actualLocalClient,
-      bloopServer
+      settings
     ).swap.map(e => (e, Scope.Test)).swap
   }
 
@@ -178,9 +179,10 @@ final class BspImpl(
     bloopServer: BloopServer,
     client: BspClient,
     notifyChanges: Boolean,
-    logger: Logger
+    logger: Logger,
+    settings: BloopServer.BuildServerSettings
   ): Unit =
-    buildE(actualLocalServer, bloopServer, notifyChanges) match {
+    buildE(actualLocalServer, bloopServer, notifyChanges, settings) match {
       case Left((ex, scope)) =>
         client.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.debug(s"Caught $ex during BSP build, ignoring it")
@@ -314,13 +316,21 @@ final class BspImpl(
     else
       actualLocalClient
 
-  var remoteServer: BloopServer    = null
-  var actualLocalServer: BspServer = null
+  var remoteServer: BloopServer                             = null
+  var remoteServerSettings: BloopServer.BuildServerSettings = null
+  var actualLocalServer: BspServer                          = null
 
   val watcher = new Build.Watcher(
     ListBuffer(),
     threads.buildThreads.fileWatcher,
-    build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = true, logger),
+    build(
+      actualLocalServer,
+      remoteServer,
+      actualLocalClient,
+      notifyChanges = true,
+      logger,
+      remoteServerSettings
+    ),
     ()
   )
 
@@ -328,7 +338,7 @@ final class BspImpl(
 
     val classesDir = Build.classesRootDir(inputs.workspace, inputs.projectName)
 
-    remoteServer = BloopServer.buildServer(
+    val (server, settings) = BloopServer.buildServer(
       bloopRifleConfig,
       "scala-cli",
       Constants.version,
@@ -338,6 +348,9 @@ final class BspImpl(
       threads.buildThreads.bloop,
       logger.bloopRifleLogger
     )
+
+    remoteServer = server
+    remoteServerSettings = settings
     localClient.onConnectWithServer(remoteServer.server)
 
     actualLocalServer =
@@ -390,7 +403,14 @@ final class BspImpl(
     val f = launcher.startListening()
 
     val initiateFirstBuild: Runnable = { () =>
-      try build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = false, logger)
+      try build(
+        actualLocalServer,
+        remoteServer,
+        actualLocalClient,
+        notifyChanges = false,
+        logger,
+        remoteServerSettings
+      )
       catch {
         case t: Throwable =>
           logger.debug(s"Caught $t during initial BSP build, ignoring it")

@@ -180,7 +180,17 @@ object BloopServer {
     buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
     logger: BloopRifleLogger
-  ): BloopServer = {
+  ): (BloopServer, BuildServerSettings) = {
+    val settings = BuildServerSettings(
+      config: BloopRifleConfig,
+      clientName: String,
+      clientVersion: String,
+      workspace: Path,
+      classesDir: Path,
+      buildClient: bsp4j.BuildClient,
+      threads: BloopThreads,
+      logger: BloopRifleLogger
+    )
 
     val (conn, socket, bloopInfo) =
       bsp(config, workspace, threads, logger, config.period, config.timeout)
@@ -225,8 +235,28 @@ object BloopServer {
     }
 
     server.onBuildInitialized()
-    BloopServerImpl(server, f, socket, bloopInfo.jvmVersion.toString(), bloopInfo.bloopVersion.raw)
+    (
+      BloopServerImpl(
+        server,
+        f,
+        socket,
+        bloopInfo.jvmVersion.toString(),
+        bloopInfo.bloopVersion.raw
+      ),
+      settings
+    )
   }
+
+  case class BuildServerSettings(
+    config: BloopRifleConfig,
+    clientName: String,
+    clientVersion: String,
+    workspace: Path,
+    classesDir: Path,
+    buildClient: bsp4j.BuildClient,
+    threads: BloopThreads,
+    logger: BloopRifleLogger
+  )
 
   def withBuildServer[T](
     config: BloopRifleConfig,
@@ -237,10 +267,10 @@ object BloopServer {
     buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
     logger: BloopRifleLogger
-  )(f: BloopServer => T): T = {
+  )(f: (BloopServer, BuildServerSettings) => T): T = {
     var server: BloopServer = null
     try {
-      server = buildServer(
+      val s = buildServer(
         config,
         clientName,
         clientVersion,
@@ -250,7 +280,19 @@ object BloopServer {
         threads,
         logger
       )
-      f(server)
+      server = s._1
+      BuildServerSettings(
+        config: BloopRifleConfig,
+        clientName: String,
+        clientVersion: String,
+        workspace: Path,
+        classesDir: Path,
+        buildClient: bsp4j.BuildClient,
+        threads: BloopThreads,
+        logger: BloopRifleLogger
+      )
+
+      f(s._1, s._2)
     }
     // format: off
     finally {
