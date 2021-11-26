@@ -1,0 +1,8 @@
+#!/bin/bash
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+ROOT_DIR="$SCRIPT_DIR"
+(
+   cd "$ROOT_DIR" || exit
+   ./mill cli.standaloneLauncher
+)
+"$ROOT_DIR/out/cli/standaloneLauncher/dest/launcher" "$@"
