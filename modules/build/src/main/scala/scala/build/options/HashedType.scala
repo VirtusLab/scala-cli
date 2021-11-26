@@ -39,4 +39,8 @@ object HashedType {
     pf => pf.repr
   }
 
+  implicit val unit: HashedType[Unit] = {
+    _ => ""
+  }
+
 }

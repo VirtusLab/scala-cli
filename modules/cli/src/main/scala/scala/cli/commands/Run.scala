@@ -140,7 +140,7 @@ object Run extends ScalaCommand[RunOptions] {
     exitOnError: Boolean
   ): Boolean = {
 
-    val retCode = build.options.platform match {
+    val retCode = build.options.platform.value match {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig
         withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
@@ -168,7 +168,7 @@ object Run extends ScalaCommand[RunOptions] {
       case Platform.JVM =>
         Runner.runJvm(
           build.options.javaHome().javaCommand,
-          build.options.javaOptions.javaOpts,
+          build.options.javaOptions.javaOpts.map(_.value),
           build.fullClassPath.map(_.toFile),
           mainClass,
           args,

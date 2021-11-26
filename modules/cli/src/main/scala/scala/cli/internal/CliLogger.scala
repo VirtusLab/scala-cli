@@ -7,17 +7,28 @@ import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay
 import java.io.PrintStream
 
 import scala.build.blooprifle.BloopRifleLogger
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
 import scala.collection.mutable
 import scala.scalanative.{build => sn}
-
 class CliLogger(
   verbosity: Int,
   quiet: Boolean,
   progress: Option[Boolean],
   out: PrintStream
 ) extends Logger { logger =>
+
+  override def log(diagnostics: Seq[Diagnostic]): Unit = {
+    val hashMap = new mutable.HashMap[os.Path, Seq[String]]
+    diagnostics.foreach { d =>
+      printDiagnostic(
+        d.positions,
+        d.severity,
+        d.message,
+        hashMap
+      )
+    }
+  }
 
   def message(message: => String) =
     if (verbosity >= 0)
@@ -34,7 +45,58 @@ class CliLogger(
     if (verbosity >= 2)
       out.println(message)
 
-  private def printEx(ex: BuildException, contentCache: mutable.Map[os.Path, Seq[String]]): Unit =
+  def printDiagnostic(
+    positions: Seq[Position],
+    severity: Severity,
+    message: String,
+    contentCache: mutable.Map[os.Path, Seq[String]]
+  ) =
+    if (positions.isEmpty)
+      out.println(message)
+    else {
+      val positions0 = positions.distinct
+      val filePositions = positions0.collect {
+        case f: Position.File => f
+      }
+      val otherPositions = positions0.filter {
+        case _: Position.File => false
+        case _                => true
+      }
+
+      for (f <- filePositions) {
+        val startPos = new b.Position(f.startPos._1, f.startPos._2)
+        val endPos   = new b.Position(f.endPos._1, f.endPos._2)
+        val range    = new b.Range(startPos, endPos)
+        val diag     = new b.Diagnostic(range, message)
+        diag.setSeverity(severity match {
+          case Severity.Error   => b.DiagnosticSeverity.ERROR
+          case Severity.Warning => b.DiagnosticSeverity.WARNING
+        })
+
+        for (file <- f.path) {
+          val lines = contentCache.getOrElseUpdate(file, os.read(file).linesIterator.toVector)
+          if (f.startPos._1 < lines.length)
+            diag.setCode(lines(f.startPos._1))
+        }
+        ConsoleBloopBuildClient.printDiagnostic(
+          out,
+          f.path,
+          diag
+        )
+      }
+
+      if (otherPositions.nonEmpty) {
+        for (pos <- otherPositions)
+          out.println(pos.render())
+        out.print("  ")
+        out.println(message)
+      }
+    }
+
+  private def printEx(
+    ex: BuildException,
+    contentCache: mutable.Map[os.Path, Seq[String]]
+  ): Unit =
     ex match {
       case c: CompositeBuildException =>
         // FIXME We might want to order things here… Or maybe just collect all b.Diagnostics
@@ -42,43 +104,7 @@ class CliLogger(
         for (ex <- c.exceptions)
           printEx(ex, contentCache)
       case _ =>
-        if (ex.positions.isEmpty)
-          out.println(ex.getMessage)
-        else {
-          val positions = ex.positions.distinct
-          val filePositions = positions.collect {
-            case f: Position.File => f
-          }
-          val otherPositions = positions.filter {
-            case _: Position.File => false
-            case _                => true
-          }
-
-          for (f <- filePositions) {
-            val startPos = new b.Position(f.startPos._1, f.startPos._2)
-            val endPos   = new b.Position(f.endPos._1, f.endPos._2)
-            val range    = new b.Range(startPos, endPos)
-            val diag     = new b.Diagnostic(range, ex.getMessage)
-            diag.setSeverity(b.DiagnosticSeverity.ERROR)
-            for (file <- f.path) {
-              val lines = contentCache.getOrElseUpdate(file, os.read(file).linesIterator.toVector)
-              if (f.startPos._1 < lines.length)
-                diag.setCode(lines(f.startPos._1))
-            }
-            ConsoleBloopBuildClient.printDiagnostic(
-              out,
-              f.path,
-              diag
-            )
-          }
-
-          if (otherPositions.nonEmpty) {
-            for (pos <- otherPositions)
-              out.println(pos.render())
-            out.print("  ")
-            out.println(ex.getMessage)
-          }
-        }
+        printDiagnostic(ex.positions, Severity.Error, ex.getMessage(), contentCache)
     }
 
   def log(ex: BuildException): Unit =

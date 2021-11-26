@@ -7,8 +7,16 @@ import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.BuildException
 import scala.build.Logger
 import scala.scalanative.{build => sn}
+import scala.build.errors.Diagnostic
 
 case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logger {
+
+  override def log(diagnostics: Seq[Diagnostic]): Unit = {
+    diagnostics.foreach { d =>
+      System.err.println(d.positions.map(_.render).mkString("/") ++ ": " ++ d.message)
+    }
+  }
+
   def message(message: => String): Unit =
     if (info)
       System.err.println(message)

@@ -177,11 +177,13 @@ final case class Sbt(
   private def javaOptionsSettings(options: BuildOptions): SbtProject = {
 
     val javaOptionsSettings =
-      if (options.javaOptions.javaOpts.isEmpty) Nil
+      if (options.javaOptions.javaOpts.map(_.value).isEmpty) Nil
       else
         Seq(
           "run / javaOptions ++= Seq(" + nl +
-            options.javaOptions.javaOpts.map(opt => "  \"" + opt + "\"," + nl).mkString +
+            options.javaOptions.javaOpts.map(_.value).map(opt =>
+              "  \"" + opt + "\"," + nl
+            ).mkString +
             ")"
         )
 
@@ -298,11 +300,11 @@ final case class Sbt(
       mainClassSettings(options),
       pureJavaSettings(options, sources),
       javaOptionsSettings(options),
-      if (options.platform == Platform.JS)
+      if (options.platform.value == Platform.JS)
         scalaJsSettings(options.scalaJsOptions)
       else
         SbtProject(),
-      if (options.platform == Platform.Native)
+      if (options.platform.value == Platform.Native)
         scalaNativeSettings(options.scalaNativeOptions)
       else
         SbtProject(),
