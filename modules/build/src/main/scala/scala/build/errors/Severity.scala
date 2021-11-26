@@ -3,6 +3,6 @@ package scala.build.errors
 sealed trait Severity
 
 object Severity {
-  object ERROR   extends Severity
-  object WARNING extends Severity
+  case object Error   extends Severity
+  case object Warning extends Severity
 }
