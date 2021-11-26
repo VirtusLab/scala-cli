@@ -72,7 +72,7 @@ Hello Jenny, Jake!
 
 </ChainedSnippets>
 
-You may wonder, what kind of Scala version was used under the hood in that example? The answer is the latest stable one. If we want to specify the Scala version, we can use the `-S` (or `--scala`) option. You can read more about setting the Scala version in our dedicated [Scala Versions cookbook](./cookbooks/scala-versions.md).
+You may wonder what kind of Scala version was used under the hood. The answer is the latest stable version which was tested in Scala CLI. If we want to specify the Scala version we can use `-S` or `--scala` option. More about setting Scala version in a dedicated [cookbook](./cookbooks/scala-versions.md).
 
 Scala CLI offers many more features dedicated for scripting, as described in the [dedicated guide](./guides/scripts.md).
 
