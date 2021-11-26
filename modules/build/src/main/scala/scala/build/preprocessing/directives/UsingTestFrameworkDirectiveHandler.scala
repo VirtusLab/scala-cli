@@ -1,14 +1,11 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.Value
-
 import scala.build.errors.{
   BuildException,
   NoTestFrameworkValueProvidedError,
   TooManyTestFrameworksProvidedError
 }
 import scala.build.options.{BuildOptions, TestOptions}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Test framework"
@@ -35,11 +32,12 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("test-framework")
   override def handleValues(
-    values: Seq[Value[_]],
+    directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] =
-    DirectiveUtil.stringValues(values, path) match {
+  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+    val values = directive.values
+    DirectiveUtil.stringValues(values, path, cwd) match {
       case Seq() =>
         Left(new NoTestFrameworkValueProvidedError)
       case Seq(fw) =>
@@ -48,8 +46,9 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
             frameworkOpt = Some(fw._1)
           )
         )
-        Right(options)
+        Right((Some(options), Seq.empty))
       case _ =>
         Left(new TooManyTestFrameworksProvidedError)
     }
+  }
 }

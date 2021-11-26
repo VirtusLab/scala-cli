@@ -1,10 +1,7 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.Value
-
 import scala.build.errors.{BuildException, NoScalaVersionProvidedError}
 import scala.build.options.{BuildOptions, ScalaOptions}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Scala version"
@@ -35,11 +32,12 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("scala")
   override def handleValues(
-    values: Seq[Value[_]],
+    directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = {
-    val scalaVersions = DirectiveUtil.stringValues(values, path)
+  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+    val values        = directive.values
+    val scalaVersions = DirectiveUtil.stringValues(values, path, cwd)
     if (scalaVersions.isEmpty)
       Left(new NoScalaVersionProvidedError)
     else {
@@ -49,7 +47,7 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
           extraScalaVersions = scalaVersions.tail.map(_._1).toSet
         )
       )
-      Right(options)
+      Right((Some(options), Seq.empty))
     }
   }
 }

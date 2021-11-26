@@ -1,10 +1,7 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.Value
-
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Repository"
@@ -32,16 +29,17 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("repository", "repositories")
   override def handleValues(
-    values: Seq[Value[_]],
+    directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = {
-    val repositories = DirectiveUtil.stringValues(values, path)
+  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+    val values       = directive.values
+    val repositories = DirectiveUtil.stringValues(values, path, cwd)
     val options = BuildOptions(
       classPathOptions = ClassPathOptions(
         extraRepositories = repositories.map(_._1)
       )
     )
-    Right(options)
+    Right((Some(options), Seq.empty))
   }
 }

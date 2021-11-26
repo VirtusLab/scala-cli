@@ -952,7 +952,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "simple.scala" ->
-          s"""using main-class hello
+          s"""@using `main-class` "hello"
              |object hello extends App { println("hello") }
              |object world extends App { println("world") }
              |""".stripMargin
@@ -1133,43 +1133,43 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       argsAsIsTest()
     }
 
-//  test("test scope") {
-//    val inputs = TestInputs(
-//      Seq(
-//        os.rel / "Main.scala" ->
-//          """using lib "com.lihaoyi::utest:0.7.10"
-//            |
-//            |object Main {
-//            |  val err = utest.compileError("pprint.log(2)")
-//            |  def message = "Hello from " + "tests"
-//            |  def main(args: Array[String]): Unit = {
-//            |    println(message)
-//            |    println(err)
-//            |  }
-//            |}
-//            |""".stripMargin,
-//        os.rel / "Tests.scala" ->
-//          """using lib "com.lihaoyi::pprint:0.6.6"
-//            |using target test
-//            |
-//            |import utest._
-//            |
-//            |object Tests extends TestSuite {
-//            |  val tests = Tests {
-//            |    test("message") {
-//            |      assert(Main.message.startsWith("Hello"))
-//            |    }
-//            |  }
-//            |}
-//            |""".stripMargin
-//      )
-//    )
-//    inputs.fromRoot { root =>
-//      val res = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root)
-//      pprint.log(res.out.text())
-//      expect(res.out.text().contains("Hello from tests"))
-//    }
-//  }
+  test("test scope") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Main.scala" ->
+          """// @using lib "com.lihaoyi::utest:0.7.10"
+            |
+            |object Main {
+            |  val err = utest.compileError("pprint.log(2)")
+            |  def message = "Hello from " + "tests"
+            |  def main(args: Array[String]): Unit = {
+            |    println(message)
+            |    println(err)
+            |  }
+            |}
+            |""".stripMargin,
+        os.rel / "Tests.scala" ->
+          """// @using lib "com.lihaoyi::pprint:0.6.6"
+            |// @using target.scope "test"
+            |
+            |import utest._
+            |
+            |object Tests extends TestSuite {
+            |  val tests = Tests {
+            |    test("message") {
+            |      assert(Main.message.startsWith("Hello"))
+            |    }
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root)
+      pprint.log(res.out.text())
+      expect(res.out.text().contains("Hello from tests"))
+    }
+  }
   test("interconnection between scripts") {
     val inputs = TestInputs(
       Seq(
@@ -1201,7 +1201,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val inputs = TestInputs(
         Seq(
           os.rel / "f.sc" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-                                 |using scala $actualScalaVersion
+                                 |@using scala "$actualScalaVersion"
                                  |println(args.toList)""".stripMargin
         )
       )
@@ -1247,7 +1247,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Hello.scala" ->
-          """|// using lib com.lihaoyi::os-lib:0.7.8
+          """|// using lib "com.lihaoyi::os-lib:0.7.8"
              |
              |object Hello extends App {
              |  println(os.pwd)

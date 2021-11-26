@@ -1,11 +1,8 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.Value
-
 import scala.build.EitherCps.either
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Resource directories"
@@ -44,23 +41,25 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("resourceDir", "resourceDirs")
   override def handleValues(
-    values: Seq[Value[_]],
+    directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = either {
-
+  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = either {
     val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
-    val paths                     = DirectiveUtil.stringValues(values, path)
+    val paths                     = DirectiveUtil.stringValues(directive.values, path, cwd)
     val paths0                    = rootOpt.map(root => paths.map(_._1).map(os.Path(_, root)))
     val virtualPaths = virtualRootOpt.map(virtualRoot =>
       paths.map(_._1).map(path => virtualRoot / os.SubPath(path))
     )
 
-    BuildOptions(
-      classPathOptions = ClassPathOptions(
-        extraClassPath = paths0.toList.flatten,
-        resourceVirtualDir = virtualPaths.toList.flatten
-      )
+    (
+      Some(BuildOptions(
+        classPathOptions = ClassPathOptions(
+          extraClassPath = paths0.toList.flatten,
+          resourceVirtualDir = virtualPaths.toList.flatten
+        )
+      )),
+      Seq.empty
     )
   }
 }

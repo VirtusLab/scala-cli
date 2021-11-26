@@ -1,10 +1,7 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.Value
-
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java options"
@@ -33,16 +30,17 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
   override def handleValues(
-    values: Seq[Value[_]],
+    directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = {
-    val javaOpts = DirectiveUtil.stringValues(values, path)
+  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+    val values   = directive.values
+    val javaOpts = DirectiveUtil.stringValues(values, path, cwd)
     val options = BuildOptions(
       javaOptions = JavaOptions(
         javaOpts = javaOpts.map(o => scala.build.Positioned(Seq(o._2), o._1))
       )
     )
-    Right(options)
+    Right((Some(options), Seq.empty))
   }
 }

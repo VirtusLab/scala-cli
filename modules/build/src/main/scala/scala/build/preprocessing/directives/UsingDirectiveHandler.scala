@@ -1,19 +1,16 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.Value
-
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
-trait UsingDirectiveHandler extends DirectiveHandler {
+trait UsingDirectiveHandler extends DirectiveHandler[BuildOptions] {
   // Loose / fastparse-based directives
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]]
   def handleValues(
-    values: Seq[Value[_]],
+    directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] =
+  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] =
     if (keys.isEmpty)
       sys.error("Cannot happen")
     else

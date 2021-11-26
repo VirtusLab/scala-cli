@@ -1,10 +1,7 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.Value
-
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaOptions}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Compiler options"
@@ -33,16 +30,17 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("option", "options")
   override def handleValues(
-    values: Seq[Value[_]],
+    directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = {
-    val scalacOptions = DirectiveUtil.stringValues(values, path)
+  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+    val values        = directive.values
+    val scalacOptions = DirectiveUtil.stringValues(values, path, cwd)
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalacOptions = scalacOptions.map(_._1)
       )
     )
-    Right(options)
+    Right((Some(options), Seq.empty))
   }
 }

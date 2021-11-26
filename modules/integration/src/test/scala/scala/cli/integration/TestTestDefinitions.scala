@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.annotation.tailrec
+
 abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
@@ -435,90 +437,89 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
 
+  private def countSubStrings(input: String, subString: String): Int = {
+    @tailrec
+    def helper(startIdx: Int, acc: Int): Int =
+      if (startIdx + subString.length > input.length) acc
+      else {
+        val idx = input.indexOf(subString, startIdx)
+        if (idx < 0) acc
+        else helper(idx + subString.length, acc + 1)
+      }
 
-//  private def countSubStrings(input: String, subString: String): Int = {
-//    @tailrec
-//    def helper(startIdx: Int, acc: Int): Int =
-//      if (startIdx + subString.length > input.length) acc
-//      else {
-//        val idx = input.indexOf(subString, startIdx)
-//        if (idx < 0) acc
-//        else helper(idx + subString.length, acc + 1)
-//      }
-//
-//    helper(0, 0)
-//  }
+    helper(0, 0)
+  }
 
-//  test("Cross-tests") {
-//    val supportsNative = TestUtil.canRunNative && actualScalaVersion.startsWith("2.")
-//    val platforms = {
-//      var pf = Seq("jvm")
-//      if (TestUtil.canRunJs)
-//        pf = pf :+ "js"
-//      if (supportsNative)
-//        pf = pf :+ "native"
-//      pf.mkString(" ")
-//    }
-//    val inputs = {
-//      var inputs0 = TestInputs(
-//        Seq(
-//          os.rel / "MyTests.scala" ->
-//            s"""using lib "org.scalameta::munit::0.7.25"
-//               |using $platforms
-//               |
-//               |class MyTests extends munit.FunSuite {
-//               |  test("shared") {
-//               |    println("Hello from " + "shared")
-//               |  }
-//               |}
-//               |""".stripMargin,
-//          os.rel / "MyJvmTests.scala" ->
-//            """using target jvm
-//              |
-//              |class MyJvmTests extends munit.FunSuite {
-//              |  test("jvm") {
-//              |    println("Hello from " + "jvm")
-//              |  }
-//              |}
-//              |""".stripMargin
-//        )
-//      )
-//      if (TestUtil.canRunJs)
-//        inputs0 = inputs0.add(
-//          os.rel / "MyJsTests.scala" ->
-//            """using target js
-//              |
-//              |class MyJsTests extends munit.FunSuite {
-//              |  test("js") {
-//              |    println("Hello from " + "js")
-//              |  }
-//              |}
-//              |""".stripMargin
-//        )
-//      if (supportsNative)
-//        inputs0 = inputs0.add(
-//          os.rel / "MyNativeTests.scala" ->
-//            """using target native
-//              |
-//              |class MyNativeTests extends munit.FunSuite {
-//              |  test("native") {
-//              |    println("Hello from " + "native")
-//              |  }
-//              |}
-//              |""".stripMargin
-//        )
-//      inputs0
-//    }
-//    inputs.fromRoot { root =>
-//      val res    = os.proc(TestUtil.cli, "test", extraOptions, ".", "--cross").call(cwd = root)
-//      val output = res.out.text()
-//      val expectedCount = 1 + (if (TestUtil.canRunJs) 1 else 0) + (if (supportsNative) 1 else 0)
-//      expect(countSubStrings(output, "Hello from shared") == expectedCount)
-//      expect(output.contains("Hello from jvm"))
-//      if (TestUtil.canRunJs)
-//        expect(output.contains("Hello from js"))
-//      if (supportsNative)
-//        expect(output.contains("Hello from native"))
-//    }
-//  }
+  test("Cross-tests") {
+    val supportsNative = TestUtil.canRunNative && actualScalaVersion.startsWith("2.")
+    val platforms = {
+      var pf = Seq("\"jvm\"")
+      if (TestUtil.canRunJs)
+        pf = pf :+ "\"js\""
+      if (supportsNative)
+        pf = pf :+ "\"native\""
+      pf.mkString(", ")
+    }
+    val inputs = {
+      var inputs0 = TestInputs(
+        Seq(
+          os.rel / "MyTests.scala" ->
+            s"""// @using lib "org.scalameta::munit::0.7.29"
+               |// @using platform $platforms
+               |
+               |class MyTests extends munit.FunSuite {
+               |  test("shared") {
+               |    println("Hello from " + "shared")
+               |  }
+               |}
+               |""".stripMargin,
+          os.rel / "MyJvmTests.scala" ->
+            """// @using target.platform "jvm"
+              |
+              |class MyJvmTests extends munit.FunSuite {
+              |  test("jvm") {
+              |    println("Hello from " + "jvm")
+              |  }
+              |}
+              |""".stripMargin
+        )
+      )
+      if (TestUtil.canRunJs)
+        inputs0 = inputs0.add(
+          os.rel / "MyJsTests.scala" ->
+            """// @using target.platform "js"
+              |
+              |class MyJsTests extends munit.FunSuite {
+              |  test("js") {
+              |    println("Hello from " + "js")
+              |  }
+              |}
+              |""".stripMargin
+        )
+      if (supportsNative)
+        inputs0 = inputs0.add(
+          os.rel / "MyNativeTests.scala" ->
+            """// @using target.platform "native"
+              |
+              |class MyNativeTests extends munit.FunSuite {
+              |  test("native") {
+              |    println("Hello from " + "native")
+              |  }
+              |}
+              |""".stripMargin
+        )
+      inputs0
+    }
+    inputs.fromRoot { root =>
+      val res    = os.proc(TestUtil.cli, "test", extraOptions, ".", "--cross").call(cwd = root)
+      val output = res.out.text()
+      val expectedCount = 1 + (if (TestUtil.canRunJs) 1 else 0) + (if (supportsNative) 1 else 0)
+      expect(countSubStrings(output, "Hello from shared") == expectedCount)
+      expect(output.contains("Hello from jvm"))
+      if (TestUtil.canRunJs)
+        expect(output.contains("Hello from js"))
+      if (supportsNative)
+        expect(output.contains("Hello from native"))
+    }
+  }
 }

@@ -1,6 +1,9 @@
 package scala.build.preprocessing.directives
 
-trait DirectiveHandler {
+import scala.build.errors.BuildException
+import scala.build.preprocessing.{ScopePath, Scoped}
+
+trait DirectiveHandler[T] {
   def name: String
   def description: String
   def descriptionMd: String = description
@@ -10,4 +13,11 @@ trait DirectiveHandler {
 
   // Strict / using_directives-based directives
   def keys: Seq[String]
+
+  def handleValues(
+    directive: StrictDirective,
+    path: Either[String, os.Path],
+    cwd: ScopePath
+  ): Either[BuildException, (Option[T], Seq[Scoped[T]])]
+
 }

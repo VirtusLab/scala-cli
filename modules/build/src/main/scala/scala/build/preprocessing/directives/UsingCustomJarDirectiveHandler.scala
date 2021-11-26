@@ -1,11 +1,8 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.Value
-
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.{BuildOptions, ClassPathOptions}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Custom JAR"
@@ -39,16 +36,18 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("jar", "jars")
   override def handleValues(
-    values: Seq[Value[_]],
+    directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = either {
-    val extraJars: Seq[Either[BuildException, os.Path]] = DirectiveUtil.stringValues(values, path).map {
-      case (p, pos) =>
-        val root = Directive.osRoot(cwd, Some(pos))
-        // FIXME Handle malformed paths here
-        root.map(os.Path(p, _))
-    }
+  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = either {
+    val values = directive.values
+    val extraJars: Seq[Either[BuildException, os.Path]] =
+      DirectiveUtil.stringValues(values, path, cwd).map {
+        case (p, pos, _) =>
+          val root = Directive.osRoot(cwd, Some(pos))
+          // FIXME Handle malformed paths here
+          root.map(os.Path(p, _))
+      }
 
     val errors = extraJars.collect {
       case Left(error) => error
@@ -60,10 +59,13 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
         case Right(value) => value
       })
 
-    BuildOptions(
-      classPathOptions = ClassPathOptions(
-        extraClassPath = value(res)
-      )
+    (
+      Some(BuildOptions(
+        classPathOptions = ClassPathOptions(
+          extraClassPath = value(res)
+        )
+      )),
+      Seq.empty
     )
   }
 }

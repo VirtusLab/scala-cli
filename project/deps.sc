@@ -86,7 +86,7 @@ object Deps {
   def swoval                   = ivy"com.swoval:file-tree-views:2.1.7"
   def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
   def upickle                  = ivy"com.lihaoyi::upickle:1.4.3"
-  def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7"
+  def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-821b592-SNAPSHOT"
 }
 
 def graalVmVersion = "21.2.0"

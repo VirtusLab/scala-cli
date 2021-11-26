@@ -241,7 +241,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
         |""".stripMargin
     )
 
-    def addHandlers(handlers: Seq[DirectiveHandler]): Unit =
+    def addHandlers(handlers: Seq[DirectiveHandler[_]]): Unit =
       for (handler <- handlers.sortBy(_.name)) {
         b.append(
           s"""### ${handler.name}

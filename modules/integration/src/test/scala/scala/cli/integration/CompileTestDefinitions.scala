@@ -49,81 +49,81 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-//  test("test scope") {
-//    val inputs = TestInputs(
-//      Seq(
-//        os.rel / "Main.scala" ->
-//          """@using lib "com.lihaoyi::utest:0.7.10"
-//            |
-//            |object Main {
-//            |  val err = utest.compileError("pprint.log(2)")
-//            |  def message = "Hello from " + "tests"
-//            |  def main(args: Array[String]): Unit = {
-//            |    println(message)
-//            |    println(err)
-//            |  }
-//            |}
-//            |""".stripMargin,
-//        os.rel / "Tests.scala" ->
-//          """using lib "com.lihaoyi::pprint:0.6.6"
-//            |using target test
-//            |
-//            |import utest._
-//            |
-//            |object Tests extends TestSuite {
-//            |  val tests = Tests {
-//            |    test("message") {
-//            |      assert(Main.message.startsWith("Hello"))
-//            |    }
-//            |  }
-//            |}
-//            |""".stripMargin
-//      )
-//    )
-//    inputs.fromRoot { root =>
-//      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
-//    }
-//  }
+  test("test scope") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Main.scala" ->
+          """@using lib "com.lihaoyi::utest:0.7.10"
+            |
+            |object Main {
+            |  val err = utest.compileError("pprint.log(2)")
+            |  def message = "Hello from " + "tests"
+            |  def main(args: Array[String]): Unit = {
+            |    println(message)
+            |    println(err)
+            |  }
+            |}
+            |""".stripMargin,
+        os.rel / "Tests.scala" ->
+          """// @using lib "com.lihaoyi::pprint:0.6.6"
+            |// @using target.scope "test"
+            |
+            |import utest._
+            |
+            |object Tests extends TestSuite {
+            |  val tests = Tests {
+            |    test("message") {
+            |      assert(Main.message.startsWith("Hello"))
+            |    }
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
+    }
+  }
 
-//  test("test scope error") {
-//    val inputs = TestInputs(
-//      Seq(
-//        os.rel / "Main.scala" ->
-//          """object Main {
-//            |  def message = "Hello from " + "tests"
-//            |  def main(args: Array[String]): Unit =
-//            |    println(message)
-//            |}
-//            |""".stripMargin,
-//        os.rel / "Tests.scala" ->
-//          """using lib "com.lihaoyi::utest:0.7.10"
-//            |using target test
-//            |
-//            |import utest._
-//            |
-//            |object Tests extends TestSuite {
-//            |  val tests = Tests {
-//            |    test("message") {
-//            |      pprint.log(Main.message)
-//            |      assert(Main.message.startsWith("Hello"))
-//            |    }
-//            |  }
-//            |}
-//            |""".stripMargin
-//      )
-//    )
-//    inputs.fromRoot { root =>
-//      val res = os.proc(TestUtil.cli, "compile", extraOptions, ".")
-//        .call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
-//      expect(res.exitCode == 1)
-//      val expectedInOutput =
-//        if (actualScalaVersion.startsWith("2."))
-//          "not found: value pprint"
-//        else
-//          "Not found: pprint"
-//      expect(res.out.text().contains(expectedInOutput))
-//    }
-//  }
+  test("test scope error") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Main.scala" ->
+          """object Main {
+            |  def message = "Hello from " + "tests"
+            |  def main(args: Array[String]): Unit =
+            |    println(message)
+            |}
+            |""".stripMargin,
+        os.rel / "Tests.scala" ->
+          """// @using lib "com.lihaoyi::utest:0.7.10"
+            |// @using target.scope "test"
+            |
+            |import utest._
+            |
+            |object Tests extends TestSuite {
+            |  val tests = Tests {
+            |    test("message") {
+            |      pprint.log(Main.message)
+            |      assert(Main.message.startsWith("Hello"))
+            |    }
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+        .call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
+      expect(res.exitCode == 1)
+      val expectedInOutput =
+        if (actualScalaVersion.startsWith("2."))
+          "not found: value pprint"
+        else
+          "Not found: pprint"
+      expect(res.out.text().contains(expectedInOutput))
+    }
+  }
 
   test("code in test error") {
     val inputs = TestInputs(
@@ -254,7 +254,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.12"))
     test("JVM options only for JVM platform") {
       val inputs = TestInputs(
-        Seq(os.rel / "Main.scala" -> "// using java-opt -Xss1g")
+        Seq(os.rel / "Main.scala" -> "// using `java-opt` \"-Xss1g\"")
       )
       inputs.fromRoot { root =>
         val res = os.proc(TestUtil.cli, "compile", extraOptions, "--native", ".").call(

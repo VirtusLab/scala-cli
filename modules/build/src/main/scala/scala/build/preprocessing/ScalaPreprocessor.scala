@@ -127,28 +127,28 @@ case object ScalaPreprocessor extends Preprocessor {
     Option[String]
   )]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
-    val afterStrictUsing = value(processStrictUsing(content, path, scopeRoot))
+    val afterStrictUsing      = value(processStrictUsing(content, path, scopeRoot))
 
     val afterProcessImports = value {
       processSpecialImports(
-        afterStrictUsing.map(_._2).getOrElse(content),
+        afterStrictUsing.map(_._4).getOrElse(content),
         path
       )
     }
 
     if (afterStrictUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
-      val allRequirements    = afterProcessImports.map(_._1).toSeq
+      val allRequirements    = afterProcessImports.map(_._1).toSeq ++ afterStrictUsing.map(_._1)
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
-      val allOptions = afterStrictUsing.map(_._1).toSeq ++
+      val allOptions = afterStrictUsing.map(_._2).toSeq ++
         afterProcessImports.map(_._2).toSeq
       val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContentOpt = afterProcessImports
         .map(_._3)
-        .orElse(afterStrictUsing.map(_._2))
+        .orElse(afterStrictUsing.map(_._4))
         .orElse(if (isSheBang) Some(content0) else None)
 
-      val scopedRequirements = Nil
+      val scopedRequirements = afterStrictUsing.fold(Seq.empty[Scoped[BuildRequirements]])(_._3)
       Some((summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
     }
   }
@@ -344,12 +344,17 @@ case object ScalaPreprocessor extends Preprocessor {
     content: String,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, Option[(BuildOptions, String)]] = either {
+  ): Either[BuildException, Option[(
+    BuildRequirements,
+    BuildOptions,
+    Seq[Scoped[BuildRequirements]],
+    String
+  )]] = either {
 
     val processor = {
       val reporter = new DirectivesOutputStreamReporter(System.err) // TODO Get that via a logger
       val settings = new Settings
-      settings.setAllowStartWithoutAt(false)
+      settings.setAllowStartWithoutAt(true)
       settings.setAllowRequire(false)
       val context = new Context(reporter, settings)
       new UsingDirectivesProcessor(context)
@@ -365,14 +370,25 @@ case object ScalaPreprocessor extends Preprocessor {
         case (k, l) => k -> l.asScala
       }
       .toMap
+
     val updatedOptions = value {
       DirectivesProcessor.process(
-        directives0,
+        directives0.toSeq,
         usingDirectiveHandlers,
         path,
         cwd
       )
     }
+
+    val updatedRequirements = value {
+      DirectivesProcessor.process(
+        directives0.toSeq,
+        requireDirectiveHandlers,
+        path,
+        cwd
+      )
+    }
+
     val codeOffset = directives.getCodeOffset
     val updatedContentOpt =
       if (codeOffset > 0) {
@@ -389,7 +405,12 @@ case object ScalaPreprocessor extends Preprocessor {
       else None
 
     if (updatedContentOpt.isEmpty) None
-    else Some((updatedOptions, updatedContentOpt.getOrElse(content)))
+    else Some((
+      updatedRequirements._1,
+      updatedOptions._1,
+      updatedRequirements._2,
+      updatedContentOpt.getOrElse(content)
+    ))
   }
 
   private def parseDependency(str: String, pos: Position): Either[BuildException, AnyDependency] =

@@ -1,7 +1,9 @@
 package scala.build.preprocessing.directives
-import scala.build.errors.BuildException
+import os.Path
+
+import scala.build.errors.{BuildException, MalformedPlatformError}
 import scala.build.options.{BuildRequirements, Platform}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Platform"
@@ -14,7 +16,9 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
     "using target jvm"
   )
 
-  override def keys: Seq[String] = Seq.empty
+  override def keys: Seq[String] = Seq(
+    "target.platform"
+  )
 
   override def handle(
     directive: Directive,
@@ -29,4 +33,53 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
       case None =>
         None
     }
+
+  override def handleValues(
+    directive: StrictDirective,
+    path: Either[String, Path],
+    cwd: ScopePath
+  ): Either[BuildException, (Option[BuildRequirements], Seq[Scoped[BuildRequirements]])] = {
+    val values          = DirectiveUtil.stringValues(directive.values, path, cwd)
+    val nonscopedValues = values.filter(_._3.isEmpty)
+    val scopedValues    = values.filter(_._3.nonEmpty)
+    val nonScopedPlatforms = Option(nonscopedValues.map(v => Platform.normalize(v._1)))
+      .filter(_.nonEmpty)
+
+    val nonscoped =
+      nonScopedPlatforms.fold[Either[BuildException, Option[BuildRequirements]]](Right(None)) {
+        platforms =>
+          val parsed = Platform.parseSpec(platforms)
+          parsed.fold[Either[BuildException, Option[BuildRequirements]]](
+            Left(new MalformedPlatformError(platforms.mkString(", ")))
+          ) { p =>
+            Right(Some(BuildRequirements(
+              platform = Seq(BuildRequirements.PlatformRequirement(p))
+            )))
+          }
+      }
+    val scoped = scopedValues.groupBy(_._3).map {
+      case (Some(scopePath), list) =>
+        val platforms = list.map(_._1).map(Platform.normalize)
+        val parsed    = Platform.parseSpec(platforms)
+        parsed.fold[Either[BuildException, Seq[Scoped[BuildRequirements]]]](
+          Left(new MalformedPlatformError(platforms.mkString(", ")))
+        ) { p =>
+          Right(Seq(Scoped(
+            scopePath,
+            BuildRequirements(
+              platform = Seq(BuildRequirements.PlatformRequirement(p))
+            )
+          )))
+        }
+    }.foldLeft[Either[BuildException, Seq[Scoped[BuildRequirements]]]](Right(Seq.empty)) {
+      case (Right(seq), Right(v)) => Right(seq ++ v)
+      case (Left(err), _)         => Left(err)
+      case (_, Left(err))         => Left(err)
+    }
+
+    for {
+      ns <- nonscoped
+      s  <- scoped
+    } yield ns -> s
+  }
 }

@@ -1,6 +1,4 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.Value
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
@@ -9,7 +7,7 @@ import scala.build.Ops._
 import scala.build.Positioned
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ScalaOptions}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Compiler plugins"
@@ -46,15 +44,16 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("plugin", "plugins")
   override def handleValues(
-    values: Seq[Value[_]],
+    directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = either {
+  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = either {
+    val values = directive.values
 
     val extraDependencies = value {
-      DirectiveUtil.stringValues(values, path)
+      DirectiveUtil.stringValues(values, path, cwd)
         .map {
-          case (dep, pos) =>
+          case (dep, pos, _) =>
             // Really necessary? (might already be handled by the coursier-dependency library)
             val dep0 = dep.filter(!_.isSpaceChar)
 
@@ -64,13 +63,16 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
         .left.map(errors => errors.mkString(", "))
     }
 
-    BuildOptions(
-      scalaOptions = ScalaOptions(
-        compilerPlugins = extraDependencies
-          .map {
-            case (dep, pos) => Positioned(Seq(pos), dep)
-          }
-      )
+    (
+      Some(BuildOptions(
+        scalaOptions = ScalaOptions(
+          compilerPlugins = extraDependencies
+            .map {
+              case (dep, pos) => Positioned(Seq(pos), dep)
+            }
+        )
+      )),
+      Seq.empty
     )
   }
 }
