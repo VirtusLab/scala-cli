@@ -13,7 +13,7 @@ object BuildOptionsRule {
 
 class ValidationException(
   diagnostic: Diagnostic
-) extends BuildException(diagnostic.message, diagnostic.positions) {}
+) extends BuildException(diagnostic.message, diagnostic.positions)
 
 object JvmOptionsForNonJvmBuild extends BuildOptionsRule {
   def validate(options: BuildOptions): List[Diagnostic] = {
