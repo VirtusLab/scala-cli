@@ -108,8 +108,8 @@ module.exports = {
           title: 'Community',
           items: [
             {
-              label: 'Gitter',
-              href: 'https://gitter.im/Virtuslab/scala-cli',
+              label: 'Discord',
+              href: 'https://discord.gg/ScreHFr957',
             },
           ],
         },
