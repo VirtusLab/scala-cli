@@ -121,7 +121,16 @@ Manually add a resource directory to the class path
 
 Add Scala Native options
 
-directive using usage
+`using native-gc` _value_
+ 
+`using native-version` _value_
+
+`using native-compile` _value1_ _value2_
+
+`using native-linking` _value1_ _value2_
+
+#### Examples
+`using native-version 0.4.0`
 
 ### Scala version
 
