@@ -12,7 +12,7 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
 
   def usage: String = "using native-gc _value_ | using native-version _value_"
 
-  override def usageMd: String = 
+  override def usageMd: String =
     """`using native-gc` _value_
       | 
       |`using native-version` _value_"""".stripMargin
@@ -42,7 +42,7 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
       case Seq(param @ "native-compile", value @ _*) =>
         val options = BuildOptions(
           scalaNativeOptions = ScalaNativeOptions(
-            compileOptions = value.toList,
+            compileOptions = value.toList
           )
         )
         Some(Right(options))

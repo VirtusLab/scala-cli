@@ -679,8 +679,12 @@ class BuildTests extends munit.FunSuite {
     )
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(0) == "compileOption1")
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(1) == "compileOption2")
+      assert(
+        maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(0) == "compileOption1"
+      )
+      assert(
+        maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(1) == "compileOption2"
+      )
     }
   }
 
@@ -698,8 +702,12 @@ class BuildTests extends munit.FunSuite {
     )
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1")
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2")
+      assert(
+        maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1"
+      )
+      assert(
+        maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2"
+      )
     }
   }
 
