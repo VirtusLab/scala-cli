@@ -572,7 +572,26 @@ class BuildTests extends munit.FunSuite {
     }
   }
 
-  test("ScalaNative Options with multiple values") {
+  test("ScalaNativeOptions for native-gc with no values") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """using native-gc
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.isLeft)
+      assert(maybeBuild.left.get == SingleValueExpected("native-gc", Seq()))
+    }
+
+  }
+
+  test("ScalaNativeOptions for native-gc with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
         """using native-gc 78 12
@@ -591,7 +610,7 @@ class BuildTests extends munit.FunSuite {
 
   }
 
-  test("ScalaNative Options for native-gc") {
+  test("ScalaNativeOptions for native-gc") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
         """using native-gc 78
@@ -606,6 +625,99 @@ class BuildTests extends munit.FunSuite {
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.gcStr.get == "78")
+    }
+  }
+
+  test("ScalaNativeOptions for native-version with multiple values") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """using native-version 0.4.0 0.3.3
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.isLeft)
+      assert(maybeBuild.left.get == SingleValueExpected("native-version", Seq("0.4.0", "0.3.3")))
+    }
+
+  }
+
+  test("ScalaNativeOptions for native-version") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """using native-version 0.4.0
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.version.get == "0.4.0")
+    }
+  }
+
+  test("ScalaNativeOptions for native-compile") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """using native-compile compileOption1 compileOption2
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(0) == "compileOption1")
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(1) == "compileOption2")
+    }
+  }
+
+  test("ScalaNativeOptions for native-linking") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """using native-linking linkingOption1 linkingOption2
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1")
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2")
+    }
+  }
+
+  test("ScalaNativeOptions for native-linking and no value") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """using native-linking 
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions.isEmpty)
     }
   }
 }

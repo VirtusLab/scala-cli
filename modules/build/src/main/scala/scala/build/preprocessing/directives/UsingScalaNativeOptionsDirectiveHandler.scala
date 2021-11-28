@@ -10,10 +10,12 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
 
   def description: String = "Add Scala Native options"
 
-  def usage: String = "Scala Native options"
+  def usage: String = "using native-gc _value_ | using native-version _value_"
 
-  override def usageMd: String = "directive using usage"
-
+  override def usageMd: String = 
+    """`using native-gc` _value_
+      | 
+      |`using native-version` _value_"""".stripMargin
   override def examples: Seq[String] = Seq()
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
@@ -27,14 +29,37 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
           Some(Right(options))
         }
         else Some(Left(SingleValueExpected(param, value)))
-
+      case Seq(param @ "native-version", value @ _*) =>
+        if (value.size == 1) {
+          val options = BuildOptions(
+            scalaNativeOptions = ScalaNativeOptions(
+              version = Some(value.head)
+            )
+          )
+          Some(Right(options))
+        }
+        else Some(Left(SingleValueExpected(param, value)))
+      case Seq(param @ "native-compile", value @ _*) =>
+        val options = BuildOptions(
+          scalaNativeOptions = ScalaNativeOptions(
+            compileOptions = value.toList,
+          )
+        )
+        Some(Right(options))
+      case Seq(param @ "native-linking", value @ _*) =>
+        val options = BuildOptions(
+          scalaNativeOptions = ScalaNativeOptions(
+            linkingOptions = value.toList
+          )
+        )
+        Some(Right(options))
       case _ =>
         None
 
     }
 
   override def keys: Seq[String] =
-    Seq("native-gc")
+    Seq("native-gc", "native-version", "native-compile", "native-linking")
 
   override def handleValues(
     values: Seq[Any],
