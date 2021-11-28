@@ -15,8 +15,16 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
   override def usageMd: String =
     """`using native-gc` _value_
       | 
-      |`using native-version` _value_"""".stripMargin
-  override def examples: Seq[String] = Seq()
+      |`using native-version` _value_
+      |
+      |`using native-compile` _value1_ _value2_
+      |
+      |`using native-linking` _value1_ _value2_""".stripMargin
+
+  override def examples: Seq[String] = Seq(
+    "using native-version 0.4.0"
+  )
+
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq(param @ "native-gc", value @ _*) =>
