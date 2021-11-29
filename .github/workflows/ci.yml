@@ -19,8 +19,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # If adding Windows here, use windows-2016 rather than windows-latest or windows-2019.
-        # Running into https://github.com/oracle/graal/issues/3171 on windows-latest / windows-2019.
         OS: ["ubuntu-latest"]
     steps:
     - uses: actions/checkout@v2
@@ -54,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        OS: ["ubuntu-latest", "macos-latest", "windows-2016"]
+        OS: ["ubuntu-latest", "macos-latest", "windows-latest"]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -225,7 +223,7 @@ jobs:
 
   vc-redist:
     timeout-minutes: 15
-    runs-on: windows-2016
+    runs-on: windows-latest
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     steps:
     - uses: actions/checkout@v2
