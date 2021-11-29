@@ -10,7 +10,8 @@ final case class ClassPathOptions(
   extraCompileOnlyJars: Seq[os.Path] = Nil,
   extraSourceJars: Seq[os.Path] = Nil,
   fetchSources: Option[Boolean] = None,
-  extraDependencies: Seq[Positioned[AnyDependency]] = Nil
+  extraDependencies: Seq[Positioned[AnyDependency]] = Nil,
+  resourceVirtualDir: Seq[os.SubPath] = Nil
 )
 
 object ClassPathOptions {

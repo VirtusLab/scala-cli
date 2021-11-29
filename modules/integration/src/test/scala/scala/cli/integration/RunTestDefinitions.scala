@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
 
-import scala.util.Properties
+import scala.util.{Properties, Random}
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
@@ -686,6 +686,71 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val message = "Hello"
     emptyInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
+        .call(cwd = root)
+        .out.text().trim
+      expect(output == message)
+    }
+  }
+
+  private def generateDummyGistUrl(root: os.Path) =
+    root / "gist.github.com" /
+      Random.alphanumeric.take(10).mkString("") /
+      Random.alphanumeric.take(10).mkString("")
+
+  test("Github Gists Scala URL with resource in directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""// using resourceDir "./"
+             |import scala.io.Source
+             |
+             |object Hello extends App {
+             |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+             |    println(inputs.mkString(","))
+             |}
+             |""".stripMargin,
+        os.rel / "input" ->
+          s"""1
+             |2
+             |""".stripMargin
+      )
+    )
+    inputs.asZip { (root, zipPath) =>
+      val message = "1,2"
+      val gistUrl = generateDummyGistUrl(root)
+      val gistUri = gistUrl.toNIO.toUri.toString
+
+      os.copy(zipPath, gistUrl / "download", createFolders = true)
+      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(gistUri))
+        .call(cwd = root)
+        .out.text().trim
+      expect(output == message)
+    }
+  }
+
+  test("Github Gists Scala Script URL with resource in directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "hello.sc" ->
+          s"""// using resourceDir "./"
+             |import scala.io.Source
+             |
+             |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+             |println(inputs.mkString(","))
+             |""".stripMargin,
+        os.rel / "input" ->
+          s"""1
+             |2
+             |""".stripMargin
+      )
+    )
+    inputs.asZip { (root, zipPath) =>
+      val message = "1,2"
+      val gistUrl = generateDummyGistUrl(root)
+      val gistUri = gistUrl.toNIO.toUri.toString
+
+      os.copy(zipPath, gistUrl / "download", createFolders = true)
+      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(gistUri))
         .call(cwd = root)
         .out.text().trim
       expect(output == message)
