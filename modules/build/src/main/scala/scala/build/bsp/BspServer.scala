@@ -92,9 +92,8 @@ class BspServer(
       sourceItem.setGenerated(false)
     }
   }
-
-  protected def forwardTo =
-    BloopServer.buildServer(bloopServerSettings).server // todo do not create each time
+  val server = BloopServer.buildServer(bloopServerSettings).server // todo do not create each time
+  protected def forwardTo = server
 
   private val supportedLanguages: ju.List[String] = List("scala", "java").asJava
 

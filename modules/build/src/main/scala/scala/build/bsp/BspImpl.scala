@@ -348,8 +348,8 @@ final class BspImpl(
 //    remoteServer = server
     remoteServerSettings = settings
 
-    val server = BloopServer.buildServer(settings)
-    localClient.onConnectWithServer(server.server) // todo uncomment before merge
+//    val server = BloopServer.buildServer(settings)
+//    localClient.onConnectWithServer(server.server) // todo uncomment before merge
 
     actualLocalServer =
       new BspServer(
