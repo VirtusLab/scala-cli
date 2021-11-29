@@ -353,7 +353,7 @@ jobs:
       with:
         jvm: 11
     - run: ./mill -i ci.setShouldPublish
-    - uses: actions/setup-node@v2.4.1
+    - uses: actions/setup-node@v2.5.0
       if: env.SHOULD_PUBLISH == 'true'
       with:
         node-version: '12.x'
@@ -378,7 +378,7 @@ jobs:
     - uses: coursier/setup-action@v1.1.2
       with:
         jvm: 11
-    - uses: actions/setup-node@v2.4.1
+    - uses: actions/setup-node@v2.5.0
       with:
         node-version: '12.x'
     - run: .github/scripts/update-website.sh
