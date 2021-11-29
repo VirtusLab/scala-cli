@@ -142,12 +142,11 @@ final class BspImpl(
 
   private def buildE(
     actualLocalServer: BspServer,
-    bloopServer: BloopServer,
     notifyChanges: Boolean,
     settings: BloopServer.BuildServerSettings
   ): Either[(BuildException, Scope), Unit] = either {
     val (preBuildDataMain, preBuildDataTest) =
-      value(prepareBuild(actualLocalServer, Some(bloopServer)))
+      value(prepareBuild(actualLocalServer, None))
     if (notifyChanges && (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged))
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
@@ -176,13 +175,12 @@ final class BspImpl(
 
   private def build(
     actualLocalServer: BspServer,
-    bloopServer: BloopServer,
     client: BspClient,
     notifyChanges: Boolean,
     logger: Logger,
     settings: BloopServer.BuildServerSettings
   ): Unit =
-    buildE(actualLocalServer, bloopServer, notifyChanges, settings) match {
+    buildE(actualLocalServer, notifyChanges, settings) match {
       case Left((ex, scope)) =>
         client.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.debug(s"Caught $ex during BSP build, ignoring it")
@@ -206,12 +204,11 @@ final class BspImpl(
   def compile(
     actualLocalServer: BspServer,
     executor: Executor,
-    doCompile: () => CompletableFuture[b.CompileResult],
-    bloopServer: BloopServer
+    doCompile: () => CompletableFuture[b.CompileResult]
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () =>
-        prepareBuild(actualLocalServer, Some(bloopServer)) match {
+        prepareBuild(actualLocalServer, None) match {
           case Right((preBuildDataMain, preBuildDataTest)) =>
             if (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged)
               notifyBuildChange(actualLocalServer)
@@ -316,7 +313,7 @@ final class BspImpl(
     else
       actualLocalClient
 
-  var remoteServer: BloopServer                             = null
+//  var remoteServer: BloopServer                             = null
   var remoteServerSettings: BloopServer.BuildServerSettings = null
   var actualLocalServer: BspServer                          = null
 
@@ -325,7 +322,6 @@ final class BspImpl(
     threads.buildThreads.fileWatcher,
     build(
       actualLocalServer,
-      remoteServer,
       actualLocalClient,
       notifyChanges = true,
       logger,
@@ -338,7 +334,7 @@ final class BspImpl(
 
     val classesDir = Build.classesRootDir(inputs.workspace, inputs.projectName)
 
-    val (server, settings) = BloopServer.buildServer(
+    val (server, settings) = BloopServer.buildServer( // todo no idea what to do
       bloopRifleConfig,
       "scala-cli",
       Constants.version,
@@ -349,15 +345,15 @@ final class BspImpl(
       logger.bloopRifleLogger
     )
 
-    remoteServer = server
+//    remoteServer = server
     remoteServerSettings = settings
-    localClient.onConnectWithServer(remoteServer.server)
+    localClient.onConnectWithServer(server.server) // todo uncomment before merge
 
     actualLocalServer =
       new BspServer(
-        remoteServer.server,
+        server.server,
         compile = doCompile =>
-          compile(actualLocalServer, threads.prepareBuildExecutor, doCompile, remoteServer),
+          compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
         logger = logger
       )
     actualLocalServer.setProjectName(inputs.workspace, inputs.projectName)
@@ -386,7 +382,7 @@ final class BspImpl(
         case _: Inputs.Virtual =>
       }
 
-    prepareBuild(actualLocalServer, Some(remoteServer)) match {
+    prepareBuild(actualLocalServer, None) match {
       case Left((ex, scope)) =>
         actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.log(ex)
@@ -405,7 +401,6 @@ final class BspImpl(
     val initiateFirstBuild: Runnable = { () =>
       try build(
         actualLocalServer,
-        remoteServer,
         actualLocalClient,
         notifyChanges = false,
         logger,
@@ -430,8 +425,8 @@ final class BspImpl(
 
   def shutdown(): Unit = {
     watcher.dispose()
-    if (remoteServer != null)
-      remoteServer.shutdown()
+//    if (remoteServer != null) // todofixme before merge do the cleanup!!
+//      remoteServer.shutdown()
   }
 
 }

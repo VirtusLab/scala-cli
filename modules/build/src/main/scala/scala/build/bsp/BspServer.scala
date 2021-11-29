@@ -11,6 +11,7 @@ import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
+import scala.build.bloop.BloopServer
 
 class BspServer(
   bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
@@ -92,7 +93,8 @@ class BspServer(
     }
   }
 
-  protected def forwardTo = bloopServer
+  protected def forwardTo =
+    bloopServer
 
   private val supportedLanguages: ju.List[String] = List("scala", "java").asJava
 
