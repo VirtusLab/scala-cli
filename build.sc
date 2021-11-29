@@ -322,7 +322,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     PathRef(T.dest / "working-dir")
   }
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
   }
 
   def sources = T.sources {

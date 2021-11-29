@@ -65,7 +65,7 @@ object Deps {
   def pprint            = ivy"com.lihaoyi::pprint:0.6.6"
   def prettyStacktraces = ivy"org.virtuslab::pretty-stacktraces:0.0.0+27-b9d69198-SNAPSHOT"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
-  def scalaAsync               = ivy"org.scala-lang.modules::scala-async:0.10.0".exclude("*" -> "*")
+  def scalaAsync               = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String)       = ivy"org.scala-lang:scala-compiler:$sv"
   def scalafmtCli              = ivy"org.scalameta::scalafmt-cli:3.0.3"
   def scalaJsEnvNodeJs         = ivy"org.scala-js::scalajs-env-nodejs:1.2.1"
