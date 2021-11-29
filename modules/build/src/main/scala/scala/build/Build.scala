@@ -406,7 +406,7 @@ object Build {
     )
     val threads     = BuildThreads.create()
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
-    val (bloopServer, settings) = bloop.BloopServer.buildServer(
+    val settings = bloop.BloopServer.BuildServerSettings(
       bloopConfig,
       "scala-cli",
       Constants.version,
@@ -438,7 +438,7 @@ object Build {
 
     run()
 
-    val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), bloopServer.shutdown())
+    val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), () => {})
 
     def doWatch(): Unit =
       for (elem <- inputs.elements) {
@@ -626,7 +626,7 @@ object Build {
       settings.buildClient,
       settings.threads,
       settings.logger
-    ) { case (bloopServer, settings) =>
+    ) { case bloopServer =>
       either {
         if (options.platform == Platform.Native && !value(scalaNativeSupported(options, inputs)))
           value(Left(new ScalaNativeCompatibilityError()))

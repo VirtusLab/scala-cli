@@ -171,6 +171,18 @@ object BloopServer {
     (conn, socket, bloopInfo)
   }
 
+  def buildServer(settings: BuildServerSettings): BloopServer =
+    buildServer(
+      settings.config,
+      settings.clientName,
+      settings.clientVersion,
+      settings.workspace,
+      settings.classesDir,
+      settings.buildClient,
+      settings.threads,
+      settings.logger
+    )
+
   def buildServer(
     config: BloopRifleConfig,
     clientName: String,
@@ -180,18 +192,7 @@ object BloopServer {
     buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
     logger: BloopRifleLogger
-  ): (BloopServer, BuildServerSettings) = {
-    val settings = BuildServerSettings(
-      config: BloopRifleConfig,
-      clientName: String,
-      clientVersion: String,
-      workspace: Path,
-      classesDir: Path,
-      buildClient: bsp4j.BuildClient,
-      threads: BloopThreads,
-      logger: BloopRifleLogger
-    )
-
+  ): BloopServer = {
     val (conn, socket, bloopInfo) =
       bsp(config, workspace, threads, logger, config.period, config.timeout)
 
@@ -235,15 +236,12 @@ object BloopServer {
     }
 
     server.onBuildInitialized()
-    (
-      BloopServerImpl(
-        server,
-        f,
-        socket,
-        bloopInfo.jvmVersion.toString(),
-        bloopInfo.bloopVersion.raw
-      ),
-      settings
+    BloopServerImpl(
+      server,
+      f,
+      socket,
+      bloopInfo.jvmVersion.toString(),
+      bloopInfo.bloopVersion.raw
     )
   }
 
@@ -267,7 +265,7 @@ object BloopServer {
     buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
     logger: BloopRifleLogger
-  )(f: (BloopServer, BuildServerSettings) => T): T = {
+  )(f: BloopServer => T): T = {
     var server: BloopServer = null
     try {
       val s = buildServer(
@@ -280,7 +278,7 @@ object BloopServer {
         threads,
         logger
       )
-      server = s._1
+      server = s
       BuildServerSettings(
         config: BloopRifleConfig,
         clientName: String,
@@ -292,7 +290,7 @@ object BloopServer {
         logger: BloopRifleLogger
       )
 
-      f(s._1, s._2)
+      f(s)
     }
     // format: off
     finally {

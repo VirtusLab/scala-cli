@@ -14,7 +14,7 @@ import scala.jdk.CollectionConverters._
 import scala.build.bloop.BloopServer
 
 class BspServer(
-  bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
+  bloopServerSettings: BloopServer.BuildServerSettings,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
@@ -94,7 +94,7 @@ class BspServer(
   }
 
   protected def forwardTo =
-    bloopServer
+    BloopServer.buildServer(bloopServerSettings).server // todo do not create each time
 
   private val supportedLanguages: ju.List[String] = List("scala", "java").asJava
 

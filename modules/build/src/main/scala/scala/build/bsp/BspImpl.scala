@@ -334,7 +334,7 @@ final class BspImpl(
 
     val classesDir = Build.classesRootDir(inputs.workspace, inputs.projectName)
 
-    val (server, settings) = BloopServer.buildServer( // todo no idea what to do
+    val settings = BloopServer.BuildServerSettings( // todo no idea what to do
       bloopRifleConfig,
       "scala-cli",
       Constants.version,
@@ -347,11 +347,13 @@ final class BspImpl(
 
 //    remoteServer = server
     remoteServerSettings = settings
+
+    val server = BloopServer.buildServer(settings)
     localClient.onConnectWithServer(server.server) // todo uncomment before merge
 
     actualLocalServer =
       new BspServer(
-        server.server,
+        remoteServerSettings,
         compile = doCompile =>
           compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
         logger = logger
