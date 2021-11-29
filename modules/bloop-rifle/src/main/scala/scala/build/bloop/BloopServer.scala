@@ -294,8 +294,8 @@ object BloopServer {
     }
     // format: off
     finally {
-//      if (server != null)
-//        server.shutdown()
+      if (server != null)
+        server.shutdown()
     }
     // format: on
   }
