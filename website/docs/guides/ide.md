@@ -4,7 +4,7 @@ sidebar_position: 10
 ---
 
 :::warning
-IDE support is currently under devlopment, primarily because changes needs to be made in both Metals and IntelliJ.
+IDE support is currently under development, primarily because changes needs to be made in both Metals and IntelliJ.
 :::
 
 
