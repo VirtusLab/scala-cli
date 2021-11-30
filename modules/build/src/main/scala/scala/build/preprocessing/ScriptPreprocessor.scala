@@ -7,7 +7,6 @@ import scala.build.Inputs
 import scala.build.errors.BuildException
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
-import scala.util.matching.Regex
 
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {
   def preprocess(input: Inputs.SingleElement)
@@ -54,23 +53,6 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
 
 object ScriptPreprocessor {
 
-  private val sheBangRegex: Regex = s"""(^(#!.*(\\r\\n?|\\n)?)+(\\s*!#.*)?)""".r
-
-  private def ignoreSheBangLines(content: String): String =
-    if (content.startsWith("#!")) {
-      val regexMatch = sheBangRegex.findFirstMatchIn(content)
-      regexMatch match {
-        case Some(firstMatch) =>
-          content.replace(
-            firstMatch.toString(),
-            System.lineSeparator() * firstMatch.toString().split(System.lineSeparator()).length
-          )
-        case None => content
-      }
-    }
-    else
-      content
-
   private def preprocess(
     reportingPath: Either[String, os.Path],
     content: String,
@@ -79,7 +61,7 @@ object ScriptPreprocessor {
     scopePath: ScopePath
   ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
 
-    val contentIgnoredSheBangLines = ignoreSheBangLines(content)
+    val (contentIgnoredSheBangLines, _) = SheBang.ignoreSheBangLines(content)
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
 
