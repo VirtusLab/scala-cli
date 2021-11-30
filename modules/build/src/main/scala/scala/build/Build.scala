@@ -625,7 +625,7 @@ object Build {
       settings.workspace,
       settings.classesDir,
       settings.buildClient,
-      BloopThreads.create(),
+      settings.threads,
       settings.logger
     ) { case bloopServer =>
       either {

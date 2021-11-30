@@ -16,6 +16,7 @@ import scala.build.blooprifle.internal.Constants
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
+import scala.annotation.meta.setter
 
 trait BloopServer {
   def server: BuildServer
@@ -286,6 +287,8 @@ object BloopServer {
     threads: BloopThreads,
     logger: BloopRifleLogger
   )(f: BloopServer => T): T = synchronized {
+
+    val threads = BloopThreads.create()
     var server: BloopServer = null
     try {
       val s = buildServer(
@@ -299,7 +302,6 @@ object BloopServer {
         logger
       )
       server = s
-
       f(s)
     }
     // format: off
@@ -307,6 +309,7 @@ object BloopServer {
       if (server != null) {
         server.shutdown()
       }
+      threads.shutdown()
     }
     // format: on
   }
