@@ -481,17 +481,24 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             .asScala
         }
         expect(compileResp.getStatusCode == b.StatusCode.ERROR)
-
+        import pprint.log
         val diagnosticsParams = {
           val diagnostics = localClient.diagnostics()
-          val params      = diagnostics(2)
-          expect(params.getBuildTarget.getUri == targetUri)
+          //val params      = log(diagnostics).toList(2)
+          val params = diagnostics.find(d =>
+            d.getBuildTarget.getUri == targetUri && TestUtil.normalizeUri(
+              d.getTextDocument.getUri
+            ) ==
+              TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
+          )
+          expect(params.isDefined)
+
           expect(
-            TestUtil.normalizeUri(params.getTextDocument.getUri) ==
+            TestUtil.normalizeUri(params.get.getTextDocument.getUri) ==
               TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
           )
           params
-        }
+        }.get
 
         val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
         expect(diagnostics.length == 1)
