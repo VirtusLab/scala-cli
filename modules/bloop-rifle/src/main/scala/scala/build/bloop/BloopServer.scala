@@ -231,14 +231,16 @@ object BloopServer {
     initParams.setData(bloopExtraParams)
     logger.debug("Sending buildInitialize BSP command to Bloop")
     try {
-      server.buildInitialize(initParams).get(/* config.initTimeout.length */ 5, scala.concurrent.duration.SECONDS)//   config.initTimeout.unit)
-        server.onBuildInitialized()
+      server.buildInitialize(initParams).get(
+        /* config.initTimeout.length */ 5,
+        scala.concurrent.duration.SECONDS
+      ) //   config.initTimeout.unit)
+      server.onBuildInitialized()
     }
     catch {
-      case ex: TimeoutException =>
+      case _: TimeoutException =>
 //        new Exception("Timeout while waiting for buildInitialize response", ex)
     }
-
 
     BloopServerImpl(
       server,
@@ -262,19 +264,17 @@ object BloopServer {
 
   def withBuildServer[T](
     settings: BuildServerSettings
-  )(f: BloopServer => T): T = {
+  )(f: BloopServer => T): T =
     withBuildServer(
-        settings.config: BloopRifleConfig,
-        settings.clientName: String,
-        settings.clientVersion: String,
-        settings.workspace: Path,
-        settings.classesDir: Path,
-        settings.buildClient: bsp4j.BuildClient,
-        settings.threads: BloopThreads,
-        settings.logger: BloopRifleLogger
-      )(f)
-
-  }
+      settings.config: BloopRifleConfig,
+      settings.clientName: String,
+      settings.clientVersion: String,
+      settings.workspace: Path,
+      settings.classesDir: Path,
+      settings.buildClient: bsp4j.BuildClient,
+      settings.threads: BloopThreads,
+      settings.logger: BloopRifleLogger
+    )(f)
 
   def withBuildServer[T](
     config: BloopRifleConfig,

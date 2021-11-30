@@ -11,7 +11,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.bloop.BloopServer
+import scala.build.bloop.{BloopServer, BloopThreads}
 import scala.build.blooprifle.{BloopRifleConfig, VersionUtil}
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
@@ -22,7 +22,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.build.bloop.BloopThreads
 // import scala.build.bloop.BuildServer
 
 trait Build {

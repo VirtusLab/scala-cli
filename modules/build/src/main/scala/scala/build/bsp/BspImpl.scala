@@ -46,7 +46,7 @@ final class BspImpl(
   }
 
   private def prepareBuild(
-    actualLocalServer: BspServer,
+    actualLocalServer: BspServer
   ): Either[(BuildException, Scope), (PreBuildData, PreBuildData)] = either {
     logger.log("Preparing build")
     val bloopServer: Option[BloopServer] = None // todo handle this!!
@@ -203,7 +203,7 @@ final class BspImpl(
 
   def compile(
     actualLocalServer: BspServer,
-    executor: Executor,
+    executor: Executor
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () =>
@@ -236,46 +236,46 @@ final class BspImpl(
           for (targetId <- actualLocalServer.targetIds)
             actualLocalClient.resetBuildExceptionDiagnostics(targetId)
 
-            remoteServer.server.buildTargetCompile(
-              new b.CompileParams(actualLocalServer.targetIds.asJava)
-            )
-          .thenCompose { res =>
-            val (
-              classesDir0,
-              project,
-              generatedSources,
-              classesDir0Test,
-              projectTest,
-              generatedSourcesTest
-            ) = params
-            if (res.getStatusCode == b.StatusCode.OK)
-              CompletableFuture.supplyAsync(
-                () => {
-                  Build.postProcess(
-                    generatedSources,
-                    inputs.generatedSrcRoot(Scope.Main),
-                    classesDir0,
-                    logger,
-                    inputs.workspace,
-                    updateSemanticDbs = true,
-                    scalaVersion = project.scalaCompiler.scalaVersion
-                  ).left.foreach(_.foreach(showGlobalWarningOnce))
-                  Build.postProcess(
-                    generatedSourcesTest,
-                    inputs.generatedSrcRoot(Scope.Test),
-                    classesDir0Test,
-                    logger,
-                    inputs.workspace,
-                    updateSemanticDbs = true,
-                    scalaVersion = projectTest.scalaCompiler.scalaVersion
-                  ).left.foreach(_.foreach(showGlobalWarningOnce))
-                  res
-                },
-                executor
-              )
-            else
-              CompletableFuture.completedFuture(res)
-          }
+          remoteServer.server.buildTargetCompile(
+            new b.CompileParams(actualLocalServer.targetIds.asJava)
+          )
+            .thenCompose { res =>
+              val (
+                classesDir0,
+                project,
+                generatedSources,
+                classesDir0Test,
+                projectTest,
+                generatedSourcesTest
+              ) = params
+              if (res.getStatusCode == b.StatusCode.OK)
+                CompletableFuture.supplyAsync(
+                  () => {
+                    Build.postProcess(
+                      generatedSources,
+                      inputs.generatedSrcRoot(Scope.Main),
+                      classesDir0,
+                      logger,
+                      inputs.workspace,
+                      updateSemanticDbs = true,
+                      scalaVersion = project.scalaCompiler.scalaVersion
+                    ).left.foreach(_.foreach(showGlobalWarningOnce))
+                    Build.postProcess(
+                      generatedSourcesTest,
+                      inputs.generatedSrcRoot(Scope.Test),
+                      classesDir0Test,
+                      logger,
+                      inputs.workspace,
+                      updateSemanticDbs = true,
+                      scalaVersion = projectTest.scalaCompiler.scalaVersion
+                    ).left.foreach(_.foreach(showGlobalWarningOnce))
+                    res
+                  },
+                  executor
+                )
+              else
+                CompletableFuture.completedFuture(res)
+            }
       }
     }
   }
@@ -316,9 +316,9 @@ final class BspImpl(
     else
       actualLocalClient
 
-  var remoteServer: BloopServer    = null
-  var remoteServerSettings: BloopServer.BuildServerSettings    = null
-  var actualLocalServer: BspServer = null
+  var remoteServer: BloopServer                             = null
+  var remoteServerSettings: BloopServer.BuildServerSettings = null
+  var actualLocalServer: BspServer                          = null
 
   val watcher = new Build.Watcher(
     ListBuffer(),
@@ -341,7 +341,6 @@ final class BspImpl(
       threads.buildThreads.bloop,
       logger.bloopRifleLogger
     )
-
 
     remoteServer = BloopServer.buildServer(
       bloopRifleConfig,
