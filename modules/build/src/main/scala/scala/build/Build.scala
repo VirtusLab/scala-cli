@@ -628,7 +628,9 @@ object Build {
       settings.logger
     ) { case bloopServer =>
       either {
-        if (options.platform == Platform.Native && !value(scalaNativeSupported(options, inputs)))
+        if (
+          options.platform.value == Platform.Native && !value(scalaNativeSupported(options, inputs))
+        )
           value(Left(new ScalaNativeCompatibilityError()))
         else
           value(Right(0))
