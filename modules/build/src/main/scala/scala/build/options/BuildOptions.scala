@@ -16,6 +16,7 @@ import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
+import scala.util.control.NonFatal
 
 final case class BuildOptions(
   scalaOptions: ScalaOptions = ScalaOptions(),
@@ -157,7 +158,18 @@ final case class BuildOptions(
           implicit val ec = finalCache.ec
           finalCache.logger.use {
             val path = javaHomeManager.get(jvmId).unsafeRun()
-            os.Path(path)
+            // can throw if path is empty or otherwise invalid
+            try os.Path(path)
+            catch {
+              // os.Path can throw AbsolutePathOutsideRoot or IllegalArgumentException.
+              // rather than be surgical in matching a snapshot-in-time of what might get thrown, this try/catch is
+              // a tight-enough scope where NonFatal should suffice and help our users
+              case NonFatal(err) =>
+                throw new IllegalStateException(
+                  s"JAVA_HOME (java-home) not set. See https://scala-cli.virtuslab.org/docs/reference/directives/#java-home for how to fix this",
+                  err
+                )
+            }
           }
         }
       }
