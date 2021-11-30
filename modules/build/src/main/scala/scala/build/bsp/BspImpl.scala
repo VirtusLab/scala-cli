@@ -19,7 +19,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
-import pprint.stderr.log
+// import pprint.stderr.log
 
 final class BspImpl(
   logger: Logger,
@@ -178,7 +178,6 @@ final class BspImpl(
 
   private def build(
     actualLocalServer: BspServer,
-    bloopServer: BloopServer,
     client: BspClient,
     notifyChanges: Boolean,
     logger: Logger
@@ -209,9 +208,8 @@ final class BspImpl(
 
   def compile(
     actualLocalServer: BspServer,
-    executor: Executor
   ): CompletableFuture[b.CompileResult] =
-    build(actualLocalServer, remoteServer, actualLocalClient, true, logger)
+    build(actualLocalServer, actualLocalClient, true, logger)
       .fold(
         _ => CompletableFuture.completedFuture(new b.CompileResult(b.StatusCode.ERROR)),
         bb => {
@@ -222,82 +220,6 @@ final class BspImpl(
 
         }
       )
-
-//
-//
-//    val preBuild = CompletableFuture.supplyAsync(
-//      () =>
-//        prepareBuild(actualLocalServer) match {
-//          case Right((preBuildDataMain, preBuildDataTest)) =>
-//            if (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged)
-//              notifyBuildChange(actualLocalServer)
-//            Right((
-//              preBuildDataMain.classesDir,
-//              preBuildDataMain.project,
-//              preBuildDataMain.generatedSources,
-//              preBuildDataTest.classesDir,
-//              preBuildDataTest.project,
-//              preBuildDataTest.generatedSources
-//            ))
-//          case Left((ex, scope)) =>
-//            Left((ex, scope))
-//        },
-//      executor
-//    )
-//
-//    preBuild.thenCompose { maybeParams =>
-//      maybeParams match {
-//        case Left((ex, scope)) =>
-//          actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
-//          CompletableFuture.completedFuture(
-//            new b.CompileResult(b.StatusCode.ERROR)
-//          )
-//        case Right(params) =>
-//          for (targetId <- actualLocalServer.targetIds)
-//            actualLocalClient.resetBuildExceptionDiagnostics(targetId)
-//
-//          remoteServer.server.buildTargetCompile(
-//            new b.CompileParams(actualLocalServer.targetIds.asJava)
-//          )
-//            .thenCompose { res =>
-//              val (
-//                classesDir0,
-//                project,
-//                generatedSources,
-//                classesDir0Test,
-//                projectTest,
-//                generatedSourcesTest
-//              ) = params
-//              if (res.getStatusCode == b.StatusCode.OK)
-//                CompletableFuture.supplyAsync(
-//                  () => {
-//                    Build.postProcess(
-//                      generatedSources,
-//                      inputs.generatedSrcRoot(Scope.Main),
-//                      classesDir0,
-//                      logger,
-//                      inputs.workspace,
-//                      updateSemanticDbs = true,
-//                      scalaVersion = project.scalaCompiler.scalaVersion
-//                    ).left.foreach(_.foreach(showGlobalWarningOnce))
-//                    Build.postProcess(
-//                      generatedSourcesTest,
-//                      inputs.generatedSrcRoot(Scope.Test),
-//                      classesDir0Test,
-//                      logger,
-//                      inputs.workspace,
-//                      updateSemanticDbs = true,
-//                      scalaVersion = projectTest.scalaCompiler.scalaVersion
-//                    ).left.foreach(_.foreach(showGlobalWarningOnce))
-//                    res
-//                  },
-//                  executor
-//                )
-//              else
-//                CompletableFuture.completedFuture(res)
-//            }
-//      }
-//    }
 
   def registerWatchInputs(watcher: Build.Watcher): Unit =
     inputs.elements.foreach {
@@ -342,7 +264,7 @@ final class BspImpl(
   val watcher = new Build.Watcher(
     ListBuffer(),
     threads.buildThreads.fileWatcher,
-    build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = true, logger),
+    build(actualLocalServer, actualLocalClient, notifyChanges = true, logger),
     ()
   )
 
@@ -376,7 +298,7 @@ final class BspImpl(
     actualLocalServer =
       new BspServer(
         () => remoteServer.server,
-        compile = () => compile(actualLocalServer, threads.prepareBuildExecutor),
+        compile = () => compile(actualLocalServer),
         logger = logger
       )
     actualLocalServer.setProjectName(inputs.workspace, inputs.projectName)
@@ -422,7 +344,7 @@ final class BspImpl(
     val f = launcher.startListening()
 
     val initiateFirstBuild: Runnable = { () =>
-      try build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = false, logger)
+      try build(actualLocalServer, actualLocalClient, notifyChanges = false, logger)
       catch {
         case t: Throwable =>
           logger.debug(s"Caught $t during initial BSP build, ignoring it")

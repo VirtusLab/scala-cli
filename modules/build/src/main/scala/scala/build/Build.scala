@@ -22,7 +22,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
-import pprint.stderr.log
+// import pprint.stderr.log
 
 
 trait Build {
