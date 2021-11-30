@@ -155,21 +155,33 @@ object BloopServer {
 
     val bloopInfo = ensureBloopRunning(config, threads.startServerChecks, logger)
 
-    logger.debug("Opening BSP connection with bloop")
+    logger.info("Opening BSP connection with bloop")
     Files.createDirectories(workspace.resolve(".scala/.bloop"))
     val conn = BloopRifle.bsp(
       config,
       workspace.resolve(".scala"),
       logger
     )
-    logger.debug(s"Bloop BSP connection waiting at ${conn.address}")
+    logger.info(s"Bloop BSP connection waiting at ${conn.address}")
 
     val socket = connect(conn, period, timeout)
 
-    logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
+    logger.info(s"Connected to Bloop via BSP at ${conn.address}")
 
     (conn, socket, bloopInfo)
   }
+
+  def buildServer(settings: BuildServerSettings): BloopServer =
+    buildServer(
+      settings.config,
+      settings.clientName,
+      settings.clientVersion,
+      settings.workspace,
+      settings.classesDir,
+      settings.buildClient,
+      settings.threads,
+      settings.logger
+    )
 
   def buildServer(
     config: BloopRifleConfig,
@@ -181,11 +193,11 @@ object BloopServer {
     threads: BloopThreads,
     logger: BloopRifleLogger
   ): BloopServer = {
-
+    logger.info("CREATING BUILD SERVER")
     val (conn, socket, bloopInfo) =
       bsp(config, workspace, threads, logger, config.period, config.timeout)
 
-    logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
+    logger.info(s"Connected to Bloop via BSP at ${conn.address}")
 
     // FIXME As of now, we don't detect when connection gets closed.
     // For TCP connections, this should be do-able with heartbeat messages
@@ -217,15 +229,51 @@ object BloopServer {
     bloopExtraParams.setClientClassesRootDir(classesDir.toUri.toASCIIString)
     bloopExtraParams.setOwnsBuildFiles(true)
     initParams.setData(bloopExtraParams)
-    logger.debug("Sending buildInitialize BSP command to Bloop")
-    try server.buildInitialize(initParams).get(config.initTimeout.length, config.initTimeout.unit)
+    logger.info("Sending buildInitialize BSP command to Bloop")
+    try {
+      server.buildInitialize(initParams).get(/* config.initTimeout.length */ 5, scala.concurrent.duration.SECONDS)//   config.initTimeout.unit)
+        server.onBuildInitialized()
+    }
     catch {
       case ex: TimeoutException =>
-        throw new Exception("Timeout while waiting for buildInitialize response", ex)
+//        new Exception("Timeout while waiting for buildInitialize response", ex)
     }
 
-    server.onBuildInitialized()
-    BloopServerImpl(server, f, socket, bloopInfo.jvmVersion.toString(), bloopInfo.bloopVersion.raw)
+
+    BloopServerImpl(
+      server,
+      f,
+      socket,
+      bloopInfo.jvmVersion.toString(),
+      bloopInfo.bloopVersion.raw
+    )
+  }
+
+  case class BuildServerSettings(
+    config: BloopRifleConfig,
+    clientName: String,
+    clientVersion: String,
+    workspace: Path,
+    classesDir: Path,
+    buildClient: bsp4j.BuildClient,
+    threads: BloopThreads,
+    logger: BloopRifleLogger
+  )
+
+  def withBuildServer[T](
+    settings: BuildServerSettings
+  )(f: BloopServer => T): T = {
+    withBuildServer(
+        settings.config: BloopRifleConfig,
+        settings.clientName: String,
+        settings.clientVersion: String,
+        settings.workspace: Path,
+        settings.classesDir: Path,
+        settings.buildClient: bsp4j.BuildClient,
+        settings.threads: BloopThreads,
+        settings.logger: BloopRifleLogger
+      )(f)
+
   }
 
   def withBuildServer[T](
@@ -237,10 +285,11 @@ object BloopServer {
     buildClient: bsp4j.BuildClient,
     threads: BloopThreads,
     logger: BloopRifleLogger
-  )(f: BloopServer => T): T = {
+  )(f: BloopServer => T): T = synchronized {
     var server: BloopServer = null
     try {
-      server = buildServer(
+      logger.info("WITH SERVER")
+      val s = buildServer(
         config,
         clientName,
         clientVersion,
@@ -250,12 +299,16 @@ object BloopServer {
         threads,
         logger
       )
-      f(server)
+      server = s
+
+      f(s)
     }
     // format: off
     finally {
-      if (server != null)
+      if (server != null) {
+        logger.info("KILL SERVER")
         server.shutdown()
+      }
     }
     // format: on
   }
