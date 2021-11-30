@@ -645,7 +645,7 @@ object Build {
             scope,
             logger,
             buildClient,
-            None
+            Some(bloopServer)
           )
         }
 
