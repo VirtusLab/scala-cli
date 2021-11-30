@@ -229,7 +229,7 @@ object BloopServer {
     bloopExtraParams.setClientClassesRootDir(classesDir.toUri.toASCIIString)
     bloopExtraParams.setOwnsBuildFiles(true)
     initParams.setData(bloopExtraParams)
-    logger.info("Sending buildInitialize BSP command to Bloop")
+    logger.debug("Sending buildInitialize BSP command to Bloop")
     try {
       server.buildInitialize(initParams).get(/* config.initTimeout.length */ 5, scala.concurrent.duration.SECONDS)//   config.initTimeout.unit)
         server.onBuildInitialized()
@@ -288,7 +288,6 @@ object BloopServer {
   )(f: BloopServer => T): T = synchronized {
     var server: BloopServer = null
     try {
-      logger.info("WITH SERVER")
       val s = buildServer(
         config,
         clientName,
@@ -306,7 +305,6 @@ object BloopServer {
     // format: off
     finally {
       if (server != null) {
-        logger.info("KILL SERVER")
         server.shutdown()
       }
     }
