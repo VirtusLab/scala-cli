@@ -19,6 +19,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
+import pprint.stderr.log
 
 final class BspImpl(
   logger: Logger,
@@ -142,14 +143,16 @@ final class BspImpl(
 
   private def buildE(
     actualLocalServer: BspServer,
-    bloopServer: BloopServer,
     notifyChanges: Boolean
-  ): Either[(BuildException, Scope), Unit] = either {
+  ): Either[(BuildException, Scope), Build] = either {
     val (preBuildDataMain, preBuildDataTest) =
       value(prepareBuild(actualLocalServer))
     if (notifyChanges && (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged))
       notifyBuildChange(actualLocalServer)
-    Build.buildOnce(
+
+
+
+    value(Build.buildOnce(
       inputs,
       preBuildDataMain.sources,
       inputs.generatedSrcRoot(Scope.Main),
@@ -159,8 +162,8 @@ final class BspImpl(
       logger,
       actualLocalClient,
       remoteServerSettings
-    ).swap.map(e => (e, Scope.Main)).swap
-    Build.buildOnce(
+    ).swap.map(e => (e, Scope.Main)).swap)
+    value(Build.buildOnce(
       inputs,
       preBuildDataTest.sources,
       inputs.generatedSrcRoot(Scope.Test),
@@ -170,7 +173,7 @@ final class BspImpl(
       logger,
       actualLocalClient,
       remoteServerSettings
-    ).swap.map(e => (e, Scope.Test)).swap
+    ).swap.map(e => (e, Scope.Test)).swap)
   }
 
   private def build(
@@ -179,15 +182,18 @@ final class BspImpl(
     client: BspClient,
     notifyChanges: Boolean,
     logger: Logger
-  ): Unit =
-    buildE(actualLocalServer, bloopServer, notifyChanges) match {
+  ) : Either[(BuildException, Scope), Build] = {
+    val r = buildE(actualLocalServer, notifyChanges)
+    r match {
       case Left((ex, scope)) =>
         client.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.debug(s"Caught $ex during BSP build, ignoring it")
-      case Right(()) =>
+      case Right(build) =>
         for (targetId <- actualLocalServer.targetIds)
           client.resetBuildExceptionDiagnostics(targetId)
     }
+    r
+  }
 
   private val shownGlobalMessages =
     new java.util.concurrent.ConcurrentHashMap[String, Unit]()
@@ -204,81 +210,94 @@ final class BspImpl(
   def compile(
     actualLocalServer: BspServer,
     executor: Executor
-  ): CompletableFuture[b.CompileResult] = {
-    val preBuild = CompletableFuture.supplyAsync(
-      () =>
-        prepareBuild(actualLocalServer) match {
-          case Right((preBuildDataMain, preBuildDataTest)) =>
-            if (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged)
-              notifyBuildChange(actualLocalServer)
-            Right((
-              preBuildDataMain.classesDir,
-              preBuildDataMain.project,
-              preBuildDataMain.generatedSources,
-              preBuildDataTest.classesDir,
-              preBuildDataTest.project,
-              preBuildDataTest.generatedSources
-            ))
-          case Left((ex, scope)) =>
-            Left((ex, scope))
-        },
-      executor
-    )
+  ): CompletableFuture[b.CompileResult] =
+    build(actualLocalServer, remoteServer, actualLocalClient, true, logger)
+      .fold(
+        _ => CompletableFuture.completedFuture(new b.CompileResult(b.StatusCode.ERROR)),
+        bb => {
+          bb match {
+            case _: Build.Successful => CompletableFuture.completedFuture(new b.CompileResult(b.StatusCode.OK))
+            case _: Build.Failed =>  CompletableFuture.completedFuture(new b.CompileResult(b.StatusCode.ERROR))
+          }
 
-    preBuild.thenCompose { maybeParams =>
-      maybeParams match {
-        case Left((ex, scope)) =>
-          actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
-          CompletableFuture.completedFuture(
-            new b.CompileResult(b.StatusCode.ERROR)
-          )
-        case Right(params) =>
-          for (targetId <- actualLocalServer.targetIds)
-            actualLocalClient.resetBuildExceptionDiagnostics(targetId)
+        }
+      )
 
-          remoteServer.server.buildTargetCompile(
-            new b.CompileParams(actualLocalServer.targetIds.asJava)
-          )
-            .thenCompose { res =>
-              val (
-                classesDir0,
-                project,
-                generatedSources,
-                classesDir0Test,
-                projectTest,
-                generatedSourcesTest
-              ) = params
-              if (res.getStatusCode == b.StatusCode.OK)
-                CompletableFuture.supplyAsync(
-                  () => {
-                    Build.postProcess(
-                      generatedSources,
-                      inputs.generatedSrcRoot(Scope.Main),
-                      classesDir0,
-                      logger,
-                      inputs.workspace,
-                      updateSemanticDbs = true,
-                      scalaVersion = project.scalaCompiler.scalaVersion
-                    ).left.foreach(_.foreach(showGlobalWarningOnce))
-                    Build.postProcess(
-                      generatedSourcesTest,
-                      inputs.generatedSrcRoot(Scope.Test),
-                      classesDir0Test,
-                      logger,
-                      inputs.workspace,
-                      updateSemanticDbs = true,
-                      scalaVersion = projectTest.scalaCompiler.scalaVersion
-                    ).left.foreach(_.foreach(showGlobalWarningOnce))
-                    res
-                  },
-                  executor
-                )
-              else
-                CompletableFuture.completedFuture(res)
-            }
-      }
-    }
-  }
+//
+//
+//    val preBuild = CompletableFuture.supplyAsync(
+//      () =>
+//        prepareBuild(actualLocalServer) match {
+//          case Right((preBuildDataMain, preBuildDataTest)) =>
+//            if (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged)
+//              notifyBuildChange(actualLocalServer)
+//            Right((
+//              preBuildDataMain.classesDir,
+//              preBuildDataMain.project,
+//              preBuildDataMain.generatedSources,
+//              preBuildDataTest.classesDir,
+//              preBuildDataTest.project,
+//              preBuildDataTest.generatedSources
+//            ))
+//          case Left((ex, scope)) =>
+//            Left((ex, scope))
+//        },
+//      executor
+//    )
+//
+//    preBuild.thenCompose { maybeParams =>
+//      maybeParams match {
+//        case Left((ex, scope)) =>
+//          actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
+//          CompletableFuture.completedFuture(
+//            new b.CompileResult(b.StatusCode.ERROR)
+//          )
+//        case Right(params) =>
+//          for (targetId <- actualLocalServer.targetIds)
+//            actualLocalClient.resetBuildExceptionDiagnostics(targetId)
+//
+//          remoteServer.server.buildTargetCompile(
+//            new b.CompileParams(actualLocalServer.targetIds.asJava)
+//          )
+//            .thenCompose { res =>
+//              val (
+//                classesDir0,
+//                project,
+//                generatedSources,
+//                classesDir0Test,
+//                projectTest,
+//                generatedSourcesTest
+//              ) = params
+//              if (res.getStatusCode == b.StatusCode.OK)
+//                CompletableFuture.supplyAsync(
+//                  () => {
+//                    Build.postProcess(
+//                      generatedSources,
+//                      inputs.generatedSrcRoot(Scope.Main),
+//                      classesDir0,
+//                      logger,
+//                      inputs.workspace,
+//                      updateSemanticDbs = true,
+//                      scalaVersion = project.scalaCompiler.scalaVersion
+//                    ).left.foreach(_.foreach(showGlobalWarningOnce))
+//                    Build.postProcess(
+//                      generatedSourcesTest,
+//                      inputs.generatedSrcRoot(Scope.Test),
+//                      classesDir0Test,
+//                      logger,
+//                      inputs.workspace,
+//                      updateSemanticDbs = true,
+//                      scalaVersion = projectTest.scalaCompiler.scalaVersion
+//                    ).left.foreach(_.foreach(showGlobalWarningOnce))
+//                    res
+//                  },
+//                  executor
+//                )
+//              else
+//                CompletableFuture.completedFuture(res)
+//            }
+//      }
+//    }
 
   def registerWatchInputs(watcher: Build.Watcher): Unit =
     inputs.elements.foreach {

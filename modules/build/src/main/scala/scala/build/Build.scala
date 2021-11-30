@@ -22,7 +22,8 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
-// import scala.build.bloop.BuildServer
+import pprint.stderr.log
+
 
 trait Build {
   def inputs: Inputs
@@ -613,7 +614,7 @@ object Build {
     logger: Logger,
     buildClient: BloopBuildClient,
     settings: bloop.BloopServer.BuildServerSettings
-  ): Either[BuildException, Build] = synchronized {
+  ): Either[BuildException, Build] =
     BloopServer.withBuildServer(
       settings.config.copy(
         minimumBloopJvm = options.javaHome().version,
@@ -644,7 +645,7 @@ object Build {
             scope,
             logger,
             buildClient,
-            Some(bloopServer)
+            None
           )
         }
 
@@ -668,7 +669,6 @@ object Build {
           logger,
           buildTargetsTimeout = 20.seconds
         )
-
         if (success) {
           postProcess(
             generatedSources,
@@ -705,7 +705,6 @@ object Build {
           )
       }
     }
-  }
 
   def postProcess(
     generatedSources: Seq[GeneratedSource],
