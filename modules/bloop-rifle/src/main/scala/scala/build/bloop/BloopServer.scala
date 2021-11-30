@@ -155,18 +155,18 @@ object BloopServer {
 
     val bloopInfo = ensureBloopRunning(config, threads.startServerChecks, logger)
 
-    logger.info("Opening BSP connection with bloop")
+    logger.debug("Opening BSP connection with bloop")
     Files.createDirectories(workspace.resolve(".scala/.bloop"))
     val conn = BloopRifle.bsp(
       config,
       workspace.resolve(".scala"),
       logger
     )
-    logger.info(s"Bloop BSP connection waiting at ${conn.address}")
+    logger.debug(s"Bloop BSP connection waiting at ${conn.address}")
 
     val socket = connect(conn, period, timeout)
 
-    logger.info(s"Connected to Bloop via BSP at ${conn.address}")
+    logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
     (conn, socket, bloopInfo)
   }
@@ -193,11 +193,11 @@ object BloopServer {
     threads: BloopThreads,
     logger: BloopRifleLogger
   ): BloopServer = {
-    logger.info("CREATING BUILD SERVER")
+
     val (conn, socket, bloopInfo) =
       bsp(config, workspace, threads, logger, config.period, config.timeout)
 
-    logger.info(s"Connected to Bloop via BSP at ${conn.address}")
+    logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 
     // FIXME As of now, we don't detect when connection gets closed.
     // For TCP connections, this should be do-able with heartbeat messages

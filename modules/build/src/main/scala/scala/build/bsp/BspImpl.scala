@@ -158,7 +158,7 @@ final class BspImpl(
       Scope.Main,
       logger,
       actualLocalClient,
-      bloopServer
+      remoteServerSettings
     ).swap.map(e => (e, Scope.Main)).swap
     Build.buildOnce(
       inputs,
@@ -169,7 +169,7 @@ final class BspImpl(
       Scope.Test,
       logger,
       actualLocalClient,
-      bloopServer
+      remoteServerSettings
     ).swap.map(e => (e, Scope.Test)).swap
   }
 
@@ -317,6 +317,7 @@ final class BspImpl(
       actualLocalClient
 
   var remoteServer: BloopServer    = null
+  var remoteServerSettings: BloopServer.BuildServerSettings    = null
   var actualLocalServer: BspServer = null
 
   val watcher = new Build.Watcher(
@@ -329,6 +330,18 @@ final class BspImpl(
   def run(): Future[Unit] = {
 
     val classesDir = Build.classesRootDir(inputs.workspace, inputs.projectName)
+
+    remoteServerSettings = BloopServer.BuildServerSettings(
+      bloopRifleConfig,
+      "scala-cli",
+      Constants.version,
+      inputs.workspace.toNIO,
+      classesDir.toNIO,
+      localClient,
+      threads.buildThreads.bloop,
+      logger.bloopRifleLogger
+    )
+
 
     remoteServer = BloopServer.buildServer(
       bloopRifleConfig,
