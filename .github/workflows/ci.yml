@@ -157,7 +157,6 @@ jobs:
         jvm: 11
     - name: Test documentation
       run: .github/scripts/check_docs.sh
-
     - name: Test gifs
       run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
 
@@ -266,6 +265,11 @@ jobs:
         PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+    - name: Update stable branch
+      uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: stable
 
   launchers:
     timeout-minutes: 20
@@ -338,51 +342,3 @@ jobs:
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
-  website-nightly:
-    # needs: [jvm-tests, format, checks, reference-doc]
-    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
-      with:
-        jvm: 11
-    - run: ./mill -i ci.setShouldPublish
-    - uses: actions/setup-node@v2.5.0
-      if: env.SHOULD_PUBLISH == 'true'
-      with:
-        node-version: '12.x'
-    - run: .github/scripts/update-website.sh
-      if: env.SHOULD_PUBLISH == 'true'
-      env:
-        GIT_USER: Virtuslab
-        DEPLOYMENT_BRANCH: gh-pages
-        GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
-
-  # same as website-nightly above, but for the 'needs' and 'if' fields
-  website-release:
-    needs: [jvm-tests, format, checks, reference-doc, update-packages]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
-      with:
-        jvm: 11
-    - uses: actions/setup-node@v2.5.0
-      with:
-        node-version: '12.x'
-    - run: .github/scripts/update-website.sh
-      env:
-        GIT_USER: Virtuslab
-        DEPLOYMENT_BRANCH: gh-pages
-        GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
