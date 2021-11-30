@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        OS: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        OS: ["ubuntu-latest", "macos-latest", "windows-2016"]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -223,7 +223,7 @@ jobs:
 
   vc-redist:
     timeout-minutes: 15
-    runs-on: windows-latest
+    runs-on: windows-2016
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     steps:
     - uses: actions/checkout@v2
