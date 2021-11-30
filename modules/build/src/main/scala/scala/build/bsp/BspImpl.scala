@@ -47,9 +47,9 @@ final class BspImpl(
 
   private def prepareBuild(
     actualLocalServer: BspServer,
-    bloopServer: Option[BloopServer]
   ): Either[(BuildException, Scope), (PreBuildData, PreBuildData)] = either {
     logger.log("Preparing build")
+    val bloopServer: Option[BloopServer] = None // todo handle this!!
 
     val crossSources = value {
       CrossSources.forInputs(
@@ -146,7 +146,7 @@ final class BspImpl(
     notifyChanges: Boolean
   ): Either[(BuildException, Scope), Unit] = either {
     val (preBuildDataMain, preBuildDataTest) =
-      value(prepareBuild(actualLocalServer, Some(bloopServer)))
+      value(prepareBuild(actualLocalServer))
     if (notifyChanges && (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged))
       notifyBuildChange(actualLocalServer)
     Build.buildOnce(
@@ -204,12 +204,10 @@ final class BspImpl(
   def compile(
     actualLocalServer: BspServer,
     executor: Executor,
-    doCompile: () => CompletableFuture[b.CompileResult],
-    bloopServer: BloopServer
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () =>
-        prepareBuild(actualLocalServer, Some(bloopServer)) match {
+        prepareBuild(actualLocalServer) match {
           case Right((preBuildDataMain, preBuildDataTest)) =>
             if (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged)
               notifyBuildChange(actualLocalServer)
@@ -237,7 +235,11 @@ final class BspImpl(
         case Right(params) =>
           for (targetId <- actualLocalServer.targetIds)
             actualLocalClient.resetBuildExceptionDiagnostics(targetId)
-          doCompile().thenCompose { res =>
+
+            remoteServer.server.buildTargetCompile(
+              new b.CompileParams(actualLocalServer.targetIds.asJava)
+            )
+          .thenCompose { res =>
             val (
               classesDir0,
               project,
@@ -342,9 +344,8 @@ final class BspImpl(
 
     actualLocalServer =
       new BspServer(
-        remoteServer.server,
-        compile = doCompile =>
-          compile(actualLocalServer, threads.prepareBuildExecutor, doCompile, remoteServer),
+        () => remoteServer.server,
+        compile = () => compile(actualLocalServer, threads.prepareBuildExecutor),
         logger = logger
       )
     actualLocalServer.setProjectName(inputs.workspace, inputs.projectName)
@@ -373,7 +374,7 @@ final class BspImpl(
         case _: Inputs.Virtual =>
       }
 
-    prepareBuild(actualLocalServer, Some(remoteServer)) match {
+    prepareBuild(actualLocalServer) match {
       case Left((ex, scope)) =>
         actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.log(ex)

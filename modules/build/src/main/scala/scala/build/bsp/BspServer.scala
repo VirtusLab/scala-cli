@@ -13,8 +13,8 @@ import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
 
 class BspServer(
-  bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
-  compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
+  bloopServer: () => b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
+  compile: () => CompletableFuture[b.CompileResult],
   logger: Logger
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
     with ScalaDebugServerForwardStubs
@@ -92,7 +92,7 @@ class BspServer(
     }
   }
 
-  protected def forwardTo = bloopServer
+  protected def forwardTo = bloopServer()
 
   private val supportedLanguages: ju.List[String] = List("scala", "java").asJava
 
@@ -133,7 +133,7 @@ class BspServer(
     super.buildTargetCleanCache(check(params))
 
   override def buildTargetCompile(params: b.CompileParams): CompletableFuture[b.CompileResult] =
-    compile(() => super.buildTargetCompile(check(params)))
+    compile()
 
   override def buildTargetDependencySources(
     params: b.DependencySourcesParams
