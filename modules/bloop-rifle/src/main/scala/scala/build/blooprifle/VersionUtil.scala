@@ -1,10 +1,31 @@
 package scala.build.blooprifle
 
+import scala.util.Try
+
 object VersionUtil {
-  def jvmRelease(jvmVersion: String): Option[Int] = {
-    val jvmReleaseRegex = "(1[.])?(\\d+)".r
-    jvmReleaseRegex.findFirstMatchIn(jvmVersion).map(_.group(2)).map(_.toInt)
-  }
+
+  /** @param jvmVersion,
+    *   for example '1.8.0.22' or '11.0.2'
+    * @return
+    *   jvm release version (8, 11)
+    */
+  val jvmReleaseRegex = "(1[.])?(\\d+)"
+  def jvmRelease(jvmVersion: String): Option[Int] = for {
+    regexMatch    <- jvmReleaseRegex.r.findFirstMatchIn(jvmVersion)
+    versionString <- Option(regexMatch.group(2))
+    versionInt    <- Try(versionString.toInt).toOption
+  } yield versionInt
+
+  /** @param input
+    *   `java -version` output`
+    * @return
+    *   jvm release version (8, 11)
+    */
+  def parseJavaVersion(input: String): Option[Int] = for {
+    firstMatch         <- s""".*version .($jvmReleaseRegex).*""".r.findFirstMatchIn(input)
+    versionNumberGroup <- Option(firstMatch.group(1))
+    versionInt         <- jvmRelease(versionNumberGroup)
+  } yield versionInt
 
   def parseBloopAbout(stdoutFromBloopAbout: String): Option[BloopServerRuntimeInfo] = {
 
