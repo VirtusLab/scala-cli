@@ -1,6 +1,5 @@
 package scala.build.blooprifle
 
-
 object VersionUtil {
 
   /** @param jvmVersion,
