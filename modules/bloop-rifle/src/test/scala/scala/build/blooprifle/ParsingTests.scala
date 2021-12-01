@@ -2,14 +2,15 @@ package scala.build.blooprifle
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.blooprifle.VersionUtil.{jvmRelease, parseBloopAbout}
+import scala.build.blooprifle.VersionUtil.{jvmRelease, parseBloopAbout, parseJavaVersion}
 
 class ParsingTests extends munit.FunSuite {
 
   implicit class BV(s: String) {
-    implicit def v = BloopVersion(s)
-    implicit def p = parseBloopAbout(s)
-    implicit def j = jvmRelease(s)
+    implicit def v  = BloopVersion(s)
+    implicit def p  = parseBloopAbout(s)
+    implicit def j  = jvmRelease(s)
+    implicit def jv = parseJavaVersion(s)
   }
 
   test("bloop version comparisons test") {
@@ -29,6 +30,13 @@ class ParsingTests extends munit.FunSuite {
     expect("9".j == Some(9))
     expect("14".j == Some(14))
     expect("17".j == Some(17))
+  }
+
+  test("parse jvm version") {
+    expect("""openjdk version "1.8.0_292" """.jv == Some(8))
+    expect("""openjdk version "9" """.jv == Some(9))
+    expect("""openjdk version "11.0.11" 2021-04-20 """.jv == Some(11))
+    expect("""openjdk version "16" 2021-03-16 """.jv == Some(16))
   }
 
   val jreBloopOutput =

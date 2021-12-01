@@ -10,6 +10,7 @@ import java.nio.file.Path
 import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
+import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.build.errors.{BuildException, Diagnostic, InvalidBinaryScalaVersionError}
 import scala.build.internal.Constants._
 import scala.build.internal.{Constants, OsLibc, Util}
@@ -133,7 +134,7 @@ final case class BuildOptions(
       stderr = os.Pipe,
       mergeErrIntoOut = true
     ).out.text().trim()
-    val javaVersion = ParseJavaVersion.parse(javaVersionOutput).getOrElse {
+    val javaVersion = parseJavaVersion(javaVersionOutput).getOrElse {
       throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
     }
 
