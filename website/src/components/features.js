@@ -3,7 +3,7 @@ import React from 'react';
 import ImageBox from '../components/ImageBox';
 
 const featuresList = [
-    <ImageBox image="versions.svg" title="Scala versions, dependencies and JVMs" 
+    <ImageBox image="gifs/versions.gif" title="Scala versions, dependencies and JVMs" 
       key="versions" projects="true"> 
       <p>
         Scala CLI is built on top of coursier
@@ -20,7 +20,7 @@ const featuresList = [
         <i>Some additional setup may be required for <a href="/install#scala-js">JS</a> and <a href="/install#scala-native">Native</a></i>
       </p>
     </ImageBox>,
-    <ImageBox image="universal_tool.svg" title="Universal tool" key="universal" 
+    <ImageBox image="gifs/universal_tool.gif" title="Universal tool" key="universal" 
       projects="true">
       <p>
         If you want to use older <b>version of Scala</b> or
@@ -43,7 +43,7 @@ const featuresList = [
         </p>
     </ImageBox>,
     <ImageBox 
-        image="complete-install.svg" title="Complete installation"
+        image="gifs/complete-install.gif" title="Complete installation"
         key="complete-install" education="true">
           <p>
             Scala CLI comes with batteries included. No additional installation is required, no more fluffing with setting up the correct Java version or <code>PATH</code>
@@ -53,7 +53,7 @@ const featuresList = [
           </p>
       </ImageBox>,
       <ImageBox 
-       image="defaults.svg" title="Solid defaults" 
+       image="gifs/defaults.gif" title="Solid defaults" 
        key="defaults" education="true">
          <p>
            No additional configuration is needed to most Scala CLI commands.
@@ -63,7 +63,7 @@ const featuresList = [
          </p>
      </ImageBox>,
       <ImageBox 
-      image="learning_curve.svg" title="No learning curve" 
+      image="gifs/learning_curve.gif" title="No learning curve" 
       key="curve" education="true">
         <p>
           Scala CLI does not use complex configuration language, its options are simple and self-explanatory
@@ -73,13 +73,13 @@ const featuresList = [
         </p>
     </ImageBox>,
     <ImageBox 
-      image="powerful_scripts.svg" title="Scripts are as powerful as other programs" key="scripts-as-apps" scripting="true">
+      image="gifs/powerful_scripts.gif" title="Scripts are as powerful as other programs" key="scripts-as-apps" scripting="true">
         <p>
           Scripts in Scala CLI can use dependencies and other features as standard Scala programs. Scala CLI is command-line first giving access to all its features without need for any configuration file or specific project structure.
         </p>
     </ImageBox>,
     <ImageBox 
-      image="embeddable_scripts.svg" title="Embeddable Scripts" key="embed-scripts" scripting="true">
+      image="gifs/embeddable_scripts.gif" title="Embeddable Scripts" key="embed-scripts" scripting="true">
         <p>
          Scala CLI can be set up in shebang lines, making your *.scala or *.sc files runnable
         </p>
@@ -100,7 +100,7 @@ const featuresList = [
     // Prototyping
 
     <ImageBox 
-      image="self-contained-examples.svg" title="Self-contained examples" 
+      image="gifs/self-contained-examples.gif" title="Self-contained examples" 
       key="self-contained-examples" prototyping="true">
       <p>
         With Scala CLI, configuration can be included in source code so complex examples can be self-contained and shipped as e.g. gist. Moreover, Scala CLI can compile, run and test gists without any manual work!

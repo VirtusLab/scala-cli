@@ -37,5 +37,5 @@ Scala-CLI documentation is split into three main sections:
 
 **Happy hacking with Scala CLI!**
 
-![Demo](/img/dark/demo.svg)
+![Demo](/img/dark/demo.gif)
 

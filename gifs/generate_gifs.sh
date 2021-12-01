@@ -64,6 +64,11 @@ do
     fileName=$(basename "$arg")
     name=${fileName%%.sh} 
 
+    if ! [[ -f "$SCRIPT_DIR/scenarios/$name.sh" ]]; then
+        echo "Scenario $SCRIPT_DIR/scenarios/$name.sh does not exist."
+        exit 1
+    fi
+
     echo processing $name with $TTY_OPS
     svg_render_mappings="-v $SCRIPT_DIR/../website/static/img:/data -v $OUT/.scala:/out"
     svg_render_ops="--in /out/$name.cast --width $columns --height $rows --term iterm2 --padding 20"
@@ -90,7 +95,8 @@ do
         )
       fi
       if [ -z "$no_gifs" ]; then
-        docker run --rm $svg_render_mappings asciinema/asciicast2gif -w $columns -h $rows -t monokai /out/$name.cast /data/gifs/$name.gif || (
+        docker run --rm $svg_render_mappings asciinema/asciicast2gif -w $columns -h $rows -t monokai /out/$name.cast /data/gifs/$name.gif && 
+        docker run --rm $svg_render_mappings asciinema/asciicast2gif -w $columns -h $rows -t solarized-dark /out/$name.cast /data/dark/gifs/$name.gif || (
           echo "Scenario failed: $name" &&
           echo $name >> $OUT/failures.txt &&
           failure=true
