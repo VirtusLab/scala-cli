@@ -1207,7 +1207,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!Properties.isWin)
+  if (!Properties.isWin) {
     test("CLI args passed to shebang script") {
       val inputs = TestInputs(
         Seq(
@@ -1222,6 +1222,25 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         expect(p.out.text().trim == "List(1, 2, 3, -v)")
       }
     }
+    test("CLI args passed to shebang in Scala file") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "f.scala" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
+                                    |object Hello {
+                                    |    def main(args: Array[String]) = {
+                                    |        println(args.toList)
+                                    |    }
+                                    |}
+                                    |""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        os.perms.set(root / "f.scala", os.PermSet.fromString("rwx------"))
+        val p = os.proc("./f.scala", "1", "2", "3", "-v").call(cwd = root)
+        expect(p.out.text().trim == "List(1, 2, 3, -v)")
+      }
+    }
+  }
 
   test("Runs with JVM 8") {
     val inputs = TestInputs(
