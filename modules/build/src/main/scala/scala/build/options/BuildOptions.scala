@@ -127,22 +127,16 @@ final case class BuildOptions(
     val ext      = if (Properties.isWin) ".exe" else ""
     val javaCmd  = (javaHome / "bin" / s"java$ext").toString
 
-    val javaV0 = os.proc(javaCmd, "-version").call(
+    val javaVersionOutput = os.proc(javaCmd, "-version").call(
       cwd = os.pwd,
       stdout = os.Pipe,
       stderr = os.Pipe,
       mergeErrIntoOut = true
     ).out.text().trim()
-    val javaFullVersion = javaV0.split(" ").lift(2).map(_.replace("\"", ""))
-    val javaReleaseVersion =
-      javaFullVersion.flatMap(_.trim.stripPrefix("1.").split("[.]").headOption)
+    val javaVersion = ParseJavaVersion.parse(javaVersionOutput).getOrElse {
+      throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
+    }
 
-    val javaVersion =
-      try javaReleaseVersion.get.toInt
-      catch {
-        case e: Throwable =>
-          throw new Exception(s"Could not parse java version from output: $javaV0", e)
-      }
     JavaHomeInfo(javaCmd, javaVersion)
   }
 
