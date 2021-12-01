@@ -1,5 +1,7 @@
 package scala.build.blooprifle
 
+import scala.util.Try
+
 object VersionUtil {
 
   /** @param jvmVersion,
@@ -8,8 +10,11 @@ object VersionUtil {
     *   jvm release version (8, 11)
     */
   val jvmReleaseRegex = "(1[.])?(\\d+)"
-  def jvmRelease(jvmVersion: String): Option[Int] =
-    jvmReleaseRegex.r.findFirstMatchIn(jvmVersion).map(_.group(2)).map(_.toInt)
+  def jvmRelease(jvmVersion: String): Option[Int] = for {
+    regexMatch    <- jvmReleaseRegex.r.findFirstMatchIn(jvmVersion)
+    versionString <- Option(regexMatch.group(2))
+    versionInt    <- Try(versionString.toInt).toOption
+  } yield versionInt
 
   /** @param input
     *   `java -version` output`
