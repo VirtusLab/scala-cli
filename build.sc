@@ -184,6 +184,7 @@ class Build(val crossScalaVersion: String)
     Deps.scalaparse,
     Deps.shapeless,
     Deps.swoval,
+    Deps.upickle,
     Deps.usingDirectives
   )
 
@@ -246,6 +247,8 @@ class Build(val crossScalaVersion: String)
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
+         |  def defaultScala212Version = "${Scala.scala212}"
+         |  def defaultScala213Version = "${Scala.scala213}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)

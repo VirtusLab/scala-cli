@@ -3,7 +3,7 @@ title: Picking the Scala version with scala-cli
 sidebar_position: 2
 ---
 
-By default, `scala-cli` runs the latest stable Scala version.
+By default, `scala-cli` runs the latest supported scala version by ScalaCLI. See our list of [Supported Scala Versions](../reference/scala-versions) in ScalaCLI.
 
 To demonstrate how this works, here’s a universal piece of code that detects the Scala version at runtime.
 The code is a bit complicated, so we suggest that you skip reading the whole file, and just focus on what it prints:
@@ -78,7 +78,7 @@ scala-cli -S 2.12 ScalaVersion.scala
 Scala: 2\.12\.15
 -->
 
-In the first example (`-S 2`), the application picks up the latest Scala 2 stable release (`2.13.6` at the time of this writing).
+In the first example (`-S 2`), the application picks up the latest Scala 2 stable release (`2.13.7` at the time of this writing).
 In the second example, the application picks up the latest stable release of `2.12` (which is `2.12.15` at the time of this writing).
 
 You can also pin the version of the language within a `.scala` file with `using` directives.

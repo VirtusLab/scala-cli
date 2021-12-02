@@ -135,7 +135,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           check = false,
           stderr = os.Pipe
         ).err.text().trim
-        expect(output.startsWith("scala-cli: invalid option:"))
+        expect(output.contains("scala-cli: invalid option:"))
       }
     }
 

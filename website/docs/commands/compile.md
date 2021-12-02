@@ -40,7 +40,7 @@ scala-cli compile --watch Hello.scala
 
 ## Scala version
 
-Scala CLI uses the latest stable version of Scala by default (`3.1.0` when this guide was written). You can specify the Scala version you'd like to use with `--scala`:
+Scala CLI uses the latest stable version of Scala which was tested in `scala-cli` (see our list of [Supported Scala Versions](../reference/scala-versions)). You can specify the Scala version you'd like to use with `--scala`:
 
 ```bash ignore
 scala-cli compile --scala 2.13.6 Hello.scala

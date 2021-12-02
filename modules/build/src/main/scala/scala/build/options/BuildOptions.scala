@@ -1,7 +1,9 @@
 package scala.build.options
 
 import coursier.cache.{ArchiveCache, FileCache}
+import coursier.core.Version
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
+import coursier.util.{Artifact, Task}
 import dependency._
 
 import java.math.BigInteger
@@ -11,9 +13,15 @@ import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.VersionUtil.parseJavaVersion
-import scala.build.errors.{BuildException, Diagnostic, InvalidBinaryScalaVersionError}
+import scala.build.errors.{
+  BuildException,
+  Diagnostic,
+  InvalidBinaryScalaVersionError,
+  NoValidScalaVersionFoundError,
+  UnsupportedScalaVersionError
+}
 import scala.build.internal.Constants._
-import scala.build.internal.{Constants, OsLibc, Util}
+import scala.build.internal.{OsLibc, StableScalaVersion, Util}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
@@ -166,6 +174,52 @@ final case class BuildOptions(
       }
     }
 
+  // used when downloading fails
+  private def defaultStableScalaVersions =
+    Seq(defaultScala212Version, defaultScala213Version, defaultScalaVersion)
+
+  private def latestSupportedScalaVersion(): Seq[Version] = {
+
+    val supportedScalaVersionsUrl = scalaOptions.scalaVersionsUrl
+
+    val task = {
+      val art = Artifact(supportedScalaVersionsUrl).withChanging(true)
+      finalCache.file(art).run.flatMap {
+        case Left(e) => Task.fail(e)
+        case Right(f) =>
+          Task.delay {
+            val content = os.read(os.Path(f, Os.pwd))
+            upickle.default.read[Seq[StableScalaVersion]](content)
+          }
+      }
+    }
+
+    val scalaCliVersion = version
+    val launchersTask   = finalCache.logger.using(task)
+
+    //  If an error occurred while downloading stable versions,
+    //  it uses stable scala versions from Deps.sc
+    val supportedScalaVersions =
+      launchersTask.attempt.unsafeRun()(finalCache.ec) match {
+        case Left(_) =>
+          // FIXME Log the exception
+          defaultStableScalaVersions
+        case Right(versions) =>
+          versions
+            .find(_.scalaCliVersion == scalaCliVersion)
+            .map(_.supportedScalaVersions)
+            .getOrElse {
+              // FIXME Log that: logger.debug(s"Couldn't find Scala CLI version $scalaCliVersion in $versions")
+              defaultStableScalaVersions
+            }
+      }
+
+    supportedScalaVersions
+      .map(Version(_))
+      .sorted
+      .reverse
+  }
+
   def javaHome(): JavaHomeInfo = javaCommand0
 
   private lazy val javaHomeManager = {
@@ -186,7 +240,6 @@ final case class BuildOptions(
     scalaVersion: Option[String],
     scalaBinaryVersion: Option[String]
   ): Either[BuildException, (String, String)] = either {
-    import coursier.core.Version
     lazy val allVersions = {
       import coursier._
       import scala.concurrent.ExecutionContext.{global => ec}
@@ -211,19 +264,43 @@ final case class BuildOptions(
       }
       modules.flatMap(moduleVersions).distinct
     }
-    val maybeSv = scalaVersion match {
-      case None => Right(Constants.defaultScalaVersion)
-      case Some(sv0) =>
-        if (Util.isFullScalaVersion(sv0)) Right(sv0)
-        else {
+    def matchNewestScalaVersion(sv: Option[String]) = {
+      lazy val maxSupportedScalaVersions = latestSupportedScalaVersion()
+
+      sv match {
+        case Some(sv0) =>
           val prefix           = if (sv0.endsWith(".")) sv0 else sv0 + "."
           val matchingVersions = allVersions.filter(_.startsWith(prefix))
           if (matchingVersions.isEmpty)
             Left(new InvalidBinaryScalaVersionError(sv0))
+          else {
+            val validMaxVersions = maxSupportedScalaVersions
+              .filter(_.repr.startsWith(prefix))
+            val validMatchingVersions = matchingVersions
+              .map(Version(_))
+              .filter(v => validMaxVersions.exists(v <= _))
+            if (validMatchingVersions.isEmpty)
+              Left(new UnsupportedScalaVersionError(sv0))
+            else
+              Right(validMatchingVersions.max.repr)
+          }
+        case None =>
+          val validVersions = allVersions
+            .map(Version(_))
+            .filter(v => maxSupportedScalaVersions.exists(v <= _))
+          if (validVersions.isEmpty)
+            Left(new NoValidScalaVersionFoundError(allVersions))
           else
-            Right(matchingVersions.map(Version(_)).max.repr)
-        }
+            Right(validVersions.max.repr)
+      }
     }
+    val maybeSv = scalaVersion match {
+      case None => matchNewestScalaVersion(None)
+      case Some(sv0) =>
+        if (Util.isFullScalaVersion(sv0)) Right(sv0)
+        else matchNewestScalaVersion(Some(sv0))
+    }
+
     val sv  = value(maybeSv)
     val sbv = scalaBinaryVersion.getOrElse(ScalaVersion.binary(sv))
     (sv, sbv)
