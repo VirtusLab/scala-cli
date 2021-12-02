@@ -12,6 +12,7 @@ import scala.build.options.Scope
 
 final case class Project(
   workspace: os.Path,
+  directory: os.Path,
   classesDir: os.Path,
   scalaCompiler: ScalaCompiler,
   scalaJsOptions: Option[BloopConfig.JsConfig],
@@ -47,8 +48,8 @@ final case class Project(
       )
     baseBloopProject(
       projectName,
-      workspace.toNIO,
-      (workspace / ".bloop" / projectName).toNIO,
+      directory.toNIO,
+      (directory / ".bloop" / projectName).toNIO,
       classesDir.toNIO,
       scope
     )
@@ -69,7 +70,7 @@ final case class Project(
 
   def writeBloopFile(logger: Logger): Boolean = {
     val bloopFileContent = writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
-    val dest             = workspace / ".bloop" / s"$projectName.json"
+    val dest             = directory / ".bloop" / s"$projectName.json"
     val doWrite = !os.isFile(dest) || {
       val currentContent = os.read.bytes(dest)
       !Arrays.equals(currentContent, bloopFileContent)

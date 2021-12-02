@@ -560,7 +560,8 @@ object Build {
     value(validate(logger, options))
 
     val project = Project(
-      workspace = inputs.workspace / ".scala",
+      directory = inputs.workspace / ".scala",
+      workspace = inputs.workspace,
       classesDir = classesDir0,
       scalaCompiler = scalaCompiler,
       scalaJsOptions =
