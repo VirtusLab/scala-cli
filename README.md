@@ -166,3 +166,8 @@ To debug failing document, Sclicheck has build-in following options: `--step` (s
 ## Scala CLI logos
 
 Package with various logos for scala-cli can be found on [google drive](https://drive.google.com/drive/u/1/folders/1M6JeQXmO4DTBeRBKAFJ5HH2p_hbfQnqS)
+
+## Launcher script
+
+There is a script `scala-cli-src` in the repository root that is intended to work exactly like released scala-cli, but using a binary compiled the worktree.
+Just add it to your PATH to get the already-released-scala-cli experience.
