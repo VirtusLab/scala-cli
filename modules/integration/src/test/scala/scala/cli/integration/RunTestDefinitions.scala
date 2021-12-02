@@ -1234,4 +1234,21 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(p.out.text().trim == "hello")
     }
   }
+
+  test("workspace dir") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          """|// using lib com.lihaoyi::os-lib:0.7.8
+             |
+             |object Hello extends App {
+             |  println(os.pwd) 
+             |}""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "Hello.scala").call(cwd = root)
+      expect(p.out.text().trim == root.toString)
+    }
+  }
 }
