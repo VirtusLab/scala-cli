@@ -15,6 +15,10 @@ object HashedType {
     str => str
   }
 
+  implicit val int: HashedType[Int] = {
+    i => i.toString
+  }
+
   implicit val path: HashedType[os.Path] = {
     path => path.toString
   }

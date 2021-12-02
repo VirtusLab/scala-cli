@@ -179,12 +179,12 @@ final case class SharedOptions(
   def bloopRifleConfig(): BloopRifleConfig = {
 
     val bo    = buildOptions(false, None)
-    val javaV = bo.javaHome().version
+    val javaV = bo.javaHome().value.version
     compilationServer.bloopRifleConfig(
       logging.logger,
       logging.verbosity,
       // This might download a JVM if --jvm … is passed or no system JVM is installed
-      bo.javaHome().javaCommand,
+      bo.javaHome().value.javaCommand,
       directories.directories,
       Some(javaV)
     )

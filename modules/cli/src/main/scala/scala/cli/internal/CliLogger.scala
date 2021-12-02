@@ -78,19 +78,20 @@ class CliLogger(
           if (f.startPos._1 < lines.length)
             diag.setCode(lines(f.startPos._1))
         }
-        ConsoleBloopBuildClient.printDiagnostic(
+        ConsoleBloopBuildClient.printFileDiagnostic(
           out,
           f.path,
           diag
         )
       }
 
-      if (otherPositions.nonEmpty) {
-        for (pos <- otherPositions)
-          out.println(pos.render())
-        out.print("  ")
-        out.println(message)
-      }
+      if (otherPositions.nonEmpty)
+        ConsoleBloopBuildClient.printOtherDiagnostic(
+          out,
+          message,
+          severity,
+          otherPositions
+        )
     }
 
   private def printEx(

@@ -6,6 +6,7 @@ import java.io.{File, PrintStream}
 import java.net.URI
 import java.nio.file.Paths
 
+import scala.build.errors.Severity
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
@@ -85,7 +86,7 @@ class ConsoleBloopBuildClient(
         .getOrElse((Right(path), diag))
       if (keepDiagnostics)
         diagnostics0 += updatedPath -> updatedDiag
-      ConsoleBloopBuildClient.printDiagnostic(out, updatedPath, updatedDiag)
+      ConsoleBloopBuildClient.printFileDiagnostic(out, updatedPath, updatedDiag)
     }
   }
 
@@ -148,7 +149,7 @@ class ConsoleBloopBuildClient(
 
 object ConsoleBloopBuildClient {
 
-  def printDiagnostic(
+  def printFileDiagnostic(
     out: PrintStream,
     path: Either[String, os.Path],
     diag: bsp4j.Diagnostic
@@ -200,6 +201,35 @@ object ConsoleBloopBuildClient {
         out.println(
           prefix + " " * diag.getRange.getStart.getCharacter + "^" * len
         )
+      }
+    }
+  }
+
+  def printOtherDiagnostic(
+    out: PrintStream,
+    message: String,
+    severity: Severity,
+    positions: Seq[Position]
+  ): Unit = {
+    val isWarningOrError = true
+    if (isWarningOrError) {
+      val red    = Console.RED
+      val yellow = Console.YELLOW
+      val reset  = Console.RESET
+      val prefix =
+        if (severity == Severity.Error) s"[${red}error$reset] "
+        else s"[${yellow}warn$reset] "
+      val msgIt = message.linesIterator
+      out.println(s"${prefix}bloop:" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
+      for (line <- msgIt)
+        out.println(prefix + line)
+
+      for { pos <- positions } pos match {
+        case Position.Bloop(bloopJavaPath) =>
+          val bloopOutputPrefix = s"[current bloop jvm] "
+          out.println(prefix + bloopOutputPrefix + bloopJavaPath)
+          out.println(prefix + " " * bloopOutputPrefix.length + "^" * bloopJavaPath.length())
+        case pos => out.println(prefix + pos.render())
       }
     }
   }

@@ -72,7 +72,8 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val extraJars =
       if (options.addRtJar.getOrElse(true)) {
 
-        val rtJarLocation = successfulBuild.options.javaHomeLocation() / "jre" / "lib" / "rt.jar"
+        val rtJarLocation =
+          successfulBuild.options.javaHomeLocation().value / "jre" / "lib" / "rt.jar"
 
         val rtJarOpt =
           if (os.isFile(rtJarLocation)) Some(rtJarLocation.toNIO)

@@ -23,6 +23,8 @@ final case class Positioned[+T](
 }
 
 object Positioned {
+  def apply[T](position: Position, value: T): Positioned[T] = Positioned(List(position), value)
+
   def none[T](value: T): Positioned[T] =
     Positioned(Nil, value)
 

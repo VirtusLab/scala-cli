@@ -3,8 +3,8 @@ package scala.cli.commands
 import caseapp._
 import upickle.default.{ReadWriter, macroRW}
 
-import scala.build.Os
 import scala.build.options.JavaOptions
+import scala.build.{Os, Position, Positioned}
 
 // format: off
 final case class SharedJvmOptions(
@@ -38,7 +38,9 @@ final case class SharedJvmOptions(
   // format: on
 
   def javaOptions = JavaOptions(
-    javaHomeOpt = javaHome.filter(_.nonEmpty).map(os.Path(_, Os.pwd)),
+    javaHomeOpt = javaHome.filter(_.nonEmpty).map(v =>
+      Positioned(Seq(Position.CommandLine("--java-home")), os.Path(v, Os.pwd))
+    ),
     jvmIdOpt = jvm.filter(_.nonEmpty),
     jvmIndexOpt = jvmIndex.filter(_.nonEmpty),
     jvmIndexOs = jvmIndexOs.map(_.trim).filter(_.nonEmpty),

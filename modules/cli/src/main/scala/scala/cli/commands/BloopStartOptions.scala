@@ -35,7 +35,7 @@ final case class BloopStartOptions(
     compilationServer.bloopRifleConfig(
       logging.logger,
       logging.verbosity,
-      buildOptions.javaHome().javaCommand,
+      buildOptions.javaHome().value.javaCommand,
       directories.directories
     )
 

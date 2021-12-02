@@ -114,8 +114,12 @@ object Position {
         File(path, startPos, endPos)
     }
   }
-  final case class CommandLine() extends Position {
+  final case class CommandLine(arg: String = "") extends Position { // todo the exact arg should be somehow taken from CaseApp
     def render(cwd: os.Path, sep: String): String = "COMMAND_LINE"
+  }
+
+  final case class Bloop(bloopJavaPath: String) extends Position {
+    def render(cwd: os.Path, sep: String): String = bloopJavaPath
   }
 
   final case class Custom(msg: String) extends Position {
