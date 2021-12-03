@@ -152,7 +152,7 @@ object Test extends ScalaCommand[TestOptions] {
             build,
             "scala.scalanative.testinterface.TestMain",
             build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
-            logger.scalaNativeLogger
+            logger
           ) { launcher =>
             Runner.testNative(
               build.fullClassPath,

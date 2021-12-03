@@ -189,7 +189,7 @@ class Build(val crossScalaVersion: String)
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.nativeTestRunner,
-    Deps.nativeTools,
+    Deps.nativeTools, // Used only for discovery methods. For linking, look for scala-native-cli
     Deps.osLib,
     Deps.pprint,
     Deps.scalaJsEnvNodeJs,

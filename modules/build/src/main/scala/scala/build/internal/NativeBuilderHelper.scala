@@ -4,9 +4,10 @@ import java.math.BigInteger
 import java.security.MessageDigest
 
 import scala.build.Build
-import scala.scalanative.{build => sn}
 
 object NativeBuilderHelper {
+
+  case class SNCacheData(val changed: Boolean, val projectSha: String)
 
   private def resolveProjectShaPath(nativeWorkDir: os.Path) = nativeWorkDir / ".project_sha"
   private def resolveOutputShaPath(nativeWorkDir: os.Path)  = nativeWorkDir / ".output_sha"
@@ -20,10 +21,10 @@ object NativeBuilderHelper {
     String.format(s"%040x", calculatedSum)
   }
 
-  private def projectSha(build: Build.Successful, nativeConfig: sn.NativeConfig) = {
+  private def projectSha(build: Build.Successful, config: List[String]) = {
     val md = MessageDigest.getInstance("SHA-1")
     md.update(build.inputs.sourceHash().getBytes)
-    md.update(nativeConfig.toString.getBytes)
+    md.update(config.toString.getBytes)
     md.update(Constants.version.getBytes)
     md.update(build.options.hash.getOrElse("").getBytes)
 
@@ -32,22 +33,29 @@ object NativeBuilderHelper {
     String.format(s"%040x", calculatedSum)
   }
 
-  def updateOutputSha(dest: os.Path, nativeWorkDir: os.Path) = {
+  def updateProjectAndOutputSha(
+    dest: os.Path,
+    nativeWorkDir: os.Path,
+    currentProjectSha: String
+  ) = {
+    val projectShaPath = resolveProjectShaPath(nativeWorkDir)
+    os.write.over(projectShaPath, currentProjectSha, createFolders = true)
+
     val outputShaPath = resolveOutputShaPath(nativeWorkDir)
     val sha           = fileSha(dest)
     os.write.over(outputShaPath, sha)
   }
 
-  def shouldBuildIfChanged(
+  def getCacheData(
     build: Build.Successful,
-    nativeConfig: sn.NativeConfig,
+    config: List[String],
     dest: os.Path,
     nativeWorkDir: os.Path
-  ): Boolean = {
+  ): SNCacheData = {
     val projectShaPath = resolveProjectShaPath(nativeWorkDir)
     val outputShaPath  = resolveOutputShaPath(nativeWorkDir)
 
-    val currentProjectSha = projectSha(build, nativeConfig)
+    val currentProjectSha = projectSha(build, config)
     val currentOutputSha  = if (os.exists(dest)) Some(fileSha(dest)) else None
 
     val previousProjectSha = if (os.exists(projectShaPath)) Some(os.read(projectShaPath)) else None
@@ -58,9 +66,6 @@ object NativeBuilderHelper {
       previousOutputSha != currentOutputSha ||
       !os.exists(dest)
 
-    // update sha in .projectShaPath
-    if (changed) os.write.over(projectShaPath, currentProjectSha, createFolders = true)
-
-    changed
+    SNCacheData(changed, currentProjectSha)
   }
 }
