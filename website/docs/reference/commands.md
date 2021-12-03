@@ -91,6 +91,8 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 
+## `help`
+
 ## `install completions`
 
 Aliases:

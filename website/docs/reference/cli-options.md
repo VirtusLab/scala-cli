@@ -330,6 +330,7 @@ Available in commands:
 - [`directories`](./commands.md#directories)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`help`](./commands.md#help)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)

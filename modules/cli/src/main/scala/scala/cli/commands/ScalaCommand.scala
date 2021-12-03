@@ -10,7 +10,7 @@ import caseapp.core.{Arg, Error}
 
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.util.Properties
+import scala.util.{Properties, Try}
 
 abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
     extends Command()(parser, help) with NeedsArgvCommand {
@@ -103,10 +103,14 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
       )))
       .withTerminalWidthOpt {
         if (Properties.isWin)
-          if (coursier.paths.Util.useJni()) {
-            val size = coursier.jniutils.WindowsAnsiTerminal.terminalSize()
-            Some(size.getWidth)
-          }
+          if (coursier.paths.Util.useJni())
+            Try(coursier.jniutils.WindowsAnsiTerminal.terminalSize()).toOption.map(
+              _.getWidth
+            ).orElse {
+              val fallback = 120
+              System.err.println(s"Could not get terminal width, falling back to $fallback")
+              Some(fallback)
+            }
           else None
         else
           // That's how Ammonite gets the terminal width, but I'd rather not spawn a sub-process upfront in Scala CLI…
