@@ -25,6 +25,7 @@ final case class Artifacts(
   compilerArtifacts: Seq[(String, Path)],
   compilerPlugins: Seq[(AnyDependency, String, Path)],
   dependencies: Seq[AnyDependency],
+  scalaNativeCli: Seq[Path],
   detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, Path)],
   extraClassPath: Seq[Path],
   extraCompileOnlyJars: Seq[Path],
@@ -72,6 +73,7 @@ object Artifacts {
     addJvmTestRunner: Boolean,
     addJsTestBridge: Option[String],
     addJmhDependencies: Option[String],
+    scalaNativeCliVersion: Option[String],
     extraRepositories: Seq[String],
     logger: Logger
   ): Either[BuildException, Artifacts] = either {
@@ -117,6 +119,11 @@ object Artifacts {
         Nil
     }
 
+    val scalaNativeCliDependency =
+      scalaNativeCliVersion.map(version =>
+        Seq(dep"org.scala-native:scala-native-cli_2.12:$version")
+      )
+
     val allExtraRepositories = maybeSnapshotRepo ++ extraRepositories
 
     val updatedDependencies =
@@ -138,6 +145,30 @@ object Artifacts {
         logger,
         classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty))
       )
+    }
+
+    val fetchedScalaNativeCli = scalaNativeCliDependency match {
+      case Some(dependency) =>
+        Some(
+          value {
+            fetch(
+              Positioned.none(dependency),
+              Nil,
+              params,
+              logger,
+              None
+            )
+          }
+        )
+      case None =>
+        None
+    }
+
+    val scalaNativeCli = fetchedScalaNativeCli match {
+      case Some(fetched) => fetched.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) =>
+          f.toPath
+        }
+      case None => Nil
     }
 
     val extraStubsJars =
@@ -171,6 +202,7 @@ object Artifacts {
       compilerArtifacts,
       compilerPlugins0,
       updatedDependencies.map(_.value),
+      scalaNativeCli,
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) => (d, p, a, f.toPath) },
       extraClassPath ++ extraStubsJars,
       extraCompileOnlyJars,
