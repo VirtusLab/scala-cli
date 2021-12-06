@@ -11,10 +11,12 @@ final case class InstallHomeOptions(
   @Name("f")
   @HelpMessage("Overwrite `scala-cli`, if it exists")
     force: Boolean = false,
+  @Hidden
   @HelpMessage("Binary name")
     binaryName: String = "scala-cli",
   @HelpMessage("Print the update to `env` variable")
     env: Boolean = false,
+  @Hidden
   @HelpMessage("Binary directory")
     binDir: Option[String] = None
 ) {

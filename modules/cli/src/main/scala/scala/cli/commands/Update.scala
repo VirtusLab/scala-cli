@@ -12,7 +12,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     if (coursier.paths.Util.useAnsiOutput()) {
       println(s"Do you want to update scala-cli to version $newVersion [Y/n]")
       val response = readLine()
-      if (response != "Y") {
+      if (response.toLowerCase != "y") {
         System.err.println("Abort")
         sys.exit(1)
       }

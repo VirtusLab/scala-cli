@@ -44,6 +44,8 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
 
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
+    val destBinPath = binDirPath / options.binaryName
+
     val newScalaCliBinPath = os.Path(options.scalaCliBinaryPath, os.pwd)
 
     val newVersion: String =
@@ -51,7 +53,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
 
     // Backward compatibility - previous versions not have the `--version` parameter
     val oldVersion: String = Try {
-      os.proc(binDirPath / options.binaryName, "version").call(cwd = os.pwd).out.text().trim
+      os.proc(destBinPath, "version").call(cwd = os.pwd).out.text().trim
     }.toOption.getOrElse("0.0.0")
 
     if (os.exists(binDirPath))
@@ -61,15 +63,15 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
         logUpdate(options.env, newVersion, oldVersion)
       else logDowngrade(options.env, newVersion, oldVersion)
 
-    os.remove.all(binDirPath)
+    if (os.exists(destBinPath)) os.remove(destBinPath)
 
     os.copy(
       from = newScalaCliBinPath,
-      to = binDirPath / options.binaryName,
+      to = destBinPath,
       createFolders = true
     )
     if (!Properties.isWin)
-      os.perms.set(binDirPath / options.binaryName, os.PermSet.fromString("rwxr-xr-x"))
+      os.perms.set(destBinPath, os.PermSet.fromString("rwxr-xr-x"))
 
     if (options.env)
       println(s"""export PATH="$binDirPath:$$PATH"""")
