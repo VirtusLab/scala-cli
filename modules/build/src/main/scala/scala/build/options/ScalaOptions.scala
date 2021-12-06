@@ -18,7 +18,7 @@ final case class ScalaOptions(
 ) {
 
   lazy val scalaVersionsUrl = supportedScalaVersionsUrl.getOrElse(
-    "https://raw.githubusercontent.com/VirtusLab/scala-cli/master/scala-version.scala"
+    "https://github.com/VirtuslabRnD/scala-cli-scala-versions/raw/master/scala-versions-v1.json"
   )
 
   def normalize: ScalaOptions = {
