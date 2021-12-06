@@ -5,14 +5,16 @@ import caseapp._
 // format: off
 @HelpMessage("Update scala-cli - it works only for installation script")
 final case class UpdateOptions(
+  @Hidden
   @Group("Update")
   @HelpMessage("Binary name")
     binaryName: String = "scala-cli",
+  @Hidden
   @Group("Update")
   @HelpMessage("Binary directory")
     binDir: Option[String] = None,
   @Name("f")
-  @HelpMessage("Update scala-cli if is outdated")
+  @HelpMessage("Force update scala-cli if is outdated")
     force: Boolean = false,
   @Hidden
     isInternalRun: Boolean = false

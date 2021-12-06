@@ -1006,7 +1006,7 @@ Binary directory
 
 Aliases: `-f`
 
-Update scala-cli if is outdated
+Force update scala-cli if is outdated
 
 #### `--is-internal-run`
 
