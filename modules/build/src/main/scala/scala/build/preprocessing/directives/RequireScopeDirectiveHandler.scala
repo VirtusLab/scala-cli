@@ -9,10 +9,10 @@ import scala.build.preprocessing.{ScopePath, Scoped}
 case object RequireScopeDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Scope"
   def description      = "Require a scope for the current file"
-  def usage            = "using target _scope_"
-  override def usageMd = "`using target `_scope_"
+  def usage            = "// using target.scope _scope_"
+  override def usageMd = "`// using target.scope `_scope_"
   override def examples = Seq(
-    "using target test"
+    "// using target.scope \"test\""
   )
 
   override def keys: Seq[String] = Seq(

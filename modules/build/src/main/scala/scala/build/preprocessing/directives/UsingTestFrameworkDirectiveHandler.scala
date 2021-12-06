@@ -10,11 +10,11 @@ import scala.build.preprocessing.{ScopePath, Scoped}
 case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Test framework"
   def description = "Set the test framework"
-  def usage       = "using test-framework _class_name_"
+  def usage       = "using testFramework _class_name_ | using `test-framework` _class_name_"
   override def usageMd =
-    "`using test-framework `_class_name_"
+    "`// using testFramework `_class_name_ | ``// using `test-framework` ``_class_name_"
   override def examples = Seq(
-    "using test-framework utest.runner.Framework"
+    "// using testFramework \"utest.runner.Framework\""
   )
 
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
@@ -30,7 +30,7 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
         None
     }
 
-  override def keys = Seq("test-framework")
+  override def keys = Seq("test-framework", "testFramework")
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],

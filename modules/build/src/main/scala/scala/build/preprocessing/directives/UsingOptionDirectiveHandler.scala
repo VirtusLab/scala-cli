@@ -8,12 +8,12 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
   def description = "Add Scala compiler options"
   def usage       = "using option _option_ | using options _option1_ _option2_ …"
   override def usageMd =
-    """`using option `_option_
+    """`// using option `_option_
       |
-      |`using options `_option1_ _option2_ …""".stripMargin
+      |`// using options `_option1_, _option2_ …""".stripMargin
   override def examples = Seq(
-    "using option -Xasync",
-    "using options -Xasync -Xfatal-warnings"
+    "// using option \"-Xasync\"",
+    "// using options \"-Xasync\", \"-Xfatal-warnings\""
   )
 
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =

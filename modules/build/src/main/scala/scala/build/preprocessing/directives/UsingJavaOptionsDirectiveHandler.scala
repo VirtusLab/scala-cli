@@ -6,13 +6,13 @@ import scala.build.preprocessing.{ScopePath, Scoped}
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java options"
   def description = "Add Java options"
-  def usage       = "using java-opt _options_ | using javaOpt _options_"
+  def usage       = "// using java-opt _options_ | // using javaOpt _options_"
   override def usageMd =
-    """`using java-opt `_options_
+    """`// using java-opt `_options_
       |
-      |`using javaOpt `_options_""".stripMargin
+      |`// using javaOpt `_options_""".stripMargin
   override def examples = Seq(
-    "using javaOpt -Xmx2g -Dsomething=a"
+    "// using javaOpt \"-Xmx2g\", \"-Dsomething=a\""
   )
 
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =

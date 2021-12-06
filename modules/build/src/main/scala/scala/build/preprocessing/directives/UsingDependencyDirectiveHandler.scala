@@ -10,13 +10,13 @@ import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.{ScopePath, Scoped}
 
 case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
-  def name             = "Dependency"
-  def description      = "Add dependencies"
-  def usage            = "using lib org:name:ver | using libs org:name:ver org2:name2:ver2"
-  override def usageMd = "`using lib `_org_`:`name`:`ver"
+  def name        = "Dependency"
+  def description = "Add dependencies"
+  def usage = "// using lib \"org:name:ver\" | // using libs \"org:name:ver\", \"org2:name2:ver2\""
+  override def usageMd = "`// using lib \"`_org_`:`name`:`ver\""
   override def examples = Seq(
-    "using lib org.scalatest::scalatest:3.2.10",
-    "using lib org.scalameta::munit:0.7.29"
+    "// using lib \"org.scalatest::scalatest:3.2.10\"",
+    "// using lib \"org.scalameta::munit:0.7.29\""
   )
 
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
