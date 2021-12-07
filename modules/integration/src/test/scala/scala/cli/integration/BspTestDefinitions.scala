@@ -273,7 +273,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
     withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
       async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        val buildTargetsResp =
+          Await.result(remoteServer.workspaceBuildTargets().asScala, 60.seconds)
         val target = {
           val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
           expect(targets.length == 2)
@@ -514,6 +515,39 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           expect(diag.getMessage == "Not found: zz")
           expect(diag.getRange.getEnd.getCharacter == 2)
         }
+      }
+    }
+  }
+
+  test("invalid diagnostics at startup") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "A.scala" ->
+          s"""// using resource ./resources
+             |
+             |object A {}
+             |""".stripMargin
+      )
+    )
+
+    withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
+      async {
+        await(remoteServer.workspaceBuildTargets().asScala)
+
+        val diagnosticsParams = localClient.latestDiagnostics().getOrElse {
+          fail("No diagnostics found")
+        }
+
+        val diag = diagnosticsParams.getDiagnostics.asScala.toSeq.head
+
+        expect(
+          diag.getSeverity == b.DiagnosticSeverity.ERROR,
+          diag.getRange.getStart.getLine == 0,
+          diag.getRange.getStart.getCharacter == 3,
+          diag.getRange.getEnd.getLine == 0,
+          diag.getRange.getEnd.getCharacter == 29,
+          diag.getMessage.contains(s"Unrecognized directive: using resource ./resources")
+        )
       }
     }
   }
