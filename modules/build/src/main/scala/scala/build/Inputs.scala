@@ -264,7 +264,42 @@ object Inputs {
   }
 
   private val githubGistsArchiveRegex: Regex =
-    s"""gist\\.github\\.com\\/[^\\/]*?\\/[^\\/]*$$""".r
+    s""":\\/\\/gist\\.github\\.com\\/[^\\/]*?\\/[^\\/]*$$""".r
+
+  private def resolve(path: String, content: Array[Byte]): Element = {
+    val wrapperPath =
+      os.sub / path.split("/").last
+
+    if (path.endsWith(".scala")) VirtualScalaFile(content, path)
+    else if (path.endsWith(".java")) VirtualJavaFile(content, path)
+    else if (path.endsWith(".sc")) VirtualScript(content, path, wrapperPath)
+    else VirtualData(content, path)
+  }
+
+  private def resolveZipArchive(content: Array[Byte]): Seq[Element] = {
+    val zipInputStream = new ZipInputStream(new ByteArrayInputStream(content))
+    @tailrec
+    def readArchive(acc: Seq[Element]): Seq[Element] =
+      zipInputStream.getNextEntry() match {
+        case entry: ZipEntry if !entry.isDirectory =>
+          val content = {
+            val baos = new ByteArrayOutputStream
+            val buf  = Array.ofDim[Byte](16 * 1024)
+            var read = -1
+            while ({
+              read = zipInputStream.read(buf)
+              read >= 0
+            })
+              if (read > 0)
+                baos.write(buf, 0, read)
+            baos.toByteArray
+          }
+          readArchive(resolve(entry.getName, content) +: acc)
+        case _: ZipEntry => readArchive(acc)
+        case _           => acc
+      }
+    readArchive(Nil)
+  }
 
   private def forNonEmptyArgs(
     args: Seq[String],
@@ -286,43 +321,16 @@ object Inputs {
         if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>")))
         else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
           Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
+        else if (arg.endsWith(".zip") && os.exists(os.Path(arg, cwd))) {
+          val content = os.read.bytes(os.Path(arg, cwd))
+          Right(resolveZipArchive(content))
+        }
         else if (arg.contains("://")) {
           val url =
             if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) s"$arg/download" else arg
           download(url).map { content =>
-            def resolve(path: String, content: Array[Byte]): Element = {
-              val wrapperPath =
-                os.sub / path.split("/").last
-
-              if (path.endsWith(".scala")) VirtualScalaFile(content, path)
-              else if (path.endsWith(".java")) VirtualJavaFile(content, path)
-              else if (path.endsWith(".sc")) VirtualScript(content, path, wrapperPath)
-              else VirtualData(content, path)
-            }
-            if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) {
-              val zipInputStream = new ZipInputStream(new ByteArrayInputStream(content))
-              @tailrec
-              def readArchive(acc: Seq[Element]): Seq[Element] =
-                zipInputStream.getNextEntry() match {
-                  case entry: ZipEntry if !entry.isDirectory =>
-                    val content = {
-                      val baos = new ByteArrayOutputStream
-                      val buf  = Array.ofDim[Byte](16 * 1024)
-                      var read = -1
-                      while ({
-                        read = zipInputStream.read(buf)
-                        read >= 0
-                      })
-                        if (read > 0)
-                          baos.write(buf, 0, read)
-                      baos.toByteArray
-                    }
-                    readArchive(resolve(entry.getName, content) +: acc)
-                  case _: ZipEntry => readArchive(acc)
-                  case _           => acc
-                }
-              readArchive(Nil)
-            }
+            if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty)
+              resolveZipArchive(content)
             else
               List(resolve(url, content))
           }
