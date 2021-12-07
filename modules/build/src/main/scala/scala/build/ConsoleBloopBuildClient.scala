@@ -16,7 +16,7 @@ class ConsoleBloopBuildClient(
   keepDiagnostics: Boolean = false,
   var generatedSources: Seq[GeneratedSource] = Nil
 ) extends BloopBuildClient {
-
+  import ConsoleBloopBuildClient._
   private var projectParams = Seq.empty[String]
 
   private def projectNameSuffix =
@@ -26,8 +26,6 @@ class ConsoleBloopBuildClient(
   private def projectName = "project" + projectNameSuffix
 
   private var printedStart = false
-  private val gray         = "\u001b[90m"
-  private val reset        = Console.RESET
 
   private val diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
 
@@ -148,6 +146,14 @@ class ConsoleBloopBuildClient(
 }
 
 object ConsoleBloopBuildClient {
+  private val gray   = "\u001b[90m"
+  private val reset  = Console.RESET
+  private val red    = Console.RED
+  private val yellow = Console.YELLOW
+
+  private def getPrefix(severity: Severity) =
+    if (severity == Severity.Error) s"[${red}error$reset] "
+    else s"[${yellow}warn$reset] "
 
   def printFileDiagnostic(
     out: PrintStream,
@@ -157,9 +163,6 @@ object ConsoleBloopBuildClient {
     val isWarningOrError = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
       diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING
     if (isWarningOrError) {
-      val red    = Console.RED
-      val yellow = Console.YELLOW
-      val reset  = Console.RESET
       val prefix =
         if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR) s"[${red}error$reset] "
         else s"[${yellow}warn$reset] "
@@ -213,23 +216,19 @@ object ConsoleBloopBuildClient {
   ): Unit = {
     val isWarningOrError = true
     if (isWarningOrError) {
-      val red    = Console.RED
-      val yellow = Console.YELLOW
-      val reset  = Console.RESET
-      val prefix =
-        if (severity == Severity.Error) s"[${red}error$reset] "
-        else s"[${yellow}warn$reset] "
-      val msgIt = message.linesIterator
+      val msgIt  = message.linesIterator
+      val prefix = getPrefix(severity)
       out.println(s"${prefix}bloop:" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
-      for (line <- msgIt)
-        out.println(prefix + line)
+      msgIt.foreach(line => out.println(prefix + line))
 
-      for { pos <- positions } pos match {
-        case Position.Bloop(bloopJavaPath) =>
-          val bloopOutputPrefix = s"[current bloop jvm] "
-          out.println(prefix + bloopOutputPrefix + bloopJavaPath)
-          out.println(prefix + " " * bloopOutputPrefix.length + "^" * bloopJavaPath.length())
-        case pos => out.println(prefix + pos.render())
+      positions.foreach { pos =>
+        pos match {
+          case Position.Bloop(bloopJavaPath) =>
+            val bloopOutputPrefix = s"[current bloop jvm] "
+            out.println(prefix + bloopOutputPrefix + bloopJavaPath)
+            out.println(prefix + " " * bloopOutputPrefix.length + "^" * bloopJavaPath.length())
+          case pos => out.println(prefix + pos.render())
+        }
       }
     }
   }

@@ -65,7 +65,7 @@ class BuildProjectTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(scalacOptions = scalacOptions)
     )
 
-    val inputs  = new Inputs(Nil, None, os.pwd, "project", false)
+    val inputs  = Inputs(Nil, None, os.pwd, "project", false)
     val sources = Sources(Nil, Nil, None, Nil, options)
     val logger  = new LoggerMock()
     val res     = Build.buildProject(inputs, sources, Nil, options, Scope.Test, logger)
@@ -74,7 +74,7 @@ class BuildProjectTests extends munit.FunSuite {
     (scalaCompilerOptions, res.right.get.javacOptions, logger.diagnostics)
   }
 
-  def jvm(v: Int) = os.proc("cs", "java-home", "--jvm", s"zulu:$v").call().out.text().trim()
+  def jvm(v: Int) = os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$v").call().out.text().trim()
 
   test("Compiler options contain target JVM release") {
     val javaHome        = jvm(8)

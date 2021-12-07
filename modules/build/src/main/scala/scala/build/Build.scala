@@ -486,7 +486,7 @@ object Build {
     val bloopJvmV = options.javaOptions.bloopJvmVersion
     val javaHome  = options.javaHome()
     if (bloopJvmV.exists(javaHome.value.version > _.value)) {
-      logger.log(List(scala.build.errors.Diagnostic(
+      logger.log(List(Diagnostic(
         Diagnostic.Messages.bloopTooOld,
         Severity.Warning,
         javaHome.positions ++ bloopJvmV.map(_.positions).getOrElse(Nil)
