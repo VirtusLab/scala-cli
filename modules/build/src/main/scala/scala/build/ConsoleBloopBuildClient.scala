@@ -218,7 +218,7 @@ object ConsoleBloopBuildClient {
     if (isWarningOrError) {
       val msgIt  = message.linesIterator
       val prefix = getPrefix(severity)
-      out.println(s"${prefix}bloop:" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
+      out.println(prefix + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       msgIt.foreach(line => out.println(prefix + line))
 
       positions.foreach { pos =>
