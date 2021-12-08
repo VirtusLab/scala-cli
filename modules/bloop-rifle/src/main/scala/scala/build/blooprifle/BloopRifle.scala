@@ -206,12 +206,21 @@ object BloopRifle {
   }
 }
 
-sealed trait BloopAboutFailure
-case object BloopNotRunning                        extends BloopAboutFailure
-case class ParsingFailed(bloopAboutOutput: String) extends BloopAboutFailure
+sealed abstract class BloopAboutFailure extends Product with Serializable {
+  def message: String
+}
+case object BloopNotRunning extends BloopAboutFailure {
+  def message = "not running"
+}
+case class ParsingFailed(bloopAboutOutput: String) extends BloopAboutFailure {
+  def message = s"failed to parse output: '$bloopAboutOutput'"
+}
 
 case class BloopServerRuntimeInfo(
   bloopVersion: BloopVersion,
   jvmVersion: Int,
   javaHome: String
-)
+) {
+  def message: String =
+    s"version $bloopVersion, JVM $jvmVersion under $javaHome"
+}

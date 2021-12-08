@@ -104,7 +104,7 @@ object BloopServer {
     val isOk             = bloopVersionIsOk && bloopJvmIsOk
 
     if (!isOk) {
-      logger.info(s"Bloop currently running: $bloopInfo")
+      logger.info(s"Bloop daemon status: ${bloopInfo.fold(_.message, _.message)}")
       if (isRunning) exitBloop()
       startBloop(expectedBloopVersion.raw, javaPath)
     }
