@@ -108,7 +108,8 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
               _.getWidth
             ).orElse {
               val fallback = 120
-              System.err.println(s"Could not get terminal width, falling back to $fallback")
+              if (java.lang.Boolean.getBoolean("scala.cli.windows-terminal.verbose"))
+                System.err.println(s"Could not get terminal width, falling back to $fallback")
               Some(fallback)
             }
           else None
