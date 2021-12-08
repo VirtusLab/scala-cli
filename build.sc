@@ -534,6 +534,8 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
     Deps.bsp4j,
     Deps.collectionCompat,
     Deps.ipcSocket,
+    Deps.libdaemonjvm
+      .exclude(("org.scala-sbt.ipcsocket", "ipcsocket")),
     Deps.snailgun
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(

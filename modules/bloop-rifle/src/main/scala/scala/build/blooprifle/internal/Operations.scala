@@ -1,21 +1,38 @@
 package scala.build.blooprifle.internal
 
+import libdaemonjvm.LockFiles
 import org.scalasbt.ipcsocket.NativeErrorException
-import snailgun.TcpClient
 import snailgun.protocol.Streams
+import snailgun.{Client, TcpClient}
 
 import java.io.{File, IOException, InputStream, OutputStream}
 import java.net.{ConnectException, InetSocketAddress, Socket}
-import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermissions
+import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
 
-import scala.build.blooprifle.{BloopRifleLogger, BspConnection, BspConnectionAddress}
+import scala.build.blooprifle.{
+  BloopRifleConfig,
+  BloopRifleLogger,
+  BspConnection,
+  BspConnectionAddress
+}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Properties, Success, Try}
 
 object Operations {
+
+  private def lockFiles(address: BloopRifleConfig.Address.DomainSocket): LockFiles = {
+    val path = address.path
+    if (!Files.exists(path)) {
+      // FIXME Small change of race condition here between createDirectories and setPosixFilePermissions
+      Files.createDirectories(path)
+      Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwx------"))
+    }
+    LockFiles.under(path, address.pipeName)
+  }
 
   /** Checks whether a bloop server is running at this host / port.
     *
@@ -26,22 +43,32 @@ object Operations {
     *   Whether a server is running or not.
     */
   def check(
-    host: String,
-    port: Int,
+    address: BloopRifleConfig.Address,
     logger: BloopRifleLogger
   ): Boolean =
-    // inspired by https://github.com/scalacenter/bloop/blob/cbddb8baaf639a4e08ee630f1ebc559dc70255a8/bloopgun/src/main/scala/bloop/bloopgun/core/Shell.scala#L174-L202
-    Util.withSocket { socket =>
-      socket.setReuseAddress(true)
-      socket.setTcpNoDelay(true)
-      logger.debug(s"Attempting a connection to bloop server $host:$port ...")
-      try {
-        socket.connect(new InetSocketAddress(host, port))
-        socket.isConnected()
-      }
-      catch {
-        case _: ConnectException => false
-      }
+    address match {
+      case BloopRifleConfig.Address.Tcp(host, port) =>
+        // inspired by https://github.com/scalacenter/bloop/blob/cbddb8baaf639a4e08ee630f1ebc559dc70255a8/bloopgun/src/main/scala/bloop/bloopgun/core/Shell.scala#L174-L202
+        Util.withSocket { socket =>
+          socket.setReuseAddress(true)
+          socket.setTcpNoDelay(true)
+          logger.debug(s"Attempting a connection to bloop server ${address.render} ...")
+          try {
+            socket.connect(new InetSocketAddress(host, port))
+            socket.isConnected()
+          }
+          catch {
+            case _: ConnectException => false
+          }
+        }
+      case addr: BloopRifleConfig.Address.DomainSocket =>
+        val files = lockFiles(addr)
+        val res   = libdaemonjvm.client.Connect.tryConnect(files)
+        res match {
+          case Some(Right(e)) => e.merge.close()
+          case _              =>
+        }
+        res.exists(_.isRight)
     }
 
   /** Starts a new bloop server.
@@ -58,8 +85,7 @@ object Operations {
     *   A future, that gets completed when the server is done starting (and can thus be used).
     */
   def startServer(
-    host: String,
-    port: Int,
+    address: BloopRifleConfig.Address,
     javaPath: String,
     javaOpts: Seq[String],
     classPath: Seq[Path],
@@ -69,16 +95,25 @@ object Operations {
     logger: BloopRifleLogger
   ): Future[Unit] = {
 
+    val addressArgs = address match {
+      case BloopRifleConfig.Address.Tcp(host, port) => Seq(host, port.toString)
+      case BloopRifleConfig.Address.DomainSocket(path, pipeName) =>
+        val arg =
+          if (Properties.isWin)
+            s"daemon:$path${File.pathSeparator}$pipeName"
+          else
+            s"daemon:$path"
+        Seq(arg)
+    }
     val command =
       Seq(javaPath) ++
         javaOpts ++
         Seq(
           "-cp",
           classPath.map(_.toString).mkString(File.pathSeparator),
-          "bloop.Server",
-          host,
-          port.toString
-        )
+          "bloop.Server"
+        ) ++
+        addressArgs
     val b = new ProcessBuilder(command: _*)
     b.redirectInput(ProcessBuilder.Redirect.PIPE)
 
@@ -104,7 +139,7 @@ object Operations {
         val completionOpt =
           if (!p.isAlive())
             Some(Failure(new Exception("Server didn't start")))
-          else if (check(host, port, logger))
+          else if (check(address, logger))
             Some(Success(()))
           else if (timeout.isFinite && System.currentTimeMillis() - start > timeout.toMillis)
             Some(Failure(new Exception(s"Server didn't start after $timeout ms")))
@@ -137,6 +172,26 @@ object Operations {
     111 //
   )
 
+  private def nailgunClient(address: BloopRifleConfig.Address): Client =
+    address match {
+      case BloopRifleConfig.Address.Tcp(host, port) =>
+        TcpClient(host, port)
+      case addr: BloopRifleConfig.Address.DomainSocket =>
+        SnailgunClient { () =>
+          val files = lockFiles(addr)
+          val res   = libdaemonjvm.client.Connect.tryConnect(files)
+          res match {
+            case None          => ??? // not running
+            case Some(Left(_)) => ??? // error
+            case Some(Right(e)) =>
+              e match {
+                case Left(s)        => s
+                case Right(channel) => libdaemonjvm.Util.socketFromChannel(channel)
+              }
+          }
+        }
+    }
+
   /** Opens a BSP connection to a running bloop server.
     *
     * Starts a thread to read output from the nailgun connection, and another one to pass input to
@@ -152,8 +207,7 @@ object Operations {
     *   A [[BspConnection]] object, that can be used to close the connection.
     */
   def bsp(
-    host: String,
-    port: Int,
+    address: BloopRifleConfig.Address,
     bspSocketOrPort: BspConnectionAddress,
     workingDir: Path,
     in: InputStream,
@@ -162,15 +216,15 @@ object Operations {
     logger: BloopRifleLogger
   ): BspConnection = {
 
-    val stop0         = new AtomicBoolean
-    val nailgunClient = TcpClient(host, port)
-    val streams       = Streams(in, out, err)
+    val stop0          = new AtomicBoolean
+    val nailgunClient0 = nailgunClient(address)
+    val streams        = Streams(in, out, err)
 
     val promise    = Promise[Int]()
     val threadName = "bloop-rifle-nailgun-out"
     val protocolArgs = bspSocketOrPort match {
       case t: BspConnectionAddress.Tcp =>
-        Array("--protocol", "tcp", "--host", host, "--port", t.port.toString)
+        Array("--protocol", "tcp", "--host", t.host, "--port", t.port.toString)
       case s: BspConnectionAddress.UnixDomainSocket =>
         Array("--protocol", "local", "--socket", s.path.getAbsolutePath)
       case p: BspConnectionAddress.WindowsNamedPipe =>
@@ -178,7 +232,7 @@ object Operations {
     }
     val runnable: Runnable = logger.runnable(threadName) { () =>
       val maybeRetCode = Try {
-        nailgunClient.run(
+        nailgunClient0.run(
           "bsp",
           protocolArgs,
           workingDir,
@@ -200,14 +254,14 @@ object Operations {
 
     new BspConnection {
       def address = bspSocketOrPort match {
-        case t: BspConnectionAddress.Tcp => s"$host:${t.port}"
+        case t: BspConnectionAddress.Tcp => s"${t.host}:${t.port}"
         case s: BspConnectionAddress.UnixDomainSocket =>
           "local:" + s.path.toURI.toASCIIString.stripPrefix("file:")
         case p: BspConnectionAddress.WindowsNamedPipe => p.name
       }
       def openSocket(period: FiniteDuration, timeout: FiniteDuration) = bspSocketOrPort match {
         case t: BspConnectionAddress.Tcp =>
-          new Socket(host, t.port)
+          new Socket(t.host, t.port)
         case s: BspConnectionAddress.UnixDomainSocket =>
           val socketFile     = s.path
           var count          = 0
@@ -301,8 +355,7 @@ object Operations {
   }
 
   def exit(
-    host: String,
-    port: Int,
+    address: BloopRifleConfig.Address,
     workingDir: Path,
     in: InputStream,
     out: OutputStream,
@@ -310,11 +363,11 @@ object Operations {
     logger: BloopRifleLogger
   ): Int = {
 
-    val stop0         = new AtomicBoolean
-    val nailgunClient = TcpClient(host, port)
-    val streams       = Streams(in, out, err)
+    val stop0          = new AtomicBoolean
+    val nailgunClient0 = nailgunClient(address)
+    val streams        = Streams(in, out, err)
 
-    nailgunClient.run(
+    nailgunClient0.run(
       "exit",
       Array.empty,
       workingDir,
@@ -327,8 +380,7 @@ object Operations {
   }
 
   def about(
-    host: String,
-    port: Int,
+    address: BloopRifleConfig.Address,
     workingDir: Path,
     in: InputStream,
     out: OutputStream,
@@ -337,12 +389,12 @@ object Operations {
     scheduler: ExecutorService
   ): Int = {
 
-    val stop0         = new AtomicBoolean
-    val nailgunClient = TcpClient(host, port)
-    val streams       = Streams(in, out, err)
+    val stop0          = new AtomicBoolean
+    val nailgunClient0 = nailgunClient(address)
+    val streams        = Streams(in, out, err)
 
     timeout(30.seconds, scheduler, logger) {
-      nailgunClient.run(
+      nailgunClient0.run(
         "about",
         Array.empty,
         workingDir,

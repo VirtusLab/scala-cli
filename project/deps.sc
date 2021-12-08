@@ -43,7 +43,7 @@ object Deps {
   }
   def ammonite          = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
   def asm               = ivy"org.ow2.asm:asm:9.2"
-  def bloopConfig       = ivy"ch.epfl.scala::bloop-config:1.4.11"
+  def bloopConfig       = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.17"
   def bsp4j             = ivy"ch.epfl.scala:bsp4j:2.0.0"
   def caseApp           = ivy"com.github.alexarchambault::case-app:2.1.0-M12"
   def collectionCompat  = ivy"org.scala-lang.modules::scala-collection-compat:2.6.0"
@@ -56,6 +56,7 @@ object Deps {
   def ipcSocket         = ivy"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-4"
   def jimfs             = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils          = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.2"
+  def libdaemonjvm      = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.7"
   def macroParadise     = ivy"org.scalamacros:::paradise:2.1.1"
   def munit             = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner  = ivy"org.scala-native::test-runner:${Versions.scalaNative}"

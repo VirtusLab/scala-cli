@@ -1,11 +1,12 @@
 package scala.cli.commands
 
 import caseapp._
+import coursier.core.{Version => Ver}
 import upickle.default.{ReadWriter, macroRW}
 
 import java.io.File
 import java.nio.charset.Charset
-import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
+import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files, Paths}
 import java.util.{Locale, Random}
 
 import scala.build.blooprifle.internal.Constants
@@ -39,6 +40,16 @@ final case class SharedCompilationServerOptions(
   @ValueDescription("port|-1")
   @Hidden
     bloopPort: Option[Int] = None,
+  @Group("Compilation server")
+  @HelpMessage("Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)")
+  @ValueDescription("path")
+  @Hidden
+    bloopDaemonDir: Option[String] = None,
+  @Group("Compilation server")
+  @HelpMessage("Pipe name of the Bloop daemon (Windows x86_64 only)")
+  @ValueDescription("name")
+  @Hidden
+    bloopPipeName: Option[String] = None,
 
   @Group("Compilation server")
   @HelpMessage("If Bloop isn't already running, the version we should start")
@@ -219,17 +230,49 @@ final case class SharedCompilationServerOptions(
     directories: => scala.build.Directories,
     javaV: Option[Int] = None
   ): BloopRifleConfig = {
-    val baseConfig =
-      BloopRifleConfig.default(v => Bloop.bloopClassPath(logger, v))
+
     val portOpt = bloopPort.filter(_ != 0) match {
       case Some(n) if n < 0 =>
         Some(scala.build.blooprifle.internal.Util.randomPort())
       case other => other
     }
+    val address =
+      (
+        bloopHost.filter(_.nonEmpty),
+        portOpt,
+        bloopDaemonDir.filter(_.nonEmpty),
+        bloopPipeName.filter(_.nonEmpty)
+      ) match {
+        case (_, _, Some(path), pipeNameOpt) =>
+          BloopRifleConfig.Address.DomainSocket(
+            Paths.get(path),
+            pipeNameOpt.getOrElse(SharedCompilationServerOptions.defaultBloopPipeName)
+          )
+        case (None, None, None, pipeNameOpt) =>
+          val isBloopMainLine = Ver(retainedBloopVersion.version.raw) < Ver("1.4.12")
+          if (isBloopMainLine)
+            BloopRifleConfig.Address.Tcp(
+              host = BloopRifleConfig.defaultHost,
+              port = BloopRifleConfig.defaultPort
+            )
+          else
+            BloopRifleConfig.Address.DomainSocket(
+              directories.bloopDaemonDir.toNIO,
+              pipeNameOpt.getOrElse(SharedCompilationServerOptions.defaultBloopPipeName)
+            )
+        case (hostOpt, portOpt0, _, _) =>
+          BloopRifleConfig.Address.Tcp(
+            host = bloopHost.filter(_.nonEmpty).getOrElse(BloopRifleConfig.defaultHost),
+            port = portOpt0.getOrElse(BloopRifleConfig.defaultPort)
+          )
+      }
+
+    val baseConfig = BloopRifleConfig.default(
+      address,
+      v => Bloop.bloopClassPath(logger, v)
+    )
 
     baseConfig.copy(
-      host = bloopHost.filter(_.nonEmpty).getOrElse(baseConfig.host),
-      port = portOpt.getOrElse(baseConfig.port),
       javaPath = javaPath,
       bspSocketOrPort = defaultBspSocketOrPort(directories),
       bspStdout = if (verbosity >= 3) Some(System.err) else None,
@@ -258,4 +301,7 @@ object SharedCompilationServerOptions {
     case "amd64" => "x86_64"
     case other   => other
   }
+
+  private def defaultBloopPipeName =
+    "scalacli\\bloop\\pipe"
 }

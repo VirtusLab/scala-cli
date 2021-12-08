@@ -1,14 +1,14 @@
 package scala.build.blooprifle
 
 import java.io.{File, InputStream, OutputStream}
+import java.nio.file.Path
 
 import scala.build.blooprifle.internal.Constants
 import scala.concurrent.duration._
-import scala.util.Try
+import scala.util.{Properties, Try}
 
 final case class BloopRifleConfig(
-  host: String,
-  port: Int,
+  address: BloopRifleConfig.Address,
   javaPath: String,
   javaOpts: Seq[String],
   classPath: String => Either[Throwable, Seq[File]],
@@ -26,6 +26,21 @@ final case class BloopRifleConfig(
 )
 
 object BloopRifleConfig {
+
+  sealed abstract class Address extends Product with Serializable {
+    def render: String
+  }
+
+  object Address {
+    final case class Tcp(host: String, port: Int) extends Address {
+      def render = s"$host:$port"
+    }
+    final case class DomainSocket(path: Path, pipeName: String) extends Address {
+      def render =
+        if (Properties.isWin) s"$path ($pipeName)"
+        else path.toString
+    }
+  }
 
   sealed trait BloopVersionConstraint { def version: BloopVersion }
   case class AtLeast(version: BloopVersion) extends BloopVersionConstraint
@@ -71,7 +86,7 @@ object BloopRifleConfig {
   }
 
   def hardCodedDefaultModule: String =
-    "ch.epfl.scala:bloop-frontend_2.12"
+    "io.github.alexarchambault.bleep:bloop-frontend_2.12"
   def hardCodedDefaultVersion: String =
     Constants.bloopVersion
   def hardCodedDefaultScalaVersion: String =
@@ -100,11 +115,11 @@ object BloopRifleConfig {
   }
 
   def default(
+    address: Address,
     bloopClassPath: String => Either[Throwable, Seq[File]]
   ): BloopRifleConfig =
     BloopRifleConfig(
-      host = defaultHost,
-      port = defaultPort,
+      address = address,
       javaPath = "java",
       javaOpts = defaultJavaOpts,
       classPath = bloopClassPath,
