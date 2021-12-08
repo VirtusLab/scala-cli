@@ -8,10 +8,13 @@ import scala.build.preprocessing.ScopePath
 
 case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Custom JAR"
-  def description = "Manually adds JAR to the class path"
-  def usage       = "using jar _path_ | using jars _path1_ _path2_ …"
+  def description = "Manually add JAR(s) to the class path"
+  def usage       = "`using jar `_path_ | `using jars `_path1_ _path2_ …"
   override def usageMd =
-    "`using jar `_path_ | `using jars `_path1_ _path2_ …"
+    """using jar _path_
+      |
+      |using jars _path1_ _path2_ …""".stripMargin
+
   override def examples = Seq(
     "using jar \"/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar\""
   )

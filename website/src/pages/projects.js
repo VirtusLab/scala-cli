@@ -7,7 +7,7 @@ const Index = (props) => {
     title="Single-module projects with Scala CLI"
     description="Page describing why Scala CLI is good for maintainig a single-module projects."
     headline="Fight with your bugs not with with you buildtool"
-    image="projects.svg"
+    image="gifs/projects.gif"
     id="projects"
     >
     <p>Scala CLI provides all tools to maintain with easy single module projects like cli apps or single microservice.</p>

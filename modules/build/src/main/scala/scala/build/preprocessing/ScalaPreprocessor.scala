@@ -31,11 +31,13 @@ case object ScalaPreprocessor extends Preprocessor {
     UsingPlatformDirectiveHandler,
     UsingOptionDirectiveHandler,
     UsingJavaOptionsDirectiveHandler,
+    UsingScalaNativeOptionsDirectiveHandler,
     UsingJavaHomeDirectiveHandler,
     UsingTestFrameworkDirectiveHandler,
     UsingCustomJarDirectiveHandler,
     UsingResourcesDirectiveHandler,
-    UsingCompilerPluginDirectiveHandler
+    UsingCompilerPluginDirectiveHandler,
+    UsingMainClassDirectiveHandler
   )
 
   val requireDirectiveHandlers = Seq[RequireDirectiveHandler](
@@ -125,14 +127,16 @@ case object ScalaPreprocessor extends Preprocessor {
     Option[String]
   )]] = either {
 
-    val afterStrictUsing = value(processStrictUsing(content, scopeRoot))
+    val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
+
+    val afterStrictUsing = value(processStrictUsing(content0, scopeRoot))
     val afterUsing = value {
-      processUsing(path, afterStrictUsing.map(_._2).getOrElse(content), scopeRoot)
+      processUsing(path, afterStrictUsing.map(_._2).getOrElse(content0), scopeRoot)
         .sequence
     }
     val afterProcessImports = value {
       processSpecialImports(
-        afterUsing.flatMap(_._4).orElse(afterStrictUsing.map(_._2)).getOrElse(content),
+        afterUsing.flatMap(_._4).orElse(afterStrictUsing.map(_._2)).getOrElse(content0),
         path
       )
     }
@@ -149,6 +153,7 @@ case object ScalaPreprocessor extends Preprocessor {
         .map(_._3)
         .orElse(afterUsing.flatMap(_._4))
         .orElse(afterStrictUsing.map(_._2))
+        .orElse(if (isSheBang) Some(content0) else None)
       val scopedRequirements = afterUsing.map(_._2).getOrElse(Nil)
       Some((summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
     }

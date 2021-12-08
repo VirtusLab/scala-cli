@@ -212,7 +212,7 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("should skip SheBang in .sc") {
+  test("should skip SheBang in .sc and .scala") {
     val testInputs = TestInputs(
       os.rel / "something1.sc" ->
         """#!/usr/bin/env scala-cli
@@ -227,14 +227,14 @@ class SourcesTests extends munit.FunSuite {
           |#! nix-shell -i scala-cli
           |
           |println("Hello World")""".stripMargin,
-      os.rel / "something4.sc" ->
+      os.rel / "something4.scala" ->
         """#!/usr/bin/scala-cli
           |#! nix-shell -i scala-cli
           |
           |!#
           |
           |println("Hello World")""".stripMargin,
-      os.rel / "something5.sc" ->
+      os.rel / "something5.scala" ->
         """#!/usr/bin/scala-cli
           |
           |println("Hello World #!")""".stripMargin

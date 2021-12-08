@@ -9,12 +9,6 @@ import scala.util.{Properties, Try}
 object InstallHome extends ScalaCommand[InstallHomeOptions] {
   override def hidden: Boolean = true
 
-  private def isOutOfDate(newVersion: String, oldVersion: String): Boolean = {
-    import coursier.core.Version
-
-    Version(newVersion) > Version(oldVersion)
-  }
-
   private def logEqual(version: String) = {
     System.err.println(
       s"Scala-cli $version is already installed and up-to-date."
@@ -50,6 +44,8 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
 
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
+    val destBinPath = binDirPath / options.binaryName
+
     val newScalaCliBinPath = os.Path(options.scalaCliBinaryPath, os.pwd)
 
     val newVersion: String =
@@ -57,25 +53,25 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
 
     // Backward compatibility - previous versions not have the `--version` parameter
     val oldVersion: String = Try {
-      os.proc(binDirPath / options.binaryName, "version").call(cwd = os.pwd).out.text().trim
+      os.proc(destBinPath, "version").call(cwd = os.pwd).out.text().trim
     }.toOption.getOrElse("0.0.0")
 
     if (os.exists(binDirPath))
       if (options.force) () // skip logging
       else if (newVersion == oldVersion) logEqual(newVersion)
-      else if (isOutOfDate(newVersion, oldVersion))
+      else if (CommandUtils.isOutOfDateVersion(newVersion, oldVersion))
         logUpdate(options.env, newVersion, oldVersion)
       else logDowngrade(options.env, newVersion, oldVersion)
 
-    os.remove.all(binDirPath)
+    if (os.exists(destBinPath)) os.remove(destBinPath)
 
     os.copy(
       from = newScalaCliBinPath,
-      to = binDirPath / options.binaryName,
+      to = destBinPath,
       createFolders = true
     )
     if (!Properties.isWin)
-      os.perms.set(binDirPath / options.binaryName, os.PermSet.fromString("rwxr-xr-x"))
+      os.perms.set(destBinPath, os.PermSet.fromString("rwxr-xr-x"))
 
     if (options.env)
       println(s"""export PATH="$binDirPath:$$PATH"""")
@@ -93,9 +89,18 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
           updater.applyUpdate(update)
         }
 
-      if (didUpdate) "Profile was updated"
-
       println(s"Successfully installed scala-cli $newVersion")
+
+      if (didUpdate) {
+        if (Properties.isLinux)
+          println(
+            s"""|Profile file(s) updated.
+                |To run scala-cli, log out and log back in, or run 'source ~/.profile'""".stripMargin
+          )
+        if (Properties.isMac)
+          println("To run scala-cli, open new terminal or run 'source ~/.profile'")
+      }
+
     }
   }
 }

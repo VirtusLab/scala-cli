@@ -1,0 +1,31 @@
+name: Website deploy
+on:
+  push:
+    branches:
+    - stable
+
+jobs:
+  update-website:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: actions/setup-node@v2.5.0
+      with:
+        node-version: '16.x'
+    - run: .github/scripts/update-website.sh
+      env:
+        GIT_USER: Virtuslab
+        DEPLOYMENT_BRANCH: gh-pages
+        GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
+    # after the release the PR should be empty
+    - name: Open PR with changes back to master
+      uses: repo-sync/pull-request@v2
+      with:
+        destination_branch: "master"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        pr_title: "Back port of documentation changes to master"
+        name: Update stable branch
+        branch: backport/stable

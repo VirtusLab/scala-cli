@@ -1,3 +1,9 @@
 package scala.cli.commands
 
-case class BloopJson(javaHome: String, javaOptions: Array[String])
+import upickle.default.{ReadWriter, macroRW}
+
+case class BloopJson(javaOptions: List[String] = Nil)
+
+case object BloopJson {
+  implicit lazy val jsonCodec: ReadWriter[BloopJson] = macroRW
+}

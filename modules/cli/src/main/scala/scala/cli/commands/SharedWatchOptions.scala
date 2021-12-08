@@ -5,7 +5,7 @@ import caseapp._
 // format: off
 final case class SharedWatchOptions(
 
-  @HelpMessage("Watch sources for changes")
+  @HelpMessage("Watch source files for changes")
   @Name("w")
     watch: Boolean = false
 

@@ -4,7 +4,7 @@ set -e
 
 dest=$(pwd)/.scala/bin
 
-./mill -i copyTo cli.launcher $dest/scala-cli 
+./mill -i copyTo cli.launcher $dest/scala-cli
 
 export PATH=$dest:$PATH
 echo Adding $dest to classpath
@@ -17,5 +17,5 @@ if [ $# -eq 0 ]
     toCheck=$@
 fi
 
-# adding --resources is a hack to get file watching for free on .md files
-scala-cli sclicheck/sclicheck.scala --resources docs -- $toCheck 
+# adding --resource-dirs is a hack to get file watching for free on .md files
+scala-cli sclicheck/sclicheck.scala --resource-dirs docs -- $toCheck

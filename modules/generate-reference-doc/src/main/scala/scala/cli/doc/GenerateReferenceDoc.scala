@@ -97,6 +97,8 @@ object GenerateReferenceDoc extends CaseApp[Options] {
         |sidebar_position: 1
         |---
         |
+        |This is a summary of options that are available for each subcommand of the `scala-cli` command.
+        |
         |""".stripMargin
     )
 
@@ -295,7 +297,8 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     if (options.check) {
       val content = Seq(
         (os.rel / "cli-options.md") -> cliOptionsContent0,
-        (os.rel / "commands.md")    -> commandsContent0
+        (os.rel / "commands.md")    -> commandsContent0,
+        (os.rel / "directives.md")  -> usingContent0
       )
       var anyDiff = false
       for ((dest, content0) <- content) {

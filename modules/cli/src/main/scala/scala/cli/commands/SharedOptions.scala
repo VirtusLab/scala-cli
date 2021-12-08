@@ -12,7 +12,7 @@ import java.io.{ByteArrayOutputStream, File, InputStream}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.Constants
 import scala.build.options._
-import scala.build.{Inputs, LocalRepo, Logger, Os, Positioned}
+import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
 import scala.util.Properties
 // format: off
@@ -37,13 +37,13 @@ final case class SharedOptions(
     coursier: CoursierOptions = CoursierOptions(),
 
   @Group("Scala")
-  @HelpMessage("Set Scala version")
+  @HelpMessage("Set the Scala version")
   @ValueDescription("version")
   @Name("scala")
   @Name("S")
     scalaVersion: Option[String] = None,
   @Group("Scala")
-  @HelpMessage("Set Scala binary version")
+  @HelpMessage("Set the Scala binary version")
   @ValueDescription("version")
   @Hidden
   @Name("scalaBinary")
@@ -60,7 +60,7 @@ final case class SharedOptions(
     extraJars: List[String] = Nil,
 
   @Group("Java")
-  @HelpMessage("Add extra JARs in the class path during compilation only")
+  @HelpMessage("Add extra JARs in the class path, during compilation only")
   @ValueDescription("paths")
   @Name("compileOnlyJar")
   @Name("compileOnlyJars")
@@ -76,10 +76,10 @@ final case class SharedOptions(
     extraSourceJars: List[String] = Nil,
 
   @Group("Java")
-  @HelpMessage("Add resource directory")
+  @HelpMessage("Add a resource directory")
   @ValueDescription("paths")
-  @Name("resource")
-    resources: List[String] = Nil,
+  @Name("resourceDir")
+    resourceDirs: List[String] = Nil,
 
   @Group("Scala")
   @Hidden
@@ -99,7 +99,7 @@ final case class SharedOptions(
   @Hidden
     defaultForbiddenDirectories: Boolean = true,
   @Hidden
-    forbid: List[String] = Nil
+    forbid: List[String] = Nil,
 ) {
   // format: on
 
@@ -138,7 +138,7 @@ final case class SharedOptions(
         scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
         compilerPlugins =
           parseDependencies(dependencies.compilerPlugin.map(Positioned.none(_)), ignoreErrors),
-        platform = platformOpt
+        platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
       ),
       scriptOptions = ScriptOptions(
         codeWrapper = None
@@ -195,6 +195,11 @@ final case class SharedOptions(
   def inputsOrExit(
     args: RemainingArgs,
     defaultInputs: () => Option[Inputs] = () => Inputs.default()
+  ): Inputs = inputsOrExit(args.remaining, defaultInputs)
+
+  def inputsOrExit(
+    args: Seq[String],
+    defaultInputs: () => Option[Inputs]
   ): Inputs = {
     val download: String => Either[String, Array[Byte]] = { url =>
       val artifact = Artifact(url).withChanging(true)
@@ -205,11 +210,11 @@ final case class SharedOptions(
         .left.map(_.describe)
         .map(f => os.read.bytes(os.Path(f, Os.pwd)))
     }
-    val resourceInputs = resources
+    val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
       .map(Inputs.ResourceDirectory(_))
     val inputs = Inputs(
-      args.remaining,
+      args,
       Os.pwd,
       directories.directories,
       defaultInputs = defaultInputs,

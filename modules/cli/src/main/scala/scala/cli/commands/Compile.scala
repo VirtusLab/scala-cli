@@ -18,6 +18,8 @@ object Compile extends ScalaCommand[CompileOptions] {
       logger,
       Some(name)
     )
+    if (CommandUtils.shouldCheckUpdate)
+      Update.checkUpdateSafe(logger)
 
     val cross = options.cross.cross.getOrElse(false)
     if (options.classPath && cross) {

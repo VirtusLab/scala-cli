@@ -1,7 +1,9 @@
 package scala.build.options
 
 import coursier.cache.{ArchiveCache, FileCache}
+import coursier.core.Version
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
+import coursier.util.{Artifact, Task}
 import dependency._
 
 import java.math.BigInteger
@@ -10,10 +12,18 @@ import java.nio.file.Path
 import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.{BuildException, InvalidBinaryScalaVersionError}
+import scala.build.blooprifle.VersionUtil.parseJavaVersion
+import scala.build.errors.{
+  BuildException,
+  Diagnostic,
+  InvalidBinaryScalaVersionError,
+  NoValidScalaVersionFoundError,
+  UnsupportedScalaVersionError
+}
 import scala.build.internal.Constants._
-import scala.build.internal.{Constants, OsLibc, Util}
-import scala.build.{Artifacts, Logger, Os, Positioned}
+import scala.build.internal.{OsLibc, StableScalaVersion, Util}
+import scala.build.options.validation.BuildOptionsRule
+import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
 
 final case class BuildOptions(
@@ -32,11 +42,11 @@ final case class BuildOptions(
   replOptions: ReplOptions = ReplOptions()
 ) {
 
-  lazy val platform: Platform =
-    scalaOptions.platform.getOrElse(Platform.JVM)
+  lazy val platform: Positioned[Platform] =
+    scalaOptions.platform.getOrElse(Positioned(List(Position.Custom("DEFAULT")), Platform.JVM))
 
   lazy val projectParams: Either[BuildException, Seq[String]] = either {
-    val platform0 = platform match {
+    val platform0 = platform.value match {
       case Platform.JVM    => "JVM"
       case Platform.JS     => "Scala.JS"
       case Platform.Native => "Scala Native"
@@ -46,7 +56,7 @@ final case class BuildOptions(
 
   def addRunnerDependency: Option[Boolean] =
     internalDependencies.addRunnerDependencyOpt
-      .orElse(if (platform == Platform.JVM) None else Some(false))
+      .orElse(if (platform.value == Platform.JVM) None else Some(false))
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (scalaOptions.addScalaLibrary.getOrElse(true)) {
@@ -62,11 +72,12 @@ final case class BuildOptions(
   }
 
   private def maybeJsDependencies: Either[BuildException, Seq[AnyDependency]] = either {
-    if (platform == Platform.JS) scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion)
+    if (platform.value == Platform.JS)
+      scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion)
     else Nil
   }
   private def maybeNativeDependencies: Seq[AnyDependency] =
-    if (platform == Platform.Native) scalaNativeOptions.nativeDependencies
+    if (platform.value == Platform.Native) scalaNativeOptions.nativeDependencies
     else Nil
   private def dependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
     value(maybeJsDependencies).map(Positioned.none(_)) ++
@@ -87,11 +98,12 @@ final case class BuildOptions(
   }
 
   private def maybeJsCompilerPlugins: Either[BuildException, Seq[AnyDependency]] = either {
-    if (platform == Platform.JS) scalaJsOptions.compilerPlugins(value(scalaParams).scalaVersion)
+    if (platform.value == Platform.JS)
+      scalaJsOptions.compilerPlugins(value(scalaParams).scalaVersion)
     else Nil
   }
   private def maybeNativeCompilerPlugins: Seq[AnyDependency] =
-    if (platform == Platform.Native) scalaNativeOptions.compilerPlugins
+    if (platform.value == Platform.Native) scalaNativeOptions.compilerPlugins
     else Nil
   def compilerPlugins: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
     value(maybeJsCompilerPlugins).map(Positioned.none(_)) ++
@@ -108,7 +120,7 @@ final case class BuildOptions(
     classPathOptions.extraSourceJars.map(_.toNIO)
 
   private def addJvmTestRunner: Boolean =
-    platform == Platform.JVM &&
+    platform.value == Platform.JVM &&
     internalDependencies.addTestRunnerDependency
   private def addJsTestBridge: Option[String] =
     if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion)
@@ -124,22 +136,16 @@ final case class BuildOptions(
     val ext      = if (Properties.isWin) ".exe" else ""
     val javaCmd  = (javaHome / "bin" / s"java$ext").toString
 
-    val javaV0 = os.proc(javaCmd, "-version").call(
+    val javaVersionOutput = os.proc(javaCmd, "-version").call(
       cwd = os.pwd,
       stdout = os.Pipe,
       stderr = os.Pipe,
       mergeErrIntoOut = true
     ).out.text().trim()
-    val javaFullVersion = javaV0.split(" ").lift(2).map(_.replace("\"", ""))
-    val javaReleaseVersion =
-      javaFullVersion.flatMap(_.trim.stripPrefix("1.").split("[.]").headOption)
+    val javaVersion = parseJavaVersion(javaVersionOutput).getOrElse {
+      throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
+    }
 
-    val javaVersion =
-      try javaReleaseVersion.get.toInt
-      catch {
-        case e: Throwable =>
-          throw new Exception(s"Could not parse java version from output: $javaV0", e)
-      }
     JavaHomeInfo(javaCmd, javaVersion)
   }
 
@@ -168,6 +174,52 @@ final case class BuildOptions(
       }
     }
 
+  // used when downloading fails
+  private def defaultStableScalaVersions =
+    Seq(defaultScala212Version, defaultScala213Version, defaultScalaVersion)
+
+  private def latestSupportedScalaVersion(): Seq[Version] = {
+
+    val supportedScalaVersionsUrl = scalaOptions.scalaVersionsUrl
+
+    val task = {
+      val art = Artifact(supportedScalaVersionsUrl).withChanging(true)
+      finalCache.file(art).run.flatMap {
+        case Left(e) => Task.fail(e)
+        case Right(f) =>
+          Task.delay {
+            val content = os.read(os.Path(f, Os.pwd))
+            upickle.default.read[Seq[StableScalaVersion]](content)
+          }
+      }
+    }
+
+    val scalaCliVersion = version
+    val launchersTask   = finalCache.logger.using(task)
+
+    //  If an error occurred while downloading stable versions,
+    //  it uses stable scala versions from Deps.sc
+    val supportedScalaVersions =
+      launchersTask.attempt.unsafeRun()(finalCache.ec) match {
+        case Left(_) =>
+          // FIXME Log the exception
+          defaultStableScalaVersions
+        case Right(versions) =>
+          versions
+            .find(_.scalaCliVersion == scalaCliVersion)
+            .map(_.supportedScalaVersions)
+            .getOrElse {
+              // FIXME Log that: logger.debug(s"Couldn't find Scala CLI version $scalaCliVersion in $versions")
+              defaultStableScalaVersions
+            }
+      }
+
+    supportedScalaVersions
+      .map(Version(_))
+      .sorted
+      .reverse
+  }
+
   def javaHome(): JavaHomeInfo = javaCommand0
 
   private lazy val javaHomeManager = {
@@ -188,7 +240,6 @@ final case class BuildOptions(
     scalaVersion: Option[String],
     scalaBinaryVersion: Option[String]
   ): Either[BuildException, (String, String)] = either {
-    import coursier.core.Version
     lazy val allVersions = {
       import coursier._
       import scala.concurrent.ExecutionContext.{global => ec}
@@ -213,19 +264,43 @@ final case class BuildOptions(
       }
       modules.flatMap(moduleVersions).distinct
     }
-    val maybeSv = scalaVersion match {
-      case None => Right(Constants.defaultScalaVersion)
-      case Some(sv0) =>
-        if (Util.isFullScalaVersion(sv0)) Right(sv0)
-        else {
+    def matchNewestScalaVersion(sv: Option[String]) = {
+      lazy val maxSupportedScalaVersions = latestSupportedScalaVersion()
+
+      sv match {
+        case Some(sv0) =>
           val prefix           = if (sv0.endsWith(".")) sv0 else sv0 + "."
           val matchingVersions = allVersions.filter(_.startsWith(prefix))
           if (matchingVersions.isEmpty)
             Left(new InvalidBinaryScalaVersionError(sv0))
+          else {
+            val validMaxVersions = maxSupportedScalaVersions
+              .filter(_.repr.startsWith(prefix))
+            val validMatchingVersions = matchingVersions
+              .map(Version(_))
+              .filter(v => validMaxVersions.exists(v <= _))
+            if (validMatchingVersions.isEmpty)
+              Left(new UnsupportedScalaVersionError(sv0))
+            else
+              Right(validMatchingVersions.max.repr)
+          }
+        case None =>
+          val validVersions = allVersions
+            .map(Version(_))
+            .filter(v => maxSupportedScalaVersions.exists(v <= _))
+          if (validVersions.isEmpty)
+            Left(new NoValidScalaVersionFoundError(allVersions))
           else
-            Right(matchingVersions.map(Version(_)).max.repr)
-        }
+            Right(validVersions.max.repr)
+      }
     }
+    val maybeSv = scalaVersion match {
+      case None => matchNewestScalaVersion(None)
+      case Some(sv0) =>
+        if (Util.isFullScalaVersion(sv0)) Right(sv0)
+        else matchNewestScalaVersion(Some(sv0))
+    }
+
     val sv  = value(maybeSv)
     val sbv = scalaBinaryVersion.getOrElse(ScalaVersion.binary(sv))
     (sv, sbv)
@@ -234,7 +309,7 @@ final case class BuildOptions(
   lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
     val (scalaVersion, scalaBinaryVersion) =
       value(computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion))
-    val maybePlatformSuffix = platform match {
+    val maybePlatformSuffix = platform.value match {
       case Platform.JVM    => None
       case Platform.JS     => Some(scalaJsOptions.platformSuffix)
       case Platform.Native => Some(scalaNativeOptions.platformSuffix)
@@ -265,8 +340,8 @@ final case class BuildOptions(
   // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
   def packageTypeOpt: Option[PackageType] =
     if (packageOptions.isDockerEnabled) Some(PackageType.Docker)
-    else if (platform == Platform.JS) Some(PackageType.Js)
-    else if (platform == Platform.Native) Some(PackageType.Native)
+    else if (platform.value == Platform.JS) Some(PackageType.Js)
+    else if (platform.value == Platform.Native) Some(PackageType.Native)
     else packageOptions.packageTypeOpt
 
   private def allCrossScalaVersionOptions: Seq[BuildOptions] = {
@@ -293,12 +368,11 @@ final case class BuildOptions(
     val sortedExtraPlatforms = scalaOptions0
       .extraPlatforms
       .toVector
-      .sorted
-    this +: sortedExtraPlatforms.map { pf =>
+    this +: sortedExtraPlatforms.map { case (pf, pos) =>
       copy(
         scalaOptions = scalaOptions0.copy(
-          platform = Some(pf),
-          extraPlatforms = Set.empty
+          platform = Some(Positioned(pos.positions, pf)),
+          extraPlatforms = Map.empty
         )
       )
     }
@@ -319,9 +393,9 @@ final case class BuildOptions(
   private def normalize: BuildOptions = {
     var opt = this
 
-    if (platform != Platform.JS)
+    if (platform.value != Platform.JS)
       opt = opt.clearJsOptions
-    if (platform != Platform.Native)
+    if (platform.value != Platform.Native)
       opt = opt.clearNativeOptions
 
     opt.copy(
@@ -357,6 +431,8 @@ final case class BuildOptions(
 
   def orElse(other: BuildOptions): BuildOptions =
     BuildOptions.monoid.orElse(this, other)
+
+  def validate: Seq[Diagnostic] = BuildOptionsRule.validateAll(this)
 }
 
 object BuildOptions {

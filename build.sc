@@ -33,12 +33,16 @@ implicit def millModuleBasePath: define.BasePath =
 object cli            extends Cli
 object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal)
 object build          extends Cross[Build](Scala.defaultInternal)
-object stubs          extends JavaModule with ScalaCliPublishModule
 object runner         extends Cross[Runner](Scala.all: _*)
 object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
 object `bloop-rifle`  extends Cross[BloopRifle](Scala.allScala2: _*)
 object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
 
+object stubs extends JavaModule with ScalaCliPublishModule {
+  def javacOptions = T {
+    super.javacOptions() ++ Seq("-target", "8", "-source", "8")
+  }
+}
 object integration extends Module {
   object docker extends CliIntegrationDocker {
     object test extends Tests {
@@ -180,6 +184,7 @@ class Build(val crossScalaVersion: String)
     Deps.scalaparse,
     Deps.shapeless,
     Deps.swoval,
+    Deps.upickle,
     Deps.usingDirectives
   )
 
@@ -242,6 +247,8 @@ class Build(val crossScalaVersion: String)
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
+         |  def defaultScala212Version = "${Scala.scala212}"
+         |  def defaultScala213Version = "${Scala.scala213}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -318,7 +325,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     PathRef(T.dest / "working-dir")
   }
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
   }
 
   def sources = T.sources {
@@ -435,7 +442,8 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
     super.scalacOptions() ++ {
       if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
       else Nil
-    }
+    } ++ Seq("-release", "8")
+
   }
   def mainClass = Some("scala.cli.runner.Runner")
   def ivyDeps =
@@ -474,7 +482,7 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
     super.scalacOptions() ++ {
       if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused", "-deprecation")
       else Nil
-    }
+    } ++ Seq("-release", "8")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
@@ -524,12 +532,13 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
 
 class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  def scalacOptions = T {
+  def scalacOptions = T(
     super.scalacOptions() ++ {
       if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
       else Nil
     }
-  }
+  )
+
 }
 
 object `local-repo` extends LocalRepo {
@@ -710,7 +719,7 @@ object ci extends Module {
     val launcherScript       = os.read(standaloneLauncherPath)
     val scalaCliVersionRegex = "SCALA_CLI_VERSION=\".*\"".r
     val updatedLauncherScript =
-      scalaCliVersionRegex.replaceFirstIn(launcherScript, s"SCALA_CLI_VERSION=$version")
+      scalaCliVersionRegex.replaceFirstIn(launcherScript, s"""SCALA_CLI_VERSION="$version"""")
     os.write.over(standaloneLauncherPath, updatedLauncherScript)
 
     val launcherWindowsScript       = os.read(standaloneWindowsLauncherPath)
@@ -770,6 +779,33 @@ object ci extends Module {
     os.write.over(formulaPath, updatedFormula)
 
     commitChanges(s"Update for $version", branch, homebrewFormulaDir)
+  }
+  def updateInstallationScript() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir              = os.pwd / "target"
+    val packagesDir            = targetDir / "scala-cli-packages"
+    val installationScriptPath = packagesDir / "scala-setup.sh"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val branch = "master"
+    val repo   = s"git@github.com:Virtuslab/scala-cli-packages.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(packagesDir)
+
+    val installationScript   = os.read(installationScriptPath)
+    val scalaCliVersionRegex = "SCALA_CLI_VERSION=\".*\"".r
+    val updatedInstallationScript =
+      scalaCliVersionRegex.replaceFirstIn(installationScript, s"""SCALA_CLI_VERSION="$version"""")
+    os.write.over(installationScriptPath, updatedInstallationScript)
+
+    commitChanges(s"Update installation script for $version", branch, packagesDir)
   }
   def updateDebianPackages() = T.command {
     val version = cli.publishVersion()

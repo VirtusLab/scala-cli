@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
 
-import scala.util.Properties
+import scala.util.{Properties, Random}
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
@@ -135,7 +135,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           check = false,
           stderr = os.Pipe
         ).err.text().trim
-        expect(output.startsWith("scala-cli: invalid option:"))
+        expect(output.contains("scala-cli: invalid option:"))
       }
     }
 
@@ -692,6 +692,71 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  private def generateDummyGistUrl(root: os.Path) =
+    root / "gist.github.com" /
+      Random.alphanumeric.take(10).mkString("") /
+      Random.alphanumeric.take(10).mkString("")
+
+  test("Github Gists Scala URL with resource in directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""// using resourceDir "./"
+             |import scala.io.Source
+             |
+             |object Hello extends App {
+             |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+             |    println(inputs.mkString(","))
+             |}
+             |""".stripMargin,
+        os.rel / "input" ->
+          s"""1
+             |2
+             |""".stripMargin
+      )
+    )
+    inputs.asZip { (root, zipPath) =>
+      val message = "1,2"
+      val gistUrl = generateDummyGistUrl(root)
+      val gistUri = gistUrl.toNIO.toUri.toString
+
+      os.copy(zipPath, gistUrl / "download", createFolders = true)
+      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(gistUri))
+        .call(cwd = root)
+        .out.text().trim
+      expect(output == message)
+    }
+  }
+
+  test("Github Gists Scala Script URL with resource in directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "hello.sc" ->
+          s"""// using resourceDir "./"
+             |import scala.io.Source
+             |
+             |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+             |println(inputs.mkString(","))
+             |""".stripMargin,
+        os.rel / "input" ->
+          s"""1
+             |2
+             |""".stripMargin
+      )
+    )
+    inputs.asZip { (root, zipPath) =>
+      val message = "1,2"
+      val gistUrl = generateDummyGistUrl(root)
+      val gistUri = gistUrl.toNIO.toUri.toString
+
+      os.copy(zipPath, gistUrl / "download", createFolders = true)
+      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(gistUri))
+        .call(cwd = root)
+        .out.text().trim
+      expect(output == message)
+    }
+  }
+
   def compileTimeOnlyJars(): Unit = {
     // format: off
     val cmd = Seq[os.Shellable](
@@ -894,6 +959,22 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("Main class in config file") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "simple.scala" ->
+          s"""using main-class hello
+             |object hello extends App { println("hello") }
+             |object world extends App { println("world") }
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.text().trim
+      expect(output == "hello")
+    }
+  }
+
   def simpleScriptDistrolessImage(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -1020,11 +1101,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
   test("resources") {
     resourcesInputs().fromRoot { root =>
-      os.proc(TestUtil.cli, "run", "src", "--resources", "./src/proj/resources").call(cwd = root)
+      os.proc(TestUtil.cli, "run", "src", "--resource-dirs", "./src/proj/resources").call(cwd =
+        root)
     }
   }
   test("resources via directive") {
-    resourcesInputs("using resources ./resources").fromRoot { root =>
+    resourcesInputs("using resourceDirs ./resources").fromRoot { root =>
       os.proc(TestUtil.cli, "run", ".").call(cwd = root)
     }
   }
@@ -1033,7 +1115,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "MyScript.scala" ->
-          """#!/usr/bin/env scala-cli
+          """#!/usr/bin/env -S scala-cli shebang
             |object MyScript {
             |  def main(args: Array[String]): Unit =
             |    println("Hello" + args.map(" " + _).mkString)
@@ -1125,4 +1207,67 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  if (!Properties.isWin) {
+    test("CLI args passed to shebang script") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "f.sc" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
+                                 |using scala $actualScalaVersion
+                                 |println(args.toList)""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        os.perms.set(root / "f.sc", os.PermSet.fromString("rwx------"))
+        val p = os.proc("./f.sc", "1", "2", "3", "-v").call(cwd = root)
+        expect(p.out.text().trim == "List(1, 2, 3, -v)")
+      }
+    }
+    test("CLI args passed to shebang in Scala file") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "f.scala" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
+                                    |object Hello {
+                                    |    def main(args: Array[String]) = {
+                                    |        println(args.toList)
+                                    |    }
+                                    |}
+                                    |""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        os.perms.set(root / "f.scala", os.PermSet.fromString("rwx------"))
+        val p = os.proc("./f.scala", "1", "2", "3", "-v").call(cwd = root)
+        expect(p.out.text().trim == "List(1, 2, 3, -v)")
+      }
+    }
+  }
+
+  test("Runs with JVM 8") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "run.scala" -> """object Main extends App { println("hello")}"""
+      )
+    )
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "run.scala", "--jvm", "8").call(cwd = root)
+      expect(p.out.text().trim == "hello")
+    }
+  }
+
+  test("workspace dir") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          """|// using lib com.lihaoyi::os-lib:0.7.8
+             |
+             |object Hello extends App {
+             |  println(os.pwd) 
+             |}""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "Hello.scala").call(cwd = root)
+      expect(p.out.text().trim == root.toString)
+    }
+  }
 }

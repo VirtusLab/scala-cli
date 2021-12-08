@@ -1,13 +1,11 @@
 ---
-title: Package Scala application as a docker image
+title: Packaging Scala applications as Docker images
 sidebar_position: 5
 ---
 
-# Package Scala application as a docker image
+Scala CLI can create an executable application and package it into a Docker image.
 
-ScalaCLI can create an executable application and package it into a docker image.
-
-Here is a simple piece of code that will be executed in the docker container.
+For example, here's a simple piece of code that will be executed in a Docker container:
 
 ```scala title=HelloDocker.scala
 object HelloDocker extends App {
@@ -15,9 +13,9 @@ object HelloDocker extends App {
 }
 ```
 
-Passing `--docker` to the `package` sub-command generates a docker image. The docker image name parameter `--docker-image-repository` is mandatory.
+Passing `--docker` to the `package` sub-command generates a Docker image. When creating a Docker image, the `--docker-image-repository` parameter is mandatory.
 
-The following command will generate `hello-docker` image with `latest` tag:
+The following command generates a `hello-docker` image with the `latest` tag:
 
 ```bash
 scala-cli package --docker HelloDocker.scala --docker-image-repository hello-docker
@@ -38,7 +36,8 @@ docker run hello-docker
 Hello from Docker
 -->
 
-It is also supported to package your app in `JS` or `Native` environments.
+You can also package your app in the Scala.JS or Scala Native environments.
+For example, this command creates a Scala.JS Docker image:
 
 ```bash
 scala-cli package --js --docker HelloDocker.scala --docker-image-repository hello-docker
@@ -49,8 +48,12 @@ Built docker image, run it with
   docker run hello-docker:latest
 -->
 
-Package scala native application to docker image is supported only on Linux.
+This command creates a Scala Native Docker image:
 
 ```bash ignore
 scala-cli package --native --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
+
+:::note
+Packaging a Scala Native application to a Docker image is supported only on Linux.
+:::

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ########################
 # include the magic
 ########################
@@ -13,21 +15,21 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
 else
   . $SCRIPT_DIR/../demo-magic.sh
   # # hide the evidence
-  clear
+  clearConsole
 
   # Put your stuff here
   pe "scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec"
 
-  sleep 3
-  clear 
+  doSleep 3
+  clearConsole 
 
-  pe "scala-cli https://gist.github.com/lwronski/99bb89d1962d2c5e21da01f1ad60e92f"
+  pe "scala-cli https://gist.github.com/lwronski/99bb89d1962d2c5e21da01f1ad60e92f" || true
 
-  sleep 2
+  doSleep 2
   
   pe "scala-cli https://gist.github.com/lwronski/99bb89d1962d2c5e21da01f1ad60e92f -M ScalaCli"
 
   # Wait a bit to read output of last command
-  sleep 2
-  echo " "
+  doSleep 2
+  echo " " && echo "ok" > status.txt
 fi

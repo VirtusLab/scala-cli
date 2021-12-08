@@ -5,18 +5,12 @@ import caseapp._
 import scala.build.options.BuildOptions
 
 // format: off
-@HelpMessage("Generate BSP file required for successful IDE import")
+@HelpMessage("Generate a BSP file that you can import into your IDE")
 final case class SetupIdeOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
-  @Name("bspDir")
-  @HelpMessage("Custom BSP configuration location")
-  @Hidden
-    bspDirectory: Option[String] = None,
-  @Name("name")
-  @HelpMessage("Name of BSP")
-  @Hidden
-    bspName: Option[String] = None,
+  @Recurse
+    bspFile: SharedBspFileOptions = SharedBspFileOptions(),
   @Hidden
   charset: Option[String] = None
 ) {
@@ -25,6 +19,7 @@ final case class SetupIdeOptions(
     shared.buildOptions(enableJmh = false, jmhVersion = None)
 
 }
+
 object SetupIdeOptions {
   implicit lazy val parser: Parser[SetupIdeOptions] = Parser.derive
   implicit lazy val help: Help[SetupIdeOptions]     = Help.derive

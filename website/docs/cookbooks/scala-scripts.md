@@ -1,15 +1,17 @@
 ---
-title: Use scala-cli to run Scala Scripts
+title: Using scala-cli to run Scala Scripts
 sidebar_position: 3
 ---
 
 ## Scala Scripts
 
-Scala Scripts are files containing Scala code without main method required. These codes of Scala do not require build-tools configurations. To run Scala Scripts very quickly without waiting for warn-up build-tools, you can use `scala-cli`.
+Scala scripts are files that contain Scala code without a main method.
+These source code files don't require build-tool configurations.
+To run Scala scripts very quickly without waiting the need for build tools, use `scala-cli`.
 
 ### Run
 
-You can use `scala-cli` to run Scala scripts (no further setup is required):
+For example, given this simple script:
 
 ```scala title=HelloScript.sc
 val sv = scala.util.Properties.versionNumberString
@@ -17,6 +19,8 @@ val sv = scala.util.Properties.versionNumberString
 val message = s"Hello from Scala ${sv}, Java ${System.getProperty("java.version")}"
 println(message)
 ```
+
+You can run it directly with `scala-cli` — there's no need for a build tool or additional configuration:
 
 ```bash
 scala-cli run HelloScript.sc
@@ -26,11 +30,10 @@ scala-cli run HelloScript.sc
 Hello from Scala .*, Java .*
 -->
 
-
-Alternatively, add a "shebang" header to your script, make your script executable, and execute it directly. `scala-cli` needs to be installed for this to work.
+Alternatively, you can add a "shebang" header to your script, make it executable, and execute it directly with `scala-cli`. For example, given this script with a header that invokes `scala-cli`:
 
 ```scala title=HelloScriptSheBang.sc
-#!/usr/bin/env scala-cli
+#!/usr/bin/env -S scala-cli shebang
 
 val sv = scala.util.Properties.versionNumberString
 
@@ -41,6 +44,7 @@ def printMessage(): Unit =
 printMessage()
 ```
 
+You can make it executable and then run it like this:
 
 ```bash
 chmod +x HelloScriptSheBang.sc
@@ -52,10 +56,10 @@ chmod +x HelloScriptSheBang.sc
 Hello from Scala .*, Java .*
 -->
 
-It is also possible to pass command-line arguments to the script
+You can also pass command line arguments to Scala scripts:
 
 ```scala title=ScriptArguments.sc
-#!/usr/bin/env scala-cli
+#!/usr/bin/env -S scala-cli shebang
 println(args(1))
 ```
 
@@ -69,14 +73,16 @@ chmod +x ScriptArguments.sc
 bar
 -->
 
+As shown, command line arguments are accessed through the special `args` variable.
+
 
 ## Features
 
-All the features from non-scripts work for Scala scripts too, such as waiting for changes (watch mode), dependencies menagement, packaging, compiling and many others.
+All of the features shown for non-scripts work for Scala scripts as well, such as waiting for changes (watch mode), dependency menagement, packaging, compiling, etc.
 
 ### Package
 
-Run `package` to the Scala CLI to package your script to a lightweight executable JAR file.
+For example, run the `package` sub-command to package your script as a lightweight executable JAR file:
 
 ```bash
 scala-cli package HelloScript.sc
@@ -89,7 +95,7 @@ Hello from Scala .*, Java .*
 
 ### Watch mode
 
-Pass `--watch` to the Scala CLI to watch all sources for changes, and re-run them upon changes.
+As another example, pass `--watch` to `scala-cli` to watch all source files for changes, and then re-run them when there is a change:
 
 ```bash ignore
 scala-cli --watch HelloScript.sc

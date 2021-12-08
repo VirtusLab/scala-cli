@@ -16,7 +16,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulTestInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """using lib "org.scalameta::munit::0.7.25"
+        """using lib "org.scalameta::munit::0.7.29"
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -31,7 +31,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val failingTestInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """using lib "org.scalameta::munit::0.7.25"
+        """using lib "org.scalameta::munit::0.7.29"
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -123,7 +123,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val severalTestsInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """using lib "org.scalameta::munit::0.7.25"
+        """using lib "org.scalameta::munit::0.7.29"
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -133,7 +133,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
           |}
           |""".stripMargin,
       os.rel / "OtherTests.scala" ->
-        """using lib "org.scalameta::munit::0.7.25"
+        """using lib "org.scalameta::munit::0.7.29"
           |
           |class OtherTests extends munit.FunSuite {
           |  test("bar") {
@@ -167,6 +167,15 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains("Hello from tests"))
     }
   }
+
+  if (actualScalaVersion.startsWith("2"))
+    test("successful test JVM 8") {
+      successfulTestInputs.fromRoot { root =>
+        val output =
+          os.proc(TestUtil.cli, "test", "--jvm", "8", extraOptions, ".").call(cwd = root).out.text()
+        expect(output.contains("Hello from tests"))
+      }
+    }
 
   def successfulJsTest(): Unit =
     successfulTestInputs.fromRoot { root =>
@@ -408,7 +417,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       val inputs = TestInputs(
         Seq(
           os.rel / "MyTests.scala" ->
-            """using lib "org.scalameta::munit::0.7.25"
+            """using lib "org.scalameta::munit::0.7.29"
               |
               |object MyTests
               |""".stripMargin
@@ -451,7 +460,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       var inputs0 = TestInputs(
         Seq(
           os.rel / "MyTests.scala" ->
-            s"""using lib "org.scalameta::munit::0.7.25"
+            s"""using lib "org.scalameta::munit::0.7.29"
                |using $platforms
                |
                |class MyTests extends munit.FunSuite {
@@ -509,5 +518,4 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         expect(output.contains("Hello from native"))
     }
   }
-
 }

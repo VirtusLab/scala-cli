@@ -14,6 +14,18 @@ final case class CrossSources(
   buildOptions: Seq[HasBuildRequirements[BuildOptions]]
 ) {
 
+  def withVirtualDir(inputs: Inputs, scope: Scope, options: BuildOptions): CrossSources = {
+
+    val srcRootPath = inputs.generatedSrcRoot(scope)
+    val resourceDirs0 = options.classPathOptions.resourceVirtualDir.map { path =>
+      HasBuildRequirements(BuildRequirements(), srcRootPath / path)
+    }
+
+    copy(
+      resourceDirs = resourceDirs ++ resourceDirs0
+    )
+  }
+
   def sharedOptions(baseOptions: BuildOptions): BuildOptions =
     buildOptions
       .filter(_.requirements.isEmpty)
@@ -43,20 +55,20 @@ final case class CrossSources(
     ScopedSources(
       paths
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform).toSeq)
+        .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope)),
       inMemory
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform).toSeq)
+        .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope)),
       mainClass,
       resourceDirs
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform).toSeq)
+        .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope)),
       buildOptions
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform).toSeq)
+        .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope))
     )
   }

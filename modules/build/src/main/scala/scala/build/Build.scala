@@ -15,6 +15,7 @@ import scala.build.bloop.BloopServer
 import scala.build.blooprifle.{BloopRifleConfig, VersionUtil}
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
+import scala.build.options.validation.ValidationException
 import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
@@ -81,7 +82,7 @@ object Build {
       CrossKey(
         BuildOptions.CrossKey(
           scalaParams.scalaVersion,
-          options.platform
+          options.platform.value
         ),
         scope
       )
@@ -158,7 +159,9 @@ object Build {
 
       val baseOptions = overrideOptions.orElse(sharedOptions)
 
-      val sources = value(crossSources.scopedSources(baseOptions))
+      val crossSources0 = crossSources.withVirtualDir(inputs0, scope, baseOptions)
+
+      val sources = value(crossSources0.scopedSources(baseOptions))
         .sources(scope, baseOptions)
 
       val generatedSources = sources.generateSources(inputs0.generatedSrcRoot(scope))
@@ -373,6 +376,18 @@ object Build {
       crossBuilds = crossBuilds
     )
 
+  def validate(
+    logger: Logger,
+    options: BuildOptions
+  ): Either[BuildException, Unit] = {
+    val (errors, otherDiagnostics) = options.validate.toSeq.partition(_.severity == Severity.Error)
+    logger.log(otherDiagnostics)
+    if (errors.nonEmpty)
+      Left(CompositeBuildException(errors.map(new ValidationException(_))))
+    else
+      Right(())
+  }
+
   def watch(
     inputs: Inputs,
     options: BuildOptions,
@@ -508,7 +523,8 @@ object Build {
       else Seq("-sourceroot", inputs.workspace.toString)
 
     val scalaJsScalacOptions =
-      if (options.platform == Platform.JS && !params.scalaVersion.startsWith("2.")) Seq("-scalajs")
+      if (options.platform.value == Platform.JS && !params.scalaVersion.startsWith("2."))
+        Seq("-scalajs")
       else Nil
 
     val bloopJvmRelease = for {
@@ -541,15 +557,19 @@ object Build {
         List(classesDir(inputs.workspace, inputs.projectName, Scope.Main).toNIO)
       else Nil
 
+    value(validate(logger, options))
+
     val project = Project(
-      workspace = inputs.workspace / ".scala",
+      directory = inputs.workspace / ".scala",
+      workspace = inputs.workspace,
       classesDir = classesDir0,
       scalaCompiler = scalaCompiler,
       scalaJsOptions =
-        if (options.platform == Platform.JS) Some(options.scalaJsOptions.config)
+        if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config)
         else None,
       scalaNativeOptions =
-        if (options.platform == Platform.Native) Some(options.scalaNativeOptions.bloopConfig)
+        if (options.platform.value == Platform.Native)
+          Some(options.scalaNativeOptions.bloopConfig())
         else None,
       projectName = inputs.scopeProjectName(scope),
       classPath = artifacts.compileClassPath ++ mainClassesPath,
@@ -592,7 +612,7 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ): Either[BuildException, Build] = either {
-    if (options.platform == Platform.Native && !value(scalaNativeSupported(options, inputs)))
+    if (options.platform.value == Platform.Native && !value(scalaNativeSupported(options, inputs)))
       value(Left(new ScalaNativeCompatibilityError()))
     else
       value(Right(0))

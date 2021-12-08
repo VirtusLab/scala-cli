@@ -2,8 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.build.Positioned
 import scala.build.options.BuildOptions
-
 // format: off
 @HelpMessage("Fire-up a Scala REPL")
 final case class ReplOptions(
@@ -17,13 +17,13 @@ final case class ReplOptions(
     compileCross: CompileCrossOptions = CompileCrossOptions(),
 
   @Group("Repl")
-  @HelpMessage("Use Ammonite rather than the default Scala REPL")
+  @HelpMessage("Use Ammonite (instead of the default Scala REPL)")
   @Name("A")
   @Name("amm")
     ammonite: Option[Boolean] = None,
 
   @Group("Repl")
-  @HelpMessage("Set Ammonite version")
+  @HelpMessage("Set the Ammonite version")
   @Name("ammoniteVer")
     ammoniteVersion: Option[String] = None,
 
@@ -34,7 +34,7 @@ final case class ReplOptions(
 
   @Group("Repl")
   @Hidden
-  @HelpMessage("Don't actually run the REPL, only fetch it")
+  @HelpMessage("Don't actually run the REPL, just fetch it")
     replDryRun: Boolean = false
 ) {
   // format: on
@@ -43,7 +43,8 @@ final case class ReplOptions(
     val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
-        javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
+        javaOpts =
+          baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts.map(Positioned.commandLine _)
       ),
       replOptions = baseOptions.replOptions.copy(
         useAmmoniteOpt = ammonite,

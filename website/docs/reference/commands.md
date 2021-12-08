@@ -26,9 +26,10 @@ Accepts options:
 
 ## `clean`
 
-Clean-up workspace
+Clean the workspace
 
 Accepts options:
+- [bsp file](./cli-options.md#bsp-file-options)
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 
@@ -53,7 +54,7 @@ Accepts options:
 
 ## `export`
 
-Export current project to SBT or Mill
+Export current project to sbt or Mill
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
@@ -170,8 +171,11 @@ Accepts options:
 
 Compile and run Scala code.
 
-To pass arguments to the application, just add them after '--', like:
+To pass arguments to the application, just add them after `--`, like:
+
+```sh
 scala-cli MyApp.scala -- first-arg second-arg
+```
 
 Accepts options:
 - [benchmarking](./cli-options.md#benchmarking-options)
@@ -192,9 +196,10 @@ Accepts options:
 
 ## `setup-ide`
 
-Generate BSP file required for successful IDE import
+Generate a BSP file that you can import into your IDE
 
 Accepts options:
+- [bsp file](./cli-options.md#bsp-file-options)
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
@@ -206,6 +211,49 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [setup IDE](./cli-options.md#setup-ide-options)
 - [shared](./cli-options.md#shared-options)
+
+## `shebang`
+
+This command is an equivalent of `run`, but it changes the way how
+`scala-cli` parses it's command-line arguments in order to be compatibility
+with shebang scripts.
+
+Normally, inputs and scala-cli options can be mixed. Program have to be specified after `--`
+
+```sh
+scala-cli [command] [scala_cli_options | input]... -- [program_arguments]...
+```
+
+Contrary, for shebang command, only a single input file can be set, all scala-cli options
+have to be set before the input file, and program arguments after the input file
+```sh
+scala-cli shebang [scala_cli_options]... input [program_arguments]...
+```
+
+Using this, it is possible to conveniently set up Unix shebang scripts. For example:
+```sh
+#!/usr/bin/env -S scala-cli shebang --scala-version 2.13
+println("Hello, world)
+```
+
+
+
+Accepts options:
+- [benchmarking](./cli-options.md#benchmarking-options)
+- [compilation server](./cli-options.md#compilation-server-options)
+- [compile cross](./cli-options.md#compile-cross-options)
+- [coursier](./cli-options.md#coursier-options)
+- [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
+- [java](./cli-options.md#java-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [main class](./cli-options.md#main-class-options)
+- [Scala.JS](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [shared](./cli-options.md#shared-options)
+- [watch](./cli-options.md#watch-options)
 
 ## `test`
 
@@ -227,9 +275,16 @@ Accepts options:
 - [test](./cli-options.md#test-options)
 - [watch](./cli-options.md#watch-options)
 
+## `update`
+
+Update scala-cli - it works only for installation script
+
+Accepts options:
+- [update](./cli-options.md#update-options)
+
 ## `version`
 
-Print scala-cli version
+Print `scala-cli` version
 
 ## Hidden commands
 
@@ -257,14 +312,14 @@ Accepts options:
 
 ### `directories`
 
-Prints directories used by scala-cli
+Prints directories used by `scala-cli`
 
 Accepts options:
 - [directories](./cli-options.md#directories-options)
 
 ### `install-home`
 
-Install scala-cli in a sub-directory of the home directory
+Install `scala-cli` in a sub-directory of the home directory
 
 Accepts options:
 - [install home](./cli-options.md#install-home-options)

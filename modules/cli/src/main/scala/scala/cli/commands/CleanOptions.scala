@@ -3,12 +3,14 @@ package scala.cli.commands
 import caseapp._
 
 // format: off
-@HelpMessage("Clean-up workspace")
+@HelpMessage("Clean the workspace")
 final case class CleanOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
   @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions()
+    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
+  @Recurse
+    bspFile: SharedBspFileOptions = SharedBspFileOptions()
 )
 // format: on
 

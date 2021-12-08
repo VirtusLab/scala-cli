@@ -17,10 +17,20 @@ object Run extends ScalaCommand[RunOptions] {
   override def sharedOptions(options: RunOptions) = Some(options.shared)
 
   def run(options: RunOptions, args: RemainingArgs): Unit =
-    run(options, args, () => Inputs.default())
+    run(
+      options,
+      args.remaining,
+      args.unparsed,
+      () => Inputs.default()
+    )
 
-  def run(options: RunOptions, args: RemainingArgs, defaultInputs: () => Option[Inputs]): Unit = {
-    val inputs = options.shared.inputsOrExit(args, defaultInputs = defaultInputs)
+  def run(
+    options: RunOptions,
+    inputArgs: Seq[String],
+    programArgs: Seq[String],
+    defaultInputs: () => Option[Inputs]
+  ): Unit = {
+    val inputs = options.shared.inputsOrExit(inputArgs, defaultInputs = defaultInputs)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
@@ -31,7 +41,7 @@ object Run extends ScalaCommand[RunOptions] {
         inputs.workspace,
         inputs.projectName,
         build,
-        args.unparsed,
+        programArgs,
         logger,
         allowExecve = allowTerminate,
         exitOnError = allowTerminate,
@@ -45,6 +55,8 @@ object Run extends ScalaCommand[RunOptions] {
       logger,
       Some(name)
     )
+    if (CommandUtils.shouldCheckUpdate)
+      Update.checkUpdateSafe(logger)
 
     if (options.watch.watch) {
       val watcher = Build.watch(
@@ -128,7 +140,7 @@ object Run extends ScalaCommand[RunOptions] {
     exitOnError: Boolean
   ): Boolean = {
 
-    val retCode = build.options.platform match {
+    val retCode = build.options.platform.value match {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig
         withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
@@ -143,7 +155,6 @@ object Run extends ScalaCommand[RunOptions] {
         withNativeLauncher(
           build,
           mainClass,
-          build.options.scalaNativeOptions.config,
           build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
           logger.scalaNativeLogger
         ) { launcher =>
@@ -157,7 +168,7 @@ object Run extends ScalaCommand[RunOptions] {
       case Platform.JVM =>
         Runner.runJvm(
           build.options.javaHome().javaCommand,
-          build.options.javaOptions.javaOpts,
+          build.options.javaOptions.javaOpts.map(_.value),
           build.fullClassPath.map(_.toFile),
           mainClass,
           args,
@@ -196,15 +207,11 @@ object Run extends ScalaCommand[RunOptions] {
   def withNativeLauncher[T](
     build: Build.Successful,
     mainClass: String,
-    config: sn.NativeConfig,
     workDir: os.Path,
     logger: sn.Logger
   )(f: os.Path => T): T = {
-    val dest = os.temp(prefix = "main", suffix = if (Properties.isWin) ".exe" else "")
-    try {
-      Package.buildNative(build, mainClass, dest, config, workDir, logger)
-      f(dest)
-    }
-    finally if (os.exists(dest)) os.remove(dest)
+    val dest = workDir / s"main${if (Properties.isWin) ".exe" else ""}"
+    Package.buildNative(build, mainClass, dest, workDir, logger)
+    f(dest)
   }
 }

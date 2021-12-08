@@ -3,13 +3,16 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
+import scala.build.Positioned
 import scala.build.options.BuildOptions
-
 // format: off
 @HelpMessage("""|Compile and run Scala code.
                 |
-                |To pass arguments to the application, just add them after '--', like:
-                |scala-cli MyApp.scala -- first-arg second-arg""".stripMargin)
+                |To pass arguments to the application, just add them after `--`, like:
+                |
+                |```sh
+                |scala-cli MyApp.scala -- first-arg second-arg
+                |```""".stripMargin)
 final case class RunOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
@@ -34,7 +37,8 @@ final case class RunOptions(
     baseOptions.copy(
       mainClass = mainClass.mainClass,
       javaOptions = baseOptions.javaOptions.copy(
-        javaOpts = baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts
+        javaOpts =
+          baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts.map(Positioned.commandLine _)
       )
     )
   }

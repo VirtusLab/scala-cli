@@ -5,21 +5,24 @@ sidebar_position: 9
 
 # Dependencies
 
-You can add dependencies on the command-line, via `--dependency`:
+You can add dependencies on the command line, with the `--dependency` option:
 ```bash
 scala-cli compile Hello.scala \
   --dependency org.scala-lang.modules::scala-parallel-collections:1.0.4
 ```
 
-Note that `--dependency` is only meant as a convenience. You should favour
-adding dependencies in the sources themselves via [using directives](./guides/configuration.md#special-imports). However, `--dependency` CLI option takes precedence over using directives, so it can be used to override version temporarily.
+Note that `--dependency` is only meant as a convenience.
+You should favor adding dependencies in the sources themselves via [using directives](./guides/configuration.md#special-imports).
+<!-- TODO #344 
+However, `--dependency` CLI option takes precedence over `using` directives, so it can be used to override the `using` directive, such as when you want to work with a different dependency version. -->
 
 You can also add repositories on the command-line, via `--repository`:
 ```bash
-scala-cli compile Hello.scala --dependency com.pany::util:33.1.0 --repo https://artifacts.pany.com/maven
+scala-cli compile Hello.scala \
+  --dependency com.pany::util:33.1.0 --repo https://artifacts.pany.com/maven
 ```
 
-Lastly, you can also add simple JAR files as dependencies, with `--jar`:
+Lastly, you can also add simple JAR files as dependencies with `--jar`:
 ```bash
 scala-cli compile Hello.scala --jar /path/to/library.jar
 ```

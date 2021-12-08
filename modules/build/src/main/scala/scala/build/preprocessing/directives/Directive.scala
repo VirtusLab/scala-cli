@@ -17,6 +17,12 @@ object Directive {
   case object Using                            extends Type("using")
   case object Require                          extends Type("require")
 
+  def osRootResource(cwd: ScopePath): (Option[os.SubPath], Option[os.Path]) =
+    cwd.root match {
+      case Left(_)     => (Some(cwd.path), None)
+      case Right(root) => (None, Some(root / cwd.path))
+    }
+
   def osRoot(cwd: ScopePath, pos: Option[Position]): Either[BuildException, os.Path] =
     cwd.root match {
       case Left(virtualRoot) =>

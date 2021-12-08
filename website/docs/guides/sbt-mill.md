@@ -3,8 +3,25 @@ title: SBT and Mill
 sidebar_position: 12
 ---
 
-Scala CLI allows to export you current build into sbt or mill. It means that if your project will need something that Scala CLI does not provide like second module, you can export your project to a build tool of choice.
+Scala CLI lets you export your current build into sbt or Mill.
+This means that if your project needs something that Scala CLI doesn’t provide — such as a second module — you can export your project to your build tool of choice.
 
-Why do we need that? We do not want to block development of your project and at the same time we do not want to introduce complexity that multi-module build or task and plugin system introduce.
+Why do we need this?
+Basically we don’t want to block the development of your project.
+But at the same time, we don’t want to introduce the complexity that multi-module builds and tasks and plugin systems introduce — at least not until that complexity is needed.
 
-To export the project just run `scala-cli export --sbt <standard-options>` or `scala-cli export --mill <standard-options>` to export your project to sbt or mill. This command will create a copy of your sources, resources and local jars. It will also download gist and other non-local inputs. By default project is exported to `dest` directory but you can control that with `-o` option.
+To export a project, run this command to export to sbt:
+
+```sh
+scala-cli export --sbt <standard-options>
+```
+
+Or use this command to export to Mill:
+
+```sh
+scala-cli export --mill <standard-options>
+```
+
+These commands create a copy of your sources, resources, and local JARs.
+They also download gists and other non-local inputs.
+By default the project is exported to a `dest` directory, but you can control that with the `-o` option.

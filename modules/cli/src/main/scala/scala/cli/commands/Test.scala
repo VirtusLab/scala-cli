@@ -25,6 +25,8 @@ object Test extends ScalaCommand[TestOptions] {
       logger,
       Some(name)
     )
+    if (CommandUtils.shouldCheckUpdate)
+      Update.checkUpdateSafe(logger)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
@@ -122,7 +124,7 @@ object Test extends ScalaCommand[TestOptions] {
 
     val testFrameworkOpt = build.options.testOptions.frameworkOpt
 
-    build.options.platform match {
+    build.options.platform.value match {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig
         value {
@@ -142,7 +144,6 @@ object Test extends ScalaCommand[TestOptions] {
           Run.withNativeLauncher(
             build,
             "scala.scalanative.testinterface.TestMain",
-            build.options.scalaNativeOptions.config,
             build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
             logger.scalaNativeLogger
           ) { launcher =>
@@ -164,7 +165,7 @@ object Test extends ScalaCommand[TestOptions] {
 
         Runner.runJvm(
           build.options.javaHome().javaCommand,
-          build.options.javaOptions.javaOpts,
+          build.options.javaOptions.javaOpts.map(_.value),
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,
           extraArgs,

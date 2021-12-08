@@ -75,7 +75,7 @@ final class BspImpl(
       pprint.stderr.log(sourcesMain)
 
     val options0Main = sourcesMain.buildOptions
-    val options0Test = sourcesTest.buildOptions
+    val options0Test = sourcesTest.buildOptions.orElse(options0Main)
 
     val generatedSourcesMain = sourcesMain.generateSources(inputs.generatedSrcRoot(Scope.Main))
     val generatedSourcesTest = sourcesTest.generateSources(inputs.generatedSrcRoot(Scope.Test))
@@ -222,7 +222,6 @@ final class BspImpl(
               preBuildDataTest.generatedSources
             ))
           case Left((ex, scope)) =>
-            notifyBuildChange(actualLocalServer)
             Left((ex, scope))
         },
       executor

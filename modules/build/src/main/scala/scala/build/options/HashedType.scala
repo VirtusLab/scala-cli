@@ -19,6 +19,10 @@ object HashedType {
     path => path.toString
   }
 
+  implicit val subPath: HashedType[os.SubPath] = {
+    path => path.toString
+  }
+
   implicit val boolean: HashedType[Boolean] = {
     bool => bool.toString
   }
@@ -37,6 +41,10 @@ object HashedType {
 
   implicit val platform: HashedType[Platform] = {
     pf => pf.repr
+  }
+
+  implicit val unit: HashedType[Unit] = {
+    _ => ""
   }
 
 }

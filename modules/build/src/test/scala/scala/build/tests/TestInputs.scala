@@ -1,9 +1,8 @@
 package scala.build.tests
 
 import java.nio.charset.StandardCharsets
-
-import scala.build.{Build, BuildThreads, Directories, Inputs}
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.{Build, BuildThreads, Directories, Inputs}
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
@@ -51,7 +50,7 @@ object TestInputs {
   def apply(files: (os.RelPath, String)*): TestInputs =
     TestInputs(files, Nil)
 
-  private def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
+  def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
     val tmpDir = os.temp.dir(prefix = prefix)
     try f(tmpDir)
     finally tryRemoveAll(tmpDir)

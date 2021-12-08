@@ -7,10 +7,12 @@ import scala.build.preprocessing.ScopePath
 
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java options"
-  def description = "Adds Java options"
+  def description = "Add Java options"
   def usage       = "using java-opt _options_ | using javaOpt _options_"
   override def usageMd =
-    "`using java-opt `_options_ | `using javaOpt `_options_"
+    """`using java-opt `_options_
+      |
+      |`using javaOpt `_options_""".stripMargin
   override def examples = Seq(
     "using javaOpt -Xmx2g -Dsomething=a"
   )
@@ -20,7 +22,7 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
       case Seq("javaOpt" | "java-opt", javaOpts @ _*) =>
         val options = BuildOptions(
           javaOptions = JavaOptions(
-            javaOpts = javaOpts
+            javaOpts = javaOpts.map(o => scala.build.Positioned(List(directive.position), o))
           )
         )
         Some(Right(options))
@@ -37,7 +39,7 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
     val javaOpts = DirectiveUtil.stringValues(values)
     val options = BuildOptions(
       javaOptions = JavaOptions(
-        javaOpts = javaOpts
+        javaOpts = javaOpts.map(o => scala.build.Positioned(positionOpt.toList, o))
       )
     )
     Right(options)

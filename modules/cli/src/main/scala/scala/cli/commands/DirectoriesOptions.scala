@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 // format: off
-@HelpMessage("Prints directories used by scala-cli")
+@HelpMessage("Prints directories used by `scala-cli`")
 final case class DirectoriesOptions(
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions()

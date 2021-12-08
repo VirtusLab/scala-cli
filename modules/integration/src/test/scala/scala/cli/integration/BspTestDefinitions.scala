@@ -4,6 +4,7 @@ import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
 import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.Paths
@@ -225,7 +226,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         "bsp",
         "--json-options",
         (root / "directory" / ".scala" / "ide-options.json").toString,
-        (root / "directory" / "simple.sc").toString
+        s"${(root / "directory").toString}${File.separator}"
       )
       expect(details.argv == expectedArgv)
     }
@@ -771,7 +772,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Messages.scala" ->
-          """object Messages {
+          """// using lib "com.lihaoyi::os-lib:0.7.8"
+            |object Messages {
             |  def msg = "Hello"
             |}
             |""".stripMargin,
@@ -825,12 +827,18 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               uri.drop(idx + 1)
             }
 
-          if (actualScalaVersion.startsWith("2.13"))
+          if (actualScalaVersion.startsWith("2.13")) {
             expect(foundDepSources.exists(_.startsWith("utest_2.13-0.7.10")))
-          else if (actualScalaVersion.startsWith("2.12"))
+            expect(foundDepSources.exists(_.startsWith("os-lib_2.13-0.7.8")))
+          }
+          else if (actualScalaVersion.startsWith("2.12")) {
             expect(foundDepSources.exists(_.startsWith("utest_2.12-0.7.10")))
-          else
+            expect(foundDepSources.exists(_.startsWith("os-lib_2.12-0.7.8")))
+          }
+          else {
             expect(foundDepSources.exists(_.startsWith("utest_3-0.7.10")))
+            expect(foundDepSources.exists(_.startsWith("os-lib_3-0.7.8")))
+          }
 
           expect(foundDepSources.exists(_.startsWith("test-interface-1.0")))
           expect(foundDepSources.forall(_.endsWith("-sources.jar")))

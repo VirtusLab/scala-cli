@@ -14,7 +14,7 @@ final case class InstallCompletionsOptions(
   @HelpMessage("Name of the shell, either zsh or bash")
     format: Option[String] = None,
 
-  @HelpMessage("Path to *rc file, defaults to .bashrc or .zshrc depending on shell")
+  @HelpMessage("Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell")
   rcFile: Option[String] = None,
 
   @HelpMessage("Completions output directory")

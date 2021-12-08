@@ -1,10 +1,10 @@
 package scala.cli.commands
 
 import caseapp._
-import com.google.gson.Gson
 import upickle.default.{ReadWriter, macroRW}
 
-import java.io.{BufferedReader, File, FileReader}
+import java.io.File
+import java.nio.charset.Charset
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
 import java.util.{Locale, Random}
 
@@ -13,6 +13,7 @@ import scala.build.blooprifle.{BloopRifleConfig, BloopVersion, BspConnectionAddr
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.io.Codec
 import scala.util.Properties
 
 // format: off
@@ -23,7 +24,7 @@ final case class SharedCompilationServerOptions(
   @Hidden
     bloopBspProtocol: Option[String] = None,
   @Group("Compilation server")
-  @HelpMessage("Socket file to use to open a BSP connection with Bloop (on Windows, pipe name like \"\\\\.\\pipe\\…\")")
+  @HelpMessage("Socket file to use to open a BSP connection with Bloop (on Windows, a pipe name like \"`\\\\.\\pipe\\…`\")")
   @ValueDescription("path")
   @Hidden
     bloopBspSocket: Option[String] = None,
@@ -34,7 +35,7 @@ final case class SharedCompilationServerOptions(
   @Hidden
     bloopHost: Option[String] = None,
   @Group("Compilation server")
-  @HelpMessage("Port the compilation server should bind to (pass -1 to pick a random port)")
+  @HelpMessage("Port the compilation server should bind to (pass `-1` to pick a random port)")
   @ValueDescription("port|-1")
   @Hidden
     bloopPort: Option[Int] = None,
@@ -47,7 +48,7 @@ final case class SharedCompilationServerOptions(
 
   @Hidden
   @Group("Compilation server")
-  @HelpMessage("Maximum duration to wait for BSP connection to be opened")
+  @HelpMessage("Maximum duration to wait for the BSP connection to be opened")
   @ValueDescription("duration")
     bloopBspTimeout: Option[String] = None,
   @Hidden
@@ -57,12 +58,12 @@ final case class SharedCompilationServerOptions(
     bloopBspCheckPeriod: Option[String] = None,
   @Hidden
   @Group("Compilation server")
-  @HelpMessage("Maximum duration to wait for compilation server to start up")
+  @HelpMessage("Maximum duration to wait for the compilation server to start up")
   @ValueDescription("duration")
     bloopStartupTimeout: Option[String] = None,
 
   @Group("Compilation server")
-  @HelpMessage("Include default jvm opts for bloop")
+  @HelpMessage("Include default JVM options for Bloop")
   @Hidden
     bloopDefaultJavaOpts: Boolean = true,
   @Group("Compilation server")
@@ -190,21 +191,23 @@ final case class SharedCompilationServerOptions(
       ))(v => BloopRifleConfig.Strict(BloopVersion(v)))
 
   def bloopDefaultJvmOptions(logger: Logger): List[String] = {
-    val file = new File(bloopGlobalOptionsFile)
-    if (file.exists() && file.isFile())
+    val filePath = os.Path(bloopGlobalOptionsFile, Os.pwd)
+    if (os.exists(filePath) && os.isFile(filePath))
       try {
-        val reader = new BufferedReader(new FileReader(file))
-        val gson   = new Gson()
-        val json   = gson.fromJson(reader, classOf[BloopJson])
-        json.javaOptions.toList
+        val json = ujson.read(
+          os.read(filePath: os.ReadablePath, charSet = Codec(Charset.defaultCharset()))
+        )
+        val bloopJson = upickle.default.read(json)(BloopJson.jsonCodec)
+        bloopJson.javaOptions
       }
       catch {
         case e: Throwable =>
+          System.err.println(s"Error parsing global bloop config in '$filePath':")
           e.printStackTrace()
           List.empty
       }
     else {
-      logger.debug(s"Bloop global options file '${file.toPath().toAbsolutePath()}' not found.")
+      logger.debug(s"Bloop global options file '$filePath' not found.")
       List.empty
     }
   }

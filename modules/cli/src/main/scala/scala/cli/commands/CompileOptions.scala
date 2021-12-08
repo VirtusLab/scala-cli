@@ -17,7 +17,7 @@ final case class CompileOptions(
 
   @Name("p")
   @Name("classpath")
-  @HelpMessage("Print resulting class path")
+  @HelpMessage("Print the resulting class path")
     classPath: Boolean = false
 ) {
   // format: on

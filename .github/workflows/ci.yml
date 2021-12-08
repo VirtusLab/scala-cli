@@ -19,8 +19,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # If adding Windows here, use windows-2016 rather than windows-latest or windows-2019.
-        # Running into https://github.com/oracle/graal/issues/3171 on windows-latest / windows-2019.
         OS: ["ubuntu-latest"]
     steps:
     - uses: actions/checkout@v2
@@ -28,9 +26,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher artifacts/
       if: runner.os == 'Linux'
@@ -54,16 +52,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        OS: ["ubuntu-latest", "macos-latest", "windows-2016"]
+        OS: ["ubuntu-latest", "macos-latest", "windows-latest"]
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Generate native launcher
       run: ./mill -i show defaultNativeImage
     - name: Build OS packages
@@ -91,9 +89,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Generate native launcher
       run: ./mill -i show cli.nativeImageMostlyStatic
     - name: Build docker image
@@ -129,9 +127,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Generate native launcher
       run: ./mill -i show cli.nativeImageStatic
     - name: Copy artifacts
@@ -154,11 +152,13 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Test documentation
       run: .github/scripts/check_docs.sh
+    - name: Test gifs
+      run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
 
   checks:
     timeout-minutes: 15
@@ -169,9 +169,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
@@ -193,9 +193,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
         apps: scalafmt:3.0.0
     - run: scalafmt --check
 
@@ -208,9 +208,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: Check that reference doc is up-to-date
       run: |
         ./mill -i generate-reference-doc.run --check || (
@@ -222,7 +222,7 @@ jobs:
 
   vc-redist:
     timeout-minutes: 15
-    runs-on: windows-2016
+    runs-on: windows-latest
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     steps:
     - uses: actions/checkout@v2
@@ -230,9 +230,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - run: ./mill -i ci.copyVcRedist
     - uses: actions/upload-artifact@v2.2.4
       with:
@@ -251,9 +251,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - name: GPG setup
       run: .github/scripts/gpg-setup.sh
       env:
@@ -265,6 +265,12 @@ jobs:
         PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+    - name: Update stable branch
+      if: env.SHOULD_PUBLISH == 'true'
+      uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: stable
 
   launchers:
     timeout-minutes: 20
@@ -277,9 +283,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
+    - uses: coursier/setup-action@v1.1.2
       with:
-        jvm: 8
+        jvm: 11
     - run: ./mill -i ci.setShouldPublish
     - uses: actions/download-artifact@v2
       if: env.SHOULD_PUBLISH == 'true'
@@ -302,9 +308,9 @@ jobs:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v6.3
-      - uses: coursier/setup-action@v1.1.1
+      - uses: coursier/setup-action@v1.1.2
         with:
-          jvm: 8
+          jvm: 11
       - uses: actions/download-artifact@v2
         with:
           name: launchers
@@ -312,11 +318,12 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: artifacts/
-      - uses: webfactory/ssh-agent@5f066a372ec13036ab7cb9a8adf18c936f8d2043
+      - uses: webfactory/ssh-agent@fc49353b67b2b7c1e0e6a600572d01a69f2672dd
         with:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
             ${{ secrets.HOMEBREW_SCALA_CLI_KEY }}
+      - run: ./mill -i ci.updateInstallationScript
       - run: ./mill -i ci.updateBrewFormula
       - name: GPG setup
         run: .github/scripts/gpg-setup.sh
@@ -336,51 +343,3 @@ jobs:
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
-  website-nightly:
-    # needs: [jvm-tests, format, checks, reference-doc]
-    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
-      with:
-        jvm: 8
-    - run: ./mill -i ci.setShouldPublish
-    - uses: actions/setup-node@v2.4.1
-      if: env.SHOULD_PUBLISH == 'true'
-      with:
-        node-version: '12.x'
-    - run: .github/scripts/update-website.sh
-      if: env.SHOULD_PUBLISH == 'true'
-      env:
-        GIT_USER: Virtuslab
-        DEPLOYMENT_BRANCH: gh-pages
-        GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
-
-  # same as website-nightly above, but for the 'needs' and 'if' fields
-  website-release:
-    needs: [jvm-tests, format, checks, reference-doc, update-packages]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.1
-      with:
-        jvm: 8
-    - uses: actions/setup-node@v2.4.1
-      with:
-        node-version: '12.x'
-    - run: .github/scripts/update-website.sh
-      env:
-        GIT_USER: Virtuslab
-        DEPLOYMENT_BRANCH: gh-pages
-        GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
