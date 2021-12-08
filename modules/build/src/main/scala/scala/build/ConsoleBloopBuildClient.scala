@@ -221,14 +221,12 @@ object ConsoleBloopBuildClient {
       out.println(prefix + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       msgIt.foreach(line => out.println(prefix + line))
 
-      positions.foreach { pos =>
-        pos match {
-          case Position.Bloop(bloopJavaPath) =>
-            val bloopOutputPrefix = s"[current bloop jvm] "
-            out.println(prefix + bloopOutputPrefix + bloopJavaPath)
-            out.println(prefix + " " * bloopOutputPrefix.length + "^" * bloopJavaPath.length())
-          case pos => out.println(prefix + pos.render())
-        }
+      positions.foreach {
+        case Position.Bloop(bloopJavaPath) =>
+          val bloopOutputPrefix = s"[current bloop jvm] "
+          out.println(prefix + bloopOutputPrefix + bloopJavaPath)
+          out.println(prefix + " " * bloopOutputPrefix.length + "^" * bloopJavaPath.length())
+        case pos => out.println(prefix + pos.render())
       }
     }
   }

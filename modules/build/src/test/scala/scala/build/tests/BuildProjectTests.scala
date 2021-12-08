@@ -70,8 +70,8 @@ class BuildProjectTests extends munit.FunSuite {
     val logger  = new LoggerMock()
     val res     = Build.buildProject(inputs, sources, Nil, options, Scope.Test, logger)
 
-    val scalaCompilerOptions = res.right.get.scalaCompiler.scalacOptions
-    (scalaCompilerOptions, res.right.get.javacOptions, logger.diagnostics)
+    val scalaCompilerOptions = res.fold(throw _, identity).scalaCompiler.scalacOptions
+    (scalaCompilerOptions, res.fold(throw _, identity).javacOptions, logger.diagnostics)
   }
 
   def jvm(v: Int) = os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$v").call().out.text().trim()
