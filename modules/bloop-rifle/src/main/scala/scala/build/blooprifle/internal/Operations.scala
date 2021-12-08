@@ -370,6 +370,7 @@ object Operations {
       catch {
         case t: Throwable =>
           logger.debug(s"Caught $t while trying to run code with timeout")
+          p.tryComplete(Failure(t))
       }
     }
 
