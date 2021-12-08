@@ -1,22 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
-import caseapp.core.Error
+import caseapp.core.{Error, RemainingArgs}
 
-import scala.build.internal
-//import scala.cli.commands.SharedOptions
-
-case class DefaultOptions(
-  @Recurse
-  runOptions: RunOptions = RunOptions(),
-  version: Option[Boolean] = None
-)
-
-object DefaultOptions {
-  implicit lazy val parser: Parser[DefaultOptions] = Parser.derive
-  implicit lazy val help: Help[DefaultOptions]     = Help.derive
-//  implicit lazy val jsonCodec: ReadWriter[DefaultOptions] = macroRW
-}
+import scala.build.internal.Constants
 
 class DefaultBase(
   defaultHelp: => String,
@@ -38,10 +24,8 @@ class DefaultBase(
     sys.exit(0)
   }
   def run(options: DefaultOptions, args: RemainingArgs): Unit =
-    if (options.version.isDefined) {
-      println(internal.Constants.version)
-      sys.exit(0)
-    }
+    if (options.version)
+      println(Constants.version)
     else if (anyArgs)
       Run.run(
         options.runOptions,
