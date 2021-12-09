@@ -37,3 +37,12 @@ The main point to know is that Scala CLI takes care of fetching and starting Blo
 Scala CLI uses [Coursier](https://get-coursier.io/) to manage dependencies.
 It automatically downloads and unpacks a JVM if none is installed on your system, so that all its commands work fine even if a JVM isn't already installed.
 Scala CLI shares Coursier caches with other tools like [sbt](https://www.scala-sbt.org/), [Mill](https://github.com/com-lihaoyi/mill), or [Metals](https://scalameta.org/metals/).
+
+### scala-cli's JVM
+Scala CLI is a JVM application. Although by default it is distributed as a native image, it is still possible to tweak it with java properties.
+In order set them, the `-D` command-line flags must be placed as the first options to scala-cli, for example:
+
+``` bash
+scala-cli -Dfoo1=bar1 -Dfoo2=bar2 run ...
+```
+Please note, that `scala-cli run -Dfoo=bar` wouldn't work
