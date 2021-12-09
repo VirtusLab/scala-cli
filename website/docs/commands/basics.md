@@ -150,6 +150,28 @@ scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540
 # Hello
 ```
 
+### Zip archive
+
+`scala-cli` accepts input via `zip` archive path
+It unpacks the archive and runs it:
+
+```scala titleHello.scala
+object Hello extends App {
+  println("Hello")
+}
+```
+```bash ignore
+unzip -l hello.zip 
+# Archive:  hello.zip
+#   Length      Date    Time    Name
+# ---------  ---------- -----   ----
+#        49  12-07-2021 00:06   Hello.scala
+# ---------                     -------
+#        49                     1 file
+scala-cli hello.zip
+# Hello
+```
+
 ## Piping
 
 You can also pipe Scala code to `scala-cli` for execution:
