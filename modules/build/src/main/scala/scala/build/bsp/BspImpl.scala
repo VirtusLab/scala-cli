@@ -57,7 +57,7 @@ final class BspImpl(
         Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
         )
-      ).swap.map((_, Scope.Main)).swap
+      ).left.map((_, Scope.Main))
     }
 
     if (verbosity >= 3)

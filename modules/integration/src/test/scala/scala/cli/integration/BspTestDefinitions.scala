@@ -273,8 +273,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
     withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
       async {
-        val buildTargetsResp =
-          Await.result(remoteServer.workspaceBuildTargets().asScala, 60.seconds)
+        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
           val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
           expect(targets.length == 2)
@@ -546,7 +545,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           diag.getRange.getStart.getCharacter == 3,
           diag.getRange.getEnd.getLine == 0,
           diag.getRange.getEnd.getCharacter == 29,
-          diag.getMessage.contains(s"Unrecognized directive: using resource ./resources")
+          diag.getMessage.contains("Unrecognized directive: using resource ./resources")
         )
       }
     }
