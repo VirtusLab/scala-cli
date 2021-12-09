@@ -6,6 +6,7 @@ import scala.build.options.{BuildOptions, InternalOptions, JavaOptions, Scope}
 import scala.build.{Build, Inputs, LocalRepo, Positioned, Sources}
 import scala.build.options.ScalaOptions
 import scala.build.Logger
+import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.BuildException
 import scala.build.errors.Diagnostic
@@ -131,5 +132,20 @@ class BuildProjectTests extends munit.FunSuite {
     expect(scalacOptions.containsSlice(Seq("-release", "17")))
     expect(!javacOptions.containsSlice(Seq("--release")))
     expect(diagnostics == List(expectedDiagnostic))
+  }
+
+  test("workspace for bsp") {
+    val workspacePath = os.pwd
+    val options = BuildOptions(
+      internal = InternalOptions(localRepository =
+        LocalRepo.localRepo(scala.build.Directories.default().localRepoDir))
+    )
+    val inputs  = Inputs(Nil, None, workspacePath, "project", false)
+    val sources = Sources(Nil, Nil, None, Nil, options)
+    val logger  = new LoggerMock()
+
+    val project = Build.buildProject(inputs, sources, Nil, options, Scope.Main, logger).orThrow
+
+    expect(project.workspace == workspacePath)
   }
 }
