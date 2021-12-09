@@ -518,6 +518,39 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("invalid diagnostics at startup") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "A.scala" ->
+          s"""// using resource ./resources
+             |
+             |object A {}
+             |""".stripMargin
+      )
+    )
+
+    withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
+      async {
+        await(remoteServer.workspaceBuildTargets().asScala)
+
+        val diagnosticsParams = localClient.latestDiagnostics().getOrElse {
+          fail("No diagnostics found")
+        }
+
+        val diag = diagnosticsParams.getDiagnostics.asScala.toSeq.head
+
+        expect(
+          diag.getSeverity == b.DiagnosticSeverity.ERROR,
+          diag.getRange.getStart.getLine == 0,
+          diag.getRange.getStart.getCharacter == 3,
+          diag.getRange.getEnd.getLine == 0,
+          diag.getRange.getEnd.getCharacter == 29,
+          diag.getMessage.contains("Unrecognized directive: using resource ./resources")
+        )
+      }
+    }
+  }
+
   test("directive diagnostics") {
     val inputs = TestInputs(
       Seq(
