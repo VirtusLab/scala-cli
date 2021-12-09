@@ -1,10 +1,10 @@
 package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Position
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.preprocessing.ScopePath
+import scala.build.{Position, Positioned}
 
 case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java home"
@@ -26,7 +26,7 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
           val home = os.Path(path, root)
           BuildOptions(
             javaOptions = JavaOptions(
-              javaHomeOpt = Some(home)
+              javaHomeOpt = Some(Positioned(Seq(directive.position), home))
             )
           )
         }
@@ -50,7 +50,7 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
     val home = os.Path(rawHome, root)
     BuildOptions(
       javaOptions = JavaOptions(
-        javaHomeOpt = Some(home)
+        javaHomeOpt = Some(Positioned(positionOpt.toSeq, home))
       )
     )
   }

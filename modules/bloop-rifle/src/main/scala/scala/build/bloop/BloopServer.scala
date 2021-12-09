@@ -22,9 +22,7 @@ trait BloopServer {
 
   def shutdown(): Unit
 
-  def jvmVersion: String
-
-  def bloopVersion: String
+  def bloopInfo: BloopServerRuntimeInfo
 }
 
 object BloopServer {
@@ -32,8 +30,7 @@ object BloopServer {
     server: BuildServer,
     listeningFuture: JFuture[Void],
     socket: Socket,
-    jvmVersion: String,
-    bloopVersion: String
+    bloopInfo: BloopServerRuntimeInfo
   ) extends BloopServer {
     def shutdown(): Unit = {
       // Close the jsonrpc thread listening to input messages
@@ -225,7 +222,7 @@ object BloopServer {
     }
 
     server.onBuildInitialized()
-    BloopServerImpl(server, f, socket, bloopInfo.jvmVersion.toString(), bloopInfo.bloopVersion.raw)
+    BloopServerImpl(server, f, socket, bloopInfo)
   }
 
   def withBuildServer[T](

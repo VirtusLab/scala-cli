@@ -131,10 +131,10 @@ final case class BuildOptions(
 
   case class JavaHomeInfo(javaCommand: String, version: Int)
 
-  private lazy val javaCommand0: JavaHomeInfo = {
+  private lazy val javaCommand0: Positioned[JavaHomeInfo] = {
     val javaHome = javaHomeLocation()
     val ext      = if (Properties.isWin) ".exe" else ""
-    val javaCmd  = (javaHome / "bin" / s"java$ext").toString
+    val javaCmd  = (javaHome.value / "bin" / s"java$ext").toString
 
     val javaVersionOutput = os.proc(javaCmd, "-version").call(
       cwd = os.pwd,
@@ -146,13 +146,16 @@ final case class BuildOptions(
       throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
     }
 
-    JavaHomeInfo(javaCmd, javaVersion)
+    Positioned(javaHome.positions, JavaHomeInfo(javaCmd, javaVersion))
   }
 
-  def javaHomeLocationOpt(): Option[os.Path] =
+  def javaHomeLocationOpt(): Option[Positioned[os.Path]] =
     javaOptions.javaHomeOpt
       .orElse {
-        if (javaOptions.jvmIdOpt.isEmpty) sys.props.get("java.home").map(os.Path(_, Os.pwd))
+        if (javaOptions.jvmIdOpt.isEmpty)
+          sys.props.get("java.home").map(p =>
+            Positioned(Position.Custom("java.home prop"), os.Path(p, Os.pwd))
+          )
         else None
       }
       .orElse {
@@ -160,17 +163,17 @@ final case class BuildOptions(
           implicit val ec = finalCache.ec
           finalCache.logger.use {
             val path = javaHomeManager.get(jvmId).unsafeRun()
-            os.Path(path)
+            Positioned(Position.CommandLine("--jvm"), os.Path(path))
           }
         }
       }
 
-  def javaHomeLocation(): os.Path =
+  def javaHomeLocation(): Positioned[os.Path] =
     javaHomeLocationOpt().getOrElse {
       implicit val ec = finalCache.ec
       finalCache.logger.use {
         val path = javaHomeManager.get(OsLibc.defaultJvm).unsafeRun()
-        os.Path(path)
+        Positioned(Position.Custom("OsLibc.defaultJvm"), os.Path(path))
       }
     }
 
@@ -220,7 +223,7 @@ final case class BuildOptions(
       .reverse
   }
 
-  def javaHome(): JavaHomeInfo = javaCommand0
+  def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
 
   private lazy val javaHomeManager = {
     val indexUrl  = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)

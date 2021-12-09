@@ -164,7 +164,7 @@ object Test extends ScalaCommand[TestOptions] {
             Seq("--") ++ args
 
         Runner.runJvm(
-          build.options.javaHome().javaCommand,
+          build.options.javaHome().value.javaCommand,
           build.options.javaOptions.javaOpts.map(_.value),
           build.fullClassPath.map(_.toFile),
           Constants.testRunnerMainClass,

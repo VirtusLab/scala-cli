@@ -11,8 +11,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.bloop.BloopServer
-import scala.build.blooprifle.{BloopRifleConfig, VersionUtil}
+import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.validation.ValidationException
@@ -294,7 +293,7 @@ object Build {
               inputs,
               successful,
               logger,
-              successful.options.javaHome().javaCommand,
+              successful.options.javaHome().value.javaCommand,
               buildClient,
               bloopServer
             )
@@ -480,16 +479,36 @@ object Build {
     watcher
   }
 
-  def prepareBuild(
+  def releaseFlag(
+    options: BuildOptions,
+    logger: Logger
+  ): Option[Int] = {
+    val bloopJvmV = options.javaOptions.bloopJvmVersion
+    val javaHome  = options.javaHome()
+    if (bloopJvmV.exists(javaHome.value.version > _.value)) {
+      logger.log(List(Diagnostic(
+        Diagnostic.Messages.bloopTooOld,
+        Severity.Warning,
+        javaHome.positions ++ bloopJvmV.map(_.positions).getOrElse(Nil)
+      )))
+      None
+    }
+    else if (options.javaOptions.bloopJvmVersion.exists(_.value == 8))
+      None
+    else if (options.scalaOptions.scalacOptions.contains("-release"))
+      None
+    else
+      Some(javaHome.value.version)
+  }
+
+  def buildProject(
     inputs: Inputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
     scope: Scope,
-    logger: Logger,
-    buildClient: BloopBuildClient,
-    bloopServer: Option[BloopServer]
-  ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
+    logger: Logger
+  ): Either[BuildException, Project] = either {
 
     val params     = value(options.scalaParams)
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
@@ -527,16 +546,10 @@ object Build {
         Seq("-scalajs")
       else Nil
 
-    val bloopJvmRelease = for {
-      bloopServer0 <- bloopServer
-      version      <- VersionUtil.jvmRelease(bloopServer0.jvmVersion)
-    } yield version
-    val javaV            = options.javaHome().version.toString
-    val isReleaseFlagSet = options.scalaOptions.scalacOptions.contains("-release")
-    val scalacReleaseV =
-      if (bloopJvmRelease.contains(8) || isReleaseFlagSet) Nil else List("-release", javaV)
-    val javacReleaseV =
-      if (bloopJvmRelease.contains(8) || isReleaseFlagSet) Nil else List("--release", javaV)
+    val releaseFlagVersion = releaseFlag(options, logger).map(_.toString)
+
+    val scalacReleaseV = releaseFlagVersion.map(v => List("-release", v)).getOrElse(Nil)
+    val javacReleaseV  = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
 
     val scalacOptions = options.scalaOptions.scalacOptions ++
       pluginScalacOptions ++
@@ -577,9 +590,31 @@ object Build {
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       scope = scope,
-      javaHomeOpt = Option(options.javaHomeLocation()),
+      javaHomeOpt = Option(options.javaHomeLocation().value),
       javacOptions = javacReleaseV
     )
+    project
+  }
+
+  def prepareBuild(
+    inputs: Inputs,
+    sources: Sources,
+    generatedSources: Seq[GeneratedSource],
+    options: BuildOptions,
+    scope: Scope,
+    logger: Logger,
+    buildClient: BloopBuildClient
+  ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
+
+    val params = value(options.scalaParams)
+
+    val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
+
+    val artifacts = value(options.artifacts(logger))
+
+    value(validate(logger, options))
+
+    val project = value(buildProject(inputs, sources, generatedSources, options, scope, logger))
 
     val updatedBloopConfig = project.writeBloopFile(logger)
 
@@ -606,12 +641,21 @@ object Build {
     sources: Sources,
     generatedSrcRoot0: os.Path,
     generatedSources: Seq[GeneratedSource],
-    options: BuildOptions,
+    options0: BuildOptions,
     scope: Scope,
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer
   ): Either[BuildException, Build] = either {
+    val options = options0.copy(javaOptions =
+      options0.javaOptions.copy(bloopJvmVersion =
+        Some(Positioned[Int](
+          List(Position.Bloop(bloopServer.bloopInfo.javaHome)),
+          bloopServer.bloopInfo.jvmVersion
+        ))
+      )
+    )
+
     if (options.platform.value == Platform.Native && !value(scalaNativeSupported(options, inputs)))
       value(Left(new ScalaNativeCompatibilityError()))
     else
@@ -625,8 +669,7 @@ object Build {
         options,
         scope,
         logger,
-        buildClient,
-        Some(bloopServer)
+        buildClient
       )
     }
 

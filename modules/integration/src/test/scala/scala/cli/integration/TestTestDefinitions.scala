@@ -343,7 +343,11 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       )
       inputs.fromRoot { root =>
         val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
-          .call(cwd = root)
+          .call(cwd = root, check = false)
+        if (baseRes.exitCode != 0) {
+          println(baseRes.out.text())
+          fail("scala-cli test falied", clues(baseRes.exitCode))
+        }
         val baseOutput = baseRes.out.text()
         expect(baseOutput.contains("A thing"))
         expect(baseOutput.contains("should thing"))

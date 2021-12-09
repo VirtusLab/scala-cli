@@ -14,7 +14,6 @@ import scala.build.tests.TestUtil._
 import scala.build.{Bloop, BuildThreads, Directories, LocalRepo, Logger}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
-import scala.build.errors.BuildException
 import scala.build.preprocessing.directives.SingleValueExpected
 
 class BuildTests extends munit.FunSuite {
@@ -553,7 +552,7 @@ class BuildTests extends munit.FunSuite {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
         """using scala 2.13
-          |using plugins com.olegpy::better-monadic-for:0.3.1 
+          |using plugins com.olegpy::better-monadic-for:0.3.1
           |
           |def getCounts: Either[String, (Int, Int)] = ???
           |
@@ -714,7 +713,7 @@ class BuildTests extends munit.FunSuite {
   test("ScalaNativeOptions for native-linking and no value") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """using native-linking 
+        """using native-linking
           |def foo() = println("hello foo")
           |""".stripMargin
     )

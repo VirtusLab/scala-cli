@@ -55,4 +55,6 @@ object TestUtil {
         }
       )
   }
+
+  lazy val cs = Constants.cs
 }
