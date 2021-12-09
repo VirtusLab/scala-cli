@@ -266,11 +266,13 @@ jobs:
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
     - name: Update stable branch
-      if: env.SHOULD_PUBLISH == 'true'
-      uses: ad-m/github-push-action@8407731efefc0d8f72af254c74276b7a90be36e1
+      if: env.SHOULD_PUBLISH == 'true' && startsWith(github.ref, 'refs/tags/v')
+      uses: devmasx/merge-branch@8b86512c768bec19827894f0a39a776809668189
       with:
+        type: now
+        message: 'Back port of documentation changes to stable'
+        target_branch: stable
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: stable
 
   launchers:
     timeout-minutes: 20
