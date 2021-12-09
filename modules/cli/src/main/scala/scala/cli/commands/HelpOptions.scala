@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
+@HelpMessage("Print help message")
 case class HelpOptions()
 
 object HelpOptions {
