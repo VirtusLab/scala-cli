@@ -1261,7 +1261,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           """|// using lib com.lihaoyi::os-lib:0.7.8
              |
              |object Hello extends App {
-             |  println(os.pwd) 
+             |  println(os.pwd)
              |}""".stripMargin
       )
     )
@@ -1270,4 +1270,27 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(p.out.text().trim == root.toString)
     }
   }
+
+  test("help command") {
+    for { helpOption <- Seq("help", "-help", "--help") } {
+      val help = os.proc(TestUtil.cli, helpOption).call(check = false)
+      assert(help.exitCode == 0, clues(helpOption, help.out.text(), help.err.text(), help.exitCode))
+      expect(help.out.text().contains("Usage:"))
+    }
+  }
+
+  test("version command") {
+    // tests if the format is correct instead of comparing to a version passed via Constants
+    // in order to catch errors in Mill configuration, too
+    val versionRegex = ".*\\d+[.]\\d+[.]\\d+.*".r
+    for (versionOption <- Seq("version", "--version")) {
+      val version = os.proc(TestUtil.cli, versionOption).call(check = false)
+      assert(
+        versionRegex.findFirstMatchIn(version.out.text()).isDefined,
+        clues(version.exitCode, version.out.text(), version.err.text())
+      )
+      expect(version.exitCode == 0)
+    }
+  }
+
 }

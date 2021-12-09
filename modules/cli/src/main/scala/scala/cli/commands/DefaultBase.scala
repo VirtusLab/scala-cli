@@ -1,19 +1,21 @@
 package scala.cli.commands
 
-import caseapp._
-import caseapp.core.Error
+import caseapp.core.{Error, RemainingArgs}
+
+import scala.build.internal.Constants
 
 class DefaultBase(
   defaultHelp: => String,
   defaultFullHelp: => String
-) extends ScalaCommand[RunOptions] {
+) extends ScalaCommand[DefaultOptions] {
 
   override protected def commandLength = 0
 
-  override def group                              = "Main"
-  override def sharedOptions(options: RunOptions) = Some(options.shared)
-  private[cli] var anyArgs                        = false
-  override def helpAsked(progName: String, maybeOptions: Either[Error, RunOptions]): Nothing = {
+  override def group = "Main"
+  override def sharedOptions(options: DefaultOptions) =
+    Some[scala.cli.commands.SharedOptions](options.runOptions.shared)
+  private[cli] var anyArgs = false
+  override def helpAsked(progName: String, maybeOptions: Either[Error, DefaultOptions]): Nothing = {
     println(defaultHelp)
     sys.exit(0)
   }
@@ -21,10 +23,12 @@ class DefaultBase(
     println(defaultFullHelp)
     sys.exit(0)
   }
-  def run(options: RunOptions, args: RemainingArgs): Unit =
-    if (anyArgs)
+  def run(options: DefaultOptions, args: RemainingArgs): Unit =
+    if (options.version)
+      println(Constants.version)
+    else if (anyArgs)
       Run.run(
-        options,
+        options.runOptions,
         args
       )
     else
