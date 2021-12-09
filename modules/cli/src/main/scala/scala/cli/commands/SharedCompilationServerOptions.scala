@@ -233,7 +233,7 @@ final case class SharedCompilationServerOptions(
       javaPath = javaPath,
       bspSocketOrPort = defaultBspSocketOrPort(directories),
       bspStdout = if (verbosity >= 3) Some(System.err) else None,
-      bspStderr = if (verbosity >= 3) Some(System.err) else None,
+      bspStderr = Some(System.err),
       period = bloopBspCheckPeriodDuration.getOrElse(baseConfig.period),
       timeout = bloopBspTimeoutDuration.getOrElse(baseConfig.timeout),
       initTimeout = bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout),
