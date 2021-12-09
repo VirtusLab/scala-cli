@@ -93,6 +93,8 @@ Accepts options:
 
 ## `help`
 
+Print help message
+
 ## `install completions`
 
 Aliases:
