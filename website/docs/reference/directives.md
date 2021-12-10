@@ -127,6 +127,22 @@ Manually add a resource directory to the class path
 #### Examples
 `// using resourceDir "./resources"`
 
+### Scala JS options
+
+Add Scala JS options
+
+
+`// using jsVersion `_value_
+`// using jsMode `_value_
+`// using jsModuleKind `_value_
+`// using jsCheckIr true|false`
+`// using jsEmitSourceMaps true|false``
+`// using jsDom true|false``
+
+
+#### Examples
+`// using jsModuleKind "common"`
+
 ### Scala Native options
 
 Add Scala Native options
