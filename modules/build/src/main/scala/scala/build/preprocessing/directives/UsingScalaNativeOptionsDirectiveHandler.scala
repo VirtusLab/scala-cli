@@ -1,7 +1,7 @@
 package scala.build.preprocessing.directives
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaNativeOptions}
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 
 case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name: String = "Scala Native options"
@@ -80,51 +80,44 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+  ): Either[BuildException, ProcessedUsingDirective] = {
     val scalaNativeOptions =
       DirectiveUtil.numericValues(directive.values, path, cwd).toList ++
         DirectiveUtil.stringValues(directive.values, path, cwd).toList
-    directive.key match {
+    val intermediate = directive.key match {
       case "native-gc" | "nativeGc" if scalaNativeOptions.size == 1 =>
-        Right(
-          Some(BuildOptions(
-            scalaNativeOptions = ScalaNativeOptions(
-              gcStr = Some(scalaNativeOptions.head._1)
-            )
-          )),
-          Seq.empty
-        )
+        Right(BuildOptions(
+          scalaNativeOptions = ScalaNativeOptions(
+            gcStr = Some(scalaNativeOptions.head._1)
+          )
+        ))
       case "native-version" | "nativeVersion" if scalaNativeOptions.size == 1 =>
-        Right(
-          Some(BuildOptions(
-            scalaNativeOptions = ScalaNativeOptions(
-              version = Some(scalaNativeOptions.head._1)
-            )
-          )),
-          Seq.empty
-        )
+        Right(BuildOptions(
+          scalaNativeOptions = ScalaNativeOptions(
+            version = Some(scalaNativeOptions.head._1)
+          )
+        ))
       case "native-compile" | "nativeCompile" => Right(
-          Some(BuildOptions(
+          BuildOptions(
             scalaNativeOptions = ScalaNativeOptions(
               compileOptions = scalaNativeOptions.map(_._1)
             )
-          )),
-          Seq.empty
+          )
         )
       case "native-linking" | "nativeLinking" =>
-        val res = Right(
-          Some(BuildOptions(
-            scalaNativeOptions = ScalaNativeOptions(
-              linkingOptions = scalaNativeOptions.map(_._1)
-            )
-          )),
-          Seq.empty
-        )
+        val res = Right(BuildOptions(
+          scalaNativeOptions = ScalaNativeOptions(
+            linkingOptions = scalaNativeOptions.map(_._1)
+          )
+        ))
         res
       case "native-version" | "nativeVersion" =>
         Left(SingleValueExpected("native-version", scalaNativeOptions.map(_._1)))
       case "native-gc" | "nativeGc" =>
         Left(SingleValueExpected("native-gc", scalaNativeOptions.map(_._1)))
+    }
+    intermediate.map { bo =>
+      ProcessedDirective(Some(bo), Seq.empty)
     }
   }
 

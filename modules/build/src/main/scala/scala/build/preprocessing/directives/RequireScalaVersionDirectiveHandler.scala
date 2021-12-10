@@ -89,7 +89,7 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
     directive: StrictDirective,
     path: Either[String, Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildRequirements], Seq[Scoped[BuildRequirements]])] = {
+  ): Either[BuildException, ProcessedRequireDirective] = {
     val values         = DirectiveUtil.stringValues(directive.values, path, cwd)
     val nonscopedValue = values.find(_._3.isEmpty).map(_._1)
     val nonscoped =
@@ -107,6 +107,6 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
     for {
       ns <- nonscoped
       s  <- scoped
-    } yield ns -> s
+    } yield ProcessedDirective(ns, s)
   }
 }

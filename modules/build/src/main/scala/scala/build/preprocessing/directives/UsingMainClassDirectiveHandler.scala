@@ -2,7 +2,7 @@ package scala.build.preprocessing.directives
 
 import scala.build.errors.{BuildException, SeveralMainClassesFoundError}
 import scala.build.options.BuildOptions
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 
 case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
 
@@ -40,7 +40,7 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+  ): Either[BuildException, ProcessedUsingDirective] = {
     val mainClasses = DirectiveUtil.stringValues(directive.values, path, cwd).map(_._1)
     if (mainClasses.size >= 2)
       Left(
@@ -52,7 +52,7 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
       val options = BuildOptions(
         mainClass = mainClasses.headOption
       )
-      Right(Some(options), Seq.empty)
+      Right(ProcessedDirective(Some(options), Seq.empty))
     }
   }
 

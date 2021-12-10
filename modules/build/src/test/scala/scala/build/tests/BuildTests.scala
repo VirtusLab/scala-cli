@@ -272,7 +272,7 @@ class BuildTests extends munit.FunSuite {
   test("dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """@using lib "com.lihaoyi::geny:0.6.5"
+        """// using lib "com.lihaoyi::geny:0.6.5"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |println(g.mkString)
@@ -313,22 +313,22 @@ class BuildTests extends munit.FunSuite {
   test("several dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """@using lib "com.lihaoyi::geny:0.6.5"
-          |@using lib "com.lihaoyi::pprint:0.6.6"
+        """// using lib "com.lihaoyi::geny:0.6.5"
+          |// using lib "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
           |""".stripMargin,
       os.rel / "simple2.sc" ->
-        """@using
-          |  lib "com.lihaoyi::geny:0.6.5"
-          |  lib "com.lihaoyi::pprint:0.6.6"
+        """// using
+          |//  lib "com.lihaoyi::geny:0.6.5"
+          |//  lib "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
           |""".stripMargin,
       os.rel / "simple3.sc" ->
-        """@using lib "com.lihaoyi::geny:0.6.5", "com.lihaoyi::pprint:0.6.6"
+        """// using lib "com.lihaoyi::geny:0.6.5", "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
@@ -420,7 +420,7 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """// @using target.scala.== "2.12"
+        """// using target.scala.== "2.12"
           |object Ignored {
           |  def foo = 2
           |}
@@ -442,7 +442,7 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """// @using target.platform "scala.js"
+        """// using target.platform "scala.js"
           |object Ignored {
           |  def foo = 2
           |}
@@ -465,13 +465,13 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """// @using target.platform "jvm"
+        """// using target.platform "jvm"
           |object Ignored {
           |  def foo = 2
           |}
           |""".stripMargin,
       os.rel / "IgnoredToo.scala" ->
-        """// @using target.platform "native"
+        """// using target.platform "native"
           |object IgnoredToo {
           |  def foo = 2
           |}
@@ -491,7 +491,7 @@ class BuildTests extends munit.FunSuite {
   test("ignore files if wrong Scala version requirement via in clause") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """// @using target.scala.== "2.12" in "my-scala-2.12/"
+        """// using target.scala.== "2.12" in "my-scala-2.12/"
           |object Simple {
           |  def main(args: Array[String]): Unit =
           |    println("Hello")
@@ -513,7 +513,7 @@ class BuildTests extends munit.FunSuite {
   test("ignore files if wrong Scala target requirement via in clause") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """// @using target.platform "scala.js" in "js-sources/"
+        """// using target.platform "scala.js" in "js-sources/"
           |object Simple {
           |  def main(args: Array[String]): Unit =
           |    println("Hello")
@@ -532,23 +532,23 @@ class BuildTests extends munit.FunSuite {
       )
     }
   }
-//
-//  test("Pass files with only commented directives as is to scalac") {
-//    val testInputs = TestInputs(
-//      os.rel / "Simple.scala" ->
-//        """// @using lib "com.lihaoyi::pprint:0.6.6"
-//          |object Simple {
-//          |  def main(args: Array[String]): Unit =
-//          |    pprint.log("Hello " + "from tests")
-//          |}
-//          |""".stripMargin
-//    )
-//    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-//      val sources = maybeBuild.toOption.get.successfulOpt.get.sources
-//      expect(sources.inMemory.isEmpty)
-//      expect(sources.paths.lengthCompare(1) == 0)
-//    }
-//  }
+
+  test("Pass files with only commented directives as is to scalac") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """// using lib "com.lihaoyi::pprint:0.6.6"
+          |object Simple {
+          |  def main(args: Array[String]): Unit =
+          |    pprint.log("Hello " + "from tests")
+          |}
+          |""".stripMargin
+    )
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val sources = maybeBuild.toOption.get.successfulOpt.get.sources
+      expect(sources.inMemory.isEmpty)
+      expect(sources.paths.lengthCompare(1) == 0)
+    }
+  }
 
   test("Ignore malformed import $ivy") {
     val inputs = TestInputs(
@@ -573,8 +573,8 @@ class BuildTests extends munit.FunSuite {
   test("Compiler plugins from using directives") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """@using scala "2.13"
-          |@using plugins "com.olegpy::better-monadic-for:0.3.1"
+        """// using scala "2.13"
+          |// using plugins "com.olegpy::better-monadic-for:0.3.1"
           |
           |def getCounts: Either[String, (Int, Int)] = ???
           |
@@ -583,9 +583,9 @@ class BuildTests extends munit.FunSuite {
           |} yield x + y
           |""".stripMargin,
       os.rel / "p2.sc" ->
-        """@using
-          |  scala "2.13"
-          |  plugins "com.olegpy::better-monadic-for:0.3.1"
+        """// using
+          |//  scala "2.13"
+          |//  plugins "com.olegpy::better-monadic-for:0.3.1"
           |
           |def getCounts: Either[String, (Int, Int)] = ???
           |
@@ -603,11 +603,28 @@ class BuildTests extends munit.FunSuite {
       assert(clue(maybeBuild.orThrow.diagnostics).toSeq.flatten.isEmpty)
     }
   }
+  test("ScalaNativeOptions for native-gc with no values") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """  using `native-gc`
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.isLeft)
+      assert(maybeBuild.left.get == SingleValueExpected("native-gc", Seq()))
+    }
+  }
 
   test("ScalaNativeOptions for native-gc with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """// @using `native-gc` 78, 12
+        """// using `native-gc` 78, 12
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -626,7 +643,7 @@ class BuildTests extends munit.FunSuite {
   test("ScalaNativeOptions for native-gc") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """// @using `native-gc` 78
+        """// using `native-gc` 78
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -644,7 +661,7 @@ class BuildTests extends munit.FunSuite {
   test("ScalaNativeOptions for native-version with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """// @using `native-version` "0.4.0", "0.3.3"
+        """// using `native-version` "0.4.0", "0.3.3"
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -663,7 +680,7 @@ class BuildTests extends munit.FunSuite {
   test("ScalaNativeOptions for native-version") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """// @using `native-version` "0.4.0"
+        """// using `native-version` "0.4.0"
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -681,7 +698,7 @@ class BuildTests extends munit.FunSuite {
   test("ScalaNativeOptions for native-compile") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """// @using `native-compile` "compileOption1", "compileOption2"
+        """// using `native-compile` "compileOption1", "compileOption2"
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -701,10 +718,28 @@ class BuildTests extends munit.FunSuite {
     }
   }
 
+  test("ScalaNativeOptions for native-linking and no value") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """// using `native-linking`
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions.isEmpty)
+    }
+  }
+
   test("ScalaNativeOptions for native-linking") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """// @using `native-linking` "linkingOption1", "linkingOption2"
+        """// using `native-linking` "linkingOption1", "linkingOption2"
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -727,7 +762,7 @@ class BuildTests extends munit.FunSuite {
   test("ScalaNativeOptions for native-linking and no value") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """// using native-linking
+        """// using `native-linking`
           |def foo() = println("hello foo")
           |""".stripMargin
     )

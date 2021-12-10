@@ -13,8 +13,7 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   DependencyFormatError,
-  FileNotFoundException,
-  UnusedDirectiveError
+  FileNotFoundException
 }
 import scala.build.internal.{AmmUtil, Util}
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
@@ -23,6 +22,31 @@ import scala.build.{Inputs, Position, Positioned}
 import scala.jdk.CollectionConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
+
+  case class StrictDirectivesProcessingOutput(
+    globalReqs: BuildRequirements,
+    globalUsings: BuildOptions,
+    scopedReqs: Seq[Scoped[BuildRequirements]],
+    strippedContent: Option[String]
+  ) {
+    def isEmpty: Boolean = globalReqs == BuildRequirements.monoid.zero &&
+      globalUsings == BuildOptions.monoid.zero &&
+      scopedReqs.isEmpty &&
+      strippedContent.isEmpty
+  }
+
+  case class SpecialImportsProcessingOutput(
+    reqs: BuildRequirements,
+    opts: BuildOptions,
+    content: String
+  )
+
+  case class ProcessingOutput(
+    globalReqs: BuildRequirements,
+    scopedReqs: Seq[Scoped[BuildRequirements]],
+    opts: BuildOptions,
+    updatedContent: Option[String]
+  )
 
   val usingDirectiveHandlers = Seq(
     UsingDependencyDirectiveHandler,
@@ -66,7 +90,12 @@ case object ScalaPreprocessor extends Preprocessor {
           val source = value(process(content, Right(f.path), scopePath / os.up)) match {
             case None =>
               PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
-            case Some((requirements, scopedRequirements, options, Some(updatedCode))) =>
+            case Some(ProcessingOutput(
+                  requirements,
+                  scopedRequirements,
+                  options,
+                  Some(updatedCode)
+                )) =>
               PreprocessedSource.InMemory(
                 Right(f.path),
                 f.subPath,
@@ -78,7 +107,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 Some(inferredClsName),
                 scopePath
               )
-            case Some((requirements, scopedRequirements, options, None)) =>
+            case Some(ProcessingOutput(requirements, scopedRequirements, options, None)) =>
               PreprocessedSource.OnDisk(
                 f.path,
                 Some(options),
@@ -95,8 +124,12 @@ case object ScalaPreprocessor extends Preprocessor {
         val res = either {
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
-            value(process(content, Left(v.source), v.scopePath / os.up))
-              .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
+            value(
+              process(content, Left(v.source), v.scopePath / os.up)
+            ).map {
+              case ProcessingOutput(reqs, scopedReqs, opts, updatedContent) =>
+                (reqs, scopedReqs, opts, updatedContent)
+            }.getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
           val s = PreprocessedSource.InMemory(
             Left(v.source),
             v.subPath,
@@ -120,144 +153,39 @@ case object ScalaPreprocessor extends Preprocessor {
     content: String,
     path: Either[String, os.Path],
     scopeRoot: ScopePath
-  ): Either[BuildException, Option[(
-    BuildRequirements,
-    Seq[Scoped[BuildRequirements]],
-    BuildOptions,
-    Option[String]
-  )]] = either {
+  ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
-    val afterStrictUsing      = value(processStrictUsing(content, path, scopeRoot))
+    val afterStrictUsing: StrictDirectivesProcessingOutput =
+      value(processStrictUsing(content, path, scopeRoot))
 
-    val afterProcessImports = value {
+    val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
       processSpecialImports(
-        afterStrictUsing.map(_._4).getOrElse(content),
+        afterStrictUsing.strippedContent.getOrElse(content),
         path
       )
     }
 
     if (afterStrictUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
-      val allRequirements    = afterProcessImports.map(_._1).toSeq ++ afterStrictUsing.map(_._1)
+      val allRequirements    = afterProcessImports.map(_.reqs).toSeq :+ afterStrictUsing.globalReqs
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
-      val allOptions = afterStrictUsing.map(_._2).toSeq ++
-        afterProcessImports.map(_._2).toSeq
+      val allOptions = afterStrictUsing.globalUsings +:
+        afterProcessImports.map(_.opts).toSeq
       val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContentOpt = afterProcessImports
-        .map(_._3)
-        .orElse(afterStrictUsing.map(_._4))
+        .map(_.content)
+        .orElse(afterStrictUsing.strippedContent)
         .orElse(if (isSheBang) Some(content0) else None)
 
-      val scopedRequirements = afterStrictUsing.fold(Seq.empty[Scoped[BuildRequirements]])(_._3)
-      Some((summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
+      val scopedRequirements = afterStrictUsing.scopedReqs
+      Some(ProcessingOutput(summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
     }
   }
-
-  private def directivesBuildOptions(
-    directives: Seq[Directive],
-    cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = {
-    val results = directives
-      .filter(_.tpe == Directive.Using)
-      .map { dir =>
-        val fromHandlersOpt = usingDirectiveHandlers
-          .iterator
-          .flatMap(_.handle(dir, cwd).iterator)
-          .take(1)
-          .toList
-          .headOption
-
-        fromHandlersOpt.getOrElse {
-          Left(new UnusedDirectiveError(dir))
-        }
-      }
-
-    results
-      .sequence
-      .left.map(CompositeBuildException(_))
-      .map { allOptions =>
-        allOptions.foldLeft(BuildOptions())(_ orElse _)
-      }
-  }
-
-  private def directivesBuildRequirements(
-    directives: Seq[Directive],
-    scopeRoot: ScopePath
-  ): Either[
-    BuildException,
-    (BuildRequirements, Seq[Scoped[BuildRequirements]])
-  ] = {
-    val results = directives
-      .filter(_.tpe == Directive.Require)
-      .map { dir =>
-        val fromHandlersOpt = requireDirectiveHandlers
-          .iterator
-          .flatMap(_.handle(dir, scopeRoot).iterator)
-          .take(1)
-          .toList
-          .headOption
-
-        fromHandlersOpt match {
-          case None =>
-            Left(new UnusedDirectiveError(dir))
-          case Some(Right(reqs)) =>
-            val value = dir.scope match {
-              case None => (reqs, Nil)
-              case Some(sc) =>
-                val scopePath = scopeRoot / os.RelPath(sc).asSubPath
-                (BuildRequirements(), Seq(Scoped(scopePath, reqs)))
-            }
-            Right(value)
-          case Some(Left(err)) =>
-            Left(err)
-        }
-      }
-
-    results
-      .sequence
-      .left.map(CompositeBuildException(_))
-      .map { allValues =>
-        val allReqs       = allValues.map(_._1)
-        val allScopedReqs = allValues.flatMap(_._2)
-        (allReqs.foldLeft(BuildRequirements())(_ orElse _), allScopedReqs)
-      }
-  }
-
-  private def processUsing(
-    path: Either[String, os.Path],
-    content: String,
-    scopeRoot: ScopePath
-  ): Option[Either[
-    BuildException,
-    (
-      BuildRequirements,
-      Seq[Scoped[BuildRequirements]],
-      BuildOptions,
-      Option[String]
-    )
-  ]] =
-    // TODO Warn about unrecognized directives
-    // TODO Report via some diagnostics malformed directives
-    TemporaryDirectivesParser.parseDirectives(path, content).map {
-      case (directives, updatedContentOpt) =>
-        val tuple = (
-          directivesBuildRequirements(directives, scopeRoot),
-          directivesBuildOptions(directives, scopeRoot),
-          Right(updatedContentOpt)
-        )
-        tuple
-          .traverseN
-          .left.map(CompositeBuildException(_))
-          .map {
-            case ((reqs, scopedReqs), options, contentOpt) =>
-              (reqs, scopedReqs, options, contentOpt)
-          }
-    }
 
   private def processSpecialImports(
     content: String,
     path: Either[String, os.Path]
-  ): Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = either {
+  ): Either[BuildException, Option[SpecialImportsProcessingOutput]] = either {
 
     import fastparse._
     import scala.build.internal.ScalaParse._
@@ -336,7 +264,7 @@ case object ScalaPreprocessor extends Preprocessor {
           extraDependencies = deps
         )
       )
-      Some((BuildRequirements(), options, newCode))
+      Some(SpecialImportsProcessingOutput(BuildRequirements(), options, newCode))
     }
   }
 
@@ -344,12 +272,7 @@ case object ScalaPreprocessor extends Preprocessor {
     content: String,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, Option[(
-    BuildRequirements,
-    BuildOptions,
-    Seq[Scoped[BuildRequirements]],
-    String
-  )]] = either {
+  ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
 
     val processor = {
       val reporter = new DirectivesOutputStreamReporter(System.err) // TODO Get that via a logger
@@ -367,31 +290,35 @@ case object ScalaPreprocessor extends Preprocessor {
       .getFlattenedMap
       .asScala
       .map {
-        case (k, l) => k -> l.asScala
+        case (k, l) => StrictDirective(k.getPath.asScala.mkString("."), l.asScala)
       }
-      .toMap
+      .toSeq
 
     val updatedOptions = value {
       DirectivesProcessor.process(
-        directives0.toSeq,
+        directives0,
         usingDirectiveHandlers,
         path,
         cwd
       )
     }
 
+    val directives1 = updatedOptions.unused
+
     val updatedRequirements = value {
       DirectivesProcessor.process(
-        directives0.toSeq,
+        directives1,
         requireDirectiveHandlers,
         path,
         cwd
       )
     }
 
+    val directives2 = updatedRequirements.unused
+
     val codeOffset = directives.getCodeOffset
     val updatedContentOpt =
-      if (codeOffset > 0) {
+      if (codeOffset > 0 && !directives.isCommentSyntax) {
         val headerBytes = contentChars
           .iterator
           .take(codeOffset)
@@ -404,13 +331,24 @@ case object ScalaPreprocessor extends Preprocessor {
       }
       else None
 
-    if (updatedContentOpt.isEmpty) None
-    else Some((
-      updatedRequirements._1,
-      updatedOptions._1,
-      updatedRequirements._2,
-      updatedContentOpt.getOrElse(content)
-    ))
+    value {
+      if (directives2.nonEmpty) {
+        val errors = directives2.map(d =>
+          new DefaultDirectiveHandler[Nothing].handleValues(d, path, cwd)
+        ).collect {
+          case Left(e) => e
+        }
+        Left(CompositeBuildException(errors))
+      }
+      else
+        Right(StrictDirectivesProcessingOutput(
+          updatedRequirements.global,
+          updatedOptions.global,
+          updatedRequirements.scoped,
+          updatedContentOpt
+        ))
+    }
+
   }
 
   private def parseDependency(str: String, pos: Position): Either[BuildException, AnyDependency] =

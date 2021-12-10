@@ -2,7 +2,7 @@ package scala.build.preprocessing.directives
 import scala.build.EitherCps.either
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 
 case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Resource directories"
@@ -44,7 +44,7 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = either {
+  ): Either[BuildException, ProcessedUsingDirective] = either {
     val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
     val paths                     = DirectiveUtil.stringValues(directive.values, path, cwd)
     val paths0                    = rootOpt.map(root => paths.map(_._1).map(os.Path(_, root)))
@@ -52,7 +52,7 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
       paths.map(_._1).map(path => virtualRoot / os.SubPath(path))
     )
 
-    (
+    ProcessedDirective(
       Some(BuildOptions(
         classPathOptions = ClassPathOptions(
           extraClassPath = paths0.toList.flatten,

@@ -7,7 +7,7 @@ import scala.build.Ops._
 import scala.build.Positioned
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ScalaOptions}
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 
 case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Compiler plugins"
@@ -48,7 +48,7 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = either {
+  ): Either[BuildException, ProcessedUsingDirective] = either {
     val values = directive.values
 
     val extraDependencies = value {
@@ -64,7 +64,7 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
         .left.map(errors => errors.mkString(", "))
     }
 
-    (
+    ProcessedDirective(
       Some(BuildOptions(
         scalaOptions = ScalaOptions(
           compilerPlugins = extraDependencies

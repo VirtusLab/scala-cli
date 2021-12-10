@@ -3,7 +3,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Positioned
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 
 case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java home"
@@ -38,7 +38,7 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = either {
+  ): Either[BuildException, ProcessedUsingDirective] = either {
     val values = directive.values
     val rawHome = value {
       DirectiveUtil.stringValues(values, path, cwd)
@@ -48,7 +48,7 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
     val root = value(Directive.osRoot(cwd, Some(rawHome._2)))
     // FIXME Might throw
     val home = os.Path(rawHome._1, root)
-    (
+    ProcessedDirective(
       Some(BuildOptions(
         javaOptions = JavaOptions(
           javaHomeOpt = Some(Positioned(rawHome._2, home))

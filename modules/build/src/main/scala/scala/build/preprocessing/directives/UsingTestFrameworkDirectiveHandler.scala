@@ -5,7 +5,7 @@ import scala.build.errors.{
   TooManyTestFrameworksProvidedError
 }
 import scala.build.options.{BuildOptions, TestOptions}
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 
 case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Test framework"
@@ -35,7 +35,7 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+  ): Either[BuildException, ProcessedUsingDirective] = {
     val values = directive.values
     DirectiveUtil.stringValues(values, path, cwd) match {
       case Seq() =>
@@ -46,7 +46,7 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
             frameworkOpt = Some(fw._1)
           )
         )
-        Right((Some(options), Seq.empty))
+        Right(ProcessedDirective(Some(options), Seq.empty))
       case _ =>
         Left(new TooManyTestFrameworksProvidedError)
     }

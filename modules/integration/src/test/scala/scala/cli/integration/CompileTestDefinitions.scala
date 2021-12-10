@@ -10,7 +10,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   val simpleInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """@using lib "com.lihaoyi::utest::0.7.10"
+        """// using lib "com.lihaoyi::utest::0.7.10"
           |import utest._
           |
           |object MyTests extends TestSuite {
@@ -53,7 +53,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Main.scala" ->
-          """@using lib "com.lihaoyi::utest:0.7.10"
+          """// using lib "com.lihaoyi::utest:0.7.10"
             |
             |object Main {
             |  val err = utest.compileError("pprint.log(2)")
@@ -65,8 +65,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
             |}
             |""".stripMargin,
         os.rel / "Tests.scala" ->
-          """// @using lib "com.lihaoyi::pprint:0.6.6"
-            |// @using target.scope "test"
+          """// using lib "com.lihaoyi::pprint:0.6.6"
+            |// using target.scope "test"
             |
             |import utest._
             |
@@ -96,8 +96,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
             |}
             |""".stripMargin,
         os.rel / "Tests.scala" ->
-          """// @using lib "com.lihaoyi::utest:0.7.10"
-            |// @using target.scope "test"
+          """// using lib "com.lihaoyi::utest:0.7.10"
+            |// using target.scope "test"
             |
             |import utest._
             |

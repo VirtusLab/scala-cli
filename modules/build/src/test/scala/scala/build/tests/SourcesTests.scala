@@ -49,8 +49,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """@using libs "org1:name1:1.1", "org2::name2:2.2"
-          |@using lib "org3:::name3:3.3"
+        """// using libs "org1:name1:1.1", "org2::name2:2.2"
+          |// using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -72,18 +72,18 @@ class SourcesTests extends munit.FunSuite {
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(
         _.value
       ).toSet == expectedDeps.toSet)
-      expect(sources.paths.isEmpty)
-      expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.paths.length == 1)
+      expect(sources.paths.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.isEmpty)
     }
   }
 
   test("dependencies in .scala - using witin tests") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """// @using target.scope "test"
-          |// @using libs "org1:name1:1.1", "org2::name2:2.2"
-          |// @using lib "org3:::name3:3.3"
+        """// using target.scope "test"
+          |// using libs "org1:name1:1.1", "org2::name2:2.2"
+          |// using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -107,8 +107,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .test.scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.test.scala" ->
-        """@using libs "org1:name1:1.1", "org2::name2:2.2"
-          |@using lib "org3:::name3:3.3"
+        """// using libs "org1:name1:1.1", "org2::name2:2.2"
+          |// using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -132,8 +132,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in test/name.scala") {
     val files = Seq(
       os.rel / "test" / "something.scala" ->
-        """@using libs "org1:name1:1.1", "org2::name2:2.2"
-          |@using lib "org3:::name3:3.3"
+        """// using libs "org1:name1:1.1", "org2::name2:2.2"
+          |// using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -154,12 +154,12 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("dependencies in .scala - @using") {
+  test("dependencies in .scala - // using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """@using lib "org1:name1:1.1"
-          |@using lib "org2::name2:2.2"
-          |@using lib "org3:::name3:3.3"
+        """// using lib "org1:name1:1.1"
+          |// using lib "org2::name2:2.2"
+          |// using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -179,9 +179,9 @@ class SourcesTests extends munit.FunSuite {
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
-      expect(sources.paths.isEmpty)
-      expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.paths.length == 1)
+      expect(sources.paths.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.isEmpty)
     }
   }
 
@@ -277,7 +277,7 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .sc - using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """// @using libs "org1:name1:1.1", "org2::name2:2.2", "org3:::name3:3.3"
+        """// using libs "org1:name1:1.1", "org2::name2:2.2", "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |def a = 1
@@ -301,12 +301,12 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("dependencies in .sc - @using") {
+  test("dependencies in .sc - // using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """@using lib "org1:name1:1.1"
-          |@using lib "org2::name2:2.2"
-          |@using lib "org3:::name3:3.3"
+        """// using lib "org1:name1:1.1"
+          |// using lib "org2::name2:2.2"
+          |// using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |def a = 1

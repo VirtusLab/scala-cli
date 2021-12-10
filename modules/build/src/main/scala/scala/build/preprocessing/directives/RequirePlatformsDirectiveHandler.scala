@@ -38,7 +38,7 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildRequirements], Seq[Scoped[BuildRequirements]])] = {
+  ): Either[BuildException, ProcessedRequireDirective] = {
     val values          = DirectiveUtil.stringValues(directive.values, path, cwd)
     val nonscopedValues = values.filter(_._3.isEmpty)
     val scopedValues    = values.filter(_._3.nonEmpty)
@@ -80,6 +80,6 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
     for {
       ns <- nonscoped
       s  <- scoped
-    } yield ns -> s
+    } yield ProcessedDirective(ns, s)
   }
 }

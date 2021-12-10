@@ -7,6 +7,7 @@ import scala.build.Inputs
 import scala.build.errors.BuildException
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
+import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
 
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {
   def preprocess(input: Inputs.SingleElement)
@@ -67,6 +68,10 @@ object ScriptPreprocessor {
 
     val (requirements, scopedRequirements, options, updatedCodeOpt) =
       value(ScalaPreprocessor.process(contentIgnoredSheBangLines, reportingPath, scopePath / os.up))
+        .map {
+          case ProcessingOutput(globalReqs, scopedReqs, opts, updatedContent) =>
+            (globalReqs, scopedReqs, opts, updatedContent)
+        }
         .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(

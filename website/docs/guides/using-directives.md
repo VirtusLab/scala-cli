@@ -26,7 +26,7 @@ As shown, `using` directives can be defined using the special keyword `using`. H
 Or as a special top-level annotation:
 
 ```scala
-@using jars "libs/model.jar"
+// using jars "libs/model.jar"
 ```
 
 :::info

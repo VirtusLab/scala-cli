@@ -3,6 +3,8 @@ package scala.build.preprocessing.directives
 import scala.build.errors.BuildException
 import scala.build.preprocessing.{ScopePath, Scoped}
 
+case class ProcessedDirective[T](global: Option[T], scoped: Seq[Scoped[T]])
+
 trait DirectiveHandler[T] {
   def name: String
   def description: String
@@ -18,6 +20,6 @@ trait DirectiveHandler[T] {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[T], Seq[Scoped[T]])]
+  ): Either[BuildException, ProcessedDirective[T]]
 
 }

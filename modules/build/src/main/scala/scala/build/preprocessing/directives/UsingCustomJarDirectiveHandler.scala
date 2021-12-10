@@ -2,7 +2,7 @@ package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.{BuildOptions, ClassPathOptions}
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 
 case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Custom JAR"
@@ -39,7 +39,7 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = either {
+  ): Either[BuildException, ProcessedUsingDirective] = either {
     val values = directive.values
     val extraJars: Seq[Either[BuildException, os.Path]] =
       DirectiveUtil.stringValues(values, path, cwd).map {
@@ -59,7 +59,7 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
         case Right(value) => value
       })
 
-    (
+    ProcessedDirective(
       Some(BuildOptions(
         classPathOptions = ClassPathOptions(
           extraClassPath = value(res)

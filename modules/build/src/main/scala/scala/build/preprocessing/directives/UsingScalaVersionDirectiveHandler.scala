@@ -1,7 +1,7 @@
 package scala.build.preprocessing.directives
 import scala.build.errors.{BuildException, NoScalaVersionProvidedError}
 import scala.build.options.{BuildOptions, ScalaOptions}
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 
 case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Scala version"
@@ -35,7 +35,7 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+  ): Either[BuildException, ProcessedUsingDirective] = {
     val values        = directive.values
     val scalaVersions = DirectiveUtil.stringValues(values, path, cwd)
     if (scalaVersions.isEmpty)
@@ -47,7 +47,7 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
           extraScalaVersions = scalaVersions.tail.map(_._1).toSet
         )
       )
-      Right((Some(options), Seq.empty))
+      Right(ProcessedDirective(Some(options), Seq.empty))
     }
   }
 }

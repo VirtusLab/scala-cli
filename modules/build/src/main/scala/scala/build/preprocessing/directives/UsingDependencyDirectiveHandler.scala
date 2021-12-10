@@ -7,7 +7,7 @@ import scala.build.Ops._
 import scala.build.Positioned
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ClassPathOptions}
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 
 case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Dependency"
@@ -48,7 +48,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = either {
+  ): Either[BuildException, ProcessedUsingDirective] = either {
     val values = directive.values
     val extraDependencies = value {
       DirectiveUtil.stringValues(values, path, cwd)
@@ -63,7 +63,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
         .left.map(errors => errors.mkString(", "))
     }
 
-    (
+    ProcessedDirective(
       Some(BuildOptions(
         classPathOptions = ClassPathOptions(
           extraDependencies = extraDependencies.map {

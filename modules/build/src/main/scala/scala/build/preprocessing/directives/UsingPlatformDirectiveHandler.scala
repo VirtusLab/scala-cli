@@ -14,7 +14,7 @@ import scala.build.options.{
   ScalaNativeOptions,
   ScalaOptions
 }
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.ScopePath
 import scala.build.{Position, Positioned}
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Platform"
@@ -109,10 +109,10 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, (Option[BuildOptions], Seq[Scoped[BuildOptions]])] = {
+  ): Either[BuildException, ProcessedUsingDirective] = {
     val values = directive.values
     handle(DirectiveUtil.stringValues(values, path, cwd).map(t => t._1 -> t._2)).map(v =>
-      Some(v) -> Seq.empty
+      ProcessedDirective(Some(v), Seq.empty)
     )
   }
 }

@@ -16,7 +16,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulTestInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """// @using lib "org.scalameta::munit::0.7.29"
+        """// using lib "org.scalameta::munit::0.7.29"
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -31,7 +31,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val failingTestInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """// @using lib "org.scalameta::munit::0.7.29"
+        """// using lib "org.scalameta::munit::0.7.29"
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -45,7 +45,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulUtestInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """@using lib "com.lihaoyi::utest::0.7.10"
+        """// using lib "com.lihaoyi::utest::0.7.10"
           |import utest._
           |
           |object MyTests extends TestSuite {
@@ -63,7 +63,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulUtestJsInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """@using lib "com.lihaoyi::utest::0.7.10"
+        """// using lib "com.lihaoyi::utest::0.7.10"
           |import utest._
           |import scala.scalajs.js
           |
@@ -83,7 +83,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulUtestNativeInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """@using lib "com.lihaoyi::utest::0.7.10"
+        """// using lib "com.lihaoyi::utest::0.7.10"
           |import utest._
           |import scala.scalanative.libc._
           |import scala.scalanative.unsafe._
@@ -105,7 +105,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulJunitInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """@using lib "com.novocode:junit-interface:0.11"
+        """// using lib "com.novocode:junit-interface:0.11"
           |import org.junit.Test
           |
           |class MyTests {
@@ -123,7 +123,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val severalTestsInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """// @using lib "org.scalameta::munit::0.7.29"
+        """// using lib "org.scalameta::munit::0.7.29"
           |
           |class MyTests extends munit.FunSuite {
           |  test("foo") {
@@ -133,7 +133,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
           |}
           |""".stripMargin,
       os.rel / "OtherTests.scala" ->
-        """// @using lib "org.scalameta::munit::0.7.29"
+        """// using lib "org.scalameta::munit::0.7.29"
           |
           |class OtherTests extends munit.FunSuite {
           |  test("bar") {
@@ -148,7 +148,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val successfulWeaverInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
-        """@using libs "com.disneystreaming::weaver-cats:0.7.6", "com.eed3si9n.expecty::expecty:0.15.4+5-f1d8927e-SNAPSHOT"
+        """// using libs "com.disneystreaming::weaver-cats:0.7.6", "com.eed3si9n.expecty::expecty:0.15.4+5-f1d8927e-SNAPSHOT"
           |import weaver._
           |import cats.effect.IO
           |
@@ -328,7 +328,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       val inputs = TestInputs(
         Seq(
           os.rel / "MyTests.scala" ->
-            """@using lib "org.scalatest::scalatest::3.2.9"
+            """// using lib "org.scalatest::scalatest::3.2.9"
               |import org.scalatest._
               |import org.scalatest.flatspec._
               |import org.scalatest.matchers._
@@ -372,7 +372,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       val inputs = TestInputs(
         Seq(
           os.rel / "MyTests.scala" ->
-            """@using lib "com.lihaoyi::utest::0.7.10"
+            """// using lib "com.lihaoyi::utest::0.7.10"
               |
               |package mytests
               |import utest._
@@ -421,7 +421,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       val inputs = TestInputs(
         Seq(
           os.rel / "MyTests.scala" ->
-            """// @using lib "org.scalameta::munit::0.7.29"
+            """// using lib "org.scalameta::munit::0.7.29"
               |
               |object MyTests
               |""".stripMargin
@@ -464,8 +464,8 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       var inputs0 = TestInputs(
         Seq(
           os.rel / "MyTests.scala" ->
-            s"""// @using lib "org.scalameta::munit::0.7.29"
-               |// @using platform $platforms
+            s"""// using lib "org.scalameta::munit::0.7.29"
+               |// using platform $platforms
                |
                |class MyTests extends munit.FunSuite {
                |  test("shared") {
@@ -474,7 +474,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
                |}
                |""".stripMargin,
           os.rel / "MyJvmTests.scala" ->
-            """// @using target.platform "jvm"
+            """// using target.platform "jvm"
               |
               |class MyJvmTests extends munit.FunSuite {
               |  test("jvm") {
@@ -487,7 +487,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       if (TestUtil.canRunJs)
         inputs0 = inputs0.add(
           os.rel / "MyJsTests.scala" ->
-            """// @using target.platform "js"
+            """// using target.platform "js"
               |
               |class MyJsTests extends munit.FunSuite {
               |  test("js") {
@@ -499,7 +499,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       if (supportsNative)
         inputs0 = inputs0.add(
           os.rel / "MyNativeTests.scala" ->
-            """// @using target.platform "native"
+            """// using target.platform "native"
               |
               |class MyNativeTests extends munit.FunSuite {
               |  test("native") {
