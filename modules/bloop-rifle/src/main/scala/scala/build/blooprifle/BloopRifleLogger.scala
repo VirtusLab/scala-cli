@@ -37,12 +37,12 @@ trait BloopRifleLogger { self =>
 object BloopRifleLogger {
   def nop: BloopRifleLogger =
     new BloopRifleLogger {
-      def info(msg: => String) = {}
-      def debug(msg: => String) = {}
+      def info(msg: => String)                 = {}
+      def debug(msg: => String)                = {}
       def error(msg: => String, ex: Throwable) = {}
-      def bloopBspStdout        = None
-      def bloopBspStderr        = None
-      def bloopCliInheritStdout = false
-      def bloopCliInheritStderr = false
+      def bloopBspStdout                       = None
+      def bloopBspStderr                       = None
+      def bloopCliInheritStdout                = false
+      def bloopCliInheritStderr                = false
     }
 }

@@ -106,9 +106,9 @@ class BspClient(
     }
   }
 
-  def setProjectParams(newParams: Seq[String]): Unit = {}
+  def setProjectParams(newParams: Seq[String]): Unit                    = {}
   def diagnostics: Option[Seq[(Either[String, os.Path], b.Diagnostic)]] = None
-  def clear(): Unit = {}
+  def clear(): Unit                                                     = {}
 
   private val buildExceptionDiagnosticsDocs =
     new ConcurrentHashMap[(os.Path, b.BuildTargetIdentifier), JBoolean]

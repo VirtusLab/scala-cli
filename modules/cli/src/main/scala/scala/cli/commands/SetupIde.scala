@@ -100,7 +100,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
           .map(Paths.get(_).toAbsolutePath.toString)
           .orElse {
             Try(
-              //This is weird but on windows we get /D:\a\scala-cli...
+              // This is weird but on windows we get /D:\a\scala-cli...
               Paths.get(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
                 .toAbsolutePath
                 .toString

@@ -11,8 +11,8 @@ abstract class CodeWrapper {
 
   def wrapCode(pkgName: Seq[Name], indexedWrapperName: Name, code: String) = {
 
-    //we need to normalize topWrapper and bottomWrapper in order to ensure
-    //the snippets always use the platform-specific newLine
+    // we need to normalize topWrapper and bottomWrapper in order to ensure
+    // the snippets always use the platform-specific newLine
     val extraCode0 = "/*</generated>*/"
     val (topWrapper, bottomWrapper, userCodeNestingLevel) =
       apply(code, pkgName, indexedWrapperName, extraCode0)
