@@ -115,7 +115,7 @@ object BloopRifle {
         def openSocket(
           period: FiniteDuration,
           timeout: FiniteDuration
-        )          = conn.openSocket(period, timeout)
+        ) = conn.openSocket(period, timeout)
         def closed = conn.closed
         def stop(): Unit = {
           if (devNullOs != null)
