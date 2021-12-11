@@ -654,7 +654,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
         val updatedContent =
-          """using lib "com.lihaoyi::pprint:0.6.6"
+          """using lib "com.lihaoyi::pprint:0.7.0"
             |val msg = "Hello"
             |pprint.log(msg)
             |""".stripMargin
