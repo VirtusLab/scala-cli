@@ -39,7 +39,12 @@ object ScalacOptions {
 
       def withDefaultOrigin(origin: String) = this
       def init                              = Some(Nil)
-      def step(args: List[String], index: Int, acc: Option[List[String]], formatter: Formatter[Name]) =
+      def step(
+        args: List[String],
+        index: Int,
+        acc: Option[List[String]],
+        formatter: Formatter[Name]
+      ) =
         args match {
           case h :: t if scalacOptionsPrefixes.exists(h.startsWith) =>
             Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
