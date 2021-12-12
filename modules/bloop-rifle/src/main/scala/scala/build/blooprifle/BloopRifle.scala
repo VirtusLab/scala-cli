@@ -21,8 +21,7 @@ object BloopRifle {
     */
   def check(
     config: BloopRifleConfig,
-    logger: BloopRifleLogger,
-    scheduler: ScheduledExecutorService
+    logger: BloopRifleLogger
   ): Boolean = {
     def check() =
       Operations.check(
@@ -182,7 +181,7 @@ object BloopRifle {
     workdir: Path,
     scheduler: ScheduledExecutorService
   ): Either[BloopAboutFailure, BloopServerRuntimeInfo] = {
-    val isRunning = BloopRifle.check(config, logger, scheduler)
+    val isRunning = BloopRifle.check(config, logger)
 
     if (isRunning) {
       val bufferedOStream = new ByteArrayOutputStream(100000)
