@@ -1,6 +1,6 @@
 #!/usr/bin/env scala-cli
 
-import $ivy.`com.lihaoyi::os-lib:0.7.8`
+import $ivy.`com.lihaoyi::os-lib:0.8.0`
 
 /** Small and handy script to generate stubs for .svg files with nice TODO
   */

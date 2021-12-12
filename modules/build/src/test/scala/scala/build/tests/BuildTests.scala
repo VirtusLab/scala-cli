@@ -532,7 +532,7 @@ class BuildTests extends munit.FunSuite {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
         """#!/usr/bin/env scala-cli
-          |import $ivy"com.lihaoyi::os-lib:0.7.8"
+          |import $ivy"com.lihaoyi::os-lib:0.8.0"
           |""".stripMargin
     )
     val buildOptions = defaultOptions.copy(
