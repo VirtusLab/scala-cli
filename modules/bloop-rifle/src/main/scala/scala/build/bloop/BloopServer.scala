@@ -83,7 +83,7 @@ object BloopServer {
 
     val bloopInfo =
       BloopRifle.getCurrentBloopVersion(config, logger, workdir, startServerChecksPool)
-    val isRunning = BloopRifle.check(config, logger, startServerChecksPool)
+    val isRunning = BloopRifle.check(config, logger)
     val ResolvedBloopParameters(expectedBloopVersion, expectedBloopJvmRelease, javaPath) =
       bloopInfo match {
         case Left(error) =>

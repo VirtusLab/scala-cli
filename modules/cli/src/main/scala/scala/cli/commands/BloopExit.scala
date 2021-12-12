@@ -3,7 +3,6 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.Os
-import scala.build.bloop.BloopThreads
 import scala.build.blooprifle.BloopRifle
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {
@@ -12,12 +11,10 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
     List("bloop", "exit")
   )
   def run(options: BloopExitOptions, args: RemainingArgs): Unit = {
-    val threads          = BloopThreads.create()
     val bloopRifleConfig = options.bloopRifleConfig
     val logger           = options.logging.logger
 
-    val isRunning =
-      BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger, threads.startServerChecks)
+    val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)
 
     if (isRunning) {
       val ret = BloopRifle.exit(bloopRifleConfig, Os.pwd.toNIO, logger.bloopRifleLogger)
