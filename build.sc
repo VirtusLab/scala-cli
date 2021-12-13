@@ -53,7 +53,7 @@ object integration extends Module {
         PathRef(T.dest / "working-dir")
       }
       def forkEnv = super.forkEnv() ++ Seq(
-        "SCALA_CLI_TMP" -> tmpDirBase().path.toString,
+        "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
         "SCALA_CLI_IMAGE" -> "scala-cli"
       )
     }
@@ -67,7 +67,7 @@ object integration extends Module {
         PathRef(T.dest / "working-dir")
       }
       def forkEnv = super.forkEnv() ++ Seq(
-        "SCALA_CLI_TMP" -> tmpDirBase().path.toString,
+        "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
         "SCALA_CLI_IMAGE" -> "scala-cli-slim"
       )
     }
