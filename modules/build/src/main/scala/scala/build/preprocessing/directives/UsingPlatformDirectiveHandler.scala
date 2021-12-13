@@ -1,6 +1,7 @@
 package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
+import scala.build.Positioned
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
@@ -15,7 +16,6 @@ import scala.build.options.{
   ScalaOptions
 }
 import scala.build.preprocessing.ScopePath
-import scala.build.{Position, Positioned}
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Platform"
   def description      = "Set the default platform to Scala.JS or Scala Native"
@@ -37,12 +37,12 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     Platform.parse(Platform.normalize(split(inputs.head)._1)).nonEmpty
 
   private def handle(
-    rawPfStrsWithPos: Seq[(String, Position)]
+    rawPfStrsWithPos: Seq[Positioned[String]]
   ): Either[BuildException, BuildOptions] = either {
     val options = value {
       rawPfStrsWithPos
         .map {
-          case (rawPfStr, position) =>
+          case Positioned(pos, rawPfStr) =>
             val (pfStr, pfVerOpt) = split(rawPfStr)
             Platform.parse(Platform.normalize(pfStr))
               .toRight(new MalformedPlatformError(pfStr))
@@ -52,7 +52,7 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
                     case None =>
                       val options = BuildOptions(
                         scalaOptions = ScalaOptions(
-                          platform = Some(scala.build.Positioned(List(position), Platform.JVM))
+                          platform = Some(scala.build.Positioned(pos, Platform.JVM))
                         )
                       )
                       Right(options)
@@ -62,7 +62,7 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
                 case Platform.JS =>
                   val options = BuildOptions(
                     scalaOptions = ScalaOptions(
-                      platform = Some(Positioned(List(position), Platform.JS))
+                      platform = Some(Positioned(pos, Platform.JS))
                     ),
                     scalaJsOptions = ScalaJsOptions(
                       version = pfVerOpt
@@ -72,7 +72,7 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
                 case Platform.Native =>
                   val options = BuildOptions(
                     scalaOptions = ScalaOptions(
-                      platform = Some(Positioned(List(position), Platform.Native))
+                      platform = Some(Positioned(pos, Platform.Native))
                     ),
                     scalaNativeOptions = ScalaNativeOptions(
                       version = pfVerOpt
@@ -99,7 +99,7 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
     directive.values match {
       case Seq(rawPfStrs @ _*) if maybePlatforms(rawPfStrs) =>
-        Some(handle(rawPfStrs.map(_ -> directive.position)))
+        Some(handle(rawPfStrs.map(Positioned(Seq(directive.position), _))))
       case _ =>
         None
     }
@@ -111,7 +111,11 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     cwd: ScopePath
   ): Either[BuildException, ProcessedUsingDirective] = {
     val values = directive.values
-    handle(DirectiveUtil.stringValues(values, path, cwd).map(t => t._1 -> t._2)).map(v =>
+    handle(
+      DirectiveUtil.stringValues(values, path, cwd).map { case (v, pos, _) =>
+        Positioned(Seq(pos), v)
+      }
+    ).map(v =>
       ProcessedDirective(Some(v), Seq.empty)
     )
   }

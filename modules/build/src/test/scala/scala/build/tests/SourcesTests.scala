@@ -71,7 +71,7 @@ class SourcesTests extends munit.FunSuite {
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(
         _.value
-      ).toSet == expectedDeps.toSet)
+      ) == expectedDeps)
       expect(sources.paths.length == 1)
       expect(sources.paths.map(_._2) == Seq(os.rel / "something.scala"))
       expect(sources.inMemory.isEmpty)

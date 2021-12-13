@@ -34,11 +34,10 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
     path: Either[String, os.Path],
     cwd: ScopePath
   ): Either[BuildException, ProcessedUsingDirective] = {
-    val values   = directive.values
-    val javaOpts = DirectiveUtil.stringValues(values, path, cwd)
+    val javaOpts = DirectiveUtil.stringValues(directive.values, path, cwd)
     val options = BuildOptions(
       javaOptions = JavaOptions(
-        javaOpts = javaOpts.map(o => scala.build.Positioned(Seq(o._2), o._1))
+        javaOpts = javaOpts.map { case (v, pos, _) => scala.build.Positioned(Seq(pos), v) }
       )
     )
     Right(ProcessedDirective(Some(options), Seq.empty))

@@ -24,6 +24,23 @@ object Ops {
       }
   }
 
+  implicit class EitherMap2[Ex <: Throwable, ExA <: Ex, ExB <: Ex, A, B](
+    private val eithers: (Either[ExA, A], Either[ExB, B])
+  ) extends AnyVal {
+    def traverseN: Either[::[Ex], (A, B)] =
+      eithers match {
+        case (Right(a), Right(b)) => Right((a, b))
+        case _ =>
+          val errors = eithers._1.left.toOption.toSeq ++
+            eithers._2.left.toOption.toSeq
+          val errors0 = errors.toList match {
+            case Nil    => sys.error("Cannot happen")
+            case h :: t => ::(h, t)
+          }
+          Left(errors0)
+      }
+  }
+
   implicit class EitherMap3[Ex <: Throwable, ExA <: Ex, ExB <: Ex, ExC <: Ex, A, B, C](
     private val eithers: (Either[ExA, A], Either[ExB, B], Either[ExC, C])
   ) extends AnyVal {

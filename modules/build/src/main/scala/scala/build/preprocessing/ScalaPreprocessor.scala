@@ -23,7 +23,7 @@ import scala.jdk.CollectionConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
 
-  case class StrictDirectivesProcessingOutput(
+  private case class StrictDirectivesProcessingOutput(
     globalReqs: BuildRequirements,
     globalUsings: BuildOptions,
     scopedReqs: Seq[Scoped[BuildRequirements]],
@@ -35,7 +35,7 @@ case object ScalaPreprocessor extends Preprocessor {
       strippedContent.isEmpty
   }
 
-  case class SpecialImportsProcessingOutput(
+  private case class SpecialImportsProcessingOutput(
     reqs: BuildRequirements,
     opts: BuildOptions,
     content: String
@@ -156,11 +156,11 @@ case object ScalaPreprocessor extends Preprocessor {
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val afterStrictUsing: StrictDirectivesProcessingOutput =
-      value(processStrictUsing(content, path, scopeRoot))
+      value(processStrictUsing(content0, path, scopeRoot))
 
     val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
       processSpecialImports(
-        afterStrictUsing.strippedContent.getOrElse(content),
+        afterStrictUsing.strippedContent.getOrElse(content0),
         path
       )
     }

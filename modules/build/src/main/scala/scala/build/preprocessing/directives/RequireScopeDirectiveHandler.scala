@@ -2,7 +2,8 @@ package scala.build.preprocessing.directives
 
 import os.Path
 
-import scala.build.errors.{BuildException, DirectiveErrors}
+import scala.build.Ops._
+import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErrors}
 import scala.build.options.{BuildRequirements, Scope}
 import scala.build.preprocessing.{ScopePath, Scoped}
 
@@ -44,18 +45,18 @@ case object RequireScopeDirectiveHandler extends RequireDirectiveHandler {
     val values         = DirectiveUtil.stringValues(directive.values, path, cwd)
     val nonscopedValue = values.find(v => v._3.isEmpty)
 
-    val nonscoped =
-      nonscopedValue.fold[Either[BuildException, Option[BuildRequirements]]](Right(None)) {
-        case (name, _, _) if scopesByName.contains(name) =>
-          val scope = scopesByName(name)
-          val req = BuildRequirements(
-            scope = Some(BuildRequirements.ScopeRequirement(scope))
-          )
-          Right(Some(req))
-        case _ => Left(new DirectiveErrors(::("No such scope", Nil)))
-      }
+    val nonscoped = nonscopedValue match {
+      case None => Right(None)
+      case Some((name, _, _)) if scopesByName.contains(name) =>
+        val scope = scopesByName(name)
+        val req = BuildRequirements(
+          scope = Some(BuildRequirements.ScopeRequirement(scope))
+        )
+        Right(Some(req))
+      case _ => Left(new DirectiveErrors(::("No such scope", Nil)))
+    }
 
-    val scoped = values.filter(_._3.nonEmpty).map {
+    val scoped = values.collect {
       case (name, _, Some(scopePath)) if scopesByName.contains(name) =>
         val scope = scopesByName(name)
         val req = Scoped(
@@ -65,16 +66,16 @@ case object RequireScopeDirectiveHandler extends RequireDirectiveHandler {
           )
         )
         Right(req)
-      case _ => Left(new DirectiveErrors(::("No such scope", Nil)))
-    }.foldLeft[Either[BuildException, Seq[Scoped[BuildRequirements]]]](Right(Seq.empty)) {
-      case (Right(seq), Right(v)) => Right(seq :+ v)
-      case (Left(err), _)         => Left(err)
-      case (_, Left(err))         => Left(err)
-    }
+      case (_, _, Some(_)) => Left(new DirectiveErrors(::("No such scope", Nil)))
+    }.toSeq
+      .sequence
+      .left.map(CompositeBuildException(_))
 
-    for {
-      ns <- nonscoped
-      s  <- scoped
-    } yield ProcessedDirective(ns, s)
+    (nonscoped, scoped)
+      .traverseN
+      .left.map(CompositeBuildException(_))
+      .map {
+        case (ns, s) => ProcessedDirective(ns, s)
+      }
   }
 }

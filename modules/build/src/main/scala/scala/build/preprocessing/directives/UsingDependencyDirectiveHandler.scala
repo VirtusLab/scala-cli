@@ -57,7 +57,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
             // Really necessary? (might already be handled by the coursier-dependency library)
             val dep0 = dep.filter(!_.isSpaceChar)
 
-            parseDependency(dep0).map(_ -> pos)
+            parseDependency(dep0).map(Positioned(Seq(pos), _))
         }
         .sequence
         .left.map(errors => errors.mkString(", "))
@@ -66,9 +66,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     ProcessedDirective(
       Some(BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraDependencies = extraDependencies.map {
-            case (dep, pos) => Positioned(Seq(pos), dep)
-          }
+          extraDependencies = extraDependencies
         )
       )),
       Seq.empty

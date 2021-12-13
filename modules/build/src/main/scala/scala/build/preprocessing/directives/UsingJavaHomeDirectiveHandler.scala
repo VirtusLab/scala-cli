@@ -40,18 +40,19 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
     cwd: ScopePath
   ): Either[BuildException, ProcessedUsingDirective] = either {
     val values = directive.values
-    val rawHome = value {
+    val (rawHome, pos) = value {
       DirectiveUtil.stringValues(values, path, cwd)
         .lastOption
+        .map(v => v._1 -> v._2)
         .toRight("No value passed to javaHome directive")
     }
-    val root = value(Directive.osRoot(cwd, Some(rawHome._2)))
+    val root = value(Directive.osRoot(cwd, Some(pos)))
     // FIXME Might throw
-    val home = os.Path(rawHome._1, root)
+    val home = os.Path(rawHome, root)
     ProcessedDirective(
       Some(BuildOptions(
         javaOptions = JavaOptions(
-          javaHomeOpt = Some(Positioned(rawHome._2, home))
+          javaHomeOpt = Some(Positioned(pos, home))
         )
       )),
       Seq.empty

@@ -66,18 +66,14 @@ object ScriptPreprocessor {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
 
-    val (requirements, scopedRequirements, options, updatedCodeOpt) =
+    val processingOutput =
       value(ScalaPreprocessor.process(contentIgnoredSheBangLines, reportingPath, scopePath / os.up))
-        .map {
-          case ProcessingOutput(globalReqs, scopedReqs, opts, updatedContent) =>
-            (globalReqs, scopedReqs, opts, updatedContent)
-        }
-        .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
+        .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
       wrapper,
-      updatedCodeOpt.getOrElse(contentIgnoredSheBangLines)
+      processingOutput.updatedContent.getOrElse(contentIgnoredSheBangLines)
     )
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
@@ -88,9 +84,9 @@ object ScriptPreprocessor {
       relPath,
       code,
       topWrapperLen,
-      Some(options),
-      Some(requirements),
-      scopedRequirements,
+      Some(processingOutput.opts),
+      Some(processingOutput.globalReqs),
+      processingOutput.scopedReqs,
       Some(CustomCodeWrapper.mainClassObject(Name(className)).backticked),
       scopePath
     )

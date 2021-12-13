@@ -58,7 +58,7 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
             // Really necessary? (might already be handled by the coursier-dependency library)
             val dep0 = dep.filter(!_.isSpaceChar)
 
-            parseDependency(dep0).map(_ -> pos)
+            parseDependency(dep0).map(Positioned(Seq(pos), _))
         }
         .sequence
         .left.map(errors => errors.mkString(", "))
@@ -68,9 +68,6 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
       Some(BuildOptions(
         scalaOptions = ScalaOptions(
           compilerPlugins = extraDependencies
-            .map {
-              case (dep, pos) => Positioned(Seq(pos), dep)
-            }
         )
       )),
       Seq.empty

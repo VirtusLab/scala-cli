@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
+import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
@@ -49,15 +50,9 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
           root.map(os.Path(p, _))
       }
 
-    val errors = extraJars.collect {
-      case Left(error) => error
-    }
-
-    val res =
-      if (errors.nonEmpty) Left(CompositeBuildException(errors))
-      else Right(extraJars.collect {
-        case Right(value) => value
-      })
+    val res = extraJars
+      .sequence
+      .left.map(CompositeBuildException(_))
 
     ProcessedDirective(
       Some(BuildOptions(

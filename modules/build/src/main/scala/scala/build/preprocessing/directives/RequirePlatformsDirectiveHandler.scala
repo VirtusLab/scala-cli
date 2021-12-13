@@ -1,7 +1,8 @@
 package scala.build.preprocessing.directives
 import os.Path
 
-import scala.build.errors.{BuildException, MalformedPlatformError}
+import scala.build.Ops._
+import scala.build.errors.{BuildException, CompositeBuildException, MalformedPlatformError}
 import scala.build.options.{BuildRequirements, Platform}
 import scala.build.preprocessing.{ScopePath, Scoped}
 
@@ -41,45 +42,46 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
   ): Either[BuildException, ProcessedRequireDirective] = {
     val values          = DirectiveUtil.stringValues(directive.values, path, cwd)
     val nonscopedValues = values.filter(_._3.isEmpty)
-    val scopedValues    = values.filter(_._3.nonEmpty)
+    val scopedValues    = values.collect { case (v, pos, Some(scope)) => (v, pos, scope) }
     val nonScopedPlatforms = Option(nonscopedValues.map(v => Platform.normalize(v._1)))
       .filter(_.nonEmpty)
 
-    val nonscoped =
-      nonScopedPlatforms.fold[Either[BuildException, Option[BuildRequirements]]](Right(None)) {
-        platforms =>
-          val parsed = Platform.parseSpec(platforms)
-          parsed.fold[Either[BuildException, Option[BuildRequirements]]](
-            Left(new MalformedPlatformError(platforms.mkString(", ")))
-          ) { p =>
-            Right(Some(BuildRequirements(
+    val nonscoped = nonScopedPlatforms match {
+      case Some(platforms) =>
+        val parsed = Platform.parseSpec(platforms)
+        parsed match {
+          case None => Left(new MalformedPlatformError(platforms.mkString(", ")))
+          case Some(p) => Right(Some(BuildRequirements(
               platform = Seq(BuildRequirements.PlatformRequirement(p))
             )))
-          }
-      }
-    val scoped = scopedValues.groupBy(_._3).map {
-      case (Some(scopePath), list) =>
-        val platforms = list.map(_._1).map(Platform.normalize)
-        val parsed    = Platform.parseSpec(platforms)
-        parsed.fold[Either[BuildException, Seq[Scoped[BuildRequirements]]]](
-          Left(new MalformedPlatformError(platforms.mkString(", ")))
-        ) { p =>
-          Right(Seq(Scoped(
-            scopePath,
-            BuildRequirements(
-              platform = Seq(BuildRequirements.PlatformRequirement(p))
-            )
-          )))
         }
-    }.foldLeft[Either[BuildException, Seq[Scoped[BuildRequirements]]]](Right(Seq.empty)) {
-      case (Right(seq), Right(v)) => Right(seq ++ v)
-      case (Left(err), _)         => Left(err)
-      case (_, Left(err))         => Left(err)
+      case None => Right(None)
     }
 
-    for {
-      ns <- nonscoped
-      s  <- scoped
-    } yield ProcessedDirective(ns, s)
+    val scoped = scopedValues.groupBy(_._3).map {
+      case (scopePath, list) =>
+        val platforms = list.map(_._1).map(Platform.normalize)
+        val parsed    = Platform.parseSpec(platforms)
+        parsed match {
+          case None => Left(new MalformedPlatformError(platforms.mkString(", ")))
+          case Some(p) => Right(Seq(Scoped(
+              scopePath,
+              BuildRequirements(
+                platform = Seq(BuildRequirements.PlatformRequirement(p))
+              )
+            )))
+        }
+    }
+      .toSeq
+      .sequence
+      .left.map(CompositeBuildException(_))
+      .map(_.flatten)
+
+    (nonscoped, scoped)
+      .traverseN
+      .left.map(CompositeBuildException(_))
+      .map {
+        case (ns, s) => ProcessedDirective(ns, s)
+      }
   }
 }

@@ -2,7 +2,8 @@ package scala.build.preprocessing.directives
 
 import os.Path
 
-import scala.build.errors.{BuildException, DirectiveErrors}
+import scala.build.Ops._
+import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErrors}
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.{ScopePath, Scoped}
 
@@ -92,21 +93,25 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
   ): Either[BuildException, ProcessedRequireDirective] = {
     val values         = DirectiveUtil.stringValues(directive.values, path, cwd)
     val nonscopedValue = values.find(_._3.isEmpty).map(_._1)
-    val nonscoped =
-      nonscopedValue.fold[Either[BuildException, Option[BuildRequirements]]](Right(None))(v =>
-        handleVersion(directive.key, v)
-      )
-    val scoped = values.filter(_._3.nonEmpty).map {
+    val nonscoped = nonscopedValue match {
+      case None    => Right(None)
+      case Some(v) => handleVersion(directive.key, v)
+    }
+
+    val scoped = values.collect {
       case (v, _, Some(scopePath)) =>
         handleVersion(directive.key, v).map(_.map(req => Scoped(scopePath, req)))
-    }.foldLeft[Either[BuildException, Seq[Scoped[BuildRequirements]]]](Right(Seq.empty)) {
-      case (Right(seq), Right(v)) => Right(seq ++ v)
-      case (Left(err), _)         => Left(err)
-      case (_, Left(err))         => Left(err)
     }
-    for {
-      ns <- nonscoped
-      s  <- scoped
-    } yield ProcessedDirective(ns, s)
+      .toSeq
+      .sequence
+      .left.map(CompositeBuildException(_))
+      .map(_.flatten)
+
+    (nonscoped, scoped)
+      .traverseN
+      .left.map(CompositeBuildException(_))
+      .map {
+        case (ns, s) => ProcessedDirective(ns, s)
+      }
   }
 }
