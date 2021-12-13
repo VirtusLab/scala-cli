@@ -101,6 +101,10 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
         "Miscellaneous",
         ""
       )))
+      .withHiddenGroups(Some(Seq(
+        "Scala.JS",
+        "Scala Native"
+      )))
       .withTerminalWidthOpt {
         if (Properties.isWin)
           if (coursier.paths.Util.useJni())

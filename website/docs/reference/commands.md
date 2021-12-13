@@ -49,6 +49,7 @@ Accepts options:
 - [cross](./cli-options.md#cross-options)
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)

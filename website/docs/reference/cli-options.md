@@ -362,6 +362,26 @@ Aliases: `--full-help`
 
 Print help message, including hidden options, and exit
 
+## Help group options
+
+Available in commands:
+- [`compile`](./commands.md#compile)
+- [`package`](./commands.md#package)
+- [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--help-js`
+
+Show options for ScalaJS
+
+#### `--help-native`
+
+Show options for ScalaNative
+
 ## Install completions options
 
 Available in commands:

@@ -55,6 +55,8 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Build Docker image")
     docker: Boolean = false,
+  @Recurse
+    helpGroups: HelpGroupOptions = HelpGroupOptions()
 ) {
   // format: on
   def packageTypeOpt: Option[PackageType] =

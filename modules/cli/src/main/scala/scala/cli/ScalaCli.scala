@@ -1,7 +1,7 @@
 package scala.cli
 
 import caseapp.core.app.CommandsEntryPoint
-import caseapp.core.help.RuntimeCommandsHelp
+import caseapp.core.help.{Help, RuntimeCommandsHelp}
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
@@ -40,16 +40,17 @@ object ScalaCli extends CommandsEntryPoint {
     Version
   )
 
-  lazy val progName                 = (new Argv0).get("scala-cli")
-  override def description          = "Compile, run, package Scala code."
+  lazy val progName = (new Argv0).get("scala-cli")
+  override def description =
+    "Scala CLI is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."
+  override def summaryDesc =
+    "See 'scala-cli <command> --help' to read about a specific subcommand or concept. To see full help run 'scala-cli <command> --help-full'."
   final override def defaultCommand = Some(actualDefaultCommand)
 
   // FIXME Report this in case-app default NameFormatter
   override lazy val help: RuntimeCommandsHelp = {
     val parent = super.help
-    parent.withDefaultHelp(
-      parent.defaultHelp.withNameFormatter(actualDefaultCommand.nameFormatter)
-    )
+    parent.withDefaultHelp(Help[Unit]())
   }
 
   override def enableCompleteCommand    = true

@@ -25,7 +25,9 @@ final case class TestOptions(
 
   @Group("Test")
   @HelpMessage("Fail if no test suites were run")
-    requireTests: Boolean = false
+    requireTests: Boolean = false,
+  @Recurse
+  helpGroups: HelpGroupOptions = HelpGroupOptions()
 ) {
   // format: on
   def buildOptions: BuildOptions = {
