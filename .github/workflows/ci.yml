@@ -94,7 +94,7 @@ jobs:
         jvm: 11
     - name: Generate native launcher
       run: ./mill -i show cli.nativeImageMostlyStatic
-    - name: Build docker image
+    - name: Build slim docker image
       run: .github/scripts/generate-slim-docker-image.sh
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
@@ -114,7 +114,7 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Push scala-cli to github container registry
+    - name: Push slim scala-cli image to github container registry
       if: startsWith(github.ref, 'refs/tags/v')
       run: .github/scripts/publish-slim-docker-images.sh
 
@@ -152,7 +152,7 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Push slim scala-cli image to github container registry
+    - name: Push scala-cli to github container registry
       if: startsWith(github.ref, 'refs/tags/v')
       run: .github/scripts/publish-docker-images.sh
 
