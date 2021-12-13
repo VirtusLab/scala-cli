@@ -79,7 +79,9 @@ object ScalaCli extends CommandsEntryPoint {
     systemProps.map(_.stripPrefix("-D")).foreach { prop =>
       prop.split("=", 2) match {
         case Array(key, value) =>
-          System.setProperty(key, value.stripPrefix("=")) // todo log
+          System.setProperty(key, value)
+        case Array(key) =>
+          System.setProperty(key, "")
       }
     }
   }

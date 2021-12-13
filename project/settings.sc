@@ -210,7 +210,7 @@ trait CliLaunchers extends SbtModule { self =>
         else staticLibDir().path.toString
       Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
-        s"-H:-ParseRuntimeOptions",
+        "-H:-ParseRuntimeOptions",
         s"-H:CLibraryPath=$cLibPath"
       )
     }

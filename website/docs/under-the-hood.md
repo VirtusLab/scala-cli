@@ -39,7 +39,7 @@ It automatically downloads and unpacks a JVM if none is installed on your system
 Scala CLI shares Coursier caches with other tools like [sbt](https://www.scala-sbt.org/), [Mill](https://github.com/com-lihaoyi/mill), or [Metals](https://scalameta.org/metals/).
 
 ### scala-cli's JVM
-Scala CLI is a JVM application. Although by default it is distributed as a native image, it is still possible to tweak it with java properties.
+Scala CLI is a JVM application. Although by default it is distributed as a GraalVM native image, it is still possible to set Java properties.
 In order set them, the `-D` command-line flags must be placed as the first options to scala-cli, for example:
 
 ``` bash
