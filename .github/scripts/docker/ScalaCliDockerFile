@@ -4,5 +4,5 @@ ADD scala-cli /usr/bin/
 RUN \
  echo "println(1)" | scala-cli -S 3 - && \
  echo "println(1)" | scala-cli -S 2.13 - && \
- echo "println(1)" | scala-cli -S 2.12 - 
-ENTRYPOINT ["scala-cli"]  
+ echo "println(1)" | scala-cli -S 2.12 -
+ENTRYPOINT ["scala-cli"]
