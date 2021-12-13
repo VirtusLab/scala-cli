@@ -1296,10 +1296,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("-D.. options passed to the child app") {
     val inputs = TestInputs(
       Seq(
-        os.rel / "Hello.scala" -> """
-                                    |import java.lang.System
-                                    |object ClassHello extends App {
-                                    |  println(System.getProperty("foo"))
+        os.rel / "Hello.scala" -> """object ClassHello extends App {
+                                    |  print(System.getProperty("foo"))
                                     |}""".stripMargin
       )
     )
@@ -1307,7 +1305,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Dfoo=bar").call(
         cwd = root
       )
-      expect(res.out.text().contains("bar"))
+      expect(res.out.text().trim() == "bar")
     }
   }
 
