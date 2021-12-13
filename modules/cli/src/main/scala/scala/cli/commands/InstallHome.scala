@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
+import scala.cli.CurrentParams
 import scala.io.StdIn.readLine
 import scala.util.{Properties, Try}
 
@@ -41,7 +42,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     }
 
   def run(options: InstallHomeOptions, args: RemainingArgs): Unit = {
-
+    CurrentParams.verbosity = options.shared.logging.verbosity
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
     val destBinPath = binDirPath / options.binaryName

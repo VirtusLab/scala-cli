@@ -4,6 +4,7 @@ import caseapp._
 
 import scala.build.internal.{CustomCodeWrapper, Runner}
 import scala.build.{CrossSources, Inputs, Sources}
+import scala.cli.CurrentParams
 import scala.cli.internal.FetchExternalBinary
 
 object Fmt extends ScalaCommand[FmtOptions] {
@@ -15,7 +16,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
     List("scalafmt")
   )
   def run(options: FmtOptions, args: RemainingArgs): Unit = {
-
+    CurrentParams.verbosity = options.shared.logging.verbosity
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, inputsOpt) =
       if (args.remaining.isEmpty)
@@ -28,7 +29,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
         }
         (s, i.workspace, Some(i))
       }
-
+    CurrentParams.workspaceOpt = Some(workspace)
     val logger = options.shared.logger
     val cache  = options.shared.coursierCache
 

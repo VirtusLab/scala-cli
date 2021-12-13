@@ -90,6 +90,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -181,6 +182,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -213,6 +215,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -254,6 +257,7 @@ Available in commands:
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -455,6 +459,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -499,6 +504,7 @@ Available in commands:
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -509,12 +515,6 @@ Available in commands:
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--verbose`
-
-Aliases: `-v`
-
-Increase verbosity (can be specified multiple times)
 
 #### `--quiet`
 
@@ -772,6 +772,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -816,6 +817,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -874,6 +876,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -908,6 +911,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
@@ -1010,6 +1014,40 @@ Aliases: `-f`
 Force update scala-cli if is outdated
 
 #### `--is-internal-run`
+
+## Verbosity options
+
+Available in commands:
+- [`about`](./commands.md#about)
+- [`add-path`](./commands.md#add-path)
+- [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop start`](./commands.md#bloop-start)
+- [`bsp`](./commands.md#bsp)
+- [`clean`](./commands.md#clean)
+- [`compile`](./commands.md#compile)
+- [`directories`](./commands.md#directories)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install completions` / `install-completions`](./commands.md#install-completions)
+- [`install-home`](./commands.md#install-home)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+- [`update`](./commands.md#update)
+- [`version`](./commands.md#version)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--verbose`
+
+Aliases: `-v`
+
+Increase verbosity (can be specified multiple times)
 
 ## Watch options
 

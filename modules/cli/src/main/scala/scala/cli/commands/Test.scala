@@ -8,6 +8,7 @@ import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{Platform, Scope}
 import scala.build.{Build, Builds, CrossKey, Logger}
+import scala.cli.CurrentParams
 
 object Test extends ScalaCommand[TestOptions] {
   override def group                               = "Main"
@@ -17,7 +18,9 @@ object Test extends ScalaCommand[TestOptions] {
   private def reset = Console.RESET
 
   def run(options: TestOptions, args: RemainingArgs): Unit = {
+    CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
     val logger = options.shared.logger
     SetupIde.runSafe(
       options.shared,

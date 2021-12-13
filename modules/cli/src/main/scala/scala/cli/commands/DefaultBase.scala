@@ -1,8 +1,10 @@
 package scala.cli.commands
 
+import caseapp._
 import caseapp.core.{Error, RemainingArgs}
 
 import scala.build.internal.Constants
+import scala.cli.CurrentParams
 
 class DefaultBase(
   defaultHelp: => String,
@@ -23,7 +25,8 @@ class DefaultBase(
     println(defaultFullHelp)
     sys.exit(0)
   }
-  def run(options: DefaultOptions, args: RemainingArgs): Unit =
+  def run(options: DefaultOptions, args: RemainingArgs): Unit = {
+    CurrentParams.verbosity = options.runOptions.shared.logging.verbosity
     if (options.version)
       println(Constants.version)
     else if (anyArgs)
@@ -33,4 +36,5 @@ class DefaultBase(
       )
     else
       helpAsked(finalHelp.progName, Right(options))
+  }
 }

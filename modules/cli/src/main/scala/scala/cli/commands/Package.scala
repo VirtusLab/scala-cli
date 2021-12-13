@@ -23,6 +23,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.{NativeBuilderHelper, ScalaJsConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
+import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
 import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
 import scala.scalanative.util.Scope
@@ -33,8 +34,9 @@ object Package extends ScalaCommand[PackageOptions] {
   override def group                                  = "Main"
   override def sharedOptions(options: PackageOptions) = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
-
+    CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 

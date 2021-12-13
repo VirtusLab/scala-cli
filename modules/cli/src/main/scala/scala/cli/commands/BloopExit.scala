@@ -4,6 +4,7 @@ import caseapp._
 
 import scala.build.Os
 import scala.build.blooprifle.BloopRifle
+import scala.cli.CurrentParams
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {
   override def hidden = true
@@ -11,6 +12,7 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
     List("bloop", "exit")
   )
   def run(options: BloopExitOptions, args: RemainingArgs): Unit = {
+    CurrentParams.verbosity = options.logging.verbosity
     val bloopRifleConfig = options.bloopRifleConfig
     val logger           = options.logging.logger
 
