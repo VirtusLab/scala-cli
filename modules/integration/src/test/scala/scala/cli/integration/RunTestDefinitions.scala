@@ -1282,4 +1282,39 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("-D.. options passed to the child app") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" -> """object ClassHello extends App {
+                                    |  print(System.getProperty("foo"))
+                                    |}""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Dfoo=bar").call(
+        cwd = root
+      )
+      expect(res.out.text().trim() == "bar")
+    }
+  }
+
+  test("-X.. options passed to the child app") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" -> "object Hello extends App {}"
+      )
+    )
+    inputs.fromRoot { root =>
+      // Binaries generated with Graal's native-image are run under SubstrateVM
+      // that cuts some -X.. java options, so they're not passed
+      // to the application's main method. This test ensures it is not
+      // cut. "--java-opt" option requires a value, so it would fail
+      // if -Xmx1g is cut
+      val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Xmx1g").call(
+        cwd = root,
+        check = false
+      )
+      assert(res.exitCode == 0, clues(res.out.text(), res.err.text()))
+    }
+  }
 }

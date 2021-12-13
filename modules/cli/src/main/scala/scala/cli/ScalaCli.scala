@@ -70,7 +70,25 @@ object ScalaCli extends CommandsEntryPoint {
     }
   }
 
+  private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
+    val systemProps = args.takeWhile(_.startsWith("-D"))
+    (systemProps, args.drop(systemProps.size))
+  }
+
+  private def setSystemProps(systemProps: Array[String]): Unit = {
+    systemProps.map(_.stripPrefix("-D")).foreach { prop =>
+      prop.split("=", 2) match {
+        case Array(key, value) =>
+          System.setProperty(key, value)
+        case Array(key) =>
+          System.setProperty(key, "")
+      }
+    }
+  }
+
   override def main(args: Array[String]): Unit = {
+    val (systemProps, scalaCliArgs) = partitionArgs(args)
+    setSystemProps(systemProps)
 
     if (Properties.isWin && isGraalvmNativeImage)
       // The DLL loaded by LoadWindowsLibrary is statically linked in
@@ -85,18 +103,18 @@ object ScalaCli extends CommandsEntryPoint {
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
 
     // quick hack, until the raw args are kept in caseapp.RemainingArgs by case-app
-    actualDefaultCommand.anyArgs = args.nonEmpty
+    actualDefaultCommand.anyArgs = scalaCliArgs.nonEmpty
 
     commands.foreach {
-      case c: NeedsArgvCommand => c.setArgv(progName +: args)
+      case c: NeedsArgvCommand => c.setArgv(progName +: scalaCliArgs)
       case _                   =>
     }
 
     val processedArgs =
-      if (args.lengthCompare(1) > 0 && isShebangFile(args(0)))
-        Array(args(0), "--") ++ args.tail
+      if (scalaCliArgs.lengthCompare(1) > 0 && isShebangFile(scalaCliArgs(0)))
+        Array(scalaCliArgs(0), "--") ++ scalaCliArgs.tail
       else
-        args
+        scalaCliArgs
     super.main(processedArgs)
   }
 }
