@@ -103,10 +103,12 @@ object ScalaCli extends CommandsEntryPoint {
     baos.toByteArray
   }
 
+  private def isCI = System.getenv("CI") != null
+
   override def main(args: Array[String]): Unit = {
     try main0(args)
     catch {
-      case e: Throwable =>
+      case e: Throwable if !isCI =>
         val workspace = CurrentParams.workspaceOpt.getOrElse(os.pwd)
         val dir       = workspace / ".scala" / "stacktraces"
         os.makeDir.all(dir)
