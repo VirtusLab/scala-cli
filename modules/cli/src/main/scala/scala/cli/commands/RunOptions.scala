@@ -25,9 +25,7 @@ final case class RunOptions(
   @Recurse
     compileCross: CompileCrossOptions = CompileCrossOptions(),
   @Recurse
-    mainClass: MainClassOptions = MainClassOptions(),
-  @Recurse
-    helpGroups: HelpGroupOptions = HelpGroupOptions()
+    mainClass: MainClassOptions = MainClassOptions()
 ) {
   // format: on
 

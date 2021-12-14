@@ -9,7 +9,7 @@ import scala.build.options
 final case class ScalaNativeOptions(
 
   @Group("Scala")
-  @HelpMessage("Enable Scala Native")
+  @HelpMessage("Enable Scala Native. To show more options for Scala Native pass `--help-native`")
     native: Boolean = false,
 
   @Group("Scala Native")

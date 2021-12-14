@@ -18,7 +18,7 @@ object Run extends ScalaCommand[RunOptions] {
   override def sharedOptions(options: RunOptions) = Some(options.shared)
 
   def run(options: RunOptions, args: RemainingArgs): Unit = {
-    options.helpGroups.printHelp(RunOptions.help)
+    maybePrintGroupHelp(options)
     run(
       options,
       args.remaining,

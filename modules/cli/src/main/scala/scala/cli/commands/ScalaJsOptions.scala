@@ -9,7 +9,7 @@ import scala.build.options
 final case class ScalaJsOptions(
 
   @Group("Scala")
-  @HelpMessage("Enable Scala.JS")
+  @HelpMessage("Enable Scala.JS. To show more options for Scala.Js pass `--help-js`")
     js: Boolean = false,
 
   @Group("Scala.JS")

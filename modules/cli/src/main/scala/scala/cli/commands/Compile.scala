@@ -11,7 +11,7 @@ object Compile extends ScalaCommand[CompileOptions] {
   override def group                                  = "Main"
   override def sharedOptions(options: CompileOptions) = Some(options.shared)
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
-    options.helpGroups.printHelp(RunOptions.help)
+    maybePrintGroupHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)

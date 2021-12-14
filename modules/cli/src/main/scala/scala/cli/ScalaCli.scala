@@ -44,7 +44,7 @@ object ScalaCli extends CommandsEntryPoint {
   override def description =
     "Scala CLI is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."
   override def summaryDesc =
-    "See 'scala-cli <command> --help' to read about a specific subcommand or concept. To see full help run 'scala-cli <command> --help-full'."
+    "See 'scala-cli <command> --help' to read about a specific subcommand. To see full help run 'scala-cli <command> --help-full'."
   final override def defaultCommand = Some(actualDefaultCommand)
 
   // FIXME Report this in case-app default NameFormatter

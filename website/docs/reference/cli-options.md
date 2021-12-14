@@ -365,9 +365,15 @@ Print help message, including hidden options, and exit
 ## Help group options
 
 Available in commands:
+- [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 
@@ -799,7 +805,7 @@ Available in commands:
 
 #### `--js`
 
-Enable Scala.JS
+Enable Scala.JS. To show more options for Scala.Js pass `--help-js`
 
 #### `--js-version`
 
@@ -843,7 +849,7 @@ Available in commands:
 
 #### `--native`
 
-Enable Scala Native
+Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 #### `--native-version`
 

@@ -84,6 +84,11 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
         parent.argument(prefix, state)
     }
   }
+
+  def maybePrintGroupHelp(options: T): Unit =
+    for (shared <- sharedOptions(options))
+      shared.helpGroups.maybePrintGroupHelp(help)
+
   override def helpFormat =
     HelpFormat.default()
       .withSortedGroups(Some(Seq(

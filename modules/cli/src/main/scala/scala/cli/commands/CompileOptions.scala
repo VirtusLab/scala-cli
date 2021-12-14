@@ -18,9 +18,7 @@ final case class CompileOptions(
   @Name("p")
   @Name("classpath")
   @HelpMessage("Print the resulting class path")
-    classPath: Boolean = false,
-  @Recurse
-    helpGroups: HelpGroupOptions = HelpGroupOptions()
+    classPath: Boolean = false
 ) {
   // format: on
 
