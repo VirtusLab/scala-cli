@@ -39,7 +39,7 @@ object Deps {
     def scalaJs       = "1.8.0"
     def scalaMeta     = "4.4.31"
     def scalaNative   = "0.4.2"
-    def scalaPackager = "0.1.24"
+    def scalaPackager = "0.1.25"
   }
   def ammonite          = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
   def asm               = ivy"org.ow2.asm:asm:9.2"
