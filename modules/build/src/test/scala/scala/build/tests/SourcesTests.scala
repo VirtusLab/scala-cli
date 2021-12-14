@@ -7,6 +7,7 @@ import scala.build.Ops._
 import scala.build.Sources
 import scala.build.internal.CustomCodeWrapper
 import scala.build.CrossSources
+import scala.build.Position
 import scala.build.options.{BuildOptions, Scope}
 
 class SourcesTests extends munit.FunSuite {
@@ -330,4 +331,26 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
+  test("java props in using directives") {
+    val testInputs = TestInputs(
+      os.rel / "something.sc" ->
+        """// using javaProp "foo1"
+          |// using javaProp "foo2=bar2"
+          |""".stripMargin
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val javaOpts      = sources.buildOptions.javaOptions.javaOpts.sortBy(_.toString())
+
+      expect(
+        javaOpts(0).value == "-Dfoo1",
+        javaOpts(0).positions == Seq(Position.File(Right(root / "something.sc"), (0, 20), (0, 20))),
+        javaOpts(1).value == "-Dfoo2=bar2",
+        javaOpts(1).positions == Seq(Position.File(Right(root / "something.sc"), (1, 22), (1, 22)))
+      )
+    }
+  }
 }
