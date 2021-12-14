@@ -42,7 +42,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     }
 
   def run(options: InstallHomeOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
+    CurrentParams.verbosity = options.verbosity.verbosity
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
     val destBinPath = binDirPath / options.binaryName

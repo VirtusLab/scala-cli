@@ -6,7 +6,7 @@ import caseapp._
 @HelpMessage("Install `scala-cli` in a sub-directory of the home directory")
 final case class InstallHomeOptions(
   @Recurse
-    shared: SharedOptions = SharedOptions(),
+    verbosity: VerbosityOptions = VerbosityOptions(),
   @Group("InstallHome")
     scalaCliBinaryPath: String,
   @Group("InstallHome")

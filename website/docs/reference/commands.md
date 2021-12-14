@@ -350,16 +350,6 @@ Accepts options:
 Install `scala-cli` in a sub-directory of the home directory
 
 Accepts options:
-- [compilation server](./cli-options.md#compilation-server-options)
-- [coursier](./cli-options.md#coursier-options)
-- [dependency](./cli-options.md#dependency-options)
-- [directories](./cli-options.md#directories-options)
 - [install home](./cli-options.md#install-home-options)
-- [jvm](./cli-options.md#jvm-options)
-- [logging](./cli-options.md#logging-options)
-- [Scala.JS](./cli-options.md#scalajs-options)
-- [Scala Native](./cli-options.md#scala-native-options)
-- [scalac](./cli-options.md#scalac-options)
-- [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
