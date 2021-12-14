@@ -39,7 +39,7 @@ object Deps {
     def scalaJs       = "1.8.0"
     def scalaMeta     = "4.4.31"
     def scalaNative   = "0.4.2"
-    def scalaPackager = "0.1.24"
+    def scalaPackager = "0.1.25"
   }
   def ammonite          = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
   def asm               = ivy"org.ow2.asm:asm:9.2"
@@ -61,7 +61,7 @@ object Deps {
   def nativeTestRunner  = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools       = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def organizeImports   = ivy"com.github.liancheng::organize-imports:0.5.0"
-  def osLib             = ivy"com.lihaoyi::os-lib:0.7.8"
+  def osLib             = ivy"com.lihaoyi::os-lib:0.8.0"
   def pprint            = ivy"com.lihaoyi::pprint:0.6.6"
   def prettyStacktraces = ivy"org.virtuslab::pretty-stacktraces:0.0.1-M1"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
