@@ -32,7 +32,7 @@ jobs:
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher artifacts/
       if: runner.os == 'Linux'
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       if: runner.os == 'Linux'
       with:
         name: launchers
@@ -69,7 +69,7 @@ jobs:
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       with:
         name: launchers
         path: artifacts/
@@ -98,7 +98,7 @@ jobs:
       run: .github/scripts/generate-slim-docker-image.sh
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       with:
         name: launchers
         path: artifacts/
@@ -136,7 +136,7 @@ jobs:
       run: .github/scripts/generate-docker-image.sh
     - name: Copy artifacts
       run: ./mill -i copyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       with:
         name: launchers
         path: artifacts/
@@ -247,7 +247,7 @@ jobs:
       with:
         jvm: 11
     - run: ./mill -i ci.copyVcRedist
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       with:
         name: launchers
         path: artifacts/
