@@ -1,11 +1,11 @@
 package scala.build.preprocessing.directives
 
-import scala.build.Position
 import scala.build.errors.BuildException
-import scala.build.options.BuildOptions
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.{ScopePath, Scoped}
 
-trait DirectiveHandler {
+case class ProcessedDirective[T](global: Option[T], scoped: Seq[Scoped[T]])
+
+trait DirectiveHandler[T] {
   def name: String
   def description: String
   def descriptionMd: String = description
@@ -14,16 +14,12 @@ trait DirectiveHandler {
   def examples: Seq[String] = Nil
 
   // Strict / using_directives-based directives
-  def keys: Seq[String] = Nil
+  def keys: Seq[String]
+
   def handleValues(
-    values: Seq[Any],
-    cwd: ScopePath,
-    positionOpt: Option[Position]
-  ): Either[BuildException, BuildOptions] =
-    if (keys.isEmpty)
-      sys.error("Cannot happen")
-    else
-      throw new NotImplementedError(
-        "using_directives-based directives need to override handleValues"
-      )
+    directive: StrictDirective,
+    path: Either[String, os.Path],
+    cwd: ScopePath
+  ): Either[BuildException, ProcessedDirective[T]]
+
 }

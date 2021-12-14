@@ -31,7 +31,7 @@ object Platform {
     l match {
       case Nil      => None
       case p :: Nil => parse(p).map(p0 => acc + p0)
-      case p :: "|" :: tail =>
+      case p :: tail =>
         parse(p) match {
           case Some(p0) => parseSpec0(tail, acc + p0)
           case None     => None

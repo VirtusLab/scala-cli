@@ -17,7 +17,6 @@ final case class BloopStartOptions(
     jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
-
   @Name("f")
     force: Boolean = false
 ) {
@@ -42,6 +41,7 @@ final case class BloopStartOptions(
 }
 
 object BloopStartOptions {
+
   implicit lazy val parser: Parser[BloopStartOptions] = Parser.derive
   implicit lazy val help: Help[BloopStartOptions]     = Help.derive
 }

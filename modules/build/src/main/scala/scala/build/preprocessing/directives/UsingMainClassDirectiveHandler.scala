@@ -1,5 +1,5 @@
 package scala.build.preprocessing.directives
-import scala.build.Position
+
 import scala.build.errors.{BuildException, SeveralMainClassesFoundError}
 import scala.build.options.BuildOptions
 import scala.build.preprocessing.ScopePath
@@ -9,15 +9,15 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Main class"
   def description = "Specify default main class"
 
-  def usage = "using main-class _main class_ | using mainClass _main class_"
+  def usage = "// using main-class _main class_ | // using mainClass _main class_"
 
   override def usageMd =
-    """`using main-class `_main class_
+    """`// using main-class `_main class_
       |
-      |`using mainClass `_main class_""".stripMargin
+      |`// using mainClass `_main class_""".stripMargin
 
   override def examples = Seq(
-    "using main-class helloWorld"
+    "// using main-class \"helloWorld\""
   )
 
   override def handle(
@@ -37,11 +37,11 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
   override def keys = Seq("main-class", "mainClass")
 
   override def handleValues(
-    values: Seq[Any],
-    cwd: ScopePath,
-    positionOpt: Option[Position]
-  ): Either[BuildException, BuildOptions] = {
-    val mainClasses = DirectiveUtil.stringValues(values)
+    directive: StrictDirective,
+    path: Either[String, os.Path],
+    cwd: ScopePath
+  ): Either[BuildException, ProcessedUsingDirective] = {
+    val mainClasses = DirectiveUtil.stringValues(directive.values, path, cwd).map(_._1)
     if (mainClasses.size >= 2)
       Left(
         new SeveralMainClassesFoundError(
@@ -52,7 +52,7 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
       val options = BuildOptions(
         mainClass = mainClasses.headOption
       )
-      Right(options)
+      Right(ProcessedDirective(Some(options), Seq.empty))
     }
   }
 

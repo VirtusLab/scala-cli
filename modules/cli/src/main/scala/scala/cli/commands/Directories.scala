@@ -2,10 +2,13 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.CurrentParams
+
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true
 
   def run(options: DirectoriesOptions, args: RemainingArgs): Unit = {
+    CurrentParams.verbosity = options.verbosity.verbosity
     if (args.all.nonEmpty) {
       System.err.println("The directories command doesn't accept arguments.")
       sys.exit(1)

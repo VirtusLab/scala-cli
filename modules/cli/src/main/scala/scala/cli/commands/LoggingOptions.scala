@@ -8,10 +8,8 @@ import scala.cli.internal.CliLogger
 
 // format: off
 final case class LoggingOptions(
-  @Group("Logging")
-  @HelpMessage("Increase verbosity (can be specified multiple times)")
-  @Name("v")
-    verbose: Int @@ Counter = Tag.of(0),
+  @Recurse
+    verbosityOptions: VerbosityOptions = VerbosityOptions(),
   @Group("Logging")
   @HelpMessage("Decrease verbosity")
   @Name("q")
@@ -22,7 +20,7 @@ final case class LoggingOptions(
 ) {
   // format: on
 
-  lazy val verbosity = Tag.unwrap(verbose) - (if (quiet) 1 else 0)
+  lazy val verbosity = verbosityOptions.verbosity - (if (quiet) 1 else 0)
 
   lazy val logger: Logger =
     new CliLogger(verbosity, quiet, progress, System.err)
@@ -33,9 +31,5 @@ object LoggingOptions {
   lazy val parser: Parser[LoggingOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[LoggingOptions, parser.D] = parser
   implicit lazy val help: Help[LoggingOptions]                      = Help.derive
-  implicit val rwCounter: RW[Int @@ Counter] = readwriter[ujson.Value].bimap[Int @@ Counter](
-    x => ujson.Num(Tag.unwrap(x)),
-    json => Tag.of(json.num.toInt)
-  )
-  implicit val rw: RW[LoggingOptions] = macroRW
+  implicit val rw: RW[LoggingOptions]                               = macroRW
 }

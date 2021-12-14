@@ -156,7 +156,7 @@ With our IDE in place, how can we test if our code works correctly? The best way
 We also need to add a test framework. Scala CLI support most popular test frameworks, and for this guide we will stick with [munit](https://scalameta.org/munit/). To add a test framework, we just need an ordinary dependency, and once again we'll add that with the `using` directive:
 
 ```scala title=files.test.scala
-// using lib org.scalameta::munit:1.0.0-M1
+// using lib "org.scalameta::munit:1.0.0-M1"
 
 class TestSuite extends munit.FunSuite {
   test("hello") {

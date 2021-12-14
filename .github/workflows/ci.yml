@@ -32,7 +32,7 @@ jobs:
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher artifacts/
       if: runner.os == 'Linux'
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       if: runner.os == 'Linux'
       with:
         name: launchers
@@ -69,7 +69,7 @@ jobs:
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       with:
         name: launchers
         path: artifacts/
@@ -94,11 +94,11 @@ jobs:
         jvm: 11
     - name: Generate native launcher
       run: ./mill -i show cli.nativeImageMostlyStatic
-    - name: Build docker image
-      run: .github/scripts/generate-docker-images-ubuntu.sh
+    - name: Build slim docker image
+      run: .github/scripts/generate-slim-docker-image.sh
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       with:
         name: launchers
         path: artifacts/
@@ -107,16 +107,16 @@ jobs:
     - name: Native integration tests
       run: ./mill -i integration.native-mostly-static.test
     - name: Docker integration tests
-      run: ./mill integration.docker.test
+      run: ./mill integration.docker-slim.test
     - name: Login to GitHub Container Registry
       if: startsWith(github.ref, 'refs/tags/v')
       uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Push scala-cli to github container registry
+    - name: Push slim scala-cli image to github container registry
       if: startsWith(github.ref, 'refs/tags/v')
-      run: .github/scripts/publish-docker-images.sh
+      run: .github/scripts/publish-slim-docker-images.sh
 
   native-static-tests:
     timeout-minutes: 120
@@ -132,9 +132,11 @@ jobs:
         jvm: 11
     - name: Generate native launcher
       run: ./mill -i show cli.nativeImageStatic
+    - name: Build docker image
+      run: .github/scripts/generate-docker-image.sh
     - name: Copy artifacts
       run: ./mill -i copyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       with:
         name: launchers
         path: artifacts/
@@ -142,6 +144,17 @@ jobs:
         retention-days: 2
     - name: Native integration tests
       run: ./mill -i integration.native-static.test
+    - name: Docker integration tests
+      run: ./mill integration.docker.test
+    - name: Login to GitHub Container Registry
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Push scala-cli to github container registry
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: .github/scripts/publish-docker-images.sh
 
   docs-tests:
     # for now, lets run those tests only on ubuntu
@@ -234,7 +247,7 @@ jobs:
       with:
         jvm: 11
     - run: ./mill -i ci.copyVcRedist
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.0
       with:
         name: launchers
         path: artifacts/

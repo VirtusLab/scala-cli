@@ -9,7 +9,7 @@ class BloopTests extends munit.FunSuite {
   val dummyInputs = TestInputs(
     Seq(
       os.rel / "Test.scala" ->
-        """// using scala 2.13
+        """// using scala "2.13"
           |object Test {
           |  def main(args: Array[String]): Unit =
           |    println("Hello " + "from test")
@@ -58,14 +58,17 @@ class BloopTests extends munit.FunSuite {
   }
 
   test("invalid bloop options passed via cli cause bloop start failure") {
-    runScalaCli("bloop", "exit").call()
-    val res = runScalaCli("bloop", "start", "--bloop-java-opt", "-zzefhjzl").call(
-      stderr = os.Pipe,
-      check = false,
-      mergeErrIntoOut = true
-    )
-    expect(res.exitCode == 1)
-    expect(res.out.text().contains("Server didn't start"))
+    TestInputs(Seq()).fromRoot { root =>
+      runScalaCli("bloop", "exit").call(cwd = root)
+      val res = runScalaCli("bloop", "start", "--bloop-java-opt", "-zzefhjzl").call(
+        cwd = root,
+        stderr = os.Pipe,
+        check = false,
+        mergeErrIntoOut = true
+      )
+      expect(res.exitCode == 1)
+      expect(res.out.text().contains("Server didn't start"))
+    }
   }
 
   test("invalid bloop options passed via global bloop config json file cause bloop start failure") {
@@ -85,8 +88,7 @@ class BloopTests extends munit.FunSuite {
         "start",
         "--bloop-global-options-file",
         (root / "bloop.json").toString()
-      )
-        .call(stderr = os.Pipe, check = false)
+      ).call(cwd = root, stderr = os.Pipe, check = false)
       expect(res.exitCode == 1)
       expect(res.err.text().contains("Server didn't start") || res.err.text().contains(
         "java.lang.OutOfMemoryError: Garbage-collected heap size exceeded"

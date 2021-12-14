@@ -7,6 +7,7 @@ import java.io.File
 import java.nio.charset.Charset
 import java.util.Arrays
 
+import scala.cli.CurrentParams
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
@@ -16,6 +17,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   )
   private lazy val home = os.Path(sys.props("user.home"), os.pwd)
   def run(options: InstallCompletionsOptions, args: RemainingArgs): Unit = {
+    CurrentParams.verbosity = options.logging.verbosity
 
     lazy val completionsDir =
       options.output
