@@ -6,7 +6,8 @@ import coursier.util.Task
 final case class InternalOptions(
   keepDiagnostics: Boolean = false,
   cache: Option[FileCache[Task]] = None,
-  localRepository: Option[String] = None
+  localRepository: Option[String] = None,
+  verbosity: Option[Int] = None
 )
 
 object InternalOptions {
