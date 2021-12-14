@@ -2,43 +2,14 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.util.Properties
+import scala.cli.integration.util.BloopUtil
 
 class BloopTests extends munit.FunSuite {
 
   def runScalaCli(args: String*) = os.proc(TestUtil.cli, args)
 
-  private lazy val bloopDaemonDir = {
-    val res    = runScalaCli("directories").call()
-    val output = res.out.text()
-    val dir = output
-      .linesIterator
-      .map(_.trim)
-      .filter(_.startsWith("Bloop daemon directory: "))
-      .map(_.stripPrefix("Bloop daemon directory: "))
-      .map(os.Path(_, os.pwd))
-      .take(1)
-      .toList
-      .headOption
-      .getOrElse {
-        sys.error(s"Cannot get Bloop daemon directory in 'scala-cli directories' output '$output'")
-      }
-    if (!os.exists(dir)) {
-      os.makeDir.all(dir)
-      if (!Properties.isWin)
-        os.perms.set(dir, "rwx------")
-    }
-    dir
-  }
-
-  private lazy val daemonArgs = {
-    val dirArgs = Seq("--daemon-dir", bloopDaemonDir.toString)
-    if (Properties.isWin)
-      // FIXME Get the pipe name via 'scala-cli directories' too?
-      dirArgs ++ Seq("--pipe-name", "scalacli\\bloop\\pipe")
-    else
-      dirArgs
-  }
+  private lazy val bloopDaemonDir =
+    BloopUtil.bloopDaemonDir(runScalaCli("directories").call().out.text())
 
   // temporary, bleep exit does exit, but is having issues later on…
   private def exitCheck = false
@@ -60,33 +31,8 @@ class BloopTests extends munit.FunSuite {
     shouldRestart: Boolean
   ): Unit = TestUtil.retryOnCi() {
     dummyInputs.fromRoot { root =>
-      val bloopOrg =
-        currentBloopVersion.split("[-.]") match {
-          case Array(majStr, minStr, patchStr, _*) =>
-            import scala.math.Ordering.Implicits._
-            val maj   = majStr.toInt
-            val min   = minStr.toInt
-            val patch = patchStr.toInt
-            val useBloopMainLine =
-              Seq(maj, min, patch) < Seq(1, 4, 11) ||
-              (Seq(maj, min, patch) == Seq(1, 4, 11) && !currentBloopVersion.endsWith("-SNAPSHOT"))
-            if (useBloopMainLine)
-              "ch.epfl.scala"
-            else
-              "io.github.alexarchambault.bleep"
-          case _ =>
-            "ch.epfl.scala"
-        }
-      def bloop(args: String*): os.proc =
-        os.proc(
-          TestUtil.cs,
-          "launch",
-          s"$bloopOrg:bloopgun_2.12:$currentBloopVersion",
-          "--",
-          daemonArgs,
-          args
-        )
 
+      val bloop = BloopUtil.bloop(currentBloopVersion, bloopDaemonDir)
       bloop("exit").call(cwd = root, stdout = os.Inherit, check = exitCheck)
       bloop("about").call(cwd = root, stdout = os.Inherit)
 

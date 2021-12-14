@@ -2,10 +2,16 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.util.BloopUtil
+
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
   protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+
+  private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
+    os.proc(TestUtil.cli, "directories").call().out.text()
+  }
 
   val simpleInputs = TestInputs(
     Seq(
@@ -231,12 +237,13 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     inputs: TestInputs
   ) =
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop", "--", "exit").call(
+      val bloop = BloopUtil.bloop(Constants.bloopVersion, bloopDaemonDir, jvm = Some(bloopJvm))
+      bloop("exit").call(
         cwd = root,
         check = false,
         stdout = os.Inherit
       )
-      os.proc(TestUtil.cs, "launch", "--jvm", bloopJvm, "bloop", "--", "about").call(
+      bloop("about").call(
         cwd = root,
         check = false,
         stdout = os.Inherit
