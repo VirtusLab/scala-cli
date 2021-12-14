@@ -1,15 +1,17 @@
 package scala.build.preprocessing
-
-import com.virtuslab.using_directives.custom.model.{Path, Value}
-
 import scala.build.Ops._
-import scala.build.Position
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.options.{BuildOptions, ScalaOptions}
-import scala.build.preprocessing.directives.DirectiveHandler
+import scala.build.options.{BuildOptions, ConfigMonoid, ScalaOptions}
+import scala.build.preprocessing.directives.{DirectiveHandler, ProcessedDirective, StrictDirective}
 import scala.collection.JavaConverters._
 
 object DirectivesProcessor {
+
+  case class DirectivesProcessorOutput[T](
+    global: T,
+    scoped: Seq[Scoped[T]],
+    unused: Seq[StrictDirective]
+  )
 
   private def processScala(value: Any): BuildOptions = {
 
@@ -44,16 +46,18 @@ object DirectivesProcessor {
     }
   }
 
-  def process(
-    directives: Map[Path, Seq[Value[_]]],
-    handlers: Seq[DirectiveHandler],
+  def process[T: ConfigMonoid](
+    directives: Seq[StrictDirective],
+    handlers: Seq[DirectiveHandler[T]],
+    path: Either[String, os.Path],
     cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = {
+  ): Either[BuildException, DirectivesProcessorOutput[T]] = {
+    val configMonoidInstance = implicitly[ConfigMonoid[T]]
 
-    val values = directives.map {
-      case (k, v) =>
-        k.getPath.asScala.mkString(".") -> v.map(_.get: Any)
-    }
+//    val values = directives.map {
+//      case (k, v) =>
+//        k.getPath.asScala.mkString(".") -> v
+//    }
 
     val handlersMap = handlers
       .flatMap { handler =>
@@ -61,17 +65,25 @@ object DirectivesProcessor {
       }
       .toMap
 
-    values
+    val unused = directives.filter(d => !handlersMap.contains(d.key))
+
+    val res = directives
       .iterator
       .flatMap {
-        case (k, v) =>
-          // FIXME using_directives needs to give us positions here
-          val positionOpt = Option.empty[Position]
-          handlersMap.get(k).iterator.map(_(v, cwd, positionOpt))
+        case d @ StrictDirective(k, _) =>
+          handlersMap.get(k).iterator.map(_(d, path, cwd))
       }
       .toVector
       .sequence
       .left.map(CompositeBuildException(_))
-      .map(_.foldLeft(BuildOptions())(_ orElse _))
+      .map(_.foldLeft((configMonoidInstance.zero, Seq.empty[Scoped[T]])) {
+        case ((globalAcc, scopedAcc), ProcessedDirective(global, scoped)) => (
+            global.fold(globalAcc)(ns => configMonoidInstance.orElse(ns, globalAcc)),
+            scopedAcc ++ scoped
+          )
+      })
+    res.map {
+      case (g, s) => DirectivesProcessorOutput(g, s, unused)
+    }
   }
 }

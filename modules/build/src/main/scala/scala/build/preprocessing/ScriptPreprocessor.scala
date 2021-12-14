@@ -7,6 +7,7 @@ import scala.build.Inputs
 import scala.build.errors.BuildException
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
+import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
 
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {
   def preprocess(input: Inputs.SingleElement)
@@ -65,14 +66,14 @@ object ScriptPreprocessor {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
 
-    val (requirements, scopedRequirements, options, updatedCodeOpt) =
+    val processingOutput =
       value(ScalaPreprocessor.process(contentIgnoredSheBangLines, reportingPath, scopePath / os.up))
-        .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
+        .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
       wrapper,
-      updatedCodeOpt.getOrElse(contentIgnoredSheBangLines)
+      processingOutput.updatedContent.getOrElse(contentIgnoredSheBangLines)
     )
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
@@ -83,9 +84,9 @@ object ScriptPreprocessor {
       relPath,
       code,
       topWrapperLen,
-      Some(options),
-      Some(requirements),
-      scopedRequirements,
+      Some(processingOutput.opts),
+      Some(processingOutput.globalReqs),
+      processingOutput.scopedReqs,
       Some(CustomCodeWrapper.mainClassObject(Name(className)).backticked),
       scopePath
     )

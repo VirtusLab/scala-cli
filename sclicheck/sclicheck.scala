@@ -1,5 +1,5 @@
-// using scala 3.0.2
-// using lib com.lihaoyi::os-lib:0.7.8
+// using scala "3.0.2"
+// using lib "com.lihaoyi::os-lib:0.7.8"
 // using lib "com.lihaoyi::fansi:0.2.14"
 
 import scala.util.matching.Regex

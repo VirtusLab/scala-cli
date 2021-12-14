@@ -75,7 +75,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "simple.sc" ->
-          s"""using scala-js
+          s"""// using platform "scala-js"
              |import scala.scalajs.js
              |val console = js.Dynamic.global.console
              |val msg = "$message"
@@ -936,7 +936,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "simple.sc" ->
-          s"""using javaOpt "-Dtest.message=$message"
+          s"""// using javaOpt "-Dtest.message=$message"
              |val msg = sys.props("test.message")
              |println(msg)
              |""".stripMargin
@@ -952,7 +952,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "simple.scala" ->
-          s"""using main-class hello
+          s"""// using `main-class` "hello"
              |object hello extends App { println("hello") }
              |object world extends App { println("world") }
              |""".stripMargin
@@ -1095,7 +1095,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
   test("resources via directive") {
-    resourcesInputs("using resourceDirs ./resources").fromRoot { root =>
+    resourcesInputs("// using resourceDirs \"./resources\"").fromRoot { root =>
       os.proc(TestUtil.cli, "run", ".").call(cwd = root)
     }
   }
@@ -1137,7 +1137,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Main.scala" ->
-          """using lib "com.lihaoyi::utest:0.7.10"
+          """// using lib "com.lihaoyi::utest:0.7.10"
             |
             |object Main {
             |  val err = utest.compileError("pprint.log(2)")
@@ -1149,8 +1149,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             |}
             |""".stripMargin,
         os.rel / "Tests.scala" ->
-          """using lib "com.lihaoyi::pprint:0.6.6"
-            |using target test
+          """// using lib "com.lihaoyi::pprint:0.6.6"
+            |// using target.scope "test"
             |
             |import utest._
             |
@@ -1201,7 +1201,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val inputs = TestInputs(
         Seq(
           os.rel / "f.sc" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-                                 |using scala $actualScalaVersion
+                                 |// using scala "$actualScalaVersion"
                                  |println(args.toList)""".stripMargin
         )
       )
@@ -1247,7 +1247,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Hello.scala" ->
-          """|// using lib com.lihaoyi::os-lib:0.7.8
+          """|// using lib "com.lihaoyi::os-lib:0.7.8"
              |
              |object Hello extends App {
              |  println(os.pwd)

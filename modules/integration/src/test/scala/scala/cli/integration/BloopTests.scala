@@ -9,7 +9,7 @@ class BloopTests extends munit.FunSuite {
   val dummyInputs = TestInputs(
     Seq(
       os.rel / "Test.scala" ->
-        """// using scala 2.13
+        """// using scala "2.13"
           |object Test {
           |  def main(args: Array[String]): Unit =
           |    println("Hello " + "from test")

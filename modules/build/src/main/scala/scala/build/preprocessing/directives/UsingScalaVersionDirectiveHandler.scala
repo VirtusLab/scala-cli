@@ -1,6 +1,4 @@
 package scala.build.preprocessing.directives
-
-import scala.build.Position
 import scala.build.errors.{BuildException, NoScalaVersionProvidedError}
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
@@ -8,13 +6,13 @@ import scala.build.preprocessing.ScopePath
 case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Scala version"
   def description      = "Set the default Scala version"
-  def usage            = "using scala _version_+"
-  override def usageMd = "`using scala `_version_+"
+  def usage            = "// using scala _version_+"
+  override def usageMd = "`// using scala `_version_+"
   override def examples = Seq(
-    "using scala 3.0.2",
-    "using scala 2.13",
-    "using scala 2",
-    "using scala 2.13.6 2.12.15"
+    "// using scala \"3.0.2\"",
+    "// using scala \"2.13\"",
+    "// using scala \"2\"",
+    "// using scala \"2.13.6\", \"2.12.15\""
   )
 
   def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
@@ -34,21 +32,22 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
 
   override def keys = Seq("scala")
   override def handleValues(
-    values: Seq[Any],
-    cwd: ScopePath,
-    positionOpt: Option[Position]
-  ): Either[BuildException, BuildOptions] = {
-    val scalaVersions = DirectiveUtil.stringValues(values)
+    directive: StrictDirective,
+    path: Either[String, os.Path],
+    cwd: ScopePath
+  ): Either[BuildException, ProcessedUsingDirective] = {
+    val values        = directive.values
+    val scalaVersions = DirectiveUtil.stringValues(values, path, cwd)
     if (scalaVersions.isEmpty)
       Left(new NoScalaVersionProvidedError)
     else {
       val options = BuildOptions(
         scalaOptions = ScalaOptions(
-          scalaVersion = Some(scalaVersions.head),
-          extraScalaVersions = scalaVersions.tail.toSet
+          scalaVersion = Some(scalaVersions.head._1),
+          extraScalaVersions = scalaVersions.tail.map(_._1).toSet
         )
       )
-      Right(options)
+      Right(ProcessedDirective(Some(options), Seq.empty))
     }
   }
 }

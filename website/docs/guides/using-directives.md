@@ -12,7 +12,7 @@ The `using` directives mechanism lets you define configuration information withi
 `using` directives are basically key-value pairs that let you provide multiple values to a single key. For instance, this command:
 
 ```scala
-using foo bar baz
+using foo "bar", "baz"
 ```
 
 will be interpreted as assigning `bar` and `baz` to the key `foo`.
@@ -20,17 +20,17 @@ will be interpreted as assigning `bar` and `baz` to the key `foo`.
 As shown, `using` directives can be defined using the special keyword `using`. However, this may not be compatible with exisiting tools outside of Scala CLI. Therefore, they can be used in comments:
 
 ```scala
-// using scala 2
+// using scala "2"
 ```
 
 Or as a special top-level annotation:
 
 ```scala
-@using jars libs/model.jar
+// using jars "libs/model.jar"
 ```
 
 :::info
-For now we recommend using the comment-flavor (`// using scala 3.0.2`), and we will use that syntax in this guide.
+For now we recommend using the comment-flavor (`// using scala "3.0.2"`), and we will use that syntax in this guide.
 
 Until `using` directives becomes a part of the Scala specification, this is the only way that guarantees that your code will work well with IDEs, code formatters, and other tools.
 :::
@@ -41,9 +41,9 @@ Until `using` directives becomes a part of the Scala specification, this is the 
 `using` directives can be only declared **before any other Scala code**:
 
 ```scala
-// using scala 2.13
-// using scala-js
-// using options -Xasync
+// using scala "2.13"
+// using platform "scala-js"
+// using options "-Xasync"
 
 // package statements, import statements and other code follows ...
 ```
@@ -54,18 +54,29 @@ This means that a library or compiler option defined in one file applies to the 
 The only exceptions are `using target` directives, which only apply to the given file.
 `using target` is a marker to assign a given file to a given target (e.g., test or main sources).
 
+`using` directives also support indentation and braces syntax similar to the syntax of Scala:
+```scala
+// using:
+//   scala "2.13"
+//   options "-Xasync"
+//   target {
+//     scope "test"
+//     platform "jvm"
+//   }
+```
+
 **We believe that syntax similar to `using` directives should become a part of Scala in the future.**
 
 ## `using` directives in the Scala CLI
 
 Below is a list of the most important `using` directives that Scala CLI supports. The full list can be found in the [Reference section of this documentation](./reference/directives.md).
 
-- `// using scala <scala-version>` - defines version of Scala used
-- `// using lib org::name:version` - defines dependency to given library [more in dedicated guide](./guides/dependencies.md)
-- `// using resource <file-or-dir>` - marks file/directory as resources. Resources accessible at runtime and packaged together with compiled code.
-- `// using java-opt <opt>` - use given java options when running application or tests
-- `// using target [test|main]` used to marked or unmarked given source as test
-- `// using test-framework` - select test framework to use
+- `// using scala "<scala-version>"` - defines version of Scala used
+- `// using lib "org::name:version"` - defines dependency to given library [more in dedicated guide](./guides/dependencies.md)
+- `// using resource "<file-or-dir>"` - marks file/directory as resources. Resources accessible at runtime and packaged together with compiled code.
+- ``// using `java-opt` "<opt>"`` - use given java options when running application or tests
+- `// using target ["test"|"main"]` used to marked or unmarked given source as test
+- ``// using `test-framework` <framework> `` - select test framework to use
 
 There are several reasons that we believe `using` directives are a good solution:
 
