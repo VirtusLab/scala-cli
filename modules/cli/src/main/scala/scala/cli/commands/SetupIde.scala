@@ -14,6 +14,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
+import scala.cli.CurrentParams
 import scala.cli.errors.FoundVirtualInputsError
 import scala.jdk.CollectionConverters._
 import scala.util.Try
@@ -44,12 +45,17 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     joinedBuildOpts.artifacts(logger)
   }
 
-  def run(options: SetupIdeOptions, args: RemainingArgs): Unit =
+  def run(options: SetupIdeOptions, args: RemainingArgs): Unit = {
+    CurrentParams.verbosity = options.shared.logging.verbosity
+    val inputs = options.shared.inputsOrExit(args)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
+
     doRun(
       options,
-      inputs = options.shared.inputsOrExit(args),
+      inputs,
       previousCommandName = None
     ).orExit(options.shared.logging.logger)
+  }
 
   def runSafe(
     options: SharedOptions,

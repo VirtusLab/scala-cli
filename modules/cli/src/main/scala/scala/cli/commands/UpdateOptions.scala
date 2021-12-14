@@ -5,6 +5,8 @@ import caseapp._
 // format: off
 @HelpMessage("Update scala-cli - it works only for installation script")
 final case class UpdateOptions(
+  @Recurse
+    verbosity: VerbosityOptions = VerbosityOptions(),
   @Hidden
   @Group("Update")
   @HelpMessage("Binary name")
@@ -17,7 +19,7 @@ final case class UpdateOptions(
   @HelpMessage("Force update scala-cli if is outdated")
     force: Boolean = false,
   @Hidden
-    isInternalRun: Boolean = false
+    isInternalRun: Boolean = false,
 ) {
   // format: on
   lazy val binDirPath = binDir.map(os.Path(_, os.pwd))

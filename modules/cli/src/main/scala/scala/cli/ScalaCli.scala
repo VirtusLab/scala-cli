@@ -3,6 +3,8 @@ package scala.cli
 import caseapp.core.app.CommandsEntryPoint
 import caseapp.core.help.RuntimeCommandsHelp
 
+import java.io.{ByteArrayOutputStream, PrintStream}
+import java.nio.charset.StandardCharsets
 import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
@@ -85,8 +87,50 @@ object ScalaCli extends CommandsEntryPoint {
       }
     }
   }
+  private def printThrowable(t: Throwable, out: PrintStream): Unit =
+    if (t != null) {
+      out.println(t.toString)
+      // FIXME Print t.getSuppressed too?
+      for (l <- t.getStackTrace)
+        out.println(s"  $l")
+      printThrowable(t.getCause, out)
+    }
+
+  private def printThrowable(t: Throwable): Array[Byte] = {
+    val baos = new ByteArrayOutputStream
+    val ps   = new PrintStream(baos, true, StandardCharsets.UTF_8.name())
+    printThrowable(t, ps)
+    baos.toByteArray
+  }
 
   override def main(args: Array[String]): Unit = {
+    try main0(args)
+    catch {
+      case e: Throwable =>
+        val workspace = CurrentParams.workspaceOpt.getOrElse(os.pwd)
+        val dir       = workspace / ".scala" / "stacktraces"
+        os.makeDir.all(dir)
+        import java.time.Instant
+
+        val tempFile = os.temp(
+          contents = printThrowable(e),
+          dir = dir,
+          prefix = Instant.now().getEpochSecond().toString() + "-",
+          suffix = ".log",
+          deleteOnExit = false
+        )
+
+        if (CurrentParams.verbosity >= 2)
+          throw e
+        else {
+          System.err.println(s"Error: $e")
+          System.err.println(s"For more details, please see '$tempFile'")
+          sys.exit(1)
+        }
+    }
+  }
+
+  private def main0(args: Array[String]): Unit = {
     val (systemProps, scalaCliArgs) = partitionArgs(args)
     setSystemProps(systemProps)
 

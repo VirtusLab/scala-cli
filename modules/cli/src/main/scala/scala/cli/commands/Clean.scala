@@ -3,11 +3,12 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.{Inputs, Os}
+import scala.cli.CurrentParams
 
 object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"
   def run(options: CleanOptions, args: RemainingArgs): Unit = {
-
+    CurrentParams.verbosity = options.logging.verbosity
     val inputs = Inputs(
       args.all,
       Os.pwd,
@@ -19,7 +20,7 @@ object Clean extends ScalaCommand[CleanOptions] {
         sys.exit(1)
       case Right(i) => i
     }
-
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
     val workDir       = inputs.workspace / ".scala"
     val (_, bspEntry) = options.bspFile.bspDetails(inputs.workspace)
 
