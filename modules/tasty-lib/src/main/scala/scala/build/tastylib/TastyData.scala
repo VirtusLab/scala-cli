@@ -57,20 +57,21 @@ object TastyData {
     bytes: Bytes
   )
 
-  def read(bytes: Array[Byte]): TastyData = {
+  def read(bytes: Array[Byte]): Either[UnpickleException, TastyData] = {
 
     val headerReader = new TastyReader(bytes)
-    val id           = new TastyHeaderUnpickler(headerReader).readHeader()
-    val header       = Header(id, headerReader.read)
+    new TastyHeaderUnpickler(headerReader).readHeader().map { id =>
+      val header = Header(id, headerReader.read)
 
-    val nameReader         = headerReader.readerFromCurrentPos
-    val pickler            = new TastyUnpickler(nameReader)
-    val namesPreambleBytes = pickler.readNames()
-    val names              = Names(namesPreambleBytes, pickler.nameAtRef.toSeq)
+      val nameReader         = headerReader.readerFromCurrentPos
+      val pickler            = new TastyUnpickler(nameReader)
+      val namesPreambleBytes = pickler.readNames()
+      val names              = Names(namesPreambleBytes, pickler.nameAtRef.toSeq)
 
-    val sections = Sections(nameReader.toRead)
+      val sections = Sections(nameReader.toRead)
 
-    TastyData(header, names, sections)
+      TastyData(header, names, sections)
+    }
   }
 
   def write(data: TastyData): Array[Byte] = {
