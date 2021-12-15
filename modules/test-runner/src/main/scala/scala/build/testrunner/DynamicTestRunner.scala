@@ -108,8 +108,7 @@ object DynamicTestRunner {
   def findFramework(
     classPath: Seq[Path],
     loader: ClassLoader,
-    preferredClasses: Seq[String],
-    verbosity: Int
+    preferredClasses: Seq[String]
   ): Option[Framework] = {
     val frameworkCls = classOf[Framework]
     (preferredClasses.iterator ++ listClasses(classPath, true))
@@ -117,12 +116,7 @@ object DynamicTestRunner {
         val it: Iterator[Class[_]] =
           try Iterator(loader.loadClass(name))
           catch {
-            case e: NoClassDefFoundError =>
-              if (verbosity >= 2)
-                throw e
-              else
-                Iterator.empty
-            case _: ClassNotFoundException | _: UnsupportedClassVersionError =>
+            case _: ClassNotFoundException | _: UnsupportedClassVersionError | _: NoClassDefFoundError =>
               Iterator.empty
           }
         it
@@ -197,10 +191,14 @@ object DynamicTestRunner {
     val classPath0  = TestRunner.classPath(classLoader)
     val framework = testFrameworkOpt.map(loadFramework(classLoader, _))
       .orElse(findFrameworkService(classLoader))
-      .orElse(findFramework(classPath0, classLoader, TestRunner.commonTestFrameworks, verbosity))
+      .orElse(findFramework(classPath0, classLoader, TestRunner.commonTestFrameworks))
       .getOrElse {
-        System.err.println("No test framework found")
-        sys.exit(1)
+        if (verbosity >= 2)
+          sys.error("No test framework found")
+        else {
+          System.err.println("No test framework found")
+          sys.exit(1)
+        }
       }
     def classes = {
       val keepJars = false // look into dependencies, much slower
