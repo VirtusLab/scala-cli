@@ -55,6 +55,7 @@ case object ScalaPreprocessor extends Preprocessor {
     UsingPlatformDirectiveHandler,
     UsingOptionDirectiveHandler,
     UsingJavaOptionsDirectiveHandler,
+    UsingJavaPropsDirectiveHandler,
     UsingScalaNativeOptionsDirectiveHandler,
     UsingJavaHomeDirectiveHandler,
     UsingTestFrameworkDirectiveHandler,

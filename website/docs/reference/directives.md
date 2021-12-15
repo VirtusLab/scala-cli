@@ -71,6 +71,16 @@ Add Java options
 #### Examples
 `// using javaOpt "-Xmx2g", "-Dsomething=a"`
 
+### Java properties
+
+Add Java properties
+
+`// using javaProp_ `_key=value_
+`// using javaProp_ `_key_
+
+#### Examples
+`// using javaProp "foo1=bar", "foo2"`
+
 ### Main class
 
 Specify default main class
