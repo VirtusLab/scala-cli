@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util.UUID
 
-import scala.build.tastylib.TastyFormat.NameTags._
+import scala.build.tastylib.TastyFormat.NameTags
 import scala.build.tastylib.TastyReader.Bytes
 
 final case class TastyData(
@@ -25,25 +25,25 @@ object TastyData {
   )
   final case class Names(
     preambleBytes: Bytes,
-    nameAtRef: Seq[(TastyName, Bytes)]
+    nameAtRef: Seq[(Option[TastyName], Bytes)]
   ) {
     def simpleNames: Seq[String] =
       nameAtRef.collect {
-        case (s: TastyName.SimpleName, _) =>
+        case (Some(s: TastyName.SimpleName), _) =>
           s.raw
       }
     def mapNames(f: String => String): Names = {
       val updatedNameAtRef = nameAtRef.map {
-        case elem @ (s: TastyName.SimpleName, _) =>
+        case elem @ (Some(s: TastyName.SimpleName), _) =>
           val updatedName = f(s.raw)
           if (updatedName == s.raw) elem
           else {
             val buf = new TastyBuffer(1 + 1 + updatedName.length)
-            buf.writeByte(UTF8)
+            buf.writeByte(NameTags.UTF8)
             val strBytes = updatedName.getBytes(StandardCharsets.UTF_8)
             buf.writeNat(strBytes.length)
             buf.writeBytes(strBytes, strBytes.length)
-            (TastyName.SimpleName(updatedName), new Bytes(buf.bytes, 0, buf.length))
+            (Some(TastyName.SimpleName(updatedName)), new Bytes(buf.bytes, 0, buf.length))
           }
         case other => other
       }

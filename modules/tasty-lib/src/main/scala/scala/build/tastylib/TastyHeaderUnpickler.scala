@@ -16,85 +16,61 @@ package scala.build.tastylib
 
 import java.util.UUID
 
-import scala.build.tastylib.TastyFormat.header
-import scala.build.tastylib.TastyVersions.{ExperimentalVersion, MajorVersion, MinorVersion}
-
 class TastyHeaderUnpickler(reader: TastyReader) {
-  import TastyHeaderUnpickler._
-  import reader._
 
   def this(bytes: Array[Byte]) = this(new TastyReader(bytes))
 
   /** reads and verifies the TASTy version, extracting the UUID */
   def readHeader(): UUID = {
 
-    for (i <- 0 until header.length)
-      check(readByte() == header(i), "not a TASTy file")
-    val fileMajor = readNat()
+    for (i <- 0 until TastyFormat.header.length)
+      check(reader.readByte() == TastyFormat.header(i))("not a TASTy file")
+    val fileMajor = reader.readNat()
     if (fileMajor <= 27) { // old behavior before `tasty-core` 3.0.0-RC1
-      val fileMinor = readNat()
-      val signature = signatureString(fileMajor, fileMinor, 0)
-      throw new UnpickleException(signature + backIncompatAddendum + toolingAddendum)
+      reader.readNat()     // fileMinor
+      val signature = TastyHeaderUnpickler.signatureString(fileMajor)
+      throw new UnpickleException(signature + TastyHeaderUnpickler.backIncompatAddendum)
     }
     else {
-      val fileMinor        = readNat()
-      val fileExperimental = readNat()
-      val toolingLength    = readNat()
+      reader.readNat() // fileMinor
+      reader.readNat() // fileExperimental
+      val toolingLength = reader.readNat()
       val toolingStart = {
-        val start = currentAddr
+        val start = reader.currentAddr
         val end   = start + toolingLength
-        goto(end)
+        reader.goto(end)
         start
       }
 
-      val validVersion = TastyFormat.isVersionCompatible(fileMajor, fileMinor, fileExperimental)
+      val validVersion = fileMajor == TastyFormat.MajorVersion
 
-      check(
-        validVersion, {
-          val signature      = signatureString(fileMajor, fileMinor, fileExperimental)
-          val toolingVersion = new String(bytes, toolingStart.index, toolingLength)
-          val producedByAddendum =
-            s"\nThe TASTy file was produced by $toolingVersion.$toolingAddendum"
-          val msg =
-            if (fileExperimental != 0) unstableAddendum
-            else if (fileMajor < MajorVersion) backIncompatAddendum
-            else forwardIncompatAddendum
-          signature + msg + producedByAddendum
-        }
-      )
+      check(validVersion) {
+        val signature      = TastyHeaderUnpickler.signatureString(fileMajor)
+        val toolingVersion = new String(reader.bytes, toolingStart.index, toolingLength)
+        val producedByAddendum =
+          s"\nThe TASTy file was produced by $toolingVersion."
+        val msg =
+          if (fileMajor < TastyFormat.MajorVersion) TastyHeaderUnpickler.backIncompatAddendum
+          else TastyHeaderUnpickler.forwardIncompatAddendum
+        signature + msg + producedByAddendum
+      }
 
-      new UUID(readUncompressedLong(), readUncompressedLong())
+      new UUID(reader.readUncompressedLong(), reader.readUncompressedLong())
     }
   }
 
-  private def check(cond: Boolean, msg: => String): Unit =
+  private def check(cond: Boolean)(msg: => String): Unit =
     if (!cond) throw new UnpickleException(msg)
 }
 
 object TastyHeaderUnpickler {
 
-  private def toolingAddendum =
-    if (ExperimentalVersion > 0)
-      "\nNote that your tooling is currently using an unstable TASTy version."
-    else ""
-
-  private def signatureString(fileMajor: Int, fileMinor: Int, fileExperimental: Int) = {
-    def showMinorVersion(min: Int, exp: Int) = {
-      val expStr = if (exp == 0) "" else s" [unstable release: $exp]"
-      s"$min$expStr"
-    }
-    val minorVersion     = showMinorVersion(MinorVersion, ExperimentalVersion)
-    val fileMinorVersion = showMinorVersion(fileMinor, fileExperimental)
+  private def signatureString(fileMajor: Int) =
     s"""TASTy signature has wrong version.
-       | expected: {majorVersion: $MajorVersion, minorVersion: $minorVersion}
-       | found   : {majorVersion: $fileMajor, minorVersion: $fileMinorVersion}
+       | expected: {majorVersion: ${TastyFormat.MajorVersion}}
+       | found   : {majorVersion: $fileMajor}
        |
        |""".stripMargin
-  }
-
-  private def unstableAddendum =
-    """This TASTy file was produced by an unstable release.
-      |To read this TASTy file, your tooling must be at the same version.""".stripMargin
 
   private def backIncompatAddendum =
     """This TASTy file was produced by an earlier release that is not supported anymore.
