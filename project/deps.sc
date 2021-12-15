@@ -53,7 +53,7 @@ object Deps {
   def dependency        = ivy"io.get-coursier::dependency:0.2.0"
   def expecty           = ivy"com.eed3si9n.expecty::expecty:0.15.4"
   def guava             = ivy"com.google.guava:guava:31.0.1-jre"
-  def ipcSocket         = ivy"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-2"
+  def ipcSocket         = ivy"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-4"
   def jimfs             = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils          = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.2"
   def macroParadise     = ivy"org.scalamacros:::paradise:2.1.1"
