@@ -752,10 +752,12 @@ object Build {
       }
       .toMap
 
+    val fixTastyPaths = !scalaVersion.endsWith("-SNAPSHOT")
+
     val postProcessors =
       Seq(ByteCodePostProcessor) ++
         (if (updateSemanticDbs) Seq(SemanticDbPostProcessor) else Nil) ++
-        Seq(TastyPostProcessor)
+        (if (fixTastyPaths) Seq(TastyPostProcessor) else Nil)
 
     val failures = postProcessors.flatMap(
       _.postProcess(generatedSources, mappings, workspace, classesDir, logger, scalaVersion)
