@@ -21,17 +21,14 @@ object TastyFormat {
   def isVersionCompatible(
     fileMajor: Int,
     fileMinor: Int,
-    fileExperimental: Int,
-    compilerMajor: Int,
-    compilerMinor: Int,
-    compilerExperimental: Int
+    fileExperimental: Int
   ): Boolean =
-    fileMajor == compilerMajor && {
-      if (fileExperimental == compilerExperimental)
-        if (compilerExperimental == 0) fileMinor <= compilerMinor
-        else fileMinor == compilerMinor
+    fileMajor == TastyVersions.MajorVersion && {
+      if (fileExperimental == TastyVersions.ExperimentalVersion)
+        if (TastyVersions.ExperimentalVersion == 0) fileMinor <= TastyVersions.MinorVersion
+        else fileMinor == TastyVersions.MinorVersion
       else
-        fileExperimental == 0 && fileMinor < compilerMinor
+        fileExperimental == 0 && fileMinor < TastyVersions.MinorVersion
     }
 
   object NameTags {

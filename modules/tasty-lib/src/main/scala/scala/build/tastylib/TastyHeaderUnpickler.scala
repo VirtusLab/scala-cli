@@ -47,14 +47,7 @@ class TastyHeaderUnpickler(reader: TastyReader) {
         start
       }
 
-      val validVersion = TastyFormat.isVersionCompatible(
-        fileMajor = fileMajor,
-        fileMinor = fileMinor,
-        fileExperimental = fileExperimental,
-        compilerMajor = MajorVersion,
-        compilerMinor = MinorVersion,
-        compilerExperimental = ExperimentalVersion
-      )
+      val validVersion = TastyFormat.isVersionCompatible(fileMajor, fileMinor, fileExperimental)
 
       check(
         validVersion, {
