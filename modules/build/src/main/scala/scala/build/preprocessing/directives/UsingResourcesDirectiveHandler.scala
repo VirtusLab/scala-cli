@@ -18,27 +18,6 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     "// using resourceDir \"./resources\""
   )
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("resourceDir" | "resourceDirs", paths @ _*) =>
-        val res = either {
-          val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
-          val paths0                    = rootOpt.map(root => paths.map(os.Path(_, root)))
-          val virtualPaths = virtualRootOpt.map(virtualRoot =>
-            paths.map(path => virtualRoot / os.SubPath(path))
-          )
-          BuildOptions(
-            classPathOptions = ClassPathOptions(
-              extraClassPath = paths0.toList.flatten,
-              resourceVirtualDir = virtualPaths.toList.flatten
-            )
-          )
-        }
-        Some(res)
-      case _ =>
-        None
-    }
-
   override def keys = Seq("resourceDir", "resourceDirs")
   override def handleValues(
     directive: StrictDirective,

@@ -6,7 +6,6 @@ import scala.build.preprocessing.ScopePath
 trait UsingDirectiveHandler extends DirectiveHandler[BuildOptions] {
   type ProcessedUsingDirective = ProcessedDirective[BuildOptions]
   // Loose / fastparse-based directives
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]]
   def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],

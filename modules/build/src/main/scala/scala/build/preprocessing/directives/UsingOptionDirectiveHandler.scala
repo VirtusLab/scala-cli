@@ -16,18 +16,6 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
     "// using options \"-Xasync\", \"-Xfatal-warnings\""
   )
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("option" | "options", options @ _*) =>
-        val opts = BuildOptions(
-          scalaOptions = ScalaOptions(
-            scalacOptions = options
-          )
-        )
-        Some(Right(opts))
-      case _ => None
-    }
-
   override def keys = Seq("option", "options")
   override def handleValues(
     directive: StrictDirective,

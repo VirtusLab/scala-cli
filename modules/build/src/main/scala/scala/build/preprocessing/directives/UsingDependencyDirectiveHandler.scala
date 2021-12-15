@@ -5,7 +5,7 @@ import dependency.parser.DependencyParser
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.Positioned
-import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
+import scala.build.errors.{BuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
 
@@ -18,26 +18,6 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     "// using lib \"org.scalatest::scalatest:3.2.10\"",
     "// using lib \"org.scalameta::munit:0.7.29\""
   )
-
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("lib" | "libs", depStr @ _*) =>
-        val parsedDeps = depStr.map(parseDependency)
-        val errors     = parsedDeps.flatMap(_.left.toOption)
-
-        Some(
-          if (errors.nonEmpty) Left(CompositeBuildException(errors))
-          else {
-            val deps = parsedDeps.flatMap(_.right.toOption)
-            Right(BuildOptions(
-              classPathOptions = ClassPathOptions(
-                extraDependencies = deps.map(dep => Positioned(Seq(directive.position), dep))
-              )
-            ))
-          }
-        )
-      case _ => None
-    }
 
   private def parseDependency(depStr: String): Either[BuildException, AnyDependency] =
     DependencyParser.parse(depStr)

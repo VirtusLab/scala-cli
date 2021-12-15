@@ -15,19 +15,6 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
     "// using javaOpt \"-Xmx2g\", \"-Dsomething=a\""
   )
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("javaOpt" | "java-opt", javaOpts @ _*) =>
-        val options = BuildOptions(
-          javaOptions = JavaOptions(
-            javaOpts = javaOpts.map(o => scala.build.Positioned(List(directive.position), o))
-          )
-        )
-        Some(Right(options))
-      case _ =>
-        None
-    }
-
   override def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
   override def handleValues(
     directive: StrictDirective,

@@ -21,20 +21,6 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
     "target.platform"
   )
 
-  override def handle(
-    directive: Directive,
-    cwd: ScopePath
-  ): Option[Either[BuildException, BuildRequirements]] =
-    Platform.parseSpec(directive.values.map(Platform.normalize)) match {
-      case Some(platforms) =>
-        val reqs = BuildRequirements(
-          platform = Seq(BuildRequirements.PlatformRequirement(platforms))
-        )
-        Some(Right(reqs))
-      case None =>
-        None
-    }
-
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, Path],

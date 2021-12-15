@@ -20,20 +20,6 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
     "// using main-class \"helloWorld\""
   )
 
-  override def handle(
-    directive: Directive,
-    cwd: ScopePath
-  ): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("main-class", mainClass) =>
-        val options = BuildOptions(
-          mainClass = Some(mainClass)
-        )
-        Some(Right(options))
-      case _ =>
-        None
-    }
-
   override def keys = Seq("main-class", "mainClass")
 
   override def handleValues(
