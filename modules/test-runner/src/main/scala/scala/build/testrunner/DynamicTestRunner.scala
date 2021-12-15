@@ -116,7 +116,7 @@ object DynamicTestRunner {
         val it: Iterator[Class[_]] =
           try Iterator(loader.loadClass(name))
           catch {
-            case _: ClassNotFoundException | _: UnsupportedClassVersionError =>
+            case _: ClassNotFoundException | _: UnsupportedClassVersionError | _: NoClassDefFoundError =>
               Iterator.empty
           }
         it
@@ -150,24 +150,41 @@ object DynamicTestRunner {
 
   def main(args: Array[String]): Unit = {
 
-    val (testFrameworkOpt, requireTests, args0) = {
+    val (testFrameworkOpt, requireTests, verbosity, args0) = {
       @tailrec
       def parse(
         testFrameworkOpt: Option[String],
         reverseTestArgs: List[String],
         requireTests: Boolean,
+        verbosity: Int,
         args: List[String]
-      ): (Option[String], Boolean, List[String]) =
+      ): (Option[String], Boolean, Int, List[String]) =
         args match {
-          case Nil       => (testFrameworkOpt, requireTests, reverseTestArgs.reverse)
-          case "--" :: t => (testFrameworkOpt, requireTests, reverseTestArgs.reverse ::: t)
+          case Nil => (testFrameworkOpt, requireTests, verbosity, reverseTestArgs.reverse)
+          case "--" :: t =>
+            (testFrameworkOpt, requireTests, verbosity, reverseTestArgs.reverse ::: t)
           case h :: t if h.startsWith("--test-framework=") =>
-            parse(Some(h.stripPrefix("--test-framework=")), reverseTestArgs, requireTests, t)
-          case "--require-tests" :: t => parse(testFrameworkOpt, reverseTestArgs, true, t)
-          case h :: t => parse(testFrameworkOpt, h :: reverseTestArgs, requireTests, t)
+            parse(
+              Some(h.stripPrefix("--test-framework=")),
+              reverseTestArgs,
+              requireTests,
+              verbosity,
+              t
+            )
+          case h :: t if h.startsWith("--verbosity=") =>
+            parse(
+              testFrameworkOpt,
+              reverseTestArgs,
+              requireTests,
+              h.stripPrefix("--verbosity=").toInt,
+              t
+            )
+          case "--require-tests" :: t =>
+            parse(testFrameworkOpt, reverseTestArgs, true, verbosity, t)
+          case h :: t => parse(testFrameworkOpt, h :: reverseTestArgs, requireTests, verbosity, t)
         }
 
-      parse(None, Nil, false, args.toList)
+      parse(None, Nil, false, 0, args.toList)
     }
 
     val classLoader = Thread.currentThread().getContextClassLoader
@@ -175,7 +192,14 @@ object DynamicTestRunner {
     val framework = testFrameworkOpt.map(loadFramework(classLoader, _))
       .orElse(findFrameworkService(classLoader))
       .orElse(findFramework(classPath0, classLoader, TestRunner.commonTestFrameworks))
-      .getOrElse(sys.error("No test framework found"))
+      .getOrElse {
+        if (verbosity >= 2)
+          sys.error("No test framework found")
+        else {
+          System.err.println("No test framework found")
+          sys.exit(1)
+        }
+      }
     def classes = {
       val keepJars = false // look into dependencies, much slower
       listClasses(classPath0, keepJars).map(name => classLoader.loadClass(name))
