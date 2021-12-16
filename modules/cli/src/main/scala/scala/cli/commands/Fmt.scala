@@ -8,7 +8,7 @@ import scala.cli.CurrentParams
 import scala.cli.internal.FetchExternalBinary
 
 object Fmt extends ScalaCommand[FmtOptions] {
-  override def group                              = "Miscellaneous"
+  override def group                              = "Main"
   override def sharedOptions(options: FmtOptions) = Some(options.shared)
   override def names = List(
     List("fmt"),

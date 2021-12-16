@@ -11,6 +11,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 object Bsp extends ScalaCommand[BspOptions] {
+  override def hidden = true
   def run(options: BspOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     if (options.shared.logging.verbosity >= 3)

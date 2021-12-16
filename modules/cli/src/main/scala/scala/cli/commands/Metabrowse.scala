@@ -11,7 +11,8 @@ import scala.cli.CurrentParams
 import scala.cli.internal.FetchExternalBinary
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
-  override def group = "Miscellaneous"
+  override def hidden = true
+  override def group  = "Miscellaneous"
   override def names = List(
     List("browse"),
     List("metabrowse")

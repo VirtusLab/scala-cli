@@ -10,24 +10,6 @@ Print details about this application
 Accepts options:
 - [verbosity](./cli-options.md#verbosity-options)
 
-## `bsp`
-
-Start BSP server
-
-Accepts options:
-- [bsp](./cli-options.md#bsp-options)
-- [compilation server](./cli-options.md#compilation-server-options)
-- [coursier](./cli-options.md#coursier-options)
-- [dependency](./cli-options.md#dependency-options)
-- [directories](./cli-options.md#directories-options)
-- [jvm](./cli-options.md#jvm-options)
-- [logging](./cli-options.md#logging-options)
-- [Scala.JS](./cli-options.md#scalajs-options)
-- [Scala Native](./cli-options.md#scala-native-options)
-- [scalac](./cli-options.md#scalac-options)
-- [shared](./cli-options.md#shared-options)
-- [verbosity](./cli-options.md#verbosity-options)
-
 ## `clean`
 
 Clean the workspace
@@ -49,6 +31,7 @@ Accepts options:
 - [cross](./cli-options.md#cross-options)
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
@@ -68,6 +51,7 @@ Accepts options:
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
 - [export](./cli-options.md#export-options)
+- [help group](./cli-options.md#help-group-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [main class](./cli-options.md#main-class-options)
@@ -91,6 +75,7 @@ Accepts options:
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
 - [fmt](./cli-options.md#fmt-options)
+- [help group](./cli-options.md#help-group-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
@@ -116,27 +101,6 @@ Accepts options:
 - [logging](./cli-options.md#logging-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
-## `browse`
-
-Aliases:
-- `metabrowse`
-
-Browse Scala code and its dependencies in the browser
-
-Accepts options:
-- [compilation server](./cli-options.md#compilation-server-options)
-- [coursier](./cli-options.md#coursier-options)
-- [dependency](./cli-options.md#dependency-options)
-- [directories](./cli-options.md#directories-options)
-- [jvm](./cli-options.md#jvm-options)
-- [logging](./cli-options.md#logging-options)
-- [metabrowse](./cli-options.md#metabrowse-options)
-- [Scala.JS](./cli-options.md#scalajs-options)
-- [Scala Native](./cli-options.md#scala-native-options)
-- [scalac](./cli-options.md#scalac-options)
-- [shared](./cli-options.md#shared-options)
-- [verbosity](./cli-options.md#verbosity-options)
-
 ## `console`
 
 Aliases:
@@ -150,6 +114,7 @@ Accepts options:
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -171,6 +136,7 @@ Accepts options:
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [main class](./cli-options.md#main-class-options)
@@ -200,6 +166,7 @@ Accepts options:
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -221,6 +188,7 @@ Accepts options:
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [Scala.JS](./cli-options.md#scalajs-options)
@@ -263,6 +231,7 @@ Accepts options:
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -284,6 +253,7 @@ Accepts options:
 - [coursier](./cli-options.md#coursier-options)
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
 - [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
@@ -337,6 +307,25 @@ Accepts options:
 - [logging](./cli-options.md#logging-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
+### `bsp`
+
+Start BSP server
+
+Accepts options:
+- [bsp](./cli-options.md#bsp-options)
+- [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
+- [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [Scala.JS](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [shared](./cli-options.md#shared-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ### `directories`
 
 Prints directories used by `scala-cli`
@@ -351,5 +340,27 @@ Install `scala-cli` in a sub-directory of the home directory
 
 Accepts options:
 - [install home](./cli-options.md#install-home-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
+### `browse`
+
+Aliases:
+- `metabrowse`
+
+Browse Scala code and its dependencies in the browser
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
+- [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [metabrowse](./cli-options.md#metabrowse-options)
+- [Scala.JS](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 

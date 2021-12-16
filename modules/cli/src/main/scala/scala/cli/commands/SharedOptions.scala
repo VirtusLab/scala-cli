@@ -100,6 +100,8 @@ final case class SharedOptions(
     defaultForbiddenDirectories: Boolean = true,
   @Hidden
     forbid: List[String] = Nil,
+  @Recurse
+  helpGroups: HelpGroupOptions = HelpGroupOptions()
 ) {
   // format: on
 

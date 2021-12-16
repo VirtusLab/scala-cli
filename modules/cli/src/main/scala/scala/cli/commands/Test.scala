@@ -18,6 +18,7 @@ object Test extends ScalaCommand[TestOptions] {
   private def reset = Console.RESET
 
   def run(options: TestOptions, args: RemainingArgs): Unit = {
+    maybePrintGroupHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
