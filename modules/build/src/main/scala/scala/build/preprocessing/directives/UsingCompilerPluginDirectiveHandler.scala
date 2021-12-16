@@ -5,7 +5,7 @@ import dependency.parser.DependencyParser
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.Positioned
-import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
+import scala.build.errors.{BuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
 
@@ -18,26 +18,6 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
   override def examples = Seq(
     "// using plugin \"org.typelevel:::kind-projector:0.13.2\""
   )
-
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("plugin" | "plugins", depStr @ _*) =>
-        val parsedDeps = depStr.map(parseDependency)
-        val errors     = parsedDeps.flatMap(_.left.toOption)
-
-        Some(
-          if (errors.nonEmpty) Left(CompositeBuildException(errors))
-          else {
-            val deps = parsedDeps.flatMap(_.right.toOption)
-            Right(BuildOptions(
-              scalaOptions = ScalaOptions(
-                compilerPlugins = deps.map(dep => Positioned(Seq(directive.position), dep))
-              )
-            ))
-          }
-        )
-      case _ => None
-    }
 
   private def parseDependency(depStr: String): Either[BuildException, AnyDependency] =
     DependencyParser.parse(depStr)

@@ -6,11 +6,6 @@ import scala.build.preprocessing.ScopePath
 trait RequireDirectiveHandler extends DirectiveHandler[BuildRequirements] {
   type ProcessedRequireDirective = ProcessedDirective[BuildRequirements]
 
-  def handle(
-    directive: Directive,
-    cwd: ScopePath
-  ): Option[Either[BuildException, BuildRequirements]]
-
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],

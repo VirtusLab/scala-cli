@@ -15,21 +15,6 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
     "// using scala \"2.13.6\", \"2.12.15\""
   )
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("scala", scalaVersions @ _*) if scalaVersions.nonEmpty =>
-        val options = BuildOptions(
-          scalaOptions = ScalaOptions(
-            scalaVersion = Some(scalaVersions.head),
-            extraScalaVersions = scalaVersions.tail.toSet
-          )
-        )
-        // TODO Validate that scalaVer looks like a version?
-        Some(Right(options))
-      case _ =>
-        None
-    }
-
   override def keys = Seq("scala")
   override def handleValues(
     directive: StrictDirective,

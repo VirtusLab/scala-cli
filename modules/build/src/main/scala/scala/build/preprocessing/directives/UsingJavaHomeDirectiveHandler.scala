@@ -17,22 +17,6 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
     "// using java-home \"/Users/Me/jdks/11\""
   )
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("java-home" | "javaHome", path) =>
-        val res = either {
-          val root = value(Directive.osRoot(cwd, Some(directive.position)))
-          val home = os.Path(path, root)
-          BuildOptions(
-            javaOptions = JavaOptions(
-              javaHomeOpt = Some(Positioned(Seq(directive.position), home))
-            )
-          )
-        }
-        Some(res)
-      case _ => None
-    }
-
   override def keys = Seq("java-home", "javaHome")
   override def handleValues(
     directive: StrictDirective,

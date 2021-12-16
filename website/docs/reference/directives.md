@@ -148,7 +148,7 @@ Add Scala JS options
 Add Scala Native options
 
 `// using nativeGc` _value_
- 
+
 `// using nativeVersion` _value_
 
 `// using nativeCompile` _value1_, _value2_

@@ -96,14 +96,6 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     )
   }
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq(rawPfStrs @ _*) if maybePlatforms(rawPfStrs) =>
-        Some(handle(rawPfStrs.map(Positioned(Seq(directive.position), _))))
-      case _ =>
-        None
-    }
-
   override def keys = Seq("platform", "platforms")
   override def handleValues(
     directive: StrictDirective,

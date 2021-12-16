@@ -15,9 +15,6 @@ case object UsingJavaPropsDirectiveHandler extends UsingDirectiveHandler {
     "// using javaProp \"foo1=bar\", \"foo2\""
   )
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    ???
-
   override def keys = Seq("javaProp")
   override def handleValues(
     directive: StrictDirective,

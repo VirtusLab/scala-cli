@@ -18,23 +18,6 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
     "// using jar \"/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar\""
   )
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("jar" | "jars", paths @ _*) =>
-        val res = either {
-          val root   = value(Directive.osRoot(cwd, Some(directive.position)))
-          val paths0 = paths.map(os.Path(_, root))
-          BuildOptions(
-            classPathOptions = ClassPathOptions(
-              extraClassPath = paths0
-            )
-          )
-        }
-        Some(res)
-      case _ =>
-        None
-    }
-
   override def keys = Seq("jar", "jars")
   override def handleValues(
     directive: StrictDirective,

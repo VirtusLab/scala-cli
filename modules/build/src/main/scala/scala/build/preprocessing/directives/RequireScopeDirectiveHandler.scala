@@ -22,21 +22,6 @@ case object RequireScopeDirectiveHandler extends RequireDirectiveHandler {
 
   private val scopesByName = Scope.all.map(s => s.name -> s).toMap
 
-  def handle(
-    directive: Directive,
-    cwd: ScopePath
-  ): Option[Either[BuildException, BuildRequirements]] =
-    directive.values match {
-      case Seq(name) if scopesByName.contains(name) =>
-        val scope = scopesByName(name)
-        val req = BuildRequirements(
-          scope = Some(BuildRequirements.ScopeRequirement(scope))
-        )
-        Some(Right(req))
-      case _ =>
-        None
-    }
-
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, Path],

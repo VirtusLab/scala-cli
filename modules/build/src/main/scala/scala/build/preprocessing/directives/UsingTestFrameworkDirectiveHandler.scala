@@ -17,19 +17,6 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
     "// using testFramework \"utest.runner.Framework\""
   )
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("test-framework", fw) =>
-        val options = BuildOptions(
-          testOptions = TestOptions(
-            frameworkOpt = Some(fw)
-          )
-        )
-        Some(Right(options))
-      case _ =>
-        None
-    }
-
   override def keys = Seq("test-framework", "testFramework")
   override def handleValues(
     directive: StrictDirective,

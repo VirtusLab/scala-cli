@@ -14,19 +14,6 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
     "// using repository \"https://maven-central.storage-download.googleapis.com/maven2\""
   )
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("repository", repo) if repo.nonEmpty =>
-        val options = BuildOptions(
-          classPathOptions = ClassPathOptions(
-            extraRepositories = Seq(repo)
-          )
-        )
-        Some(Right(options))
-      case _ =>
-        None
-    }
-
   override def keys = Seq("repository", "repositories")
   override def handleValues(
     directive: StrictDirective,

@@ -27,31 +27,6 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
     "target.scala"
   )
 
-  def handle(
-    directive: Directive,
-    cwd: ScopePath
-  ): Option[Either[BuildException, BuildRequirements]] =
-    directive.values match {
-      case Seq("scala", ">=", minVer) =>
-        val req = BuildRequirements(
-          scalaVersion = Seq(BuildRequirements.VersionHigherThan(minVer, orEqual = true))
-        )
-        Some(Right(req))
-      case Seq("scala", "<=", maxVer) =>
-        val req = BuildRequirements(
-          scalaVersion = Seq(BuildRequirements.VersionLowerThan(maxVer, orEqual = true))
-        )
-        Some(Right(req))
-      case Seq("scala", "==", reqVer) =>
-        // FIXME What about things like just '2.12'?
-        val req = BuildRequirements(
-          scalaVersion = Seq(BuildRequirements.VersionEquals(reqVer, loose = true))
-        )
-        Some(Right(req))
-      case _ =>
-        None
-    }
-
   private def handleVersion(
     key: String,
     v: String
