@@ -9,6 +9,8 @@ import scala.build.internal.CustomCodeWrapper
 import scala.build.CrossSources
 import scala.build.Position
 import scala.build.options.{BuildOptions, Scope}
+import scala.build.preprocessing.directives.MultiValue
+import scala.build.preprocessing.directives.NotABoolean
 
 class SourcesTests extends munit.FunSuite {
 
@@ -353,4 +355,65 @@ class SourcesTests extends munit.FunSuite {
       )
     }
   }
+
+  test("js options in using directives") {
+    val testInputs = TestInputs(
+      os.rel / "something.sc" ->
+        """// using jsVersion "1.8.0"
+          |// using jsMode "mode"
+          |// using jsModuleKind "commonjs"
+          |// using jsCheckIr "true"
+          |// using jsEmitSourceMaps "true"
+          |// using jsDom "true"
+          |""".stripMargin
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val jsOptions     = sources.buildOptions.scalaJsOptions
+      expect(
+        jsOptions.version == Some("1.8.0"),
+        jsOptions.mode == Some("mode"),
+        jsOptions.moduleKindStr == Some("commonjs"),
+        jsOptions.checkIr == Some(true),
+        jsOptions.emitSourceMaps == true,
+        jsOptions.dom == Some(true)
+      )
+    }
+  }
+
+  test("js options in using directives failure - multiple values") {
+    val testInputs = TestInputs(
+      os.rel / "something.sc" ->
+        """// using jsVersion "1.8.0","2.3.4"
+          |""".stripMargin
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      crossSources match {
+        case Left(_: MultiValue) =>
+        case o                   => fail("Exception expected", clues(o))
+      }
+    }
+  }
+
+  test("js options in using directives failure - not a boolean") {
+    val testInputs = TestInputs(
+      os.rel / "something.sc" ->
+        """// using jsDom "fasle"
+          |""".stripMargin
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+      crossSources match {
+        case Left(_: NotABoolean) =>
+        case o                    => fail("Exception expected", clues(o))
+      }
+    }
+  }
+
 }
