@@ -167,15 +167,14 @@ object Test extends ScalaCommand[TestOptions] {
       case Platform.JVM =>
         val classPath = build.fullClassPath
 
-        val testFrameworkOpt0 = testFrameworkOpt match {
-          case Some(fw) => Some(fw)
-          case None     => findTestFramework(classPath, logger)
+        val testFrameworkOpt0 = testFrameworkOpt.orElse {
+          findTestFramework(classPath, logger)
         }
 
         val extraArgs =
           (if (requireTests) Seq("--require-tests") else Nil) ++
             build.options.internal.verbosity.map(v => s"--verbosity=$v") ++
-            testFrameworkOpt0.map(f => s"--test-framework=$f").toSeq ++
+            testFrameworkOpt0.map(fw => s"--test-framework=$fw").toSeq ++
             Seq("--") ++ args
 
         Runner.runJvm(
@@ -191,19 +190,22 @@ object Test extends ScalaCommand[TestOptions] {
   }
 
   def findTestFramework(classPath: Seq[Path], logger: Logger): Option[String] = {
-    val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val classPath0      = classPath.map(_.toString)
+    val classPath0 = classPath.map(_.toString)
 
     // https://github.com/VirtusLab/scala-cli/issues/426
-    if (classPath0.exists(_.contains("zio-test")) && !classPath0.exists(_.contains("zio-test-sbt")))
+    if (
+      classPath0.exists(_.contains("zio-test")) && !classPath0.exists(_.contains("zio-test-sbt"))
+    ) {
+      val parentInspector = new AsmTestRunner.ParentInspector(classPath)
       Runner.frameworkName(classPath, parentInspector) match {
         case Right(f) => Some(f)
         case Left(_) =>
           logger.message(
-            "ScalaCLI detects that you use zio-test, please import zio-test-sbt to run zio tests using scala-cli."
+            "zio-test found in the class path, zio-test-sbt should be added to run zio tests with Scala CLI."
           )
           None
       }
+    }
     else
       None
   }
