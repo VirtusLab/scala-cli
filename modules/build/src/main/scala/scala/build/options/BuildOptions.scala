@@ -149,6 +149,8 @@ final case class BuildOptions(
     Positioned(javaHome.positions, JavaHomeInfo(javaCmd, javaVersion))
   }
 
+  private def jvmIndexOs = javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)
+
   def javaHomeLocationOpt(): Option[Positioned[os.Path]] =
     javaOptions.javaHomeOpt
       .orElse {
@@ -162,7 +164,14 @@ final case class BuildOptions(
         javaOptions.jvmIdOpt.map { jvmId =>
           implicit val ec = finalCache.ec
           finalCache.logger.use {
-            val path = javaHomeManager.get(jvmId).unsafeRun()
+            val enforceLiberica =
+              jvmIndexOs == "linux-musl" && jvmId.forall(c => c.isDigit || c == '.' || c == '-')
+            val jvmId0 =
+              if (enforceLiberica)
+                s"liberica:$jvmId" // FIXME Workaround, until this is automatically handled by coursier-jvm
+              else
+                jvmId
+            val path = javaHomeManager.get(jvmId0).unsafeRun()
             Positioned(Position.CommandLine("--jvm"), os.Path(path))
           }
         }
@@ -172,7 +181,7 @@ final case class BuildOptions(
     javaHomeLocationOpt().getOrElse {
       implicit val ec = finalCache.ec
       finalCache.logger.use {
-        val path = javaHomeManager.get(OsLibc.defaultJvm).unsafeRun()
+        val path = javaHomeManager.get(OsLibc.defaultJvm(jvmIndexOs)).unsafeRun()
         Positioned(Position.Custom("OsLibc.defaultJvm"), os.Path(path))
       }
     }
@@ -231,7 +240,7 @@ final case class BuildOptions(
     val jvmCache = JvmCache()
       .withIndex(indexTask)
       .withArchiveCache(ArchiveCache().withCache(finalCache))
-      .withOs(javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs))
+      .withOs(jvmIndexOs)
       .withArchitecture(javaOptions.jvmIndexArch.getOrElse(JvmIndex.defaultArchitecture()))
     JavaHome().withCache(jvmCache)
   }

@@ -982,7 +982,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       os.copy(os.Path(TestUtil.cli.head), root / "scala")
-      os.proc("docker", "build", "-t", "scala-cli-distroless-it", ".").call(cwd = root)
+      os.proc("docker", "build", "-t", "scala-cli-distroless-it", ".").call(
+        cwd = root,
+        stdout = os.Inherit
+      )
       os.remove(root / "scala")
       os.remove(root / "Dockerfile")
       val termOpt   = if (System.console() == null) Nil else Seq("-t")
