@@ -172,7 +172,8 @@ final case class BuildOptions(
     javaHomeLocationOpt().getOrElse {
       implicit val ec = finalCache.ec
       finalCache.logger.use {
-        val path = javaHomeManager.get(OsLibc.defaultJvm).unsafeRun()
+        val jvmIndexOs = javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)
+        val path       = javaHomeManager.get(OsLibc.defaultJvm(jvmIndexOs)).unsafeRun()
         Positioned(Position.Custom("OsLibc.defaultJvm"), os.Path(path))
       }
     }

@@ -57,14 +57,14 @@ object OsLibc {
     else default
   }
 
-  lazy val defaultJvm: String = {
+  def defaultJvm(os: String): String = {
     val hasEmptyJavaHome = Option(System.getenv("JAVA_HOME")).exists(_.trim.isEmpty)
     if (hasEmptyJavaHome)
       // Not using the system JVM if JAVA_HOME is set to an empty string
       // (workaround for https://github.com/coursier/coursier/issues/2292)
-      if (jvmIndexOs == "linux-musl") "liberica" // zulu could work too
+      if (os == "linux-musl") "liberica" // zulu could work too
       else JavaHome.defaultJvm
-    else if (jvmIndexOs == "linux-musl") s"${JavaHome.systemId}|liberica" // zulu could work too
+    else if (os == "linux-musl") s"${JavaHome.systemId}|liberica" // zulu could work too
     else s"${JavaHome.systemId}|${JavaHome.defaultJvm}"
   }
 
