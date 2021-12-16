@@ -18,34 +18,9 @@ object TastyFormat {
 
   final val header: Array[Int] = Array(0x5c, 0xa1, 0xab, 0x1f)
 
-  def isVersionCompatible(
-    fileMajor: Int,
-    fileMinor: Int,
-    fileExperimental: Int,
-    compilerMajor: Int,
-    compilerMinor: Int,
-    compilerExperimental: Int
-  ): Boolean =
-    fileMajor == compilerMajor && {
-      if (fileExperimental == compilerExperimental)
-        if (compilerExperimental == 0) fileMinor <= compilerMinor
-        else fileMinor == compilerMinor
-      else
-        fileExperimental == 0 && fileMinor < compilerMinor
-    }
+  final val MajorVersion: Int = 28
 
   object NameTags {
-    final val UTF8           = 1
-    final val QUALIFIED      = 2
-    final val EXPANDED       = 3
-    final val EXPANDPREFIX   = 4
-    final val UNIQUE         = 10
-    final val DEFAULTGETTER  = 11
-    final val SUPERACCESSOR  = 20
-    final val INLINEACCESSOR = 21
-    final val BODYRETAINER   = 22
-    final val OBJECTCLASS    = 23
-    final val SIGNED         = 63
-    final val TARGETSIGNED   = 62
+    final val UTF8 = 1
   }
 }

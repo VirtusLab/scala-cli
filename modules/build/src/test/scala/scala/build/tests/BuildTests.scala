@@ -175,7 +175,7 @@ class BuildTests extends munit.FunSuite {
       )
       maybeBuild.orThrow.assertNoDiagnostics
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
-      val tastyData = TastyData.read(os.read.bytes(outputDir / "simple.tasty"))
+      val tastyData = TastyData.read(os.read.bytes(outputDir / "simple.tasty")).orThrow
       val names     = tastyData.names.simpleNames
       expect(names.exists(_ == "simple.sc"))
     }

@@ -14,4 +14,4 @@
 
 package scala.build.tastylib
 
-class UnpickleException(msg: String) extends RuntimeException(msg)
+class UnpickleException(msg: String) extends Exception(msg)
