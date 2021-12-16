@@ -2,6 +2,7 @@ package scala.cli
 
 import caseapp.core.app.CommandsEntryPoint
 import caseapp.core.help.{Help, RuntimeCommandsHelp}
+import sun.misc.{Signal, SignalHandler}
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
@@ -106,6 +107,9 @@ object ScalaCli extends CommandsEntryPoint {
 
   private def isCI = System.getenv("CI") != null
 
+  private def ignoreSigpipe(): Unit =
+    Signal.handle(new Signal("PIPE"), SignalHandler.SIG_IGN)
+
   override def main(args: Array[String]): Unit = {
     try main0(args)
     catch {
@@ -136,6 +140,13 @@ object ScalaCli extends CommandsEntryPoint {
   private def main0(args: Array[String]): Unit = {
     val (systemProps, scalaCliArgs) = partitionArgs(args)
     setSystemProps(systemProps)
+
+    // Getting killed by SIGPIPE quite often when on musl (in the "static" native
+    // image), but also sometimes on glibc, when we use domain sockets to exchange with Bloop.
+    // So let's just ignore those (which should just make some read / write calls
+    // return -1).
+    if (Properties.isLinux && isGraalvmNativeImage)
+      ignoreSigpipe()
 
     if (Properties.isWin && isGraalvmNativeImage)
       // The DLL loaded by LoadWindowsLibrary is statically linked in
