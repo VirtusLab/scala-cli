@@ -52,14 +52,11 @@ object BloopUtil {
   ) =
     new Object {
 
-      private lazy val daemonArgs = {
-        val dirArgs = Seq("--daemon-dir", bloopDaemonDir.toString)
+      private lazy val daemonArgs =
         if (Properties.isWin)
-          // FIXME Get the pipe name via 'scala-cli directories' too?
-          dirArgs ++ Seq("--pipe-name", "scalacli\\bloop\\pipe")
+          Seq("--nailgun-server", "127.0.0.1", "--nailgun-port", "8212")
         else
-          dirArgs
-      }
+          Seq("--daemon-dir", bloopDaemonDir.toString)
 
       private lazy val jvmArgs = jvm.toList.flatMap(name => Seq("--jvm", name))
 

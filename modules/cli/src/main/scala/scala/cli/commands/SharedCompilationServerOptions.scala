@@ -250,7 +250,7 @@ final case class SharedCompilationServerOptions(
           )
         case (None, None, None, pipeNameOpt) =>
           val isBloopMainLine = Ver(retainedBloopVersion.version.raw) < Ver("1.4.12")
-          if (isBloopMainLine)
+          if (isBloopMainLine || Properties.isWin)
             BloopRifleConfig.Address.Tcp(
               host = BloopRifleConfig.defaultHost,
               port = BloopRifleConfig.defaultPort
