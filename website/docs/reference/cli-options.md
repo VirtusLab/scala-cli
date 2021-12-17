@@ -143,6 +143,10 @@ Include default JVM options for Bloop
 
 Bloop global options file
 
+#### `--bloop-jvm`
+
+JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+
 ## Compile options
 
 Available in commands:

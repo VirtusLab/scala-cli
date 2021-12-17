@@ -10,7 +10,7 @@ import upickle.default.{ReadWriter, macroRW}
 import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.internal.Constants
+import scala.build.internal.{Constants, OsLibc}
 import scala.build.options._
 import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
@@ -181,15 +181,22 @@ final case class SharedOptions(
 
   def bloopRifleConfig(): BloopRifleConfig = {
 
-    val bo    = buildOptions(false, None)
-    val javaV = bo.javaHome().value.version
+    val options     = buildOptions(false, None)
+    implicit val ec = options.finalCache.ec
+    val jvmId = compilationServer.bloopJvm.getOrElse {
+      OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")
+    }
+    val logger = options.javaHomeManager.cache
+      .flatMap(_.archiveCache.cache.loggerOpt)
+      .getOrElse(_root_.coursier.cache.CacheLogger.nop)
+    val command = os.Path(logger.use(options.javaHomeManager.get(jvmId).unsafeRun()))
+    val ext     = if (Properties.isWin) ".exe" else ""
     compilationServer.bloopRifleConfig(
       logging.logger,
       logging.verbosity,
-      // This might download a JVM if --jvm … is passed or no system JVM is installed
-      bo.javaHome().value.javaCommand,
+      (command / "bin" / s"java$ext").toString,
       directories.directories,
-      Some(javaV)
+      Some(17)
     )
   }
 
