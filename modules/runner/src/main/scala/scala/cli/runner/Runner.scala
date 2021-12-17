@@ -6,7 +6,8 @@ object Runner {
   def main(args: Array[String]): Unit = {
     assert(args.nonEmpty)
     val mainClass = args.head
-    val args0     = args.tail
+    val verbosity = args.tail.head.toInt
+    val args0     = args.drop(2)
 
     val loader = Thread.currentThread().getContextClassLoader
     val cls    = loader.loadClass(mainClass)
@@ -19,7 +20,7 @@ object Runner {
           callerClass = Some(getClass.getName),
           cutInvoke = true
         )
-        printer.printException(e.getCause)
+        printer.printException(e.getCause, verbosity)
         System.exit(1)
     }
   }

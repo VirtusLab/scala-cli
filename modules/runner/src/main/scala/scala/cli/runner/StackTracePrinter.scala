@@ -42,14 +42,18 @@ final case class StackTracePrinter(
   }
 
   @tailrec
-  private def printCause(ex: Throwable, causedStackTrace: Array[StackTraceElement]): Unit =
+  private def printCause(
+    ex: Throwable,
+    causedStackTrace: Array[StackTraceElement],
+    verbosity: Int
+  ): Unit =
     if (ex != null) {
       truncateStackTrace(ex)
-      if (!Stacktrace.print(ex, "Caused by: ")) {
+      if (!Stacktrace.print(ex, "Caused by: ", verbosity)) {
         System.err.println(s"Caused by: $ex")
         printStackTrace(ex.getStackTrace, causedStackTrace)
       }
-      printCause(ex.getCause, ex.getStackTrace)
+      printCause(ex.getCause, ex.getStackTrace, verbosity)
     }
   private def printStackTrace(trace: Array[StackTraceElement]): Unit =
     printStackTrace(trace, Array.empty)
@@ -84,15 +88,15 @@ final case class StackTracePrinter(
       System.err.println(s"\t$gray... $cut more$reset")
   }
 
-  def printException(ex: Throwable): Unit = {
+  def printException(ex: Throwable, verbosity: Int): Unit = {
     val q          = "\""
     val threadName = Thread.currentThread().getName
     truncateStackTrace(ex)
-    if (!Stacktrace.print(ex, "")) {
+    if (!Stacktrace.print(ex, "", verbosity)) {
       System.err.println(s"Exception in thread $q$threadName$q $ex")
       printStackTrace(ex.getStackTrace)
     }
-    printCause(ex.getCause, ex.getStackTrace)
+    printCause(ex.getCause, ex.getStackTrace, verbosity)
   }
 }
 
