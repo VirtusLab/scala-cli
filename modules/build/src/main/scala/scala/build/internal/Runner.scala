@@ -213,7 +213,7 @@ object Runner {
       }
   }
 
-  private def frameworkName(
+  def frameworkName(
     classPath: Seq[Path],
     parentInspector: AsmTestRunner.ParentInspector
   ): Either[NoTestFrameworkFoundError, String] = {
