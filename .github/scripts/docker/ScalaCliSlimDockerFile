@@ -1,3 +1,3 @@
-FROM gcr.io/distroless/base-debian10
+FROM gcr.io/distroless/java-debian10
 ADD scala-cli /usr/local/bin/scala-cli
 ENTRYPOINT ["/usr/local/bin/scala-cli"]
