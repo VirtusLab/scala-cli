@@ -2,8 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.{ByteArrayOutputStream, File}
-import java.nio.charset.Charset
+import java.io.File
 
 import scala.util.Properties
 
@@ -964,9 +963,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def simpleScriptDistrolessImage(): Unit = {
+  def simpleScriptDistrolessImage(distrolessBase: String, jvm: Option[String] = None): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
+    val jvmOpt   = jvm.map(v => s", \"--jvm\", \"$v\"").getOrElse("")
     val inputs = TestInputs(
       Seq(
         os.rel / fileName ->
@@ -974,10 +974,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |println(msg)
              |""".stripMargin,
         os.rel / "Dockerfile" ->
-          """FROM gcr.io/distroless/base-debian10
-            |ADD scala /usr/local/bin/scala
-            |ENTRYPOINT ["/usr/local/bin/scala"]
-            |""".stripMargin
+          s"""FROM $distrolessBase
+             |ADD scala /usr/local/bin/scala
+             |ENTRYPOINT ["/usr/local/bin/scala"$jvmOpt]
+             |""".stripMargin
       )
     )
     inputs.fromRoot { root =>
@@ -988,8 +988,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
       os.remove(root / "scala")
       os.remove(root / "Dockerfile")
-      val termOpt   = if (System.console() == null) Nil else Seq("-t")
-      val rawOutput = new ByteArrayOutputStream
+      val termOpt = if (System.console() == null) Nil else Seq("-t")
       // format: off
       val cmd = Seq[os.Shellable](
         "docker", "run", "--rm", termOpt,
@@ -1000,23 +999,31 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         fileName
       )
       // format: on
-      os.proc(cmd).call(
+      val res = os.proc(cmd).call(
         cwd = root,
-        stdout = os.ProcessOutput { (b, len) =>
-          rawOutput.write(b, 0, len)
-          System.err.write(b, 0, len)
-        },
-        mergeErrIntoOut = true
+        stdout = os.Pipe,
+        mergeErrIntoOut = true,
+        check = false
       )
-      val output = new String(rawOutput.toByteArray, Charset.defaultCharset())
+      val output = res.out.text()
+      assert(res.exitCode == 0, clues(output))
       expect(output.linesIterator.toVector.last == message)
     }
   }
 
-  if (Properties.isLinux && TestUtil.cliKind == "native-mostly-static")
-    test("simple distroless test") {
-      simpleScriptDistrolessImage()
+  if (Properties.isLinux && TestUtil.cliKind == "native-mostly-static") {
+    // base-debian10 image does not contain zlib, which is required
+    // by JVM 11 and newer. Therefore, we run test on base-debian10
+    // image to ensure that the "mostly static image" is really "mostly static" (e.g.
+    // it does not depend on zlib), and on java-debian10 to ensure that the
+    // default setup works well on a distroless image.
+    test("simple distroless test - no zlib") {
+      simpleScriptDistrolessImage("gcr.io/distroless/base-debian10", Some("8"))
     }
+    test("simple distroless test") {
+      simpleScriptDistrolessImage("gcr.io/distroless/java-debian10", None)
+    }
+  }
 
   private def simpleDirInputs = TestInputs(
     Seq(

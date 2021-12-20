@@ -57,7 +57,7 @@ object OsLibc {
     else default
   }
 
-  private def defaultJvmVersion = "8"
+  private def defaultJvmVersion = "11"
 
   def defaultJvm(os: String): String = {
     val hasEmptyJavaHome = Option(System.getenv("JAVA_HOME")).exists(_.trim.isEmpty)
