@@ -541,7 +541,7 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger
   ): Unit = {
 
-    val cliOptions = build.options.scalaNativeOptions.configCliOptions
+    val cliOptions = build.options.scalaNativeOptions.configCliOptions()
 
     os.makeDir.all(nativeWorkDir)
 
@@ -551,7 +551,7 @@ object Package extends ScalaCommand[PackageOptions] {
         cliOptions,
         dest,
         nativeWorkDir
-      ) // TODO add main class
+      )
 
     if (cacheData.changed)
       withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
@@ -581,7 +581,7 @@ object Package extends ScalaCommand[PackageOptions] {
         if (exitCode == 0)
           NativeBuilderHelper.updateProjectAndOutputSha(dest, nativeWorkDir, cacheData.projectSha)
         else
-          throw new ScalaNativeBuildError()
+          throw new ScalaNativeBuildError
       }
   }
 }

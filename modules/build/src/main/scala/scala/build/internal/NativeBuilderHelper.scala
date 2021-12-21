@@ -7,7 +7,7 @@ import scala.build.Build
 
 object NativeBuilderHelper {
 
-  case class SNCacheData(val changed: Boolean, val projectSha: String)
+  case class SNCacheData(changed: Boolean, projectSha: String)
 
   private def resolveProjectShaPath(nativeWorkDir: os.Path) = nativeWorkDir / ".project_sha"
   private def resolveOutputShaPath(nativeWorkDir: os.Path)  = nativeWorkDir / ".output_sha"

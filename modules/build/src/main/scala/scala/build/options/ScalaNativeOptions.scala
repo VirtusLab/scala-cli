@@ -98,12 +98,12 @@ final case class ScalaNativeOptions(
     )
 
   def configCliOptions(): List[String] =
-    gcCliOption()
-      .++(modeCliOption())
-      .++(clangCliOption())
-      .++(clangppCliOption())
-      .++(linkingCliOptions())
-      .++(compileCliOptions())
+    gcCliOption() ++
+      modeCliOption() ++
+      clangCliOption() ++
+      clangppCliOption() ++
+      linkingCliOptions() ++
+      compileCliOptions()
 
 }
 

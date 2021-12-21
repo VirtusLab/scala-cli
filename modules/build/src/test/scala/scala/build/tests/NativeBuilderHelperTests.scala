@@ -42,7 +42,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     inputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, _, maybeBuild) =>
       val build = maybeBuild.toOption.get.successfulOpt.get
 
-      val config        = build.options.scalaNativeOptions.configCliOptions
+      val config        = build.options.scalaNativeOptions.configCliOptions()
       val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
       val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
       // generate dummy output
@@ -58,7 +58,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     inputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, _, maybeBuild) =>
       val build = maybeBuild.toOption.get.successfulOpt.get
 
-      val config        = build.options.scalaNativeOptions.configCliOptions
+      val config        = build.options.scalaNativeOptions.configCliOptions()
       val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
       val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
       // generate dummy output
@@ -79,7 +79,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     inputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, _, maybeBuild) =>
       val build = maybeBuild.toOption.get.successfulOpt.get
 
-      val config        = build.options.scalaNativeOptions.configCliOptions
+      val config        = build.options.scalaNativeOptions.configCliOptions()
       val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
       val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
       // generate dummy output
@@ -101,7 +101,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     inputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, _, maybeBuild) =>
       val build = maybeBuild.toOption.get.successfulOpt.get
 
-      val config        = build.options.scalaNativeOptions.configCliOptions
+      val config        = build.options.scalaNativeOptions.configCliOptions()
       val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
       val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
       // generate dummy output
@@ -123,7 +123,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     inputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, _, maybeBuild) =>
       val build = maybeBuild.toOption.get.successfulOpt.get
 
-      val config        = build.options.scalaNativeOptions.configCliOptions
+      val config        = build.options.scalaNativeOptions.configCliOptions()
       val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
       val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
       os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
@@ -144,7 +144,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     inputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (root, _, maybeBuild) =>
       val build = maybeBuild.toOption.get.successfulOpt.get
 
-      val config        = build.options.scalaNativeOptions.configCliOptions
+      val config        = build.options.scalaNativeOptions.configCliOptions()
       val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
       val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
       os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
@@ -161,7 +161,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
           )
         )
       )
-      val updatedConfig = updatedBuild.options.scalaNativeOptions.configCliOptions
+      val updatedConfig = updatedBuild.options.scalaNativeOptions.configCliOptions()
 
       val cacheAfterConfigUpdate =
         NativeBuilderHelper.getCacheData(

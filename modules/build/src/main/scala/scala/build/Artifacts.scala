@@ -164,11 +164,10 @@ object Artifacts {
         None
     }
 
-    val scalaNativeCli = fetchedScalaNativeCli match {
-      case Some(fetched) => fetched.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) =>
-          f.toPath
-        }
-      case None => Nil
+    val scalaNativeCli = fetchedScalaNativeCli.toSeq.flatMap { fetched =>
+      fetched.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) =>
+        f.toPath
+      }
     }
 
     val extraStubsJars =
