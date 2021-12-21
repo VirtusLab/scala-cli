@@ -200,7 +200,7 @@ object Artifacts {
     result
   }
 
-  private[build] def fetch(
+  private def fetch(
     dependencies: Positioned[Seq[AnyDependency]],
     extraRepositories: Seq[String],
     params: ScalaParameters,

@@ -32,10 +32,6 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     else (input.take(idx), Some(input.drop(idx + 1)))
   }
 
-  private def maybePlatforms(inputs: Seq[String]): Boolean =
-    inputs.nonEmpty &&
-    Platform.parse(Platform.normalize(split(inputs.head)._1)).nonEmpty
-
   private def handle(
     rawPfStrsWithPos: Seq[Positioned[String]]
   ): Either[BuildException, BuildOptions] = either {

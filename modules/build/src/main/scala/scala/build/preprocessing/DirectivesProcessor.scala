@@ -1,9 +1,8 @@
 package scala.build.preprocessing
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.options.{BuildOptions, ConfigMonoid, ScalaOptions}
+import scala.build.options.ConfigMonoid
 import scala.build.preprocessing.directives.{DirectiveHandler, ProcessedDirective, StrictDirective}
-import scala.collection.JavaConverters._
 
 object DirectivesProcessor {
 
@@ -12,39 +11,6 @@ object DirectivesProcessor {
     scoped: Seq[Scoped[T]],
     unused: Seq[StrictDirective]
   )
-
-  private def processScala(value: Any): BuildOptions = {
-
-    val versions = Some(value)
-      .toList
-      .collect {
-        case list: java.util.List[_] =>
-          list.asScala.collect { case v: String => v }.toList
-        case v: String =>
-          List(v)
-      }
-      .flatten
-      .map(_.filter(!_.isSpaceChar))
-      .filter(_.nonEmpty)
-      .distinct
-
-    versions match {
-      case Nil => BuildOptions()
-      case v :: Nil =>
-        BuildOptions(
-          scalaOptions = ScalaOptions(
-            scalaVersion = Some(v)
-          )
-        )
-      case _ =>
-        val highest = versions.maxBy(coursier.core.Version(_))
-        BuildOptions(
-          scalaOptions = ScalaOptions(
-            scalaVersion = Some(highest)
-          )
-        )
-    }
-  }
 
   def process[T: ConfigMonoid](
     directives: Seq[StrictDirective],
