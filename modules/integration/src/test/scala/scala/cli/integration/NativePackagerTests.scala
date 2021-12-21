@@ -22,6 +22,8 @@ class NativePackagerTests extends munit.FunSuite {
     )
   )
 
+  private val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
+
   if (Properties.isMac) {
     test("building pkg package") {
 
@@ -232,7 +234,8 @@ class NativePackagerTests extends munit.FunSuite {
         s"$imageRepository:$imageTag"
 
       try {
-        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text().trim
+        val output =
+          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
         expect(output == message)
       }
       // clear
@@ -268,7 +271,8 @@ class NativePackagerTests extends munit.FunSuite {
         s"$imageRepository:$imageTag"
 
       try {
-        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text().trim
+        val output =
+          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
         expect(output == message)
 
       }
@@ -306,7 +310,8 @@ class NativePackagerTests extends munit.FunSuite {
         s"$imageRepository:$imageTag"
 
       try {
-        val output = os.proc("docker", "run", expectedImage).call(cwd = os.root).out.text().trim
+        val output =
+          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
         expect(output == message)
 
       }

@@ -12,6 +12,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
+  private val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
+
   def simpleScriptTest(ignoreErrors: Boolean = false): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -922,6 +924,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           "docker", "run", "--rm", termOpt,
           "-v", s"${root}:/data",
           "-w", "/data",
+          ciOpt,
           baseImage,
           "/data/script.sh"
         )
@@ -996,6 +999,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "docker", "run", "--rm", termOpt,
         "-v", s"$root:/data",
         "-w", "/data",
+        ciOpt,
         "scala-cli-distroless-it",
         extraOptions,
         fileName
