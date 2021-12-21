@@ -911,6 +911,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         os.copy(os.Path(TestUtil.cli.head, os.pwd), root / "scala")
         val script =
           s"""#!/usr/bin/env sh
+             |set -e
              |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee -a output
              |""".stripMargin
         os.write(root / "script.sh", script)
