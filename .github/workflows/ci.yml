@@ -13,6 +13,37 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
+  bloop-memory-footprint:
+    timeout-minutes: 120
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      fail-fast: false
+      matrix:
+        OS: ["ubuntu-latest"]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1.2.0-M1
+      with:
+        jvm: "temurin:17"
+    - name: Java Version
+      run: java -version
+    - name: Java Home
+      run: echo "$JAVA_HOME"
+    - name: Build Scala CLI
+      run: ./mill -i copyLauncher build/
+    - name: Build Benchmark
+      run: |
+        ls -lh build
+        (cd build && gunzip scala-cli-x86_64-pc-linux.gz && chmod +x scala-cli-x86_64-pc-linux)
+        ls -lh build
+        ./build/scala-cli-x86_64-pc-linux package --standalone gcbenchmark/gcbenchmark.scala -o gc
+    - name: Run Benchmark
+      run: ./gc $(realpath ./build/scala-cli-x86_64-pc-linux)
+
   jvm-tests:
     timeout-minutes: 120
     runs-on: ${{ matrix.OS }}
@@ -360,4 +391,3 @@ jobs:
       - run: ./mill -i ci.updateStandaloneLauncher
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
