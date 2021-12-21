@@ -232,9 +232,11 @@ object Artifacts {
         .addClassifiers(classifiers.toSeq.filter(_ != "_").map(coursier.Classifier(_)): _*)
     }
 
-    value {
+    val res = cache.logger.use {
       fetcher.eitherResult()
-        .left.map(ex => new FetchingDependenciesError(ex, dependencies.positions))
+    }
+    value {
+      res.left.map(ex => new FetchingDependenciesError(ex, dependencies.positions))
     }
   }
 
