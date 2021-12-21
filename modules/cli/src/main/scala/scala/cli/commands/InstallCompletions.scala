@@ -28,7 +28,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
 
     val name = options.name.getOrElse {
       val baseName = (new Argv0).get("scala-cli")
-      val idx      = baseName.lastIndexOf(File.pathSeparator)
+      val idx      = baseName.lastIndexOf(File.separator)
       if (idx < 0) baseName
       else baseName.drop(idx + 1)
     }
