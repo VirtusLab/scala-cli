@@ -94,10 +94,10 @@ jobs:
         jvm: 11
     - name: Generate native launcher
       run: ./mill -i show cli.nativeImageMostlyStatic
-    - name: Build slim docker image
-      run: .github/scripts/generate-slim-docker-image.sh
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
+    - name: Build slim docker image
+      run: .github/scripts/generate-slim-docker-image.sh
     - uses: actions/upload-artifact@v2.3.1
       with:
         name: launchers
@@ -132,10 +132,10 @@ jobs:
         jvm: 11
     - name: Generate native launcher
       run: ./mill -i show cli.nativeImageStatic
-    - name: Build docker image
-      run: .github/scripts/generate-docker-image.sh
     - name: Copy artifacts
       run: ./mill -i copyStaticLauncher artifacts/
+    - name: Build docker image
+      run: .github/scripts/generate-docker-image.sh
     - uses: actions/upload-artifact@v2.3.1
       with:
         name: launchers
