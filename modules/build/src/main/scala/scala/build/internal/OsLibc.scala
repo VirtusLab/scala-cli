@@ -59,7 +59,7 @@ object OsLibc {
     else default
   }
 
-  private def defaultJvmVersion = "8"
+  private def defaultJvmVersion = "11"
 
   def baseDefaultJvm(os: String, jvmVersion: String): String = {
     def java17OrHigher = Try(jvmVersion.takeWhile(_.isDigit).toInt)
