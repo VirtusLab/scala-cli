@@ -337,8 +337,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   )
   def mainClass = Some("scala.cli.ScalaCli")
 
-  def localRepoJar   = `local-repo`.localRepoJar()
-  def graalVmVersion = deps.graalVmVersion
+  def localRepoJar = `local-repo`.localRepoJar()
 
   object test extends Tests with ScalaCliScalafixModule
 }
