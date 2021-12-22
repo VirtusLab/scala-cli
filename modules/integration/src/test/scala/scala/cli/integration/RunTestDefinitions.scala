@@ -929,7 +929,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           "/data/script.sh"
         )
         // format: on
-        os.proc(cmd).call(cwd = root)
+        val res = os.proc(cmd).call(cwd = root)
+        System.err.println(res.out.text())
         val output = os.read(root / "output").trim
         expect(output == message)
       }
