@@ -84,6 +84,11 @@ final case class SharedCompilationServerOptions(
   @HelpMessage("Bloop global options file")
   @Hidden
     bloopGlobalOptionsFile: String = (os.home / ".bloop" / "bloop.json").toString,
+
+  @Group("Compilation server")
+  @HelpMessage("JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)")
+  @Hidden
+    bloopJvm: Option[String] = None
 ) {
   // format: on
 

@@ -126,7 +126,7 @@ final case class BuildOptions(
     if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion)
     else None
 
-  private lazy val finalCache = internal.cache.getOrElse(FileCache())
+  lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
 
   case class JavaHomeInfo(javaCommand: String, version: Int)
@@ -234,7 +234,7 @@ final case class BuildOptions(
 
   def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
 
-  private lazy val javaHomeManager = {
+  lazy val javaHomeManager = {
     val indexUrl  = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
     val indexTask = JvmIndex.load(finalCache, indexUrl)
     val jvmCache = JvmCache()

@@ -12,6 +12,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
+  private val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
+
   def simpleScriptTest(ignoreErrors: Boolean = false): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -928,6 +930,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         os.copy(os.Path(TestUtil.cli.head, os.pwd), root / "scala")
         val script =
           s"""#!/usr/bin/env sh
+             |set -e
              |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee -a output
              |""".stripMargin
         os.write(root / "script.sh", script)
@@ -938,11 +941,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           "docker", "run", "--rm", termOpt,
           "-v", s"${root}:/data",
           "-w", "/data",
+          ciOpt,
           baseImage,
           "/data/script.sh"
         )
         // format: on
-        os.proc(cmd).call(cwd = root)
+        val res = os.proc(cmd).call(cwd = root)
+        System.err.println(res.out.text())
         val output = os.read(root / "output").trim
         expect(output == message)
       }
@@ -991,14 +996,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |println(msg)
              |""".stripMargin,
         os.rel / "Dockerfile" ->
-          """FROM gcr.io/distroless/base-debian10
-            |ADD scala /usr/local/bin/scala
-            |ENTRYPOINT ["/usr/local/bin/scala"]
-            |""".stripMargin
+          os.read(os.Path(Constants.mostlyStaticDockerfile, os.pwd))
       )
     )
     inputs.fromRoot { root =>
-      os.copy(os.Path(TestUtil.cli.head), root / "scala")
+      os.copy(os.Path(TestUtil.cli.head), root / "scala-cli")
       os.proc("docker", "build", "-t", "scala-cli-distroless-it", ".").call(
         cwd = root,
         stdout = os.Inherit
@@ -1012,6 +1014,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "docker", "run", "--rm", termOpt,
         "-v", s"$root:/data",
         "-w", "/data",
+        ciOpt,
         "scala-cli-distroless-it",
         extraOptions,
         fileName
