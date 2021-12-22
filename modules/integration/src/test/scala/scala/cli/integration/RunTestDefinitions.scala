@@ -115,7 +115,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--native").call(cwd = root).out.text().trim
+        os.proc(TestUtil.cli, extraOptions, fileName, "--native", "-q")
+          .call(cwd = root)
+          .out.text().trim
       expect(output == message)
     }
   }
@@ -205,8 +207,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--native").call(cwd =
-          root).out.text().trim
+        os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--native", "-q")
+          .call(cwd = root)
+          .out.text().trim
       expect(output == message)
     }
   }
@@ -344,7 +347,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print_sc")
+        os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print_sc", "-q")
           .call(cwd = root)
           .out.text().trim
       expect(output == message)

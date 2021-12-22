@@ -158,10 +158,9 @@ class CliLogger(
     }
 
   val scalaNativeCliInternalLoggerOptions: List[String] = {
-    if (verbosity >= 2) List("-v", "-v", "-v")
-    else if (verbosity >= 1) List("-v", "-v")
-    else if (verbosity == 0) List("-v")
-    else List()
+    if (verbosity >= 1) List("-v", "-v", "-v") // debug
+    else if (verbosity >= 0) List("-v", "-v")  // info
+    else List()                                // error
   }
 
   // Allow to disable that?
