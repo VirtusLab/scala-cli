@@ -401,6 +401,12 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
 
     def constantsFile = T.persistent {
       val dest = T.dest / "Constants.scala"
+      val mostlyStaticDockerfile =
+        os.rel / ".github" / "scripts" / "docker" / "ScalaCliSlimDockerFile"
+      assert(
+        os.exists(os.pwd / mostlyStaticDockerfile),
+        s"Error: ${os.pwd / mostlyStaticDockerfile} not found"
+      )
       val code =
         s"""package scala.cli.integration
            |
@@ -416,6 +422,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def munitVersion = "${TestDeps.munit.dep.version}"
            |  def dockerTestImage = "${Docker.testImage}"
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
+           |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
            |}
            |""".stripMargin

@@ -979,14 +979,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |println(msg)
              |""".stripMargin,
         os.rel / "Dockerfile" ->
-          """FROM gcr.io/distroless/base-debian10
-            |ADD scala /usr/local/bin/scala
-            |ENTRYPOINT ["/usr/local/bin/scala"]
-            |""".stripMargin
+          os.read(os.Path(Constants.mostlyStaticDockerfile, os.pwd))
       )
     )
     inputs.fromRoot { root =>
-      os.copy(os.Path(TestUtil.cli.head), root / "scala")
+      os.copy(os.Path(TestUtil.cli.head), root / "scala-cli")
       os.proc("docker", "build", "-t", "scala-cli-distroless-it", ".").call(
         cwd = root,
         stdout = os.Inherit
