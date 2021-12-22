@@ -2,16 +2,16 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.{assert => expect}
 
-import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.NativeBuilderHelper
 import scala.build.options.{BuildOptions, InternalOptions}
-import scala.build.{Bloop, BuildThreads, Directories, LocalRepo, Logger}
+import scala.build.tests.util.BloopServer
+import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.util.{Properties, Random}
 
 class NativeBuilderHelperTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
-  val bloopConfig  = BloopRifleConfig.default(v => Bloop.bloopClassPath(Logger.nop, v))
+  def bloopConfig  = BloopServer.bloopConfig
 
   val helloFileName = "Hello.scala"
 

@@ -434,10 +434,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "--java-prop", "scala.colored-stack-traces=false"
       )
       // format: on
-      val res = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
+      val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.lines()
       // FIXME We need to have the pretty-stacktraces stuff take scala.colored-stack-traces into account
       val exceptionLines =
-        res.out.lines().map(stripAnsi).dropWhile(!_.startsWith("Exception in thread "))
+        output.map(stripAnsi).dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
       val sp  = " "
       val expectedLines =
@@ -475,7 +476,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         pprint.log(exceptionLines)
         pprint.log(expectedLines)
       }
-      expect(exceptionLines == expectedLines)
+      assert(exceptionLines == expectedLines, clues(output))
     }
   }
 
@@ -501,7 +502,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
       // format: on
       val res            = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
-      val exceptionLines = res.out.lines().dropWhile(!_.startsWith("Exception in thread "))
+      val output         = res.out.lines()
+      val exceptionLines = output.dropWhile(!_.startsWith("Exception in thread "))
       val tab            = "\t"
       val expectedLines =
         if (actualScalaVersion.startsWith("2.12."))
@@ -534,8 +536,15 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         println(exceptionLines.mkString("\n"))
         println(expectedLines)
       }
-      expect(exceptionLines.length == expectedLines.length)
-      for { i <- 0 until exceptionLines.length } expect(exceptionLines(i) == expectedLines(i))
+      assert(
+        exceptionLines.length == expectedLines.length,
+        clues(output, exceptionLines.length, expectedLines.length)
+      )
+      for (i <- 0 until exceptionLines.length)
+        assert(
+          exceptionLines(i) == expectedLines(i),
+          clues(output, exceptionLines(i), expectedLines(i))
+        )
     }
   }
   if (actualScalaVersion.startsWith("2."))
@@ -566,8 +575,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "--java-prop=scala.cli.runner.Stacktrace.disable=true"
       )
       // format: on
-      val res = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
-      val exceptionLines = res.out.lines()
+      val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.lines()
+      val exceptionLines = output
         .map(stripAnsi)
         .dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
@@ -583,8 +593,15 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |${tab}at throws$$.something(throws.sc:3)
            |${tab}at throws$$.<clinit>(throws.sc:5)
            |$tab... 2 more""".stripMargin.linesIterator.toVector
-      expect(exceptionLines.length == expectedLines.length)
-      for { i <- 0 until exceptionLines.length } expect(exceptionLines(i) == expectedLines(i))
+      assert(
+        exceptionLines.length == expectedLines.length,
+        clues(output, exceptionLines.length, expectedLines.length)
+      )
+      for (i <- 0 until exceptionLines.length)
+        assert(
+          exceptionLines(i) == expectedLines(i),
+          clues(output, exceptionLines(i), expectedLines(i))
+        )
     }
   }
 

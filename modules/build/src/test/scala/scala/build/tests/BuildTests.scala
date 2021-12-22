@@ -6,12 +6,11 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.IOException
 
 import scala.build.Ops._
-import scala.build.blooprifle.BloopRifleConfig
-import scala.build.{Bloop, BuildThreads, Directories}
 import scala.build.options.{BuildOptions, InternalOptions, ScalaOptions}
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
-import scala.build.{Bloop, BuildThreads, Directories, LocalRepo, Logger}
+import scala.build.tests.util.BloopServer
+import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 import scala.build.preprocessing.directives.SingleValueExpected
@@ -19,7 +18,7 @@ import scala.build.preprocessing.directives.SingleValueExpected
 class BuildTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
-  val bloopConfig  = BloopRifleConfig.default(v => Bloop.bloopClassPath(Logger.nop, v))
+  def bloopConfig  = BloopServer.bloopConfig
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories     = Directories.under(extraRepoTmpDir)

@@ -25,8 +25,7 @@ object BloopRifle {
   ): Boolean = {
     def check() =
       Operations.check(
-        config.host,
-        config.port,
+        config.address,
         logger
       )
     check()
@@ -51,8 +50,7 @@ object BloopRifle {
       case Left(ex) => Future.failed(new Exception("Error getting Bloop class path", ex))
       case Right(cp) =>
         Operations.startServer(
-          config.host,
-          config.port,
+          config.address,
           bloopJava,
           config.javaOpts,
           cp.map(_.toPath),
@@ -79,7 +77,7 @@ object BloopRifle {
   ): BspConnection = {
 
     val bspSocketOrPort = config.bspSocketOrPort.map(_()).getOrElse {
-      BspConnectionAddress.Tcp(Util.randomPort())
+      BspConnectionAddress.Tcp("127.0.0.1", Util.randomPort())
     }
 
     val in = config.bspStdin.getOrElse {
@@ -99,8 +97,7 @@ object BloopRifle {
       val err = config.bspStderr.getOrElse(devNull())
 
       val conn = Operations.bsp(
-        config.host,
-        config.port,
+        config.address,
         bspSocketOrPort,
         workingDir,
         in,
@@ -154,8 +151,7 @@ object BloopRifle {
       val err = config.bspStderr.getOrElse(devNull())
 
       Operations.exit(
-        config.host,
-        config.port,
+        config.address,
         workingDir,
         in,
         out,
@@ -186,8 +182,7 @@ object BloopRifle {
     if (isRunning) {
       val bufferedOStream = new ByteArrayOutputStream(100000)
       Operations.about(
-        config.host,
-        config.port,
+        config.address,
         workdir,
         nullInputStream(),
         bufferedOStream,
@@ -206,12 +201,21 @@ object BloopRifle {
   }
 }
 
-sealed trait BloopAboutFailure
-case object BloopNotRunning                        extends BloopAboutFailure
-case class ParsingFailed(bloopAboutOutput: String) extends BloopAboutFailure
+sealed abstract class BloopAboutFailure extends Product with Serializable {
+  def message: String
+}
+case object BloopNotRunning extends BloopAboutFailure {
+  def message = "not running"
+}
+case class ParsingFailed(bloopAboutOutput: String) extends BloopAboutFailure {
+  def message = s"failed to parse output: '$bloopAboutOutput'"
+}
 
 case class BloopServerRuntimeInfo(
   bloopVersion: BloopVersion,
   jvmVersion: Int,
   javaHome: String
-)
+) {
+  def message: String =
+    s"version $bloopVersion, JVM $jvmVersion under $javaHome"
+}
