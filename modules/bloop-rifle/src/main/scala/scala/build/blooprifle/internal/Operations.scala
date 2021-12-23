@@ -311,7 +311,7 @@ object Operations {
     val streams        = Streams(in, out, err)
 
     nailgunClient0.run(
-      "exit",
+      "ng-stop",
       Array.empty,
       workingDir,
       sys.env.toMap,

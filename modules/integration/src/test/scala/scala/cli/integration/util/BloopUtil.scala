@@ -71,5 +71,15 @@ object BloopUtil {
           args
         )
     }
-
+  def killBloop() = {
+    val javaProcesses = os.proc("jps", "-l").call().out.text().linesIterator
+    val bloopPidReg   = "(\\d+).*bloop[.]Server".r
+    val bloopPids = javaProcesses.flatMap { l =>
+      l match {
+        case bloopPidReg(pid) => Some(pid.toInt)
+        case _                => None
+      }
+    }.toList
+    bloopPids.foreach(TestUtil.kill _)
+  }
 }
