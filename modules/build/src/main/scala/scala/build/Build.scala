@@ -256,7 +256,29 @@ object Build {
     val (testBuild, extraTestBuilds) =
       value(buildScope(Scope.Test, Some(mainBuild), Some(extraBuilds)))
 
+    copyResourceToClassesDir(mainBuild)
+    copyResourceToClassesDir(testBuild)
+
     Builds(Seq(mainBuild, testBuild), Seq(extraBuilds, extraTestBuilds))
+  }
+
+  private def copyResourceToClassesDir(build: Build) = build match {
+    case b: Build.Successful =>
+      for {
+        resourceDirPath <- b.sources.resourceDirs
+        resourcePath    <- os.walk(resourceDirPath)
+        relativePath = resourcePath.relativeTo(resourceDirPath)
+        if os.isFile(resourcePath) && !relativePath.toString.startsWith(".scala")
+      } yield {
+        val destPath = b.output / relativePath
+        os.copy(
+          resourcePath,
+          destPath,
+          replaceExisting = true,
+          createFolders = true
+        )
+      }
+    case _ => ()
   }
 
   private def build(

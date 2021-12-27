@@ -84,6 +84,96 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == message)
     }
   }
+  test("resource directory for coursier bootstrap launcher") {
+    val fileName = "hello.sc"
+    val message  = "1,2,3"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""|// using resourceDir "."
+              |import scala.io.Source
+              |
+              |val inputs = Source.fromResource("input").getLines.toSeq
+              |println(inputs.mkString)
+              |""".stripMargin,
+        os.rel / "input" -> message
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val launcher   = root / outputName
+
+      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      expect(output == message)
+    }
+  }
+
+  def libraryWithResourceTest(): Unit = {
+    val fileName     = "MyLibrary.scala"
+    val outputLib    = "my-library.jar"
+    val resourceFile = "input"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""|// using resourceDir "."
+              |
+              |class MyLibrary {
+              |  def message = "Hello"
+              |}
+              |""".stripMargin,
+        os.rel / resourceFile -> "1,2,3"
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", outputLib, "--library").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val output = os.proc("jar", "tf", root / outputLib).call(cwd = root).out.text().trim
+      expect(output.contains(resourceFile))
+    }
+  }
+
+  test("Zip with Scala Script containing resource directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "hello.sc" ->
+          s"""// using resourceDir "./"
+             |import scala.io.Source
+             |
+             |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+             |println(inputs.mkString(","))
+             |""".stripMargin,
+        os.rel / "input" ->
+          s"""1
+             |2
+             |""".stripMargin
+      )
+    )
+    inputs.asZip { (root, zipPath) =>
+      val message = "1,2"
+
+      os.proc(TestUtil.cli, "package", zipPath, extraOptions, ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val launcher   = root / outputName
+
+      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      expect(output == message)
+    }
+  }
 
   def simpleJsTest(): Unit = {
     val fileName = "simple.sc"
@@ -115,10 +205,14 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!TestUtil.isNativeCli || !Properties.isWin)
+  if (!TestUtil.isNativeCli || !Properties.isWin) {
     test("simple JS") {
       simpleJsTest()
     }
+    test("resource directory for library package") {
+      libraryWithResourceTest()
+    }
+  }
 
   def simpleNativeTest(): Unit = {
     val fileName   = "simple.sc"

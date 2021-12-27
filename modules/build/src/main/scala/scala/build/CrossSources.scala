@@ -17,7 +17,7 @@ final case class CrossSources(
   def withVirtualDir(inputs: Inputs, scope: Scope, options: BuildOptions): CrossSources = {
 
     val srcRootPath = inputs.generatedSrcRoot(scope)
-    val resourceDirs0 = options.classPathOptions.resourceVirtualDir.map { path =>
+    val resourceDirs0 = options.classPathOptions.resourcesVirtualDir.map { path =>
       HasBuildRequirements(BuildRequirements(), srcRootPath / path)
     }
 
@@ -176,7 +176,9 @@ object CrossSources {
     val resourceDirs = inputs.elements.collect {
       case r: Inputs.ResourceDirectory =>
         HasBuildRequirements(BuildRequirements(), r.path)
-    }
+    } ++ preprocessedSources.flatMap(_.options).flatMap(_.classPathOptions.resourcesDir).map(path =>
+      HasBuildRequirements(BuildRequirements(), path)
+    )
 
     CrossSources(paths, inMemory, mainClassOpt, resourceDirs, buildOptions)
   }

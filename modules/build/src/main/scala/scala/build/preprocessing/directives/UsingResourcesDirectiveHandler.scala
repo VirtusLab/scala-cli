@@ -34,8 +34,8 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     ProcessedDirective(
       Some(BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraClassPath = paths0.toList.flatten,
-          resourceVirtualDir = virtualPaths.toList.flatten
+          resourcesDir = paths0.toList.flatten,
+          resourcesVirtualDir = virtualPaths.toList.flatten
         )
       )),
       Seq.empty
