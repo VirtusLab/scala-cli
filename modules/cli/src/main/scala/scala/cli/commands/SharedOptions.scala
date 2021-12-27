@@ -222,6 +222,14 @@ final case class SharedOptions(
     }
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
+      .map { path =>
+        if (os.exists(path))
+          path
+        else {
+          System.err.println(s"Provided resource directory path doesn't exist: $path")
+          sys.exit(1)
+        }
+      }
       .map(Inputs.ResourceDirectory(_))
     val inputs = Inputs(
       args,

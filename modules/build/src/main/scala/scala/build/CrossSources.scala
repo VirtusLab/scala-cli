@@ -176,8 +176,8 @@ object CrossSources {
     val resourceDirs = inputs.elements.collect {
       case r: Inputs.ResourceDirectory =>
         HasBuildRequirements(BuildRequirements(), r.path)
-    } ++ preprocessedSources.flatMap(_.options).flatMap(_.classPathOptions.resourcesDir).map(path =>
-      HasBuildRequirements(BuildRequirements(), path)
+    } ++ preprocessedSources.flatMap(_.options).flatMap(_.classPathOptions.resourcesDir).map(
+      HasBuildRequirements(BuildRequirements(), _)
     )
 
     CrossSources(paths, inMemory, mainClassOpt, resourceDirs, buildOptions)
