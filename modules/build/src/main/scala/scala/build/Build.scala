@@ -140,7 +140,10 @@ object Build {
     val crossSources = value {
       CrossSources.forInputs(
         inputs,
-        Sources.defaultPreprocessors(options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper))
+        Sources.defaultPreprocessors(
+          options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+        ),
+        logger
       )
     }
     val sharedOptions = crossSources.sharedOptions(options)
@@ -265,9 +268,8 @@ object Build {
   private def copyResourceToClassesDir(build: Build) = build match {
     case b: Build.Successful =>
       for {
-        resourceDirPath  <- b.sources.resourceDirs
-        resourceFilePath <- os.walk(resourceDirPath)
-        if os.isFile(resourceFilePath)
+        resourceDirPath  <- b.sources.resourceDirs.filter(os.exists(_))
+        resourceFilePath <- os.walk(resourceDirPath).filter(os.isFile(_))
         relativeResourcePath = resourceFilePath.relativeTo(resourceDirPath)
         if !relativeResourcePath.toString.startsWith(
           ".scala"

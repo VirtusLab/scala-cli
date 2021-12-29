@@ -2,10 +2,10 @@ package scala.build.preprocessing.directives
 
 import shapeless._
 
-import scala.build.Positioned
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.build.preprocessing.ScopePath
+import scala.build.{Logger, Positioned}
 import scala.util.{Success, Try}
 
 case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
@@ -82,7 +82,8 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
     val scalaJsOptions   = DirectiveUtil.stringValues(directive.values, path, cwd)
     val positionedValues = scalaJsOptions.map(v => Positioned(v._2, v._1))

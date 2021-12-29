@@ -18,7 +18,7 @@ import scala.build.errors.{
 import scala.build.internal.{AmmUtil, Util}
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
-import scala.build.{Inputs, Position, Positioned}
+import scala.build.{Inputs, Logger, Position, Positioned}
 import scala.jdk.CollectionConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -78,8 +78,10 @@ case object ScalaPreprocessor extends Preprocessor {
     if (os.isFile(f)) Right(os.read(f, defaultCharSet))
     else Left(new FileNotFoundException(f))
 
-  def preprocess(input: Inputs.SingleElement)
-    : Option[Either[BuildException, Seq[PreprocessedSource]]] =
+  def preprocess(
+    input: Inputs.SingleElement,
+    logger: Logger
+  ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: Inputs.ScalaFile =>
         val inferredClsName = {
@@ -89,7 +91,7 @@ case object ScalaPreprocessor extends Preprocessor {
         val res = either {
           val content   = value(maybeRead(f.path))
           val scopePath = ScopePath.fromPath(f.path)
-          val source = value(process(content, Right(f.path), scopePath / os.up)) match {
+          val source = value(process(content, Right(f.path), scopePath / os.up, logger)) match {
             case None =>
               PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
             case Some(ProcessingOutput(
@@ -127,7 +129,7 @@ case object ScalaPreprocessor extends Preprocessor {
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
             value(
-              process(content, Left(v.source), v.scopePath / os.up)
+              process(content, Left(v.source), v.scopePath / os.up, logger)
             ).map {
               case ProcessingOutput(reqs, scopedReqs, opts, updatedContent) =>
                 (reqs, scopedReqs, opts, updatedContent)
@@ -154,11 +156,12 @@ case object ScalaPreprocessor extends Preprocessor {
   def process(
     content: String,
     path: Either[String, os.Path],
-    scopeRoot: ScopePath
+    scopeRoot: ScopePath,
+    logger: Logger
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val afterStrictUsing: StrictDirectivesProcessingOutput =
-      value(processStrictUsing(content0, path, scopeRoot))
+      value(processStrictUsing(content0, path, scopeRoot, logger))
 
     val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
       processSpecialImports(
@@ -273,7 +276,8 @@ case object ScalaPreprocessor extends Preprocessor {
   private def processStrictUsing(
     content: String,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
 
     val processor = {
@@ -301,7 +305,8 @@ case object ScalaPreprocessor extends Preprocessor {
         directives0,
         usingDirectiveHandlers,
         path,
-        cwd
+        cwd,
+        logger
       )
     }
 
@@ -312,7 +317,8 @@ case object ScalaPreprocessor extends Preprocessor {
         directives1,
         requireDirectiveHandlers,
         path,
-        cwd
+        cwd,
+        logger
       )
     }
 
@@ -336,7 +342,7 @@ case object ScalaPreprocessor extends Preprocessor {
     value {
       if (directives2.nonEmpty) {
         val errors = directives2.map(d =>
-          new DefaultDirectiveHandler[Nothing].handleValues(d, path, cwd)
+          new DefaultDirectiveHandler[Nothing].handleValues(d, path, cwd, logger)
         ).collect {
           case Left(e) => e
         }

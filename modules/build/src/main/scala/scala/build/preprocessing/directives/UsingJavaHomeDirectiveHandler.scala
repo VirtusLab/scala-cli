@@ -1,9 +1,9 @@
 package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
-import scala.build.Positioned
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.preprocessing.ScopePath
+import scala.build.{Logger, Positioned}
 
 case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java home"
@@ -21,7 +21,8 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = either {
     val values = directive.values
     val (rawHome, pos) = value {

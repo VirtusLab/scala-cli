@@ -38,7 +38,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -68,7 +72,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -97,7 +105,11 @@ class SourcesTests extends munit.FunSuite {
     val expectedDeps = Nil
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -122,7 +134,11 @@ class SourcesTests extends munit.FunSuite {
     val expectedDeps = Nil
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -147,7 +163,11 @@ class SourcesTests extends munit.FunSuite {
     val testInputs = TestInputs(files, Seq("."))
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -177,7 +197,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -206,7 +230,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -265,7 +293,11 @@ class SourcesTests extends munit.FunSuite {
 
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -293,7 +325,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -322,7 +358,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
 
@@ -342,7 +382,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
       val javaOpts      = sources.buildOptions.javaOptions.javaOpts.sortBy(_.toString())
@@ -369,7 +413,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper)).orThrow
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources       = scopedSources.sources(Scope.Main, BuildOptions())
       val jsOptions     = sources.buildOptions.scalaJsOptions
@@ -392,7 +440,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        )
       crossSources match {
         case Left(_: MultiValue) =>
         case o                   => fail("Exception expected", clues(o))
@@ -408,7 +460,11 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper))
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        )
       crossSources match {
         case Left(_: NotABoolean) =>
         case o                    => fail("Exception expected", clues(o))

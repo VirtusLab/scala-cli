@@ -91,7 +91,8 @@ object CrossSources {
 
   def forInputs(
     inputs: Inputs,
-    preprocessors: Seq[Preprocessor]
+    preprocessors: Seq[Preprocessor],
+    logger: Logger
   ): Either[BuildException, CrossSources] = either {
 
     val preprocessedSources = value {
@@ -99,7 +100,7 @@ object CrossSources {
         .map { elem =>
           preprocessors
             .iterator
-            .flatMap(p => p.preprocess(elem).iterator)
+            .flatMap(p => p.preprocess(elem, logger).iterator)
             .take(1)
             .toList
             .headOption
@@ -142,19 +143,7 @@ object CrossSources {
       )
     }
 
-    val mainClassOpt = value {
-      inputs.mainClassElement
-        .collect {
-          case elem: Inputs.SingleElement =>
-            preprocessors.iterator
-              .flatMap(p => p.preprocess(elem).iterator)
-              .take(1).toList.headOption
-              .getOrElse(Right(Nil))
-              .map(_.flatMap(_.mainClassOpt.toSeq).headOption)
-        }
-        .sequence
-        .map(_.flatten)
-    }
+    val mainClassOpt = preprocessedSources.flatMap(_.mainClassOpt.toSeq).headOption
 
     val paths = preprocessedSources.collect {
       case d: PreprocessedSource.OnDisk =>

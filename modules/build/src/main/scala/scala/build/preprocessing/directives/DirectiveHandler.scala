@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.preprocessing.{ScopePath, Scoped}
 
@@ -19,7 +20,8 @@ trait DirectiveHandler[T] {
   def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedDirective[T]]
 
 }

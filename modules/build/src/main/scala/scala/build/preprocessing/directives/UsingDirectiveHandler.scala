@@ -1,4 +1,5 @@
 package scala.build.preprocessing.directives
+import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.build.preprocessing.ScopePath
@@ -9,7 +10,8 @@ trait UsingDirectiveHandler extends DirectiveHandler[BuildOptions] {
   def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] =
     throw new NotImplementedError(
       "using_directives-based directives need to override handleValues"

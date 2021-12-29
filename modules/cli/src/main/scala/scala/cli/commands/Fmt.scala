@@ -43,7 +43,8 @@ object Fmt extends ScalaCommand[FmtOptions] {
             inputs,
             Sources.defaultPreprocessors(
               options.buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
-            )
+            ),
+            logger
           ).orExit(logger)
         val sharedOptions = crossSources.sharedOptions(options.buildOptions)
         sharedOptions

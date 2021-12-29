@@ -223,12 +223,9 @@ final case class SharedOptions(
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
       .map { path =>
-        if (os.exists(path))
-          path
-        else {
-          System.err.println(s"Provided resource directory path doesn't exist: $path")
-          sys.exit(1)
-        }
+        if (!os.exists(path))
+          logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
+        path
       }
       .map(Inputs.ResourceDirectory(_))
     val inputs = Inputs(
@@ -248,6 +245,7 @@ final case class SharedOptions(
     val forbiddenDirs =
       (if (defaultForbiddenDirectories) SharedOptions.defaultForbiddenDirectories else Nil) ++
         forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
+
     inputs
       .add(resourceInputs)
       .checkAttributes(directories.directories)

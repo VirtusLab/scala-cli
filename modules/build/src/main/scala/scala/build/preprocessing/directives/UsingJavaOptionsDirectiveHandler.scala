@@ -1,4 +1,5 @@
 package scala.build.preprocessing.directives
+import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.preprocessing.ScopePath
@@ -19,7 +20,8 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
     val javaOpts = DirectiveUtil.stringValues(directive.values, path, cwd)
     val options = BuildOptions(

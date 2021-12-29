@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
+import scala.build.Logger
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.{BuildOptions, ClassPathOptions}
@@ -22,7 +23,8 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = either {
     val values = directive.values
     val extraJars: Seq[Either[BuildException, os.Path]] =

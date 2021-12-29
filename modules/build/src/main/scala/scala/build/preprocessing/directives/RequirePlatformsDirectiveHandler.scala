@@ -1,6 +1,7 @@
 package scala.build.preprocessing.directives
 import os.Path
 
+import scala.build.Logger
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedPlatformError}
 import scala.build.options.{BuildRequirements, Platform}
@@ -24,7 +25,8 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedRequireDirective] = {
     val values          = DirectiveUtil.stringValues(directive.values, path, cwd)
     val nonscopedValues = values.filter(_._3.isEmpty)

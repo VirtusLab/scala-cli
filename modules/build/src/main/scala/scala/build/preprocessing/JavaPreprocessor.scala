@@ -2,12 +2,14 @@ package scala.build.preprocessing
 
 import java.nio.charset.StandardCharsets
 
-import scala.build.Inputs
 import scala.build.errors.BuildException
+import scala.build.{Inputs, Logger}
 
 case object JavaPreprocessor extends Preprocessor {
-  def preprocess(input: Inputs.SingleElement)
-    : Option[Either[BuildException, Seq[PreprocessedSource]]] =
+  def preprocess(
+    input: Inputs.SingleElement,
+    logger: Logger
+  ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case j: Inputs.JavaFile =>
         Some(Right(Seq(PreprocessedSource.OnDisk(j.path, None, None, Nil, None))))
