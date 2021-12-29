@@ -143,7 +143,11 @@ object CrossSources {
       )
     }
 
-    val mainClassOpt = preprocessedSources.flatMap(_.mainClassOpt.toSeq).headOption
+    val mainClassOpt = for {
+      mainClassPath      <- inputs.mainClassElement.map(_.path).map(ScopePath.fromPath(_).path)
+      processedMainClass <- preprocessedSources.find(_.scopePath.path == mainClassPath)
+      mainClass          <- processedMainClass.mainClassOpt
+    } yield mainClass
 
     val paths = preprocessedSources.collect {
       case d: PreprocessedSource.OnDisk =>
