@@ -1,7 +1,7 @@
 package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherSeqOps
-import scala.build.errors.{BuildException, NoResourcePathFoundError}
+import scala.build.errors.{BuildException, CompositeBuildException, NoResourcePathFoundError}
 import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
 
@@ -28,9 +28,10 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
     val paths                     = DirectiveUtil.stringValues(directive.values, path, cwd)
     val paths0: Seq[os.Path] = value {
-      rootOpt.map(root => paths.map(_._1).map(os.Path(_, root))).toList.flatten
+      rootOpt.toList.flatMap(root => paths.map(_._1).map(os.Path(_, root)))
         .map(validatePath)
-        .sequence.left.map(_.head)
+        .sequence
+        .left.map(CompositeBuildException(_))
     }
     val virtualPaths = virtualRootOpt.map(virtualRoot =>
       paths.map(_._1).map(path => virtualRoot / os.SubPath(path))

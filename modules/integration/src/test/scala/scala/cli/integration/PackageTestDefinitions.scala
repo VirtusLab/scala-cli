@@ -114,7 +114,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def libraryWithResourceTest(): Unit = {
+  test("resource directory for library package") {
     val fileName     = "MyLibrary.scala"
     val outputLib    = "my-library.jar"
     val resourceFile = "input"
@@ -137,8 +137,9 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         stdout = os.Inherit
       )
 
-      val output = os.proc("jar", "tf", root / outputLib).call(cwd = root).out.text().trim
-      expect(output.contains(resourceFile))
+      val zf    = new ZipFile((root / outputLib).toIO)
+      val entry = zf.getEntry(resourceFile)
+      expect(entry != null)
     }
   }
 
@@ -205,14 +206,10 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!TestUtil.isNativeCli || !Properties.isWin) {
+  if (!TestUtil.isNativeCli || !Properties.isWin)
     test("simple JS") {
       simpleJsTest()
     }
-    test("resource directory for library package") {
-      libraryWithResourceTest()
-    }
-  }
 
   def simpleNativeTest(): Unit = {
     val fileName   = "simple.sc"
