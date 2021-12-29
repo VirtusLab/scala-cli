@@ -335,6 +335,8 @@ final case class BuildOptions(
       compilerPlugins = value(compilerPlugins),
       dependencies = value(dependencies),
       extraClassPath = allExtraJars,
+      scalaNativeCliVersion =
+        if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,
       fetchSources = classPathOptions.fetchSources.getOrElse(false),

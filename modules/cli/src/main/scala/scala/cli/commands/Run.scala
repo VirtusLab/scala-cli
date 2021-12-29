@@ -9,7 +9,6 @@ import scala.build.internal.{Constants, Runner}
 import scala.build.options.Platform
 import scala.build.{Build, Inputs, Logger}
 import scala.cli.CurrentParams
-import scala.scalanative.{build => sn}
 import scala.util.Properties
 
 object Run extends ScalaCommand[RunOptions] {
@@ -162,7 +161,7 @@ object Run extends ScalaCommand[RunOptions] {
           build,
           mainClass,
           build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
-          logger.scalaNativeLogger
+          logger
         ) { launcher =>
           Runner.runNative(
             launcher.toIO,
@@ -214,7 +213,7 @@ object Run extends ScalaCommand[RunOptions] {
     build: Build.Successful,
     mainClass: String,
     workDir: os.Path,
-    logger: sn.Logger
+    logger: Logger
   )(f: os.Path => T): T = {
     val dest = workDir / s"main${if (Properties.isWin) ".exe" else ""}"
     Package.buildNative(build, mainClass, dest, workDir, logger)

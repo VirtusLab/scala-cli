@@ -148,7 +148,7 @@ class CliLogger(
       def bloopCliInheritStderr = verbosity >= 3
     }
 
-  def scalaNativeLogger: sn.Logger =
+  def scalaNativeTestLogger: sn.Logger =
     new sn.Logger {
       def trace(msg: Throwable) = ()
       def debug(msg: String)    = logger.debug(msg)
@@ -156,6 +156,12 @@ class CliLogger(
       def warn(msg: String)     = logger.log(msg)
       def error(msg: String)    = logger.log(msg)
     }
+
+  val scalaNativeCliInternalLoggerOptions: List[String] = {
+    if (verbosity >= 1) List("-v", "-v", "-v") // debug
+    else if (verbosity >= 0) List("-v", "-v")  // info
+    else List()                                // error
+  }
 
   // Allow to disable that?
   def compilerOutputStream = out

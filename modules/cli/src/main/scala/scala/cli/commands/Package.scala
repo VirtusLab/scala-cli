@@ -19,15 +19,13 @@ import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.BuildException
-import scala.build.internal.{NativeBuilderHelper, ScalaJsConfig}
+import scala.build.errors.{BuildException, ScalaNativeBuildError}
+import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
 import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
-import scala.scalanative.util.Scope
-import scala.scalanative.{build => sn}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
@@ -408,7 +406,7 @@ object Package extends ScalaCommand[PackageOptions] {
     val workDir =
       build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
 
-    buildNative(build, mainClass, destPath, workDir, logger.scalaNativeLogger)
+    buildNative(build, mainClass, destPath, workDir, logger)
   }
 
   private def bootstrap(
@@ -540,28 +538,50 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     dest: os.Path,
     nativeWorkDir: os.Path,
-    nativeLogger: sn.Logger
+    logger: Logger
   ): Unit = {
 
-    val nativeConfig = build.options.scalaNativeOptions.config()
+    val cliOptions = build.options.scalaNativeOptions.configCliOptions()
 
     os.makeDir.all(nativeWorkDir)
-    val changed = NativeBuilderHelper.shouldBuildIfChanged(build, nativeConfig, dest, nativeWorkDir)
 
-    if (changed)
+    val cacheData =
+      NativeBuilderHelper.getCacheData(
+        build,
+        cliOptions,
+        dest,
+        nativeWorkDir
+      )
+
+    if (cacheData.changed)
       withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
-        val config = sn.Config.empty
-          .withCompilerConfig(nativeConfig)
-          .withMainClass(mainClass + "$")
-          .withClassPath(mainJar +: build.artifacts.classPath)
-          .withWorkdir(nativeWorkDir.toNIO)
-          .withLogger(nativeLogger)
 
-        Scope { implicit scope =>
-          sn.Build.build(config, dest.toNIO)
-        }
+        val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString()
+        val args =
+          cliOptions ++
+            logger.scalaNativeCliInternalLoggerOptions ++
+            List[String](
+              "--outpath",
+              dest.toString(),
+              "--workdir",
+              nativeWorkDir.toString(),
+              "--main",
+              mainClass
+            ) ++ classpath
 
-        NativeBuilderHelper.updateOutputSha(dest, nativeWorkDir)
+        val exitCode =
+          Runner.runJvm(
+            build.options.javaHome().value.javaCommand,
+            build.options.javaOptions.javaOpts.map(_.value),
+            build.artifacts.scalaNativeCli.map(_.toFile),
+            "scala.scalanative.cli.ScalaNativeLd",
+            args,
+            logger
+          )
+        if (exitCode == 0)
+          NativeBuilderHelper.updateProjectAndOutputSha(dest, nativeWorkDir, cacheData.projectSha)
+        else
+          throw new ScalaNativeBuildError
       }
   }
 }

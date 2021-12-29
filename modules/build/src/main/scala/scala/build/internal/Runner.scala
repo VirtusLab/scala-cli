@@ -306,7 +306,7 @@ object Runner {
     val config = TestAdapter.Config()
       .withBinaryFile(launcher)
       .withEnvVars(sys.env.toMap)
-      .withLogger(logger.scalaNativeLogger)
+      .withLogger(logger.scalaNativeTestLogger)
 
     var adapter: TestAdapter = null
 

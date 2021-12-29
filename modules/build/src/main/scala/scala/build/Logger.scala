@@ -19,7 +19,8 @@ trait Logger {
 
   def coursierLogger: coursier.cache.CacheLogger
   def bloopRifleLogger: BloopRifleLogger
-  def scalaNativeLogger: sn.Logger
+  def scalaNativeTestLogger: sn.Logger
+  def scalaNativeCliInternalLoggerOptions: List[String]
 
   def compilerOutputStream: PrintStream
 }
@@ -40,8 +41,10 @@ object Logger {
       coursier.cache.CacheLogger.nop
     def bloopRifleLogger: BloopRifleLogger =
       BloopRifleLogger.nop
-    def scalaNativeLogger: sn.Logger =
+    def scalaNativeTestLogger: sn.Logger =
       sn.Logger.nullLogger
+    def scalaNativeCliInternalLoggerOptions: List[String] =
+      List()
 
     def compilerOutputStream: PrintStream =
       new PrintStream(

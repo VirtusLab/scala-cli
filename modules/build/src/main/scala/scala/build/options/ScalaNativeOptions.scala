@@ -27,27 +27,44 @@ final case class ScalaNativeOptions(
 
   private def gc(): sn.GC =
     gcStr.map(_.trim).filter(_.nonEmpty) match {
-      case Some("default") | None => sn.GC.default
+      case Some("default") | None => sn.Discover.GC()
       case Some(other)            => sn.GC(other)
     }
+  private def gcCliOption(): List[String] =
+    List("--gc", gc().name)
+
   private def mode(): sn.Mode =
     modeStr.map(_.trim).filter(_.nonEmpty) match {
       case Some("default") | None => sn.Discover.mode()
       case Some(other)            => sn.Mode(other)
     }
+  private def modeCliOption(): List[String] =
+    List("--mode", mode().name)
 
   private def clangPath() = clang
     .filter(_.nonEmpty)
     .map(Paths.get(_))
     .getOrElse(sn.Discover.clang())
+  private def clangCliOption(): List[String] =
+    List("--clang", clangPath.toString())
+
   private def clangppPath() = clangpp
     .filter(_.nonEmpty)
     .map(Paths.get(_))
     .getOrElse(sn.Discover.clangpp())
-  private def finalLinkingOptions() =
+  private def clangppCliOption(): List[String] =
+    List("--clang-pp", clangppPath().toString())
+
+  private def finalLinkingOptions(): List[String] =
     linkingOptions ++ (if (linkingDefaults.getOrElse(true)) sn.Discover.linkingOptions() else Nil)
-  private def finalCompileOptions() =
+  private def finalCompileOptions(): List[String] =
     compileOptions ++ (if (compileDefaults.getOrElse(true)) sn.Discover.compileOptions() else Nil)
+
+  private def linkingCliOptions(): List[String] =
+    finalLinkingOptions.flatMap(option => List("--linking-option", option))
+
+  private def compileCliOptions(): List[String] =
+    finalCompileOptions.flatMap(option => List("--compile-option", option))
 
   def platformSuffix: String =
     "native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion)
@@ -62,7 +79,8 @@ final case class ScalaNativeOptions(
       version = finalVersion,
       // there are more modes than bloop allows, but that setting here shouldn't end up being used anyway
       mode =
-        if (mode().name == "release") BloopConfig.LinkerMode.Release
+        if (mode() == sn.Mode.releaseFast || mode() == sn.Mode.releaseFull)
+          BloopConfig.LinkerMode.Release
         else BloopConfig.LinkerMode.Debug,
       gc = gc().name,
       targetTriple = None,
@@ -79,15 +97,13 @@ final case class ScalaNativeOptions(
       output = None
     )
 
-  def config(): sn.NativeConfig =
-    sn.NativeConfig.empty
-      .withGC(gc())
-      .withMode(mode())
-      .withLinkStubs(false)
-      .withClang(clangPath())
-      .withClangPP(clangppPath())
-      .withLinkingOptions(linkingOptions)
-      .withCompileOptions(compileOptions)
+  def configCliOptions(): List[String] =
+    gcCliOption() ++
+      modeCliOption() ++
+      clangCliOption() ++
+      clangppCliOption() ++
+      linkingCliOptions() ++
+      compileCliOptions()
 
 }
 
