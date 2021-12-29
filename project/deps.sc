@@ -1,5 +1,7 @@
 import mill._, scalalib._
 
+import scala.util.Properties
+
 object Scala {
   def scala212  = "2.12.15"
   def scala213  = "2.13.6"
@@ -90,15 +92,21 @@ object Deps {
   def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-4f0dd5d-SNAPSHOT"
 }
 
-def graalVmVersion = "21.2.0"
+private def graalVmVersion =
+  if (Properties.isWin) "21.2.0"
+  else "21.3.0"
+def graalVmJvmId =
+  if (Properties.isWin) s"graalvm-java16:$graalVmVersion"
+  else s"graalvm-java17:$graalVmVersion"
 
 def csDockerVersion = Deps.Versions.coursier
 
 def buildCsVersion = Deps.Versions.coursier
 
 object Docker {
+  def customMuslBuilderImageName = "scala-cli-base-musl"
   def muslBuilder =
-    "messense/rust-musl-cross@sha256:12d0dd535ef7364bf49cb2608ae7eaf60e40d07834eb4d9160c592422a08d3b3"
+    s"$customMuslBuilderImageName:latest"
 
   def testImage = "ubuntu:18.04"
   def alpineTestImage =

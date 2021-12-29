@@ -202,7 +202,7 @@ trait CliLaunchers extends SbtModule { self =>
   trait CliNativeImage extends NativeImage {
     def nativeImageCsCommand    = Seq(cs())
     def nativeImagePersist      = System.getenv("CI") != null
-    def nativeImageGraalVmJvmId = s"graalvm-java11:${deps.graalVmVersion}"
+    def nativeImageGraalVmJvmId = deps.graalVmJvmId
     def nativeImageOptions = T {
       val usesDocker = nativeImageDockerParams().nonEmpty
       val cLibPath =
@@ -312,6 +312,20 @@ trait CliLaunchers extends SbtModule { self =>
         s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
       )
     )
+    def nativeImageOptions = T {
+      super.nativeImageOptions() ++ Seq(
+        "-H:-CheckToolchain"
+      )
+    }
+    def buildHelperImage = T {
+      os.proc("docker", "build", "-t", Docker.customMuslBuilderImageName, ".")
+        .call(cwd = os.pwd / "project" / "musl-image", stdout = os.Inherit)
+      ()
+    }
+    def nativeImage = T {
+      buildHelperImage()
+      super.nativeImage()
+    }
   }
 
   object `mostly-static-image` extends CliNativeImage {
@@ -324,7 +338,6 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def localRepoJar: T[PathRef]
-  def graalVmVersion: String
 
   def nativeImageMainClass = T {
     mainClass().getOrElse(sys.error("Don't know what main class to use"))
@@ -370,7 +383,7 @@ trait CliLaunchers extends SbtModule { self =>
       // format: off
       Seq(
         cs(), "java-home",
-        "--jvm", s"graalvm-java11:$graalVmVersion",
+        "--jvm", deps.graalVmJvmId,
         "--jvm-index", jvmIndex
       ).!!.trim
       // format: on

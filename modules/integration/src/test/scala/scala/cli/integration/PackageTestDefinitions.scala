@@ -12,6 +12,18 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
+  def maybeUseBash(cmd: os.Shellable*)(cwd: os.Path = null): os.CommandResult = {
+    val res = os.proc(cmd: _*).call(cwd = cwd, check = false)
+    if (Properties.isLinux && res.exitCode == 127)
+      // /bin/sh seems to have issues with '%' signs in PATH, that coursier can leave
+      // in the JVM path entry (https://unix.stackexchange.com/questions/126955/percent-in-path-environment-variable)
+      os.proc(("/bin/bash": os.Shellable) +: cmd: _*).call(cwd = cwd)
+    else {
+      expect(res.exitCode == 0)
+      res
+    }
+  }
+
   test("simple script") {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -39,7 +51,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      val output = maybeUseBash(launcher)(cwd = root).out.text().trim
       expect(output == message)
     }
   }
@@ -68,7 +80,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      val output = maybeUseBash(launcher.toString)(cwd = root).out.text().trim
       expect(output == message)
     }
   }
@@ -192,7 +204,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
           launcher
         }
 
-      val output = os.proc(runnableLauncher.toString).call(cwd = root).out.text().trim
+      val output = maybeUseBash(runnableLauncher.toString)(cwd = root).out.text().trim
       expect(output == message)
     }
   }
