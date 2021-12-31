@@ -245,7 +245,7 @@ final case class BuildOptions(
     JavaHome().withCache(jvmCache)
   }
 
-  private def finalRepositories: Seq[String] =
+  def finalRepositories: Seq[String] =
     classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
   private def computeScalaVersions(
