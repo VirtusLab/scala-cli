@@ -61,7 +61,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd = root).out.text().trim
+      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
+        root).out.text().trim
       expect(output.linesIterator.toSeq.last == message)
     }
   }
