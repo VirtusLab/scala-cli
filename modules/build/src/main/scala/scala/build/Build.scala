@@ -15,7 +15,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.validation.ValidationException
-import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope}
+import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope, ScalaNativeVersion}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -340,15 +340,24 @@ object Build {
     classesRootDir(root, projectName) / scope.name
 
   def scalaNativeSupported(options: BuildOptions, inputs: Inputs) = either {
-    val version = value(options.scalaParams).scalaVersion
-    if (version.startsWith("3")) false
-    else if (version.startsWith("2.13")) Properties.isMac || Properties.isLinux
-    else if (version.startsWith("2.12"))
-      !inputs.sourceFiles().exists {
-        case _: Inputs.AnyScript => true
-        case _                   => false
-      }
-    else false
+    val version       = value(options.scalaParams).scalaVersion
+    val nativeVersion = options.scalaNativeOptions.numeralVersion
+    nativeVersion match {
+      case Some(ScalaNativeVersion(major, minor, patch, _)) =>
+        if (version.startsWith("3.0"))
+          false
+        else if (version.startsWith("3"))
+          (major > 0) || (minor > 4) || (patch >= 3)
+        else if (version.startsWith("2.13"))
+          true
+        else if (version.startsWith("2.12"))
+          !inputs.sourceFiles().exists {
+            case _: Inputs.AnyScript => true
+            case _                   => false
+          }
+        else false
+      case None => false
+    }
   }
 
   def build(
