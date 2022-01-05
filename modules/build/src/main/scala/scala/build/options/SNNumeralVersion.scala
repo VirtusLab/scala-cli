@@ -3,13 +3,13 @@ package scala.build.options
 case class SNNumeralVersion(major: Int, minor: Int, patch: Int) {
 
   override def equals(other: Any): Boolean =
-    if (other.isInstanceOf[SNNumeralVersion]) {
-      val that = other.asInstanceOf[SNNumeralVersion]
-      this.major == that.major &&
-      this.minor == that.minor &&
-      this.patch == that.patch
+    other match {
+      case that: SNNumeralVersion =>
+        this.major == that.major &&
+          this.minor == that.minor &&
+          this.patch == that.patch
+      case _ => false
     }
-    else false
 
   def <(that: SNNumeralVersion): Boolean =
     if (this.major == that.major)
