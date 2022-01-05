@@ -15,7 +15,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.validation.ValidationException
-import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope, SNNumeralVersion}
+import scala.build.options.{BuildOptions, ClassPathOptions, Platform, SNNumeralVersion, Scope}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
