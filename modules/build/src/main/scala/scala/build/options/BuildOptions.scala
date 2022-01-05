@@ -59,11 +59,11 @@ final case class BuildOptions(
       .orElse(if (platform.value == Platform.JVM) None else Some(false))
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
-    if (scalaOptions.addScalaLibrary.getOrElse(true)) {
+    if (platform.value != Platform.Native && scalaOptions.addScalaLibrary.getOrElse(true)) {
       val scalaParams0 = value(scalaParams)
       val lib =
         if (scalaParams0.scalaVersion.startsWith("3."))
-          dep"org.scala-lang::scala3-library:${scalaParams0.scalaVersion}"
+          dep"org.scala-lang::scala3-library::${scalaParams0.scalaVersion}"
         else
           dep"org.scala-lang:scala-library:${scalaParams0.scalaVersion}"
       Seq(lib)
