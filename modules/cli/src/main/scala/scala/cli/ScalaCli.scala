@@ -153,9 +153,6 @@ object ScalaCli extends CommandsEntryPoint {
       // the Scala CLI native image, no need to manually load it.
       coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
 
-    if (isGraalvmNativeImage)
-      org.scalasbt.ipcsocket.NativeLoader.assumeLoaded()
-
     if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
       // Enable ANSI output in Windows terminal
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()

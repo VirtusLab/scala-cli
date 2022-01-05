@@ -14,10 +14,7 @@ object BloopServer {
       BloopRifleConfig.Address.Tcp(BloopRifleConfig.defaultHost, BloopRifleConfig.defaultPort)
     else {
       val directories = scala.build.Directories.default()
-      BloopRifleConfig.Address.DomainSocket(
-        directories.bloopDaemonDir.toNIO,
-        "scalacli\\bloop\\pipe"
-      )
+      BloopRifleConfig.Address.DomainSocket(directories.bloopDaemonDir.toNIO)
     }
 
   val bloopConfig = BloopRifleConfig.default(

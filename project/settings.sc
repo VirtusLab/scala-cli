@@ -233,59 +233,12 @@ trait CliLaunchers extends SbtModule { self =>
       val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "csjniutils.lib")
     }
-    private def copyIpcsocketDllTo(cs: String, destDir: os.Path): Unit = {
-      val ipcsocketVersion = Deps.ipcSocket.dep.version
-      val libRes = os.proc(
-        cs,
-        "fetch",
-        "--intransitive",
-        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-pc-win32,ext=lib,type=lib",
-        "-A",
-        "lib"
-      ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
-      os.copy.over(libPath, destDir / "ipcsocket.lib")
-    }
-    private def copyIpcsocketMacATo(cs: String, destDir: os.Path): Unit = {
-      val ipcsocketVersion = Deps.ipcSocket.dep.version
-      val libRes = os.proc(
-        cs,
-        "fetch",
-        "--intransitive",
-        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-apple-darwin,ext=a,type=a",
-        "-A",
-        "a"
-      ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
-      os.copy.over(libPath, destDir / "libipcsocket.a")
-    }
-    private def copyIpcsocketLinuxATo(cs: String, destDir: os.Path): Unit = {
-      val ipcsocketVersion = Deps.ipcSocket.dep.version
-      val libRes = os.proc(
-        cs,
-        "fetch",
-        "--intransitive",
-        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-pc-linux,ext=a,type=a",
-        "-A",
-        "a"
-      ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
-      os.copy.over(libPath, destDir / "libipcsocket.a")
-    }
     def staticLibDir = T {
       val dir = nativeImageDockerWorkingDir() / staticLibDirName
       os.makeDir.all(dir)
 
-      if (Properties.isWin) {
+      if (Properties.isWin)
         copyCsjniutilTo(cs(), dir)
-        copyIpcsocketDllTo(cs(), dir)
-      }
-
-      if (Properties.isMac)
-        copyIpcsocketMacATo(cs(), dir)
-
-      if (Properties.isLinux && arch == "x86_64")
-        copyIpcsocketLinuxATo(cs(), dir)
 
       PathRef(dir)
     }
