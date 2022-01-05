@@ -8,6 +8,8 @@ import java.nio.file.Paths
 import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
+case class ScalaNativeVersion(major: Int, minor: Int, patch: Int, tag: String)
+
 final case class ScalaNativeOptions(
   version: Option[String] = None,
   modeStr: Option[String] = None,
@@ -24,6 +26,13 @@ final case class ScalaNativeOptions(
     root / ".scala" / projectName / "native"
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
+
+  private val VersionPattern = "(\\d+)\\.(\\d+)\\.(\\d+)(\\-.*)?".r
+  def numeralVersion: Option[ScalaNativeVersion] = finalVersion match {
+    case VersionPattern(major, minor, patch, tag) =>
+      Some(ScalaNativeVersion(major.toInt, minor.toInt, patch.toInt, tag))
+    case _ => None
+  }
 
   private def gc(): sn.GC =
     gcStr.map(_.trim).filter(_.nonEmpty) match {
@@ -68,9 +77,18 @@ final case class ScalaNativeOptions(
 
   def platformSuffix: String =
     "native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion)
-  def nativeDependencies: Seq[AnyDependency] =
-    Seq("nativelib", "javalib", "auxlib", "scalalib")
-      .map(name => dep"org.scala-native::$name::$finalVersion")
+
+  private def nativeScalalibDependency(scalaVersion: String): AnyDependency =
+    if (scalaVersion.startsWith("2."))
+      dep"org.scala-native::scalalib::$finalVersion"
+    else
+      dep"org.scala-native::scala3lib::$finalVersion"
+
+  def nativeDependencies(scalaVersion: String): Seq[AnyDependency] =
+    Seq("nativelib", "javalib", "auxlib")
+      .map(name => dep"org.scala-native::$name::$finalVersion") :+
+      nativeScalalibDependency(scalaVersion)
+
   def compilerPlugins: Seq[AnyDependency] =
     Seq(dep"org.scala-native:::nscplugin:$finalVersion")
 

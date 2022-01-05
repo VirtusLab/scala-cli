@@ -63,7 +63,7 @@ final case class BuildOptions(
       val scalaParams0 = value(scalaParams)
       val lib =
         if (scalaParams0.scalaVersion.startsWith("3."))
-          dep"org.scala-lang::scala3-library::${scalaParams0.scalaVersion}"
+          dep"org.scala-lang::scala3-library:${scalaParams0.scalaVersion}"
         else
           dep"org.scala-lang:scala-library:${scalaParams0.scalaVersion}"
       Seq(lib)
@@ -76,12 +76,14 @@ final case class BuildOptions(
       scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion)
     else Nil
   }
-  private def maybeNativeDependencies: Seq[AnyDependency] =
-    if (platform.value == Platform.Native) scalaNativeOptions.nativeDependencies
+  private def maybeNativeDependencies: Either[BuildException, Seq[AnyDependency]] = either {
+    if (platform.value == Platform.Native)
+      scalaNativeOptions.nativeDependencies(value(scalaParams).scalaVersion)
     else Nil
+  }
   private def dependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
     value(maybeJsDependencies).map(Positioned.none(_)) ++
-      maybeNativeDependencies.map(Positioned.none(_)) ++
+      value(maybeNativeDependencies).map(Positioned.none(_)) ++
       value(scalaLibraryDependencies).map(Positioned.none(_)) ++
       classPathOptions.extraDependencies
   }
