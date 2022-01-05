@@ -143,7 +143,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           check = false,
           stderr = os.Pipe
         ).err.text().trim
-        expect(output.contains("scala-cli: invalid option:"))
+        expect(output.contains("Used Scala Native version is incompatible the passed options"))
       }
     }
 
