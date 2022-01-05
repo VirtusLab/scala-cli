@@ -15,7 +15,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.validation.ValidationException
-import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope, ScalaNativeVersion}
+import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope, SNNumeralVersion}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -340,17 +340,19 @@ object Build {
     classesRootDir(root, projectName) / scope.name
 
   def scalaNativeSupported(options: BuildOptions, inputs: Inputs) = either {
-    val version       = value(options.scalaParams).scalaVersion
+    val scalaVersion  = value(options.scalaParams).scalaVersion
     val nativeVersion = options.scalaNativeOptions.numeralVersion
     nativeVersion match {
-      case Some(ScalaNativeVersion(major, minor, patch, _)) =>
-        if (version.startsWith("3.0"))
+      case Some(snNumeralVer) =>
+        if (snNumeralVer < SNNumeralVersion(0, 4, 1) && Properties.isWin)
           false
-        else if (version.startsWith("3"))
-          (major > 0) || (minor > 4) || (patch >= 3)
-        else if (version.startsWith("2.13"))
+        else if (scalaVersion.startsWith("3.0"))
+          false
+        else if (scalaVersion.startsWith("3"))
+          snNumeralVer >= SNNumeralVersion(0, 4, 2)
+        else if (scalaVersion.startsWith("2.13"))
           true
-        else if (version.startsWith("2.12"))
+        else if (scalaVersion.startsWith("2.12"))
           !inputs.sourceFiles().exists {
             case _: Inputs.AnyScript => true
             case _                   => false

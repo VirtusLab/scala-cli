@@ -8,8 +8,6 @@ import java.nio.file.Paths
 import scala.build.internal.Constants
 import scala.scalanative.{build => sn}
 
-case class ScalaNativeVersion(major: Int, minor: Int, patch: Int, tag: String)
-
 final case class ScalaNativeOptions(
   version: Option[String] = None,
   modeStr: Option[String] = None,
@@ -27,12 +25,7 @@ final case class ScalaNativeOptions(
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
 
-  private val VersionPattern = "(\\d+)\\.(\\d+)\\.(\\d+)(\\-.*)?".r
-  def numeralVersion: Option[ScalaNativeVersion] = finalVersion match {
-    case VersionPattern(major, minor, patch, tag) =>
-      Some(ScalaNativeVersion(major.toInt, minor.toInt, patch.toInt, tag))
-    case _ => None
-  }
+  def numeralVersion = SNNumeralVersion.parse(finalVersion)
 
   private def gc(): sn.GC =
     gcStr.map(_.trim).filter(_.nonEmpty) match {
