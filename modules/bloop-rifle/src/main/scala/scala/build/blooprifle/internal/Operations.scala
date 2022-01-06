@@ -51,31 +51,38 @@ object Operations {
   def check(
     address: BloopRifleConfig.Address,
     logger: BloopRifleLogger
-  ): Boolean =
+  ): Boolean = {
+    logger.debug(s"Checking for a running Bloop server at ${address.render} ...")
     address match {
       case BloopRifleConfig.Address.Tcp(host, port) =>
         // inspired by https://github.com/scalacenter/bloop/blob/cbddb8baaf639a4e08ee630f1ebc559dc70255a8/bloopgun/src/main/scala/bloop/bloopgun/core/Shell.scala#L174-L202
         Util.withSocket { socket =>
           socket.setReuseAddress(true)
           socket.setTcpNoDelay(true)
-          logger.debug(s"Attempting a connection to bloop server ${address.render} ...")
-          try {
-            socket.connect(new InetSocketAddress(host, port))
-            socket.isConnected()
-          }
-          catch {
-            case _: ConnectException => false
-          }
+          logger.debug(s"Attempting to connect to Bloop server ${address.render} ...")
+          val res =
+            try {
+              socket.connect(new InetSocketAddress(host, port))
+              socket.isConnected()
+            }
+            catch {
+              case _: ConnectException => false
+            }
+          logger.debug(s"Connection attempt result: $res")
+          res
         }
       case addr: BloopRifleConfig.Address.DomainSocket =>
         val files = lockFiles(addr)
-        val res   = libdaemonjvm.client.Connect.tryConnect(files)
+        logger.debug(s"Attempting to connect to Bloop server ${address.render} ...")
+        val res = libdaemonjvm.client.Connect.tryConnect(files)
+        logger.debug(s"Connection attempt result: $res")
         res match {
           case Some(Right(e)) => e.merge.close()
           case _              =>
         }
         res.exists(_.isRight)
     }
+  }
 
   /** Starts a new bloop server.
     *
