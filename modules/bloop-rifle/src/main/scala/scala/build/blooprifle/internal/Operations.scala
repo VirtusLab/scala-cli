@@ -101,9 +101,11 @@ object Operations {
     logger: BloopRifleLogger
   ): Future[Unit] = {
 
-    val addressArgs = address match {
-      case BloopRifleConfig.Address.Tcp(host, port)    => Seq(host, port.toString)
-      case BloopRifleConfig.Address.DomainSocket(path) => Seq(s"daemon:$path")
+    val (addressArgs, mainClass) = address match {
+      case BloopRifleConfig.Address.Tcp(host, port) =>
+        (Seq(host, port.toString), "bloop.Server")
+      case BloopRifleConfig.Address.DomainSocket(path) =>
+        (Seq(s"daemon:$path"), "bloop.Bloop")
     }
     val command =
       Seq(javaPath) ++
@@ -111,7 +113,7 @@ object Operations {
         Seq(
           "-cp",
           classPath.map(_.toString).mkString(File.pathSeparator),
-          "bloop.Server"
+          mainClass
         ) ++
         addressArgs
     val b = new ProcessBuilder(command: _*)
