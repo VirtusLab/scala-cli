@@ -349,7 +349,7 @@ object Build {
         else if (scalaVersion.startsWith("3.0"))
           false
         else if (scalaVersion.startsWith("3"))
-          snNumeralVer >= SNNumeralVersion(0, 4, 2)
+          snNumeralVer >= SNNumeralVersion(0, 4, 3)
         else if (scalaVersion.startsWith("2.13"))
           true
         else if (scalaVersion.startsWith("2.12"))
