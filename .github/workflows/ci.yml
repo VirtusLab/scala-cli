@@ -63,7 +63,8 @@ jobs:
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
-      run: ./mill -i show defaultNativeImage
+      run: .github/scripts/generate-native-image.sh
+      shell: bash
     - name: Build OS packages
       run: .github/scripts/generate-os-packages.sh
       shell: bash
@@ -93,7 +94,8 @@ jobs:
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
-      run: ./mill -i show cli.nativeImageMostlyStatic
+      run: .github/scripts/generate-native-image.sh mostly-static
+      shell: bash
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
     - name: Build slim docker image
@@ -131,7 +133,8 @@ jobs:
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
-      run: ./mill -i show cli.nativeImageStatic
+      run: .github/scripts/generate-native-image.sh static
+      shell: bash
     - name: Copy artifacts
       run: ./mill -i copyStaticLauncher artifacts/
     - name: Build docker image

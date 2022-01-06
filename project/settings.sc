@@ -259,12 +259,15 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   object `static-image` extends CliNativeImage {
-    def nativeImageDockerParams = Some(
-      NativeImage.linuxStaticParams(
-        Docker.muslBuilder,
-        s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
+    def nativeImageDockerParams = T {
+      buildHelperImage()
+      Some(
+        NativeImage.linuxStaticParams(
+          Docker.muslBuilder,
+          s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
+        )
       )
-    )
+    }
     def nativeImageOptions = T {
       super.nativeImageOptions() ++ Seq(
         "-H:-CheckToolchain"
@@ -275,9 +278,9 @@ trait CliLaunchers extends SbtModule { self =>
         .call(cwd = os.pwd / "project" / "musl-image", stdout = os.Inherit)
       ()
     }
-    def nativeImage = T {
+    def writeNativeImageScript(dest: String) = T.command {
       buildHelperImage()
-      super.nativeImage()
+      super.writeNativeImageScript(dest)()
     }
   }
 
