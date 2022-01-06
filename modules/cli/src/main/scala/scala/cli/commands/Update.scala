@@ -29,7 +29,7 @@ object Update extends ScalaCommand[UpdateOptions] {
 
     // format: off
     val res = os.proc(
-      "sh", "-s", "--",
+      "bash", "-s", "--",
       "--version", newVersion,
       "--force",
       "--binary-name", options.binaryName,

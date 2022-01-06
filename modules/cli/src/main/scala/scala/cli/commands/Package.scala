@@ -25,7 +25,7 @@ import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
-import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
+import scala.cli.internal.{GetImageResizer, ProcUtil, ScalaJsLinker}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
@@ -459,6 +459,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     alreadyExistsCheck()
     BootstrapGenerator.generate(params, destPath.toNIO)
+    ProcUtil.maybeUpdatePreamble(destPath)
   }
 
   private def assembly(
@@ -489,6 +490,7 @@ object Package extends ScalaCommand[PackageOptions] {
       .withPreamble(preamble)
     alreadyExistsCheck()
     AssemblyGenerator.generate(params, destPath.toNIO)
+    ProcUtil.maybeUpdatePreamble(destPath)
   }
 
   def withLibraryJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {
