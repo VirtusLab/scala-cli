@@ -142,8 +142,10 @@ class NativePackagerTests extends munit.FunSuite {
             stdout = os.Inherit
           )
 
-          val output =
-            os.proc(s"$root/usr/share/scala/$appName").call(cwd = os.root).out.text().trim
+          val res = os.proc(s"$root/usr/share/scala/$appName")
+            .call(cwd = os.root, check = false)
+          expect(res.exitCode == 0)
+          val output = res.out.text().trim
           expect(output == message)
         }
       }
