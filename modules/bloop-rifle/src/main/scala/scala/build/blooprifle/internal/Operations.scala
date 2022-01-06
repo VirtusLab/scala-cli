@@ -156,10 +156,7 @@ object Operations {
             None
 
         for (completion <- completionOpt) {
-          try promise.complete(completion)
-          catch {
-            case _: IllegalStateException => // promise already completed, ignoring it
-          }
+          promise.tryComplete(completion)
           f.cancel(false)
         }
     }
