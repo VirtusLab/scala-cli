@@ -380,7 +380,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
 
     logger.message(
-      "Started building docker image with your application, it would take some time"
+      "Started building docker image with your application, it might take some time"
     )
 
     DockerPackage(appPath, dockerSettings).build()
