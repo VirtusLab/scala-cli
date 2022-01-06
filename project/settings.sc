@@ -714,3 +714,10 @@ trait ScalaCliScalafixModule extends ScalafixModule {
     else Nil
   }
 }
+
+trait ScalaCliCrossSbtModule extends CrossSbtModule {
+  def javacOptions = super.javacOptions() ++ Seq(
+    "--release",
+    "16"
+  )
+}

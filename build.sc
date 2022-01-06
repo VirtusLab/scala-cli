@@ -10,6 +10,7 @@ import $file.project.settings, settings.{
   HasTests,
   LocalRepo,
   PublishLocalNoFluff,
+  ScalaCliCrossSbtModule,
   ScalaCliScalafixModule,
   localRepoResourcePath,
   platformExecutableJarExtension
@@ -150,7 +151,8 @@ object dummy extends Module {
   }
 }
 
-class BuildMacros(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Ywarn-unused")
@@ -163,7 +165,8 @@ class BuildMacros(val crossScalaVersion: String) extends CrossSbtModule with Sca
 }
 
 class Build(val crossScalaVersion: String)
-    extends CrossSbtModule with ScalaCliPublishModule with HasTests with ScalaCliScalafixModule {
+    extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests
+    with ScalaCliScalafixModule {
   def moduleDeps = Seq(
     `bloop-rifle`(),
     `build-macros`(),
@@ -474,7 +477,8 @@ trait JvmIntegration extends CliIntegration {
   def cliKind      = "jvm"
 }
 
-class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ {
@@ -514,7 +518,8 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
   }
 }
 
-class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class TestRunner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ {
@@ -530,7 +535,8 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
   def mainClass = Some("scala.build.testrunner.DynamicTestRunner")
 }
 
-class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with HasTests
     with ScalaCliScalafixModule {
   def scalacOptions = T {
@@ -568,7 +574,8 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
   object test extends Tests with ScalaCliScalafixModule
 }
 
-class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class TastyLib(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T(
     super.scalacOptions() ++ {
