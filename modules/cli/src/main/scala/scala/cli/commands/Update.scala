@@ -10,18 +10,19 @@ import scala.util.{Failure, Properties, Success, Try}
 object Update extends ScalaCommand[UpdateOptions] {
 
   private def updateScalaCli(options: UpdateOptions, newVersion: String) = {
-    if (coursier.paths.Util.useAnsiOutput()) {
-      println(s"Do you want to update scala-cli to version $newVersion [Y/n]")
-      val response = readLine()
-      if (response.toLowerCase != "y") {
-        System.err.println("Abort")
+    if (!options.force)
+      if (coursier.paths.Util.useAnsiOutput()) {
+        println(s"Do you want to update scala-cli to version $newVersion [Y/n]")
+        val response = readLine()
+        if (response.toLowerCase != "y") {
+          System.err.println("Abort")
+          sys.exit(1)
+        }
+      }
+      else {
+        System.err.println(s"To update scala-cli to $newVersion pass -f or --force")
         sys.exit(1)
       }
-    }
-    else if (!options.force) {
-      System.err.println(s"To update scala-cli to $newVersion pass -f or --force")
-      sys.exit(1)
-    }
 
     val installScript =
       os.proc("curl", "-sSLf", "https://virtuslab.github.io/scala-cli-packages/scala-setup.sh")
@@ -50,9 +51,13 @@ object Update extends ScalaCommand[UpdateOptions] {
   }
 
   def update(options: UpdateOptions, scalaCliBinPath: os.Path) = {
-    val currentVersion = Try {
-      os.proc(scalaCliBinPath, "version").call(cwd = os.pwd).out.text().trim
-    }.toOption.getOrElse("0.0.0")
+    val currentVersion = {
+      val res = os.proc(scalaCliBinPath, "version").call(cwd = os.pwd, check = false)
+      if (res.exitCode == 0)
+        res.out.text().trim
+      else
+        "0.0.0"
+    }
 
     lazy val newestScalaCliVersion = {
       val resp =
