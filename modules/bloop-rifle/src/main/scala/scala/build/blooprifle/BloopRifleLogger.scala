@@ -4,8 +4,6 @@ import snailgun.logging.{Logger => SnailgunLogger}
 
 import java.io.OutputStream
 
-import scala.util.control.NonFatal
-
 trait BloopRifleLogger { self =>
   def info(msg: => String): Unit
   def debug(msg: => String): Unit
@@ -13,7 +11,7 @@ trait BloopRifleLogger { self =>
   def runnable(name: String)(r: Runnable): Runnable = { () =>
     try r.run()
     catch {
-      case NonFatal(e) =>
+      case e: Throwable =>
         error(s"Error running $name", e)
     }
   }
