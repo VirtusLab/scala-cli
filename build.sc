@@ -317,6 +317,9 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
   }
+  def javacOptions = T {
+    super.javacOptions() ++ Seq("--release", "16")
+  }
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
     `test-runner`(Scala.defaultInternal)
