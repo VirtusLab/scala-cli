@@ -1,16 +1,6 @@
 package scala.build.options
 
 case class SNNumeralVersion(major: Int, minor: Int, patch: Int) {
-
-  override def equals(other: Any): Boolean =
-    other match {
-      case that: SNNumeralVersion =>
-        this.major == that.major &&
-          this.minor == that.minor &&
-          this.patch == that.patch
-      case _ => false
-    }
-
   def <(that: SNNumeralVersion): Boolean =
     if (this.major == that.major)
       if (this.minor == that.minor) this.patch < that.patch
@@ -27,7 +17,7 @@ case class SNNumeralVersion(major: Int, minor: Int, patch: Int) {
 object SNNumeralVersion {
   private val VersionPattern = raw"(\d+)\.(\d+)\.(\d+)(\-.*)?".r
 
-  // tags/suffixes are included or not compared since they usually
+  // tags/suffixes are not included or compared since they usually
   // should offer no feature compatibility improvements
   def parse(v: String): Option[SNNumeralVersion] = v match {
     case VersionPattern(major, minor, patch, _) =>

@@ -353,9 +353,9 @@ object Build {
         else if (scalaVersion.startsWith("2.13"))
           true
         else if (scalaVersion.startsWith("2.12"))
-          !inputs.sourceFiles().exists {
-            case _: Inputs.AnyScript => true
-            case _                   => false
+          inputs.sourceFiles().forall {
+            case _: Inputs.AnyScript => false
+            case _                   => true
           }
         else false
       case None => false

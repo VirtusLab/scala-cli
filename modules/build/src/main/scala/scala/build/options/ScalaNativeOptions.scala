@@ -71,16 +71,11 @@ final case class ScalaNativeOptions(
   def platformSuffix: String =
     "native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion)
 
-  private def nativeScalalibDependency(scalaVersion: String): AnyDependency =
-    if (scalaVersion.startsWith("2."))
-      dep"org.scala-native::scalalib::$finalVersion"
-    else
-      dep"org.scala-native::scala3lib::$finalVersion"
-
   def nativeDependencies(scalaVersion: String): Seq[AnyDependency] =
-    Seq("nativelib", "javalib", "auxlib")
-      .map(name => dep"org.scala-native::$name::$finalVersion") :+
-      nativeScalalibDependency(scalaVersion)
+    if (scalaVersion.startsWith("2."))
+      Seq(dep"org.scala-native::scalalib::$finalVersion")
+    else
+      Seq(dep"org.scala-native::scala3lib::$finalVersion")
 
   def compilerPlugins: Seq[AnyDependency] =
     Seq(dep"org.scala-native:::nscplugin:$finalVersion")
