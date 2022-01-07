@@ -25,7 +25,7 @@ import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
-import scala.cli.internal.{GetImageResizer, ProcUtil, ScalaJsLinker}
+import scala.cli.internal.{ProcUtil, ScalaJsLinker}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
@@ -237,11 +237,7 @@ object Package extends ScalaCommand[PackageOptions] {
           case PackageType.Rpm =>
             RedHatPackage(redHatSettings).build()
           case PackageType.Msi =>
-            val imageResizerOpt = Option((new GetImageResizer).get())
-            WindowsPackage(
-              windowsSettings,
-              imageResizerOpt = imageResizerOpt
-            ).build()
+            WindowsPackage(windowsSettings).build()
         }
       case PackageType.Docker =>
         docker(inputs, build, value(mainClass), logger)
