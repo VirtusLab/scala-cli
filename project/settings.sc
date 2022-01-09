@@ -705,7 +705,41 @@ trait FormatNativeImageConf extends JavaModule {
   }
 }
 
-trait ScalaCliScalafixModule extends ScalafixModule {
+import mill.scalalib.api.CompilationResult
+trait ScalaCliCompile extends ScalaModule {
+  override def compile: T[CompilationResult] =
+    if (System.getenv("CI") != null) super.compile
+    else T.persistent {
+      val out = os.pwd / ".scala" / ".unused"
+
+      val sourceFiles = allSourceFiles()
+      val classFilesDir =
+        if (sourceFiles.isEmpty) out / "classes"
+        else {
+          def asOpt[T](values: IterableOnce[T], opt: String): Seq[String] =
+            values.toList.flatMap(v => Seq(opt, v.toString))
+
+          println(sourceFiles.take(2))
+
+          val proc = os.proc(
+            Seq("scala-cli", "compile", "--classpath"),
+            Seq("-S", scalaVersion()),
+            asOpt(scalacOptions(), "-O"),
+            asOpt(compileClasspath().map(_.path), "--jar"),
+            asOpt(scalacPluginClasspath().map(p => s"-Xplugin:${p.path}"), "-O"),
+            sourceFiles.map(_.path)
+          )
+
+          val compile = proc.call()
+          val out     = compile.out.trim
+          os.Path(out.split(File.pathSeparator).head)
+        }
+
+      CompilationResult(out / "unused.txt", PathRef(classFilesDir))
+    }
+}
+
+trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
   def scalafixConfig = T {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
     else Some(os.pwd / ".scalafix3.conf")
