@@ -28,7 +28,8 @@ object Export extends ScalaCommand[ExportOptions] {
         inputs,
         Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
-        )
+        ),
+        logger
       )
     }
     val scopedSources = value(crossSources.scopedSources(buildOptions))

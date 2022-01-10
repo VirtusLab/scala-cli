@@ -55,7 +55,8 @@ final class BspImpl(
         inputs,
         Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
-        )
+        ),
+        logger
       ).left.map((_, Scope.Main))
     }
 

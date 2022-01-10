@@ -1,4 +1,5 @@
 package scala.build.preprocessing.directives
+import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
@@ -18,7 +19,8 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
     val values       = directive.values
     val repositories = DirectiveUtil.stringValues(values, path, cwd)

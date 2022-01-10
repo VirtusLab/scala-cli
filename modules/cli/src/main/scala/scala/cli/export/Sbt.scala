@@ -169,8 +169,17 @@ final case class Sbt(
         )
       }
 
+    val customResourceSettings =
+      if (options.classPathOptions.resourcesDir.isEmpty) Nil
+      else {
+        val resources = options.classPathOptions.resourcesDir.map(p => s"""file("$p")""")
+        Seq(
+          s"""Compile / unmanagedResourceDirectories ++= Seq(${resources.mkString(", ")})"""
+        )
+      }
+
     SbtProject(
-      settings = Seq(customCompileOnlyJarsSettings, customJarsSettings)
+      settings = Seq(customCompileOnlyJarsSettings, customJarsSettings, customResourceSettings)
     )
   }
 

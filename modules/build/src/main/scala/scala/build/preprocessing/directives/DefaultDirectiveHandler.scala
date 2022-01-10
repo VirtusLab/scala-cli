@@ -1,6 +1,7 @@
 package scala.build.preprocessing.directives
 import os.Path
 
+import scala.build.Logger
 import scala.build.errors.{BuildException, UnusedDirectiveError}
 import scala.build.preprocessing.ScopePath
 
@@ -16,7 +17,8 @@ class DefaultDirectiveHandler[T] extends DirectiveHandler[T] {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedDirective[T]] = {
     val values = DirectiveUtil.stringValues(
       directive.values,

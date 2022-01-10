@@ -1,4 +1,5 @@
 package scala.build.preprocessing.directives
+import scala.build.Logger
 import scala.build.errors.{
   BuildException,
   NoTestFrameworkValueProvidedError,
@@ -21,7 +22,8 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
     val values = directive.values
     DirectiveUtil.stringValues(values, path, cwd) match {

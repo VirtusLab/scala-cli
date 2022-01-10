@@ -1,4 +1,5 @@
 package scala.build.preprocessing.directives
+import scala.build.Logger
 import scala.build.errors.{BuildException, NoScalaVersionProvidedError}
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
@@ -19,7 +20,8 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
     val values        = directive.values
     val scalaVersions = DirectiveUtil.stringValues(values, path, cwd)

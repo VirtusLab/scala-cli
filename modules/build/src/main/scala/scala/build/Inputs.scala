@@ -13,7 +13,7 @@ import scala.util.matching.Regex
 
 final case class Inputs(
   elements: Seq[Inputs.Element],
-  mainClassElement: Option[Inputs.Element],
+  mainClassElement: Option[Inputs.SourceFile],
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean

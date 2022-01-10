@@ -1,4 +1,5 @@
 package scala.build.preprocessing
+import scala.build.Logger
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.ConfigMonoid
@@ -16,7 +17,8 @@ object DirectivesProcessor {
     directives: Seq[StrictDirective],
     handlers: Seq[DirectiveHandler[T]],
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, DirectivesProcessorOutput[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
 
@@ -37,7 +39,7 @@ object DirectivesProcessor {
       .iterator
       .flatMap {
         case d @ StrictDirective(k, _) =>
-          handlersMap.get(k).iterator.map(_(d, path, cwd))
+          handlersMap.get(k).iterator.map(_(d, path, cwd, logger))
       }
       .toVector
       .sequence

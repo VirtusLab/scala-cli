@@ -1,7 +1,6 @@
 package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.Positioned
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
@@ -16,6 +15,7 @@ import scala.build.options.{
   ScalaOptions
 }
 import scala.build.preprocessing.ScopePath
+import scala.build.{Logger, Positioned}
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Platform"
   def description      = "Set the default platform to Scala.JS or Scala Native"
@@ -96,7 +96,8 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
     val values = directive.values
     handle(

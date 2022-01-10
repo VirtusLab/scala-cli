@@ -2,6 +2,7 @@ package scala.build.preprocessing.directives
 
 import os.Path
 
+import scala.build.Logger
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErrors}
 import scala.build.options.BuildRequirements
@@ -64,7 +65,8 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
   override def handleValues(
     directive: StrictDirective,
     path: Either[String, Path],
-    cwd: ScopePath
+    cwd: ScopePath,
+    logger: Logger
   ): Either[BuildException, ProcessedRequireDirective] = {
     val values         = DirectiveUtil.stringValues(directive.values, path, cwd)
     val nonscopedValue = values.find(_._3.isEmpty).map(_._1)
