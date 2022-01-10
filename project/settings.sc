@@ -707,36 +707,84 @@ trait FormatNativeImageConf extends JavaModule {
 
 import mill.scalalib.api.CompilationResult
 trait ScalaCliCompile extends ScalaModule {
-  override def compile: T[CompilationResult] =
-    if (System.getenv("CI") != null) super.compile
-    else T.persistent {
-      val out = os.pwd / ".scala" / ".unused"
-
-      val sourceFiles = allSourceFiles()
-      val classFilesDir =
-        if (sourceFiles.isEmpty) out / "classes"
-        else {
-          def asOpt[T](values: IterableOnce[T], opt: String): Seq[String] =
-            values.toList.flatMap(v => Seq(opt, v.toString))
-
-          println(sourceFiles.take(2))
-
-          val proc = os.proc(
-            Seq("scala-cli", "compile", "--classpath"),
-            Seq("-S", scalaVersion()),
-            asOpt(scalacOptions(), "-O"),
-            asOpt(compileClasspath().map(_.path), "--jar"),
-            asOpt(scalacPluginClasspath().map(p => s"-Xplugin:${p.path}"), "-O"),
-            sourceFiles.map(_.path)
-          )
-
-          val compile = proc.call()
-          val out     = compile.out.trim
-          os.Path(out.split(File.pathSeparator).head)
-        }
-
-      CompilationResult(out / "unused.txt", PathRef(classFilesDir))
+  def compileScalaCliVersion = "0.0.9"
+  def compileScalaCliUrl = {
+    val ver = compileScalaCliVersion
+    if (Properties.isLinux) Some(
+      s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-pc-linux.gz"
+    )
+    else if (Properties.isWin) Some(
+      s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-pc-win32.zip"
+    )
+    else if (Properties.isMac) Some(
+      s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-apple-darwin.gz"
+    )
+    else None
+  }
+  def compileScalaCliIsChanging = false
+  lazy val compileScalaCliImpl = compileScalaCliUrl.map { url =>
+    import coursier.cache.{ArchiveCache, FileCache}
+    import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
+    import coursier.util.Artifact
+    val logger = RefreshLogger.create(
+      if (coursier.paths.Util.useAnsiOutput())
+        ProgressBarRefreshDisplay.create()
+      else
+        new FallbackRefreshDisplay
+    )
+    val cache = FileCache().withLogger(logger)
+    val archiveCache = ArchiveCache()
+      .withCache(cache)
+    val artifact = Artifact(url).withChanging(compileScalaCliIsChanging)
+    val file = archiveCache.get(artifact).unsafeRun()(cache.ec) match {
+      case Left(e) => throw new Exception(e)
+      case Right(f) =>
+        if (!Properties.isWin)
+          f.setExecutable(true)
+        os.Path(f, os.pwd)
     }
+    PathRef(file)
+  }
+  def compileScalaCli =
+    compileScalaCliImpl
+  override def compile: T[CompilationResult] = {
+    val cliOpt = compileScalaCli.map(_.path)
+    cliOpt match {
+      case None => super.compile()
+      case Some(cli) if System.getenv("CI") == null =>
+        T.persistent {
+          val out = T.dest / "scala-cli"
+
+          val sourceFiles = allSourceFiles()
+          val classFilesDir =
+            if (sourceFiles.isEmpty) out / "classes"
+            else {
+              def asOpt(opt: String, values: IterableOnce[String]): Seq[String] =
+                values.toList.flatMap(v => Seq(opt, v))
+
+              val proc = os.proc(
+                cli,
+                "compile",
+                "--classpath",
+                "-S",
+                scalaVersion(),
+                asOpt("-O", scalacOptions()),
+                asOpt("--jar", compileClasspath().map(_.path.toString)),
+                asOpt("-O", scalacPluginClasspath().map(p => s"-Xplugin:${p.path}")),
+                sourceFiles.map(_.path)
+              )
+
+              val compile = proc.call()
+              val out     = compile.out.trim
+              os.Path(out.split(File.pathSeparator).head)
+            }
+
+          CompilationResult(out / "unused.txt", PathRef(classFilesDir))
+        }
+      case Some(_) =>
+        super.compile()
+    }
+  }
 }
 
 trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
