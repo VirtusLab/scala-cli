@@ -13,6 +13,8 @@ import mill._, scalalib._
 import scala.collection.JavaConverters._
 import scala.util.Properties
 
+private def isCI = System.getenv("CI") != null
+
 private def withGzipContent[T](gzFile: File)(f: InputStream => T): T = {
   var fis: FileInputStream  = null
   var gzis: GZIPInputStream = null
@@ -211,6 +213,7 @@ trait CliLaunchers extends SbtModule { self =>
       Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
         "-H:-ParseRuntimeOptions",
+        "-H:IncludeResourceBundles=com.google.javascript.jscomp.parsing.ParserConfig",
         s"-H:CLibraryPath=$cLibPath"
       )
     }
@@ -321,7 +324,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def nativeImage =
-    if (Properties.isLinux && arch == "x86_64")
+    if (Properties.isLinux && arch == "x86_64" && isCI)
       `linux-docker-image`.nativeImage
     else
       `base-image`.nativeImage
@@ -519,8 +522,7 @@ trait LocalRepo extends Module {
     define.Task.sequence(tasks)
   }
 
-  private def vcsState = {
-    val isCI = System.getenv("CI") != null
+  private def vcsState =
     if (isCI)
       T.persistent {
         VcsVersion.vcsState()
@@ -529,7 +531,6 @@ trait LocalRepo extends Module {
       T {
         VcsVersion.vcsState()
       }
-  }
   def localRepoZip = T {
     val repoVer   = vcsState().format()
     val ver       = version()

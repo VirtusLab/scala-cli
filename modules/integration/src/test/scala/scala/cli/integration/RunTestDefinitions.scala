@@ -47,7 +47,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     simpleScriptTest()
   }
 
-  def simpleJsTest(): Unit = {
+  def simpleJsTest(extraArgs: String*): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
@@ -61,16 +61,20 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--js").call(cwd = root).out.text().trim
-      expect(output == message)
+      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
+        root).out.text().trim
+      expect(output.linesIterator.toSeq.last == message)
     }
   }
 
-  if (TestUtil.canRunJs)
+  if (TestUtil.canRunJs) {
     test("simple script JS") {
       simpleJsTest()
     }
+    test("simple script JS in release mode") {
+      simpleJsTest("--js-mode", "release")
+    }
+  }
 
   def simpleJsViaConfigFileTest(): Unit = {
     val message = "Hello"
