@@ -513,13 +513,13 @@ trait LocalRepo extends Module {
 
   def publishStubs = T {
     val tasks = stubsModules.map(_.publishLocalNoFluff())
-    define.Task.sequence(tasks)
+    T.sequence(tasks)
   }
 
   def localRepo = T {
     val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
     val tasks    = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
-    define.Task.sequence(tasks)
+    T.sequence(tasks)
   }
 
   private def vcsState =

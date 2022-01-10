@@ -608,7 +608,7 @@ object `local-repo` extends LocalRepo {
 
 def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = T.command {
   publish.publishSonatype(
-    data = define.Task.sequence(tasks.value)(),
+    data = T.sequence(tasks.value)(),
     log = T.ctx().log
   )
 }
