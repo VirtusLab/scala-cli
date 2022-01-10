@@ -6,31 +6,29 @@ import coursier.parse.RepositoryParser
 import dependency.{NoAttributes, ScalaNameAttributes}
 
 import java.nio.charset.StandardCharsets
+import java.nio.file.Path
 
-import scala.build.Sources
 import scala.build.internal.Constants
-import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions}
+import scala.build.internal.Runner.frameworkName
+import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
+import scala.build.testrunner.AsmTestRunner
+import scala.build.{Logger, Sources}
 
 final case class Sbt(
   sbtVersion: String,
-  extraSettings: Seq[String]
+  extraSettings: Seq[String],
+  logger: Logger
 ) extends BuildTool {
   private val charSet = StandardCharsets.UTF_8
   private val q       = "\""
   private val nl      = System.lineSeparator()
 
-  private def mainSources(sources: Sources): SbtProject = {
-    val allSources = BuildTool.sources(sources, charSet)
+  private def sources(sourcesMain: Sources, sourcesTest: Sources): SbtProject = {
+    val mainSources = BuildTool.sources(sourcesMain, charSet)
+    val testSources = BuildTool.sources(sourcesTest, charSet)
     SbtProject(
-      mainSources = allSources,
-      settings = Seq(
-        // Using main sources as test sources too, so that their test suites
-        // are run too.
-        Seq(
-          "// Scala CLI doesn't distinguish main and test sources for now.",
-          "Test / sources ++= (Compile / sources).value"
-        )
-      )
+      mainSources = mainSources,
+      testSources = testSources
     )
   }
 
@@ -150,6 +148,21 @@ final case class Sbt(
     )
   }
 
+  private def customResourcesSettings(options: BuildOptions): SbtProject = {
+    val customResourceSettings =
+      if (options.classPathOptions.resourcesDir.isEmpty) Nil
+      else {
+        val resources = options.classPathOptions.resourcesDir.map(p => s"""file("$p")""")
+        Seq(
+          s"""Compile / unmanagedResourceDirectories ++= Seq(${resources.mkString(", ")})"""
+        )
+      }
+
+    SbtProject(
+      settings = Seq(customResourceSettings)
+    )
+  }
+
   private def customJarsSettings(options: BuildOptions): SbtProject = {
 
     val customCompileOnlyJarsSettings =
@@ -169,17 +182,8 @@ final case class Sbt(
         )
       }
 
-    val customResourceSettings =
-      if (options.classPathOptions.resourcesDir.isEmpty) Nil
-      else {
-        val resources = options.classPathOptions.resourcesDir.map(p => s"""file("$p")""")
-        Seq(
-          s"""Compile / unmanagedResourceDirectories ++= Seq(${resources.mkString(", ")})"""
-        )
-      }
-
     SbtProject(
-      settings = Seq(customCompileOnlyJarsSettings, customJarsSettings, customResourceSettings)
+      settings = Seq(customCompileOnlyJarsSettings, customJarsSettings)
     )
   }
 
@@ -233,7 +237,20 @@ final case class Sbt(
 
   private def testFrameworkSettings(options: BuildOptions): SbtProject = {
 
-    val testFrameworkSettings = options.testOptions.frameworkOpt match {
+    val testClassPath: Seq[Path] = options.artifacts(logger) match {
+      case Right(artifacts) => artifacts.classPath
+      case Left(exception) =>
+        logger.debug(exception.message)
+        Seq.empty
+    }
+
+    val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
+    val frameworkName0 = options.testOptions.frameworkOpt match {
+      case Some(fw) => Some(fw)
+      case None     => frameworkName(testClassPath, parentInspector).toOption
+    }
+
+    val testFrameworkSettings = frameworkName0 match {
       case None => Nil
       case Some(fw) =>
         Seq(s"""testFrameworks += new TestFramework("$fw")""")
@@ -244,7 +261,7 @@ final case class Sbt(
     )
   }
 
-  private def dependencySettings(options: BuildOptions): SbtProject = {
+  private def dependencySettings(options: BuildOptions, scope: Scope): SbtProject = {
 
     val depSettings = {
       val depStrings = options.classPathOptions
@@ -263,13 +280,12 @@ final case class Sbt(
               val suffixOpt0 =
                 if (s.fullCrossVersion.getOrElse(false)) Some(".cross(CrossVersion.full)")
                 else None
-              val sep =
-                if (s.platform.getOrElse(false)) "%%%"
-                else "%%"
+              val sep = "%%"
               (sep, suffixOpt0)
           }
+          val scope0 = if (scope == Scope.Test) "% Test" else ""
 
-          val baseDep = s"""$q$org$q $sep $q$name$q % $q$ver$q"""
+          val baseDep = s"""$q$org$q $sep $q$name$q % $q$ver$q $scope0"""
           suffixOpt.fold(baseDep)(suffix => s"($baseDep)$suffix")
         }
 
@@ -296,31 +312,38 @@ final case class Sbt(
     )
   }
 
-  def export(options: BuildOptions, sources: Sources): SbtProject = {
+  def export(
+    optionsMain: BuildOptions,
+    optionsTest: BuildOptions,
+    sourcesMain: Sources,
+    sourcesTest: Sources
+  ): SbtProject = {
 
     // TODO Handle Scala CLI cross-builds
 
     val projectChunks = Seq(
       SbtProject(settings = Seq(extraSettings)),
-      mainSources(sources),
+      sources(sourcesMain, sourcesTest),
       sbtVersionProject,
-      scalaVersionSettings(options),
-      scalacOptionsSettings(options),
-      mainClassSettings(options),
-      pureJavaSettings(options, sources),
-      javaOptionsSettings(options),
-      if (options.platform.value == Platform.JS)
-        scalaJsSettings(options.scalaJsOptions)
+      scalaVersionSettings(optionsMain),
+      scalacOptionsSettings(optionsMain),
+      mainClassSettings(optionsMain),
+      pureJavaSettings(optionsMain, sourcesMain),
+      javaOptionsSettings(optionsMain),
+      if (optionsMain.platform.value == Platform.JS)
+        scalaJsSettings(optionsMain.scalaJsOptions)
       else
         SbtProject(),
-      if (options.platform.value == Platform.Native)
-        scalaNativeSettings(options.scalaNativeOptions)
+      if (optionsMain.platform.value == Platform.Native)
+        scalaNativeSettings(optionsMain.scalaNativeOptions)
       else
         SbtProject(),
-      customJarsSettings(options),
-      testFrameworkSettings(options),
-      repositorySettings(options),
-      dependencySettings(options)
+      customJarsSettings(optionsMain),
+      customResourcesSettings(optionsMain),
+      testFrameworkSettings(optionsTest),
+      repositorySettings(optionsMain),
+      dependencySettings(optionsMain, Scope.Main),
+      dependencySettings(optionsTest, Scope.Test)
     )
 
     projectChunks.foldLeft(SbtProject())(_ + _)

@@ -293,6 +293,8 @@ Available in commands:
 
 Aliases: `--setting`
 
+#### `--sbt-version`
+
 #### `--output`
 
 Aliases: `-o`

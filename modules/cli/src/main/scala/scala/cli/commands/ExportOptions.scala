@@ -21,7 +21,8 @@ final case class ExportOptions(
   @Name("setting")
   @Group("Build Tool export options")
     sbtSetting: List[String] = Nil,
-
+  @Group("Build Tool export options")
+  sbtVersion: Option[String] = None,
   @Name("o")
   @Group("Build Tool export options")
     output: Option[String] = None

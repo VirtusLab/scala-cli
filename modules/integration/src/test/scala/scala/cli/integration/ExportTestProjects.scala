@@ -6,31 +6,62 @@ object ExportTestProjects {
 
   def jvmTest(scalaVersion: String): TestInputs = {
 
-    val testFile =
+    val mainFile =
       if (scalaVersion.startsWith("3."))
         s"""// using scala "$scalaVersion"
+           |// using resourceDir "./input"
            |// using lib "org.scala-lang::scala3-compiler:$scalaVersion"
            |
-           |object Test {
+           |import scala.io.Source
+           |
+           |object Hello {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + dotty.tools.dotc.config.Properties.simpleVersionString
            |    println(message)
+           |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+           |    println(s"resource:$${inputs.mkString(",")}")
            |  }
            |}
            |""".stripMargin
       else
         s"""// using scala "$scalaVersion"
+           |// using resourceDir "./input"
            |
-           |object Test {
+           |import scala.io.Source
+           |
+           |object Hello {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + scala.util.Properties.versionNumberString
            |    println(message)
+           |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+           |    println(s"resource:$${inputs.mkString(",")}")
            |  }
            |}
            |""".stripMargin
     TestInputs(
       Seq(
-        os.rel / "Test.scala" -> testFile
+        os.rel / "Hello.scala" -> mainFile,
+        os.rel / "Zio.test.scala" ->
+          """|// using lib "dev.zio::zio::1.0.8"
+             |// using lib "dev.zio::zio-test-sbt::1.0.8"
+             |
+             |import zio._
+             |import zio.test._
+             |import zio.test.Assertion.equalTo
+             |
+             |object HelloWorldSpec extends DefaultRunnableSpec {
+             |  def spec = suite("associativity")(
+             |    testM("associativity") {
+             |      check(Gen.anyInt, Gen.anyInt, Gen.anyInt) { (x, y, z) =>
+             |        assert((x + y) + z)(equalTo(x + (y + z)))
+             |      }
+             |    }
+             |  )
+             |}
+             |""".stripMargin,
+        os.rel / "input" / "input" ->
+          """|1
+             |2""".stripMargin
       )
     )
   }

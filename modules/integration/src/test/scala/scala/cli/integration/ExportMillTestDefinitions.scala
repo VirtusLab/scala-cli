@@ -52,11 +52,21 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
   def jvmTest(): Unit = {
     val inputs = addMillJvmOpts(ExportTestProjects.jvmTest(actualScalaVersion))
     inputs.fromRoot { root =>
+      val projectName = "project"
       os.proc(TestUtil.cli, "export", extraOptions, "--mill", "-o", "mill-proj", ".")
         .call(cwd = root, stdout = os.Inherit)
-      val res    = os.proc(root / "mill-proj" / launcher, "__.run").call(cwd = root / "mill-proj")
+      // main
+      val res =
+        os.proc(root / "mill-proj" / launcher, s"$projectName.run").call(cwd = root / "mill-proj")
       val output = res.out.text(Charset.defaultCharset())
       expect(output.contains("Hello from " + actualScalaVersion))
+      // resource
+      expect(output.contains("resource:1,2"))
+      // test
+      val testRes =
+        os.proc(root / "mill-proj" / launcher, s"$projectName.test").call(cwd = root / "mill-proj")
+      val testOutput = testRes.out.text(Charset.defaultCharset())
+      expect(testOutput.contains("1 succeeded"))
     }
   }
   if (runExportTests)

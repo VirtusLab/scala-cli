@@ -5,21 +5,26 @@ import coursier.parse.RepositoryParser
 import dependency.NoAttributes
 
 import java.nio.charset.StandardCharsets
+import java.nio.file.Path
 
-import scala.build.Sources
 import scala.build.internal.Constants
+import scala.build.internal.Runner.frameworkName
 import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions}
+import scala.build.testrunner.AsmTestRunner
+import scala.build.{Logger, Sources}
 
 final case class Mill(
   millVersion: String,
-  launchers: Seq[(os.RelPath, Array[Byte])]
+  launchers: Seq[(os.RelPath, Array[Byte])],
+  logger: Logger
 ) extends BuildTool {
 
   private val charSet = StandardCharsets.UTF_8
 
-  private def sourcesSettings(sources: Sources): MillProject = {
-    val allSources = BuildTool.sources(sources, charSet)
-    MillProject(mainSources = allSources)
+  private def sourcesSettings(mainSources: Sources, testSources: Sources): MillProject = {
+    val mainSources0 = BuildTool.sources(mainSources, charSet)
+    val testSources0 = BuildTool.sources(testSources, charSet)
+    MillProject(mainSources = mainSources0, testSources = testSources0)
   }
 
   private def scalaVersionSettings(options: BuildOptions, sources: Sources): MillProject = {
@@ -57,9 +62,13 @@ final case class Mill(
     MillProject(scalaNativeVersion = scalaNativeVersion)
   }
 
-  private def dependencySettings(options: BuildOptions): MillProject = {
-    val deps = options.classPathOptions.extraDependencies.map(_.value.render)
-    MillProject(deps = deps)
+  private def dependencySettings(
+    mainOptions: BuildOptions,
+    testOptions: BuildOptions
+  ): MillProject = {
+    val mainDeps = mainOptions.classPathOptions.extraDependencies.map(_.value.render)
+    val testDeps = testOptions.classPathOptions.extraDependencies.map(_.value.render)
+    MillProject(mainDeps = mainDeps, testDeps = testDeps)
   }
 
   private def repositorySettings(options: BuildOptions): MillProject = {
@@ -82,6 +91,23 @@ final case class Mill(
 
     MillProject(
       extraDecls = repoDecls
+    )
+  }
+
+  private def customResourcesSettings(options: BuildOptions): MillProject = {
+
+    val customResourcesDecls =
+      if (options.classPathOptions.resourcesDir.isEmpty) Nil
+      else {
+        val resources =
+          options.classPathOptions.resourcesDir.map(p => s"""PathRef(os.Path("$p"))""")
+        Seq(
+          s"""def runClasspath = super.runClasspath() ++ Seq(${resources.mkString(", ")})"""
+        )
+      }
+
+    MillProject(
+      extraDecls = customResourcesDecls
     )
   }
 
@@ -111,7 +137,19 @@ final case class Mill(
 
   private def testFrameworkSettings(options: BuildOptions): MillProject = {
 
-    val testFrameworkDecls = options.testOptions.frameworkOpt match {
+    val testClassPath: Seq[Path] = options.artifacts(logger) match {
+      case Right(artifacts) => artifacts.classPath
+      case Left(exception) =>
+        logger.debug(exception.message)
+        Seq.empty
+    }
+    val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
+    val frameworkName0 = options.testOptions.frameworkOpt match {
+      case Some(fw) => Some(fw)
+      case None     => frameworkName(testClassPath, parentInspector).toOption
+    }
+
+    val testFrameworkDecls = frameworkName0 match {
       case None => Nil
       case Some(fw) =>
         Seq(s"""def testFramework = "$fw"""")
@@ -122,28 +160,35 @@ final case class Mill(
     )
   }
 
-  def export(options: BuildOptions, sources: Sources): MillProject = {
+  def export(
+    optionsMain: BuildOptions,
+    optionsTest: BuildOptions,
+    sourcesMain: Sources,
+    sourcesTest: Sources
+  ): MillProject = {
 
     // FIXME Put a sensible value in MillProject.nameOpt
 
     val baseSettings = MillProject(
       millVersion = Some(millVersion),
       launchers = launchers,
-      mainClass = options.mainClass
+      mainClass = optionsMain.mainClass
     )
 
     val settings = Seq(
       baseSettings,
-      sourcesSettings(sources),
-      scalaVersionSettings(options, sources),
-      dependencySettings(options),
-      repositorySettings(options),
-      if (options.platform.value == Platform.JS) scalaJsSettings(options.scalaJsOptions)
+      sourcesSettings(sourcesMain, sourcesTest),
+      scalaVersionSettings(optionsMain, sourcesMain),
+      dependencySettings(optionsMain, optionsTest),
+      repositorySettings(optionsMain),
+      if (optionsMain.platform.value == Platform.JS) scalaJsSettings(optionsMain.scalaJsOptions)
       else MillProject(),
-      if (options.platform.value == Platform.Native) scalaNativeSettings(options.scalaNativeOptions)
+      if (optionsMain.platform.value == Platform.Native)
+        scalaNativeSettings(optionsMain.scalaNativeOptions)
       else MillProject(),
-      customJarsSettings(options),
-      testFrameworkSettings(options)
+      customResourcesSettings(optionsMain),
+      customJarsSettings(optionsMain),
+      testFrameworkSettings(optionsTest)
     )
 
     settings.foldLeft(MillProject())(_ + _)
