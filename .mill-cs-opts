@@ -1,0 +1,7 @@
+# Java 17 required for domain socket stuff
+--jvm
+temurin:17
+# fixes some issues when fetching snapshot artifacts
+io.get-coursier::coursier:2.1.0-M2
+--scala
+2.13.8
