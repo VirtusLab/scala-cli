@@ -414,6 +414,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def bspVersion = "${Deps.bsp4j.dep.version}"
            |  def scala212 = "${Scala.scala212}"
            |  def scala213 = "${Scala.scala213}"
+           |  def scalaSnapshot213 = "${Scala.scalaSnapshot213}"
            |  def scala3   = "${Scala.scala3}"
            |  def defaultScala = "${Scala.defaultUser}"
            |  def bloopVersion = "${Deps.bloopConfig.dep.version}"

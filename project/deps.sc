@@ -3,11 +3,12 @@ import mill._, scalalib._
 import scala.util.Properties
 
 object Scala {
-  def scala212  = "2.12.15"
-  def scala213  = "2.13.6"
-  def scala3    = "3.0.2"
-  val allScala2 = Seq(scala213, scala212)
-  val all       = allScala2 ++ Seq(scala3)
+  def scala212         = "2.12.15"
+  def scala213         = "2.13.6"
+  def scalaSnapshot213 = "2.13.8-bin-e814d78"
+  def scala3           = "3.0.2"
+  val allScala2        = Seq(scala213, scala212)
+  val all              = allScala2 ++ Seq(scala3)
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
