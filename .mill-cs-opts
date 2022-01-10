@@ -1,0 +1,3 @@
+# Java 17 required for domain socket stuff
+--jvm
+temurin:17
