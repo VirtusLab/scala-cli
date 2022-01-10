@@ -26,9 +26,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher artifacts/
       if: runner.os == 'Linux'
@@ -59,11 +59,12 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Generate native launcher
-      run: ./mill -i show defaultNativeImage
+      run: .github/scripts/generate-native-image.sh
+      shell: bash
     - name: Build OS packages
       run: .github/scripts/generate-os-packages.sh
       shell: bash
@@ -89,11 +90,12 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Generate native launcher
-      run: ./mill -i show cli.nativeImageMostlyStatic
+      run: .github/scripts/generate-native-image.sh mostly-static
+      shell: bash
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
     - name: Build slim docker image
@@ -127,11 +129,12 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Generate native launcher
-      run: ./mill -i show cli.nativeImageStatic
+      run: .github/scripts/generate-native-image.sh static
+      shell: bash
     - name: Copy artifacts
       run: ./mill -i copyStaticLauncher artifacts/
     - name: Build docker image
@@ -165,9 +168,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Test documentation
       run: .github/scripts/check_docs.sh
     - name: Test gifs
@@ -182,9 +185,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
@@ -206,9 +209,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
         apps: scalafmt:3.0.0
     - run: scalafmt --check
 
@@ -221,9 +224,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
       run: |
         ./mill -i generate-reference-doc.run --check || (
@@ -243,9 +246,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
     - uses: actions/upload-artifact@v2.3.1
       with:
@@ -264,9 +267,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: GPG setup
       run: .github/scripts/gpg-setup.sh
       env:
@@ -298,9 +301,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
     - uses: actions/download-artifact@v2
       if: env.SHOULD_PUBLISH == 'true'
@@ -323,9 +326,9 @@ jobs:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v6.3
-      - uses: coursier/setup-action@v1.1.2
+      - uses: coursier/setup-action@v1.2.0-M1
         with:
-          jvm: 11
+          jvm: "temurin:17"
       - uses: actions/download-artifact@v2
         with:
           name: launchers

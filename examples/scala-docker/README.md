@@ -24,7 +24,7 @@ scala-cli package --docker HelloDocker.scala --docker-image-repository hello-doc
 ```
 
 <!-- Expected:
-Started building docker image with your application, it would take some time
+Started building docker image with your application, it might take some time
 Built docker image, run it with
   docker run hello-docker:latest
 -->
@@ -44,7 +44,7 @@ It is also supported to package your app in `JS` or `Native` environments.
 scala-cli package --js --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 <!-- Expected:
-Started building docker image with your application, it would take some time
+Started building docker image with your application, it might take some time
 Built docker image, run it with
   docker run hello-docker:latest
 -->

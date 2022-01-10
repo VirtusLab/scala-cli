@@ -1,12 +1,18 @@
 package scala.build.blooprifle.internal
 
 import libdaemonjvm.LockFiles
-import org.scalasbt.ipcsocket.NativeErrorException
 import snailgun.protocol.Streams
 import snailgun.{Client, TcpClient}
 
-import java.io.{File, IOException, InputStream, OutputStream}
-import java.net.{ConnectException, InetSocketAddress, Socket}
+import java.io.{File, InputStream, OutputStream}
+import java.net.{
+  ConnectException,
+  InetSocketAddress,
+  Socket,
+  StandardProtocolFamily,
+  UnixDomainSocketAddress
+}
+import java.nio.channels.SocketChannel
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicBoolean
@@ -20,7 +26,7 @@ import scala.build.blooprifle.{
 }
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
-import scala.util.{Failure, Properties, Success, Try}
+import scala.util.{Failure, Success, Try}
 
 object Operations {
 
@@ -31,7 +37,7 @@ object Operations {
       Files.createDirectories(path)
       Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwx------"))
     }
-    LockFiles.under(path, address.pipeName)
+    LockFiles.under(path)
   }
 
   /** Checks whether a bloop server is running at this host / port.
@@ -45,31 +51,38 @@ object Operations {
   def check(
     address: BloopRifleConfig.Address,
     logger: BloopRifleLogger
-  ): Boolean =
+  ): Boolean = {
+    logger.debug(s"Checking for a running Bloop server at ${address.render} ...")
     address match {
       case BloopRifleConfig.Address.Tcp(host, port) =>
         // inspired by https://github.com/scalacenter/bloop/blob/cbddb8baaf639a4e08ee630f1ebc559dc70255a8/bloopgun/src/main/scala/bloop/bloopgun/core/Shell.scala#L174-L202
         Util.withSocket { socket =>
           socket.setReuseAddress(true)
           socket.setTcpNoDelay(true)
-          logger.debug(s"Attempting a connection to bloop server ${address.render} ...")
-          try {
-            socket.connect(new InetSocketAddress(host, port))
-            socket.isConnected()
-          }
-          catch {
-            case _: ConnectException => false
-          }
+          logger.debug(s"Attempting to connect to Bloop server ${address.render} ...")
+          val res =
+            try {
+              socket.connect(new InetSocketAddress(host, port))
+              socket.isConnected()
+            }
+            catch {
+              case _: ConnectException => false
+            }
+          logger.debug(s"Connection attempt result: $res")
+          res
         }
       case addr: BloopRifleConfig.Address.DomainSocket =>
         val files = lockFiles(addr)
-        val res   = libdaemonjvm.client.Connect.tryConnect(files)
+        logger.debug(s"Attempting to connect to Bloop server ${address.render} ...")
+        val res = libdaemonjvm.client.Connect.tryConnect(files)
+        logger.debug(s"Connection attempt result: $res")
         res match {
           case Some(Right(e)) => e.merge.close()
           case _              =>
         }
         res.exists(_.isRight)
     }
+  }
 
   /** Starts a new bloop server.
     *
@@ -95,15 +108,11 @@ object Operations {
     logger: BloopRifleLogger
   ): Future[Unit] = {
 
-    val addressArgs = address match {
-      case BloopRifleConfig.Address.Tcp(host, port) => Seq(host, port.toString)
-      case BloopRifleConfig.Address.DomainSocket(path, pipeName) =>
-        val arg =
-          if (Properties.isWin)
-            s"daemon:$path${File.pathSeparator}$pipeName"
-          else
-            s"daemon:$path"
-        Seq(arg)
+    val (addressArgs, mainClass) = address match {
+      case BloopRifleConfig.Address.Tcp(host, port) =>
+        (Seq(host, port.toString), "bloop.Server")
+      case BloopRifleConfig.Address.DomainSocket(path) =>
+        (Seq(s"daemon:$path"), "bloop.Bloop")
     }
     val command =
       Seq(javaPath) ++
@@ -111,7 +120,7 @@ object Operations {
         Seq(
           "-cp",
           classPath.map(_.toString).mkString(File.pathSeparator),
-          "bloop.Server"
+          mainClass
         ) ++
         addressArgs
     val b = new ProcessBuilder(command: _*)
@@ -147,10 +156,7 @@ object Operations {
             None
 
         for (completion <- completionOpt) {
-          try promise.complete(completion)
-          catch {
-            case _: IllegalStateException => // promise already completed, ignoring it
-          }
+          promise.tryComplete(completion)
           f.cancel(false)
         }
     }
@@ -166,11 +172,6 @@ object Operations {
 
     promise.future
   }
-
-  private val ignoredErrnos = Set(
-    61, // Connection refused
-    111 //
-  )
 
   private def nailgunClient(address: BloopRifleConfig.Address): Client =
     address match {
@@ -227,8 +228,6 @@ object Operations {
         Array("--protocol", "tcp", "--host", t.host, "--port", t.port.toString)
       case s: BspConnectionAddress.UnixDomainSocket =>
         Array("--protocol", "local", "--socket", s.path.getAbsolutePath)
-      case p: BspConnectionAddress.WindowsNamedPipe =>
-        Array("--protocol", "local", "--pipe-name", p.name)
     }
     val runnable: Runnable = logger.runnable(threadName) { () =>
       val maybeRetCode = Try {
@@ -257,16 +256,15 @@ object Operations {
         case t: BspConnectionAddress.Tcp => s"${t.host}:${t.port}"
         case s: BspConnectionAddress.UnixDomainSocket =>
           "local:" + s.path.toURI.toASCIIString.stripPrefix("file:")
-        case p: BspConnectionAddress.WindowsNamedPipe => p.name
       }
       def openSocket(period: FiniteDuration, timeout: FiniteDuration) = bspSocketOrPort match {
         case t: BspConnectionAddress.Tcp =>
           new Socket(t.host, t.port)
         case s: BspConnectionAddress.UnixDomainSocket =>
-          val socketFile     = s.path
-          var count          = 0
-          val maxCount       = (timeout / period).toInt
-          var socket: Socket = null
+          val socketFile            = s.path
+          var count                 = 0
+          val maxCount              = (timeout / period).toInt
+          var socket: SocketChannel = null
           while (socket == null && count < maxCount && closed.value.isEmpty) {
             logger.debug {
               if (socketFile.exists())
@@ -275,78 +273,23 @@ object Operations {
                 s"BSP connection at $socketFile not found, waiting $period"
             }
             Thread.sleep(period.toMillis)
-            if (socketFile.exists())
-              socket =
-                // format: off
-                try {
-                  try {
-                    (new NamedSocketBuilder).create(socketFile.getAbsolutePath)
-                  }
-                // format: on
-                  catch {
-                    case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
-                      throw ex.getCause
-                  }
-                }
-                catch {
-                  case ExCause(ex0: NativeErrorException) if ignoredErrnos(ex0.returnCode) =>
-                    logger.debug(s"Error when connecting to $socketFile: ${ex0.getMessage}")
-                    null
-                  case e: NativeErrorException if ignoredErrnos(e.returnCode) =>
-                    logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
-                    null
-                }
+            if (socketFile.exists()) {
+              val addr = UnixDomainSocketAddress.of(socketFile.toPath)
+              socket = SocketChannel.open(StandardProtocolFamily.UNIX)
+              socket.connect(addr)
+              socket.finishConnect()
+            }
             count += 1
           }
           if (socket != null) {
             logger.debug(s"BSP connection at $socketFile opened")
-            socket
+            libdaemonjvm.Util.socketFromChannel(socket)
           }
           else if (closed.value.isEmpty)
             sys.error(s"Timeout while waiting for BSP socket to be created in $socketFile")
           else
             sys.error(
               s"Bloop BSP connection in $socketFile was unexpectedly closed or bloop didn't start."
-            )
-        case p: BspConnectionAddress.WindowsNamedPipe =>
-          var count          = 0
-          val maxCount       = (timeout / period).toInt
-          var socket: Socket = null
-          while (socket == null && count < maxCount && closed.value.isEmpty) {
-            Thread.sleep(period.toMillis)
-            socket =
-              // format: off
-              try {
-                try {
-                  (new NamedSocketBuilder).create(p.name)
-                }
-              // format: on
-                catch {
-                  case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
-                    throw ex.getCause
-                }
-              }
-              catch {
-                case ex: IOException
-                    if ex.getMessage != null &&
-                      ex.getMessage.contains("The system cannot find the file specified.") =>
-                  logger.debug(s"Error when connecting to ${p.name}: ${ex.getMessage}")
-                  null
-                case e: NativeErrorException if e.returnCode == 111 =>
-                  logger.debug(s"Error when connecting to ${p.name}: ${e.getMessage}")
-                  null
-              }
-            count += 1
-          }
-          if (socket != null) {
-            logger.debug(s"BSP connection at ${p.name} opened")
-            socket
-          }
-          else if (closed.value.isEmpty)
-            sys.error(s"Timeout while waiting for BSP socket to be created in ${p.name}")
-          else
-            sys.error(
-              s"Bloop BSP connection in ${p.name} was unexpectedly closed or bloop didn't start."
             )
       }
       val closed = promise.future
@@ -427,10 +370,5 @@ object Operations {
     }
 
     Await.result(p.future, duration)
-  }
-
-  private object ExCause {
-    def unapply(ex: Throwable): Option[Throwable] =
-      Option(ex.getCause)
   }
 }

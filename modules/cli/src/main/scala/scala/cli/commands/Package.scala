@@ -25,7 +25,7 @@ import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
-import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
+import scala.cli.internal.{ProcUtil, ScalaJsLinker}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
@@ -237,11 +237,7 @@ object Package extends ScalaCommand[PackageOptions] {
           case PackageType.Rpm =>
             RedHatPackage(redHatSettings).build()
           case PackageType.Msi =>
-            val imageResizerOpt = Option((new GetImageResizer).get())
-            WindowsPackage(
-              windowsSettings,
-              imageResizerOpt = imageResizerOpt
-            ).build()
+            WindowsPackage(windowsSettings).build()
         }
       case PackageType.Docker =>
         docker(inputs, build, value(mainClass), logger)
@@ -353,7 +349,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     val from = build.options.packageOptions.dockerOptions.from.getOrElse {
       build.options.platform.value match {
-        case Platform.JVM    => "openjdk:11-jre-slim"
+        case Platform.JVM    => "openjdk:17-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
       }
@@ -380,7 +376,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
 
     logger.message(
-      "Started building docker image with your application, it would take some time"
+      "Started building docker image with your application, it might take some time"
     )
 
     DockerPackage(appPath, dockerSettings).build()
@@ -459,6 +455,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     alreadyExistsCheck()
     BootstrapGenerator.generate(params, destPath.toNIO)
+    ProcUtil.maybeUpdatePreamble(destPath)
   }
 
   private def assembly(
@@ -489,6 +486,7 @@ object Package extends ScalaCommand[PackageOptions] {
       .withPreamble(preamble)
     alreadyExistsCheck()
     AssemblyGenerator.generate(params, destPath.toNIO)
+    ProcUtil.maybeUpdatePreamble(destPath)
   }
 
   def withLibraryJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {

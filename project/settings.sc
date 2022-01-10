@@ -1,5 +1,5 @@
 import $ivy.`com.goyeau::mill-scalafix:0.2.5`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.12`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.13`
 import $file.deps, deps.{Deps, Docker, buildCsVersion}
 
 import com.goyeau.mill.scalafix.ScalafixModule
@@ -233,59 +233,12 @@ trait CliLaunchers extends SbtModule { self =>
       val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "csjniutils.lib")
     }
-    private def copyIpcsocketDllTo(cs: String, destDir: os.Path): Unit = {
-      val ipcsocketVersion = Deps.ipcSocket.dep.version
-      val libRes = os.proc(
-        cs,
-        "fetch",
-        "--intransitive",
-        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-pc-win32,ext=lib,type=lib",
-        "-A",
-        "lib"
-      ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
-      os.copy.over(libPath, destDir / "ipcsocket.lib")
-    }
-    private def copyIpcsocketMacATo(cs: String, destDir: os.Path): Unit = {
-      val ipcsocketVersion = Deps.ipcSocket.dep.version
-      val libRes = os.proc(
-        cs,
-        "fetch",
-        "--intransitive",
-        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-apple-darwin,ext=a,type=a",
-        "-A",
-        "a"
-      ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
-      os.copy.over(libPath, destDir / "libipcsocket.a")
-    }
-    private def copyIpcsocketLinuxATo(cs: String, destDir: os.Path): Unit = {
-      val ipcsocketVersion = Deps.ipcSocket.dep.version
-      val libRes = os.proc(
-        cs,
-        "fetch",
-        "--intransitive",
-        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-pc-linux,ext=a,type=a",
-        "-A",
-        "a"
-      ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
-      os.copy.over(libPath, destDir / "libipcsocket.a")
-    }
     def staticLibDir = T {
       val dir = nativeImageDockerWorkingDir() / staticLibDirName
       os.makeDir.all(dir)
 
-      if (Properties.isWin) {
+      if (Properties.isWin)
         copyCsjniutilTo(cs(), dir)
-        copyIpcsocketDllTo(cs(), dir)
-      }
-
-      if (Properties.isMac)
-        copyIpcsocketMacATo(cs(), dir)
-
-      if (Properties.isLinux && arch == "x86_64")
-        copyIpcsocketLinuxATo(cs(), dir)
 
       PathRef(dir)
     }
@@ -306,12 +259,15 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   object `static-image` extends CliNativeImage {
-    def nativeImageDockerParams = Some(
-      NativeImage.linuxStaticParams(
-        Docker.muslBuilder,
-        s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
+    def nativeImageDockerParams = T {
+      buildHelperImage()
+      Some(
+        NativeImage.linuxStaticParams(
+          Docker.muslBuilder,
+          s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
+        )
       )
-    )
+    }
     def nativeImageOptions = T {
       super.nativeImageOptions() ++ Seq(
         "-H:-CheckToolchain"
@@ -322,9 +278,9 @@ trait CliLaunchers extends SbtModule { self =>
         .call(cwd = os.pwd / "project" / "musl-image", stdout = os.Inherit)
       ()
     }
-    def nativeImage = T {
+    def writeNativeImageScript(dest: String) = T.command {
       buildHelperImage()
-      super.nativeImage()
+      super.writeNativeImageScript(dest)()
     }
   }
 
@@ -760,4 +716,11 @@ trait ScalaCliScalafixModule extends ScalafixModule {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
   }
+}
+
+trait ScalaCliCrossSbtModule extends CrossSbtModule {
+  def javacOptions = super.javacOptions() ++ Seq(
+    "--release",
+    "16"
+  )
 }

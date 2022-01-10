@@ -5,6 +5,7 @@
 import scala.util.matching.Regex
 import scala.io.StdIn.readLine
 import fansi.Color.{Red, Blue, Green}
+import java.security.SecureRandom
 
 val SnippetBlock  = """ *```[^ ]+ title=([\w\d\.\-\/_]+) *""".r
 val CodeBlockEnds = """ *``` *""".r
@@ -125,13 +126,29 @@ def mkBashScript(content: Seq[String]) =
      |${content.mkString("\n")}
      |""".stripMargin
 
+private lazy val baseTmpDir = {
+  val random  = new SecureRandom
+  val dirName = s"run-${math.abs(random.nextInt.toLong)}"
+  val dir     = os.pwd / "out" / "sclicheck" / dirName
+  dir.toIO.deleteOnExit()
+  dir
+}
+
 def checkFile(file: os.Path, options: Options): Unit =
   val content  = os.read.lines(file).toList
   val commands = parse(content, Vector(), Context(file.relativeTo(os.pwd), 1))
   val destName = file.last.stripSuffix(".md")
   val out =
     sys.env.get("SCLICHECK_DEST") match
-      case None => os.temp.dir(prefix = destName)
+      case None =>
+        val isCi = System.getenv("CI") != null
+        if (isCi) {
+          val dir = baseTmpDir / destName
+          os.makeDir.all(dir)
+          dir
+        }
+        else
+          os.temp.dir(prefix = destName)
       case Some(path) =>
         val dest = os.Path(path)
         println(s"Cleaning dest directory $dest")

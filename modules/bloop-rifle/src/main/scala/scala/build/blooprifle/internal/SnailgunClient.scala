@@ -1,18 +1,14 @@
 package scala.build.blooprifle.internal
 
 import libdaemonjvm.errors.SocketExceptionLike
-import org.scalasbt.ipcsocket.NativeErrorException
 import snailgun.logging.Logger
 import snailgun.protocol.{Protocol, Streams}
 
-import java.io.IOException
 import java.net.{Socket, SocketException}
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicBoolean
 
 class SnailgunClient(openSocket: () => Socket) extends snailgun.Client {
-
-  import SnailgunClient.SocketNativeException
 
   def run(
     cmd: String,
@@ -47,10 +43,6 @@ class SnailgunClient(openSocket: () => Socket) extends snailgun.Client {
         logger.debug("Tracing an ignored socket exception-like...")
         logger.trace(t)
         ()
-      case t @ SocketNativeException(_) =>
-        logger.debug("Tracing an ignored socket native error...")
-        logger.trace(t)
-        ()
     }
   }
 }
@@ -58,19 +50,4 @@ class SnailgunClient(openSocket: () => Socket) extends snailgun.Client {
 object SnailgunClient {
   def apply(openSocket: () => Socket): SnailgunClient =
     new SnailgunClient(openSocket)
-
-  private object SocketNativeException {
-    def unapply(t: Throwable): Option[NativeErrorException] =
-      t match {
-        case e: IOException =>
-          e.getCause match {
-            case e0: NativeErrorException =>
-              Some(e0)
-            case _ =>
-              None
-          }
-        case _ =>
-          None
-      }
-  }
 }

@@ -1,6 +1,6 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.12`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.13`
 import $file.project.deps, deps.{Deps, Docker, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{
@@ -10,6 +10,7 @@ import $file.project.settings, settings.{
   HasTests,
   LocalRepo,
   PublishLocalNoFluff,
+  ScalaCliCrossSbtModule,
   ScalaCliScalafixModule,
   localRepoResourcePath,
   platformExecutableJarExtension
@@ -150,7 +151,8 @@ object dummy extends Module {
   }
 }
 
-class BuildMacros(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Ywarn-unused")
@@ -163,7 +165,8 @@ class BuildMacros(val crossScalaVersion: String) extends CrossSbtModule with Sca
 }
 
 class Build(val crossScalaVersion: String)
-    extends CrossSbtModule with ScalaCliPublishModule with HasTests with ScalaCliScalafixModule {
+    extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests
+    with ScalaCliScalafixModule {
   def moduleDeps = Seq(
     `bloop-rifle`(),
     `build-macros`(),
@@ -313,6 +316,9 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   def scalaVersion = Scala.defaultInternal
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
+  }
+  def javacOptions = T {
+    super.javacOptions() ++ Seq("--release", "16")
   }
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
@@ -475,7 +481,8 @@ trait JvmIntegration extends CliIntegration {
   def cliKind      = "jvm"
 }
 
-class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ {
@@ -515,7 +522,8 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
   }
 }
 
-class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class TestRunner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ {
@@ -531,7 +539,8 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
   def mainClass = Some("scala.build.testrunner.DynamicTestRunner")
 }
 
-class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with HasTests
     with ScalaCliScalafixModule {
   def scalacOptions = T {
@@ -540,9 +549,7 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
     Deps.collectionCompat,
-    Deps.ipcSocket,
-    Deps.libdaemonjvm
-      .exclude(("org.scala-sbt.ipcsocket", "ipcsocket")),
+    Deps.libdaemonjvm,
     Deps.snailgun
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
@@ -571,7 +578,8 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
   object test extends Tests with ScalaCliScalafixModule
 }
 
-class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class TastyLib(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T(
     super.scalacOptions() ++ {

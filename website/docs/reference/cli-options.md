@@ -121,10 +121,6 @@ Port the compilation server should bind to (pass `-1` to pick a random port)
 
 Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
 
-#### `--bloop-pipe-name`
-
-Pipe name of the Bloop daemon (Windows x86_64 only)
-
 #### `--bloop-version`
 
 If Bloop isn't already running, the version we should start

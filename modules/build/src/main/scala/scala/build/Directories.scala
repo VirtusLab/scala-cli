@@ -25,8 +25,8 @@ object Directories {
     lazy val virtualProjectsDir: os.Path =
       os.Path(projDirs.cacheDir, Os.pwd) / "virtual-projects"
     lazy val bspSocketDir: os.Path =
-      // FIXME I would have preferred to use projDirs.dataLocalDir, but it seems either ipcsocket
-      // or the bloop named socket support, or name sockets in general, aren't fine with it.
+      // FIXME I would have preferred to use projDirs.dataLocalDir, but it seems named socket
+      // support, or name sockets in general, aren't fine with it.
       os.Path(projDirs.cacheDir, Os.pwd) / "bsp-sockets"
     lazy val bloopDaemonDir: os.Path = {
       val baseDir =

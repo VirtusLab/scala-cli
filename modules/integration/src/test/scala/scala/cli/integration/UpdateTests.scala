@@ -66,7 +66,10 @@ class UpdateTests extends munit.FunSuite {
       // install 1 version
       installScalaCli(root, binDummyScalaCliFirst, binDirPath)
 
-      val v1Install = os.proc(binDirPath / dummyScalaCliBinName).call(
+      val dummyScalaCliCommand =
+        Seq[os.Shellable]("/usr/bin/env", "bash", binDirPath / dummyScalaCliBinName)
+
+      val v1Install = os.proc(dummyScalaCliCommand).call(
         cwd = root,
         stdin = os.Inherit
       ).out.text().trim

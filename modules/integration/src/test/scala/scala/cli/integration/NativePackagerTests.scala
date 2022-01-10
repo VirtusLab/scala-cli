@@ -117,10 +117,13 @@ class NativePackagerTests extends munit.FunSuite {
 
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
 
+        val destDir = os.rel / "package"
+        os.makeDir.all(root / destDir)
+
         // format: off
         val cmd = Seq[os.Shellable](
           TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--deb",
-          "--output", s"$appName.deb",
+          "--output", destDir / s"$appName.deb",
           "--maintainer", "scala-cli-test",
           "--description", "scala-cli-test",
           "--launcher-app", appName
@@ -132,19 +135,40 @@ class NativePackagerTests extends munit.FunSuite {
           stdout = os.Inherit
         )
 
-        val launcher = root / s"$appName.deb"
+        val launcher = root / destDir / s"$appName.deb"
         expect(os.isFile(launcher))
 
-        if (TestUtil.isCI) {
-          os.proc("dpkg", "-x", launcher, root).call(
+        if (hasDocker) {
+          val script =
+            s"""#!/usr/bin/env bash
+               |set -e
+               |dpkg -x "$appName.deb" .
+               |exec ./usr/share/scala/$appName
+               |""".stripMargin
+          os.write(root / destDir / "run.sh", script)
+          os.perms.set(root / destDir / "run.sh", "rwxr-xr-x")
+          val termOpt = if (System.console() == null) Nil else Seq("-t")
+          val ciOpt   = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
+          val res = os.proc(
+            "docker",
+            "run",
+            termOpt,
+            ciOpt,
+            "--rm",
+            "-w",
+            "/workdir",
+            "-v",
+            s"${root / destDir}:/workdir",
+            "openjdk:17-slim",
+            "./run.sh"
+          ).call(
             cwd = root,
-            stdin = os.Inherit,
-            stdout = os.Inherit
+            stdout = os.Pipe,
+            mergeErrIntoOut = true
           )
-
-          val output =
-            os.proc(s"$root/usr/share/scala/$appName").call(cwd = os.root).out.text().trim
-          expect(output == message)
+          expect(res.exitCode == 0)
+          val output = res.out.text().trim
+          expect(output.endsWith(message))
         }
       }
     }
@@ -319,7 +343,7 @@ class NativePackagerTests extends munit.FunSuite {
       finally os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
     }
 
-  val hasDocker =
+  def hasDocker =
     Properties.isLinux ||
     // no docker command or no Linux from it on Github actions macOS / Windows runners
     ((Properties.isMac || Properties.isWin) && !TestUtil.isCI)

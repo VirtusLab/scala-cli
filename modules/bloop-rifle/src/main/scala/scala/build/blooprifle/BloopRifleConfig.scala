@@ -5,7 +5,7 @@ import java.nio.file.Path
 
 import scala.build.blooprifle.internal.Constants
 import scala.concurrent.duration._
-import scala.util.{Properties, Try}
+import scala.util.Try
 
 final case class BloopRifleConfig(
   address: BloopRifleConfig.Address,
@@ -35,10 +35,8 @@ object BloopRifleConfig {
     final case class Tcp(host: String, port: Int) extends Address {
       def render = s"$host:$port"
     }
-    final case class DomainSocket(path: Path, pipeName: String) extends Address {
-      def render =
-        if (Properties.isWin) s"$path ($pipeName)"
-        else path.toString
+    final case class DomainSocket(path: Path) extends Address {
+      def render = path.toString
     }
   }
 
