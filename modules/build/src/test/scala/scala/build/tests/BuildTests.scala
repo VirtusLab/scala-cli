@@ -797,7 +797,8 @@ class BuildTests extends munit.FunSuite {
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       val expectedOptions =
         Seq("-deprecation", "-feature", "-Xmaxwarns", "1", "-Xdisable-assertions")
-      assert(maybeBuild.toOption.get.options.scalaOptions.scalacOptions == expectedOptions)
+      val scalacOptions = maybeBuild.toOption.get.options.scalaOptions.scalacOptions
+      expect(scalacOptions == expectedOptions)
     }
   }
 }

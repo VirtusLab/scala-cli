@@ -159,13 +159,13 @@ object Build {
         overrideOptions.orElse(options) // update hash in inputs with options coming from the CLI or cross-building, not from the sources
       )
 
-      val overridenWithSharedOptions = overrideOptions.orElse(sharedOptions)
-      val overridenOptions           = overrideOptions.orElse(options)
+      val baseOptions = overrideOptions.orElse(sharedOptions)
 
-      val crossSources0 = crossSources.withVirtualDir(inputs0, scope, overridenWithSharedOptions)
 
-      val sources = value(crossSources0.scopedSources(overridenWithSharedOptions))
-        .sources(scope, overridenOptions)
+      val crossSources0 = crossSources.withVirtualDir(inputs0, scope, baseOptions)
+
+      val scopedSources = value(crossSources0.scopedSources(baseOptions))
+      val sources = scopedSources.sources(scope, baseOptions)
 
       val generatedSources = sources.generateSources(inputs0.generatedSrcRoot(scope))
       val buildOptions     = sources.buildOptions
