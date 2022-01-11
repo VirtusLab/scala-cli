@@ -1,7 +1,9 @@
 package scala.build.tests
 
+import bloop.config.Config.ModuleKindJS
 import com.eed3si9n.expecty.Expecty.expect
 import dependency._
+import org.scalajs.linker.interface.{ESVersion, ModuleKind, ModuleSplitStyle}
 
 import scala.build.Ops._
 import scala.build.Sources
@@ -409,6 +411,12 @@ class SourcesTests extends munit.FunSuite {
           |// using jsCheckIr "true"
           |// using jsEmitSourceMaps "true"
           |// using jsDom "true"
+          |// using jsHeader "#!/usr/bin/env node\n"
+          |// using jsAllowBigIntsForLongs "true"
+          |// using jsAvoidClasses "false"
+          |// using jsAvoidLetsAndConsts "false"
+          |// using jsModuleSplitStyleStr "smallestmodules"
+          |// using jsEsVersionStr "es2017"
           |""".stripMargin
     )
     testInputs.withInputs { (_, inputs) =>
@@ -421,6 +429,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources   = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
       val jsOptions = sources.buildOptions.scalaJsOptions
+      val jsConfig  = jsOptions.linkerConfig
       expect(
         jsOptions.version == Some("1.8.0"),
         jsOptions.mode == Some("mode"),
@@ -428,6 +437,17 @@ class SourcesTests extends munit.FunSuite {
         jsOptions.checkIr == Some(true),
         jsOptions.emitSourceMaps == true,
         jsOptions.dom == Some(true)
+      )
+      expect(
+        jsConfig.moduleKind == ModuleKind.CommonJSModule,
+        jsConfig.checkIR == true,
+        jsConfig.sourceMap == true,
+        jsConfig.jsHeader == "#!/usr/bin/env node\n",
+        jsConfig.esFeatures.allowBigIntsForLongs == true,
+        jsConfig.esFeatures.avoidClasses == false,
+        jsConfig.esFeatures.avoidLetsAndConsts == false,
+        jsConfig.esFeatures.esVersion == ESVersion.ES2017,
+        jsConfig.moduleSplitStyle == ModuleSplitStyle.SmallestModules
       )
     }
   }

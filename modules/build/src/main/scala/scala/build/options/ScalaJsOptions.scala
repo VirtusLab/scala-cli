@@ -2,7 +2,14 @@ package scala.build.options
 
 import bloop.config.{Config => BloopConfig}
 import dependency._
-import org.scalajs.linker.interface.{ESFeatures, ModuleKind, Semantics, StandardConfig}
+import org.scalajs.linker.interface.{
+  ESFeatures,
+  ESVersion,
+  ModuleKind,
+  ModuleSplitStyle,
+  Semantics,
+  StandardConfig
+}
 
 import java.util.Locale
 
@@ -14,7 +21,13 @@ final case class ScalaJsOptions(
   moduleKindStr: Option[String] = None,
   checkIr: Option[Boolean] = None,
   emitSourceMaps: Boolean = false,
-  dom: Option[Boolean] = None
+  dom: Option[Boolean] = None,
+  header: Option[String] = None,
+  allowBigIntsForLongs: Option[Boolean] = None,
+  avoidClasses: Option[Boolean] = None,
+  avoidLetsAndConsts: Option[Boolean] = None,
+  moduleSplitStyleStr: Option[String] = None,
+  esVersionStr: Option[String] = None
 ) {
   def platformSuffix: String =
     "sjs" + ScalaVersion.jsBinary(finalVersion).getOrElse(finalVersion)
@@ -35,6 +48,26 @@ final case class ScalaJsOptions(
       case "esmodule" | "es"     => ModuleKind.ESModule
       case "nomodule" | "none"   => ModuleKind.NoModule
       case _                     => ModuleKind.NoModule
+    }
+
+  def moduleSplitStyle: ModuleSplitStyle =
+    moduleSplitStyleStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
+      case "fewestmodules"   => ModuleSplitStyle.FewestModules
+      case "smallestmodules" => ModuleSplitStyle.SmallestModules
+      case _                 => ModuleSplitStyle.FewestModules
+    }
+
+  def esVersion: ESVersion =
+    esVersionStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
+      case "es5_1"  => ESVersion.ES5_1
+      case "es2015" => ESVersion.ES2015
+      case "es2016" => ESVersion.ES2016
+      case "es2017" => ESVersion.ES2017
+      case "es2018" => ESVersion.ES2018
+      case "es2019" => ESVersion.ES2019
+      case "es2020" => ESVersion.ES2020
+      case "es2021" => ESVersion.ES2021
+      case _        => ESFeatures.Defaults.esVersion
     }
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
@@ -67,15 +100,26 @@ final case class ScalaJsOptions(
 
     config = config
       .withModuleKind(moduleKind)
+      .withModuleSplitStyle(moduleSplitStyle)
 
     for (checkIr <- checkIr)
       config = config.withCheckIR(checkIr)
 
-    val release = mode.contains("release")
+    val release   = mode.contains("release")
+    val jsHeader0 = header.getOrElse("")
+
+    val esFeatureDefaults = ESFeatures.Defaults
+    val esFeature = ESFeatures.Defaults
+      .withAllowBigIntsForLongs(
+        allowBigIntsForLongs.getOrElse(esFeatureDefaults.allowBigIntsForLongs)
+      )
+      .withAvoidClasses(avoidClasses.getOrElse(esFeatureDefaults.avoidClasses))
+      .withAvoidLetsAndConsts(avoidLetsAndConsts.getOrElse(esFeatureDefaults.avoidLetsAndConsts))
+      .withESVersion(esVersion)
 
     config = config
       .withSemantics(Semantics.Defaults)
-      .withESFeatures(ESFeatures.Defaults)
+      .withESFeatures(esFeature)
       .withOptimizer(release)
       .withParallel(true)
       .withSourceMap(emitSourceMaps)
@@ -83,6 +127,7 @@ final case class ScalaJsOptions(
       .withClosureCompiler(release)
       .withPrettyPrint(false)
       .withBatchMode(true)
+      .withJSHeader(jsHeader0)
 
     config
   }
