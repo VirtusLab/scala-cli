@@ -91,8 +91,8 @@ object Export extends ScalaCommand[ExportOptions] {
       svTest <- optionsTest0.scalaOptions.scalaVersion
     } if (svMain != svTest) {
       System.err.println(
-        s"""Detect different version of scala in scope test and main. 
-           |Please set the scala versions explicitly in scope test and main with using directives or pass -S, --scala-version as parameter""".stripMargin
+        s"""Detected different Scala versions in main and test scopes. 
+           |Please set the Scala version explicitly in the main and test scope with using directives or pass -S, --scala-version as parameter""".stripMargin
       )
       sys.exit(1)
     }
@@ -101,8 +101,8 @@ object Export extends ScalaCommand[ExportOptions] {
       optionsMain0.scalaOptions.scalaVersion.isEmpty && optionsTest0.scalaOptions.scalaVersion.nonEmpty
     ) {
       System.err.println(
-        s"""Detect that scala version was set only in scope test. 
-           |Please set the scala versions explicitly in scope test and main with using directives or pass -S, --scala-version as parameter""".stripMargin
+        s"""Detected that the Scala version is only set in test scope. 
+           |Please set the Scala version explicitly in the main and test scopes with using directives or pass -S, --scala-version as parameter""".stripMargin
       )
       sys.exit(1)
     }

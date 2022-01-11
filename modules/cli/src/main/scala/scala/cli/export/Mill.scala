@@ -144,9 +144,8 @@ final case class Mill(
         Seq.empty
     }
     val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
-    val frameworkName0 = options.testOptions.frameworkOpt match {
-      case Some(fw) => Some(fw)
-      case None     => frameworkName(testClassPath, parentInspector).toOption
+    val frameworkName0 = options.testOptions.frameworkOpt.orElse {
+      frameworkName(testClassPath, parentInspector).toOption
     }
 
     val testFrameworkDecls = frameworkName0 match {

@@ -245,9 +245,8 @@ final case class Sbt(
     }
 
     val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
-    val frameworkName0 = options.testOptions.frameworkOpt match {
-      case Some(fw) => Some(fw)
-      case None     => frameworkName(testClassPath, parentInspector).toOption
+    val frameworkName0 = options.testOptions.frameworkOpt.orElse {
+      frameworkName(testClassPath, parentInspector).toOption
     }
 
     val testFrameworkSettings = frameworkName0 match {
