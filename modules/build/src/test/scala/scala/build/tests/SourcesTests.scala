@@ -44,7 +44,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -78,7 +78,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(
         _.value
@@ -111,7 +111,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -140,7 +140,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -169,7 +169,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value).isEmpty)
       expect(sources.paths.isEmpty)
@@ -203,7 +203,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.length == 1)
@@ -236,7 +236,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -299,7 +299,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       val parsedCodes: Seq[String] = sources.inMemory.map(_._3)
 
@@ -331,7 +331,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -364,7 +364,7 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.buildOptions.classPathOptions.extraDependencies.map(_.value) == expectedDeps)
       expect(sources.paths.isEmpty)
@@ -388,8 +388,8 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
-      val javaOpts      = sources.buildOptions.javaOptions.javaOpts.sortBy(_.toString())
+      val sources  = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+      val javaOpts = sources.buildOptions.javaOptions.javaOpts.sortBy(_.toString())
 
       expect(
         javaOpts(0).value == "-Dfoo1",
@@ -419,8 +419,8 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources       = scopedSources.sources(Scope.Main, BuildOptions())
-      val jsOptions     = sources.buildOptions.scalaJsOptions
+      val sources   = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+      val jsOptions = sources.buildOptions.scalaJsOptions
       expect(
         jsOptions.version == Some("1.8.0"),
         jsOptions.mode == Some("mode"),

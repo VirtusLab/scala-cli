@@ -38,7 +38,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       }
 
       value(crossSources.scopedSources(options))
-        .sources(Scope.Main, options)
+        .sources(Scope.Main, crossSources.sharedOptions(options))
         .buildOptions
     }
 

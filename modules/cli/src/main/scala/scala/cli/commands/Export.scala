@@ -33,7 +33,7 @@ object Export extends ScalaCommand[ExportOptions] {
       )
     }
     val scopedSources = value(crossSources.scopedSources(buildOptions))
-    val sources       = scopedSources.sources(Scope.Main, buildOptions)
+    val sources       = scopedSources.sources(Scope.Main, crossSources.sharedOptions(buildOptions))
 
     if (verbosity >= 3)
       pprint.stderr.log(sources)

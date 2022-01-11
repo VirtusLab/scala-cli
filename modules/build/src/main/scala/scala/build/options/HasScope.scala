@@ -10,4 +10,6 @@ final case class HasScope[+T](
   def valueForInheriting(currentScope: Scope): Option[T] =
     if (currentScope.allScopes.contains(scope)) Some(value)
     else None
+  def map[U](f: T => U): HasScope[U] =
+    copy(value = f(value))
 }

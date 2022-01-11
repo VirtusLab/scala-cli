@@ -163,8 +163,8 @@ object Build {
 
       val crossSources0 = crossSources.withVirtualDir(inputs0, scope, baseOptions)
 
-      val sources = value(crossSources0.scopedSources(baseOptions))
-        .sources(scope, baseOptions)
+      val scopedSources = value(crossSources0.scopedSources(baseOptions))
+      val sources       = scopedSources.sources(scope, baseOptions)
 
       val generatedSources = sources.generateSources(inputs0.generatedSrcRoot(scope))
       val buildOptions     = sources.buildOptions

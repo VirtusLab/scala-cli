@@ -775,4 +775,30 @@ class BuildTests extends munit.FunSuite {
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions.isEmpty)
     }
   }
+
+  // Issue #525
+  test("scalac options not spuriously duplicating") {
+    val inputs = TestInputs(
+      os.rel / "foo.scala" ->
+        """// using scala "2.13"
+          |// using options "-deprecation", "-feature", "-Xmaxwarns", "1"
+          |// using option "-Xdisable-assertions"
+          |
+          |def foo = "bar"
+          |""".stripMargin
+    )
+
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val expectedOptions =
+        Seq("-deprecation", "-feature", "-Xmaxwarns", "1", "-Xdisable-assertions")
+      val scalacOptions = maybeBuild.toOption.get.options.scalaOptions.scalacOptions
+      expect(scalacOptions == expectedOptions)
+    }
+  }
 }

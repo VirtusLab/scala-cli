@@ -67,6 +67,7 @@ final case class CrossSources(
         .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope)),
       buildOptions
+        .filter(!_.requirements.isEmpty)
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
         .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope))
