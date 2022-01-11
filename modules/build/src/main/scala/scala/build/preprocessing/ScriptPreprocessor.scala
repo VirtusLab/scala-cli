@@ -16,9 +16,8 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case script: Inputs.Script =>
-        val content = os.read(script.path)
-
         val res = either {
+          val content = value(PreprocessingUtil.maybeRead(script.path))
           val preprocessed = value {
             ScriptPreprocessor.preprocess(
               Right(script.path),
