@@ -18,7 +18,8 @@ object Export extends ScalaCommand[ExportOptions] {
     inputs: Inputs,
     buildOptions: BuildOptions,
     logger: Logger,
-    verbosity: Int
+    verbosity: Int,
+    scope: Scope
   ): Either[BuildException, (Sources, BuildOptions)] = either {
 
     logger.log("Preparing build")
@@ -33,7 +34,7 @@ object Export extends ScalaCommand[ExportOptions] {
       )
     }
     val scopedSources = value(crossSources.scopedSources(buildOptions))
-    val sources       = scopedSources.sources(Scope.Main, crossSources.sharedOptions(buildOptions))
+    val sources       = scopedSources.sources(scope, crossSources.sharedOptions(buildOptions))
 
     if (verbosity >= 3)
       pprint.stderr.log(sources)
@@ -44,8 +45,9 @@ object Export extends ScalaCommand[ExportOptions] {
   }
 
   // FIXME Auto-update those
-  def sbtBuildTool(extraSettings: Seq[String]) = Sbt("1.5.5", extraSettings)
-  def millBuildTool(cache: FileCache[Task]) = {
+  def sbtBuildTool(extraSettings: Seq[String], sbtVersion: String, logger: Logger) =
+    Sbt(sbtVersion, extraSettings, logger)
+  def millBuildTool(cache: FileCache[Task], logger: Logger) = {
     val launcherArtifacts = Seq(
       os.rel / "mill"     -> "https://github.com/lefou/millw/raw/main/millw",
       os.rel / "mill.bat" -> "https://github.com/lefou/millw/raw/main/millw.bat"
@@ -65,7 +67,8 @@ object Export extends ScalaCommand[ExportOptions] {
     val launchers     = launchersTask.unsafeRun()(cache.ec)
     Mill(
       "0.9.8",
-      launchers
+      launchers,
+      logger
     )
   }
 
@@ -76,21 +79,47 @@ object Export extends ScalaCommand[ExportOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions = options.buildOptions
 
-    val (sources, options0) =
-      prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity)
+    val (sourcesMain, optionsMain0) =
+      prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity, Scope.Main)
+        .orExit(logger)
+    val (sourcesTest, optionsTest0) =
+      prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity, Scope.Test)
         .orExit(logger)
 
-    def sbtBuildTool0 = sbtBuildTool(options.sbtSetting.map(_.trim).filter(_.nonEmpty))
+    for {
+      svMain <- optionsMain0.scalaOptions.scalaVersion
+      svTest <- optionsTest0.scalaOptions.scalaVersion
+    } if (svMain != svTest) {
+      System.err.println(
+        s"""Detected different Scala versions in main and test scopes. 
+           |Please set the Scala version explicitly in the main and test scope with using directives or pass -S, --scala-version as parameter""".stripMargin
+      )
+      sys.exit(1)
+    }
+
+    if (
+      optionsMain0.scalaOptions.scalaVersion.isEmpty && optionsTest0.scalaOptions.scalaVersion.nonEmpty
+    ) {
+      System.err.println(
+        s"""Detected that the Scala version is only set in test scope. 
+           |Please set the Scala version explicitly in the main and test scopes with using directives or pass -S, --scala-version as parameter""".stripMargin
+      )
+      sys.exit(1)
+    }
+
+    val sbtVersion = options.sbtVersion.getOrElse("1.6.1")
+    def sbtBuildTool0 =
+      sbtBuildTool(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
 
     val buildTool =
       if (options.sbt.getOrElse(false))
         sbtBuildTool0
       else if (options.mill.getOrElse(false))
-        millBuildTool(options.shared.coursierCache)
+        millBuildTool(options.shared.coursierCache, logger)
       else
         sbtBuildTool0
 
-    val project = buildTool.export(options0, sources)
+    val project = buildTool.export(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
 
     val output = options.output.getOrElse("dest")
     val dest   = os.Path(output, os.pwd)

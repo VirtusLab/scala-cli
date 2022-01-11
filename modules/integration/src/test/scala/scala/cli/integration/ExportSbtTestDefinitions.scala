@@ -52,9 +52,16 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".")
         .call(cwd = root, stdout = os.Inherit)
+      // main
       val res    = os.proc(sbt, "run").call(cwd = root / "sbt-proj")
       val output = res.out.text(Charset.defaultCharset())
       expect(output.contains("Hello from " + actualScalaVersion))
+      // resource
+      expect(output.contains("resource:1,2"))
+      // test
+      val testRes    = os.proc(sbt, "test").call(cwd = root / "sbt-proj")
+      val testOutput = testRes.out.text(Charset.defaultCharset())
+      expect(testOutput.contains("1 succeeded"))
     }
   }
   if (runExportTests)
