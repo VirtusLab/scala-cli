@@ -9,12 +9,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  DependencyFormatError,
-  FileNotFoundException
-}
+import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.internal.{AmmUtil, Util}
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
@@ -72,12 +67,6 @@ case object ScalaPreprocessor extends Preprocessor {
     RequireScopeDirectiveHandler
   )
 
-  private def defaultCharSet = StandardCharsets.UTF_8
-
-  private def maybeRead(f: os.Path): Either[BuildException, String] =
-    if (os.isFile(f)) Right(os.read(f, defaultCharSet))
-    else Left(new FileNotFoundException(f))
-
   def preprocess(
     input: Inputs.SingleElement,
     logger: Logger
@@ -89,7 +78,7 @@ case object ScalaPreprocessor extends Preprocessor {
           (pkg :+ wrapper).map(_.raw).mkString(".")
         }
         val res = either {
-          val content   = value(maybeRead(f.path))
+          val content   = value(PreprocessingUtil.maybeRead(f.path))
           val scopePath = ScopePath.fromPath(f.path)
           val source = value(process(content, Right(f.path), scopePath / os.up, logger)) match {
             case None =>
