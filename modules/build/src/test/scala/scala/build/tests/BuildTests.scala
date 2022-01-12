@@ -784,7 +784,7 @@ class BuildTests extends munit.FunSuite {
           |// using nativeVersion "0.4.3-RC2"
           |// using scala "3.1.0"
           |def foo(): String = "foo"
-          |""".stripMargin,
+          |""".stripMargin
     )
     val buildOptions = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(
@@ -803,7 +803,7 @@ class BuildTests extends munit.FunSuite {
           |// using nativeVersion "0.4.3-RC2"
           |// using scala "3.0.2"
           |def foo(): String = "foo"
-          |""".stripMargin,
+          |""".stripMargin
     )
     val buildOptions = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(

@@ -158,14 +158,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         Seq(
           os.rel / fileName ->
             s"""import scala.scalanative.libc._
-              |import scala.scalanative.unsafe._
-              |
-              |@main def main() =
-              |  val message = "$message"
-              |  Zone { implicit z =>
-              |    stdio.printf(toCString(message))
-              |  }
-              |""".stripMargin
+               |import scala.scalanative.unsafe._
+               |
+               |@main def main() =
+               |  val message = "$message"
+               |  Zone { implicit z =>
+               |    stdio.printf(toCString(message))
+               |  }
+               |""".stripMargin
         )
       )
       inputs.fromRoot { root =>
