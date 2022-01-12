@@ -102,6 +102,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def platformNl = if (Properties.isWin) "\\r\\n" else "\\n"
 
+  def canRunScWithNative(): Boolean =
+    !(actualScalaVersion.startsWith("2.12") || actualScalaVersion.startsWith("3.0"))
+
   def simpleNativeTests(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -126,7 +129,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.13"))
+  if (TestUtil.canRunNative && canRunScWithNative())
     test("simple script native") {
       simpleNativeTests()
     }
@@ -144,6 +147,33 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           stderr = os.Pipe
         ).err.text().trim
         expect(output.contains("Used Scala Native version is incompatible the passed options"))
+      }
+    }
+
+  if (actualScalaVersion.startsWith("3.1"))
+    test("Scala 3 in Scala Native") {
+      val message  = "using Scala 3 Native"
+      val fileName = "scala3native.scala"
+      val inputs = TestInputs(
+        Seq(
+          os.rel / fileName ->
+            s"""import scala.scalanative.libc._
+              |import scala.scalanative.unsafe._
+              |
+              |@main def main() =
+              |  val message = "$message"
+              |  Zone { implicit z =>
+              |    stdio.printf(toCString(message))
+              |  }
+              |""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        val output =
+          os.proc(TestUtil.cli, extraOptions, fileName, "--native", "-q")
+            .call(cwd = root)
+            .out.text().trim
+        expect(output == message)
       }
     }
 
@@ -218,7 +248,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.13"))
+  if (TestUtil.canRunNative && canRunScWithNative())
     test("Multiple scripts native") {
       multipleScriptsNative()
     }
