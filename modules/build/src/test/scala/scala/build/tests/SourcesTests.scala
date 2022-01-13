@@ -429,7 +429,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources   = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
       val jsOptions = sources.buildOptions.scalaJsOptions
-      val jsConfig  = jsOptions.linkerConfig
+      val jsConfig  = jsOptions.linkerConfig(TestLogger())
       expect(
         jsOptions.version == Some("1.8.0"),
         jsOptions.mode == Some("mode"),

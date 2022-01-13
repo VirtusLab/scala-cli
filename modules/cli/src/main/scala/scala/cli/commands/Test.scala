@@ -133,7 +133,7 @@ object Test extends ScalaCommand[TestOptions] {
 
     build.options.platform.value match {
       case Platform.JS =>
-        val linkerConfig = build.options.scalaJsOptions.linkerConfig
+        val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         value {
           Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig) { js =>
             Runner.testJs(

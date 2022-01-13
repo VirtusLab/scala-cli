@@ -147,7 +147,7 @@ object Run extends ScalaCommand[RunOptions] {
 
     val retCode = build.options.platform.value match {
       case Platform.JS =>
-        val linkerConfig = build.options.scalaJsOptions.linkerConfig
+        val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
           Runner.runJs(
             js.toIO,

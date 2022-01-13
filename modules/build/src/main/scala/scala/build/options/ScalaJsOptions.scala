@@ -13,6 +13,7 @@ import org.scalajs.linker.interface.{
 
 import java.util.Locale
 
+import scala.build.Logger
 import scala.build.internal.Constants
 
 final case class ScalaJsOptions(
@@ -42,23 +43,31 @@ final case class ScalaJsOptions(
     else
       Nil
 
-  def moduleKind: ModuleKind =
-    moduleKindStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
+  def moduleKind(logger: Logger): ModuleKind =
+    moduleKindStr.map(_.trim.toLowerCase(Locale.ROOT)).map {
       case "commonjs" | "common" => ModuleKind.CommonJSModule
       case "esmodule" | "es"     => ModuleKind.ESModule
       case "nomodule" | "none"   => ModuleKind.NoModule
-      case _                     => ModuleKind.NoModule
-    }
+      case unknown =>
+        logger.message(
+          s"Warning: unrecognized argument: $unknown for --js-module-kind parameter, use default value: nomodule"
+        )
+        ModuleKind.NoModule
+    }.getOrElse(ModuleKind.NoModule)
 
-  def moduleSplitStyle: ModuleSplitStyle =
-    moduleSplitStyleStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
+  def moduleSplitStyle(logger: Logger): ModuleSplitStyle =
+    moduleSplitStyleStr.map(_.trim.toLowerCase(Locale.ROOT)).map {
       case "fewestmodules"   => ModuleSplitStyle.FewestModules
       case "smallestmodules" => ModuleSplitStyle.SmallestModules
-      case _                 => ModuleSplitStyle.FewestModules
-    }
+      case unknown =>
+        logger.message(
+          s"Warning: unrecognized argument: $unknown for --js-module-split-style parameter, use default value: fewestmodules"
+        )
+        ModuleSplitStyle.FewestModules
+    }.getOrElse(ModuleSplitStyle.FewestModules)
 
-  def esVersion: ESVersion =
-    esVersionStr.map(_.trim.toLowerCase(Locale.ROOT)).getOrElse("") match {
+  def esVersion(logger: Logger): ESVersion =
+    esVersionStr.map(_.trim.toLowerCase(Locale.ROOT)).map {
       case "es5_1"  => ESVersion.ES5_1
       case "es2015" => ESVersion.ES2015
       case "es2016" => ESVersion.ES2016
@@ -67,13 +76,18 @@ final case class ScalaJsOptions(
       case "es2019" => ESVersion.ES2019
       case "es2020" => ESVersion.ES2020
       case "es2021" => ESVersion.ES2021
-      case _        => ESFeatures.Defaults.esVersion
-    }
+      case unknown =>
+        val default = ESFeatures.Defaults.esVersion
+        logger.message(
+          s"Warning: unrecognized argument: $unknown for --js-es-version parameter, use default value: ${default.name}"
+        )
+        default
+    }.getOrElse(ESFeatures.Defaults.esVersion)
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
 
-  private def configUnsafe: BloopConfig.JsConfig = {
-    val kind = moduleKind match {
+  private def configUnsafe(logger: Logger): BloopConfig.JsConfig = {
+    val kind = moduleKind(logger) match {
       case ModuleKind.CommonJSModule => BloopConfig.ModuleKindJS.CommonJSModule
       case ModuleKind.ESModule       => BloopConfig.ModuleKindJS.ESModule
       case ModuleKind.NoModule       => BloopConfig.ModuleKindJS.NoModule
@@ -92,15 +106,15 @@ final case class ScalaJsOptions(
     )
   }
 
-  def config: BloopConfig.JsConfig =
-    configUnsafe
+  def config(logger: Logger): BloopConfig.JsConfig =
+    configUnsafe(logger)
 
-  def linkerConfig: StandardConfig = {
+  def linkerConfig(logger: Logger): StandardConfig = {
     var config = StandardConfig()
 
     config = config
-      .withModuleKind(moduleKind)
-      .withModuleSplitStyle(moduleSplitStyle)
+      .withModuleKind(moduleKind(logger))
+      .withModuleSplitStyle(moduleSplitStyle(logger))
 
     for (checkIr <- checkIr)
       config = config.withCheckIR(checkIr)
@@ -115,7 +129,7 @@ final case class ScalaJsOptions(
       )
       .withAvoidClasses(avoidClasses.getOrElse(esFeatureDefaults.avoidClasses))
       .withAvoidLetsAndConsts(avoidLetsAndConsts.getOrElse(esFeatureDefaults.avoidLetsAndConsts))
-      .withESVersion(esVersion)
+      .withESVersion(esVersion(logger))
 
     config = config
       .withSemantics(Semantics.Defaults)

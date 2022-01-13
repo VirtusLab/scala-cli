@@ -2,8 +2,8 @@ package scala.cli.export
 
 import java.nio.charset.Charset
 
-import scala.build.Sources
 import scala.build.options.{BuildOptions, ScalaJsOptions}
+import scala.build.{Logger, Sources}
 
 abstract class BuildTool extends Product with Serializable {
   def export(
@@ -37,14 +37,14 @@ object BuildTool {
     mainSources ++ extraMainSources
   }
 
-  def scalaJsLinkerCalls(options: ScalaJsOptions): Seq[String] = {
+  def scalaJsLinkerCalls(options: ScalaJsOptions, logger: Logger): Seq[String] = {
 
     var calls = Seq.empty[String]
 
     calls = calls ++ {
       if (options.moduleKindStr.isEmpty) Nil
       else
-        Seq(s""".withModuleKind(ModuleKind.${options.moduleKind})""")
+        Seq(s""".withModuleKind(ModuleKind.${options.moduleKind(logger)})""")
     }
 
     for (checkIr <- options.checkIr)

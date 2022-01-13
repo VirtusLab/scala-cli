@@ -49,7 +49,7 @@ final case class Mill(
     val moduleKindDecls =
       if (options.moduleKindStr.isEmpty) Nil
       else
-        Seq(s"""def moduleKind = ModuleKind.${options.moduleKind}""")
+        Seq(s"""def moduleKind = ModuleKind.${options.moduleKind(logger)}""")
 
     MillProject(
       scalaJsVersion = scalaJsVersion,

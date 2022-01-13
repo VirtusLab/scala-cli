@@ -68,7 +68,7 @@ final case class Sbt(
       "scalaJSUseMainModuleInitializer := true"
     )
 
-    val linkerConfigCalls = BuildTool.scalaJsLinkerCalls(options)
+    val linkerConfigCalls = BuildTool.scalaJsLinkerCalls(options, logger)
     val linkerConfigSettings =
       if (linkerConfigCalls.isEmpty) Nil
       else
