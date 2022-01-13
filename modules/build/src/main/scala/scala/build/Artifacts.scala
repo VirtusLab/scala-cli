@@ -112,7 +112,7 @@ object Artifacts {
     val maybeSnapshotRepo = {
       val hasSnapshots = (jvmRunnerDependencies ++ jvmTestRunnerDependencies)
         .exists(_.version.endsWith("SNAPSHOT")) ||
-        scalaNativeCliVersion.map(_.endsWith("SNAPSHOT")).getOrElse(false)
+        scalaNativeCliVersion.exists(_.endsWith("SNAPSHOT"))
       val runnerNeedsSonatypeSnapshots = Constants.runnerNeedsSonatypeSnapshots(params.scalaVersion)
       if (hasSnapshots || runnerNeedsSonatypeSnapshots)
         Seq(coursier.Repositories.sonatype("snapshots").root)
