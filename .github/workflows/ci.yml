@@ -39,6 +39,13 @@ jobs:
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
+    - name: Sanity tests
+      run: |
+        ./mill -i cli.launcher
+        ./mill -i cli.standaloneLauncher
+        ./out/cli/launcher/dest/launcher package --standalone examples/scala-files -o scalaFiles1 || true
+        ./out/cli/standaloneLauncher/dest/launcher package --standalone examples/scala-files -o scalaFiles2
+        ./out/cli/launcher/dest/launcher package --standalone examples/scala-files -o scalaFiles3
     - name: Unit tests
       run: |
         ./mill -i unitTests
@@ -360,4 +367,3 @@ jobs:
       - run: ./mill -i ci.updateStandaloneLauncher
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
