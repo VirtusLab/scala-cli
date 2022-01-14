@@ -6,6 +6,8 @@ import scala.build.internal.{CustomCodeWrapper, Runner}
 import scala.build.{CrossSources, Inputs, Sources}
 import scala.cli.CurrentParams
 import scala.cli.internal.FetchExternalBinary
+import scala.util.control.NonFatal
+import scala.build.Logger
 
 object Fmt extends ScalaCommand[FmtOptions] {
   override def group                              = "Main"
@@ -15,8 +17,62 @@ object Fmt extends ScalaCommand[FmtOptions] {
     List("format"),
     List("scalafmt")
   )
+
+  private def getGitRoot(workspace: os.Path, logger: Logger): Option[String] =
+    try {
+      val result = os.proc("git", "rev-parse", "--show-toplevel").call(cwd = workspace).out.trim
+      Option(result)
+    }
+    catch {
+      case NonFatal(e) =>
+        logger.log(
+          s"""Failed to get root of the git repository.
+             |Cause: $e""".stripMargin
+        )
+        None
+    }
+
+  // Based on scalafmt comment:
+  // https://github.com/scalameta/scalafmt/blob/master/scalafmt-cli/src/main/scala/org/scalafmt/cli/CliArgParser.scala
+  // commit d0c11e98898334969f5f4dfc4bd511630cf00ab9
+  // First we look for the file in the cwd.
+  // If not found or could not read, we go to the git root and look there.
+  // If not found or could not read, we use the default version.
+  private def readVersionFromFile(workspace: os.Path, logger: Logger): (Option[String], Boolean) = {
+    case class ScalafmtVersionConfig(version: String = "")
+    object ScalafmtVersionConfig {
+      lazy val default          = ScalafmtVersionConfig()
+      implicit lazy val surface = metaconfig.generic.deriveSurface[ScalafmtVersionConfig]
+      implicit lazy val decoder = metaconfig.generic.deriveDecoder[ScalafmtVersionConfig](default)
+    }
+
+    val confName = ".scalafmt.conf"
+    val pathMaybe = {
+      logger.debug(s"Checking for $confName in cwd.")
+      val confInCwd = workspace / confName
+      if (os.exists(confInCwd)) Some(confInCwd)
+      else {
+        logger.debug(s"Checking for $confName in git root.")
+        val gitRootMaybe       = getGitRoot(workspace, logger)
+        val confInGitRootMaybe = gitRootMaybe.map(os.Path(_) / confName)
+        confInGitRootMaybe.find(os.exists(_))
+      }
+    }
+
+    val confContentMaybe = pathMaybe.flatMap { path =>
+      metaconfig.Hocon.parseInput[ScalafmtVersionConfig](
+        metaconfig.Input.File(path.toNIO)
+      ).toEither.toOption
+    }
+
+    val versionMaybe = confContentMaybe.map(_.version)
+    (versionMaybe, pathMaybe.isDefined)
+  }
+
   def run(options: FmtOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
+    val logger = options.shared.logger
+
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, inputsOpt) =
       if (args.remaining.isEmpty)
@@ -30,8 +86,8 @@ object Fmt extends ScalaCommand[FmtOptions] {
         (s, i.workspace, Some(i))
       }
     CurrentParams.workspaceOpt = Some(workspace)
-    val logger = options.shared.logger
-    val cache  = options.shared.coursierCache
+    val (versionMaybe, confExists) = readVersionFromFile(workspace, logger)
+    val cache                      = options.shared.coursierCache
 
     if (sourceFiles.isEmpty)
       logger.debug("No source files, not formatting anything")
@@ -63,7 +119,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       }
 
       val dialectArgs =
-        if (options.scalafmtArg.isEmpty && !os.exists(workspace / ".scalafmt.conf"))
+        if (options.scalafmtArg.isEmpty && !confExists)
           dialectOpt.toSeq.flatMap(dialect => Seq("--config-str", s"runner.dialect=$dialect"))
         else
           Nil
@@ -72,7 +128,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
         case Some(launcher) =>
           os.Path(launcher, os.pwd)
         case None =>
-          val (url, changing) = options.binaryUrl
+          val (url, changing) = options.binaryUrl(versionMaybe)
           FetchExternalBinary.fetch(url, changing, cache, logger, "scalafmt")
       }
 

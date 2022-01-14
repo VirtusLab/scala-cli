@@ -43,10 +43,11 @@ final case class FmtOptions(
 ) {
   // format: on
 
-  def binaryUrl: (String, Boolean) = {
+  def binaryUrl(versionMaybe: Option[String]): (String, Boolean) = {
+    val defaultVersion = versionMaybe.getOrElse(Constants.defaultScalafmtVersion)
     val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
       .getOrElse(FetchExternalBinary.platformSuffix())
-    val tag0           = scalafmtTag.getOrElse("v" + Constants.defaultScalafmtVersion)
+    val tag0           = scalafmtTag.getOrElse("v" + defaultVersion)
     val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse("alexarchambault/scalafmt-native-image")
     val extension0     = if (Properties.isWin) ".zip" else ".gz"
     val url =
