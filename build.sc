@@ -336,7 +336,8 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     Deps.scalaJsLinker,
     Deps.scalaPackager,
     Deps.svmSubs,
-    Deps.upickle
+    Deps.upickle,
+    Deps.metaconfigTypesafe
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
