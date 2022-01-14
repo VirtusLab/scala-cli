@@ -4,11 +4,12 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class FmtTests extends munit.FunSuite {
 
-  val simpleInputs = TestInputs(
+  def simpleInputs(additionalConfInfo: String) = TestInputs(
     Seq(
       os.rel / ".scalafmt.conf" ->
-        """runner.dialect = scala213
-          |""".stripMargin,
+        s"""runner.dialect = scala213
+           |$additionalConfInfo
+           |""".stripMargin,
       os.rel / "Foo.scala" ->
         """package foo
           |
@@ -31,7 +32,7 @@ class FmtTests extends munit.FunSuite {
     input.replaceAll("\r\n", "\n")
 
   test("simple") {
-    simpleInputs.fromRoot { root =>
+    simpleInputs("").fromRoot { root =>
       os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
@@ -39,8 +40,16 @@ class FmtTests extends munit.FunSuite {
   }
 
   test("no inputs") {
-    simpleInputs.fromRoot { root =>
+    simpleInputs("").fromRoot { root =>
       os.proc(TestUtil.cli, "fmt").call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Foo.scala"))
+      expect(updatedContent == expectedSimpleInputsFormattedContent)
+    }
+  }
+
+  test("using non-default scalafmt version") {
+    simpleInputs("version = \"3.1.2\"").fromRoot { root =>
+      os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
     }
