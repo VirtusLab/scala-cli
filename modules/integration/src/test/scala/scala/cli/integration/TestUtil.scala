@@ -115,7 +115,7 @@ object TestUtil {
 
   def kill(pid: Int) =
     if (Properties.isWin)
-      os.proc("taskkill", "/PID", pid).call()
+      os.proc("taskkill", "/F", "/PID", pid).call()
     else
       os.proc("kill", pid).call()
 
