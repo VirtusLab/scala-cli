@@ -3,11 +3,10 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.internal.{CustomCodeWrapper, Runner}
-import scala.build.{CrossSources, Inputs, Sources}
+import scala.build.{CrossSources, Inputs, Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.internal.FetchExternalBinary
 import scala.util.control.NonFatal
-import scala.build.Logger
 
 object Fmt extends ScalaCommand[FmtOptions] {
   override def group                              = "Main"
@@ -65,7 +64,9 @@ object Fmt extends ScalaCommand[FmtOptions] {
       ).toEither.toOption
     }
 
-    val versionMaybe = confContentMaybe.map(_.version)
+    val versionMaybe = confContentMaybe.collect {
+      case conf if conf.version.trim.nonEmpty => conf.version
+    }
     (versionMaybe, pathMaybe.isDefined)
   }
 
