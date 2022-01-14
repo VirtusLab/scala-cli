@@ -524,6 +524,30 @@ Operating system to use when looking up in the JVM index
 
 CPU architecture to use when looking up in the JVM index
 
+## Launcher options
+
+Available in commands:
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--scala-cli-version`
+
+#### `--published-scala-version`
+
+The version of Scala on which scalaCLI was published
+
 ## Logging options
 
 Available in commands:

@@ -13,6 +13,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.{Constants, OsLibc}
 import scala.build.options._
 import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
+import scala.cli.launcher.LauncherOptions
 import scala.concurrent.duration._
 import scala.util.Properties
 // format: off
@@ -101,7 +102,9 @@ final case class SharedOptions(
   @Hidden
     forbid: List[String] = Nil,
   @Recurse
-  helpGroups: HelpGroupOptions = HelpGroupOptions()
+    helpGroups: HelpGroupOptions = HelpGroupOptions(),
+  @Recurse
+    launcherOptions: LauncherOptions = LauncherOptions()
 ) {
   // format: on
 

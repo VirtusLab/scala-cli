@@ -10,6 +10,7 @@ import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
 import scala.cli.internal.Argv0
+import scala.cli.launcher.LauncherCLI
 import scala.util.Properties
 
 object ScalaCli extends CommandsEntryPoint {
@@ -138,6 +139,7 @@ object ScalaCli extends CommandsEntryPoint {
   }
 
   private def main0(args: Array[String]): Unit = {
+    LauncherCLI.main(args)
     val (systemProps, scalaCliArgs) = partitionArgs(args)
     setSystemProps(systemProps)
 
