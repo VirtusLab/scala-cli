@@ -98,7 +98,7 @@ class BloopTests extends munit.FunSuite {
   test("bloop exit works") {
     def assertBloopNotRunning(): Unit = {
       val javaProcesses = os.proc("jps", "-l").call().out.text()
-      expect(!javaProcesses.contains("bloop.Server"))
+      expect(!javaProcesses.contains("bloop.Bloop"))
     }
 
     val inputs = TestInputs(Seq.empty)
