@@ -64,6 +64,8 @@ object Main {
     )
     val start = System.nanoTime()
     os.proc(
+      "java",
+      "-jar",
       scalaCli,
       "compile",
       workspace
