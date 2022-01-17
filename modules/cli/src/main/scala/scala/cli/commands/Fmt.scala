@@ -62,13 +62,8 @@ object Fmt extends ScalaCommand[FmtOptions] {
       val either = metaconfig.Hocon.parseInput[ScalafmtVersionConfig](
         metaconfig.Input.File(path.toNIO)
       ).toEither
-
-      either match {
-        case Left(value) =>
-          logger.log(value.toString())
-          None
-        case Right(value) => Some(value)
-      }
+      either.left.foreach(confErr => logger.log(confErr.toString()))
+      either.toOption
     }
 
     val versionMaybe = confContentMaybe.collect {
