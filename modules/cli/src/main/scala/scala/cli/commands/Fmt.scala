@@ -25,7 +25,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
     catch {
       case NonFatal(e) =>
         logger.log(
-          s"""Failed to get root of the git repository.
+          s"""Could not get root of the git repository.
              |Cause: $e""".stripMargin
         )
         None
@@ -59,9 +59,16 @@ object Fmt extends ScalaCommand[FmtOptions] {
     }
 
     val confContentMaybe = pathMaybe.flatMap { path =>
-      metaconfig.Hocon.parseInput[ScalafmtVersionConfig](
+      val either = metaconfig.Hocon.parseInput[ScalafmtVersionConfig](
         metaconfig.Input.File(path.toNIO)
-      ).toEither.toOption
+      ).toEither
+
+      either match {
+        case Left(value) =>
+          logger.log(value.toString())
+          None
+        case Right(value) => Some(value)
+      }
     }
 
     val versionMaybe = confContentMaybe.collect {
