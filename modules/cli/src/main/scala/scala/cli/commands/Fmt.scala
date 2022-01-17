@@ -37,7 +37,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
   // First we look for the file in the cwd.
   // If not found or could not read, we go to the git root and look there.
   // If not found or could not read, we use the default version.
-  private def readVersionFromFile(workspace: os.Path, logger: Logger): (Option[String], Boolean) = {
+  def readVersionFromFile(workspace: os.Path, logger: Logger): (Option[String], Boolean) = {
     case class ScalafmtVersionConfig(version: String = "")
     object ScalafmtVersionConfig {
       lazy val default          = ScalafmtVersionConfig()
