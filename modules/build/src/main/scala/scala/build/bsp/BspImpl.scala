@@ -45,10 +45,14 @@ final class BspImpl(
     actualLocalClient.onBuildTargetDidChange(params)
   }
 
+  private case class PreBuildProject(mainScope: PreBuildData, testScope: PreBuildData)
+
   private def prepareBuild(
     actualLocalServer: BspServer
-  ): Either[(BuildException, Scope), (PreBuildData, PreBuildData)] = either {
+  ): Either[(BuildException, Scope), PreBuildProject] = either {
     logger.log("Preparing build")
+
+    val persistentLogger = new PersistentDiagnosticLogger(logger)
 
     val crossSources = value {
       CrossSources.forInputs(
@@ -56,7 +60,7 @@ final class BspImpl(
         Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
         ),
-        logger
+        persistentLogger
       ).left.map((_, Scope.Main))
     }
 
@@ -90,7 +94,7 @@ final class BspImpl(
         generatedSourcesMain,
         options0Main,
         Scope.Main,
-        logger,
+        persistentLogger,
         localClient
       ) match {
         case Right(v) => Right(v)
@@ -105,7 +109,7 @@ final class BspImpl(
         generatedSourcesTest,
         options0Test,
         Scope.Test,
-        logger,
+        persistentLogger,
         localClient
       ) match {
         case Right(v) => Right(v)
@@ -135,7 +139,11 @@ final class BspImpl(
       buildChangedTest
     )
 
-    (mainScope, testScope)
+    val targetId = actualLocalServer.targetIds.head
+    val logDiag  = actualLocalClient.reportDiagnosticForFiles(targetId) _
+    persistentLogger.diagnostics.foreach(logDiag)
+
+    PreBuildProject(mainScope, testScope)
   }
 
   private def buildE(
@@ -143,16 +151,17 @@ final class BspImpl(
     bloopServer: BloopServer,
     notifyChanges: Boolean
   ): Either[(BuildException, Scope), Unit] = either {
-    val (preBuildDataMain, preBuildDataTest) =
-      value(prepareBuild(actualLocalServer))
-    if (notifyChanges && (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged))
+    val preBuild = value(prepareBuild(actualLocalServer))
+
+    if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
       notifyBuildChange(actualLocalServer)
+
     Build.buildOnce(
       inputs,
-      preBuildDataMain.sources,
+      preBuild.mainScope.sources,
       inputs.generatedSrcRoot(Scope.Main),
-      preBuildDataMain.generatedSources,
-      preBuildDataMain.buildOptions,
+      preBuild.mainScope.generatedSources,
+      preBuild.mainScope.buildOptions,
       Scope.Main,
       logger,
       actualLocalClient,
@@ -160,10 +169,10 @@ final class BspImpl(
     ).swap.map(e => (e, Scope.Main)).swap
     Build.buildOnce(
       inputs,
-      preBuildDataTest.sources,
+      preBuild.testScope.sources,
       inputs.generatedSrcRoot(Scope.Test),
-      preBuildDataTest.generatedSources,
-      preBuildDataTest.buildOptions,
+      preBuild.testScope.generatedSources,
+      preBuild.testScope.buildOptions,
       Scope.Test,
       logger,
       actualLocalClient,
@@ -207,16 +216,16 @@ final class BspImpl(
     val preBuild = CompletableFuture.supplyAsync(
       () =>
         prepareBuild(actualLocalServer) match {
-          case Right((preBuildDataMain, preBuildDataTest)) =>
-            if (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged)
+          case Right(preBuild) =>
+            if (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged)
               notifyBuildChange(actualLocalServer)
             Right((
-              preBuildDataMain.classesDir,
-              preBuildDataMain.project,
-              preBuildDataMain.generatedSources,
-              preBuildDataTest.classesDir,
-              preBuildDataTest.project,
-              preBuildDataTest.generatedSources
+              preBuild.mainScope.classesDir,
+              preBuild.mainScope.project,
+              preBuild.mainScope.generatedSources,
+              preBuild.testScope.classesDir,
+              preBuild.testScope.project,
+              preBuild.testScope.generatedSources
             ))
           case Left((ex, scope)) =>
             Left((ex, scope))

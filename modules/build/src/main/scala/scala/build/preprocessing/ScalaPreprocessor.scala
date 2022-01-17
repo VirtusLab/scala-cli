@@ -4,9 +4,9 @@ import com.virtuslab.using_directives.config.Settings
 import com.virtuslab.using_directives.custom.model.{
   UsingDirectiveKind,
   UsingDirectiveSyntax,
-  UsingDirectives,
-  Value
+  UsingDirectives
 }
+import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
 import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
@@ -355,24 +355,25 @@ case object ScalaPreprocessor extends Preprocessor {
 
     def byKind(kind: UsingDirectiveKind) = all.find(_.getKind == kind).get
 
-    def asValues(directives: UsingDirectives) =
-      directives
-        .getFlattenedMap
-        .values()
-        .asScala
-        .flatMap(_.asScala)
-        .toSeq
+    def getDirectives(directives: UsingDirectives) =
+      directives.getAst() match {
+        case ud: UsingDefs =>
+          ud.getUsingDefs().asScala
+        case _ =>
+          Nil
+      }
 
     val codeDirectives           = byKind(UsingDirectiveKind.Code)
     val specialCommentDirectives = byKind(UsingDirectiveKind.SpecialComment)
     val plainCommentDirectives   = byKind(UsingDirectiveKind.PlainComment)
 
-    def reportWarning(msg: String, values: Seq[Value[_]]): Unit =
+    def reportWarning(msg: String, values: Seq[UsingDef], before: Boolean = true): Unit =
       values.foreach { v =>
-        val astPos   = v.getRelatedASTNode.getPosition()
-        val start    = (astPos.getLine(), 0)
-        val end      = (astPos.getLine(), astPos.getColumn())
-        val position = Position.File(path, start, end)
+        val astPos = v.getPosition()
+        val (start, end) =
+          if (before) (0, astPos.getColumn())
+          else (astPos.getColumn(), astPos.getColumn() + v.getSyntax.getKeyword.size)
+        val position = Position.File(path, (astPos.getLine(), start), (astPos.getLine(), end))
         logger.diagnostic(msg, positions = Seq(position))
       }
 
@@ -380,26 +381,30 @@ case object ScalaPreprocessor extends Preprocessor {
       if (!codeDirectives.getFlattenedMap().isEmpty()) {
         val msg =
           s"This using directive is ignored. File contains directives outside comments and those has higher precedence."
-        reportWarning(msg, asValues(plainCommentDirectives) ++ asValues(specialCommentDirectives))
+        reportWarning(
+          msg,
+          getDirectives(plainCommentDirectives) ++ getDirectives(specialCommentDirectives)
+        )
         codeDirectives
       }
       else if (!specialCommentDirectives.getFlattenedMap().isEmpty()) {
         val msg =
           s"This using directive is ignored. Using directive from plain comments are deprecated, please add `>` to each comment."
-        reportWarning(msg, asValues(plainCommentDirectives))
+        reportWarning(msg, getDirectives(plainCommentDirectives))
         specialCommentDirectives
       }
       else {
         val msg =
           s"Using directive using plain comments are deprecated, please add `>` to each comment."
-        reportWarning(msg, asValues(plainCommentDirectives))
+        reportWarning(msg, getDirectives(plainCommentDirectives))
         plainCommentDirectives
       }
 
     // All using directives should use just `using` keyword, no @using or require
     reportWarning(
       "Deprecated unsing directive syntax, please use keyword `using`.",
-      asValues(usedDirectives).filter(_.getSyntax() != UsingDirectiveSyntax.Using)
+      getDirectives(usedDirectives).filter(_.getSyntax() != UsingDirectiveSyntax.Using),
+      before = false
     )
 
     val flattened = usedDirectives.getFlattenedMap.asScala.toSeq
@@ -410,25 +415,6 @@ case object ScalaPreprocessor extends Preprocessor {
       if (usedDirectives.getKind() != UsingDirectiveKind.Code) 0
       else usedDirectives.getCodeOffset()
     Right(ExtractedDirectives(offset, strictDirectives))
-  }
-
-  private def validateUsingDirective(
-    path: Either[String, os.Path],
-    direcives: UsingDirectives,
-    logger: Logger
-  ): Unit = {
-
-    def values = direcives.getFlattenedMap().asScala.flatMap(_._2.asScala)
-
-    if (direcives.getKind() == UsingDirectiveKind.PlainComment) values.foreach { v =>
-      val astPos     = v.getRelatedASTNode.getPosition()
-      val lineColumn = (astPos.getLine(), astPos.getColumn())
-      val position   = Position.File(path, lineColumn, lineColumn)
-      logger.diagnostic(
-        "Comment-based using directives are deprecated, please use //> syntax",
-        positions = Seq(position)
-      )
-    }
   }
 
   private def parseDependency(str: String, pos: Position): Either[BuildException, AnyDependency] =
