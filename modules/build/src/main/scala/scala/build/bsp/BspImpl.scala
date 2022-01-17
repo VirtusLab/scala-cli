@@ -12,7 +12,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -45,7 +45,11 @@ final class BspImpl(
     actualLocalClient.onBuildTargetDidChange(params)
   }
 
-  private case class PreBuildProject(mainScope: PreBuildData, testScope: PreBuildData)
+  private case class PreBuildProject(
+    mainScope: PreBuildData,
+    testScope: PreBuildData,
+    diagnostics: Seq[Diagnostic]
+  )
 
   private def prepareBuild(
     actualLocalServer: BspServer
@@ -139,11 +143,7 @@ final class BspImpl(
       buildChangedTest
     )
 
-    val targetId = actualLocalServer.targetIds.head
-    val logDiag  = actualLocalClient.reportDiagnosticForFiles(targetId) _
-    persistentLogger.diagnostics.foreach(logDiag)
-
-    PreBuildProject(mainScope, testScope)
+    PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
   }
 
   private def buildE(
@@ -219,14 +219,7 @@ final class BspImpl(
           case Right(preBuild) =>
             if (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged)
               notifyBuildChange(actualLocalServer)
-            Right((
-              preBuild.mainScope.classesDir,
-              preBuild.mainScope.project,
-              preBuild.mainScope.generatedSources,
-              preBuild.testScope.classesDir,
-              preBuild.testScope.project,
-              preBuild.testScope.generatedSources
-            ))
+            Right(preBuild)
           case Left((ex, scope)) =>
             Left((ex, scope))
         },
@@ -243,36 +236,27 @@ final class BspImpl(
         case Right(params) =>
           for (targetId <- actualLocalServer.targetIds)
             actualLocalClient.resetBuildExceptionDiagnostics(targetId)
+
+          val targetId = actualLocalServer.targetIds.head
+          params.diagnostics.foreach(actualLocalClient.reportDiagnosticForFiles(targetId))
+
           doCompile().thenCompose { res =>
-            val (
-              classesDir0,
-              project,
-              generatedSources,
-              classesDir0Test,
-              projectTest,
-              generatedSourcesTest
-            ) = params
+            def doPostProcess(data: PreBuildData, scope: Scope) =
+              Build.postProcess(
+                data.generatedSources,
+                inputs.generatedSrcRoot(scope),
+                data.classesDir,
+                logger,
+                inputs.workspace,
+                updateSemanticDbs = true,
+                scalaVersion = data.project.scalaCompiler.scalaVersion
+              ).left.foreach(_.foreach(showGlobalWarningOnce))
+
             if (res.getStatusCode == b.StatusCode.OK)
               CompletableFuture.supplyAsync(
                 () => {
-                  Build.postProcess(
-                    generatedSources,
-                    inputs.generatedSrcRoot(Scope.Main),
-                    classesDir0,
-                    logger,
-                    inputs.workspace,
-                    updateSemanticDbs = true,
-                    scalaVersion = project.scalaCompiler.scalaVersion
-                  ).left.foreach(_.foreach(showGlobalWarningOnce))
-                  Build.postProcess(
-                    generatedSourcesTest,
-                    inputs.generatedSrcRoot(Scope.Test),
-                    classesDir0Test,
-                    logger,
-                    inputs.workspace,
-                    updateSemanticDbs = true,
-                    scalaVersion = projectTest.scalaCompiler.scalaVersion
-                  ).left.foreach(_.foreach(showGlobalWarningOnce))
+                  doPostProcess(params.mainScope, Scope.Main)
+                  doPostProcess(params.testScope, Scope.Test)
                   res
                 },
                 executor

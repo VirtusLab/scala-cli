@@ -893,6 +893,37 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
   }
+
+  test("using directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "test.sc" ->
+          s"""// using scala "3.0"
+             |println(123)""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
+      async {
+        // prepare build
+        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        // build code
+        val targets = buildTargetsResp.getTargets().asScala.map(_.getId()).asJava
+        await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+
+        val visibleDiagnostics =
+          localClient.diagnostics().takeWhile(!_.getReset()).flatMap(_.getDiagnostics().asScala)
+
+        expect(visibleDiagnostics.nonEmpty)
+        visibleDiagnostics.foreach { d =>
+          expect(
+            d.getSeverity() == b.DiagnosticSeverity.WARNING,
+            d.getMessage().contains("deprecated"),
+            d.getMessage.contains("directive")
+          )
+        }
+      }
+    }
+  }
 }
 
 object BspTestDefinitions {
