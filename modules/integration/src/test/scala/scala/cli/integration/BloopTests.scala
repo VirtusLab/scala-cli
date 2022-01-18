@@ -96,22 +96,24 @@ class BloopTests extends munit.FunSuite {
   }
 
   test("bloop exit works") {
-    def assertBloopNotRunning(): Unit = {
+    def bloopRunning(): Boolean = {
       val javaProcesses = os.proc("jps", "-l").call().out.text()
-      expect(!javaProcesses.contains("bloop.Bloop"))
+      javaProcesses.contains("bloop.Bloop")
     }
 
     val inputs = TestInputs(Seq.empty)
     inputs.fromRoot { _ =>
       BloopUtil.killBloop()
-      TestUtil.retry()(assertBloopNotRunning())
+      TestUtil.retry()(assert(!bloopRunning()))
 
-      val res = runScalaCli("bloop", "start").call()
+      val res = runScalaCli("bloop", "start").call(check=false)
       assert(res.exitCode == 0, clues(res.out.text()))
+      assert(bloopRunning(), clues(res.out.text()))
 
-      val resExit = runScalaCli("bloop", "exit").call()
+
+      val resExit = runScalaCli("bloop", "exit").call(check=false)
       assert(resExit.exitCode == 0, clues(resExit.out.text()))
-      assertBloopNotRunning()
+      assert(!bloopRunning())
     }
   }
 }
