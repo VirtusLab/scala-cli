@@ -114,7 +114,8 @@ object Artifacts {
         .exists(_.version.endsWith("SNAPSHOT")) ||
         scalaNativeCliVersion.exists(_.endsWith("SNAPSHOT"))
       val runnerNeedsSonatypeSnapshots = Constants.runnerNeedsSonatypeSnapshots(params.scalaVersion)
-      if (hasSnapshots || runnerNeedsSonatypeSnapshots)
+      val stubsNeedSonatypeSnapshots   = addStubs && stubsVersion.endsWith("SNAPSHOT")
+      if (hasSnapshots || runnerNeedsSonatypeSnapshots || stubsNeedSonatypeSnapshots)
         Seq(coursier.Repositories.sonatype("snapshots").root)
       else
         Nil
