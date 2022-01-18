@@ -95,7 +95,7 @@ Using directives syntax is still experimental and may change in future versions 
 So when we will have:
 
 ```scala title=version.scala
-// using scala 2.12.5
+//> using scala 2.12.5
 
 object OldCode
 //rest of the config

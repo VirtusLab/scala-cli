@@ -1,6 +1,6 @@
-// using lib "com.lihaoyi::os-lib:0.8.0"
-// using lib "com.lihaoyi::pprint:0.7.1"
-// using scala "2.13"
+//> using lib "com.lihaoyi::os-lib:0.8.0"
+//> using lib "com.lihaoyi::pprint:0.7.1"
+//> using scala "2.13"
 
 // Usage: scala-cli gcbenchmark.scala -- <path_to_scala_cli_executable>
 

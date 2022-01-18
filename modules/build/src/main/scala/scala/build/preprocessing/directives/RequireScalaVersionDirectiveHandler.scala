@@ -11,12 +11,12 @@ import scala.build.preprocessing.{ScopePath, Scoped}
 case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Scala version"
   def description      = "Require a Scala version for the current file"
-  def usage            = "// using target.scala _version_"
-  override def usageMd = "`// using target.scala `_version_"
+  def usage            = "//> using target.scala _version_"
+  override def usageMd = "`//> using target.scala `_version_"
   override def examples = Seq(
-    "// using target.scala \"3\"",
-    "// using target.scala.>= \"2.13\"",
-    "// using target.scala.< \"3.0.2\""
+    "//> using target.scala \"3\"",
+    "//> using target.scala.>= \"2.13\"",
+    "//> using target.scala.< \"3.0.2\""
   )
 
   override def keys: Seq[String] = Seq(

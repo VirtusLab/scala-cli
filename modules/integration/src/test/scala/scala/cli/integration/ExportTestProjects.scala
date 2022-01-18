@@ -8,9 +8,9 @@ object ExportTestProjects {
 
     val mainFile =
       if (scalaVersion.startsWith("3."))
-        s"""// using scala "$scalaVersion"
-           |// using resourceDir "./input"
-           |// using lib "org.scala-lang::scala3-compiler:$scalaVersion"
+        s"""//> using scala "$scalaVersion"
+           |//> using resourceDir "./input"
+           |//> using lib "org.scala-lang::scala3-compiler:$scalaVersion"
            |
            |import scala.io.Source
            |
@@ -24,8 +24,8 @@ object ExportTestProjects {
            |}
            |""".stripMargin
       else
-        s"""// using scala "$scalaVersion"
-           |// using resourceDir "./input"
+        s"""//> using scala "$scalaVersion"
+           |//> using resourceDir "./input"
            |
            |import scala.io.Source
            |
@@ -42,8 +42,8 @@ object ExportTestProjects {
       Seq(
         os.rel / "Hello.scala" -> mainFile,
         os.rel / "Zio.test.scala" ->
-          """|// using lib "dev.zio::zio::1.0.8"
-             |// using lib "dev.zio::zio-test-sbt::1.0.8"
+          """|//> using lib "dev.zio::zio::1.0.8"
+             |//> using lib "dev.zio::zio-test-sbt::1.0.8"
              |
              |import zio._
              |import zio.test._
@@ -70,8 +70,8 @@ object ExportTestProjects {
 
     val testFile =
       if (scalaVersion.startsWith("3."))
-        s"""// using scala "$scalaVersion"
-           |// using platform "scala-js"
+        s"""//> using scala "$scalaVersion"
+           |//> using platform "scala-js"
            |
            |import scala.scalajs.js
            |
@@ -81,8 +81,8 @@ object ExportTestProjects {
            |    console.log("Hello from " + "exported Scala CLI project")
            |""".stripMargin
       else
-        s"""// using scala "$scalaVersion"
-           |// using platform "scala-js"
+        s"""//> using scala "$scalaVersion"
+           |//> using platform "scala-js"
            |
            |import scala.scalajs.js
            |
@@ -104,8 +104,8 @@ object ExportTestProjects {
     val nl = "\\n"
     val testFile =
       if (scalaVersion.startsWith("3."))
-        s"""// using scala "$scalaVersion"
-           |// using platform "scala-native"
+        s"""//> using scala "$scalaVersion"
+           |//> using platform "scala-native"
            |
            |import scala.scalanative.libc._
            |import scala.scalanative.unsafe._
@@ -118,8 +118,8 @@ object ExportTestProjects {
            |    }
            |""".stripMargin
       else
-        s"""// using scala "$scalaVersion"
-           |// using platform "scala-native"
+        s"""//> using scala "$scalaVersion"
+           |//> using platform "scala-native"
            |
            |import scala.scalanative.libc._
            |import scala.scalanative.unsafe._
@@ -142,9 +142,9 @@ object ExportTestProjects {
 
   def repositoryScala3Test(scalaVersion: String): TestInputs = {
     val testFile =
-      s"""// using scala "$scalaVersion"
-         |// using lib "com.github.jupyter:jvm-repr:0.4.0"
-         |// using repository "jitpack"
+      s"""//> using scala "$scalaVersion"
+         |//> using lib "com.github.jupyter:jvm-repr:0.4.0"
+         |//> using repository "jitpack"
          |import jupyter._
          |object Test:
          |  def main(args: Array[String]): Unit =
@@ -160,7 +160,7 @@ object ExportTestProjects {
 
   def mainClassScala3Test(scalaVersion: String): TestInputs = {
     val testFile =
-      s"""// using scala "$scalaVersion"
+      s"""//> using scala "$scalaVersion"
          |
          |object Test:
          |  def main(args: Array[String]): Unit =
@@ -183,9 +183,9 @@ object ExportTestProjects {
 
   def scalacOptionsScala2Test(scalaVersion: String): TestInputs = {
     val testFile =
-      s"""// using scala "$scalaVersion"
-         |// using lib "org.scala-lang.modules::scala-async:0.10.0"
-         |// using lib "org.scala-lang:scala-reflect:$scalaVersion"
+      s"""//> using scala "$scalaVersion"
+         |//> using lib "org.scala-lang.modules::scala-async:0.10.0"
+         |//> using lib "org.scala-lang:scala-reflect:$scalaVersion"
          |import scala.async.Async.{async, await}
          |import scala.concurrent.{Await, Future}
          |import scala.concurrent.duration.Duration
@@ -239,9 +239,9 @@ object ExportTestProjects {
 
   def testFrameworkTest(scalaVersion: String): TestInputs = {
     val testFile =
-      s"""// using scala "$scalaVersion"
-         |// using lib "com.lihaoyi::utest:0.7.10"
-         |// using test-framework "utest.runner.Framework"
+      s"""//> using scala "$scalaVersion"
+         |//> using lib "com.lihaoyi::utest:0.7.10"
+         |//> using test-framework "utest.runner.Framework"
          |
          |import utest._
          |
@@ -280,8 +280,8 @@ object ExportTestProjects {
     val shapelessJarStr =
       "\"" + shapelessJar.toString.replace("\\", "\\\\") + "\""
     val testFile =
-      s"""// using scala "$scalaVersion"
-         |// using jar $shapelessJarStr
+      s"""//> using scala "$scalaVersion"
+         |//> using jar $shapelessJarStr
          |
          |import shapeless._
          |

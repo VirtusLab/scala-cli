@@ -10,12 +10,12 @@ import scala.build.preprocessing.{ScopePath, Scoped}
 case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Platform"
   def description      = "Require a Scala platform for the current file"
-  def usage            = "// using target.platform _platform_"
-  override def usageMd = "`// using target.platform `_platform_"
+  def usage            = "//> using target.platform _platform_"
+  override def usageMd = "`//> using target.platform `_platform_"
   override def examples = Seq(
-    "// using target.platform \"scala-js\"",
-    "// using target.platform \"scala-js\", \"scala-native\"",
-    "// using target.platform \"jvm\""
+    "//> using target.platform \"scala-js\"",
+    "//> using target.platform \"scala-js\", \"scala-native\"",
+    "//> using target.platform \"jvm\""
   )
 
   override def keys: Seq[String] = Seq(

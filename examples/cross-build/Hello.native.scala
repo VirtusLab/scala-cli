@@ -1,5 +1,5 @@
-// using scala 2.13
-// using target scala-native
+//> using scala 2.13
+//> using target scala-native
 
 import scala.scalanative.libc._
 import scala.scalanative.unsafe._

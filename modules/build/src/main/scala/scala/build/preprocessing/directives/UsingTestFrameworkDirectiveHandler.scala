@@ -13,9 +13,9 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   def description = "Set the test framework"
   def usage       = "using testFramework _class_name_ | using `test-framework` _class_name_"
   override def usageMd =
-    "`// using testFramework `_class_name_ | ``// using `test-framework` ``_class_name_"
+    "`//> using testFramework `_class_name_ | ``//> using `test-framework` ``_class_name_"
   override def examples = Seq(
-    "// using testFramework \"utest.runner.Framework\""
+    "//> using testFramework \"utest.runner.Framework\""
   )
 
   override def keys = Seq("test-framework", "testFramework")
