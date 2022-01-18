@@ -402,7 +402,7 @@ case object ScalaPreprocessor extends Preprocessor {
 
     // All using directives should use just `using` keyword, no @using or require
     reportWarning(
-      "Deprecated unsing directive syntax, please use keyword `using`.",
+      "Deprecated using directive syntax, please use keyword `using`.",
       getDirectives(usedDirectives).filter(_.getSyntax() != UsingDirectiveSyntax.Using),
       before = false
     )

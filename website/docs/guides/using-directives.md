@@ -17,24 +17,61 @@ using foo "bar", "baz"
 
 will be interpreted as assigning `bar` and `baz` to the key `foo`.
 
-As shown, `using` directives can be defined using the special keyword `using`. However, this may not be compatible with exisiting tools outside of Scala CLI. Therefore, they can be used in comments:
+As shown, `using` directives can be defined using the special keyword `using`. However, this may not be compatible with exisiting tools outside of Scala CLI. Therefore, they can be used in comments using special syntax:
 
 ```scala
-// using scala "2"
-```
+//> using scala "2"
 
-Or as a special top-level annotation:
-
-```scala
-// using jars "libs/model.jar"
+/*> using options "-Xfatal-warnings"*/
 ```
 
 :::info
-For now we recommend using the comment-flavor (`// using scala "3.0.2"`), and we will use that syntax in this guide.
+For now we recommend using the special comment (`//> using scala "3.0.2"`), and we will use that syntax in this guide.
 
 Until `using` directives becomes a part of the Scala specification, this is the only way that guarantees that your code will work well with IDEs, code formatters, and other tools.
 :::
 
+Within one file, only one flavor of using directives can be used. The keyword-based syntax (`using scala "3"`) has precedence over special comments (`//> using scala "3"`) and deprecated, plain comments (`// using scala "3"`) has lowest priority.
+
+For now `using` and `@using` can be mixed within a given syntax however we strongly suggest not to use deprecated `@using`.
+
+Scala CLI reports warnings for each using directive that does not contribute to the build.
+
+With following snippet:
+
+```scala
+using scala "3.1"
+// using scala "2.13.8"
+//> using scala "2.12.11"
+```
+
+Scala `3.1` will be used and following warnings would be reported:
+
+```
+[warn] ./.pg/a.scala:2:1: This using directive is ignored. File contains directives outside comments and those has higher precedence.
+[warn] // using scala "2.13.8"
+[warn] ^^^
+[warn] ./.pg/a.scala:3:1: This using directive is ignored. File contains directives outside comments and those has higher precedence.
+[warn] //> using scala "2.12.11"
+[warn] ^^^^
+```
+## Deprecated syntax
+
+As a part of `0.0.x` series we experimented with different syntaxes for using directives. Based on feedback and discussions with the Scala compiler team, we decided to deprecate `@using` (using annotations) and `// using` (using within plain comment). Those syntaxes will keep working in the `0.1.x` series and will result in an error starting from `0.2.x`.
+
+Scala CLI produces warnings if any of the syntaxes above is used:
+
+```
+[warn] ./.pg/a.scala:1:1: Using directive using plain comments are deprecated, please add `>` to each comment.
+[warn] // using scala "3"
+[warn] ^^^
+```
+
+```
+[warn] ./.pg/a.scala:1:1: Deprecated using directive syntax, please use keyword `using`.
+[warn] @using scala "3"
+[warn] ^^^^^^
+```
 
 ## Details
 
@@ -56,13 +93,13 @@ The only exceptions are `using target` directives, which only apply to the given
 
 `using` directives also support indentation and braces syntax similar to the syntax of Scala:
 ```scala
-// using:
-//   scala "2.13"
-//   options "-Xasync"
-//   target {
-//     scope "test"
-//     platform "jvm"
-//   }
+//> using:
+//>   scala "2.13"
+//>   options "-Xasync"
+//>   target {
+//>     scope "test"
+//>     platform "jvm"
+//>   }
 ```
 
 **We believe that syntax similar to `using` directives should become a part of Scala in the future.**
