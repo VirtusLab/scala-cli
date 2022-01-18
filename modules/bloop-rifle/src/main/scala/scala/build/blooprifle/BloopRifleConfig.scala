@@ -71,7 +71,9 @@ object BloopRifleConfig {
     Seq(
       "-Xss4m",
       "-XX:MaxInlineLevel=20", // Specific option for faster C2, ignored by GraalVM
-      "-XX:+UseParallelGC"     // Full parallel GC is the best choice for Scala compilation
+      "-XX:+UseZGC", // ZGC returns unused memory back to the OS, so Bloop does not occupy so much memory if unused
+      "-XX:ZUncommitDelay=30",
+      "-XX:ZCollectionInterval=5"
     )
 
   lazy val defaultJavaOpts: Seq[String] = {
