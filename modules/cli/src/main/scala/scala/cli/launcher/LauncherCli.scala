@@ -6,9 +6,9 @@ import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Positioned}
 import scala.cli.commands.LoggingOptions
 
-object LauncherCLI {
+object LauncherCli {
 
-  def runAndExit(version: String, options: LauncherOptions, remainingArgs: Seq[String]) = {
+  def runAndExit(version: String, options: LauncherOptions, remainingArgs: Seq[String]): Nothing = {
 
     val logger       = LoggingOptions().logger
     val scalaVersion = options.cliScalaVersion.getOrElse("2.12")
