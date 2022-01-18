@@ -77,7 +77,7 @@ object BloopServer {
         bloopVersion,
         bloopJava
       )
-      Await.result(fut, 30.seconds)
+      Await.result(fut, config.startCheckTimeout + 30.seconds)
     }
     def exitBloop() = BloopRifle.exit(config, workdir, logger)
 

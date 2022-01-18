@@ -145,19 +145,29 @@ object Operations {
     def check0(f: => ScheduledFuture[_]): Runnable = {
       val start = System.currentTimeMillis()
       () =>
-        val completionOpt =
-          if (!p.isAlive())
-            Some(Failure(new Exception("Server didn't start")))
-          else if (check(address, logger))
-            Some(Success(()))
-          else if (timeout.isFinite && System.currentTimeMillis() - start > timeout.toMillis)
-            Some(Failure(new Exception(s"Server didn't start after $timeout ms")))
-          else
-            None
+        try {
+          val completionOpt =
+            if (!p.isAlive())
+              Some(Failure(new Exception("Server didn't start")))
+            else if (check(address, logger))
+              Some(Success(()))
+            else if (timeout.isFinite && System.currentTimeMillis() - start > timeout.toMillis)
+              Some(Failure(new Exception(s"Server didn't start after $timeout ms")))
+            else
+              None
 
-        for (completion <- completionOpt) {
-          promise.tryComplete(completion)
-          f.cancel(false)
+          for (completion <- completionOpt) {
+            promise.tryComplete(completion)
+            f.cancel(false)
+          }
+        }
+        catch {
+          case t: Throwable =>
+            if (timeout.isFinite && System.currentTimeMillis() - start > timeout.toMillis) {
+              promise.tryFailure(t)
+              f.cancel(false)
+            }
+            throw t
         }
     }
 
