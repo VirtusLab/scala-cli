@@ -34,15 +34,11 @@ jobs:
     - name: Java Home
       run: echo "$JAVA_HOME"
     - name: Build Scala CLI
-      run: ./mill -i copyLauncher build/
+      run: ./mill copyJvmLauncher build
     - name: Build Benchmark
-      run: |
-        ls -lh build
-        (cd build && gunzip scala-cli-x86_64-pc-linux.gz && chmod +x scala-cli-x86_64-pc-linux)
-        ls -lh build
-        ./build/scala-cli-x86_64-pc-linux package --standalone gcbenchmark/gcbenchmark.scala -o gc
+      run: java -jar ./build/scala-cli package --standalone gcbenchmark/gcbenchmark.scala -o gc
     - name: Run Benchmark
-      run: ./gc $(realpath ./build/scala-cli-x86_64-pc-linux)
+      run: ./gc $(realpath ./build/scala-cli)
 
   jvm-tests:
     timeout-minutes: 120
