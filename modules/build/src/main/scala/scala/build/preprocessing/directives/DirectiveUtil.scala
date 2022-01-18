@@ -15,7 +15,7 @@ object DirectiveUtil {
       .collect {
         case v: StringValue =>
           val line   = v.getRelatedASTNode.getPosition.getLine
-          val column = v.getRelatedASTNode.getPosition.getColumn
+          val column = v.getRelatedASTNode.getPosition.getColumn + 1 // Using directives are 0 based
           Seq((
             v.get,
             Position.File(path, (line, column), (line, column)),

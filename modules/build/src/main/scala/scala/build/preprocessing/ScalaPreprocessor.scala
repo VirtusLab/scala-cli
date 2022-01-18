@@ -1,6 +1,12 @@
 package scala.build.preprocessing
 
 import com.virtuslab.using_directives.config.Settings
+import com.virtuslab.using_directives.custom.model.{
+  UsingDirectiveKind,
+  UsingDirectiveSyntax,
+  UsingDirectives,
+  Value
+}
 import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
@@ -269,25 +275,9 @@ case object ScalaPreprocessor extends Preprocessor {
     logger: Logger
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
 
-    val processor = {
-      val reporter = new DirectivesOutputStreamReporter(System.err) // TODO Get that via a logger
-      val settings = new Settings
-      settings.setAllowStartWithoutAt(true)
-      settings.setAllowRequire(false)
-      val context = new Context(reporter, settings)
-      new UsingDirectivesProcessor(context)
-    }
-
     val contentChars = content.toCharArray
-    val directives   = processor.extract(contentChars)
-
-    val directives0 = directives
-      .getFlattenedMap
-      .asScala
-      .map {
-        case (k, l) => StrictDirective(k.getPath.asScala.mkString("."), l.asScala)
-      }
-      .toSeq
+    val ExtractedDirectives(codeOffset, directives0) =
+      value(extractUsingDirectives(contentChars, path, logger))
 
     val updatedOptions = value {
       DirectivesProcessor.process(
@@ -313,9 +303,8 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val directives2 = updatedRequirements.unused
 
-    val codeOffset = directives.getCodeOffset
     val updatedContentOpt =
-      if (codeOffset > 0 && !directives.isCommentSyntax) {
+      if (codeOffset > 0) {
         val headerBytes = contentChars
           .iterator
           .take(codeOffset)
@@ -345,7 +334,101 @@ case object ScalaPreprocessor extends Preprocessor {
           updatedContentOpt
         ))
     }
+  }
 
+  case class ExtractedDirectives(offset: Int, directives: Seq[StrictDirective])
+
+  def extractUsingDirectives(
+    contentChars: Array[Char],
+    path: Either[String, os.Path],
+    logger: Logger
+  ): Either[BuildException, ExtractedDirectives] = {
+    val processor = {
+      val reporter = new DirectivesOutputStreamReporter(System.err) // TODO Get that via a logger
+      val settings = new Settings
+      settings.setAllowStartWithoutAt(true)
+      settings.setAllowRequire(false)
+      val context = new Context(reporter, settings)
+      new UsingDirectivesProcessor(context)
+    }
+    val all = processor.extract(contentChars, true, true).asScala
+
+    def byKind(kind: UsingDirectiveKind) = all.find(_.getKind == kind).get
+
+    def asValues(directives: UsingDirectives) =
+      directives
+        .getFlattenedMap
+        .values()
+        .asScala
+        .flatMap(_.asScala)
+        .toSeq
+
+    val codeDirectives           = byKind(UsingDirectiveKind.Code)
+    val specialCommentDirectives = byKind(UsingDirectiveKind.SpecialComment)
+    val plainCommentDirectives   = byKind(UsingDirectiveKind.PlainComment)
+
+    def reportWarning(msg: String, values: Seq[Value[_]]): Unit =
+      values.foreach { v =>
+        val astPos   = v.getRelatedASTNode.getPosition()
+        val start    = (astPos.getLine(), 0)
+        val end      = (astPos.getLine(), astPos.getColumn())
+        val position = Position.File(path, start, end)
+        logger.diagnostic(msg, positions = Seq(position))
+      }
+
+    val usedDirectives =
+      if (!codeDirectives.getFlattenedMap().isEmpty()) {
+        val msg =
+          s"This using directive is ignored. File contains directives outside comments and those has higher precedence."
+        reportWarning(msg, asValues(plainCommentDirectives) ++ asValues(specialCommentDirectives))
+        codeDirectives
+      }
+      else if (!specialCommentDirectives.getFlattenedMap().isEmpty()) {
+        val msg =
+          s"This using directive is ignored. Using directive from plain comments are deprecated, please add `>` to each comment."
+        reportWarning(msg, asValues(plainCommentDirectives))
+        specialCommentDirectives
+      }
+      else {
+        val msg =
+          s"Using directive using plain comments are deprecated, please add `>` to each comment."
+        reportWarning(msg, asValues(plainCommentDirectives))
+        plainCommentDirectives
+      }
+
+    // All using directives should use just `using` keyword, no @using or require
+    reportWarning(
+      "Deprecated unsing directive syntax, please use keyword `using`.",
+      asValues(usedDirectives).filter(_.getSyntax() != UsingDirectiveSyntax.Using)
+    )
+
+    val flattened = usedDirectives.getFlattenedMap.asScala.toSeq
+    val strictDirectives =
+      flattened.map { case (k, l) => StrictDirective(k.getPath.asScala.mkString("."), l.asScala) }
+
+    val offset =
+      if (usedDirectives.getKind() != UsingDirectiveKind.Code) 0
+      else usedDirectives.getCodeOffset()
+    Right(ExtractedDirectives(offset, strictDirectives))
+  }
+
+  private def validateUsingDirective(
+    path: Either[String, os.Path],
+    direcives: UsingDirectives,
+    logger: Logger
+  ): Unit = {
+
+    def values = direcives.getFlattenedMap().asScala.flatMap(_._2.asScala)
+
+    if (direcives.getKind() == UsingDirectiveKind.PlainComment) values.foreach { v =>
+      val astPos     = v.getRelatedASTNode.getPosition()
+      val lineColumn = (astPos.getLine(), astPos.getColumn())
+      val position   = Position.File(path, lineColumn, lineColumn)
+      logger.diagnostic(
+        "Comment-based using directives are deprecated, please use //> syntax",
+        positions = Seq(position)
+      )
+    }
   }
 
   private def parseDependency(str: String, pos: Position): Either[BuildException, AnyDependency] =
