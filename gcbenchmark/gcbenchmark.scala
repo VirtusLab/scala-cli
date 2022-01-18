@@ -19,16 +19,16 @@ object Main {
   val workspace =
     os.temp.dir(os.pwd, "tmp-", deleteOnExit = true) // where the temporary files are stored
   val projectSize =
-    50 // Number of files in a generated project used in benchmark
+    200 // Number of files in a generated project used in benchmark
   val numberOfBuilds = 10 // How many times run build for each setup
   val idleWait =
-    60 // In seconds. Wait after builds are done, to measure how much memory JVM returns to OS
+    90 // In seconds. Wait after builds are done, to measure how much memory JVM returns to OS
 
   val setups = Seq(
-    Map("BLOOP_JAVA_OPTS" -> "-XX:+UseParallelGC -Xmx4G"),
     Map("BLOOP_JAVA_OPTS" -> "-XX:+UseParallelGC"),
-    Map("BLOOP_JAVA_OPTS" -> "-XX:+UseZGC -XX:ZUncommitDelay=20"),
-    Map("BLOOP_JAVA_OPTS" -> "-XX:+UseZGC -XX:ZUncommitDelay=20 -Xmx4G"),
+    Map(
+      "BLOOP_JAVA_OPTS" -> "-XX:+UnlockExperimentalVMOptions -XX:+UseShenandoahGC -XX:ShenandoahUncommitDelay=30000"
+    ),
     Map.empty[String, String]
   )
 
@@ -79,6 +79,7 @@ object Main {
     val scalaCli = pprint.log(args(0))
     os.proc("java", "-version").call(stdout = os.Inherit)
     val results = for { env <- setups } yield {
+      pprint.log(env)
       bloopPid.foreach(p => os.proc("kill", p).call(stderr = os.Inherit))
       Thread.sleep(3000)
       println("=" * 80)
