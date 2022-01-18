@@ -14,6 +14,7 @@ import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 import scala.build.preprocessing.directives.SingleValueExpected
+import scala.build.errors.ScalaNativeCompatibilityError
 
 class BuildTests extends munit.FunSuite {
 
@@ -773,6 +774,45 @@ class BuildTests extends munit.FunSuite {
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions.isEmpty)
+    }
+  }
+
+  test("Scala Native working with Scala 3.1") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """// using platform "scala-native"
+          |// using nativeVersion "0.4.3-RC2"
+          |// using scala "3.1.0"
+          |def foo(): String = "foo"
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      scalaOptions = defaultOptions.scalaOptions.copy(
+        scalaVersion = None
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.isRight)
+    }
+  }
+
+  test("Scala Native not working with Scala 3.0") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """// using platform "scala-native"
+          |// using nativeVersion "0.4.3-RC2"
+          |// using scala "3.0.2"
+          |def foo(): String = "foo"
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      scalaOptions = defaultOptions.scalaOptions.copy(
+        scalaVersion = None
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.isLeft)
+      assert(maybeBuild.left.get.isInstanceOf[ScalaNativeCompatibilityError])
     }
   }
 
