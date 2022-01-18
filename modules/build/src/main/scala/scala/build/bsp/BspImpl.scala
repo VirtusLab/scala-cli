@@ -147,28 +147,32 @@ final class BspImpl(
       value(prepareBuild(actualLocalServer))
     if (notifyChanges && (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged))
       notifyBuildChange(actualLocalServer)
-    Build.buildOnce(
-      inputs,
-      preBuildDataMain.sources,
-      inputs.generatedSrcRoot(Scope.Main),
-      preBuildDataMain.generatedSources,
-      preBuildDataMain.buildOptions,
-      Scope.Main,
-      logger,
-      actualLocalClient,
-      bloopServer
-    ).swap.map(e => (e, Scope.Main)).swap
-    Build.buildOnce(
-      inputs,
-      preBuildDataTest.sources,
-      inputs.generatedSrcRoot(Scope.Test),
-      preBuildDataTest.generatedSources,
-      preBuildDataTest.buildOptions,
-      Scope.Test,
-      logger,
-      actualLocalClient,
-      bloopServer
-    ).swap.map(e => (e, Scope.Test)).swap
+    value {
+      Build.buildOnce(
+        inputs,
+        preBuildDataMain.sources,
+        inputs.generatedSrcRoot(Scope.Main),
+        preBuildDataMain.generatedSources,
+        preBuildDataMain.buildOptions,
+        Scope.Main,
+        logger,
+        actualLocalClient,
+        bloopServer
+      ).left.map((_, Scope.Main))
+    }
+    value {
+      Build.buildOnce(
+        inputs,
+        preBuildDataTest.sources,
+        inputs.generatedSrcRoot(Scope.Test),
+        preBuildDataTest.generatedSources,
+        preBuildDataTest.buildOptions,
+        Scope.Test,
+        logger,
+        actualLocalClient,
+        bloopServer
+      ).left.map((_, Scope.Test))
+    }
   }
 
   private def build(
