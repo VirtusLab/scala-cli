@@ -160,7 +160,7 @@ object Package extends ScalaCommand[PackageOptions] {
         assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
 
       case PackageType.Js =>
-        buildJs(build, destPath, value(mainClass))
+        buildJs(build, destPath, value(mainClass), logger)
 
       case PackageType.Native =>
         buildNative(inputs, build, destPath, value(mainClass), logger)
@@ -371,7 +371,7 @@ object Package extends ScalaCommand[PackageOptions] {
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
     build.options.platform.value match {
       case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
-      case Platform.JS     => buildJs(build, appPath, mainClass)
+      case Platform.JS     => buildJs(build, appPath, mainClass, logger)
       case Platform.Native => buildNative(inputs, build, appPath, mainClass, logger)
     }
 
@@ -387,8 +387,13 @@ object Package extends ScalaCommand[PackageOptions] {
     )
   }
 
-  private def buildJs(build: Build.Successful, destPath: os.Path, mainClass: String): Unit = {
-    val linkerConfig = build.options.scalaJsOptions.linkerConfig
+  private def buildJs(
+    build: Build.Successful,
+    destPath: os.Path,
+    mainClass: String,
+    logger: Logger
+  ): Unit = {
+    val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
     linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig)
   }
 

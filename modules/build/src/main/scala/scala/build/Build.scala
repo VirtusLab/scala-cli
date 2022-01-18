@@ -604,7 +604,7 @@ object Build {
       classesDir = classesDir0,
       scalaCompiler = scalaCompiler,
       scalaJsOptions =
-        if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config)
+        if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config(logger))
         else None,
       scalaNativeOptions =
         if (options.platform.value == Platform.Native)

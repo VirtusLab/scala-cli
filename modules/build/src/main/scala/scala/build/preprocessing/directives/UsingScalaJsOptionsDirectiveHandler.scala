@@ -9,8 +9,6 @@ import scala.build.{Logger, Positioned}
 import scala.util.{Success, Try}
 
 case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    ???
 
   def name: String = "Scala JS options"
 
@@ -20,12 +18,29 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
 
   override def usageMd: String =
     """
-      |`// using jsVersion `_value_
-      |`// using jsMode `_value_
-      |`// using jsModuleKind `_value_
-      |`// using jsCheckIr true|false`
-      |`// using jsEmitSourceMaps true|false``
-      |`// using jsDom true|false``
+      |`// using jsVersion` _value_
+      |
+      |`// using jsMode` _value_
+      |
+      |`// using jsModuleKind` _value_
+      |
+      |`// using jsCheckIr` _true|false_
+      |
+      |`// using jsEmitSourceMaps` _true|false_
+      |
+      |`// using jsDom` _true|false_
+      |
+      |`// using jsHeader` _value_
+      |
+      |`// using jsAllowBigIntsForLongs` _true|false_
+      |
+      |`// using jsAvoidClasses` _true|false_
+      |
+      |`// using jsAvoidLetsAndConsts` _true|false_
+      |
+      |`// using jsModuleSplitStyleStr` _value_
+      |
+      |`// using jsEsVersionStr` _value_
       |""".stripMargin
 
   override def examples: Seq[String] = Seq(
@@ -68,12 +83,18 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     : Map[String, (String, Seq[Positioned[String]]) => Either[BuildException, BuildOptions]] = {
     val l = lens[BuildOptions].scalaJsOptions
     Map(
-      "jsVersion"        -> { getSingleString(_, _, l.version) },
-      "jsMode"           -> { getSingleString(_, _, l.mode) },
-      "jsModuleKind"     -> { getSingleString(_, _, l.moduleKindStr) },
-      "jsCheckIr"        -> { getBooleanOpt(_, _, l.checkIr) },
-      "jsEmitSourceMaps" -> { getBoolean(_, _, l.emitSourceMaps) },
-      "jsDom"            -> { getBooleanOpt(_, _, l.dom) }
+      "jsVersion"              -> { getSingleString(_, _, l.version) },
+      "jsMode"                 -> { getSingleString(_, _, l.mode) },
+      "jsModuleKind"           -> { getSingleString(_, _, l.moduleKindStr) },
+      "jsCheckIr"              -> { getBooleanOpt(_, _, l.checkIr) },
+      "jsEmitSourceMaps"       -> { getBoolean(_, _, l.emitSourceMaps) },
+      "jsDom"                  -> { getBooleanOpt(_, _, l.dom) },
+      "jsHeader"               -> { getSingleString(_, _, l.header) },
+      "jsAllowBigIntsForLongs" -> { getBooleanOpt(_, _, l.allowBigIntsForLongs) },
+      "jsAvoidClasses"         -> { getBooleanOpt(_, _, l.avoidClasses) },
+      "jsAvoidLetsAndConsts"   -> { getBooleanOpt(_, _, l.avoidLetsAndConsts) },
+      "jsModuleSplitStyleStr"  -> { getSingleString(_, _, l.moduleSplitStyleStr) },
+      "jsEsVersionStr"         -> { getSingleString(_, _, l.esVersionStr) }
     )
   }
 

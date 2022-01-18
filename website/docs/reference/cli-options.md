@@ -839,6 +839,30 @@ Emit source maps
 
 Enable jsdom
 
+#### `--js-header`
+
+A header that will be added at the top of generated .js files
+
+#### `--js-allow-big-ints-for-longs`
+
+Primitive Longs *may* be compiled as primitive JavaScript bigints
+
+#### `--js-avoid-classes`
+
+Avoid class'es when using functions and prototypes has the same observable semantics.
+
+#### `--js-avoid-lets-and-consts`
+
+Avoid lets and consts when using vars has the same observable semantics.
+
+#### `--js-module-split-style`
+
+The Scala JS module split style: fewestmodules, smallestmodules
+
+#### `--js-es-version`
+
+The Scala JS ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021
+
 ## Scala Native options
 
 Available in commands:

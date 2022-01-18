@@ -25,3 +25,27 @@ This section is currently a work in progress, but here are some initial notes:
 
 - Beware platform dependencies
 - `run` / `test` / `package` should all work
+
+## Using Directives 
+
+Scala.Js options are supported by using directives in ScalaCLI:
+
+#### `--js-version`
+
+ The Scala JS version
+
+ #### `--js-header`
+
+ A header that will be added at the top of generated .js files
+
+For more options, see our [`using` directive section](./reference/directives.md#scala-js-options).
+
+## Supported Scala.JS Versions
+
+In the future, the ScalaCLI will be able to support any version of Scala.JS independently of the version of scala-cli. But for now, there are some limitations and it isn't possible to use each version of Scala.JS. 
+
+The table below lists the last supported version of Scala.JS in ScalaCLI. If you want to use newer Scala.JS, update scala-cli.
+
+| ScalaCLI versions   |      ScalaJs      | 
+|---------------------|:-----------------:|
+| 0.0.9               |   1.7.1           |
