@@ -10,7 +10,7 @@ import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
 import scala.cli.internal.Argv0
-import scala.cli.launcher.LauncherCLI
+import scala.cli.launcher.{LauncherCLI, LauncherOptions}
 import scala.util.Properties
 
 object ScalaCli extends CommandsEntryPoint {
@@ -46,7 +46,8 @@ object ScalaCli extends CommandsEntryPoint {
   override def description =
     "Scala CLI is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."
   override def summaryDesc =
-    "See 'scala-cli <command> --help' to read about a specific subcommand. To see full help run 'scala-cli <command> --help-full'."
+    """|To run another Scala CLI version, pass '--cli-version' at the beginning of the argument list. 'scala-cli --cli-version <versions> args'.
+       |See 'scala-cli <command> --help' to read about a specific subcommand. To see full help run 'scala-cli <command> --help-full'.""".stripMargin
   final override def defaultCommand = Some(actualDefaultCommand)
 
   // FIXME Report this in case-app default NameFormatter
@@ -139,7 +140,17 @@ object ScalaCli extends CommandsEntryPoint {
   }
 
   private def main0(args: Array[String]): Unit = {
-    LauncherCLI.main(args)
+    LauncherOptions.parser.stopAtFirstUnrecognized.parse(args) match {
+      case Left(e) =>
+        System.err.println(e.message)
+        sys.exit(1)
+      case Right((launcherOpts, args0)) =>
+        launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
+          case Some(ver) =>
+            LauncherCLI.runAndExit(ver, launcherOpts, args0)
+          case None =>
+        }
+    }
     val (systemProps, scalaCliArgs) = partitionArgs(args)
     setSystemProps(systemProps)
 

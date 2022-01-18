@@ -181,19 +181,22 @@ echo 'println("Hello")' | scala-cli -
 # Hello
 ```
 
-## ScalaCLI version
+## Scala CLI version
 
-`scala-cli` can also run the other version of `scala-cli`, it may be helpful to test unreleased scala-cli functionality.
+`scala-cli` can also run another Scala CLI version, which can be helpful to test unreleased yet Scala CLI functionality.
+The Scala CLI version parameter `--cli-version` must be passed at the beginning of the argument list.
+:::warning
+Running another Scala CLI version might be slower because it uses JVM-based Scala CLI launcher.
+:::
 
-```bash ignore
-scala-cli about
-# Scala CLI version 0.0.9 (v0.0.9)
-```
-
-```bash ignore
-scala-cli about --scala-cli-version 0.0.9+131-gf0ab5c40-SNAPSHOT
+```bash 
+scala-cli --cli-version 0.0.9+131-gf0ab5c40-SNAPSHOT about
 # Scala CLI version 0.0.9+131-gf0ab5c40-SNAPSHOT (v0.0.9-131-f0ab5c)
 ```
+
+<!-- Expected:
+Scala CLI version 0.0.9+131-gf0ab5c40-SNAPSHOT (v0.0.9-131-f0ab5c)
+-->
 
 ## Process substitution
 

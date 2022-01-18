@@ -1,23 +1,17 @@
 package scala.cli.launcher
-
-import caseapp.core.RemainingArgs
 import dependency._
 
-import scala.build.internal.Runner
-import scala.build.options.BuildOptions
+import scala.build.internal.{OsLibc, Runner}
+import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Positioned}
-import scala.cli.commands.{LoggingOptions, ScalaCommand}
+import scala.cli.commands.LoggingOptions
 
-object LauncherCLI extends ScalaCommand[LauncherOptions] {
+object LauncherCLI {
 
-  override def ignoreUnrecognized: Boolean = true
-  override def hasHelp: Boolean            = false
-  override def hasFullHelp: Boolean        = false
-
-  def run(version: String, options: LauncherOptions, remainingArgs: RemainingArgs): Unit = {
+  def runAndExit(version: String, options: LauncherOptions, remainingArgs: Seq[String]) = {
 
     val logger       = LoggingOptions().logger
-    val scalaVersion = options.publishedScalaVersion.getOrElse("2.12")
+    val scalaVersion = options.cliScalaVersion.getOrElse("2.12")
 
     val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli:cli_$scalaVersion:$version")
     val snapshotsRepo =
@@ -42,7 +36,11 @@ object LauncherCLI extends ScalaCommand[LauncherOptions] {
         f.toPath.toFile
       }
 
-    val buildOptions = BuildOptions()
+    val buildOptions = BuildOptions(
+      javaOptions = JavaOptions(
+        jvmIdOpt = Some(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"))
+      )
+    )
 
     val exitCode =
       Runner.runJvm(
@@ -50,16 +48,12 @@ object LauncherCLI extends ScalaCommand[LauncherOptions] {
         buildOptions.javaOptions.javaOpts.map(_.value),
         scalaCli,
         "scala.cli.ScalaCli",
-        remainingArgs.remaining ++ Seq("--") ++ remainingArgs.unparsed,
-        logger
+        remainingArgs,
+        logger,
+        allowExecve = true
       )
 
     sys.exit(exitCode)
   }
 
-  override def run(options: LauncherOptions, remainingArgs: RemainingArgs): Unit = {
-    for {
-      scv <- options.scalaCliVersion
-    } run(scv, options, remainingArgs)
-  }
 }
