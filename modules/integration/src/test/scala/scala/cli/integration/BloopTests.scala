@@ -106,12 +106,11 @@ class BloopTests extends munit.FunSuite {
       BloopUtil.killBloop()
       TestUtil.retry()(assert(!bloopRunning()))
 
-      val res = runScalaCli("bloop", "start").call(check=false)
+      val res = runScalaCli("bloop", "start").call(check = false)
       assert(res.exitCode == 0, clues(res.out.text()))
       assert(bloopRunning(), clues(res.out.text()))
 
-
-      val resExit = runScalaCli("bloop", "exit").call(check=false)
+      val resExit = runScalaCli("bloop", "exit").call(check = false)
       assert(resExit.exitCode == 0, clues(resExit.out.text()))
       assert(!bloopRunning())
     }
