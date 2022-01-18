@@ -336,7 +336,8 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     Deps.scalaJsLinker,
     Deps.scalaPackager,
     Deps.svmSubs,
-    Deps.upickle
+    Deps.upickle,
+    Deps.metaconfigTypesafe
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
@@ -345,7 +346,11 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
 
   def localRepoJar = `local-repo`.localRepoJar()
 
-  object test extends Tests with ScalaCliScalafixModule
+  object test extends Tests with ScalaCliScalafixModule {
+    def moduleDeps = super.moduleDeps ++ Seq(
+      build(Scala.defaultInternal).test
+    )
+  }
 }
 
 trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTests
