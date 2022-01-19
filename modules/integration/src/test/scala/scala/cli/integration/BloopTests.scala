@@ -11,9 +11,6 @@ class BloopTests extends munit.FunSuite {
   private lazy val bloopDaemonDir =
     BloopUtil.bloopDaemonDir(runScalaCli("directories").call().out.text())
 
-  // temporary, bleep exit does exit, but is having issues later on…
-  private def exitCheck = false
-
   val dummyInputs = TestInputs(
     Seq(
       os.rel / "Test.scala" ->
@@ -31,9 +28,9 @@ class BloopTests extends munit.FunSuite {
     shouldRestart: Boolean
   ): Unit = TestUtil.retryOnCi() {
     dummyInputs.fromRoot { root =>
+      BloopUtil.killBloop()
 
       val bloop = BloopUtil.bloop(currentBloopVersion, bloopDaemonDir)
-      bloop("exit").call(cwd = root, stdout = os.Inherit, check = exitCheck)
       bloop("about").call(cwd = root, stdout = os.Inherit)
 
       val output = os.proc(TestUtil.cli, "run", ".")
@@ -61,7 +58,7 @@ class BloopTests extends munit.FunSuite {
 
   test("invalid bloop options passed via cli cause bloop start failure") {
     TestInputs(Seq()).fromRoot { root =>
-      runScalaCli("bloop", "exit").call(cwd = root, check = exitCheck)
+      runScalaCli("bloop", "exit").call(cwd = root)
       val res = runScalaCli("bloop", "start", "--bloop-java-opt", "-zzefhjzl").call(
         cwd = root,
         stderr = os.Pipe,
@@ -84,7 +81,7 @@ class BloopTests extends munit.FunSuite {
     )
 
     inputs.fromRoot { root =>
-      runScalaCli("bloop", "exit").call(check = exitCheck)
+      runScalaCli("bloop", "exit").call()
       val res = runScalaCli(
         "bloop",
         "start",
@@ -98,4 +95,24 @@ class BloopTests extends munit.FunSuite {
     }
   }
 
+  test("bloop exit works") {
+    def bloopRunning(): Boolean = {
+      val javaProcesses = os.proc("jps", "-l").call().out.text()
+      javaProcesses.contains("bloop.Bloop")
+    }
+
+    val inputs = TestInputs(Seq.empty)
+    inputs.fromRoot { _ =>
+      BloopUtil.killBloop()
+      TestUtil.retry()(assert(!bloopRunning()))
+
+      val res = runScalaCli("bloop", "start").call(check = false)
+      assert(res.exitCode == 0, clues(res.out.text()))
+      assert(bloopRunning(), clues(res.out.text()))
+
+      val resExit = runScalaCli("bloop", "exit").call(check = false)
+      assert(resExit.exitCode == 0, clues(resExit.out.text()))
+      assert(!bloopRunning())
+    }
+  }
 }
