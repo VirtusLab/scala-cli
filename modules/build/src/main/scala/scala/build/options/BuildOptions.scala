@@ -284,15 +284,17 @@ final case class BuildOptions(
       sv match {
         case Some(sv0) =>
           val prefix           = if (sv0.endsWith(".")) sv0 else sv0 + "."
-          val matchingVersions = allVersions.filter(_.startsWith(prefix))
+          val matchingVersions = allVersions.filter(_.startsWith(prefix)).map(Version(_))
           if (matchingVersions.isEmpty)
             Left(new InvalidBinaryScalaVersionError(sv0))
           else {
             val validMaxVersions = maxSupportedScalaVersions
               .filter(_.repr.startsWith(prefix))
-            val validMatchingVersions = matchingVersions
-              .map(Version(_))
-              .filter(v => validMaxVersions.exists(v <= _))
+            val validMatchingVersions = {
+              val filtered = matchingVersions.filter(v => validMaxVersions.exists(v <= _))
+              if (filtered.isEmpty) matchingVersions
+              else filtered
+            }
             if (validMatchingVersions.isEmpty)
               Left(new UnsupportedScalaVersionError(sv0))
             else
