@@ -150,12 +150,7 @@ final class BspImpl(
     actualLocalServer: BspServer,
     bloopServer: BloopServer,
     notifyChanges: Boolean
-  ): Either[(BuildException, Scope), Unit] = either {
-    val preBuild = value(prepareBuild(actualLocalServer))
-
-    if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
-      notifyBuildChange(actualLocalServer)
-
+  ): Either[(BuildException, Scope), Unit] = {
     def doBuildOnce(data: PreBuildData, scope: Scope) =
       Build.buildOnce(
         inputs,
@@ -169,8 +164,15 @@ final class BspImpl(
         bloopServer
       ).left.map(_ -> scope)
 
-    value(doBuildOnce(preBuild.mainScope, Scope.Main))
-    value(doBuildOnce(preBuild.testScope, Scope.Test))
+    for {
+      preBuild <- prepareBuild(actualLocalServer)
+      _ = {
+        if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
+          notifyBuildChange(actualLocalServer)
+      }
+      _ <- doBuildOnce(preBuild.mainScope, Scope.Main)
+      _ <- doBuildOnce(preBuild.testScope, Scope.Test)
+    } yield ()
   }
 
   private def build(
