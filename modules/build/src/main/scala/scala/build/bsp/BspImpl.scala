@@ -362,6 +362,7 @@ final class BspImpl(
       .create()
     val remoteClient = launcher.getRemoteProxy
     actualLocalClient.forwardToOpt = Some(remoteClient)
+    actualLocalServer.onConnectWithClient(actualLocalClient)
 
     for (targetId <- actualLocalServer.targetIds)
       inputs.flattened().foreach {
