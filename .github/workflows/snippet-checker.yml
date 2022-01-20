@@ -10,4 +10,4 @@ jobs:
     timeout-minutes: 2
     runs-on: "ubuntu-latest"
     steps:
-      - uses: virtuslab/scala-snippet-checker@196b2db3aa878bb84fc54fe083f681797fd4e1dd
+      - uses: virtuslab/scala-snippet-checker@main
