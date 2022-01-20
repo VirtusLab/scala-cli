@@ -181,6 +181,24 @@ echo 'println("Hello")' | scala-cli -
 # Hello
 ```
 
+## Scala CLI version
+
+`scala-cli` can also run another Scala CLI version, which can be helpful to test unreleased yet Scala CLI functionality.
+:::warning
+Running another Scala CLI version might be slower because it uses JVM-based Scala CLI launcher.
+:::
+
+To run another Scala CLI version, specify it with `--cli-version` before any other argument:
+
+```bash 
+scala-cli --cli-version 0.0.9+131-gf0ab5c40-SNAPSHOT about
+# Scala CLI version 0.0.9+131-gf0ab5c40-SNAPSHOT (v0.0.9-131-f0ab5c)
+```
+
+<!-- Expected:
+Scala CLI version 0.0.9+131-gf0ab5c40-SNAPSHOT (v0.0.9-131-f0ab5c)
+-->
+
 ## Process substitution
 
 Lastly, `scala-cli` also accepts input via shell process substitution:
