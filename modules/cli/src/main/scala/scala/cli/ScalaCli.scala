@@ -112,6 +112,15 @@ object ScalaCli extends CommandsEntryPoint {
   private def ignoreSigpipe(): Unit =
     Signal.handle(new Signal("PIPE"), SignalHandler.SIG_IGN)
 
+  private def isJava17ClassName(name: String): Boolean =
+    name == "java/net/UnixDomainSocketAddress"
+
+  private lazy val javaMajorVersion =
+    sys.props.getOrElse("java.version", "0")
+      .stripSuffix("1.")
+      .takeWhile(_.isDigit)
+      .toInt
+
   override def main(args: Array[String]): Unit = {
     try main0(args)
     catch {
@@ -129,13 +138,25 @@ object ScalaCli extends CommandsEntryPoint {
           deleteOnExit = false
         )
 
-        if (CurrentParams.verbosity >= 2)
-          throw e
-        else {
+        if (CurrentParams.verbosity <= 1) {
           System.err.println(s"Error: $e")
           System.err.println(s"For more details, please see '$tempFile'")
-          sys.exit(1)
         }
+
+        e match {
+          case _: NoClassDefFoundError
+              if isJava17ClassName(
+                e.getMessage
+              ) && CurrentParams.verbosity <= 1 && javaMajorVersion < 16 =>
+            // Actually Java >= 16, but let's recommend a LTS version…
+            System.err.println(
+              s"Java >= 17 is required to run Scala CLI (found Java $javaMajorVersion)"
+            )
+          case _ =>
+        }
+
+        if (CurrentParams.verbosity >= 2) throw e
+        else sys.exit(1)
     }
   }
 
