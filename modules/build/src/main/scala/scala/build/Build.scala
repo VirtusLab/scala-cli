@@ -668,7 +668,7 @@ object Build {
     }
 
     buildClient.clear()
-    buildClient.setGeneratedSources(generatedSources)
+    buildClient.setGeneratedSources(scope, generatedSources)
 
     (classesDir0, params, artifacts, project, updatedBloopConfig)
   }
@@ -723,7 +723,7 @@ object Build {
     }
 
     buildClient.clear()
-    buildClient.setGeneratedSources(generatedSources)
+    buildClient.setGeneratedSources(scope, generatedSources)
     val success = Bloop.compile(
       inputs.scopeProjectName(scope),
       bloopServer,

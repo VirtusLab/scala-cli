@@ -27,7 +27,7 @@ class BspServer(
 
   private def maybeUpdateProjectTargetUri(res: b.WorkspaceBuildTargetsResult): Unit =
     for {
-      n <- projectNames.iterator
+      (_, n) <- projectNames.iterator
       if n.targetUriOpt.isEmpty
       target <- res.getTargets.asScala.iterator.find(_.getDisplayName == n.name)
     } n.targetUriOpt = Some(target.getId.getUri)
@@ -79,12 +79,12 @@ class BspServer(
   }
 
   private def mapGeneratedSources(res: b.SourcesResult): Unit = {
-    val gen = generatedSources
+    val gen = generatedSources.values.toVector
     for {
       item <- res.getItems().asScala
       if validTarget(item.getTarget)
       sourceItem <- item.getSources.asScala
-      genSource  <- gen.uriMap.get(sourceItem.getUri)
+      genSource  <- gen.iterator.flatMap(_.uriMap.get(sourceItem.getUri).iterator).take(1)
       updatedUri <- genSource.reportingPath.toOption.map(_.toNIO.toUri.toASCIIString)
     } {
       sourceItem.setUri(updatedUri)

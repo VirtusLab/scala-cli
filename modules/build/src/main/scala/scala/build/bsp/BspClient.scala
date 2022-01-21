@@ -79,12 +79,14 @@ class BspClient(
   }
 
   private def actualBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
-    val updatedParamsOpt =
-      if (validTarget(params.getBuildTarget))
-        generatedSources.uriMap.get(params.getTextDocument.getUri).map { genSource =>
+    val updatedParamsOpt = targetScopeOpt(params.getBuildTarget).flatMap { scope =>
+      generatedSources.getOrElse(scope, HasGeneratedSources.GeneratedSources(Nil))
+        .uriMap
+        .get(params.getTextDocument.getUri)
+        .map { genSource =>
           updatedPublishDiagnosticsParams(params, genSource)
         }
-      else None
+    }
 
     def call(updatedParams0: b.PublishDiagnosticsParams): Unit =
       super.onBuildPublishDiagnostics(updatedParams0)
