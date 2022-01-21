@@ -17,6 +17,7 @@ class BspServer(
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
+    with ScalaScriptBuildServer
     with ScalaDebugServerForwardStubs
     with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs with HasGeneratedSources {
 
@@ -186,6 +187,28 @@ class BspServer(
       }
       res0
     }
+
+  def buildTargetWrappedSources(params: WrappedSourcesParams)
+    : CompletableFuture[WrappedSourcesResult] = {
+    def sourcesItemOpt(scope: Scope) = targetScopeIdOpt(scope).map { id =>
+      val items = generatedSources
+        .getOrElse(scope, HasGeneratedSources.GeneratedSources(Nil))
+        .sources
+        .flatMap { s =>
+          s.reportingPath.toSeq.map(_.toNIO.toUri.toASCIIString).map { uri =>
+            val item    = new WrappedSourceItem(uri, s.generated.toNIO.toUri.toASCIIString)
+            val content = os.read(s.generated)
+            item.setTopWrapper(content.take(s.topWrapperLen))
+            item.setBottomWrapper("}") // meh
+            item
+          }
+        }
+      new WrappedSourcesItem(id, items.asJava)
+    }
+    val sourceItems = Seq(Scope.Main, Scope.Test).flatMap(sourcesItemOpt(_).toSeq)
+    val res         = new WrappedSourcesResult(sourceItems.asJava)
+    CompletableFuture.completedFuture(res)
+  }
 
   private val shutdownPromise = Promise[Unit]()
   override def buildShutdown(): CompletableFuture[Object] = {

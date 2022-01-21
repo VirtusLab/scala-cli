@@ -45,6 +45,14 @@ object stubs extends JavaModule with ScalaCliPublishModule {
     super.javacOptions() ++ Seq("-target", "8", "-source", "8")
   }
 }
+object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
+  def ivyDeps = super.ivyDeps() ++ Seq(
+    Deps.bsp4j
+  )
+  def javacOptions = T {
+    super.javacOptions() ++ Seq("-target", "8", "-source", "8")
+  }
+}
 object integration extends Module {
   object docker extends CliIntegrationDocker {
     object test extends Tests {
@@ -169,6 +177,7 @@ class Build(val crossScalaVersion: String)
   def moduleDeps = Seq(
     `bloop-rifle`(),
     `build-macros`(),
+    `scala-cli-bsp`,
     `test-runner`(),
     `tasty-lib`()
   )
