@@ -33,10 +33,11 @@ class BspServer(
   }
 
   // Can we accept some errors in some circumstances?
-  override protected def onFatalError(throwable: Throwable): Unit = {
+  override protected def onFatalError(throwable: Throwable, context: String): Unit = {
     val sw = new StringWriter()
     throwable.printStackTrace(new PrintWriter(sw))
-    val message = s"Fatal error has occured, shutting down the server:\n ${sw.toString}"
+    val message =
+      s"Fatal error has occured within $context. Shutting down the server:\n ${sw.toString}"
     System.err.println(message)
     client.foreach(_.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, message)))
 
