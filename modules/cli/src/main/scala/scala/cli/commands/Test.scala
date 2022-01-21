@@ -42,11 +42,8 @@ object Test extends ScalaCommand[TestOptions] {
 
     def maybeTest(builds: Builds, allowExit: Boolean): Unit = {
       val optionsKeys = builds.map.keys.toVector.map(_.optionsKey).distinct
-      val builds0 = optionsKeys.map { optionsKey =>
+      val builds0 = optionsKeys.flatMap { optionsKey =>
         builds.map.get(CrossKey(optionsKey, Scope.Test))
-          .orElse(builds.map.get(CrossKey(optionsKey, Scope.Main)))
-          // Can this happen in practice now?
-          .getOrElse(sys.error(s"Main build not found for $optionsKey"))
       }
       val buildsLen = builds0.length
       val printBeforeAfterMessages =
