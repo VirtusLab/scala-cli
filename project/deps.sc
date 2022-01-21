@@ -46,7 +46,7 @@ object Deps {
   }
   def ammonite                   = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
   def asm                        = ivy"org.ow2.asm:asm:9.2"
-  def bloopConfig                = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.18"
+  def bloopConfig                = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19"
   def bsp4j                      = ivy"ch.epfl.scala:bsp4j:2.0.0"
   def caseApp                    = ivy"com.github.alexarchambault::case-app:2.1.0-M12"
   def collectionCompat           = ivy"org.scala-lang.modules::scala-collection-compat:2.6.0"
