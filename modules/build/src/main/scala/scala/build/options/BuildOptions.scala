@@ -114,8 +114,19 @@ final case class BuildOptions(
       scalaOptions.compilerPlugins
   }
 
+  private def semanticDbJavacPlugins: Either[BuildException, Seq[AnyDependency]] = either {
+    val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false)
+    if (generateSemDbs)
+      Seq(
+        dep"$semanticDbJavacPluginOrganization:$semanticDbJavacPluginModuleName:$semanticDbJavacPluginVersion"
+      )
+    else
+      Nil
+  }
+
   def javacPluginDependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
-    javaOptions.javacPluginDependencies
+    value(semanticDbJavacPlugins).map(Positioned.none(_)) ++
+      javaOptions.javacPluginDependencies
   }
 
   def allExtraJars: Seq[Path] =

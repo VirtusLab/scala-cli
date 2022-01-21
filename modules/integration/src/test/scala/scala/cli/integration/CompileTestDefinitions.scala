@@ -321,4 +321,34 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       )
     }
   }
+
+  test("Javac SemanticDB") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "foo" / "Test.java" ->
+          """package foo;
+            |
+            |public class Test {
+            |  public static void main(String[] args) {
+            |    System.err.println("Hello");
+            |  }
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "compile", extraOptions, "--semantic-db", ".")
+        .call(cwd = root)
+
+      val files = os.walk(root / ".scala")
+      val semDbFiles = files
+        .filter(_.last.endsWith(".semanticdb"))
+        .filter(!_.segments.exists(_ == "bloop-internal-classes"))
+      expect(semDbFiles.length == 1)
+      val semDbFile = semDbFiles.head
+      expect(
+        semDbFile.endsWith(os.rel / "META-INF" / "semanticdb" / "foo" / "Test.java.semanticdb")
+      )
+    }
+  }
 }

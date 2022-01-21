@@ -263,6 +263,10 @@ class Build(val crossScalaVersion: String)
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
          |  def semanticDbPluginVersion = "${Deps.scalametaTrees.dep.version}"
          |
+         |  def semanticDbJavacPluginOrganization = "${Deps.semanticDbJavac.dep.module.organization.value}"
+         |  def semanticDbJavacPluginModuleName = "${Deps.semanticDbJavac.dep.module.name.value}"
+         |  def semanticDbJavacPluginVersion = "${Deps.semanticDbJavac.dep.version}"
+         |
          |  def localRepoResourcePath = "$localRepoResourcePath"
          |
          |  def jmhVersion = "1.29"
