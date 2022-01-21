@@ -601,6 +601,8 @@ object Build {
       compilerClassPath = artifacts.compilerClassPath
     )
 
+    val javacOptions = javacReleaseV ++ options.javaOptions.javacOptions
+
     // `test` scope should contains class path to main scope
     val mainClassesPath =
       if (scope == Scope.Test)
@@ -608,6 +610,11 @@ object Build {
       else Nil
 
     value(validate(logger, options))
+
+    val fullClassPath = artifacts.compileClassPath ++
+      mainClassesPath ++
+      artifacts.javacPluginDependencies.map(_._3) ++
+      artifacts.extraJavacPlugins
 
     val project = Project(
       directory = inputs.workspace / ".scala",
@@ -622,13 +629,13 @@ object Build {
           Some(options.scalaNativeOptions.bloopConfig())
         else None,
       projectName = inputs.scopeProjectName(scope),
-      classPath = artifacts.compileClassPath ++ mainClassesPath,
+      classPath = fullClassPath,
       resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
-      javacOptions = javacReleaseV
+      javacOptions = javacOptions
     )
     project
   }

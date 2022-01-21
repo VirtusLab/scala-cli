@@ -524,6 +524,16 @@ Operating system to use when looking up in the JVM index
 
 CPU architecture to use when looking up in the JVM index
 
+#### `--javac-plugin`
+
+Javac plugin dependencies or files
+
+#### `--javac-option`
+
+Aliases: `--javac-opt`
+
+Javac options
+
 ## Logging options
 
 Available in commands:

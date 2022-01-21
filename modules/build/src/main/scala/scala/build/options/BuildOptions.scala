@@ -114,6 +114,10 @@ final case class BuildOptions(
       scalaOptions.compilerPlugins
   }
 
+  def javacPluginDependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
+    javaOptions.javacPluginDependencies
+  }
+
   def allExtraJars: Seq[Path] =
     classPathOptions.extraClassPath.map(_.toNIO)
   def allExtraCompileOnlyJars: Seq[Path] =
@@ -337,6 +341,8 @@ final case class BuildOptions(
     val maybeArtifacts = Artifacts(
       params = value(scalaParams),
       compilerPlugins = value(compilerPlugins),
+      javacPluginDependencies = value(javacPluginDependencies),
+      extraJavacPlugins = javaOptions.javacPlugins.map(_.value.toNIO),
       dependencies = value(dependencies),
       extraClassPath = allExtraJars,
       scalaNativeCliVersion =

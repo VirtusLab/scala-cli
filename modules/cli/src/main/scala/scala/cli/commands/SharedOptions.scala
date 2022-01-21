@@ -107,21 +107,6 @@ final case class SharedOptions(
 
   def logger = logging.logger
 
-  private def parseDependencies(
-    deps: List[Positioned[String]],
-    ignoreErrors: Boolean
-  ): Seq[Positioned[AnyDependency]] =
-    deps.map(_.map(_.trim)).filter(_.value.nonEmpty)
-      .flatMap { posDepStr =>
-        val depStr = posDepStr.value
-        DependencyParser.parse(depStr) match {
-          case Left(err) =>
-            if (ignoreErrors) Nil
-            else sys.error(s"Error parsing dependency '$depStr': $err")
-          case Right(dep) => Seq(posDepStr.map(_ => dep))
-        }
-      }
-
   def buildOptions(
     enableJmh: Boolean,
     jmhVersion: Option[String],
@@ -139,7 +124,10 @@ final case class SharedOptions(
         generateSemanticDbs = semanticDb,
         scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
         compilerPlugins =
-          parseDependencies(dependencies.compilerPlugin.map(Positioned.none(_)), ignoreErrors),
+          SharedOptions.parseDependencies(
+            dependencies.compilerPlugin.map(Positioned.none(_)),
+            ignoreErrors
+          ),
         platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
       ),
       scriptOptions = ScriptOptions(
@@ -169,7 +157,10 @@ final case class SharedOptions(
           .map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
         extraDependencies =
-          parseDependencies(dependencies.dependency.map(Positioned.none(_)), ignoreErrors)
+          SharedOptions.parseDependencies(
+            dependencies.dependency.map(Positioned.none(_)),
+            ignoreErrors
+          )
       ),
       internal = InternalOptions(
         cache = Some(coursierCache),
@@ -257,6 +248,21 @@ object SharedOptions {
   implicit lazy val parser: Parser[SharedOptions]        = Parser.derive
   implicit lazy val help: Help[SharedOptions]            = Help.derive
   implicit lazy val jsonCodec: ReadWriter[SharedOptions] = macroRW
+
+  def parseDependencies(
+    deps: List[Positioned[String]],
+    ignoreErrors: Boolean
+  ): Seq[Positioned[AnyDependency]] =
+    deps.map(_.map(_.trim)).filter(_.value.nonEmpty)
+      .flatMap { posDepStr =>
+        val depStr = posDepStr.value
+        DependencyParser.parse(depStr) match {
+          case Left(err) =>
+            if (ignoreErrors) Nil
+            else sys.error(s"Error parsing dependency '$depStr': $err")
+          case Right(dep) => Seq(posDepStr.map(_ => dep))
+        }
+      }
 
   def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
     if (in == null) {
