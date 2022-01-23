@@ -15,6 +15,7 @@ import $file.project.settings, settings.{
   localRepoResourcePath,
   platformExecutableJarExtension
 }
+import $file.project.deps, deps.customRepositories
 
 import java.io.File
 import java.nio.charset.Charset
@@ -113,9 +114,7 @@ object `generate-reference-doc` extends SbtModule with ScalaCliScalafixModule {
   def moduleDeps = Seq(
     cli
   )
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
+  def repositories = super.repositories ++ customRepositories
   def ivyDeps = Agg(
     Deps.caseApp,
     Deps.munit
@@ -176,9 +175,8 @@ class Build(val crossScalaVersion: String)
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
   }
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
+  def repositories = super.repositories ++ customRepositories
+
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
   )
@@ -324,9 +322,9 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     build(Scala.defaultInternal),
     `test-runner`(Scala.defaultInternal)
   )
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
+
+  def repositories = super.repositories ++ customRepositories
+
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.coursierLauncher,
