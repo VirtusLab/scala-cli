@@ -52,7 +52,9 @@ class CliLogger(
     contentCache: mutable.Map[os.Path, Seq[String]]
   ) =
     if (positions.isEmpty)
-      out.println(message)
+      out.println(
+        s"${ConsoleBloopBuildClient.diagnosticPrefix(Severity.Error == severity)} $message"
+      )
     else {
       val positions0 = positions.distinct
       val filePositions = positions0.collect {
