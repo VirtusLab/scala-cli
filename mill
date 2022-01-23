@@ -20,6 +20,6 @@ EOF
   exit 1
 fi
 
-eval "$(cs java --env --jvm temurin:17)"
+eval "$(cs java --env --jvm temurin:17 || cs java --env --jvm openjdk:1.17.0)"
 
 exec /usr/bin/env bash "$DIR/millw" "$@"

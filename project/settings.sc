@@ -725,6 +725,7 @@ trait ScalaCliCompile extends ScalaModule {
             asOpt(scalacOptions(), "-O"),
             asOpt(compileClasspath().map(_.path), "--jar"),
             asOpt(scalacPluginClasspath().map(p => s"-Xplugin:${p.path}"), "-O"),
+            Seq("--jvm", "zulu:17"),
             sourceFiles.map(_.path)
           )
 
