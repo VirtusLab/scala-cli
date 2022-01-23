@@ -719,8 +719,6 @@ trait ScalaCliCompile extends ScalaModule {
           def asOpt[T](values: IterableOnce[T], opt: String): Seq[String] =
             values.toList.flatMap(v => Seq(opt, v.toString))
 
-          println(sourceFiles.take(2))
-
           val proc = os.proc(
             Seq("scala-cli", "compile", "--classpath"),
             Seq("-S", scalaVersion()),

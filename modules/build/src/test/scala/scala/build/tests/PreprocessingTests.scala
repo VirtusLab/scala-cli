@@ -2,7 +2,7 @@ package scala.build.tests
 
 import scala.build.Inputs
 import scala.build.preprocessing.{ScalaPreprocessor, ScriptPreprocessor}
-import com.eed3si9n.expecty.Expecty.{expect, assert => expect}
+import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.internal.CustomCodeWrapper
 
