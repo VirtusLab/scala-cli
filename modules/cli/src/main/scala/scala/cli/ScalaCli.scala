@@ -158,10 +158,8 @@ object ScalaCli extends CommandsEntryPoint {
     // image), but also sometimes on glibc, or even on macOS, when we use domain
     // sockets to exchange with Bloop. So let's just ignore those (which should
     // just make some read / write calls return -1).
-    if (!Properties.isWin && isGraalvmNativeImage) {
+    if (!Properties.isWin && isGraalvmNativeImage)
       ignoreSigpipe()
-      os.pwd
-    }
 
     if (Properties.isWin && isGraalvmNativeImage)
       // The DLL loaded by LoadWindowsLibrary is statically linked in
