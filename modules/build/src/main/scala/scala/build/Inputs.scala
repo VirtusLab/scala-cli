@@ -9,6 +9,7 @@ import java.util.zip.{ZipEntry, ZipInputStream}
 import scala.annotation.tailrec
 import scala.build.options.Scope
 import scala.build.preprocessing.ScopePath
+import scala.util.Properties
 import scala.util.matching.Regex
 
 final case class Inputs(
@@ -118,8 +119,14 @@ final case class Inputs(
       if (os.exists(p)) Some(p)
       else if (p.segmentCount <= 0) None
       else existingParent(p / os.up)
+    def reallyOwnedByUser(p: os.Path): Boolean =
+      if (Properties.isWin)
+        p.toIO.canWrite() // Wondering if there's a better way to do that…
+      else
+        os.owner(p) == os.owner(os.home) &&
+        p.toIO.canWrite()
     val canWrite = existingParent(workspace)
-      .map(_.toIO.canWrite()) // Wondering if there's a better way to do that…
+      .map(reallyOwnedByUser)
       .getOrElse(true)
     if (canWrite) this
     else inHomeDir(directories)
