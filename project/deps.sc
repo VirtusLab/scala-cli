@@ -4,7 +4,7 @@ import scala.util.Properties
 
 object Scala {
   def scala212         = "2.12.15"
-  def scala213         = "2.13.6"
+  def scala213         = "2.13.8"
   def scalaSnapshot213 = "2.13.8-bin-e814d78"
   def scala3           = "3.0.2"
   val allScala2        = Seq(scala213, scala212)
@@ -50,11 +50,11 @@ object Deps {
     def coursier = "2.1.0-M2"
 
     def scalaJs       = "1.8.0"
-    def scalaMeta     = "4.4.31"
+    def scalaMeta     = "4.4.33"
     def scalaNative   = "0.4.3"
     def scalaPackager = "0.1.26"
   }
-  def ammonite                   = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
+  def ammonite                   = ivy"com.lihaoyi:::ammonite:2.5.1-6-5fce97fb"
   def asm                        = ivy"org.ow2.asm:asm:9.2"
   def bloopConfig                = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19"
   def bsp4j                      = ivy"ch.epfl.scala:bsp4j:2.0.0"
