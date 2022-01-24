@@ -119,8 +119,5 @@ def customRepositories =
   Seq(
     coursier.Repositories.sonatype("snapshots")
     // Uncomment for local development
-    // coursier.MavenRepository(
-    //   (os.Path(System.getProperty("user.home")) / ".m2" / "repository")
-    //     .toNIO.toUri.toASCIIString
-    // )
+    // coursier.LocalRepositories.Dangerous.maven2Local
   )
