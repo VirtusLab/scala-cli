@@ -16,7 +16,7 @@ object Scala {
     val max212 = patchVer(scala212)
     val max213 = patchVer(scala213)
     val max3   = patchVer(scala3)
-    (6 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
+    (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 until max3).map(i => s"3.0.$i") ++ Seq(scala3)
   }
