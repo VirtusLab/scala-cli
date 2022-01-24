@@ -127,7 +127,7 @@ final case class Inputs(
         p.toIO.canWrite()
     val canWrite = existingParent(workspace)
       .map(reallyOwnedByUser)
-      .getOrElse(true)
+      .getOrElse(false)
     if (canWrite) this
     else inHomeDir(directories)
   }
