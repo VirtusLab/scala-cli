@@ -14,37 +14,37 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
 
   def description: String = "Add Scala JS options"
 
-  def usage: String = s"// using ${keys.mkString("|")} _value_"
+  def usage: String = s"//> using ${keys.mkString("|")} _value_"
 
   override def usageMd: String =
     """
-      |`// using jsVersion` _value_
+      |`//> using jsVersion` _value_
       |
-      |`// using jsMode` _value_
+      |`//> using jsMode` _value_
       |
-      |`// using jsModuleKind` _value_
+      |`//> using jsModuleKind` _value_
       |
-      |`// using jsCheckIr` _true|false_
+      |`//> using jsCheckIr` _true|false_
       |
-      |`// using jsEmitSourceMaps` _true|false_
+      |`//> using jsEmitSourceMaps` _true|false_
       |
-      |`// using jsDom` _true|false_
+      |`//> using jsDom` _true|false_
       |
-      |`// using jsHeader` _value_
+      |`//> using jsHeader` _value_
       |
-      |`// using jsAllowBigIntsForLongs` _true|false_
+      |`//> using jsAllowBigIntsForLongs` _true|false_
       |
-      |`// using jsAvoidClasses` _true|false_
+      |`//> using jsAvoidClasses` _true|false_
       |
-      |`// using jsAvoidLetsAndConsts` _true|false_
+      |`//> using jsAvoidLetsAndConsts` _true|false_
       |
-      |`// using jsModuleSplitStyleStr` _value_
+      |`//> using jsModuleSplitStyleStr` _value_
       |
-      |`// using jsEsVersionStr` _value_
+      |`//> using jsEsVersionStr` _value_
       |""".stripMargin
 
   override def examples: Seq[String] = Seq(
-    "// using jsModuleKind \"common\""
+    "//> using jsModuleKind \"common\""
   )
 
   def getSingleString(

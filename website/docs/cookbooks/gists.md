@@ -54,7 +54,7 @@ You can also use resources from gists archive. This is done by passing `resource
 For example, given the gist `https://gist.github.com/lwronski/7ee12fa4b8b8bac3211841273df82080` which containing Scala code and text file:
 
 ```scala title=Hello.scala
-// using resourceDir "./"
+//> using resourceDir "./"
 import scala.io.Source
 
 object Hello extends App {

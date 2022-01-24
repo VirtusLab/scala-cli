@@ -19,11 +19,11 @@ import scala.build.{Logger, Positioned}
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Platform"
   def description      = "Set the default platform to Scala.JS or Scala Native"
-  def usage            = "// using platform (jvm|scala-js|scala-native)+"
-  override def usageMd = "`// using platform `(`jvm`|`scala-js`|`scala-native`)+"
+  def usage            = "//> using platform (jvm|scala-js|scala-native)+"
+  override def usageMd = "`//> using platform `(`jvm`|`scala-js`|`scala-native`)+"
   override def examples = Seq(
-    "// using platform \"scala-js\"",
-    "// using platform \"jvm\", \"scala-native\""
+    "//> using platform \"scala-js\"",
+    "//> using platform \"jvm\", \"scala-native\""
   )
 
   private def split(input: String): (String, Option[String]) = {

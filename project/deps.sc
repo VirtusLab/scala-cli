@@ -89,7 +89,7 @@ object Deps {
   def swoval                   = ivy"com.swoval:file-tree-views:2.1.7"
   def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
   def upickle                  = ivy"com.lihaoyi::upickle:1.4.3"
-  def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-4f0dd5d-SNAPSHOT"
+  def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"
   val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.9.15"
 }
 
@@ -113,3 +113,13 @@ object Docker {
   def alpineTestImage =
     "alpine@sha256:234cb88d3020898631af0ccbbcca9a66ae7306ecd30c9720690858c1b007d2a0"
 }
+
+def customRepositories =
+  Seq(
+    coursier.Repositories.sonatype("snapshots")
+    // Uncomment for local development
+    // coursier.MavenRepository(
+    //   (os.Path(System.getProperty("user.home")) / ".m2" / "repository")
+    //     .toNIO.toUri.toASCIIString
+    // )
+  )

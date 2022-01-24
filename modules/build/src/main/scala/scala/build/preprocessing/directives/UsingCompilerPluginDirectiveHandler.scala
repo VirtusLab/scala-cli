@@ -13,10 +13,10 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Compiler plugins"
   def description = "Adds compiler plugins"
   def usage =
-    "// using plugin \"org:name:ver\" | // using plugins \"org:name:ver\", \"org2:name2:ver2\""
+    "//> using plugin \"org:name:ver\" | //> using plugins \"org:name:ver\", \"org2:name2:ver2\""
   override def usageMd = "`using plugin `_org_`:`name`:`ver"
   override def examples = Seq(
-    "// using plugin \"org.typelevel:::kind-projector:0.13.2\""
+    "//> using plugin \"org.typelevel:::kind-projector:0.13.2\""
   )
 
   private def parseDependency(depStr: String): Either[BuildException, AnyDependency] =

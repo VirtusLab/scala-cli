@@ -12,7 +12,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -45,10 +45,18 @@ final class BspImpl(
     actualLocalClient.onBuildTargetDidChange(params)
   }
 
+  private case class PreBuildProject(
+    mainScope: PreBuildData,
+    testScope: PreBuildData,
+    diagnostics: Seq[Diagnostic]
+  )
+
   private def prepareBuild(
     actualLocalServer: BspServer
-  ): Either[(BuildException, Scope), (PreBuildData, PreBuildData)] = either {
+  ): Either[(BuildException, Scope), PreBuildProject] = either {
     logger.log("Preparing build")
+
+    val persistentLogger = new PersistentDiagnosticLogger(logger)
 
     val crossSources = value {
       CrossSources.forInputs(
@@ -56,7 +64,7 @@ final class BspImpl(
         Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
         ),
-        logger
+        persistentLogger
       ).left.map((_, Scope.Main))
     }
 
@@ -90,7 +98,7 @@ final class BspImpl(
         generatedSourcesMain,
         options0Main,
         Scope.Main,
-        logger,
+        persistentLogger,
         localClient
       ) match {
         case Right(v) => Right(v)
@@ -105,7 +113,7 @@ final class BspImpl(
         generatedSourcesTest,
         options0Test,
         Scope.Test,
-        logger,
+        persistentLogger,
         localClient
       ) match {
         case Right(v) => Right(v)
@@ -135,40 +143,36 @@ final class BspImpl(
       buildChangedTest
     )
 
-    (mainScope, testScope)
+    PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
   }
 
   private def buildE(
     actualLocalServer: BspServer,
     bloopServer: BloopServer,
     notifyChanges: Boolean
-  ): Either[(BuildException, Scope), Unit] = either {
-    val (preBuildDataMain, preBuildDataTest) =
-      value(prepareBuild(actualLocalServer))
-    if (notifyChanges && (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged))
-      notifyBuildChange(actualLocalServer)
-    Build.buildOnce(
-      inputs,
-      preBuildDataMain.sources,
-      inputs.generatedSrcRoot(Scope.Main),
-      preBuildDataMain.generatedSources,
-      preBuildDataMain.buildOptions,
-      Scope.Main,
-      logger,
-      actualLocalClient,
-      bloopServer
-    ).swap.map(e => (e, Scope.Main)).swap
-    Build.buildOnce(
-      inputs,
-      preBuildDataTest.sources,
-      inputs.generatedSrcRoot(Scope.Test),
-      preBuildDataTest.generatedSources,
-      preBuildDataTest.buildOptions,
-      Scope.Test,
-      logger,
-      actualLocalClient,
-      bloopServer
-    ).swap.map(e => (e, Scope.Test)).swap
+  ): Either[(BuildException, Scope), Unit] = {
+    def doBuildOnce(data: PreBuildData, scope: Scope) =
+      Build.buildOnce(
+        inputs,
+        data.sources,
+        inputs.generatedSrcRoot(scope),
+        data.generatedSources,
+        data.buildOptions,
+        scope,
+        logger,
+        actualLocalClient,
+        bloopServer
+      ).left.map(_ -> scope)
+
+    for {
+      preBuild <- prepareBuild(actualLocalServer)
+      _ = {
+        if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
+          notifyBuildChange(actualLocalServer)
+      }
+      _ <- doBuildOnce(preBuild.mainScope, Scope.Main)
+      _ <- doBuildOnce(preBuild.testScope, Scope.Test)
+    } yield ()
   }
 
   private def build(
@@ -207,17 +211,10 @@ final class BspImpl(
     val preBuild = CompletableFuture.supplyAsync(
       () =>
         prepareBuild(actualLocalServer) match {
-          case Right((preBuildDataMain, preBuildDataTest)) =>
-            if (preBuildDataMain.buildChanged || preBuildDataTest.buildChanged)
+          case Right(preBuild) =>
+            if (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged)
               notifyBuildChange(actualLocalServer)
-            Right((
-              preBuildDataMain.classesDir,
-              preBuildDataMain.project,
-              preBuildDataMain.generatedSources,
-              preBuildDataTest.classesDir,
-              preBuildDataTest.project,
-              preBuildDataTest.generatedSources
-            ))
+            Right(preBuild)
           case Left((ex, scope)) =>
             Left((ex, scope))
         },
@@ -234,36 +231,27 @@ final class BspImpl(
         case Right(params) =>
           for (targetId <- actualLocalServer.targetIds)
             actualLocalClient.resetBuildExceptionDiagnostics(targetId)
+
+          val targetId = actualLocalServer.targetIds.head
+          params.diagnostics.foreach(actualLocalClient.reportDiagnosticForFiles(targetId))
+
           doCompile().thenCompose { res =>
-            val (
-              classesDir0,
-              project,
-              generatedSources,
-              classesDir0Test,
-              projectTest,
-              generatedSourcesTest
-            ) = params
+            def doPostProcess(data: PreBuildData, scope: Scope) =
+              Build.postProcess(
+                data.generatedSources,
+                inputs.generatedSrcRoot(scope),
+                data.classesDir,
+                logger,
+                inputs.workspace,
+                updateSemanticDbs = true,
+                scalaVersion = data.project.scalaCompiler.scalaVersion
+              ).left.foreach(_.foreach(showGlobalWarningOnce))
+
             if (res.getStatusCode == b.StatusCode.OK)
               CompletableFuture.supplyAsync(
                 () => {
-                  Build.postProcess(
-                    generatedSources,
-                    inputs.generatedSrcRoot(Scope.Main),
-                    classesDir0,
-                    logger,
-                    inputs.workspace,
-                    updateSemanticDbs = true,
-                    scalaVersion = project.scalaCompiler.scalaVersion
-                  ).left.foreach(_.foreach(showGlobalWarningOnce))
-                  Build.postProcess(
-                    generatedSourcesTest,
-                    inputs.generatedSrcRoot(Scope.Test),
-                    classesDir0Test,
-                    logger,
-                    inputs.workspace,
-                    updateSemanticDbs = true,
-                    scalaVersion = projectTest.scalaCompiler.scalaVersion
-                  ).left.foreach(_.foreach(showGlobalWarningOnce))
+                  doPostProcess(params.mainScope, Scope.Main)
+                  doPostProcess(params.testScope, Scope.Test)
                   res
                 },
                 executor

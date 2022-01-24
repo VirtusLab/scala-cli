@@ -3,7 +3,7 @@ package scala.build
 import java.io.{OutputStream, PrintStream}
 
 import scala.build.blooprifle.BloopRifleLogger
-import scala.build.errors.{BuildException, Diagnostic}
+import scala.build.errors.{BuildException, Diagnostic, Severity}
 import scala.scalanative.{build => sn}
 
 trait Logger {
@@ -14,6 +14,13 @@ trait Logger {
   def debug(s: => String): Unit
 
   def log(diagnostics: Seq[Diagnostic]): Unit
+
+  def diagnostic(
+    message: String,
+    severity: Severity = Severity.Warning,
+    positions: Seq[Position] = Nil
+  ): Unit = log(Seq(Diagnostic(message, severity, positions)))
+
   def log(ex: BuildException): Unit
   def exit(ex: BuildException): Nothing
 

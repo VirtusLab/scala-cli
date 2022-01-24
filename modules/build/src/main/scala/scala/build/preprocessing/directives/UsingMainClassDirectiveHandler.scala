@@ -10,15 +10,15 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Main class"
   def description = "Specify default main class"
 
-  def usage = "// using main-class _main class_ | // using mainClass _main class_"
+  def usage = "//> using main-class _main class_ | //> using mainClass _main class_"
 
   override def usageMd =
-    """`// using main-class `_main class_
+    """`//> using main-class `_main class_
       |
-      |`// using mainClass `_main class_""".stripMargin
+      |`//> using mainClass `_main class_""".stripMargin
 
   override def examples = Seq(
-    "// using main-class \"helloWorld\""
+    "//> using main-class \"helloWorld\""
   )
 
   override def keys = Seq("main-class", "mainClass")

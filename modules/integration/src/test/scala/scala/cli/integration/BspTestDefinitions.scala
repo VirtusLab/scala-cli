@@ -522,7 +522,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "A.scala" ->
-          s"""// using resource "./resources"
+          s"""//> using resource "./resources"
              |
              |object A {}
              |""".stripMargin
@@ -555,7 +555,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Test.scala" ->
-          s"""// using lib "com.lihaoyi::pprint:0.0.0.0.0.1"
+          s"""//> using lib "com.lihaoyi::pprint:0.0.0.0.0.1"
              |
              |object Test {
              |  val msg = "Hello"
@@ -654,7 +654,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
         val updatedContent =
-          """// using lib "com.lihaoyi::pprint:0.6.6"
+          """//> using lib "com.lihaoyi::pprint:0.6.6"
             |val msg = "Hello"
             |pprint.log(msg)
             |""".stripMargin
@@ -805,13 +805,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Messages.scala" ->
-          """// using lib "com.lihaoyi::os-lib:0.7.8"
+          """//> using lib "com.lihaoyi::os-lib:0.7.8"
             |object Messages {
             |  def msg = "Hello"
             |}
             |""".stripMargin,
         os.rel / "MyTests.test.scala" ->
-          """// using lib "com.lihaoyi::utest::0.7.10"
+          """//> using lib "com.lihaoyi::utest::0.7.10"
             |import utest._
             |
             |object MyTests extends TestSuite {
@@ -889,6 +889,37 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         {
           val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
           expect(resp.getStatusCode == b.StatusCode.OK)
+        }
+      }
+    }
+  }
+
+  test("using directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "test.sc" ->
+          s"""// using scala "3.0"
+             |println(123)""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
+      async {
+        // prepare build
+        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        // build code
+        val targets = buildTargetsResp.getTargets().asScala.map(_.getId()).asJava
+        await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+
+        val visibleDiagnostics =
+          localClient.diagnostics().takeWhile(!_.getReset()).flatMap(_.getDiagnostics().asScala)
+
+        expect(visibleDiagnostics.nonEmpty)
+        visibleDiagnostics.foreach { d =>
+          expect(
+            d.getSeverity() == b.DiagnosticSeverity.WARNING,
+            d.getMessage().contains("deprecated"),
+            d.getMessage.contains("directive")
+          )
         }
       }
     }

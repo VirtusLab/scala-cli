@@ -58,8 +58,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """// using libs "org1:name1:1.1", "org2::name2:2.2"
-          |// using lib "org3:::name3:3.3"
+        """//> using libs "org1:name1:1.1", "org2::name2:2.2"
+          |//> using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -94,9 +94,9 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .scala - using witin tests") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """// using target.scope "test"
-          |// using libs "org1:name1:1.1", "org2::name2:2.2"
-          |// using lib "org3:::name3:3.3"
+        """//> using target.scope "test"
+          |//> using libs "org1:name1:1.1", "org2::name2:2.2"
+          |//> using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -124,8 +124,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .test.scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.test.scala" ->
-        """// using libs "org1:name1:1.1", "org2::name2:2.2"
-          |// using lib "org3:::name3:3.3"
+        """//> using libs "org1:name1:1.1", "org2::name2:2.2"
+          |//> using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -153,8 +153,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in test/name.scala") {
     val files = Seq(
       os.rel / "test" / "something.scala" ->
-        """// using libs "org1:name1:1.1", "org2::name2:2.2"
-          |// using lib "org3:::name3:3.3"
+        """//> using libs "org1:name1:1.1", "org2::name2:2.2"
+          |//> using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -179,12 +179,12 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("dependencies in .scala - // using") {
+  test("dependencies in .scala - //> using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """// using lib "org1:name1:1.1"
-          |// using lib "org2::name2:2.2"
-          |// using lib "org3:::name3:3.3"
+        """//> using lib "org1:name1:1.1"
+          |//> using lib "org2::name2:2.2"
+          |//> using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -314,7 +314,7 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .sc - using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """// using libs "org1:name1:1.1", "org2::name2:2.2", "org3:::name3:3.3"
+        """//> using libs "org1:name1:1.1", "org2::name2:2.2", "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |def a = 1
@@ -342,12 +342,12 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("dependencies in .sc - // using") {
+  test("dependencies in .sc - //> using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """// using lib "org1:name1:1.1"
-          |// using lib "org2::name2:2.2"
-          |// using lib "org3:::name3:3.3"
+        """//> using lib "org1:name1:1.1"
+          |//> using lib "org2::name2:2.2"
+          |//> using lib "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |def a = 1
@@ -378,8 +378,8 @@ class SourcesTests extends munit.FunSuite {
   test("java props in using directives") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """// using javaProp "foo1"
-          |// using javaProp "foo2=bar2"
+        """//> using javaProp "foo1"
+          |//> using javaProp "foo2=bar2"
           |""".stripMargin
     )
     testInputs.withInputs { (root, inputs) =>
@@ -397,7 +397,7 @@ class SourcesTests extends munit.FunSuite {
         javaOpts(0).value == "-Dfoo1",
         javaOpts(0).positions == Seq(Position.File(Right(root / "something.sc"), (0, 20), (0, 20))),
         javaOpts(1).value == "-Dfoo2=bar2",
-        javaOpts(1).positions == Seq(Position.File(Right(root / "something.sc"), (1, 22), (1, 22)))
+        javaOpts(1).positions == Seq(Position.File(Right(root / "something.sc"), (1, 20), (1, 20)))
       )
     }
   }
@@ -405,18 +405,18 @@ class SourcesTests extends munit.FunSuite {
   test("js options in using directives") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """// using jsVersion "1.8.0"
-          |// using jsMode "mode"
-          |// using jsModuleKind "commonjs"
-          |// using jsCheckIr "true"
-          |// using jsEmitSourceMaps "true"
-          |// using jsDom "true"
-          |// using jsHeader "#!/usr/bin/env node\n"
-          |// using jsAllowBigIntsForLongs "true"
-          |// using jsAvoidClasses "false"
-          |// using jsAvoidLetsAndConsts "false"
-          |// using jsModuleSplitStyleStr "smallestmodules"
-          |// using jsEsVersionStr "es2017"
+        """//> using jsVersion "1.8.0"
+          |//> using jsMode "mode"
+          |//> using jsModuleKind "commonjs"
+          |//> using jsCheckIr "true"
+          |//> using jsEmitSourceMaps "true"
+          |//> using jsDom "true"
+          |//> using jsHeader "#!/usr/bin/env node\n"
+          |//> using jsAllowBigIntsForLongs "true"
+          |//> using jsAvoidClasses "false"
+          |//> using jsAvoidLetsAndConsts "false"
+          |//> using jsModuleSplitStyleStr "smallestmodules"
+          |//> using jsEsVersionStr "es2017"
           |""".stripMargin
     )
     testInputs.withInputs { (_, inputs) =>
@@ -455,7 +455,7 @@ class SourcesTests extends munit.FunSuite {
   test("js options in using directives failure - multiple values") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """// using jsVersion "1.8.0","2.3.4"
+        """//> using jsVersion "1.8.0","2.3.4"
           |""".stripMargin
     )
     testInputs.withInputs { (_, inputs) =>
@@ -475,7 +475,7 @@ class SourcesTests extends munit.FunSuite {
   test("js options in using directives failure - not a boolean") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """// using jsDom "fasle"
+        """//> using jsDom "fasle"
           |""".stripMargin
     )
     testInputs.withInputs { (_, inputs) =>

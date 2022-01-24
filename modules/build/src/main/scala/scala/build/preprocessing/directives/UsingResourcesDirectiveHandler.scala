@@ -8,15 +8,15 @@ import scala.build.preprocessing.ScopePath
 case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Resource directories"
   def description = "Manually add a resource directory to the class path"
-  def usage = """// using resource _path_
+  def usage = """//> using resource _path_
                 |
-                |// using resources _path1_, _path2_ …""".stripMargin
+                |//> using resources _path1_, _path2_ …""".stripMargin
   override def usageMd =
-    """`// using resourceDir `_path_
+    """`//> using resourceDir `_path_
       |
-      |`// using resourceDirs `_path1_, _path2_ …""".stripMargin
+      |`//> using resourceDirs `_path1_, _path2_ …""".stripMargin
   override def examples = Seq(
-    "// using resourceDir \"./resources\""
+    "//> using resourceDir \"./resources\""
   )
 
   override def keys = Seq("resourceDir", "resourceDirs")

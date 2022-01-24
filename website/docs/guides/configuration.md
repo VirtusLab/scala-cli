@@ -58,9 +58,9 @@ Scala CLI can be configured inside `.scala` files.
 This is achieved by specifying `using` directives inside comments at the top of a `.scala` file, before any `package` or `import` statement:
 
 ```scala
-// using scala 2.13
-// using scala-js
-// using options -Xasync
+//> using scala 2.13
+//> using scala-js
+//> using options -Xasync
 
 // package and import statements follow here ...
 ```

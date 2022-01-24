@@ -9,19 +9,19 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
 
   def description: String = "Add Scala Native options"
 
-  def usage: String = "// using nativeGc _value_ | using native-version _value_"
+  def usage: String = "//> using nativeGc _value_ | using native-version _value_"
 
   override def usageMd: String =
-    """`// using nativeGc` _value_
+    """`//> using nativeGc` _value_
       |
-      |`// using nativeVersion` _value_
+      |`//> using nativeVersion` _value_
       |
-      |`// using nativeCompile` _value1_, _value2_
+      |`//> using nativeCompile` _value1_, _value2_
       |
-      |`// using nativeLinking` _value1_, _value2_""".stripMargin
+      |`//> using nativeLinking` _value1_, _value2_""".stripMargin
 
   override def examples: Seq[String] = Seq(
-    "// using nativeVersion \"0.4.0\""
+    "//> using nativeVersion \"0.4.0\""
   )
 
   override def keys: Seq[String] =

@@ -63,7 +63,7 @@ Some of the most popular test frameworks in Scala are:
 This example shows how to run an munit-based test suite:
 
 ```scala title=MyTests.scala
-// using lib "org.scalameta::munit::0.7.27"
+//> using lib "org.scalameta::munit::0.7.27"
 
 class MyTests extends munit.FunSuite {
   test("foo") {

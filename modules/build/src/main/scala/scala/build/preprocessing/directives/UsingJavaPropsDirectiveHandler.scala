@@ -7,12 +7,12 @@ import scala.build.{Logger, Positioned}
 case object UsingJavaPropsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java properties"
   def description = "Add Java properties"
-  def usage       = "// using java-prop|javaProp _key=val_"
+  def usage       = "//> using java-prop|javaProp _key=val_"
   override def usageMd =
-    """`// using javaProp_ `_key=value_
-      |`// using javaProp_ `_key_""".stripMargin
+    """`//> using javaProp_ `_key=value_
+      |`//> using javaProp_ `_key_""".stripMargin
   override def examples = Seq(
-    "// using javaProp \"foo1=bar\", \"foo2\""
+    "//> using javaProp \"foo1=bar\", \"foo2\""
   )
 
   override def keys = Seq("javaProp")

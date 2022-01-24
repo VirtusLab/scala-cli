@@ -13,7 +13,7 @@ For example, here is a simple project in scala-cli which contains only one main 
 ```
 
 ```scala title=MyTests.test.scala
-// using lib "org.scalameta::munit::1.0.0-M1"
+//> using lib "org.scalameta::munit::1.0.0-M1"
 
 class MyTests extends munit.FunSuite {
   test("test") {

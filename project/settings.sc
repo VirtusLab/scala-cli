@@ -719,14 +719,13 @@ trait ScalaCliCompile extends ScalaModule {
           def asOpt[T](values: IterableOnce[T], opt: String): Seq[String] =
             values.toList.flatMap(v => Seq(opt, v.toString))
 
-          println(sourceFiles.take(2))
-
           val proc = os.proc(
             Seq("scala-cli", "compile", "--classpath"),
             Seq("-S", scalaVersion()),
             asOpt(scalacOptions(), "-O"),
             asOpt(compileClasspath().map(_.path), "--jar"),
             asOpt(scalacPluginClasspath().map(p => s"-Xplugin:${p.path}"), "-O"),
+            Seq("--jvm", "zulu:17"),
             sourceFiles.map(_.path)
           )
 

@@ -12,11 +12,12 @@ import scala.build.{Logger, Positioned}
 case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Dependency"
   def description = "Add dependencies"
-  def usage = "// using lib \"org:name:ver\" | // using libs \"org:name:ver\", \"org2:name2:ver2\""
-  override def usageMd = "`// using lib \"`_org_`:`name`:`ver\""
+  def usage =
+    "//> using lib \"org:name:ver\" | //> using libs \"org:name:ver\", \"org2:name2:ver2\""
+  override def usageMd = "`//> using lib \"`_org_`:`name`:`ver\""
   override def examples = Seq(
-    "// using lib \"org.scalatest::scalatest:3.2.10\"",
-    "// using lib \"org.scalameta::munit:0.7.29\""
+    "//> using lib \"org.scalatest::scalatest:3.2.10\"",
+    "//> using lib \"org.scalameta::munit:0.7.29\""
   )
 
   private def parseDependency(depStr: String): Either[BuildException, AnyDependency] =

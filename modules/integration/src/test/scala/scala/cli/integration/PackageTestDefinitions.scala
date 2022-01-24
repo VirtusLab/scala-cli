@@ -90,7 +90,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / fileName ->
-          s"""|// using resourceDir "."
+          s"""|//> using resourceDir "."
               |import scala.io.Source
               |
               |val inputs = Source.fromResource("input").getLines.toSeq
@@ -121,7 +121,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / fileName ->
-          s"""|// using resourceDir "."
+          s"""|//> using resourceDir "."
               |
               |class MyLibrary {
               |  def message = "Hello"
@@ -147,7 +147,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "hello.sc" ->
-          s"""// using resourceDir "./"
+          s"""//> using resourceDir "./"
              |import scala.io.Source
              |
              |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq

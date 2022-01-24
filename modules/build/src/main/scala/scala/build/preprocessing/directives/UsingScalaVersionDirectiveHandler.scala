@@ -7,13 +7,13 @@ import scala.build.preprocessing.ScopePath
 case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Scala version"
   def description      = "Set the default Scala version"
-  def usage            = "// using scala _version_+"
-  override def usageMd = "`// using scala `_version_+"
+  def usage            = "//> using scala _version_+"
+  override def usageMd = "`//> using scala `_version_+"
   override def examples = Seq(
-    "// using scala \"3.0.2\"",
-    "// using scala \"2.13\"",
-    "// using scala \"2\"",
-    "// using scala \"2.13.6\", \"2.12.15\""
+    "//> using scala \"3.0.2\"",
+    "//> using scala \"2.13\"",
+    "//> using scala \"2\"",
+    "//> using scala \"2.13.6\", \"2.12.15\""
   )
 
   override def keys = Seq("scala")
