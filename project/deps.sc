@@ -3,12 +3,11 @@ import mill._, scalalib._
 import scala.util.Properties
 
 object Scala {
-  def scala212         = "2.12.15"
-  def scala213         = "2.13.8"
-  def scalaSnapshot213 = "2.13.8-bin-e814d78"
-  def scala3           = "3.1.1"
-  val allScala2        = Seq(scala213, scala212)
-  val all              = allScala2 ++ Seq(scala3)
+  def scala212  = "2.12.15"
+  def scala213  = "2.13.8"
+  def scala3    = "3.1.1"
+  val allScala2 = Seq(scala213, scala212)
+  val all       = allScala2 ++ Seq(scala3)
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
@@ -32,8 +31,9 @@ object Scala {
 }
 
 object TestDeps {
-  def pprint = Deps.pprint
-  def munit  = Deps.munit
+  def pprint           = Deps.pprint
+  def munit            = Deps.munit
+  def scalaSnapshot213 = "2.13.8-bin-e814d78"
 }
 
 object InternalDeps {
