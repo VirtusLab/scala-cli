@@ -329,7 +329,7 @@ final class BspImpl(
       bloopRifleConfig,
       "scala-cli",
       Constants.version,
-      (inputs.workspace / ".scala").toNIO,
+      (inputs.workspace / Constants.workspaceDirName).toNIO,
       classesDir.toNIO,
       localClient,
       threads.buildThreads.bloop,

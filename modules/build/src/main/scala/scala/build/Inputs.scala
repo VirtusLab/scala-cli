@@ -7,6 +7,7 @@ import java.security.MessageDigest
 import java.util.zip.{ZipEntry, ZipInputStream}
 
 import scala.annotation.tailrec
+import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.build.preprocessing.ScopePath
 import scala.util.Properties
@@ -104,7 +105,7 @@ final case class Inputs(
     else copy(elements = elements ++ extraElements)
 
   def generatedSrcRoot(scope: Scope): os.Path =
-    workspace / ".scala" / projectName / "src_generated" / scope.name
+    workspace / Constants.workspaceDirName / projectName / "src_generated" / scope.name
 
   private def inHomeDir(directories: Directories): Inputs =
     copy(

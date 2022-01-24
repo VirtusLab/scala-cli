@@ -17,7 +17,7 @@ class CleanTests extends munit.FunSuite {
     )
 
     inputs.fromRoot { root =>
-      val dir      = root / ".scala"
+      val dir      = root / Constants.workspaceDirName
       val bspEntry = root / ".bsp" / "scala-cli.json"
 
       val res = os.proc(TestUtil.cli, "run", ".").call(cwd = root)

@@ -21,7 +21,7 @@ final case class ScalaNativeOptions(
 ) {
 
   def nativeWorkDir(root: os.Path, projectName: String): os.Path =
-    root / ".scala" / projectName / "native"
+    root / Constants.workspaceDirName / projectName / "native"
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
 

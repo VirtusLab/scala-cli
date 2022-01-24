@@ -64,7 +64,7 @@ class InstallHomeTests extends munit.FunSuite {
   def runInstallHome(): Unit = {
 
     testInputs.fromRoot { root =>
-      val binDirPath = root / ".scala" / "scala-cli"
+      val binDirPath = root / Constants.workspaceDirName / "scala-cli"
 
       val binDummyScalaCliFirst  = dummyScalaCliFirstName.stripSuffix(".scala").toLowerCase
       val binDummyScalaCliSecond = dummyScalaCliSecondName.stripSuffix(".scala").toLowerCase

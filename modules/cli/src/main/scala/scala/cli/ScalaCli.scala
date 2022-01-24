@@ -8,6 +8,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.InvalidPathException
 
+import scala.build.internal.Constants
 import scala.cli.commands._
 import scala.cli.internal.Argv0
 import scala.cli.launcher.{LauncherCli, LauncherOptions}
@@ -117,7 +118,7 @@ object ScalaCli extends CommandsEntryPoint {
     catch {
       case e: Throwable if !isCI =>
         val workspace = CurrentParams.workspaceOpt.getOrElse(os.pwd)
-        val dir       = workspace / ".scala" / "stacktraces"
+        val dir       = workspace / Constants.workspaceDirName / "stacktraces"
         os.makeDir.all(dir)
         import java.time.Instant
 

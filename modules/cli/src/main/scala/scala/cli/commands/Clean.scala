@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.build.internal.Constants
 import scala.build.{Inputs, Os}
 import scala.cli.CurrentParams
 
@@ -21,7 +22,7 @@ object Clean extends ScalaCommand[CleanOptions] {
       case Right(i) => i
     }
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-    val workDir       = inputs.workspace / ".scala"
+    val workDir       = inputs.workspace / Constants.workspaceDirName
     val (_, bspEntry) = options.bspFile.bspDetails(inputs.workspace)
 
     val logger = options.logging.logger

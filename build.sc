@@ -13,7 +13,8 @@ import $file.project.settings, settings.{
   ScalaCliCrossSbtModule,
   ScalaCliScalafixModule,
   localRepoResourcePath,
-  platformExecutableJarExtension
+  platformExecutableJarExtension,
+  workspaceDirName
 }
 
 import java.io.File
@@ -267,6 +268,8 @@ class Build(val crossScalaVersion: String)
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"
          |  def defaultScala213Version = "${Scala.scala213}"
+         |
+         |  def workspaceDirName = "$workspaceDirName"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -435,6 +438,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
            |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
+           |  def workspaceDirName = "$workspaceDirName"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)
@@ -445,10 +449,10 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
 
     def test(args: String*) = T.command {
       val res            = super.test(args: _*)()
-      val dotScalaInRoot = os.pwd / ".scala"
+      val dotScalaInRoot = os.pwd / workspaceDirName
       assert(
         !os.isDir(dotScalaInRoot),
-        s"Expected .scala ($dotScalaInRoot) not to have been created"
+        s"Expected $workspaceDirName ($dotScalaInRoot) not to have been created"
       )
       res
     }

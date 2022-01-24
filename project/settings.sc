@@ -710,7 +710,7 @@ trait ScalaCliCompile extends ScalaModule {
   override def compile: T[CompilationResult] =
     if (System.getenv("CI") != null) super.compile
     else T.persistent {
-      val out = os.pwd / ".scala" / ".unused"
+      val out = os.pwd / workspaceDirName / ".unused"
 
       val sourceFiles = allSourceFiles()
       val classFilesDir =
@@ -759,3 +759,5 @@ trait ScalaCliCrossSbtModule extends CrossSbtModule {
     "16"
   )
 }
+
+def workspaceDirName = ".scala-build"

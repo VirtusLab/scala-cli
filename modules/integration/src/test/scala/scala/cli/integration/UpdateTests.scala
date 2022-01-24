@@ -57,7 +57,7 @@ class UpdateTests extends munit.FunSuite {
   def runUpdate(): Unit = {
 
     testInputs.fromRoot { root =>
-      val binDirPath = root / ".scala" / "scala-cli"
+      val binDirPath = root / Constants.workspaceDirName / "scala-cli"
 
       val binDummyScalaCliFirst = dummyScalaCliFirstName.stripSuffix(".scala").toLowerCase
 
