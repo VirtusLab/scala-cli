@@ -6,7 +6,7 @@ object Scala {
   def scala212         = "2.12.15"
   def scala213         = "2.13.8"
   def scalaSnapshot213 = "2.13.8-bin-e814d78"
-  def scala3           = "3.0.2"
+  def scala3           = "3.1.1"
   val allScala2        = Seq(scala213, scala212)
   val all              = allScala2 ++ Seq(scala3)
 
@@ -15,10 +15,12 @@ object Scala {
       sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
     val max212 = patchVer(scala212)
     val max213 = patchVer(scala213)
-    val max3   = patchVer(scala3)
+    val max30  = 2
+    val max31  = patchVer(scala3)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
-      (0 until max3).map(i => s"3.0.$i") ++ Seq(scala3)
+      (0 to max30).map(i => s"3.0.$i") ++
+      (0 until max31).map(i => s"3.1.$i") ++ Seq(scala3)
   }
 
   // The Scala version used to build the CLI itself.
