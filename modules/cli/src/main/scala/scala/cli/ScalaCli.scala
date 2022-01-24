@@ -155,10 +155,10 @@ object ScalaCli extends CommandsEntryPoint {
     setSystemProps(systemProps)
 
     // Getting killed by SIGPIPE quite often when on musl (in the "static" native
-    // image), but also sometimes on glibc, when we use domain sockets to exchange with Bloop.
-    // So let's just ignore those (which should just make some read / write calls
-    // return -1).
-    if (Properties.isLinux && isGraalvmNativeImage) {
+    // image), but also sometimes on glibc, or even on macOS, when we use domain
+    // sockets to exchange with Bloop. So let's just ignore those (which should
+    // just make some read / write calls return -1).
+    if (!Properties.isWin && isGraalvmNativeImage) {
       ignoreSigpipe()
       os.pwd
     }
