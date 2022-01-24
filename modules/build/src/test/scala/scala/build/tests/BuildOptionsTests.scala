@@ -35,7 +35,8 @@ class BuildOptionsTests extends munit.FunSuite {
     Some("2.12")   -> defaultScala212Version,
     Some("2")      -> defaultScala213Version,
     Some("2.13.2") -> "2.13.2",
-    Some("3.0.1")  -> "3.0.1"
+    Some("3.0.1")  -> "3.0.1",
+    Some("3.0")    -> "3.0.2"
   )
 
   for ((prefix, expectedScalaVersion) <- expectedScalaVersions)
@@ -61,6 +62,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
   val expectedScalaConfVersions = Seq(
     Some("3")      -> "3.0.1",
+    Some("3.0")    -> "3.0.1",
     None           -> "3.0.1",
     Some("2.13")   -> "2.13.4",
     Some("2.12")   -> "2.12.13",
