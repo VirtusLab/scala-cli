@@ -76,6 +76,7 @@ object Artifacts {
     addJvmRunner: Option[Boolean],
     addJvmTestRunner: Boolean,
     addJsTestBridge: Option[String],
+    addNativeTestInterface: Option[String],
     addJmhDependencies: Option[String],
     scalaNativeCliVersion: Option[String],
     extraRepositories: Seq[String],
@@ -108,6 +109,9 @@ object Artifacts {
       else
         dep"org.scala-js:scalajs-test-bridge_2.13:$scalaJsVersion"
     }
+    val nativeTestInterfaceDependencies = addNativeTestInterface.toSeq.map { scalaNativeVersion =>
+      dep"org.scala-native::test-interface::$scalaNativeVersion"
+    }
 
     val jmhDependencies = addJmhDependencies.toSeq.map { version =>
       dep"org.openjdk.jmh:jmh-generator-bytecode:$version"
@@ -137,6 +141,7 @@ object Artifacts {
         jvmRunnerDependencies.map(Positioned.none(_)) ++
         jvmTestRunnerDependencies.map(Positioned.none(_)) ++
         jsTestBridgeDependencies.map(Positioned.none(_)) ++
+        nativeTestInterfaceDependencies.map(Positioned.none(_)) ++
         jmhDependencies.map(Positioned.none(_))
 
     val compilerArtifacts = value {

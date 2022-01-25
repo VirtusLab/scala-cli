@@ -36,7 +36,11 @@ object TestDeps {
 
 object InternalDeps {
   object Versions {
-    def mill = os.read(os.pwd / ".mill-version").trim
+    def mill =
+      // Current Mill version in the Scala CLI build doesn't support Scala Native 0.4.3,
+      // so we use a higher hard-coded version instead.
+      // os.read(os.pwd / ".mill-version").trim
+      "0.10.0-21-c4247b"
   }
 }
 
@@ -47,7 +51,7 @@ object Deps {
 
     def scalaJs       = "1.8.0"
     def scalaMeta     = "4.4.31"
-    def scalaNative   = "0.4.2"
+    def scalaNative   = "0.4.3"
     def scalaPackager = "0.1.26"
   }
   def ammonite                   = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
