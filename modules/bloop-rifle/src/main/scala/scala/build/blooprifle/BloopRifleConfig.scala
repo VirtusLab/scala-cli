@@ -12,6 +12,7 @@ final case class BloopRifleConfig(
   javaPath: String,
   javaOpts: Seq[String],
   classPath: String => Either[Throwable, Seq[File]],
+  workingDir: File,
   bspSocketOrPort: Option[() => BspConnectionAddress],
   bspStdin: Option[InputStream],
   bspStdout: Option[OutputStream],
@@ -116,13 +117,15 @@ object BloopRifleConfig {
 
   def default(
     address: Address,
-    bloopClassPath: String => Either[Throwable, Seq[File]]
+    bloopClassPath: String => Either[Throwable, Seq[File]],
+    workingDir: File
   ): BloopRifleConfig =
     BloopRifleConfig(
       address = address,
       javaPath = "java",
       javaOpts = defaultJavaOpts,
       classPath = bloopClassPath,
+      workingDir = workingDir,
       bspSocketOrPort = None,
       bspStdin = None,
       bspStdout = None,

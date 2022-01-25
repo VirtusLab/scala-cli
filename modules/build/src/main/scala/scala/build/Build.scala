@@ -559,8 +559,10 @@ object Build {
         s"-Xplugin:${path.toAbsolutePath}"
     }
 
+    val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
+
     val semanticDbScalacOptions =
-      if (options.scalaOptions.generateSemanticDbs.getOrElse(false))
+      if (generateSemanticDbs)
         if (params.scalaVersion.startsWith("2."))
           Seq(
             "-Yrangepos",
@@ -573,6 +575,29 @@ object Build {
             "-Xsemanticdb"
           )
       else Nil
+
+    val semanticDbJavacOptions =
+      // FIXME Should this be in scalaOptions, now that we use it for javac stuff too?
+      if (generateSemanticDbs) {
+        // from https://github.com/scalameta/metals/blob/04405c0401121b372ea1971c361e05108fb36193/metals/src/main/scala/scala/meta/internal/metals/JavaInteractiveSemanticdb.scala#L137-L146
+        val compilerPackages = Seq(
+          "com.sun.tools.javac.api",
+          "com.sun.tools.javac.code",
+          "com.sun.tools.javac.model",
+          "com.sun.tools.javac.tree",
+          "com.sun.tools.javac.util"
+        )
+        val exports = compilerPackages.flatMap { pkg =>
+          Seq("-J--add-exports", s"-Jjdk.compiler/$pkg=ALL-UNNAMED")
+        }
+
+        Seq(
+          // does the path need to be escaped somehow?
+          s"-Xplugin:semanticdb -sourceroot:${inputs.workspace} -targetroot:javac-classes-directory"
+        ) ++ exports
+      }
+      else
+        Nil
 
     val sourceRootScalacOptions =
       if (params.scalaVersion.startsWith("2.")) Nil
@@ -601,6 +626,8 @@ object Build {
       compilerClassPath = artifacts.compilerClassPath
     )
 
+    val javacOptions = javacReleaseV ++ semanticDbJavacOptions ++ options.javaOptions.javacOptions
+
     // `test` scope should contains class path to main scope
     val mainClassesPath =
       if (scope == Scope.Test)
@@ -608,6 +635,11 @@ object Build {
       else Nil
 
     value(validate(logger, options))
+
+    val fullClassPath = artifacts.compileClassPath ++
+      mainClassesPath ++
+      artifacts.javacPluginDependencies.map(_._3) ++
+      artifacts.extraJavacPlugins
 
     val project = Project(
       directory = inputs.workspace / Constants.workspaceDirName,
@@ -622,13 +654,13 @@ object Build {
           Some(options.scalaNativeOptions.bloopConfig())
         else None,
       projectName = inputs.scopeProjectName(scope),
-      classPath = artifacts.compileClassPath ++ mainClassesPath,
+      classPath = fullClassPath,
       resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
-      javacOptions = javacReleaseV
+      javacOptions = javacOptions
     )
     project
   }
@@ -668,7 +700,7 @@ object Build {
     }
 
     buildClient.clear()
-    buildClient.setGeneratedSources(generatedSources)
+    buildClient.setGeneratedSources(scope, generatedSources)
 
     (classesDir0, params, artifacts, project, updatedBloopConfig)
   }
@@ -723,7 +755,7 @@ object Build {
     }
 
     buildClient.clear()
-    buildClient.setGeneratedSources(generatedSources)
+    buildClient.setGeneratedSources(scope, generatedSources)
     val success = Bloop.compile(
       inputs.scopeProjectName(scope),
       bloopServer,

@@ -67,7 +67,6 @@ object ReplArtifacts {
     dependencies: Seq[AnyDependency],
     extraClassPath: Seq[Path],
     logger: Logger,
-    directories: Directories,
     repositories: Seq[String]
   ): Either[BuildException, ReplArtifacts] = either {
     val isScala2 = scalaParams.scalaVersion.startsWith("2.")

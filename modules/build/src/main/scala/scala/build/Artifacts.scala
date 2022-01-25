@@ -24,6 +24,8 @@ final case class Artifacts(
   compilerDependencies: Seq[AnyDependency],
   compilerArtifacts: Seq[(String, Path)],
   compilerPlugins: Seq[(AnyDependency, String, Path)],
+  javacPluginDependencies: Seq[(AnyDependency, String, Path)],
+  extraJavacPlugins: Seq[Path],
   dependencies: Seq[AnyDependency],
   scalaNativeCli: Seq[Path],
   detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, Path)],
@@ -63,6 +65,8 @@ object Artifacts {
   def apply(
     params: ScalaParameters,
     compilerPlugins: Seq[Positioned[AnyDependency]],
+    javacPluginDependencies: Seq[Positioned[AnyDependency]],
+    extraJavacPlugins: Seq[Path],
     dependencies: Seq[Positioned[AnyDependency]],
     extraClassPath: Seq[Path],
     extraCompileOnlyJars: Seq[Path],
@@ -198,10 +202,23 @@ object Artifacts {
         .map(_.flatten)
     }
 
+    val javacPlugins0 = value {
+      javacPluginDependencies
+        .map { posDep =>
+          artifacts(posDep.map(Seq(_)), allExtraRepositories, params, logger)
+            .map(_.map { case (url, path) => (posDep.value, url, path) })
+        }
+        .sequence
+        .left.map(CompositeBuildException(_))
+        .map(_.flatten)
+    }
+
     Artifacts(
       compilerDependencies,
       compilerArtifacts,
       compilerPlugins0,
+      javacPlugins0,
+      extraJavacPlugins,
       updatedDependencies.map(_.value),
       scalaNativeCli,
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) => (d, p, a, f.toPath) },

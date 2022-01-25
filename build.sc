@@ -46,6 +46,14 @@ object stubs extends JavaModule with ScalaCliPublishModule {
     super.javacOptions() ++ Seq("-target", "8", "-source", "8")
   }
 }
+object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
+  def ivyDeps = super.ivyDeps() ++ Seq(
+    Deps.bsp4j
+  )
+  def javacOptions = T {
+    super.javacOptions() ++ Seq("-target", "8", "-source", "8")
+  }
+}
 object integration extends Module {
   object docker extends CliIntegrationDocker {
     object test extends Tests {
@@ -170,6 +178,7 @@ class Build(val crossScalaVersion: String)
   def moduleDeps = Seq(
     `bloop-rifle`(),
     `build-macros`(),
+    `scala-cli-bsp`,
     `test-runner`(),
     `tasty-lib`()
   )
@@ -254,6 +263,10 @@ class Build(val crossScalaVersion: String)
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
          |  def semanticDbPluginVersion = "${Deps.scalametaTrees.dep.version}"
+         |
+         |  def semanticDbJavacPluginOrganization = "${Deps.semanticDbJavac.dep.module.organization.value}"
+         |  def semanticDbJavacPluginModuleName = "${Deps.semanticDbJavac.dep.module.name.value}"
+         |  def semanticDbJavacPluginVersion = "${Deps.semanticDbJavac.dep.version}"
          |
          |  def localRepoResourcePath = "$localRepoResourcePath"
          |

@@ -151,6 +151,10 @@ Bloop global options file
 
 JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
 
+#### `--bloop-working-dir`
+
+Working directory for Bloop, if it needs to be started
+
 ## Compile options
 
 Available in commands:
@@ -523,6 +527,16 @@ Operating system to use when looking up in the JVM index
 #### `--jvm-index-arch`
 
 CPU architecture to use when looking up in the JVM index
+
+#### `--javac-plugin`
+
+Javac plugin dependencies or files
+
+#### `--javac-option`
+
+Aliases: `--javac-opt`
+
+Javac options
 
 ## Logging options
 

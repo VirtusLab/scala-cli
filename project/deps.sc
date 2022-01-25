@@ -80,6 +80,7 @@ object Deps {
   def scalaPackagerCli         = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
   def scalaparse               = ivy"com.lihaoyi::scalaparse:2.3.3"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
+  def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                = ivy"com.chuusai::shapeless:2.3.7"
   def slf4jNop                 = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"

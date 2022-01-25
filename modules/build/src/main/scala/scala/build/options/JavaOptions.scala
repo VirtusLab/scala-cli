@@ -1,5 +1,7 @@
 package scala.build.options
 
+import dependency.AnyDependency
+
 import scala.build.Positioned
 
 final case class JavaOptions(
@@ -9,7 +11,10 @@ final case class JavaOptions(
   jvmIndexOs: Option[String] = None,
   jvmIndexArch: Option[String] = None,
   javaOpts: Seq[Positioned[String]] = Nil,
-  bloopJvmVersion: Option[Positioned[Int]] = None
+  bloopJvmVersion: Option[Positioned[Int]] = None,
+  javacPluginDependencies: Seq[Positioned[AnyDependency]] = Nil,
+  javacPlugins: Seq[Positioned[os.Path]] = Nil,
+  javacOptions: Seq[String] = Nil
 )
 
 object JavaOptions {

@@ -102,6 +102,7 @@ object Operations {
     javaPath: String,
     javaOpts: Seq[String],
     classPath: Seq[Path],
+    workingDir: File,
     scheduler: ScheduledExecutorService,
     waitInterval: FiniteDuration,
     timeout: Duration,
@@ -124,6 +125,7 @@ object Operations {
         ) ++
         addressArgs
     val b = new ProcessBuilder(command: _*)
+    b.directory(workingDir)
     b.redirectInput(ProcessBuilder.Redirect.PIPE)
 
     // https://stackoverflow.com/questions/55628999/java-processbuilder-how-to-suppress-output-instead-of-redirecting-it/55629297#55629297

@@ -136,7 +136,6 @@ object Repl extends ScalaCommand[ReplOptions] {
           artifacts.dependencies,
           artifacts.extraClassPath,
           logger,
-          directories,
           options.finalRepositories
         )
     }

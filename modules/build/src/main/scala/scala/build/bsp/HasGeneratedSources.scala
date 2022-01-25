@@ -5,37 +5,44 @@ import ch.epfl.scala.{bsp4j => b}
 import scala.build.GeneratedSource
 import scala.build.internal.Constants
 import scala.build.options.Scope
+import scala.collection.mutable
 
 trait HasGeneratedSources {
 
   import HasGeneratedSources._
 
-  protected var projectNames: List[ProjectName] = Nil
-  protected var generatedSources                = GeneratedSources(Nil)
+  protected val projectNames     = mutable.Map[Scope, ProjectName]()
+  protected val generatedSources = mutable.Map[Scope, GeneratedSources]()
 
   def targetIds: List[b.BuildTargetIdentifier] =
     projectNames
+      .toList
+      .sortBy(_._1)
+      .map(_._2)
       .flatMap(_.targetUriOpt)
       .map(uri => new b.BuildTargetIdentifier(uri))
 
   def targetScopeIdOpt(scope: Scope): Option[b.BuildTargetIdentifier] =
-    projectNames.filter(p => if (scope == Scope.Test) p.name.contains("-test") else true)
+    projectNames
+      .get(scope)
       .flatMap(_.targetUriOpt)
       .map(uri => new b.BuildTargetIdentifier(uri))
-      .headOption
 
-  def setProjectName(workspace: os.Path, name: String): Unit =
-    if (!projectNames.exists(n => n.bloopWorkspace == workspace && n.name == name))
-      projectNames = projectNames :+ ProjectName(workspace, name)
-  def setProjectTestName(workspace: os.Path, name: String): Unit =
-    setProjectName(workspace, s"$name-test")
+  def setProjectName(workspace: os.Path, name: String, scope: Scope): Unit =
+    if (!projectNames.contains(scope))
+      projectNames(scope) = ProjectName(workspace, name)
 
-  def setGeneratedSources(sources: Seq[GeneratedSource]): Unit = {
-    generatedSources = GeneratedSources(sources)
+  def setGeneratedSources(scope: Scope, sources: Seq[GeneratedSource]): Unit = {
+    generatedSources(scope) = GeneratedSources(sources)
   }
 
+  protected def targetScopeOpt(id: b.BuildTargetIdentifier): Option[Scope] =
+    projectNames.collectFirst {
+      case (scope, projName) if projName.targetUriOpt.contains(id.getUri) =>
+        scope
+    }
   protected def validTarget(id: b.BuildTargetIdentifier): Boolean =
-    projectNames.flatMap(_.targetUriOpt).contains(id.getUri)
+    targetScopeOpt(id).nonEmpty
 
 }
 

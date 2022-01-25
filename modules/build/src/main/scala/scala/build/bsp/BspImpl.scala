@@ -89,7 +89,8 @@ final class BspImpl(
     val generatedSourcesTest = sourcesTest.generateSources(inputs.generatedSrcRoot(Scope.Test))
 
     actualLocalServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
-    actualLocalServer.setGeneratedSources(generatedSourcesMain ++ generatedSourcesTest)
+    actualLocalServer.setGeneratedSources(Scope.Main, generatedSourcesMain)
+    actualLocalServer.setGeneratedSources(Scope.Test, generatedSourcesTest)
 
     val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
       Build.prepareBuild(
@@ -292,7 +293,7 @@ final class BspImpl(
     threads.buildThreads.bloop.jsonrpc, // meh
     logger
   )
-  actualLocalClient.setProjectName(inputs.workspace, inputs.projectName)
+  actualLocalClient.setProjectName(inputs.workspace, inputs.projectName, Scope.Main)
   val localClient: b.BuildClient with BloopBuildClient =
     if (verbosity >= 3)
       new BspImpl.LoggingBspClient(actualLocalClient)
@@ -332,10 +333,11 @@ final class BspImpl(
           compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
         logger = logger
       )
-    actualLocalServer.setProjectName(inputs.workspace, inputs.projectName)
-    actualLocalServer.setProjectTestName(inputs.workspace, inputs.projectName)
+    actualLocalServer.setProjectName(inputs.workspace, inputs.projectName, Scope.Main)
+    actualLocalServer.setProjectName(inputs.workspace, inputs.projectName + "-test", Scope.Test)
 
-    val localServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer =
+    val localServer
+      : b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaScriptBuildServer =
       if (verbosity >= 3)
         new LoggingBuildServerAll(actualLocalServer)
       else
@@ -428,8 +430,8 @@ object BspImpl {
     def diagnostics = underlying.diagnostics
     def setProjectParams(newParams: Seq[String]) =
       underlying.setProjectParams(newParams)
-    def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]) =
-      underlying.setGeneratedSources(newGeneratedSources)
+    def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =
+      underlying.setGeneratedSources(scope, newGeneratedSources)
   }
 
   private final case class PreBuildData(

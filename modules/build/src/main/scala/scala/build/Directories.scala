@@ -11,6 +11,7 @@ trait Directories {
   def virtualProjectsDir: os.Path
   def bspSocketDir: os.Path
   def bloopDaemonDir: os.Path
+  def bloopWorkingDir: os.Path
 }
 
 object Directories {
@@ -28,11 +29,13 @@ object Directories {
       // FIXME I would have preferred to use projDirs.dataLocalDir, but it seems named socket
       // support, or name sockets in general, aren't fine with it.
       os.Path(projDirs.cacheDir, Os.pwd) / "bsp-sockets"
-    lazy val bloopDaemonDir: os.Path = {
+    lazy val bloopDaemonDir: os.Path =
+      bloopWorkingDir / "daemon"
+    lazy val bloopWorkingDir: os.Path = {
       val baseDir =
         if (Properties.isMac) projDirs.cacheDir
         else projDirs.dataLocalDir
-      os.Path(baseDir, Os.pwd) / "bloop" / "daemon"
+      os.Path(baseDir, Os.pwd) / "bloop"
     }
   }
 
@@ -48,7 +51,9 @@ object Directories {
     lazy val bspSocketDir: os.Path =
       dir / "data-local" / "bsp-sockets"
     lazy val bloopDaemonDir: os.Path =
-      dir / "data-local" / "bloop" / "daemon"
+      bloopWorkingDir / "daemon"
+    lazy val bloopWorkingDir: os.Path =
+      dir / "data-local" / "bloop"
   }
 
   def default(): Directories = {
