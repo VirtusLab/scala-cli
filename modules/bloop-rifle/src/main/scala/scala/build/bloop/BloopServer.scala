@@ -153,10 +153,10 @@ object BloopServer {
     val bloopInfo = ensureBloopRunning(config, threads.startServerChecks, logger)
 
     logger.debug("Opening BSP connection with bloop")
-    Files.createDirectories(workspace.resolve(".scala/.bloop"))
+    Files.createDirectories(workspace.resolve(".bloop"))
     val conn = BloopRifle.bsp(
       config,
-      workspace.resolve(".scala"),
+      workspace,
       logger
     )
     logger.debug(s"Bloop BSP connection waiting at ${conn.address}")
@@ -207,7 +207,7 @@ object BloopServer {
       clientName,
       clientVersion,
       Constants.bspVersion,
-      workspace.resolve(".scala").toUri.toASCIIString,
+      workspace.toUri.toASCIIString,
       new bsp4j.BuildClientCapabilities(List("scala", "java").asJava)
     )
     val bloopExtraParams = new BloopExtraBuildParams

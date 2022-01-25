@@ -128,8 +128,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   def checkTargetUri(root: os.Path, uri: String): Unit = {
-    val baseUri = TestUtil.normalizeUri((root / ".scala").toNIO.toUri.toASCIIString)
-      .stripSuffix("/")
+    val baseUri =
+      TestUtil.normalizeUri((root / Constants.workspaceDirName).toNIO.toUri.toASCIIString)
+        .stripSuffix("/")
     val expectedPrefixes = Set(
       baseUri + "?id=",
       baseUri + "/?id="
@@ -177,7 +178,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
         val details                = readBspConfig(root)
-        val expectedIdeOptionsFile = root / ".scala" / "ide-options.json"
+        val expectedIdeOptionsFile = root / Constants.workspaceDirName / "ide-options.json"
         val expectedArgv = Seq(
           TestUtil.cliPath,
           "bsp",
@@ -225,7 +226,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         TestUtil.cliPath,
         "bsp",
         "--json-options",
-        (root / "directory" / ".scala" / "ide-options.json").toString,
+        (root / "directory" / Constants.workspaceDirName / "ide-options.json").toString,
         s"${(root / "directory").toString}${File.separator}"
       )
       expect(details.argv == expectedArgv)
