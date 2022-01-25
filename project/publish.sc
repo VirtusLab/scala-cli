@@ -1,4 +1,4 @@
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
 import $file.settings, settings.PublishLocalNoFluff
 
 import de.tobiasroeser.mill.vcs.version._
