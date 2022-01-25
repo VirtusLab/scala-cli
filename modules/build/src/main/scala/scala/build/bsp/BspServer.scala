@@ -1,8 +1,10 @@
 package scala.build.bsp
 
+import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
 import ch.epfl.scala.{bsp4j => b}
 
-import java.util.concurrent.CompletableFuture
+import java.io.{PrintWriter, StringWriter}
+import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.{util => ju}
 
 import scala.build.Logger
@@ -11,6 +13,7 @@ import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
+import scala.util.Random
 
 class BspServer(
   bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
@@ -21,9 +24,28 @@ class BspServer(
     with ScalaDebugServerForwardStubs
     with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs with HasGeneratedSources {
 
+  private var client: Option[BuildClient] = None
+
+  override def onConnectWithClient(client: BuildClient): Unit = this.client = Some(client)
+
   private var extraDependencySources: Seq[os.Path] = Nil
   def setExtraDependencySources(sourceJars: Seq[os.Path]): Unit = {
     extraDependencySources = sourceJars
+  }
+
+  // Can we accept some errors in some circumstances?
+  override protected def onFatalError(throwable: Throwable, context: String): Unit = {
+    val sw = new StringWriter()
+    throwable.printStackTrace(new PrintWriter(sw))
+    val message =
+      s"Fatal error has occured within $context. Shutting down the server:\n ${sw.toString}"
+    System.err.println(message)
+    client.foreach(_.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, message)))
+
+    // wait random bit before shutting down server to reduce risk of multiple scala-cli instances starting bloop at the same time
+    val timeout = Random.nextInt(400)
+    TimeUnit.MILLISECONDS.sleep(100 + timeout)
+    sys.exit(1)
   }
 
   private def maybeUpdateProjectTargetUri(res: b.WorkspaceBuildTargetsResult): Unit =
