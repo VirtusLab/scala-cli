@@ -151,6 +151,10 @@ Bloop global options file
 
 JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
 
+#### `--bloop-working-dir`
+
+Working directory for Bloop, if it needs to be started
+
 ## Compile options
 
 Available in commands:

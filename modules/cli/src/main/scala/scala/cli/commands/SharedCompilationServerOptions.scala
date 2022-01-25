@@ -83,7 +83,12 @@ final case class SharedCompilationServerOptions(
   @Group("Compilation server")
   @HelpMessage("JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)")
   @Hidden
-    bloopJvm: Option[String] = None
+    bloopJvm: Option[String] = None,
+
+  @Group("Compilation server")
+  @HelpMessage("Working directory for Bloop, if it needs to be started")
+  @Hidden
+    bloopWorkingDir: Option[String] = None
 ) {
   // format: on
 
@@ -239,9 +244,14 @@ final case class SharedCompilationServerOptions(
           )
       }
 
+    val workingDir = bloopWorkingDir
+      .filter(_.trim.nonEmpty)
+      .map(os.Path(_, Os.pwd))
+      .getOrElse(directories.bloopWorkingDir)
     val baseConfig = BloopRifleConfig.default(
       address,
-      v => Bloop.bloopClassPath(logger, v)
+      v => Bloop.bloopClassPath(logger, v),
+      workingDir.toIO
     )
 
     baseConfig.copy(
