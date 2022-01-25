@@ -140,7 +140,8 @@ final case class BuildOptions(
     platform.value == Platform.JVM &&
     internalDependencies.addTestRunnerDependency
   private def addJsTestBridge: Option[String] =
-    if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion)
+    if (platform.value == Platform.JS && internalDependencies.addTestRunnerDependency)
+      Some(scalaJsOptions.finalVersion)
     else None
 
   lazy val finalCache = internal.cache.getOrElse(FileCache())
