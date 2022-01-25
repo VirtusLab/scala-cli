@@ -310,7 +310,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       os.proc(TestUtil.cli, "compile", extraOptions, javaSemDbOptions, ".")
         .call(cwd = root)
 
-      val files = os.walk(root / ".scala")
+      val files = os.walk(root / Constants.workspaceDirName)
       val semDbFiles = files
         .filter(_.last.endsWith(".semanticdb"))
         .filter(!_.segments.exists(_ == "bloop-internal-classes"))
@@ -340,7 +340,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       os.proc(TestUtil.cli, "compile", extraOptions, "--semantic-db", ".")
         .call(cwd = root)
 
-      val files = os.walk(root / ".scala")
+      val files = os.walk(root / Constants.workspaceDirName)
       val semDbFiles = files
         .filter(_.last.endsWith(".semanticdb"))
         .filter(!_.segments.exists(_ == "bloop-internal-classes"))
