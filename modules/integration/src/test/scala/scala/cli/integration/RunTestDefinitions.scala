@@ -140,13 +140,25 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           os.rel / "a.sc" -> "println(1)"
         )
       )
+      val nativeVersion = "0.4.2"
       inputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, extraOptions, "--native", "a.sc").call(
+        val output = os.proc(
+          TestUtil.cli,
+          extraOptions,
+          "--native",
+          "a.sc",
+          "--native-version",
+          nativeVersion
+        ).call(
           cwd = root,
           check = false,
           stderr = os.Pipe
         ).err.text().trim
-        expect(output.contains("Used Scala Native version is incompatible the passed options"))
+        expect(
+          output.contains(
+            s"Used Scala Native version $nativeVersion is incompatible with Scala $actualScalaVersion."
+          )
+        )
       }
     }
 

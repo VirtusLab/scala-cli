@@ -339,28 +339,40 @@ object Build {
   def classesDir(root: os.Path, projectName: String, scope: Scope): os.Path =
     classesRootDir(root, projectName) / scope.name
 
-  def scalaNativeSupported(options: BuildOptions, inputs: Inputs) = either {
-    val scalaVersion  = value(options.scalaParams).scalaVersion
-    val nativeVersion = options.scalaNativeOptions.numeralVersion
-    nativeVersion match {
-      case Some(snNumeralVer) =>
-        if (snNumeralVer < SNNumeralVersion(0, 4, 1) && Properties.isWin)
-          false
-        else if (scalaVersion.startsWith("3.0"))
-          false
-        else if (scalaVersion.startsWith("3"))
-          snNumeralVer >= SNNumeralVersion(0, 4, 3)
-        else if (scalaVersion.startsWith("2.13"))
-          true
-        else if (scalaVersion.startsWith("2.12"))
-          inputs.sourceFiles().forall {
-            case _: Inputs.AnyScript => false
-            case _                   => true
-          }
-        else false
-      case None => false
+  def scalaNativeSupported(
+    options: BuildOptions,
+    inputs: Inputs
+  ): Either[BuildException, Option[ScalaNativeCompatibilityError]] =
+    either {
+      val scalaVersion  = value(options.scalaParams).scalaVersion
+      val nativeVersion = options.scalaNativeOptions.numeralVersion
+      val isCompatible = nativeVersion match {
+        case Some(snNumeralVer) =>
+          if (snNumeralVer < SNNumeralVersion(0, 4, 1) && Properties.isWin)
+            false
+          else if (scalaVersion.startsWith("3.0"))
+            false
+          else if (scalaVersion.startsWith("3"))
+            snNumeralVer >= SNNumeralVersion(0, 4, 3)
+          else if (scalaVersion.startsWith("2.13"))
+            true
+          else if (scalaVersion.startsWith("2.12"))
+            inputs.sourceFiles().forall {
+              case _: Inputs.AnyScript => false
+              case _                   => true
+            }
+          else false
+        case None => false
+      }
+      if (isCompatible) None
+      else
+        Some(
+          new ScalaNativeCompatibilityError(
+            scalaVersion,
+            options.scalaNativeOptions.finalVersion
+          )
+        )
     }
-  }
 
   def build(
     inputs: Inputs,
@@ -725,10 +737,11 @@ object Build {
       )
     )
 
-    if (options.platform.value == Platform.Native && !value(scalaNativeSupported(options, inputs)))
-      value(Left(new ScalaNativeCompatibilityError()))
-    else
-      value(Right(0))
+    if (options.platform.value == Platform.Native)
+      value(scalaNativeSupported(options, inputs)) match {
+        case None        =>
+        case Some(error) => value(Left(error))
+      }
 
     val (classesDir0, scalaParams, artifacts, project, updatedBloopConfig) = value {
       prepareBuild(
