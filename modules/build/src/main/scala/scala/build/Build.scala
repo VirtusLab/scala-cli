@@ -215,7 +215,7 @@ object Build {
                 extraClassPath = Seq(s.output)
               )
             )
-            val testOptions = mainOptions.orElse(extraTestOptions)
+            val testOptions = extraTestOptions.orElse(mainOptions)
             doBuildScope(testOptions, Scope.Test)
           case _ =>
             Right(Build.Cancelled(
