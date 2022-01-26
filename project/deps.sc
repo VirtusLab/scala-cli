@@ -3,22 +3,23 @@ import mill._, scalalib._
 import scala.util.Properties
 
 object Scala {
-  def scala212         = "2.12.15"
-  def scala213         = "2.13.6"
-  def scalaSnapshot213 = "2.13.8-bin-e814d78"
-  def scala3           = "3.0.2"
-  val allScala2        = Seq(scala213, scala212)
-  val all              = allScala2 ++ Seq(scala3)
+  def scala212  = "2.12.15"
+  def scala213  = "2.13.8"
+  def scala3    = "3.1.1"
+  val allScala2 = Seq(scala213, scala212)
+  val all       = allScala2 ++ Seq(scala3)
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
       sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
     val max212 = patchVer(scala212)
     val max213 = patchVer(scala213)
-    val max3   = patchVer(scala3)
-    (6 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
+    val max30  = 2
+    val max31  = patchVer(scala3)
+    (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
-      (0 until max3).map(i => s"3.0.$i") ++ Seq(scala3)
+      (0 to max30).map(i => s"3.0.$i") ++
+      (0 until max31).map(i => s"3.1.$i") ++ Seq(scala3)
   }
 
   // The Scala version used to build the CLI itself.
@@ -30,8 +31,19 @@ object Scala {
 }
 
 object TestDeps {
-  def pprint = Deps.pprint
-  def munit  = Deps.munit
+  def pprint           = Deps.pprint
+  def munit            = Deps.munit
+  def scalaSnapshot213 = "2.13.8-bin-e814d78"
+}
+
+object InternalDeps {
+  object Versions {
+    def mill =
+      // Current Mill version in the Scala CLI build doesn't support Scala Native 0.4.3,
+      // so we use a higher hard-coded version instead.
+      // os.read(os.pwd / ".mill-version").trim
+      "0.10.0-21-c4247b"
+  }
 }
 
 object Deps {
@@ -40,11 +52,11 @@ object Deps {
     def coursier = "2.1.0-M2"
 
     def scalaJs       = "1.8.0"
-    def scalaMeta     = "4.4.31"
-    def scalaNative   = "0.4.2"
+    def scalaMeta     = "4.4.33"
+    def scalaNative   = "0.4.3"
     def scalaPackager = "0.1.26"
   }
-  def ammonite                   = ivy"com.lihaoyi:::ammonite:2.4.0-23-76673f7f"
+  def ammonite                   = ivy"com.lihaoyi:::ammonite:2.5.1-6-5fce97fb"
   def asm                        = ivy"org.ow2.asm:asm:9.2"
   def bloopConfig                = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19"
   def bsp4j                      = ivy"ch.epfl.scala:bsp4j:2.0.0"

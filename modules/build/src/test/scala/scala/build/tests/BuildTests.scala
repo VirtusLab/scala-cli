@@ -214,14 +214,15 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(defaultOptions.enableNative, buildThreads, bloopConfig) {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
-          "simple.class",
-          "simple_sc.class",
-          "simple$.nir",
           "simple$.class",
+          "simple$.nir",
+          "simple.class",
+          "simple.nir",
           "simple_sc$$$Lambda$1.nir",
           "simple_sc$.class",
-          "simple_sc$.nir"
-          // "simple.nir", // not sure why Scala Native doesn't generate this one.
+          "simple_sc$.nir",
+          "simple_sc.class",
+          "simple_sc.nir"
         )
         maybeBuild.orThrow.assertNoDiagnostics
     }

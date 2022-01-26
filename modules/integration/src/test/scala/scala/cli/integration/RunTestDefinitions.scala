@@ -140,13 +140,25 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           os.rel / "a.sc" -> "println(1)"
         )
       )
+      val nativeVersion = "0.4.2"
       inputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, extraOptions, "--native", "a.sc").call(
+        val output = os.proc(
+          TestUtil.cli,
+          extraOptions,
+          "--native",
+          "a.sc",
+          "--native-version",
+          nativeVersion
+        ).call(
           cwd = root,
           check = false,
           stderr = os.Pipe
         ).err.text().trim
-        expect(output.contains("Used Scala Native version is incompatible the passed options"))
+        expect(
+          output.contains(
+            s"Used Scala Native version $nativeVersion is incompatible with Scala $actualScalaVersion."
+          )
+        )
       }
     }
 
@@ -501,7 +513,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
-        else
+        else if (actualScalaVersion.startsWith("3.0."))
           s"""Exception in thread main: java.lang.Exception: Caught exception during processing
              |    at method main in Throws.scala:8$sp
              |
@@ -510,6 +522,16 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |    at method something in Throws.scala:3$sp
              |    at method main in Throws.scala:5$sp
              |
+             |""".stripMargin.linesIterator.toVector
+        else
+          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+             |${tab}at Throws$$.main(Throws.scala:8)
+             |${tab}at Throws.main(Throws.scala)
+             |Caused by: java.lang.RuntimeException: nope
+             |${tab}at scala.sys.package$$.error(package.scala:27)
+             |${tab}at Throws$$.something(Throws.scala:3)
+             |${tab}at Throws$$.main(Throws.scala:5)
+             |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
       if (exceptionLines != expectedLines) {
         pprint.log(exceptionLines)

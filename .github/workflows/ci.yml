@@ -218,7 +218,7 @@ jobs:
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
-      run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps.'
+      run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps'
     - name: Scalafix check
       run: |
         ./mill -i __.fix --check || (

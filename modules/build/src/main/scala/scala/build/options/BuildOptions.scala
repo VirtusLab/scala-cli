@@ -140,8 +140,17 @@ final case class BuildOptions(
     platform.value == Platform.JVM &&
     internalDependencies.addTestRunnerDependency
   private def addJsTestBridge: Option[String] =
-    if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion)
+    if (platform.value == Platform.JS && internalDependencies.addTestRunnerDependency)
+      Some(scalaJsOptions.finalVersion)
     else None
+  private def addNativeTestInterface: Option[String] = {
+    val doAdd =
+      platform.value == Platform.Native &&
+      internalDependencies.addTestRunnerDependency &&
+      Version("0.4.3").compareTo(Version(scalaNativeOptions.finalVersion)) <= 0
+    if (doAdd) Some(scalaNativeOptions.finalVersion)
+    else None
+  }
 
   lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
@@ -365,6 +374,7 @@ final case class BuildOptions(
       addJvmRunner = addRunnerDependency,
       addJvmTestRunner = addJvmTestRunner,
       addJsTestBridge = addJsTestBridge,
+      addNativeTestInterface = addNativeTestInterface,
       addJmhDependencies = jmhOptions.addJmhDependencies,
       extraRepositories = finalRepositories,
       logger = logger
