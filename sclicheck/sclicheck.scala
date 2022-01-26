@@ -163,7 +163,7 @@ def checkFile(file: os.Path, options: Options): Unit =
 
     cmd match
       case Commands.Run(cmds, shouldFail, _) =>
-        val script = out / ".scala" / "run.sh"
+        val script = out / ".scala-build" / "run.sh"
         os.write.over(script, mkBashScript(cmds), createFolders = true)
         os.perms.set(script, "rwxr-xr-x")
         val res = os.proc(script).call(cwd = out, mergeErrIntoOut = true, check = false)
