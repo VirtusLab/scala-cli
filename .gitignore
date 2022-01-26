@@ -3,5 +3,6 @@ out/
 .metals/
 .vscode/
 .scala
+.scala-build/
 .bsp
 .idea/
