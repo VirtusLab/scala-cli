@@ -1,5 +1,5 @@
-import $ivy.`com.goyeau::mill-scalafix:0.2.5`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.13`
+import $ivy.`com.goyeau::mill-scalafix::0.2.8`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.14`
 import $file.deps, deps.{Deps, Docker, buildCsVersion}
 
 import com.goyeau.mill.scalafix.ScalafixModule
@@ -513,13 +513,13 @@ trait LocalRepo extends Module {
 
   def publishStubs = T {
     val tasks = stubsModules.map(_.publishLocalNoFluff())
-    define.Task.sequence(tasks)
+    define.Target.sequence(tasks)
   }
 
   def localRepo = T {
     val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
     val tasks    = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
-    define.Task.sequence(tasks)
+    define.Target.sequence(tasks)
   }
 
   private def vcsState =

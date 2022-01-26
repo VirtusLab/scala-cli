@@ -1,6 +1,6 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.0-M2`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.13`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.14`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{
@@ -629,7 +629,7 @@ object `local-repo` extends LocalRepo {
 
 def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = T.command {
   publish.publishSonatype(
-    data = define.Task.sequence(tasks.value)(),
+    data = define.Target.sequence(tasks.value)(),
     log = T.ctx().log
   )
 }
