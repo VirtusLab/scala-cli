@@ -1,7 +1,7 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.0-M2`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.13`
-import $file.project.deps, deps.{Deps, Docker, Scala, TestDeps}
+import $file.project.deps, deps.{Deps, Docker, InternalDeps, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{
   CliLaunchers,
@@ -273,6 +273,7 @@ class Build(val crossScalaVersion: String)
          |  def jmhVersion = "1.29"
          |
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
+         |  def millVersion = "${InternalDeps.Versions.mill}"
          |
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |

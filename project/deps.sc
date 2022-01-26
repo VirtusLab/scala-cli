@@ -34,6 +34,12 @@ object TestDeps {
   def munit  = Deps.munit
 }
 
+object InternalDeps {
+  object Versions {
+    def mill = os.read(os.pwd / ".mill-version").trim
+  }
+}
+
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
