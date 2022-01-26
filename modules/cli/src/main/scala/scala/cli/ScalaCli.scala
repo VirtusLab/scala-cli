@@ -91,9 +91,9 @@ object ScalaCli {
 
         e match {
           case _: NoClassDefFoundError
-              if isJava17ClassName(
-                e.getMessage
-              ) && CurrentParams.verbosity <= 1 && javaMajorVersion < 16 =>
+              if isJava17ClassName(e.getMessage) &&
+                CurrentParams.verbosity <= 1 &&
+                javaMajorVersion < 16 =>
             // Actually Java >= 16, but let's recommend a LTS version…
             System.err.println(
               s"Java >= 17 is required to run Scala CLI (found Java $javaMajorVersion)"
