@@ -12,7 +12,7 @@ class ScalaCliCommands(
   isSipScala: Boolean
 ) extends CommandsEntryPoint {
 
-  lazy val actualDefaultCommand: DefaultBase = new Default(help)
+  lazy val actualDefaultCommand = new Default(help)
 
   private def allCommands = Seq[ScalaCommand[_]](
     new About(isSipScala = isSipScala),
