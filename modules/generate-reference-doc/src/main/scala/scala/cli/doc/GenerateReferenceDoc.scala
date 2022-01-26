@@ -283,7 +283,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
   def run(options: Options, args: RemainingArgs): Unit = {
 
-    val scalaCli      = new ScalaCliCommands("scala-cli")
+    val scalaCli      = new ScalaCliCommands("scala-cli", isSipScala = false)
     val commands      = scalaCli.commands
     val allArgs       = commands.flatMap(_.finalHelp.args)
     val nameFormatter = scalaCli.actualDefaultCommand.nameFormatter

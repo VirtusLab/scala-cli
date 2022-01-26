@@ -7,12 +7,15 @@ import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
 
-class ScalaCliCommands(val progName: String) extends CommandsEntryPoint {
+class ScalaCliCommands(
+  val progName: String,
+  isSipScala: Boolean
+) extends CommandsEntryPoint {
 
   lazy val actualDefaultCommand: DefaultBase = new Default(help)
 
-  def commands = Seq[ScalaCommand[_]](
-    About,
+  private def allCommands = Seq[ScalaCommand[_]](
+    new About(isSipScala = isSipScala),
     AddPath,
     BloopExit,
     BloopStart,
@@ -35,6 +38,8 @@ class ScalaCliCommands(val progName: String) extends CommandsEntryPoint {
     Update,
     Version
   )
+
+  def commands = allCommands.filter(c => !isSipScala || c.inSipScala)
 
   override def description =
     "Scala CLI is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."

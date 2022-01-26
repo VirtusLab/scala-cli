@@ -7,7 +7,8 @@ import scala.build.blooprifle.BloopRifle
 import scala.cli.CurrentParams
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {
-  override def hidden = true
+  override def hidden     = true
+  override def inSipScala = false
   override def names: List[List[String]] = List(
     List("bloop", "exit")
   )

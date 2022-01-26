@@ -10,7 +10,11 @@ final case class LauncherOptions(
   @Group("Launcher")
   @HelpMessage("The version of Scala on which Scala CLI was published")
   @ValueDescription("2.12|2.13|3")
-  cliScalaVersion: Option[String] = None
+  cliScalaVersion: Option[String] = None,
+  @Group("Launcher")
+  @HelpMessage("When called as 'scala', allow to use power commands too")
+  @Hidden
+  power: Boolean = false
 )
 
 object LauncherOptions {

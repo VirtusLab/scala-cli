@@ -2,7 +2,7 @@ package scala.cli
 
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{ByteArrayOutputStream, PrintStream}
+import java.io.{ByteArrayOutputStream, File, PrintStream}
 import java.nio.charset.StandardCharsets
 
 import scala.build.internal.Constants
@@ -13,6 +13,11 @@ import scala.util.Properties
 object ScalaCli {
 
   val progName = (new Argv0).get("scala-cli")
+
+  private var isSipScala =
+    progName == "scala" ||
+    progName.endsWith("/scala") ||
+    progName.endsWith(File.separator + "scala")
 
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
@@ -109,8 +114,15 @@ object ScalaCli {
       case Right((launcherOpts, args0)) =>
         launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
           case Some(ver) =>
-            LauncherCli.runAndExit(ver, launcherOpts, args0)
-          case None => args0.toArray
+            val powerArgs =
+              if (launcherOpts.power) Seq("--power")
+              else Nil
+            val newArgs = powerArgs ++ args0
+            LauncherCli.runAndExit(ver, launcherOpts, newArgs)
+          case None =>
+            if (launcherOpts.power)
+              isSipScala = false
+            args0.toArray
         }
     }
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
@@ -132,7 +144,7 @@ object ScalaCli {
       // Enable ANSI output in Windows terminal
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
 
-    new ScalaCliCommands(progName)
+    new ScalaCliCommands(progName, isSipScala)
       .main(scalaCliArgs)
   }
 }

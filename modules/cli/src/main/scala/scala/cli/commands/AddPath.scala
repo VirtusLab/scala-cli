@@ -9,7 +9,8 @@ import scala.cli.CurrentParams
 import scala.util.Properties
 
 object AddPath extends ScalaCommand[AddPathOptions] {
-  override def hidden = true
+  override def hidden     = true
+  override def inSipScala = false
   def run(options: AddPathOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.verbosity
 
