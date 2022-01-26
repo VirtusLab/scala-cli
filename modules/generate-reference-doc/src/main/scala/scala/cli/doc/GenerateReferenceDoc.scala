@@ -14,7 +14,7 @@ import scala.build.preprocessing.directives.{
   RequireDirectiveHandler,
   UsingDirectiveHandler
 }
-import scala.cli.ScalaCli
+import scala.cli.ScalaCliCommands
 
 object GenerateReferenceDoc extends CaseApp[Options] {
 
@@ -283,9 +283,10 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
   def run(options: Options, args: RemainingArgs): Unit = {
 
-    val commands      = ScalaCli.commands
+    val scalaCli      = new ScalaCliCommands("scala-cli")
+    val commands      = scalaCli.commands
     val allArgs       = commands.flatMap(_.finalHelp.args)
-    val nameFormatter = ScalaCli.actualDefaultCommand.nameFormatter
+    val nameFormatter = scalaCli.actualDefaultCommand.nameFormatter
 
     val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)
     val commandsContent0   = commandsContent(commands)

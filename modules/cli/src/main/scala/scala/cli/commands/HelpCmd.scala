@@ -1,12 +1,13 @@
 package scala.cli.commands
 
 import caseapp._
+import caseapp.core.help.RuntimeCommandsHelp
 
-import scala.cli.ScalaCli
+import scala.cli.ScalaCliHelp
 
-object HelpCmd extends ScalaCommand[HelpOptions] {
+class HelpCmd(actualHelp: => RuntimeCommandsHelp) extends ScalaCommand[HelpOptions] {
   override def names = List(List("help"))
 
   def run(options: HelpOptions, args: RemainingArgs) =
-    println(ScalaCli.help.help(ScalaCli.helpFormat))
+    println(actualHelp.help(ScalaCliHelp.helpFormat))
 }

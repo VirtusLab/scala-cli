@@ -4,7 +4,7 @@ import caseapp._
 import caseapp.core.help.Help
 import upickle.default.{ReadWriter, macroRW}
 
-import scala.cli.ScalaCli
+import scala.cli.ScalaCliHelp
 
 @HelpMessage("Print help message")
 case class HelpGroupOptions(
@@ -15,8 +15,8 @@ case class HelpGroupOptions(
 ) {
 
   private def printHelpWithGroup(help: Help[_], group: String) = {
-    println(help.help(ScalaCli.helpFormat.withHiddenGroups(
-      ScalaCli.helpFormat.hiddenGroups.map(_.filterNot(_ == group))
+    println(help.help(ScalaCliHelp.helpFormat.withHiddenGroups(
+      ScalaCliHelp.helpFormat.hiddenGroups.map(_.filterNot(_ == group))
     )))
     sys.exit(0)
   }
