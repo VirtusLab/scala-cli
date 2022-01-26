@@ -202,8 +202,10 @@ jobs:
       run: .github/scripts/check_docs.sh
     - name: Test gifs
       run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
+    - name: Build binary
+      run: ./mill copyTo cli.nativeImage ./scala-cli 
     - name: Check examples
-      run: ./scala-cli-src --jvm temurin:17  .github/scripts/check_examples.sc
+      run: ./scala-cli --jvm temurin:17  .github/scripts/check_examples.sc
 
   checks:
     timeout-minutes: 15

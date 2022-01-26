@@ -13,7 +13,7 @@ val failed = toParse.filter { path =>
 
 
   println(s"Running $path")
-  os.proc(os.pwd / "scala-cli-src", "--jvm", "temurin:17", args, path)
+  os.proc(os.pwd / "scala-cli", "--jvm", "temurin:17", args, path)
     .call(check = false).exitCode != 0
 }
 

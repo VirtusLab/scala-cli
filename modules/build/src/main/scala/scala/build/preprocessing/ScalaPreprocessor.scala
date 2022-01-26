@@ -338,6 +338,9 @@ case object ScalaPreprocessor extends Preprocessor {
 
   case class ExtractedDirectives(offset: Int, directives: Seq[StrictDirective])
 
+  val changeToSpecialCommentMsg =
+    "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...' or '/*> ... */'"
+
   def extractUsingDirectives(
     contentChars: Array[Char],
     path: Either[String, os.Path],
@@ -389,14 +392,12 @@ case object ScalaPreprocessor extends Preprocessor {
       }
       else if (!specialCommentDirectives.getFlattenedMap().isEmpty()) {
         val msg =
-          s"This using directive is ignored. Using directive from plain comments are deprecated, please add `>` to each comment."
+          s"This using directive is ignored. $changeToSpecialCommentMsg"
         reportWarning(msg, getDirectives(plainCommentDirectives))
         specialCommentDirectives
       }
       else {
-        val msg =
-          s"Using directive using plain comments are deprecated, please add `>` to each comment."
-        reportWarning(msg, getDirectives(plainCommentDirectives))
+        reportWarning(changeToSpecialCommentMsg, getDirectives(plainCommentDirectives))
         plainCommentDirectives
       }
 
