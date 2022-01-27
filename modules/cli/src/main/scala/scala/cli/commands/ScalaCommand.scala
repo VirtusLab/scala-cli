@@ -17,6 +17,8 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
   def sharedOptions(t: T): Option[SharedOptions] = None
   override def hasFullHelp                       = true
 
+  def inSipScala: Boolean = true
+
   protected var argvOpt = Option.empty[Array[String]]
   override def setArgv(argv: Array[String]): Unit = {
     argvOpt = Some(argv)

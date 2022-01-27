@@ -6,6 +6,7 @@ import scala.cli.CurrentParams
 
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true
+  override def inSipScala      = false
 
   def run(options: DirectoriesOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.verbosity.verbosity

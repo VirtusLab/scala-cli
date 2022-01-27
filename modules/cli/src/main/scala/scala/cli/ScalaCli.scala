@@ -1,81 +1,26 @@
 package scala.cli
 
-import caseapp.core.app.CommandsEntryPoint
-import caseapp.core.help.{Help, RuntimeCommandsHelp}
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{ByteArrayOutputStream, PrintStream}
+import java.io.{ByteArrayOutputStream, File, PrintStream}
 import java.nio.charset.StandardCharsets
-import java.nio.file.InvalidPathException
 
 import scala.build.internal.Constants
-import scala.cli.commands._
 import scala.cli.internal.Argv0
 import scala.cli.launcher.{LauncherCli, LauncherOptions}
 import scala.util.Properties
 
-object ScalaCli extends CommandsEntryPoint {
+object ScalaCli {
 
-  def actualDefaultCommand = Default
+  val progName = (new Argv0).get("scala-cli")
 
-  val commands: Seq[ScalaCommand[_]] = Seq(
-    About,
-    AddPath,
-    BloopExit,
-    BloopStart,
-    Bsp,
-    Clean,
-    Compile,
-    Directories,
-    Export,
-    Fmt,
-    HelpCmd,
-    InstallCompletions,
-    InstallHome,
-    Metabrowse,
-    Repl,
-    Package,
-    Run,
-    SetupIde,
-    Shebang,
-    Test,
-    Update,
-    Version
-  )
-
-  lazy val progName = (new Argv0).get("scala-cli")
-  override def description =
-    "Scala CLI is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."
-  override def summaryDesc =
-    """|See 'scala-cli <command> --help' to read about a specific subcommand. To see full help run 'scala-cli <command> --help-full'.
-       |To run another Scala CLI version, specify it with '--cli-version' before any other argument, like 'scala-cli --cli-version <version> args'.""".stripMargin
-  final override def defaultCommand = Some(actualDefaultCommand)
-
-  // FIXME Report this in case-app default NameFormatter
-  override lazy val help: RuntimeCommandsHelp = {
-    val parent = super.help
-    parent.withDefaultHelp(Help[Unit]())
-  }
-
-  override def enableCompleteCommand    = true
-  override def enableCompletionsCommand = true
-
-  override def helpFormat = actualDefaultCommand.helpFormat
+  private var isSipScala =
+    progName == "scala" ||
+    progName.endsWith("/scala") ||
+    progName.endsWith(File.separator + "scala")
 
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
-
-  private def isShebangFile(arg: String): Boolean = {
-    val pathOpt =
-      try Some(os.Path(arg, os.pwd))
-      catch {
-        case _: InvalidPathException => None
-      }
-    pathOpt.filter(os.isFile(_)).filter(_.toIO.canRead).exists { path =>
-      val content = os.read(path) // FIXME Charset?
-      content.startsWith(s"#!/usr/bin/env $progName" + System.lineSeparator())
-    }
-  }
 
   private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
@@ -122,7 +67,7 @@ object ScalaCli extends CommandsEntryPoint {
       .takeWhile(_.isDigit)
       .toInt
 
-  override def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {
     try main0(args)
     catch {
       case e: Throwable if !isCI =>
@@ -146,9 +91,9 @@ object ScalaCli extends CommandsEntryPoint {
 
         e match {
           case _: NoClassDefFoundError
-              if isJava17ClassName(
-                e.getMessage
-              ) && CurrentParams.verbosity <= 1 && javaMajorVersion < 16 =>
+              if isJava17ClassName(e.getMessage) &&
+                CurrentParams.verbosity <= 1 &&
+                javaMajorVersion < 16 =>
             // Actually Java >= 16, but let's recommend a LTS version…
             System.err.println(
               s"Java >= 17 is required to run Scala CLI (found Java $javaMajorVersion)"
@@ -169,8 +114,15 @@ object ScalaCli extends CommandsEntryPoint {
       case Right((launcherOpts, args0)) =>
         launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
           case Some(ver) =>
-            LauncherCli.runAndExit(ver, launcherOpts, args0)
-          case None => args0.toArray
+            val powerArgs =
+              if (launcherOpts.power) Seq("--power")
+              else Nil
+            val newArgs = powerArgs ++ args0
+            LauncherCli.runAndExit(ver, launcherOpts, newArgs)
+          case None =>
+            if (launcherOpts.power)
+              isSipScala = false
+            args0.toArray
         }
     }
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
@@ -192,19 +144,7 @@ object ScalaCli extends CommandsEntryPoint {
       // Enable ANSI output in Windows terminal
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
 
-    // quick hack, until the raw args are kept in caseapp.RemainingArgs by case-app
-    actualDefaultCommand.anyArgs = scalaCliArgs.nonEmpty
-
-    commands.foreach {
-      case c: NeedsArgvCommand => c.setArgv(progName +: scalaCliArgs)
-      case _                   =>
-    }
-
-    val processedArgs =
-      if (scalaCliArgs.lengthCompare(1) > 0 && isShebangFile(scalaCliArgs(0)))
-        Array(scalaCliArgs(0), "--") ++ scalaCliArgs.tail
-      else
-        scalaCliArgs
-    super.main(processedArgs)
+    new ScalaCliCommands(progName, isSipScala)
+      .main(scalaCliArgs)
   }
 }

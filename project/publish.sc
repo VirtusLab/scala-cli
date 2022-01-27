@@ -1,5 +1,5 @@
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
-import $file.settings, settings.PublishLocalNoFluff
+import $file.settings, settings.{PublishLocalNoFluff, workspaceDirName}
 
 import de.tobiasroeser.mill.vcs.version._
 import mill._, scalalib._
@@ -80,6 +80,17 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
   )
   def publishVersion =
     finalPublishVersion()
+  override def sourceJar = T {
+    import mill.modules.Jvm.createJar
+    val allSources0 = allSources().map(_.path).filter(os.exists).toSet
+    createJar(
+      allSources0 ++ resources().map(_.path).filter(os.exists),
+      manifest(),
+      (input, relPath) =>
+        !allSources0(input) ||
+        (!relPath.segments.contains(".scala") && !relPath.segments.contains(workspaceDirName))
+    )
+  }
 }
 
 def publishSonatype(
