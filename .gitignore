@@ -5,3 +5,5 @@ out/
 .scala
 .bsp
 .idea/
+
+*.semanticdb

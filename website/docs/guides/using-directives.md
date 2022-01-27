@@ -31,7 +31,7 @@ For now we recommend using the special comment (`//> using scala "3.0.2"`), and 
 Until `using` directives becomes a part of the Scala specification, this is the only way that guarantees that your code will work well with IDEs, code formatters, and other tools.
 :::
 
-Within one file, only one flavor of using directives can be used. The keyword-based syntax (`using scala "3"`) has precedence over special comments (`//> using scala "3"`) and deprecated, plain comments (`// using scala "3"`) has lowest priority.
+Within one file, only one flavor of using directives can be used. The keyword-based syntax (`using scala "3"`) has precedence over special comments (`//> using scala "3"`). The deprecated, plain comments (`// using scala "3"`) have lowest priority.
 
 For now `using` and `@using` can be mixed within a given syntax however we strongly suggest not to use deprecated `@using`.
 
