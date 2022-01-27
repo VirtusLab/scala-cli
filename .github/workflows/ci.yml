@@ -318,6 +318,7 @@ jobs:
       with:
         type: now
         message: 'Back port of documentation changes to stable'
+        from_branch: master
         target_branch: stable
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
