@@ -1069,4 +1069,23 @@ object ci extends Module {
   def setShouldPublish() = T.command {
     publish.setShouldPublish()
   }
+
+  def copyJvm(jvm: String = deps.graalVmJvmId, dest: String = "jvm") = T.command {
+    import sys.process._
+    val command = Seq(
+      settings.cs(),
+      "java-home",
+      "--jvm",
+      jvm,
+      "--update",
+      "--ttl",
+      "0"
+    )
+    val baseJavaHome = os.Path(command.!!.trim, os.pwd)
+    System.err.println(s"Initial Java home $baseJavaHome")
+    val destJavaHome = os.Path(dest, os.pwd)
+    os.copy(baseJavaHome, destJavaHome, createFolders = true)
+    System.err.println(s"New Java home $destJavaHome")
+    destJavaHome
+  }
 }
