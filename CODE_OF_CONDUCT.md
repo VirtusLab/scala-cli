@@ -1,0 +1,1 @@
+Scala CLI uses the [Scala Code of Conduct](https://scala-lang.org/conduct/) for all communication and discussion. This includes both GitHub, Discord and other more direct lines of communication such as email.
