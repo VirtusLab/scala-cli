@@ -116,16 +116,20 @@ object Build {
 
   def updateInputs(
     inputs: Inputs,
-    options: BuildOptions
+    options: BuildOptions,
+    testOptions: Option[BuildOptions] = None
   ): Inputs = {
 
     // If some options are manually overridden, append a hash of the options to the project name
     // Using options, not options0 - only the command-line options are taken into account. No hash is
     // appended for options from the sources.
-    val optionsHash = options.hash
+    val optionsHash     = options.hash
+    val testOptionsHash = testOptions.flatMap(_.hash)
 
     inputs.copy(
-      baseProjectName = inputs.baseProjectName + optionsHash.map("_" + _).getOrElse("")
+      baseProjectName = inputs.baseProjectName
+        + optionsHash.map("_" + _).getOrElse("")
+        + testOptionsHash.map("_" + _).getOrElse("")
     )
   }
 
@@ -168,33 +172,43 @@ object Build {
       overrideOptions: BuildOptions
     ): Either[BuildException, (Build, Build)] = either {
 
+      val baseOptions   = overrideOptions.orElse(sharedOptions)
+      val scopedSources = value(crossSources.scopedSources(baseOptions))
+
+      val mainSources = scopedSources.sources(Scope.Main, baseOptions)
+      val mainOptions = mainSources.buildOptions
+
+      val testSources = scopedSources.sources(Scope.Test, baseOptions)
+      val testOptions = testSources.buildOptions
+
       val inputs0 = updateInputs(
         inputs,
-        overrideOptions.orElse(options) // update hash in inputs with options coming from the CLI or cross-building, not from the sources
+        mainOptions, // update hash in inputs with options coming from the CLI or cross-building, not from the sources
+        Some(testOptions)
       )
 
-      def doBuildScope(options: BuildOptions, scope: Scope): Either[BuildException, Build] =
+      def doBuildScope(
+        options: BuildOptions,
+        sources: Sources,
+        scope: Scope
+      ): Either[BuildException, Build] =
         either {
-          val crossSources0 = crossSources.withVirtualDir(inputs0, scope, options)
-          val scopedSources = value(crossSources0.scopedSources(options))
-          val sources       = scopedSources.sources(scope, options)
+          val sources0 = sources.withVirtualDir(inputs0, scope, options)
 
-          val generatedSources =
-            sources.generateSources(inputs0.generatedSrcRoot(scope))
-          val buildOptions = sources.buildOptions
+          val generatedSources = sources0.generateSources(inputs0.generatedSrcRoot(scope))
 
           val scopeParams =
             if (scope == Scope.Main) Nil
             else Seq(scope.name)
 
-          buildClient.setProjectParams(scopeParams ++ value(buildOptions.projectParams))
+          buildClient.setProjectParams(scopeParams ++ value(options.projectParams))
 
           val res = build(
             inputs0,
-            sources,
+            sources0,
             inputs0.generatedSrcRoot(scope),
             generatedSources,
-            buildOptions,
+            options,
             scope,
             logger,
             buildClient,
@@ -204,8 +218,7 @@ object Build {
           value(res)
         }
 
-      val mainOptions = overrideOptions.orElse(sharedOptions)
-      val mainBuild   = value(doBuildScope(mainOptions, Scope.Main))
+      val mainBuild = value(doBuildScope(mainOptions, mainSources, Scope.Main))
 
       val testBuild = value {
         mainBuild match {
@@ -215,8 +228,8 @@ object Build {
                 extraClassPath = Seq(s.output)
               )
             )
-            val testOptions = extraTestOptions.orElse(mainOptions)
-            doBuildScope(testOptions, Scope.Test)
+            val testOptions0 = extraTestOptions.orElse(testOptions)
+            doBuildScope(testOptions0, testSources, Scope.Test)
           case _ =>
             Right(Build.Cancelled(
               inputs,
