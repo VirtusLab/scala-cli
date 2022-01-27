@@ -1,6 +1,6 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.0-M2`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.15`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.16`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{
@@ -1030,13 +1030,17 @@ object ci extends Module {
   def writeWixConfigExtra(dest: String = "wix-visual-cpp-redist.xml") = T.command {
     val msmPath = {
 
-      val vcVersions     = Seq("2019", "2017")
-      val vcEditions     = Seq("Enterprise", "Community", "BuildTools")
-      val vsDir          = os.Path("""C:\Program Files (x86)\Microsoft Visual Studio""")
+      val vcVersions = Seq("2022", "2019", "2017")
+      val vcEditions = Seq("Enterprise", "Community", "BuildTools")
+      val vsDirs = Seq(
+        os.Path("""C:\Program Files\Microsoft Visual Studio"""),
+        os.Path("""C:\Program Files (x86)\Microsoft Visual Studio""")
+      )
       val fileNamePrefix = "Microsoft_VC".toLowerCase(Locale.ROOT)
       val fileNameSuffix = "_CRT_x64.msm".toLowerCase(Locale.ROOT)
       def candidatesIt =
         for {
+          vsDir   <- vsDirs.iterator
           version <- vcVersions.iterator
           edition <- vcEditions.iterator
           dir = vsDir / version / edition
