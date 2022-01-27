@@ -205,7 +205,7 @@ jobs:
     - name: Build binary
       run: ./mill copyTo cli.launcher ./scala-cli 
     - name: Check examples
-      run: ./scala-cli --jvm temurin:17  .github/scripts/check_examples.sc
+      run: bash ./scala-cli --jvm temurin:17  .github/scripts/check_examples.sc
 
   checks:
     timeout-minutes: 15
