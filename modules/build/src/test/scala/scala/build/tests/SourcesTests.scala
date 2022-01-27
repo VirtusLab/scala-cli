@@ -1,6 +1,5 @@
 package scala.build.tests
 
-import bloop.config.Config.ModuleKindJS
 import com.eed3si9n.expecty.Expecty.expect
 import dependency._
 import org.scalajs.linker.interface.{ESVersion, ModuleKind, ModuleSplitStyle}
