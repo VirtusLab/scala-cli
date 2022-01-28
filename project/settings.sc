@@ -1,5 +1,5 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.15`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.16`
 import $file.deps, deps.{Deps, Docker, buildCsVersion}
 
 import com.goyeau.mill.scalafix.ScalafixModule
