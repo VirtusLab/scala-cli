@@ -14,18 +14,6 @@ final case class CrossSources(
   buildOptions: Seq[HasBuildRequirements[BuildOptions]]
 ) {
 
-  def withVirtualDir(inputs: Inputs, scope: Scope, options: BuildOptions): CrossSources = {
-
-    val srcRootPath = inputs.generatedSrcRoot(scope)
-    val resourceDirs0 = options.classPathOptions.resourcesVirtualDir.map { path =>
-      HasBuildRequirements(BuildRequirements(), srcRootPath / path)
-    }
-
-    copy(
-      resourceDirs = resourceDirs ++ resourceDirs0
-    )
-  }
-
   def sharedOptions(baseOptions: BuildOptions): BuildOptions =
     buildOptions
       .filter(_.requirements.isEmpty)

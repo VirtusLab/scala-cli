@@ -1,7 +1,7 @@
 package scala.build
 
 import scala.build.internal.CodeWrapper
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, Scope}
 import scala.build.preprocessing._
 
 final case class Sources(
@@ -11,6 +11,18 @@ final case class Sources(
   resourceDirs: Seq[os.Path],
   buildOptions: BuildOptions
 ) {
+
+  def withVirtualDir(inputs: Inputs, scope: Scope, options: BuildOptions): Sources = {
+
+    val srcRootPath = inputs.generatedSrcRoot(scope)
+    val resourceDirs0 = options.classPathOptions.resourcesVirtualDir.map { path =>
+      srcRootPath / path
+    }
+
+    copy(
+      resourceDirs = resourceDirs ++ resourceDirs0
+    )
+  }
 
   def generateSources(generatedSrcRoot: os.Path): Seq[GeneratedSource] = {
     val generated =
