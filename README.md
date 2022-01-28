@@ -171,3 +171,7 @@ Package with various logos for scala-cli can be found on [google drive](https://
 
 There is a script `scala-cli-src` in the repository root that is intended to work exactly like released scala-cli, but using a binary compiled the worktree.
 Just add it to your PATH to get the already-released-scala-cli experience.
+
+## Releases
+
+Instructions on how to release - [Release Procedure](https://github.com/VirtusLab/scala-cli/blob/master/.github/release/release-procedure.md)
