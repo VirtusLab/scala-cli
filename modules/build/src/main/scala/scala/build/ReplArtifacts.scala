@@ -67,16 +67,20 @@ object ReplArtifacts {
     dependencies: Seq[AnyDependency],
     extraClassPath: Seq[Path],
     logger: Logger,
-    directories: Directories
+    repositories: Seq[String]
   ): Either[BuildException, ReplArtifacts] = either {
-    val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
-    val isScala2     = scalaParams.scalaVersion.startsWith("2.")
+    val isScala2 = scalaParams.scalaVersion.startsWith("2.")
     val replDep =
       if (isScala2) dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}"
       else dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}"
     val allDeps = dependencies ++ Seq(replDep)
     val replArtifacts =
-      Artifacts.artifacts(Positioned.none(allDeps), localRepoOpt.toSeq, scalaParams, logger)
+      Artifacts.artifacts(
+        Positioned.none(allDeps),
+        repositories,
+        scalaParams,
+        logger
+      )
     val mainClass =
       if (isScala2) "scala.tools.nsc.MainGenericRunner"
       else "dotty.tools.repl.Main"

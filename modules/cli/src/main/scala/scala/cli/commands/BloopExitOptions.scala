@@ -11,7 +11,7 @@ final case class BloopExitOptions(
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
   @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions()
+    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
 ) {
   // format: on
 

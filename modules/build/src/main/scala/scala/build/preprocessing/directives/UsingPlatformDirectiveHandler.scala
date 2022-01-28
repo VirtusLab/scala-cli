@@ -1,5 +1,4 @@
 package scala.build.preprocessing.directives
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{
@@ -16,15 +15,15 @@ import scala.build.options.{
   ScalaOptions
 }
 import scala.build.preprocessing.ScopePath
-import scala.build.{Position, Positioned}
+import scala.build.{Logger, Positioned}
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Platform"
   def description      = "Set the default platform to Scala.JS or Scala Native"
-  def usage            = "using (jvm|scala-js|scala-native)+"
-  override def usageMd = "`using `(`jvm`|`scala-js`|`scala-native`)+"
+  def usage            = "//> using platform (jvm|scala-js|scala-native)+"
+  override def usageMd = "`//> using platform `(`jvm`|`scala-js`|`scala-native`)+"
   override def examples = Seq(
-    "using scala-js",
-    "using jvm scala-native"
+    "//> using platform \"scala-js\"",
+    "//> using platform \"jvm\", \"scala-native\""
   )
 
   private def split(input: String): (String, Option[String]) = {
@@ -33,54 +32,50 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     else (input.take(idx), Some(input.drop(idx + 1)))
   }
 
-  private def maybePlatforms(inputs: Seq[String]): Boolean =
-    inputs.nonEmpty &&
-    Platform.parse(Platform.normalize(split(inputs.head)._1)).nonEmpty
-
   private def handle(
-    rawPfStrs: Seq[String],
-    position: Position
+    rawPfStrsWithPos: Seq[Positioned[String]]
   ): Either[BuildException, BuildOptions] = either {
     val options = value {
-      rawPfStrs
-        .map { rawPfStr =>
-          val (pfStr, pfVerOpt) = split(rawPfStr)
-          Platform.parse(Platform.normalize(pfStr))
-            .toRight(new MalformedPlatformError(pfStr))
-            .flatMap {
-              case Platform.JVM =>
-                pfVerOpt match {
-                  case None =>
-                    val options = BuildOptions(
-                      scalaOptions = ScalaOptions(
-                        platform = Some(scala.build.Positioned(List(position), Platform.JVM))
+      rawPfStrsWithPos
+        .map {
+          case Positioned(pos, rawPfStr) =>
+            val (pfStr, pfVerOpt) = split(rawPfStr)
+            Platform.parse(Platform.normalize(pfStr))
+              .toRight(new MalformedPlatformError(pfStr))
+              .flatMap {
+                case Platform.JVM =>
+                  pfVerOpt match {
+                    case None =>
+                      val options = BuildOptions(
+                        scalaOptions = ScalaOptions(
+                          platform = Some(scala.build.Positioned(pos, Platform.JVM))
+                        )
                       )
+                      Right(options)
+                    case Some(_) =>
+                      Left(new UnexpectedJvmPlatformVersionError)
+                  }
+                case Platform.JS =>
+                  val options = BuildOptions(
+                    scalaOptions = ScalaOptions(
+                      platform = Some(Positioned(pos, Platform.JS))
+                    ),
+                    scalaJsOptions = ScalaJsOptions(
+                      version = pfVerOpt
                     )
-                    Right(options)
-                  case Some(_) =>
-                    Left(new UnexpectedJvmPlatformVersionError)
-                }
-              case Platform.JS =>
-                val options = BuildOptions(
-                  scalaOptions = ScalaOptions(
-                    platform = Some(Positioned(List(position), Platform.JS))
-                  ),
-                  scalaJsOptions = ScalaJsOptions(
-                    version = pfVerOpt
                   )
-                )
-                Right(options)
-              case Platform.Native =>
-                val options = BuildOptions(
-                  scalaOptions = ScalaOptions(
-                    platform = Some(Positioned(List(position), Platform.Native))
-                  ),
-                  scalaNativeOptions = ScalaNativeOptions(
-                    version = pfVerOpt
+                  Right(options)
+                case Platform.Native =>
+                  val options = BuildOptions(
+                    scalaOptions = ScalaOptions(
+                      platform = Some(Positioned(pos, Platform.Native))
+                    ),
+                    scalaNativeOptions = ScalaNativeOptions(
+                      version = pfVerOpt
+                    )
                   )
-                )
-                Right(options)
-            }
+                  Right(options)
+              }
         }
         .sequence
         .left.map(CompositeBuildException(_))
@@ -97,22 +92,20 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     )
   }
 
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq(rawPfStrs @ _*) if maybePlatforms(rawPfStrs) =>
-        Some(handle(rawPfStrs, directive.position))
-      case _ =>
-        None
-    }
-
   override def keys = Seq("platform", "platforms")
   override def handleValues(
-    values: Seq[Any],
+    directive: StrictDirective,
+    path: Either[String, os.Path],
     cwd: ScopePath,
-    positionOpt: Option[Position]
-  ): Either[BuildException, BuildOptions] =
+    logger: Logger
+  ): Either[BuildException, ProcessedUsingDirective] = {
+    val values = directive.values
     handle(
-      DirectiveUtil.stringValues(values),
-      positionOpt.getOrElse(Position.Custom("UsingDirectiveHandler: unknown source"))
+      DirectiveUtil.stringValues(values, path, cwd).map { case (v, pos, _) =>
+        Positioned(Seq(pos), v)
+      }
+    ).map(v =>
+      ProcessedDirective(Some(v), Seq.empty)
     )
+  }
 }

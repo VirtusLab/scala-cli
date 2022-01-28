@@ -12,6 +12,18 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
+  def maybeUseBash(cmd: os.Shellable*)(cwd: os.Path = null): os.CommandResult = {
+    val res = os.proc(cmd: _*).call(cwd = cwd, check = false)
+    if (Properties.isLinux && res.exitCode == 127)
+      // /bin/sh seems to have issues with '%' signs in PATH, that coursier can leave
+      // in the JVM path entry (https://unix.stackexchange.com/questions/126955/percent-in-path-environment-variable)
+      os.proc(("/bin/bash": os.Shellable) +: cmd: _*).call(cwd = cwd)
+    else {
+      expect(res.exitCode == 0)
+      res
+    }
+  }
+
   test("simple script") {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -39,7 +51,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      val output = maybeUseBash(launcher)(cwd = root).out.text().trim
       expect(output == message)
     }
   }
@@ -67,6 +79,97 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
+
+      val output = maybeUseBash(launcher.toString)(cwd = root).out.text().trim
+      expect(output == message)
+    }
+  }
+  test("resource directory for coursier bootstrap launcher") {
+    val fileName = "hello.sc"
+    val message  = "1,2,3"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""|//> using resourceDir "."
+              |import scala.io.Source
+              |
+              |val inputs = Source.fromResource("input").getLines.toSeq
+              |println(inputs.mkString)
+              |""".stripMargin,
+        os.rel / "input" -> message
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val launcher   = root / outputName
+
+      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      expect(output == message)
+    }
+  }
+
+  test("resource directory for library package") {
+    val fileName     = "MyLibrary.scala"
+    val outputLib    = "my-library.jar"
+    val resourceFile = "input"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""|//> using resourceDir "."
+              |
+              |class MyLibrary {
+              |  def message = "Hello"
+              |}
+              |""".stripMargin,
+        os.rel / resourceFile -> "1,2,3"
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", outputLib, "--library").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val zf    = new ZipFile((root / outputLib).toIO)
+      val entry = zf.getEntry(resourceFile)
+      expect(entry != null)
+    }
+  }
+
+  test("Zip with Scala Script containing resource directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "hello.sc" ->
+          s"""//> using resourceDir "./"
+             |import scala.io.Source
+             |
+             |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+             |println(inputs.mkString(","))
+             |""".stripMargin,
+        os.rel / "input" ->
+          s"""1
+             |2
+             |""".stripMargin
+      )
+    )
+    inputs.asZip { (root, zipPath) =>
+      val message = "1,2"
+
+      os.proc(TestUtil.cli, "package", zipPath, extraOptions, ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val launcher   = root / outputName
 
       val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
       expect(output == message)
@@ -192,7 +295,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
           launcher
         }
 
-      val output = os.proc(runnableLauncher.toString).call(cwd = root).out.text().trim
+      val output = maybeUseBash(runnableLauncher.toString)(cwd = root).out.text().trim
       expect(output == message)
     }
   }

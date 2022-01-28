@@ -5,12 +5,16 @@ import caseapp._
 import java.io.File
 
 import scala.build.{Build, Builds}
+import scala.cli.CurrentParams
 
 object Compile extends ScalaCommand[CompileOptions] {
   override def group                                  = "Main"
   override def sharedOptions(options: CompileOptions) = Some(options.shared)
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
+    maybePrintGroupHelp(options)
+    CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
     val logger = options.shared.logger
     SetupIde.runSafe(
       options.shared,

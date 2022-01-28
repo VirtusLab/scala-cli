@@ -14,4 +14,6 @@ final case class HasBuildRequirements[+T](
     }
   def scopedValue(defaultScope: Scope): HasScope[T] =
     HasScope(requirements.scope.map(_.scope).getOrElse(defaultScope), value)
+  def map[U](f: T => U): HasBuildRequirements[U] =
+    copy(value = f(value))
 }

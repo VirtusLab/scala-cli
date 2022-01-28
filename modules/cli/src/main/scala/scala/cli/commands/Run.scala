@@ -8,7 +8,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.Platform
 import scala.build.{Build, Inputs, Logger}
-import scala.scalanative.{build => sn}
+import scala.cli.CurrentParams
 import scala.util.Properties
 
 object Run extends ScalaCommand[RunOptions] {
@@ -16,13 +16,15 @@ object Run extends ScalaCommand[RunOptions] {
 
   override def sharedOptions(options: RunOptions) = Some(options.shared)
 
-  def run(options: RunOptions, args: RemainingArgs): Unit =
+  def run(options: RunOptions, args: RemainingArgs): Unit = {
+    maybePrintGroupHelp(options)
     run(
       options,
       args.remaining,
       args.unparsed,
       () => Inputs.default()
     )
+  }
 
   def run(
     options: RunOptions,
@@ -30,7 +32,9 @@ object Run extends ScalaCommand[RunOptions] {
     programArgs: Seq[String],
     defaultInputs: () => Option[Inputs]
   ): Unit = {
+    CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(inputArgs, defaultInputs = defaultInputs)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
@@ -113,9 +117,10 @@ object Run extends ScalaCommand[RunOptions] {
       case Some(cls) => cls
       case None      => value(build.retainedMainClass)
     }
+    val verbosity = build.options.internal.verbosity.getOrElse(0).toString
 
     val (finalMainClass, finalArgs) =
-      if (jvmRunner) (Constants.runnerMainClass, mainClass +: args)
+      if (jvmRunner) (Constants.runnerMainClass, mainClass +: verbosity +: args)
       else (mainClass, args)
     runOnce(
       root,
@@ -142,7 +147,7 @@ object Run extends ScalaCommand[RunOptions] {
 
     val retCode = build.options.platform.value match {
       case Platform.JS =>
-        val linkerConfig = build.options.scalaJsOptions.linkerConfig
+        val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
           Runner.runJs(
             js.toIO,
@@ -156,7 +161,7 @@ object Run extends ScalaCommand[RunOptions] {
           build,
           mainClass,
           build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
-          logger.scalaNativeLogger
+          logger
         ) { launcher =>
           Runner.runNative(
             launcher.toIO,
@@ -208,7 +213,7 @@ object Run extends ScalaCommand[RunOptions] {
     build: Build.Successful,
     mainClass: String,
     workDir: os.Path,
-    logger: sn.Logger
+    logger: Logger
   )(f: os.Path => T): T = {
     val dest = workDir / s"main${if (Properties.isWin) ".exe" else ""}"
     Package.buildNative(build, mainClass, dest, workDir, logger)

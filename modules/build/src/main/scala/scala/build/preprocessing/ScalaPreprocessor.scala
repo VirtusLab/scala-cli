@@ -1,6 +1,12 @@
 package scala.build.preprocessing
 
 import com.virtuslab.using_directives.config.Settings
+import com.virtuslab.using_directives.custom.model.{
+  UsingDirectiveKind,
+  UsingDirectiveSyntax,
+  UsingDirectives
+}
+import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
 import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
@@ -9,20 +15,39 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  DependencyFormatError,
-  FileNotFoundException,
-  UnusedDirectiveError
-}
+import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.internal.{AmmUtil, Util}
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
-import scala.build.{Inputs, Position, Positioned}
+import scala.build.{Inputs, Logger, Position, Positioned}
 import scala.jdk.CollectionConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
+
+  private case class StrictDirectivesProcessingOutput(
+    globalReqs: BuildRequirements,
+    globalUsings: BuildOptions,
+    scopedReqs: Seq[Scoped[BuildRequirements]],
+    strippedContent: Option[String]
+  ) {
+    def isEmpty: Boolean = globalReqs == BuildRequirements.monoid.zero &&
+      globalUsings == BuildOptions.monoid.zero &&
+      scopedReqs.isEmpty &&
+      strippedContent.isEmpty
+  }
+
+  private case class SpecialImportsProcessingOutput(
+    reqs: BuildRequirements,
+    opts: BuildOptions,
+    content: String
+  )
+
+  case class ProcessingOutput(
+    globalReqs: BuildRequirements,
+    scopedReqs: Seq[Scoped[BuildRequirements]],
+    opts: BuildOptions,
+    updatedContent: Option[String]
+  )
 
   val usingDirectiveHandlers = Seq(
     UsingDependencyDirectiveHandler,
@@ -31,6 +56,8 @@ case object ScalaPreprocessor extends Preprocessor {
     UsingPlatformDirectiveHandler,
     UsingOptionDirectiveHandler,
     UsingJavaOptionsDirectiveHandler,
+    UsingJavaPropsDirectiveHandler,
+    UsingScalaJsOptionsDirectiveHandler,
     UsingScalaNativeOptionsDirectiveHandler,
     UsingJavaHomeDirectiveHandler,
     UsingTestFrameworkDirectiveHandler,
@@ -46,14 +73,10 @@ case object ScalaPreprocessor extends Preprocessor {
     RequireScopeDirectiveHandler
   )
 
-  private def defaultCharSet = StandardCharsets.UTF_8
-
-  private def maybeRead(f: os.Path): Either[BuildException, String] =
-    if (os.isFile(f)) Right(os.read(f, defaultCharSet))
-    else Left(new FileNotFoundException(f))
-
-  def preprocess(input: Inputs.SingleElement)
-    : Option[Either[BuildException, Seq[PreprocessedSource]]] =
+  def preprocess(
+    input: Inputs.SingleElement,
+    logger: Logger
+  ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: Inputs.ScalaFile =>
         val inferredClsName = {
@@ -61,12 +84,17 @@ case object ScalaPreprocessor extends Preprocessor {
           (pkg :+ wrapper).map(_.raw).mkString(".")
         }
         val res = either {
-          val content   = value(maybeRead(f.path))
+          val content   = value(PreprocessingUtil.maybeRead(f.path))
           val scopePath = ScopePath.fromPath(f.path)
-          val source = value(process(content, Right(f.path), scopePath / os.up)) match {
+          val source = value(process(content, Right(f.path), scopePath / os.up, logger)) match {
             case None =>
               PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
-            case Some((requirements, scopedRequirements, options, Some(updatedCode))) =>
+            case Some(ProcessingOutput(
+                  requirements,
+                  scopedRequirements,
+                  options,
+                  Some(updatedCode)
+                )) =>
               PreprocessedSource.InMemory(
                 Right(f.path),
                 f.subPath,
@@ -78,7 +106,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 Some(inferredClsName),
                 scopePath
               )
-            case Some((requirements, scopedRequirements, options, None)) =>
+            case Some(ProcessingOutput(requirements, scopedRequirements, options, None)) =>
               PreprocessedSource.OnDisk(
                 f.path,
                 Some(options),
@@ -95,8 +123,12 @@ case object ScalaPreprocessor extends Preprocessor {
         val res = either {
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
-            value(process(content, Left(v.source), v.scopePath / os.up))
-              .getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
+            value(
+              process(content, Left(v.source), v.scopePath / os.up, logger)
+            ).map {
+              case ProcessingOutput(reqs, scopedReqs, opts, updatedContent) =>
+                (reqs, scopedReqs, opts, updatedContent)
+            }.getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
           val s = PreprocessedSource.InMemory(
             Left(v.source),
             v.subPath,
@@ -119,151 +151,41 @@ case object ScalaPreprocessor extends Preprocessor {
   def process(
     content: String,
     path: Either[String, os.Path],
-    scopeRoot: ScopePath
-  ): Either[BuildException, Option[(
-    BuildRequirements,
-    Seq[Scoped[BuildRequirements]],
-    BuildOptions,
-    Option[String]
-  )]] = either {
-
+    scopeRoot: ScopePath,
+    logger: Logger
+  ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
+    val afterStrictUsing: StrictDirectivesProcessingOutput =
+      value(processStrictUsing(content0, path, scopeRoot, logger))
 
-    val afterStrictUsing = value(processStrictUsing(content0, scopeRoot))
-    val afterUsing = value {
-      processUsing(path, afterStrictUsing.map(_._2).getOrElse(content0), scopeRoot)
-        .sequence
-    }
-    val afterProcessImports = value {
+    val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
       processSpecialImports(
-        afterUsing.flatMap(_._4).orElse(afterStrictUsing.map(_._2)).getOrElse(content0),
+        afterStrictUsing.strippedContent.getOrElse(content0),
         path
       )
     }
 
-    if (afterStrictUsing.isEmpty && afterUsing.isEmpty && afterProcessImports.isEmpty) None
+    if (afterStrictUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
-      val allRequirements    = afterUsing.map(_._1).toSeq ++ afterProcessImports.map(_._1).toSeq
+      val allRequirements    = afterProcessImports.map(_.reqs).toSeq :+ afterStrictUsing.globalReqs
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
-      val allOptions = afterStrictUsing.map(_._1).toSeq ++
-        afterUsing.map(_._3).toSeq ++
-        afterProcessImports.map(_._2).toSeq
+      val allOptions = afterStrictUsing.globalUsings +:
+        afterProcessImports.map(_.opts).toSeq
       val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContentOpt = afterProcessImports
-        .map(_._3)
-        .orElse(afterUsing.flatMap(_._4))
-        .orElse(afterStrictUsing.map(_._2))
+        .map(_.content)
+        .orElse(afterStrictUsing.strippedContent)
         .orElse(if (isSheBang) Some(content0) else None)
-      val scopedRequirements = afterUsing.map(_._2).getOrElse(Nil)
-      Some((summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
+
+      val scopedRequirements = afterStrictUsing.scopedReqs
+      Some(ProcessingOutput(summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
     }
   }
-
-  private def directivesBuildOptions(
-    directives: Seq[Directive],
-    cwd: ScopePath
-  ): Either[BuildException, BuildOptions] = {
-    val results = directives
-      .filter(_.tpe == Directive.Using)
-      .map { dir =>
-        val fromHandlersOpt = usingDirectiveHandlers
-          .iterator
-          .flatMap(_.handle(dir, cwd).iterator)
-          .take(1)
-          .toList
-          .headOption
-
-        fromHandlersOpt.getOrElse {
-          Left(new UnusedDirectiveError(dir))
-        }
-      }
-
-    results
-      .sequence
-      .left.map(CompositeBuildException(_))
-      .map { allOptions =>
-        allOptions.foldLeft(BuildOptions())(_ orElse _)
-      }
-  }
-
-  private def directivesBuildRequirements(
-    directives: Seq[Directive],
-    scopeRoot: ScopePath
-  ): Either[
-    BuildException,
-    (BuildRequirements, Seq[Scoped[BuildRequirements]])
-  ] = {
-    val results = directives
-      .filter(_.tpe == Directive.Require)
-      .map { dir =>
-        val fromHandlersOpt = requireDirectiveHandlers
-          .iterator
-          .flatMap(_.handle(dir, scopeRoot).iterator)
-          .take(1)
-          .toList
-          .headOption
-
-        fromHandlersOpt match {
-          case None =>
-            Left(new UnusedDirectiveError(dir))
-          case Some(Right(reqs)) =>
-            val value = dir.scope match {
-              case None => (reqs, Nil)
-              case Some(sc) =>
-                val scopePath = scopeRoot / os.RelPath(sc).asSubPath
-                (BuildRequirements(), Seq(Scoped(scopePath, reqs)))
-            }
-            Right(value)
-          case Some(Left(err)) =>
-            Left(err)
-        }
-      }
-
-    results
-      .sequence
-      .left.map(CompositeBuildException(_))
-      .map { allValues =>
-        val allReqs       = allValues.map(_._1)
-        val allScopedReqs = allValues.flatMap(_._2)
-        (allReqs.foldLeft(BuildRequirements())(_ orElse _), allScopedReqs)
-      }
-  }
-
-  private def processUsing(
-    path: Either[String, os.Path],
-    content: String,
-    scopeRoot: ScopePath
-  ): Option[Either[
-    BuildException,
-    (
-      BuildRequirements,
-      Seq[Scoped[BuildRequirements]],
-      BuildOptions,
-      Option[String]
-    )
-  ]] =
-    // TODO Warn about unrecognized directives
-    // TODO Report via some diagnostics malformed directives
-    TemporaryDirectivesParser.parseDirectives(path, content).map {
-      case (directives, updatedContentOpt) =>
-        val tuple = (
-          directivesBuildRequirements(directives, scopeRoot),
-          directivesBuildOptions(directives, scopeRoot),
-          Right(updatedContentOpt)
-        )
-        tuple
-          .traverseN
-          .left.map(CompositeBuildException(_))
-          .map {
-            case ((reqs, scopedReqs), options, contentOpt) =>
-              (reqs, scopedReqs, options, contentOpt)
-          }
-    }
 
   private def processSpecialImports(
     content: String,
     path: Either[String, os.Path]
-  ): Either[BuildException, Option[(BuildRequirements, BuildOptions, String)]] = either {
+  ): Either[BuildException, Option[SpecialImportsProcessingOutput]] = either {
 
     import fastparse._
     import scala.build.internal.ScalaParse._
@@ -342,42 +264,45 @@ case object ScalaPreprocessor extends Preprocessor {
           extraDependencies = deps
         )
       )
-      Some((BuildRequirements(), options, newCode))
+      Some(SpecialImportsProcessingOutput(BuildRequirements(), options, newCode))
     }
   }
 
   private def processStrictUsing(
     content: String,
-    cwd: ScopePath
-  ): Either[BuildException, Option[(BuildOptions, String)]] = either {
-
-    val processor = {
-      val reporter = new DirectivesOutputStreamReporter(System.err) // TODO Get that via a logger
-      val settings = new Settings
-      settings.setAllowStartWithoutAt(false)
-      settings.setAllowRequire(false)
-      val context = new Context(reporter, settings)
-      new UsingDirectivesProcessor(context)
-    }
+    path: Either[String, os.Path],
+    cwd: ScopePath,
+    logger: Logger
+  ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
 
     val contentChars = content.toCharArray
-    val directives   = processor.extract(contentChars)
+    val ExtractedDirectives(codeOffset, directives0) =
+      value(extractUsingDirectives(contentChars, path, logger))
 
-    val directives0 = directives
-      .getFlattenedMap
-      .asScala
-      .map {
-        case (k, l) => k -> l.asScala
-      }
-      .toMap
     val updatedOptions = value {
       DirectivesProcessor.process(
         directives0,
-        usingDirectiveHandlers ++ requireDirectiveHandlers,
-        cwd
+        usingDirectiveHandlers,
+        path,
+        cwd,
+        logger
       )
     }
-    val codeOffset = directives.getCodeOffset()
+
+    val directives1 = updatedOptions.unused
+
+    val updatedRequirements = value {
+      DirectivesProcessor.process(
+        directives1,
+        requireDirectiveHandlers,
+        path,
+        cwd,
+        logger
+      )
+    }
+
+    val directives2 = updatedRequirements.unused
+
     val updatedContentOpt =
       if (codeOffset > 0) {
         val headerBytes = contentChars
@@ -392,8 +317,105 @@ case object ScalaPreprocessor extends Preprocessor {
       }
       else None
 
-    if (updatedContentOpt.isEmpty) None
-    else Some((updatedOptions, updatedContentOpt.getOrElse(content)))
+    value {
+      if (directives2.nonEmpty) {
+        val errors = directives2.map(d =>
+          new DefaultDirectiveHandler[Nothing].handleValues(d, path, cwd, logger)
+        ).collect {
+          case Left(e) => e
+        }
+        Left(CompositeBuildException(errors))
+      }
+      else
+        Right(StrictDirectivesProcessingOutput(
+          updatedRequirements.global,
+          updatedOptions.global,
+          updatedRequirements.scoped,
+          updatedContentOpt
+        ))
+    }
+  }
+
+  case class ExtractedDirectives(offset: Int, directives: Seq[StrictDirective])
+
+  val changeToSpecialCommentMsg =
+    "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...' or '/*> ... */'"
+
+  def extractUsingDirectives(
+    contentChars: Array[Char],
+    path: Either[String, os.Path],
+    logger: Logger
+  ): Either[BuildException, ExtractedDirectives] = {
+    val processor = {
+      val reporter = new DirectivesOutputStreamReporter(System.err) // TODO Get that via a logger
+      val settings = new Settings
+      settings.setAllowStartWithoutAt(true)
+      settings.setAllowRequire(false)
+      val context = new Context(reporter, settings)
+      new UsingDirectivesProcessor(context)
+    }
+    val all = processor.extract(contentChars, true, true).asScala
+
+    def byKind(kind: UsingDirectiveKind) = all.find(_.getKind == kind).get
+
+    def getDirectives(directives: UsingDirectives) =
+      directives.getAst() match {
+        case ud: UsingDefs =>
+          ud.getUsingDefs().asScala
+        case _ =>
+          Nil
+      }
+
+    val codeDirectives           = byKind(UsingDirectiveKind.Code)
+    val specialCommentDirectives = byKind(UsingDirectiveKind.SpecialComment)
+    val plainCommentDirectives   = byKind(UsingDirectiveKind.PlainComment)
+
+    def reportWarning(msg: String, values: Seq[UsingDef], before: Boolean = true): Unit =
+      values.foreach { v =>
+        val astPos = v.getPosition()
+        val (start, end) =
+          if (before) (0, astPos.getColumn())
+          else (astPos.getColumn(), astPos.getColumn() + v.getSyntax.getKeyword.size)
+        val position = Position.File(path, (astPos.getLine(), start), (astPos.getLine(), end))
+        logger.diagnostic(msg, positions = Seq(position))
+      }
+
+    val usedDirectives =
+      if (!codeDirectives.getFlattenedMap().isEmpty()) {
+        val msg =
+          s"This using directive is ignored. File contains directives outside comments and those has higher precedence."
+        reportWarning(
+          msg,
+          getDirectives(plainCommentDirectives) ++ getDirectives(specialCommentDirectives)
+        )
+        codeDirectives
+      }
+      else if (!specialCommentDirectives.getFlattenedMap().isEmpty()) {
+        val msg =
+          s"This using directive is ignored. $changeToSpecialCommentMsg"
+        reportWarning(msg, getDirectives(plainCommentDirectives))
+        specialCommentDirectives
+      }
+      else {
+        reportWarning(changeToSpecialCommentMsg, getDirectives(plainCommentDirectives))
+        plainCommentDirectives
+      }
+
+    // All using directives should use just `using` keyword, no @using or require
+    reportWarning(
+      "Deprecated using directive syntax, please use keyword `using`.",
+      getDirectives(usedDirectives).filter(_.getSyntax() != UsingDirectiveSyntax.Using),
+      before = false
+    )
+
+    val flattened = usedDirectives.getFlattenedMap.asScala.toSeq
+    val strictDirectives =
+      flattened.map { case (k, l) => StrictDirective(k.getPath.asScala.mkString("."), l.asScala) }
+
+    val offset =
+      if (usedDirectives.getKind() != UsingDirectiveKind.Code) 0
+      else usedDirectives.getCodeOffset()
+    Right(ExtractedDirectives(offset, strictDirectives))
   }
 
   private def parseDependency(str: String, pos: Position): Either[BuildException, AnyDependency] =

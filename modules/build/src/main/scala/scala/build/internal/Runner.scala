@@ -213,7 +213,7 @@ object Runner {
       }
   }
 
-  private def frameworkName(
+  def frameworkName(
     classPath: Seq[Path],
     parentInspector: AsmTestRunner.ParentInspector
   ): Either[NoTestFrameworkFoundError, String] = {
@@ -306,7 +306,7 @@ object Runner {
     val config = TestAdapter.Config()
       .withBinaryFile(launcher)
       .withEnvVars(sys.env.toMap)
-      .withLogger(logger.scalaNativeLogger)
+      .withLogger(logger.scalaNativeTestLogger)
 
     var adapter: TestAdapter = null
 

@@ -10,7 +10,7 @@ final case class CleanOptions(
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
-    bspFile: SharedBspFileOptions = SharedBspFileOptions()
+    bspFile: SharedBspFileOptions = SharedBspFileOptions(),
 )
 // format: on
 

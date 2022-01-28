@@ -1,7 +1,6 @@
 package scala.build.preprocessing.directives
-
 import scala.build.EitherCps.either
-import scala.build.Position
+import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
@@ -9,55 +8,47 @@ import scala.build.preprocessing.ScopePath
 case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Resource directories"
   def description = "Manually add a resource directory to the class path"
-  def usage = """using resource _path_
+  def usage = """//> using resource _path_
                 |
-                |using resources _path1_ _path2_ …""".stripMargin
+                |//> using resources _path1_, _path2_ …""".stripMargin
   override def usageMd =
-    """`using resourceDir `_path_
+    """`//> using resourceDir `_path_
       |
-      |`using resourceDirs `_path1_ _path2_ …""".stripMargin
+      |`//> using resourceDirs `_path1_, _path2_ …""".stripMargin
   override def examples = Seq(
-    "using resourceDir \"./resources\""
+    "//> using resourceDir \"./resources\""
   )
-
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("resourceDir" | "resourceDirs", paths @ _*) =>
-        val res = either {
-          val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
-          val paths0                    = rootOpt.map(root => paths.map(os.Path(_, root)))
-          val virtualPaths = virtualRootOpt.map(virtualRoot =>
-            paths.map(path => virtualRoot / os.SubPath(path))
-          )
-          BuildOptions(
-            classPathOptions = ClassPathOptions(
-              extraClassPath = paths0.toList.flatten,
-              resourceVirtualDir = virtualPaths.toList.flatten
-            )
-          )
-        }
-        Some(res)
-      case _ =>
-        None
-    }
 
   override def keys = Seq("resourceDir", "resourceDirs")
   override def handleValues(
-    values: Seq[Any],
+    directive: StrictDirective,
+    path: Either[String, os.Path],
     cwd: ScopePath,
-    positionOpt: Option[Position]
-  ): Either[BuildException, BuildOptions] = either {
+    logger: Logger
+  ): Either[BuildException, ProcessedUsingDirective] = either {
     val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
-    val paths                     = DirectiveUtil.stringValues(values)
-    val paths0                    = rootOpt.map(root => paths.map(os.Path(_, root)))
+    val paths                     = DirectiveUtil.stringValues(directive.values, path, cwd)
+    val paths0 = rootOpt.toList.flatMap(root => paths.map(_._1).map(os.Path(_, root)))
     val virtualPaths = virtualRootOpt.map(virtualRoot =>
-      paths.map(path => virtualRoot / os.SubPath(path))
+      paths.map(_._1).map(path => virtualRoot / os.SubPath(path))
     )
-    BuildOptions(
-      classPathOptions = ClassPathOptions(
-        extraClassPath = paths0.toList.flatten,
-        resourceVirtualDir = virtualPaths.toList.flatten
-      )
+    warnIfNotExistsPath(paths0, logger)
+
+    ProcessedDirective(
+      Some(BuildOptions(
+        classPathOptions = ClassPathOptions(
+          resourcesDir = paths0,
+          resourcesVirtualDir = virtualPaths.toList.flatten
+        )
+      )),
+      Seq.empty
+    )
+  }
+
+  private def warnIfNotExistsPath(paths: Seq[os.Path], logger: Logger): Unit = {
+    paths.foreach(path =>
+      if (!os.exists(path))
+        logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
     )
   }
 }

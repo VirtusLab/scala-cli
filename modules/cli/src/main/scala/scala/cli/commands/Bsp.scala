@@ -6,12 +6,14 @@ import upickle.default._
 import scala.build.Build
 import scala.build.bsp.BspThreads
 import scala.build.options.BuildOptions
+import scala.cli.CurrentParams
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 object Bsp extends ScalaCommand[BspOptions] {
+  override def hidden = true
   def run(options: BspOptions, args: RemainingArgs): Unit = {
-
+    CurrentParams.verbosity = options.shared.logging.verbosity
     if (options.shared.logging.verbosity >= 3)
       pprint.stderr.log(args)
 
@@ -31,7 +33,7 @@ object Bsp extends ScalaCommand[BspOptions] {
         pprint.stderr.log(initialInputs)
       Build.updateInputs(initialInputs, buildOptionsToUse)
     }
-
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(
         inputs,

@@ -12,6 +12,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
+  private val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
+
   def simpleScriptTest(ignoreErrors: Boolean = false): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -45,7 +47,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     simpleScriptTest()
   }
 
-  def simpleJsTest(): Unit = {
+  def simpleJsTest(extraArgs: String*): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
@@ -59,23 +61,27 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--js").call(cwd = root).out.text().trim
-      expect(output == message)
+      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
+        root).out.text().trim
+      expect(output.linesIterator.toSeq.last == message)
     }
   }
 
-  if (TestUtil.canRunJs)
+  if (TestUtil.canRunJs) {
     test("simple script JS") {
       simpleJsTest()
     }
+    test("simple script JS in release mode") {
+      simpleJsTest("--js-mode", "release")
+    }
+  }
 
   def simpleJsViaConfigFileTest(): Unit = {
     val message = "Hello"
     val inputs = TestInputs(
       Seq(
         os.rel / "simple.sc" ->
-          s"""using scala-js
+          s"""//> using platform "scala-js"
              |import scala.scalajs.js
              |val console = js.Dynamic.global.console
              |val msg = "$message"
@@ -96,6 +102,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def platformNl = if (Properties.isWin) "\\r\\n" else "\\n"
 
+  def canRunScWithNative(): Boolean =
+    !(actualScalaVersion.startsWith("2.12") || actualScalaVersion.startsWith("3.0"))
+
   def simpleNativeTests(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -113,12 +122,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--native").call(cwd = root).out.text().trim
+        os.proc(TestUtil.cli, extraOptions, fileName, "--native", "-q")
+          .call(cwd = root)
+          .out.text().trim
       expect(output == message)
     }
   }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.13"))
+  if (TestUtil.canRunNative && canRunScWithNative())
     test("simple script native") {
       simpleNativeTests()
     }
@@ -129,13 +140,52 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           os.rel / "a.sc" -> "println(1)"
         )
       )
+      val nativeVersion = "0.4.2"
       inputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, extraOptions, "--native", "a.sc").call(
+        val output = os.proc(
+          TestUtil.cli,
+          extraOptions,
+          "--native",
+          "a.sc",
+          "--native-version",
+          nativeVersion
+        ).call(
           cwd = root,
           check = false,
           stderr = os.Pipe
         ).err.text().trim
-        expect(output.contains("scala-cli: invalid option:"))
+        expect(
+          output.contains(
+            s"Used Scala Native version $nativeVersion is incompatible with Scala $actualScalaVersion."
+          )
+        )
+      }
+    }
+
+  if (actualScalaVersion.startsWith("3.1"))
+    test("Scala 3 in Scala Native") {
+      val message  = "using Scala 3 Native"
+      val fileName = "scala3native.scala"
+      val inputs = TestInputs(
+        Seq(
+          os.rel / fileName ->
+            s"""import scala.scalanative.libc._
+               |import scala.scalanative.unsafe._
+               |
+               |@main def main() =
+               |  val message = "$message"
+               |  Zone { implicit z =>
+               |    stdio.printf(toCString(message))
+               |  }
+               |""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        val output =
+          os.proc(TestUtil.cli, extraOptions, fileName, "--native", "-q")
+            .call(cwd = root)
+            .out.text().trim
+        expect(output == message)
       }
     }
 
@@ -203,13 +253,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--native").call(cwd =
-          root).out.text().trim
+        os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--native", "-q")
+          .call(cwd = root)
+          .out.text().trim
       expect(output == message)
     }
   }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.13"))
+  if (TestUtil.canRunNative && canRunScWithNative())
     test("Multiple scripts native") {
       multipleScriptsNative()
     }
@@ -342,7 +393,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print_sc")
+        os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print_sc", "-q")
           .call(cwd = root)
           .out.text().trim
       expect(output == message)
@@ -434,10 +485,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "--java-prop", "scala.colored-stack-traces=false"
       )
       // format: on
-      val res = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
+      val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.lines()
       // FIXME We need to have the pretty-stacktraces stuff take scala.colored-stack-traces into account
       val exceptionLines =
-        res.out.lines().map(stripAnsi).dropWhile(!_.startsWith("Exception in thread "))
+        output.map(stripAnsi).dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
       val sp  = " "
       val expectedLines =
@@ -461,7 +513,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
-        else
+        else if (actualScalaVersion.startsWith("3.0."))
           s"""Exception in thread main: java.lang.Exception: Caught exception during processing
              |    at method main in Throws.scala:8$sp
              |
@@ -471,11 +523,21 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |    at method main in Throws.scala:5$sp
              |
              |""".stripMargin.linesIterator.toVector
+        else
+          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+             |${tab}at Throws$$.main(Throws.scala:8)
+             |${tab}at Throws.main(Throws.scala)
+             |Caused by: java.lang.RuntimeException: nope
+             |${tab}at scala.sys.package$$.error(package.scala:27)
+             |${tab}at Throws$$.something(Throws.scala:3)
+             |${tab}at Throws$$.main(Throws.scala:5)
+             |$tab... 1 more
+             |""".stripMargin.linesIterator.toVector
       if (exceptionLines != expectedLines) {
         pprint.log(exceptionLines)
         pprint.log(expectedLines)
       }
-      expect(exceptionLines == expectedLines)
+      assert(exceptionLines == expectedLines, clues(output))
     }
   }
 
@@ -501,7 +563,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
       // format: on
       val res            = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
-      val exceptionLines = res.out.lines().dropWhile(!_.startsWith("Exception in thread "))
+      val output         = res.out.lines()
+      val exceptionLines = output.dropWhile(!_.startsWith("Exception in thread "))
       val tab            = "\t"
       val expectedLines =
         if (actualScalaVersion.startsWith("2.12."))
@@ -534,8 +597,15 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         println(exceptionLines.mkString("\n"))
         println(expectedLines)
       }
-      expect(exceptionLines.length == expectedLines.length)
-      for { i <- 0 until exceptionLines.length } expect(exceptionLines(i) == expectedLines(i))
+      assert(
+        exceptionLines.length == expectedLines.length,
+        clues(output, exceptionLines.length, expectedLines.length)
+      )
+      for (i <- 0 until exceptionLines.length)
+        assert(
+          exceptionLines(i) == expectedLines(i),
+          clues(output, exceptionLines(i), expectedLines(i))
+        )
     }
   }
   if (actualScalaVersion.startsWith("2."))
@@ -566,8 +636,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "--java-prop=scala.cli.runner.Stacktrace.disable=true"
       )
       // format: on
-      val res = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
-      val exceptionLines = res.out.lines()
+      val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.lines()
+      val exceptionLines = output
         .map(stripAnsi)
         .dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
@@ -583,8 +654,15 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |${tab}at throws$$.something(throws.sc:3)
            |${tab}at throws$$.<clinit>(throws.sc:5)
            |$tab... 2 more""".stripMargin.linesIterator.toVector
-      expect(exceptionLines.length == expectedLines.length)
-      for { i <- 0 until exceptionLines.length } expect(exceptionLines(i) == expectedLines(i))
+      assert(
+        exceptionLines.length == expectedLines.length,
+        clues(output, exceptionLines.length, expectedLines.length)
+      )
+      for (i <- 0 until exceptionLines.length)
+        assert(
+          exceptionLines(i) == expectedLines(i),
+          clues(output, exceptionLines(i), expectedLines(i))
+        )
     }
   }
 
@@ -696,7 +774,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Hello.scala" ->
-          s"""// using resourceDir "./"
+          s"""//> using resourceDir "./"
              |import scala.io.Source
              |
              |object Hello extends App {
@@ -724,7 +802,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "hello.sc" ->
-          s"""// using resourceDir "./"
+          s"""//> using resourceDir "./"
              |import scala.io.Source
              |
              |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
@@ -911,6 +989,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         os.copy(os.Path(TestUtil.cli.head, os.pwd), root / "scala")
         val script =
           s"""#!/usr/bin/env sh
+             |set -e
              |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee -a output
              |""".stripMargin
         os.write(root / "script.sh", script)
@@ -921,11 +1000,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           "docker", "run", "--rm", termOpt,
           "-v", s"${root}:/data",
           "-w", "/data",
+          ciOpt,
           baseImage,
           "/data/script.sh"
         )
         // format: on
-        os.proc(cmd).call(cwd = root)
+        val res = os.proc(cmd).call(cwd = root)
+        System.err.println(res.out.text())
         val output = os.read(root / "output").trim
         expect(output == message)
       }
@@ -936,7 +1017,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "simple.sc" ->
-          s"""using javaOpt "-Dtest.message=$message"
+          s"""//> using javaOpt "-Dtest.message=$message"
              |val msg = sys.props("test.message")
              |println(msg)
              |""".stripMargin
@@ -952,7 +1033,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "simple.scala" ->
-          s"""using main-class hello
+          s"""//> using `main-class` "hello"
              |object hello extends App { println("hello") }
              |object world extends App { println("world") }
              |""".stripMargin
@@ -974,15 +1055,15 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |println(msg)
              |""".stripMargin,
         os.rel / "Dockerfile" ->
-          """FROM gcr.io/distroless/base-debian10
-            |ADD scala /usr/local/bin/scala
-            |ENTRYPOINT ["/usr/local/bin/scala"]
-            |""".stripMargin
+          os.read(os.Path(Constants.mostlyStaticDockerfile, os.pwd))
       )
     )
     inputs.fromRoot { root =>
-      os.copy(os.Path(TestUtil.cli.head), root / "scala")
-      os.proc("docker", "build", "-t", "scala-cli-distroless-it", ".").call(cwd = root)
+      os.copy(os.Path(TestUtil.cli.head), root / "scala-cli")
+      os.proc("docker", "build", "-t", "scala-cli-distroless-it", ".").call(
+        cwd = root,
+        stdout = os.Inherit
+      )
       os.remove(root / "scala")
       os.remove(root / "Dockerfile")
       val termOpt   = if (System.console() == null) Nil else Seq("-t")
@@ -992,6 +1073,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "docker", "run", "--rm", termOpt,
         "-v", s"$root:/data",
         "-w", "/data",
+        ciOpt,
         "scala-cli-distroless-it",
         extraOptions,
         fileName
@@ -1095,7 +1177,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
   test("resources via directive") {
-    resourcesInputs("using resourceDirs ./resources").fromRoot { root =>
+    resourcesInputs("//> using resourceDirs \"./resources\"").fromRoot { root =>
       os.proc(TestUtil.cli, "run", ".").call(cwd = root)
     }
   }
@@ -1137,7 +1219,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Main.scala" ->
-          """using lib "com.lihaoyi::utest:0.7.10"
+          """//> using lib "com.lihaoyi::utest:0.7.10"
             |
             |object Main {
             |  val err = utest.compileError("pprint.log(2)")
@@ -1149,8 +1231,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             |}
             |""".stripMargin,
         os.rel / "Tests.scala" ->
-          """using lib "com.lihaoyi::pprint:0.6.6"
-            |using target test
+          """//> using lib "com.lihaoyi::pprint:0.6.6"
+            |//> using target.scope "test"
             |
             |import utest._
             |
@@ -1201,7 +1283,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val inputs = TestInputs(
         Seq(
           os.rel / "f.sc" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-                                 |using scala $actualScalaVersion
+                                 |//> using scala "$actualScalaVersion"
                                  |println(args.toList)""".stripMargin
         )
       )
@@ -1247,7 +1329,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Hello.scala" ->
-          """|// using lib com.lihaoyi::os-lib:0.7.8
+          """|//> using lib "com.lihaoyi::os-lib:0.7.8"
              |
              |object Hello extends App {
              |  println(os.pwd)
@@ -1282,4 +1364,39 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("-D.. options passed to the child app") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" -> """object ClassHello extends App {
+                                    |  print(System.getProperty("foo"))
+                                    |}""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Dfoo=bar").call(
+        cwd = root
+      )
+      expect(res.out.text().trim() == "bar")
+    }
+  }
+
+  test("-X.. options passed to the child app") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" -> "object Hello extends App {}"
+      )
+    )
+    inputs.fromRoot { root =>
+      // Binaries generated with Graal's native-image are run under SubstrateVM
+      // that cuts some -X.. java options, so they're not passed
+      // to the application's main method. This test ensures it is not
+      // cut. "--java-opt" option requires a value, so it would fail
+      // if -Xmx1g is cut
+      val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Xmx1g").call(
+        cwd = root,
+        check = false
+      )
+      assert(res.exitCode == 0, clues(res.out.text(), res.err.text()))
+    }
+  }
 }

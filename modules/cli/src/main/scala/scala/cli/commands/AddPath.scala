@@ -5,11 +5,15 @@ import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import java.io.File
 
+import scala.cli.CurrentParams
 import scala.util.Properties
 
 object AddPath extends ScalaCommand[AddPathOptions] {
-  override def hidden = true
-  def run(options: AddPathOptions, args: RemainingArgs): Unit =
+  override def hidden     = true
+  override def inSipScala = false
+  def run(options: AddPathOptions, args: RemainingArgs): Unit = {
+    CurrentParams.verbosity = options.verbosity
+
     if (args.all.isEmpty) {
       if (!options.quiet)
         System.err.println("Nothing to do")
@@ -28,4 +32,5 @@ object AddPath extends ScalaCommand[AddPathOptions] {
       if (!didUpdate && !options.quiet)
         System.err.println("Everything up-to-date")
     }
+  }
 }

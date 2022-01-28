@@ -2,12 +2,16 @@ package scala.cli.commands
 
 import caseapp._
 
+import java.nio.file.Path
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{Platform, Scope}
+import scala.build.testrunner.AsmTestRunner
 import scala.build.{Build, Builds, CrossKey, Logger}
+import scala.cli.CurrentParams
 
 object Test extends ScalaCommand[TestOptions] {
   override def group                               = "Main"
@@ -17,7 +21,10 @@ object Test extends ScalaCommand[TestOptions] {
   private def reset = Console.RESET
 
   def run(options: TestOptions, args: RemainingArgs): Unit = {
+    maybePrintGroupHelp(options)
+    CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
     val logger = options.shared.logger
     SetupIde.runSafe(
       options.shared,
@@ -35,11 +42,8 @@ object Test extends ScalaCommand[TestOptions] {
 
     def maybeTest(builds: Builds, allowExit: Boolean): Unit = {
       val optionsKeys = builds.map.keys.toVector.map(_.optionsKey).distinct
-      val builds0 = optionsKeys.map { optionsKey =>
+      val builds0 = optionsKeys.flatMap { optionsKey =>
         builds.map.get(CrossKey(optionsKey, Scope.Test))
-          .orElse(builds.map.get(CrossKey(optionsKey, Scope.Main)))
-          // Can this happen in practice now?
-          .getOrElse(sys.error(s"Main build not found for $optionsKey"))
       }
       val buildsLen = builds0.length
       val printBeforeAfterMessages =
@@ -126,7 +130,7 @@ object Test extends ScalaCommand[TestOptions] {
 
     build.options.platform.value match {
       case Platform.JS =>
-        val linkerConfig = build.options.scalaJsOptions.linkerConfig
+        val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         value {
           Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig) { js =>
             Runner.testJs(
@@ -145,7 +149,7 @@ object Test extends ScalaCommand[TestOptions] {
             build,
             "scala.scalanative.testinterface.TestMain",
             build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
-            logger.scalaNativeLogger
+            logger
           ) { launcher =>
             Runner.testNative(
               build.fullClassPath,
@@ -158,15 +162,22 @@ object Test extends ScalaCommand[TestOptions] {
           }
         }
       case Platform.JVM =>
+        val classPath = build.fullClassPath
+
+        val testFrameworkOpt0 = testFrameworkOpt.orElse {
+          findTestFramework(classPath, logger)
+        }
+
         val extraArgs =
           (if (requireTests) Seq("--require-tests") else Nil) ++
-            testFrameworkOpt.map(fw => s"--test-framework=$fw").toSeq ++
+            build.options.internal.verbosity.map(v => s"--verbosity=$v") ++
+            testFrameworkOpt0.map(fw => s"--test-framework=$fw").toSeq ++
             Seq("--") ++ args
 
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
           build.options.javaOptions.javaOpts.map(_.value),
-          build.fullClassPath.map(_.toFile),
+          classPath.map(_.toFile),
           Constants.testRunnerMainClass,
           extraArgs,
           logger,
@@ -174,4 +185,26 @@ object Test extends ScalaCommand[TestOptions] {
         )
     }
   }
+
+  def findTestFramework(classPath: Seq[Path], logger: Logger): Option[String] = {
+    val classPath0 = classPath.map(_.toString)
+
+    // https://github.com/VirtusLab/scala-cli/issues/426
+    if (
+      classPath0.exists(_.contains("zio-test")) && !classPath0.exists(_.contains("zio-test-sbt"))
+    ) {
+      val parentInspector = new AsmTestRunner.ParentInspector(classPath)
+      Runner.frameworkName(classPath, parentInspector) match {
+        case Right(f) => Some(f)
+        case Left(_) =>
+          logger.message(
+            "zio-test found in the class path, zio-test-sbt should be added to run zio tests with Scala CLI."
+          )
+          None
+      }
+    }
+    else
+      None
+  }
+
 }

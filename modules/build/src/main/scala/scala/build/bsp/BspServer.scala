@@ -1,8 +1,10 @@
 package scala.build.bsp
 
+import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
 import ch.epfl.scala.{bsp4j => b}
 
-import java.util.concurrent.CompletableFuture
+import java.io.{PrintWriter, StringWriter}
+import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.{util => ju}
 
 import scala.build.Logger
@@ -11,23 +13,44 @@ import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
+import scala.util.Random
 
 class BspServer(
   bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
+    with ScalaScriptBuildServer
     with ScalaDebugServerForwardStubs
     with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs with HasGeneratedSources {
+
+  private var client: Option[BuildClient] = None
+
+  override def onConnectWithClient(client: BuildClient): Unit = this.client = Some(client)
 
   private var extraDependencySources: Seq[os.Path] = Nil
   def setExtraDependencySources(sourceJars: Seq[os.Path]): Unit = {
     extraDependencySources = sourceJars
   }
 
+  // Can we accept some errors in some circumstances?
+  override protected def onFatalError(throwable: Throwable, context: String): Unit = {
+    val sw = new StringWriter()
+    throwable.printStackTrace(new PrintWriter(sw))
+    val message =
+      s"Fatal error has occured within $context. Shutting down the server:\n ${sw.toString}"
+    System.err.println(message)
+    client.foreach(_.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, message)))
+
+    // wait random bit before shutting down server to reduce risk of multiple scala-cli instances starting bloop at the same time
+    val timeout = Random.nextInt(400)
+    TimeUnit.MILLISECONDS.sleep(100 + timeout)
+    sys.exit(1)
+  }
+
   private def maybeUpdateProjectTargetUri(res: b.WorkspaceBuildTargetsResult): Unit =
     for {
-      n <- projectNames.iterator
+      (_, n) <- projectNames.iterator
       if n.targetUriOpt.isEmpty
       target <- res.getTargets.asScala.iterator.find(_.getDisplayName == n.name)
     } n.targetUriOpt = Some(target.getId.getUri)
@@ -79,12 +102,12 @@ class BspServer(
   }
 
   private def mapGeneratedSources(res: b.SourcesResult): Unit = {
-    val gen = generatedSources
+    val gen = generatedSources.values.toVector
     for {
       item <- res.getItems().asScala
       if validTarget(item.getTarget)
       sourceItem <- item.getSources.asScala
-      genSource  <- gen.uriMap.get(sourceItem.getUri)
+      genSource  <- gen.iterator.flatMap(_.uriMap.get(sourceItem.getUri).iterator).take(1)
       updatedUri <- genSource.reportingPath.toOption.map(_.toNIO.toUri.toASCIIString)
     } {
       sourceItem.setUri(updatedUri)
@@ -186,6 +209,28 @@ class BspServer(
       }
       res0
     }
+
+  def buildTargetWrappedSources(params: WrappedSourcesParams)
+    : CompletableFuture[WrappedSourcesResult] = {
+    def sourcesItemOpt(scope: Scope) = targetScopeIdOpt(scope).map { id =>
+      val items = generatedSources
+        .getOrElse(scope, HasGeneratedSources.GeneratedSources(Nil))
+        .sources
+        .flatMap { s =>
+          s.reportingPath.toSeq.map(_.toNIO.toUri.toASCIIString).map { uri =>
+            val item    = new WrappedSourceItem(uri, s.generated.toNIO.toUri.toASCIIString)
+            val content = os.read(s.generated)
+            item.setTopWrapper(content.take(s.topWrapperLen))
+            item.setBottomWrapper("}") // meh
+            item
+          }
+        }
+      new WrappedSourcesItem(id, items.asJava)
+    }
+    val sourceItems = Seq(Scope.Main, Scope.Test).flatMap(sourcesItemOpt(_).toSeq)
+    val res         = new WrappedSourcesResult(sourceItems.asJava)
+    CompletableFuture.completedFuture(res)
+  }
 
   private val shutdownPromise = Promise[Unit]()
   override def buildShutdown(): CompletableFuture[Object] = {

@@ -117,6 +117,10 @@ Host the compilation server should bind to
 
 Port the compilation server should bind to (pass `-1` to pick a random port)
 
+#### `--bloop-daemon-dir`
+
+Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
+
 #### `--bloop-version`
 
 If Bloop isn't already running, the version we should start
@@ -142,6 +146,14 @@ Include default JVM options for Bloop
 #### `--bloop-global-options-file`
 
 Bloop global options file
+
+#### `--bloop-jvm`
+
+JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+
+#### `--bloop-working-dir`
+
+Working directory for Bloop, if it needs to be started
 
 ## Compile options
 
@@ -285,6 +297,8 @@ Available in commands:
 
 Aliases: `--setting`
 
+#### `--sbt-version`
+
 #### `--output`
 
 Aliases: `-o`
@@ -361,6 +375,32 @@ Print help message and exit
 Aliases: `--full-help`
 
 Print help message, including hidden options, and exit
+
+## Help group options
+
+Available in commands:
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--help-js`
+
+Show options for ScalaJS
+
+#### `--help-native`
+
+Show options for ScalaNative
 
 ## Install completions options
 
@@ -488,6 +528,16 @@ Operating system to use when looking up in the JVM index
 
 CPU architecture to use when looking up in the JVM index
 
+#### `--javac-plugin`
+
+Javac plugin dependencies or files
+
+#### `--javac-option`
+
+Aliases: `--javac-opt`
+
+Javac options
+
 ## Logging options
 
 Available in commands:
@@ -509,12 +559,6 @@ Available in commands:
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--verbose`
-
-Aliases: `-v`
-
-Increase verbosity (can be specified multiple times)
 
 #### `--quiet`
 
@@ -785,7 +829,7 @@ Available in commands:
 
 #### `--js`
 
-Enable Scala.JS
+Enable Scala.JS. To show more options for Scala.Js pass `--help-js`
 
 #### `--js-version`
 
@@ -809,6 +853,30 @@ Emit source maps
 
 Enable jsdom
 
+#### `--js-header`
+
+A header that will be added at the top of generated .js files
+
+#### `--js-allow-big-ints-for-longs`
+
+Primitive Longs *may* be compiled as primitive JavaScript bigints
+
+#### `--js-avoid-classes`
+
+Avoid class'es when using functions and prototypes has the same observable semantics.
+
+#### `--js-avoid-lets-and-consts`
+
+Avoid lets and consts when using vars has the same observable semantics.
+
+#### `--js-module-split-style`
+
+The Scala JS module split style: fewestmodules, smallestmodules
+
+#### `--js-es-version`
+
+The Scala JS ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021
+
 ## Scala Native options
 
 Available in commands:
@@ -829,7 +897,7 @@ Available in commands:
 
 #### `--native`
 
-Enable Scala Native
+Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 #### `--native-version`
 
@@ -1010,6 +1078,40 @@ Aliases: `-f`
 Force update scala-cli if is outdated
 
 #### `--is-internal-run`
+
+## Verbosity options
+
+Available in commands:
+- [`about`](./commands.md#about)
+- [`add-path`](./commands.md#add-path)
+- [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop start`](./commands.md#bloop-start)
+- [`bsp`](./commands.md#bsp)
+- [`clean`](./commands.md#clean)
+- [`compile`](./commands.md#compile)
+- [`directories`](./commands.md#directories)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`install completions` / `install-completions`](./commands.md#install-completions)
+- [`install-home`](./commands.md#install-home)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+- [`update`](./commands.md#update)
+- [`version`](./commands.md#version)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--verbose`
+
+Aliases: `-v`
+
+Increase verbosity (can be specified multiple times)
 
 ## Watch options
 

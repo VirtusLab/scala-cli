@@ -19,8 +19,8 @@ object TestUtil {
       val generated0 = generated()
       assert(
         generated0.map(_.toString).toSet == expected.toSet, {
-          pprint.log(generated0.map(_.toString))
-          pprint.log(expected)
+          pprint.log(generated0.map(_.toString).sorted)
+          pprint.log(expected.sorted)
           ""
         }
       )

@@ -93,8 +93,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         val (localClient, remoteServer0, _) =
           TestBspClient.connect(proc.stdout, proc.stdin, pool)
         remoteServer = remoteServer0
-        Await.result(remoteServer.buildInitialize(initParams(root)).asScala, 3.minutes)
-        Await.result(f(root, localClient, remoteServer), 3.minutes)
+        Await.result(remoteServer.buildInitialize(initParams(root)).asScala, Duration.Inf)
+        Await.result(f(root, localClient, remoteServer), Duration.Inf)
       }
       finally {
         if (remoteServer != null)
@@ -128,8 +128,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   def checkTargetUri(root: os.Path, uri: String): Unit = {
-    val baseUri = TestUtil.normalizeUri((root / ".scala").toNIO.toUri.toASCIIString)
-      .stripSuffix("/")
+    val baseUri =
+      TestUtil.normalizeUri((root / Constants.workspaceDirName).toNIO.toUri.toASCIIString)
+        .stripSuffix("/")
     val expectedPrefixes = Set(
       baseUri + "?id=",
       baseUri + "/?id="
@@ -177,7 +178,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
         val details                = readBspConfig(root)
-        val expectedIdeOptionsFile = root / ".scala" / "ide-options.json"
+        val expectedIdeOptionsFile = root / Constants.workspaceDirName / "ide-options.json"
         val expectedArgv = Seq(
           TestUtil.cliPath,
           "bsp",
@@ -225,7 +226,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         TestUtil.cliPath,
         "bsp",
         "--json-options",
-        (root / "directory" / ".scala" / "ide-options.json").toString,
+        (root / "directory" / Constants.workspaceDirName / "ide-options.json").toString,
         s"${(root / "directory").toString}${File.separator}"
       )
       expect(details.argv == expectedArgv)
@@ -522,7 +523,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "A.scala" ->
-          s"""// using resource ./resources
+          s"""//> using resource "./resources"
              |
              |object A {}
              |""".stripMargin
@@ -542,10 +543,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         expect(
           diag.getSeverity == b.DiagnosticSeverity.ERROR,
           diag.getRange.getStart.getLine == 0,
-          diag.getRange.getStart.getCharacter == 3,
+          diag.getRange.getStart.getCharacter == 20,
           diag.getRange.getEnd.getLine == 0,
-          diag.getRange.getEnd.getCharacter == 29,
-          diag.getMessage.contains("Unrecognized directive: using resource ./resources")
+          diag.getRange.getEnd.getCharacter == 20,
+          diag.getMessage.contains("Unrecognized directive: resource with values: ./resources")
         )
       }
     }
@@ -555,7 +556,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Test.scala" ->
-          s"""// using lib com.lihaoyi::pprint:0.0.0.0.0.1
+          s"""//> using lib "com.lihaoyi::pprint:0.0.0.0.0.1"
              |
              |object Test {
              |  val msg = "Hello"
@@ -580,9 +581,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         expect(diag.getSeverity == b.DiagnosticSeverity.ERROR)
         expect(diag.getRange.getStart.getLine == 0)
-        expect(diag.getRange.getStart.getCharacter == 3)
+        expect(diag.getRange.getStart.getCharacter == 15)
         expect(diag.getRange.getEnd.getLine == 0)
-        expect(diag.getRange.getEnd.getCharacter == 44)
+        expect(diag.getRange.getEnd.getCharacter == 15)
         val sbv =
           if (actualScalaVersion.startsWith("2.12.")) "2.12"
           else if (actualScalaVersion.startsWith("2.13.")) "2.13"
@@ -654,7 +655,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
         val updatedContent =
-          """using lib "com.lihaoyi::pprint:0.6.6"
+          """//> using lib "com.lihaoyi::pprint:0.6.6"
             |val msg = "Hello"
             |pprint.log(msg)
             |""".stripMargin
@@ -805,13 +806,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       Seq(
         os.rel / "Messages.scala" ->
-          """// using lib "com.lihaoyi::os-lib:0.7.8"
+          """//> using lib "com.lihaoyi::os-lib:0.7.8"
             |object Messages {
             |  def msg = "Hello"
             |}
             |""".stripMargin,
         os.rel / "MyTests.test.scala" ->
-          """// using lib "com.lihaoyi::utest::0.7.10"
+          """//> using lib "com.lihaoyi::utest::0.7.10"
             |import utest._
             |
             |object MyTests extends TestSuite {
@@ -889,6 +890,37 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         {
           val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
           expect(resp.getStatusCode == b.StatusCode.OK)
+        }
+      }
+    }
+  }
+
+  test("using directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "test.sc" ->
+          s"""// using scala "3.0"
+             |println(123)""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
+      async {
+        // prepare build
+        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        // build code
+        val targets = buildTargetsResp.getTargets().asScala.map(_.getId()).asJava
+        await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+
+        val visibleDiagnostics =
+          localClient.diagnostics().takeWhile(!_.getReset()).flatMap(_.getDiagnostics().asScala)
+
+        expect(visibleDiagnostics.nonEmpty)
+        visibleDiagnostics.foreach { d =>
+          expect(
+            d.getSeverity() == b.DiagnosticSeverity.WARNING,
+            d.getMessage().contains("deprecated"),
+            d.getMessage.contains("directive")
+          )
         }
       }
     }

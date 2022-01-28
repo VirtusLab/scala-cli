@@ -1,12 +1,13 @@
 package scala.cli.commands
 
 import caseapp._
+import coursier.core.{Version => Ver}
 import upickle.default.{ReadWriter, macroRW}
 
 import java.io.File
 import java.nio.charset.Charset
-import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files}
-import java.util.{Locale, Random}
+import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files, Paths}
+import java.util.Random
 
 import scala.build.blooprifle.internal.Constants
 import scala.build.blooprifle.{BloopRifleConfig, BloopVersion, BspConnectionAddress}
@@ -39,6 +40,11 @@ final case class SharedCompilationServerOptions(
   @ValueDescription("port|-1")
   @Hidden
     bloopPort: Option[Int] = None,
+  @Group("Compilation server")
+  @HelpMessage("Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)")
+  @ValueDescription("path")
+  @Hidden
+    bloopDaemonDir: Option[String] = None,
 
   @Group("Compilation server")
   @HelpMessage("If Bloop isn't already running, the version we should start")
@@ -73,10 +79,18 @@ final case class SharedCompilationServerOptions(
   @HelpMessage("Bloop global options file")
   @Hidden
     bloopGlobalOptionsFile: String = (os.home / ".bloop" / "bloop.json").toString,
+
+  @Group("Compilation server")
+  @HelpMessage("JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)")
+  @Hidden
+    bloopJvm: Option[String] = None,
+
+  @Group("Compilation server")
+  @HelpMessage("Working directory for Bloop, if it needs to be started")
+  @Hidden
+    bloopWorkingDir: Option[String] = None
 ) {
   // format: on
-
-  import SharedCompilationServerOptions.{arch, isGraalvmNativeImage}
 
   private lazy val pidOrRandom: Either[Int, Int] =
     Option((new Pid).get()).map(_.intValue()).map(Right(_)).getOrElse {
@@ -107,15 +121,6 @@ final case class SharedCompilationServerOptions(
     dir
   }
 
-  private def bspPipeName(): String =
-    bloopBspSocket.filter(_.nonEmpty).getOrElse {
-      val bt = "\\"
-      s"$bt$bt.${bt}pipe$bt" + pidOrRandom
-        .map("proc-" + _)
-        .left.map("conn-" + _)
-        .merge
-    }
-
   private def bspSocketFile(directories: => scala.build.Directories): File = {
     val (socket, deleteOnExit) = bloopBspSocket match {
       case Some(path) =>
@@ -145,19 +150,9 @@ final case class SharedCompilationServerOptions(
     directories: => scala.build.Directories
   ): Option[() => BspConnectionAddress] = {
     def namedSocket =
-      if (Properties.isWin)
-        Some(() => BspConnectionAddress.WindowsNamedPipe(bspPipeName()))
-      else
-        Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile(directories)))
+      Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile(directories)))
 
-    // FreeBSD and others throw a java.lang.UnsatisfiedLinkError when trying the
-    // UnixDomainSocket, because of the ipcsocket JNI stuff, so stick with TCP for them.
-    def isStandardOs = Properties.isLinux || Properties.isWin || Properties.isMac
-    def default =
-      if ((isGraalvmNativeImage && arch != "x86_64") || !isStandardOs)
-        None // tcp
-      else
-        namedSocket
+    def default = namedSocket
     bloopBspProtocol.filter(_ != "default") match {
       case None          => default
       case Some("tcp")   => None
@@ -219,17 +214,47 @@ final case class SharedCompilationServerOptions(
     directories: => scala.build.Directories,
     javaV: Option[Int] = None
   ): BloopRifleConfig = {
-    val baseConfig =
-      BloopRifleConfig.default(v => Bloop.bloopClassPath(logger, v))
+
     val portOpt = bloopPort.filter(_ != 0) match {
       case Some(n) if n < 0 =>
         Some(scala.build.blooprifle.internal.Util.randomPort())
       case other => other
     }
+    val address =
+      (
+        bloopHost.filter(_.nonEmpty),
+        portOpt,
+        bloopDaemonDir.filter(_.nonEmpty)
+      ) match {
+        case (_, _, Some(path)) =>
+          BloopRifleConfig.Address.DomainSocket(Paths.get(path))
+        case (None, None, None) =>
+          val isBloopMainLine = Ver(retainedBloopVersion.version.raw) < Ver("1.4.12")
+          if (isBloopMainLine)
+            BloopRifleConfig.Address.Tcp(
+              host = BloopRifleConfig.defaultHost,
+              port = BloopRifleConfig.defaultPort
+            )
+          else
+            BloopRifleConfig.Address.DomainSocket(directories.bloopDaemonDir.toNIO)
+        case (hostOpt, portOpt0, _) =>
+          BloopRifleConfig.Address.Tcp(
+            host = hostOpt.getOrElse(BloopRifleConfig.defaultHost),
+            port = portOpt0.getOrElse(BloopRifleConfig.defaultPort)
+          )
+      }
+
+    val workingDir = bloopWorkingDir
+      .filter(_.trim.nonEmpty)
+      .map(os.Path(_, Os.pwd))
+      .getOrElse(directories.bloopWorkingDir)
+    val baseConfig = BloopRifleConfig.default(
+      address,
+      v => Bloop.bloopClassPath(logger, v),
+      workingDir.toIO
+    )
 
     baseConfig.copy(
-      host = bloopHost.filter(_.nonEmpty).getOrElse(baseConfig.host),
-      port = portOpt.getOrElse(baseConfig.port),
       javaPath = javaPath,
       bspSocketOrPort = defaultBspSocketOrPort(directories),
       bspStdout = if (verbosity >= 3) Some(System.err) else None,
@@ -251,11 +276,4 @@ object SharedCompilationServerOptions {
   implicit lazy val parserAux: Parser.Aux[SharedCompilationServerOptions, parser.D] = parser
   implicit lazy val help: Help[SharedCompilationServerOptions]                      = Help.derive
   implicit lazy val jsonCodec: ReadWriter[SharedCompilationServerOptions]           = macroRW
-
-  private def isGraalvmNativeImage: Boolean =
-    sys.props.contains("org.graalvm.nativeimage.imagecode")
-  private def arch = sys.props("os.arch").toLowerCase(Locale.ROOT) match {
-    case "amd64" => "x86_64"
-    case other   => other
-  }
 }

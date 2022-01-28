@@ -1,7 +1,7 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-import $ivy.`io.get-coursier::coursier-launcher:2.0.16+73-gddc6d9cc9`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.12`
-import $file.project.deps, deps.{Deps, Docker, Scala, TestDeps}
+import $ivy.`io.get-coursier::coursier-launcher:2.1.0-M2`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.16`
+import $file.project.deps, deps.{Deps, Docker, InternalDeps, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{
   CliLaunchers,
@@ -10,10 +10,13 @@ import $file.project.settings, settings.{
   HasTests,
   LocalRepo,
   PublishLocalNoFluff,
+  ScalaCliCrossSbtModule,
   ScalaCliScalafixModule,
   localRepoResourcePath,
-  platformExecutableJarExtension
+  platformExecutableJarExtension,
+  workspaceDirName
 }
+import $file.project.deps, deps.customRepositories
 
 import java.io.File
 import java.nio.charset.Charset
@@ -43,6 +46,14 @@ object stubs extends JavaModule with ScalaCliPublishModule {
     super.javacOptions() ++ Seq("-target", "8", "-source", "8")
   }
 }
+object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
+  def ivyDeps = super.ivyDeps() ++ Seq(
+    Deps.bsp4j
+  )
+  def javacOptions = T {
+    super.javacOptions() ++ Seq("-target", "8", "-source", "8")
+  }
+}
 object integration extends Module {
   object docker extends CliIntegrationDocker {
     object test extends Tests {
@@ -53,7 +64,22 @@ object integration extends Module {
         PathRef(T.dest / "working-dir")
       }
       def forkEnv = super.forkEnv() ++ Seq(
-        "SCALA_CLI_TMP" -> tmpDirBase().path.toString
+        "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
+        "SCALA_CLI_IMAGE" -> "scala-cli"
+      )
+    }
+  }
+  object `docker-slim` extends CliIntegrationDocker {
+    object test extends Tests {
+      def sources = T.sources {
+        integration.docker.test.sources()
+      }
+      def tmpDirBase = T.persistent {
+        PathRef(T.dest / "working-dir")
+      }
+      def forkEnv = super.forkEnv() ++ Seq(
+        "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
+        "SCALA_CLI_IMAGE" -> "scala-cli-slim"
       )
     }
   }
@@ -97,9 +123,7 @@ object `generate-reference-doc` extends SbtModule with ScalaCliScalafixModule {
   def moduleDeps = Seq(
     cli
   )
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
+  def repositories = super.repositories ++ customRepositories
   def ivyDeps = Agg(
     Deps.caseApp,
     Deps.munit
@@ -135,7 +159,8 @@ object dummy extends Module {
   }
 }
 
-class BuildMacros(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Ywarn-unused")
@@ -148,19 +173,20 @@ class BuildMacros(val crossScalaVersion: String) extends CrossSbtModule with Sca
 }
 
 class Build(val crossScalaVersion: String)
-    extends CrossSbtModule with ScalaCliPublishModule with HasTests with ScalaCliScalafixModule {
+    extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests
+    with ScalaCliScalafixModule {
   def moduleDeps = Seq(
     `bloop-rifle`(),
     `build-macros`(),
+    `scala-cli-bsp`,
     `test-runner`(),
     `tasty-lib`()
   )
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
   }
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
+  def repositories = super.repositories ++ customRepositories
+
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
   )
@@ -174,7 +200,7 @@ class Build(val crossScalaVersion: String)
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.nativeTestRunner,
-    Deps.nativeTools,
+    Deps.nativeTools, // Used only for discovery methods. For linking, look for scala-native-cli
     Deps.osLib,
     Deps.pprint,
     Deps.scalaJsEnvNodeJs,
@@ -238,17 +264,24 @@ class Build(val crossScalaVersion: String)
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
          |  def semanticDbPluginVersion = "${Deps.scalametaTrees.dep.version}"
          |
+         |  def semanticDbJavacPluginOrganization = "${Deps.semanticDbJavac.dep.module.organization.value}"
+         |  def semanticDbJavacPluginModuleName = "${Deps.semanticDbJavac.dep.module.name.value}"
+         |  def semanticDbJavacPluginVersion = "${Deps.semanticDbJavac.dep.version}"
+         |
          |  def localRepoResourcePath = "$localRepoResourcePath"
          |
          |  def jmhVersion = "1.29"
          |
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
+         |  def millVersion = "${InternalDeps.Versions.mill}"
          |
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"
          |  def defaultScala213Version = "${Scala.scala213}"
+         |
+         |  def workspaceDirName = "$workspaceDirName"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -299,13 +332,16 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
   }
+  def javacOptions = T {
+    super.javacOptions() ++ Seq("--release", "16")
+  }
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
     `test-runner`(Scala.defaultInternal)
   )
-  def repositories = super.repositories ++ Seq(
-    coursier.Repositories.sonatype("snapshots")
-  )
+
+  def repositories = super.repositories ++ customRepositories
+
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.coursierLauncher,
@@ -315,17 +351,21 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     Deps.scalaJsLinker,
     Deps.scalaPackager,
     Deps.svmSubs,
-    Deps.upickle
+    Deps.upickle,
+    Deps.metaconfigTypesafe
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
   )
   def mainClass = Some("scala.cli.ScalaCli")
 
-  def localRepoJar   = `local-repo`.localRepoJar()
-  def graalVmVersion = deps.graalVmVersion
+  def localRepoJar = `local-repo`.localRepoJar()
 
-  object test extends Tests with ScalaCliScalafixModule
+  object test extends Tests with ScalaCliScalafixModule {
+    def moduleDeps = super.moduleDeps ++ Seq(
+      build(Scala.defaultInternal).test
+    )
+  }
 }
 
 trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTests
@@ -386,6 +426,12 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
 
     def constantsFile = T.persistent {
       val dest = T.dest / "Constants.scala"
+      val mostlyStaticDockerfile =
+        os.rel / ".github" / "scripts" / "docker" / "ScalaCliSlimDockerFile"
+      assert(
+        os.exists(os.pwd / mostlyStaticDockerfile),
+        s"Error: ${os.pwd / mostlyStaticDockerfile} not found"
+      )
       val code =
         s"""package scala.cli.integration
            |
@@ -394,6 +440,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def bspVersion = "${Deps.bsp4j.dep.version}"
            |  def scala212 = "${Scala.scala212}"
            |  def scala213 = "${Scala.scala213}"
+           |  def scalaSnapshot213 = "${TestDeps.scalaSnapshot213}"
            |  def scala3   = "${Scala.scala3}"
            |  def defaultScala = "${Scala.defaultUser}"
            |  def bloopVersion = "${Deps.bloopConfig.dep.version}"
@@ -401,7 +448,9 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def munitVersion = "${TestDeps.munit.dep.version}"
            |  def dockerTestImage = "${Docker.testImage}"
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
+           |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
+           |  def workspaceDirName = "$workspaceDirName"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)
@@ -412,10 +461,10 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
 
     def test(args: String*) = T.command {
       val res            = super.test(args: _*)()
-      val dotScalaInRoot = os.pwd / ".scala"
+      val dotScalaInRoot = os.pwd / workspaceDirName
       assert(
         !os.isDir(dotScalaInRoot),
-        s"Expected .scala ($dotScalaInRoot) not to have been created"
+        s"Expected $workspaceDirName ($dotScalaInRoot) not to have been created"
       )
       res
     }
@@ -449,11 +498,12 @@ trait NativeIntegrationMostlyStatic extends CliIntegration {
 }
 
 trait JvmIntegration extends CliIntegration {
-  def testLauncher = cli.launcher()
+  def testLauncher = cli.standaloneLauncher()
   def cliKind      = "jvm"
 }
 
-class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ {
@@ -493,7 +543,8 @@ class Runner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCli
   }
 }
 
-class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class TestRunner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
     super.scalacOptions() ++ {
@@ -509,7 +560,8 @@ class TestRunner(val crossScalaVersion: String) extends CrossSbtModule with Scal
   def mainClass = Some("scala.build.testrunner.DynamicTestRunner")
 }
 
-class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with HasTests
     with ScalaCliScalafixModule {
   def scalacOptions = T {
@@ -518,7 +570,7 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
     Deps.collectionCompat,
-    Deps.ipcSocket,
+    Deps.libdaemonjvm,
     Deps.snailgun
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
@@ -547,7 +599,8 @@ class BloopRifle(val crossScalaVersion: String) extends CrossSbtModule with Scal
   object test extends Tests with ScalaCliScalafixModule
 }
 
-class TastyLib(val crossScalaVersion: String) extends CrossSbtModule with ScalaCliPublishModule
+class TastyLib(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T(
     super.scalacOptions() ++ {
@@ -576,7 +629,7 @@ object `local-repo` extends LocalRepo {
 
 def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = T.command {
   publish.publishSonatype(
-    data = define.Task.sequence(tasks.value)(),
+    data = define.Target.sequence(tasks.value)(),
     log = T.ctx().log
   )
 }
@@ -977,13 +1030,17 @@ object ci extends Module {
   def writeWixConfigExtra(dest: String = "wix-visual-cpp-redist.xml") = T.command {
     val msmPath = {
 
-      val vcVersions     = Seq("2019", "2017")
-      val vcEditions     = Seq("Enterprise", "Community", "BuildTools")
-      val vsDir          = os.Path("""C:\Program Files (x86)\Microsoft Visual Studio""")
+      val vcVersions = Seq("2022", "2019", "2017")
+      val vcEditions = Seq("Enterprise", "Community", "BuildTools")
+      val vsDirs = Seq(
+        os.Path("""C:\Program Files\Microsoft Visual Studio"""),
+        os.Path("""C:\Program Files (x86)\Microsoft Visual Studio""")
+      )
       val fileNamePrefix = "Microsoft_VC".toLowerCase(Locale.ROOT)
       val fileNameSuffix = "_CRT_x64.msm".toLowerCase(Locale.ROOT)
       def candidatesIt =
         for {
+          vsDir   <- vsDirs.iterator
           version <- vcVersions.iterator
           edition <- vcEditions.iterator
           dir = vsDir / version / edition
@@ -1015,5 +1072,24 @@ object ci extends Module {
   }
   def setShouldPublish() = T.command {
     publish.setShouldPublish()
+  }
+
+  def copyJvm(jvm: String = deps.graalVmJvmId, dest: String = "jvm") = T.command {
+    import sys.process._
+    val command = Seq(
+      settings.cs(),
+      "java-home",
+      "--jvm",
+      jvm,
+      "--update",
+      "--ttl",
+      "0"
+    )
+    val baseJavaHome = os.Path(command.!!.trim, os.pwd)
+    System.err.println(s"Initial Java home $baseJavaHome")
+    val destJavaHome = os.Path(dest, os.pwd)
+    os.copy(baseJavaHome, destJavaHome, createFolders = true)
+    System.err.println(s"New Java home $destJavaHome")
+    destJavaHome
   }
 }

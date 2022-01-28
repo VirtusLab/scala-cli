@@ -69,7 +69,7 @@ object BloopServer {
   ): BloopServerRuntimeInfo = {
     val workdir = new File(".").getCanonicalFile.toPath
     def startBloop(bloopVersion: String, bloopJava: String) = {
-      logger.info(s"Starting bloop $bloopVersion on $bloopJava")
+      logger.info(s"Starting Bloop $bloopVersion at ${config.address.render} using JVM $bloopJava")
       val fut = BloopRifle.startServer(
         config,
         startServerChecksPool,
@@ -77,7 +77,7 @@ object BloopServer {
         bloopVersion,
         bloopJava
       )
-      Await.result(fut, 30.seconds)
+      Await.result(fut, config.startCheckTimeout + 30.seconds)
     }
     def exitBloop() = BloopRifle.exit(config, workdir, logger)
 
@@ -104,7 +104,7 @@ object BloopServer {
     val isOk             = bloopVersionIsOk && bloopJvmIsOk
 
     if (!isOk) {
-      logger.info(s"Bloop currently running: $bloopInfo")
+      logger.info(s"Bloop daemon status: ${bloopInfo.fold(_.message, _.message)}")
       if (isRunning) exitBloop()
       startBloop(expectedBloopVersion.raw, javaPath)
     }
@@ -153,10 +153,10 @@ object BloopServer {
     val bloopInfo = ensureBloopRunning(config, threads.startServerChecks, logger)
 
     logger.debug("Opening BSP connection with bloop")
-    Files.createDirectories(workspace.resolve(".scala/.bloop"))
+    Files.createDirectories(workspace.resolve(".bloop"))
     val conn = BloopRifle.bsp(
       config,
-      workspace.resolve(".scala"),
+      workspace,
       logger
     )
     logger.debug(s"Bloop BSP connection waiting at ${conn.address}")
@@ -207,7 +207,7 @@ object BloopServer {
       clientName,
       clientVersion,
       Constants.bspVersion,
-      workspace.resolve(".scala").toUri.toASCIIString,
+      workspace.toUri.toASCIIString,
       new bsp4j.BuildClientCapabilities(List("scala", "java").asJava)
     )
     val bloopExtraParams = new BloopExtraBuildParams

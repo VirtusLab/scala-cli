@@ -1,5 +1,5 @@
-import $ivy.`com.goyeau::mill-scalafix:0.2.5`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image_mill0.9:0.1.12`
+import $ivy.`com.goyeau::mill-scalafix::0.2.8`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.16`
 import $file.deps, deps.{Deps, Docker, buildCsVersion}
 
 import com.goyeau.mill.scalafix.ScalafixModule
@@ -12,6 +12,8 @@ import java.util.zip.{GZIPInputStream, ZipFile}
 import mill._, scalalib._
 import scala.collection.JavaConverters._
 import scala.util.Properties
+
+private def isCI = System.getenv("CI") != null
 
 private def withGzipContent[T](gzFile: File)(f: InputStream => T): T = {
   var fis: FileInputStream  = null
@@ -202,7 +204,7 @@ trait CliLaunchers extends SbtModule { self =>
   trait CliNativeImage extends NativeImage {
     def nativeImageCsCommand    = Seq(cs())
     def nativeImagePersist      = System.getenv("CI") != null
-    def nativeImageGraalVmJvmId = s"graalvm-java11:${deps.graalVmVersion}"
+    def nativeImageGraalVmJvmId = deps.graalVmJvmId
     def nativeImageOptions = T {
       val usesDocker = nativeImageDockerParams().nonEmpty
       val cLibPath =
@@ -210,6 +212,8 @@ trait CliLaunchers extends SbtModule { self =>
         else staticLibDir().path.toString
       Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
+        "-H:-ParseRuntimeOptions",
+        "-H:IncludeResourceBundles=com.google.javascript.jscomp.parsing.ParserConfig",
         s"-H:CLibraryPath=$cLibPath"
       )
     }
@@ -232,59 +236,12 @@ trait CliLaunchers extends SbtModule { self =>
       val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "csjniutils.lib")
     }
-    private def copyIpcsocketDllTo(cs: String, destDir: os.Path): Unit = {
-      val ipcsocketVersion = Deps.ipcSocket.dep.version
-      val libRes = os.proc(
-        cs,
-        "fetch",
-        "--intransitive",
-        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-pc-win32,ext=lib,type=lib",
-        "-A",
-        "lib"
-      ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
-      os.copy.over(libPath, destDir / "ipcsocket.lib")
-    }
-    private def copyIpcsocketMacATo(cs: String, destDir: os.Path): Unit = {
-      val ipcsocketVersion = Deps.ipcSocket.dep.version
-      val libRes = os.proc(
-        cs,
-        "fetch",
-        "--intransitive",
-        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-apple-darwin,ext=a,type=a",
-        "-A",
-        "a"
-      ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
-      os.copy.over(libPath, destDir / "libipcsocket.a")
-    }
-    private def copyIpcsocketLinuxATo(cs: String, destDir: os.Path): Unit = {
-      val ipcsocketVersion = Deps.ipcSocket.dep.version
-      val libRes = os.proc(
-        cs,
-        "fetch",
-        "--intransitive",
-        s"com.github.alexarchambault.tmp.ipcsocket:ipcsocket:$ipcsocketVersion,classifier=x86_64-pc-linux,ext=a,type=a",
-        "-A",
-        "a"
-      ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
-      os.copy.over(libPath, destDir / "libipcsocket.a")
-    }
     def staticLibDir = T {
       val dir = nativeImageDockerWorkingDir() / staticLibDirName
       os.makeDir.all(dir)
 
-      if (Properties.isWin) {
+      if (Properties.isWin)
         copyCsjniutilTo(cs(), dir)
-        copyIpcsocketDllTo(cs(), dir)
-      }
-
-      if (Properties.isMac)
-        copyIpcsocketMacATo(cs(), dir)
-
-      if (Properties.isLinux && arch == "x86_64")
-        copyIpcsocketLinuxATo(cs(), dir)
 
       PathRef(dir)
     }
@@ -305,12 +262,29 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   object `static-image` extends CliNativeImage {
-    def nativeImageDockerParams = Some(
-      NativeImage.linuxStaticParams(
-        Docker.muslBuilder,
-        s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
+    def nativeImageDockerParams = T {
+      buildHelperImage()
+      Some(
+        NativeImage.linuxStaticParams(
+          Docker.muslBuilder,
+          s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
+        )
       )
-    )
+    }
+    def nativeImageOptions = T {
+      super.nativeImageOptions() ++ Seq(
+        "-H:-CheckToolchain"
+      )
+    }
+    def buildHelperImage = T {
+      os.proc("docker", "build", "-t", Docker.customMuslBuilderImageName, ".")
+        .call(cwd = os.pwd / "project" / "musl-image", stdout = os.Inherit)
+      ()
+    }
+    def writeNativeImageScript(dest: String) = T.command {
+      buildHelperImage()
+      super.writeNativeImageScript(dest)()
+    }
   }
 
   object `mostly-static-image` extends CliNativeImage {
@@ -323,7 +297,6 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def localRepoJar: T[PathRef]
-  def graalVmVersion: String
 
   def nativeImageMainClass = T {
     mainClass().getOrElse(sys.error("Don't know what main class to use"))
@@ -351,7 +324,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def nativeImage =
-    if (Properties.isLinux && arch == "x86_64")
+    if (Properties.isLinux && arch == "x86_64" && isCI)
       `linux-docker-image`.nativeImage
     else
       `base-image`.nativeImage
@@ -369,7 +342,7 @@ trait CliLaunchers extends SbtModule { self =>
       // format: off
       Seq(
         cs(), "java-home",
-        "--jvm", s"graalvm-java11:$graalVmVersion",
+        "--jvm", deps.graalVmJvmId,
         "--jvm-index", jvmIndex
       ).!!.trim
       // format: on
@@ -540,17 +513,16 @@ trait LocalRepo extends Module {
 
   def publishStubs = T {
     val tasks = stubsModules.map(_.publishLocalNoFluff())
-    define.Task.sequence(tasks)
+    define.Target.sequence(tasks)
   }
 
   def localRepo = T {
     val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
     val tasks    = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
-    define.Task.sequence(tasks)
+    define.Target.sequence(tasks)
   }
 
-  private def vcsState = {
-    val isCI = System.getenv("CI") != null
+  private def vcsState =
     if (isCI)
       T.persistent {
         VcsVersion.vcsState()
@@ -559,7 +531,6 @@ trait LocalRepo extends Module {
       T {
         VcsVersion.vcsState()
       }
-  }
   def localRepoZip = T {
     val repoVer   = vcsState().format()
     val ver       = version()
@@ -734,7 +705,40 @@ trait FormatNativeImageConf extends JavaModule {
   }
 }
 
-trait ScalaCliScalafixModule extends ScalafixModule {
+import mill.scalalib.api.CompilationResult
+trait ScalaCliCompile extends ScalaModule {
+  override def compile: T[CompilationResult] =
+    if (System.getenv("CI") != null) super.compile
+    else T.persistent {
+      val out = os.pwd / workspaceDirName / ".unused"
+
+      val sourceFiles = allSourceFiles()
+      val classFilesDir =
+        if (sourceFiles.isEmpty) out / "classes"
+        else {
+          def asOpt[T](values: IterableOnce[T], opt: String): Seq[String] =
+            values.toList.flatMap(v => Seq(opt, v.toString))
+
+          val proc = os.proc(
+            Seq("scala-cli", "compile", "--classpath"),
+            Seq("-S", scalaVersion()),
+            asOpt(scalacOptions(), "-O"),
+            asOpt(compileClasspath().map(_.path), "--jar"),
+            asOpt(scalacPluginClasspath().map(p => s"-Xplugin:${p.path}"), "-O"),
+            Seq("--jvm", "zulu:17"),
+            sourceFiles.map(_.path)
+          )
+
+          val compile = proc.call()
+          val out     = compile.out.trim
+          os.Path(out.split(File.pathSeparator).head)
+        }
+
+      CompilationResult(out / "unused.txt", PathRef(classFilesDir))
+    }
+}
+
+trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
   def scalafixConfig = T {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
     else Some(os.pwd / ".scalafix3.conf")
@@ -747,3 +751,12 @@ trait ScalaCliScalafixModule extends ScalafixModule {
     else Nil
   }
 }
+
+trait ScalaCliCrossSbtModule extends CrossSbtModule {
+  def javacOptions = super.javacOptions() ++ Seq(
+    "--release",
+    "16"
+  )
+}
+
+def workspaceDirName = ".scala-build"

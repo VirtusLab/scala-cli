@@ -10,7 +10,7 @@ import upickle.default.{ReadWriter, macroRW}
 import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.internal.Constants
+import scala.build.internal.{Constants, OsLibc}
 import scala.build.options._
 import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
@@ -100,25 +100,12 @@ final case class SharedOptions(
     defaultForbiddenDirectories: Boolean = true,
   @Hidden
     forbid: List[String] = Nil,
+  @Recurse
+  helpGroups: HelpGroupOptions = HelpGroupOptions()
 ) {
   // format: on
 
   def logger = logging.logger
-
-  private def parseDependencies(
-    deps: List[Positioned[String]],
-    ignoreErrors: Boolean
-  ): Seq[Positioned[AnyDependency]] =
-    deps.map(_.map(_.trim)).filter(_.value.nonEmpty)
-      .flatMap { posDepStr =>
-        val depStr = posDepStr.value
-        DependencyParser.parse(depStr) match {
-          case Left(err) =>
-            if (ignoreErrors) Nil
-            else sys.error(s"Error parsing dependency '$depStr': $err")
-          case Right(dep) => Seq(posDepStr.map(_ => dep))
-        }
-      }
 
   def buildOptions(
     enableJmh: Boolean,
@@ -137,7 +124,10 @@ final case class SharedOptions(
         generateSemanticDbs = semanticDb,
         scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
         compilerPlugins =
-          parseDependencies(dependencies.compilerPlugin.map(Positioned.none(_)), ignoreErrors),
+          SharedOptions.parseDependencies(
+            dependencies.compilerPlugin.map(Positioned.none(_)),
+            ignoreErrors
+          ),
         platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
       ),
       scriptOptions = ScriptOptions(
@@ -167,26 +157,37 @@ final case class SharedOptions(
           .map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
         extraDependencies =
-          parseDependencies(dependencies.dependency.map(Positioned.none(_)), ignoreErrors)
+          SharedOptions.parseDependencies(
+            dependencies.dependency.map(Positioned.none(_)),
+            ignoreErrors
+          )
       ),
       internal = InternalOptions(
         cache = Some(coursierCache),
-        localRepository = LocalRepo.localRepo(directories.directories.localRepoDir)
+        localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
+        verbosity = Some(logging.verbosity)
       )
     )
   }
 
   def bloopRifleConfig(): BloopRifleConfig = {
 
-    val bo    = buildOptions(false, None)
-    val javaV = bo.javaHome().value.version
+    val options     = buildOptions(false, None)
+    implicit val ec = options.finalCache.ec
+    val jvmId = compilationServer.bloopJvm.getOrElse {
+      OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")
+    }
+    val logger = options.javaHomeManager.cache
+      .flatMap(_.archiveCache.cache.loggerOpt)
+      .getOrElse(_root_.coursier.cache.CacheLogger.nop)
+    val command = os.Path(logger.use(options.javaHomeManager.get(jvmId).unsafeRun()))
+    val ext     = if (Properties.isWin) ".exe" else ""
     compilationServer.bloopRifleConfig(
       logging.logger,
       logging.verbosity,
-      // This might download a JVM if --jvm … is passed or no system JVM is installed
-      bo.javaHome().value.javaCommand,
+      (command / "bin" / s"java$ext").toString,
       directories.directories,
-      Some(javaV)
+      Some(17)
     )
   }
 
@@ -212,6 +213,11 @@ final case class SharedOptions(
     }
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
+      .map { path =>
+        if (!os.exists(path))
+          logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
+        path
+      }
       .map(Inputs.ResourceDirectory(_))
     val inputs = Inputs(
       args,
@@ -230,6 +236,7 @@ final case class SharedOptions(
     val forbiddenDirs =
       (if (defaultForbiddenDirectories) SharedOptions.defaultForbiddenDirectories else Nil) ++
         forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
+
     inputs
       .add(resourceInputs)
       .checkAttributes(directories.directories)
@@ -241,6 +248,21 @@ object SharedOptions {
   implicit lazy val parser: Parser[SharedOptions]        = Parser.derive
   implicit lazy val help: Help[SharedOptions]            = Help.derive
   implicit lazy val jsonCodec: ReadWriter[SharedOptions] = macroRW
+
+  def parseDependencies(
+    deps: List[Positioned[String]],
+    ignoreErrors: Boolean
+  ): Seq[Positioned[AnyDependency]] =
+    deps.map(_.map(_.trim)).filter(_.value.nonEmpty)
+      .flatMap { posDepStr =>
+        val depStr = posDepStr.value
+        DependencyParser.parse(depStr) match {
+          case Left(err) =>
+            if (ignoreErrors) Nil
+            else sys.error(s"Error parsing dependency '$depStr': $err")
+          case Right(dep) => Seq(posDepStr.map(_ => dep))
+        }
+      }
 
   def readStdin(in: InputStream = System.in, logger: Logger): Option[Array[Byte]] =
     if (in == null) {

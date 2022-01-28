@@ -7,6 +7,10 @@ import java.nio.charset.Charset
 
 class RunDockerTests extends munit.FunSuite {
 
+  lazy val imageName = Option(System.getenv("SCALA_CLI_IMAGE")).getOrElse {
+    sys.error("SCALA_CLI_IMAGE not set")
+  }
+
   test("run simple app in in docker") {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -20,11 +24,12 @@ class RunDockerTests extends munit.FunSuite {
     )
     inputs.fromRoot { root =>
       val termOpt   = if (System.console() == null) Nil else Seq("-t")
+      val ciOpt     = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
       val rawOutput = new ByteArrayOutputStream
       val cmd = Seq[os.Shellable](
         // format: off
-        "docker", "run", "--rm", termOpt, "-v", s"$root:/data", "-w", "/data",
-        "scala-cli", fileName
+        "docker", "run", "--rm", termOpt, "-v", s"$root:/data", "-w", "/data", ciOpt,
+        imageName, fileName
         // format: on
       )
       os.proc(cmd).call(

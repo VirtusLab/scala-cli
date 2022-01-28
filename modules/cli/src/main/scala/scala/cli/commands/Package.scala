@@ -19,22 +19,23 @@ import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.BuildException
-import scala.build.internal.{NativeBuilderHelper, ScalaJsConfig}
+import scala.build.errors.{BuildException, ScalaNativeBuildError}
+import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
+import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
-import scala.cli.internal.{GetImageResizer, ScalaJsLinker}
-import scala.scalanative.util.Scope
-import scala.scalanative.{build => sn}
+import scala.cli.internal.{ProcUtil, ScalaJsLinker}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
   override def group                                  = "Main"
   override def sharedOptions(options: PackageOptions) = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
-
+    maybePrintGroupHelp(options)
+    CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
@@ -159,7 +160,7 @@ object Package extends ScalaCommand[PackageOptions] {
         assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
 
       case PackageType.Js =>
-        buildJs(build, destPath, value(mainClass))
+        buildJs(build, destPath, value(mainClass), logger)
 
       case PackageType.Native =>
         buildNative(inputs, build, destPath, value(mainClass), logger)
@@ -236,11 +237,7 @@ object Package extends ScalaCommand[PackageOptions] {
           case PackageType.Rpm =>
             RedHatPackage(redHatSettings).build()
           case PackageType.Msi =>
-            val imageResizerOpt = Option((new GetImageResizer).get())
-            WindowsPackage(
-              windowsSettings,
-              imageResizerOpt = imageResizerOpt
-            ).build()
+            WindowsPackage(windowsSettings).build()
         }
       case PackageType.Docker =>
         docker(inputs, build, value(mainClass), logger)
@@ -352,7 +349,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     val from = build.options.packageOptions.dockerOptions.from.getOrElse {
       build.options.platform.value match {
-        case Platform.JVM    => "openjdk:11-jre-slim"
+        case Platform.JVM    => "openjdk:17-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
       }
@@ -374,12 +371,12 @@ object Package extends ScalaCommand[PackageOptions] {
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
     build.options.platform.value match {
       case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
-      case Platform.JS     => buildJs(build, appPath, mainClass)
+      case Platform.JS     => buildJs(build, appPath, mainClass, logger)
       case Platform.Native => buildNative(inputs, build, appPath, mainClass, logger)
     }
 
     logger.message(
-      "Started building docker image with your application, it would take some time"
+      "Started building docker image with your application, it might take some time"
     )
 
     DockerPackage(appPath, dockerSettings).build()
@@ -390,8 +387,13 @@ object Package extends ScalaCommand[PackageOptions] {
     )
   }
 
-  private def buildJs(build: Build.Successful, destPath: os.Path, mainClass: String): Unit = {
-    val linkerConfig = build.options.scalaJsOptions.linkerConfig
+  private def buildJs(
+    build: Build.Successful,
+    destPath: os.Path,
+    mainClass: String,
+    logger: Logger
+  ): Unit = {
+    val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
     linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig)
   }
 
@@ -405,7 +407,7 @@ object Package extends ScalaCommand[PackageOptions] {
     val workDir =
       build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
 
-    buildNative(build, mainClass, destPath, workDir, logger.scalaNativeLogger)
+    buildNative(build, mainClass, destPath, workDir, logger)
   }
 
   private def bootstrap(
@@ -458,6 +460,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     alreadyExistsCheck()
     BootstrapGenerator.generate(params, destPath.toNIO)
+    ProcUtil.maybeUpdatePreamble(destPath)
   }
 
   private def assembly(
@@ -488,6 +491,7 @@ object Package extends ScalaCommand[PackageOptions] {
       .withPreamble(preamble)
     alreadyExistsCheck()
     AssemblyGenerator.generate(params, destPath.toNIO)
+    ProcUtil.maybeUpdatePreamble(destPath)
   }
 
   def withLibraryJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {
@@ -537,28 +541,50 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     dest: os.Path,
     nativeWorkDir: os.Path,
-    nativeLogger: sn.Logger
+    logger: Logger
   ): Unit = {
 
-    val nativeConfig = build.options.scalaNativeOptions.config()
+    val cliOptions = build.options.scalaNativeOptions.configCliOptions()
 
     os.makeDir.all(nativeWorkDir)
-    val changed = NativeBuilderHelper.shouldBuildIfChanged(build, nativeConfig, dest, nativeWorkDir)
 
-    if (changed)
+    val cacheData =
+      NativeBuilderHelper.getCacheData(
+        build,
+        cliOptions,
+        dest,
+        nativeWorkDir
+      )
+
+    if (cacheData.changed)
       withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
-        val config = sn.Config.empty
-          .withCompilerConfig(nativeConfig)
-          .withMainClass(mainClass + "$")
-          .withClassPath(mainJar +: build.artifacts.classPath)
-          .withWorkdir(nativeWorkDir.toNIO)
-          .withLogger(nativeLogger)
 
-        Scope { implicit scope =>
-          sn.Build.build(config, dest.toNIO)
-        }
+        val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString()
+        val args =
+          cliOptions ++
+            logger.scalaNativeCliInternalLoggerOptions ++
+            List[String](
+              "--outpath",
+              dest.toString(),
+              "--workdir",
+              nativeWorkDir.toString(),
+              "--main",
+              mainClass
+            ) ++ classpath
 
-        NativeBuilderHelper.updateOutputSha(dest, nativeWorkDir)
+        val exitCode =
+          Runner.runJvm(
+            build.options.javaHome().value.javaCommand,
+            build.options.javaOptions.javaOpts.map(_.value),
+            build.artifacts.scalaNativeCli.map(_.toFile),
+            "scala.scalanative.cli.ScalaNativeLd",
+            args,
+            logger
+          )
+        if (exitCode == 0)
+          NativeBuilderHelper.updateProjectAndOutputSha(dest, nativeWorkDir, cacheData.projectSha)
+        else
+          throw new ScalaNativeBuildError
       }
   }
 }

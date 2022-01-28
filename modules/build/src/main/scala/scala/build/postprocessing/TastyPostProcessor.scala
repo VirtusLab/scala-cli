@@ -46,24 +46,27 @@ case object TastyPostProcessor extends PostProcessor {
   )(f: os.Path): Unit = {
     logger.debug(s"Reading TASTy file $f")
     val content = os.read.bytes(f)
-    val data    = TastyData.read(content)
-    logger.debug(s"Parsed TASTy file $f")
-    var updatedOne = false
-    val updatedData = data.mapNames { n =>
-      updatedPaths.get(n) match {
-        case Some(newName) =>
-          updatedOne = true
-          newName
-        case None =>
-          n
-      }
-    }
-    if (updatedOne) {
-      logger.debug(
-        s"Overwriting ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd) else f}"
-      )
-      val updatedContent = TastyData.write(updatedData)
-      os.write.over(f, updatedContent)
+    TastyData.read(content) match {
+      case Left(ex) => logger.debug(s"Ignoring exception during TASty postprocessing: $ex")
+      case Right(data) =>
+        logger.debug(s"Parsed TASTy file $f")
+        var updatedOne = false
+        val updatedData = data.mapNames { n =>
+          updatedPaths.get(n) match {
+            case Some(newName) =>
+              updatedOne = true
+              newName
+            case None =>
+              n
+          }
+        }
+        if (updatedOne) {
+          logger.debug(
+            s"Overwriting ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd) else f}"
+          )
+          val updatedContent = TastyData.write(updatedData)
+          os.write.over(f, updatedContent)
+        }
     }
   }
 }

@@ -9,7 +9,7 @@ import scala.build.options
 final case class ScalaJsOptions(
 
   @Group("Scala")
-  @HelpMessage("Enable Scala.JS")
+  @HelpMessage("Enable Scala.JS. To show more options for Scala.Js pass `--help-js`")
     js: Boolean = false,
 
   @Group("Scala.JS")
@@ -30,8 +30,25 @@ final case class ScalaJsOptions(
     jsEmitSourceMaps: Boolean = false,
   @Group("Scala.JS")
   @HelpMessage("Enable jsdom")
-    jsDom: Option[Boolean] = None
-
+    jsDom: Option[Boolean] = None,
+  @Group("Scala.JS")
+  @HelpMessage("A header that will be added at the top of generated .js files")
+    jsHeader: Option[String] = None,
+  @Group("Scala.JS")
+  @HelpMessage("Primitive Longs *may* be compiled as primitive JavaScript bigints")
+    jsAllowBigIntsForLongs: Option[Boolean] = None,
+  @Group("Scala.JS")
+  @HelpMessage("Avoid class'es when using functions and prototypes has the same observable semantics.")
+    jsAvoidClasses: Option[Boolean] = None,
+  @Group("Scala.JS")
+  @HelpMessage("Avoid lets and consts when using vars has the same observable semantics.")
+    jsAvoidLetsAndConsts: Option[Boolean] = None,
+  @Group("Scala.JS")
+  @HelpMessage("The Scala JS module split style: fewestmodules, smallestmodules")
+    jsModuleSplitStyle: Option[String] = None,
+  @Group("Scala.JS")
+  @HelpMessage("The Scala JS ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021")
+    jsEsVersion: Option[String] = None
 ) {
   // format: on
 
@@ -42,7 +59,13 @@ final case class ScalaJsOptions(
       moduleKindStr = jsModuleKind,
       checkIr = jsCheckIr,
       emitSourceMaps = jsEmitSourceMaps,
-      dom = jsDom
+      dom = jsDom,
+      header = jsHeader,
+      allowBigIntsForLongs = jsAllowBigIntsForLongs,
+      avoidClasses = jsAvoidClasses,
+      avoidLetsAndConsts = jsAvoidLetsAndConsts,
+      moduleSplitStyleStr = jsModuleSplitStyle,
+      esVersionStr = jsEsVersion
     )
 }
 

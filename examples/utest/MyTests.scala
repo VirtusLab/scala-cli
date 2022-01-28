@@ -1,4 +1,4 @@
-@using lib "com.lihaoyi::utest::0.7.10"
+//> using lib "com.lihaoyi::utest::0.7.10"
 
 import utest._
 
@@ -7,8 +7,8 @@ object MyTests extends TestSuite {
     test("foo") {
       assert(2 + 2 == 4)
     }
-    test("nope") {
-      assert(2 + 2 == 5)
-    }
+    // test("nope") {
+    //   assert(2 + 2 == 5)
+    // }
   }
 }

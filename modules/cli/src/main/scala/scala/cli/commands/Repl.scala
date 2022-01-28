@@ -7,6 +7,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.build.options.BuildOptions
 import scala.build.{Artifacts, Build, Inputs, Logger, Os, ReplArtifacts}
+import scala.cli.CurrentParams
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
@@ -17,11 +18,12 @@ object Repl extends ScalaCommand[ReplOptions] {
   )
   override def sharedOptions(options: ReplOptions) = Some(options.shared)
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
-
+    CurrentParams.verbosity = options.shared.logging.verbosity
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd)
     }
     val inputs = options.shared.inputsOrExit(args, defaultInputs = () => Some(default))
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
@@ -134,7 +136,7 @@ object Repl extends ScalaCommand[ReplOptions] {
           artifacts.dependencies,
           artifacts.extraClassPath,
           logger,
-          directories
+          options.finalRepositories
         )
     }
 

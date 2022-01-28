@@ -2,9 +2,9 @@ package scala.build.internal;
 
 import java.io.FileNotFoundException;
 
-import com.oracle.svm.core.CErrorNumber;
 import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
+import com.oracle.svm.core.headers.LibC;
 import coursier.jvm.ErrnoException;
 import coursier.jvm.GraalvmErrnoExtras;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
@@ -26,7 +26,7 @@ final class ChdirGraalvm {
     int ret = GraalvmUnistdExtras.chdir(path0.get());
 
     if (ret != 0) {
-      int n = CErrorNumber.getCErrorNumber();
+      int n = LibC.errno();
       Throwable cause = null;
       if (n == GraalvmErrnoExtras.ENOENT() || n == GraalvmErrnoExtras.ENOTDIR())
         cause = new FileNotFoundException(path);

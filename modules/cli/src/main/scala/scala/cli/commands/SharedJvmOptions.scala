@@ -3,8 +3,11 @@ package scala.cli.commands
 import caseapp._
 import upickle.default.{ReadWriter, macroRW}
 
+import java.io.File
+
 import scala.build.options.JavaOptions
 import scala.build.{Os, Position, Positioned}
+import scala.util.Properties
 
 // format: off
 final case class SharedJvmOptions(
@@ -33,9 +36,29 @@ final case class SharedJvmOptions(
   @HelpMessage("CPU architecture to use when looking up in the JVM index")
   @ValueDescription("amd64|arm64|arm|…")
   @Hidden
-    jvmIndexArch: Option[String] = None
+    jvmIndexArch: Option[String] = None,
+
+  @Group("Java")
+  @HelpMessage("Javac plugin dependencies or files")
+  @Hidden
+    javacPlugin: List[String] = Nil,
+
+  @Group("Java")
+  @HelpMessage("Javac options")
+  @Name("javacOpt")
+  @Hidden
+    javacOption: List[String] = Nil
 ) {
   // format: on
+
+  private lazy val (javacFilePlugins, javacPluginDeps) =
+    javacPlugin
+      .filter(_.trim.nonEmpty)
+      .partition { input =>
+        input.contains(File.separator) ||
+        (Properties.isWin && input.contains("/")) ||
+        input.count(_ == ':') < 2
+      }
 
   def javaOptions = JavaOptions(
     javaHomeOpt = javaHome.filter(_.nonEmpty).map(v =>
@@ -44,7 +67,13 @@ final case class SharedJvmOptions(
     jvmIdOpt = jvm.filter(_.nonEmpty),
     jvmIndexOpt = jvmIndex.filter(_.nonEmpty),
     jvmIndexOs = jvmIndexOs.map(_.trim).filter(_.nonEmpty),
-    jvmIndexArch = jvmIndexArch.map(_.trim).filter(_.nonEmpty)
+    jvmIndexArch = jvmIndexArch.map(_.trim).filter(_.nonEmpty),
+    javacPluginDependencies = SharedOptions.parseDependencies(
+      javacPluginDeps.map(Positioned.none(_)),
+      ignoreErrors = false
+    ),
+    javacPlugins = javacFilePlugins.map(s => Positioned.none(os.Path(s, Os.pwd))),
+    javacOptions = javacOption
   )
 
 }

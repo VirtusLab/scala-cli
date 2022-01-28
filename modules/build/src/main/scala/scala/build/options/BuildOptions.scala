@@ -59,7 +59,7 @@ final case class BuildOptions(
       .orElse(if (platform.value == Platform.JVM) None else Some(false))
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
-    if (scalaOptions.addScalaLibrary.getOrElse(true)) {
+    if (platform.value != Platform.Native && scalaOptions.addScalaLibrary.getOrElse(true)) {
       val scalaParams0 = value(scalaParams)
       val lib =
         if (scalaParams0.scalaVersion.startsWith("3."))
@@ -76,12 +76,14 @@ final case class BuildOptions(
       scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion)
     else Nil
   }
-  private def maybeNativeDependencies: Seq[AnyDependency] =
-    if (platform.value == Platform.Native) scalaNativeOptions.nativeDependencies
+  private def maybeNativeDependencies: Either[BuildException, Seq[AnyDependency]] = either {
+    if (platform.value == Platform.Native)
+      scalaNativeOptions.nativeDependencies(value(scalaParams).scalaVersion)
     else Nil
+  }
   private def dependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
     value(maybeJsDependencies).map(Positioned.none(_)) ++
-      maybeNativeDependencies.map(Positioned.none(_)) ++
+      value(maybeNativeDependencies).map(Positioned.none(_)) ++
       value(scalaLibraryDependencies).map(Positioned.none(_)) ++
       classPathOptions.extraDependencies
   }
@@ -112,6 +114,21 @@ final case class BuildOptions(
       scalaOptions.compilerPlugins
   }
 
+  private def semanticDbJavacPlugins: Either[BuildException, Seq[AnyDependency]] = either {
+    val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false)
+    if (generateSemDbs)
+      Seq(
+        dep"$semanticDbJavacPluginOrganization:$semanticDbJavacPluginModuleName:$semanticDbJavacPluginVersion"
+      )
+    else
+      Nil
+  }
+
+  def javacPluginDependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
+    value(semanticDbJavacPlugins).map(Positioned.none(_)) ++
+      javaOptions.javacPluginDependencies
+  }
+
   def allExtraJars: Seq[Path] =
     classPathOptions.extraClassPath.map(_.toNIO)
   def allExtraCompileOnlyJars: Seq[Path] =
@@ -123,10 +140,19 @@ final case class BuildOptions(
     platform.value == Platform.JVM &&
     internalDependencies.addTestRunnerDependency
   private def addJsTestBridge: Option[String] =
-    if (internalDependencies.addTestRunnerDependency) Some(scalaJsOptions.finalVersion)
+    if (platform.value == Platform.JS && internalDependencies.addTestRunnerDependency)
+      Some(scalaJsOptions.finalVersion)
     else None
+  private def addNativeTestInterface: Option[String] = {
+    val doAdd =
+      platform.value == Platform.Native &&
+      internalDependencies.addTestRunnerDependency &&
+      Version("0.4.3").compareTo(Version(scalaNativeOptions.finalVersion)) <= 0
+    if (doAdd) Some(scalaNativeOptions.finalVersion)
+    else None
+  }
 
-  private lazy val finalCache = internal.cache.getOrElse(FileCache())
+  lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
 
   case class JavaHomeInfo(javaCommand: String, version: Int)
@@ -149,6 +175,8 @@ final case class BuildOptions(
     Positioned(javaHome.positions, JavaHomeInfo(javaCmd, javaVersion))
   }
 
+  private def jvmIndexOs = javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)
+
   def javaHomeLocationOpt(): Option[Positioned[os.Path]] =
     javaOptions.javaHomeOpt
       .orElse {
@@ -162,7 +190,14 @@ final case class BuildOptions(
         javaOptions.jvmIdOpt.map { jvmId =>
           implicit val ec = finalCache.ec
           finalCache.logger.use {
-            val path = javaHomeManager.get(jvmId).unsafeRun()
+            val enforceLiberica =
+              jvmIndexOs == "linux-musl" && jvmId.forall(c => c.isDigit || c == '.' || c == '-')
+            val jvmId0 =
+              if (enforceLiberica)
+                s"liberica:$jvmId" // FIXME Workaround, until this is automatically handled by coursier-jvm
+              else
+                jvmId
+            val path = javaHomeManager.get(jvmId0).unsafeRun()
             Positioned(Position.CommandLine("--jvm"), os.Path(path))
           }
         }
@@ -172,7 +207,7 @@ final case class BuildOptions(
     javaHomeLocationOpt().getOrElse {
       implicit val ec = finalCache.ec
       finalCache.logger.use {
-        val path = javaHomeManager.get(OsLibc.defaultJvm).unsafeRun()
+        val path = javaHomeManager.get(OsLibc.defaultJvm(jvmIndexOs)).unsafeRun()
         Positioned(Position.Custom("OsLibc.defaultJvm"), os.Path(path))
       }
     }
@@ -225,18 +260,18 @@ final case class BuildOptions(
 
   def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
 
-  private lazy val javaHomeManager = {
+  lazy val javaHomeManager = {
     val indexUrl  = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
     val indexTask = JvmIndex.load(finalCache, indexUrl)
     val jvmCache = JvmCache()
       .withIndex(indexTask)
       .withArchiveCache(ArchiveCache().withCache(finalCache))
-      .withOs(javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs))
+      .withOs(jvmIndexOs)
       .withArchitecture(javaOptions.jvmIndexArch.getOrElse(JvmIndex.defaultArchitecture()))
     JavaHome().withCache(jvmCache)
   }
 
-  private def finalRepositories: Seq[String] =
+  def finalRepositories: Seq[String] =
     classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
   private def computeScalaVersions(
@@ -273,15 +308,17 @@ final case class BuildOptions(
       sv match {
         case Some(sv0) =>
           val prefix           = if (sv0.endsWith(".")) sv0 else sv0 + "."
-          val matchingVersions = allVersions.filter(_.startsWith(prefix))
+          val matchingVersions = allVersions.filter(_.startsWith(prefix)).map(Version(_))
           if (matchingVersions.isEmpty)
             Left(new InvalidBinaryScalaVersionError(sv0))
           else {
             val validMaxVersions = maxSupportedScalaVersions
               .filter(_.repr.startsWith(prefix))
-            val validMatchingVersions = matchingVersions
-              .map(Version(_))
-              .filter(v => validMaxVersions.exists(v <= _))
+            val validMatchingVersions = {
+              val filtered = matchingVersions.filter(v => validMaxVersions.exists(v <= _))
+              if (filtered.isEmpty) matchingVersions
+              else filtered
+            }
             if (validMatchingVersions.isEmpty)
               Left(new UnsupportedScalaVersionError(sv0))
             else
@@ -324,8 +361,12 @@ final case class BuildOptions(
     val maybeArtifacts = Artifacts(
       params = value(scalaParams),
       compilerPlugins = value(compilerPlugins),
+      javacPluginDependencies = value(javacPluginDependencies),
+      extraJavacPlugins = javaOptions.javacPlugins.map(_.value.toNIO),
       dependencies = value(dependencies),
       extraClassPath = allExtraJars,
+      scalaNativeCliVersion =
+        if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
@@ -333,6 +374,7 @@ final case class BuildOptions(
       addJvmRunner = addRunnerDependency,
       addJvmTestRunner = addJvmTestRunner,
       addJsTestBridge = addJsTestBridge,
+      addNativeTestInterface = addNativeTestInterface,
       addJmhDependencies = jmhOptions.addJmhDependencies,
       extraRepositories = finalRepositories,
       logger = logger

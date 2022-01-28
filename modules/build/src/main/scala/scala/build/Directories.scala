@@ -2,12 +2,16 @@ package scala.build
 
 import coursier.cache.shaded.dirs.{GetWinDirs, ProjectDirectories}
 
+import scala.util.Properties
+
 trait Directories {
   def localRepoDir: os.Path
   def binRepoDir: os.Path
   def completionsDir: os.Path
   def virtualProjectsDir: os.Path
   def bspSocketDir: os.Path
+  def bloopDaemonDir: os.Path
+  def bloopWorkingDir: os.Path
 }
 
 object Directories {
@@ -22,9 +26,17 @@ object Directories {
     lazy val virtualProjectsDir: os.Path =
       os.Path(projDirs.cacheDir, Os.pwd) / "virtual-projects"
     lazy val bspSocketDir: os.Path =
-      // FIXME I would have preferred to use projDirs.dataLocalDir, but it seems either ipcsocket
-      // or the bloop named socket support, or name sockets in general, aren't fine with it.
+      // FIXME I would have preferred to use projDirs.dataLocalDir, but it seems named socket
+      // support, or name sockets in general, aren't fine with it.
       os.Path(projDirs.cacheDir, Os.pwd) / "bsp-sockets"
+    lazy val bloopDaemonDir: os.Path =
+      bloopWorkingDir / "daemon"
+    lazy val bloopWorkingDir: os.Path = {
+      val baseDir =
+        if (Properties.isMac) projDirs.cacheDir
+        else projDirs.dataLocalDir
+      os.Path(baseDir, Os.pwd) / "bloop"
+    }
   }
 
   final case class SubDir(dir: os.Path) extends Directories {
@@ -38,6 +50,10 @@ object Directories {
       dir / "cache" / "virtual-projects"
     lazy val bspSocketDir: os.Path =
       dir / "data-local" / "bsp-sockets"
+    lazy val bloopDaemonDir: os.Path =
+      bloopWorkingDir / "daemon"
+    lazy val bloopWorkingDir: os.Path =
+      dir / "data-local" / "bloop"
   }
 
   def default(): Directories = {

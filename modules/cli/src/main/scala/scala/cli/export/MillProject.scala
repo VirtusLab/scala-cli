@@ -8,7 +8,8 @@ import scala.util.Properties
 
 final case class MillProject(
   millVersion: Option[String] = None,
-  deps: Seq[String] = Nil,
+  mainDeps: Seq[String] = Nil,
+  testDeps: Seq[String] = Nil,
   scalaVersion: Option[String] = None,
   scalaJsVersion: Option[String] = None,
   scalaNativeVersion: Option[String] = None,
@@ -62,7 +63,7 @@ final case class MillProject(
     val maybeScalaVer = scalaVersion.fold("") { sv =>
       s"""def scalaVersion = "$sv"""" + nl
     }
-    val maybeDeps =
+    def maybeDeps(deps: Seq[String]) =
       if (deps.isEmpty) ""
       else {
         val depLen = deps.length
@@ -91,24 +92,23 @@ final case class MillProject(
          |object $escapedName extends $parentModule {
          |  $maybeScalaVer
          |  $extraDecs
-         |  $maybeDeps
+         |  ${maybeDeps(mainDeps)}
          |  $maybeMain
          |  ${extraDecls.map("  " + _ + nl).mkString}
          |
          |  object test extends Tests {
-         |    // Scala CLI doesn't distinguish main and test sources for now.
-         |    def sources = T.sources(super.sources() ++ $escapedName.sources())
+         |    ${maybeDeps(testDeps)}
          |    ${extraTestDecls.map("  " + _ + nl).mkString}
          |  }
          |}
          |""".stripMargin
 
     for ((path, language, content) <- mainSources) {
-      val path0 = dir / name / "src" / path
+      val path0 = dir / name / "src" / "main" / "scala" / path
       os.write(path0, content, createFolders = true)
     }
     for ((path, language, content) <- testSources) {
-      val path0 = dir / name / "src" / "test" / path
+      val path0 = dir / name / "test" / "src" / "test" / path
       os.write(path0, content, createFolders = true)
     }
 

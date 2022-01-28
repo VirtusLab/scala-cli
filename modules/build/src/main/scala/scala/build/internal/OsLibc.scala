@@ -5,6 +5,8 @@ import coursier.jvm.{JavaHome, JvmIndex}
 import java.io.IOException
 import java.nio.charset.Charset
 
+import scala.util.Try
+
 object OsLibc {
 
   lazy val isMusl: Option[Boolean] = {
@@ -57,15 +59,26 @@ object OsLibc {
     else default
   }
 
-  lazy val defaultJvm: String = {
+  private def defaultJvmVersion = "11"
+
+  def baseDefaultJvm(os: String, jvmVersion: String): String = {
+    def java17OrHigher = Try(jvmVersion.takeWhile(_.isDigit).toInt)
+      .toOption
+      .forall(_ >= 17)
+    if (os == "linux-musl") s"liberica:$jvmVersion" // zulu could work too
+    else if (java17OrHigher) s"temurin:$jvmVersion"
+    else s"adopt:$jvmVersion"
+  }
+
+  def defaultJvm(os: String): String = {
     val hasEmptyJavaHome = Option(System.getenv("JAVA_HOME")).exists(_.trim.isEmpty)
+    val defaultJvm0      = baseDefaultJvm(os, defaultJvmVersion)
     if (hasEmptyJavaHome)
       // Not using the system JVM if JAVA_HOME is set to an empty string
       // (workaround for https://github.com/coursier/coursier/issues/2292)
-      if (jvmIndexOs == "linux-musl") "liberica" // zulu could work too
-      else JavaHome.defaultJvm
-    else if (jvmIndexOs == "linux-musl") s"${JavaHome.systemId}|liberica" // zulu could work too
-    else s"${JavaHome.systemId}|${JavaHome.defaultJvm}"
+      defaultJvm0
+    else
+      s"${JavaHome.systemId}|$defaultJvm0"
   }
 
 }

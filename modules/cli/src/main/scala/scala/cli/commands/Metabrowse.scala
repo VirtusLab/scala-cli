@@ -7,10 +7,13 @@ import java.nio.file.Path
 
 import scala.build.internal.Runner
 import scala.build.{Build, Logger}
+import scala.cli.CurrentParams
 import scala.cli.internal.FetchExternalBinary
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
-  override def group = "Miscellaneous"
+  override def hidden     = true
+  override def inSipScala = false
+  override def group      = "Miscellaneous"
   override def names = List(
     List("browse"),
     List("metabrowse")
@@ -19,8 +22,9 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
   override def sharedOptions(options: MetabrowseOptions) = Some(options.shared)
 
   def run(options: MetabrowseOptions, args: RemainingArgs): Unit = {
-
+    CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val logger = options.shared.logger
 

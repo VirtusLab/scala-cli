@@ -40,8 +40,11 @@ class BuildProjectTests extends munit.FunSuite {
 
     override def bloopRifleLogger: BloopRifleLogger = BloopRifleLogger.nop
 
-    override def scalaNativeLogger: scala.scalanative.build.Logger =
+    override def scalaNativeTestLogger: scala.scalanative.build.Logger =
       scala.scalanative.build.Logger.nullLogger
+
+    override def scalaNativeCliInternalLoggerOptions: List[String] =
+      List()
 
     override def compilerOutputStream: PrintStream = ???
 

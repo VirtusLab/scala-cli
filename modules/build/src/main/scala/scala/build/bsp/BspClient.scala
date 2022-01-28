@@ -7,9 +7,10 @@ import java.net.URI
 import java.nio.file.Paths
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.Position.File
+import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.postprocessing.LineConversion
-import scala.build.{BloopBuildClient, GeneratedSource, Logger, Position}
+import scala.build.{BloopBuildClient, GeneratedSource, Logger}
 import scala.jdk.CollectionConverters._
 
 class BspClient(
@@ -78,12 +79,14 @@ class BspClient(
   }
 
   private def actualBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
-    val updatedParamsOpt =
-      if (validTarget(params.getBuildTarget))
-        generatedSources.uriMap.get(params.getTextDocument.getUri).map { genSource =>
+    val updatedParamsOpt = targetScopeOpt(params.getBuildTarget).flatMap { scope =>
+      generatedSources.getOrElse(scope, HasGeneratedSources.GeneratedSources(Nil))
+        .uriMap
+        .get(params.getTextDocument.getUri)
+        .map { genSource =>
           updatedPublishDiagnosticsParams(params, genSource)
         }
-      else None
+    }
 
     def call(updatedParams0: b.PublishDiagnosticsParams): Unit =
       super.onBuildPublishDiagnostics(updatedParams0)
@@ -145,7 +148,7 @@ class BspClient(
   def reportBuildException(
     targetIdOpt: Option[b.BuildTargetIdentifier],
     ex: BuildException,
-    isFirst: Boolean = true
+    reset: Boolean = true
   ): Unit =
     targetIdOpt match {
       case None =>
@@ -155,30 +158,8 @@ class BspClient(
           case c: CompositeBuildException => c.exceptions
           case _                          => Seq(ex)
         }
-        var touchedFiles = Set.empty[os.Path]
-        for {
-          ex   <- allExceptions
-          pos  <- ex.positions.distinct.collect { case f: Position.File => f }
-          path <- pos.path.toOption
-        } {
-          val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
-          val diag = {
-            val startPos = new b.Position(pos.startPos._1, pos.startPos._2)
-            val endPos   = new b.Position(pos.endPos._1, pos.endPos._2)
-            val range    = new b.Range(startPos, endPos)
-            new b.Diagnostic(range, ex.message)
-          }
-          diag.setSeverity(b.DiagnosticSeverity.ERROR)
-          val params = new b.PublishDiagnosticsParams(
-            id,
-            targetId,
-            List(diag).asJava,
-            isFirst
-          )
-          touchedFiles = touchedFiles + path
-          buildExceptionDiagnosticsDocs.put((path, targetId), JBoolean.TRUE)
-          actualBuildPublishDiagnostics(params)
-        }
+        val touchedFiles =
+          allExceptions.flatMap(reportDiagnosticForFiles(targetId, reset = reset)).toSet
 
         // Small chance of us wiping some Bloop diagnostics, if these happen
         // between the call to remove and the call to actualBuildPublishDiagnostics.
@@ -200,4 +181,33 @@ class BspClient(
         }
     }
 
+  def reportDiagnosticForFiles(
+    targetId: b.BuildTargetIdentifier,
+    reset: Boolean = false
+  )(diag: Diagnostic): Seq[os.Path] =
+    diag.positions.flatMap {
+      case File(Right(path), (startLine, startC), (endL, endC)) =>
+        val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+        val bDiag = {
+          val startPos = new b.Position(startLine, startC)
+          val endPos   = new b.Position(endL, endC)
+          val range    = new b.Range(startPos, endPos)
+          new b.Diagnostic(range, diag.message)
+        }
+        val severity = diag.severity match {
+          case Severity.Error   => b.DiagnosticSeverity.ERROR
+          case Severity.Warning => b.DiagnosticSeverity.WARNING
+        }
+        bDiag.setSeverity(severity)
+        val params = new b.PublishDiagnosticsParams(
+          id,
+          targetId,
+          List(bDiag).asJava,
+          reset
+        )
+        buildExceptionDiagnosticsDocs.put((path, targetId), JBoolean.TRUE)
+        actualBuildPublishDiagnostics(params)
+        Seq(path)
+      case _ => Nil
+    }
 }

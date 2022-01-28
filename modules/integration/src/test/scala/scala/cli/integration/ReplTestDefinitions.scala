@@ -17,6 +17,20 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("repl custom repositories work") {
+    TestInputs(Nil).fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "repl",
+        "--repl-dry-run",
+        "--scala",
+        Constants.scalaSnapshot213,
+        "--repository",
+        "https://scala-ci.typesafe.com/artifactory/scala-integration"
+      ).call(cwd = root)
+    }
+  }
+
   test("ammonite") {
     TestInputs(Nil).fromRoot { root =>
       val ammArgs = Seq(

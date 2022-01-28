@@ -11,9 +11,9 @@ if [ "$(uname)" = "Darwin" ]; then
   fi
 fi
 DIR="$(dirname "$("$READLINK" -f "${BASH_SOURCE[0]}")")"
-LAUNCHER_DIR="$DIR/out/cli/nativeImage/dest"
+LAUNCHER_DIR="$DIR/out/cli/base-image/nativeImage/dest"
 
-if [ ! -x "$LAUNCHER_DIR/scala" ]; then
+if [ ! -x "$LAUNCHER_DIR/scala-cli" ]; then
   echo "native-image launcher not built yet." 1>&2
   echo "In order to build it, go in $DIR, and run" 1>&2
   echo 1>&2

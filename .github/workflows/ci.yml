@@ -13,6 +13,33 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
+  bloop-memory-footprint:
+    timeout-minutes: 120
+    runs-on: ${{ matrix.OS }}
+    strategy:
+      fail-fast: false
+      matrix:
+        OS: ["ubuntu-latest"]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1.2.0-M1
+      with:
+        jvm: "temurin:17"
+    - name: Java Version
+      run: java -version
+    - name: Java Home
+      run: echo "$JAVA_HOME"
+    - name: Build Scala CLI
+      run: ./mill copyJvmLauncher build
+    - name: Build Benchmark
+      run: java -jar ./build/scala-cli package --standalone gcbenchmark/gcbenchmark.scala -o gc
+    - name: Run Benchmark
+      run: ./gc $(realpath ./build/scala-cli)
+
   jvm-tests:
     timeout-minutes: 120
     runs-on: ${{ matrix.OS }}
@@ -26,13 +53,13 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher artifacts/
       if: runner.os == 'Linux'
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.1
       if: runner.os == 'Linux'
       with:
         name: launchers
@@ -59,17 +86,18 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Generate native launcher
-      run: ./mill -i show defaultNativeImage
+      run: .github/scripts/generate-native-image.sh
+      shell: bash
     - name: Build OS packages
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.1
       with:
         name: launchers
         path: artifacts/
@@ -89,16 +117,17 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Generate native launcher
-      run: ./mill -i show cli.nativeImageMostlyStatic
-    - name: Build docker image
-      run: .github/scripts/generate-docker-images-ubuntu.sh
+      run: .github/scripts/generate-native-image.sh mostly-static
+      shell: bash
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
+    - name: Build slim docker image
+      run: .github/scripts/generate-slim-docker-image.sh
+    - uses: actions/upload-artifact@v2.3.1
       with:
         name: launchers
         path: artifacts/
@@ -106,6 +135,45 @@ jobs:
         retention-days: 2
     - name: Native integration tests
       run: ./mill -i integration.native-mostly-static.test
+    - name: Docker integration tests
+      run: ./mill integration.docker-slim.test
+    - name: Login to GitHub Container Registry
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Push slim scala-cli image to github container registry
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: .github/scripts/publish-slim-docker-images.sh
+
+  native-static-tests:
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1.2.0-M1
+      with:
+        jvm: "temurin:17"
+    - name: Generate native launcher
+      run: .github/scripts/generate-native-image.sh static
+      shell: bash
+    - name: Copy artifacts
+      run: ./mill -i copyStaticLauncher artifacts/
+    - name: Build docker image
+      run: .github/scripts/generate-docker-image.sh
+    - uses: actions/upload-artifact@v2.3.1
+      with:
+        name: launchers
+        path: artifacts/
+        if-no-files-found: error
+        retention-days: 2
+    - name: Native integration tests
+      run: ./mill -i integration.native-static.test
     - name: Docker integration tests
       run: ./mill integration.docker.test
     - name: Login to GitHub Container Registry
@@ -118,31 +186,6 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       run: .github/scripts/publish-docker-images.sh
 
-  native-static-tests:
-    timeout-minutes: 120
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
-      with:
-        jvm: 11
-    - name: Generate native launcher
-      run: ./mill -i show cli.nativeImageStatic
-    - name: Copy artifacts
-      run: ./mill -i copyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v2.2.4
-      with:
-        name: launchers
-        path: artifacts/
-        if-no-files-found: error
-        retention-days: 2
-    - name: Native integration tests
-      run: ./mill -i integration.native-static.test
-
   docs-tests:
     # for now, lets run those tests only on ubuntu
     runs-on: ubuntu-latest
@@ -152,13 +195,17 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Test documentation
       run: .github/scripts/check_docs.sh
     - name: Test gifs
       run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
+    - name: Build binary
+      run: ./mill copyTo cli.launcher ./scala-cli
+    - name: Check examples
+      run: bash ./scala-cli --jvm temurin:17  .github/scripts/check_examples.sc
 
   checks:
     timeout-minutes: 15
@@ -169,13 +216,13 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
-      run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps.'
+      run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps'
     - name: Scalafix check
       run: |
         ./mill -i __.fix --check || (
@@ -193,9 +240,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
         apps: scalafmt:3.0.0
     - run: scalafmt --check
 
@@ -208,9 +255,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
       run: |
         ./mill -i generate-reference-doc.run --check || (
@@ -230,11 +277,11 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
-    - uses: actions/upload-artifact@v2.2.4
+    - uses: actions/upload-artifact@v2.3.1
       with:
         name: launchers
         path: artifacts/
@@ -251,9 +298,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - name: GPG setup
       run: .github/scripts/gpg-setup.sh
       env:
@@ -271,6 +318,7 @@ jobs:
       with:
         type: now
         message: 'Back port of documentation changes to stable'
+        from_branch: master
         target_branch: stable
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -285,9 +333,9 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.1.2
+    - uses: coursier/setup-action@v1.2.0-M1
       with:
-        jvm: 11
+        jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
     - uses: actions/download-artifact@v2
       if: env.SHOULD_PUBLISH == 'true'
@@ -310,9 +358,9 @@ jobs:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v6.3
-      - uses: coursier/setup-action@v1.1.2
+      - uses: coursier/setup-action@v1.2.0-M1
         with:
-          jvm: 11
+          jvm: "temurin:17"
       - uses: actions/download-artifact@v2
         with:
           name: launchers
@@ -344,4 +392,3 @@ jobs:
       - run: ./mill -i ci.updateStandaloneLauncher
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

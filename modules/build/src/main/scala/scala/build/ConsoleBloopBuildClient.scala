@@ -7,6 +7,7 @@ import java.net.URI
 import java.nio.file.Paths
 
 import scala.build.errors.Severity
+import scala.build.options.Scope
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
@@ -14,7 +15,7 @@ class ConsoleBloopBuildClient(
   logger: Logger,
   out: PrintStream,
   keepDiagnostics: Boolean = false,
-  var generatedSources: Seq[GeneratedSource] = Nil
+  generatedSources: mutable.Map[Scope, Seq[GeneratedSource]] = mutable.Map()
 ) extends BloopBuildClient {
   import ConsoleBloopBuildClient._
   private var projectParams = Seq.empty[String]
@@ -29,8 +30,8 @@ class ConsoleBloopBuildClient(
 
   private val diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
 
-  def setGeneratedSources(newGeneratedSources: Seq[GeneratedSource]) =
-    generatedSources = newGeneratedSources
+  def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =
+    generatedSources(scope) = newGeneratedSources
   def setProjectParams(newParams: Seq[String]): Unit = {
     projectParams = newParams
   }
@@ -70,7 +71,8 @@ class ConsoleBloopBuildClient(
     logger.debug("Received onBuildPublishDiagnostics from bloop: " + params)
     for (diag <- params.getDiagnostics.asScala) {
 
-      val diagnosticMappings = generatedSources
+      val diagnosticMappings = generatedSources.valuesIterator
+        .flatMap(_.iterator)
         .map { source =>
           val lineShift = -os.read(source.generated)
             .take(source.topWrapperLen)
@@ -139,7 +141,7 @@ class ConsoleBloopBuildClient(
   override def onConnectWithServer(server: bsp4j.BuildServer): Unit = {}
 
   def clear(): Unit = {
-    generatedSources = Nil
+    generatedSources.clear()
     diagnostics0.clear()
     printedStart = false
   }
@@ -151,8 +153,8 @@ object ConsoleBloopBuildClient {
   private val red    = Console.RED
   private val yellow = Console.YELLOW
 
-  private def getPrefix(severity: Severity) =
-    if (severity == Severity.Error) s"[${red}error$reset] "
+  def diagnosticPrefix(isError: Boolean): String =
+    if (isError) s"[${red}error$reset] "
     else s"[${yellow}warn$reset] "
 
   def printFileDiagnostic(
@@ -163,9 +165,7 @@ object ConsoleBloopBuildClient {
     val isWarningOrError = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
       diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING
     if (isWarningOrError) {
-      val prefix =
-        if (diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR) s"[${red}error$reset] "
-        else s"[${yellow}warn$reset] "
+      val prefix = diagnosticPrefix(diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR)
 
       val line  = (diag.getRange.getStart.getLine + 1).toString + ":"
       val col   = (diag.getRange.getStart.getCharacter + 1).toString + ":"
@@ -217,7 +217,7 @@ object ConsoleBloopBuildClient {
     val isWarningOrError = true
     if (isWarningOrError) {
       val msgIt  = message.linesIterator
-      val prefix = getPrefix(severity)
+      val prefix = diagnosticPrefix(severity == Severity.Error)
       out.println(prefix + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       msgIt.foreach(line => out.println(prefix + line))
 

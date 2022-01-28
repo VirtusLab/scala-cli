@@ -14,18 +14,6 @@ final case class CrossSources(
   buildOptions: Seq[HasBuildRequirements[BuildOptions]]
 ) {
 
-  def withVirtualDir(inputs: Inputs, scope: Scope, options: BuildOptions): CrossSources = {
-
-    val srcRootPath = inputs.generatedSrcRoot(scope)
-    val resourceDirs0 = options.classPathOptions.resourceVirtualDir.map { path =>
-      HasBuildRequirements(BuildRequirements(), srcRootPath / path)
-    }
-
-    copy(
-      resourceDirs = resourceDirs ++ resourceDirs0
-    )
-  }
-
   def sharedOptions(baseOptions: BuildOptions): BuildOptions =
     buildOptions
       .filter(_.requirements.isEmpty)
@@ -67,6 +55,7 @@ final case class CrossSources(
         .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope)),
       buildOptions
+        .filter(!_.requirements.isEmpty)
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
         .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope))
@@ -91,7 +80,8 @@ object CrossSources {
 
   def forInputs(
     inputs: Inputs,
-    preprocessors: Seq[Preprocessor]
+    preprocessors: Seq[Preprocessor],
+    logger: Logger
   ): Either[BuildException, CrossSources] = either {
 
     val preprocessedSources = value {
@@ -99,7 +89,7 @@ object CrossSources {
         .map { elem =>
           preprocessors
             .iterator
-            .flatMap(p => p.preprocess(elem).iterator)
+            .flatMap(p => p.preprocess(elem, logger).iterator)
             .take(1)
             .toList
             .headOption
@@ -142,19 +132,11 @@ object CrossSources {
       )
     }
 
-    val mainClassOpt = value {
-      inputs.mainClassElement
-        .collect {
-          case elem: Inputs.SingleElement =>
-            preprocessors.iterator
-              .flatMap(p => p.preprocess(elem).iterator)
-              .take(1).toList.headOption
-              .getOrElse(Right(Nil))
-              .map(_.flatMap(_.mainClassOpt.toSeq).headOption)
-        }
-        .sequence
-        .map(_.flatten)
-    }
+    val mainClassOpt = for {
+      mainClassPath      <- inputs.mainClassElement.map(_.path).map(ScopePath.fromPath(_).path)
+      processedMainClass <- preprocessedSources.find(_.scopePath.path == mainClassPath)
+      mainClass          <- processedMainClass.mainClassOpt
+    } yield mainClass
 
     val paths = preprocessedSources.collect {
       case d: PreprocessedSource.OnDisk =>
@@ -176,7 +158,9 @@ object CrossSources {
     val resourceDirs = inputs.elements.collect {
       case r: Inputs.ResourceDirectory =>
         HasBuildRequirements(BuildRequirements(), r.path)
-    }
+    } ++ preprocessedSources.flatMap(_.options).flatMap(_.classPathOptions.resourcesDir).map(
+      HasBuildRequirements(BuildRequirements(), _)
+    )
 
     CrossSources(paths, inMemory, mainClassOpt, resourceDirs, buildOptions)
   }

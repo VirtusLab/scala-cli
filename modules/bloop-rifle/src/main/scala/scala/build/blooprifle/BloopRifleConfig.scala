@@ -1,17 +1,18 @@
 package scala.build.blooprifle
 
 import java.io.{File, InputStream, OutputStream}
+import java.nio.file.Path
 
 import scala.build.blooprifle.internal.Constants
 import scala.concurrent.duration._
 import scala.util.Try
 
 final case class BloopRifleConfig(
-  host: String,
-  port: Int,
+  address: BloopRifleConfig.Address,
   javaPath: String,
   javaOpts: Seq[String],
   classPath: String => Either[Throwable, Seq[File]],
+  workingDir: File,
   bspSocketOrPort: Option[() => BspConnectionAddress],
   bspStdin: Option[InputStream],
   bspStdout: Option[OutputStream],
@@ -26,6 +27,19 @@ final case class BloopRifleConfig(
 )
 
 object BloopRifleConfig {
+
+  sealed abstract class Address extends Product with Serializable {
+    def render: String
+  }
+
+  object Address {
+    final case class Tcp(host: String, port: Int) extends Address {
+      def render = s"$host:$port"
+    }
+    final case class DomainSocket(path: Path) extends Address {
+      def render = path.toString
+    }
+  }
 
   sealed trait BloopVersionConstraint { def version: BloopVersion }
   case class AtLeast(version: BloopVersion) extends BloopVersionConstraint
@@ -58,7 +72,9 @@ object BloopRifleConfig {
     Seq(
       "-Xss4m",
       "-XX:MaxInlineLevel=20", // Specific option for faster C2, ignored by GraalVM
-      "-XX:+UseParallelGC"     // Full parallel GC is the best choice for Scala compilation
+      "-XX:+UseZGC", // ZGC returns unused memory back to the OS, so Bloop does not occupy so much memory if unused
+      "-XX:ZUncommitDelay=30",
+      "-XX:ZCollectionInterval=5"
     )
 
   lazy val defaultJavaOpts: Seq[String] = {
@@ -71,7 +87,7 @@ object BloopRifleConfig {
   }
 
   def hardCodedDefaultModule: String =
-    "ch.epfl.scala:bloop-frontend_2.12"
+    "io.github.alexarchambault.bleep:bloop-frontend_2.12"
   def hardCodedDefaultVersion: String =
     Constants.bloopVersion
   def hardCodedDefaultScalaVersion: String =
@@ -100,14 +116,16 @@ object BloopRifleConfig {
   }
 
   def default(
-    bloopClassPath: String => Either[Throwable, Seq[File]]
+    address: Address,
+    bloopClassPath: String => Either[Throwable, Seq[File]],
+    workingDir: File
   ): BloopRifleConfig =
     BloopRifleConfig(
-      host = defaultHost,
-      port = defaultPort,
+      address = address,
       javaPath = "java",
       javaOpts = defaultJavaOpts,
       classPath = bloopClassPath,
+      workingDir = workingDir,
       bspSocketOrPort = None,
       bspStdin = None,
       bspStdout = None,

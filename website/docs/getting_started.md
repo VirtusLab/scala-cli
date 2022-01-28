@@ -119,7 +119,7 @@ cd scala-cli-getting-started
 Now we can write our logic in a file named `files.scala`:
 
 ```scala title=files.scala
-// using lib com.lihaoyi::os-lib:0.7.8
+//> using lib com.lihaoyi::os-lib:0.7.8
 
 def filesByExtension(
   extension: String, 
@@ -129,7 +129,7 @@ def filesByExtension(
     }
 ```
 
-As you may have noticed, we specified a dependency within `files.scala` using the `// using lib com.lihaoyi::os-lib:0.7.8` syntax. With Scala CLI, you can provide configuration information with `using` directives — a dedicated syntax that can be embedded in any `.scala` file. For more details, see our dedicated [guide for `using` directives](./guides/using-directives.md).
+As you may have noticed, we specified a dependency within `files.scala` using the `//> using lib com.lihaoyi::os-lib:0.7.8` syntax. With Scala CLI, you can provide configuration information with `using` directives — a dedicated syntax that can be embedded in any `.scala` file. For more details, see our dedicated [guide for `using` directives](./guides/using-directives.md).
 
 Now let's check if our code compiles. We do that by running:
 
@@ -156,7 +156,7 @@ With our IDE in place, how can we test if our code works correctly? The best way
 We also need to add a test framework. Scala CLI support most popular test frameworks, and for this guide we will stick with [munit](https://scalameta.org/munit/). To add a test framework, we just need an ordinary dependency, and once again we'll add that with the `using` directive:
 
 ```scala title=files.test.scala
-// using lib org.scalameta::munit:1.0.0-M1
+//> using lib "org.scalameta::munit:1.0.0-M1"
 
 class TestSuite extends munit.FunSuite {
   test("hello") {

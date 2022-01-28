@@ -2,10 +2,14 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.CurrentParams
+
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true
+  override def inSipScala      = false
 
   def run(options: DirectoriesOptions, args: RemainingArgs): Unit = {
+    CurrentParams.verbosity = options.verbosity.verbosity
     if (args.all.nonEmpty) {
       System.err.println("The directories command doesn't accept arguments.")
       sys.exit(1)
@@ -17,5 +21,6 @@ object Directories extends ScalaCommand[DirectoriesOptions] {
     println("Completions: " + directories.completionsDir)
     println("Virtual projects: " + directories.virtualProjectsDir)
     println("BSP sockets: " + directories.bspSocketDir)
+    println("Bloop daemon directory: " + directories.bloopDaemonDir)
   }
 }

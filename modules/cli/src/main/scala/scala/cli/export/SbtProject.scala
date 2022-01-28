@@ -40,6 +40,7 @@ final case class SbtProject(
 
     val buildSbtImportsContent = imports.map(_ + nl).mkString
     val buildSbtSettingsContent = settings
+      .filter(_.nonEmpty)
       .map { settings0 =>
         settings0.map(s => s + nl).mkString + nl
       }
@@ -53,7 +54,7 @@ final case class SbtProject(
     }
     for ((path, language, content) <- testSources) {
       val path0 = dir / "src" / "test" / language / path
-      os.write(path0, content)
+      os.write(path0, content, createFolders = true)
     }
   }
 }

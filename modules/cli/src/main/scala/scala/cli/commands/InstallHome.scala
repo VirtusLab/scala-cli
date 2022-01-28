@@ -3,11 +3,13 @@ package scala.cli.commands
 import caseapp._
 import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
+import scala.cli.CurrentParams
 import scala.io.StdIn.readLine
-import scala.util.{Properties, Try}
+import scala.util.Properties
 
 object InstallHome extends ScalaCommand[InstallHomeOptions] {
   override def hidden: Boolean = true
+  override def inSipScala      = false
 
   private def logEqual(version: String) = {
     System.err.println(
@@ -41,7 +43,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     }
 
   def run(options: InstallHomeOptions, args: RemainingArgs): Unit = {
-
+    CurrentParams.verbosity = options.verbosity.verbosity
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
     val destBinPath = binDirPath / options.binaryName
@@ -52,9 +54,17 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
       os.proc(newScalaCliBinPath, "version").call(cwd = os.pwd).out.text().trim
 
     // Backward compatibility - previous versions not have the `--version` parameter
-    val oldVersion: String = Try {
-      os.proc(destBinPath, "version").call(cwd = os.pwd).out.text().trim
-    }.toOption.getOrElse("0.0.0")
+    val oldVersion: String = {
+      if (os.isFile(destBinPath)) {
+        val res = os.proc(destBinPath, "version").call(cwd = os.pwd, check = false)
+        if (res.exitCode == 0)
+          res.out.text().trim
+        else
+          "0.0.0"
+      }
+      else
+        "0.0.0"
+    }
 
     if (os.exists(binDirPath))
       if (options.force) () // skip logging

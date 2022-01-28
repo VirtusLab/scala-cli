@@ -15,7 +15,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.validation.ValidationException
-import scala.build.options.{BuildOptions, ClassPathOptions, Platform, Scope}
+import scala.build.options.{BuildOptions, ClassPathOptions, Platform, SNNumeralVersion, Scope}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -44,7 +44,8 @@ object Build {
     artifacts: Artifacts,
     project: Project,
     output: os.Path,
-    diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
+    diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]],
+    generatedSources: Seq[GeneratedSource]
   ) extends Build {
     def success: Boolean               = true
     def successfulOpt: Some[this.type] = Some(this)
@@ -115,16 +116,20 @@ object Build {
 
   def updateInputs(
     inputs: Inputs,
-    options: BuildOptions
+    options: BuildOptions,
+    testOptions: Option[BuildOptions] = None
   ): Inputs = {
 
     // If some options are manually overridden, append a hash of the options to the project name
     // Using options, not options0 - only the command-line options are taken into account. No hash is
     // appended for options from the sources.
-    val optionsHash = options.hash
+    val optionsHash     = options.hash
+    val testOptionsHash = testOptions.flatMap(_.hash)
 
     inputs.copy(
-      baseProjectName = inputs.baseProjectName + optionsHash.map("_" + _).getOrElse("")
+      baseProjectName = inputs.baseProjectName
+        + optionsHash.map("_" + _).getOrElse("")
+        + testOptionsHash.map("_" + _).getOrElse("")
     )
   }
 
@@ -140,123 +145,154 @@ object Build {
     val crossSources = value {
       CrossSources.forInputs(
         inputs,
-        Sources.defaultPreprocessors(options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper))
+        Sources.defaultPreprocessors(
+          options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+        ),
+        logger
       )
     }
     val sharedOptions = crossSources.sharedOptions(options)
     val crossOptions  = sharedOptions.crossOptions
 
+    def doPostProcess(build: Build, inputs: Inputs, scope: Scope): Unit = build match {
+      case build: Build.Successful =>
+        postProcess(
+          build.generatedSources,
+          inputs.generatedSrcRoot(scope),
+          build.output,
+          logger,
+          inputs.workspace,
+          updateSemanticDbs = true,
+          scalaVersion = build.project.scalaCompiler.scalaVersion
+        ).left.foreach(_.foreach(logger.message(_)))
+      case _ =>
+    }
+
     def doBuild(
-      overrideOptions: BuildOptions,
-      scope: Scope
-    ): Either[BuildException, Build] = either {
+      overrideOptions: BuildOptions
+    ): Either[BuildException, (Build, Build)] = either {
+
+      val baseOptions   = overrideOptions.orElse(sharedOptions)
+      val scopedSources = value(crossSources.scopedSources(baseOptions))
+
+      val mainSources = scopedSources.sources(Scope.Main, baseOptions)
+      val mainOptions = mainSources.buildOptions
+
+      val testSources = scopedSources.sources(Scope.Test, baseOptions)
+      val testOptions = testSources.buildOptions
 
       val inputs0 = updateInputs(
         inputs,
-        overrideOptions.orElse(options) // update hash in inputs with options coming from the CLI or cross-building, not from the sources
+        mainOptions, // update hash in inputs with options coming from the CLI or cross-building, not from the sources
+        Some(testOptions)
       )
 
-      val baseOptions = overrideOptions.orElse(sharedOptions)
+      def doBuildScope(
+        options: BuildOptions,
+        sources: Sources,
+        scope: Scope
+      ): Either[BuildException, Build] =
+        either {
+          val sources0 = sources.withVirtualDir(inputs0, scope, options)
 
-      val crossSources0 = crossSources.withVirtualDir(inputs0, scope, baseOptions)
+          val generatedSources = sources0.generateSources(inputs0.generatedSrcRoot(scope))
 
-      val sources = value(crossSources0.scopedSources(baseOptions))
-        .sources(scope, baseOptions)
+          val scopeParams =
+            if (scope == Scope.Main) Nil
+            else Seq(scope.name)
 
-      val generatedSources = sources.generateSources(inputs0.generatedSrcRoot(scope))
-      val buildOptions     = sources.buildOptions
+          buildClient.setProjectParams(scopeParams ++ value(options.projectParams))
 
-      val scopeParams =
-        if (scope == Scope.Main) Nil
-        else Seq(scope.name)
-      buildClient.setProjectParams(scopeParams ++ value(buildOptions.projectParams))
+          val res = build(
+            inputs0,
+            sources0,
+            inputs0.generatedSrcRoot(scope),
+            generatedSources,
+            options,
+            scope,
+            logger,
+            buildClient,
+            bloopServer
+          )
 
-      val res = build(
-        inputs0,
-        sources,
-        inputs0.generatedSrcRoot(scope),
-        generatedSources,
-        buildOptions,
-        scope,
-        logger,
-        buildClient,
-        bloopServer
-      )
-      value(res)
-    }
-
-    def buildScope(
-      scope: Scope,
-      parentBuildOpt: Option[Build],
-      parentExtraBuildsOpt: Option[Seq[Build]]
-    ): Either[BuildException, (Build, Seq[Build])] =
-      either {
-        val mainBuild = value {
-          parentBuildOpt match {
-            case None => doBuild(BuildOptions(), scope)
-            case Some(s: Build.Successful) =>
-              val extraOptions = BuildOptions(
-                classPathOptions = ClassPathOptions(
-                  extraClassPath = Seq(s.output)
-                )
-              )
-              doBuild(extraOptions, scope)
-            case Some(_) =>
-              Right(Build.Cancelled(
-                inputs,
-                sharedOptions,
-                scope,
-                "Parent build failed or cancelled"
-              ))
-          }
+          value(res)
         }
 
-        val extraBuilds =
-          if (crossBuilds)
-            value {
-              val maybeBuilds = parentExtraBuildsOpt match {
-                case None =>
-                  crossOptions.map { opt =>
-                    doBuild(opt, scope)
-                  }
-                case Some(parentExtraBuilds) =>
-                  crossOptions.zip(parentExtraBuilds)
-                    .map {
-                      case (opt, parentBuildOpt) =>
-                        parentBuildOpt match {
-                          case s: Build.Successful =>
-                            val updatedOptions = opt.copy(
-                              classPathOptions = sharedOptions.classPathOptions.copy(
-                                extraClassPath =
-                                  sharedOptions.classPathOptions.extraClassPath :+ s.output
-                              )
-                            )
-                            doBuild(updatedOptions, scope)
-                          case _ =>
-                            Right(Build.Cancelled(
-                              inputs,
-                              opt,
-                              scope,
-                              "Parent build failed or cancelled"
-                            ))
-                        }
-                    }
-              }
+      val mainBuild = value(doBuildScope(mainOptions, mainSources, Scope.Main))
+
+      val testBuild = value {
+        mainBuild match {
+          case s: Build.Successful =>
+            val extraTestOptions = BuildOptions(
+              classPathOptions = ClassPathOptions(
+                extraClassPath = Seq(s.output)
+              )
+            )
+            val testOptions0 = extraTestOptions.orElse(testOptions)
+            doBuildScope(testOptions0, testSources, Scope.Test)
+          case _ =>
+            Right(Build.Cancelled(
+              inputs,
+              sharedOptions,
+              Scope.Test,
+              "Parent build failed or cancelled"
+            ))
+        }
+      }
+
+      doPostProcess(mainBuild, inputs0, Scope.Main)
+      doPostProcess(testBuild, inputs0, Scope.Test)
+
+      (mainBuild, testBuild)
+    }
+
+    def buildScopes(): Either[BuildException, (Build, Seq[Build], Build, Seq[Build])] =
+      either {
+        val (mainBuild, testBuild) = value(doBuild(BuildOptions()))
+
+        val (extraMainBuilds: Seq[Build], extraTestBuilds: Seq[Build]) =
+          if (crossBuilds) {
+            val extraBuilds = value {
+              val maybeBuilds = crossOptions.map(doBuild)
+
               maybeBuilds
                 .sequence
                 .left.map(CompositeBuildException(_))
             }
+            (extraBuilds.map(_._1), extraBuilds.map(_._2))
+          }
           else
-            Nil
+            (Nil, Nil)
 
-        (mainBuild, extraBuilds)
+        (mainBuild, extraMainBuilds, testBuild, extraTestBuilds)
       }
 
-    val (mainBuild, extraBuilds) = value(buildScope(Scope.Main, None, None))
-    val (testBuild, extraTestBuilds) =
-      value(buildScope(Scope.Test, Some(mainBuild), Some(extraBuilds)))
+    val (mainBuild, extraBuilds, testBuild, extraTestBuilds) = value(buildScopes())
+
+    copyResourceToClassesDir(mainBuild)
+    copyResourceToClassesDir(testBuild)
 
     Builds(Seq(mainBuild, testBuild), Seq(extraBuilds, extraTestBuilds))
+  }
+
+  private def copyResourceToClassesDir(build: Build) = build match {
+    case b: Build.Successful =>
+      for {
+        resourceDirPath  <- b.sources.resourceDirs.filter(os.exists(_))
+        resourceFilePath <- os.walk(resourceDirPath).filter(os.isFile(_))
+        relativeResourcePath = resourceFilePath.relativeTo(resourceDirPath)
+        // dismiss files generated by scala-cli
+        if !relativeResourcePath.startsWith(os.rel / Constants.workspaceDirName)
+      } {
+        val destPath = b.output / relativeResourcePath
+        os.copy(
+          resourceFilePath,
+          destPath,
+          replaceExisting = true,
+          createFolders = true
+        )
+      }
+    case _ =>
   }
 
   private def build(
@@ -309,21 +345,44 @@ object Build {
   }
 
   def classesRootDir(root: os.Path, projectName: String): os.Path =
-    root / ".scala" / projectName / "classes"
+    root / Constants.workspaceDirName / projectName / "classes"
   def classesDir(root: os.Path, projectName: String, scope: Scope): os.Path =
     classesRootDir(root, projectName) / scope.name
 
-  def scalaNativeSupported(options: BuildOptions, inputs: Inputs) = either {
-    val version = value(options.scalaParams).scalaVersion
-    if (version.startsWith("3")) false
-    else if (version.startsWith("2.13")) Properties.isMac || Properties.isLinux
-    else if (version.startsWith("2.12"))
-      !inputs.sourceFiles().exists {
-        case _: Inputs.AnyScript => true
-        case _                   => false
+  def scalaNativeSupported(
+    options: BuildOptions,
+    inputs: Inputs
+  ): Either[BuildException, Option[ScalaNativeCompatibilityError]] =
+    either {
+      val scalaVersion  = value(options.scalaParams).scalaVersion
+      val nativeVersion = options.scalaNativeOptions.numeralVersion
+      val isCompatible = nativeVersion match {
+        case Some(snNumeralVer) =>
+          if (snNumeralVer < SNNumeralVersion(0, 4, 1) && Properties.isWin)
+            false
+          else if (scalaVersion.startsWith("3.0"))
+            false
+          else if (scalaVersion.startsWith("3"))
+            snNumeralVer >= SNNumeralVersion(0, 4, 3)
+          else if (scalaVersion.startsWith("2.13"))
+            true
+          else if (scalaVersion.startsWith("2.12"))
+            inputs.sourceFiles().forall {
+              case _: Inputs.AnyScript => false
+              case _                   => true
+            }
+          else false
+        case None => false
       }
-    else false
-  }
+      if (isCompatible) None
+      else
+        Some(
+          new ScalaNativeCompatibilityError(
+            scalaVersion,
+            options.scalaNativeOptions.finalVersion
+          )
+        )
+    }
 
   def build(
     inputs: Inputs,
@@ -343,7 +402,7 @@ object Build {
       bloopConfig,
       "scala-cli",
       Constants.version,
-      inputs.workspace.toNIO,
+      (inputs.workspace / Constants.workspaceDirName).toNIO,
       classesDir0.toNIO,
       buildClient,
       threads.bloop,
@@ -406,7 +465,7 @@ object Build {
       bloopConfig,
       "scala-cli",
       Constants.version,
-      inputs.workspace.toNIO,
+      (inputs.workspace / Constants.workspaceDirName).toNIO,
       classesDir0.toNIO,
       buildClient,
       threads.bloop,
@@ -522,8 +581,10 @@ object Build {
         s"-Xplugin:${path.toAbsolutePath}"
     }
 
+    val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
+
     val semanticDbScalacOptions =
-      if (options.scalaOptions.generateSemanticDbs.getOrElse(false))
+      if (generateSemanticDbs)
         if (params.scalaVersion.startsWith("2."))
           Seq(
             "-Yrangepos",
@@ -536,6 +597,29 @@ object Build {
             "-Xsemanticdb"
           )
       else Nil
+
+    val semanticDbJavacOptions =
+      // FIXME Should this be in scalaOptions, now that we use it for javac stuff too?
+      if (generateSemanticDbs) {
+        // from https://github.com/scalameta/metals/blob/04405c0401121b372ea1971c361e05108fb36193/metals/src/main/scala/scala/meta/internal/metals/JavaInteractiveSemanticdb.scala#L137-L146
+        val compilerPackages = Seq(
+          "com.sun.tools.javac.api",
+          "com.sun.tools.javac.code",
+          "com.sun.tools.javac.model",
+          "com.sun.tools.javac.tree",
+          "com.sun.tools.javac.util"
+        )
+        val exports = compilerPackages.flatMap { pkg =>
+          Seq("-J--add-exports", s"-Jjdk.compiler/$pkg=ALL-UNNAMED")
+        }
+
+        Seq(
+          // does the path need to be escaped somehow?
+          s"-Xplugin:semanticdb -sourceroot:${inputs.workspace} -targetroot:javac-classes-directory"
+        ) ++ exports
+      }
+      else
+        Nil
 
     val sourceRootScalacOptions =
       if (params.scalaVersion.startsWith("2.")) Nil
@@ -564,6 +648,8 @@ object Build {
       compilerClassPath = artifacts.compilerClassPath
     )
 
+    val javacOptions = javacReleaseV ++ semanticDbJavacOptions ++ options.javaOptions.javacOptions
+
     // `test` scope should contains class path to main scope
     val mainClassesPath =
       if (scope == Scope.Test)
@@ -572,26 +658,31 @@ object Build {
 
     value(validate(logger, options))
 
+    val fullClassPath = artifacts.compileClassPath ++
+      mainClassesPath ++
+      artifacts.javacPluginDependencies.map(_._3) ++
+      artifacts.extraJavacPlugins
+
     val project = Project(
-      directory = inputs.workspace / ".scala",
+      directory = inputs.workspace / Constants.workspaceDirName,
       workspace = inputs.workspace,
       classesDir = classesDir0,
       scalaCompiler = scalaCompiler,
       scalaJsOptions =
-        if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config)
+        if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config(logger))
         else None,
       scalaNativeOptions =
         if (options.platform.value == Platform.Native)
           Some(options.scalaNativeOptions.bloopConfig())
         else None,
       projectName = inputs.scopeProjectName(scope),
-      classPath = artifacts.compileClassPath ++ mainClassesPath,
+      classPath = fullClassPath,
       resolution = Some(Project.resolution(artifacts.detailedArtifacts)),
       sources = allSources,
       resourceDirs = sources.resourceDirs,
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
-      javacOptions = javacReleaseV
+      javacOptions = javacOptions
     )
     project
   }
@@ -631,7 +722,7 @@ object Build {
     }
 
     buildClient.clear()
-    buildClient.setGeneratedSources(generatedSources)
+    buildClient.setGeneratedSources(scope, generatedSources)
 
     (classesDir0, params, artifacts, project, updatedBloopConfig)
   }
@@ -656,10 +747,11 @@ object Build {
       )
     )
 
-    if (options.platform.value == Platform.Native && !value(scalaNativeSupported(options, inputs)))
-      value(Left(new ScalaNativeCompatibilityError()))
-    else
-      value(Right(0))
+    if (options.platform.value == Platform.Native)
+      value(scalaNativeSupported(options, inputs)) match {
+        case None        =>
+        case Some(error) => value(Left(error))
+      }
 
     val (classesDir0, scalaParams, artifacts, project, updatedBloopConfig) = value {
       prepareBuild(
@@ -686,7 +778,7 @@ object Build {
     }
 
     buildClient.clear()
-    buildClient.setGeneratedSources(generatedSources)
+    buildClient.setGeneratedSources(scope, generatedSources)
     val success = Bloop.compile(
       inputs.scopeProjectName(scope),
       bloopServer,
@@ -694,18 +786,7 @@ object Build {
       buildTargetsTimeout = 20.seconds
     )
 
-    if (success) {
-      postProcess(
-        generatedSources,
-        generatedSrcRoot0,
-        classesDir0,
-        logger,
-        inputs.workspace,
-        updateSemanticDbs = true,
-        scalaVersion = project.scalaCompiler.scalaVersion
-      )
-        .left.foreach(_.foreach(logger.message(_)))
-
+    if (success)
       Successful(
         inputs,
         options,
@@ -715,9 +796,9 @@ object Build {
         artifacts,
         project,
         classesDir0,
-        buildClient.diagnostics
+        buildClient.diagnostics,
+        generatedSources
       )
-    }
     else
       Failed(
         inputs,
@@ -831,7 +912,7 @@ object Build {
     bloopServer: bloop.BloopServer
   ): Either[BuildException, Option[Build]] = either {
     val jmhProjectName = inputs.projectName + "_jmh"
-    val jmhOutputDir   = inputs.workspace / ".scala" / jmhProjectName
+    val jmhOutputDir   = inputs.workspace / Constants.workspaceDirName / jmhProjectName
     os.remove.all(jmhOutputDir)
     val jmhSourceDir   = jmhOutputDir / "sources"
     val jmhResourceDir = jmhOutputDir / "resources"

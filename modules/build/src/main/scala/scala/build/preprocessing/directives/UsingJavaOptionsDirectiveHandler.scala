@@ -1,6 +1,5 @@
 package scala.build.preprocessing.directives
-
-import scala.build.Position
+import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.preprocessing.ScopePath
@@ -8,40 +7,28 @@ import scala.build.preprocessing.ScopePath
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java options"
   def description = "Add Java options"
-  def usage       = "using java-opt _options_ | using javaOpt _options_"
+  def usage       = "//> using java-opt _options_ | //> using javaOpt _options_"
   override def usageMd =
-    """`using java-opt `_options_
+    """`//> using java-opt `_options_
       |
-      |`using javaOpt `_options_""".stripMargin
+      |`//> using javaOpt `_options_""".stripMargin
   override def examples = Seq(
-    "using javaOpt -Xmx2g -Dsomething=a"
+    "//> using javaOpt \"-Xmx2g\", \"-Dsomething=a\""
   )
-
-  def handle(directive: Directive, cwd: ScopePath): Option[Either[BuildException, BuildOptions]] =
-    directive.values match {
-      case Seq("javaOpt" | "java-opt", javaOpts @ _*) =>
-        val options = BuildOptions(
-          javaOptions = JavaOptions(
-            javaOpts = javaOpts.map(o => scala.build.Positioned(List(directive.position), o))
-          )
-        )
-        Some(Right(options))
-      case _ =>
-        None
-    }
 
   override def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
   override def handleValues(
-    values: Seq[Any],
+    directive: StrictDirective,
+    path: Either[String, os.Path],
     cwd: ScopePath,
-    positionOpt: Option[Position]
-  ): Either[BuildException, BuildOptions] = {
-    val javaOpts = DirectiveUtil.stringValues(values)
+    logger: Logger
+  ): Either[BuildException, ProcessedUsingDirective] = {
+    val javaOpts = DirectiveUtil.stringValues(directive.values, path, cwd)
     val options = BuildOptions(
       javaOptions = JavaOptions(
-        javaOpts = javaOpts.map(o => scala.build.Positioned(positionOpt.toList, o))
+        javaOpts = javaOpts.map { case (v, pos, _) => scala.build.Positioned(Seq(pos), v) }
       )
     )
-    Right(options)
+    Right(ProcessedDirective(Some(options), Seq.empty))
   }
 }
