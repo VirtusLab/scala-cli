@@ -4,6 +4,7 @@ import caseapp._
 
 import scala.build.Logger
 import scala.cli.CurrentParams
+import scala.cli.internal.ProcUtil
 import scala.io.StdIn.readLine
 import scala.util.{Failure, Properties, Success, Try}
 
@@ -24,9 +25,8 @@ object Update extends ScalaCommand[UpdateOptions] {
         sys.exit(1)
       }
 
-    val installScript =
-      os.proc("curl", "-sSLf", "https://virtuslab.github.io/scala-cli-packages/scala-setup.sh")
-        .spawn(stderr = os.Inherit)
+    val installationScript =
+      ProcUtil.downloadFile("https://virtuslab.github.io/scala-cli-packages/scala-setup.sh")
 
     // format: off
     val res = os.proc(
@@ -37,7 +37,7 @@ object Update extends ScalaCommand[UpdateOptions] {
       "--bin-dir", options.installDirPath,
     ).call(
       cwd = os.pwd,
-      stdin = installScript.stdout,
+      stdin = installationScript,
       stdout = os.Inherit,
       check = false,
       mergeErrIntoOut = true
@@ -60,12 +60,9 @@ object Update extends ScalaCommand[UpdateOptions] {
     }
 
     lazy val newestScalaCliVersion = {
-      val resp =
-        os.proc("curl", "--silent", "https://github.com/VirtusLab/scala-cli/releases/latest")
-          .call(cwd = os.pwd, mergeErrIntoOut = true, check = false)
-          .out.text().trim
+      val resp = ProcUtil.downloadFile("https://github.com/VirtusLab/scala-cli/releases/latest")
 
-      val scalaCliVersionRegex = "tag/v(.*)\"".r
+      val scalaCliVersionRegex = "tag/v(.*?)\"".r
       scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))
     }.getOrElse(
       sys.error("Can not resolve ScalaCLI version to update")
