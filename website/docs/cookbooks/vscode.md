@@ -46,6 +46,9 @@ After starting metals, you will see `run/debug` buttons in `HelloWorld.scala` an
 
 Pressing the `run` button will run the `Main.scala`, the output will be visible in `DebugConsole`.
 
+![layout](https://user-images.githubusercontent.com/24899792/151714983-83498ee2-ec56-4185-a323-3a1c130529b2.png)
+
+
 import VSCodeRun from '@site/static/img/vscode-run.png';
 
 <img src={VSCodeRun} />
