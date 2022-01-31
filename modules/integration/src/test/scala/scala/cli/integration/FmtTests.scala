@@ -49,7 +49,7 @@ class FmtTests extends munit.FunSuite {
 
   test("with --check") {
     simpleInputs.fromRoot { root =>
-      val out            = os.proc(TestUtil.cli, "fmt", "--check").call(cwd = root).out.text()
+      val out = os.proc(TestUtil.cli, "fmt", "--check").call(cwd = root, check = false).out.text()
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == noCrLf(simpleInputsUnformattedContent))
       expect(noCrLf(out) == "error: --test failed\n")
