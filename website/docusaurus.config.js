@@ -123,7 +123,7 @@ module.exports = {
           ],
         },
       ],
-      copyright: `Copyright © 2021 VirtusLab Sp. z. o. o.`,
+      copyright: `Copyright © 2021-2022 VirtusLab Sp. z. o. o.`,
     },
   },
   presets: [
