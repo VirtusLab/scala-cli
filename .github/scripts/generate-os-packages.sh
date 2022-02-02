@@ -94,6 +94,36 @@ generate_msi() {
   rm -f "$ARTIFACTS_DIR/"*.wixpdb || true
 }
 
+generate_sdk() {
+  local sdkDirectory
+  local binName
+
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sdkDirectory="scala-cli-x86_64-pc-linux-static-sdk"
+    binName="scala-cli"
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    sdkDirectory="scala-cli-x86_64-apple-darwin-sdk"
+    binName="scala-cli"
+  elif [[ "$OSTYPE" == "msys" ]]; then
+    sdkDirectory="scala-cli-x86_64-pc-win32-sdk"
+    binName="scala-cli.exe"
+  else
+    echo "Unrecognized operating system: $OSTYPE" 1>&2
+    exit 1
+  fi
+
+  mkdir -p "$sdkDirectory"/bin
+  cp "$(launcher)" "$sdkDirectory"/bin/"$binName"
+
+  if [[ "$OSTYPE" == "msys" ]]; then
+    7z a "$sdkDirectory".zip "$sdkDirectory"
+  else
+    zip -r "$sdkDirectory".zip "$sdkDirectory"
+  fi
+
+  mv "$sdkDirectory".zip "$ARTIFACTS_DIR/"/"$sdkDirectory".zip
+}
+
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   generate_deb
   generate_rpm
@@ -102,6 +132,8 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "msys" ]]; then
   generate_msi
 else
-  echo "Unrecognized operating system: $OSTYPE" 1&2
+  echo "Unrecognized operating system: $OSTYPE" 1>&2
   exit 1
 fi
+
+generate_sdk
