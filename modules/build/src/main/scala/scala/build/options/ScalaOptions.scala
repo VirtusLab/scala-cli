@@ -3,13 +3,14 @@ package scala.build.options
 import dependency.AnyDependency
 
 import scala.build.Positioned
+import scala.build.options.collections.StringOptionsList
 
 final case class ScalaOptions(
   scalaVersion: Option[String] = None,
   scalaBinaryVersion: Option[String] = None,
   addScalaLibrary: Option[Boolean] = None,
   generateSemanticDbs: Option[Boolean] = None,
-  scalacOptions: Seq[String] = Nil,
+  scalacOptions: StringOptionsList = StringOptionsList.empty,
   extraScalaVersions: Set[String] = Set.empty,
   compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
   platform: Option[Positioned[Platform]] = None,

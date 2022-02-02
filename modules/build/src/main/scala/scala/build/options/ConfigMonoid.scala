@@ -1,6 +1,7 @@
 package scala.build.options
 
 import shapeless._
+import scala.build.options.collections.StringOptionsList
 
 trait ConfigMonoid[T] {
   def zero: T
@@ -81,16 +82,21 @@ object ConfigMonoid {
       main ++ defaults
   }
 
-  implicit def map[K, V](implicit valueMonoid: ConfigMonoid[V]): ConfigMonoid[Map[K, V]] =
+  implicit def map[K, V]: ConfigMonoid[Map[K, V]] =
     instance(Map.empty[K, V]) {
       (main, defaults) =>
         (main.keySet ++ defaults.keySet).map {
           key =>
-            val mainVal     = main.getOrElse(key, valueMonoid.zero)
-            val defaultsVal = defaults.getOrElse(key, valueMonoid.zero)
-            key -> valueMonoid.orElse(mainVal, defaultsVal)
+            val mainVal     = main.get(key)
+            val defaultsVal = defaults.get(key)
+            key -> mainVal.orElse(defaultsVal).get
         }.toMap
     }
+
+  implicit def stringOptionsList: ConfigMonoid[StringOptionsList] = instance(StringOptionsList.empty) {
+    (main, defaults) =>
+      main.orElse(defaults)
+  }
 
   implicit val boolean: ConfigMonoid[Boolean] = instance(false) {
     (main, defaults) =>

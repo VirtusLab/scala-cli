@@ -40,7 +40,7 @@ final case class Sbt(
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_._2.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.forall(_.value.nameAttributes == NoAttributes)
+      options.classPathOptions.extraDependencies.values.forall(_.value.nameAttributes == NoAttributes)
 
     val settings =
       if (pureJava)
@@ -221,11 +221,12 @@ final case class Sbt(
   private def scalacOptionsSettings(options: BuildOptions): SbtProject = {
 
     val scalacOptionsSettings =
-      if (options.scalaOptions.scalacOptions.isEmpty) Nil
+      if (options.scalaOptions.scalacOptions.toSeq.isEmpty) Nil
       else {
         val options0 = options
           .scalaOptions
           .scalacOptions
+          .toSeq
           .map(o => "\"" + o.replace("\"", "\\\"") + "\"")
         Seq(s"""scalacOptions ++= Seq(${options0.mkString(", ")})""")
       }
@@ -262,9 +263,9 @@ final case class Sbt(
 
   private def dependencySettings(options: BuildOptions, scope: Scope): SbtProject = {
 
-    val depSettings = {
+    val depSettings = { // interesting...
       val depStrings = options.classPathOptions
-        .extraDependencies
+        .extraDependencies.values.toList
         .map(_.value)
         .map { dep =>
           val org  = dep.organization

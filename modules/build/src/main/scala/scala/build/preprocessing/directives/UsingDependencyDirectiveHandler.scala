@@ -8,6 +8,7 @@ import scala.build.errors.{BuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ClassPathOptions}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
+import scala.build.options.collections.StringOptionsListConversionImplicits._
 
 case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Dependency"
@@ -43,7 +44,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
         }
         .sequence
         .left.map(errors => errors.mkString(", "))
-    }
+    }.toDependencyMap()
 
     ProcessedDirective(
       Some(BuildOptions(

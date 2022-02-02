@@ -544,7 +544,7 @@ object Build {
     }
     else if (options.javaOptions.bloopJvmVersion.exists(_.value == 8))
       None
-    else if (options.scalaOptions.scalacOptions.contains("-release"))
+    else if (options.scalaOptions.scalacOptions.toSeq.contains("-release"))
       None
     else
       Some(javaHome.value.version)
@@ -625,7 +625,7 @@ object Build {
     val scalacReleaseV = releaseFlagVersion.map(v => List("-release", v)).getOrElse(Nil)
     val javacReleaseV  = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
 
-    val scalacOptions = options.scalaOptions.scalacOptions ++
+    val scalacOptions = options.scalaOptions.scalacOptions.toSeq ++
       pluginScalacOptions ++
       semanticDbScalacOptions ++
       sourceRootScalacOptions ++

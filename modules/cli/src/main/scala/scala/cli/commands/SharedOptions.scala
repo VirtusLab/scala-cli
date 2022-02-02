@@ -15,6 +15,7 @@ import scala.build.options._
 import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
 import scala.util.Properties
+import scala.build.options.collections.StringOptionsListConversionImplicits._
 // format: off
 final case class SharedOptions(
   @Recurse
@@ -122,7 +123,7 @@ final case class SharedOptions(
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         generateSemanticDbs = semanticDb,
-        scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
+        scalacOptions = scalac.scalacOption.filter(_.nonEmpty).toStringOptionList(),
         compilerPlugins =
           SharedOptions.parseDependencies(
             dependencies.compilerPlugin.map(Positioned.none(_)),
@@ -160,7 +161,7 @@ final case class SharedOptions(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none(_)),
             ignoreErrors
-          )
+          ).toDependencyMap()
       ),
       internal = InternalOptions(
         cache = Some(coursierCache),

@@ -13,6 +13,7 @@ import scala.build.errors.Diagnostic
 import java.io.PrintStream
 import coursier.cache.CacheLogger
 import scala.build.Position
+import scala.build.options.collections.StringOptionsListConversionImplicits._
 
 class BuildProjectTests extends munit.FunSuite {
 
@@ -66,7 +67,7 @@ class BuildProjectTests extends munit.FunSuite {
           Some(Positioned(bloopJavaPath, bloopJvmVersion)),
         javaHomeOpt = Some(Positioned.none(os.Path(javaHome)))
       ),
-      scalaOptions = ScalaOptions(scalacOptions = scalacOptions)
+      scalaOptions = ScalaOptions(scalacOptions = scalacOptions.toStringOptionList())
     )
 
     val inputs  = Inputs(Nil, None, os.pwd, "project", false)
