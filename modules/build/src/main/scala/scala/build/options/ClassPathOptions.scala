@@ -1,9 +1,6 @@
 package scala.build.options
 
-import dependency._
-
-import scala.build.Positioned
-import scala.build.options.collections.StringOptionsListConversionImplicits._
+import scala.build.options.collections.BuildOptionsConverterImplicits._
 
 final case class ClassPathOptions(
   extraRepositories: Seq[String] = Nil,

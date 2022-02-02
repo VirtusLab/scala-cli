@@ -93,10 +93,11 @@ object ConfigMonoid {
         }.toMap
     }
 
-  implicit def stringOptionsList: ConfigMonoid[StringOptionsList] = instance(StringOptionsList.empty) {
-    (main, defaults) =>
-      main.orElse(defaults)
-  }
+  implicit def stringOptionsList: ConfigMonoid[StringOptionsList] =
+    instance(StringOptionsList.empty) {
+      (main, defaults) =>
+        main.orElse(defaults)
+    }
 
   implicit val boolean: ConfigMonoid[Boolean] = instance(false) {
     (main, defaults) =>

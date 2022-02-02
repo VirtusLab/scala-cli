@@ -13,7 +13,7 @@ import scala.build.errors.Diagnostic
 import java.io.PrintStream
 import coursier.cache.CacheLogger
 import scala.build.Position
-import scala.build.options.collections.StringOptionsListConversionImplicits._
+import scala.build.options.collections.BuildOptionsConverterImplicits._
 
 class BuildProjectTests extends munit.FunSuite {
 

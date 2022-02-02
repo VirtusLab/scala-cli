@@ -21,7 +21,7 @@ import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
 import scala.build.preprocessing.directives._
 import scala.build.{Inputs, Logger, Position, Positioned}
 import scala.jdk.CollectionConverters._
-import scala.build.options.collections.StringOptionsListConversionImplicits._
+import scala.build.options.collections.BuildOptionsConverterImplicits._
 
 case object ScalaPreprocessor extends Preprocessor {
 

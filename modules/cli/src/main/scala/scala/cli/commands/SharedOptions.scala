@@ -15,7 +15,7 @@ import scala.build.options._
 import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
 import scala.util.Properties
-import scala.build.options.collections.StringOptionsListConversionImplicits._
+import scala.build.options.collections.BuildOptionsConverterImplicits._
 // format: off
 final case class SharedOptions(
   @Recurse

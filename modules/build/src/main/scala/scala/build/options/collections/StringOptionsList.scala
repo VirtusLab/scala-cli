@@ -1,22 +1,24 @@
 package scala.build.options.collections
 
-import scala.build.Positioned
-import dependency.AnyDependency
-
 // TODO add hardcoded beginnings for scalac and java options (especially -Xmx<size> -Xms<size>)
 
-// TODO reconsider extending map
-// consider @ (used in scalac and javac)
-/** 
- *  A collection of String options with arguments.
- *  Assumes either that:
- *   * option starts with '-' and arguments to the option without it;
- *   * option starts with '-' and arguments are appended with ':'. TODO
- *   * option starts with @, where it is left as-is. TODO
- */
-class StringOptionsList(val underlyingMap: Map[String, List[String]]) {
+/** A collection of String options with arguments. Assumes either that: an option starts with '-' and
+  * arguments to the option without it; an option starts with '-' and arguments are appended with
+  * ':'; or option starts with @, where it is left as-is.
+  */
+class StringOptionsList(
+  val underlyingMap: Map[String, List[StringOptionsList.OptionArgument]],
+  private val prefixedOptions: Seq[String] = Seq.empty
+) {
   private lazy val underlyingSeq =
-    underlyingMap.keys.toList.flatMap(key => key +: underlyingMap(key))
+    underlyingMap.keys.toList.flatMap { key =>
+      underlyingMap(key).foldLeft(List(key)) {
+        case (list, StringOptionsList.Spaced(arg)) =>
+          list :+ arg
+        case (list, StringOptionsList.Coloned(arg)) =>
+          list.tail :+ (list.head + arg)
+      }
+    }
 
   def toSeq(): List[String] = underlyingSeq
 
@@ -34,48 +36,49 @@ class StringOptionsList(val underlyingMap: Map[String, List[String]]) {
       sb.append(s"${k.hashCode()}:${v.hashCode()}\n")
     sb.toString()
   }
+
+  override def toString(): String = {
+    val sb = new StringBuilder()
+    sb.append("StringOptionsList(")
+    sb.append(underlyingSeq.mkString(", "))
+    sb.append(")")
+
+    sb.toString()
+  }
 }
 
 object StringOptionsList {
-  val empty = new StringOptionsList(Map.empty[String, List[String]]) 
-}
 
-object StringOptionsListConversionImplicits { // BuildOptionsConverterImplicits - better name
-  implicit class StringOptionsListConverter(val internal: Seq[String]) extends AnyVal {
-    /**
-      * Changes Seq[String] to OptionList, which allows for easier shadowing of repeated options.
-      *
-      * @return OptionList
-      */
-    def toStringOptionList(): StringOptionsList = {
-      val underlyingMap =
-        internal.foldLeft[(Option[String], Map[String, List[String]])](None, Map.empty) {
-          case ((previousOption, previousMap), element) =>
-            val (currentOption, currentArguments) =
-              if (element.startsWith("-")) {
-                (Some(element), Nil)
-              } else {
-                if (previousOption.isEmpty) throw new IllegalArgumentException("Value without an argument")
-                (previousOption, previousMap.getOrElse(previousOption.get, Nil) :+ element)
+  sealed trait OptionArgument
+  case class Spaced(arg: String) extends OptionArgument
+  case class Coloned(arg: String) extends OptionArgument
+
+  val empty = new StringOptionsList(Map.empty[String, List[OptionArgument]])
+
+  def fromStringList(list: Seq[String]): StringOptionsList = {
+    val underlyingMap =
+      list.foldLeft[(Option[String], Map[String, List[OptionArgument]])](None, Map.empty) {
+        case ((previousOption, previousMap), element) =>
+          val (currentOption, currentArguments) =
+            if (element.startsWith("-")) {
+              element.indexOf(":") match {
+                case -1    => (Some(element), Nil)
+                case idx => 
+                  val (option, arg) = element.splitAt(idx)
+                  (Some(option), List(Coloned(arg)))
               }
-            
-            val currentMap = previousMap + (currentOption.get -> currentArguments)
-            (currentOption, currentMap)
-        }._2
+            } else if (element.startsWith("@")) {
+              (Some(element), Nil)
+            } else {
+              if (previousOption.isEmpty)
+                throw new IllegalArgumentException("Option without an argument") // TODO reconsider throwing
+              (previousOption, previousMap.getOrElse(previousOption.get, Nil) :+ Spaced(element))
+            }
 
-      new StringOptionsList(underlyingMap)
-    }
+          val currentMap = previousMap + (currentOption.get -> currentArguments)
+          (currentOption, currentMap)
+      }._2
+
+    new StringOptionsList(underlyingMap)
   }
-
-  type DependencyMap = Map[String, Positioned[AnyDependency]]
-
-  implicit class DependencyMapConverted(val internal: Seq[Positioned[AnyDependency]]) extends AnyVal {
-    /** Changes Seq[Positioned[AnyDependency]] to DependencyMap, which allows for easier shadowing of repeated options.
-      *
-      * @return DependencyMap
-      */
-    def toDependencyMap(): DependencyMap =
-      internal.map(posDep => posDep.value.module.render -> posDep).toMap
-  }
-
 }

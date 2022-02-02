@@ -3,7 +3,7 @@ import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
-import scala.build.options.collections.StringOptionsListConversionImplicits._
+import scala.build.options.collections.BuildOptionsConverterImplicits._
 
 case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Compiler options"

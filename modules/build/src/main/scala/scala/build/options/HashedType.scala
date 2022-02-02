@@ -49,7 +49,7 @@ object HashedType {
   }
 
   implicit val stringOptionsList: HashedType[StringOptionsList] = {
-    stringOptionList => stringOptionList.toString
+    stringOptionList => stringOptionList.hashDataString()
   }
 
   implicit val unit: HashedType[Unit] = {
