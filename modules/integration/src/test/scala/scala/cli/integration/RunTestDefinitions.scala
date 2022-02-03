@@ -1412,11 +1412,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val baseImage =
-        if (TestUtil.cliKind == "native-static")
-          Constants.dockerAlpineTestImage
-        else
-          Constants.dockerTestImage
+      val baseImage = Constants.dockerTestImage
       os.copy(os.Path(TestUtil.cli.head, os.pwd), root / "scala")
       val script =
         s"""#!/usr/bin/env sh
@@ -1449,7 +1445,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (Properties.isLinux && TestUtil.isNativeCli)
+  if (Properties.isLinux && TestUtil.isNativeCli && TestUtil.cliKind != "native-static")
     test("sudo") {
       sudoTest()
     }
