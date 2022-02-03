@@ -1,6 +1,7 @@
 package scala.build.options
 
 import shapeless._
+
 import scala.build.options.collections.StringOptionsList
 
 trait ConfigMonoid[T] {

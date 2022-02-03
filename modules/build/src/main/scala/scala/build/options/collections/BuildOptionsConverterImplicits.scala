@@ -1,7 +1,8 @@
 package scala.build.options.collections
 
-import scala.build.Positioned
 import dependency.AnyDependency
+
+import scala.build.Positioned
 
 object BuildOptionsConverterImplicits {
   implicit class StringOptionsListConverter(val seq: Seq[Positioned[String]]) extends AnyVal {

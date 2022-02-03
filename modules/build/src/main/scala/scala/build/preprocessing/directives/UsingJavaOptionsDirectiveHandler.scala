@@ -1,10 +1,10 @@
 package scala.build.preprocessing.directives
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, JavaOptions}
-import scala.build.preprocessing.ScopePath
 import scala.build.options.collections.BuildOptionsConverterImplicits._
 import scala.build.options.collections.OptionPrefixes
+import scala.build.options.{BuildOptions, JavaOptions}
+import scala.build.preprocessing.ScopePath
 
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java options"
