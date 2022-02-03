@@ -92,7 +92,9 @@ jobs:
     - name: Generate native launcher
       run: .github/scripts/generate-native-image.sh
       shell: bash
+    - run: ./mill -i ci.setShouldPublish
     - name: Build OS packages
+      if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
