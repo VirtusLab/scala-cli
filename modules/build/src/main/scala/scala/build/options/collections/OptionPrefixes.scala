@@ -4,7 +4,7 @@ package scala.build.options.collections
   * `--option<value>`, without any separating ':' or white characters. If not added, those options
   * will simply not be shadowed by the cli options (resulting in errors).
   */
-object PrefixedOptions {
-  val javaPrefixes: Seq[String] = Seq("-Xmn", "-Xms", "-Xmx", "-Xss")
+object OptionPrefixes {
+  val javaPrefixes: Seq[String]   = Seq("-Xmn", "-Xms", "-Xmx", "-Xss")
   val scalacPrefixes: Seq[String] = Seq.empty
 }

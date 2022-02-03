@@ -1,26 +1,28 @@
 package scala.build.options.collections
 
-// TODO add hardcoded beginnings for scalac and java options (especially -Xmx<size> -Xms<size>)
+import scala.build.Positioned
 
-/** A collection of String options with arguments. Assumes either that: an option starts with '-' and
-  * arguments to the option without it; an option starts with '-' and arguments are appended with
-  * ':'; or option starts with @, where it is left as-is.
+/** A collection of String options with arguments. Assumes either that: an option starts with '-'
+  * and arguments to the option without it; an option starts with '-' and arguments are appended
+  * with ':'; or option starts with @, where it is left as-is.
   */
 class StringOptionsList(
-  val underlyingMap: Map[String, List[StringOptionsList.OptionArgument]],
-  private val prefixedOptions: Seq[String] = Seq.empty
+  val underlyingMap: Map[String, Positioned[List[StringOptionsList.OptionArgument]]]
 ) {
-  private lazy val underlyingSeq =
-    underlyingMap.keys.toList.flatMap { key =>
-      underlyingMap(key).foldLeft(List(key)) {
-        case (list, StringOptionsList.Spaced(arg)) =>
+  import StringOptionsList._
+  private lazy val underlyingSeq: Seq[String] =
+    underlyingMap.keys.toSeq.flatMap { key =>
+      underlyingMap(key).value.foldLeft(List(key)) {
+        case (list, Spaced(arg)) =>
           list :+ arg
-        case (list, StringOptionsList.Coloned(arg)) =>
+        case (list, Coloned(arg)) =>
+          list.tail :+ (list.head + arg)
+        case (list, Prefixed(arg)) =>
           list.tail :+ (list.head + arg)
       }
     }
 
-  def toSeq(): List[String] = underlyingSeq
+  def toSeq(): Seq[String] = underlyingSeq
 
   def orElse(other: StringOptionsList): StringOptionsList = {
     val newMap =
@@ -50,32 +52,58 @@ class StringOptionsList(
 object StringOptionsList {
 
   sealed trait OptionArgument
-  case class Spaced(arg: String) extends OptionArgument
-  case class Coloned(arg: String) extends OptionArgument
+  case class Spaced(arg: String)   extends OptionArgument
+  case class Coloned(arg: String)  extends OptionArgument
+  case class Prefixed(arg: String) extends OptionArgument
 
-  val empty = new StringOptionsList(Map.empty[String, List[OptionArgument]])
+  val empty = new StringOptionsList(Map.empty[String, Positioned[List[OptionArgument]]])
 
-  def fromStringList(list: Seq[String]): StringOptionsList = {
+  def fromPositionedStringList(
+    seq: Seq[Positioned[String]],
+    optionPrefixes: Seq[String]
+  ): StringOptionsList = {
     val underlyingMap =
-      list.foldLeft[(Option[String], Map[String, List[OptionArgument]])](None, Map.empty) {
-        case ((previousOption, previousMap), element) =>
+      seq.foldLeft[(Option[String], Map[String, Positioned[List[OptionArgument]]])](
+        None,
+        Map.empty
+      ) {
+        case ((previousOption, previousMap), positioned) =>
+          val positions = positioned.positions
+          val element   = positioned.value
+
+          val prefixMaybe = optionPrefixes.find(element.startsWith(_))
+
           val (currentOption, currentArguments) =
-            if (element.startsWith("-")) {
+            if (prefixMaybe.isDefined) {
+              val argument = element.substring(prefixMaybe.get.length())
+              (Some(prefixMaybe.get), List(Prefixed(argument)))
+            }
+            else if (element.startsWith("-"))
               element.indexOf(":") match {
-                case -1    => (Some(element), Nil)
-                case idx => 
+                case -1 => (Some(element), Nil)
+                case idx =>
                   val (option, arg) = element.splitAt(idx)
                   (Some(option), List(Coloned(arg)))
               }
-            } else if (element.startsWith("@")) {
+            else if (element.startsWith("@"))
               (Some(element), Nil)
-            } else {
+            else {
               if (previousOption.isEmpty)
-                throw new IllegalArgumentException("Option without an argument") // TODO reconsider throwing
-              (previousOption, previousMap.getOrElse(previousOption.get, Nil) :+ Spaced(element))
+                throw new IllegalArgumentException(
+                  "Option without an argument"
+                ) // TODO reconsider throwing
+              (
+                previousOption,
+                previousMap.getOrElse(
+                  previousOption.get,
+                  Positioned(positions, Nil)
+                ).value :+ Spaced(element)
+              )
             }
 
-          val currentMap = previousMap + (currentOption.get -> currentArguments)
+          val currentMap =
+            previousMap + (currentOption.get -> Positioned(positions, currentArguments))
+
           (currentOption, currentMap)
       }._2
 

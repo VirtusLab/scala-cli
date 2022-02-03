@@ -4,6 +4,8 @@ import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
 import scala.build.options.collections.BuildOptionsConverterImplicits._
+import scala.build.Positioned
+import scala.build.options.collections.OptionPrefixes
 
 case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Compiler options"
@@ -29,7 +31,10 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
     val scalacOptions = DirectiveUtil.stringValues(values, path, cwd)
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalacOptions = scalacOptions.map(_._1).toStringOptionList()
+        scalacOptions =
+          scalacOptions.map(option => Positioned(option._2, option._1)).toStringOptionList(
+            OptionPrefixes.scalacPrefixes
+          )
       )
     )
     Right(ProcessedDirective(Some(options), Seq.empty))

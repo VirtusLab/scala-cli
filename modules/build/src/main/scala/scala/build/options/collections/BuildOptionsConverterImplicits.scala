@@ -4,15 +4,15 @@ import scala.build.Positioned
 import dependency.AnyDependency
 
 object BuildOptionsConverterImplicits {
-  implicit class StringOptionsListConverter(val seq: Seq[String]) extends AnyVal {
+  implicit class StringOptionsListConverter(val seq: Seq[Positioned[String]]) extends AnyVal {
 
     /** Changes Seq[String] to OptionList, which allows for easier shadowing of repeated options.
       *
       * @return
       *   OptionList
       */
-    def toStringOptionList(): StringOptionsList =
-      StringOptionsList.fromStringList(seq)
+    def toStringOptionList(directlyConnectedPrefixes: Seq[String]): StringOptionsList =
+      StringOptionsList.fromPositionedStringList(seq, directlyConnectedPrefixes)
   }
 
   type DependencyMap = Map[String, Positioned[AnyDependency]]
