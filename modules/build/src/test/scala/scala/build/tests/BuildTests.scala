@@ -678,6 +678,24 @@ class BuildTests extends munit.FunSuite {
 
   }
 
+  test("ScalaNative installClang") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using `native-version` "0.4.0"
+          |//> using installClang
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.installCLang.get == true)
+    }
+  }
+
   test("ScalaNativeOptions for native-version") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->

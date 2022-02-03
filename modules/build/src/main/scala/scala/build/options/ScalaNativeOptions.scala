@@ -14,6 +14,7 @@ final case class ScalaNativeOptions(
   gcStr: Option[String] = None,
   clang: Option[String] = None,
   clangpp: Option[String] = None,
+  installCLang: Option[Boolean] = None,
   linkingOptions: List[String] = Nil,
   linkingDefaults: Option[Boolean] = None,
   compileOptions: List[String] = Nil,

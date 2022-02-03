@@ -3,11 +3,12 @@ package scala.build
 import coursier.cache.FileCache
 import coursier.core.Classifier
 import coursier.parse.RepositoryParser
-import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUtil}
+import coursier.util.{Artifact, Task}
+import coursier.{Fetch, Dependency => CsDependency, core => csCore, util => csUtil}
 import dependency._
 
+import java.io.File
 import java.nio.file.Path
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{
@@ -75,6 +76,7 @@ object Artifacts {
     addStubs: Boolean,
     addJvmRunner: Option[Boolean],
     addJvmTestRunner: Boolean,
+    addClang: Option[Boolean],
     addJsTestBridge: Option[String],
     addNativeTestInterface: Option[String],
     addJmhDependencies: Option[String],
@@ -82,6 +84,25 @@ object Artifacts {
     extraRepositories: Seq[String],
     logger: Logger
   ): Either[BuildException, Artifacts] = either {
+
+    addClang.map { _ =>
+      val cache = FileCache()
+      val task = {
+
+        val artifact = Artifact(url = CLangInstaller.mambaBinaryUrl
+        // checksumUrls TODO: verify check sum of archive
+        ).withChanging(true)
+        cache.file(artifact).run.flatMap {
+          case Left(e: Exception) => Task.fail(e)
+          case Right(archive: File) =>
+            Task.delay {
+              Task.fromEither(CLangInstaller.install(os.Path(archive.toPath), logger))
+            }
+        }
+      }
+      val launchersTask = cache.logger.using(task)
+      launchersTask.unsafeRun()(cache.ec)
+    }
 
     val compilerDependencies =
       if (params.scalaVersion.startsWith("3."))
