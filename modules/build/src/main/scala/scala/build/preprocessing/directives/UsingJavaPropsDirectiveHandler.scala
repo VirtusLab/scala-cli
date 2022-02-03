@@ -3,6 +3,8 @@ import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
+import scala.build.options.collections.BuildOptionsConverterImplicits._
+import scala.build.options.collections.OptionPrefixes
 
 case object UsingJavaPropsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java properties"
@@ -29,7 +31,9 @@ case object UsingJavaPropsDirectiveHandler extends UsingDirectiveHandler {
         case Array(k, v) => Positioned(position, s"-D$k=$v")
       }
     }
-    val options = BuildOptions(javaOptions = JavaOptions(javaOpts = javaOpts))
+    val options = BuildOptions(javaOptions =
+      JavaOptions(javaOpts = javaOpts.toStringOptionsList(OptionPrefixes.javaPrefixes))
+    )
     Right(ProcessedDirective(Some(options), Seq.empty))
   }
 }

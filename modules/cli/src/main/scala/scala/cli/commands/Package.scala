@@ -575,7 +575,7 @@ object Package extends ScalaCommand[PackageOptions] {
         val exitCode =
           Runner.runJvm(
             build.options.javaHome().value.javaCommand,
-            build.options.javaOptions.javaOpts.map(_.value),
+            build.options.javaOptions.javaOpts.toSeq(),
             build.artifacts.scalaNativeCli.map(_.toFile),
             "scala.scalanative.cli.ScalaNativeLd",
             args,

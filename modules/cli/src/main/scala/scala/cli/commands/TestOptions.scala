@@ -5,6 +5,8 @@ import caseapp.core.help.Help
 
 import scala.build.Positioned
 import scala.build.options.BuildOptions
+import scala.build.options.collections.BuildOptionsConverterImplicits._
+import scala.build.options.collections.OptionPrefixes
 
 // format: off
 @HelpMessage("Compile and test Scala code")
@@ -33,7 +35,9 @@ final case class TestOptions(
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
-          baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts.map(Positioned.commandLine _)
+          baseOptions.javaOptions.javaOpts.orElse(sharedJava.allJavaOpts
+            .map(Positioned.commandLine _)
+            .toStringOptionsList(OptionPrefixes.javaPrefixes))
       ),
       testOptions = baseOptions.testOptions.copy(
         frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty)

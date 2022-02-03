@@ -32,7 +32,7 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalacOptions =
-          scalacOptions.map(option => Positioned(option._2, option._1)).toStringOptionList(
+          scalacOptions.map(option => Positioned(option._2, option._1)).toStringOptionsList(
             OptionPrefixes.scalacPrefixes
           )
       )

@@ -11,7 +11,7 @@ object BuildOptionsConverterImplicits {
       * @return
       *   OptionList
       */
-    def toStringOptionList(directlyConnectedPrefixes: Seq[String]): StringOptionsList =
+    def toStringOptionsList(directlyConnectedPrefixes: Seq[String]): StringOptionsList =
       StringOptionsList.fromPositionedStringList(seq, directlyConnectedPrefixes)
   }
 

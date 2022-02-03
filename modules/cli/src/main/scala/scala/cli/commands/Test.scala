@@ -176,7 +176,7 @@ object Test extends ScalaCommand[TestOptions] {
 
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
-          build.options.javaOptions.javaOpts.map(_.value),
+          build.options.javaOptions.javaOpts.toSeq(),
           classPath.map(_.toFile),
           Constants.testRunnerMainClass,
           extraArgs,

@@ -3,6 +3,8 @@ import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.preprocessing.ScopePath
+import scala.build.options.collections.BuildOptionsConverterImplicits._
+import scala.build.options.collections.OptionPrefixes
 
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java options"
@@ -26,7 +28,9 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
     val javaOpts = DirectiveUtil.stringValues(directive.values, path, cwd)
     val options = BuildOptions(
       javaOptions = JavaOptions(
-        javaOpts = javaOpts.map { case (v, pos, _) => scala.build.Positioned(Seq(pos), v) }
+        javaOpts = javaOpts.map { case (v, pos, _) =>
+          scala.build.Positioned(Seq(pos), v)
+        }.toStringOptionsList(OptionPrefixes.javaPrefixes)
       )
     )
     Right(ProcessedDirective(Some(options), Seq.empty))

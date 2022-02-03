@@ -192,11 +192,11 @@ final case class Sbt(
   private def javaOptionsSettings(options: BuildOptions): SbtProject = {
 
     val javaOptionsSettings =
-      if (options.javaOptions.javaOpts.map(_.value).isEmpty) Nil
+      if (options.javaOptions.javaOpts.toSeq().isEmpty) Nil
       else
         Seq(
           "run / javaOptions ++= Seq(" + nl +
-            options.javaOptions.javaOpts.map(_.value).map(opt =>
+            options.javaOptions.javaOpts.toSeq().map(opt =>
               "  \"" + opt + "\"," + nl
             ).mkString +
             ")"

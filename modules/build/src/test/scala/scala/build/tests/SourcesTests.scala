@@ -404,7 +404,7 @@ class SourcesTests extends munit.FunSuite {
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources  = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
-      val javaOpts = sources.buildOptions.javaOptions.javaOpts.sortBy(_.toString())
+      val javaOpts = sources.buildOptions.javaOptions.javaOpts.toPositionedSeq.sortBy(_.toString())
 
       expect(
         javaOpts(0).value == "-Dfoo1",

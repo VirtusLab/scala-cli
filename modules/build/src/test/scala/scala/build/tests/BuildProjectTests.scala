@@ -69,9 +69,8 @@ class BuildProjectTests extends munit.FunSuite {
         javaHomeOpt = Some(Positioned.none(os.Path(javaHome)))
       ),
       scalaOptions = ScalaOptions(scalacOptions =
-        scalacOptions.map(Positioned.commandLine(_)).toStringOptionList(
-          OptionPrefixes.scalacPrefixes
-        )
+        scalacOptions.map(Positioned.commandLine(_))
+          .toStringOptionsList(OptionPrefixes.scalacPrefixes)
       )
     )
 

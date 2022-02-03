@@ -10,9 +10,11 @@ class StringOptionsList(
   val underlyingMap: Map[String, Positioned[List[StringOptionsList.OptionArgument]]]
 ) {
   import StringOptionsList._
-  private lazy val underlyingSeq: Seq[String] =
+
+  lazy val underlyingPositionedSeq: Seq[Positioned[String]] =
     underlyingMap.keys.toSeq.flatMap { key =>
-      underlyingMap(key).value.foldLeft(List(key)) {
+      val positions = underlyingMap(key).positions
+      val seq = underlyingMap(key).value.foldLeft(List(key)) {
         case (list, Spaced(arg)) =>
           list :+ arg
         case (list, Coloned(arg)) =>
@@ -20,9 +22,12 @@ class StringOptionsList(
         case (list, Prefixed(arg)) =>
           list.tail :+ (list.head + arg)
       }
+      seq.map(Positioned(positions, _))
     }
 
-  def toSeq(): Seq[String] = underlyingSeq
+  def toSeq(): Seq[String] = underlyingPositionedSeq.map(_.value)
+
+  def toPositionedSeq(): Seq[Positioned[String]] = underlyingPositionedSeq
 
   def orElse(other: StringOptionsList): StringOptionsList = {
     val newMap =
@@ -42,7 +47,7 @@ class StringOptionsList(
   override def toString(): String = {
     val sb = new StringBuilder()
     sb.append("StringOptionsList(")
-    sb.append(underlyingSeq.mkString(", "))
+    sb.append(underlyingPositionedSeq.mkString(", "))
     sb.append(")")
 
     sb.toString()

@@ -126,7 +126,7 @@ final case class SharedOptions(
         generateSemanticDbs = semanticDb,
         scalacOptions = scalac.scalacOption.filter(_.nonEmpty).map(
           Positioned.commandLine(_)
-        ).toStringOptionList(OptionPrefixes.scalacPrefixes),
+        ).toStringOptionsList(OptionPrefixes.scalacPrefixes),
         compilerPlugins =
           SharedOptions.parseDependencies(
             dependencies.compilerPlugin.map(Positioned.none(_)),

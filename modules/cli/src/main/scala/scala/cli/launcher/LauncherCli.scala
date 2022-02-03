@@ -45,7 +45,7 @@ object LauncherCli {
     val exitCode =
       Runner.runJvm(
         buildOptions.javaHome().value.javaCommand,
-        buildOptions.javaOptions.javaOpts.map(_.value),
+        buildOptions.javaOptions.javaOpts.toSeq(),
         scalaCli,
         "scala.cli.ScalaCli",
         remainingArgs,
