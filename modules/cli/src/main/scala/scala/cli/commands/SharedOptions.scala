@@ -12,11 +12,11 @@ import java.io.{ByteArrayOutputStream, File, InputStream}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.{Constants, OsLibc}
 import scala.build.options._
+import scala.build.options.collections.BuildOptionsConverterImplicits._
+import scala.build.options.collections.OptionPrefixes
 import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
 import scala.util.Properties
-import scala.build.options.collections.BuildOptionsConverterImplicits._
-import scala.build.options.collections.OptionPrefixes
 // format: off
 final case class SharedOptions(
   @Recurse
