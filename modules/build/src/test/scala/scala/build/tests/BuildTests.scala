@@ -628,7 +628,7 @@ class BuildTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == SingleValueExpected("native-gc", Seq()))
+      assert(maybeBuild.left.get == new SingleValueExpected("native-gc", Seq()))
     }
   }
 
@@ -646,7 +646,7 @@ class BuildTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == SingleValueExpected("native-gc", Seq("78", "12")))
+      assert(maybeBuild.left.get == new SingleValueExpected("native-gc", Seq("78", "12")))
     }
 
   }
@@ -683,7 +683,10 @@ class BuildTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == SingleValueExpected("native-version", Seq("0.4.0", "0.3.3")))
+      assert(maybeBuild.left.get == new SingleValueExpected(
+        "native-version",
+        Seq("0.4.0", "0.3.3")
+      ))
     }
 
   }

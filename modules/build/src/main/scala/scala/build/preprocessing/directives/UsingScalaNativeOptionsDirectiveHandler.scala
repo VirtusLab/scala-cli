@@ -73,9 +73,9 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
         ))
         res
       case "native-version" | "nativeVersion" =>
-        Left(SingleValueExpected("native-version", scalaNativeOptions.map(_._1)))
+        Left(new SingleValueExpected("native-version", scalaNativeOptions.map(_._1)))
       case "native-gc" | "nativeGc" =>
-        Left(SingleValueExpected("native-gc", scalaNativeOptions.map(_._1)))
+        Left(new SingleValueExpected("native-gc", scalaNativeOptions.map(_._1)))
     }
     intermediate.map { bo =>
       ProcessedDirective(Some(bo), Seq.empty)
@@ -84,6 +84,6 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
 
 }
 
-final case class SingleValueExpected(param: String, values: Seq[String]) extends BuildException(
+final class SingleValueExpected(param: String, values: Seq[String]) extends BuildException(
       s"Expected single value for $param but found $values"
     )
