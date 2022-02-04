@@ -151,7 +151,9 @@ final case class BuildOptions(
     if (doAdd) Some(scalaNativeOptions.finalVersion)
     else None
   }
-  private def addClang: Option[Boolean] = scalaNativeOptions.installCLang.map( installRequested => installRequested && platform.value == Platform.Native )
+  private def addClang: Option[Boolean] = scalaNativeOptions.installCLang.map(installRequested =>
+    installRequested && platform.value == Platform.Native
+  )
 
   lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed

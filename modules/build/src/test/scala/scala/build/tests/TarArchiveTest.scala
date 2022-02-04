@@ -15,7 +15,9 @@ class TarArchiveTest extends munit.FunSuite {
     try {
       val result = TarArchive.decompress(os.read.inputStream(testTar), Path(tempDir))
       assert(result.isRight)
-      assert(os.exists(Path(tempDir.toString) / 'test_archive / 'test_dir / "testfile_in_folder.txt"))
+      assert(
+        os.exists(Path(tempDir.toString) / 'test_archive / 'test_dir / "testfile_in_folder.txt")
+      )
     }
     finally {
       // Files.delete(tempDir) // TODO: FixMe

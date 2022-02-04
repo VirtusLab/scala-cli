@@ -67,12 +67,12 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
           )
         )
       case "installClang" => Right(
-        BuildOptions(
-          scalaNativeOptions = ScalaNativeOptions(
-            installCLang = Some(true)
+          BuildOptions(
+            scalaNativeOptions = ScalaNativeOptions(
+              installCLang = Some(true)
+            )
           )
         )
-      )
       case "native-linking" | "nativeLinking" =>
         val res = Right(BuildOptions(
           scalaNativeOptions = ScalaNativeOptions(

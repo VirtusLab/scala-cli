@@ -40,7 +40,7 @@ object CLangInstaller {
         TODO: we need to have mamba initialized
         ./micromamba shell init -s bash -p ~/micromamba
         source ~/.bashrc
-        */
+         */
         val installLLVM = s"$mambaPath install llvm -n base -c conda-forge -y".split(" ").toSeq
         Runner.run("install llvm", installLLVM, logger, cwd = Some(miniMambaPath))
         miniMambaPath

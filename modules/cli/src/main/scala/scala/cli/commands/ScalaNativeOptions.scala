@@ -44,7 +44,12 @@ final case class ScalaNativeOptions(
   @Group("Scala Native")
   @Hidden
   @HelpMessage("Use default compile options")
-    nativeCompileDefaults: Option[Boolean] = None //TODO does it even work when we default it to true while handling?
+    nativeCompileDefaults: Option[Boolean] = None, //TODO does it even work when we default it to true while handling?
+
+  @Group("Scala Native")
+  @Hidden
+  @HelpMessage("Attempt to install llvm using mamba")
+  nativeInstallCLang: Option[Boolean] = None
 
 ) {
   // format: on
@@ -56,6 +61,7 @@ final case class ScalaNativeOptions(
       nativeGc,
       nativeClang,
       nativeClangpp,
+      nativeInstallCLang,
       nativeLinking,
       nativeLinkingDefaults,
       nativeCompile,
