@@ -15,7 +15,12 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  DependencyFormatError,
+  UnusedDirectiveError
+}
 import scala.build.internal.{AmmUtil, Util}
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
 import scala.build.preprocessing.directives._
@@ -301,7 +306,7 @@ case object ScalaPreprocessor extends Preprocessor {
       )
     }
 
-    val directives2 = updatedRequirements.unused
+    val unusedDirectives = updatedRequirements.unused
 
     val updatedContentOpt =
       if (codeOffset > 0) {
@@ -318,22 +323,33 @@ case object ScalaPreprocessor extends Preprocessor {
       else None
 
     value {
-      if (directives2.nonEmpty) {
-        val errors = directives2.map(d =>
-          new DefaultDirectiveHandler[Nothing].handleValues(d, path, cwd, logger)
-        ).collect {
-          case Left(e) => e
-        }
-        Left(CompositeBuildException(errors))
+      unusedDirectives match {
+        case Seq() =>
+          Right(StrictDirectivesProcessingOutput(
+            updatedRequirements.global,
+            updatedOptions.global,
+            updatedRequirements.scoped,
+            updatedContentOpt
+          ))
+        case Seq(h, t @ _*) =>
+          val errors = ::(
+            handleUnusedValues(h, path, cwd),
+            t.map(d => handleUnusedValues(d, path, cwd)).toList
+          )
+          Left(CompositeBuildException(errors))
       }
-      else
-        Right(StrictDirectivesProcessingOutput(
-          updatedRequirements.global,
-          updatedOptions.global,
-          updatedRequirements.scoped,
-          updatedContentOpt
-        ))
     }
+  }
+
+  private def handleUnusedValues(
+    directive: StrictDirective,
+    path: Either[String, os.Path],
+    cwd: ScopePath
+  ): BuildException = {
+    val values =
+      DirectiveUtil.stringValues(directive.values, path, cwd) ++
+        DirectiveUtil.numericValues(directive.values, path, cwd)
+    new UnusedDirectiveError(directive.key, values.map(_._1.value), values.flatMap(_._1.positions))
   }
 
   case class ExtractedDirectives(offset: Int, directives: Seq[StrictDirective])
@@ -383,7 +399,7 @@ case object ScalaPreprocessor extends Preprocessor {
     val usedDirectives =
       if (!codeDirectives.getFlattenedMap().isEmpty()) {
         val msg =
-          s"This using directive is ignored. File contains directives outside comments and those has higher precedence."
+          "This using directive is ignored. File contains directives outside comments and those have higher precedence."
         reportWarning(
           msg,
           getDirectives(plainCommentDirectives) ++ getDirectives(specialCommentDirectives)

@@ -2,10 +2,18 @@ package scala.build.tests
 
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
+import dependency.parser.DependencyParser
 
 import java.io.IOException
 
 import scala.build.Ops._
+import scala.build.Positioned
+import scala.build.errors.{
+  DependencyFormatError,
+  NoValueProvidedError,
+  ScalaNativeCompatibilityError,
+  SingleValueExpectedError
+}
 import scala.build.options.{
   BuildOptions,
   InternalOptions,
@@ -20,11 +28,6 @@ import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
-import scala.build.preprocessing.directives.SingleValueExpected
-import scala.build.errors.ScalaNativeCompatibilityError
-import dependency.parser.DependencyParser
-import scala.build.Positioned
-import scala.build.errors.DependencyFormatError
 
 class BuildTests extends munit.FunSuite {
 
@@ -627,8 +630,9 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == new SingleValueExpected("native-gc", Seq()))
+      expect(
+        maybeBuild.left.exists { case _: NoValueProvidedError => true; case _ => false }
+      )
     }
   }
 
@@ -645,8 +649,9 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == new SingleValueExpected("native-gc", Seq("78", "12")))
+      assert(
+        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+      )
     }
 
   }
@@ -682,11 +687,9 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == new SingleValueExpected(
-        "native-version",
-        Seq("0.4.0", "0.3.3")
-      ))
+      assert(
+        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+      )
     }
 
   }

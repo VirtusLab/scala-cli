@@ -19,7 +19,7 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
     "//> using target.scala.< \"3.0.2\""
   )
 
-  override def keys: Seq[String] = Seq(
+  def keys: Seq[String] = Seq(
     "target.scala.==",
     "target.scala.>=",
     "target.scala.<=",
@@ -62,22 +62,22 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
       Left(new DirectiveErrors(::("Match error in ScalaVersionDirectiveHandler", Nil)))
   }
 
-  override def handleValues(
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, Path],
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, ProcessedRequireDirective] = {
     val values         = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val nonscopedValue = values.find(_._3.isEmpty).map(_._1)
+    val nonscopedValue = values.find(_._2.isEmpty).map(_._1.value)
     val nonscoped = nonscopedValue match {
       case None    => Right(None)
       case Some(v) => handleVersion(directive.key, v)
     }
 
     val scoped = values.collect {
-      case (v, _, Some(scopePath)) =>
-        handleVersion(directive.key, v).map(_.map(req => Scoped(scopePath, req)))
+      case (v, Some(scopePath)) =>
+        handleVersion(directive.key, v.value).map(_.map(req => Scoped(scopePath, req)))
     }
       .toSeq
       .sequence

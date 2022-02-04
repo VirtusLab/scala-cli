@@ -68,7 +68,8 @@ object Build {
         else
           Left(
             new SeveralMainClassesFoundError(
-              ::(foundMainClasses0.head, foundMainClasses0.tail.toList)
+              ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
+              Nil
             )
           )
 
