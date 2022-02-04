@@ -121,9 +121,12 @@ object Package extends ScalaCommand[PackageOptions] {
     }
 
     val dest = outputOpt
-      .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1)).map(_.stripSuffix(
-        "_sc"
-      )).map(_ + extension))
+      .orElse {
+        build.sources.mainClass
+          .map(n => n.drop(n.lastIndexOf('.') + 1))
+          .map(_.stripSuffix("_sc"))
+          .map(_ + extension)
+      }
       .getOrElse(defaultName)
     val destPath = os.Path(dest, Os.pwd)
     val printableDest =
