@@ -85,7 +85,7 @@ object Artifacts {
     logger: Logger
   ): Either[BuildException, Artifacts] = either {
 
-    addClang.map { _ =>
+    if (addClang.getOrElse(false)) {
       val cache = FileCache()
       val task = {
 
