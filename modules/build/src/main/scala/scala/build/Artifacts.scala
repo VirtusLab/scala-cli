@@ -93,7 +93,7 @@ object Artifacts {
         // checksumUrls TODO: verify check sum of archive
         ).withChanging(true)
         cache.file(artifact).run.flatMap {
-          case Left(e: Exception) => Task.fail(e)
+          case Left(e) => Task.fail(new Exception(e))
           case Right(archive: File) =>
             Task.delay {
               Task.fromEither(CLangInstaller.install(os.Path(archive.toPath), logger))
