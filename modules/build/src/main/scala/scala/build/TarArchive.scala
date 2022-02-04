@@ -7,10 +7,10 @@ import os.{Path, RelPath}
 
 import java.io.{FileOutputStream, InputStream}
 import java.nio.file.Files
+
 import scala.util.Try
 
 object TarArchive {
-
   def decompress(inputStream: InputStream, outputPath: Path): Either[Throwable, Path] = Try {
     val content = new TarArchiveInputStream(new BZip2CompressorInputStream(inputStream))
     Stream.continually(Option(content.getNextTarEntry))

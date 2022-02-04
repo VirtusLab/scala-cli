@@ -9,6 +9,8 @@ import scala.util.Properties
 final class CLangInstallException extends BuildException("Failed to Install CLang")
 
 object CLangInstaller {
+
+  def directories = scala.build.Directories.default()
   /*
   Installer based on micromamba attempts to install mamba and llvm based on that
   Following https://gist.github.com/wolfv/fe1ea521979973ab1d016d95a589dcde
@@ -21,14 +23,17 @@ object CLangInstaller {
   }
 
   def install(microMambaArchive: Path, logger: Logger): Either[BuildException, Path] =
-    install(microMambaArchive, os.Path("/tmp/clang_output"), logger = logger)
+    install(microMambaArchive, directories.mambaBaseDir, logger = logger)
 
   def install(
     microMambaArchive: Path,
-    outputPath: Path,
+    mambaBaseDir: Path,
     logger: Logger
-  ): Either[BuildException, Path] =
-    TarArchive.decompress(os.read.inputStream(microMambaArchive), outputPath)
+  ): Either[BuildException, Path] = {
+    // TODO: we should relay on coursier to give us decompressed archive file but there is no bzip2 support
+    // for ArchiveCache => https://github.com/coursier/coursier/blob/master/modules/cache/jvm/src/main/scala/coursier/cache/ArchiveCache.scala#L151
+
+    TarArchive.decompress(os.read.inputStream(microMambaArchive), mambaBaseDir)
       .left.map(_ => new CLangInstallException)
       .right.map { miniMambaPath: Path =>
         val mambaPath = miniMambaPath / 'bin / "micromamba"
@@ -45,4 +50,5 @@ object CLangInstaller {
         Runner.run("install llvm", installLLVM, logger, cwd = Some(miniMambaPath))
         miniMambaPath
       }
+  }
 }

@@ -4,11 +4,12 @@ import coursier.cache.FileCache
 import coursier.core.Classifier
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
-import coursier.{Fetch, Dependency => CsDependency, core => csCore, util => csUtil}
+import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUtil}
 import dependency._
 
 import java.io.File
 import java.nio.file.Path
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{
@@ -85,7 +86,7 @@ object Artifacts {
     logger: Logger
   ): Either[BuildException, Artifacts] = either {
 
-    if (addClang.getOrElse(false)) {
+    addClang.map { _ =>
       val cache = FileCache()
       val task = {
 
@@ -97,7 +98,7 @@ object Artifacts {
           case Right(archive: File) =>
             Task.delay {
               Task.fromEither(CLangInstaller.install(os.Path(archive.toPath), logger))
-            }
+            }.flatMap(identity)
         }
       }
       val launchersTask = cache.logger.using(task)

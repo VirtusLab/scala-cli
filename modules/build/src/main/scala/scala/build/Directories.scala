@@ -12,6 +12,7 @@ trait Directories {
   def bspSocketDir: os.Path
   def bloopDaemonDir: os.Path
   def bloopWorkingDir: os.Path
+  def mambaBaseDir: os.Path
 }
 
 object Directories {
@@ -37,6 +38,8 @@ object Directories {
         else projDirs.dataLocalDir
       os.Path(baseDir, Os.pwd) / "bloop"
     }
+    lazy val mambaBaseDir: os.Path =
+      os.Path(projDirs.cacheDir, Os.pwd) / "mamba-base"
   }
 
   final case class SubDir(dir: os.Path) extends Directories {
@@ -54,6 +57,8 @@ object Directories {
       bloopWorkingDir / "daemon"
     lazy val bloopWorkingDir: os.Path =
       dir / "data-local" / "bloop"
+    lazy val mambaBaseDir: os.Path =
+      dir / "mamba-base"
   }
 
   def default(): Directories = {

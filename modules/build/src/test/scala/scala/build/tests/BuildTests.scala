@@ -4,9 +4,8 @@ import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.IOException
-
 import scala.build.Ops._
-import scala.build.options.{BuildOptions, InternalOptions, ScalaOptions}
+import scala.build.options.{BuildOptions, InternalOptions, ScalaNativeOptions, ScalaOptions}
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
@@ -686,11 +685,8 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
     val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
+      scalaNativeOptions = ScalaNativeOptions(installCLang = Some(true))
     )
-
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.installCLang.get == true)
     }
