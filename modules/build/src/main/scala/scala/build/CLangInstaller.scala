@@ -29,7 +29,7 @@ object CLangInstaller {
     microMambaArchive: Path,
     mambaBaseDir: Path,
     logger: Logger
-  ): Either[BuildException, Path] = {
+  ): Either[BuildException, Path] =
     // TODO: we should relay on coursier to give us decompressed archive file but there is no bzip2 support
     // for ArchiveCache => https://github.com/coursier/coursier/blob/master/modules/cache/jvm/src/main/scala/coursier/cache/ArchiveCache.scala#L151
 
@@ -50,5 +50,4 @@ object CLangInstaller {
         Runner.run("install llvm", installLLVM, logger, cwd = Some(miniMambaPath))
         miniMambaPath
       }
-  }
 }
