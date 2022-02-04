@@ -16,6 +16,7 @@ import scala.build.options.{
 }
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
+
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Platform"
   def description      = "Set the default platform to Scala.JS or Scala Native"

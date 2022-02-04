@@ -156,7 +156,6 @@ final class BspImpl(
       Build.buildOnce(
         inputs,
         data.sources,
-        inputs.generatedSrcRoot(scope),
         data.generatedSources,
         data.buildOptions,
         scope,

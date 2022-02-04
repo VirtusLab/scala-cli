@@ -39,8 +39,6 @@ object Package extends ScalaCommand[PackageOptions] {
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
-    // TODO Add watch mode
-
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
