@@ -46,7 +46,7 @@ final case class ReplOptions(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            JavaOpt.fromPositionedStringSeq(sharedJava.allJavaOpts.map(Positioned.commandLine _))
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
       ),
       replOptions = baseOptions.replOptions.copy(
         useAmmoniteOpt = ammonite,

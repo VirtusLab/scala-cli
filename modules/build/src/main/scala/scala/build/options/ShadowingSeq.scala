@@ -2,33 +2,48 @@ package scala.build.options
 
 import dependency.AnyDependency
 
-import scala.build.Positioned
 import scala.collection.mutable
 
 /** Seq ensuring some of its values are unique according to some key */
-final case class ShadowingSeq[T](values: Seq[T]) {
-  def ++(other: Seq[T])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] = {
-    val l    = new mutable.ListBuffer[T]
-    val seen = new mutable.HashSet[String]
+final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
+  lazy val toSeq: Seq[T] = values.flatten
+  def ++(other: Seq[T])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =
+    addGroups(ShadowingSeq.groups(other, key.groups(other)))
+  private def addGroups(other: Seq[Seq[T]])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =
+    if (other.isEmpty) this
+    else {
+      val l    = new mutable.ListBuffer[Seq[T]]
+      val seen = new mutable.HashSet[String]
 
-    for (t <- (values ++ other)) {
-      val keyOpt = key.get(t)
-      if (!keyOpt.exists(seen.contains)) {
-        l += t
-        for (key <- keyOpt)
-          seen += key
+      for (group <- values.iterator ++ other.iterator) {
+        assert(group.nonEmpty)
+        val keyOpt = key.get(group.head)
+        if (!keyOpt.exists(seen.contains)) {
+          l += group
+          for (key <- keyOpt)
+            seen += key
+        }
       }
-    }
 
-    ShadowingSeq(l.toSeq)
-  }
+      ShadowingSeq(l.toList)
+    }
 }
 
 object ShadowingSeq {
-  final case class KeyOf[T](get: T => Option[String])
+
+  final case class KeyOf[T](
+    get: T => Option[String],
+    /** The indices at which sub-groups of values start */
+    groups: Seq[T] => Seq[Int]
+  )
+  object KeyOf {
+    implicit val keyOfAnyDependency: KeyOf[AnyDependency] =
+      KeyOf(dep => Some(dep.module.render), _.indices)
+  }
+
   implicit def monoid[T](implicit key: KeyOf[T]): ConfigMonoid[ShadowingSeq[T]] =
     ConfigMonoid.instance(ShadowingSeq.empty[T]) { (a, b) =>
-      a ++ b.values
+      a.addGroups(b.values)
     }
   implicit def hashedType[T]: HashedType[ShadowingSeq[T]] = {
     a => a.toString
@@ -36,97 +51,18 @@ object ShadowingSeq {
 
   def empty[T]: ShadowingSeq[T] = ShadowingSeq(Nil)
 
-  implicit val positionedAnyDependency: ShadowingSeq.KeyOf[Positioned[AnyDependency]] =
-    ShadowingSeq.KeyOf(posDep => Some(posDep.value.module.render))
-}
+  def from[T](values: Seq[T])(implicit key: KeyOf[T]): ShadowingSeq[T] =
+    empty[T] ++ values
 
-final case class JavaOpt(value: Seq[Positioned[String]]) {
-  def key: Option[String] =
-    if (!value.isEmpty) {
-      val opt         = value(0).value
-      val prefixMaybe = JavaOpt.optionPrefixes.find(opt.startsWith(_))
-
-      prefixMaybe.orElse {
-        if (opt.startsWith("-"))
-          Some(opt.split(':')(0))
-        else if (opt.startsWith("@"))
-          Some("@")
-        else None
+  private def groups[T](values: Seq[T], indices: Seq[Int]): Seq[Seq[T]] = {
+    val safeIndices = Seq(0) ++ indices ++ Seq(values.length)
+    safeIndices
+      .sliding(2)
+      .map {
+        case Seq(start, end) =>
+          values.slice(start, end)
       }
-    }
-    else
-      None
-}
-object JavaOpt {
-  /* Hardcoded prefixes for java options */
-  private val optionPrefixes = Set("-Xmn", "-Xms", "-Xmx", "-Xss")
-
-  implicit val keyOf: ShadowingSeq.KeyOf[JavaOpt] =
-    ShadowingSeq.KeyOf(_.key)
-
-  def fromPositionedStringSeq(seq: Seq[Positioned[String]]): Seq[JavaOpt] =
-    OptUtils.groupCliOptions(seq).map(JavaOpt(_))
-
-  def toStringSeq(seq: Seq[JavaOpt]): Seq[String] =
-    seq.flatMap(_.value).map(_.value)
-
-  def toPositionedStringSeq(seq: Seq[JavaOpt]): Seq[Positioned[String]] =
-    seq.flatMap(_.value)
-}
-
-final case class ScalacOpt(value: Seq[Positioned[String]]) {
-  def key: Option[String] =
-    if (!value.isEmpty) {
-      val opt = value(0).value
-
-      val key =
-        if (opt.startsWith("-"))
-          Some(opt.split(':')(0))
-        else if (opt.startsWith("@"))
-          Some("@")
-        else None
-
-      if (key.exists(ScalacOpt.repeatingKeys.contains)) None
-      else key
-    }
-    else
-      None
-}
-object ScalacOpt {
-  private val repeatingKeys = Set(
-    "-Xplugin:",
-    "-P" // plugin options
-  )
-
-  implicit val keyOf: ShadowingSeq.KeyOf[ScalacOpt] =
-    ShadowingSeq.KeyOf(_.key)
-
-  def fromPositionedStringSeq(seq: Seq[Positioned[String]]): Seq[ScalacOpt] =
-    OptUtils.groupCliOptions(seq).map(ScalacOpt(_))
-
-  def toStringSeq(seq: Seq[ScalacOpt]): Seq[String] =
-    seq.flatMap(_.value).map(_.value)
-
-  def toPositionedStringSeq(seq: Seq[ScalacOpt]): Seq[Positioned[String]] =
-    seq.flatMap(_.value)
-}
-
-object OptUtils {
-  // Groups options (starting with `-` or `@`) with option arguments that follow
-  def groupCliOptions(opts: Seq[Positioned[String]]): Seq[Seq[Positioned[String]]] = {
-    val seqListBuffer = new mutable.ListBuffer[Seq[Positioned[String]]]
-    val optListBuffer = new mutable.ListBuffer[Positioned[String]]
-    for (element <- opts) {
-      val opt = element.value
-      if (opt.startsWith("-") || opt.startsWith("@"))
-        if (!optListBuffer.isEmpty) {
-          seqListBuffer += optListBuffer.toSeq
-          optListBuffer.clear()
-        }
-      optListBuffer += element
-    }
-    seqListBuffer += optListBuffer.toSeq
-
-    seqListBuffer.toSeq
+      .filter(_.nonEmpty)
+      .toVector
   }
 }

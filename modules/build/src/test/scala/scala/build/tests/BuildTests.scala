@@ -143,7 +143,7 @@ class BuildTests extends munit.FunSuite {
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       val build = maybeBuild.orThrow
-      println(build.options.scalaOptions.scalacOptions.values)
+      println(build.options.scalaOptions.scalacOptions.toSeq)
       build.assertGeneratedEquals(
         "simple.class",
         "simple_sc.class",
@@ -849,14 +849,14 @@ class BuildTests extends munit.FunSuite {
         keepDiagnostics = true
       ),
       classPathOptions = defaultOptions.classPathOptions.copy(
-        extraDependencies = ShadowingSeq(Seq(Positioned.none(parsedCliDependency)))
+        extraDependencies = ShadowingSeq.from(Seq(Positioned.none(parsedCliDependency)))
       )
     )
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isRight)
       val build     = maybeBuild.right.get
-      val artifacts = build.options.classPathOptions.extraDependencies.values.toSeq
+      val artifacts = build.options.classPathOptions.extraDependencies.toSeq
       assert(artifacts.exists(_.value.toString() == cliDependency))
     }
   }
@@ -875,13 +875,13 @@ class BuildTests extends munit.FunSuite {
     )
 
     // Emulates options derived from cli
-    val buildOptions: BuildOptions = defaultOptions.copy(
+    val buildOptions = defaultOptions.copy(
       internal = defaultOptions.internal.copy(
         keepDiagnostics = true
       ),
       scalaOptions = defaultOptions.scalaOptions.copy(
-        scalacOptions = ShadowingSeq(
-          ScalacOpt.fromPositionedStringSeq(cliScalacOptions.map(Positioned.commandLine(_)))
+        scalacOptions = ShadowingSeq.from(
+          cliScalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine(_))
         )
       )
     )
@@ -889,8 +889,8 @@ class BuildTests extends munit.FunSuite {
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isRight)
       val build         = maybeBuild.right.get
-      val scalacOptions = ScalacOpt.toStringSeq(build.options.scalaOptions.scalacOptions.values)
-      assert(scalacOptions == expectedOptions)
+      val scalacOptions = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+      expect(scalacOptions == expectedOptions)
     }
   }
 
@@ -914,15 +914,15 @@ class BuildTests extends munit.FunSuite {
         keepDiagnostics = true
       ),
       javaOptions = defaultOptions.javaOptions.copy(
-        javaOpts = ShadowingSeq(
-          JavaOpt.fromPositionedStringSeq(cliJavaOptions.map(Positioned.commandLine(_)))
+        javaOpts = ShadowingSeq.from(
+          cliJavaOptions.map(JavaOpt(_)).map(Positioned.commandLine(_))
         )
       )
     )
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       val build       = maybeBuild.orThrow
-      val javaOptions = JavaOpt.toStringSeq(build.options.javaOptions.javaOpts.values)
+      val javaOptions = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
       assert(javaOptions == expectedJavaOptions)
     }
   }
@@ -945,7 +945,7 @@ class BuildTests extends munit.FunSuite {
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       val expectedOptions = Seq("-source:future")
       val scalacOptions =
-        ScalacOpt.toStringSeq(maybeBuild.orThrow.options.scalaOptions.scalacOptions.values)
+        maybeBuild.orThrow.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       expect(scalacOptions == expectedOptions)
     }
 
@@ -972,9 +972,8 @@ class BuildTests extends munit.FunSuite {
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       val expectedOptions =
         Seq("-deprecation", "-feature", "-Xmaxwarns", "1", "-Xdisable-assertions")
-      val scalacOptions = ScalacOpt.toStringSeq(
-        maybeBuild.toOption.get.options.scalaOptions.scalacOptions.values
-      )
+      val scalacOptions =
+        maybeBuild.toOption.get.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       expect(scalacOptions == expectedOptions)
     }
   }

@@ -32,7 +32,7 @@ final case class Mill(
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_._2.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.values.forall(
+      options.classPathOptions.extraDependencies.toSeq.forall(
         _.value.nameAttributes == NoAttributes
       )
 
@@ -68,8 +68,8 @@ final case class Mill(
     mainOptions: BuildOptions,
     testOptions: BuildOptions
   ): MillProject = {
-    val mainDeps = mainOptions.classPathOptions.extraDependencies.values.map(_.value.render)
-    val testDeps = testOptions.classPathOptions.extraDependencies.values.map(_.value.render)
+    val mainDeps = mainOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
+    val testDeps = testOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
     MillProject(mainDeps = mainDeps.toSeq, testDeps = testDeps.toSeq)
   }
 

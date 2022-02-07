@@ -9,7 +9,7 @@ final case class ScalaOptions(
   scalaBinaryVersion: Option[String] = None,
   addScalaLibrary: Option[Boolean] = None,
   generateSemanticDbs: Option[Boolean] = None,
-  scalacOptions: ShadowingSeq[ScalacOpt] = ShadowingSeq.empty,
+  scalacOptions: ShadowingSeq[Positioned[ScalacOpt]] = ShadowingSeq.empty,
   extraScalaVersions: Set[String] = Set.empty,
   compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
   platform: Option[Positioned[Platform]] = None,

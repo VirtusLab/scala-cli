@@ -27,9 +27,12 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
     val javaOpts = DirectiveUtil.stringValues(directive.values, path, cwd)
     val options = BuildOptions(
       javaOptions = JavaOptions(
-        javaOpts = ShadowingSeq(JavaOpt.fromPositionedStringSeq(javaOpts.map { case (v, pos, _) =>
-          Positioned(Seq(pos), v)
-        }))
+        javaOpts = ShadowingSeq.from(
+          javaOpts.map {
+            case (v, pos, _) =>
+              Positioned(Seq(pos), JavaOpt(v))
+          }
+        )
       )
     )
     Right(ProcessedDirective(Some(options), Seq.empty))

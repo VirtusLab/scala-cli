@@ -85,7 +85,7 @@ final case class BuildOptions(
     value(maybeJsDependencies).map(Positioned.none(_)) ++
       value(maybeNativeDependencies).map(Positioned.none(_)) ++
       value(scalaLibraryDependencies).map(Positioned.none(_)) ++
-      classPathOptions.extraDependencies.values
+      classPathOptions.extraDependencies.toSeq
   }
 
   private def semanticDbPlugins: Either[BuildException, Seq[AnyDependency]] = either {

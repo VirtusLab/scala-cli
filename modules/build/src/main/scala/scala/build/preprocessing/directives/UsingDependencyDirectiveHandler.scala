@@ -48,7 +48,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     ProcessedDirective(
       Some(BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraDependencies = ShadowingSeq(extraDependencies)
+          extraDependencies = ShadowingSeq.from(extraDependencies)
         )
       )),
       Seq.empty

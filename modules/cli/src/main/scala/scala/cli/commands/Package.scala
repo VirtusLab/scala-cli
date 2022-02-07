@@ -21,7 +21,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, ScalaNativeBuildError}
 import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsConfig}
-import scala.build.options.{PackageType, Platform, JavaOpt}
+import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
@@ -575,7 +575,7 @@ object Package extends ScalaCommand[PackageOptions] {
         val exitCode =
           Runner.runJvm(
             build.options.javaHome().value.javaCommand,
-            JavaOpt.toStringSeq(build.options.javaOptions.javaOpts.values),
+            build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
             build.artifacts.scalaNativeCli.map(_.toFile),
             "scala.scalanative.cli.ScalaNativeLd",
             args,

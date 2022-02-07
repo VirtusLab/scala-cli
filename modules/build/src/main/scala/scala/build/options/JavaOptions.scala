@@ -10,7 +10,7 @@ final case class JavaOptions(
   jvmIndexOpt: Option[String] = None,
   jvmIndexOs: Option[String] = None,
   jvmIndexArch: Option[String] = None,
-  javaOpts: ShadowingSeq[JavaOpt] = ShadowingSeq.empty,
+  javaOpts: ShadowingSeq[Positioned[JavaOpt]] = ShadowingSeq.empty,
   bloopJvmVersion: Option[Positioned[Int]] = None,
   javacPluginDependencies: Seq[Positioned[AnyDependency]] = Nil,
   javacPlugins: Seq[Positioned[os.Path]] = Nil,

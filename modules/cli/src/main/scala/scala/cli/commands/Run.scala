@@ -6,7 +6,7 @@ import org.scalajs.linker.interface.StandardConfig
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner}
-import scala.build.options.{Platform, JavaOpt}
+import scala.build.options.Platform
 import scala.build.{Build, Inputs, Logger}
 import scala.cli.CurrentParams
 import scala.util.Properties
@@ -173,7 +173,7 @@ object Run extends ScalaCommand[RunOptions] {
       case Platform.JVM =>
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
-          JavaOpt.toStringSeq(build.options.javaOptions.javaOpts.values),
+          build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
           build.fullClassPath.map(_.toFile),
           mainClass,
           args,

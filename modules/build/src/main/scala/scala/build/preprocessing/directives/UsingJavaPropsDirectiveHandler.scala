@@ -25,12 +25,14 @@ case object UsingJavaPropsDirectiveHandler extends UsingDirectiveHandler {
     val javaProps = DirectiveUtil.stringValues(directive.values, path, cwd)
     val javaOpts = javaProps.map { case (value, position, _) =>
       value.split("=") match {
-        case Array(k)    => Positioned(position, s"-D$k")
-        case Array(k, v) => Positioned(position, s"-D$k=$v")
+        case Array(k)    => Positioned(position, JavaOpt(s"-D$k"))
+        case Array(k, v) => Positioned(position, JavaOpt(s"-D$k=$v"))
       }
     }
-    val options = BuildOptions(javaOptions =
-      JavaOptions(javaOpts = ShadowingSeq(JavaOpt.fromPositionedStringSeq(javaOpts)))
+    val options = BuildOptions(
+      javaOptions = JavaOptions(
+        javaOpts = ShadowingSeq.from(javaOpts)
+      )
     )
     Right(ProcessedDirective(Some(options), Seq.empty))
   }

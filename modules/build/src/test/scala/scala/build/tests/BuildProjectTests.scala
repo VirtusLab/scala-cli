@@ -66,9 +66,9 @@ class BuildProjectTests extends munit.FunSuite {
           Some(Positioned(bloopJavaPath, bloopJvmVersion)),
         javaHomeOpt = Some(Positioned.none(os.Path(javaHome)))
       ),
-      scalaOptions = ScalaOptions(scalacOptions =
-        ShadowingSeq(
-          ScalacOpt.fromPositionedStringSeq(scalacOptions.map(Positioned.commandLine(_)))
+      scalaOptions = ScalaOptions(
+        scalacOptions = ShadowingSeq.from(
+          scalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine(_))
         )
       )
     )

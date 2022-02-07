@@ -261,7 +261,7 @@ case object ScalaPreprocessor extends Preprocessor {
       }
       val options = BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraDependencies = ShadowingSeq(deps)
+          extraDependencies = ShadowingSeq.from(deps)
         )
       )
       Some(SpecialImportsProcessingOutput(BuildRequirements(), options, newCode))

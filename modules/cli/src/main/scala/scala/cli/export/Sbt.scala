@@ -10,15 +10,7 @@ import java.nio.file.Path
 
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
-import scala.build.options.{
-  BuildOptions,
-  JavaOpt,
-  Platform,
-  ScalacOpt,
-  ScalaJsOptions,
-  ScalaNativeOptions,
-  Scope
-}
+import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 
@@ -48,7 +40,7 @@ final case class Sbt(
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_._2.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.values.forall(
+      options.classPathOptions.extraDependencies.toSeq.forall(
         _.value.nameAttributes == NoAttributes
       )
 
@@ -200,13 +192,18 @@ final case class Sbt(
   private def javaOptionsSettings(options: BuildOptions): SbtProject = {
 
     val javaOptionsSettings =
-      if (options.javaOptions.javaOpts.values.isEmpty) Nil
+      if (options.javaOptions.javaOpts.toSeq.isEmpty) Nil
       else
         Seq(
           "run / javaOptions ++= Seq(" + nl +
-            JavaOpt.toStringSeq(options.javaOptions.javaOpts.values).map(opt =>
-              "  \"" + opt + "\"," + nl
-            ).mkString +
+            options.javaOptions
+              .javaOpts
+              .toSeq
+              .map(_.value.value)
+              .map { opt =>
+                "  \"" + opt + "\"," + nl
+              }
+              .mkString +
             ")"
         )
 
@@ -231,12 +228,14 @@ final case class Sbt(
   private def scalacOptionsSettings(options: BuildOptions): SbtProject = {
 
     val scalacOptionsSettings =
-      if (options.scalaOptions.scalacOptions.values.isEmpty) Nil
+      if (options.scalaOptions.scalacOptions.toSeq.isEmpty) Nil
       else {
-        val options0 = ScalacOpt.toStringSeq(options
+        val options0 = options
           .scalaOptions
           .scalacOptions
-          .values).map(o => "\"" + o.replace("\"", "\\\"") + "\"")
+          .toSeq
+          .map(_.value.value)
+          .map(o => "\"" + o.replace("\"", "\\\"") + "\"")
         Seq(s"""scalacOptions ++= Seq(${options0.mkString(", ")})""")
       }
 
@@ -274,7 +273,7 @@ final case class Sbt(
 
     val depSettings = { // interesting...
       val depStrings = options.classPathOptions
-        .extraDependencies.values.toList
+        .extraDependencies.toSeq.toList
         .map(_.value)
         .map { dep =>
           val org  = dep.organization

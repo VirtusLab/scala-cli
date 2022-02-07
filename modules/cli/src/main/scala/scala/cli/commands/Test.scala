@@ -8,7 +8,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
-import scala.build.options.{JavaOpt, Platform, Scope}
+import scala.build.options.{Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Build, Builds, CrossKey, Logger}
 import scala.cli.CurrentParams
@@ -176,7 +176,7 @@ object Test extends ScalaCommand[TestOptions] {
 
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
-          JavaOpt.toStringSeq(build.options.javaOptions.javaOpts.values),
+          build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
           classPath.map(_.toFile),
           Constants.testRunnerMainClass,
           extraArgs,

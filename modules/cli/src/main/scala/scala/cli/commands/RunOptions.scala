@@ -39,7 +39,7 @@ final case class RunOptions(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            JavaOpt.fromPositionedStringSeq(sharedJava.allJavaOpts.map(Positioned.commandLine _))
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
       )
     )
   }

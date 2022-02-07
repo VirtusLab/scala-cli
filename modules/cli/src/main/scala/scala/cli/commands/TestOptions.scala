@@ -34,7 +34,7 @@ final case class TestOptions(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            JavaOpt.fromPositionedStringSeq(sharedJava.allJavaOpts.map(Positioned.commandLine _))
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
       ),
       testOptions = baseOptions.testOptions.copy(
         frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty)

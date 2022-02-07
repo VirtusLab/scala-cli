@@ -1,6 +1,6 @@
 package scala.build
 
-import scala.build.options.{ConfigMonoid, HashedType}
+import scala.build.options.{ConfigMonoid, HashedType, ShadowingSeq}
 
 final case class Positioned[+T](
   positions: Seq[Position],
@@ -50,4 +50,12 @@ object Positioned {
 
   implicit def ordering[T](implicit underlying: Ordering[T]): Ordering[Positioned[T]] =
     Ordering.by(_.value)
+
+  implicit def keyOf[T](implicit
+    underlying: ShadowingSeq.KeyOf[T]
+  ): ShadowingSeq.KeyOf[Positioned[T]] =
+    ShadowingSeq.KeyOf(
+      p => underlying.get(p.value),
+      seq => underlying.groups(seq.map(_.value))
+    )
 }
