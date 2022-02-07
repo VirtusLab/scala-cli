@@ -49,7 +49,7 @@ Conversely, `scala-cli example/src/test` results in no test sources, since the r
 
 Directives take precedence over file or path names, so `using target main` can be used to force `test/a.scala` or `a.test.scala` to not be treated as tests.
 
-As a rule of thumb, we recommend naming all of your test files with the `.tests.scala` suffix.
+As a rule of thumb, we recommend naming all of your test files with the `.test.scala` suffix.
 
 ## Test framework
 
@@ -62,7 +62,7 @@ Some of the most popular test frameworks in Scala are:
 
 This example shows how to run an munit-based test suite:
 
-```scala title=MyTests.scala
+```scala title=MyTests.test.scala
 //> using lib "org.scalameta::munit::0.7.27"
 
 class MyTests extends munit.FunSuite {
@@ -73,7 +73,7 @@ class MyTests extends munit.FunSuite {
 ```
 
 ```bash
-scala-cli test MyTests.scala
+scala-cli test MyTests.test.scala
 # Compiling project_8686a5fa42 (1 Scala source)
 # Compiled 'project_8686a5fa42'
 # MyTests:
@@ -89,7 +89,7 @@ foo
 
 You can pass test arguments to your test framework by passing them after `--`:
 
-```scala title=MyTests.scala
+```scala title=MyTests.tests.scala
 import $ivy.`org.scalatest::scalatest::3.2.9`
 
 import org.scalatest._
