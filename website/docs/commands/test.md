@@ -12,8 +12,8 @@ By default, all command line options apply to both the main and test sources, so
 
 A source file is treated as test source if:
 
- - it contains the `using target test` directive
- - the file name ends with `.test.scala`
+ - it contains the `using target test` directive, or
+ - the file name ends with `.test.scala`, or
  - the file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a `test` directory
 
 The last rule may sound a bit complicated, so let's explain it using following directory structure:
@@ -49,7 +49,7 @@ Conversely, `scala-cli example/src/test` results in no test sources, since the r
 
 Directives take precedence over file or path names, so `using target main` can be used to force `test/a.scala` or `a.test.scala` to not be treated as tests.
 
-As a rule of thumb, we recommend naming all of your test files with the `.tests.scala` suffix.
+As a rule of thumb, we recommend naming all of your test files with the `.test.scala` suffix.
 
 ## Test framework
 
