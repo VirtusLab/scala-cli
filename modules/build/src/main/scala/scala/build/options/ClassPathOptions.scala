@@ -1,7 +1,8 @@
 package scala.build.options
 
-import scala.build.Positioned
 import dependency.AnyDependency
+
+import scala.build.Positioned
 
 final case class ClassPathOptions(
   extraRepositories: Seq[String] = Nil,

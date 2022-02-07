@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, JavaOptions, JavaOpt, ShadowingSeq}
+import scala.build.options.{BuildOptions, JavaOpt, JavaOptions, ShadowingSeq}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
 

@@ -1,7 +1,8 @@
 package scala.build.options
 
-import scala.build.Positioned
 import dependency.AnyDependency
+
+import scala.build.Positioned
 import scala.collection.mutable
 
 /** Seq ensuring some of its values are unique according to some key */
