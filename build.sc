@@ -779,7 +779,7 @@ object ci extends Module {
     if (os.exists(scalaCliDir)) os.remove.all(scalaCliDir)
     if (!os.exists(targetDir)) os.makeDir.all(targetDir)
 
-    val branch = "master"
+    val branch = "main"
     val repo   = s"https://oauth2:${ghToken()}@github.com/VirtusLab/scala-cli.git"
 
     // Cloning
@@ -862,7 +862,7 @@ object ci extends Module {
 
     os.makeDir.all(targetDir)
 
-    val branch = "master"
+    val branch = "main"
     val repo   = s"git@github.com:Virtuslab/scala-cli-packages.git"
 
     // Cloning
@@ -889,7 +889,7 @@ object ci extends Module {
 
     os.makeDir.all(targetDir)
 
-    val branch = "master"
+    val branch = "main"
     val repo   = s"git@github.com:Virtuslab/scala-cli-packages.git"
 
     // Cloning
@@ -943,7 +943,7 @@ object ci extends Module {
     )
       .call(cwd = debianDir, stdin = pgpPassphrase, stdout = inReleasePath)
 
-    commitChanges(s"Update Debian packages for $version", "master", packagesDir)
+    commitChanges(s"Update Debian packages for $version", branch, packagesDir)
   }
   def updateCentOsPackages() = T.command {
     val version = cli.publishVersion()
@@ -957,7 +957,7 @@ object ci extends Module {
 
     os.makeDir.all(targetDir)
 
-    val branch = "master"
+    val branch = "main"
     val repo   = s"git@github.com:Virtuslab/scala-cli-packages.git"
 
     // Cloning

@@ -2,7 +2,7 @@ name: CI
 on:
   push:
     branches:
-    - master
+    - main
     tags:
     - "v*"
   pull_request:
@@ -10,7 +10,7 @@ on:
 
 concurrency:
   group: ${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   bloop-memory-footprint:
@@ -320,7 +320,7 @@ jobs:
       with:
         type: now
         message: 'Back port of documentation changes to stable'
-        from_branch: master
+        from_branch: main
         target_branch: stable
         github_token: ${{ secrets.GITHUB_TOKEN }}
 

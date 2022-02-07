@@ -174,4 +174,4 @@ Just add it to your PATH to get the already-released-scala-cli experience.
 
 ## Releases
 
-Instructions on how to release - [Release Procedure](https://github.com/VirtusLab/scala-cli/blob/master/.github/release/release-procedure.md)
+Instructions on how to release - [Release Procedure](https://github.com/VirtusLab/scala-cli/blob/main/.github/release/release-procedure.md)
