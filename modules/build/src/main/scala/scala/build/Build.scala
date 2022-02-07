@@ -639,8 +639,6 @@ object Build {
       ScalacOpt.fromPositionedStringSeq(scalaJsScalacOptions.map(Positioned.none(_))) ++
       ScalacOpt.fromPositionedStringSeq(scalacReleaseV.map(Positioned.none(_)))
 
-    println(scalacOptions)
-
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,
       scalaBinaryVersion = params.scalaBinaryVersion,

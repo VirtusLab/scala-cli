@@ -41,12 +41,10 @@ object ShadowingSeq {
 }
 
 final case class JavaOpt(value: Seq[Positioned[String]]) {
-  /* Hardcoded prefixes for java options */
-  val optionPrefixes = Seq("-Xmn", "-Xms", "-Xmx", "-Xss")
   def key: Option[String] =
     if (!value.isEmpty) {
       val opt         = value(0).value
-      val prefixMaybe = optionPrefixes.find(opt.startsWith(_))
+      val prefixMaybe = JavaOpt.optionPrefixes.find(opt.startsWith(_))
 
       prefixMaybe.orElse {
         if (opt.startsWith("-"))
@@ -60,11 +58,13 @@ final case class JavaOpt(value: Seq[Positioned[String]]) {
       None
 }
 object JavaOpt {
+  /* Hardcoded prefixes for java options */
+  private val optionPrefixes = Set("-Xmn", "-Xms", "-Xmx", "-Xss")
+
   implicit val keyOf: ShadowingSeq.KeyOf[JavaOpt] =
     ShadowingSeq.KeyOf(_.key)
 
   def fromPositionedStringSeq(seq: Seq[Positioned[String]]): Seq[JavaOpt] =
-    // println(OptUtils.groupCliOptions(seq).map(JavaOpt(_)))
     OptUtils.groupCliOptions(seq).map(JavaOpt(_))
 
   def toStringSeq(seq: Seq[JavaOpt]): Seq[String] =
@@ -75,7 +75,6 @@ object JavaOpt {
 }
 
 final case class ScalacOpt(value: Seq[Positioned[String]]) {
-  val repeatingKeys = Set("-Xplugin:")
   def key: Option[String] =
     if (!value.isEmpty) {
       val opt = value(0).value
@@ -87,13 +86,18 @@ final case class ScalacOpt(value: Seq[Positioned[String]]) {
           Some("@")
         else None
 
-      if (key.exists(repeatingKeys.contains)) None
+      if (key.exists(ScalacOpt.repeatingKeys.contains)) None
       else key
     }
     else
       None
 }
 object ScalacOpt {
+  private val repeatingKeys = Set(
+    "-Xplugin:",
+    "-P" // plugin options
+  )
+
   implicit val keyOf: ShadowingSeq.KeyOf[ScalacOpt] =
     ShadowingSeq.KeyOf(_.key)
 
