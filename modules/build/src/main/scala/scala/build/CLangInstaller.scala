@@ -1,10 +1,13 @@
 package scala.build
 
+import coursier.cache.FileCache
+import coursier.util.{Artifact, Task}
 import os.Path
 
 import java.util.Locale
 
-import scala.build.errors.BuildException
+import scala.build.EitherCps.either
+import scala.build.errors.{BuildException, FetchingDependenciesError}
 import scala.build.internal.Runner
 import scala.util.Properties
 
@@ -22,6 +25,11 @@ object CLangInstaller {
    */
 
   val mambaApiUrl = "https://micromamba.snakepit.net/api/micromamba"
+
+  def install(logger: Logger) =
+    mambaBinaryUrl
+      .flatMap(binaryUrl => fetchFile(binaryUrl, logger))
+      .flatMap(archive => doInstall(archive, logger))
 
   def mambaBinaryUrl = {
     val os = Properties.osName match {
@@ -42,23 +50,29 @@ object CLangInstaller {
     }
   }
 
-  def install(microMambaArchive: Path, logger: Logger): Either[BuildException, Path] =
-    install(microMambaArchive, directories.mambaBaseDir, logger = logger)
+  def fetchFile(url: String, logger: Logger) = either {
+    val cache = FileCache().withLogger(logger.coursierLogger)
+    cache.logger.use {
+      cache.file(Artifact(url).withChanging(true)).run.flatMap {
+        case Left(e)  => Task.fail(new Exception(e))
+        case Right(f) => Task.point(os.Path(f, os.pwd))
+      }.unsafeRun()(cache.ec)
+    }
+  }.left.map(_ => new CLangInstallException("Failed to fetch Mamba binary."))
 
-  def install(
+  def doInstall(
     microMambaArchive: Path,
-    mambaBaseDir: Path,
     logger: Logger
   ): Either[BuildException, Path] =
     // TODO: we should relay on coursier to give us decompressed archive file but there is no bzip2 support yet
     // for ArchiveCache => https://github.com/coursier/coursier/blob/master/modules/cache/jvm/src/main/scala/coursier/cache/ArchiveCache.scala#L151
 
-    TarArchive.decompress(os.read.inputStream(microMambaArchive), mambaBaseDir)
+    TarArchive.decompress(os.read.inputStream(microMambaArchive), directories.mambaBaseDir)
       .left.map(_ => new CLangInstallException("Failed to decompress minimamba archive."))
       .right.map { miniMambaPath: Path =>
+        val baseDir       = directories.mambaBaseDir
         val mambaPath     = miniMambaPath / 'bin / "micromamba"
         val installScript = directories.mambaBaseDir / "installScript.sh"
-        val baseDir       = directories.mambaBaseDir
 
         if (Properties.isWin)
           throw new CLangInstallException("Not Implemented yet.")
