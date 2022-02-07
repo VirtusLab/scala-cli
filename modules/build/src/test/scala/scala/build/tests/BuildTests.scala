@@ -691,8 +691,6 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      if (maybeBuild.isLeft)
-        throw maybeBuild.left.get
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.clangManaged.get == true)
     }
   }
