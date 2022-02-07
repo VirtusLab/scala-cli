@@ -691,10 +691,17 @@ class BuildTests extends munit.FunSuite {
           |//> using nativeClangManaged
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.enableNative.copy(
-      scalaNativeOptions = ScalaNativeOptions(clangManaged = Some(true))
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      if(maybeBuild.isLeft) {
+        val left = maybeBuild.left
+        println(left.get)
+      }
+      expect(maybeBuild.isRight == true)
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.clangManaged.get == true)
     }
   }
