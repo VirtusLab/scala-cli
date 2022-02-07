@@ -3,8 +3,10 @@ package scala.cli.commands
 import caseapp._
 
 @HelpMessage(
-  """|This command is an equivalent of `run`, but it changes the way how
-     |`scala-cli` parses it's command-line arguments in order to be compatibility
+  """|Like 'run', but more handy from shebang scripts
+     |
+     |This command is equivalent to `run`, but it changes the way
+     |`scala-cli` parses its command-line arguments in order to be compatible
      |with shebang scripts.
      |
      |Normally, inputs and scala-cli options can be mixed. Program have to be specified after `--`

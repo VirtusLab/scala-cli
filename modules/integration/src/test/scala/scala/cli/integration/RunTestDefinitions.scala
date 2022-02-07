@@ -1399,4 +1399,54 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       assert(res.exitCode == 0, clues(res.out.text(), res.err.text()))
     }
   }
+
+  def sudoTest(): Unit = {
+    val fileName = "simple.sc"
+    val message  = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""val msg = "$message"
+             |println(msg)
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val baseImage = Constants.dockerTestImage
+      os.copy(os.Path(TestUtil.cli.head, os.pwd), root / "scala")
+      val script =
+        s"""#!/usr/bin/env sh
+           |set -ev
+           |useradd --create-home --shell /bin/bash test
+           |apt update
+           |apt install -y sudo
+           |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee output-root
+           |sudo -u test ./scala clean $fileName
+           |sudo -u test ./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee output-user
+           |""".stripMargin
+      os.write(root / "script.sh", script)
+      os.perms.set(root / "script.sh", "rwxr-xr-x")
+      val termOpt = if (System.console() == null) Nil else Seq("-t")
+      // format: off
+      val cmd = Seq[os.Shellable](
+        "docker", "run", "--rm", termOpt,
+        "-v", s"${root}:/data",
+        "-w", "/data",
+        ciOpt,
+        baseImage,
+        "/data/script.sh"
+      )
+      // format: on
+      os.proc(cmd).call(cwd = root, stdout = os.Inherit)
+      val rootOutput = os.read(root / "output-root").trim
+      expect(rootOutput == message)
+      val userOutput = os.read(root / "output-user").trim
+      expect(userOutput == message)
+    }
+  }
+
+  if (Properties.isLinux && TestUtil.isNativeCli && TestUtil.cliKind != "native-static")
+    test("sudo") {
+      sudoTest()
+    }
 }

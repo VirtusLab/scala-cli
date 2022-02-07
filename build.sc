@@ -274,6 +274,7 @@ class Build(val crossScalaVersion: String)
          |
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |  def millVersion = "${InternalDeps.Versions.mill}"
+         |  def lefouMillwRef = "${InternalDeps.Versions.lefouMillwRef}"
          |
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |
@@ -989,15 +990,19 @@ object ci extends Module {
 
     commitChanges(s"Update CentOS packages for $version", branch, packagesDir)
   }
-  private def vsBasePath = os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
+  private def vsBasePaths = Seq(
+    os.Path("C:\\Program Files\\Microsoft Visual Studio"),
+    os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
+  )
   def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") =
     T.command {
-      def vcVersions = Seq("2019", "2017")
+      def vcVersions = Seq("2022", "2019", "2017")
       def vcEditions = Seq("Enterprise", "Community", "BuildTools")
       def candidateBaseDirs =
         for {
-          year    <- vcVersions
-          edition <- vcEditions
+          vsBasePath <- vsBasePaths
+          year       <- vcVersions
+          edition    <- vcEditions
         } yield vsBasePath / year / edition / "VC" / "Redist" / "MSVC"
       val baseDirs = candidateBaseDirs.filter(os.isDir(_))
       if (baseDirs.isEmpty)
