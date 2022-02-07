@@ -143,7 +143,6 @@ class BuildTests extends munit.FunSuite {
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       val build = maybeBuild.orThrow
-      println(build.options.scalaOptions.scalacOptions.toSeq)
       build.assertGeneratedEquals(
         "simple.class",
         "simple_sc.class",

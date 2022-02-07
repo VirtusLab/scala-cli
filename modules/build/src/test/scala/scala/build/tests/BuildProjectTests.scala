@@ -79,7 +79,6 @@ class BuildProjectTests extends munit.FunSuite {
     val res     = Build.buildProject(inputs, sources, Nil, options, Scope.Test, logger)
 
     val scalaCompilerOptions = res.fold(throw _, identity).scalaCompiler.scalacOptions
-
     (scalaCompilerOptions, res.fold(throw _, identity).javacOptions, logger.diagnostics)
   }
 

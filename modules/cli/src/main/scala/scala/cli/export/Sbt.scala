@@ -40,9 +40,8 @@ final case class Sbt(
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_._2.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.toSeq.forall(
-        _.value.nameAttributes == NoAttributes
-      )
+      options.classPathOptions.extraDependencies.toSeq
+        .forall(_.value.nameAttributes == NoAttributes)
 
     val settings =
       if (pureJava)
@@ -271,7 +270,7 @@ final case class Sbt(
 
   private def dependencySettings(options: BuildOptions, scope: Scope): SbtProject = {
 
-    val depSettings = { // interesting...
+    val depSettings = {
       val depStrings = options.classPathOptions
         .extraDependencies.toSeq.toList
         .map(_.value)
