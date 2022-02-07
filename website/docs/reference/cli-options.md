@@ -935,6 +935,10 @@ List of compile options
 
 Use default compile options
 
+#### `--native-install-c-lang`
+
+Attempt to install llvm using mamba
+
 ## Scalac options
 
 Available in commands:

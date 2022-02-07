@@ -151,7 +151,7 @@ final case class BuildOptions(
     if (doAdd) Some(scalaNativeOptions.finalVersion)
     else None
   }
-  private def addClang: Option[Boolean] = scalaNativeOptions.installCLang.map(installRequested =>
+  private def addClang: Option[Boolean] = scalaNativeOptions.clangManaged.map(installRequested =>
     installRequested && platform.value == Platform.Native
   )
 

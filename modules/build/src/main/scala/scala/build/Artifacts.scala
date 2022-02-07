@@ -87,22 +87,23 @@ object Artifacts {
   ): Either[BuildException, Artifacts] = either {
 
     addClang.map { _ =>
-      val cache = FileCache()
-      val task = {
-
-        val artifact = Artifact(url = CLangInstaller.mambaBinaryUrl
-        // checksumUrls TODO: verify check sum of archive
-        ).withChanging(true)
-        cache.file(artifact).run.flatMap {
-          case Left(e) => Task.fail(new Exception(e))
-          case Right(archive: File) =>
-            Task.delay {
-              Task.fromEither(CLangInstaller.install(os.Path(archive.toPath), logger))
-            }.flatMap(identity)
+      CLangInstaller.mambaBinaryUrl.right.map { url =>
+        val cache = FileCache()
+        val task = {
+          val artifact = Artifact(url = url
+          // checksumUrls TODO: verify check sum of archive
+          ).withChanging(true)
+          cache.file(artifact).run.flatMap {
+            case Left(e) => Task.fail(new Exception(e))
+            case Right(archive: File) =>
+              Task.delay(
+                Task.fromEither(CLangInstaller.install(os.Path(archive.toPath), logger))
+              ).flatMap(identity)
+          }
         }
+        val launchersTask = cache.logger.using(task)
+        launchersTask.unsafeRun()(cache.ec)
       }
-      val launchersTask = cache.logger.using(task)
-      launchersTask.unsafeRun()(cache.ec)
     }
 
     val compilerDependencies =

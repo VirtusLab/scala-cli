@@ -34,7 +34,7 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
       "nativeVersion",
       "nativeCompile",
       "nativeLinking",
-      "installClang"
+      "nativeClangManaged"
     )
 
   override def handleValues(
@@ -66,10 +66,10 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
             )
           )
         )
-      case "installClang" => Right(
+      case "nativeClangManaged" => Right(
           BuildOptions(
             scalaNativeOptions = ScalaNativeOptions(
-              installCLang = Some(true)
+              clangManaged = Some(true)
             )
           )
         )

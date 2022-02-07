@@ -14,7 +14,7 @@ final case class ScalaNativeOptions(
   gcStr: Option[String] = None,
   clang: Option[String] = None,
   clangpp: Option[String] = None,
-  installCLang: Option[Boolean] = None,
+  clangManaged: Option[Boolean] = None,
   linkingOptions: List[String] = Nil,
   linkingDefaults: Option[Boolean] = None,
   compileOptions: List[String] = Nil,
@@ -48,6 +48,7 @@ final case class ScalaNativeOptions(
     .filter(_.nonEmpty)
     .map(Paths.get(_))
     .getOrElse(sn.Discover.clang())
+
   private def clangCliOption(): List[String] =
     List("--clang", clangPath.toString())
 

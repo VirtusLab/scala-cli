@@ -48,8 +48,8 @@ final case class ScalaNativeOptions(
 
   @Group("Scala Native")
   @Hidden
-  @HelpMessage("Attempt to install llvm using mamba")
-  nativeInstallCLang: Option[Boolean] = None
+  @HelpMessage("Installs managed environment containing clang environment")
+  nativeClangManaged: Option[Boolean] = None
 
 ) {
   // format: on
@@ -61,7 +61,7 @@ final case class ScalaNativeOptions(
       nativeGc,
       nativeClang,
       nativeClangpp,
-      nativeInstallCLang,
+      nativeClangManaged,
       nativeLinking,
       nativeLinkingDefaults,
       nativeCompile,
