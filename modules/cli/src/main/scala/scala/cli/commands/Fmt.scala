@@ -140,7 +140,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       val command = Seq(fmtLauncher.toString) ++
         sourceFiles.map(_.toString) ++
         dialectArgs ++
-        options.scalafmtArg
+        options.scalafmtCliOptions
       Runner.run(
         "scalafmt",
         command,

@@ -75,8 +75,10 @@ trait BuildServerForwardStubs extends b.BuildServer {
       .handleAsync(fatalExceptionHandler("workspaceBuildTargets"))
 
   override def workspaceReload(): CompletableFuture[Object] =
-    forwardTo.workspaceReload()
-      .handleAsync(fatalExceptionHandler("workspaceReload"))
+    CompletableFuture.completedFuture(new Object)
+  // Bloop does not support workspaceReload and Intellij calls it at the start
+  // forwardTo.workspaceReload()
+  //   .handleAsync(fatalExceptionHandler("workspaceReload"))
 
   override def buildTargetDependencyModules(params: DependencyModulesParams)
     : CompletableFuture[DependencyModulesResult] =

@@ -42,7 +42,9 @@ and then, we launch Visual Studio Code
 code .
 ```
 
-After starting metals, you will see `run/debug` buttons in `HelloWorld.scala` and `test/debug` in `MyTests.test.scala`.
+After starting metals, you will see `run/debug` buttons in `HelloWorld.scala` and `test/debug` in `MyTests.test.scala` (assuming the following directory layout).
+
+![layout](/img/source_layout.png)
 
 Pressing the `run` button will run the `Main.scala`, the output will be visible in `DebugConsole`.
 

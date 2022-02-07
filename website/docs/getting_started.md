@@ -119,7 +119,7 @@ cd scala-cli-getting-started
 Now we can write our logic in a file named `files.scala`:
 
 ```scala title=files.scala
-//> using lib com.lihaoyi::os-lib:0.7.8
+//> using lib "com.lihaoyi::os-lib:0.7.8"
 
 def filesByExtension(
   extension: String, 

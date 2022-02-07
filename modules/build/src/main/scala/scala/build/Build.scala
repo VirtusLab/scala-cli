@@ -44,7 +44,8 @@ object Build {
     artifacts: Artifacts,
     project: Project,
     output: os.Path,
-    diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
+    diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]],
+    generatedSources: Seq[GeneratedSource]
   ) extends Build {
     def success: Boolean               = true
     def successfulOpt: Some[this.type] = Some(this)
@@ -115,16 +116,20 @@ object Build {
 
   def updateInputs(
     inputs: Inputs,
-    options: BuildOptions
+    options: BuildOptions,
+    testOptions: Option[BuildOptions] = None
   ): Inputs = {
 
     // If some options are manually overridden, append a hash of the options to the project name
     // Using options, not options0 - only the command-line options are taken into account. No hash is
     // appended for options from the sources.
-    val optionsHash = options.hash
+    val optionsHash     = options.hash
+    val testOptionsHash = testOptions.flatMap(_.hash)
 
     inputs.copy(
-      baseProjectName = inputs.baseProjectName + optionsHash.map("_" + _).getOrElse("")
+      baseProjectName = inputs.baseProjectName
+        + optionsHash.map("_" + _).getOrElse("")
+        + testOptionsHash.map("_" + _).getOrElse("")
     )
   }
 
@@ -149,117 +154,122 @@ object Build {
     val sharedOptions = crossSources.sharedOptions(options)
     val crossOptions  = sharedOptions.crossOptions
 
+    def doPostProcess(build: Build, inputs: Inputs, scope: Scope): Unit = build match {
+      case build: Build.Successful =>
+        postProcess(
+          build.generatedSources,
+          inputs.generatedSrcRoot(scope),
+          build.output,
+          logger,
+          inputs.workspace,
+          updateSemanticDbs = true,
+          scalaVersion = build.project.scalaCompiler.scalaVersion
+        ).left.foreach(_.foreach(logger.message(_)))
+      case _ =>
+    }
+
     def doBuild(
-      overrideOptions: BuildOptions,
-      scope: Scope
-    ): Either[BuildException, Build] = either {
+      overrideOptions: BuildOptions
+    ): Either[BuildException, (Build, Build)] = either {
+
+      val baseOptions   = overrideOptions.orElse(sharedOptions)
+      val scopedSources = value(crossSources.scopedSources(baseOptions))
+
+      val mainSources = scopedSources.sources(Scope.Main, baseOptions)
+      val mainOptions = mainSources.buildOptions
+
+      val testSources = scopedSources.sources(Scope.Test, baseOptions)
+      val testOptions = testSources.buildOptions
 
       val inputs0 = updateInputs(
         inputs,
-        overrideOptions.orElse(options) // update hash in inputs with options coming from the CLI or cross-building, not from the sources
+        mainOptions, // update hash in inputs with options coming from the CLI or cross-building, not from the sources
+        Some(testOptions)
       )
 
-      val baseOptions = overrideOptions.orElse(sharedOptions)
+      def doBuildScope(
+        options: BuildOptions,
+        sources: Sources,
+        scope: Scope
+      ): Either[BuildException, Build] =
+        either {
+          val sources0 = sources.withVirtualDir(inputs0, scope, options)
 
-      val crossSources0 = crossSources.withVirtualDir(inputs0, scope, baseOptions)
+          val generatedSources = sources0.generateSources(inputs0.generatedSrcRoot(scope))
 
-      val scopedSources = value(crossSources0.scopedSources(baseOptions))
-      val sources       = scopedSources.sources(scope, baseOptions)
+          val scopeParams =
+            if (scope == Scope.Main) Nil
+            else Seq(scope.name)
 
-      val generatedSources = sources.generateSources(inputs0.generatedSrcRoot(scope))
-      val buildOptions     = sources.buildOptions
+          buildClient.setProjectParams(scopeParams ++ value(options.projectParams))
 
-      val scopeParams =
-        if (scope == Scope.Main) Nil
-        else Seq(scope.name)
-      buildClient.setProjectParams(scopeParams ++ value(buildOptions.projectParams))
+          val res = build(
+            inputs0,
+            sources0,
+            inputs0.generatedSrcRoot(scope),
+            generatedSources,
+            options,
+            scope,
+            logger,
+            buildClient,
+            bloopServer
+          )
 
-      val res = build(
-        inputs0,
-        sources,
-        inputs0.generatedSrcRoot(scope),
-        generatedSources,
-        buildOptions,
-        scope,
-        logger,
-        buildClient,
-        bloopServer
-      )
-      value(res)
-    }
-
-    def buildScope(
-      scope: Scope,
-      parentBuildOpt: Option[Build],
-      parentExtraBuildsOpt: Option[Seq[Build]]
-    ): Either[BuildException, (Build, Seq[Build])] =
-      either {
-        val mainBuild = value {
-          parentBuildOpt match {
-            case None => doBuild(BuildOptions(), scope)
-            case Some(s: Build.Successful) =>
-              val extraOptions = BuildOptions(
-                classPathOptions = ClassPathOptions(
-                  extraClassPath = Seq(s.output)
-                )
-              )
-              doBuild(extraOptions, scope)
-            case Some(_) =>
-              Right(Build.Cancelled(
-                inputs,
-                sharedOptions,
-                scope,
-                "Parent build failed or cancelled"
-              ))
-          }
+          value(res)
         }
 
-        val extraBuilds =
-          if (crossBuilds)
-            value {
-              val maybeBuilds = parentExtraBuildsOpt match {
-                case None =>
-                  crossOptions.map { opt =>
-                    doBuild(opt, scope)
-                  }
-                case Some(parentExtraBuilds) =>
-                  crossOptions.zip(parentExtraBuilds)
-                    .map {
-                      case (opt, parentBuildOpt) =>
-                        parentBuildOpt match {
-                          case s: Build.Successful =>
-                            val updatedOptions = opt.copy(
-                              classPathOptions = sharedOptions.classPathOptions.copy(
-                                extraClassPath =
-                                  sharedOptions.classPathOptions.extraClassPath :+ s.output
-                              )
-                            )
-                            doBuild(updatedOptions, scope)
-                          case _ =>
-                            Right(Build.Cancelled(
-                              inputs,
-                              opt,
-                              scope,
-                              "Parent build failed or cancelled"
-                            ))
-                        }
-                    }
-              }
+      val mainBuild = value(doBuildScope(mainOptions, mainSources, Scope.Main))
+
+      val testBuild = value {
+        mainBuild match {
+          case s: Build.Successful =>
+            val extraTestOptions = BuildOptions(
+              classPathOptions = ClassPathOptions(
+                extraClassPath = Seq(s.output)
+              )
+            )
+            val testOptions0 = extraTestOptions.orElse(testOptions)
+            doBuildScope(testOptions0, testSources, Scope.Test)
+          case _ =>
+            Right(Build.Cancelled(
+              inputs,
+              sharedOptions,
+              Scope.Test,
+              "Parent build failed or cancelled"
+            ))
+        }
+      }
+
+      doPostProcess(mainBuild, inputs0, Scope.Main)
+      doPostProcess(testBuild, inputs0, Scope.Test)
+
+      (mainBuild, testBuild)
+    }
+
+    def buildScopes(): Either[BuildException, (Build, Seq[Build], Build, Seq[Build])] =
+      either {
+        val (mainBuild, testBuild) = value(doBuild(BuildOptions()))
+
+        val (extraMainBuilds: Seq[Build], extraTestBuilds: Seq[Build]) =
+          if (crossBuilds) {
+            val extraBuilds = value {
+              val maybeBuilds = crossOptions.map(doBuild)
+
               maybeBuilds
                 .sequence
                 .left.map(CompositeBuildException(_))
             }
+            (extraBuilds.map(_._1), extraBuilds.map(_._2))
+          }
           else
-            Nil
+            (Nil, Nil)
 
-        (mainBuild, extraBuilds)
+        (mainBuild, extraMainBuilds, testBuild, extraTestBuilds)
       }
 
-    val (mainBuild, extraBuilds) = value(buildScope(Scope.Main, None, None))
-    copyResourceToClassesDir(mainBuild)
+    val (mainBuild, extraBuilds, testBuild, extraTestBuilds) = value(buildScopes())
 
-    val (testBuild, extraTestBuilds) =
-      value(buildScope(Scope.Test, Some(mainBuild), Some(extraBuilds)))
+    copyResourceToClassesDir(mainBuild)
     copyResourceToClassesDir(testBuild)
 
     Builds(Seq(mainBuild, testBuild), Seq(extraBuilds, extraTestBuilds))
@@ -778,18 +788,7 @@ object Build {
       buildTargetsTimeout = 20.seconds
     )
 
-    if (success) {
-      postProcess(
-        generatedSources,
-        generatedSrcRoot0,
-        classesDir0,
-        logger,
-        inputs.workspace,
-        updateSemanticDbs = true,
-        scalaVersion = project.scalaCompiler.scalaVersion
-      )
-        .left.foreach(_.foreach(logger.message(_)))
-
+    if (success)
       Successful(
         inputs,
         options,
@@ -799,9 +798,9 @@ object Build {
         artifacts,
         project,
         classesDir0,
-        buildClient.diagnostics
+        buildClient.diagnostics,
+        generatedSources
       )
-    }
     else
       Failed(
         inputs,

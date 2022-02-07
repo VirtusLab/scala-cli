@@ -92,7 +92,9 @@ jobs:
     - name: Generate native launcher
       run: .github/scripts/generate-native-image.sh
       shell: bash
+    - run: ./mill -i ci.setShouldPublish
     - name: Build OS packages
+      if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
@@ -203,7 +205,7 @@ jobs:
     - name: Test gifs
       run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
     - name: Build binary
-      run: ./mill copyTo cli.launcher ./scala-cli 
+      run: ./mill copyTo cli.launcher ./scala-cli
     - name: Check examples
       run: bash ./scala-cli --jvm temurin:17  .github/scripts/check_examples.sc
 

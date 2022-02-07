@@ -1,6 +1,6 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.0-M2`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.15`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.16`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{
@@ -274,6 +274,7 @@ class Build(val crossScalaVersion: String)
          |
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |  def millVersion = "${InternalDeps.Versions.mill}"
+         |  def lefouMillwRef = "${InternalDeps.Versions.lefouMillwRef}"
          |
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |
@@ -989,15 +990,19 @@ object ci extends Module {
 
     commitChanges(s"Update CentOS packages for $version", branch, packagesDir)
   }
-  private def vsBasePath = os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
+  private def vsBasePaths = Seq(
+    os.Path("C:\\Program Files\\Microsoft Visual Studio"),
+    os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
+  )
   def copyVcRedist(directory: String = "artifacts", distName: String = "vc_redist.x64.exe") =
     T.command {
-      def vcVersions = Seq("2019", "2017")
+      def vcVersions = Seq("2022", "2019", "2017")
       def vcEditions = Seq("Enterprise", "Community", "BuildTools")
       def candidateBaseDirs =
         for {
-          year    <- vcVersions
-          edition <- vcEditions
+          vsBasePath <- vsBasePaths
+          year       <- vcVersions
+          edition    <- vcEditions
         } yield vsBasePath / year / edition / "VC" / "Redist" / "MSVC"
       val baseDirs = candidateBaseDirs.filter(os.isDir(_))
       if (baseDirs.isEmpty)
@@ -1030,13 +1035,17 @@ object ci extends Module {
   def writeWixConfigExtra(dest: String = "wix-visual-cpp-redist.xml") = T.command {
     val msmPath = {
 
-      val vcVersions     = Seq("2019", "2017")
-      val vcEditions     = Seq("Enterprise", "Community", "BuildTools")
-      val vsDir          = os.Path("""C:\Program Files (x86)\Microsoft Visual Studio""")
+      val vcVersions = Seq("2022", "2019", "2017")
+      val vcEditions = Seq("Enterprise", "Community", "BuildTools")
+      val vsDirs = Seq(
+        os.Path("""C:\Program Files\Microsoft Visual Studio"""),
+        os.Path("""C:\Program Files (x86)\Microsoft Visual Studio""")
+      )
       val fileNamePrefix = "Microsoft_VC".toLowerCase(Locale.ROOT)
       val fileNameSuffix = "_CRT_x64.msm".toLowerCase(Locale.ROOT)
       def candidatesIt =
         for {
+          vsDir   <- vsDirs.iterator
           version <- vcVersions.iterator
           edition <- vcEditions.iterator
           dir = vsDir / version / edition
