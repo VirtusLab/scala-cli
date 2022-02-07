@@ -274,6 +274,7 @@ class Build(val crossScalaVersion: String)
          |
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |  def millVersion = "${InternalDeps.Versions.mill}"
+         |  def lefouMillwRef = "${InternalDeps.Versions.lefouMillwRef}"
          |
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |
