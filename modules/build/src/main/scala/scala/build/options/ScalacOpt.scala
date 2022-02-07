@@ -17,6 +17,9 @@ object ScalacOpt {
     "-P" // plugin options
   )
 
+  implicit val hashedType: HashedType[ScalacOpt] = {
+    opt => opt.value
+  }
   implicit val keyOf: ShadowingSeq.KeyOf[ScalacOpt] =
     ShadowingSeq.KeyOf(
       _.key,

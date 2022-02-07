@@ -14,6 +14,9 @@ object JavaOpt {
   /* Hardcoded prefixes for java options */
   private val optionPrefixes = Set("-Xmn", "-Xms", "-Xmx", "-Xss")
 
+  implicit val hashedType: HashedType[JavaOpt] = {
+    opt => opt.value
+  }
   implicit val keyOf: ShadowingSeq.KeyOf[JavaOpt] =
     ShadowingSeq.KeyOf(
       _.key,

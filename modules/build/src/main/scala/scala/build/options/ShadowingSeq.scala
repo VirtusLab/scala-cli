@@ -1,6 +1,7 @@
 package scala.build.options
 
 import dependency.AnyDependency
+import shapeless.Lazy
 
 import scala.collection.mutable
 
@@ -45,8 +46,12 @@ object ShadowingSeq {
     ConfigMonoid.instance(ShadowingSeq.empty[T]) { (a, b) =>
       a.addGroups(b.values)
     }
-  implicit def hashedType[T]: HashedType[ShadowingSeq[T]] = {
-    a => a.toString
+  implicit def hashedField[T](implicit
+    hasher: Lazy[HashedType[T]]
+  ): HashedField[ShadowingSeq[T]] = {
+    (name, seq, update) =>
+      for (t <- seq.toSeq)
+        update(s"$name+=${hasher.value.hashedValue(t)}")
   }
 
   def empty[T]: ShadowingSeq[T] = ShadowingSeq(Nil)
