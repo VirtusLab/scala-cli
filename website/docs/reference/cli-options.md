@@ -935,9 +935,9 @@ List of compile options
 
 Use default compile options
 
-#### `--native-install-c-lang`
+#### `--native-clang-managed`
 
-Attempt to install llvm using mamba
+Installs managed environment containing clang environment
 
 ## Scalac options
 

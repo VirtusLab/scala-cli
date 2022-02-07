@@ -3,6 +3,7 @@ package scala.build
 import os.Path
 
 import java.util.Locale
+
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.util.Properties
