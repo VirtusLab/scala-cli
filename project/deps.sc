@@ -43,6 +43,7 @@ object InternalDeps {
       // so we use a higher hard-coded version instead.
       // os.read(os.pwd / ".mill-version").trim
       "0.10.0-21-c4247b"
+    def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
   }
 }
 

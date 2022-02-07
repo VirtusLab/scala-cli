@@ -49,8 +49,8 @@ object Export extends ScalaCommand[ExportOptions] {
     Sbt(sbtVersion, extraSettings, logger)
   def millBuildTool(cache: FileCache[Task], logger: Logger) = {
     val launcherArtifacts = Seq(
-      os.rel / "mill"     -> "https://github.com/lefou/millw/raw/main/millw",
-      os.rel / "mill.bat" -> "https://github.com/lefou/millw/raw/main/millw.bat"
+      os.rel / "mill" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw",
+      os.rel / "mill.bat" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw.bat"
     )
     val launcherTasks = launcherArtifacts.map {
       case (path, url) =>
