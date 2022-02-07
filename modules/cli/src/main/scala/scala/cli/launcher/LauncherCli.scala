@@ -2,7 +2,7 @@ package scala.cli.launcher
 import dependency._
 
 import scala.build.internal.{OsLibc, Runner}
-import scala.build.options.{BuildOptions, JavaOptions}
+import scala.build.options.{BuildOptions, JavaOptions, JavaOpt}
 import scala.build.{Artifacts, Positioned}
 import scala.cli.commands.LoggingOptions
 
@@ -45,7 +45,7 @@ object LauncherCli {
     val exitCode =
       Runner.runJvm(
         buildOptions.javaHome().value.javaCommand,
-        buildOptions.javaOptions.javaOpts.toSeq(),
+        JavaOpt.toStringSeq(buildOptions.javaOptions.javaOpts.values),
         scalaCli,
         "scala.cli.ScalaCli",
         remainingArgs,

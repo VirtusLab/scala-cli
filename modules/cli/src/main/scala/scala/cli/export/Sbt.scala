@@ -10,7 +10,15 @@ import java.nio.file.Path
 
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
-import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
+import scala.build.options.{
+  BuildOptions,
+  JavaOpt,
+  Platform,
+  ScalacOpt,
+  ScalaJsOptions,
+  ScalaNativeOptions,
+  Scope
+}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 
@@ -192,11 +200,11 @@ final case class Sbt(
   private def javaOptionsSettings(options: BuildOptions): SbtProject = {
 
     val javaOptionsSettings =
-      if (options.javaOptions.javaOpts.toSeq().isEmpty) Nil
+      if (options.javaOptions.javaOpts.values.isEmpty) Nil
       else
         Seq(
           "run / javaOptions ++= Seq(" + nl +
-            options.javaOptions.javaOpts.toSeq().map(opt =>
+            JavaOpt.toStringSeq(options.javaOptions.javaOpts.values).map(opt =>
               "  \"" + opt + "\"," + nl
             ).mkString +
             ")"
@@ -223,13 +231,12 @@ final case class Sbt(
   private def scalacOptionsSettings(options: BuildOptions): SbtProject = {
 
     val scalacOptionsSettings =
-      if (options.scalaOptions.scalacOptions.toSeq.isEmpty) Nil
+      if (options.scalaOptions.scalacOptions.values.isEmpty) Nil
       else {
-        val options0 = options
+        val options0 = ScalacOpt.toStringSeq(options
           .scalaOptions
           .scalacOptions
-          .toSeq
-          .map(o => "\"" + o.replace("\"", "\\\"") + "\"")
+          .values).map(o => "\"" + o.replace("\"", "\\\"") + "\"")
         Seq(s"""scalacOptions ++= Seq(${options0.mkString(", ")})""")
       }
 

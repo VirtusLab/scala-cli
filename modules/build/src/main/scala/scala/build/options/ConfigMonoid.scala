@@ -2,8 +2,6 @@ package scala.build.options
 
 import shapeless._
 
-import scala.build.options.collections.StringOptionsList
-
 trait ConfigMonoid[T] {
   def zero: T
   def orElse(main: T, defaults: T): T
@@ -92,12 +90,6 @@ object ConfigMonoid {
             val defaultsVal = defaults.get(key)
             key -> mainVal.orElse(defaultsVal).get
         }.toMap
-    }
-
-  implicit def stringOptionsList: ConfigMonoid[StringOptionsList] =
-    instance(StringOptionsList.empty) {
-      (main, defaults) =>
-        main.orElse(defaults)
     }
 
   implicit val boolean: ConfigMonoid[Boolean] = instance(false) {

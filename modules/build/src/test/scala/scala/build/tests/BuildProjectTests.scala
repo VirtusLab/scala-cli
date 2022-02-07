@@ -4,7 +4,7 @@ import scala.build.errors.Severity
 import com.eed3si9n.expecty.Expecty.expect
 import scala.build.options.{BuildOptions, InternalOptions, JavaOptions, Scope}
 import scala.build.{Build, Inputs, LocalRepo, Positioned, Sources}
-import scala.build.options.ScalaOptions
+import scala.build.options.{ScalacOpt, ScalaOptions, ShadowingSeq}
 import scala.build.Logger
 import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleLogger
@@ -13,8 +13,6 @@ import scala.build.errors.Diagnostic
 import java.io.PrintStream
 import coursier.cache.CacheLogger
 import scala.build.Position
-import scala.build.options.collections.BuildOptionsConverterImplicits._
-import scala.build.options.collections.OptionPrefixes
 
 class BuildProjectTests extends munit.FunSuite {
 
@@ -69,8 +67,9 @@ class BuildProjectTests extends munit.FunSuite {
         javaHomeOpt = Some(Positioned.none(os.Path(javaHome)))
       ),
       scalaOptions = ScalaOptions(scalacOptions =
-        scalacOptions.map(Positioned.commandLine(_))
-          .toStringOptionsList(OptionPrefixes.scalacPrefixes)
+        ShadowingSeq(
+          ScalacOpt.fromPositionedStringSeq(scalacOptions.map(Positioned.commandLine(_)))
+        )
       )
     )
 
@@ -80,6 +79,7 @@ class BuildProjectTests extends munit.FunSuite {
     val res     = Build.buildProject(inputs, sources, Nil, options, Scope.Test, logger)
 
     val scalaCompilerOptions = res.fold(throw _, identity).scalaCompiler.scalacOptions
+
     (scalaCompilerOptions, res.fold(throw _, identity).javacOptions, logger.diagnostics)
   }
 

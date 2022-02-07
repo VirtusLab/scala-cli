@@ -12,8 +12,6 @@ import java.io.{ByteArrayOutputStream, File, InputStream}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.{Constants, OsLibc}
 import scala.build.options._
-import scala.build.options.collections.BuildOptionsConverterImplicits._
-import scala.build.options.collections.OptionPrefixes
 import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
 import scala.util.Properties
@@ -124,9 +122,10 @@ final case class SharedOptions(
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         generateSemanticDbs = semanticDb,
-        scalacOptions = scalac.scalacOption.filter(_.nonEmpty).map(
-          Positioned.commandLine(_)
-        ).toStringOptionsList(OptionPrefixes.scalacPrefixes),
+        scalacOptions =
+          ShadowingSeq(ScalacOpt.fromPositionedStringSeq(scalac.scalacOption.filter(_.nonEmpty).map(
+            Positioned.commandLine(_)
+          ))),
         compilerPlugins =
           SharedOptions.parseDependencies(
             dependencies.compilerPlugin.map(Positioned.none(_)),
@@ -160,11 +159,12 @@ final case class SharedOptions(
           .filter(_.nonEmpty)
           .map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
-        extraDependencies =
+        extraDependencies = ShadowingSeq(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none(_)),
             ignoreErrors
-          ).toDependencyMap()
+          )
+        )
       ),
       internal = InternalOptions(
         cache = Some(coursierCache),

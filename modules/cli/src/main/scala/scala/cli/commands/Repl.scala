@@ -5,7 +5,7 @@ import caseapp._
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, JavaOpt}
 import scala.build.{Artifacts, Build, Inputs, Logger, Os, ReplArtifacts}
 import scala.cli.CurrentParams
 import scala.util.Properties
@@ -165,7 +165,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     else
       Runner.runJvm(
         options.javaHome().value.javaCommand,
-        replArtifacts.replJavaOpts ++ options.javaOptions.javaOpts.toSeq(),
+        replArtifacts.replJavaOpts ++ JavaOpt.toStringSeq(options.javaOptions.javaOpts.values),
         classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toFile),
         replArtifacts.replMainClass,
         if (Properties.isWin)

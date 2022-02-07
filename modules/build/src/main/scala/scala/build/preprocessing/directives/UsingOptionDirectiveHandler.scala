@@ -1,8 +1,6 @@
 package scala.build.preprocessing.directives
 import scala.build.errors.BuildException
-import scala.build.options.collections.BuildOptionsConverterImplicits._
-import scala.build.options.collections.OptionPrefixes
-import scala.build.options.{BuildOptions, ScalaOptions}
+import scala.build.options.{BuildOptions, ScalaOptions, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
 
@@ -30,10 +28,9 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
     val scalacOptions = DirectiveUtil.stringValues(values, path, cwd)
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalacOptions =
-          scalacOptions.map(option => Positioned(option._2, option._1)).toStringOptionsList(
-            OptionPrefixes.scalacPrefixes
-          )
+        scalacOptions = ShadowingSeq(ScalacOpt.fromPositionedStringSeq(scalacOptions.map(option =>
+          Positioned(option._2, option._1)
+        )))
       )
     )
     Right(ProcessedDirective(Some(options), Seq.empty))

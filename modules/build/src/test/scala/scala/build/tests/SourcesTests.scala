@@ -9,7 +9,7 @@ import scala.build.Sources
 import scala.build.internal.CustomCodeWrapper
 import scala.build.CrossSources
 import scala.build.Position
-import scala.build.options.{BuildOptions, Scope}
+import scala.build.options.{BuildOptions, JavaOpt, Scope}
 import scala.build.preprocessing.directives.MultiValue
 import scala.build.preprocessing.directives.NotABoolean
 
@@ -403,8 +403,10 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources  = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
-      val javaOpts = sources.buildOptions.javaOptions.javaOpts.toPositionedSeq.sortBy(_.toString())
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+      val javaOpts = JavaOpt.toPositionedStringSeq(
+        sources.buildOptions.javaOptions.javaOpts.values
+      ).sortBy(_.toString())
 
       expect(
         javaOpts(0).value == "-Dfoo1",

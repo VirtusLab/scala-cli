@@ -1,6 +1,7 @@
 package scala.build.options
 
-import scala.build.options.collections.BuildOptionsConverterImplicits._
+import scala.build.Positioned
+import dependency.AnyDependency
 
 final case class ClassPathOptions(
   extraRepositories: Seq[String] = Nil,
@@ -8,7 +9,7 @@ final case class ClassPathOptions(
   extraCompileOnlyJars: Seq[os.Path] = Nil,
   extraSourceJars: Seq[os.Path] = Nil,
   fetchSources: Option[Boolean] = None,
-  extraDependencies: DependencyMap = Map.empty,
+  extraDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
   resourcesDir: Seq[os.Path] = Nil,
   resourcesVirtualDir: Seq[os.SubPath] = Nil
 )

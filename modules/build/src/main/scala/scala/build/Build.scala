@@ -15,7 +15,14 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.validation.ValidationException
-import scala.build.options.{BuildOptions, ClassPathOptions, Platform, SNNumeralVersion, Scope}
+import scala.build.options.{
+  BuildOptions,
+  ClassPathOptions,
+  Platform,
+  SNNumeralVersion,
+  ScalacOpt,
+  Scope
+}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -544,7 +551,7 @@ object Build {
     }
     else if (options.javaOptions.bloopJvmVersion.exists(_.value == 8))
       None
-    else if (options.scalaOptions.scalacOptions.toSeq.contains("-release"))
+    else if (ScalacOpt.toStringSeq(options.scalaOptions.scalacOptions.values).contains("-release"))
       None
     else
       Some(javaHome.value.version)
@@ -625,16 +632,19 @@ object Build {
     val scalacReleaseV = releaseFlagVersion.map(v => List("-release", v)).getOrElse(Nil)
     val javacReleaseV  = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
 
-    val scalacOptions = options.scalaOptions.scalacOptions.toSeq ++
-      pluginScalacOptions ++
-      semanticDbScalacOptions ++
-      sourceRootScalacOptions ++
-      scalaJsScalacOptions ++ scalacReleaseV
+    val scalacOptions = options.scalaOptions.scalacOptions ++
+      ScalacOpt.fromPositionedStringSeq(pluginScalacOptions.map(Positioned.none(_))) ++
+      ScalacOpt.fromPositionedStringSeq(semanticDbScalacOptions.map(Positioned.none(_))) ++
+      ScalacOpt.fromPositionedStringSeq(sourceRootScalacOptions.map(Positioned.none(_))) ++
+      ScalacOpt.fromPositionedStringSeq(scalaJsScalacOptions.map(Positioned.none(_))) ++
+      ScalacOpt.fromPositionedStringSeq(scalacReleaseV.map(Positioned.none(_)))
+
+    println(scalacOptions)
 
     val scalaCompiler = ScalaCompiler(
       scalaVersion = params.scalaVersion,
       scalaBinaryVersion = params.scalaBinaryVersion,
-      scalacOptions = scalacOptions,
+      scalacOptions = ScalacOpt.toStringSeq(scalacOptions.values),
       compilerClassPath = artifacts.compilerClassPath
     )
 

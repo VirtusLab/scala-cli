@@ -3,7 +3,6 @@ package scala.build.options
 import dependency.AnyDependency
 
 import scala.build.internal.CodeWrapper
-import scala.build.options.collections.StringOptionsList
 
 trait HashedType[T] {
   def hashedValue(t: T): String
@@ -46,10 +45,6 @@ object HashedType {
 
   implicit val platform: HashedType[Platform] = {
     pf => pf.repr
-  }
-
-  implicit val stringOptionsList: HashedType[StringOptionsList] = {
-    stringOptionList => stringOptionList.hashDataString()
   }
 
   implicit val unit: HashedType[Unit] = {
