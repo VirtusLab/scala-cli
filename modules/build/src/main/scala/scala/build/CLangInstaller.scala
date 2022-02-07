@@ -7,7 +7,7 @@ import os.Path
 import java.util.Locale
 
 import scala.build.EitherCps.either
-import scala.build.errors.{BuildException, FetchingDependenciesError}
+import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.util.Properties
 
