@@ -4,23 +4,17 @@ import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.IOException
+import scala.build.EitherCps.value
 import scala.build.Ops._
-import scala.build.options.{
-  BuildOptions,
-  InternalOptions,
-  Platform,
-  ScalaNativeOptions,
-  ScalaOptions
-}
+import scala.build.options.{BuildOptions, InternalOptions, ScalaOptions}
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
-import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 import scala.build.preprocessing.directives.SingleValueExpected
 import scala.build.errors.ScalaNativeCompatibilityError
-import scala.scalanative.nir.Position
 
 class BuildTests extends munit.FunSuite {
 
@@ -697,11 +691,8 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      if(maybeBuild.isLeft) {
-        val left = maybeBuild.left
-        println(left.get)
-      }
-      expect(maybeBuild.isRight == true)
+      if (maybeBuild.isLeft)
+        throw maybeBuild.left.get
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.clangManaged.get == true)
     }
   }
