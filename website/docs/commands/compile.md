@@ -21,7 +21,7 @@ The `compile` command is useful if you'd like to check that your code compiles,
 or know of compilation warnings, without running it or packaging it.
 
 The most common `compile` options are shown below. 
-For a full list of options, run `scala compile --help`, or check the options linked in the
+For a full list of options, run `scala-cli compile --help`, or check the options linked in the
 [reference documentation](../reference/commands.md#compile).
 
 ## Watch mode
