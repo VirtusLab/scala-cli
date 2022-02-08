@@ -170,8 +170,7 @@ object ScalaCli {
 
   /** CI represents $1 ??
     *
-    * @return
-    * true if the CI environment variable is set
+    * @return true if the CI environment variable is set
     */
   private def isCI = System.getenv("CI") != null
 }
