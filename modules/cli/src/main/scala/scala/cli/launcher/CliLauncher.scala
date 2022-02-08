@@ -6,14 +6,21 @@ import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Positioned}
 import scala.cli.commands.LoggingOptions
 
-object LauncherCli {
+object CliLauncher {
 
-  def runAndExit(version: String, options: LauncherOptions, remainingArgs: Seq[String]): Nothing = {
+  /**
+    *
+    * @param cliVersion the Scala CLI version at use
+    * @param cliLauncherOptions
+    * @param powArgsPlusPostDoubleDashArgs
+    * @return
+    */
+  def runAndExit(cliVersion: String, cliLauncherOptions:  CliLauncherOptions, powArgsPlusPostDoubleDashArgs: Seq[String]): Nothing = {
 
     val logger       = LoggingOptions().logger
-    val scalaVersion = options.cliScalaVersion.getOrElse("2.12")
+    val scalaVersion = cliLauncherOptions.cliScalaVersion.getOrElse("2.12")
 
-    val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli:cli_$scalaVersion:$version")
+    val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli:cli_$scalaVersion:$cliVersion")
     val snapshotsRepo =
       Seq(coursier.Repositories.sonatype("snapshots").root, coursier.Repositories.central.root)
 
@@ -48,7 +55,7 @@ object LauncherCli {
         buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
         scalaCli,
         "scala.cli.ScalaCli",
-        remainingArgs,
+        powArgsPlusPostDoubleDashArgs,
         logger,
         allowExecve = true
       )

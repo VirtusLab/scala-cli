@@ -4,6 +4,19 @@ import dependency.AnyDependency
 
 import scala.build.Positioned
 
+/**
+  * it is generally what?
+  * @param scalaVersion the full scala version such as 2.13.1 or 2.nightly
+  * @param scalaBinaryVersion values such as 2 or 3.1
+  * @param addScalaLibrary
+  * @param generateSemanticDbs
+  * @param scalacOptions
+  * @param extraScalaVersions
+  * @param compilerPlugins
+  * @param platform
+  * @param extraPlatforms
+  * @param supportedScalaVersionsUrl
+  */
 final case class ScalaOptions(
   scalaVersion: Option[String] = None,
   scalaBinaryVersion: Option[String] = None,
