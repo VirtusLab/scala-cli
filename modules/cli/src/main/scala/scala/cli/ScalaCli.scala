@@ -29,7 +29,7 @@ object ScalaCli {
   /** renamed from [[main0]] to [[launchScalaCli]]
     *
     * @param args
-    * arguments passed to the scala-cli command
+    *   arguments passed to the scala-cli command
     */
   private def launchScalaCli(args: Array[String]): Unit = {
     val remainingArgs =
@@ -38,9 +38,9 @@ object ScalaCli {
           System.err.println(e.message)
           sys.exit(1)
         case Right((
-          launcherOpts,
-          postDoubleDashCmdLineArgs
-          )) => // the launcherOpts are arguments before `--` in the command line
+              launcherOpts,
+              postDoubleDashCmdLineArgs
+            )) => // the launcherOpts are arguments before `--` in the command line
           launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
             case Some(cliVersion) =>
               val powerArgs =
@@ -65,12 +65,12 @@ object ScalaCli {
       ignoreSigpipe()
 
     if (Properties.isWin && isGraalvmNativeImage)
-    // The DLL loaded by LoadWindowsLibrary is statically linked in
-    // the Scala CLI native image, no need to manually load it.
+      // The DLL loaded by LoadWindowsLibrary is statically linked in
+      // the Scala CLI native image, no need to manually load it.
       coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
 
     if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
-    // Enable ANSI output in Windows terminal
+      // Enable ANSI output in Windows terminal
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
 
     new ScalaCliCommands(progName, isSipScala)
@@ -102,17 +102,17 @@ object ScalaCli {
     *
     * @param args
     * @return
-    * a tuple of (an array of system properties , the rest of args)
+    *   a tuple of (an array of system properties , the rest of args)
     */
   private def partitionArgsToSysPropsAndCliArgs(args: Array[String])
-  : (Array[String], Array[String]) = {
+    : (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
     (systemProps, args.drop(systemProps.size))
   }
 
   private def printThrowable(t: Throwable): Array[Byte] = {
     val baos = new ByteArrayOutputStream
-    val ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name())
+    val ps   = new PrintStream(baos, true, StandardCharsets.UTF_8.name())
     printThrowable(t, ps)
     baos.toByteArray
   }
@@ -170,7 +170,8 @@ object ScalaCli {
 
   /** CI represents $1 ??
     *
-    * @return true if the CI environment variable is set
+    * @return
+    *   true if the CI environment variable is set
     */
   private def isCI = System.getenv("CI") != null
 }

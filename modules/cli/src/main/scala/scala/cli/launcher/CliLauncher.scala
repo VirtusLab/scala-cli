@@ -9,18 +9,18 @@ import scala.cli.commands.LoggingOptions
 object CliLauncher {
 
   /** @param cliVersion
-    * the Scala CLI version at use
+    *   the Scala CLI version at use
     * @param cliLauncherOptions
     * @param powArgsPlusPostDoubleDashArgs
     * @return
     */
   def runAndExit(
-                  cliVersion: String,
-                  cliLauncherOptions: CliLauncherOptions,
-                  powArgsPlusPostDoubleDashArgs: Seq[String]
-                ): Nothing = {
+    cliVersion: String,
+    cliLauncherOptions: CliLauncherOptions,
+    powArgsPlusPostDoubleDashArgs: Seq[String]
+  ): Nothing = {
 
-    val logger = LoggingOptions().logger
+    val logger       = LoggingOptions().logger
     val scalaVersion = cliLauncherOptions.cliScalaVersion.getOrElse("2.12")
 
     val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli:cli_$scalaVersion:$cliVersion")

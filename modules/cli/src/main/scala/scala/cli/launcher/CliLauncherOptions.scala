@@ -5,11 +5,11 @@ import caseapp._
 /** It is used for running another $1 (why another??? what's the default then???) Scala CLI version
   *
   * @param cliVersion
-  * The Scala CLI version
+  *   The Scala CLI version
   * @param cliScalaVersion
-  * The version of Scala on which Scala CLI was published.
+  *   The version of Scala on which Scala CLI was published.
   * @param power
-  * whether to enable the use of power commands when called as ''scala''
+  *   whether to enable the use of power commands when called as ''scala''
   */
 @HelpMessage("Run another Scala CLI version")
 final case class CliLauncherOptions(
@@ -24,7 +24,7 @@ final case class CliLauncherOptions(
   @HelpMessage("When called as 'scala', allow to use power commands too")
   @Hidden
   power: Boolean = false
-                                   )
+)
 
 /** It provides a CaseApp Parser with the [[CliLauncherOptions]] that parses the arguments of the
   * command line $1 ??

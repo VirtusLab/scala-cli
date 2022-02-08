@@ -289,15 +289,15 @@ final case class BuildOptions(
     classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
   /** @param scalaVersion
-    * the scala version passed as an argument to the scala-cli command
+    *   the scala version passed as an argument to the scala-cli command
     * @param scalaBinaryVersion
     * @return
-    * Either a BuildException or a tuple containing two
+    *   Either a BuildException or a tuple containing two
     */
   private def computeScalaVersions(
-                                    scalaVersion: Option[String],
-                                    scalaBinaryVersion: Option[String]
-                                  ): Either[BuildException, (String, String)] = either {
+    scalaVersion: Option[String],
+    scalaBinaryVersion: Option[String]
+  ): Either[BuildException, (String, String)] = either {
     lazy val allVersions = {
 
       import coursier._
