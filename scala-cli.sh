@@ -3,7 +3,7 @@
 # This is the launcher script of Scala CLI (https://github.com/VirtusLab/scala-cli).
 # This script downloads and runs the Scala CLI version set by SCALA_CLI_VERSION below.
 #
-# Download the latest version of this script at https://github.com/VirtusLab/scala-cli/raw/master/scala-cli.sh
+# Download the latest version of this script at https://github.com/VirtusLab/scala-cli/raw/main/scala-cli.sh
 
 set -eu
 
