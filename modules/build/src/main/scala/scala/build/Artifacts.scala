@@ -85,9 +85,7 @@ object Artifacts {
   ): Either[BuildException, Artifacts] = either {
 
     if (addClang.getOrElse(false))
-      value {
-        CLangInstaller.install(logger)
-      }
+      value(CLangInstaller.install(logger))
 
     val compilerDependencies =
       if (params.scalaVersion.startsWith("3."))

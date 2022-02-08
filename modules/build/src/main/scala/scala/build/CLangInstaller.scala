@@ -96,11 +96,11 @@ object CLangInstaller {
              |#!/bin/sh
              |$mambaPath -r $baseDir shell -s posix activate > $baseDir/activate_env
              |. $baseDir/activate_env
-             |$mambaPath install llvm -r $baseDir -n base -c conda-forge -y
+             |$mambaPath install compilers -r $baseDir -n base -c conda-forge -y
              |""".stripMargin
         os.write.over(installScript, activateAndInstall)
         Runner.run(
-          "install llvm",
+          "install llvm toolchain",
           s"sh $installScript".split(" ").toSeq,
           logger,
           cwd = Some(miniMambaPath)
