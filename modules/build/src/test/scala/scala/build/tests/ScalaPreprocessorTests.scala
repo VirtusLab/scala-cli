@@ -2,6 +2,7 @@ package scala.build
 package tests
 
 import com.eed3si9n.expecty.Expecty.{assert => expect}
+import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
 
 import scala.build.errors.Diagnostic
 import scala.build.preprocessing.ExtractedDirectives
@@ -39,7 +40,7 @@ class ScalaPreprocessorTests extends munit.FunSuite {
   private def testWarnings(lines: String*)(expectedWarnings: Check*): Unit = {
     val persistentLogger = new PersistentDiagnosticLogger(Logger.nop)
     val code             = lines.mkString("\n").toCharArray()
-    val res = ExtractedDirectives.from(code, Right(path), persistentLogger)
+    val res = ExtractedDirectives.from(code, Right(path), persistentLogger, UsingDirectiveKind.values())
     expect(res.isRight)
 
     val diags = persistentLogger.diagnostics

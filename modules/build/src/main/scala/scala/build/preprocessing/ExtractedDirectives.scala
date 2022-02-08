@@ -1,11 +1,7 @@
 package scala.build.preprocessing
 
 import com.virtuslab.using_directives.config.Settings
-import com.virtuslab.using_directives.custom.model.{
-  UsingDirectiveKind,
-  UsingDirectiveSyntax,
-  UsingDirectives
-}
+import com.virtuslab.using_directives.custom.model.{UsingDirectiveKind, UsingDirectiveSyntax, UsingDirectives}
 import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
 import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 
@@ -17,8 +13,7 @@ import scala.jdk.CollectionConverters._
 
 case class ExtractedDirectives(
   offset: Int,
-  directives: Seq[StrictDirective],
-  kind: UsingDirectiveKind
+  directives: Seq[StrictDirective]
 )
 
 object ExtractedDirectives {
@@ -29,7 +24,8 @@ object ExtractedDirectives {
   def from(
     contentChars: Array[Char],
     path: Either[String, os.Path],
-    logger: Logger
+    logger: Logger,
+    supportedDirectives: Array[UsingDirectiveKind]
   ): Either[BuildException, ExtractedDirectives] = {
     val errors = new mutable.ListBuffer[Diagnostic]
     val reporter = CustomDirectivesReporter.create(path) { diag =>
@@ -110,7 +106,10 @@ object ExtractedDirectives {
       val offset =
         if (usedDirectives.getKind() != UsingDirectiveKind.Code) 0
         else usedDirectives.getCodeOffset()
-      Right(ExtractedDirectives(offset, strictDirectives, usedDirectives.getKind()))
+      if (supportedDirectives.contains(usedDirectives.getKind()))
+      Right(ExtractedDirectives(offset, strictDirectives))
+    else
+      Left(new DirectiveErrors(::("Unsupported directive", Nil)))
     }
     else {
       val errors0 = errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions))

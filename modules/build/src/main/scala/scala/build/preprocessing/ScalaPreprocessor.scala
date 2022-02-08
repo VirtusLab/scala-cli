@@ -1,5 +1,6 @@
 package scala.build.preprocessing
 
+import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
@@ -9,11 +10,8 @@ import scala.build.Ops._
 import scala.build.errors._
 import scala.build.internal.{AmmUtil, Util}
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
-import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.directives._
 import scala.build.{Inputs, Logger, Position, Positioned}
-import scala.collection.mutable
-import scala.jdk.CollectionConverters._
 
 case object ScalaPreprocessor extends Preprocessor {
 
@@ -268,7 +266,7 @@ case object ScalaPreprocessor extends Preprocessor {
     logger: Logger
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
     val contentChars = content.toCharArray
-    val ExtractedDirectives(codeOffset, directives0, _) = value(ExtractedDirectives.from(contentChars, path, logger))
+    val ExtractedDirectives(codeOffset, directives0) = value(ExtractedDirectives.from(contentChars, path, logger, UsingDirectiveKind.values()))
 
     val updatedOptions = value {
       DirectivesProcessor.process(

@@ -4,7 +4,7 @@ import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
 
 import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.{BuildException, DirectiveErrors}
+import scala.build.errors.BuildException
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.ScalaPreprocessor._
@@ -19,9 +19,13 @@ case object JavaPreprocessor extends Preprocessor {
       case j: Inputs.JavaFile => Some(either {
           val content   = value(PreprocessingUtil.maybeRead(j.path))
           val scopePath = ScopePath.fromPath(j.path)
-          val ExtractedDirectives(_, directives0, kind) =
-            value(from(content.toCharArray, Right(j.path), logger))
-          val _ = value(assertKindIsNotCode(kind))
+          val ExtractedDirectives(_, directives0) =
+            value(from(
+              content.toCharArray,
+              Right(j.path),
+              logger,
+              Array(UsingDirectiveKind.PlainComment, UsingDirectiveKind.SpecialComment)
+            ))
           val updatedOptions = value(DirectivesProcessor.process(
             directives0,
             usingDirectiveHandlers,
@@ -53,15 +57,5 @@ case object JavaPreprocessor extends Preprocessor {
         Some(Right(Seq(s)))
 
       case _ => None
-    }
-
-  private def assertKindIsNotCode(kind: UsingDirectiveKind) =
-    kind match {
-      case UsingDirectiveKind.PlainComment   => Right(())
-      case UsingDirectiveKind.SpecialComment => Right(())
-      case UsingDirectiveKind.Code => Left(new DirectiveErrors(::(
-          "Java doesn't support 'using' directives in the code",
-          Nil
-        )))
     }
 }
