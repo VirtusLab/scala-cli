@@ -1,7 +1,11 @@
 package scala.build.preprocessing
 
 import com.virtuslab.using_directives.config.Settings
-import com.virtuslab.using_directives.custom.model.{UsingDirectiveKind, UsingDirectiveSyntax, UsingDirectives}
+import com.virtuslab.using_directives.custom.model.{
+  UsingDirectiveKind,
+  UsingDirectiveSyntax,
+  UsingDirectives
+}
 import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
 import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 
@@ -109,7 +113,7 @@ object ExtractedDirectives {
       if (supportedDirectives.contains(usedDirectives.getKind()))
       Right(ExtractedDirectives(offset, strictDirectives))
     else
-      Left(new DirectiveErrors(::("Unsupported directive", Nil)))
+      Left(new DirectiveErrors(::(s"Unsupported using directive kind ${usedDirectives.getKind}", Nil)))
     }
     else {
       val errors0 = errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions))
