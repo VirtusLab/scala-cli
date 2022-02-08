@@ -334,14 +334,6 @@ class BuildTests extends munit.FunSuite {
           |pprint.log(g)
           |""".stripMargin,
       os.rel / "simple2.sc" ->
-        """//> using
-          |//  lib "com.lihaoyi::geny:0.6.5"
-          |//  lib "com.lihaoyi::pprint:0.6.6"
-          |import geny.Generator
-          |val g = Generator("Hel", "lo")
-          |pprint.log(g)
-          |""".stripMargin,
-      os.rel / "simple3.sc" ->
         """//> using lib "com.lihaoyi::geny:0.6.5", "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
@@ -357,11 +349,7 @@ class BuildTests extends munit.FunSuite {
         "simple2.class",
         "simple2_sc.class",
         "simple2$.class",
-        "simple2_sc$.class",
-        "simple3.class",
-        "simple3_sc.class",
-        "simple3$.class",
-        "simple3_sc$.class"
+        "simple2_sc$.class"
       )
       maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -589,17 +577,6 @@ class BuildTests extends munit.FunSuite {
       os.rel / "p.sc" ->
         """//> using scala "2.13"
           |//> using plugins "com.olegpy::better-monadic-for:0.3.1"
-          |
-          |def getCounts: Either[String, (Int, Int)] = ???
-          |
-          |for {
-          |  (x, y) <- getCounts
-          |} yield x + y
-          |""".stripMargin,
-      os.rel / "p2.sc" ->
-        """//> using
-          |//  scala "2.13"
-          |//  plugins "com.olegpy::better-monadic-for:0.3.1"
           |
           |def getCounts: Either[String, (Int, Int)] = ???
           |
