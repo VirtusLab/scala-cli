@@ -221,6 +221,63 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
+  test("dependencies in .java - //> using") {
+    val testInputs = TestInputs(
+      os.rel / "Something.java" ->
+        """//> using lib "org1:name1:1.1"
+          |//> using lib "org2::name2:2.2"
+          |//> using lib "org3:::name3:3.3"
+          |
+          |public class Something {
+          |  public Int a = 1;
+          |}
+          |""".stripMargin
+    )
+    val expectedDeps = Seq(
+      dep"org1:name1:1.1",
+      dep"org2::name2:2.2",
+      dep"org3:::name3:3.3"
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources =
+        CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        ).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+
+      expect(
+        sources.buildOptions.classPathOptions.extraDependencies.toSeq.map(_.value) == expectedDeps
+      )
+      expect(sources.paths.length == 1)
+      expect(sources.paths.map(_._2) == Seq(os.rel / "Something.java"))
+      expect(sources.inMemory.isEmpty)
+    }
+  }
+
+  test("should fail dependencies in .java - //> using") {
+    val testInputs = TestInputs(
+      os.rel / "Something.java" ->
+        """using lib "org3:::name3:3.3"
+          |
+          |public class Something {
+          |  public Int a = 1;
+          |}
+          |""".stripMargin
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSources = CrossSources.forInputs(
+          inputs,
+          Sources.defaultPreprocessors(CustomCodeWrapper),
+          TestLogger()
+        )
+      expect(crossSources.isLeft)
+    }
+  }
+
+
   test("dependencies in .sc - $ivy") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->

@@ -274,10 +274,8 @@ case object ScalaPreprocessor extends Preprocessor {
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
-
     val contentChars = content.toCharArray
-    val ExtractedDirectives(codeOffset, directives0) =
-      value(extractUsingDirectives(contentChars, path, logger))
+    val ExtractedDirectives(codeOffset, directives0, _) = value(extractUsingDirectives(contentChars, path, logger))
 
     val updatedOptions = value {
       DirectivesProcessor.process(
@@ -347,7 +345,7 @@ case object ScalaPreprocessor extends Preprocessor {
     new UnusedDirectiveError(directive.key, values.map(_._1.value), values.flatMap(_._1.positions))
   }
 
-  case class ExtractedDirectives(offset: Int, directives: Seq[StrictDirective])
+  case class ExtractedDirectives(offset: Int, directives: Seq[StrictDirective], kind: UsingDirectiveKind)
 
   val changeToSpecialCommentMsg =
     "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...' or '/*> ... */'"
@@ -436,7 +434,7 @@ case object ScalaPreprocessor extends Preprocessor {
       val offset =
         if (usedDirectives.getKind() != UsingDirectiveKind.Code) 0
         else usedDirectives.getCodeOffset()
-      Right(ExtractedDirectives(offset, strictDirectives))
+      Right(ExtractedDirectives(offset, strictDirectives, usedDirectives.getKind()))
     }
     else {
       val errors0 = errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions))
