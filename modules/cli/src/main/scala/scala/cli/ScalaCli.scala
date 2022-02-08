@@ -10,15 +10,13 @@ import scala.cli.internal.Argv0
 import scala.cli.launcher.{CliLauncher, CliLauncherOptions}
 import scala.util.Properties
 
-/**
-  * containes the main method
+/** containes the main method
   */
 object ScalaCli {
 
   val progName = (new Argv0).get("scala-cli")
 
-  /**
-    * represents whether $1 ??? is scala
+  /** represents whether $1 ??? is scala
     */
   private var isSipScala =
     progName == "scala" ||
@@ -28,14 +26,55 @@ object ScalaCli {
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
 
-  /**
-    * partitions the args Array to the systemProps, which come before the `-D` option and the args after that
+  /** renamed from [[main0]] to [[launchScalaCli]]
+    *
     * @param args
-    * @return a tuple of (an array of system properties , the rest of args)
+    * arguments passed to the scala-cli command
     */
-  private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
-    val systemProps = args.takeWhile(_.startsWith("-D"))
-    (systemProps, args.drop(systemProps.size))
+  private def launchScalaCli(args: Array[String]): Unit = {
+    val remainingArgs =
+      CliLauncherOptions.parser.stopAtFirstUnrecognized.parse(args) match { // remaining args of $1??
+        case Left(e) =>
+          System.err.println(e.message)
+          sys.exit(1)
+        case Right((
+          launcherOpts,
+          postDoubleDashCmdLineArgs
+          )) => // the launcherOpts are arguments before `--` in the command line
+          launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
+            case Some(cliVersion) =>
+              val powerArgs =
+                if (launcherOpts.power) Seq("--power")
+                else Nil
+              val powArgsPlusPostDoubleDashArgs = powerArgs ++ postDoubleDashCmdLineArgs
+              CliLauncher.runAndExit(cliVersion, launcherOpts, powArgsPlusPostDoubleDashArgs)
+            case None =>
+              if (launcherOpts.power)
+                isSipScala = false
+              postDoubleDashCmdLineArgs.toArray
+          }
+      }
+    val (systemProps, scalaCliArgs) = partitionArgsToSysPropsAndCliArgs(remainingArgs)
+    setSystemProps(systemProps)
+
+    // Getting killed by SIGPIPE quite often when on musl (in the "static" native
+    // image), but also sometimes on glibc, or even on macOS, when we use domain
+    // sockets to exchange with Bloop. So let's just ignore those (which should
+    // just make some read / write calls return -1).
+    if (!Properties.isWin && isGraalvmNativeImage)
+      ignoreSigpipe()
+
+    if (Properties.isWin && isGraalvmNativeImage)
+    // The DLL loaded by LoadWindowsLibrary is statically linked in
+    // the Scala CLI native image, no need to manually load it.
+      coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
+
+    if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
+    // Enable ANSI output in Windows terminal
+      coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
+
+    new ScalaCliCommands(progName, isSipScala)
+      .main(scalaCliArgs)
   }
 
   private def setSystemProps(systemProps: Array[String]): Unit = {
@@ -58,18 +97,25 @@ object ScalaCli {
       printThrowable(t.getCause, out)
     }
 
+  /** partitions the args Array to the systemProps, which come before the `-D` option and the args
+    * after that
+    *
+    * @param args
+    * @return
+    * a tuple of (an array of system properties , the rest of args)
+    */
+  private def partitionArgsToSysPropsAndCliArgs(args: Array[String])
+  : (Array[String], Array[String]) = {
+    val systemProps = args.takeWhile(_.startsWith("-D"))
+    (systemProps, args.drop(systemProps.size))
+  }
+
   private def printThrowable(t: Throwable): Array[Byte] = {
     val baos = new ByteArrayOutputStream
-    val ps   = new PrintStream(baos, true, StandardCharsets.UTF_8.name())
+    val ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name())
     printThrowable(t, ps)
     baos.toByteArray
   }
-
-  /**
-    * CI represents $1 ??
-    * @return true if the CI environment variable is set
-    */
-  private def isCI = System.getenv("CI") != null
 
   private def ignoreSigpipe(): Unit =
     Signal.handle(new Signal("PIPE"), SignalHandler.SIG_IGN)
@@ -122,49 +168,10 @@ object ScalaCli {
     }
   }
 
-  /**
-    * renamed from [[main0]] to [[launchScalaCli ]]
-    * @param args arguments passed to the scala-cli command
+  /** CI represents $1 ??
+    *
+    * @return
+    * true if the CI environment variable is set
     */
-  private def launchScalaCli(args: Array[String]): Unit = {
-    val remainingArgs = CliLauncherOptions.parser.stopAtFirstUnrecognized.parse(args) match { //remaining args of $1??
-      case Left(e) =>
-        System.err.println(e.message)
-        sys.exit(1)
-      case Right((launcherOpts, postDoubleDashCmdLineArgs)) => // the launcherOpts are arguments before `--` in the command line
-        launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
-          case Some(cliVersion) =>
-            val powerArgs =
-              if (launcherOpts.power) Seq("--power")
-              else Nil
-            val powArgsPlusPostDoubleDashArgs = powerArgs ++ postDoubleDashCmdLineArgs
-            CliLauncher.runAndExit(cliVersion, launcherOpts, powArgsPlusPostDoubleDashArgs)
-          case None =>
-            if (launcherOpts.power)
-              isSipScala = false
-            postDoubleDashCmdLineArgs.toArray
-        }
-    }
-    val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
-    setSystemProps(systemProps)
-
-    // Getting killed by SIGPIPE quite often when on musl (in the "static" native
-    // image), but also sometimes on glibc, or even on macOS, when we use domain
-    // sockets to exchange with Bloop. So let's just ignore those (which should
-    // just make some read / write calls return -1).
-    if (!Properties.isWin && isGraalvmNativeImage)
-      ignoreSigpipe()
-
-    if (Properties.isWin && isGraalvmNativeImage)
-      // The DLL loaded by LoadWindowsLibrary is statically linked in
-      // the Scala CLI native image, no need to manually load it.
-      coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
-
-    if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
-      // Enable ANSI output in Windows terminal
-      coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
-
-    new ScalaCliCommands(progName, isSipScala)
-      .main(scalaCliArgs)
-  }
+  private def isCI = System.getenv("CI") != null
 }
