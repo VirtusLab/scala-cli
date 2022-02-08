@@ -26,9 +26,7 @@ import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
 
-/**
-  *
-  * @param scalaOptions
+/** @param scalaOptions
   * @param scalaJsOptions
   * @param scalaNativeOptions
   * @param internalDependencies
@@ -290,16 +288,16 @@ final case class BuildOptions(
   def finalRepositories: Seq[String] =
     classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
-  /**
-    *
-    * @param scalaVersion the scala version passed as an argument to the scala-cli command
+  /** @param scalaVersion
+    * the scala version passed as an argument to the scala-cli command
     * @param scalaBinaryVersion
-    * @return Either a BuildException or a tuple containing two
+    * @return
+    * Either a BuildException or a tuple containing two
     */
   private def computeScalaVersions(
-    scalaVersion: Option[String],
-    scalaBinaryVersion: Option[String]
-  ): Either[BuildException, (String, String)] = either {
+                                    scalaVersion: Option[String],
+                                    scalaBinaryVersion: Option[String]
+                                  ): Either[BuildException, (String, String)] = either {
     lazy val allVersions = {
 
       import coursier._
@@ -307,8 +305,10 @@ final case class BuildOptions(
 
       val modules = {
         def scala2 = mod"org.scala-lang:scala-library"
+
         // No unstable, that *ought* not to be a problem down-the-line…?
         def scala3 = mod"org.scala-lang:scala3-library_3"
+
         if (scalaVersion.contains("2") || scalaVersion.exists(_.startsWith("2."))) Seq(scala2)
         else if (scalaVersion.contains("3") || scalaVersion.exists(_.startsWith("3."))) Seq(scala3)
         else Seq(scala2, scala3)
@@ -332,7 +332,6 @@ final case class BuildOptions(
 
       modules.flatMap(moduleVersions).distinct
     }
-
 
     def matchNewestScalaVersion(sv: Option[String]) = {
       lazy val maxSupportedScalaVersions = latestSupportedScalaVersion()
