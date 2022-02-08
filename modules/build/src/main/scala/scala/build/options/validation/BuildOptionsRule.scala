@@ -17,12 +17,12 @@ class ValidationException(
 
 object JvmOptionsForNonJvmBuild extends BuildOptionsRule {
   def validate(options: BuildOptions): List[Diagnostic] = {
-    val jvmOptions = options.javaOptions.javaOpts.find(p => p.value.nonEmpty)
+    val jvmOptions = options.javaOptions.javaOpts.toSeq
     if (jvmOptions.nonEmpty && options.platform.value != scala.build.options.Platform.JVM)
       List(Diagnostic(
         "Conflicting options. Jvm Options are valid only for jvm platform.",
         Severity.Warning,
-        options.platform.positions ++ jvmOptions.get.positions
+        options.platform.positions ++ jvmOptions.flatMap(_.positions)
       ))
     else Nil
   }

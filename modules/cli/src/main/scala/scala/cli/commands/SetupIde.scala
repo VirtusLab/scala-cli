@@ -88,7 +88,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val logger = options.shared.logger
 
-    if (options.buildOptions.classPathOptions.extraDependencies.nonEmpty)
+    if (options.buildOptions.classPathOptions.extraDependencies.toSeq.nonEmpty)
       value(downloadDeps(inputs, options.buildOptions, logger))
 
     val (bspName, bspJsonDestination) = options.bspFile.bspDetails(inputs.workspace)

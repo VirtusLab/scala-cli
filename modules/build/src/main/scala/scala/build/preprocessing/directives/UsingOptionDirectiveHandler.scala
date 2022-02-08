@@ -1,8 +1,8 @@
 package scala.build.preprocessing.directives
-import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, ScalaOptions}
+import scala.build.options.{BuildOptions, ScalaOptions, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.ScopePath
+import scala.build.{Logger, Positioned}
 
 case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Compiler options"
@@ -24,11 +24,14 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
-    val values        = directive.values
-    val scalacOptions = DirectiveUtil.stringValues(values, path, cwd)
+    val values = directive.values
+    val scalacOptions = DirectiveUtil.stringValues(values, path, cwd).map {
+      case (value, pos, _) =>
+        Positioned(Seq(pos), ScalacOpt(value))
+    }
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalacOptions = scalacOptions.map(_._1)
+        scalacOptions = ShadowingSeq.from(scalacOptions)
       )
     )
     Right(ProcessedDirective(Some(options), Seq.empty))

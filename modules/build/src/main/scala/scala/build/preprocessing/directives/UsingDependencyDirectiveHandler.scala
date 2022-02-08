@@ -5,7 +5,7 @@ import dependency.parser.DependencyParser
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, DependencyFormatError}
-import scala.build.options.{BuildOptions, ClassPathOptions}
+import scala.build.options.{BuildOptions, ClassPathOptions, ShadowingSeq}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
 
@@ -48,7 +48,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     ProcessedDirective(
       Some(BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraDependencies = extraDependencies
+          extraDependencies = ShadowingSeq.from(extraDependencies)
         )
       )),
       Seq.empty

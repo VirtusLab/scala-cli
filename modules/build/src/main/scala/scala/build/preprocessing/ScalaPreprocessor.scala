@@ -17,7 +17,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.internal.{AmmUtil, Util}
-import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
+import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
 import scala.build.preprocessing.directives._
 import scala.build.{Inputs, Logger, Position, Positioned}
 import scala.jdk.CollectionConverters._
@@ -261,7 +261,7 @@ case object ScalaPreprocessor extends Preprocessor {
       }
       val options = BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraDependencies = deps
+          extraDependencies = ShadowingSeq.from(deps)
         )
       )
       Some(SpecialImportsProcessingOutput(BuildRequirements(), options, newCode))

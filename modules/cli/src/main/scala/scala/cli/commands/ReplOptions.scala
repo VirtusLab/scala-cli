@@ -3,7 +3,8 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.Positioned
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, JavaOpt}
+
 // format: off
 @HelpMessage("Fire-up a Scala REPL")
 final case class ReplOptions(
@@ -44,7 +45,8 @@ final case class ReplOptions(
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
-          baseOptions.javaOptions.javaOpts ++ sharedJava.allJavaOpts.map(Positioned.commandLine _)
+          baseOptions.javaOptions.javaOpts ++
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
       ),
       replOptions = baseOptions.replOptions.copy(
         useAmmoniteOpt = ammonite,
