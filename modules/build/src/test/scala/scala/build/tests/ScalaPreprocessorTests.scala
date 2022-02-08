@@ -3,9 +3,8 @@ package tests
 
 import com.eed3si9n.expecty.Expecty.{assert => expect}
 
-import scala.build.Logger
 import scala.build.errors.Diagnostic
-import scala.build.preprocessing.ScalaPreprocessor
+import scala.build.preprocessing.ExtractedDirectives
 
 class ScalaPreprocessorTests extends munit.FunSuite {
 
@@ -40,8 +39,7 @@ class ScalaPreprocessorTests extends munit.FunSuite {
   private def testWarnings(lines: String*)(expectedWarnings: Check*): Unit = {
     val persistentLogger = new PersistentDiagnosticLogger(Logger.nop)
     val code             = lines.mkString("\n").toCharArray()
-    val res =
-      ScalaPreprocessor.extractUsingDirectives(code, Right(path), persistentLogger)
+    val res = ExtractedDirectives.from(code, Right(path), persistentLogger)
     expect(res.isRight)
 
     val diags = persistentLogger.diagnostics

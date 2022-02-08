@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, DirectiveErrors}
 import scala.build.options.BuildRequirements
+import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.ScalaPreprocessor._
 import scala.build.{Inputs, Logger}
 
@@ -19,7 +20,7 @@ case object JavaPreprocessor extends Preprocessor {
           val content   = value(PreprocessingUtil.maybeRead(j.path))
           val scopePath = ScopePath.fromPath(j.path)
           val ExtractedDirectives(_, directives0, kind) =
-            value(extractUsingDirectives(content.toCharArray, Right(j.path), logger))
+            value(from(content.toCharArray, Right(j.path), logger))
           val _ = value(assertKindIsNotCode(kind))
           val updatedOptions = value(DirectivesProcessor.process(
             directives0,
