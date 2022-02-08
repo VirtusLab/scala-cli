@@ -63,7 +63,7 @@ In many cases you won't care for a precise Scala version and will want "any Scal
 For this situation, `scala-cli` accepts version prefixes like this:
 
 ```bash
-scala-cli -S 2.13.6 ScalaVersion.scala
+scala-cli -S 2 ScalaVersion.scala
 ```
 <!-- Expected-regex:
 Scala: 2\..+
