@@ -26,22 +26,6 @@ import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
 
-/**
-  *
-  * @param scalaOptions
-  * @param scalaJsOptions
-  * @param scalaNativeOptions
-  * @param internalDependencies
-  * @param javaOptions
-  * @param jmhOptions
-  * @param classPathOptions
-  * @param scriptOptions
-  * @param internal
-  * @param mainClass
-  * @param testOptions
-  * @param packageOptions
-  * @param replOptions
-  */
 final case class BuildOptions(
   scalaOptions: ScalaOptions = ScalaOptions(),
   scalaJsOptions: ScalaJsOptions = ScalaJsOptions(),
@@ -290,21 +274,13 @@ final case class BuildOptions(
   def finalRepositories: Seq[String] =
     classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
-  /**
-    *
-    * @param scalaVersion the scala version passed as an argument to the scala-cli command
-    * @param scalaBinaryVersion
-    * @return Either a BuildException or a tuple containing two
-    */
   private def computeScalaVersions(
     scalaVersion: Option[String],
     scalaBinaryVersion: Option[String]
   ): Either[BuildException, (String, String)] = either {
     lazy val allVersions = {
-
       import coursier._
       import scala.concurrent.ExecutionContext.{global => ec}
-
       val modules = {
         def scala2 = mod"org.scala-lang:scala-library"
         // No unstable, that *ought* not to be a problem down-the-line…?
@@ -313,13 +289,8 @@ final case class BuildOptions(
         else if (scalaVersion.contains("3") || scalaVersion.exists(_.startsWith("3."))) Seq(scala3)
         else Seq(scala2, scala3)
       }
-
       def isStable(v: String): Boolean =
         !v.endsWith("-NIGHTLY") && !v.contains("-RC")
-
-      def isNightlyStable(v: String): Boolean =
-        v.endsWith("-NIGHTLY") && !v.contains("-RC")
-
       def moduleVersions(mod: Module): Seq[String] = {
         val res = finalCache.logger.use {
           Versions()
@@ -329,11 +300,8 @@ final case class BuildOptions(
         }
         res.versions.available.filter(isStable)
       }
-
       modules.flatMap(moduleVersions).distinct
     }
-
-
     def matchNewestScalaVersion(sv: Option[String]) = {
       lazy val maxSupportedScalaVersions = latestSupportedScalaVersion()
 

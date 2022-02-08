@@ -7,19 +7,13 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.internal.Constants
 import scala.cli.internal.Argv0
-import scala.cli.launcher.{CliLauncher, CliLauncherOptions}
+import scala.cli.launcher.{LauncherCli, LauncherOptions}
 import scala.util.Properties
 
-/**
-  * containes the main method
-  */
 object ScalaCli {
 
   val progName = (new Argv0).get("scala-cli")
 
-  /**
-    * represents whether $1 ??? is scala
-    */
   private var isSipScala =
     progName == "scala" ||
     progName.endsWith("/scala") ||
@@ -28,11 +22,6 @@ object ScalaCli {
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
 
-  /**
-    * partitions the args Array to the systemProps, which come before the `-D` option and the args after that
-    * @param args
-    * @return a tuple of (an array of system properties , the rest of args)
-    */
   private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
     (systemProps, args.drop(systemProps.size))
@@ -48,7 +37,6 @@ object ScalaCli {
       }
     }
   }
-
   private def printThrowable(t: Throwable, out: PrintStream): Unit =
     if (t != null) {
       out.println(t.toString)
@@ -65,10 +53,6 @@ object ScalaCli {
     baos.toByteArray
   }
 
-  /**
-    * CI represents $1 ??
-    * @return true if the CI environment variable is set
-    */
   private def isCI = System.getenv("CI") != null
 
   private def ignoreSigpipe(): Unit =
@@ -84,7 +68,7 @@ object ScalaCli {
       .toInt
 
   def main(args: Array[String]): Unit = {
-    try launchScalaCli(args)
+    try main0(args)
     catch {
       case e: Throwable if !isCI =>
         val workspace = CurrentParams.workspaceOpt.getOrElse(os.pwd)
@@ -122,27 +106,23 @@ object ScalaCli {
     }
   }
 
-  /**
-    * renamed from [[main0]] to [[launchScalaCli ]]
-    * @param args arguments passed to the scala-cli command
-    */
-  private def launchScalaCli(args: Array[String]): Unit = {
-    val remainingArgs = CliLauncherOptions.parser.stopAtFirstUnrecognized.parse(args) match { //remaining args of $1??
+  private def main0(args: Array[String]): Unit = {
+    val remainingArgs = LauncherOptions.parser.stopAtFirstUnrecognized.parse(args) match {
       case Left(e) =>
         System.err.println(e.message)
         sys.exit(1)
-      case Right((launcherOpts, postDoubleDashCmdLineArgs)) => // the launcherOpts are arguments before `--` in the command line
+      case Right((launcherOpts, args0)) =>
         launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
-          case Some(cliVersion) =>
+          case Some(ver) =>
             val powerArgs =
               if (launcherOpts.power) Seq("--power")
               else Nil
-            val powArgsPlusPostDoubleDashArgs = powerArgs ++ postDoubleDashCmdLineArgs
-            CliLauncher.runAndExit(cliVersion, launcherOpts, powArgsPlusPostDoubleDashArgs)
+            val newArgs = powerArgs ++ args0
+            LauncherCli.runAndExit(ver, launcherOpts, newArgs)
           case None =>
             if (launcherOpts.power)
               isSipScala = false
-            postDoubleDashCmdLineArgs.toArray
+            args0.toArray
         }
     }
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
