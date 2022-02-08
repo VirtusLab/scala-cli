@@ -15,7 +15,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   val simpleInputs = TestInputs(
     Seq(
-      os.rel / "MyTests.scala" ->
+      os.rel / "MyTests.test.scala" ->
         """//> using lib "com.lihaoyi::utest::0.7.10"
           |import utest._
           |
@@ -33,7 +33,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("no arg") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root).out.text()
+      os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".").call(cwd = root).out.text()
     }
   }
 
@@ -70,7 +70,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
             |  }
             |}
             |""".stripMargin,
-        os.rel / "Tests.scala" ->
+        os.rel / "Tests.test.scala" ->
           """//> using lib "com.lihaoyi::pprint:0.6.6"
             |//> using target.scope "test"
             |
@@ -87,7 +87,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
+      os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".").call(cwd = root)
     }
   }
 
@@ -101,7 +101,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
             |    println(message)
             |}
             |""".stripMargin,
-        os.rel / "Tests.scala" ->
+        os.rel / "Tests.test.scala" ->
           """//> using lib "com.lihaoyi::utest:0.7.10"
             |//> using target.scope "test"
             |
@@ -119,7 +119,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+      val res = os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".")
         .call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
       expect(res.exitCode == 1)
       val expectedInOutput =

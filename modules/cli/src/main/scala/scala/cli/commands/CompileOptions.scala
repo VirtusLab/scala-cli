@@ -18,12 +18,15 @@ final case class CompileOptions(
   @Name("p")
   @Name("classpath")
   @HelpMessage("Print the resulting class path")
-    classPath: Boolean = false
+    classPath: Boolean = false,
+  @HelpMessage("Compile test scope")
+    test: Boolean = false
 ) {
   // format: on
 
   def buildOptions: BuildOptions =
-    shared.buildOptions(enableJmh = false, jmhVersion = None)
+    shared.buildOptions(enableJmh = false, jmhVersion = None, shouldCompileTest = test)
+
 }
 
 object CompileOptions {

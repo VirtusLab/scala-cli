@@ -300,4 +300,40 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("ignore test scope") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Main.scala" ->
+          """|object Main {
+             |  def main(args: Array[String]): Unit = {
+             |    println("Hello World")
+             |  }
+             |}""".stripMargin,
+        os.rel / "Tests.test.scala" ->
+          """|import utest._ // compilation error, not included test library
+             |
+             |object Tests extends TestSuite { 
+             |  val tests = Tests {
+             |    test("message") {
+             |      assert(1 == 1)
+             |    }
+             |  }
+             |}""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val launcher   = root / outputName
+
+      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      expect(output == "Hello World")
+    }
+  }
+
 }

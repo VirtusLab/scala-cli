@@ -67,7 +67,8 @@ object Compile extends ScalaCommand[CompileOptions] {
         bloopRifleConfig,
         logger,
         crossBuilds = cross,
-        postAction = () => WatchUtil.printWatchMessage()
+        postAction = () => WatchUtil.printWatchMessage(),
+        isTest = buildOptions.testOptions.shouldCompileTest.getOrElse(false)
       ) { res =>
         for (builds <- res.orReport(logger))
           postBuild(builds, allowExit = false)
@@ -81,7 +82,8 @@ object Compile extends ScalaCommand[CompileOptions] {
         buildOptions,
         bloopRifleConfig,
         logger,
-        crossBuilds = cross
+        crossBuilds = cross,
+        isTest = buildOptions.testOptions.shouldCompileTest.getOrElse(false)
       )
       val builds = res.orExit(logger)
       postBuild(builds, allowExit = true)
