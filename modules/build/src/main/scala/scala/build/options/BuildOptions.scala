@@ -346,7 +346,7 @@ final case class BuildOptions(
   }
 
   def computeScalaThreeNightlyVersions(): Either[BuildException, (String, String)] = either {
-    import coursier.{Module, Versions}
+    import coursier.Versions
     import coursier.core.Latest
     import coursier._
     import scala.concurrent.ExecutionContext.{global => ec}
