@@ -688,7 +688,7 @@ class BuildTests extends munit.FunSuite {
     val buildOptions =
       defaultOptions.copy(internal = defaultOptions.internal.copy(keepDiagnostics = true))
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.clangManaged.get == true)
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.clangManaged.contains(true))
     }
   }
 
