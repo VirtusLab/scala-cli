@@ -721,6 +721,8 @@ trait ScalaCliCompile extends ScalaModule {
 
           val proc = os.proc(
             Seq("scala-cli", "compile", "--classpath"),
+            if (scalaVersion().startsWith("3")) Nil
+            else Seq("-O", s"-P:semanticdb:sourceroot:${os.pwd}"),
             Seq("-S", scalaVersion()),
             asOpt(scalacOptions(), "-O"),
             asOpt(compileClasspath().map(_.path), "--jar"),
@@ -731,6 +733,7 @@ trait ScalaCliCompile extends ScalaModule {
 
           val compile = proc.call()
           val out     = compile.out.trim
+
           os.Path(out.split(File.pathSeparator).head)
         }
 
