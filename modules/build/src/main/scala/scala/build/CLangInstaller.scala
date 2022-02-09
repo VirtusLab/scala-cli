@@ -70,7 +70,7 @@ object CLangInstaller {
         case Right(f) => Task.point(os.Path(f, os.pwd))
       }.unsafeRun()(cache.ec)
     }
-  }.left.map(_ => new CLangInstallException("Failed to fetch Mamba binary."))
+  }.left.map(e => new CLangInstallException("Failed to fetch Mamba binary", e))
 
   def doInstall(
     microMambaArchive: Path,
@@ -100,7 +100,7 @@ object CLangInstaller {
              |""".stripMargin
         os.write.over(installScript, activateAndInstall)
         Runner.run(
-          "install llvm toolchain",
+          "unused",
           s"sh $installScript".split(" ").toSeq,
           logger,
           cwd = Some(miniMambaPath)
