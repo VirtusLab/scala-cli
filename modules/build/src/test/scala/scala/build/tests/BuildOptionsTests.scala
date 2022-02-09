@@ -19,6 +19,24 @@ class BuildOptionsTests extends munit.FunSuite {
     )
   }
 
+  test("-S 3.nightly option works") {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some("3.nightly"),
+        scalaBinaryVersion = None,
+        supportedScalaVersionsUrl =
+          Some(
+            Random.alphanumeric.take(10).mkString("")
+          ) // invalid url, it should use defaults from Deps.sc
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow
+    assert(
+      scalaParams.scalaVersion.startsWith("3") && scalaParams.scalaVersion.endsWith("-NIGHTLY"),
+      "-S 3.nightly argument does not lead to scala3 nightly build option"
+    )
+  }
+
   test("Empty BuildRequirements is actually empty") {
     val empty = BuildRequirements()
     val zero  = BuildRequirements.monoid.zero

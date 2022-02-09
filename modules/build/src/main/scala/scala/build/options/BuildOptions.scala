@@ -10,7 +10,6 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
-
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.build.errors.{
@@ -346,9 +345,31 @@ final case class BuildOptions(
     (sv, sbv)
   }
 
+  def computeScalaThreeNightlyVersions(): Either[BuildException, (String, String)] = either {
+    import coursier.{Module, Versions}
+    import coursier.core.Latest
+    import coursier._
+    import scala.concurrent.ExecutionContext.{global => ec}
+    val moduleVersion: Option[String] = {
+      def scala3 = mod"org.scala-lang:scala3-library_3"
+      val res = finalCache.logger.use {
+        Versions()
+          .withModule(scala3)
+          .result()
+          .unsafeRun()(ec)
+      }
+      res.versions.latest(Latest.Release)
+    }
+    val sv  = moduleVersion.get
+    val sbv = ScalaVersion.binary(sv)
+    (sv, sbv)
+  }
+
   lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
     val (scalaVersion, scalaBinaryVersion) =
-      value(computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion))
+      if (scalaOptions.scalaVersion.contains("3.nightly")) value(computeScalaThreeNightlyVersions())
+      else
+        value(computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion))
     val maybePlatformSuffix = platform.value match {
       case Platform.JVM    => None
       case Platform.JS     => Some(scalaJsOptions.platformSuffix)
