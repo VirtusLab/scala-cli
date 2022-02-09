@@ -21,11 +21,11 @@ jobs:
         DEPLOYMENT_BRANCH: gh-pages
         GIT_PASS: ${{ secrets.GITHUB_TOKEN }}
     # after the release the PR should be empty
-    - name: Open PR with changes back to master
+    - name: Open PR with changes back to main
       uses: repo-sync/pull-request@v2
       with:
-        destination_branch: "master"
+        destination_branch: "main"
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        pr_title: "Back port of documentation changes to master"
+        pr_title: "Back port of documentation changes to main"
         name: Update stable branch
         branch: backport/stable

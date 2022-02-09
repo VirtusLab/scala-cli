@@ -18,20 +18,20 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
     "//> using target.platform \"jvm\""
   )
 
-  override def keys: Seq[String] = Seq(
+  def keys: Seq[String] = Seq(
     "target.platform"
   )
 
-  override def handleValues(
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, Path],
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, ProcessedRequireDirective] = {
     val values          = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val nonscopedValues = values.filter(_._3.isEmpty)
-    val scopedValues    = values.collect { case (v, pos, Some(scope)) => (v, pos, scope) }
-    val nonScopedPlatforms = Option(nonscopedValues.map(v => Platform.normalize(v._1)))
+    val nonscopedValues = values.filter(_._2.isEmpty)
+    val scopedValues    = values.collect { case (v, Some(scope)) => (v, scope) }
+    val nonScopedPlatforms = Option(nonscopedValues.map(v => Platform.normalize(v._1.value)))
       .filter(_.nonEmpty)
 
     val nonscoped = nonScopedPlatforms match {
@@ -46,9 +46,9 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
       case None => Right(None)
     }
 
-    val scoped = scopedValues.groupBy(_._3).map {
+    val scoped = scopedValues.groupBy(_._2).map {
       case (scopePath, list) =>
-        val platforms = list.map(_._1).map(Platform.normalize)
+        val platforms = list.map(_._1.value).map(Platform.normalize)
         val parsed    = Platform.parseSpec(platforms)
         parsed match {
           case None => Left(new MalformedPlatformError(platforms.mkString(", ")))

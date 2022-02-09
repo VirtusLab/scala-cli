@@ -32,7 +32,8 @@ final case class Mill(
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_._2.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.forall(_.value.nameAttributes == NoAttributes)
+      options.classPathOptions.extraDependencies.toSeq
+        .forall(_.value.nameAttributes == NoAttributes)
 
     val sv = options.scalaOptions.scalaVersion.getOrElse(Constants.defaultScalaVersion)
 
@@ -66,9 +67,9 @@ final case class Mill(
     mainOptions: BuildOptions,
     testOptions: BuildOptions
   ): MillProject = {
-    val mainDeps = mainOptions.classPathOptions.extraDependencies.map(_.value.render)
-    val testDeps = testOptions.classPathOptions.extraDependencies.map(_.value.render)
-    MillProject(mainDeps = mainDeps, testDeps = testDeps)
+    val mainDeps = mainOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
+    val testDeps = testOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
+    MillProject(mainDeps = mainDeps.toSeq, testDeps = testDeps.toSeq)
   }
 
   private def repositorySettings(options: BuildOptions): MillProject = {

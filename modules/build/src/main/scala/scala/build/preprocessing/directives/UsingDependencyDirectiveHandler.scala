@@ -5,7 +5,7 @@ import dependency.parser.DependencyParser
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, DependencyFormatError}
-import scala.build.options.{BuildOptions, ClassPathOptions}
+import scala.build.options.{BuildOptions, ClassPathOptions, ShadowingSeq}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
 
@@ -24,8 +24,8 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     DependencyParser.parse(depStr)
       .left.map(err => new DependencyFormatError(depStr, err))
 
-  override def keys = Seq("lib", "libs")
-  override def handleValues(
+  def keys = Seq("lib", "libs")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
@@ -35,11 +35,11 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     val extraDependencies = value {
       DirectiveUtil.stringValues(values, path, cwd)
         .map {
-          case (dep, pos, _) =>
+          case (dep, _) =>
             // Really necessary? (might already be handled by the coursier-dependency library)
-            val dep0 = dep.filter(!_.isSpaceChar)
+            val dep0 = dep.value.filter(!_.isSpaceChar)
 
-            parseDependency(dep0).map(Positioned(Seq(pos), _))
+            parseDependency(dep0).map(Positioned(dep.positions, _))
         }
         .sequence
         .left.map(errors => errors.mkString(", "))
@@ -48,7 +48,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     ProcessedDirective(
       Some(BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraDependencies = extraDependencies
+          extraDependencies = ShadowingSeq.from(extraDependencies)
         )
       )),
       Seq.empty

@@ -1,6 +1,8 @@
 package scala.build.preprocessing.directives
+
+import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, NoValueProvidedError, SingleValueExpectedError}
 import scala.build.options.{BuildOptions, ScalaNativeOptions}
 import scala.build.preprocessing.ScopePath
 
@@ -24,7 +26,7 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
     "//> using nativeVersion \"0.4.0\""
   )
 
-  override def keys: Seq[String] =
+  def keys: Seq[String] =
     Seq(
       "native-gc",
       "native-version",
@@ -37,34 +39,41 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
       "nativeClangManaged"
     )
 
-  override def handleValues(
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = {
-    val scalaNativeOptions =
+  ): Either[BuildException, ProcessedUsingDirective] = either {
+    val values =
       DirectiveUtil.numericValues(directive.values, path, cwd).toList ++
         DirectiveUtil.stringValues(directive.values, path, cwd).toList
-    val intermediate = directive.key match {
-      case "native-gc" | "nativeGc" if scalaNativeOptions.size == 1 =>
-        Right(BuildOptions(
-          scalaNativeOptions = ScalaNativeOptions(
-            gcStr = Some(scalaNativeOptions.head._1)
-          )
-        ))
-      case "native-version" | "nativeVersion" if scalaNativeOptions.size == 1 =>
-        Right(BuildOptions(
-          scalaNativeOptions = ScalaNativeOptions(
-            version = Some(scalaNativeOptions.head._1)
-          )
-        ))
-      case "native-compile" | "nativeCompile" => Right(
-          BuildOptions(
-            scalaNativeOptions = ScalaNativeOptions(
-              compileOptions = scalaNativeOptions.map(_._1)
+    val scalaNativeOptions = directive.key match {
+      case "native-gc" | "nativeGc" =>
+        values match {
+          case Seq(value0) =>
+            ScalaNativeOptions(
+              gcStr = Some(value0._1.value)
             )
-          )
+          case Seq() =>
+            value(Left(new NoValueProvidedError(directive)))
+          case _ =>
+            value(Left(new SingleValueExpectedError(directive, path)))
+        }
+      case "native-version" | "nativeVersion" =>
+        values match {
+          case Seq(value0) =>
+            ScalaNativeOptions(
+              version = Some(value0._1.value)
+            )
+          case Seq() =>
+            value(Left(new NoValueProvidedError(directive)))
+          case _ =>
+            value(Left(new SingleValueExpectedError(directive, path)))
+        }
+      case "native-compile" | "nativeCompile" =>
+        ScalaNativeOptions(
+          compileOptions = values.map(_._1.value)
         )
       case "nativeClangManaged" => Right(
           BuildOptions(
@@ -74,24 +83,11 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
           )
         )
       case "native-linking" | "nativeLinking" =>
-        val res = Right(BuildOptions(
-          scalaNativeOptions = ScalaNativeOptions(
-            linkingOptions = scalaNativeOptions.map(_._1)
-          )
-        ))
-        res
-      case "native-version" | "nativeVersion" =>
-        Left(SingleValueExpected("native-version", scalaNativeOptions.map(_._1)))
-      case "native-gc" | "nativeGc" =>
-        Left(SingleValueExpected("native-gc", scalaNativeOptions.map(_._1)))
+        ScalaNativeOptions(
+          linkingOptions = values.map(_._1.value)
+        )
     }
-    intermediate.map { bo =>
-      ProcessedDirective(Some(bo), Seq.empty)
-    }
+    val options = BuildOptions(scalaNativeOptions = scalaNativeOptions)
+    ProcessedDirective(Some(options), Nil)
   }
-
 }
-
-final case class SingleValueExpected(param: String, values: Seq[String]) extends BuildException(
-      s"Expected single value for $param but found $values"
-    )

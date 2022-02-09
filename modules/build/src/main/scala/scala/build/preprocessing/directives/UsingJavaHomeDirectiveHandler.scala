@@ -17,27 +17,27 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
     "//> using java-home \"/Users/Me/jdks/11\""
   )
 
-  override def keys = Seq("java-home", "javaHome")
-  override def handleValues(
+  def keys = Seq("java-home", "javaHome")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = either {
     val values = directive.values
-    val (rawHome, pos) = value {
+    val rawHome = value {
       DirectiveUtil.stringValues(values, path, cwd)
         .lastOption
-        .map(v => v._1 -> v._2)
+        .map(_._1)
         .toRight("No value passed to javaHome directive")
     }
-    val root = value(Directive.osRoot(cwd, Some(pos)))
+    val root = value(Directive.osRoot(cwd, rawHome.positions.headOption))
     // FIXME Might throw
-    val home = os.Path(rawHome, root)
+    val home = os.Path(rawHome.value, root)
     ProcessedDirective(
       Some(BuildOptions(
         javaOptions = JavaOptions(
-          javaHomeOpt = Some(Positioned(pos, home))
+          javaHomeOpt = Some(Positioned(rawHome.positions, home))
         )
       )),
       Seq.empty

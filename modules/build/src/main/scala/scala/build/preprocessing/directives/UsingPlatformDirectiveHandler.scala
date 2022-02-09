@@ -16,6 +16,7 @@ import scala.build.options.{
 }
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
+
 case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Platform"
   def description      = "Set the default platform to Scala.JS or Scala Native"
@@ -92,20 +93,15 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     )
   }
 
-  override def keys = Seq("platform", "platforms")
-  override def handleValues(
+  def keys = Seq("platform", "platforms")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
     val values = directive.values
-    handle(
-      DirectiveUtil.stringValues(values, path, cwd).map { case (v, pos, _) =>
-        Positioned(Seq(pos), v)
-      }
-    ).map(v =>
-      ProcessedDirective(Some(v), Seq.empty)
-    )
+    handle(DirectiveUtil.stringValues(values, path, cwd).map(_._1))
+      .map(v => ProcessedDirective(Some(v), Seq.empty))
   }
 }

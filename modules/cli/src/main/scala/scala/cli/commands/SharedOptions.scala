@@ -122,7 +122,12 @@ final case class SharedOptions(
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         generateSemanticDbs = semanticDb,
-        scalacOptions = scalac.scalacOption.filter(_.nonEmpty),
+        scalacOptions = ShadowingSeq.from(
+          scalac.scalacOption
+            .filter(_.nonEmpty)
+            .map(ScalacOpt(_))
+            .map(Positioned.commandLine(_))
+        ),
         compilerPlugins =
           SharedOptions.parseDependencies(
             dependencies.compilerPlugin.map(Positioned.none(_)),
@@ -156,11 +161,12 @@ final case class SharedOptions(
           .filter(_.nonEmpty)
           .map(os.Path(_, os.pwd)),
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
-        extraDependencies =
+        extraDependencies = ShadowingSeq.from(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none(_)),
             ignoreErrors
           )
+        )
       ),
       internal = InternalOptions(
         cache = Some(coursierCache),

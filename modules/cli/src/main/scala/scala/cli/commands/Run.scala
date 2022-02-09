@@ -173,7 +173,7 @@ object Run extends ScalaCommand[RunOptions] {
       case Platform.JVM =>
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
-          build.options.javaOptions.javaOpts.map(_.value),
+          build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
           build.fullClassPath.map(_.toFile),
           mainClass,
           args,
