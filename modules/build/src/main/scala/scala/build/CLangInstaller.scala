@@ -100,7 +100,7 @@ object CLangInstaller {
              |""".stripMargin
         os.write.over(installScript, activateAndInstall)
         Runner.run(
-          "install llvm toolchain",
+          "unused",
           s"sh $installScript".split(" ").toSeq,
           logger,
           cwd = Some(miniMambaPath)
