@@ -19,8 +19,8 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     "//> using resourceDir \"./resources\""
   )
 
-  override def keys = Seq("resourceDir", "resourceDirs")
-  override def handleValues(
+  def keys = Seq("resourceDir", "resourceDirs")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
@@ -28,9 +28,14 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
   ): Either[BuildException, ProcessedUsingDirective] = either {
     val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
     val paths                     = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val paths0 = rootOpt.toList.flatMap(root => paths.map(_._1).map(os.Path(_, root)))
+    val paths0 = rootOpt
+      .toList
+      .flatMap(root =>
+        paths.map(_._1.value)
+          .map(os.Path(_, root))
+      )
     val virtualPaths = virtualRootOpt.map(virtualRoot =>
-      paths.map(_._1).map(path => virtualRoot / os.SubPath(path))
+      paths.map(_._1.value).map(path => virtualRoot / os.SubPath(path))
     )
     warnIfNotExistsPath(paths0, logger)
 

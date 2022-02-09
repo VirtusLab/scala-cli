@@ -15,8 +15,8 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
     "//> using repository \"https://maven-central.storage-download.googleapis.com/maven2\""
   )
 
-  override def keys = Seq("repository", "repositories")
-  override def handleValues(
+  def keys = Seq("repository", "repositories")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
@@ -26,7 +26,7 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
     val repositories = DirectiveUtil.stringValues(values, path, cwd)
     val options = BuildOptions(
       classPathOptions = ClassPathOptions(
-        extraRepositories = repositories.map(_._1)
+        extraRepositories = repositories.map(_._1.value)
       )
     )
     Right(ProcessedDirective(Some(options), Seq.empty))
