@@ -47,14 +47,15 @@ class BuildOptionsTests extends munit.FunSuite {
   }
 
   val expectedScalaVersions = Seq(
-    Some("3")      -> defaultScalaVersion,
-    None           -> defaultScalaVersion,
-    Some("2.13")   -> defaultScala213Version,
-    Some("2.12")   -> defaultScala212Version,
-    Some("2")      -> defaultScala213Version,
-    Some("2.13.2") -> "2.13.2",
-    Some("3.0.1")  -> "3.0.1",
-    Some("3.0")    -> "3.0.2"
+    Some("3")         -> defaultScalaVersion,
+    None              -> defaultScalaVersion,
+    Some("2.13")      -> defaultScala213Version,
+    Some("2.12")      -> defaultScala212Version,
+    Some("2")         -> defaultScala213Version,
+    Some("2.13.2")    -> "2.13.2",
+    Some("3.0.1")     -> "3.0.1",
+    Some("3.0")       -> "3.0.2",
+    Some("3.nightly") -> "3.1.3-RC1-bin-20220205-8e2fab7-NIGHTLY"
   )
 
   for ((prefix, expectedScalaVersion) <- expectedScalaVersions)
