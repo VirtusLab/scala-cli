@@ -16,8 +16,8 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
     "//> using scala \"2.13.6\", \"2.12.15\""
   )
 
-  override def keys = Seq("scala")
-  override def handleValues(
+  def keys = Seq("scala")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
@@ -30,8 +30,8 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
     else {
       val options = BuildOptions(
         scalaOptions = ScalaOptions(
-          scalaVersion = Some(scalaVersions.head._1),
-          extraScalaVersions = scalaVersions.tail.map(_._1).toSet
+          scalaVersion = scalaVersions.headOption.map(_._1.value),
+          extraScalaVersions = scalaVersions.drop(1).map(_._1.value).toSet
         )
       )
       Right(ProcessedDirective(Some(options), Seq.empty))

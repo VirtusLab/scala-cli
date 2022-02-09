@@ -2,10 +2,18 @@ package scala.build.tests
 
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
+import dependency.parser.DependencyParser
 
 import java.io.IOException
 
 import scala.build.Ops._
+import scala.build.Positioned
+import scala.build.errors.{
+  DependencyFormatError,
+  NoValueProvidedError,
+  ScalaNativeCompatibilityError,
+  SingleValueExpectedError
+}
 import scala.build.options.{
   BuildOptions,
   InternalOptions,
@@ -20,11 +28,6 @@ import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
-import scala.build.preprocessing.directives.SingleValueExpected
-import scala.build.errors.ScalaNativeCompatibilityError
-import dependency.parser.DependencyParser
-import scala.build.Positioned
-import scala.build.errors.DependencyFormatError
 
 class BuildTests extends munit.FunSuite {
 
@@ -331,14 +334,6 @@ class BuildTests extends munit.FunSuite {
           |pprint.log(g)
           |""".stripMargin,
       os.rel / "simple2.sc" ->
-        """//> using
-          |//  lib "com.lihaoyi::geny:0.6.5"
-          |//  lib "com.lihaoyi::pprint:0.6.6"
-          |import geny.Generator
-          |val g = Generator("Hel", "lo")
-          |pprint.log(g)
-          |""".stripMargin,
-      os.rel / "simple3.sc" ->
         """//> using lib "com.lihaoyi::geny:0.6.5", "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
@@ -354,11 +349,7 @@ class BuildTests extends munit.FunSuite {
         "simple2.class",
         "simple2_sc.class",
         "simple2$.class",
-        "simple2_sc$.class",
-        "simple3.class",
-        "simple3_sc.class",
-        "simple3$.class",
-        "simple3_sc$.class"
+        "simple2_sc$.class"
       )
       maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -592,17 +583,6 @@ class BuildTests extends munit.FunSuite {
           |for {
           |  (x, y) <- getCounts
           |} yield x + y
-          |""".stripMargin,
-      os.rel / "p2.sc" ->
-        """//> using
-          |//  scala "2.13"
-          |//  plugins "com.olegpy::better-monadic-for:0.3.1"
-          |
-          |def getCounts: Either[String, (Int, Int)] = ???
-          |
-          |for {
-          |  (x, y) <- getCounts
-          |} yield x + y
           |""".stripMargin
     )
     val buildOptions = defaultOptions.copy(
@@ -627,8 +607,9 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == SingleValueExpected("native-gc", Seq()))
+      expect(
+        maybeBuild.left.exists { case _: NoValueProvidedError => true; case _ => false }
+      )
     }
   }
 
@@ -645,8 +626,9 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == SingleValueExpected("native-gc", Seq("78", "12")))
+      assert(
+        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+      )
     }
 
   }
@@ -682,8 +664,9 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == SingleValueExpected("native-version", Seq("0.4.0", "0.3.3")))
+      assert(
+        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+      )
     }
 
   }

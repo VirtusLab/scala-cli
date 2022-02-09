@@ -10,7 +10,7 @@ class About(isSipScala: Boolean) extends ScalaCommand[AboutOptions] {
   def run(options: AboutOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.verbosity.verbosity
     val version            = Constants.version
-    val detailedVersionOpt = Some(Constants.detailedVersion).filter(_ != version)
+    val detailedVersionOpt = Constants.detailedVersion.filter(_ != version)
     val appName =
       if (isSipScala) "Scala command"
       else "Scala CLI"

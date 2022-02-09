@@ -68,7 +68,8 @@ object Build {
         else
           Left(
             new SeveralMainClassesFoundError(
-              ::(foundMainClasses0.head, foundMainClasses0.tail.toList)
+              ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
+              Nil
             )
           )
 
@@ -206,7 +207,6 @@ object Build {
           val res = build(
             inputs0,
             sources0,
-            inputs0.generatedSrcRoot(scope),
             generatedSources,
             options,
             scope,
@@ -298,7 +298,6 @@ object Build {
   private def build(
     inputs: Inputs,
     sources: Sources,
-    generatedSrcRoot0: os.Path,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
     scope: Scope,
@@ -311,7 +310,6 @@ object Build {
       buildOnce(
         inputs,
         sources,
-        generatedSrcRoot0,
         generatedSources,
         options,
         scope,
@@ -732,7 +730,6 @@ object Build {
   def buildOnce(
     inputs: Inputs,
     sources: Sources,
-    generatedSrcRoot0: os.Path,
     generatedSources: Seq[GeneratedSource],
     options0: BuildOptions,
     scope: Scope,
