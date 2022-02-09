@@ -37,6 +37,25 @@ class BuildOptionsTests extends munit.FunSuite {
     )
   }
 
+  test("-S 2.nightly option works") {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some("2.nightly"),
+        scalaBinaryVersion = None,
+        supportedScalaVersionsUrl =
+          Some(
+            Random.alphanumeric.take(10).mkString("")
+          ) // invalid url, it should use defaults from Deps.sc
+      )
+    )
+    val scalaParams        = options.scalaParams.orThrow
+    val scala2NightlyRegex = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
+    assert(
+      scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
+      "-S 2.nightly argument does not lead to scala2 nightly build option"
+    )
+  }
+
   test("Empty BuildRequirements is actually empty") {
     val empty = BuildRequirements()
     val zero  = BuildRequirements.monoid.zero
@@ -88,12 +107,12 @@ class BuildOptionsTests extends munit.FunSuite {
     Some("2.13.2") -> "2.13.2"
   )
 
-  val confFile = s"""[
-                    | {
-                    |  "scalaCliVersion": "$version",
-                    |  "supportedScalaVersions": ["3.0.1", "2.13.4", "2.12.13"]
-                    | }
-                    |]""".stripMargin
+  val confFile: String = s"""[
+                            | {
+                            |  "scalaCliVersion": "$version",
+                            |  "supportedScalaVersions": ["3.0.1", "2.13.4", "2.12.13"]
+                            | }
+                            |]""".stripMargin
 
   for ((prefix, expectedScalaVersion) <- expectedScalaConfVersions)
     test(s"use expected scala version from conf file, prefix: ${prefix.getOrElse("empty")}") {

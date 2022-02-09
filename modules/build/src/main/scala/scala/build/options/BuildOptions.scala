@@ -365,11 +365,35 @@ final case class BuildOptions(
     (sv, sbv)
   }
 
+  def computeScalaTwoNightlyVersions(): Either[BuildException, (String, String)] = either {
+    import coursier.Versions
+    import coursier.core.Latest
+    import coursier._
+    import scala.concurrent.ExecutionContext.{global => ec}
+    val moduleVersion: Option[String] = {
+      def scala2 = mod"org.scala-lang:scala-library"
+      val res = finalCache.logger.use {
+        Versions()
+          .withModule(scala2)
+          .result()
+          .unsafeRun()(ec)
+      }
+      res.versions.latest(Latest.Release)
+    }
+    val sv  = moduleVersion.get
+    val sbv = ScalaVersion.binary(sv)
+    (sv, sbv)
+  }
+
   lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
+
     val (scalaVersion, scalaBinaryVersion) =
       if (scalaOptions.scalaVersion.contains("3.nightly")) value(computeScalaThreeNightlyVersions())
+      else if (scalaOptions.scalaVersion.contains("2.nightly"))
+        value(computeScalaTwoNightlyVersions())
       else
         value(computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion))
+
     val maybePlatformSuffix = platform.value match {
       case Platform.JVM    => None
       case Platform.JS     => Some(scalaJsOptions.platformSuffix)
