@@ -50,7 +50,7 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier = "2.1.0-M2"
+    def coursier = "2.1.0-M5"
 
     def scalaJs       = "1.8.0"
     def scalaMeta     = "4.4.33"

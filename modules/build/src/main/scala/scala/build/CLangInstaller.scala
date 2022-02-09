@@ -1,19 +1,16 @@
 package scala.build
 
-import coursier.cache.FileCache
+import coursier.cache.{ArchiveCache, ArtifactError, FileCache}
 import coursier.util.{Artifact, Task}
 import os.Path
 
+import java.io.File
 import java.net.{HttpURLConnection, URL}
 import java.util.Locale
-
 import scala.build.EitherCps.either
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, CLangInstallException}
 import scala.build.internal.Runner
 import scala.util.{Properties, Try}
-
-final class CLangInstallException(message: String)
-    extends BuildException(s"Failed to Install CLang: $message")
 
 object CLangInstaller {
   val mambaApiUrl = "https://micromamba.snakepit.net/api/micromamba"
@@ -29,7 +26,7 @@ object CLangInstaller {
   def install(logger: Logger) =
     platform
       .flatMap(resolveMicroMambaBinaryUrl(_))
-      .flatMap(binaryUrl => fetchFile(binaryUrl, logger))
+      .flatMap(binaryUrl => fetchAndDecompress(binaryUrl, logger))
       .flatMap(archive => doInstall(archive, logger))
 
   def platform = {
@@ -47,7 +44,8 @@ object CLangInstaller {
       case ("linux", "x86_64")  => Right("linux-64")
       case ("linux", "aarch64") => Right("linux-aarch64")
       case ("linux", "ppc64le") => Right("linux-ppc64le")
-      case _ => Left(new CLangInstallException("Unsupported architecture/system combination."))
+      case _ =>
+        Left(new CLangInstallException(s"Unsupported architecture/system combination: $os $arch"))
     }
   }
 
@@ -62,50 +60,40 @@ object CLangInstaller {
     s"https:${con.getHeaderField("Location")}"
   }.toEither
 
-  def fetchFile(url: String, logger: Logger) = either {
-    val cache = FileCache().withLogger(logger.coursierLogger)
-    cache.logger.use {
-      cache.file(Artifact(url).withChanging(true)).run.flatMap {
-        case Left(e)  => Task.fail(new Exception(e))
-        case Right(f) => Task.point(os.Path(f, os.pwd))
-      }.unsafeRun()(cache.ec)
-    }
-  }.left.map(e => new CLangInstallException("Failed to fetch Mamba binary", e))
+  def fetchAndDecompress(url: String, logger: Logger) = {
+    val fileCache = FileCache().withLogger(logger.coursierLogger)
+    val cache     = ArchiveCache().withCache(fileCache)
+    val artifact  = Artifact(url).withChanging(false)
+    cache.get(artifact).unsafeRun()(fileCache.ec).map(file => Path(file.toPath))
+  }
 
   def doInstall(
-    microMambaArchive: Path,
+    uncompressedArchive: os.Path,
     logger: Logger
-  ): Either[BuildException, Path] =
-    // TODO: we should relay on coursier to give us decompressed archive file but there is no bzip2 support yet
-    // for ArchiveCache => https://github.com/coursier/coursier/blob/master/modules/cache/jvm/src/main/scala/coursier/cache/ArchiveCache.scala#L151
+  ) = Try {
+    val baseDir       = directories.mambaBaseDir
+    val mambaPath     = uncompressedArchive / 'bin / "micromamba"
+    val installScript = directories.mambaBaseDir / "installScript.sh"
 
-    TarArchive.decompress(os.read.inputStream(microMambaArchive), directories.mambaBaseDir)
-      .left.map(_ => new CLangInstallException("Failed to decompress minimamba archive."))
-      .right.map { miniMambaPath: Path =>
-        val baseDir       = directories.mambaBaseDir
-        val mambaPath     = miniMambaPath / 'bin / "micromamba"
-        val installScript = directories.mambaBaseDir / "installScript.sh"
+    if (Properties.isWin)
+      throw new CLangInstallException("Not Implemented yet.")
 
-        if (Properties.isWin)
-          throw new CLangInstallException("Not Implemented yet.")
+    os.perms.set(mambaPath, "rwxr-xr-x")
 
-        os.perms.set(mambaPath, "rwxr-xr-x")
-
-        val activateAndInstall =
-          s"""
-             |#!/bin/sh
-             |$mambaPath -r $baseDir shell -s posix activate > $baseDir/activate_env
-             |. $baseDir/activate_env
-             |$mambaPath install compilers -r $baseDir -n base -c conda-forge -y
-             |""".stripMargin
-        os.write.over(installScript, activateAndInstall)
-        Runner.run(
-          "unused",
-          s"sh $installScript".split(" ").toSeq,
-          logger,
-          cwd = Some(miniMambaPath)
-        )
-
-        miniMambaPath
-      }
+    val activateAndInstall =
+      s"""
+         |#!/bin/sh
+         |"$mambaPath" -r "$baseDir" shell -s posix activate > "$baseDir/activate_env"
+         |. "$baseDir/activate_env"
+         |"$mambaPath" install compilers -r "$baseDir" -n base -c conda-forge -y
+         |""".stripMargin
+    os.write.over(installScript, activateAndInstall)
+    Runner.run(
+      "unused",
+      Seq("sh", installScript.toString),
+      logger,
+      cwd = Some(uncompressedArchive)
+    )
+    uncompressedArchive
+  }.toEither
 }
