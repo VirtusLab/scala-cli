@@ -24,8 +24,8 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     DependencyParser.parse(depStr)
       .left.map(err => new DependencyFormatError(depStr, err))
 
-  override def keys = Seq("lib", "libs")
-  override def handleValues(
+  def keys = Seq("lib", "libs")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
@@ -35,11 +35,11 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     val extraDependencies = value {
       DirectiveUtil.stringValues(values, path, cwd)
         .map {
-          case (dep, pos, _) =>
+          case (dep, _) =>
             // Really necessary? (might already be handled by the coursier-dependency library)
-            val dep0 = dep.filter(!_.isSpaceChar)
+            val dep0 = dep.value.filter(!_.isSpaceChar)
 
-            parseDependency(dep0).map(Positioned(Seq(pos), _))
+            parseDependency(dep0).map(Positioned(dep.positions, _))
         }
         .sequence
         .left.map(errors => errors.mkString(", "))

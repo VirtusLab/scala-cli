@@ -1,9 +1,9 @@
 package scala.build.preprocessing.directives
 
+import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOpt, JavaOptions, ShadowingSeq}
 import scala.build.preprocessing.ScopePath
-import scala.build.{Logger, Positioned}
 
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java options"
@@ -17,8 +17,8 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
     "//> using javaOpt \"-Xmx2g\", \"-Dsomething=a\""
   )
 
-  override def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
-  override def handleValues(
+  def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
@@ -28,10 +28,7 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
     val options = BuildOptions(
       javaOptions = JavaOptions(
         javaOpts = ShadowingSeq.from(
-          javaOpts.map {
-            case (v, pos, _) =>
-              Positioned(Seq(pos), JavaOpt(v))
-          }
+          javaOpts.map(_._1.map(JavaOpt(_)))
         )
       )
     )

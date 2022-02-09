@@ -12,8 +12,9 @@ User-facing documentation can be found on our website: [scala-cli.virtuslab.org]
 
 ### Requirements
 
-Building Scala CLI requires:
-- a JVM (>= 8)
+Building Scala CLI requires a JVM 17 to work properly. 
+
+In theory, our build is able to download and install for its own needs JVM 17 on some OSes however it may not work in Intellij / Metals out of the box. 
 
 The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need to be installed on your system.
 

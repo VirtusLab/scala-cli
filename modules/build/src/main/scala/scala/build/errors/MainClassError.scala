@@ -1,3 +1,8 @@
 package scala.build.errors
 
-abstract class MainClassError(message: String) extends BuildException(message)
+import scala.build.Position
+
+abstract class MainClassError(
+  message: String,
+  positions: Seq[Position]
+) extends BuildException(message, positions = positions)

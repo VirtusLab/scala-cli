@@ -14,7 +14,7 @@ case class HelpGroupOptions(
   helpNative: Boolean = false
 ) {
 
-  private def printHelpWithGroup(help: Help[_], group: String) = {
+  private def printHelpWithGroup(help: Help[_], group: String): Nothing = {
     println(help.help(ScalaCliHelp.helpFormat.withHiddenGroups(
       ScalaCliHelp.helpFormat.hiddenGroups.map(_.filterNot(_ == group))
     )))

@@ -21,9 +21,9 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
     "//> using main-class \"helloWorld\""
   )
 
-  override def keys = Seq("main-class", "mainClass")
+  def keys = Seq("main-class", "mainClass")
 
-  override def handleValues(
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
@@ -33,12 +33,13 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
     if (mainClasses.size >= 2)
       Left(
         new SeveralMainClassesFoundError(
-          ::(mainClasses.head, mainClasses.tail.toList)
+          ::(mainClasses.head.value, mainClasses.tail.toList.map(_.value)),
+          mainClasses.flatMap(_.positions)
         )
       )
     else {
       val options = BuildOptions(
-        mainClass = mainClasses.headOption
+        mainClass = mainClasses.headOption.map(_.value)
       )
       Right(ProcessedDirective(Some(options), Seq.empty))
     }
