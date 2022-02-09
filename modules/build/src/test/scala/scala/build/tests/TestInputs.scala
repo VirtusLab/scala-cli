@@ -14,7 +14,7 @@ final case class TestInputs(
 ) {
   def withInputs[T](f: (os.Path, Inputs) => T): T =
     withInputs(false)(f)
-  
+
   private def withInputs[T](viaDirectory: Boolean)(f: (os.Path, Inputs) => T): T =
     TestInputs.withTmpDir("scala-cli-tests-") { tmpDir =>
       for ((relPath, content) <- files) {
@@ -22,7 +22,10 @@ final case class TestInputs(
         os.write(path, content.getBytes(StandardCharsets.UTF_8), createFolders = true)
       }
 
-      val inputArgs0 = if (viaDirectory) Seq(tmpDir.toString) else if (inputArgs.isEmpty) files.map(_._1.toString) else inputArgs
+      val inputArgs0 =
+        if (viaDirectory) Seq(tmpDir.toString)
+        else if (inputArgs.isEmpty) files.map(_._1.toString)
+        else inputArgs
       Inputs(inputArgs0, tmpDir, Directories.under(tmpDir / ".data")) match {
         case Left(err)     => sys.error(err)
         case Right(inputs) => f(tmpDir, inputs)

@@ -38,142 +38,169 @@ class NativeBuilderHelperTests extends munit.FunSuite {
   )
 
   private def helperTests(fromDirectory: Boolean) = {
-    val additionalMessage = if (fromDirectory) "built from a directory" else "built from a set of files"
+    val additionalMessage =
+      if (fromDirectory) "built from a directory" else "built from a set of files"
 
     test(s"should build native app at first time ($additionalMessage)") {
 
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) { (root, _, maybeBuild) =>
-        val build = maybeBuild.toOption.get.successfulOpt.get
+      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+        (root, _, maybeBuild) =>
+          val build = maybeBuild.toOption.get.successfulOpt.get
 
-        val config        = build.options.scalaNativeOptions.configCliOptions()
-        val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
-        val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
-        // generate dummy output
-        os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
+          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+          // generate dummy output
+          os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
-        val cacheData =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        expect(cacheData.changed)
+          val cacheData =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          expect(cacheData.changed)
       }
     }
 
     test(s"should not rebuild the second time ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) { (root, _, maybeBuild) =>
-        val build = maybeBuild.toOption.get.successfulOpt.get
+      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+        (root, _, maybeBuild) =>
+          val build = maybeBuild.toOption.get.successfulOpt.get
 
-        val config        = build.options.scalaNativeOptions.configCliOptions()
-        val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
-        val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
-        // generate dummy output
-        os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
+          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+          // generate dummy output
+          os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
-        val cacheData =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        NativeBuilderHelper.updateProjectAndOutputSha(destPath, nativeWorkDir, cacheData.projectSha)
-        expect(cacheData.changed)
+          val cacheData =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          NativeBuilderHelper.updateProjectAndOutputSha(
+            destPath,
+            nativeWorkDir,
+            cacheData.projectSha
+          )
+          expect(cacheData.changed)
 
-        val sameBuildCache =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        expect(!sameBuildCache.changed)
+          val sameBuildCache =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          expect(!sameBuildCache.changed)
       }
     }
 
     test(s"should build native if output file was deleted ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) { (root, _, maybeBuild) =>
-        val build = maybeBuild.toOption.get.successfulOpt.get
+      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+        (root, _, maybeBuild) =>
+          val build = maybeBuild.toOption.get.successfulOpt.get
 
-        val config        = build.options.scalaNativeOptions.configCliOptions()
-        val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
-        val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
-        // generate dummy output
-        os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
+          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+          // generate dummy output
+          os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
-        val cacheData =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        NativeBuilderHelper.updateProjectAndOutputSha(destPath, nativeWorkDir, cacheData.projectSha)
-        expect(cacheData.changed)
+          val cacheData =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          NativeBuilderHelper.updateProjectAndOutputSha(
+            destPath,
+            nativeWorkDir,
+            cacheData.projectSha
+          )
+          expect(cacheData.changed)
 
-        os.remove(destPath)
-        val afterDeleteCache =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        expect(afterDeleteCache.changed)
+          os.remove(destPath)
+          val afterDeleteCache =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          expect(afterDeleteCache.changed)
       }
     }
 
     test(s"should build native if output file was changed ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) { (root, _, maybeBuild) =>
-        val build = maybeBuild.toOption.get.successfulOpt.get
+      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+        (root, _, maybeBuild) =>
+          val build = maybeBuild.toOption.get.successfulOpt.get
 
-        val config        = build.options.scalaNativeOptions.configCliOptions()
-        val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
-        val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
-        // generate dummy output
-        os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
+          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+          // generate dummy output
+          os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
-        val cacheData =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        NativeBuilderHelper.updateProjectAndOutputSha(destPath, nativeWorkDir, cacheData.projectSha)
-        expect(cacheData.changed)
+          val cacheData =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          NativeBuilderHelper.updateProjectAndOutputSha(
+            destPath,
+            nativeWorkDir,
+            cacheData.projectSha
+          )
+          expect(cacheData.changed)
 
-        os.write.over(destPath, Random.alphanumeric.take(10).mkString(""))
-        val cacheAfterFileUpdate =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        expect(cacheAfterFileUpdate.changed)
+          os.write.over(destPath, Random.alphanumeric.take(10).mkString(""))
+          val cacheAfterFileUpdate =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          expect(cacheAfterFileUpdate.changed)
       }
     }
 
     test(s"should build native if input file was changed ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) { (root, _, maybeBuild) =>
-        val build = maybeBuild.toOption.get.successfulOpt.get
+      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+        (root, _, maybeBuild) =>
+          val build = maybeBuild.toOption.get.successfulOpt.get
 
-        val config        = build.options.scalaNativeOptions.configCliOptions()
-        val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
-        val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
-        os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
+          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+          os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
-        val cacheData =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        NativeBuilderHelper.updateProjectAndOutputSha(destPath, nativeWorkDir, cacheData.projectSha)
-        expect(cacheData.changed)
+          val cacheData =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          NativeBuilderHelper.updateProjectAndOutputSha(
+            destPath,
+            nativeWorkDir,
+            cacheData.projectSha
+          )
+          expect(cacheData.changed)
 
-        os.write.append(root / helloFileName, Random.alphanumeric.take(10).mkString(""))
-        val cacheAfterFileUpdate =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        expect(cacheAfterFileUpdate.changed)
+          os.write.append(root / helloFileName, Random.alphanumeric.take(10).mkString(""))
+          val cacheAfterFileUpdate =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          expect(cacheAfterFileUpdate.changed)
       }
     }
 
     test(s"should build native if native config was changed ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) { (root, _, maybeBuild) =>
-        val build = maybeBuild.toOption.get.successfulOpt.get
+      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+        (root, _, maybeBuild) =>
+          val build = maybeBuild.toOption.get.successfulOpt.get
 
-        val config        = build.options.scalaNativeOptions.configCliOptions()
-        val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
-        val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
-        os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
+          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+          os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
-        val cacheData =
-          NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-        NativeBuilderHelper.updateProjectAndOutputSha(destPath, nativeWorkDir, cacheData.projectSha)
-        expect(cacheData.changed)
+          val cacheData =
+            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+          NativeBuilderHelper.updateProjectAndOutputSha(
+            destPath,
+            nativeWorkDir,
+            cacheData.projectSha
+          )
+          expect(cacheData.changed)
 
-        val updatedBuild = build.copy(
-          options = build.options.copy(
-            scalaNativeOptions = build.options.scalaNativeOptions.copy(
-              clang = Some(Random.alphanumeric.take(10).mkString(""))
+          val updatedBuild = build.copy(
+            options = build.options.copy(
+              scalaNativeOptions = build.options.scalaNativeOptions.copy(
+                clang = Some(Random.alphanumeric.take(10).mkString(""))
+              )
             )
           )
-        )
-        val updatedConfig = updatedBuild.options.scalaNativeOptions.configCliOptions()
+          val updatedConfig = updatedBuild.options.scalaNativeOptions.configCliOptions()
 
-        val cacheAfterConfigUpdate =
-          NativeBuilderHelper.getCacheData(
-            updatedBuild,
-            updatedConfig,
-            destPath,
-            nativeWorkDir
-          )
-        expect(cacheAfterConfigUpdate.changed)
+          val cacheAfterConfigUpdate =
+            NativeBuilderHelper.getCacheData(
+              updatedBuild,
+              updatedConfig,
+              destPath,
+              nativeWorkDir
+            )
+          expect(cacheAfterConfigUpdate.changed)
       }
     }
   }
