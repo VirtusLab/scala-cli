@@ -75,13 +75,7 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
         ScalaNativeOptions(
           compileOptions = values.map(_._1.value)
         )
-      case "nativeClangManaged" => Right(
-          BuildOptions(
-            scalaNativeOptions = ScalaNativeOptions(
-              clangManaged = Some(true)
-            )
-          )
-        )
+      case "nativeClangManaged" => ScalaNativeOptions(clangManaged = Some(true))
       case "native-linking" | "nativeLinking" =>
         ScalaNativeOptions(
           linkingOptions = values.map(_._1.value)
