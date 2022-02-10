@@ -257,7 +257,7 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("should fail dependencies in .java - //> using") {
+  test("should fail dependencies in .java  with using keyword") {
     val testInputs = TestInputs(
       os.rel / "Something.java" ->
         """using lib "org3:::name3:3.3"
