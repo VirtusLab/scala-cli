@@ -756,6 +756,14 @@ trait ScalaCliCrossSbtModule extends CrossSbtModule {
     "--release",
     "16"
   )
+  def scalacOptions = T {
+    val sv         = scalaVersion()
+    val isScala213 = sv.startsWith("2.13.")
+    val extraOptions =
+      if (isScala213) Seq("-Xsource:3")
+      else Nil
+    super.scalacOptions() ++ extraOptions
+  }
 }
 
 def workspaceDirName = ".scala-build"
