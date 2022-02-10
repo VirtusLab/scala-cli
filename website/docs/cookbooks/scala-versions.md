@@ -33,10 +33,10 @@ object ScalaVersion extends App {
     }
   val manifests = getClass.getClassLoader.getResources("META-INF/MANIFEST.MF")
 
-  val scalaVersion = checkScala3(manifests)
+  val scalaVersionArg = checkScala3(manifests)
   val javaVersion = System.getProperty("java.version")
 
-  println(s"Scala: $scalaVersion")
+  println(s"Scala: $scalaVersionArg")
 }
 ```
 
