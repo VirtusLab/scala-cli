@@ -112,6 +112,6 @@ object Name {
         !s.contains(blockCommentStart) &&
         !s.contains(lineCommentStart)
 
-      if (valid) s else '`' + s + '`'
+      if (valid) s else "`" + s + '`'
     }
 }

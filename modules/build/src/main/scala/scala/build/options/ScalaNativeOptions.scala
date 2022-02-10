@@ -48,7 +48,7 @@ final case class ScalaNativeOptions(
     .map(Paths.get(_))
     .getOrElse(sn.Discover.clang())
   private def clangCliOption(): List[String] =
-    List("--clang", clangPath.toString())
+    List("--clang", clangPath().toString())
 
   private def clangppPath() = clangpp
     .filter(_.nonEmpty)
@@ -63,10 +63,10 @@ final case class ScalaNativeOptions(
     compileOptions ++ (if (compileDefaults.getOrElse(true)) sn.Discover.compileOptions() else Nil)
 
   private def linkingCliOptions(): List[String] =
-    finalLinkingOptions.flatMap(option => List("--linking-option", option))
+    finalLinkingOptions().flatMap(option => List("--linking-option", option))
 
   private def compileCliOptions(): List[String] =
-    finalCompileOptions.flatMap(option => List("--compile-option", option))
+    finalCompileOptions().flatMap(option => List("--compile-option", option))
 
   def platformSuffix: String =
     "native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion)

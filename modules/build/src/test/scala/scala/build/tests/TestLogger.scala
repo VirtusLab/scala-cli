@@ -13,7 +13,7 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
 
   override def log(diagnostics: Seq[Diagnostic]): Unit = {
     diagnostics.foreach { d =>
-      System.err.println(d.positions.map(_.render).mkString("/") ++ ": " ++ d.message)
+      System.err.println(d.positions.map(_.render()).mkString("/") ++ ": " ++ d.message)
     }
   }
 

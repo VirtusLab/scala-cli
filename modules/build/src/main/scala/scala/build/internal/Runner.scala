@@ -189,13 +189,13 @@ object Runner {
       AsmTestRunner.taskDefs(
         classPath,
         keepJars = false,
-        framework.fingerprints(),
+        framework.fingerprints().toIndexedSeq,
         parentInspector
       ).toArray
 
     val runner       = framework.runner(args.toArray, Array(), null)
     val initialTasks = runner.tasks(taskDefs)
-    val events       = TestRunner.runTasks(initialTasks, System.out)
+    val events       = TestRunner.runTasks(initialTasks.toIndexedSeq, System.out)
 
     val doneMsg = runner.done()
     if (doneMsg.nonEmpty)
