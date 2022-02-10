@@ -1,14 +1,13 @@
 package scala.build
 
-import coursier.cache.{ArchiveCache, ArtifactError, FileCache}
-import coursier.util.{Artifact, Task}
+import coursier.cache.{ArchiveCache, FileCache}
+import coursier.util.Artifact
 import os.Path
 
-import java.io.File
 import java.net.{HttpURLConnection, URL}
 import java.util.Locale
-import scala.build.EitherCps.either
-import scala.build.errors.{BuildException, CLangInstallException}
+
+import scala.build.errors.CLangInstallException
 import scala.build.internal.Runner
 import scala.util.{Properties, Try}
 
