@@ -266,7 +266,8 @@ case object ScalaPreprocessor extends Preprocessor {
     logger: Logger
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
     val contentChars = content.toCharArray
-    val ExtractedDirectives(codeOffset, directives0) = value(ExtractedDirectives.from(contentChars, path, logger, UsingDirectiveKind.values()))
+    val ExtractedDirectives(codeOffset, directives0) =
+      value(ExtractedDirectives.from(contentChars, path, logger, UsingDirectiveKind.values(), cwd))
 
     val updatedOptions = value {
       DirectivesProcessor.process(

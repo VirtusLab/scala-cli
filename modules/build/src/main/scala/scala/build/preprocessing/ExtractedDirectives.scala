@@ -10,7 +10,7 @@ import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
 import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 
 import scala.build.errors._
-import scala.build.preprocessing.directives.StrictDirective
+import scala.build.preprocessing.directives.{DirectiveUtil, StrictDirective}
 import scala.build.{Logger, Position}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
@@ -29,7 +29,8 @@ object ExtractedDirectives {
     contentChars: Array[Char],
     path: Either[String, os.Path],
     logger: Logger,
-    supportedDirectives: Array[UsingDirectiveKind]
+    supportedDirectives: Array[UsingDirectiveKind],
+    cwd: ScopePath
   ): Either[BuildException, ExtractedDirectives] = {
     val errors = new mutable.ListBuffer[Diagnostic]
     val reporter = CustomDirectivesReporter.create(path) { diag =>
@@ -111,9 +112,17 @@ object ExtractedDirectives {
         if (usedDirectives.getKind() != UsingDirectiveKind.Code) 0
         else usedDirectives.getCodeOffset()
       if (supportedDirectives.contains(usedDirectives.getKind()))
-      Right(ExtractedDirectives(offset, strictDirectives))
-    else
-      Left(new DirectiveErrors(::(s"Unsupported using directive kind ${usedDirectives.getKind}", Nil)))
+        Right(ExtractedDirectives(offset, strictDirectives))
+      else {
+        val directiveVales =
+          usedDirectives.getFlattenedMap.values().asScala.toList.flatMap(_.asScala)
+        val values = DirectiveUtil.stringValues(directiveVales, path, cwd) ++
+          DirectiveUtil.numericValues(directiveVales, path, cwd)
+        Left(new DirectiveErrors(
+          ::(s"Directive '${usedDirectives.getKind}' is not supported in the given context'", Nil),
+          values.flatMap(_._1.positions)
+        ))
+      }
     }
     else {
       val errors0 = errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions))

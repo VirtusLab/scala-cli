@@ -24,7 +24,8 @@ case object JavaPreprocessor extends Preprocessor {
               content.toCharArray,
               Right(j.path),
               logger,
-              Array(UsingDirectiveKind.PlainComment, UsingDirectiveKind.SpecialComment)
+              Array(UsingDirectiveKind.PlainComment, UsingDirectiveKind.SpecialComment),
+              scopePath
             ))
           val updatedOptions = value(DirectivesProcessor.process(
             directives0,
