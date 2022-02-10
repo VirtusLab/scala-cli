@@ -1,7 +1,8 @@
 package scala.build.preprocessing.directives
+
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, ScalaOptions}
+import scala.build.options.{BuildOptions, ScalaOptions, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.ScopePath
 
 case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
@@ -17,18 +18,18 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
     "//> using options \"-Xasync\", \"-Xfatal-warnings\""
   )
 
-  override def keys = Seq("option", "options")
-  override def handleValues(
+  def keys = Seq("option", "options")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
     val values        = directive.values
-    val scalacOptions = DirectiveUtil.stringValues(values, path, cwd)
+    val scalacOptions = DirectiveUtil.stringValues(values, path, cwd).map(_._1)
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalacOptions = scalacOptions.map(_._1)
+        scalacOptions = ShadowingSeq.from(scalacOptions.map(_.map(ScalacOpt(_))))
       )
     )
     Right(ProcessedDirective(Some(options), Seq.empty))

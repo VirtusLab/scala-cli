@@ -2,19 +2,32 @@ package scala.build.tests
 
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
+import dependency.parser.DependencyParser
 
 import java.io.IOException
 
 import scala.build.Ops._
-import scala.build.options.{BuildOptions, InternalOptions, ScalaOptions}
+import scala.build.Positioned
+import scala.build.errors.{
+  DependencyFormatError,
+  NoValueProvidedError,
+  ScalaNativeCompatibilityError,
+  SingleValueExpectedError
+}
+import scala.build.options.{
+  BuildOptions,
+  InternalOptions,
+  JavaOpt,
+  ScalacOpt,
+  ScalaOptions,
+  ShadowingSeq
+}
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
-import scala.build.preprocessing.directives.SingleValueExpected
-import scala.build.errors.ScalaNativeCompatibilityError
 
 class BuildTests extends munit.FunSuite {
 
@@ -321,14 +334,6 @@ class BuildTests extends munit.FunSuite {
           |pprint.log(g)
           |""".stripMargin,
       os.rel / "simple2.sc" ->
-        """//> using
-          |//  lib "com.lihaoyi::geny:0.6.5"
-          |//  lib "com.lihaoyi::pprint:0.6.6"
-          |import geny.Generator
-          |val g = Generator("Hel", "lo")
-          |pprint.log(g)
-          |""".stripMargin,
-      os.rel / "simple3.sc" ->
         """//> using lib "com.lihaoyi::geny:0.6.5", "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
@@ -344,11 +349,7 @@ class BuildTests extends munit.FunSuite {
         "simple2.class",
         "simple2_sc.class",
         "simple2$.class",
-        "simple2_sc$.class",
-        "simple3.class",
-        "simple3_sc.class",
-        "simple3$.class",
-        "simple3_sc$.class"
+        "simple2_sc$.class"
       )
       maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -582,17 +583,6 @@ class BuildTests extends munit.FunSuite {
           |for {
           |  (x, y) <- getCounts
           |} yield x + y
-          |""".stripMargin,
-      os.rel / "p2.sc" ->
-        """//> using
-          |//  scala "2.13"
-          |//  plugins "com.olegpy::better-monadic-for:0.3.1"
-          |
-          |def getCounts: Either[String, (Int, Int)] = ???
-          |
-          |for {
-          |  (x, y) <- getCounts
-          |} yield x + y
           |""".stripMargin
     )
     val buildOptions = defaultOptions.copy(
@@ -617,8 +607,9 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == SingleValueExpected("native-gc", Seq()))
+      expect(
+        maybeBuild.left.exists { case _: NoValueProvidedError => true; case _ => false }
+      )
     }
   }
 
@@ -635,8 +626,9 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == SingleValueExpected("native-gc", Seq("78", "12")))
+      assert(
+        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+      )
     }
 
   }
@@ -672,8 +664,9 @@ class BuildTests extends munit.FunSuite {
       )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get == SingleValueExpected("native-version", Seq("0.4.0", "0.3.3")))
+      assert(
+        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+      )
     }
 
   }
@@ -817,6 +810,129 @@ class BuildTests extends munit.FunSuite {
     }
   }
 
+  test("cli dependency options shadowing using directives") {
+    val usingDependency = "org.scalameta::munit::1.0.0-M1"
+    val cliDependency   = "org.scalameta::munit::0.7.29"
+
+    val inputs = TestInputs(
+      os.rel / "foo.scala" ->
+        s"""//> using lib "$usingDependency"
+           |def foo = "bar"
+           |""".stripMargin
+    )
+
+    val parsedCliDependency = DependencyParser.parse(cliDependency).getOrElse(
+      throw new DependencyFormatError(cliDependency, "")
+    )
+
+    // Emulates options derived from cli
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      ),
+      classPathOptions = defaultOptions.classPathOptions.copy(
+        extraDependencies = ShadowingSeq.from(Seq(Positioned.none(parsedCliDependency)))
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.isRight)
+      val build     = maybeBuild.right.get
+      val artifacts = build.options.classPathOptions.extraDependencies.toSeq
+      assert(artifacts.exists(_.value.toString() == cliDependency))
+    }
+  }
+
+  test("cli scalac options shadowing using directives") {
+    val cliScalacOptions            = Seq("-Xmaxwarns", "4", "-g:source")
+    val usingDirectiveScalacOptions = Seq("-nobootcp", "-Xmaxwarns", "5", "-g:none")
+
+    val expectedOptions = Seq("-Xmaxwarns", "4", "-g:source", "-nobootcp")
+
+    val inputs = TestInputs(
+      os.rel / "foo.scala" ->
+        s"""//> using options "${usingDirectiveScalacOptions.mkString("\", \"")}"
+           |def foo = "bar"
+           |""".stripMargin
+    )
+
+    // Emulates options derived from cli
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      ),
+      scalaOptions = defaultOptions.scalaOptions.copy(
+        scalacOptions = ShadowingSeq.from(
+          cliScalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine(_))
+        )
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.isRight)
+      val build         = maybeBuild.right.get
+      val scalacOptions = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+      expect(scalacOptions == expectedOptions)
+    }
+  }
+
+  test("cli java options shadowing using directives") {
+    val cliJavaOptions            = Seq("-proc:only", "-JflagB", "-Xmx2G")
+    val usingDirectiveJavaOptions = Seq("-proc:none", "-parameters", "-JflagA", "-Xmx4G")
+
+    val expectedJavaOptions =
+      Seq("-proc:only", "-JflagB", "-Xmx2G", "-parameters", "-JflagA")
+
+    val inputs = TestInputs(
+      os.rel / "foo.scala" ->
+        s"""//> using javaOpt "${usingDirectiveJavaOptions.mkString("\", \"")}"
+           |def foo = "bar"
+           |""".stripMargin
+    )
+
+    // Emulates options derived from cli
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      ),
+      javaOptions = defaultOptions.javaOptions.copy(
+        javaOpts = ShadowingSeq.from(
+          cliJavaOptions.map(JavaOpt(_)).map(Positioned.commandLine(_))
+        )
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val build       = maybeBuild.orThrow
+      val javaOptions = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+      assert(javaOptions == expectedJavaOptions)
+    }
+  }
+
+  // Issue #607
+  test("-source:future not internally duplicating") {
+    val inputs = TestInputs(
+      os.rel / "foo.scala" ->
+        """//> using option "-source:future"
+          |def foo = "bar"
+          |""".stripMargin
+    )
+
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val expectedOptions = Seq("-source:future")
+      val scalacOptions =
+        maybeBuild.orThrow.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+      expect(scalacOptions == expectedOptions)
+    }
+
+  }
+
   // Issue #525
   test("scalac options not spuriously duplicating") {
     val inputs = TestInputs(
@@ -838,7 +954,8 @@ class BuildTests extends munit.FunSuite {
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       val expectedOptions =
         Seq("-deprecation", "-feature", "-Xmaxwarns", "1", "-Xdisable-assertions")
-      val scalacOptions = maybeBuild.toOption.get.options.scalaOptions.scalacOptions
+      val scalacOptions =
+        maybeBuild.toOption.get.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       expect(scalacOptions == expectedOptions)
     }
   }

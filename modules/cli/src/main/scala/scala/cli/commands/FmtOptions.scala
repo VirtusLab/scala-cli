@@ -58,6 +58,9 @@ final case class FmtOptions(
   def buildOptions: BuildOptions =
     shared.buildOptions(enableJmh = false, jmhVersion = None, ignoreErrors = false)
 
+  def scalafmtCliOptions: List[String] =
+    scalafmtArg ::: (if (check) List("--check") else Nil)
+
 }
 
 object FmtOptions {

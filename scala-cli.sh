@@ -3,11 +3,11 @@
 # This is the launcher script of Scala CLI (https://github.com/VirtusLab/scala-cli).
 # This script downloads and runs the Scala CLI version set by SCALA_CLI_VERSION below.
 #
-# Download the latest version of this script at https://github.com/VirtusLab/scala-cli/raw/master/scala-cli.sh
+# Download the latest version of this script at https://github.com/VirtusLab/scala-cli/raw/main/scala-cli.sh
 
 set -eu
 
-SCALA_CLI_VERSION="0.0.9"
+SCALA_CLI_VERSION="0.1.1"
 
 if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
   SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$SCALA_CLI_VERSION/scala-cli-x86_64-pc-linux.gz"

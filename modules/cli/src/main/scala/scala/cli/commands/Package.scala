@@ -39,8 +39,6 @@ object Package extends ScalaCommand[PackageOptions] {
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
-    // TODO Add watch mode
-
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
@@ -123,9 +121,12 @@ object Package extends ScalaCommand[PackageOptions] {
     }
 
     val dest = outputOpt
-      .orElse(build.sources.mainClass.map(n => n.drop(n.lastIndexOf('.') + 1)).map(_.stripSuffix(
-        "_sc"
-      )).map(_ + extension))
+      .orElse {
+        build.sources.mainClass
+          .map(n => n.drop(n.lastIndexOf('.') + 1))
+          .map(_.stripSuffix("_sc"))
+          .map(_ + extension)
+      }
       .getOrElse(defaultName)
     val destPath = os.Path(dest, Os.pwd)
     val printableDest =
@@ -575,7 +576,7 @@ object Package extends ScalaCommand[PackageOptions] {
         val exitCode =
           Runner.runJvm(
             build.options.javaHome().value.javaCommand,
-            build.options.javaOptions.javaOpts.map(_.value),
+            build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
             build.artifacts.scalaNativeCli.map(_.toFile),
             "scala.scalanative.cli.ScalaNativeLd",
             args,

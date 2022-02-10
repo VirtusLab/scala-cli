@@ -31,6 +31,7 @@ final case class PackageOptions(
 }
 
 object PackageOptions {
-  implicit val hasHashData: HasHashData[PackageOptions] = HasHashData.derive
+  /* Using HasHashData.nop here (PublishOptions values are not used during compilation) */
+  implicit val hasHashData: HasHashData[PackageOptions] = HasHashData.nop
   implicit val monoid: ConfigMonoid[PackageOptions]     = ConfigMonoid.derive
 }

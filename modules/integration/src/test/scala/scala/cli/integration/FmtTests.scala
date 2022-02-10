@@ -4,18 +4,19 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class FmtTests extends munit.FunSuite {
 
+  val simpleInputsUnformattedContent =
+    """package foo
+      |
+      |    object Foo       extends       java.lang.Object  {
+      |                     def           get()             = 2
+      | }
+      |""".stripMargin
   val simpleInputs = TestInputs(
     Seq(
       os.rel / ".scalafmt.conf" ->
         """runner.dialect = scala213
           |""".stripMargin,
-      os.rel / "Foo.scala" ->
-        """package foo
-          |
-          |    object Foo       extends       java.lang.Object  {
-          |                     def           get()             = 2
-          | }
-          |""".stripMargin
+      os.rel / "Foo.scala" -> simpleInputsUnformattedContent
     )
   )
   val expectedSimpleInputsFormattedContent = noCrLf {
@@ -43,6 +44,15 @@ class FmtTests extends munit.FunSuite {
       os.proc(TestUtil.cli, "fmt").call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == expectedSimpleInputsFormattedContent)
+    }
+  }
+
+  test("with --check") {
+    simpleInputs.fromRoot { root =>
+      val out = os.proc(TestUtil.cli, "fmt", "--check").call(cwd = root, check = false).out.text()
+      val updatedContent = noCrLf(os.read(root / "Foo.scala"))
+      expect(updatedContent == noCrLf(simpleInputsUnformattedContent))
+      expect(noCrLf(out) == "error: --test failed\n")
     }
   }
 

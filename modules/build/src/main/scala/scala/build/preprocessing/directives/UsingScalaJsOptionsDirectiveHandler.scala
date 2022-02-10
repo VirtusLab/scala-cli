@@ -98,16 +98,16 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     )
   }
 
-  override def keys = directiveMap.keys.toSeq
+  def keys = directiveMap.keys.toSeq
 
-  override def handleValues(
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
     val scalaJsOptions   = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val positionedValues = scalaJsOptions.map(v => Positioned(v._2, v._1))
+    val positionedValues = scalaJsOptions.map(_._1)
     val intermediate     = directiveMap(directive.key)(directive.key, positionedValues)
     intermediate.map(bo => ProcessedDirective(Some(bo), Seq.empty))
   }

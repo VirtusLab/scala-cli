@@ -19,8 +19,8 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
     "//> using jar \"/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar\""
   )
 
-  override def keys = Seq("jar", "jars")
-  override def handleValues(
+  def keys = Seq("jar", "jars")
+  def handleValues(
     directive: StrictDirective,
     path: Either[String, os.Path],
     cwd: ScopePath,
@@ -29,10 +29,10 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
     val values = directive.values
     val extraJars: Seq[Either[BuildException, os.Path]] =
       DirectiveUtil.stringValues(values, path, cwd).map {
-        case (p, pos, _) =>
-          val root = Directive.osRoot(cwd, Some(pos))
+        case (p, _) =>
+          val root = Directive.osRoot(cwd, p.positions.headOption)
           // FIXME Handle malformed paths here
-          root.map(os.Path(p, _))
+          root.map(os.Path(p.value, _))
       }
 
     val res = extraJars

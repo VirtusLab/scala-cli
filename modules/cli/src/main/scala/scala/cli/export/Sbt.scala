@@ -40,7 +40,8 @@ final case class Sbt(
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_._2.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.forall(_.value.nameAttributes == NoAttributes)
+      options.classPathOptions.extraDependencies.toSeq
+        .forall(_.value.nameAttributes == NoAttributes)
 
     val settings =
       if (pureJava)
@@ -190,13 +191,18 @@ final case class Sbt(
   private def javaOptionsSettings(options: BuildOptions): SbtProject = {
 
     val javaOptionsSettings =
-      if (options.javaOptions.javaOpts.map(_.value).isEmpty) Nil
+      if (options.javaOptions.javaOpts.toSeq.isEmpty) Nil
       else
         Seq(
           "run / javaOptions ++= Seq(" + nl +
-            options.javaOptions.javaOpts.map(_.value).map(opt =>
-              "  \"" + opt + "\"," + nl
-            ).mkString +
+            options.javaOptions
+              .javaOpts
+              .toSeq
+              .map(_.value.value)
+              .map { opt =>
+                "  \"" + opt + "\"," + nl
+              }
+              .mkString +
             ")"
         )
 
@@ -221,11 +227,13 @@ final case class Sbt(
   private def scalacOptionsSettings(options: BuildOptions): SbtProject = {
 
     val scalacOptionsSettings =
-      if (options.scalaOptions.scalacOptions.isEmpty) Nil
+      if (options.scalaOptions.scalacOptions.toSeq.isEmpty) Nil
       else {
         val options0 = options
           .scalaOptions
           .scalacOptions
+          .toSeq
+          .map(_.value.value)
           .map(o => "\"" + o.replace("\"", "\\\"") + "\"")
         Seq(s"""scalacOptions ++= Seq(${options0.mkString(", ")})""")
       }
@@ -264,7 +272,7 @@ final case class Sbt(
 
     val depSettings = {
       val depStrings = options.classPathOptions
-        .extraDependencies
+        .extraDependencies.toSeq.toList
         .map(_.value)
         .map { dep =>
           val org  = dep.organization

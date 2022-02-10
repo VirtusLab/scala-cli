@@ -2,7 +2,7 @@ name: CI
 on:
   push:
     branches:
-    - master
+    - main
     tags:
     - "v*"
   pull_request:
@@ -10,7 +10,7 @@ on:
 
 concurrency:
   group: ${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   bloop-memory-footprint:
@@ -26,7 +26,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - name: Java Version
@@ -53,7 +53,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - name: Copy launcher
@@ -86,13 +86,15 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
       run: .github/scripts/generate-native-image.sh
       shell: bash
+    - run: ./mill -i ci.setShouldPublish
     - name: Build OS packages
+      if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
@@ -117,7 +119,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -156,7 +158,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -195,7 +197,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - name: Test documentation
@@ -203,7 +205,7 @@ jobs:
     - name: Test gifs
       run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
     - name: Build binary
-      run: ./mill copyTo cli.launcher ./scala-cli 
+      run: ./mill copyTo cli.launcher ./scala-cli
     - name: Check examples
       run: bash ./scala-cli --jvm temurin:17  .github/scripts/check_examples.sc
 
@@ -216,7 +218,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - name: Check native-image config format
@@ -240,7 +242,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
         apps: scalafmt:3.0.0
@@ -255,7 +257,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
@@ -277,7 +279,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
@@ -298,7 +300,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - name: GPG setup
@@ -318,6 +320,7 @@ jobs:
       with:
         type: now
         message: 'Back port of documentation changes to stable'
+        from_branch: main
         target_branch: stable
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -332,7 +335,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M1
+    - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
@@ -357,7 +360,7 @@ jobs:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v6.3
-      - uses: coursier/setup-action@v1.2.0-M1
+      - uses: coursier/setup-action@v1.2.0-M2
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v2

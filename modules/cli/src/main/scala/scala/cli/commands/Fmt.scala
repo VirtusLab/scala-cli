@@ -32,8 +32,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
     }
 
   // Based on scalafmt comment:
-  // https://github.com/scalameta/scalafmt/blob/master/scalafmt-cli/src/main/scala/org/scalafmt/cli/CliArgParser.scala
-  // commit d0c11e98898334969f5f4dfc4bd511630cf00ab9
+  // https://github.com/scalameta/scalafmt/blob/d0c11e98898334969f5f4dfc4bd511630cf00ab9/scalafmt-cli/src/main/scala/org/scalafmt/cli/CliArgParser.scala
   // First we look for the file in the cwd.
   // If not found or could not read, we go to the git root and look there.
   // If not found or could not read, we use the default version.
@@ -140,7 +139,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       val command = Seq(fmtLauncher.toString) ++
         sourceFiles.map(_.toString) ++
         dialectArgs ++
-        options.scalafmtArg
+        options.scalafmtCliOptions
       Runner.run(
         "scalafmt",
         command,

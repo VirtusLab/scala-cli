@@ -9,7 +9,7 @@ final case class ScalaOptions(
   scalaBinaryVersion: Option[String] = None,
   addScalaLibrary: Option[Boolean] = None,
   generateSemanticDbs: Option[Boolean] = None,
-  scalacOptions: Seq[String] = Nil,
+  scalacOptions: ShadowingSeq[Positioned[ScalacOpt]] = ShadowingSeq.empty,
   extraScalaVersions: Set[String] = Set.empty,
   compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
   platform: Option[Positioned[Platform]] = None,
@@ -18,7 +18,7 @@ final case class ScalaOptions(
 ) {
 
   lazy val scalaVersionsUrl = supportedScalaVersionsUrl.getOrElse(
-    "https://github.com/VirtuslabRnD/scala-cli-scala-versions/raw/master/scala-versions-v1.json"
+    "https://github.com/VirtusLab/scala-cli-scala-versions/raw/main/scala-versions-v1.json"
   )
 
   def normalize: ScalaOptions = {

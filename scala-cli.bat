@@ -3,11 +3,11 @@
 rem This is the launcher script of Scala CLI (https://github.com/VirtusLab/scala-cli).
 rem This script downloads and runs the Scala CLI version set by SCALA_CLI_VERSION below.
 rem
-rem Download the latest version of this script at https://github.com/VirtusLab/scala-cli/raw/master/scala-cli.bat
+rem Download the latest version of this script at https://github.com/VirtusLab/scala-cli/raw/main/scala-cli.bat
 
 setlocal enabledelayedexpansion
 
-set "SCALA_CLI_VERSION=0.0.9"
+set "SCALA_CLI_VERSION=0.1.1"
 
 set SCALA_CLI_URL=https://github.com/VirtusLab/scala-cli/releases/download/v%SCALA_CLI_VERSION%/scala-cli.bat
 set CACHE_BASE=%localappdata%/Coursier/v1

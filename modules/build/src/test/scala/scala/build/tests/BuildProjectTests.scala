@@ -4,7 +4,7 @@ import scala.build.errors.Severity
 import com.eed3si9n.expecty.Expecty.expect
 import scala.build.options.{BuildOptions, InternalOptions, JavaOptions, Scope}
 import scala.build.{Build, Inputs, LocalRepo, Positioned, Sources}
-import scala.build.options.ScalaOptions
+import scala.build.options.{ScalacOpt, ScalaOptions, ShadowingSeq}
 import scala.build.Logger
 import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleLogger
@@ -66,7 +66,11 @@ class BuildProjectTests extends munit.FunSuite {
           Some(Positioned(bloopJavaPath, bloopJvmVersion)),
         javaHomeOpt = Some(Positioned.none(os.Path(javaHome)))
       ),
-      scalaOptions = ScalaOptions(scalacOptions = scalacOptions)
+      scalaOptions = ScalaOptions(
+        scalacOptions = ShadowingSeq.from(
+          scalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine(_))
+        )
+      )
     )
 
     val inputs  = Inputs(Nil, None, os.pwd, "project", false)

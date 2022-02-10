@@ -1,5 +1,7 @@
 package scala.cli.internal
 
+import java.io.InputStream
+import java.net.URL
 import java.nio.charset.StandardCharsets
 
 object ProcUtil {
@@ -27,6 +29,18 @@ object ProcUtil {
     }
 
     usesSh
+  }
+
+  def downloadFile(url: String): String = {
+    var inputStream: InputStream = null
+    val data =
+      try {
+        inputStream = new URL(url).openStream()
+        inputStream.readAllBytes()
+      }
+      finally if (inputStream != null)
+        inputStream.close()
+    new String(data, StandardCharsets.UTF_8)
   }
 
 }

@@ -1,0 +1,6 @@
+- [ ] Draft release notes
+- [ ] Update supported scala-versions for the released versions of Scala CLI - [Virtuslab/scala-cli-scala-versions ](https://github.com/Virtuslab/scala-cli-scala-versions)
+- [ ] Update supported scala-versions in documentation - [scala-cli-scala-versions.md](https://github.com/VirtusLab/scala-cli/blob/main/website/docs/reference/scala-versions.md)
+- [ ] Marks release as `pre-release` and then `Publish Release`
+- [ ] Wait for green release CI build
+- [ ] Unmark release as `pre-release` 
