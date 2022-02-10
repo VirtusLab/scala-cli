@@ -310,25 +310,34 @@ final case class BuildOptions(
       }
       modules.flatMap(moduleVersions).distinct
     }
-    def matchNewestScalaVersion(sv: Option[String]) = {
+    def matchNewestScalaVersion(maybeScalaVersionStringArg: Option[String]) = {
       lazy val maxSupportedScalaVersions = latestSupportedScalaVersion()
 
-      sv match {
-        case Some(sv0) =>
-          val prefix           = if (sv0.endsWith(".")) sv0 else sv0 + "."
+      maybeScalaVersionStringArg match {
+        case Some(scalaVersionStringArg) =>
+          val prefix =
+            if (Util.isFullScalaVersion(scalaVersionStringArg)) scalaVersionStringArg
+            else if (scalaVersionStringArg.endsWith(".")) scalaVersionStringArg
+            else scalaVersionStringArg + "."
           val matchingVersions = allVersions.filter(_.startsWith(prefix)).map(Version(_))
           if (matchingVersions.isEmpty)
-            Left(new InvalidBinaryScalaVersionError(sv0))
+            Left(new InvalidBinaryScalaVersionError(
+              scalaVersionStringArg,
+              scalaOptions.scalaVersionsUrl
+            ))
           else {
             val validMaxVersions = maxSupportedScalaVersions
               .filter(_.repr.startsWith(prefix))
             val validMatchingVersions = {
               val filtered = matchingVersions.filter(v => validMaxVersions.exists(v <= _))
-              if (filtered.isEmpty) matchingVersions
+              if (filtered.isEmpty) Seq.empty
               else filtered
             }
             if (validMatchingVersions.isEmpty)
-              Left(new UnsupportedScalaVersionError(sv0))
+              Left(new UnsupportedScalaVersionError(
+                scalaVersionStringArg,
+                scalaOptions.scalaVersionsUrl
+              ))
             else
               Right(validMatchingVersions.max.repr)
           }
@@ -342,14 +351,8 @@ final case class BuildOptions(
             Right(validVersions.max.repr)
       }
     }
-    val maybeSv = scalaVersionArg match {
-      case None => matchNewestScalaVersion(None)
-      case Some(sv0) =>
-        if (Util.isFullScalaVersion(sv0)) Right(sv0)
-        else matchNewestScalaVersion(Some(sv0))
-    }
 
-    val scalaVersion       = value(maybeSv)
+    val scalaVersion       = value(matchNewestScalaVersion(scalaVersionArg))
     val scalaBinaryVersion = scalaBinaryVersionArg.getOrElse(ScalaVersion.binary(scalaVersion))
     (scalaVersion, scalaBinaryVersion)
   }
