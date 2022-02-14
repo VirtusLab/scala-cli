@@ -87,7 +87,12 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".").call(cwd = root)
+      val output =
+        os.proc(TestUtil.cli, "compile", "--test", "--class-path", extraOptions, ".").call(cwd =
+          root).out.text().trim
+      val classTestPathRegex = s":$root/${Constants.workspaceDirName}/project_.*?/classes/test".r
+      val isDefinedTestPathInClassPath = classTestPathRegex.findFirstMatchIn(output).isDefined
+      expect(isDefinedTestPathInClassPath)
     }
   }
 

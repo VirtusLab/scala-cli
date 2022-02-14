@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import java.io.File
-
+import scala.build.options.Scope
 import scala.build.{Build, Builds}
 import scala.cli.CurrentParams
 
@@ -52,7 +52,13 @@ object Compile extends ScalaCommand[CompileOptions] {
       }
       else if (options.classPath)
         for (s <- builds.main.successfulOpt) {
-          val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
+          val testBuildOpt = builds.get(Scope.Test)
+          val testFullClassPath =
+            testBuildOpt.flatMap(_.successfulOpt).map(_.fullClassPath).getOrElse(Nil)
+          val fullClassPath = s.fullClassPath.union(testFullClassPath).distinct
+          val cp = fullClassPath.map(_.toAbsolutePath.toString).mkString(
+            File.pathSeparator
+          )
           println(cp)
         }
     }
