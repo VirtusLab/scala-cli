@@ -48,15 +48,13 @@ class BuildOptionsTests extends munit.FunSuite {
         scalaVersion = Some("2.nightly")
       )
     )
-    val scalaParams        = options.scalaParams.orThrow
+    val scalaParams = options.scalaParams.orThrow
 
     assert(
-      scala2NightlyRegex .unapplySeq(scalaParams.scalaVersion).isDefined,
+      scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.nightly argument does not lead to scala2 nightly build option"
     )
   }
-
-
 
   val expectedScalaVersions = Seq(
     Some("3")      -> defaultScalaVersion,
