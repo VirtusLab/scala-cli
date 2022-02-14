@@ -4,7 +4,11 @@ import com.eed3si9n.expecty.Expecty.{assert => expect}
 import dependency.ScalaParameters
 
 import scala.build.Ops._
-import scala.build.errors.{InvalidBinaryScalaVersionError, NoValidScalaVersionFoundError, UnsupportedScalaVersionError}
+import scala.build.errors.{
+  InvalidBinaryScalaVersionError,
+  NoValidScalaVersionFoundError,
+  UnsupportedScalaVersionError
+}
 import scala.build.internal.Constants._
 import scala.build.options.BuildOptions.scala2NightlyRegex
 import scala.build.options.{BuildOptions, BuildRequirements, ScalaOptions}
@@ -51,8 +55,10 @@ class BuildOptionsTests extends munit.FunSuite {
           ) // invalid url, it should use defaults from Deps.sc
       )
     )
-    println("3.2: "+ options.projectParams)
-      assert( options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[InvalidBinaryScalaVersionError])
+    println("3.2: " + options.projectParams)
+    assert(options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
+      InvalidBinaryScalaVersionError
+    ])
   }
 
   test("Scala 2.11.2 shows Unupported Scala Version Error") {
@@ -67,8 +73,10 @@ class BuildOptionsTests extends munit.FunSuite {
           ) // invalid url, it should use defaults from Deps.sc
       )
     )
-    println("2.11.2: "+ options.projectParams)
-    assert( options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[UnsupportedScalaVersionError])
+    println("2.11.2: " + options.projectParams)
+    assert(options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
+      UnsupportedScalaVersionError
+    ])
   }
 
   test("Scala 2.11 shows Unupported Scala Version Error") {
@@ -83,8 +91,10 @@ class BuildOptionsTests extends munit.FunSuite {
           ) // invalid url, it should use defaults from Deps.sc
       )
     )
-    println("2.11: "+ options.projectParams)
-    assert( options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[UnsupportedScalaVersionError])
+    println("2.11: " + options.projectParams)
+    assert(options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
+      UnsupportedScalaVersionError
+    ])
   }
 
   test("Scala 3.3.3 shows Invalid Binary Scala Version Error") {
@@ -99,8 +109,10 @@ class BuildOptionsTests extends munit.FunSuite {
           ) // invalid url, it should use defaults from Deps.sc
       )
     )
-    println("3.3.3: "+ options.projectParams)
-    assert( options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[InvalidBinaryScalaVersionError])
+    println("3.3.3: " + options.projectParams)
+    assert(options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
+      InvalidBinaryScalaVersionError
+    ])
   }
 
   test("Scala 3.1.3-RC1-bin-20220213-fd97eee-NIGHTLY shows No Valid Scala Version Error") {
@@ -115,7 +127,9 @@ class BuildOptionsTests extends munit.FunSuite {
           ) // invalid url, it should use defaults from Deps.sc
       )
     )
-    assert( options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[NoValidScalaVersionFoundError])
+    assert(options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
+      NoValidScalaVersionFoundError
+    ])
   }
 
   test("Scala 2.13.9-bin-1111111 shows No Valid Scala Version Error") {
@@ -130,7 +144,9 @@ class BuildOptionsTests extends munit.FunSuite {
           ) // invalid url, it should use defaults from Deps.sc
       )
     )
-    assert( options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[NoValidScalaVersionFoundError])
+    assert(options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
+      NoValidScalaVersionFoundError
+    ])
   }
 
   test("Scala 2.33 shows Invalid Binary Scala Version Error") {
@@ -145,9 +161,10 @@ class BuildOptionsTests extends munit.FunSuite {
           ) // invalid url, it should use defaults from Deps.sc
       )
     )
-    assert( options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[InvalidBinaryScalaVersionError])
+    assert(options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
+      InvalidBinaryScalaVersionError
+    ])
   }
-
 
   test("-S 2.nightly option works") {
     val options = BuildOptions(
@@ -160,7 +177,7 @@ class BuildOptionsTests extends munit.FunSuite {
           ) // invalid url, it should use defaults from Deps.sc
       )
     )
-    val scalaParams        = options.scalaParams.orThrow
+    val scalaParams = options.scalaParams.orThrow
     assert(
       scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.nightly argument does not lead to scala2 nightly build option"

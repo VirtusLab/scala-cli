@@ -1,6 +1,4 @@
 package scala.build.options
-
-import coursier.cache.Cache.default.ec
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.Version
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
@@ -12,6 +10,7 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
+
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.build.errors._
@@ -289,7 +288,6 @@ final case class BuildOptions(
       version.startsWith("2.12.") || version.startsWith("2.13.") || version.startsWith("3.")
     lazy val allStableVersions = {
       import coursier._
-      import scala.concurrent.ExecutionContext.{global => ec}
       val modules = {
         def scala2 = mod"org.scala-lang:scala-library"
         // No unstable, that *ought* not to be a problem down-the-line…?
@@ -369,7 +367,6 @@ final case class BuildOptions(
       import coursier.Versions
       import coursier.core.Latest
       import coursier._
-      import scala.concurrent.ExecutionContext.{global => ec}
 
       val moduleVersion: Either[ScalaVersionError, String] = {
         def scala3 = mod"org.scala-lang:scala3-library_3"
@@ -398,7 +395,6 @@ final case class BuildOptions(
       import coursier.Versions
       import coursier.core.Latest
       import coursier._
-      import scala.concurrent.ExecutionContext.{global => ec}
 
       val moduleVersion: Either[ScalaVersionError, String] = {
         def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
@@ -449,7 +445,7 @@ final case class BuildOptions(
 
   private def turnScala3NightlyVersionArgIntoVersion(versionString: String)
     : Either[BuildException, (String, String)] = either {
-    println("inside turnScala3NightlyVersionArgIntoVersion: "+ versionString)
+    println("inside turnScala3NightlyVersionArgIntoVersion: " + versionString)
     val moduleVersion: Either[ScalaVersionError, String] = {
       import coursier._
       def scala3 = mod"org.scala-lang:scala3-library_3"
@@ -467,7 +463,7 @@ final case class BuildOptions(
           ))
       }
     }
-    println("moduleVersion: "+ moduleVersion)
+    println("moduleVersion: " + moduleVersion)
 
     val scalaVersion       = value(moduleVersion)
     val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)

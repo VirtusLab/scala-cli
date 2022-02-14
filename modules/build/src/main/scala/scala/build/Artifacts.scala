@@ -3,13 +3,19 @@ package scala.build
 import coursier.cache.FileCache
 import coursier.core.Classifier
 import coursier.parse.RepositoryParser
-import coursier.{Fetch, Dependency => CsDependency, core => csCore, util => csUtil}
+import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUtil}
 import dependency._
 
 import java.nio.file.Path
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.errors.{BuildException, CompositeBuildException, FetchingDependenciesError, RepositoryFormatError}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  FetchingDependenciesError,
+  RepositoryFormatError
+}
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
 import scala.build.internal.Util.ScalaDependencyOps

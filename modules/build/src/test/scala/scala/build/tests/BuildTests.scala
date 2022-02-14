@@ -7,8 +7,21 @@ import dependency.parser.DependencyParser
 import java.io.IOException
 import scala.build.Ops._
 import scala.build.Positioned
-import scala.build.errors.{DependencyFormatError, InvalidBinaryScalaVersionError, NoValueProvidedError, ScalaNativeCompatibilityError, SingleValueExpectedError}
-import scala.build.options.{BuildOptions, InternalOptions, JavaOpt, ScalaOptions, ScalacOpt, ShadowingSeq}
+import scala.build.errors.{
+  DependencyFormatError,
+  InvalidBinaryScalaVersionError,
+  NoValueProvidedError,
+  ScalaNativeCompatibilityError,
+  SingleValueExpectedError
+}
+import scala.build.options.{
+  BuildOptions,
+  InternalOptions,
+  JavaOpt,
+  ScalaOptions,
+  ScalacOpt,
+  ShadowingSeq
+}
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
