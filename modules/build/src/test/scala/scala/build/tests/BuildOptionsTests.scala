@@ -33,7 +33,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("3.nightly"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
+        supportedScalaVersionsUrl = None
           Some(
             Random.alphanumeric.take(10).mkString("")
           ) // invalid url, it should use defaults from Deps.sc
