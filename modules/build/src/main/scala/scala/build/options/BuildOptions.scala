@@ -369,7 +369,7 @@ final case class BuildOptions(
           Versions()
             .withModule(scala3)
             .result()
-            .unsafeRun()(ec)
+            .unsafeRun()(finalCache.ec)
         }
         res.versions.latest(Latest.Release)
       }
