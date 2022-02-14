@@ -101,7 +101,7 @@ object Test extends ScalaCommand[TestOptions] {
         logger,
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage(),
-        isTest = true
+        buildTests = true
       ) { res =>
         for (builds <- res.orReport(logger))
           maybeTest(builds, allowExit = false)
@@ -117,7 +117,7 @@ object Test extends ScalaCommand[TestOptions] {
           bloopRifleConfig,
           logger,
           crossBuilds = cross,
-          isTest = true
+          buildTests = true
         )
           .orExit(logger)
       maybeTest(builds, allowExit = true)

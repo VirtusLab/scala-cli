@@ -37,7 +37,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         bloopRifleConfig,
         logger,
         crossBuilds = false,
-        isTest = false
+        buildTests = false
       )
         .orExit(logger)
 

@@ -141,7 +141,7 @@ object Build {
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
     crossBuilds: Boolean,
-    isTest: Boolean
+    buildTests: Boolean
   ): Either[BuildException, Builds] = either {
 
     val crossSources = value {
@@ -214,7 +214,7 @@ object Build {
             logger,
             buildClient,
             bloopServer,
-            isTest
+            buildTests
           )
 
           value(res)
@@ -223,7 +223,7 @@ object Build {
       val mainBuild = value(doBuildScope(mainOptions, mainSources, Scope.Main))
 
       val testBuildOpt =
-        if (isTest) {
+        if (buildTests) {
           val testBuild = value {
             mainBuild match {
               case s: Build.Successful =>
@@ -248,7 +248,8 @@ object Build {
         else None
 
       doPostProcess(mainBuild, inputs0, Scope.Main)
-      if (testBuildOpt.nonEmpty) doPostProcess(testBuildOpt.get, inputs0, Scope.Test)
+      for (testBuild <- testBuildOpt)
+        doPostProcess(testBuild, inputs0, Scope.Test)
 
       (mainBuild, testBuildOpt)
     }
@@ -277,7 +278,8 @@ object Build {
     val (mainBuild, extraBuilds, testBuildOpt, extraTestBuilds) = value(buildScopes())
 
     copyResourceToClassesDir(mainBuild)
-    if (testBuildOpt.nonEmpty) copyResourceToClassesDir(testBuildOpt.get)
+    for (testBuild <- testBuildOpt)
+      copyResourceToClassesDir(testBuild)
 
     Builds(Seq(mainBuild) ++ testBuildOpt.toSeq, Seq(extraBuilds, extraTestBuilds))
   }
@@ -311,7 +313,7 @@ object Build {
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
-    isTest: Boolean
+    buildTests: Boolean
   ): Either[BuildException, Build] = either {
 
     val build0 = value {
@@ -338,7 +340,7 @@ object Build {
               successful.options.javaHome().value.javaCommand,
               buildClient,
               bloopServer,
-              isTest
+              buildTests
             )
             res.flatMap {
               case Some(b) => Right(b)
@@ -398,7 +400,7 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean,
-    isTest: Boolean
+    buildTests: Boolean
   ): Either[BuildException, Builds] = {
     val buildClient = BloopBuildClient.create(
       logger,
@@ -423,7 +425,7 @@ object Build {
         buildClient = buildClient,
         bloopServer = bloopServer,
         crossBuilds = crossBuilds,
-        isTest
+        buildTests
       )
     }
   }
@@ -434,7 +436,7 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean,
-    isTest: Boolean
+    buildTests: Boolean
   ): Either[BuildException, Builds] =
     build(
       inputs,
@@ -442,7 +444,7 @@ object Build {
       bloopConfig,
       logger,
       crossBuilds = crossBuilds,
-      isTest
+      buildTests
     )
 
   def validate(
@@ -464,7 +466,7 @@ object Build {
     logger: Logger,
     crossBuilds: Boolean,
     postAction: () => Unit = () => (),
-    isTest: Boolean
+    buildTests: Boolean
   )(action: Either[BuildException, Builds] => Unit): Watcher = {
 
     val buildClient = BloopBuildClient.create(
@@ -493,7 +495,7 @@ object Build {
           buildClient,
           bloopServer,
           crossBuilds = crossBuilds,
-          isTest
+          buildTests
         )
         action(res)
       }
@@ -924,7 +926,7 @@ object Build {
     javaCommand: String,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
-    isTest: Boolean
+    buildTests: Boolean
   ): Either[BuildException, Option[Build]] = either {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir   = inputs.workspace / Constants.workspaceDirName / jmhProjectName
@@ -971,7 +973,7 @@ object Build {
           buildClient,
           bloopServer,
           crossBuilds = false,
-          isTest
+          buildTests
         )
       }
       Some(jmhBuilds.main)

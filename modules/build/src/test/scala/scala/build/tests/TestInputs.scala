@@ -40,7 +40,7 @@ final case class TestInputs(
           bloopConfig,
           TestLogger(),
           crossBuilds = false,
-          isTest = true
+          buildTests = true
         )
       f(root, inputs, res.map(_.main))
     }

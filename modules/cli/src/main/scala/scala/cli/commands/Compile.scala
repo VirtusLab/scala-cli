@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import java.io.File
+
 import scala.build.options.Scope
 import scala.build.{Build, Builds}
 import scala.cli.CurrentParams
@@ -74,7 +75,7 @@ object Compile extends ScalaCommand[CompileOptions] {
         logger,
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage(),
-        isTest = buildOptions.testOptions.shouldCompileTest.getOrElse(false)
+        buildTests = buildOptions.testOptions.shouldCompileTest.getOrElse(false)
       ) { res =>
         for (builds <- res.orReport(logger))
           postBuild(builds, allowExit = false)
@@ -89,7 +90,7 @@ object Compile extends ScalaCommand[CompileOptions] {
         bloopRifleConfig,
         logger,
         crossBuilds = cross,
-        isTest = buildOptions.testOptions.shouldCompileTest.getOrElse(false)
+        buildTests = buildOptions.testOptions.shouldCompileTest.getOrElse(false)
       )
       val builds = res.orExit(logger)
       postBuild(builds, allowExit = true)

@@ -111,7 +111,7 @@ final case class SharedOptions(
     enableJmh: Boolean,
     jmhVersion: Option[String],
     ignoreErrors: Boolean = false,
-    shouldCompileTest: Boolean = false
+    shouldCompileTest: Option[Boolean] = None
   ): BuildOptions = {
     val platformOpt =
       if (js.js) Some(Platform.JS)
@@ -174,7 +174,7 @@ final case class SharedOptions(
         localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
         verbosity = Some(logging.verbosity)
       ),
-      testOptions = scala.build.options.TestOptions(shouldCompileTest = Some(shouldCompileTest))
+      testOptions = scala.build.options.TestOptions(shouldCompileTest = shouldCompileTest)
     )
   }
 

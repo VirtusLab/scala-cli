@@ -84,7 +84,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         logger,
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage(),
-        isTest = false
+        buildTests = false
       ) { res =>
         for (builds <- res.orReport(logger))
           builds.main match {
@@ -105,7 +105,7 @@ object Repl extends ScalaCommand[ReplOptions] {
           bloopRifleConfig,
           logger,
           crossBuilds = cross,
-          isTest = false
+          buildTests = false
         )
           .orExit(logger)
       builds.main match {

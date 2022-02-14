@@ -3,6 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.util.BloopUtil
+import scala.util.Properties
 
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
@@ -90,8 +91,13 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       val output =
         os.proc(TestUtil.cli, "compile", "--test", "--class-path", extraOptions, ".").call(cwd =
           root).out.text().trim
-      val classTestPathRegex = s":$root/${Constants.workspaceDirName}/project_.*?/classes/test".r
-      val isDefinedTestPathInClassPath = classTestPathRegex.findFirstMatchIn(output).isDefined
+      val escapeBackslash = if (Properties.isWin) "\\\\/" else "\\/"
+      val testPathRegex =
+        s":$root/${Constants.workspaceDirName}/project_.*?/classes/test".replace(
+          "/",
+          escapeBackslash
+        ).r
+      val isDefinedTestPathInClassPath = testPathRegex.findFirstMatchIn(output).isDefined
       expect(isDefinedTestPathInClassPath)
     }
   }

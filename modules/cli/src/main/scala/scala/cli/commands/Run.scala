@@ -70,7 +70,7 @@ object Run extends ScalaCommand[RunOptions] {
         logger,
         crossBuilds = cross,
         postAction = () => WatchUtil.printWatchMessage(),
-        isTest = false
+        buildTests = false
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
@@ -91,7 +91,7 @@ object Run extends ScalaCommand[RunOptions] {
           bloopRifleConfig,
           logger,
           crossBuilds = cross,
-          isTest = false
+          buildTests = false
         )
           .orExit(logger)
       builds.main match {
