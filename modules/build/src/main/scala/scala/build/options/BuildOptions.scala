@@ -373,7 +373,7 @@ final case class BuildOptions(
         }
         res.versions.latest(Latest.Release)
       }
-      val scalaVersion       = moduleVersion.get
+      val scalaVersion       = value(moduleVersion.toRight("No latest version found for $scala3"))
       val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
       (scalaVersion, scalaBinaryVersion)
     }
