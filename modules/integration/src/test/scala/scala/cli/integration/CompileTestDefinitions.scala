@@ -2,8 +2,9 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+
 import scala.cli.integration.util.BloopUtil
-import scala.util.Properties
 
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
@@ -71,7 +72,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
             |  }
             |}
             |""".stripMargin,
-        os.rel / "Tests.test.scala" ->
+        os.rel / "Tests.scala" ->
           """//> using lib "com.lihaoyi::pprint:0.6.6"
             |//> using target.scope "test"
             |
@@ -91,13 +92,12 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       val output =
         os.proc(TestUtil.cli, "compile", "--test", "--class-path", extraOptions, ".").call(cwd =
           root).out.text().trim
-      val escapeBackslash = if (Properties.isWin) "\\\\/" else "\\/"
-      val testPathRegex =
-        s":$root/${Constants.workspaceDirName}/project_.*?/classes/test".replace(
-          "/",
-          escapeBackslash
-        ).r
-      val isDefinedTestPathInClassPath = testPathRegex.findFirstMatchIn(output).isDefined
+      val classPath = output.split(File.pathSeparator).map(_.trim).filter(_.nonEmpty)
+      val isDefinedTestPathInClassPath = // expected test class path - root / Constants.workspaceDirName / project_(hash) / classes / test
+        classPath.exists(p =>
+          p.startsWith((root / Constants.workspaceDirName).toString()) &&
+          p.endsWith(Seq("classes", "test").mkString(File.separator))
+        )
       expect(isDefinedTestPathInClassPath)
     }
   }
@@ -112,7 +112,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
             |    println(message)
             |}
             |""".stripMargin,
-        os.rel / "Tests.test.scala" ->
+        os.rel / "Tests.scala" ->
           """//> using lib "com.lihaoyi::utest:0.7.10"
             |//> using target.scope "test"
             |

@@ -52,14 +52,11 @@ object Compile extends ScalaCommand[CompileOptions] {
           sys.exit(1)
       }
       else if (options.classPath)
-        for (s <- builds.main.successfulOpt) {
-          val testBuildOpt = builds.get(Scope.Test)
-          val testFullClassPath =
-            testBuildOpt.flatMap(_.successfulOpt).map(_.fullClassPath).getOrElse(Nil)
-          val fullClassPath = s.fullClassPath.union(testFullClassPath).distinct
-          val cp = fullClassPath.map(_.toAbsolutePath.toString).mkString(
-            File.pathSeparator
-          )
+        for {
+          build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
+          s     <- build.successfulOpt
+        } {
+          val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
           println(cp)
         }
     }
