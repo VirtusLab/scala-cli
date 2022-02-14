@@ -273,9 +273,16 @@ final case class BuildOptions(
   def finalRepositories: Seq[String] =
     classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
-  private def computeScalaVersions(
-    scalaVersion: Option[String],
-    scalaBinaryVersion: Option[String]
+  /** @param scalaVersionArg
+    *   the command line, using directive, or default argument passed as scala version
+    * @param scalaBinaryVersionArg
+    *   the command line, using directive, or default argument passed as scala Binary version
+    * @return
+    *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
+    */
+  private def turnScalaVersionArgToScalaVersions(
+    scalaVersionArg: Option[String],
+    scalaBinaryVersionArg: Option[String]
   ): Either[BuildException, (String, String)] = either {
     lazy val allVersions = {
       import coursier._
@@ -284,8 +291,9 @@ final case class BuildOptions(
         def scala2 = mod"org.scala-lang:scala-library"
         // No unstable, that *ought* not to be a problem down-the-line…?
         def scala3 = mod"org.scala-lang:scala3-library_3"
-        if (scalaVersion.contains("2") || scalaVersion.exists(_.startsWith("2."))) Seq(scala2)
-        else if (scalaVersion.contains("3") || scalaVersion.exists(_.startsWith("3."))) Seq(scala3)
+        if (scalaVersionArg.contains("2") || scalaVersionArg.exists(_.startsWith("2."))) Seq(scala2)
+        else if (scalaVersionArg.contains("3") || scalaVersionArg.exists(_.startsWith("3.")))
+          Seq(scala3)
         else Seq(scala2, scala3)
       }
       def isStable(v: String): Boolean =
@@ -333,21 +341,83 @@ final case class BuildOptions(
             Right(validVersions.max.repr)
       }
     }
-    val maybeSv = scalaVersion match {
+    val maybeSv = scalaVersionArg match {
       case None => matchNewestScalaVersion(None)
       case Some(sv0) =>
         if (Util.isFullScalaVersion(sv0)) Right(sv0)
         else matchNewestScalaVersion(Some(sv0))
     }
 
-    val sv  = value(maybeSv)
-    val sbv = scalaBinaryVersion.getOrElse(ScalaVersion.binary(sv))
-    (sv, sbv)
+    val scalaVersion       = value(maybeSv)
+    val scalaBinaryVersion = scalaBinaryVersionArg.getOrElse(ScalaVersion.binary(scalaVersion))
+    (scalaVersion, scalaBinaryVersion)
   }
+
+  /** @return
+    *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
+    */
+  private def computeLatestScalaThreeNightlyVersions(): Either[BuildException, (String, String)] =
+    either {
+      import coursier.Versions
+      import coursier.core.Latest
+      import coursier._
+      import scala.concurrent.ExecutionContext.{global => ec}
+      val moduleVersion: Option[String] = {
+        def scala3 = mod"org.scala-lang:scala3-library_3"
+        val res = finalCache.logger.use {
+          Versions()
+            .withModule(scala3)
+            .result()
+            .unsafeRun()(ec)
+        }
+        res.versions.latest(Latest.Release)
+      }
+      val scalaVersion       = moduleVersion.get
+      val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
+      (scalaVersion, scalaBinaryVersion)
+    }
+
+  /** @return
+    *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
+    */
+  private def computeLatestScalaTwoNightlyVersions(): Either[BuildException, (String, String)] =
+    either {
+      import coursier.Versions
+      import coursier.core.Latest
+      import coursier._
+      import scala.concurrent.ExecutionContext.{global => ec}
+      val scala2NightlyRegex = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
+
+      def isScala2Nightly(version: String): Boolean =
+        scala2NightlyRegex.unapplySeq(version).isDefined
+
+      val moduleVersion: Option[String] = {
+        def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
+        val res = finalCache.logger.use {
+          Versions()
+            .withModule(scalaNightly2Module)
+            .withRepositories(Seq(coursier.Repositories.scalaIntegration))
+            .result()
+            .unsafeRun()(ec)
+        }
+        res.versions.latest(Latest.Release)
+      }
+      val scalaVersion       = moduleVersion.get
+      val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
+      (scalaVersion, scalaBinaryVersion)
+    }
 
   lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
     val (scalaVersion, scalaBinaryVersion) =
-      value(computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion))
+      if (scalaOptions.scalaVersion.contains("3.nightly"))
+        value(computeLatestScalaThreeNightlyVersions())
+      else if (scalaOptions.scalaVersion.contains("2.nightly"))
+        value(computeLatestScalaTwoNightlyVersions())
+      else
+        value(turnScalaVersionArgToScalaVersions(
+          scalaOptions.scalaVersion,
+          scalaOptions.scalaBinaryVersion
+        ))
     val maybePlatformSuffix = platform.value match {
       case Platform.JVM    => None
       case Platform.JS     => Some(scalaJsOptions.platformSuffix)
