@@ -366,7 +366,7 @@ final case class BuildOptions(
       val moduleVersion: Option[String] = {
         def scala3 = mod"org.scala-lang:scala3-library_3"
         val res = finalCache.logger.use {
-          Versions()
+          Versions(finalCache)
             .withModule(scala3)
             .result()
             .unsafeRun()(finalCache.ec)
