@@ -48,10 +48,12 @@ final case class ReplOptions(
           baseOptions.javaOptions.javaOpts ++
             sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
       ),
-      replOptions = baseOptions.replOptions.copy(
-        useAmmoniteOpt = ammonite,
-        ammoniteVersionOpt = ammoniteVersionOpt,
-        ammoniteArgs = ammoniteArg
+      notForBloopOptions = baseOptions.notForBloopOptions.copy(
+        replOptions = baseOptions.notForBloopOptions.replOptions.copy(
+          useAmmoniteOpt = ammonite,
+          ammoniteVersionOpt = ammoniteVersionOpt,
+          ammoniteArgs = ammoniteArg
+        )
       ),
       internalDependencies = baseOptions.internalDependencies.copy(
         addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt

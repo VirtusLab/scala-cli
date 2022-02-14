@@ -38,8 +38,7 @@ final case class BuildOptions(
   internal: InternalOptions = InternalOptions(),
   mainClass: Option[String] = None,
   testOptions: TestOptions = TestOptions(),
-  packageOptions: PackageOptions = PackageOptions(),
-  replOptions: ReplOptions = ReplOptions()
+  notForBloopOptions: PostBuildOptions = PostBuildOptions()
 ) {
 
   lazy val platform: Positioned[Platform] =
@@ -381,13 +380,6 @@ final case class BuildOptions(
     )
     value(maybeArtifacts)
   }
-
-  // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
-  def packageTypeOpt: Option[PackageType] =
-    if (packageOptions.isDockerEnabled) Some(PackageType.Docker)
-    else if (platform.value == Platform.JS) Some(PackageType.Js)
-    else if (platform.value == Platform.Native) Some(PackageType.Native)
-    else packageOptions.packageTypeOpt
 
   private def allCrossScalaVersionOptions: Seq[BuildOptions] = {
     val scalaOptions0 = scalaOptions.normalize
