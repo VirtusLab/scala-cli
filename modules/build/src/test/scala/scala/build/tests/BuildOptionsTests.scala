@@ -28,6 +28,36 @@ class BuildOptionsTests extends munit.FunSuite {
     )
   }
 
+  test("-S 3.nightly option works") {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some("3.nightly")
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow
+    assert(
+      scalaParams.scalaVersion.startsWith("3") && scalaParams.scalaVersion.endsWith("-NIGHTLY"),
+      "-S 3.nightly argument does not lead to scala3 nightly build option"
+    )
+  }
+
+  test("-S 2.nightly option works") {
+    val scala2NightlyRegex = raw"""2\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some("2.nightly")
+      )
+    )
+    val scalaParams        = options.scalaParams.orThrow
+
+    assert(
+      scala2NightlyRegex .unapplySeq(scalaParams.scalaVersion).isDefined,
+      "-S 2.nightly argument does not lead to scala2 nightly build option"
+    )
+  }
+
+
+
   val expectedScalaVersions = Seq(
     Some("3")      -> defaultScalaVersion,
     None           -> defaultScalaVersion,
