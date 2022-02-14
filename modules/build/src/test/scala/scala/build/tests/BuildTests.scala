@@ -5,29 +5,16 @@ import com.eed3si9n.expecty.Expecty.expect
 import dependency.parser.DependencyParser
 
 import java.io.IOException
-
 import scala.build.Ops._
 import scala.build.Positioned
-import scala.build.errors.{
-  DependencyFormatError,
-  NoValueProvidedError,
-  ScalaNativeCompatibilityError,
-  SingleValueExpectedError
-}
-import scala.build.options.{
-  BuildOptions,
-  InternalOptions,
-  JavaOpt,
-  ScalacOpt,
-  ScalaOptions,
-  ShadowingSeq
-}
+import scala.build.errors.{DependencyFormatError, InvalidBinaryScalaVersionError, NoValueProvidedError, ScalaNativeCompatibilityError, SingleValueExpectedError}
+import scala.build.options.{BuildOptions, InternalOptions, JavaOpt, ScalaOptions, ScalacOpt, ShadowingSeq}
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
-import scala.util.Properties
+import scala.util.{Properties, Random}
 
 class BuildTests extends munit.FunSuite {
 
@@ -807,6 +794,33 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
       assert(maybeBuild.left.get.isInstanceOf[ScalaNativeCompatibilityError])
+    }
+  }
+
+  test("Scala 3.2 makes the build fail with InvalidBinaryScalaVersionError") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        """ // using scala "3.2"
+          |object Hello {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |
+          |""".stripMargin
+    )
+    val buildOptions = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some("3.3.3"),
+        scalaBinaryVersion = None,
+        supportedScalaVersionsUrl =
+          Some(
+            Random.alphanumeric.take(10).mkString("")
+          ) // invalid url, it should use defaults from Deps.sc
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.isLeft)
+      assert(maybeBuild.left.get.isInstanceOf[InvalidBinaryScalaVersionError])
     }
   }
 

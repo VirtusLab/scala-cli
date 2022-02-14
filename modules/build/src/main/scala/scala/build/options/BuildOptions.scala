@@ -12,12 +12,12 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
-
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.build.errors._
 import scala.build.internal.Constants._
 import scala.build.internal.{OsLibc, StableScalaVersion, Util}
+import scala.build.options.BuildOptions.scala2NightlyRegex
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
@@ -306,7 +306,7 @@ final case class BuildOptions(
           Versions()
             .withModule(mod)
             .result()
-            .unsafeRun()(ec)
+            .unsafeRun()(finalCache.ec)
         }
         res.versions.available.filter(isStable)
       }
@@ -377,7 +377,7 @@ final case class BuildOptions(
           Versions()
             .withModule(scala3)
             .result()
-            .unsafeRun()(ec)
+            .unsafeRun()(finalCache.ec)
         }
         res.versions.latest(Latest.Release) match {
           case Some(versionString) => Right(versionString)
@@ -407,7 +407,7 @@ final case class BuildOptions(
             .withModule(scalaNightly2Module)
             .withRepositories(Seq(coursier.Repositories.scalaIntegration))
             .result()
-            .unsafeRun()(ec)
+            .unsafeRun()(finalCache.ec)
         }
         res.versions.latest(Latest.Release) match {
           case Some(versionString) => Right(versionString)
@@ -431,7 +431,7 @@ final case class BuildOptions(
           .withModule(scalaNightly2Module)
           .withRepositories(Seq(coursier.Repositories.scalaIntegration))
           .result()
-          .unsafeRun()(ec)
+          .unsafeRun()(finalCache.ec)
       }
       res.versions.available.find(versionString == _) match {
         case Some(vStr) => Right(vStr)
@@ -449,6 +449,7 @@ final case class BuildOptions(
 
   private def turnScala3NightlyVersionArgIntoVersion(versionString: String)
     : Either[BuildException, (String, String)] = either {
+    println("inside turnScala3NightlyVersionArgIntoVersion: "+ versionString)
     val moduleVersion: Either[ScalaVersionError, String] = {
       import coursier._
       def scala3 = mod"org.scala-lang:scala3-library_3"
@@ -456,7 +457,7 @@ final case class BuildOptions(
         Versions()
           .withModule(scala3)
           .result()
-          .unsafeRun()(ec)
+          .unsafeRun()(finalCache.ec)
       }
       res.versions.available.find(versionString == _) match {
         case Some(vStr) => Right(vStr)
@@ -466,6 +467,7 @@ final case class BuildOptions(
           ))
       }
     }
+    println("moduleVersion: "+ moduleVersion)
 
     val scalaVersion       = value(moduleVersion)
     val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
@@ -473,7 +475,6 @@ final case class BuildOptions(
   }
 
   lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
-    val scala2NightlyRegex = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
     def isScala2Nightly(version: String): Boolean =
       scala2NightlyRegex.unapplySeq(version).isDefined
     def isScala3Nightly(version: String): Boolean =
@@ -630,6 +631,8 @@ object BuildOptions {
     scalaVersion: String,
     platform: Platform
   )
+
+  val scala2NightlyRegex = raw"""2\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive

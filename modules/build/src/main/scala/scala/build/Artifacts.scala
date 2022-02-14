@@ -3,22 +3,17 @@ package scala.build
 import coursier.cache.FileCache
 import coursier.core.Classifier
 import coursier.parse.RepositoryParser
-import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUtil}
+import coursier.{Fetch, Dependency => CsDependency, core => csCore, util => csUtil}
 import dependency._
 
 import java.nio.file.Path
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  FetchingDependenciesError,
-  RepositoryFormatError
-}
+import scala.build.errors.{BuildException, CompositeBuildException, FetchingDependenciesError, RepositoryFormatError}
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
 import scala.build.internal.Util.ScalaDependencyOps
+import scala.build.options.BuildOptions.scala2NightlyRegex
 
 final case class Artifacts(
   compilerDependencies: Seq[AnyDependency],
@@ -135,8 +130,6 @@ object Artifacts {
       scalaNativeCliVersion.map(version =>
         Seq(dep"org.scala-native:scala-native-cli_2.12:$version")
       )
-
-    val scala2NightlyRegex = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
 
     val isScala2NightlyRequested = scala2NightlyRegex.unapplySeq(params.scalaVersion).isDefined
 
