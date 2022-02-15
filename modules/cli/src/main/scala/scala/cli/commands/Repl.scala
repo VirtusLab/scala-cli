@@ -120,10 +120,10 @@ object Repl extends ScalaCommand[ReplOptions] {
   ): Either[BuildException, Unit] = either {
 
     val replArtifacts = value {
-      if (options.notForBloopOptions.replOptions.useAmmonite)
+      if (options.replOptions.useAmmonite)
         ReplArtifacts.ammonite(
           artifacts.params,
-          options.notForBloopOptions.replOptions.ammoniteVersion,
+          options.replOptions.ammoniteVersion,
           artifacts.dependencies,
           artifacts.extraClassPath,
           artifacts.extraSourceJars,
@@ -154,9 +154,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       .filter(os.isFile(_)) // just in case
       .map(_.last.stripSuffix(".class"))
       .sorted
-    val warnRootClasses = rootClasses.nonEmpty &&
-      options.notForBloopOptions.replOptions.useAmmoniteOpt.exists(_ == true)
-    if (warnRootClasses)
+    if (rootClasses.nonEmpty && options.replOptions.useAmmoniteOpt.exists(_ == true))
       logger.message(
         s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")})." +
           " These will not be accessible from the REPL."
@@ -171,12 +169,12 @@ object Repl extends ScalaCommand[ReplOptions] {
         classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toFile),
         replArtifacts.replMainClass,
         if (Properties.isWin)
-          options.notForBloopOptions.replOptions.ammoniteArgs.map { a =>
+          options.replOptions.ammoniteArgs.map { a =>
             if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
             else a
           }
         else
-          options.notForBloopOptions.replOptions.ammoniteArgs,
+          options.replOptions.ammoniteArgs,
         logger,
         allowExecve = allowExit
       )

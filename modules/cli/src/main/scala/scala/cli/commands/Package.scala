@@ -88,17 +88,8 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful
   ): Either[BuildException, Unit] = either {
 
-    // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
-    val packageType =
-      if (build.options.notForBloopOptions.packageOptions.isDockerEnabled)
-        PackageType.Docker
-      else if (build.options.platform.value == Platform.JS)
-        PackageType.Js
-      else if (build.options.platform.value == Platform.Native)
-        PackageType.Native
-      else
-        build.options.notForBloopOptions.packageOptions.packageTypeOpt
-          .getOrElse(PackageType.Bootstrap)
+    val packageType = build.options.packageTypeOpt
+      .getOrElse(PackageType.Bootstrap)
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
@@ -158,8 +149,6 @@ object Package extends ScalaCommand[PackageOptions] {
         case None      => build.retainedMainClass
       }
 
-    val packageOptions = build.options.notForBloopOptions.packageOptions
-
     packageType match {
       case PackageType.Bootstrap =>
         bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
@@ -181,12 +170,13 @@ object Package extends ScalaCommand[PackageOptions] {
         bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck())
         val sharedSettings = SharedSettings(
           sourceAppPath = bootstrapPath,
-          version = packageOptions.packageVersion,
+          version = build.options.packageOptions.packageVersion,
           force = force,
           outputPath = destPath,
-          logoPath = packageOptions.logoPath,
-          launcherApp = packageOptions.launcherApp
+          logoPath = build.options.packageOptions.logoPath,
+          launcherApp = build.options.packageOptions.launcherApp
         )
+        val packageOptions = build.options.packageOptions
 
         lazy val debianSettings = DebianSettings(
           shared = sharedSettings,
@@ -254,7 +244,7 @@ object Package extends ScalaCommand[PackageOptions] {
         docker(inputs, build, value(mainClass), logger)
     }
 
-    if (!packageOptions.isDockerEnabled)
+    if (!build.options.packageOptions.isDockerEnabled)
       logger.message {
         if (packageType.runnable)
           s"Wrote $dest, run it with" + System.lineSeparator() +
@@ -346,8 +336,6 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     logger: Logger
   ): Unit = {
-    val packageOptions = build.options.notForBloopOptions.packageOptions
-
     if (build.options.platform.value == Platform.Native && (Properties.isMac || Properties.isWin)) {
       System.err.println(
         "Package scala native application to docker image is not supported on MacOs and Windows"
@@ -360,22 +348,22 @@ object Package extends ScalaCommand[PackageOptions] {
       case Platform.JS     => Some("node")
       case Platform.Native => None
     }
-    val from = packageOptions.dockerOptions.from.getOrElse {
+    val from = build.options.packageOptions.dockerOptions.from.getOrElse {
       build.options.platform.value match {
         case Platform.JVM    => "openjdk:17-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
       }
     }
-    val repository = packageOptions.dockerOptions.imageRepository.mandatory(
+    val repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
       "--docker-image-repository",
       "docker"
     )
-    val tag = packageOptions.dockerOptions.imageTag.getOrElse("latest")
+    val tag = build.options.packageOptions.dockerOptions.imageTag.getOrElse("latest")
 
     val dockerSettings = DockerSettings(
       from = from,
-      registry = packageOptions.dockerOptions.imageRegistry,
+      registry = build.options.packageOptions.dockerOptions.imageRegistry,
       repository = repository,
       tag = Some(tag),
       exec = exec
@@ -453,7 +441,7 @@ object Package extends ScalaCommand[PackageOptions] {
     def dependencyEntries =
       build.artifacts.artifacts.map {
         case (url, artifactPath) =>
-          if (build.options.notForBloopOptions.packageOptions.isStandalone) {
+          if (build.options.packageOptions.isStandalone) {
             val path = os.Path(artifactPath)
             ClassPathEntry.Resource(path.last, os.mtime(path), os.read.bytes(path))
           }
