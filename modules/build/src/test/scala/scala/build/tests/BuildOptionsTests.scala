@@ -4,13 +4,9 @@ import com.eed3si9n.expecty.Expecty.{assert => expect}
 import dependency.ScalaParameters
 
 import scala.build.Ops._
-import scala.build.errors.{
-  InvalidBinaryScalaVersionError,
-  NoValidScalaVersionFoundError,
-  UnsupportedScalaVersionError
-}
+import scala.build.errors.{InvalidBinaryScalaVersionError, NoValidScalaVersionFoundError, UnsupportedScalaVersionError}
 import scala.build.internal.Constants._
-import scala.build.options.BuildOptions.scala2NightlyRegex
+import scala.build.internal.ScalaParse.scala2NightlyRegex
 import scala.build.options.{BuildOptions, BuildRequirements, ScalaOptions}
 import scala.util.Random
 

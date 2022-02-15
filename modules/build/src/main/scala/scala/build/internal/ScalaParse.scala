@@ -8,6 +8,9 @@ object ScalaParse {
 
   import Scala._
 
+  val scala2NightlyRegex = raw"""2\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
+
+
   // from https://github.com/com-lihaoyi/Ammonite/blob/0f0d597f04e62e86cbf76d3bd16deb6965331470/amm/compiler/src/main/scala/ammonite/compiler/Parsers.scala#L162-L176
   def formatFastparseError(fileName: String, rawCode: String, f: Parsed.Failure) = {
 

@@ -10,14 +10,13 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
-
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.build.errors._
 import scala.build.internal.Constants._
 import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.ScalaParse.scala2NightlyRegex
 import scala.build.internal.{OsLibc, StableScalaVersion, Util}
-import scala.build.options.BuildOptions.scala2NightlyRegex
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
@@ -648,8 +647,6 @@ object BuildOptions {
     scalaVersion: String,
     platform: Platform
   )
-
-  val scala2NightlyRegex = raw"""2\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive
