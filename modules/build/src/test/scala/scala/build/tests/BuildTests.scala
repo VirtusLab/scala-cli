@@ -959,4 +959,26 @@ class BuildTests extends munit.FunSuite {
       expect(scalacOptions == expectedOptions)
     }
   }
+
+  test("multiple times scalac options with -Xplugin prefix") {
+    val inputs = TestInputs(
+      os.rel / "foo.scala" ->
+        """//> using option "-Xplugin:/paradise_2.12.15-2.1.1.jar"
+          |//> using option "-Xplugin:/semanticdb-scalac_2.12.15-4.4.31.jar"
+          |
+          |def foo = "bar"
+          |""".stripMargin
+    )
+
+    inputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val expectedOptions =
+        Seq(
+          "-Xplugin:/paradise_2.12.15-2.1.1.jar",
+          "-Xplugin:/semanticdb-scalac_2.12.15-4.4.31.jar"
+        )
+      val scalacOptions =
+        maybeBuild.toOption.get.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+      expect(scalacOptions == expectedOptions)
+    }
+  }
 }
