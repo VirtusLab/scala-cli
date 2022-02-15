@@ -5,6 +5,7 @@ import dependency.ScalaParameters
 
 import scala.build.Ops._
 import scala.build.internal.Constants._
+import scala.build.internal.ScalaParse.scala2NightlyRegex
 import scala.build.options.{BuildOptions, BuildRequirements, ScalaOptions}
 import scala.util.Random
 
@@ -42,7 +43,6 @@ class BuildOptionsTests extends munit.FunSuite {
   }
 
   test("-S 2.nightly option works") {
-    val scala2NightlyRegex = raw"""2\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some("2.nightly")

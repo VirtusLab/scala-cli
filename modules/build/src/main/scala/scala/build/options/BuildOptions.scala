@@ -377,8 +377,6 @@ final case class BuildOptions(
       (scalaVersion, scalaBinaryVersion)
     }
 
-  val scala2NightlyRegex = raw"""2\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
-
   /** @return
     *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
     */

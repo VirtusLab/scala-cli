@@ -18,6 +18,7 @@ import scala.build.errors.{
 }
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
+import scala.build.internal.ScalaParse.scala2NightlyRegex
 import scala.build.internal.Util.ScalaDependencyOps
 
 final case class Artifacts(
@@ -135,8 +136,6 @@ object Artifacts {
       scalaNativeCliVersion.map(version =>
         Seq(dep"org.scala-native:scala-native-cli_2.12:$version")
       )
-
-    val scala2NightlyRegex = raw"""2\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
 
     val isScala2NightlyRequested = scala2NightlyRegex.unapplySeq(params.scalaVersion).isDefined
 
