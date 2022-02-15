@@ -101,14 +101,6 @@ scala-cli run HelloScript.sc
 
 Our [scripts guide](../guides/scripts.md) provides many more details.
 
-## Scala Nightlies
-
-```bash
-scala Hello.scala -S 2.nightly
-scala Hello.scala -S 3.nightly
-scala Hello.scala -S 2.13.9-bin-4505094
-```
-
 ## Scala CLI from docker
 
 Scala applications can also be compiled and run using a [docker](https://docs.docker.com/get-started/) image with `scala-cli`, without needing to install Scala CLI manually:
