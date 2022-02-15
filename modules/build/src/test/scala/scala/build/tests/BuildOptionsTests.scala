@@ -30,10 +30,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("3.nightly"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     val scalaParams = options.scalaParams.orThrow
@@ -49,10 +46,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("3.2"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     println("3.2: " + options.projectParams)
@@ -70,10 +64,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("2.11.2"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     println("2.11.2: " + options.projectParams)
@@ -91,10 +82,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("2.11"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     println("2.11: " + options.projectParams)
@@ -112,10 +100,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("3.3.3"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     println("3.3.3: " + options.projectParams)
@@ -133,10 +118,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("3.1.3-RC1-bin-20220213-fd97eee-NIGHTLY"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     assert(
@@ -153,10 +135,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("2.13.9-bin-1111111"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     assert(
@@ -173,10 +152,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("2.33"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     assert(options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
@@ -189,10 +165,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("2.nightly"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     val scalaParams = options.scalaParams.orThrow
@@ -207,10 +180,7 @@ class BuildOptionsTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("2.13.9-bin-4505094"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     val scalaParams = options.scalaParams.orThrow
