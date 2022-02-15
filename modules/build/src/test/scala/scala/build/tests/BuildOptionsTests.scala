@@ -4,7 +4,11 @@ import com.eed3si9n.expecty.Expecty.{assert => expect}
 import dependency.ScalaParameters
 
 import scala.build.Ops._
-import scala.build.errors.{InvalidBinaryScalaVersionError, NoValidScalaVersionFoundError, UnsupportedScalaVersionError}
+import scala.build.errors.{
+  InvalidBinaryScalaVersionError,
+  NoValidScalaVersionFoundError,
+  UnsupportedScalaVersionError
+}
 import scala.build.internal.Constants._
 import scala.build.internal.ScalaParse.scala2NightlyRegex
 import scala.build.options.{BuildOptions, BuildRequirements, ScalaOptions}
@@ -45,7 +49,6 @@ class BuildOptionsTests extends munit.FunSuite {
         supportedScalaVersionsUrl = None
       )
     )
-    println("3.2: " + options.projectParams)
     assert(
       options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
         InvalidBinaryScalaVersionError
@@ -63,7 +66,6 @@ class BuildOptionsTests extends munit.FunSuite {
         supportedScalaVersionsUrl = None
       )
     )
-    println("2.11.2: " + options.projectParams)
     assert(
       options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
         UnsupportedScalaVersionError
@@ -81,7 +83,6 @@ class BuildOptionsTests extends munit.FunSuite {
         supportedScalaVersionsUrl = None
       )
     )
-    println("2.11: " + options.projectParams)
     assert(
       options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
         UnsupportedScalaVersionError
@@ -99,7 +100,6 @@ class BuildOptionsTests extends munit.FunSuite {
         supportedScalaVersionsUrl = None
       )
     )
-    println("3.3.3: " + options.projectParams)
     assert(
       options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
         InvalidBinaryScalaVersionError
