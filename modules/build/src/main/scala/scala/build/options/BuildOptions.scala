@@ -10,6 +10,7 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.security.MessageDigest
+
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.build.errors._
@@ -471,7 +472,6 @@ final case class BuildOptions(
 
   private def turnScala3NightlyVersionArgIntoVersion(versionString: String)
     : Either[BuildException, (String, String)] = either {
-    println("inside turnScala3NightlyVersionArgIntoVersion: " + versionString)
     val moduleVersion: Either[ScalaVersionError, String] = {
       import coursier._
       def scala3 = mod"org.scala-lang:scala3-library_3"
@@ -489,7 +489,6 @@ final case class BuildOptions(
           ))
       }
     }
-    println("moduleVersion: " + moduleVersion)
 
     val scalaVersion       = value(moduleVersion)
     val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)

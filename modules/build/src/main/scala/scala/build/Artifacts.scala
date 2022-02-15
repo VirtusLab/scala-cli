@@ -8,9 +8,15 @@ import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUt
 import dependency._
 
 import java.nio.file.Path
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.errors.{BuildException, CompositeBuildException, FetchingDependenciesError, RepositoryFormatError}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  FetchingDependenciesError,
+  RepositoryFormatError
+}
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
 import scala.build.internal.CsLoggerUtil._
