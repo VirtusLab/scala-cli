@@ -13,16 +13,11 @@ import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.VersionUtil.parseJavaVersion
-import scala.build.errors.{
-  BuildException,
-  Diagnostic,
-  InvalidBinaryScalaVersionError,
-  NoValidScalaVersionFoundError,
-  UnsupportedScalaVersionError
-}
+import scala.build.errors._
 import scala.build.internal.Constants._
 import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.{OsLibc, StableScalaVersion, Util}
+import scala.build.options.BuildOptions.scala2NightlyRegex
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.Properties
@@ -230,7 +225,7 @@ final case class BuildOptions(
   private def defaultStableScalaVersions =
     Seq(defaultScala212Version, defaultScala213Version, defaultScalaVersion)
 
-  private def latestSupportedScalaVersion(): Seq[Version] = {
+  private def latestSupportedStableScalaVersion(): Seq[Version] = {
 
     val cache = finalCache.withMessage("Getting list of Scala CLI-supported Scala versions")
     val supportedScalaVersionsUrl = scalaOptions.scalaVersionsUrl
@@ -298,19 +293,32 @@ final case class BuildOptions(
   def finalRepositories: Seq[String] =
     classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
-  private def computeScalaVersions(
-    scalaVersion: Option[String],
-    scalaBinaryVersion: Option[String]
+  private lazy val maxSupportedStableScalaVersions = latestSupportedStableScalaVersion()
+
+  private lazy val latestSupportedStableVersions = maxSupportedStableScalaVersions.map(_.repr)
+
+  /** @param scalaVersionArg
+    *   the command line, using directive, or default argument passed as scala version
+    * @param scalaBinaryVersionArg
+    *   the command line, using directive, or default argument passed as scala Binary version
+    * @return
+    *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
+    */
+  private def turnScalaVersionArgToScalaVersions(
+    scalaVersionArg: Option[String],
+    scalaBinaryVersionArg: Option[String]
   ): Either[BuildException, (String, String)] = either {
-    lazy val allVersions = {
+    def isSupportedVersion(version: String): Boolean =
+      version.startsWith("2.12.") || version.startsWith("2.13.") || version.startsWith("3.")
+    lazy val allStableVersions = {
       import coursier._
-      import scala.concurrent.ExecutionContext.{global => ec}
       val modules = {
         def scala2 = mod"org.scala-lang:scala-library"
         // No unstable, that *ought* not to be a problem down-the-line…?
         def scala3 = mod"org.scala-lang:scala3-library_3"
-        if (scalaVersion.contains("2") || scalaVersion.exists(_.startsWith("2."))) Seq(scala2)
-        else if (scalaVersion.contains("3") || scalaVersion.exists(_.startsWith("3."))) Seq(scala3)
+        if (scalaVersionArg.contains("2") || scalaVersionArg.exists(_.startsWith("2."))) Seq(scala2)
+        else if (scalaVersionArg.contains("3") || scalaVersionArg.exists(_.startsWith("3.")))
+          Seq(scala3)
         else Seq(scala2, scala3)
       }
       def isStable(v: String): Boolean =
@@ -330,53 +338,186 @@ final case class BuildOptions(
       }
       modules.flatMap(moduleVersions).distinct
     }
-    def matchNewestScalaVersion(sv: Option[String]) = {
-      lazy val maxSupportedScalaVersions = latestSupportedScalaVersion()
 
-      sv match {
-        case Some(sv0) =>
-          val prefix           = if (sv0.endsWith(".")) sv0 else sv0 + "."
-          val matchingVersions = allVersions.filter(_.startsWith(prefix)).map(Version(_))
+    def matchNewestStableScalaVersion(maybeScalaVersionStringArg: Option[String])
+      : Either[ScalaVersionError, String] =
+      maybeScalaVersionStringArg match {
+        case Some(scalaVersionStringArg) =>
+          val prefix =
+            if (Util.isFullScalaVersion(scalaVersionStringArg)) scalaVersionStringArg
+            else if (scalaVersionStringArg.endsWith(".")) scalaVersionStringArg
+            else scalaVersionStringArg + "."
+          val matchingVersions = allStableVersions.filter(_.startsWith(prefix)).map(Version(_))
           if (matchingVersions.isEmpty)
-            Left(new InvalidBinaryScalaVersionError(sv0))
+            Left(new InvalidBinaryScalaVersionError(
+              scalaVersionStringArg,
+              latestSupportedStableVersions
+            ))
           else {
-            val validMaxVersions = maxSupportedScalaVersions
+            val validMaxVersions = maxSupportedStableScalaVersions
               .filter(_.repr.startsWith(prefix))
             val validMatchingVersions = {
               val filtered = matchingVersions.filter(v => validMaxVersions.exists(v <= _))
               if (filtered.isEmpty) matchingVersions
               else filtered
-            }
+            }.filter(v => isSupportedVersion(v.repr))
             if (validMatchingVersions.isEmpty)
-              Left(new UnsupportedScalaVersionError(sv0))
+              Left(new UnsupportedScalaVersionError(
+                scalaVersionStringArg,
+                latestSupportedStableVersions
+              ))
             else
               Right(validMatchingVersions.max.repr)
           }
         case None =>
-          val validVersions = allVersions
+          val validVersions = allStableVersions
             .map(Version(_))
-            .filter(v => maxSupportedScalaVersions.exists(v <= _))
+            .filter(v => maxSupportedStableScalaVersions.exists(v <= _))
           if (validVersions.isEmpty)
-            Left(new NoValidScalaVersionFoundError(allVersions))
+            Left(new NoValidScalaVersionFoundError(
+              allStableVersions,
+              latestSupportedStableVersions
+            ))
           else
             Right(validVersions.max.repr)
       }
-    }
-    val maybeSv = scalaVersion match {
-      case None => matchNewestScalaVersion(None)
-      case Some(sv0) =>
-        if (Util.isFullScalaVersion(sv0)) Right(sv0)
-        else matchNewestScalaVersion(Some(sv0))
+
+    val scalaVersion       = value(matchNewestStableScalaVersion(scalaVersionArg))
+    val scalaBinaryVersion = scalaBinaryVersionArg.getOrElse(ScalaVersion.binary(scalaVersion))
+    (scalaVersion, scalaBinaryVersion)
+  }
+
+  /** @return
+    *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
+    */
+  private def computeLatestScalaThreeNightlyVersions(): Either[BuildException, (String, String)] =
+    either {
+      import coursier.Versions
+      import coursier.core.Latest
+      import coursier._
+
+      val moduleVersion: Either[ScalaVersionError, String] = {
+        def scala3 = mod"org.scala-lang:scala3-library_3"
+        val res = finalCache.logger.use {
+          Versions()
+            .withModule(scala3)
+            .result()
+            .unsafeRun()(finalCache.ec)
+        }
+        res.versions.latest(Latest.Release) match {
+          case Some(versionString) => Right(versionString)
+          case None                => Left(new NetworkUnaccessibleScalaVersionError(None))
+        }
+      }
+
+      val scalaVersion       = value(moduleVersion)
+      val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
+      (scalaVersion, scalaBinaryVersion)
     }
 
-    val sv  = value(maybeSv)
-    val sbv = scalaBinaryVersion.getOrElse(ScalaVersion.binary(sv))
-    (sv, sbv)
+  /** @return
+    *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
+    */
+  private def computeLatestScalaTwoNightlyVersions(): Either[BuildException, (String, String)] =
+    either {
+      import coursier.Versions
+      import coursier.core.Latest
+      import coursier._
+
+      val moduleVersion: Either[ScalaVersionError, String] = {
+        def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
+        val res = finalCache.logger.use {
+          Versions()
+            .withModule(scalaNightly2Module)
+            .withRepositories(Seq(coursier.Repositories.scalaIntegration))
+            .result()
+            .unsafeRun()(finalCache.ec)
+        }
+        res.versions.latest(Latest.Release) match {
+          case Some(versionString) => Right(versionString)
+          case None                => Left(new NetworkUnaccessibleScalaVersionError(None))
+        }
+      }
+
+      val scalaVersion       = value(moduleVersion)
+      val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
+      (scalaVersion, scalaBinaryVersion)
+    }
+
+  private def turnScala2NightlyVersionArgToVersions(versionString: String)
+    : Either[BuildException, (String, String)] = either {
+
+    val moduleVersion: Either[ScalaVersionError, String] = {
+      import coursier._
+      def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
+      val res = finalCache.logger.use {
+        Versions()
+          .withModule(scalaNightly2Module)
+          .withRepositories(Seq(coursier.Repositories.scalaIntegration))
+          .result()
+          .unsafeRun()(finalCache.ec)
+      }
+      res.versions.available.find(versionString == _) match {
+        case Some(vStr) => Right(vStr)
+        case None => Left(new NoValidScalaVersionFoundError(
+            res.versions.available,
+            latestSupportedStableVersions
+          ))
+      }
+    }
+
+    val scalaVersion       = value(moduleVersion)
+    val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
+    (scalaVersion, scalaBinaryVersion)
+  }
+
+  private def turnScala3NightlyVersionArgIntoVersion(versionString: String)
+    : Either[BuildException, (String, String)] = either {
+    println("inside turnScala3NightlyVersionArgIntoVersion: " + versionString)
+    val moduleVersion: Either[ScalaVersionError, String] = {
+      import coursier._
+      def scala3 = mod"org.scala-lang:scala3-library_3"
+      val res = finalCache.logger.use {
+        Versions()
+          .withModule(scala3)
+          .result()
+          .unsafeRun()(finalCache.ec)
+      }
+      res.versions.available.find(versionString == _) match {
+        case Some(vStr) => Right(vStr)
+        case None => Left(new NoValidScalaVersionFoundError(
+            res.versions.available,
+            latestSupportedStableVersions
+          ))
+      }
+    }
+    println("moduleVersion: " + moduleVersion)
+
+    val scalaVersion       = value(moduleVersion)
+    val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
+    (scalaVersion, scalaBinaryVersion)
   }
 
   lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
+    def isScala2Nightly(version: String): Boolean =
+      scala2NightlyRegex.unapplySeq(version).isDefined
+    def isScala3Nightly(version: String): Boolean =
+      version.startsWith("3") && version.endsWith("-NIGHTLY")
+
     val (scalaVersion, scalaBinaryVersion) =
-      value(computeScalaVersions(scalaOptions.scalaVersion, scalaOptions.scalaBinaryVersion))
+      scalaOptions.scalaVersion match {
+        case Some("3.nightly") => value(computeLatestScalaThreeNightlyVersions())
+        case Some("2.nightly") => value(computeLatestScalaTwoNightlyVersions())
+        case Some(versionString) if isScala3Nightly(versionString) =>
+          value(turnScala3NightlyVersionArgIntoVersion(versionString))
+        case Some(versionString) if isScala2Nightly(versionString) =>
+          value(turnScala2NightlyVersionArgToVersions(versionString))
+        case _ => value(turnScalaVersionArgToScalaVersions(
+            scalaOptions.scalaVersion,
+            scalaOptions.scalaBinaryVersion
+          ))
+      }
+
     val maybePlatformSuffix = platform.value match {
       case Platform.JVM    => None
       case Platform.JS     => Some(scalaJsOptions.platformSuffix)
@@ -508,6 +649,8 @@ object BuildOptions {
     scalaVersion: String,
     platform: Platform
   )
+
+  val scala2NightlyRegex = raw"""2\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive
