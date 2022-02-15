@@ -19,6 +19,7 @@ import scala.build.errors.{
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
 import scala.build.internal.Util.ScalaDependencyOps
+import scala.build.options.BuildOptions.scala2NightlyRegex
 
 final case class Artifacts(
   compilerDependencies: Seq[AnyDependency],
@@ -129,12 +130,21 @@ object Artifacts {
         Nil
     }
 
+    val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
+
     val scalaNativeCliDependency =
       scalaNativeCliVersion.map(version =>
         Seq(dep"org.scala-native:scala-native-cli_2.12:$version")
       )
 
-    val allExtraRepositories = maybeSnapshotRepo ++ extraRepositories
+    val isScala2NightlyRequested = scala2NightlyRegex.unapplySeq(params.scalaVersion).isDefined
+
+    val allExtraRepositories = {
+      val baseRepos =
+        maybeSnapshotRepo ++ extraRepositories
+      if (isScala2NightlyRequested) baseRepos ++ scala2NightlyRepo
+      else baseRepos
+    }
 
     val updatedDependencies =
       dependencies ++
