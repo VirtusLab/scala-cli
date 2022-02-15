@@ -1,9 +1,9 @@
 package scala.build.options
-
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.Version
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.{Artifact, Task}
+import coursier.{Module, Versions}
 import dependency._
 
 import java.math.BigInteger
@@ -329,7 +329,7 @@ final case class BuildOptions(
           try Versions(cache)
             .withModule(mod)
             .result()
-            .unsafeRun()(ec)
+            .unsafeRun()(finalCache.ec)
           catch {
             case NonFatal(e) => throw new Exception(e)
           }
