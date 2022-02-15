@@ -114,7 +114,7 @@ final case class Inputs(
               .map(filePath => s"$filePath:" + os.read(filePath))
           case _ => Seq(os.read(elem.path))
         }
-        Iterator((elem.path.toString +: content :+ "\n"): _*).map(bytes)
+        (Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")).map(bytes)
       case v: Inputs.Virtual =>
         Iterator(v.content, bytes("\n"))
     }
