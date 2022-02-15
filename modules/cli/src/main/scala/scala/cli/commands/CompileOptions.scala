@@ -25,7 +25,7 @@ final case class CompileOptions(
   // format: on
 
   def buildOptions: BuildOptions =
-    shared.buildOptions(enableJmh = false, jmhVersion = None, shouldCompileTest = Some(test))
+    shared.buildOptions(enableJmh = false, jmhVersion = None)
 
 }
 
