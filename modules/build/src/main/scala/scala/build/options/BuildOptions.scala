@@ -300,7 +300,7 @@ final case class BuildOptions(
         !v.endsWith("-NIGHTLY") && !v.contains("-RC")
       def moduleVersions(mod: Module): Seq[String] = {
         val res = finalCache.logger.use {
-          Versions()
+          Versions(finalCache)
             .withModule(mod)
             .result()
             .unsafeRun()(finalCache.ec)
@@ -370,7 +370,7 @@ final case class BuildOptions(
       val moduleVersion: Either[ScalaVersionError, String] = {
         def scala3 = mod"org.scala-lang:scala3-library_3"
         val res = finalCache.logger.use {
-          Versions()
+          Versions(finalCache)
             .withModule(scala3)
             .result()
             .unsafeRun()(finalCache.ec)
@@ -398,7 +398,7 @@ final case class BuildOptions(
       val moduleVersion: Either[ScalaVersionError, String] = {
         def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
         val res = finalCache.logger.use {
-          Versions()
+          Versions(finalCache)
             .withModule(scalaNightly2Module)
             .withRepositories(Seq(coursier.Repositories.scalaIntegration))
             .result()
@@ -422,7 +422,7 @@ final case class BuildOptions(
       import coursier._
       def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
       val res = finalCache.logger.use {
-        Versions()
+        Versions(finalCache)
           .withModule(scalaNightly2Module)
           .withRepositories(Seq(coursier.Repositories.scalaIntegration))
           .result()
@@ -449,7 +449,7 @@ final case class BuildOptions(
       import coursier._
       def scala3 = mod"org.scala-lang:scala3-library_3"
       val res = finalCache.logger.use {
-        Versions()
+        Versions(finalCache)
           .withModule(scala3)
           .result()
           .unsafeRun()(finalCache.ec)
