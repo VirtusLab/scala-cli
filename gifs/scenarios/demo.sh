@@ -35,6 +35,14 @@ EOF
 
   clearConsole
 
+   cat <<EOF | updateFile Hello.sc
+  println(s"Hello ${args.mkString}")
+EOF
+
+    pe "scala-cli run Hello.sc -- world" || true
+
+  clearConsole
+
   cat <<EOF | updateFile demo.scala
 def niceArgs(args: String*): String = 
   args.map(_.capitalize).mkString("Hello: ", ", ", "!")
