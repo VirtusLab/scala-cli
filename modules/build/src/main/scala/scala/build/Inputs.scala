@@ -26,26 +26,10 @@ final case class Inputs(
 
   def singleFiles(): Seq[Inputs.SingleFile] =
     elements.flatMap {
-      case f: Inputs.SingleFile => Seq(f)
-      case d: Inputs.Directory =>
-        os.walk.stream(d.path)
-          .filter { p =>
-            !p.relativeTo(d.path).segments.exists(_.startsWith("."))
-          }
-          .filter(os.isFile(_))
-          .collect {
-            case p if p.last.endsWith(".java") =>
-              Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
-            case p if p.last.endsWith(".scala") =>
-              Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
-            case p if p.last.endsWith(".sc") =>
-              Inputs.Script(d.path, p.subRelativeTo(d.path))
-          }
-          .toVector
-      case _: Inputs.ResourceDirectory =>
-        Nil
-      case _: Inputs.Virtual =>
-        Nil
+      case f: Inputs.SingleFile        => Seq(f)
+      case d: Inputs.Directory         => singleFilesFromDirectory(d)
+      case _: Inputs.ResourceDirectory => Nil
+      case _: Inputs.Virtual           => Nil
     }
 
   def sourceFiles(): Seq[Inputs.SourceFile] =
@@ -63,26 +47,10 @@ final case class Inputs(
 
   def flattened(): Seq[Inputs.SingleElement] =
     elements.flatMap {
-      case f: Inputs.SingleFile => Seq(f)
-      case d: Inputs.Directory =>
-        os.walk.stream(d.path)
-          .filter { p =>
-            !p.relativeTo(d.path).segments.exists(_.startsWith("."))
-          }
-          .filter(os.isFile(_))
-          .collect {
-            case p if p.last.endsWith(".java") =>
-              Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
-            case p if p.last.endsWith(".scala") =>
-              Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
-            case p if p.last.endsWith(".sc") =>
-              Inputs.Script(d.path, p.subRelativeTo(d.path))
-          }
-          .toVector
-      case _: Inputs.ResourceDirectory =>
-        Nil
-      case v: Inputs.Virtual =>
-        Seq(v)
+      case f: Inputs.SingleFile        => Seq(f)
+      case d: Inputs.Directory         => singleFilesFromDirectory(d)
+      case _: Inputs.ResourceDirectory => Nil
+      case v: Inputs.Virtual           => Seq(v)
     }
 
   private lazy val inputsHash: String =
@@ -137,11 +105,16 @@ final case class Inputs(
     val it = elements.iterator.flatMap {
       case elem: Inputs.OnDisk =>
         val content = elem match {
-          case _: Inputs.Directory         => "dir:"
-          case _: Inputs.ResourceDirectory => "resource-dir:"
-          case _                           => os.read(elem.path)
+          case dirInput: Inputs.Directory =>
+            Seq("dir:") ++ singleFilesFromDirectory(dirInput)
+              .map(file => s"${file.path}:" + os.read(file.path))
+          case resDirInput: Inputs.ResourceDirectory =>
+            // Resource changes for SN require relinking, so they should also be hashed
+            Seq("resource-dir:") ++ os.walk(resDirInput.path)
+              .map(filePath => s"$filePath:" + os.read(filePath))
+          case _ => Seq(os.read(elem.path))
         }
-        Iterator(elem.path.toString, content, "\n").map(bytes)
+        (Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")).map(bytes)
       case v: Inputs.Virtual =>
         Iterator(v.content, bytes("\n"))
     }
@@ -151,6 +124,22 @@ final case class Inputs(
     val calculatedSum = new BigInteger(1, digest)
     String.format(s"%040x", calculatedSum)
   }
+
+  private def singleFilesFromDirectory(d: Inputs.Directory): Seq[Inputs.SingleFile] =
+    os.walk.stream(d.path)
+      .filter { p =>
+        !p.relativeTo(d.path).segments.exists(_.startsWith("."))
+      }
+      .filter(os.isFile(_))
+      .collect {
+        case p if p.last.endsWith(".java") =>
+          Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
+        case p if p.last.endsWith(".scala") =>
+          Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
+        case p if p.last.endsWith(".sc") =>
+          Inputs.Script(d.path, p.subRelativeTo(d.path))
+      }
+      .toVector
 }
 
 object Inputs {
