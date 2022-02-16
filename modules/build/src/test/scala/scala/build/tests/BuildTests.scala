@@ -811,7 +811,7 @@ class BuildTests extends munit.FunSuite {
     }
   }
 
-  test("Scala 3.2 makes the build fail with InvalidBinaryScalaVersionError") {
+  test("Scala 3.3.3 makes the build fail with InvalidBinaryScalaVersionError") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
         """ // using scala "3.2"
@@ -826,10 +826,7 @@ class BuildTests extends munit.FunSuite {
       scalaOptions = ScalaOptions(
         scalaVersion = Some("3.3.3"),
         scalaBinaryVersion = None,
-        supportedScalaVersionsUrl =
-          Some(
-            Random.alphanumeric.take(10).mkString("")
-          ) // invalid url, it should use defaults from Deps.sc
+        supportedScalaVersionsUrl = None
       )
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>

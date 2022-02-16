@@ -57,6 +57,39 @@ scala-cli compile --scala 2 Hello.scala
 scala-cli compile --scala 3 Hello.scala
 ```
 
+## Scala Nightlies
+
+The nightly builds of Scala compiler are unstable ones which are published on a nightly basis.
+
+For using the latest scala 2 and scala 3 nightly builds, you should pass `2.nightly` and `3.nightly`, respectively.
+
+Scala-cli takes care of fetching the nightly builds of Scala 2 and Scala 3 from different online repositories, without you having to pass their addresses as input after the `--repo` flag.
+
+For compiling with the latest Scala 2 nightly build: 
+```bash
+scala-cli Hello.scala -S 2.nightly
+```
+For compiling with the latest Scala 3 nightly build, in the command line:
+```bash
+scala-cli Hello.scala -S 3.nightly
+```
+For compiling with an specific nightly build, you have the full version for, in the command line:
+```bash
+scala-cli Hello.scala -S 2.13.9-bin-4505094 
+```
+
+For adding this inside scala files through the using directives syntax, you write:
+
+```scala
+\\ using scala "2.nightly"
+```
+```scala
+\\ using scala "3.nightly"
+```
+```scala
+\\ using scala "2.13.9-bin-4505094"
+```
+
 ## Dependencies
 
 You can add dependencies on the command-line with `--dependency`:
