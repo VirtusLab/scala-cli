@@ -238,7 +238,8 @@ object Inputs {
   private def forValidatedElems(
     validElems: Seq[Element],
     baseProjectName: String,
-    directories: Directories
+    directories: Directories,
+    cwd: os.Path
   ): Inputs = {
 
     assert(validElems.nonEmpty)
@@ -249,7 +250,7 @@ object Inputs {
       }
       .getOrElse {
         validElems.head match {
-          case elem: SourceFile => (elem.path / os.up, true)
+          case _: SourceFile => (cwd, true)
           case _: Virtual =>
             val dir = homeWorkspace(validElems, directories)
             (dir, false)
@@ -368,7 +369,7 @@ object Inputs {
       }.flatten
       assert(validElems.nonEmpty)
 
-      Right(forValidatedElems(validElems, baseProjectName, directories))
+      Right(forValidatedElems(validElems, baseProjectName, directories, cwd))
     }
     else
       Left(invalid.mkString(System.lineSeparator()))
