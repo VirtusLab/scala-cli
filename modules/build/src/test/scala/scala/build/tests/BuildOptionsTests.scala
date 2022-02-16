@@ -40,11 +40,11 @@ class BuildOptionsTests extends munit.FunSuite {
     )
   }
 
-  test("Scala 3.2 shows Invalid Binary Scala Version Error") {
+  test(s"Scala 3.${Int.MaxValue} shows Invalid Binary Scala Version Error") {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("3.2"),
+        scalaVersion = Some(s"3.${Int.MaxValue}"),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -53,7 +53,7 @@ class BuildOptionsTests extends munit.FunSuite {
       options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
         InvalidBinaryScalaVersionError
       ],
-      "specifying the 3.2 scala version does not lead to the Invalid Binary Scala Version Error"
+      s"specifying the 3.${Int.MaxValue} scala version does not lead to the Invalid Binary Scala Version Error"
     )
   }
 
@@ -91,11 +91,11 @@ class BuildOptionsTests extends munit.FunSuite {
     )
   }
 
-  test("Scala 3.3.3 shows Invalid Binary Scala Version Error") {
+  test(s"Scala 3.${Int.MaxValue}.3 shows Invalid Binary Scala Version Error") {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("3.3.3"),
+        scalaVersion = Some(s"3.${Int.MaxValue}.3"),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -104,7 +104,7 @@ class BuildOptionsTests extends munit.FunSuite {
       options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
         InvalidBinaryScalaVersionError
       ],
-      "specifying the 3.3.3 scala version does not lead to the Invalid Binary Scala Version Error"
+      "specifying the 3.2147483647.3 scala version does not lead to the Invalid Binary Scala Version Error"
     )
   }
 
@@ -125,11 +125,11 @@ class BuildOptionsTests extends munit.FunSuite {
     )
   }
 
-  test("Scala 2.13.9-bin-1111111 shows No Valid Scala Version Error") {
+  test("Scala 2.12.9-bin-1111111 shows No Valid Scala Version Error") {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.13.9-bin-1111111"),
+        scalaVersion = Some("2.12.9-bin-1111111"),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -142,11 +142,11 @@ class BuildOptionsTests extends munit.FunSuite {
     )
   }
 
-  test("Scala 2.33 shows Invalid Binary Scala Version Error") {
+  test(s"Scala 2.${Int.MaxValue} shows Invalid Binary Scala Version Error") {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.33"),
+        scalaVersion = Some(s"2.${Int.MaxValue}"),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )

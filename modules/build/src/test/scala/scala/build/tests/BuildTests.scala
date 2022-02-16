@@ -811,20 +811,20 @@ class BuildTests extends munit.FunSuite {
     }
   }
 
-  test("Scala 3.3.3 makes the build fail with InvalidBinaryScalaVersionError") {
+  test(s"Scala 3.${Int.MaxValue}.3 makes the build fail with InvalidBinaryScalaVersionError") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """ // using scala "3.2"
-          |object Hello {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello")
-          |}
-          |
-          |""".stripMargin
+        s""" // using scala "3.${Int.MaxValue}.3"
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println("Hello")
+           |}
+           |
+           |""".stripMargin
     )
     val buildOptions = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("3.3.3"),
+        scalaVersion = Some(s"3.${Int.MaxValue}.3"),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
