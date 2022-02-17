@@ -235,27 +235,44 @@ object Inputs {
     dir
   }
 
+  private def computeCommonRoot(validElems: Seq[Element]): os.Path = {
+    val sourceDirectories = validElems.collect {
+      case s: SourceFile => s.path / os.up
+      case d: Directory  => d.path
+    }.toList
+
+    assert(sourceDirectories.nonEmpty)
+
+    def findCommonRoot(
+      candidateRootSegments: Iterator[String],
+      directories: Seq[os.Path]
+    ): os.Path =
+      directories match {
+        case dirPath :: rest =>
+          val updatedCandidate = candidateRootSegments.zip(dirPath.segments)
+            .takeWhile(Function.tupled(_ == _))
+            .map(_._1)
+          findCommonRoot(updatedCandidate, rest)
+        case Nil => os.root / candidateRootSegments.toList
+      }
+
+    findCommonRoot(sourceDirectories.head.segments, sourceDirectories.tail)
+  }
+
   private def forValidatedElems(
     validElems: Seq[Element],
     baseProjectName: String,
-    directories: Directories,
-    cwd: os.Path
+    directories: Directories
   ): Inputs = {
 
     assert(validElems.nonEmpty)
 
-    val (workspace, needsHash) = validElems
-      .collectFirst {
-        case d: Directory => (d.path, true)
-      }
-      .getOrElse {
-        validElems.head match {
-          case _: SourceFile => (cwd, true)
-          case _: Virtual =>
-            val dir = homeWorkspace(validElems, directories)
-            (dir, false)
-          case _: Directory => sys.error("Can't happen")
-        }
+    val (workspace, needsHash) =
+      validElems.head match {
+        case _: SourceFile | _: Directory => (computeCommonRoot(validElems), true)
+        case _: Virtual =>
+          val dir = homeWorkspace(validElems, directories)
+          (dir, false)
       }
     val allDirs = validElems.collect { case d: Directory => d.path }
     val updatedElems = validElems.filter {
@@ -369,7 +386,7 @@ object Inputs {
       }.flatten
       assert(validElems.nonEmpty)
 
-      Right(forValidatedElems(validElems, baseProjectName, directories, cwd))
+      Right(forValidatedElems(validElems, baseProjectName, directories))
     }
     else
       Left(invalid.mkString(System.lineSeparator()))
