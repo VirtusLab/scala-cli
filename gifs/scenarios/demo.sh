@@ -21,6 +21,16 @@ else
   # # hide the evidence
   clearConsole
 
+  cat <<EOF | updateFile demo.sc
+println(s"Hello \${args.mkString}")
+EOF
+
+  pe "scala-cli run demo.sc -- World" || true
+
+  doSleep 2
+
+  clearConsole
+
   cat <<EOF | updateFile demo.scala
 @main def demo(args: String *) = 
   println(args.mkStrink) // Oops, a typo!
@@ -28,10 +38,7 @@ EOF
 
   pe "scala-cli compile demo.scala" || true
 
-  cat <<EOF | updateFile demo.scala
-@main def demo(args: String *) = 
-  println(args.mkStrink) // Oops, a typo!
-EOF
+    doSleep 2
 
   clearConsole
 
