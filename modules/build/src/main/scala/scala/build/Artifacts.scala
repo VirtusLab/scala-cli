@@ -3,6 +3,7 @@ package scala.build
 import coursier.cache.FileCache
 import coursier.core.Classifier
 import coursier.parse.RepositoryParser
+import coursier.util.Task
 import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUtil}
 import dependency._
 
@@ -80,6 +81,7 @@ object Artifacts {
     addJmhDependencies: Option[String],
     scalaNativeCliVersion: Option[String],
     extraRepositories: Seq[String],
+    cache: FileCache[Task],
     logger: Logger
   ): Either[BuildException, Artifacts] = either {
 
@@ -145,7 +147,13 @@ object Artifacts {
         jmhDependencies.map(Positioned.none(_))
 
     val compilerArtifacts = value {
-      artifacts(Positioned.none(compilerDependencies), allExtraRepositories, params, logger)
+      artifacts(
+        Positioned.none(compilerDependencies),
+        allExtraRepositories,
+        params,
+        logger,
+        cache
+      )
     }
 
     val fetchRes = value {
@@ -154,6 +162,7 @@ object Artifacts {
         allExtraRepositories,
         params,
         logger,
+        cache,
         classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty))
       )
     }
@@ -167,6 +176,7 @@ object Artifacts {
               allExtraRepositories,
               params,
               logger,
+              cache,
               None
             )
           }
@@ -188,7 +198,8 @@ object Artifacts {
             Positioned.none(Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion")),
             allExtraRepositories,
             params,
-            logger
+            logger,
+            cache
           ).map(_.map(_._2))
         }
       else
@@ -199,7 +210,7 @@ object Artifacts {
         .map { posDep =>
           val posDep0 =
             posDep.map(dep => dep.copy(userParams = dep.userParams + ("intransitive" -> None)))
-          artifacts(posDep0.map(Seq(_)), allExtraRepositories, params, logger)
+          artifacts(posDep0.map(Seq(_)), allExtraRepositories, params, logger, cache)
             .map(_.map { case (url, path) => (posDep0.value, url, path) })
         }
         .sequence
@@ -210,7 +221,7 @@ object Artifacts {
     val javacPlugins0 = value {
       javacPluginDependencies
         .map { posDep =>
-          artifacts(posDep.map(Seq(_)), allExtraRepositories, params, logger)
+          artifacts(posDep.map(Seq(_)), allExtraRepositories, params, logger, cache)
             .map(_.map { case (url, path) => (posDep.value, url, path) })
         }
         .sequence
@@ -239,13 +250,15 @@ object Artifacts {
     extraRepositories: Seq[String],
     params: ScalaParameters,
     logger: Logger,
+    cache: FileCache[Task],
     classifiersOpt: Option[Set[String]] = None
   ): Either[BuildException, Seq[(String, Path)]] = either {
-    val result = value(fetch(dependencies, extraRepositories, params, logger, classifiersOpt))
-      .artifacts
-      .iterator
-      .map { case (a, f) => (a.url, f.toPath) }
-      .toList
+    val result =
+      value(fetch(dependencies, extraRepositories, params, logger, cache, classifiersOpt))
+        .artifacts
+        .iterator
+        .map { case (a, f) => (a.url, f.toPath) }
+        .toList
     logger.debug {
       val elems = Seq(s"Found ${result.length} artifacts:") ++
         result.map("  " + _._2) ++
@@ -260,6 +273,7 @@ object Artifacts {
     extraRepositories: Seq[String],
     params: ScalaParameters,
     logger: Logger,
+    cache: FileCache[Task],
     classifiersOpt: Option[Set[String]]
   ): Either[BuildException, Fetch.Result] = either {
     logger.debug {
@@ -272,8 +286,6 @@ object Artifacts {
         .either
         .left.map(errors => new RepositoryFormatError(errors))
     }
-
-    val cache = FileCache().withLogger(logger.coursierLogger)
 
     // FIXME Many parameters that we could allow to customize here
     var fetcher = coursier.Fetch()

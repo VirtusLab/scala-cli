@@ -1,6 +1,8 @@
 package scala.build
 
 import ch.epfl.scala.bsp4j
+import coursier.cache.FileCache
+import coursier.util.Task
 import dependency.parser.ModuleParser
 import dependency.{AnyDependency, DependencyLike, ScalaParameters, ScalaVersion}
 
@@ -45,18 +47,20 @@ object Bloop {
   def bloopClassPath(
     dep: AnyDependency,
     params: ScalaParameters,
-    logger: Logger
+    logger: Logger,
+    cache: FileCache[Task]
   ): Either[BuildException, Seq[File]] =
     either {
-      value(Artifacts.artifacts(Positioned.none(Seq(dep)), Nil, params, logger))
+      value(Artifacts.artifacts(Positioned.none(Seq(dep)), Nil, params, logger, cache))
         .map(_._2.toFile)
     }
 
-  def bloopClassPath(logger: Logger): Either[BuildException, Seq[File]] =
-    bloopClassPath(logger, BloopRifleConfig.defaultVersion)
+  def bloopClassPath(logger: Logger, cache: FileCache[Task]): Either[BuildException, Seq[File]] =
+    bloopClassPath(logger, cache, BloopRifleConfig.defaultVersion)
 
   def bloopClassPath(
     logger: Logger,
+    cache: FileCache[Task],
     bloopVersion: String
   ): Either[BuildException, Seq[File]] = either {
     val moduleStr = BloopRifleConfig.defaultModule
@@ -68,6 +72,6 @@ object Bloop {
     val sv     = BloopRifleConfig.defaultScalaVersion
     val sbv    = ScalaVersion.binary(sv)
     val params = ScalaParameters(sv, sbv)
-    value(bloopClassPath(dep, params, logger))
+    value(bloopClassPath(dep, params, logger, cache))
   }
 }

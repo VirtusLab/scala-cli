@@ -294,6 +294,7 @@ Accepts options:
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 - [verbosity](./cli-options.md#verbosity-options)

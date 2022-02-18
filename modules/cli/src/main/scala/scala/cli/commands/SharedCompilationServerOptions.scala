@@ -1,7 +1,9 @@
 package scala.cli.commands
 
 import caseapp._
+import coursier.cache.FileCache
 import coursier.core.{Version => Ver}
+import coursier.util.Task
 import upickle.default.{ReadWriter, macroRW}
 
 import java.io.File
@@ -209,6 +211,7 @@ final case class SharedCompilationServerOptions(
 
   def bloopRifleConfig(
     logger: Logger,
+    cache: FileCache[Task],
     verbosity: Int,
     javaPath: String,
     directories: => scala.build.Directories,
@@ -250,7 +253,7 @@ final case class SharedCompilationServerOptions(
       .getOrElse(directories.bloopWorkingDir)
     val baseConfig = BloopRifleConfig.default(
       address,
-      v => Bloop.bloopClassPath(logger, v),
+      v => Bloop.bloopClassPath(logger, cache, v),
       workingDir.toIO
     )
 

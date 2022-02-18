@@ -33,6 +33,7 @@ final case class BloopStartOptions(
   def bloopRifleConfig(): BloopRifleConfig =
     compilationServer.bloopRifleConfig(
       logging.logger,
+      coursier.coursierCache(logging.logger.coursierLogger),
       logging.verbosity,
       buildOptions.javaHome().value.javaCommand,
       directories.directories

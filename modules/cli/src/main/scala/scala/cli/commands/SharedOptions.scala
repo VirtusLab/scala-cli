@@ -194,6 +194,7 @@ final case class SharedOptions(
     val ext     = if (Properties.isWin) ".exe" else ""
     compilationServer.bloopRifleConfig(
       logging.logger,
+      coursierCache,
       logging.verbosity,
       (command / "bin" / s"java$ext").toString,
       directories.directories,

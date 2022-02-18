@@ -1,5 +1,7 @@
 package scala.build
 
+import coursier.cache.FileCache
+import coursier.util.Task
 import dependency._
 
 import java.nio.file.Path
@@ -39,17 +41,19 @@ object ReplArtifacts {
     extraClassPath: Seq[Path],
     extraSourceJars: Seq[Path],
     logger: Logger,
+    cache: FileCache[Task],
     directories: Directories
   ): Either[BuildException, ReplArtifacts] = either {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
     val allDeps      = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
     val replArtifacts =
-      Artifacts.artifacts(Positioned.none(allDeps), localRepoOpt.toSeq, scalaParams, logger)
+      Artifacts.artifacts(Positioned.none(allDeps), localRepoOpt.toSeq, scalaParams, logger, cache)
     val replSourceArtifacts = Artifacts.artifacts(
       Positioned.none(allDeps),
       localRepoOpt.toSeq,
       scalaParams,
       logger,
+      cache,
       classifiersOpt = Some(Set("sources"))
     )
     ReplArtifacts(
@@ -67,6 +71,7 @@ object ReplArtifacts {
     dependencies: Seq[AnyDependency],
     extraClassPath: Seq[Path],
     logger: Logger,
+    cache: FileCache[Task],
     repositories: Seq[String]
   ): Either[BuildException, ReplArtifacts] = either {
     val isScala2 = scalaParams.scalaVersion.startsWith("2.")
@@ -79,7 +84,8 @@ object ReplArtifacts {
         Positioned.none(allDeps),
         repositories,
         scalaParams,
-        logger
+        logger,
+        cache
       )
     val mainClass =
       if (isScala2) "scala.tools.nsc.MainGenericRunner"

@@ -376,6 +376,7 @@ final case class BuildOptions(
       addNativeTestInterface = addNativeTestInterface,
       addJmhDependencies = jmhOptions.addJmhDependencies,
       extraRepositories = finalRepositories,
+      cache = finalCache,
       logger = logger
     )
     value(maybeArtifacts)
