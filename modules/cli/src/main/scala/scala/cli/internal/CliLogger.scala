@@ -3,6 +3,7 @@ package scala.cli.internal
 import ch.epfl.scala.{bsp4j => b}
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
+import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, ScalaConsoleLogger}
 
 import java.io.PrintStream
 
@@ -149,6 +150,16 @@ class CliLogger(
       def bloopCliInheritStdout = verbosity >= 3
       def bloopCliInheritStderr = verbosity >= 3
     }
+
+  def scalaJsLogger: ScalaJsLogger =
+    // FIXME Doesn't use 'out'
+    new ScalaConsoleLogger(
+      minLevel =
+        if (verbosity >= 2) ScalaJsLevel.Debug
+        else if (verbosity >= 1) ScalaJsLevel.Info
+        else if (verbosity >= 0) ScalaJsLevel.Warn
+        else ScalaJsLevel.Error
+    )
 
   def scalaNativeTestLogger: sn.Logger =
     new sn.Logger {

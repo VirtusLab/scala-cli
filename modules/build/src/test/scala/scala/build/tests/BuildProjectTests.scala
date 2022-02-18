@@ -2,6 +2,7 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 import coursier.cache.CacheLogger
+import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
 
 import java.io.PrintStream
 
@@ -44,6 +45,7 @@ class BuildProjectTests extends munit.FunSuite {
     override def coursierLogger: CacheLogger = CacheLogger.nop
 
     override def bloopRifleLogger: BloopRifleLogger = BloopRifleLogger.nop
+    override def scalaJsLogger: ScalaJsLogger       = NullLogger
 
     override def scalaNativeTestLogger: scala.scalanative.build.Logger =
       scala.scalanative.build.Logger.nullLogger
