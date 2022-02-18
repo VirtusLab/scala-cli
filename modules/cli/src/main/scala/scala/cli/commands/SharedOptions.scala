@@ -101,7 +101,10 @@ final case class SharedOptions(
   @Hidden
     forbid: List[String] = Nil,
   @Recurse
-  helpGroups: HelpGroupOptions = HelpGroupOptions()
+  helpGroups: HelpGroupOptions = HelpGroupOptions(),
+
+  @Hidden
+    strictBloopJsonCheck: Option[Boolean] = None
 ) {
   // format: on
 
@@ -171,7 +174,8 @@ final case class SharedOptions(
       internal = InternalOptions(
         cache = Some(coursierCache),
         localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
-        verbosity = Some(logging.verbosity)
+        verbosity = Some(logging.verbosity),
+        strictBloopJsonCheck = strictBloopJsonCheck
       )
     )
   }

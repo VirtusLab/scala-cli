@@ -1043,6 +1043,8 @@ Generate SemanticDBs
 
 #### `--forbid`
 
+#### `--strict-bloop-json-check`
+
 ## Test options
 
 Available in commands:
