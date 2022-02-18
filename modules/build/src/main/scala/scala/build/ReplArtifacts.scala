@@ -8,6 +8,7 @@ import java.nio.file.Path
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
+import scala.build.internal.CsLoggerUtil._
 
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, Path)],
@@ -46,14 +47,19 @@ object ReplArtifacts {
   ): Either[BuildException, ReplArtifacts] = either {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
     val allDeps      = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
-    val replArtifacts =
-      Artifacts.artifacts(Positioned.none(allDeps), localRepoOpt.toSeq, scalaParams, logger, cache)
+    val replArtifacts = Artifacts.artifacts(
+      Positioned.none(allDeps),
+      localRepoOpt.toSeq,
+      scalaParams,
+      logger,
+      cache.withMessage(s"Downloading Ammonite $ammoniteVersion")
+    )
     val replSourceArtifacts = Artifacts.artifacts(
       Positioned.none(allDeps),
       localRepoOpt.toSeq,
       scalaParams,
       logger,
-      cache,
+      cache.withMessage(s"Downloading Ammonite $ammoniteVersion sources"),
       classifiersOpt = Some(Set("sources"))
     )
     ReplArtifacts(
@@ -85,7 +91,7 @@ object ReplArtifacts {
         repositories,
         scalaParams,
         logger,
-        cache
+        cache.withMessage(s"Downloading Scala compiler ${scalaParams.scalaVersion}")
       )
     val mainClass =
       if (isScala2) "scala.tools.nsc.MainGenericRunner"

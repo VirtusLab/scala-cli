@@ -11,6 +11,7 @@ import java.io.File
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.{BuildException, ModuleFormatError}
+import scala.build.internal.CsLoggerUtil._
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
 
@@ -51,8 +52,16 @@ object Bloop {
     cache: FileCache[Task]
   ): Either[BuildException, Seq[File]] =
     either {
-      value(Artifacts.artifacts(Positioned.none(Seq(dep)), Nil, params, logger, cache))
-        .map(_._2.toFile)
+      val res = value {
+        Artifacts.artifacts(
+          Positioned.none(Seq(dep)),
+          Nil,
+          params,
+          logger,
+          cache.withMessage(s"Downloading compilation server ${dep.version}")
+        )
+      }
+      res.map(_._2.toFile)
     }
 
   def bloopClassPath(logger: Logger, cache: FileCache[Task]): Either[BuildException, Seq[File]] =

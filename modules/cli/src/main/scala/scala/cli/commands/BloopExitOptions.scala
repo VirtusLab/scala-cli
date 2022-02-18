@@ -20,7 +20,7 @@ final case class BloopExitOptions(
   def bloopRifleConfig(): BloopRifleConfig =
     compilationServer.bloopRifleConfig(
       logging.logger,
-      coursier.coursierCache(logging.logger.coursierLogger),
+      coursier.coursierCache(logging.logger.coursierLogger("Downloading Bloop")),
       logging.verbosity,
       "java", // shouldn't be used…
       directories.directories
