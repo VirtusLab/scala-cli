@@ -165,9 +165,9 @@ class CliLogger(
     new sn.Logger {
       def trace(msg: Throwable) = ()
       def debug(msg: String)    = logger.debug(msg)
-      def info(msg: String)     = logger.message(msg)
+      def info(msg: String)     = logger.log(msg)
       def warn(msg: String)     = logger.log(msg)
-      def error(msg: String)    = logger.log(msg)
+      def error(msg: String)    = logger.message(msg)
     }
 
   val scalaNativeCliInternalLoggerOptions: List[String] = {
