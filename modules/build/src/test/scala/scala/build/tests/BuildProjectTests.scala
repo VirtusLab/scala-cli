@@ -1,18 +1,23 @@
 package scala.build.tests
 
-import scala.build.errors.Severity
 import com.eed3si9n.expecty.Expecty.expect
-import scala.build.options.{BuildOptions, InternalOptions, JavaOptions, Scope}
-import scala.build.{Build, Inputs, LocalRepo, Positioned, Sources}
-import scala.build.options.{ScalacOpt, ScalaOptions, ShadowingSeq}
-import scala.build.Logger
+import coursier.cache.CacheLogger
+
+import java.io.PrintStream
+
 import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleLogger
-import scala.build.errors.BuildException
-import scala.build.errors.Diagnostic
-import java.io.PrintStream
-import coursier.cache.CacheLogger
-import scala.build.Position
+import scala.build.errors.{BuildException, Diagnostic, Severity}
+import scala.build.options.{
+  BuildOptions,
+  InternalOptions,
+  JavaOptions,
+  ScalacOpt,
+  ScalaOptions,
+  Scope,
+  ShadowingSeq
+}
+import scala.build.{Build, Inputs, LocalRepo, Logger, Position, Positioned, Sources}
 
 class BuildProjectTests extends munit.FunSuite {
 
