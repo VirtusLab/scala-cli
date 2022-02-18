@@ -213,6 +213,10 @@ Available in commands:
 
 Specify a TTL for changing dependencies, such as snapshots
 
+#### `--cache`
+
+Set the coursier cache location
+
 ## Cross options
 
 Available in commands:

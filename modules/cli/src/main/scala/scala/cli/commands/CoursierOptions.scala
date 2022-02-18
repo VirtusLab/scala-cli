@@ -12,15 +12,22 @@ final case class CoursierOptions(
   @HelpMessage("Specify a TTL for changing dependencies, such as snapshots")
   @ValueDescription("duration|Inf")
   @Hidden
-    ttl: Option[String] = None
+    ttl: Option[String] = None,
+  @Group("Dependency")
+  @HelpMessage("Set the coursier cache location")
+  @ValueDescription("path")
+  @Hidden
+    cache: Option[String] = None
 ) {
   // format: on
   def coursierCache(logger: CacheLogger) = {
-    val baseCache = FileCache()
-    val ttl0      = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_)).orElse(baseCache.ttl)
+    var baseCache = FileCache().withLogger(logger)
+    val ttlOpt    = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_))
+    for (ttl0 <- ttlOpt)
+      baseCache = baseCache.withTtl(ttl0)
+    for (loc <- cache.filter(_.trim.nonEmpty))
+      baseCache = baseCache.withLocation(loc)
     baseCache
-      .withTtl(ttl0)
-      .withLogger(logger)
   }
 }
 
