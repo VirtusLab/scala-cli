@@ -5,28 +5,17 @@ import snailgun.protocol.Streams
 import snailgun.{Client, TcpClient}
 
 import java.io.{File, InputStream, OutputStream}
-import java.net.{
-  ConnectException,
-  InetSocketAddress,
-  Socket,
-  StandardProtocolFamily,
-  UnixDomainSocketAddress
-}
+import java.net.{ConnectException, InetSocketAddress, Socket, StandardProtocolFamily, UnixDomainSocketAddress}
 import java.nio.channels.SocketChannel
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
 
-import scala.build.blooprifle.{
-  BloopRifleConfig,
-  BloopRifleLogger,
-  BspConnection,
-  BspConnectionAddress
-}
+import scala.build.blooprifle.{BloopRifleConfig, BloopRifleLogger, BspConnection, BspConnectionAddress}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Properties, Success, Try}
 
 object Operations {
 
@@ -35,7 +24,7 @@ object Operations {
     if (!Files.exists(path)) {
       // FIXME Small change of race condition here between createDirectories and setPosixFilePermissions
       Files.createDirectories(path)
-      Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwx------"))
+      if(!Properties.isWin) Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("rwx------"))
     }
     LockFiles.under(path)
   }
