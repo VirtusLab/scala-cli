@@ -192,6 +192,7 @@ Cross-compile sources
 ## Coursier options
 
 Available in commands:
+- [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
@@ -211,6 +212,10 @@ Available in commands:
 #### `--ttl`
 
 Specify a TTL for changing dependencies, such as snapshots
+
+#### `--cache`
+
+Set the coursier cache location
 
 ## Cross options
 

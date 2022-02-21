@@ -1,5 +1,7 @@
 package scala.build.tests.util
 
+import coursier.cache.FileCache
+
 import scala.build.{Bloop, Logger}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.util.Properties
@@ -19,7 +21,7 @@ object BloopServer {
 
   val bloopConfig = BloopRifleConfig.default(
     bloopAddress,
-    v => Bloop.bloopClassPath(Logger.nop, v),
+    v => Bloop.bloopClassPath(Logger.nop, FileCache(), v),
     directories.bloopWorkingDir.toIO
   )
 
