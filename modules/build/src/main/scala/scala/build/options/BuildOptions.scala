@@ -428,7 +428,7 @@ final case class BuildOptions(
           .result()
           .unsafeRun()(finalCache.ec)
       }
-      if (res.versions.available.contains(versionString)) versionString
+      if (res.versions.available.contains(versionString)) Right(versionString)
       else
         Left(
           new NoValidScalaVersionFoundError(res.versions.available, latestSupportedStableVersions)
@@ -451,7 +451,7 @@ final case class BuildOptions(
           .result()
           .unsafeRun()(finalCache.ec)
       }
-      if (res.versions.available.contains(versionString)) versionString
+      if (res.versions.available.contains(versionString)) Right(versionString)
       else
         Left(
           new NoValidScalaVersionFoundError(res.versions.available, latestSupportedStableVersions)
