@@ -87,7 +87,7 @@ For adding this inside scala files through the using directives syntax, you writ
 //> using scala "3.nightly"
 ```
 ```scala
-\\ using scala "2.13.9-bin-4505094"
+//> using scala "2.13.9-bin-4505094"
 ```
 
 ## Dependencies
