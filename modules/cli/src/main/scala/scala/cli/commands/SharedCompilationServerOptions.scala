@@ -11,6 +11,7 @@ import java.util.Random
 
 import scala.build.blooprifle.internal.Constants
 import scala.build.blooprifle.{BloopRifleConfig, BloopVersion, BspConnectionAddress}
+import scala.build.internal.Util
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -185,8 +186,8 @@ final case class SharedCompilationServerOptions(
         BloopVersion(Constants.bloopVersion)
       ))(v => BloopRifleConfig.Strict(BloopVersion(v)))
 
-  def bloopDefaultJvmOptions(): Option[List[String]] = {
-    val filePathOpt = bloopGlobalOptionsFile.map(os.Path(_, Os.pwd))
+  def bloopDefaultJvmOptions(logger: Logger): Option[List[String]] = {
+    val filePathOpt = bloopGlobalOptionsFile.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
     for (filePath <- filePathOpt)
       yield
         if (os.exists(filePath) && os.isFile(filePath))
@@ -199,12 +200,12 @@ final case class SharedCompilationServerOptions(
           }
           catch {
             case e: Throwable =>
-              System.err.println(s"Error parsing global bloop config in '$filePath':")
-              e.printStackTrace()
+              logger.message(s"Error parsing global bloop config in '$filePath':")
+              Util.printException(e)
               List.empty
           }
         else {
-          System.err.println(s"Bloop global options file '$filePath' not found.")
+          logger.message(s"Bloop global options file '$filePath' not found.")
           List.empty
         }
   }
@@ -266,7 +267,7 @@ final case class SharedCompilationServerOptions(
       initTimeout = bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout),
       javaOpts =
         (if (bloopDefaultJavaOpts) baseConfig.javaOpts
-         else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions().getOrElse(Nil),
+         else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions(logger).getOrElse(Nil),
       minimumBloopJvm = javaV.getOrElse(8),
       retainedBloopVersion = retainedBloopVersion
     )
