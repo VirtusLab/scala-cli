@@ -115,6 +115,8 @@ object Build {
     def diagnostics: None.type   = None
   }
 
+  def defaultStrictBloopJsonCheck = true
+
   def updateInputs(
     inputs: Inputs,
     options: BuildOptions,
@@ -724,7 +726,10 @@ object Build {
 
     val project = value(buildProject(inputs, sources, generatedSources, options, scope, logger))
 
-    val updatedBloopConfig = project.writeBloopFile(logger)
+    val updatedBloopConfig = project.writeBloopFile(
+      options.internal.strictBloopJsonCheck.getOrElse(defaultStrictBloopJsonCheck),
+      logger
+    )
 
     if (updatedBloopConfig && os.isDir(classesDir0)) {
       logger.debug(s"Clearing $classesDir0")
