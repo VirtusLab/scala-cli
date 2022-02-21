@@ -719,8 +719,10 @@ trait ScalaCliCompile extends ScalaModule {
           def asOpt[T](values: IterableOnce[T], opt: String): Seq[String] =
             values.toList.flatMap(v => Seq(opt, v.toString))
 
+          val scalaCliVersion = "0.1.0"
+
           val proc = os.proc(
-            Seq("scala-cli", "compile", "--classpath"),
+            Seq("scala-cli", "--cli-version", scalaCliVersion, "compile", "--classpath"),
             if (scalaVersion().startsWith("3")) Nil
             else Seq("-O", s"-P:semanticdb:sourceroot:${os.pwd}"),
             Seq("-S", scalaVersion()),
