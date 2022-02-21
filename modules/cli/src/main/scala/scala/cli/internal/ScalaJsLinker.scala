@@ -2,7 +2,7 @@ package scala.cli.internal
 
 import org.scalajs.linker.interface.{LinkerOutput, ModuleInitializer}
 import org.scalajs.linker.{PathIRContainer, PathOutputFile, StandardImpl}
-import org.scalajs.logging.{Level, ScalaConsoleLogger}
+import org.scalajs.logging.Logger
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
 import java.net.URI
@@ -17,7 +17,8 @@ final class ScalaJsLinker {
     mainClassOrNull: String,
     addTestInitializer: Boolean,
     config: ScalaJsConfig,
-    dest: Path
+    dest: Path,
+    logger: Logger
   ): Unit = {
 
     // adapted from https://github.com/scala-js/scala-js-cli/blob/729824848e25961a3d9a1cfe6ac0260745033148/src/main/scala/org/scalajs/cli/Scalajsld.scala#L158-L193
@@ -45,8 +46,6 @@ final class ScalaJsLinker {
         Nil
 
     val moduleInitializers = mainInitializers ++ testInitializers
-
-    val logger = new ScalaConsoleLogger(Level.Info)
 
     import scala.concurrent.Await
     import scala.concurrent.duration.Duration

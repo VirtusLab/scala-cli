@@ -415,7 +415,7 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger
   ): Unit = {
     val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig)
+    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig, logger)
   }
 
   private def buildNative(
@@ -544,7 +544,8 @@ object Package extends ScalaCommand[PackageOptions] {
     dest: os.Path,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
-    config: StandardConfig
+    config: StandardConfig,
+    logger: Logger
   ): Unit =
     withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
       val classPath = mainJar +: build.artifacts.classPath
@@ -553,7 +554,8 @@ object Package extends ScalaCommand[PackageOptions] {
         mainClassOpt.orNull,
         addTestInitializer,
         new ScalaJsConfig(config),
-        dest.toNIO
+        dest.toNIO,
+        logger.scalaJsLogger
       )
     }
 
