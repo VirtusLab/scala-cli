@@ -1,14 +1,16 @@
 package scala.cli.internal
 
-import org.scalajs.linker.interface.{LinkerOutput, ModuleInitializer}
-import org.scalajs.linker.{PathIRContainer, PathOutputFile, StandardImpl}
+import org.scalajs.linker.interface.ModuleInitializer
+import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, StandardImpl}
 import org.scalajs.logging.Logger
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
-import java.net.URI
 import java.nio.file.Path
 
 import scala.build.internal.ScalaJsConfig
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.{global => ec}
+import scala.concurrent.duration.Duration
 
 final class ScalaJsLinker {
 
@@ -17,7 +19,7 @@ final class ScalaJsLinker {
     mainClassOrNull: String,
     addTestInitializer: Boolean,
     config: ScalaJsConfig,
-    dest: Path,
+    linkingDir: Path,
     logger: Logger
   ): Unit = {
 
@@ -25,14 +27,7 @@ final class ScalaJsLinker {
 
     val linker = StandardImpl.linker(config.config)
 
-    def relURI(f: Path) =
-      new URI(null, null, f.getFileName.toString, null)
-
-    val sm = dest.resolveSibling(dest.getFileName.toString + ".map")
-    val output = LinkerOutput(PathOutputFile(dest))
-      .withSourceMap(PathOutputFile(sm))
-      .withSourceMapURI(relURI(sm))
-      .withJSFileURI(relURI(dest))
+    val output = PathOutputDirectory(linkingDir)
 
     val cache = StandardImpl.irFileCache().newCache
 
@@ -47,9 +42,7 @@ final class ScalaJsLinker {
 
     val moduleInitializers = mainInitializers ++ testInitializers
 
-    import scala.concurrent.Await
-    import scala.concurrent.duration.Duration
-    import scala.concurrent.ExecutionContext.Implicits.global
+    implicit val ec0 = ec
     val futureResult = PathIRContainer
       .fromClasspath(classPath)
       .flatMap(containers => cache.cached(containers._1))

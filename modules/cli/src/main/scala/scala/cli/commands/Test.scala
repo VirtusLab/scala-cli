@@ -149,7 +149,7 @@ object Test extends ScalaCommand[TestOptions] {
               testFrameworkOpt,
               logger
             )
-          }
+          }.flatMap(e => e)
         }
       case Platform.Native =>
         value {
