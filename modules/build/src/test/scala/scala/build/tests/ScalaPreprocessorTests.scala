@@ -40,7 +40,13 @@ class ScalaPreprocessorTests extends munit.FunSuite {
   private def testWarnings(lines: String*)(expectedWarnings: Check*): Unit = {
     val persistentLogger = new PersistentDiagnosticLogger(Logger.nop)
     val code             = lines.mkString("\n").toCharArray()
-    val res = ExtractedDirectives.from(code, Right(path), persistentLogger, UsingDirectiveKind.values(), ScopePath.fromPath(path))
+    val res = ExtractedDirectives.from(
+      code,
+      Right(path),
+      persistentLogger,
+      UsingDirectiveKind.values(),
+      ScopePath.fromPath(path)
+    )
     expect(res.isRight)
 
     val diags = persistentLogger.diagnostics

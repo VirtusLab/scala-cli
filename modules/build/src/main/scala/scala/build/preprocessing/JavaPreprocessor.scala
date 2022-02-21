@@ -3,6 +3,7 @@ package scala.build.preprocessing
 import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
 
 import java.nio.charset.StandardCharsets
+
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.options.BuildRequirements
