@@ -269,7 +269,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           )
         )
     }
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.12"))
+  if (actualScalaVersion.startsWith("2.12"))
     test("JVM options only for JVM platform") {
       val inputs = TestInputs(
         Seq(os.rel / "Main.scala" -> "//> using `java-opt` \"-Xss1g\"")

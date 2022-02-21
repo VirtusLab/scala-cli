@@ -29,8 +29,7 @@ object TestUtil {
   )
   // format: on
 
-  lazy val canRunJs     = !isNativeCli || !Properties.isWin
-  lazy val canRunNative = true
+  lazy val canRunJs = !isNativeCli || !Properties.isWin
 
   def fromPath(app: String): Option[String] = {
 
