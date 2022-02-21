@@ -80,7 +80,7 @@ For compiling with the latest Scala 3 nightly build, in the command line:
 ```bash
 scala-cli Hello.scala -S 3.nightly
 ```
-For compiling with an specific nightly build, you have the full version for, in the command line:
+For compiling with an specific nightly build, you have the full version for:
 ```bash
 scala-cli Hello.scala -S 2.13.9-bin-4505094 
 ```
