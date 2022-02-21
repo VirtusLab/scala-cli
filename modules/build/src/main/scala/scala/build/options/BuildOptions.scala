@@ -470,17 +470,19 @@ final case class BuildOptions(
       version.startsWith("3") && version.endsWith("-NIGHTLY")
 
     val (scalaVersion, scalaBinaryVersion) =
-      scalaOptions.scalaVersion match {
-        case Some("3.nightly") => value(computeLatestScalaThreeNightlyVersions())
-        case Some("2.nightly") => value(computeLatestScalaTwoNightlyVersions())
-        case Some(versionString) if isScala3Nightly(versionString) =>
-          value(turnScala3NightlyVersionArgIntoVersion(versionString))
-        case Some(versionString) if isScala2Nightly(versionString) =>
-          value(turnScala2NightlyVersionArgToVersions(versionString))
-        case _ => value(turnScalaVersionArgToScalaVersions(
-            scalaOptions.scalaVersion,
-            scalaOptions.scalaBinaryVersion
-          ))
+      value {
+        scalaOptions.scalaVersion match {
+          case Some("3.nightly") => computeLatestScalaThreeNightlyVersions()
+          case Some("2.nightly") => computeLatestScalaTwoNightlyVersions()
+          case Some(versionString) if isScala3Nightly(versionString) =>
+            turnScala3NightlyVersionArgIntoVersion(versionString)
+          case Some(versionString) if isScala2Nightly(versionString) =>
+            turnScala2NightlyVersionArgToVersions(versionString)
+          case _ => turnScalaVersionArgToScalaVersions(
+              scalaOptions.scalaVersion,
+              scalaOptions.scalaBinaryVersion
+            )
+        }
       }
 
     val maybePlatformSuffix = platform.value match {
