@@ -271,11 +271,6 @@ trait CliLaunchers extends SbtModule { self =>
         )
       )
     }
-    def nativeImageOptions = T {
-      super.nativeImageOptions() ++ Seq(
-        "-H:-CheckToolchain"
-      )
-    }
     def buildHelperImage = T {
       os.proc("docker", "build", "-t", Docker.customMuslBuilderImageName, ".")
         .call(cwd = os.pwd / "project" / "musl-image", stdout = os.Inherit)
