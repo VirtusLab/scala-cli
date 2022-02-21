@@ -269,14 +269,13 @@ class SourcesTests extends munit.FunSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources = CrossSources.forInputs(
-          inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
-          TestLogger()
-        )
+        inputs,
+        Sources.defaultPreprocessors(CustomCodeWrapper),
+        TestLogger()
+      )
       expect(crossSources.isLeft)
     }
   }
-
 
   test("dependencies in .sc - $ivy") {
     val testInputs = TestInputs(
