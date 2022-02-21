@@ -244,11 +244,7 @@ jobs:
 
   bloop-memory-footprint:
     timeout-minutes: 120
-    runs-on: ${{ matrix.OS }}
-    strategy:
-      fail-fast: false
-      matrix:
-        OS: ["ubuntu-latest"]
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
