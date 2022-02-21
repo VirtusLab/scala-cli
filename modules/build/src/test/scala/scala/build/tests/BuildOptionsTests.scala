@@ -129,9 +129,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.12.9-bin-1111111"),
-        scalaBinaryVersion = None,
-        supportedScalaVersionsUrl = None
+        scalaVersion = Some("2.12.9-bin-1111111")
       )
     )
     assert(
