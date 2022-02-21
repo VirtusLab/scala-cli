@@ -242,6 +242,9 @@ object Inputs {
           case _: Virtual =>
             val dir = homeWorkspace(validElems, directories)
             (dir, false)
+          case r: ResourceDirectory =>
+            // Makes us put .scala-build in a resource directory :/
+            (r.path, true)
           case _: Directory => sys.error("Can't happen")
         }
       }
@@ -250,8 +253,9 @@ object Inputs {
       case f: SourceFile =>
         val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
         !isInDir
-      case _: Directory => true
-      case _: Virtual   => true
+      case _: Directory         => true
+      case _: ResourceDirectory => true
+      case _: Virtual           => true
     }
     val mainClassElemOpt = validElems
       .collectFirst {
