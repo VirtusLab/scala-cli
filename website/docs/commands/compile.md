@@ -78,7 +78,7 @@ For compiling with an specific nightly build, you have the full version for:
 scala-cli Hello.scala -S 2.13.9-bin-4505094 
 ```
 
-For adding this inside scala files through the using directives syntax, you write:
+For adding this inside scala files with using directives, use:
 
 ```scala
 //> using scala "2.nightly"
