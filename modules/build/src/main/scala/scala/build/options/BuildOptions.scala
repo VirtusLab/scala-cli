@@ -479,13 +479,11 @@ final case class BuildOptions(
           .result()
           .unsafeRun()(finalCache.ec)
       }
-      res.versions.available.find(versionString == _) match {
-        case Some(vStr) => Right(vStr)
-        case None => Left(new NoValidScalaVersionFoundError(
-            res.versions.available,
-            latestSupportedStableVersions
-          ))
-      }
+      if (res.versions.available.contains(versionString)) versionString
+      else
+        Left(
+          new NoValidScalaVersionFoundError(res.versions.available, latestSupportedStableVersions)
+        )
     }
 
     val scalaVersion       = value(moduleVersion)
