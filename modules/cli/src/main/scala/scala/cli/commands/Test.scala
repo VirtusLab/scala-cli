@@ -140,7 +140,7 @@ object Test extends ScalaCommand[TestOptions] {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         value {
-          Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig) { js =>
+          Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig, logger) { js =>
             Runner.testJs(
               build.fullClassPath,
               js.toIO,
@@ -149,7 +149,7 @@ object Test extends ScalaCommand[TestOptions] {
               testFrameworkOpt,
               logger
             )
-          }
+          }.flatMap(e => e)
         }
       case Platform.Native =>
         value {

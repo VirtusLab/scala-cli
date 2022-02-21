@@ -25,6 +25,7 @@ import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
+import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{ProcUtil, ScalaJsLinker}
 import scala.util.Properties
 
@@ -180,7 +181,7 @@ object Package extends ScalaCommand[PackageOptions] {
         assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
 
       case PackageType.Js =>
-        buildJs(build, destPath, value(mainClass), logger)
+        value(buildJs(build, destPath, value(mainClass), logger))
 
       case PackageType.Native =>
         buildNative(inputs, build, destPath, value(mainClass), logger)
@@ -413,9 +414,9 @@ object Package extends ScalaCommand[PackageOptions] {
     destPath: os.Path,
     mainClass: String,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = {
     val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig)
+    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig, logger)
   }
 
   private def buildNative(
@@ -544,17 +545,31 @@ object Package extends ScalaCommand[PackageOptions] {
     dest: os.Path,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
-    config: StandardConfig
-  ): Unit =
+    config: StandardConfig,
+    logger: Logger
+  ): Either[BuildException, Unit] =
     withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
-      val classPath = mainJar +: build.artifacts.classPath
+      val classPath  = mainJar +: build.artifacts.classPath
+      val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
       (new ScalaJsLinker).link(
         classPath.toArray,
         mainClassOpt.orNull,
         addTestInitializer,
         new ScalaJsConfig(config),
-        dest.toNIO
+        linkingDir.toNIO,
+        logger.scalaJsLogger
       )
+      val relMainJs = os.rel / "main.js"
+      val mainJs    = linkingDir / relMainJs
+      if (os.exists(mainJs)) {
+        os.copy(mainJs, dest, replaceExisting = true)
+        os.remove.all(linkingDir)
+        Right(())
+      }
+      else {
+        val found = os.walk(linkingDir).map(_.relativeTo(linkingDir))
+        Left(new ScalaJsLinkingError(relMainJs, found))
+      }
     }
 
   def buildNative(
