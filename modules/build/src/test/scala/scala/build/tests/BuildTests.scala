@@ -830,8 +830,10 @@ class BuildTests extends munit.FunSuite {
       )
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get.isInstanceOf[InvalidBinaryScalaVersionError])
+      assert(
+        maybeBuild.swap.exists { case _: InvalidBinaryScalaVersionError => true; case _ => false },
+        s"specifying Scala 3.${Int.MaxValue}.3 as version does not lead to InvalidBinaryScalaVersionError"
+      )
     }
   }
 
