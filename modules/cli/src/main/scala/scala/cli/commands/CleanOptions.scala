@@ -11,6 +11,8 @@ final case class CleanOptions(
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
     bspFile: SharedBspFileOptions = SharedBspFileOptions(),
+  @Recurse
+    workspace: SharedWorkspaceOptions = SharedWorkspaceOptions()
 )
 // format: on
 

@@ -19,6 +19,7 @@ Accepts options:
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `compile`
 
@@ -40,6 +41,7 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `export`
 
@@ -60,6 +62,7 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `fmt`
 
@@ -83,6 +86,7 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `help`
 
@@ -125,6 +129,7 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `package`
 
@@ -148,6 +153,7 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `run`
 
@@ -177,6 +183,7 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `setup-ide`
 
@@ -197,6 +204,7 @@ Accepts options:
 - [setup IDE](./cli-options.md#setup-ide-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `shebang`
 
@@ -244,6 +252,7 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `test`
 
@@ -266,6 +275,7 @@ Accepts options:
 - [test](./cli-options.md#test-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `update`
 
@@ -328,6 +338,7 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ### `directories`
 
@@ -366,4 +377,5 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
