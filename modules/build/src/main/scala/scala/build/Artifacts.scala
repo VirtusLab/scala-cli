@@ -19,8 +19,8 @@ import scala.build.errors.{
 }
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
-import scala.build.internal.ScalaParse.scala2NightlyRegex
 import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.ScalaParse.scala2NightlyRegex
 import scala.build.internal.Util.ScalaDependencyOps
 
 final case class Artifacts(
