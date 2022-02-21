@@ -138,9 +138,10 @@ object Artifacts {
     val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
 
     val scalaNativeCliDependency =
-      scalaNativeCliVersion.map(version =>
-        Seq(dep"org.scala-native:scala-native-cli_2.12:$version")
-      )
+      scalaNativeCliVersion.map { version =>
+        import coursier.moduleString
+        Seq(coursier.Dependency(mod"org.scala-native:scala-native-cli_2.12", version))
+      }
 
     val isScala2NightlyRequested = scala2NightlyRegex.unapplySeq(params.scalaVersion).isDefined
 
@@ -206,10 +207,10 @@ object Artifacts {
       case Some(dependency) =>
         Some(
           value {
-            fetch(
+            fetch0(
               Positioned.none(dependency),
               allExtraRepositories,
-              params,
+              None,
               logger,
               cache.withMessage("Downloading Scala Native CLI"),
               None
@@ -316,6 +317,23 @@ object Artifacts {
     logger: Logger,
     cache: FileCache[Task],
     classifiersOpt: Option[Set[String]]
+  ): Either[BuildException, Fetch.Result] =
+    fetch0(
+      dependencies.map(_.map(_.toCs(params))),
+      extraRepositories,
+      Some(params.scalaVersion),
+      logger,
+      cache,
+      classifiersOpt
+    )
+
+  private def fetch0(
+    dependencies: Positioned[Seq[coursier.Dependency]],
+    extraRepositories: Seq[String],
+    forceScalaVersionOpt: Option[String],
+    logger: Logger,
+    cache: FileCache[Task],
+    classifiersOpt: Option[Set[String]]
   ): Either[BuildException, Fetch.Result] = either {
     logger.debug {
       s"Fetching ${dependencies.value}" +
@@ -328,11 +346,36 @@ object Artifacts {
         .left.map(errors => new RepositoryFormatError(errors))
     }
 
+    val forceVersions = forceScalaVersionOpt match {
+      case None => Nil
+      case Some(sv) =>
+        import coursier.moduleString
+        if (sv.startsWith("2."))
+          Seq(
+            mod"org.scala-lang:scala-library"  -> sv,
+            mod"org.scala-lang:scala-compiler" -> sv,
+            mod"org.scala-lang:scala-reflect"  -> sv
+          )
+        else
+          // FIXME Shouldn't we force the org.scala-lang:scala-library version too?
+          // (to a 2.13.x version)
+          Seq(
+            mod"org.scala-lang:scala3-library_3"         -> sv,
+            mod"org.scala-lang:scala3-compiler_3"        -> sv,
+            mod"org.scala-lang:scala3-interfaces_3"      -> sv,
+            mod"org.scala-lang:scala3-tasty-inspector_3" -> sv,
+            mod"org.scala-lang:tasty-core_3"             -> sv
+          )
+    }
+
     // FIXME Many parameters that we could allow to customize here
     var fetcher = coursier.Fetch()
       .withCache(cache)
       .addRepositories(extraRepositories0: _*)
-      .addDependencies(dependencies.value.map(_.toCs(params)): _*)
+      .addDependencies(dependencies.value: _*)
+      .mapResolutionParams { params =>
+        params.addForceVersion(forceVersions: _*)
+      }
     for (classifiers <- classifiersOpt) {
       if (classifiers("_"))
         fetcher = fetcher.withMainArtifacts()
