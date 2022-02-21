@@ -11,8 +11,8 @@ import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.{Constants, OsLibc}
-import scala.build.options._
-import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
+import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
+import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned, options => bo}
 import scala.concurrent.duration._
 import scala.util.Properties
 // format: off
@@ -111,13 +111,13 @@ final case class SharedOptions(
     enableJmh: Boolean,
     jmhVersion: Option[String],
     ignoreErrors: Boolean = false
-  ): BuildOptions = {
+  ): bo.BuildOptions = {
     val platformOpt =
       if (js.js) Some(Platform.JS)
       else if (native.native) Some(Platform.Native)
       else None
-    BuildOptions(
-      scalaOptions = ScalaOptions(
+    bo.BuildOptions(
+      scalaOptions = bo.ScalaOptions(
         scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
@@ -135,23 +135,23 @@ final case class SharedOptions(
           ),
         platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
       ),
-      scriptOptions = ScriptOptions(
+      scriptOptions = bo.ScriptOptions(
         codeWrapper = None
       ),
       scalaJsOptions = js.buildOptions,
       scalaNativeOptions = native.buildOptions,
       javaOptions = jvm.javaOptions,
-      internalDependencies = InternalDependenciesOptions(
+      internalDependencies = bo.InternalDependenciesOptions(
         addStubsDependencyOpt = addStubs,
         addRunnerDependencyOpt = runner
       ),
-      jmhOptions = JmhOptions(
+      jmhOptions = bo.JmhOptions(
         addJmhDependencies =
           if (enableJmh) jmhVersion.orElse(Some(Constants.jmhVersion))
           else None,
         runJmh = if (enableJmh) Some(true) else None
       ),
-      classPathOptions = ClassPathOptions(
+      classPathOptions = bo.ClassPathOptions(
         extraClassPath = extraJars
           .flatMap(_.split(File.pathSeparator).toSeq)
           .filter(_.nonEmpty)
@@ -168,7 +168,7 @@ final case class SharedOptions(
           )
         )
       ),
-      internal = InternalOptions(
+      internal = bo.InternalOptions(
         cache = Some(coursierCache),
         localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
         verbosity = Some(logging.verbosity)

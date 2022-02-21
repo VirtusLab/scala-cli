@@ -2,6 +2,7 @@ package scala.build
 
 import coursier.cache.shaded.dirs.{GetWinDirs, ProjectDirectories}
 
+import scala.build.internal.JniGetWinDirs
 import scala.util.Properties
 
 trait Directories {
@@ -59,14 +60,7 @@ object Directories {
   def default(): Directories = {
     val getWinDirs: GetWinDirs =
       if (coursier.paths.Util.useJni())
-        new GetWinDirs {
-          def getWinDirs(guids: String*) =
-            guids
-              .map { guid =>
-                coursier.jniutils.WindowsKnownFolders.knownFolderPath("{" + guid + "}")
-              }
-              .toArray
-        }
+        new JniGetWinDirs
       else
         GetWinDirs.powerShellBased
 

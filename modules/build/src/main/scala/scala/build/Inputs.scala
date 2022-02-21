@@ -33,7 +33,7 @@ final case class Inputs(
     }
 
   def sourceFiles(): Seq[Inputs.SourceFile] =
-    singleFiles.collect {
+    singleFiles().collect {
       case f: Inputs.SourceFile => f
     }
 

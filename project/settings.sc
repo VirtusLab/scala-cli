@@ -688,11 +688,18 @@ trait FormatNativeImageConf extends JavaModule {
     for (dir <- nativeImageConfDirs())
       needsFormatting = doFormatNativeImageConf(dir, format = false) ::: needsFormatting
     if (needsFormatting.nonEmpty) {
-      System.err.println(s"Error: ${needsFormatting.length} file(s) needs formatting:")
+      val msg = s"Error: ${needsFormatting.length} file(s) needs formatting"
+      System.err.println(msg)
       for (f <- needsFormatting)
         System.err.println(
           s"  ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd).toString else f.toString}"
         )
+      System.err.println(
+        """Run
+          |  ./mill -i __.formatNativeImageConf
+          |to format them.""".stripMargin
+      )
+      sys.error(msg)
     }
     ()
   }
