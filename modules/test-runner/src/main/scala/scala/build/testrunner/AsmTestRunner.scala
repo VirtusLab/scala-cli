@@ -341,7 +341,7 @@ object AsmTestRunner {
       taskDefs(
         classPath,
         keepJars = false,
-        framework.fingerprints(),
+        framework.fingerprints().toIndexedSeq,
         parentCache
       ).toArray
 

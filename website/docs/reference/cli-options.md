@@ -169,6 +169,10 @@ Aliases: `-p`, `--classpath`
 
 Print the resulting class path
 
+#### `--test`
+
+Compile test scope
+
 ## Compile cross options
 
 Available in commands:
@@ -188,6 +192,7 @@ Cross-compile sources
 ## Coursier options
 
 Available in commands:
+- [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
@@ -207,6 +212,10 @@ Available in commands:
 #### `--ttl`
 
 Specify a TTL for changing dependencies, such as snapshots
+
+#### `--cache`
+
+Set the coursier cache location
 
 ## Cross options
 
@@ -1038,6 +1047,8 @@ Generate SemanticDBs
 #### `--default-forbidden-directories`
 
 #### `--forbid`
+
+#### `--strict-bloop-json-check`
 
 ## Test options
 

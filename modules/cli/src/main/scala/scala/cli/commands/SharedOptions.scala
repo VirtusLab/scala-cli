@@ -10,11 +10,13 @@ import upickle.default.{ReadWriter, macroRW}
 import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.{Constants, OsLibc}
-import scala.build.options._
-import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned}
+import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
+import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned, options => bo}
 import scala.concurrent.duration._
 import scala.util.Properties
+import scala.util.control.NonFatal
 // format: off
 final case class SharedOptions(
   @Recurse
@@ -101,7 +103,10 @@ final case class SharedOptions(
   @Hidden
     forbid: List[String] = Nil,
   @Recurse
-  helpGroups: HelpGroupOptions = HelpGroupOptions()
+  helpGroups: HelpGroupOptions = HelpGroupOptions(),
+
+  @Hidden
+    strictBloopJsonCheck: Option[Boolean] = None
 ) {
   // format: on
 
@@ -111,13 +116,13 @@ final case class SharedOptions(
     enableJmh: Boolean,
     jmhVersion: Option[String],
     ignoreErrors: Boolean = false
-  ): BuildOptions = {
+  ): bo.BuildOptions = {
     val platformOpt =
       if (js.js) Some(Platform.JS)
       else if (native.native) Some(Platform.Native)
       else None
-    BuildOptions(
-      scalaOptions = ScalaOptions(
+    bo.BuildOptions(
+      scalaOptions = bo.ScalaOptions(
         scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
@@ -135,23 +140,23 @@ final case class SharedOptions(
           ),
         platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
       ),
-      scriptOptions = ScriptOptions(
+      scriptOptions = bo.ScriptOptions(
         codeWrapper = None
       ),
       scalaJsOptions = js.buildOptions,
       scalaNativeOptions = native.buildOptions,
       javaOptions = jvm.javaOptions,
-      internalDependencies = InternalDependenciesOptions(
+      internalDependencies = bo.InternalDependenciesOptions(
         addStubsDependencyOpt = addStubs,
         addRunnerDependencyOpt = runner
       ),
-      jmhOptions = JmhOptions(
+      jmhOptions = bo.JmhOptions(
         addJmhDependencies =
           if (enableJmh) jmhVersion.orElse(Some(Constants.jmhVersion))
           else None,
         runJmh = if (enableJmh) Some(true) else None
       ),
-      classPathOptions = ClassPathOptions(
+      classPathOptions = bo.ClassPathOptions(
         extraClassPath = extraJars
           .flatMap(_.split(File.pathSeparator).toSeq)
           .filter(_.nonEmpty)
@@ -168,10 +173,11 @@ final case class SharedOptions(
           )
         )
       ),
-      internal = InternalOptions(
+      internal = bo.InternalOptions(
         cache = Some(coursierCache),
         localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
-        verbosity = Some(logging.verbosity)
+        verbosity = Some(logging.verbosity),
+        strictBloopJsonCheck = strictBloopJsonCheck
       )
     )
   }
@@ -183,13 +189,24 @@ final case class SharedOptions(
     val jvmId = compilationServer.bloopJvm.getOrElse {
       OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")
     }
-    val logger = options.javaHomeManager.cache
+    val javaHomeManager = options.javaHomeManager
+      .withMessage(s"Downloading JVM $jvmId")
+    val logger = javaHomeManager.cache
       .flatMap(_.archiveCache.cache.loggerOpt)
       .getOrElse(_root_.coursier.cache.CacheLogger.nop)
-    val command = os.Path(logger.use(options.javaHomeManager.get(jvmId).unsafeRun()))
-    val ext     = if (Properties.isWin) ".exe" else ""
+    val command = {
+      val path = logger.use {
+        try javaHomeManager.get(jvmId).unsafeRun()
+        catch {
+          case NonFatal(e) => throw new Exception(e)
+        }
+      }
+      os.Path(path)
+    }
+    val ext = if (Properties.isWin) ".exe" else ""
     compilationServer.bloopRifleConfig(
       logging.logger,
+      coursierCache,
       logging.verbosity,
       (command / "bin" / s"java$ext").toString,
       directories.directories,
@@ -197,7 +214,7 @@ final case class SharedOptions(
     )
   }
 
-  lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger)
+  lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 
   def inputsOrExit(
     args: RemainingArgs,
@@ -211,7 +228,10 @@ final case class SharedOptions(
     val download: String => Either[String, Array[Byte]] = { url =>
       val artifact = Artifact(url).withChanging(true)
       val res = coursierCache.logger.use {
-        coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
+        try coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
+        catch {
+          case NonFatal(e) => throw new Exception(e)
+        }
       }
       res
         .left.map(_.describe)

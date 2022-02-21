@@ -3,6 +3,7 @@ package scala.build
 import coursier.cache.FileCache
 import coursier.core.Classifier
 import coursier.parse.RepositoryParser
+import coursier.util.Task
 import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUtil}
 import dependency._
 
@@ -19,6 +20,7 @@ import scala.build.errors.{
 import scala.build.internal.Constants
 import scala.build.internal.Constants._
 import scala.build.internal.ScalaParse.scala2NightlyRegex
+import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.Util.ScalaDependencyOps
 
 final case class Artifacts(
@@ -81,6 +83,7 @@ object Artifacts {
     addJmhDependencies: Option[String],
     scalaNativeCliVersion: Option[String],
     extraRepositories: Seq[String],
+    cache: FileCache[Task],
     logger: Logger
   ): Either[BuildException, Artifacts] = either {
 
@@ -93,6 +96,8 @@ object Artifacts {
         Seq(
           dep"org.scala-lang:scala-compiler:${params.scalaVersion}"
         )
+    val compilerDependenciesMessage =
+      s"Downloading Scala ${params.scalaVersion} compiler"
 
     val jvmRunnerDependencies =
       if (addJvmRunner.getOrElse(true))
@@ -154,8 +159,36 @@ object Artifacts {
         nativeTestInterfaceDependencies.map(Positioned.none(_)) ++
         jmhDependencies.map(Positioned.none(_))
 
+    val updatedDependenciesMessage = {
+      val b           = new StringBuilder("Downloading ")
+      val depLen      = dependencies.length
+      val extraDepLen = updatedDependencies.length - depLen
+      depLen match {
+        case 1          => b.append("one dependency")
+        case n if n > 1 => b.append(s"$n dependencies")
+        case _          =>
+      }
+
+      if (depLen > 0 && extraDepLen > 0)
+        b.append(" and ")
+
+      extraDepLen match {
+        case 1          => b.append("one internal dependency")
+        case n if n > 1 => b.append(s"$n internal dependencies")
+        case _          =>
+      }
+
+      b.result()
+    }
+
     val compilerArtifacts = value {
-      artifacts(Positioned.none(compilerDependencies), allExtraRepositories, params, logger)
+      artifacts(
+        Positioned.none(compilerDependencies),
+        allExtraRepositories,
+        params,
+        logger,
+        cache.withMessage(compilerDependenciesMessage)
+      )
     }
 
     val fetchRes = value {
@@ -164,6 +197,7 @@ object Artifacts {
         allExtraRepositories,
         params,
         logger,
+        cache.withMessage(updatedDependenciesMessage),
         classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty))
       )
     }
@@ -177,6 +211,7 @@ object Artifacts {
               allExtraRepositories,
               params,
               logger,
+              cache.withMessage("Downloading Scala Native CLI"),
               None
             )
           }
@@ -198,7 +233,8 @@ object Artifacts {
             Positioned.none(Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion")),
             allExtraRepositories,
             params,
-            logger
+            logger,
+            cache.withMessage("Downloading internal stub dependency")
           ).map(_.map(_._2))
         }
       else
@@ -209,8 +245,13 @@ object Artifacts {
         .map { posDep =>
           val posDep0 =
             posDep.map(dep => dep.copy(userParams = dep.userParams + ("intransitive" -> None)))
-          artifacts(posDep0.map(Seq(_)), allExtraRepositories, params, logger)
-            .map(_.map { case (url, path) => (posDep0.value, url, path) })
+          artifacts(
+            posDep0.map(Seq(_)),
+            allExtraRepositories,
+            params,
+            logger,
+            cache.withMessage(s"Downloading compiler plugin ${posDep.value.render}")
+          ).map(_.map { case (url, path) => (posDep0.value, url, path) })
         }
         .sequence
         .left.map(CompositeBuildException(_))
@@ -220,7 +261,8 @@ object Artifacts {
     val javacPlugins0 = value {
       javacPluginDependencies
         .map { posDep =>
-          artifacts(posDep.map(Seq(_)), allExtraRepositories, params, logger)
+          val cache0 = cache.withMessage(s"Downloading javac plugin ${posDep.value.render}")
+          artifacts(posDep.map(Seq(_)), allExtraRepositories, params, logger, cache0)
             .map(_.map { case (url, path) => (posDep.value, url, path) })
         }
         .sequence
@@ -249,9 +291,11 @@ object Artifacts {
     extraRepositories: Seq[String],
     params: ScalaParameters,
     logger: Logger,
+    cache: FileCache[Task],
     classifiersOpt: Option[Set[String]] = None
   ): Either[BuildException, Seq[(String, Path)]] = either {
-    val result = value(fetch(dependencies, extraRepositories, params, logger, classifiersOpt))
+    val res = value(fetch(dependencies, extraRepositories, params, logger, cache, classifiersOpt))
+    val result = res
       .artifacts
       .iterator
       .map { case (a, f) => (a.url, f.toPath) }
@@ -270,6 +314,7 @@ object Artifacts {
     extraRepositories: Seq[String],
     params: ScalaParameters,
     logger: Logger,
+    cache: FileCache[Task],
     classifiersOpt: Option[Set[String]]
   ): Either[BuildException, Fetch.Result] = either {
     logger.debug {
@@ -282,8 +327,6 @@ object Artifacts {
         .either
         .left.map(errors => new RepositoryFormatError(errors))
     }
-
-    val cache = FileCache().withLogger(logger.coursierLogger)
 
     // FIXME Many parameters that we could allow to customize here
     var fetcher = coursier.Fetch()

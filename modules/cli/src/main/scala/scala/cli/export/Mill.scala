@@ -160,7 +160,7 @@ final case class Mill(
     )
   }
 
-  def export(
+  def `export`(
     optionsMain: BuildOptions,
     optionsTest: BuildOptions,
     sourcesMain: Sources,

@@ -24,6 +24,13 @@ The most common `compile` options are shown below.
 For a full list of options, run `scala-cli compile --help`, or check the options linked in the
 [reference documentation](../reference/commands.md#compile).
 
+## Test scope
+
+`--test` makes `scala-cli` compile main and test scopes:
+```bash ignore
+scala-cli compile --test Hello.scala 
+```
+
 ## Watch mode
 
 `--watch` makes `scala-cli` watch your code for changes, and re-compiles it upon any change:

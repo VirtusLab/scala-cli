@@ -6,7 +6,7 @@ import scala.build.options.{BuildOptions, ScalaJsOptions}
 import scala.build.{Logger, Sources}
 
 abstract class BuildTool extends Product with Serializable {
-  def export(
+  def `export`(
     optionsMain: BuildOptions,
     optionsTest: BuildOptions,
     sourcesMain: Sources,

@@ -46,6 +46,7 @@ values={[
 {label: 'Rpm', value: 'rpm'},
 {label: 'Alpine', value: 'alpine'},
 {label: 'Nix', value: 'nix'},
+{label: 'SDKMAN', value: 'sdkman'},
 ]}
 >
 <TabItem value="manual">
@@ -142,6 +143,14 @@ nix-env -if https://github.com/NixOS/nixpkgs/archive/refs/heads/master.tar.gz -A
 ```
 
 </TabItem>
+<TabItem value="sdkman">
+
+Scala CLI can be installed via [SDKMAN](https://sdkman.io) with
+
+```bash
+sdk install scalacli
+```
+</TabItem>
 
 </Tabs>
 
@@ -154,6 +163,7 @@ defaultValue="manual"
 values={[
 {label: 'Manual', value: 'manual'},
 {label: 'Installer', value: 'installer'},
+{label: 'SDKMAN', value: 'sdkman'},
 ]}
 >
 
@@ -197,6 +207,14 @@ Download MSI installer with Scala CLI for Windows
 <DownloadButton desc= 'Scala CLI for Windows' href='https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-win32.msi' width = '190px'></DownloadButton>
 
 </TabItem>
+<TabItem value="sdkman">
+
+Scala CLI can be installed via [SDKMAN](https://sdkman.io) with
+
+```bash
+sdk install scalacli
+```
+</TabItem>
 </Tabs>
 
 </TabItem>
@@ -210,6 +228,7 @@ values={[
 {label: 'Installer', value: 'installer'},
 {label: 'Brew', value: 'brew'},
 {label: 'Nix', value: 'nix'},
+{label: 'SDKMAN', value: 'sdkman'},
 ]}
 >
 <TabItem value="manual">
@@ -256,6 +275,14 @@ Scala CLI can be installed with [Nix](https://nixos.org) with
 nix-env -if https://github.com/NixOS/nixpkgs/archive/refs/heads/master.tar.gz -A scala-cli
 ```
 
+</TabItem>
+<TabItem value="sdkman">
+
+Scala CLI can be installed via [SDKMAN](https://sdkman.io) with
+
+```bash
+sdk install scalacli
+```
 </TabItem>
 </Tabs>
 

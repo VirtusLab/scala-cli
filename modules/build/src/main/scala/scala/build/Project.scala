@@ -68,12 +68,16 @@ final case class Project(
   def bloopFile: BloopConfig.File =
     BloopConfig.File(BloopConfig.File.LatestVersion, bloopProject)
 
-  def writeBloopFile(logger: Logger): Boolean = {
-    val bloopFileContent = writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
-    val dest             = directory / ".bloop" / s"$projectName.json"
+  def writeBloopFile(strictCheck: Boolean, logger: Logger): Boolean = {
+    lazy val bloopFileContent =
+      writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
+    val dest = directory / ".bloop" / s"$projectName.json"
     val doWrite = !os.isFile(dest) || {
-      val currentContent = os.read.bytes(dest)
-      !Arrays.equals(currentContent, bloopFileContent)
+      strictCheck && {
+        logger.debug(s"Checking Bloop project in $dest")
+        val currentContent = os.read.bytes(dest)
+        !Arrays.equals(currentContent, bloopFileContent)
+      }
     }
     if (doWrite) {
       logger.debug(s"Writing bloop project in $dest")

@@ -4,7 +4,7 @@ final case class ScalacOpt(value: String) {
   def key: Option[String] =
     if (value.startsWith("-"))
       Some(value.takeWhile(_ != ':'))
-        .filterNot(ScalacOpt.repeatingKeys.contains)
+        .filterNot(key => ScalacOpt.repeatingKeys.exists(_.startsWith(key)))
     else if (value.startsWith("@"))
       Some("@")
     else
