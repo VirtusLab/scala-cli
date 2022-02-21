@@ -78,7 +78,7 @@ final case class SharedCompilationServerOptions(
   @Group("Compilation server")
   @HelpMessage("Bloop global options file")
   @Hidden
-    bloopGlobalOptionsFile: String = (os.home / ".bloop" / "bloop.json").toString,
+    bloopGlobalOptionsFile: Option[String] = None,
 
   @Group("Compilation server")
   @HelpMessage("JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)")
@@ -185,26 +185,28 @@ final case class SharedCompilationServerOptions(
         BloopVersion(Constants.bloopVersion)
       ))(v => BloopRifleConfig.Strict(BloopVersion(v)))
 
-  def bloopDefaultJvmOptions(logger: Logger): List[String] = {
-    val filePath = os.Path(bloopGlobalOptionsFile, Os.pwd)
-    if (os.exists(filePath) && os.isFile(filePath))
-      try {
-        val json = ujson.read(
-          os.read(filePath: os.ReadablePath, charSet = Codec(Charset.defaultCharset()))
-        )
-        val bloopJson = upickle.default.read(json)(BloopJson.jsonCodec)
-        bloopJson.javaOptions
-      }
-      catch {
-        case e: Throwable =>
-          System.err.println(s"Error parsing global bloop config in '$filePath':")
-          e.printStackTrace()
+  def bloopDefaultJvmOptions(): Option[List[String]] = {
+    val filePathOpt = bloopGlobalOptionsFile.map(os.Path(_, Os.pwd))
+    for (filePath <- filePathOpt)
+      yield
+        if (os.exists(filePath) && os.isFile(filePath))
+          try {
+            val json = ujson.read(
+              os.read(filePath: os.ReadablePath, charSet = Codec(Charset.defaultCharset()))
+            )
+            val bloopJson = upickle.default.read(json)(BloopJson.jsonCodec)
+            bloopJson.javaOptions
+          }
+          catch {
+            case e: Throwable =>
+              System.err.println(s"Error parsing global bloop config in '$filePath':")
+              e.printStackTrace()
+              List.empty
+          }
+        else {
+          System.err.println(s"Bloop global options file '$filePath' not found.")
           List.empty
-      }
-    else {
-      logger.debug(s"Bloop global options file '$filePath' not found.")
-      List.empty
-    }
+        }
   }
 
   def bloopRifleConfig(
@@ -264,7 +266,7 @@ final case class SharedCompilationServerOptions(
       initTimeout = bloopStartupTimeoutDuration.getOrElse(baseConfig.initTimeout),
       javaOpts =
         (if (bloopDefaultJavaOpts) baseConfig.javaOpts
-         else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions(logger),
+         else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions().getOrElse(Nil),
       minimumBloopJvm = javaV.getOrElse(8),
       retainedBloopVersion = retainedBloopVersion
     )
