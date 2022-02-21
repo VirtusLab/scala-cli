@@ -1,6 +1,6 @@
 package scala.build.options
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.core.Version
+import coursier.core.{Version, Versions => CoreVersions}
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.{Artifact, Task}
 import coursier.{Module, Versions}
@@ -386,13 +386,25 @@ final case class BuildOptions(
     (scalaVersion, scalaBinaryVersion)
   }
 
+  private def latestScalaVersionFrom(
+    versions: CoreVersions,
+    desc: String
+  ): Either[scala.build.errors.ScalaVersionError, String] =
+    versions.latest(coursier.core.Latest.Release) match {
+      case Some(versionString) => Right(versionString)
+      case None =>
+        val msg =
+          s"Unable to find matching version for $desc in available version: ${versions.available.mkString(", ")}. " +
+            "This error may indicate a network or other problem accessing repository."
+        Left(new ScalaVersionError(msg))
+    }
+
   /** @return
     *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
     */
   private def computeLatestScalaThreeNightlyVersions(): Either[BuildException, (String, String)] =
     either {
       import coursier.Versions
-      import coursier.core.Latest
       import coursier._
 
       val moduleVersion: Either[ScalaVersionError, String] = {
@@ -403,10 +415,7 @@ final case class BuildOptions(
             .result()
             .unsafeRun()(finalCache.ec)
         }
-        res.versions.latest(Latest.Release) match {
-          case Some(versionString) => Right(versionString)
-          case None                => Left(new NetworkUnaccessibleScalaVersionError(None))
-        }
+        latestScalaVersionFrom(res.versions, "latest Scala 3 nightly build")
       }
 
       val scalaVersion       = value(moduleVersion)
@@ -420,7 +429,6 @@ final case class BuildOptions(
   private def computeLatestScalaTwoNightlyVersions(): Either[BuildException, (String, String)] =
     either {
       import coursier.Versions
-      import coursier.core.Latest
       import coursier._
 
       val moduleVersion: Either[ScalaVersionError, String] = {
@@ -432,10 +440,7 @@ final case class BuildOptions(
             .result()
             .unsafeRun()(finalCache.ec)
         }
-        res.versions.latest(Latest.Release) match {
-          case Some(versionString) => Right(versionString)
-          case None                => Left(new NetworkUnaccessibleScalaVersionError(None))
-        }
+        latestScalaVersionFrom(res.versions, "latest Scala 2 nightly build")
       }
 
       val scalaVersion       = value(moduleVersion)
