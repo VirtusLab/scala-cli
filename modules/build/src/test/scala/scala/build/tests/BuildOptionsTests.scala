@@ -67,9 +67,7 @@ class BuildOptionsTests extends munit.FunSuite {
       )
     )
     assert(
-      options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
-        UnsupportedScalaVersionError
-      ],
+      options.projectParams.swap.exists { case _: UnsupportedScalaVersionError => true; case _ => false },
       "specifying the 2.11.2 scala version does not lead to the Unsupported Scala Version Error"
     )
   }
