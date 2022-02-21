@@ -50,9 +50,9 @@ class BuildOptionsTests extends munit.FunSuite {
       )
     )
     assert(
-      options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
-        InvalidBinaryScalaVersionError
-      ],
+      options.projectParams.swap.exists {
+        case _: InvalidBinaryScalaVersionError => true; case _ => false
+      },
       s"specifying the 3.${Int.MaxValue} scala version does not lead to the Invalid Binary Scala Version Error"
     )
   }
@@ -67,7 +67,9 @@ class BuildOptionsTests extends munit.FunSuite {
       )
     )
     assert(
-      options.projectParams.swap.exists { case _: UnsupportedScalaVersionError => true; case _ => false },
+      options.projectParams.swap.exists {
+        case _: UnsupportedScalaVersionError => true; case _ => false
+      },
       "specifying the 2.11.2 scala version does not lead to the Unsupported Scala Version Error"
     )
   }
@@ -82,9 +84,9 @@ class BuildOptionsTests extends munit.FunSuite {
       )
     )
     assert(
-      options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
-        UnsupportedScalaVersionError
-      ],
+      options.projectParams.swap.exists {
+        case _: UnsupportedScalaVersionError => true; case _ => false
+      },
       "specifying the 2.11 scala version does not lead to the Unsupported Scala Version Error"
     )
   }
@@ -99,9 +101,9 @@ class BuildOptionsTests extends munit.FunSuite {
       )
     )
     assert(
-      options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
-        InvalidBinaryScalaVersionError
-      ],
+      options.projectParams.swap.exists {
+        case _: InvalidBinaryScalaVersionError => true; case _ => false
+      },
       "specifying the 3.2147483647.3 scala version does not lead to the Invalid Binary Scala Version Error"
     )
   }
@@ -116,9 +118,9 @@ class BuildOptionsTests extends munit.FunSuite {
       )
     )
     assert(
-      options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
-        NoValidScalaVersionFoundError
-      ],
+      options.projectParams.swap.exists {
+        case _: NoValidScalaVersionFoundError => true; case _ => false
+      },
       "specifying the wrong full scala 3 nightly version does not lead to the No Valid Scala Version Found Error"
     )
   }
@@ -131,9 +133,9 @@ class BuildOptionsTests extends munit.FunSuite {
       )
     )
     assert(
-      options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
-        NoValidScalaVersionFoundError
-      ],
+      options.projectParams.swap.exists {
+        case _: NoValidScalaVersionFoundError => true; case _ => false
+      },
       "specifying the wrong full scala 2 nightly version does not lead to the No Valid Scala Version Found Error"
     )
   }
@@ -147,9 +149,12 @@ class BuildOptionsTests extends munit.FunSuite {
         supportedScalaVersionsUrl = None
       )
     )
-    assert(options.projectParams.isLeft && options.projectParams.left.get.isInstanceOf[
-      InvalidBinaryScalaVersionError
-    ])
+    assert(
+      options.projectParams.swap.exists {
+        case _: InvalidBinaryScalaVersionError => true; case _ => false
+      },
+      s"specifying 2.${Int.MaxValue} as Scala version does not lead to Invalid Binary Scala Version Error"
+    )
   }
 
   test("-S 2.nightly option works") {
@@ -210,10 +215,7 @@ class BuildOptionsTests extends munit.FunSuite {
         scalaOptions = ScalaOptions(
           scalaVersion = prefix,
           scalaBinaryVersion = None,
-          supportedScalaVersionsUrl =
-            Some(
-              Random.alphanumeric.take(10).mkString("")
-            ) // invalid url, it should use defaults from Deps.sc
+          supportedScalaVersionsUrl = None
         )
       )
       val scalaParams = options.scalaParams.orThrow
