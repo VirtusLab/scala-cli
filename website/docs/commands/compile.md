@@ -81,7 +81,7 @@ scala-cli Hello.scala -S 2.13.9-bin-4505094
 For adding this inside scala files through the using directives syntax, you write:
 
 ```scala
-\\ using scala "2.nightly"
+//> using scala "2.nightly"
 ```
 ```scala
 \\ using scala "3.nightly"
