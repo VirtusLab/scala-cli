@@ -87,7 +87,7 @@ object Export extends ScalaCommand[ExportOptions] {
       svTest <- optionsTest0.scalaOptions.scalaVersion
     } if (svMain != svTest) {
       System.err.println(
-        s"""Detected different Scala versions in main and test scopes. 
+        s"""Detected different Scala versions in main and test scopes.
            |Please set the Scala version explicitly in the main and test scope with using directives or pass -S, --scala-version as parameter""".stripMargin
       )
       sys.exit(1)
@@ -97,7 +97,7 @@ object Export extends ScalaCommand[ExportOptions] {
       optionsMain0.scalaOptions.scalaVersion.isEmpty && optionsTest0.scalaOptions.scalaVersion.nonEmpty
     ) {
       System.err.println(
-        s"""Detected that the Scala version is only set in test scope. 
+        s"""Detected that the Scala version is only set in test scope.
            |Please set the Scala version explicitly in the main and test scopes with using directives or pass -S, --scala-version as parameter""".stripMargin
       )
       sys.exit(1)
@@ -115,7 +115,7 @@ object Export extends ScalaCommand[ExportOptions] {
       else
         sbtBuildTool0
 
-    val project = buildTool.export(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
+    val project = buildTool.`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
 
     val output = options.output.getOrElse("dest")
     val dest   = os.Path(output, os.pwd)

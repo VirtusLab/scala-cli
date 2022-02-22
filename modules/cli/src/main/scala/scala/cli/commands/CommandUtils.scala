@@ -8,5 +8,5 @@ object CommandUtils {
     Version(newVersion) > Version(oldVersion)
   }
 
-  lazy val shouldCheckUpdate: Boolean = scala.util.Random.nextInt % 10 == 1
+  lazy val shouldCheckUpdate: Boolean = scala.util.Random.nextInt() % 10 == 1
 }

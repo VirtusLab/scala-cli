@@ -115,6 +115,8 @@ object Build {
     def diagnostics: None.type   = None
   }
 
+  def defaultStrictBloopJsonCheck = true
+
   def updateInputs(
     inputs: Inputs,
     options: BuildOptions,
@@ -140,7 +142,8 @@ object Build {
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
-    crossBuilds: Boolean
+    crossBuilds: Boolean,
+    buildTests: Boolean
   ): Either[BuildException, Builds] = either {
 
     val crossSources = value {
@@ -171,7 +174,7 @@ object Build {
 
     def doBuild(
       overrideOptions: BuildOptions
-    ): Either[BuildException, (Build, Build)] = either {
+    ): Either[BuildException, (Build, Option[Build])] = either {
 
       val baseOptions   = overrideOptions.orElse(sharedOptions)
       val scopedSources = value(crossSources.scopedSources(baseOptions))
@@ -212,7 +215,8 @@ object Build {
             scope,
             logger,
             buildClient,
-            bloopServer
+            bloopServer,
+            buildTests
           )
 
           value(res)
@@ -220,33 +224,39 @@ object Build {
 
       val mainBuild = value(doBuildScope(mainOptions, mainSources, Scope.Main))
 
-      val testBuild = value {
-        mainBuild match {
-          case s: Build.Successful =>
-            val extraTestOptions = BuildOptions(
-              classPathOptions = ClassPathOptions(
-                extraClassPath = Seq(s.output)
-              )
-            )
-            val testOptions0 = extraTestOptions.orElse(testOptions)
-            doBuildScope(testOptions0, testSources, Scope.Test)
-          case _ =>
-            Right(Build.Cancelled(
-              inputs,
-              sharedOptions,
-              Scope.Test,
-              "Parent build failed or cancelled"
-            ))
+      val testBuildOpt =
+        if (buildTests) {
+          val testBuild = value {
+            mainBuild match {
+              case s: Build.Successful =>
+                val extraTestOptions = BuildOptions(
+                  classPathOptions = ClassPathOptions(
+                    extraClassPath = Seq(s.output)
+                  )
+                )
+                val testOptions0 = extraTestOptions.orElse(testOptions)
+                doBuildScope(testOptions0, testSources, Scope.Test)
+              case _ =>
+                Right(Build.Cancelled(
+                  inputs,
+                  sharedOptions,
+                  Scope.Test,
+                  "Parent build failed or cancelled"
+                ))
+            }
+          }
+          Some(testBuild)
         }
-      }
+        else None
 
       doPostProcess(mainBuild, inputs0, Scope.Main)
-      doPostProcess(testBuild, inputs0, Scope.Test)
+      for (testBuild <- testBuildOpt)
+        doPostProcess(testBuild, inputs0, Scope.Test)
 
-      (mainBuild, testBuild)
+      (mainBuild, testBuildOpt)
     }
 
-    def buildScopes(): Either[BuildException, (Build, Seq[Build], Build, Seq[Build])] =
+    def buildScopes(): Either[BuildException, (Build, Seq[Build], Option[Build], Seq[Build])] =
       either {
         val (mainBuild, testBuild) = value(doBuild(BuildOptions()))
 
@@ -259,7 +269,7 @@ object Build {
                 .sequence
                 .left.map(CompositeBuildException(_))
             }
-            (extraBuilds.map(_._1), extraBuilds.map(_._2))
+            (extraBuilds.map(_._1), extraBuilds.flatMap(_._2))
           }
           else
             (Nil, Nil)
@@ -267,12 +277,13 @@ object Build {
         (mainBuild, extraMainBuilds, testBuild, extraTestBuilds)
       }
 
-    val (mainBuild, extraBuilds, testBuild, extraTestBuilds) = value(buildScopes())
+    val (mainBuild, extraBuilds, testBuildOpt, extraTestBuilds) = value(buildScopes())
 
     copyResourceToClassesDir(mainBuild)
-    copyResourceToClassesDir(testBuild)
+    for (testBuild <- testBuildOpt)
+      copyResourceToClassesDir(testBuild)
 
-    Builds(Seq(mainBuild, testBuild), Seq(extraBuilds, extraTestBuilds))
+    Builds(Seq(mainBuild) ++ testBuildOpt.toSeq, Seq(extraBuilds, extraTestBuilds))
   }
 
   private def copyResourceToClassesDir(build: Build) = build match {
@@ -303,7 +314,8 @@ object Build {
     scope: Scope,
     logger: Logger,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    bloopServer: bloop.BloopServer,
+    buildTests: Boolean
   ): Either[BuildException, Build] = either {
 
     val build0 = value {
@@ -329,7 +341,8 @@ object Build {
               logger,
               successful.options.javaHome().value.javaCommand,
               buildClient,
-              bloopServer
+              bloopServer,
+              buildTests
             )
             res.flatMap {
               case Some(b) => Right(b)
@@ -388,7 +401,8 @@ object Build {
     threads: BuildThreads,
     bloopConfig: BloopRifleConfig,
     logger: Logger,
-    crossBuilds: Boolean
+    crossBuilds: Boolean,
+    buildTests: Boolean
   ): Either[BuildException, Builds] = {
     val buildClient = BloopBuildClient.create(
       logger,
@@ -412,7 +426,8 @@ object Build {
         logger = logger,
         buildClient = buildClient,
         bloopServer = bloopServer,
-        crossBuilds = crossBuilds
+        crossBuilds = crossBuilds,
+        buildTests
       )
     }
   }
@@ -422,14 +437,16 @@ object Build {
     options: BuildOptions,
     bloopConfig: BloopRifleConfig,
     logger: Logger,
-    crossBuilds: Boolean
+    crossBuilds: Boolean,
+    buildTests: Boolean
   ): Either[BuildException, Builds] =
     build(
       inputs,
       options, /*scope,*/ BuildThreads.create(),
       bloopConfig,
       logger,
-      crossBuilds = crossBuilds
+      crossBuilds = crossBuilds,
+      buildTests
     )
 
   def validate(
@@ -450,7 +467,8 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean,
-    postAction: () => Unit = () => ()
+    postAction: () => Unit = () => (),
+    buildTests: Boolean
   )(action: Either[BuildException, Builds] => Unit): Watcher = {
 
     val buildClient = BloopBuildClient.create(
@@ -478,7 +496,8 @@ object Build {
           logger,
           buildClient,
           bloopServer,
-          crossBuilds = crossBuilds
+          crossBuilds = crossBuilds,
+          buildTests
         )
         action(res)
       }
@@ -707,7 +726,10 @@ object Build {
 
     val project = value(buildProject(inputs, sources, generatedSources, options, scope, logger))
 
-    val updatedBloopConfig = project.writeBloopFile(logger)
+    val updatedBloopConfig = project.writeBloopFile(
+      options.internal.strictBloopJsonCheck.getOrElse(defaultStrictBloopJsonCheck),
+      logger
+    )
 
     if (updatedBloopConfig && os.isDir(classesDir0)) {
       logger.debug(s"Clearing $classesDir0")
@@ -908,7 +930,8 @@ object Build {
     logger: Logger,
     javaCommand: String,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    bloopServer: bloop.BloopServer,
+    buildTests: Boolean
   ): Either[BuildException, Option[Build]] = either {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir   = inputs.workspace / Constants.workspaceDirName / jmhProjectName
@@ -954,7 +977,8 @@ object Build {
           logger,
           buildClient,
           bloopServer,
-          crossBuilds = false
+          crossBuilds = false,
+          buildTests
         )
       }
       Some(jmhBuilds.main)

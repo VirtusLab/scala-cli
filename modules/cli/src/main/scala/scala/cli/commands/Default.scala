@@ -1,6 +1,5 @@
 package scala.cli.commands
 
-import caseapp._
 import caseapp.core.help.RuntimeCommandsHelp
 import caseapp.core.{Error, RemainingArgs}
 

@@ -672,12 +672,192 @@
     "allDeclaredFields": true
   },
   {
+    "name": "com.google.api.client.http.GenericUrl",
+    "allDeclaredFields": true
+  },
+  {
+    "name": "com.google.api.client.http.HttpHeaders",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.google.api.client.util.GenericData",
+    "allDeclaredFields": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.cache.LayerEntriesSelector$LayerEntryTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.docker.json.DockerManifestEntryTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.BuildableManifestTemplate",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.BuildableManifestTemplate$ContentDescriptorTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate$ConfigurationObjectTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate$HealthCheckObjectTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate$RootFilesystemObjectTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.DescriptorDigestDeserializer",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.DescriptorDigestSerializer",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.HistoryEntry",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.ImageMetadataTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.ManifestAndConfigTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.ManifestTemplate",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.V22ManifestListTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.V22ManifestListTemplate$ManifestDescriptorTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.V22ManifestListTemplate$ManifestDescriptorTemplate$Platform",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.V22ManifestTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.json.JsonTemplate",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.registry.RegistryAuthenticator$AuthenticationResponseTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
     "name": "com.google.common.jimfs.SystemJimfsFileSystemProvider",
     "methods": [
       {
         "name": "removeFileSystemRunnable",
         "parameterTypes": [
           "java.net.URI"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "java.lang.String"
+  },
+  {
+    "name": "java.util.List",
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.commons.logging.LogFactory"
+  },
+  {
+    "name": "org.apache.commons.logging.impl.LogFactoryImpl",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.apache.commons.logging.impl.NoOpLog",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "java.lang.String"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.apache.commons.logging.impl.WeakHashtable",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          
         ]
       }
     ]
@@ -788,14 +968,14 @@
     "allDeclaredFields": true
   },
   {
-    "name": "scala.build.bsp.LoggingScalaBuildServer",
+    "name": "scala.build.bsp.LoggingJavaBuildServer",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
     "allDeclaredFields": true
   },
   {
-    "name": "scala.build.bsp.LoggingJavaBuildServer",
+    "name": "scala.build.bsp.LoggingScalaBuildServer",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -809,155 +989,10 @@
     "allDeclaredFields": true
   },
   {
-      "name":"scala.cli.commands.BloopJson",
-      "allDeclaredConstructors": true,
-      "allPublicConstructors": true,
-      "allDeclaredMethods": true,
-      "allDeclaredFields": true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.cache.LayerEntriesSelector$LayerEntryTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.docker.json.DockerManifestEntryTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.BuildableManifestTemplate",
-    "allDeclaredMethods":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.BuildableManifestTemplate$ContentDescriptorTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate$ConfigurationObjectTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate$HealthCheckObjectTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.ContainerConfigurationTemplate$RootFilesystemObjectTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.DescriptorDigestDeserializer",
-    "methods":[{"name":"<init>","parameterTypes":[] }]
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.DescriptorDigestSerializer",
-    "methods":[{"name":"<init>","parameterTypes":[] }]
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.HistoryEntry",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.ImageMetadataTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.ManifestAndConfigTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.ManifestTemplate",
-    "allDeclaredMethods":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.V22ManifestListTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.V22ManifestListTemplate$ManifestDescriptorTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.V22ManifestListTemplate$ManifestDescriptorTemplate$Platform",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.image.json.V22ManifestTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.json.JsonTemplate",
-    "allDeclaredMethods":true
-  },
-  {
-    "name":"com.google.cloud.tools.jib.registry.RegistryAuthenticator$AuthenticationResponseTemplate",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true,
-    "allDeclaredConstructors":true
-  },
-  {
-    "name":"com.google.api.client.http.GenericUrl",
-    "allDeclaredFields":true
-  },
-  {
-    "name":"com.google.api.client.http.HttpHeaders",
-    "allDeclaredFields":true,
-    "allDeclaredMethods":true
-  },
-  {
-    "name":"com.google.api.client.util.GenericData",
-    "allDeclaredFields":true
-  },
-  {
-    "name":"java.lang.String"
-  },
-  {
-    "name":"java.util.List",
-    "allDeclaredMethods":true
-  },
-  {
-    "name":"org.apache.commons.logging.LogFactory"
-  },
-  {
-    "name":"org.apache.commons.logging.impl.LogFactoryImpl",
-    "methods":[{"name":"<init>","parameterTypes":[] }]
-  },
-  {
-    "name":"org.apache.commons.logging.impl.NoOpLog",
-    "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
-  },
-  {
-    "name":"org.apache.commons.logging.impl.WeakHashtable",
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+    "name": "scala.cli.commands.BloopJson",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
   }
 ]

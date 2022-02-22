@@ -4,6 +4,7 @@ import caseapp._
 
 import java.io.File
 
+import scala.build.options.Scope
 import scala.build.{Build, Builds}
 import scala.cli.CurrentParams
 
@@ -51,7 +52,10 @@ object Compile extends ScalaCommand[CompileOptions] {
           sys.exit(1)
       }
       else if (options.classPath)
-        for (s <- builds.main.successfulOpt) {
+        for {
+          build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
+          s     <- build.successfulOpt
+        } {
           val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
           println(cp)
         }
@@ -67,7 +71,8 @@ object Compile extends ScalaCommand[CompileOptions] {
         bloopRifleConfig,
         logger,
         crossBuilds = cross,
-        postAction = () => WatchUtil.printWatchMessage()
+        postAction = () => WatchUtil.printWatchMessage(),
+        buildTests = options.test
       ) { res =>
         for (builds <- res.orReport(logger))
           postBuild(builds, allowExit = false)
@@ -81,7 +86,8 @@ object Compile extends ScalaCommand[CompileOptions] {
         buildOptions,
         bloopRifleConfig,
         logger,
-        crossBuilds = cross
+        crossBuilds = cross,
+        buildTests = options.test
       )
       val builds = res.orExit(logger)
       postBuild(builds, allowExit = true)

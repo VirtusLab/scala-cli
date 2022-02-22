@@ -169,6 +169,10 @@ Aliases: `-p`, `--classpath`
 
 Print the resulting class path
 
+#### `--test`
+
+Compile test scope
+
 ## Compile cross options
 
 Available in commands:
@@ -188,6 +192,7 @@ Cross-compile sources
 ## Coursier options
 
 Available in commands:
+- [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
@@ -207,6 +212,10 @@ Available in commands:
 #### `--ttl`
 
 Specify a TTL for changing dependencies, such as snapshots
+
+#### `--cache`
+
+Set the coursier cache location
 
 ## Cross options
 
@@ -1039,6 +1048,8 @@ Generate SemanticDBs
 
 #### `--forbid`
 
+#### `--strict-bloop-json-check`
+
 ## Test options
 
 Available in commands:
@@ -1131,4 +1142,27 @@ Available in commands:
 Aliases: `-w`
 
 Watch source files for changes
+
+## Workspace options
+
+Available in commands:
+- [`bsp`](./commands.md#bsp)
+- [`clean`](./commands.md#clean)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--workspace`
+
+Directory where .scala-build is written
 

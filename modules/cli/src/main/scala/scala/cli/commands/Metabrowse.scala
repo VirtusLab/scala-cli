@@ -31,7 +31,14 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val bloopRifleConfig = options.shared.bloopRifleConfig()
 
     val builds =
-      Build.build(inputs, options.buildOptions, bloopRifleConfig, logger, crossBuilds = false)
+      Build.build(
+        inputs,
+        options.buildOptions,
+        bloopRifleConfig,
+        logger,
+        crossBuilds = false,
+        buildTests = false
+      )
         .orExit(logger)
 
     val successfulBuild = builds.main match {

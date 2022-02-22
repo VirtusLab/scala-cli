@@ -8,6 +8,8 @@ object ScalaParse {
 
   import Scala._
 
+  val scala2NightlyRegex = raw"""2\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
+
   // from https://github.com/com-lihaoyi/Ammonite/blob/0f0d597f04e62e86cbf76d3bd16deb6965331470/amm/compiler/src/main/scala/ammonite/compiler/Parsers.scala#L162-L176
   def formatFastparseError(fileName: String, rawCode: String, f: Parsed.Failure) = {
 
@@ -25,7 +27,7 @@ object ScalaParse {
     s"$fileName:$lineColIndex expected $expected$newLine$locationString"
   }
 
-  def Header[_: P]: P[Seq[(Int, Int)]] = {
+  def Header[X: P]: P[Seq[(Int, Int)]] = {
     def PkgAsEmptyList = P(TopPkgSeq).map(_ => List.empty[(Int, Int)])
     def ImportStartEnd = P(Index ~ Import ~ Index).map(List(_))
     def TopStat        = P(PkgAsEmptyList | ImportStartEnd)
@@ -34,9 +36,9 @@ object ScalaParse {
   }
 
   // For some reason Scala doesn't import this by default
-  private def `_`[_: P] = scalaparse.Scala.`_`
+  private def `_`[X: P] = scalaparse.Scala.`_`
 
-  def ImportSplitter[_: P]: P[Seq[ImportTree]] = {
+  def ImportSplitter[X: P]: P[Seq[ImportTree]] = {
     def IdParser   = P((Id | `_`).!).map(s => if (s(0) == '`') s.drop(1).dropRight(1) else s)
     def Selector   = P(IdParser ~ (`=>` ~/ IdParser).?)
     def Selectors  = P("{" ~/ Selector.rep(sep = ","./) ~ "}")

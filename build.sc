@@ -65,7 +65,8 @@ object integration extends Module {
       }
       def forkEnv = super.forkEnv() ++ Seq(
         "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
-        "SCALA_CLI_IMAGE" -> "scala-cli"
+        "SCALA_CLI_IMAGE" -> "scala-cli",
+        "CI"              -> "1"
       )
     }
   }
@@ -79,7 +80,8 @@ object integration extends Module {
       }
       def forkEnv = super.forkEnv() ++ Seq(
         "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
-        "SCALA_CLI_IMAGE" -> "scala-cli-slim"
+        "SCALA_CLI_IMAGE" -> "scala-cli-slim",
+        "CI"              -> "1"
       )
     }
   }
@@ -414,7 +416,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI"      -> testLauncher().path.toString,
       "SCALA_CLI_KIND" -> cliKind(),
-      "SCALA_CLI_TMP"  -> tmpDirBase().path.toString
+      "SCALA_CLI_TMP"  -> tmpDirBase().path.toString,
+      "CI"             -> "1"
     )
     def sources = T.sources {
       val name = mainArtifactName().stripPrefix(prefix)

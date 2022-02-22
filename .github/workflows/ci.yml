@@ -13,33 +13,6 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  bloop-memory-footprint:
-    timeout-minutes: 120
-    runs-on: ${{ matrix.OS }}
-    strategy:
-      fail-fast: false
-      matrix:
-        OS: ["ubuntu-latest"]
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: coursier/setup-action@v1.2.0-M2
-      with:
-        jvm: "temurin:17"
-    - name: Java Version
-      run: java -version
-    - name: Java Home
-      run: echo "$JAVA_HOME"
-    - name: Build Scala CLI
-      run: ./mill copyJvmLauncher build
-    - name: Build Benchmark
-      run: java -jar ./build/scala-cli package --standalone gcbenchmark/gcbenchmark.scala -o gc
-    - name: Run Benchmark
-      run: ./gc $(realpath ./build/scala-cli)
-
   jvm-tests:
     timeout-minutes: 120
     runs-on: ${{ matrix.OS }}
@@ -269,6 +242,29 @@ jobs:
           exit 1
         )
 
+  bloop-memory-footprint:
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: coursier/setup-action@v1.2.0-M2
+      with:
+        jvm: "temurin:17"
+    - name: Java Version
+      run: java -version
+    - name: Java Home
+      run: echo "$JAVA_HOME"
+    - name: Build Scala CLI
+      run: ./mill copyJvmLauncher build
+    - name: Build Benchmark
+      run: java -jar ./build/scala-cli package --standalone gcbenchmark/gcbenchmark.scala -o gc
+    - name: Run Benchmark
+      run: ./gc $(realpath ./build/scala-cli)
+
   vc-redist:
     timeout-minutes: 15
     runs-on: windows-latest
@@ -394,3 +390,6 @@ jobs:
       - run: ./mill -i ci.updateStandaloneLauncher
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to SDKMAN
+        run: .github/scripts/publish-sdkman.sh
+        shell: bash

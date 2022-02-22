@@ -40,7 +40,7 @@ case object RequireScopeDirectiveHandler extends RequireDirectiveHandler {
           scope = Some(BuildRequirements.ScopeRequirement(scope))
         )
         Right(Some(req))
-      case _ => Left(new DirectiveErrors(::("No such scope", Nil)))
+      case _ => Left(new DirectiveErrors(::("No such scope", Nil), Seq.empty))
     }
 
     val scoped = values
@@ -54,7 +54,7 @@ case object RequireScopeDirectiveHandler extends RequireDirectiveHandler {
             )
           )
           Right(req)
-        case (_, Some(_)) => Left(new DirectiveErrors(::("No such scope", Nil)))
+        case (_, Some(_)) => Left(new DirectiveErrors(::("No such scope", Nil), Seq.empty))
       }
       .toSeq
       .sequence

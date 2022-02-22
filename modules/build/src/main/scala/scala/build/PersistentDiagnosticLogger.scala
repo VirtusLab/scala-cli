@@ -1,5 +1,7 @@
 package scala.build
 
+import org.scalajs.logging.{Logger => ScalaJsLogger}
+
 import java.io.PrintStream
 
 import scala.build.blooprifle.BloopRifleLogger
@@ -25,8 +27,10 @@ class PersistentDiagnosticLogger(parent: Logger) extends Logger {
   def log(ex: BuildException): Unit     = parent.log(ex)
   def exit(ex: BuildException): Nothing = parent.exit(ex)
 
-  def coursierLogger: coursier.cache.CacheLogger        = parent.coursierLogger
+  def coursierLogger(printBefore: String): coursier.cache.CacheLogger =
+    parent.coursierLogger(printBefore)
   def bloopRifleLogger: BloopRifleLogger                = parent.bloopRifleLogger
+  def scalaJsLogger: ScalaJsLogger                      = parent.scalaJsLogger
   def scalaNativeTestLogger: sn.Logger                  = parent.scalaNativeTestLogger
   def scalaNativeCliInternalLoggerOptions: List[String] = parent.scalaNativeCliInternalLoggerOptions
 

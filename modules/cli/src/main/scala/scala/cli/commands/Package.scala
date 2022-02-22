@@ -25,6 +25,7 @@ import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
+import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{ProcUtil, ScalaJsLinker}
 import scala.util.Properties
 
@@ -52,7 +53,8 @@ object Package extends ScalaCommand[PackageOptions] {
         bloopRifleConfig,
         logger,
         crossBuilds = cross,
-        postAction = () => WatchUtil.printWatchMessage()
+        postAction = () => WatchUtil.printWatchMessage(),
+        buildTests = false
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
@@ -67,7 +69,14 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     else {
       val builds =
-        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
+        Build.build(
+          inputs,
+          initialBuildOptions,
+          bloopRifleConfig,
+          logger,
+          crossBuilds = cross,
+          buildTests = false
+        )
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
@@ -88,8 +97,17 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful
   ): Either[BuildException, Unit] = either {
 
-    val packageType = build.options.packageTypeOpt
-      .getOrElse(PackageType.Bootstrap)
+    // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
+    val packageType =
+      if (build.options.notForBloopOptions.packageOptions.isDockerEnabled)
+        PackageType.Docker
+      else if (build.options.platform.value == Platform.JS)
+        PackageType.Js
+      else if (build.options.platform.value == Platform.Native)
+        PackageType.Native
+      else
+        build.options.notForBloopOptions.packageOptions.packageTypeOpt
+          .getOrElse(PackageType.Bootstrap)
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
@@ -149,6 +167,8 @@ object Package extends ScalaCommand[PackageOptions] {
         case None      => build.retainedMainClass
       }
 
+    val packageOptions = build.options.notForBloopOptions.packageOptions
+
     packageType match {
       case PackageType.Bootstrap =>
         bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
@@ -161,7 +181,7 @@ object Package extends ScalaCommand[PackageOptions] {
         assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
 
       case PackageType.Js =>
-        buildJs(build, destPath, value(mainClass), logger)
+        value(buildJs(build, destPath, value(mainClass), logger))
 
       case PackageType.Native =>
         buildNative(inputs, build, destPath, value(mainClass), logger)
@@ -170,13 +190,12 @@ object Package extends ScalaCommand[PackageOptions] {
         bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck())
         val sharedSettings = SharedSettings(
           sourceAppPath = bootstrapPath,
-          version = build.options.packageOptions.packageVersion,
+          version = packageOptions.packageVersion,
           force = force,
           outputPath = destPath,
-          logoPath = build.options.packageOptions.logoPath,
-          launcherApp = build.options.packageOptions.launcherApp
+          logoPath = packageOptions.logoPath,
+          launcherApp = packageOptions.launcherApp
         )
-        val packageOptions = build.options.packageOptions
 
         lazy val debianSettings = DebianSettings(
           shared = sharedSettings,
@@ -244,7 +263,7 @@ object Package extends ScalaCommand[PackageOptions] {
         docker(inputs, build, value(mainClass), logger)
     }
 
-    if (!build.options.packageOptions.isDockerEnabled)
+    if (!packageOptions.isDockerEnabled)
       logger.message {
         if (packageType.runnable)
           s"Wrote $dest, run it with" + System.lineSeparator() +
@@ -336,6 +355,8 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     logger: Logger
   ): Unit = {
+    val packageOptions = build.options.notForBloopOptions.packageOptions
+
     if (build.options.platform.value == Platform.Native && (Properties.isMac || Properties.isWin)) {
       System.err.println(
         "Package scala native application to docker image is not supported on MacOs and Windows"
@@ -348,22 +369,22 @@ object Package extends ScalaCommand[PackageOptions] {
       case Platform.JS     => Some("node")
       case Platform.Native => None
     }
-    val from = build.options.packageOptions.dockerOptions.from.getOrElse {
+    val from = packageOptions.dockerOptions.from.getOrElse {
       build.options.platform.value match {
         case Platform.JVM    => "openjdk:17-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
       }
     }
-    val repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
+    val repository = packageOptions.dockerOptions.imageRepository.mandatory(
       "--docker-image-repository",
       "docker"
     )
-    val tag = build.options.packageOptions.dockerOptions.imageTag.getOrElse("latest")
+    val tag = packageOptions.dockerOptions.imageTag.getOrElse("latest")
 
     val dockerSettings = DockerSettings(
       from = from,
-      registry = build.options.packageOptions.dockerOptions.imageRegistry,
+      registry = packageOptions.dockerOptions.imageRegistry,
       repository = repository,
       tag = Some(tag),
       exec = exec
@@ -393,9 +414,9 @@ object Package extends ScalaCommand[PackageOptions] {
     destPath: os.Path,
     mainClass: String,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = {
     val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig)
+    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig, logger)
   }
 
   private def buildNative(
@@ -441,7 +462,7 @@ object Package extends ScalaCommand[PackageOptions] {
     def dependencyEntries =
       build.artifacts.artifacts.map {
         case (url, artifactPath) =>
-          if (build.options.packageOptions.isStandalone) {
+          if (build.options.notForBloopOptions.packageOptions.isStandalone) {
             val path = os.Path(artifactPath)
             ClassPathEntry.Resource(path.last, os.mtime(path), os.read.bytes(path))
           }
@@ -524,17 +545,31 @@ object Package extends ScalaCommand[PackageOptions] {
     dest: os.Path,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
-    config: StandardConfig
-  ): Unit =
+    config: StandardConfig,
+    logger: Logger
+  ): Either[BuildException, Unit] =
     withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
-      val classPath = mainJar +: build.artifacts.classPath
+      val classPath  = mainJar +: build.artifacts.classPath
+      val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
       (new ScalaJsLinker).link(
         classPath.toArray,
         mainClassOpt.orNull,
         addTestInitializer,
         new ScalaJsConfig(config),
-        dest.toNIO
+        linkingDir.toNIO,
+        logger.scalaJsLogger
       )
+      val relMainJs = os.rel / "main.js"
+      val mainJs    = linkingDir / relMainJs
+      if (os.exists(mainJs)) {
+        os.copy(mainJs, dest, replaceExisting = true)
+        os.remove.all(linkingDir)
+        Right(())
+      }
+      else {
+        val found = os.walk(linkingDir).map(_.relativeTo(linkingDir))
+        Left(new ScalaJsLinkingError(relMainJs, found))
+      }
     }
 
   def buildNative(

@@ -10,6 +10,7 @@ import scala.build.Ops._
 import scala.build.Positioned
 import scala.build.errors.{
   DependencyFormatError,
+  InvalidBinaryScalaVersionError,
   NoValueProvidedError,
   ScalaNativeCompatibilityError,
   SingleValueExpectedError
@@ -27,7 +28,7 @@ import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
-import scala.util.Properties
+import scala.util.{Properties, Random}
 
 class BuildTests extends munit.FunSuite {
 
@@ -806,7 +807,33 @@ class BuildTests extends munit.FunSuite {
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get.isInstanceOf[ScalaNativeCompatibilityError])
+      assert(maybeBuild.swap.toOption.get.isInstanceOf[ScalaNativeCompatibilityError])
+    }
+  }
+
+  test(s"Scala 3.${Int.MaxValue}.3 makes the build fail with InvalidBinaryScalaVersionError") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        s""" // using scala "3.${Int.MaxValue}.3"
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println("Hello")
+           |}
+           |
+           |""".stripMargin
+    )
+    val buildOptions = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(s"3.${Int.MaxValue}.3"),
+        scalaBinaryVersion = None,
+        supportedScalaVersionsUrl = None
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(
+        maybeBuild.swap.exists { case _: InvalidBinaryScalaVersionError => true; case _ => false },
+        s"specifying Scala 3.${Int.MaxValue}.3 as version does not lead to InvalidBinaryScalaVersionError"
+      )
     }
   }
 
@@ -837,7 +864,7 @@ class BuildTests extends munit.FunSuite {
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isRight)
-      val build     = maybeBuild.right.get
+      val build     = maybeBuild.toOption.get
       val artifacts = build.options.classPathOptions.extraDependencies.toSeq
       assert(artifacts.exists(_.value.toString() == cliDependency))
     }
@@ -870,7 +897,7 @@ class BuildTests extends munit.FunSuite {
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isRight)
-      val build         = maybeBuild.right.get
+      val build         = maybeBuild.toOption.get
       val scalacOptions = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       expect(scalacOptions == expectedOptions)
     }
@@ -954,6 +981,28 @@ class BuildTests extends munit.FunSuite {
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       val expectedOptions =
         Seq("-deprecation", "-feature", "-Xmaxwarns", "1", "-Xdisable-assertions")
+      val scalacOptions =
+        maybeBuild.toOption.get.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+      expect(scalacOptions == expectedOptions)
+    }
+  }
+
+  test("multiple times scalac options with -Xplugin prefix") {
+    val inputs = TestInputs(
+      os.rel / "foo.scala" ->
+        """//> using option "-Xplugin:/paradise_2.12.15-2.1.1.jar"
+          |//> using option "-Xplugin:/semanticdb-scalac_2.12.15-4.4.31.jar"
+          |
+          |def foo = "bar"
+          |""".stripMargin
+    )
+
+    inputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val expectedOptions =
+        Seq(
+          "-Xplugin:/paradise_2.12.15-2.1.1.jar",
+          "-Xplugin:/semanticdb-scalac_2.12.15-4.4.31.jar"
+        )
       val scalacOptions =
         maybeBuild.toOption.get.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       expect(scalacOptions == expectedOptions)
