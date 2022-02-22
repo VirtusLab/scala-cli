@@ -168,9 +168,6 @@ def cs: T[String] = T.persistent {
     (downloadOpt().getOrElse(fromPath("cs")): String)
 }
 
-// should be the default index in the upcoming coursier release (> 2.0.16)
-def jvmIndex = "https://github.com/coursier/jvm-index/raw/master/index.json"
-
 def platformExtension: String =
   if (Properties.isWin) ".exe"
   else ""
@@ -335,13 +332,7 @@ trait CliLaunchers extends SbtModule { self =>
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
-      // format: off
-      Seq(
-        cs(), "java-home",
-        "--jvm", deps.graalVmJvmId,
-        "--jvm-index", jvmIndex
-      ).!!.trim
-      // format: on
+      Seq(cs(), "java-home", "--jvm", deps.graalVmJvmId).!!.trim
     }
     val outputDir = T.ctx().dest / "config"
     // format: off
