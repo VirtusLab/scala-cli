@@ -66,10 +66,11 @@ def fromPath(name: String): String =
     val pathExt = Option(System.getenv("PATHEXT"))
       .toSeq
       .flatMap(_.split(File.pathSeparator).toSeq)
-    val path = Option(System.getenv("PATH"))
-      .toSeq
-      .flatMap(_.split(File.pathSeparator))
-      .map(new File(_))
+    val path = Seq(new File("").getAbsoluteFile) ++
+      Option(System.getenv("PATH"))
+        .toSeq
+        .flatMap(_.split(File.pathSeparator))
+        .map(new File(_))
 
     def candidates =
       for {
@@ -166,9 +167,6 @@ def cs: T[String] = T.persistent {
   else
     (downloadOpt().getOrElse(fromPath("cs")): String)
 }
-
-// should be the default index in the upcoming coursier release (> 2.0.16)
-def jvmIndex = "https://github.com/coursier/jvm-index/raw/master/index.json"
 
 def platformExtension: String =
   if (Properties.isWin) ".exe"
@@ -334,13 +332,7 @@ trait CliLaunchers extends SbtModule { self =>
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
-      // format: off
-      Seq(
-        cs(), "java-home",
-        "--jvm", deps.graalVmJvmId,
-        "--jvm-index", jvmIndex
-      ).!!.trim
-      // format: on
+      Seq(cs(), "java-home", "--jvm", deps.graalVmJvmId).!!.trim
     }
     val outputDir = T.ctx().dest / "config"
     // format: off

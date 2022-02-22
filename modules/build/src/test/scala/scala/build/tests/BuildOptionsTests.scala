@@ -12,7 +12,6 @@ import scala.build.errors.{
 import scala.build.internal.Constants._
 import scala.build.internal.ScalaParse.scala2NightlyRegex
 import scala.build.options.{BuildOptions, BuildRequirements, ScalaOptions}
-import scala.util.Random
 
 class BuildOptionsTests extends munit.FunSuite {
 

@@ -44,7 +44,7 @@ final class ScalaJsLinker {
 
     implicit val ec0 = ec
     val futureResult = PathIRContainer
-      .fromClasspath(classPath)
+      .fromClasspath(classPath.toVector)
       .flatMap(containers => cache.cached(containers._1))
       .flatMap(linker.link(_, moduleInitializers, output, logger))
     Await.result(futureResult, Duration.Inf)

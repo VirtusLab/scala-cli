@@ -40,10 +40,11 @@ object TestUtil {
           .flatMap(_.split(File.pathSeparator).toSeq)
       else
         Seq("")
-    val path = Option(System.getenv("PATH"))
-      .toSeq
-      .flatMap(_.split(File.pathSeparator))
-      .map(new File(_))
+    val path = Seq(new File("").getAbsoluteFile) ++
+      Option(System.getenv("PATH"))
+        .toSeq
+        .flatMap(_.split(File.pathSeparator))
+        .map(new File(_))
 
     def candidates =
       for {

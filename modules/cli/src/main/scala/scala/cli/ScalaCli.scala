@@ -107,7 +107,7 @@ object ScalaCli {
   }
 
   private def main0(args: Array[String]): Unit = {
-    val remainingArgs = LauncherOptions.parser.stopAtFirstUnrecognized.parse(args) match {
+    val remainingArgs = LauncherOptions.parser.stopAtFirstUnrecognized.parse(args.toVector) match {
       case Left(e) =>
         System.err.println(e.message)
         sys.exit(1)
