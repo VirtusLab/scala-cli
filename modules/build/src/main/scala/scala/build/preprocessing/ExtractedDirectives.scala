@@ -54,7 +54,7 @@ object ExtractedDirectives {
       def getDirectives(directives: UsingDirectives) =
         directives.getAst() match {
           case ud: UsingDefs =>
-            ud.getUsingDefs().asScala
+            ud.getUsingDefs().asScala.toSeq
           case _ =>
             Nil
         }

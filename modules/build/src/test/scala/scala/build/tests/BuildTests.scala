@@ -28,7 +28,7 @@ import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
-import scala.util.{Properties, Random}
+import scala.util.Properties
 
 class BuildTests extends munit.FunSuite {
 

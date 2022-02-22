@@ -311,8 +311,8 @@ final case class BuildOptions(
     def isSupportedVersion(version: String): Boolean =
       version.startsWith("2.12.") || version.startsWith("2.13.") || version.startsWith("3.")
     lazy val allStableVersions = {
-      import coursier._
       val modules = {
+        import coursier.moduleString
         def scala2 = mod"org.scala-lang:scala-library"
         // No unstable, that *ought* not to be a problem down-the-line…?
         def scala3 = mod"org.scala-lang:scala3-library_3"
@@ -404,10 +404,8 @@ final case class BuildOptions(
     */
   private def computeLatestScalaThreeNightlyVersions(): Either[BuildException, (String, String)] =
     either {
-      import coursier.Versions
-      import coursier._
-
       val moduleVersion: Either[ScalaVersionError, String] = {
+        import coursier.moduleString
         def scala3 = mod"org.scala-lang:scala3-library_3"
         val res = finalCache.logger.use {
           Versions(finalCache)
@@ -428,10 +426,8 @@ final case class BuildOptions(
     */
   private def computeLatestScalaTwoNightlyVersions(): Either[BuildException, (String, String)] =
     either {
-      import coursier.Versions
-      import coursier._
-
       val moduleVersion: Either[ScalaVersionError, String] = {
+        import coursier.moduleString
         def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
         val res = finalCache.logger.use {
           Versions(finalCache)
@@ -452,7 +448,7 @@ final case class BuildOptions(
     : Either[BuildException, (String, String)] = either {
 
     val moduleVersion: Either[ScalaVersionError, String] = {
-      import coursier._
+      import coursier.moduleString
       def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
       val res = finalCache.logger.use {
         Versions(finalCache)
@@ -476,7 +472,7 @@ final case class BuildOptions(
   private def turnScala3NightlyVersionArgIntoVersion(versionString: String)
     : Either[BuildException, (String, String)] = either {
     val moduleVersion: Either[ScalaVersionError, String] = {
-      import coursier._
+      import coursier.moduleString
       def scala3 = mod"org.scala-lang:scala3-library_3"
       val res = finalCache.logger.use {
         Versions(finalCache)
