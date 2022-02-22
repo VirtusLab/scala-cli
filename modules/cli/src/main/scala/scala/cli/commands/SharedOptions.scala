@@ -37,6 +37,8 @@ final case class SharedOptions(
     jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
+  @Recurse
+    workspace: SharedWorkspaceOptions = SharedWorkspaceOptions(),
 
   @Group("Scala")
   @HelpMessage("Set the Scala version")
@@ -252,7 +254,8 @@ final case class SharedOptions(
       defaultInputs = defaultInputs,
       download = download,
       stdinOpt = SharedOptions.readStdin(logger = logger),
-      acceptFds = !Properties.isWin
+      acceptFds = !Properties.isWin,
+      forcedWorkspace = workspace.forcedWorkspaceOpt
     ) match {
       case Left(message) =>
         System.err.println(message)
