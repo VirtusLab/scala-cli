@@ -117,6 +117,6 @@ rem   tar -xf "!DOWNLOAD_FILE!"
 rem   move /y "cs-x86_64-pc-win32.exe" "%CS%"
 rem )
 
-echo Using system found cs command. If anything goes wrong, ensure it's at least coursier 2.1.0-M2. 1>&2
+echo Using system found cs command. If anything goes wrong, ensure it's at least coursier 2.1.0-M5-5-g2cb552ea9. 1>&2
 
 cs launch --shared org.scala-lang:scala-library "%MILL_APP_NAME%:%MILL_VERSION%" !mill_cs_opts! -- %MILL_PARAMS%

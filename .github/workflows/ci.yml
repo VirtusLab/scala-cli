@@ -62,6 +62,10 @@ jobs:
     - uses: coursier/setup-action@v1.2.0-M2
       with:
         jvm: "temurin:17"
+    - name: Get latest coursier launcher
+      run: .github/scripts/get-latest-cs.sh
+      shell: bash
+      if: runner.os == 'Windows'
     - name: Generate native launcher
       run: .github/scripts/generate-native-image.sh
       shell: bash
