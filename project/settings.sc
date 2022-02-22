@@ -1,5 +1,5 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.16`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
 import $file.deps, deps.{Deps, Docker, buildCsVersion}
 
 import com.goyeau.mill.scalafix.ScalafixModule
@@ -274,9 +274,9 @@ trait CliLaunchers extends SbtModule { self =>
         .call(cwd = os.pwd / "project" / "musl-image", stdout = os.Inherit)
       ()
     }
-    def writeNativeImageScript(dest: String) = T.command {
+    def writeNativeImageScript(scriptDest: String, imageDest: String = "") = T.command {
       buildHelperImage()
-      super.writeNativeImageScript(dest)()
+      super.writeNativeImageScript(scriptDest, imageDest)()
     }
   }
 
