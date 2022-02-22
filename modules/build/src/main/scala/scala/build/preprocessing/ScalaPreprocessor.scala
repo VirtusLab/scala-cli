@@ -213,7 +213,6 @@ case object ScalaPreprocessor extends Preprocessor {
     // TODO Report error if indicesOrErrorMsg.isLeft?
 
     val importTrees = indicesOrErrorMsg
-      .right
       .toSeq
       .iterator
       .flatMap(_.iterator)
@@ -380,7 +379,7 @@ case object ScalaPreprocessor extends Preprocessor {
       def getDirectives(directives: UsingDirectives) =
         directives.getAst() match {
           case ud: UsingDefs =>
-            ud.getUsingDefs().asScala
+            ud.getUsingDefs().asScala.toSeq
           case _ =>
             Nil
         }
@@ -429,7 +428,10 @@ case object ScalaPreprocessor extends Preprocessor {
 
       val flattened = usedDirectives.getFlattenedMap.asScala.toSeq
       val strictDirectives =
-        flattened.map { case (k, l) => StrictDirective(k.getPath.asScala.mkString("."), l.asScala) }
+        flattened.map {
+          case (k, l) =>
+            StrictDirective(k.getPath.asScala.mkString("."), l.asScala.toSeq)
+        }
 
       val offset =
         if (usedDirectives.getKind() != UsingDirectiveKind.Code) 0
@@ -438,7 +440,7 @@ case object ScalaPreprocessor extends Preprocessor {
     }
     else {
       val errors0 = errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions))
-      Left(CompositeBuildException(errors0))
+      Left(CompositeBuildException(errors0.toSeq))
     }
   }
 

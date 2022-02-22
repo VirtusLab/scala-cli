@@ -2,6 +2,7 @@ package scala.build.tests
 
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
+import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
 
 import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.BuildException
@@ -13,7 +14,7 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
 
   override def log(diagnostics: Seq[Diagnostic]): Unit = {
     diagnostics.foreach { d =>
-      System.err.println(d.positions.map(_.render).mkString("/") ++ ": " ++ d.message)
+      System.err.println(d.positions.map(_.render()).mkString("/") ++ ": " ++ d.message)
     }
   }
 
@@ -42,6 +43,8 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
 
   def bloopRifleLogger: BloopRifleLogger =
     BloopRifleLogger.nop
+  def scalaJsLogger: ScalaJsLogger =
+    NullLogger
   def scalaNativeTestLogger: sn.Logger =
     sn.Logger.nullLogger
   def scalaNativeCliInternalLoggerOptions: List[String] =

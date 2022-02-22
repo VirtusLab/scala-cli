@@ -1,5 +1,7 @@
 package scala.build
 
+import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
+
 import java.io.{OutputStream, PrintStream}
 
 import scala.build.blooprifle.BloopRifleLogger
@@ -26,6 +28,7 @@ trait Logger {
 
   def coursierLogger: coursier.cache.CacheLogger
   def bloopRifleLogger: BloopRifleLogger
+  def scalaJsLogger: ScalaJsLogger
   def scalaNativeTestLogger: sn.Logger
   def scalaNativeCliInternalLoggerOptions: List[String]
 
@@ -48,6 +51,8 @@ object Logger {
       coursier.cache.CacheLogger.nop
     def bloopRifleLogger: BloopRifleLogger =
       BloopRifleLogger.nop
+    def scalaJsLogger: ScalaJsLogger =
+      NullLogger
     def scalaNativeTestLogger: sn.Logger =
       sn.Logger.nullLogger
     def scalaNativeCliInternalLoggerOptions: List[String] =

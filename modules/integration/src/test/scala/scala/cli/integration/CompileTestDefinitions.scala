@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+
 import scala.cli.integration.util.BloopUtil
 
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
@@ -15,7 +17,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   val simpleInputs = TestInputs(
     Seq(
-      os.rel / "MyTests.scala" ->
+      os.rel / "MyTests.test.scala" ->
         """//> using lib "com.lihaoyi::utest::0.7.10"
           |import utest._
           |
@@ -33,7 +35,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("no arg") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root).out.text()
+      os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".").call(cwd = root).out.text()
     }
   }
 
@@ -87,7 +89,16 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
+      val output =
+        os.proc(TestUtil.cli, "compile", "--test", "--class-path", extraOptions, ".").call(cwd =
+          root).out.text().trim
+      val classPath = output.split(File.pathSeparator).map(_.trim).filter(_.nonEmpty)
+      val isDefinedTestPathInClassPath = // expected test class path - root / Constants.workspaceDirName / project_(hash) / classes / test
+        classPath.exists(p =>
+          p.startsWith((root / Constants.workspaceDirName).toString()) &&
+          p.endsWith(Seq("classes", "test").mkString(File.separator))
+        )
+      expect(isDefinedTestPathInClassPath)
     }
   }
 
@@ -119,7 +130,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+      val res = os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".")
         .call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
       expect(res.exitCode == 1)
       val expectedInOutput =

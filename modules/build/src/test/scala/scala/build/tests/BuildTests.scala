@@ -806,7 +806,7 @@ class BuildTests extends munit.FunSuite {
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
-      assert(maybeBuild.left.get.isInstanceOf[ScalaNativeCompatibilityError])
+      assert(maybeBuild.swap.toOption.get.isInstanceOf[ScalaNativeCompatibilityError])
     }
   }
 
@@ -837,7 +837,7 @@ class BuildTests extends munit.FunSuite {
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isRight)
-      val build     = maybeBuild.right.get
+      val build     = maybeBuild.toOption.get
       val artifacts = build.options.classPathOptions.extraDependencies.toSeq
       assert(artifacts.exists(_.value.toString() == cliDependency))
     }
@@ -870,7 +870,7 @@ class BuildTests extends munit.FunSuite {
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isRight)
-      val build         = maybeBuild.right.get
+      val build         = maybeBuild.toOption.get
       val scalacOptions = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       expect(scalacOptions == expectedOptions)
     }

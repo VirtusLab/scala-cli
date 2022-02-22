@@ -319,7 +319,7 @@ final case class Sbt(
     )
   }
 
-  def export(
+  def `export`(
     optionsMain: BuildOptions,
     optionsTest: BuildOptions,
     sourcesMain: Sources,
