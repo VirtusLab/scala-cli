@@ -4,6 +4,7 @@ import com.oracle.svm.core.annotate.Substitute;
 import com.oracle.svm.core.annotate.TargetClass;
 import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.Platforms;
+import org.scalajs.logging.Logger;
 import scala.build.internal.ScalaJsConfig;
 
 import java.nio.file.Path;
@@ -18,7 +19,8 @@ final class ScalaJsLinkerSubst {
         String mainClassOrNull,
         boolean addTestInitializer,
         ScalaJsConfig config,
-        Path dest
+        Path dest,
+        Logger logger
     ) {
         throw new RuntimeException("Scala.JS linking unsupported on Windows");
     }

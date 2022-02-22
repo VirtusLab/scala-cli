@@ -61,6 +61,35 @@ private def readFully(is: InputStream): Array[Byte] = {
   buffer.toByteArray
 }
 
+def fromPath(name: String): String =
+  if (Properties.isWin) {
+    val pathExt = Option(System.getenv("PATHEXT"))
+      .toSeq
+      .flatMap(_.split(File.pathSeparator).toSeq)
+    val path = Option(System.getenv("PATH"))
+      .toSeq
+      .flatMap(_.split(File.pathSeparator))
+      .map(new File(_))
+
+    def candidates =
+      for {
+        dir <- path.iterator
+        ext <- pathExt.iterator
+      } yield new File(dir, name + ext)
+
+    candidates
+      .filter(_.canExecute)
+      .toStream
+      .headOption
+      .map(_.getAbsolutePath)
+      .getOrElse {
+        System.err.println(s"Warning: could not find $name in PATH.")
+        name
+      }
+  }
+  else
+    name
+
 def cs: T[String] = T.persistent {
 
   val ext  = if (Properties.isWin) ".exe" else ""
@@ -132,39 +161,10 @@ def cs: T[String] = T.persistent {
     }
   }
 
-  def fromPath: String =
-    if (Properties.isWin) {
-      val pathExt = Option(System.getenv("PATHEXT"))
-        .toSeq
-        .flatMap(_.split(File.pathSeparator).toSeq)
-      val path = Option(System.getenv("PATH"))
-        .toSeq
-        .flatMap(_.split(File.pathSeparator))
-        .map(new File(_))
-
-      def candidates =
-        for {
-          dir <- path.iterator
-          ext <- pathExt.iterator
-        } yield new File(dir, s"cs$ext")
-
-      candidates
-        .filter(_.canExecute)
-        .toStream
-        .headOption
-        .map(_.getAbsolutePath)
-        .getOrElse {
-          System.err.println("Warning: could not find cs in PATH.")
-          "cs"
-        }
-    }
-    else
-      "cs"
-
   if (os.isFile(dest))
     dest.toString
   else
-    (downloadOpt().getOrElse(fromPath): String)
+    (downloadOpt().getOrElse(fromPath("cs")): String)
 }
 
 // should be the default index in the upcoming coursier release (> 2.0.16)
@@ -269,11 +269,6 @@ trait CliLaunchers extends SbtModule { self =>
           Docker.muslBuilder,
           s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
         )
-      )
-    }
-    def nativeImageOptions = T {
-      super.nativeImageOptions() ++ Seq(
-        "-H:-CheckToolchain"
       )
     }
     def buildHelperImage = T {
@@ -719,17 +714,17 @@ trait ScalaCliCompile extends ScalaModule {
     else T.persistent {
       val out = os.pwd / workspaceDirName / ".unused"
 
-      val sourceFiles = allSourceFiles()
+      val sourceFiles = allSources()
+        .map(_.path)
+        .filter(os.exists(_))
       val classFilesDir =
         if (sourceFiles.isEmpty) out / "classes"
         else {
           def asOpt[T](values: IterableOnce[T], opt: String): Seq[String] =
             values.toList.flatMap(v => Seq(opt, v.toString))
 
-          val scalaCliVersion = "0.1.0"
-
           val proc = os.proc(
-            Seq("scala-cli",  "--cli-version", scalaCliVersion,  "compile", "--classpath"),
+            Seq(fromPath("scala-cli"), "compile", "--classpath"),
             if (scalaVersion().startsWith("3")) Nil
             else Seq("-O", s"-P:semanticdb:sourceroot:${os.pwd}"),
             Seq("-S", scalaVersion()),
@@ -737,7 +732,7 @@ trait ScalaCliCompile extends ScalaModule {
             asOpt(compileClasspath().map(_.path), "--jar"),
             asOpt(scalacPluginClasspath().map(p => s"-Xplugin:${p.path}"), "-O"),
             Seq("--jvm", "zulu:17"),
-            sourceFiles.map(_.path)
+            sourceFiles
           )
 
           val compile = proc.call()

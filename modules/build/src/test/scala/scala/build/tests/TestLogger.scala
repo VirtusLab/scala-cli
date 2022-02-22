@@ -38,7 +38,7 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
   def exit(ex: BuildException): Nothing =
     throw new Exception(ex)
 
-  def coursierLogger: CacheLogger =
+  def coursierLogger(message: String): CacheLogger =
     RefreshLogger.create(new FallbackRefreshDisplay)
 
   def bloopRifleLogger: BloopRifleLogger =

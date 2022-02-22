@@ -198,7 +198,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains("Hello from tests"))
     }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2."))
+  if (actualScalaVersion.startsWith("2."))
     test("successful test native") {
       successfulNativeTest()
     }
@@ -233,7 +233,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains("Hello from tests"))
     }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2."))
+  if (actualScalaVersion.startsWith("2."))
     test("failing test native") {
       failingNativeTest()
     }
@@ -278,7 +278,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains("Hello from tests"))
     }
 
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2."))
+  if (actualScalaVersion.startsWith("2."))
     test("utest native") {
       utestNative()
     }
@@ -316,7 +316,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   val platforms = {
     val maybeJs = if (TestUtil.canRunJs) Seq("JS" -> Seq("--js")) else Nil
     val maybeNative =
-      if (TestUtil.canRunNative && actualScalaVersion.startsWith("2."))
+      if (actualScalaVersion.startsWith("2."))
         Seq("Native" -> Seq("--native"))
       else
         Nil
@@ -451,7 +451,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("Cross-tests") {
-    val supportsNative = TestUtil.canRunNative && actualScalaVersion.startsWith("2.")
+    val supportsNative = actualScalaVersion.startsWith("2.")
     val platforms = {
       var pf = Seq("\"jvm\"")
       if (TestUtil.canRunJs)

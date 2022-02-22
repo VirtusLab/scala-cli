@@ -10,6 +10,7 @@ import scala.build.Ops._
 import scala.build.Positioned
 import scala.build.errors.{
   DependencyFormatError,
+  InvalidBinaryScalaVersionError,
   NoValueProvidedError,
   ScalaNativeCompatibilityError,
   SingleValueExpectedError
@@ -27,7 +28,7 @@ import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
-import scala.util.Properties
+import scala.util.{Properties, Random}
 
 class BuildTests extends munit.FunSuite {
 
@@ -807,6 +808,32 @@ class BuildTests extends munit.FunSuite {
     testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
       assert(maybeBuild.swap.toOption.get.isInstanceOf[ScalaNativeCompatibilityError])
+    }
+  }
+
+  test(s"Scala 3.${Int.MaxValue}.3 makes the build fail with InvalidBinaryScalaVersionError") {
+    val testInputs = TestInputs(
+      os.rel / "Simple.scala" ->
+        s""" // using scala "3.${Int.MaxValue}.3"
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println("Hello")
+           |}
+           |
+           |""".stripMargin
+    )
+    val buildOptions = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(s"3.${Int.MaxValue}.3"),
+        scalaBinaryVersion = None,
+        supportedScalaVersionsUrl = None
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(
+        maybeBuild.swap.exists { case _: InvalidBinaryScalaVersionError => true; case _ => false },
+        s"specifying Scala 3.${Int.MaxValue}.3 as version does not lead to InvalidBinaryScalaVersionError"
+      )
     }
   }
 

@@ -227,12 +227,13 @@ object Inputs {
   private def forValidatedElems(
     validElems: Seq[Element],
     baseProjectName: String,
-    directories: Directories
+    directories: Directories,
+    forcedWorkspace: Option[os.Path]
   ): Inputs = {
 
     assert(validElems.nonEmpty)
 
-    val (workspace, needsHash) = validElems
+    val (inferredWorkspace, inferredNeedsHash) = validElems
       .collectFirst {
         case d: Directory => (d.path, true)
       }
@@ -242,16 +243,26 @@ object Inputs {
           case _: Virtual =>
             val dir = homeWorkspace(validElems, directories)
             (dir, false)
+          case r: ResourceDirectory =>
+            // Makes us put .scala-build in a resource directory :/
+            (r.path, true)
           case _: Directory => sys.error("Can't happen")
         }
       }
+    val (workspace, needsHash) = forcedWorkspace match {
+      case None => (inferredWorkspace, inferredNeedsHash)
+      case Some(forcedWorkspace0) =>
+        val needsHash0 = forcedWorkspace0 != inferredWorkspace || inferredNeedsHash
+        (forcedWorkspace0, needsHash0)
+    }
     val allDirs = validElems.collect { case d: Directory => d.path }
     val updatedElems = validElems.filter {
       case f: SourceFile =>
         val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
         !isInDir
-      case _: Directory => true
-      case _: Virtual   => true
+      case _: Directory         => true
+      case _: ResourceDirectory => true
+      case _: Virtual           => true
     }
     val mainClassElemOpt = validElems
       .collectFirst {
@@ -305,7 +316,8 @@ object Inputs {
     baseProjectName: String,
     download: String => Either[String, Array[Byte]],
     stdinOpt: => Option[Array[Byte]],
-    acceptFds: Boolean
+    acceptFds: Boolean,
+    forcedWorkspace: Option[os.Path]
   ): Either[String, Inputs] = {
     val validatedArgs = args.zipWithIndex.map {
       case (arg, idx) =>
@@ -357,7 +369,7 @@ object Inputs {
       }.flatten
       assert(validElems.nonEmpty)
 
-      Right(forValidatedElems(validElems, baseProjectName, directories))
+      Right(forValidatedElems(validElems, baseProjectName, directories, forcedWorkspace))
     }
     else
       Left(invalid.mkString(System.lineSeparator()))
@@ -371,14 +383,24 @@ object Inputs {
     defaultInputs: () => Option[Inputs] = () => None,
     download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
     stdinOpt: => Option[Array[Byte]] = None,
-    acceptFds: Boolean = false
+    acceptFds: Boolean = false,
+    forcedWorkspace: Option[os.Path] = None
   ): Either[String, Inputs] =
     if (args.isEmpty)
       defaultInputs().toRight(
         "No inputs provided (expected files with .scala or .sc extensions, and / or directories)."
       )
     else
-      forNonEmptyArgs(args, cwd, directories, baseProjectName, download, stdinOpt, acceptFds)
+      forNonEmptyArgs(
+        args,
+        cwd,
+        directories,
+        baseProjectName,
+        download,
+        stdinOpt,
+        acceptFds,
+        forcedWorkspace
+      )
 
   def default(): Option[Inputs] =
     None

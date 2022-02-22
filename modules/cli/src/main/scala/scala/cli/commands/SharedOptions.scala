@@ -10,11 +10,13 @@ import upickle.default.{ReadWriter, macroRW}
 import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.{Constants, OsLibc}
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned, options => bo}
 import scala.concurrent.duration._
 import scala.util.Properties
+import scala.util.control.NonFatal
 // format: off
 final case class SharedOptions(
   @Recurse
@@ -35,6 +37,8 @@ final case class SharedOptions(
     jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
+  @Recurse
+    workspace: SharedWorkspaceOptions = SharedWorkspaceOptions(),
 
   @Group("Scala")
   @HelpMessage("Set the Scala version")
@@ -187,13 +191,24 @@ final case class SharedOptions(
     val jvmId = compilationServer.bloopJvm.getOrElse {
       OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")
     }
-    val logger = options.javaHomeManager.cache
+    val javaHomeManager = options.javaHomeManager
+      .withMessage(s"Downloading JVM $jvmId")
+    val logger = javaHomeManager.cache
       .flatMap(_.archiveCache.cache.loggerOpt)
       .getOrElse(_root_.coursier.cache.CacheLogger.nop)
-    val command = os.Path(logger.use(options.javaHomeManager.get(jvmId).unsafeRun()))
-    val ext     = if (Properties.isWin) ".exe" else ""
+    val command = {
+      val path = logger.use {
+        try javaHomeManager.get(jvmId).unsafeRun()
+        catch {
+          case NonFatal(e) => throw new Exception(e)
+        }
+      }
+      os.Path(path)
+    }
+    val ext = if (Properties.isWin) ".exe" else ""
     compilationServer.bloopRifleConfig(
       logging.logger,
+      coursierCache,
       logging.verbosity,
       (command / "bin" / s"java$ext").toString,
       directories.directories,
@@ -201,7 +216,7 @@ final case class SharedOptions(
     )
   }
 
-  lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger)
+  lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 
   def inputsOrExit(
     args: RemainingArgs,
@@ -215,7 +230,10 @@ final case class SharedOptions(
     val download: String => Either[String, Array[Byte]] = { url =>
       val artifact = Artifact(url).withChanging(true)
       val res = coursierCache.logger.use {
-        coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
+        try coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
+        catch {
+          case NonFatal(e) => throw new Exception(e)
+        }
       }
       res
         .left.map(_.describe)
@@ -236,7 +254,8 @@ final case class SharedOptions(
       defaultInputs = defaultInputs,
       download = download,
       stdinOpt = SharedOptions.readStdin(logger = logger),
-      acceptFds = !Properties.isWin
+      acceptFds = !Properties.isWin,
+      forcedWorkspace = workspace.forcedWorkspaceOpt
     ) match {
       case Left(message) =>
         System.err.println(message)

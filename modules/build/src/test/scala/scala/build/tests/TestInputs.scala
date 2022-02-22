@@ -13,9 +13,14 @@ final case class TestInputs(
   inputArgs: Seq[String]
 ) {
   def withInputs[T](f: (os.Path, Inputs) => T): T =
-    withInputs(false)(f)
+    withCustomInputs(false, None)(f)
 
-  private def withInputs[T](viaDirectory: Boolean)(f: (os.Path, Inputs) => T): T =
+  def withCustomInputs[T](
+    viaDirectory: Boolean,
+    forcedWorkspaceOpt: Option[os.FilePath]
+  )(
+    f: (os.Path, Inputs) => T
+  ): T =
     TestInputs.withTmpDir("scala-cli-tests-") { tmpDir =>
       for ((relPath, content) <- files) {
         val path = tmpDir / relPath
@@ -26,7 +31,13 @@ final case class TestInputs(
         if (viaDirectory) Seq(tmpDir.toString)
         else if (inputArgs.isEmpty) files.map(_._1.toString)
         else inputArgs
-      Inputs(inputArgs0, tmpDir, Directories.under(tmpDir / ".data")) match {
+      val res = Inputs(
+        inputArgs0,
+        tmpDir,
+        Directories.under(tmpDir / ".data"),
+        forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir))
+      )
+      res match {
         case Left(err)     => sys.error(err)
         case Right(inputs) => f(tmpDir, inputs)
       }
@@ -38,7 +49,7 @@ final case class TestInputs(
     bloopConfig: BloopRifleConfig,
     fromDirectory: Boolean = false
   )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
-    withInputs(fromDirectory) { (root, inputs) =>
+    withCustomInputs(fromDirectory, None) { (root, inputs) =>
       val res =
         Build.build(
           inputs,

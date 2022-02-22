@@ -12,12 +12,15 @@ final case class BloopExitOptions(
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
+  @Recurse
+    coursier: CoursierOptions = CoursierOptions()
 ) {
   // format: on
 
   def bloopRifleConfig(): BloopRifleConfig =
     compilationServer.bloopRifleConfig(
       logging.logger,
+      coursier.coursierCache(logging.logger.coursierLogger("Downloading Bloop")),
       logging.verbosity,
       "java", // shouldn't be used…
       directories.directories

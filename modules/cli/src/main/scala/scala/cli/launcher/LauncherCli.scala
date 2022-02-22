@@ -3,10 +3,11 @@ package scala.cli.launcher
 import coursier.Repositories
 import dependency._
 
+import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.{OsLibc, Runner}
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Positioned}
-import scala.cli.commands.LoggingOptions
+import scala.cli.commands.{CoursierOptions, LoggingOptions}
 import scala.util.Properties
 
 object LauncherCli {
@@ -14,6 +15,7 @@ object LauncherCli {
   def runAndExit(version: String, options: LauncherOptions, remainingArgs: Seq[String]): Nothing = {
 
     val logger       = LoggingOptions().logger
+    val cache        = CoursierOptions().coursierCache(logger.coursierLogger(""))
     val scalaVersion = options.cliScalaVersion.getOrElse(Properties.versionNumberString)
 
     val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli::cli:$version")
@@ -28,6 +30,7 @@ object LauncherCli {
         snapshotsRepo,
         ScalaParameters(scalaVersion),
         logger,
+        cache.withMessage(s"Fetching Scala CLI $version"),
         None
       ) match {
         case Right(value) => value

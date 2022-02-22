@@ -27,7 +27,8 @@ class PersistentDiagnosticLogger(parent: Logger) extends Logger {
   def log(ex: BuildException): Unit     = parent.log(ex)
   def exit(ex: BuildException): Nothing = parent.exit(ex)
 
-  def coursierLogger: coursier.cache.CacheLogger        = parent.coursierLogger
+  def coursierLogger(printBefore: String): coursier.cache.CacheLogger =
+    parent.coursierLogger(printBefore)
   def bloopRifleLogger: BloopRifleLogger                = parent.bloopRifleLogger
   def scalaJsLogger: ScalaJsLogger                      = parent.scalaJsLogger
   def scalaNativeTestLogger: sn.Logger                  = parent.scalaNativeTestLogger

@@ -130,7 +130,7 @@ object Run extends ScalaCommand[RunOptions] {
     val (finalMainClass, finalArgs) =
       if (jvmRunner) (Constants.runnerMainClass, mainClass +: verbosity +: args)
       else (mainClass, args)
-    runOnce(
+    val res = runOnce(
       root,
       projectName,
       build,
@@ -140,6 +140,7 @@ object Run extends ScalaCommand[RunOptions] {
       allowExecve,
       exitOnError
     )
+    value(res)
   }
 
   private def runOnce(
@@ -151,19 +152,22 @@ object Run extends ScalaCommand[RunOptions] {
     logger: Logger,
     allowExecve: Boolean,
     exitOnError: Boolean
-  ): Boolean = {
+  ): Either[BuildException, Boolean] = either {
 
     val retCode = build.options.platform.value match {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-        withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig) { js =>
-          Runner.runJs(
-            js.toIO,
-            args,
-            logger,
-            allowExecve = allowExecve
-          )
-        }
+        val res =
+          withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig, logger) {
+            js =>
+              Runner.runJs(
+                js.toIO,
+                args,
+                logger,
+                allowExecve = allowExecve
+              )
+          }
+        value(res)
       case Platform.Native =>
         withNativeLauncher(
           build,
@@ -207,11 +211,11 @@ object Run extends ScalaCommand[RunOptions] {
     build: Build.Successful,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
-    config: StandardConfig
-  )(f: os.Path => T): T = {
+    config: StandardConfig,
+    logger: Logger
+  )(f: os.Path => T): Either[BuildException, T] = {
     val dest = os.temp(prefix = "main", suffix = ".js")
-    try {
-      Package.linkJs(build, dest, mainClassOpt, addTestInitializer, config)
+    try Package.linkJs(build, dest, mainClassOpt, addTestInitializer, config, logger).map { _ =>
       f(dest)
     }
     finally if (os.exists(dest)) os.remove(dest)
