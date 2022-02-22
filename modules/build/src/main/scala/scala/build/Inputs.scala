@@ -7,6 +7,7 @@ import java.security.MessageDigest
 import java.util.zip.{ZipEntry, ZipInputStream}
 
 import scala.annotation.tailrec
+import scala.build.Inputs.WorkspaceOrigin
 import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.build.preprocessing.ScopePath
@@ -18,7 +19,8 @@ final case class Inputs(
   mainClassElement: Option[Inputs.SourceFile],
   workspace: os.Path,
   baseProjectName: String,
-  mayAppendHash: Boolean
+  mayAppendHash: Boolean,
+  workspaceOrigin: Option[WorkspaceOrigin]
 ) {
 
   def isEmpty: Boolean =
@@ -78,7 +80,8 @@ final case class Inputs(
   private def inHomeDir(directories: Directories): Inputs =
     copy(
       workspace = Inputs.homeWorkspace(elements, directories),
-      mayAppendHash = false
+      mayAppendHash = false,
+      workspaceOrigin = Some(WorkspaceOrigin.HomeDir)
     )
   def avoid(forbidden: Seq[os.Path], directories: Directories): Inputs =
     if (forbidden.exists(workspace.startsWith)) inHomeDir(directories)
@@ -143,6 +146,15 @@ final case class Inputs(
 }
 
 object Inputs {
+
+  sealed abstract class WorkspaceOrigin extends Product with Serializable
+
+  object WorkspaceOrigin {
+    case object Forced        extends WorkspaceOrigin
+    case object SourcePaths   extends WorkspaceOrigin
+    case object ResourcePaths extends WorkspaceOrigin
+    case object HomeDir       extends WorkspaceOrigin
+  }
 
   sealed abstract class Element extends Product with Serializable
 
@@ -233,27 +245,27 @@ object Inputs {
 
     assert(validElems.nonEmpty)
 
-    val (inferredWorkspace, inferredNeedsHash) = validElems
+    val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = validElems
       .collectFirst {
-        case d: Directory => (d.path, true)
+        case d: Directory => (d.path, true, WorkspaceOrigin.SourcePaths)
       }
       .getOrElse {
         validElems.head match {
-          case elem: SourceFile => (elem.path / os.up, true)
+          case elem: SourceFile => (elem.path / os.up, true, WorkspaceOrigin.SourcePaths)
           case _: Virtual =>
             val dir = homeWorkspace(validElems, directories)
-            (dir, false)
+            (dir, false, WorkspaceOrigin.HomeDir)
           case r: ResourceDirectory =>
             // Makes us put .scala-build in a resource directory :/
-            (r.path, true)
+            (r.path, true, WorkspaceOrigin.ResourcePaths)
           case _: Directory => sys.error("Can't happen")
         }
       }
-    val (workspace, needsHash) = forcedWorkspace match {
-      case None => (inferredWorkspace, inferredNeedsHash)
+    val (workspace, needsHash, workspaceOrigin0) = forcedWorkspace match {
+      case None => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
       case Some(forcedWorkspace0) =>
         val needsHash0 = forcedWorkspace0 != inferredWorkspace || inferredNeedsHash
-        (forcedWorkspace0, needsHash0)
+        (forcedWorkspace0, needsHash0, WorkspaceOrigin.Forced)
     }
     val allDirs = validElems.collect { case d: Directory => d.path }
     val updatedElems = validElems.filter {
@@ -268,7 +280,14 @@ object Inputs {
       .collectFirst {
         case f: SourceFile => f
       }
-    Inputs(updatedElems, mainClassElemOpt, workspace, baseProjectName, mayAppendHash = needsHash)
+    Inputs(
+      updatedElems,
+      mainClassElemOpt,
+      workspace,
+      baseProjectName,
+      mayAppendHash = needsHash,
+      workspaceOrigin = Some(workspaceOrigin0)
+    )
   }
 
   private val githubGistsArchiveRegex: Regex =
@@ -411,6 +430,7 @@ object Inputs {
       mainClassElement = None,
       workspace = workspace,
       baseProjectName = "project",
-      mayAppendHash = true
+      mayAppendHash = true,
+      workspaceOrigin = None
     )
 }

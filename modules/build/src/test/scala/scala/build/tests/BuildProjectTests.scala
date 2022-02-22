@@ -80,7 +80,7 @@ class BuildProjectTests extends munit.FunSuite {
       )
     )
 
-    val inputs  = Inputs(Nil, None, os.pwd, "project", false)
+    val inputs  = Inputs(Nil, None, os.pwd, "project", false, None)
     val sources = Sources(Nil, Nil, None, Nil, options)
     val logger  = new LoggerMock()
     val res     = Build.buildProject(inputs, sources, Nil, options, Scope.Test, logger)
@@ -154,7 +154,7 @@ class BuildProjectTests extends munit.FunSuite {
       internal = InternalOptions(localRepository =
         LocalRepo.localRepo(scala.build.Directories.default().localRepoDir))
     )
-    val inputs  = Inputs(Nil, None, workspacePath, "project", false)
+    val inputs  = Inputs(Nil, None, workspacePath, "project", false, None)
     val sources = Sources(Nil, Nil, None, Nil, options)
     val logger  = new LoggerMock()
 
