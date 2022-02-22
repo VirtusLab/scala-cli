@@ -1,5 +1,5 @@
 package scala.build.preprocessing.directives
-import scala.build.Logger
+import scala.build.{Logger, Positioned}
 import scala.build.errors.{BuildException, NoScalaVersionProvidedError}
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
@@ -23,8 +23,13 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = {
-    val values        = directive.values
-    val scalaVersions = DirectiveUtil.stringValues(values, path, cwd)
+    val values = directive.values
+
+    println("directive values are: "+ values.toList.map(_.toString))
+    val scalaVersions: Seq[(Positioned[String], Option[ScopePath])] =
+      DirectiveUtil.stringValues(values, path, cwd)
+
+
     if (scalaVersions.isEmpty)
       Left(new NoScalaVersionProvidedError)
     else {
