@@ -11,7 +11,7 @@ import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Inputs.WorkspaceOrigin
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
@@ -52,7 +52,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
-    val bspPath = saveBspConfiguration(
+    val bspPath = writeBspConfiguration(
       options,
       inputs,
       previousCommandName = None
@@ -67,14 +67,13 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     logger: Logger,
     previousCommandName: Option[String]
   ): Unit =
-    saveBspConfiguration(SetupIdeOptions(shared = options), inputs, previousCommandName) match {
+    writeBspConfiguration(SetupIdeOptions(shared = options), inputs, previousCommandName) match {
       case Left(ex) =>
         logger.debug(s"Ignoring error during setup-ide: ${ex.message}")
-      case Right(bspPath) =>
-        bspPath.foreach(path => logger.debug(s"Wrote $path"))
+      case Right(_) =>
     }
 
-  private def saveBspConfiguration(
+  private def writeBspConfiguration(
     options: SetupIdeOptions,
     inputs: Inputs,
     previousCommandName: Option[String]
@@ -153,11 +152,11 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val scalaCliOptionsForBspJson = write(options.shared)
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
-      value(Left(new BuildException(
-        """scala-cli can not determine where write bsp configuration.
-          |Set an explicit bsp destination path via `--bsp-directory`.
+      value(Left(new WorkspaceError(
+        """scala-cli can not determine where to write its BSP configuration.
+          |Set an explicit BSP directory path via `--bsp-directory`.
           |""".stripMargin
-      ) {}))
+      )))
 
     if (previousCommandName.isEmpty || !bspJsonDestination.toIO.exists()) {
       os.write.over(bspJsonDestination, json.getBytes(charset), createFolders = true)
@@ -166,6 +165,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         scalaCliOptionsForBspJson.getBytes(charset),
         createFolders = true
       )
+      logger.debug(s"Wrote $bspJsonDestination")
       Some(bspJsonDestination)
     }
     else
