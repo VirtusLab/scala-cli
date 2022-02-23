@@ -771,7 +771,7 @@ trait ScalaCliCompile extends ScalaModule {
                   cli,
                   Seq("compile", "--classpath"),
                   if (scalaVersion().startsWith("3")) Nil
-                  else Seq("-O", s"-P:semanticdb:sourceroot:${os.pwd}"),
+                  else Seq("-O", s"-P:semanticdb:sourceroot:$millSourcePath"),
                   Seq("-S", scalaVersion()),
                   asOpt("-O", scalacOptions()),
                   asOpt("--jar", compileClasspath().map(_.path)),
