@@ -777,6 +777,7 @@ trait ScalaCliCompile extends ScalaModule {
                   asOpt("--jar", compileClasspath().map(_.path)),
                   asOpt("-O", scalacPluginClasspath().map(p => s"-Xplugin:${p.path}")),
                   Seq("--jvm", "zulu:17"),
+                  "--strict-bloop-json-check=false", // don't check Bloop JSON files at each run
                   workspace,
                   sourceFiles
                 )
