@@ -43,15 +43,18 @@ class BuildTests extends munit.FunSuite {
     buildThreads.shutdown()
   }
 
-  def sv2 = "2.13.5"
-  val defaultOptions = BuildOptions(
-    scalaOptions = ScalaOptions(
-      scalaVersion = Some(sv2),
-      scalaBinaryVersion = None
-    ),
+  val baseOptions = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir),
       keepDiagnostics = true
+    )
+  )
+
+  def sv2 = "2.13.5"
+  val defaultOptions = baseOptions.copy(
+    scalaOptions = baseOptions.scalaOptions.copy(
+      scalaVersion = Some(sv2),
+      scalaBinaryVersion = None
     )
   )
 
@@ -1006,6 +1009,63 @@ class BuildTests extends munit.FunSuite {
       val scalacOptions =
         maybeBuild.toOption.get.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       expect(scalacOptions == expectedOptions)
+    }
+  }
+
+  test("Pin Scala 2 artifacts version") {
+    val inputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        """//> using lib "com.lihaoyi:ammonite_2.13.8:2.5.1-6-5fce97fb"
+          |//> using scala "2.13.5"
+          |
+          |object Foo {
+          |  def main(args: Array[String]): Unit = {
+          |    println(scala.util.Properties.versionNumberString)
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.withBuild(baseOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      expect(maybeBuild.exists(_.success))
+      val build = maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+      val cp    = build.artifacts.classPath.map(_.getFileName.toString)
+
+      val scalaLibraryJarNameOpt =
+        cp.find(n => n.startsWith("scala-library-") && n.endsWith(".jar"))
+      val scalaCompilerJarNameOpt =
+        cp.find(n => n.startsWith("scala-compiler-") && n.endsWith(".jar"))
+      val scalaReflectJarNameOpt =
+        cp.find(n => n.startsWith("scala-reflect-") && n.endsWith(".jar"))
+      expect(scalaLibraryJarNameOpt.contains("scala-library-2.13.5.jar"))
+      expect(scalaCompilerJarNameOpt.contains("scala-compiler-2.13.5.jar"))
+      expect(scalaReflectJarNameOpt.contains("scala-reflect-2.13.5.jar"))
+    }
+  }
+
+  test("Pin Scala 3 artifacts version") {
+    val inputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        """//> using lib "com.lihaoyi:ammonite_3.1.1:2.5.1-6-5fce97fb"
+          |//> using scala "3.1.0"
+          |
+          |object Foo {
+          |  def main(args: Array[String]): Unit = {
+          |    println(scala.util.Properties.versionNumberString)
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.withBuild(baseOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      expect(maybeBuild.exists(_.success))
+      val build = maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+      val cp    = build.artifacts.classPath.map(_.getFileName.toString)
+
+      val scalaLibraryJarNameOpt =
+        cp.find(n => n.startsWith("scala3-library_3-") && n.endsWith(".jar"))
+      val scalaCompilerJarNameOpt =
+        cp.find(n => n.startsWith("scala3-compiler_3-") && n.endsWith(".jar"))
+      expect(scalaLibraryJarNameOpt.contains("scala3-library_3-3.1.0.jar"))
+      expect(scalaCompilerJarNameOpt.contains("scala3-compiler_3-3.1.0.jar"))
     }
   }
 }

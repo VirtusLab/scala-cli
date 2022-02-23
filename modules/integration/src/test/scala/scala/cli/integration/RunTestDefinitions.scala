@@ -513,7 +513,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
-        else if (actualScalaVersion.startsWith("3.0."))
+        else if (actualScalaVersion.startsWith("3."))
           s"""Exception in thread main: java.lang.Exception: Caught exception during processing
              |    at method main in Throws.scala:8$sp
              |
@@ -524,15 +524,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |
              |""".stripMargin.linesIterator.toVector
         else
-          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
-             |${tab}at Throws$$.main(Throws.scala:8)
-             |${tab}at Throws.main(Throws.scala)
-             |Caused by: java.lang.RuntimeException: nope
-             |${tab}at scala.sys.package$$.error(package.scala:27)
-             |${tab}at Throws$$.something(Throws.scala:3)
-             |${tab}at Throws$$.main(Throws.scala:5)
-             |$tab... 1 more
-             |""".stripMargin.linesIterator.toVector
+          sys.error(s"Unexpected Scala version: $actualScalaVersion")
       if (exceptionLines != expectedLines) {
         pprint.log(exceptionLines)
         pprint.log(expectedLines)
