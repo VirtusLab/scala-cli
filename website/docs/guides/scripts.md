@@ -20,7 +20,7 @@ scala-cli hello.sc
 # Hello from Scala script
 ```
 
-The way this works is that a script is wrapped in an `object` before it's passed to the Scala compiler, and a `main` class is added to it.
+The way this works is that a script is wrapped in an `object` before it's passed to the Scala compiler, and a `main` method is added to it.
 In the previous example, when the `hello.sc` script is passed to the compiler, the altered code looks like this:
 
 ```scala

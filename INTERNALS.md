@@ -93,7 +93,7 @@ def main(args: Array[String]): Unit = ()
 Basically,
 - its directory dictates its package
 - we put its sources as is in an object
-- we add a `main` class
+- we add a `main` method
 
 ## Build outputs post-processing
 
