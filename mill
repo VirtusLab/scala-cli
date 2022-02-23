@@ -187,8 +187,6 @@ elif [[ "$cache_dest" == *.zip ]]; then
 fi
 
 eval "$(cs java --env --jvm temurin:17 || cs java --env --jvm openjdk:1.17.0)"
-export PATH=".:$PATH"
-
 
 
 init_mill_jvm_opts
