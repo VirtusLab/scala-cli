@@ -69,7 +69,8 @@ object BloopServer {
   ): BloopServerRuntimeInfo = {
     val workdir = new File(".").getCanonicalFile.toPath
     def startBloop(bloopVersion: String, bloopJava: String) = {
-      logger.info(s"Starting Bloop $bloopVersion at ${config.address.render} using JVM $bloopJava")
+      logger.info("Starting compilation server")
+      logger.debug(s"Starting Bloop $bloopVersion at ${config.address.render} using JVM $bloopJava")
       val fut = BloopRifle.startServer(
         config,
         startServerChecksPool,
@@ -104,7 +105,7 @@ object BloopServer {
     val isOk             = bloopVersionIsOk && bloopJvmIsOk
 
     if (!isOk) {
-      logger.info(s"Bloop daemon status: ${bloopInfo.fold(_.message, _.message)}")
+      logger.debug(s"Bloop daemon status: ${bloopInfo.fold(_.message, _.message)}")
       if (isRunning) exitBloop()
       startBloop(expectedBloopVersion.raw, javaPath)
     }
