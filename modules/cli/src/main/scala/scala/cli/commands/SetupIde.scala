@@ -5,19 +5,16 @@ import ch.epfl.scala.bsp4j.BspConnectionDetails
 import com.google.gson.GsonBuilder
 import upickle.default._
 
-import java.io.File
 import java.nio.charset.Charset
-import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
-import scala.cli.{CurrentParams, ScalaCliCommands}
+import scala.build.{Artifacts, CrossSources, Inputs, Logger, Sources}
+import scala.cli.CurrentParams
 import scala.cli.errors.FoundVirtualInputsError
 import scala.jdk.CollectionConverters._
-import scala.util.Try
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 

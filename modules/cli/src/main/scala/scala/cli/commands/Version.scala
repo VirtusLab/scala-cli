@@ -20,8 +20,8 @@ class Version(appName: String) extends ScalaCommand[VersionOptions] {
     if (Version.isOutdated) println(Update.updateInstructions)
     Update.hasPathDuplicates match {
       case Left(error) => println(
-        "scala-cli was not able to find its own instance(s) on your PATH due to the following error:\n" + error
-      )
+          "scala-cli was not able to find its own instance(s) on your PATH due to the following error:\n" + error
+        )
       case Right(hasPathDuplicates) => if (hasPathDuplicates) println(Update.pathDuplicatesWarning)
     }
   }

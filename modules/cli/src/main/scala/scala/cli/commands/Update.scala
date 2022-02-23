@@ -2,14 +2,10 @@ package scala.cli.commands
 
 import caseapp._
 
-import java.io.File
-import java.nio.file.Paths
 import scala.build.EitherCps.{either, value}
+import scala.build.Logger
 import scala.build.internal.Constants
-import scala.build.{Logger, Os}
-import scala.cli.{CurrentParams, ScalaCliCommands}
-import scala.cli.ScalaCli.progName
-import scala.cli.commands.Update.pathInstances
+import scala.cli.CurrentParams
 import scala.cli.commands.Version.{isOutdated, newestScalaCliVersion}
 import scala.cli.internal.ProcUtil
 import scala.io.StdIn.readLine
@@ -83,11 +79,11 @@ object Update extends ScalaCommand[UpdateOptions] {
   def update(options: UpdateOptions, maybeScalaCliBinPath: Option[os.Path]): Unit = {
     val maybeCurrentVersion = maybeScalaCliBinPath.map {
       scalaCliBinPath =>
-      val res = os.proc(scalaCliBinPath, "version").call(cwd = os.pwd, check = false)
-      if (res.exitCode == 0)
-        res.out.text().trim
-      else
-        "0.0.0"
+        val res = os.proc(scalaCliBinPath, "version").call(cwd = os.pwd, check = false)
+        if (res.exitCode == 0)
+          res.out.text().trim
+        else
+          "0.0.0"
     }
 
     val currentVersion = maybeCurrentVersion.getOrElse(Constants.version)
@@ -95,13 +91,13 @@ object Update extends ScalaCommand[UpdateOptions] {
     val maybeOutDated =
       maybeCurrentVersion.map(CommandUtils.isOutOfDateVersion(newestScalaCliVersion, _))
 
-    val scalaCliVersionRegex = "tag/v(.*?)\"".r
-      scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))
-    .getOrElse(
-      sys.error("Can not resolve ScalaCLI version to update")
-    )
+//    val scalaCliVersionRegex = "tag/v(.*?)\"".r
+//    scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))
+//      .getOrElse(
+//        sys.error("Can not resolve ScalaCLI version to update")
+//      )
 
-  val outDated = maybeOutDated.getOrElse(isOutdated)
+    val outDated = maybeOutDated.getOrElse(isOutdated)
 
     if (!options.isInternalRun)
       if (outDated)
