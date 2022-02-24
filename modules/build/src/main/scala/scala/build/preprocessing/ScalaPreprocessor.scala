@@ -320,8 +320,8 @@ case object ScalaPreprocessor extends Preprocessor {
           ))
         case Seq(h, t @ _*) =>
           val errors = ::(
-            handleUnusedValues(h, path, cwd),
-            t.map(d => handleUnusedValues(d, path, cwd)).toList
+            handleUnusedValues(ScopedDirective(h, path, cwd)),
+            t.map(d => handleUnusedValues(ScopedDirective(d, path, cwd))).toList
           )
           Left(CompositeBuildException(errors))
       }
@@ -329,14 +329,15 @@ case object ScalaPreprocessor extends Preprocessor {
   }
 
   private def handleUnusedValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath
+    scopedDirective: ScopedDirective
   ): BuildException = {
     val values =
-      DirectiveUtil.stringValues(directive.values, path, cwd) ++
-        DirectiveUtil.numericValues(directive.values, path, cwd)
-    new UnusedDirectiveError(directive.key, values.map(_._1.value), values.flatMap(_._1.positions))
+      DirectiveUtil.concatAllValues(DirectiveUtil.getGroupedValues(scopedDirective))
+    new UnusedDirectiveError(
+      scopedDirective.directive.key,
+      values.map(_.positioned.value),
+      values.flatMap(_.positioned.positions)
+    )
   }
 
   val changeToSpecialCommentMsg =

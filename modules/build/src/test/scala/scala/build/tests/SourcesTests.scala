@@ -8,9 +8,8 @@ import scala.build.Sources
 import scala.build.internal.CustomCodeWrapper
 import scala.build.CrossSources
 import scala.build.Position
+import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.preprocessing.directives.MultiValue
-import scala.build.preprocessing.directives.NotABoolean
 import scala.build.internal.ScalaJsLinkerConfig
 
 class SourcesTests extends munit.FunSuite {
@@ -535,8 +534,8 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         )
       crossSources match {
-        case Left(_: MultiValue) =>
-        case o                   => fail("Exception expected", clues(o))
+        case Left(_: UsingDirectiveValueNumError) =>
+        case o                                    => fail("Exception expected", clues(o))
       }
     }
   }
@@ -555,8 +554,8 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         )
       crossSources match {
-        case Left(_: NotABoolean) =>
-        case o                    => fail("Exception expected", clues(o))
+        case Left(_: UsingDirectiveWrongValueTypeError) =>
+        case o                                          => fail("Exception expected", clues(o))
       }
     }
   }

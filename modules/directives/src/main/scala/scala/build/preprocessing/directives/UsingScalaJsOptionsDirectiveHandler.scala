@@ -93,27 +93,26 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = directiveMap.keys.toSeq
 
-  def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
-    logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = {
-    val scalaJsOptions   = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val positionedValues = scalaJsOptions.map(_._1)
-    val intermediate     = directiveMap(directive.key)(directive.key, positionedValues)
-    intermediate.map(opts =>
-      ProcessedDirective(Some(BuildOptions(scalaJsOptions = opts)), Seq.empty)
-    )
+  override def getSupportedTypes(key: String) = key match {
+    case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" =>
+      Set(UsingDirectiveValueKind.STRING)
+    case "jsCheckIr" | "jsAllowBigIntsForLongs" | "jsEmitSourceMaps" | "jsDom" | "jsAvoidClasses" | "jsAvoidLetsAndConsts" =>
+      Set(UsingDirectiveValueKind.BOOLEAN)
   }
+
+  override def getValueNumberBounds(key: String) = UsingDirectiveValueNumberBounds(1, 1)
+
+  def handleValues(
+    scopedDirective: ScopedDirective,
+    logger: Logger
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).map { groupedValues =>
+      val scalaJsOptions =
+        groupedValues.scopedStringValues ++ groupedValues.scopedNumericValues ++ groupedValues.scopedBooleanValues
+      val positionedValues = scalaJsOptions.map(_.positioned)
+      val buildOptions = directiveMap(scopedDirective.directive.key)(
+        positionedValues
+      )
+      ProcessedDirective(Some(buildOptions), Seq.empty)
+    }
 }
-
-final case class MultiValue(param: String, values: Seq[Positioned[String]]) extends BuildException(
-      s"Expected single value for $param but found $values",
-      values.headOption.flatMap(_.positions.headOption).toSeq
-    )
-
-final case class NotABoolean(param: String, value: Positioned[String]) extends BuildException(
-      s"Boolean expected for $param but ${value.value} found",
-      value.positions
-    )

@@ -53,14 +53,15 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     "gpg-options"
   ).map(prefix + _)
 
+  override def getValueNumberBounds(key: String) = UsingDirectiveValueNumberBounds(1, 1)
+
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
+                    scopedDirective: ScopedDirective,
     logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = either {
-    def singleValue   = DirectiveUtil.singleStringValue(directive, path, cwd)
-    def severalValues = DirectiveUtil.stringValues(directive.values, path, cwd)
+    // This head is fishy!
+    val singleValue = groupedScopedValuesContainer.scopedStringValues.head.positioned
+    def severalValues = groupedScopedValuesContainer.scopedStringValues
 
     if (!directive.key.startsWith(prefix))
       value(Left(new UnexpectedDirectiveError(directive.key)))

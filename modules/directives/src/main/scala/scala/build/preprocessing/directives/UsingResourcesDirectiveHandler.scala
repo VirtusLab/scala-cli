@@ -1,9 +1,7 @@
 package scala.build.preprocessing.directives
-import scala.build.EitherCps.either
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
-import scala.build.preprocessing.ScopePath
 
 case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Resource directories"
@@ -21,34 +19,35 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("resourceDir", "resourceDirs")
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
+    scopedDirective: ScopedDirective,
     logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = either {
-    val (virtualRootOpt, rootOpt) = Directive.osRootResource(cwd)
-    val paths                     = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val paths0 = rootOpt
-      .toList
-      .flatMap(root =>
-        paths.map(_._1.value)
-          .map(os.Path(_, root))
-      )
-    val virtualPaths = virtualRootOpt.map(virtualRoot =>
-      paths.map(_._1.value).map(path => virtualRoot / os.SubPath(path))
-    )
-    warnIfNotExistsPath(paths0, logger)
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).map { groupedValues =>
+      val paths = groupedValues.scopedStringValues
 
-    ProcessedDirective(
-      Some(BuildOptions(
-        classPathOptions = ClassPathOptions(
-          resourcesDir = paths0,
-          resourcesVirtualDir = virtualPaths.toList.flatten
+      val (virtualRootOpt, rootOpt) = Directive.osRootResource(scopedDirective.cwd)
+
+      val paths0 = rootOpt
+        .toList
+        .flatMap(root =>
+          paths.map(_.positioned.value)
+            .map(os.Path(_, root))
         )
-      )),
-      Seq.empty
-    )
-  }
+      val virtualPaths = virtualRootOpt.map(virtualRoot =>
+        paths.map(_.positioned.value).map(path => virtualRoot / os.SubPath(path))
+      )
+      warnIfNotExistsPath(paths0, logger)
+
+      ProcessedDirective(
+        Some(BuildOptions(
+          classPathOptions = ClassPathOptions(
+            resourcesDir = paths0,
+            resourcesVirtualDir = virtualPaths.toList.flatten
+          )
+        )),
+        Seq.empty
+      )
+    }
 
   private def warnIfNotExistsPath(paths: Seq[os.Path], logger: Logger): Unit = {
     paths.foreach(path =>
@@ -56,4 +55,5 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
         logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
     )
   }
+
 }

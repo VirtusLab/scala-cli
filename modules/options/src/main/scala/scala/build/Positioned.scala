@@ -20,6 +20,8 @@ final case class Positioned[+T](
       pos0.value
     )
   }
+
+  // override def toString = s"$value at positions ${positions.mkString(", ")}"
 }
 
 object Positioned {
