@@ -706,6 +706,8 @@ trait ScalaCliCompile extends ScalaModule {
     else T.persistent {
       val out = os.pwd / workspaceDirName / ".unused"
 
+      val workspace = T.dest / "workspace"
+      os.makeDir.all(workspace)
       val sourceFiles = allSources()
         .map(_.path)
         .filter(os.exists(_))
@@ -724,6 +726,7 @@ trait ScalaCliCompile extends ScalaModule {
             asOpt(compileClasspath().map(_.path), "--jar"),
             asOpt(scalacPluginClasspath().map(p => s"-Xplugin:${p.path}"), "-O"),
             Seq("--jvm", "zulu:17"),
+            workspace,
             sourceFiles
           )
 
@@ -735,6 +738,33 @@ trait ScalaCliCompile extends ScalaModule {
 
       CompilationResult(out / "unused.txt", PathRef(classFilesDir))
     }
+
+  // Same as https://github.com/com-lihaoyi/mill/blob/084a6650c587629900560b92e3eeb3b836a6f04f/scalalib/src/Lib.scala#L165-L173
+  // but ignoring hidden directories too, and calling os.isFile only after checking the extension
+  private def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
+    def isHiddenFile(path: os.Path) = {
+      val isHidden = path.last.startsWith(".")
+      if (isHidden) {
+        val printable =
+          if (path.startsWith(os.pwd)) path.relativeTo(os.pwd).segments.mkString(File.separator)
+          else path.toString
+        System.err.println(
+          s"Warning: found unexpected hidden file $printable in sources, you may want to remove it."
+        )
+      }
+      isHidden
+    }
+    for {
+      root <- sources
+      if os.exists(root.path)
+      path <-
+        (if (os.isDir(root.path)) os.walk(root.path, skip = isHiddenFile(_)) else Seq(root.path))
+      if extensions.exists(path.ext == _) && os.isFile(path)
+    } yield path
+  }
+  override def allSourceFiles = T {
+    findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
+  }
 }
 
 trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {

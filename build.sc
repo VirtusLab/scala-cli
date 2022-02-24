@@ -223,7 +223,8 @@ class Build(val crossScalaVersion: String)
     else state + "-maybe-stale"
   }
   def constantsFile = T.persistent {
-    val dest = T.dest / "Constants.scala"
+    val dir  = T.dest / "constants"
+    val dest = dir / "Constants.scala"
     val testRunnerMainClass = `test-runner`(Scala.defaultInternal)
       .mainClass()
       .getOrElse(sys.error("No main class defined for test-runner"))
@@ -291,8 +292,8 @@ class Build(val crossScalaVersion: String)
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
-      os.write.over(dest, code)
-    PathRef(dest)
+      os.write.over(dest, code, createFolders = true)
+    PathRef(dir)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
@@ -311,7 +312,8 @@ class Build(val crossScalaVersion: String)
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
     def constantsFile = T.persistent {
-      val dest = T.dest / "Constants2.scala"
+      val dir  = T.dest / "constants"
+      val dest = dir / "Constants2.scala"
       val code =
         s"""package scala.build.tests
            |
@@ -321,8 +323,8 @@ class Build(val crossScalaVersion: String)
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)
-        os.write.over(dest, code)
-      PathRef(dest)
+        os.write.over(dest, code, createFolders = true)
+      PathRef(dir)
     }
 
     // uncomment below to debug tests in attach mode on 5005 port
@@ -432,7 +434,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     }
 
     def constantsFile = T.persistent {
-      val dest = T.dest / "Constants.scala"
+      val dir  = T.dest / "constants"
+      val dest = dir / "Constants.scala"
       val mostlyStaticDockerfile =
         os.rel / ".github" / "scripts" / "docker" / "ScalaCliSlimDockerFile"
       assert(
@@ -461,8 +464,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)
-        os.write.over(dest, code)
-      PathRef(dest)
+        os.write.over(dest, code, createFolders = true)
+      PathRef(dir)
     }
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
@@ -586,7 +589,8 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
   def mainClass = Some("scala.build.blooprifle.BloopRifle")
 
   def constantsFile = T.persistent {
-    val dest = T.dest / "Constants.scala"
+    val dir  = T.dest / "constants"
+    val dest = dir / "Constants.scala"
     val code =
       s"""package scala.build.blooprifle.internal
          |
@@ -598,8 +602,8 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
-      os.write.over(dest, code)
-    PathRef(dest)
+      os.write.over(dest, code, createFolders = true)
+    PathRef(dir)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
