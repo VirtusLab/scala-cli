@@ -23,8 +23,9 @@ object Scala {
   }
 
   // The Scala version used to build the CLI itself.
-  // We should be able to switch to 2.13.x when bumping the scala-native version.
-  def defaultInternal = scala212
+  // We should be able to switch to 3.x when it'll have CPS support
+  // (for the either { value(…) } stuff)
+  def defaultInternal = scala213
 
   // The Scala version used by default to compile user input.
   def defaultUser = scala3
