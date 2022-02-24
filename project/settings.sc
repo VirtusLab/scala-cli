@@ -706,6 +706,8 @@ trait ScalaCliCompile extends ScalaModule {
     else T.persistent {
       val out = os.pwd / workspaceDirName / ".unused"
 
+      val workspace = T.dest / "workspace"
+      os.makeDir.all(workspace)
       val sourceFiles = allSources()
         .map(_.path)
         .filter(os.exists(_))
@@ -724,6 +726,7 @@ trait ScalaCliCompile extends ScalaModule {
             asOpt(compileClasspath().map(_.path), "--jar"),
             asOpt(scalacPluginClasspath().map(p => s"-Xplugin:${p.path}"), "-O"),
             Seq("--jvm", "zulu:17"),
+            workspace,
             sourceFiles
           )
 
