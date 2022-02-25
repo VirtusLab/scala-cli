@@ -129,10 +129,7 @@ final case class Inputs(
   }
 
   private def singleFilesFromDirectory(d: Inputs.Directory): Seq[Inputs.SingleFile] =
-    os.walk.stream(d.path)
-      .filter { p =>
-        !p.relativeTo(d.path).segments.exists(_.startsWith("."))
-      }
+    os.walk.stream(d.path, skip = _.last.startsWith("."))
       .filter(os.isFile(_))
       .collect {
         case p if p.last.endsWith(".java") =>
