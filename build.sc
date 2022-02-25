@@ -773,6 +773,7 @@ private def commitChanges(name: String, branch: String, repoDir: os.Path): Unit 
   if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit"))
     println("Nothing Changes")
   else {
+    os.proc("git", "switch", "-c", branch).call(cwd = repoDir)
     os.proc("git", "add", "-A").call(cwd = repoDir)
     os.proc("git", "commit", "-am", name).call(cwd = repoDir)
     println(s"Trying to push on $branch branch")
@@ -798,8 +799,9 @@ object ci extends Module {
     if (os.exists(scalaCliDir)) os.remove.all(scalaCliDir)
     if (!os.exists(targetDir)) os.makeDir.all(targetDir)
 
-    val branch = "main"
-    val repo   = s"https://oauth2:${ghToken()}@github.com/VirtusLab/scala-cli.git"
+    val branch       = "main"
+    val targetBranch = s"update-standalone-launcher-$version"
+    val repo         = s"https://oauth2:${ghToken()}@github.com/VirtusLab/scala-cli.git"
 
     // Cloning
     gitClone(repo, branch, targetDir)
@@ -820,7 +822,10 @@ object ci extends Module {
       )
     os.write.over(standaloneWindowsLauncherPath, updatedWindowsLauncherScript)
 
-    commitChanges(s"Update scala-cli.sh launcher for $version", branch, scalaCliDir)
+    commitChanges(s"Update scala-cli.sh launcher for $version", targetBranch, scalaCliDir)
+    os.proc("gh", "auth", "login", "--with-token").call(cwd = scalaCliDir, stdin = ghToken())
+    os.proc("gh", "pr", "create", "--fill", "--base", "main", "--head", targetBranch)
+      .call(cwd = scalaCliDir)
   }
   def updateBrewFormula() = T.command {
     val version = cli.publishVersion()
