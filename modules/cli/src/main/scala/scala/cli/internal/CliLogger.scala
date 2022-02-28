@@ -84,7 +84,7 @@ class CliLogger(
             diag.setCode(lines(f.startPos._1))
         }
         ConsoleBloopBuildClient.printFileDiagnostic(
-          out,
+          this,
           f.path,
           diag
         )
@@ -92,7 +92,7 @@ class CliLogger(
 
       if (otherPositions.nonEmpty)
         ConsoleBloopBuildClient.printOtherDiagnostic(
-          out,
+          this,
           message,
           severity,
           otherPositions

@@ -2,7 +2,7 @@ package scala.build
 
 import ch.epfl.scala.bsp4j
 
-import java.io.{File, PrintStream}
+import java.io.File
 import java.net.URI
 import java.nio.file.Paths
 
@@ -13,7 +13,6 @@ import scala.jdk.CollectionConverters._
 
 class ConsoleBloopBuildClient(
   logger: Logger,
-  out: PrintStream,
   keepDiagnostics: Boolean = false,
   generatedSources: mutable.Map[Scope, Seq[GeneratedSource]] = mutable.Map()
 ) extends BloopBuildClient {
@@ -86,7 +85,7 @@ class ConsoleBloopBuildClient(
         .getOrElse((Right(path), diag))
       if (keepDiagnostics)
         diagnostics0 += updatedPath -> updatedDiag
-      ConsoleBloopBuildClient.printFileDiagnostic(out, updatedPath, updatedDiag)
+      ConsoleBloopBuildClient.printFileDiagnostic(logger, updatedPath, updatedDiag)
     }
   }
 
@@ -98,7 +97,7 @@ class ConsoleBloopBuildClient(
       case bsp4j.MessageType.INFORMATION => ""
       case bsp4j.MessageType.LOG         => "" // discard those by default?
     }
-    out.println(prefix + params.getMessage)
+    logger.message(prefix + params.getMessage)
   }
 
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
@@ -114,7 +113,7 @@ class ConsoleBloopBuildClient(
       val msg0 =
         if (params.getDataKind == "compile-task") s"Compiling $projectName"
         else msg
-      out.println(gray + msg0 + reset)
+      logger.message(gray + msg0 + reset)
     }
   }
 
@@ -134,7 +133,7 @@ class ConsoleBloopBuildClient(
               case _                          => s"Compiled $projectName" // ???
             }
           else msg
-        out.println(gray + msg0 + reset)
+        logger.message(gray + msg0 + reset)
       }
   }
 
@@ -158,7 +157,7 @@ object ConsoleBloopBuildClient {
     else s"[${yellow}warn$reset] "
 
   def printFileDiagnostic(
-    out: PrintStream,
+    logger: Logger,
     path: Either[String, os.Path],
     diag: bsp4j.Diagnostic
   ): Unit = {
@@ -177,9 +176,9 @@ object ConsoleBloopBuildClient {
           "." + File.separator + p.relativeTo(Os.pwd).toString
         case Right(p) => p.toString
       }
-      out.println(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
+      logger.message(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       for (line <- msgIt)
-        out.println(prefix + line)
+        logger.message(prefix + line)
       val codeOpt = Option(diag.getCode).orElse {
         val lineOpt =
           if (diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine)
@@ -193,7 +192,7 @@ object ConsoleBloopBuildClient {
         } yield line
       }
       for (code <- codeOpt)
-        code.linesIterator.map(prefix + _).foreach(out.println(_))
+        code.linesIterator.map(prefix + _).foreach(logger.message(_))
       val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
         diag.getRange.getStart.getCharacter != null &&
         diag.getRange.getEnd.getCharacter != null &&
@@ -201,7 +200,7 @@ object ConsoleBloopBuildClient {
       if (canPrintUnderline) {
         val len =
           math.max(1, diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter)
-        out.println(
+        logger.message(
           prefix + " " * diag.getRange.getStart.getCharacter + "^" * len
         )
       }
@@ -209,7 +208,7 @@ object ConsoleBloopBuildClient {
   }
 
   def printOtherDiagnostic(
-    out: PrintStream,
+    logger: Logger,
     message: String,
     severity: Severity,
     positions: Seq[Position]
@@ -218,15 +217,15 @@ object ConsoleBloopBuildClient {
     if (isWarningOrError) {
       val msgIt  = message.linesIterator
       val prefix = diagnosticPrefix(severity == Severity.Error)
-      out.println(prefix + (if (msgIt.hasNext) " " + msgIt.next() else ""))
-      msgIt.foreach(line => out.println(prefix + line))
+      logger.message(prefix + (if (msgIt.hasNext) " " + msgIt.next() else ""))
+      msgIt.foreach(line => logger.message(prefix + line))
 
       positions.foreach {
         case Position.Bloop(bloopJavaPath) =>
           val bloopOutputPrefix = s"[current bloop jvm] "
-          out.println(prefix + bloopOutputPrefix + bloopJavaPath)
-          out.println(prefix + " " * bloopOutputPrefix.length + "^" * bloopJavaPath.length())
-        case pos => out.println(prefix + pos.render())
+          logger.message(prefix + bloopOutputPrefix + bloopJavaPath)
+          logger.message(prefix + " " * bloopOutputPrefix.length + "^" * bloopJavaPath.length())
+        case pos => logger.message(prefix + pos.render())
       }
     }
   }
