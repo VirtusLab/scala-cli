@@ -59,7 +59,7 @@ object Package extends ScalaCommand[PackageOptions] {
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
-            doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+            doPackage(inputs, logger, options.output.filter(_.nonEmpty), force = true, build = s)
               .orReport(logger)
           case _: Build.Failed =>
             System.err.println("Compilation failed")
