@@ -60,11 +60,7 @@ object Build {
       val defaultMainClassOpt = sources.mainClass
         .filter(name => foundMainClasses0.contains(name))
       def foundMainClass =
-        if (foundMainClasses0.isEmpty) {
-          val msg = "No main class found"
-          System.err.println(msg)
-          Left(new NoMainClassFoundError)
-        }
+        if (foundMainClasses0.isEmpty) Left(new NoMainClassFoundError)
         else if (foundMainClasses0.length == 1) Right(foundMainClasses0.head)
         else
           Left(
