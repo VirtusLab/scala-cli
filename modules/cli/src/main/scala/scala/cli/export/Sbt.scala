@@ -39,7 +39,7 @@ final case class Sbt(
 
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
-      sources.inMemory.forall(_._2.last.endsWith(".java")) &&
+      sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
       options.classPathOptions.extraDependencies.toSeq
         .forall(_.value.nameAttributes == NoAttributes)
 

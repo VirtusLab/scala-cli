@@ -320,13 +320,20 @@ object Package extends ScalaCommand[PackageOptions] {
         (relPath, content, lastModified)
     }
 
-    def fromGeneratedSources = build.sources.inMemory.iterator.map {
-      case (Right(path), relPath, _, _) =>
-        val lastModified = os.mtime(path)
-        val content      = os.read.bytes(path)
-        (relPath, content, lastModified)
-      case (Left(_), relPath, content, _) =>
-        (relPath, content.getBytes(StandardCharsets.UTF_8), defaultLastModified)
+    def fromGeneratedSources = build.sources.inMemory.iterator.flatMap { inMemSource =>
+      val lastModified = inMemSource.originalPath match {
+        case Right(origPath) => os.mtime(origPath)
+        case Left(_)         => defaultLastModified
+      }
+      inMemSource.originalPath.toOption.iterator.map { origPath =>
+        val origContent = os.read.bytes(origPath)
+        (???, origContent, lastModified)
+      }
+      Iterator((
+        inMemSource.generatedRelPath,
+        inMemSource.generatedContent.getBytes(StandardCharsets.UTF_8),
+        lastModified
+      ))
     }
 
     def paths = fromSimpleSources ++ fromGeneratedSources

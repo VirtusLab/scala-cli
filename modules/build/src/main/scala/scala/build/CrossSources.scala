@@ -8,7 +8,7 @@ import scala.build.preprocessing._
 
 final case class CrossSources(
   paths: Seq[HasBuildRequirements[(os.Path, os.RelPath)]],
-  inMemory: Seq[HasBuildRequirements[(Either[String, os.Path], os.RelPath, String, Int)]],
+  inMemory: Seq[HasBuildRequirements[Sources.InMemory]],
   mainClass: Option[String],
   resourceDirs: Seq[HasBuildRequirements[os.Path]],
   buildOptions: Seq[HasBuildRequirements[BuildOptions]]
@@ -151,7 +151,7 @@ object CrossSources {
         val baseReqs0 = baseReqs(m.scopePath)
         HasBuildRequirements(
           m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-          (m.reportingPath, m.relPath, m.code, m.ignoreLen)
+          Sources.InMemory(m.originalPath, m.relPath, m.code, m.ignoreLen)
         )
     }
 

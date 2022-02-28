@@ -4,7 +4,7 @@ import scala.build.options.{BuildOptions, HasScope, Scope}
 
 final case class ScopedSources(
   paths: Seq[HasScope[(os.Path, os.RelPath)]],
-  inMemory: Seq[HasScope[(Either[String, os.Path], os.RelPath, String, Int)]],
+  inMemory: Seq[HasScope[Sources.InMemory]],
   mainClass: Option[String],
   resourceDirs: Seq[HasScope[os.Path]],
   buildOptions: Seq[HasScope[BuildOptions]]
