@@ -63,6 +63,8 @@ object Package extends ScalaCommand[PackageOptions] {
               .orReport(logger)
           case _: Build.Failed =>
             System.err.println("Compilation failed")
+          case _: Build.Cancelled =>
+            System.err.println("Build cancelled")
         }
       }
       try WatchUtil.waitForCtrlC()
@@ -86,6 +88,9 @@ object Package extends ScalaCommand[PackageOptions] {
             .orExit(logger)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
+          sys.exit(1)
+        case _: Build.Cancelled =>
+          System.err.println("Build cancelled")
           sys.exit(1)
       }
     }
