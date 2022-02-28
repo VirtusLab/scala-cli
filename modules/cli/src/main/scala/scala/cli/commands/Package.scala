@@ -69,7 +69,8 @@ object Package extends ScalaCommand[PackageOptions] {
               expectedModifyEpochSecondOpt
             )
               .orReport(logger)
-            expectedModifyEpochSecondOpt = mtimeDestPath.flatten
+            for (valueOpt <- mtimeDestPath)
+              expectedModifyEpochSecondOpt = valueOpt
           case _: Build.Failed =>
             System.err.println("Compilation failed")
           case _: Build.Cancelled =>
@@ -170,25 +171,20 @@ object Package extends ScalaCommand[PackageOptions] {
       if (destPath.startsWith(Os.pwd)) "." + File.separator + destPath.relativeTo(Os.pwd).toString
       else destPath.toString
 
-    def alreadyExistsCheck(): Unit =
-      if (!force && os.exists(destPath) && expectedModifyEpochSecondOpt.isEmpty) {
-        System.err.println(
-          s"Error: $printableDest already exists. Pass -f or --force to force erasing it."
-        )
+    def alreadyExistsCheck(): Unit = {
+      val alreadyExists = !force &&
+        os.exists(destPath) &&
+        expectedModifyEpochSecondOpt.forall(exp => os.mtime(destPath) != exp)
+      if (alreadyExists) {
+        val msg =
+          if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
+          else s"$printableDest was overwritten by another process"
+        System.err.println(s"Error: $msg. Pass -f or --force to force erasing it.")
         sys.exit(1)
       }
-
-    def checkAlreadyOverrideDestFile(): Unit =
-      for (mt <- expectedModifyEpochSecondOpt)
-        if (os.mtime(destPath) != mt) {
-          System.err.println(
-            s"Error: $printableDest was overwritten in the meantime. Pass -f or --force to force erasing it."
-          )
-          sys.exit(1)
-        }
+    }
 
     alreadyExistsCheck()
-    checkAlreadyOverrideDestFile()
 
     def mainClass: Either[BuildException, String] =
       build.options.mainClass match {
@@ -298,9 +294,9 @@ object Package extends ScalaCommand[PackageOptions] {
         docker(inputs, build, value(mainClass), logger)
     }
 
-    if (!packageOptions.isDockerEnabled)
+    if (packageType.runnable.nonEmpty)
       logger.message {
-        if (packageType.runnable)
+        if (packageType.runnable.contains(true))
           s"Wrote $dest, run it with" + System.lineSeparator() +
             "  " + printableDest
         else if (packageType == PackageType.Js)
@@ -310,7 +306,7 @@ object Package extends ScalaCommand[PackageOptions] {
           s"Wrote $dest"
       }
 
-    val mTimeDestPathOpt = if (!packageOptions.isDockerEnabled) Some(os.mtime(destPath)) else None
+    val mTimeDestPathOpt = if (packageType.runnable.isEmpty) None else Some(os.mtime(destPath))
     mTimeDestPathOpt
   }
 
