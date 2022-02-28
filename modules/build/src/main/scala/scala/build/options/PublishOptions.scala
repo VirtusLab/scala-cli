@@ -2,6 +2,7 @@ package scala.build.options
 
 import scala.build.Positioned
 import scala.build.errors.{BuildException, MalformedInputError}
+import scala.build.internal.Licenses
 
 final case class PublishOptions(
   organization: Option[Positioned[String]] = None,
@@ -28,7 +29,17 @@ object PublishOptions {
   def parseLicense(input: Positioned[String]): Either[BuildException, Positioned[License]] =
     input.value.split(":", 2) match {
       case Array(name) =>
-        Right(input.map(_ => License(name, "")))
+        Licenses.map.get(name) match {
+          case None =>
+            Left(new MalformedInputError(
+              "license",
+              input.value,
+              "license-id|license-id:url",
+              input.positions
+            ))
+          case Some(license) =>
+            Right(input.map(_ => License(name, license.url)))
+        }
       case Array(name, url) =>
         Right(input.map(_ => License(name, url)))
     }
