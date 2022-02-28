@@ -5,6 +5,7 @@ import caseapp._
 // format: off
 final case class CompileCrossOptions(
   @HelpMessage("Cross-compile sources")
+  @ExtraName("X")
   @Hidden
     cross: Option[Boolean] = None
 )
