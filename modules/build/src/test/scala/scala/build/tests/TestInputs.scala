@@ -58,7 +58,8 @@ final case class TestInputs(
           bloopConfig,
           TestLogger(),
           crossBuilds = false,
-          buildTests = true
+          buildTests = true,
+          partial = None
         )
       f(root, inputs, res.map(_.main))
     }

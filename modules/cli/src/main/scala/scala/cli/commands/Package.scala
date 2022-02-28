@@ -53,8 +53,9 @@ object Package extends ScalaCommand[PackageOptions] {
         bloopRifleConfig,
         logger,
         crossBuilds = cross,
-        postAction = () => WatchUtil.printWatchMessage(),
-        buildTests = false
+        buildTests = false,
+        partial = None,
+        postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
@@ -75,7 +76,8 @@ object Package extends ScalaCommand[PackageOptions] {
           bloopRifleConfig,
           logger,
           crossBuilds = cross,
-          buildTests = false
+          buildTests = false,
+          partial = None
         )
           .orExit(logger)
       builds.main match {
@@ -113,6 +115,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     def extension = packageType match {
       case PackageType.LibraryJar                 => ".jar"
+      case PackageType.SourceJar                  => ".jar"
       case PackageType.Assembly                   => ".jar"
       case PackageType.Js                         => ".js"
       case PackageType.Debian                     => ".deb"
@@ -126,6 +129,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     def defaultName = packageType match {
       case PackageType.LibraryJar                 => "library.jar"
+      case PackageType.SourceJar                  => "source.jar"
       case PackageType.Assembly                   => "app.jar"
       case PackageType.Js                         => "app.js"
       case PackageType.Debian                     => "app.deb"
@@ -174,6 +178,12 @@ object Package extends ScalaCommand[PackageOptions] {
         bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
       case PackageType.LibraryJar =>
         val content = libraryJar(build)
+        alreadyExistsCheck()
+        if (force) os.write.over(destPath, content)
+        else os.write(destPath, content)
+      case PackageType.SourceJar =>
+        val now     = System.currentTimeMillis()
+        val content = sourceJar(build, now)
         alreadyExistsCheck()
         if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
@@ -308,6 +318,7 @@ object Package extends ScalaCommand[PackageOptions] {
     baos.toByteArray
   }
 
+  private val generatedSourcesPrefix = os.rel / "META-INF" / "generated"
   private def sourceJar(build: Build.Successful, defaultLastModified: Long): Array[Byte] = {
 
     val baos                 = new ByteArrayOutputStream
@@ -322,18 +333,21 @@ object Package extends ScalaCommand[PackageOptions] {
 
     def fromGeneratedSources = build.sources.inMemory.iterator.flatMap { inMemSource =>
       val lastModified = inMemSource.originalPath match {
-        case Right(origPath) => os.mtime(origPath)
-        case Left(_)         => defaultLastModified
+        case Right((_, origPath)) => os.mtime(origPath)
+        case Left(_)              => defaultLastModified
       }
-      inMemSource.originalPath.toOption.iterator.map { origPath =>
-        val origContent = os.read.bytes(origPath)
-        (???, origContent, lastModified)
+      val originalOpt = inMemSource.originalPath.toOption.collect {
+        case (subPath, origPath) if subPath != inMemSource.generatedRelPath =>
+          val origContent = os.read.bytes(origPath)
+          (subPath, origContent, lastModified)
       }
-      Iterator((
-        inMemSource.generatedRelPath,
+      val prefix = if (originalOpt.isEmpty) os.rel else generatedSourcesPrefix
+      val generated = (
+        prefix / inMemSource.generatedRelPath,
         inMemSource.generatedContent.getBytes(StandardCharsets.UTF_8),
         lastModified
-      ))
+      )
+      Iterator(generated) ++ originalOpt.iterator
     }
 
     def paths = fromSimpleSources ++ fromGeneratedSources

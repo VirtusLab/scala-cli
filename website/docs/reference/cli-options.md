@@ -656,6 +656,10 @@ Overwrite the destination file, if it exists
 
 Generate a library JAR rather than an executable JAR
 
+#### `--source`
+
+Generate a source JAR rather than an executable JAR
+
 #### `--assembly`
 
 Generate an assembly JAR
