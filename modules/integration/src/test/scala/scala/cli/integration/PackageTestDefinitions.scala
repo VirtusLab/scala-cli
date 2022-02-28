@@ -312,7 +312,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         os.rel / "Tests.test.scala" ->
           """|import utest._ // compilation error, not included test library
              |
-             |object Tests extends TestSuite { 
+             |object Tests extends TestSuite {
              |  val tests = Tests {
              |    test("message") {
              |      assert(1 == 1)
