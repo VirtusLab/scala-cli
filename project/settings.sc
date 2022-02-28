@@ -745,10 +745,17 @@ trait ScalaCliCompile extends ScalaModule {
     }
     PathRef(file)
   }
+  // disable using scala-cli to build scala-cli on unsupported architectures
+  lazy val isUnsupportedArch: Boolean = {
+    val supportedArch = Seq("x86_64", "amd64")
+    val osArch        = sys.props("os.arch").toLowerCase(Locale.ROOT)
+    val isSupported   = supportedArch.exists(osArch.contains(_))
+    !isSupported
+  }
   def compileScalaCli =
     compileScalaCliImpl
   override def compile: T[CompilationResult] =
-    if (isCI) super.compile
+    if (isCI || isUnsupportedArch) super.compile
     else
       compileScalaCli.map(_.path) match {
         case None => super.compile
