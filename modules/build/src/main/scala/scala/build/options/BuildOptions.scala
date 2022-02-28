@@ -8,7 +8,6 @@ import dependency._
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
-import java.nio.file.Path
 import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
@@ -125,12 +124,12 @@ final case class BuildOptions(
       javaOptions.javacPluginDependencies
   }
 
-  def allExtraJars: Seq[Path] =
-    classPathOptions.extraClassPath.map(_.toNIO)
-  def allExtraCompileOnlyJars: Seq[Path] =
-    classPathOptions.extraCompileOnlyJars.map(_.toNIO)
-  def allExtraSourceJars: Seq[Path] =
-    classPathOptions.extraSourceJars.map(_.toNIO)
+  def allExtraJars: Seq[os.Path] =
+    classPathOptions.extraClassPath
+  def allExtraCompileOnlyJars: Seq[os.Path] =
+    classPathOptions.extraCompileOnlyJars
+  def allExtraSourceJars: Seq[os.Path] =
+    classPathOptions.extraSourceJars
 
   private def addJvmTestRunner: Boolean =
     platform.value == Platform.JVM &&
@@ -527,7 +526,7 @@ final case class BuildOptions(
       params = value(scalaParams),
       compilerPlugins = value(compilerPlugins),
       javacPluginDependencies = value(javacPluginDependencies),
-      extraJavacPlugins = javaOptions.javacPlugins.map(_.value.toNIO),
+      extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
       dependencies = value(dependencies),
       extraClassPath = allExtraJars,
       scalaNativeCliVersion =

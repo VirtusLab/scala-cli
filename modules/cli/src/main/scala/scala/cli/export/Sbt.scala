@@ -246,7 +246,7 @@ final case class Sbt(
   private def testFrameworkSettings(options: BuildOptions): SbtProject = {
 
     val testClassPath: Seq[Path] = options.artifacts(logger) match {
-      case Right(artifacts) => artifacts.classPath
+      case Right(artifacts) => artifacts.classPath.map(_.toNIO)
       case Left(exception) =>
         logger.debug(exception.message)
         Seq.empty

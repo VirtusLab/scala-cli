@@ -139,7 +139,7 @@ final case class Mill(
   private def testFrameworkSettings(options: BuildOptions): MillProject = {
 
     val testClassPath: Seq[Path] = options.artifacts(logger) match {
-      case Right(artifacts) => artifacts.classPath
+      case Right(artifacts) => artifacts.classPath.map(_.toNIO)
       case Left(exception) =>
         logger.debug(exception.message)
         Seq.empty

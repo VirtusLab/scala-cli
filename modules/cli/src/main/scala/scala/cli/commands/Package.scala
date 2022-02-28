@@ -461,11 +461,9 @@ object Package extends ScalaCommand[PackageOptions] {
 
     def dependencyEntries =
       build.artifacts.artifacts.map {
-        case (url, artifactPath) =>
-          if (build.options.notForBloopOptions.packageOptions.isStandalone) {
-            val path = os.Path(artifactPath)
+        case (url, path) =>
+          if (build.options.notForBloopOptions.packageOptions.isStandalone)
             ClassPathEntry.Resource(path.last, os.mtime(path), os.read.bytes(path))
-          }
           else
             ClassPathEntry.Url(url)
       }
@@ -508,7 +506,7 @@ object Package extends ScalaCommand[PackageOptions] {
       .callsItself(Properties.isWin)
     val params = Parameters.Assembly()
       .withExtraZipEntries(byteCodeZipEntries)
-      .withFiles(build.artifacts.artifacts.map(_._2.toFile))
+      .withFiles(build.artifacts.artifacts.map(_._2.toIO))
       .withMainClass(mainClass)
       .withPreamble(preamble)
     alreadyExistsCheck()
@@ -549,7 +547,7 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger
   ): Either[BuildException, Unit] =
     withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
-      val classPath  = mainJar +: build.artifacts.classPath
+      val classPath  = mainJar +: build.artifacts.classPath.map(_.toNIO)
       val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
       (new ScalaJsLinker).link(
         classPath.toArray,
@@ -612,7 +610,7 @@ object Package extends ScalaCommand[PackageOptions] {
           Runner.runJvm(
             build.options.javaHome().value.javaCommand,
             build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            build.artifacts.scalaNativeCli.map(_.toFile),
+            build.artifacts.scalaNativeCli.map(_.toIO),
             "scala.scalanative.cli.ScalaNativeLd",
             args,
             logger

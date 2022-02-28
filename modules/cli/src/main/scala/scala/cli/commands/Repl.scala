@@ -180,7 +180,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       Runner.runJvm(
         options.javaHome().value.javaCommand,
         replArtifacts.replJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
-        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toFile),
+        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toIO),
         replArtifacts.replMainClass,
         if (Properties.isWin)
           options.notForBloopOptions.replOptions.ammoniteArgs.map { a =>

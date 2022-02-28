@@ -7,8 +7,6 @@ import coursier.util.Task
 import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUtil}
 import dependency._
 
-import java.nio.file.Path
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{
@@ -25,19 +23,19 @@ import scala.build.internal.Util.ScalaDependencyOps
 
 final case class Artifacts(
   compilerDependencies: Seq[AnyDependency],
-  compilerArtifacts: Seq[(String, Path)],
-  compilerPlugins: Seq[(AnyDependency, String, Path)],
-  javacPluginDependencies: Seq[(AnyDependency, String, Path)],
-  extraJavacPlugins: Seq[Path],
+  compilerArtifacts: Seq[(String, os.Path)],
+  compilerPlugins: Seq[(AnyDependency, String, os.Path)],
+  javacPluginDependencies: Seq[(AnyDependency, String, os.Path)],
+  extraJavacPlugins: Seq[os.Path],
   dependencies: Seq[AnyDependency],
-  scalaNativeCli: Seq[Path],
-  detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, Path)],
-  extraClassPath: Seq[Path],
-  extraCompileOnlyJars: Seq[Path],
-  extraSourceJars: Seq[Path],
+  scalaNativeCli: Seq[os.Path],
+  detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)],
+  extraClassPath: Seq[os.Path],
+  extraCompileOnlyJars: Seq[os.Path],
+  extraSourceJars: Seq[os.Path],
   params: ScalaParameters
 ) {
-  lazy val artifacts: Seq[(String, Path)] =
+  lazy val artifacts: Seq[(String, os.Path)] =
     detailedArtifacts
       .iterator
       .collect {
@@ -45,7 +43,7 @@ final case class Artifacts(
           (a.url, f)
       }
       .toVector
-  lazy val sourceArtifacts: Seq[(String, Path)] =
+  lazy val sourceArtifacts: Seq[(String, os.Path)] =
     detailedArtifacts
       .iterator
       .collect {
@@ -53,13 +51,13 @@ final case class Artifacts(
           (a.url, f)
       }
       .toVector
-  lazy val compilerClassPath: Seq[Path] =
+  lazy val compilerClassPath: Seq[os.Path] =
     compilerArtifacts.map(_._2)
-  lazy val classPath: Seq[Path] =
+  lazy val classPath: Seq[os.Path] =
     artifacts.map(_._2) ++ extraClassPath
-  lazy val compileClassPath: Seq[Path] =
+  lazy val compileClassPath: Seq[os.Path] =
     artifacts.map(_._2) ++ extraClassPath ++ extraCompileOnlyJars
-  lazy val sourcePath: Seq[Path] =
+  lazy val sourcePath: Seq[os.Path] =
     sourceArtifacts.map(_._2) ++ extraSourceJars
 }
 
@@ -69,11 +67,11 @@ object Artifacts {
     params: ScalaParameters,
     compilerPlugins: Seq[Positioned[AnyDependency]],
     javacPluginDependencies: Seq[Positioned[AnyDependency]],
-    extraJavacPlugins: Seq[Path],
+    extraJavacPlugins: Seq[os.Path],
     dependencies: Seq[Positioned[AnyDependency]],
-    extraClassPath: Seq[Path],
-    extraCompileOnlyJars: Seq[Path],
-    extraSourceJars: Seq[Path],
+    extraClassPath: Seq[os.Path],
+    extraCompileOnlyJars: Seq[os.Path],
+    extraSourceJars: Seq[os.Path],
     fetchSources: Boolean,
     addStubs: Boolean,
     addJvmRunner: Option[Boolean],
@@ -223,7 +221,7 @@ object Artifacts {
 
     val scalaNativeCli = fetchedScalaNativeCli.toSeq.flatMap { fetched =>
       fetched.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) =>
-        f.toPath
+        os.Path(f, Os.pwd)
       }
     }
 
@@ -279,7 +277,9 @@ object Artifacts {
       extraJavacPlugins,
       updatedDependencies.map(_.value),
       scalaNativeCli,
-      fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) => (d, p, a, f.toPath) },
+      fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) =>
+        (d, p, a, os.Path(f, Os.pwd))
+      },
       extraClassPath ++ extraStubsJars,
       extraCompileOnlyJars,
       extraSourceJars,
@@ -294,12 +294,12 @@ object Artifacts {
     logger: Logger,
     cache: FileCache[Task],
     classifiersOpt: Option[Set[String]] = None
-  ): Either[BuildException, Seq[(String, Path)]] = either {
+  ): Either[BuildException, Seq[(String, os.Path)]] = either {
     val res = value(fetch(dependencies, extraRepositories, params, logger, cache, classifiersOpt))
     val result = res
       .artifacts
       .iterator
-      .map { case (a, f) => (a.url, f.toPath) }
+      .map { case (a, f) => (a.url, os.Path(f, Os.pwd)) }
       .toList
     logger.debug {
       val elems = Seq(s"Found ${result.length} artifacts:") ++

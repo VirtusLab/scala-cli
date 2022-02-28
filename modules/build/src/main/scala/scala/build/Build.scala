@@ -51,7 +51,7 @@ object Build {
     def successfulOpt: Some[this.type] = Some(this)
     def outputOpt: Some[os.Path]       = Some(output)
     def fullClassPath: Seq[Path] =
-      Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
+      Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath.map(_.toNIO)
     def foundMainClasses(): Seq[String] =
       MainClass.find(output)
     def retainedMainClass: Either[MainClassError, String] = {
@@ -595,7 +595,7 @@ object Build {
 
     val pluginScalacOptions = artifacts.compilerPlugins.distinct.map {
       case (_, _, path) =>
-        s"-Xplugin:${path.toAbsolutePath}"
+        s"-Xplugin:$path"
     }
 
     val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
@@ -672,7 +672,7 @@ object Build {
     // `test` scope should contains class path to main scope
     val mainClassesPath =
       if (scope == Scope.Test)
-        List(classesDir(inputs.workspace, inputs.projectName, Scope.Main).toNIO)
+        List(classesDir(inputs.workspace, inputs.projectName, Scope.Main))
       else Nil
 
     value(validate(logger, options))

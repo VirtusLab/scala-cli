@@ -1028,7 +1028,7 @@ class BuildTests extends munit.FunSuite {
     inputs.withBuild(baseOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       expect(maybeBuild.exists(_.success))
       val build = maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
-      val cp    = build.artifacts.classPath.map(_.getFileName.toString)
+      val cp    = build.artifacts.classPath.map(_.last)
 
       val scalaLibraryJarNameOpt =
         cp.find(n => n.startsWith("scala-library-") && n.endsWith(".jar"))
@@ -1058,7 +1058,7 @@ class BuildTests extends munit.FunSuite {
     inputs.withBuild(baseOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       expect(maybeBuild.exists(_.success))
       val build = maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
-      val cp    = build.artifacts.classPath.map(_.getFileName.toString)
+      val cp    = build.artifacts.classPath.map(_.last)
 
       val scalaLibraryJarNameOpt =
         cp.find(n => n.startsWith("scala3-library_3-") && n.endsWith(".jar"))
