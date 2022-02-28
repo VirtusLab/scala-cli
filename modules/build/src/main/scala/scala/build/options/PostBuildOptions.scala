@@ -2,7 +2,8 @@ package scala.build.options
 
 final case class PostBuildOptions(
   packageOptions: PackageOptions = PackageOptions(),
-  replOptions: ReplOptions = ReplOptions()
+  replOptions: ReplOptions = ReplOptions(),
+  publishOptions: PublishOptions = PublishOptions()
 )
 
 object PostBuildOptions {

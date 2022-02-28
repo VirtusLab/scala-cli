@@ -291,13 +291,16 @@ object Package extends ScalaCommand[PackageOptions] {
       }
   }
 
-  private def libraryJar(build: Build.Successful): Array[Byte] = {
+  def libraryJar(
+    build: Build.Successful,
+    mainClassOpt: Option[String] = None
+  ): Array[Byte] = {
 
     val baos = new ByteArrayOutputStream
 
     val manifest = new java.util.jar.Manifest
     manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
-    for (mainClass <- build.sources.mainClass)
+    for (mainClass <- mainClassOpt.orElse(build.sources.mainClass) if mainClass.nonEmpty)
       manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
 
     var zos: ZipOutputStream = null
@@ -324,7 +327,7 @@ object Package extends ScalaCommand[PackageOptions] {
   }
 
   private val generatedSourcesPrefix = os.rel / "META-INF" / "generated"
-  private def sourceJar(build: Build.Successful, defaultLastModified: Long): Array[Byte] = {
+  def sourceJar(build: Build.Successful, defaultLastModified: Long): Array[Byte] = {
 
     val baos                 = new ByteArrayOutputStream
     var zos: ZipOutputStream = null

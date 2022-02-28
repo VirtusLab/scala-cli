@@ -136,7 +136,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         ReplArtifacts.ammonite(
           artifacts.params,
           options.notForBloopOptions.replOptions.ammoniteVersion,
-          artifacts.dependencies,
+          artifacts.userDependencies,
           artifacts.extraClassPath,
           artifacts.extraSourceJars,
           logger,
@@ -146,7 +146,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       else
         ReplArtifacts.default(
           artifacts.params,
-          artifacts.dependencies,
+          artifacts.userDependencies,
           artifacts.extraClassPath,
           logger,
           cache,

@@ -27,7 +27,8 @@ final case class Artifacts(
   compilerPlugins: Seq[(AnyDependency, String, os.Path)],
   javacPluginDependencies: Seq[(AnyDependency, String, os.Path)],
   extraJavacPlugins: Seq[os.Path],
-  dependencies: Seq[AnyDependency],
+  userDependencies: Seq[AnyDependency],
+  internalDependencies: Seq[AnyDependency],
   scalaNativeCli: Seq[os.Path],
   detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)],
   extraClassPath: Seq[os.Path],
@@ -150,13 +151,13 @@ object Artifacts {
       else baseRepos
     }
 
-    val updatedDependencies =
-      dependencies ++
-        jvmRunnerDependencies.map(Positioned.none(_)) ++
+    val internalDependencies =
+      jvmRunnerDependencies.map(Positioned.none(_)) ++
         jvmTestRunnerDependencies.map(Positioned.none(_)) ++
         jsTestBridgeDependencies.map(Positioned.none(_)) ++
         nativeTestInterfaceDependencies.map(Positioned.none(_)) ++
         jmhDependencies.map(Positioned.none(_))
+    val updatedDependencies = dependencies ++ internalDependencies
 
     val updatedDependenciesMessage = {
       val b           = new StringBuilder("Downloading ")
@@ -275,7 +276,8 @@ object Artifacts {
       compilerPlugins0,
       javacPlugins0,
       extraJavacPlugins,
-      updatedDependencies.map(_.value),
+      dependencies.map(_.value),
+      internalDependencies.map(_.value),
       scalaNativeCli,
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) =>
         (d, p, a, os.Path(f, Os.pwd))
