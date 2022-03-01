@@ -69,7 +69,7 @@ object Deps {
   def dataClass                  = ivy"io.github.alexarchambault::data-class:0.2.5"
   def dependency                 = ivy"io.get-coursier::dependency:0.2.0"
   def expecty                    = ivy"com.eed3si9n.expecty::expecty:0.15.4"
-  def guava                      = ivy"com.google.guava:guava:31.0.1-jre"
+  def guava                      = ivy"com.google.guava:guava:31.1-jre"
   def jimfs                      = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils                   = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def libdaemonjvm               = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.9"
