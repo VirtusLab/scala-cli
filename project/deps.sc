@@ -96,7 +96,7 @@ object Deps {
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
-  def shapeless                = ivy"com.chuusai::shapeless:2.3.7"
+  def shapeless                = ivy"com.chuusai::shapeless:2.3.8"
   def slf4jNop                 = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   def snailgun                 = ivy"me.vican.jorge::snailgun-core:0.4.0"
   def svm                      = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
