@@ -101,7 +101,7 @@ object Deps {
   def snailgun                 = ivy"me.vican.jorge::snailgun-core:0.4.0"
   def svm                      = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def svmSubs                  = ivy"org.scalameta::svm-subs:20.2.0"
-  def swoval                   = ivy"com.swoval:file-tree-views:2.1.7"
+  def swoval                   = ivy"com.swoval:file-tree-views:2.1.8"
   def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
   def upickle                  = ivy"com.lihaoyi::upickle:1.4.3"
   def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"
