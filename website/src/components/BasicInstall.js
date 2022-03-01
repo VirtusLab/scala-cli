@@ -41,6 +41,7 @@ export default function BasicInstall(props){
             <p>Add the <a href="https://github.com/VirtusLab/scala-cli-setup">scala-cli-setup</a> action to your workflow:</p>
             <code>
               steps:
+                - uses: coursier/cache-action@v6
                 - uses: VirtusLab/scala-cli-setup@main
             </code>
           </TabItem>
