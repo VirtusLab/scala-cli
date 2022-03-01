@@ -13,21 +13,22 @@ case object CustomCodeWrapper extends CodeWrapper {
   ) = {
     val name = mainClassObject(indexedWrapperName).backticked
     // We need to call hashCode (or any other method so compiler does not report a warning)
-    val mainObjectCode = AmmUtil.normalizeNewlines(s"""|object $name {
-                                                       |  private var args$$opt0 = Option.empty[Array[String]]
-                                                       |  def args$$set(args: Array[String]): Unit = {
-                                                       |    args$$opt0 = Some(args)
-                                                       |  }
-                                                       |  def args$$opt: Option[Array[String]] = args$$opt0
-                                                       |  def args$$: Array[String] = args$$opt.getOrElse {
-                                                       |    sys.error("No arguments passed to this script")
-                                                       |  }
-                                                       |  def main(args: Array[String]): Unit = {
-                                                       |    args$$set(args)
-                                                       |    ${indexedWrapperName.backticked}.hashCode() // hasCode to clear scalac warning about pure expression in statement position
-                                                       |  }
-                                                       |}
-                                                       |""".stripMargin)
+    val mainObjectCode =
+      AmmUtil.normalizeNewlines(s"""|object $name {
+                                    |  private var args$$opt0 = Option.empty[Array[String]]
+                                    |  def args$$set(args: Array[String]): Unit = {
+                                    |    args$$opt0 = Some(args)
+                                    |  }
+                                    |  def args$$opt: Option[Array[String]] = args$$opt0
+                                    |  def args$$: Array[String] = args$$opt.getOrElse {
+                                    |    sys.error("No arguments passed to this script")
+                                    |  }
+                                    |  def main(args: Array[String]): Unit = {
+                                    |    args$$set(args)
+                                    |    ${indexedWrapperName.backticked}.hashCode() // hasCode to clear scalac warning about pure expression in statement position
+                                    |  }
+                                    |}
+                                    |""".stripMargin)
 
     val packageDirective =
       if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
