@@ -98,6 +98,7 @@ final class BspImpl(
         sourcesMain,
         generatedSourcesMain,
         options0Main,
+        None,
         Scope.Main,
         persistentLogger
       )
@@ -110,6 +111,7 @@ final class BspImpl(
         sourcesTest,
         generatedSourcesTest,
         options0Test,
+        None,
         Scope.Test,
         persistentLogger
       )

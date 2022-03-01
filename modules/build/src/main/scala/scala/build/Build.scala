@@ -565,19 +565,19 @@ object Build {
 
   def releaseFlag(
     options: BuildOptions,
+    compilerJvmVersionOpt: Option[Positioned[Int]],
     logger: Logger
   ): Option[Int] = {
-    val bloopJvmV = options.javaOptions.bloopJvmVersion
-    val javaHome  = options.javaHome()
-    if (bloopJvmV.exists(javaHome.value.version > _.value)) {
+    lazy val javaHome = options.javaHome()
+    if (compilerJvmVersionOpt.exists(javaHome.value.version > _.value)) {
       logger.log(List(Diagnostic(
         Diagnostic.Messages.bloopTooOld,
         Severity.Warning,
-        javaHome.positions ++ bloopJvmV.map(_.positions).getOrElse(Nil)
+        javaHome.positions ++ compilerJvmVersionOpt.map(_.positions).getOrElse(Nil)
       )))
       None
     }
-    else if (options.javaOptions.bloopJvmVersion.exists(_.value == 8))
+    else if (compilerJvmVersionOpt.exists(_.value == 8))
       None
     else if (
       options.scalaOptions.scalacOptions.values.exists(
@@ -594,6 +594,7 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
+    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     logger: Logger
   ): Either[BuildException, Project] = either {
@@ -659,7 +660,7 @@ object Build {
         Seq("-scalajs")
       else Nil
 
-    val releaseFlagVersion = releaseFlag(options, logger).map(_.toString)
+    val releaseFlagVersion = releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
     val scalacReleaseV = releaseFlagVersion.map(v => List("-release", v)).getOrElse(Nil)
     val javacReleaseV  = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
@@ -723,6 +724,7 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
+    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     logger: Logger
   ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
@@ -735,7 +737,17 @@ object Build {
 
     value(validate(logger, options))
 
-    val project = value(buildProject(inputs, sources, generatedSources, options, scope, logger))
+    val project = value {
+      buildProject(
+        inputs,
+        sources,
+        generatedSources,
+        options,
+        compilerJvmVersionOpt,
+        scope,
+        logger
+      )
+    }
 
     val updatedBloopConfig = project.writeBloopFile(
       options.internal.strictBloopJsonCheck.getOrElse(defaultStrictBloopJsonCheck),
@@ -761,21 +773,13 @@ object Build {
     inputs: Inputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
-    options0: BuildOptions,
+    options: BuildOptions,
     scope: Scope,
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
     partialOpt: Option[Boolean]
   ): Either[BuildException, Build] = either {
-    val options = options0.copy(
-      javaOptions = options0.javaOptions.copy(
-        bloopJvmVersion = Some(Positioned(
-          List(Position.Bloop(bloopServer.bloopInfo.javaHome)),
-          bloopServer.bloopInfo.jvmVersion
-        ))
-      )
-    )
 
     if (options.platform.value == Platform.Native)
       value(scalaNativeSupported(options, inputs)) match {
@@ -784,11 +788,16 @@ object Build {
       }
 
     val (classesDir0, scalaParams, artifacts, project, updatedBloopConfig) = value {
+      val bloopJvmVersion = Positioned(
+        List(Position.Bloop(bloopServer.bloopInfo.javaHome)),
+        bloopServer.bloopInfo.jvmVersion
+      )
       prepareBuild(
         inputs,
         sources,
         generatedSources,
         options,
+        Some(bloopJvmVersion),
         scope,
         logger
       )
