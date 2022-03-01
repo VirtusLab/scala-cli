@@ -62,7 +62,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
-        root).out.text().trim
+        root
+      ).out.text().trim
       expect(output.linesIterator.toSeq.last == message)
     }
   }
@@ -203,7 +204,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc").call(cwd =
-        root).out.text().trim
+        root
+      ).out.text().trim
       expect(output == message)
     }
   }
@@ -224,7 +226,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--js").call(cwd =
-        root).out.text().trim
+        root
+      ).out.text().trim
       expect(output == message)
     }
   }
@@ -279,7 +282,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", "print_sc").call(cwd =
-        root).out.text().trim
+        root
+      ).out.text().trim
       expect(output == message)
     }
   }
@@ -1165,7 +1169,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("resources") {
     resourcesInputs().fromRoot { root =>
       os.proc(TestUtil.cli, "run", "src", "--resource-dirs", "./src/proj/resources").call(cwd =
-        root)
+        root
+      )
     }
   }
   test("resources via directive") {

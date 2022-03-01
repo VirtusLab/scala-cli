@@ -39,7 +39,7 @@ object ProcUtil {
         inputStream.readAllBytes()
       }
       finally if (inputStream != null)
-        inputStream.close()
+          inputStream.close()
     new String(data, StandardCharsets.UTF_8)
   }
 
