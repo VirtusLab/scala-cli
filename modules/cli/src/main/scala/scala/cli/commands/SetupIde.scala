@@ -99,7 +99,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       inputs.workspace / Constants.workspaceDirName / "ide-options.json"
 
     // Ensure the path to the CLI is absolute
-    val absolutePathToScalaCli: String = {
+    val absolutePathToScalaCli: String =
       if (progName.contains(File.separator))
         os.Path(progName, Os.pwd).toString
       else
@@ -118,7 +118,6 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
             ).toOption
           }
           .getOrElse(progName)
-    }
 
     val inputArgs = inputs.elements.collect {
       case d: Inputs.OnDisk =>

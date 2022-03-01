@@ -73,7 +73,7 @@ object CrossSources {
         case Inputs.Directory(path) =>
           // Is this file subdirectory of given dir and if we have a subdiretory 'test' on the way
           fullPath.startsWith(path) &&
-            fullPath.relativeTo(path).segments.contains("test")
+          fullPath.relativeTo(path).segments.contains("test")
         case _ => false
       }
     }

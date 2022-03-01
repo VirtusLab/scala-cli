@@ -254,7 +254,9 @@ class Build(val crossScalaVersion: String)
          |  def stubsModuleName = "${stubs.artifactName()}"
          |  def stubsVersion = "${stubs.publishVersion()}"
          |
-         |  def testRunnerOrganization = "${`test-runner`(Scala.defaultInternal).pomSettings().organization}"
+         |  def testRunnerOrganization = "${`test-runner`(
+          Scala.defaultInternal
+        ).pomSettings().organization}"
          |  def testRunnerModuleName = "${`test-runner`(Scala.defaultInternal).artifactName()}"
          |  def testRunnerVersion = "${`test-runner`(Scala.defaultInternal).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"

@@ -178,11 +178,10 @@ class CliLogger(
       def error(msg: String)    = logger.message(msg)
     }
 
-  val scalaNativeCliInternalLoggerOptions: List[String] = {
+  val scalaNativeCliInternalLoggerOptions: List[String] =
     if (verbosity >= 1) List("-v", "-v", "-v") // debug
     else if (verbosity >= 0) List("-v", "-v")  // info
     else List()                                // error
-  }
 
   // Allow to disable that?
   def compilerOutputStream = out

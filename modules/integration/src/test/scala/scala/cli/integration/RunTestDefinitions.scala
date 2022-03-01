@@ -1419,7 +1419,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |apt install -y sudo
            |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee output-root
            |sudo -u test ./scala clean $fileName
-           |sudo -u test ./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee output-user
+           |sudo -u test ./scala ${extraOptions.mkString(
+            " "
+          ) /* meh escaping */} $fileName | tee output-user
            |""".stripMargin
       os.write(root / "script.sh", script)
       os.perms.set(root / "script.sh", "rwxr-xr-x")
