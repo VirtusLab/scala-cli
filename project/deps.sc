@@ -67,7 +67,7 @@ object Deps {
   def coursierJvm                = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
   def coursierLauncher           = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
   def dataClass                  = ivy"io.github.alexarchambault::data-class:0.2.5"
-  def dependency                 = ivy"io.get-coursier::dependency:0.2.0"
+  def dependency                 = ivy"io.get-coursier::dependency:0.2.1"
   def expecty                    = ivy"com.eed3si9n.expecty::expecty:0.15.4"
   def guava                      = ivy"com.google.guava:guava:31.0.1-jre"
   def jimfs                      = ivy"com.google.jimfs:jimfs:1.2"
