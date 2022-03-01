@@ -757,24 +757,6 @@ class BuildTests extends munit.FunSuite {
     }
   }
 
-  test("ScalaNativeOptions for native-linking and no value") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-linking`
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions.isEmpty)
-    }
-  }
-
   test("Scala Native working with Scala 3.1") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
