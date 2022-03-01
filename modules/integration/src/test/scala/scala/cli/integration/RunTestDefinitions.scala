@@ -820,7 +820,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     // format: off
     val cmd = Seq[os.Shellable](
       TestUtil.cs, "fetch",
-      "--intransitive", "com.chuusai::shapeless:2.3.7",
+      "--intransitive", "com.chuusai::shapeless:2.3.8",
       "--scala", actualScalaVersion
     )
     // format: on
