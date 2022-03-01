@@ -130,9 +130,10 @@ object Build {
     val testOptionsHash = testOptions.flatMap(_.hash)
 
     inputs.copy(
-      baseProjectName = inputs.baseProjectName
-        + optionsHash.map("_" + _).getOrElse("")
-        + testOptionsHash.map("_" + _).getOrElse("")
+      baseProjectName =
+        inputs.baseProjectName
+          + optionsHash.map("_" + _).getOrElse("")
+          + testOptionsHash.map("_" + _).getOrElse("")
     )
   }
 

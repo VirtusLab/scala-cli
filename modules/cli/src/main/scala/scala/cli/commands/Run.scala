@@ -216,8 +216,8 @@ object Run extends ScalaCommand[RunOptions] {
   )(f: os.Path => T): Either[BuildException, T] = {
     val dest = os.temp(prefix = "main", suffix = ".js")
     try Package.linkJs(build, dest, mainClassOpt, addTestInitializer, config, logger).map { _ =>
-      f(dest)
-    }
+        f(dest)
+      }
     finally if (os.exists(dest)) os.remove(dest)
   }
 

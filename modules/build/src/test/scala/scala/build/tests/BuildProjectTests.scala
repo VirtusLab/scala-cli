@@ -152,7 +152,8 @@ class BuildProjectTests extends munit.FunSuite {
     val workspacePath = os.pwd
     val options = BuildOptions(
       internal = InternalOptions(localRepository =
-        LocalRepo.localRepo(scala.build.Directories.default().localRepoDir))
+        LocalRepo.localRepo(scala.build.Directories.default().localRepoDir)
+      )
     )
     val inputs  = Inputs(Nil, None, workspacePath, "project", false, None)
     val sources = Sources(Nil, Nil, None, Nil, options)

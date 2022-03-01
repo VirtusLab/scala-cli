@@ -326,9 +326,9 @@ final case class BuildOptions(
       def moduleVersions(mod: Module): Seq[String] = {
         val res = finalCache.logger.use {
           try Versions(finalCache)
-            .withModule(mod)
-            .result()
-            .unsafeRun()(finalCache.ec)
+              .withModule(mod)
+              .result()
+              .unsafeRun()(finalCache.ec)
           catch {
             case NonFatal(e) => throw new Exception(e)
           }
