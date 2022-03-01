@@ -53,16 +53,16 @@ object Deps {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier = "2.1.0-M5"
 
-    def scalaJs       = "1.8.0"
+    def scalaJs       = "1.9.0"
     def scalaMeta     = "4.4.33"
     def scalaNative   = "0.4.3"
     def scalaPackager = "0.1.26"
   }
-  def ammonite                   = ivy"com.lihaoyi:::ammonite:2.5.1-6-5fce97fb"
+  def ammonite                   = ivy"com.lihaoyi:::ammonite:2.5.1-7-cd989427"
   def asm                        = ivy"org.ow2.asm:asm:9.2"
   def bloopConfig                = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19"
   def bsp4j                      = ivy"ch.epfl.scala:bsp4j:2.0.0"
-  def caseApp                    = ivy"com.github.alexarchambault::case-app:2.1.0-M12"
+  def caseApp                    = ivy"com.github.alexarchambault::case-app:2.1.0-M13"
   def collectionCompat           = ivy"org.scala-lang.modules::scala-collection-compat:2.6.0"
   def coursierJvm                = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
   def coursierLauncher           = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
@@ -85,7 +85,7 @@ object Deps {
   def scalaAsync               = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String)       = ivy"org.scala-lang:scala-compiler:$sv"
   def scalafmtCli              = ivy"org.scalameta::scalafmt-cli:3.0.8"
-  def scalaJsEnvNodeJs         = ivy"org.scala-js::scalajs-env-nodejs:1.2.1"
+  def scalaJsEnvNodeJs         = ivy"org.scala-js::scalajs-env-nodejs:1.3.0"
   def scalaJsLinker            = ivy"org.scala-js::scalajs-linker:${Versions.scalaJs}"
   def scalaJsLinkerInterface   = ivy"org.scala-js::scalajs-linker-interface:${Versions.scalaJs}"
   def scalaJsTestAdapter       = ivy"org.scala-js::scalajs-sbt-test-adapter:${Versions.scalaJs}"
@@ -103,7 +103,7 @@ object Deps {
   def svmSubs                  = ivy"org.scalameta::svm-subs:20.2.0"
   def swoval                   = ivy"com.swoval:file-tree-views:2.1.7"
   def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
-  def upickle                  = ivy"com.lihaoyi::upickle:1.4.3"
+  def upickle                  = ivy"com.lihaoyi::upickle:1.4.4"
   def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"
   val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.9.15"
 }

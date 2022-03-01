@@ -91,7 +91,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output =
         os.proc(TestUtil.cli, "compile", "--test", "--class-path", extraOptions, ".").call(cwd =
-          root).out.text().trim
+          root
+        ).out.text().trim
       val classPath = output.split(File.pathSeparator).map(_.trim).filter(_.nonEmpty)
       val isDefinedTestPathInClassPath = // expected test class path - root / Constants.workspaceDirName / project_(hash) / classes / test
         classPath.exists(p =>
