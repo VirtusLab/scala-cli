@@ -105,7 +105,7 @@ object Deps {
   def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
   def upickle                  = ivy"com.lihaoyi::upickle:1.4.3"
   def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"
-  val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.9.15"
+  val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.9.16"
 }
 
 private def graalVmVersion = "22.0.0"
