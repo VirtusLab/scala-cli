@@ -313,6 +313,13 @@ Print `scala-cli` version
 Accepts options:
 - [verbosity](./cli-options.md#verbosity-options)
 
+## `doctor`
+
+Print details about this application
+
+Accepts options:
+- [verbosity](./cli-options.md#verbosity-options)
+
 ## Hidden commands
 
 ### `add-path`

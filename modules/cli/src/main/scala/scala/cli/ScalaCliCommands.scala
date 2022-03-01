@@ -37,7 +37,8 @@ class ScalaCliCommands(
     Shebang,
     Test,
     Update,
-    Version
+    Version,
+    Doctor
   )
 
   def commands = allCommands.filter(c => !isSipScala || c.inSipScala)
