@@ -579,7 +579,11 @@ object Build {
     }
     else if (options.javaOptions.bloopJvmVersion.exists(_.value == 8))
       None
-    else if (options.scalaOptions.scalacOptions.toSeq.exists(_.value.value == "-release"))
+    else if (
+      options.scalaOptions.scalacOptions.values.exists(
+        _.headOption.exists(_.value.value == "-release")
+      )
+    )
       None
     else
       Some(javaHome.value.version)
@@ -768,9 +772,9 @@ object Build {
     bloopServer: bloop.BloopServer,
     partialOpt: Option[Boolean]
   ): Either[BuildException, Build] = either {
-    val options = options0.copy(javaOptions =
-      options0.javaOptions.copy(bloopJvmVersion =
-        Some(Positioned[Int](
+    val options = options0.copy(
+      javaOptions = options0.javaOptions.copy(
+        bloopJvmVersion = Some(Positioned(
           List(Position.Bloop(bloopServer.bloopInfo.javaHome)),
           bloopServer.bloopInfo.jvmVersion
         ))
