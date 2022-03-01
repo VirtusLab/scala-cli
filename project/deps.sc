@@ -58,7 +58,7 @@ object Deps {
     def scalaNative   = "0.4.3"
     def scalaPackager = "0.1.26"
   }
-  def ammonite                   = ivy"com.lihaoyi:::ammonite:2.5.1-7-cd989427"
+  def ammonite                   = ivy"com.lihaoyi:::ammonite:2.5.2"
   def asm                        = ivy"org.ow2.asm:asm:9.2"
   def bloopConfig                = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19"
   def bsp4j                      = ivy"ch.epfl.scala:bsp4j:2.0.0"
