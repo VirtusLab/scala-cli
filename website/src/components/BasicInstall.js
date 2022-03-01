@@ -38,9 +38,10 @@ export default function BasicInstall(props){
           </TabItem>
 
           <TabItem value="gha">
-            <p>Add the <a href="https://github.com/VirtusLab/scala-cli-setup">scala-cli-setup</a> step to your workflow:</p>
+            <p>Add the <a href="https://github.com/VirtusLab/scala-cli-setup">scala-cli-setup</a> action to your workflow:</p>
             <code>
-              - uses: VirtusLab/scala-cli-setup@main
+              steps:
+                - uses: VirtusLab/scala-cli-setup@main
             </code>
           </TabItem>
 
