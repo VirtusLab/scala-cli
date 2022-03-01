@@ -12,6 +12,7 @@ case object CustomCodeWrapper extends CodeWrapper {
     extraCode: String
   ) = {
     val name = mainClassObject(indexedWrapperName).backticked
+    val aliasedWrapperName = name + "$$alias"
     // We need to call hashCode (or any other method so compiler does not report a warning)
     val mainObjectCode =
       AmmUtil.normalizeNewlines(s"""|object $name {
@@ -25,7 +26,7 @@ case object CustomCodeWrapper extends CodeWrapper {
                                     |  }
                                     |  def main(args: Array[String]): Unit = {
                                     |    args$$set(args)
-                                    |    ${indexedWrapperName.backticked}.hashCode() // hasCode to clear scalac warning about pure expression in statement position
+                                    |    $aliasedWrapperName.alias.hashCode() // hasCode to clear scalac warning about pure expression in statement position
                                     |  }
                                     |}
                                     |""".stripMargin)
@@ -44,6 +45,9 @@ object ${indexedWrapperName.backticked} {
     val bottom = AmmUtil.normalizeNewlines(s"""
 def args = $name.args$$
   $extraCode
+}
+object $aliasedWrapperName {
+  val alias = ${indexedWrapperName.backticked}
 }
 $mainObjectCode
 """)

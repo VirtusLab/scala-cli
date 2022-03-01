@@ -210,6 +210,23 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("main.sc is not a special case") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "main.sc" ->
+          s"""println("$message")
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
+        root
+      ).out.text().trim
+      expect(output == message)
+    }
+  }
+
   def multipleScriptsJs(): Unit = {
     val message = "Hello"
     val inputs = TestInputs(
