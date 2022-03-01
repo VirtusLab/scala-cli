@@ -724,8 +724,7 @@ object Build {
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
     scope: Scope,
-    logger: Logger,
-    buildClient: BloopBuildClient
+    logger: Logger
   ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
 
     val params = value(options.scalaParams)
@@ -754,9 +753,6 @@ object Build {
         }
       }
     }
-
-    buildClient.clear()
-    buildClient.setGeneratedSources(scope, generatedSources)
 
     (classesDir0, params, artifacts, project, updatedBloopConfig)
   }
@@ -794,8 +790,7 @@ object Build {
         generatedSources,
         options,
         scope,
-        logger,
-        buildClient
+        logger
       )
     }
 
