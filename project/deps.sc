@@ -72,7 +72,7 @@ object Deps {
   def guava                      = ivy"com.google.guava:guava:31.0.1-jre"
   def jimfs                      = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils                   = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
-  def libdaemonjvm               = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.9"
+  def libdaemonjvm               = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
   def macroParadise              = ivy"org.scalamacros:::paradise:2.1.1"
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
