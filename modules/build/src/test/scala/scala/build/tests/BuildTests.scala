@@ -601,7 +601,7 @@ class BuildTests extends munit.FunSuite {
   test("ScalaNativeOptions for native-gc with no values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """  using `native-gc`
+        """//> using `native-gc`
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -652,6 +652,62 @@ class BuildTests extends munit.FunSuite {
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.gcStr.get == "78")
+    }
+  }
+
+  test("ScalaNativeOptions for native-mode with no values") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using `native-mode`
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      expect(
+        maybeBuild.left.exists { case _: NoValueProvidedError => true; case _ => false }
+      )
+    }
+  }
+
+  test("ScalaNativeOptions for native-mode with multiple values") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using `native-mode` 78, 12
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(
+        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+      )
+    }
+  }
+
+  test("ScalaNativeOptions for native-mode") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using `native-mode` "release-full"
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.toOption.get.options.scalaNativeOptions.modeStr.get == "release-full")
     }
   }
 
