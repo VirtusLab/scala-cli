@@ -54,7 +54,7 @@ object Deps {
     def coursier = "2.1.0-M5"
 
     def scalaJs       = "1.8.0"
-    def scalaMeta     = "4.4.33"
+    def scalaMeta     = "4.4.35"
     def scalaNative   = "0.4.3"
     def scalaPackager = "0.1.26"
   }
