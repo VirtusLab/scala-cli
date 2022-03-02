@@ -102,14 +102,14 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     if (inputs.isEmpty) {
       val artifacts = initialBuildOptions.artifacts(logger).orExit(logger)
-      doRunRepl(initialBuildOptions, artifacts, None, allowExit = !options.watch.watch)
-      if (options.watch.watch) {
+      doRunRepl(initialBuildOptions, artifacts, None, allowExit = !options.watch.watchMode)
+      if (options.watch.watchMode) {
         // nothing to watch, just wait for Ctrl+C
         WatchUtil.printWatchMessage()
         WatchUtil.waitForCtrlC()
       }
     }
-    else if (options.watch.watch) {
+    else if (options.watch.watchMode) {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,

@@ -1295,6 +1295,10 @@ Aliases: `-w`
 
 Watch source files for changes
 
+#### `--revolver`
+
+Run your application in background and automatically restart if sources have been changed
+
 ## Workspace options
 
 Available in commands:

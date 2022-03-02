@@ -62,6 +62,33 @@ scala-cli Hello.scala --jvm adopt:14
 
 JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms), and are based on the [index](https://github.com/shyiko/jabba/blob/master/index.json) of the [jabba](https://github.com/shyiko/jabba) command-line tool.
 
+## Watch mode
+
+`--watch` makes `scala-cli` watch your code for changes, and re-runs it upon any change:
+
+```bash ignore
+scala-cli run Hello.scala  --watch
+# Hello
+# Watching sources, press Ctrl+C to exit.
+# Compiling project (Scala 3.1.1, JVM)
+# Compiled project (Scala 3.1.1, JVM)
+# Hello World
+# Watching sources, press Ctrl+C to exit.
+```
+### Watch mode - revolver
+
+`--revolver` mode runs your application in the background and automatically restart it upon any change:
+
+```bash ignore
+scala-cli run Hello.scala --revolver
+# Hello
+# Watching sources, press Ctrl+C to exit.
+# Compiling project (Scala 3.1.1, JVM)
+# Compiled project (Scala 3.1.1, JVM)
+# Hello World
+# Watching sources, press Ctrl+C to exit.
+```
+
 ## Scala.JS
 
 Scala.JS applications can also be compiled and run with the `--js` option.

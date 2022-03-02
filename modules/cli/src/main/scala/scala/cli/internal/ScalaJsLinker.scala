@@ -132,11 +132,12 @@ object ScalaJsLinker {
     }
 
     val cmd = command ++ allArgs.flatMap(_.value)
-    val retCode = Runner.run(
+    val res = Runner.run(
       "unused",
       cmd,
       logger
     )
+    val retCode = res.waitFor()
 
     if (retCode == 0)
       logger.debug("Scala.JS linker ran successfully")
