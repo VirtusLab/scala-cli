@@ -52,7 +52,7 @@ class SourcesTests extends munit.FunSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
     }
   }
 
@@ -308,7 +308,7 @@ class SourcesTests extends munit.FunSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
     }
   }
 
@@ -368,7 +368,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
-      val parsedCodes: Seq[String] = sources.inMemory.map(_._3)
+      val parsedCodes: Seq[String] = sources.inMemory.map(_.generatedContent)
 
       parsedCodes.zip(expectedParsedCodes).foreach { case (parsedCode, expectedCode) =>
         expect(parsedCode.contains(expectedCode))
@@ -405,7 +405,7 @@ class SourcesTests extends munit.FunSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
     }
   }
 
@@ -440,7 +440,7 @@ class SourcesTests extends munit.FunSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
     }
   }
 

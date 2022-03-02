@@ -30,6 +30,9 @@ final case class PackageOptions(
   @HelpMessage("Generate a library JAR rather than an executable JAR")
     library: Boolean = false,
   @Group("Package")
+  @HelpMessage("Generate a source JAR rather than an executable JAR")
+    source: Boolean = false,
+  @Group("Package")
   @HelpMessage("Generate an assembly JAR")
     assembly: Boolean = false,
   @Group("Package")
@@ -59,6 +62,7 @@ final case class PackageOptions(
   // format: on
   def packageTypeOpt: Option[PackageType] =
     if (library) Some(PackageType.LibraryJar)
+    else if (source) Some(PackageType.SourceJar)
     else if (assembly) Some(PackageType.Assembly)
     else if (deb) Some(PackageType.Debian)
     else if (dmg) Some(PackageType.Dmg)

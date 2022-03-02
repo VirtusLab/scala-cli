@@ -84,8 +84,9 @@ object Repl extends ScalaCommand[ReplOptions] {
         bloopRifleConfig,
         logger,
         crossBuilds = cross,
-        postAction = () => WatchUtil.printWatchMessage(),
-        buildTests = false
+        buildTests = false,
+        partial = None,
+        postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
           builds.main match {
@@ -106,7 +107,8 @@ object Repl extends ScalaCommand[ReplOptions] {
           bloopRifleConfig,
           logger,
           crossBuilds = cross,
-          buildTests = false
+          buildTests = false,
+          partial = None
         )
           .orExit(logger)
       builds.main match {
@@ -134,7 +136,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         ReplArtifacts.ammonite(
           artifacts.params,
           options.notForBloopOptions.replOptions.ammoniteVersion,
-          artifacts.dependencies,
+          artifacts.userDependencies,
           artifacts.extraClassPath,
           artifacts.extraSourceJars,
           logger,
@@ -144,7 +146,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       else
         ReplArtifacts.default(
           artifacts.params,
-          artifacts.dependencies,
+          artifacts.userDependencies,
           artifacts.extraClassPath,
           logger,
           cache,
@@ -180,7 +182,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       Runner.runJvm(
         options.javaHome().value.javaCommand,
         replArtifacts.replJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
-        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toFile),
+        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toIO),
         replArtifacts.replMainClass,
         if (Properties.isWin)
           options.notForBloopOptions.replOptions.ammoniteArgs.map { a =>

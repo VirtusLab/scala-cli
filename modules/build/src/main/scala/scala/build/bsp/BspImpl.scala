@@ -161,7 +161,8 @@ final class BspImpl(
         scope,
         logger,
         actualLocalClient,
-        bloopServer
+        bloopServer,
+        partialOpt = None
       ).left.map(_ -> scope)
 
     for {

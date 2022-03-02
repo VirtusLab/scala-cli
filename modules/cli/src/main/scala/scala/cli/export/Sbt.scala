@@ -39,7 +39,7 @@ final case class Sbt(
 
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
-      sources.inMemory.forall(_._2.last.endsWith(".java")) &&
+      sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
       options.classPathOptions.extraDependencies.toSeq
         .forall(_.value.nameAttributes == NoAttributes)
 
@@ -246,7 +246,7 @@ final case class Sbt(
   private def testFrameworkSettings(options: BuildOptions): SbtProject = {
 
     val testClassPath: Seq[Path] = options.artifacts(logger) match {
-      case Right(artifacts) => artifacts.classPath
+      case Right(artifacts) => artifacts.classPath.map(_.toNIO)
       case Left(exception) =>
         logger.debug(exception.message)
         Seq.empty

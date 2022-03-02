@@ -1,7 +1,8 @@
 package scala.build.options
 
 sealed abstract class PackageType extends Product with Serializable {
-  def runnable: Boolean = false
+  def runnable: Boolean    = false
+  def sourceBased: Boolean = false
 }
 
 object PackageType {
@@ -11,6 +12,9 @@ object PackageType {
     override def runnable = true
   }
   case object LibraryJar extends PackageType
+  case object SourceJar extends PackageType {
+    override def sourceBased = true
+  }
   case object Assembly extends PackageType {
     override def runnable = true
   }

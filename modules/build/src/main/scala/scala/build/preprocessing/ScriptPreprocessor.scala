@@ -89,7 +89,7 @@ object ScriptPreprocessor {
     val relPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
 
     val file = PreprocessedSource.InMemory(
-      reportingPath,
+      reportingPath.map((subPath, _)),
       relPath,
       code,
       topWrapperLen,
