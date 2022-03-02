@@ -887,9 +887,9 @@ def updateLicensesFile() = {
     .sortBy(_.licenseId)
     .map { license =>
       s"""    License("${license.licenseId}", "${license.name.replace(
-        "\"",
-        "\\\""
-      )}", "${license.reference}")"""
+          "\"",
+          "\\\""
+        )}", "${license.reference}")"""
     }
     .mkString(",\n")
 

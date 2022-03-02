@@ -347,7 +347,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       is.readAllBytes()
     }
     finally if (is != null)
-      is.close()
+        is.close()
   }
 
   test("source JAR") {
