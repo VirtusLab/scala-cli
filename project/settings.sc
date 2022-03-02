@@ -1,8 +1,8 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
 import $file.deps, deps.{Deps, Docker, buildCsVersion}
+import $file.scalafixthings, scalafixthings.ScalafixModule
 
-import com.goyeau.mill.scalafix.ScalafixModule
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.NativeImage
 import java.io.{ByteArrayOutputStream, File, FileInputStream, InputStream}
@@ -778,8 +778,6 @@ trait ScalaCliCompile extends ScalaModule {
                 val proc = os.proc(
                   cli,
                   Seq("compile", "--classpath"),
-                  if (scalaVersion().startsWith("3")) Nil
-                  else Seq("-O", s"-P:semanticdb:sourceroot:$millSourcePath"),
                   Seq("-S", scalaVersion()),
                   asOpt("-O", scalacOptions()),
                   asOpt("--jar", compileClasspath().map(_.path)),
@@ -839,6 +837,20 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
   def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
+  }
+  def scalacOptions = T {
+    val sv       = scalaVersion()
+    val isScala2 = sv.startsWith("2.")
+    val sourceFiles = allSources()
+      .map(_.path)
+      .filter(os.exists(_))
+    val sourceRoot = sourceFiles.find(_.last == "scala")
+      .orElse(sourceFiles.headOption)
+      .getOrElse(millSourcePath)
+    val semDbOptions =
+      if (isScala2) Seq(s"-P:semanticdb:sourceroot:$sourceRoot")
+      else Nil
+    super.scalacOptions() ++ semDbOptions
   }
 }
 
