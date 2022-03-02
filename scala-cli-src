@@ -6,4 +6,4 @@ ROOT_DIR="$SCRIPT_DIR"
    cd "$ROOT_DIR" || exit
    ./mill cli.standaloneLauncher
 )
-exec "$ROOT_DIR/out/cli/standaloneLauncher/dest/launcher" "$@"
+exec "$ROOT_DIR/out/cli/standaloneLauncher.dest/launcher" "$@"
