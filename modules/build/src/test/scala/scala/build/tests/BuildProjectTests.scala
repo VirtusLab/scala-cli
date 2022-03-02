@@ -69,8 +69,6 @@ class BuildProjectTests extends munit.FunSuite {
         LocalRepo.localRepo(scala.build.Directories.default().localRepoDir)
       ),
       javaOptions = JavaOptions(
-        bloopJvmVersion =
-          Some(Positioned(bloopJavaPath, bloopJvmVersion)),
         javaHomeOpt = Some(Positioned.none(os.Path(javaHome)))
       ),
       scalaOptions = ScalaOptions(
@@ -83,7 +81,15 @@ class BuildProjectTests extends munit.FunSuite {
     val inputs  = Inputs(Nil, None, os.pwd, "project", false, None)
     val sources = Sources(Nil, Nil, None, Nil, options)
     val logger  = new LoggerMock()
-    val res     = Build.buildProject(inputs, sources, Nil, options, Scope.Test, logger)
+    val res = Build.buildProject(
+      inputs,
+      sources,
+      Nil,
+      options,
+      Some(Positioned(bloopJavaPath, bloopJvmVersion)),
+      Scope.Test,
+      logger
+    )
 
     val scalaCompilerOptions = res.fold(throw _, identity).scalaCompiler.scalacOptions
     (scalaCompilerOptions, res.fold(throw _, identity).javacOptions, logger.diagnostics)
@@ -159,7 +165,8 @@ class BuildProjectTests extends munit.FunSuite {
     val sources = Sources(Nil, Nil, None, Nil, options)
     val logger  = new LoggerMock()
 
-    val project = Build.buildProject(inputs, sources, Nil, options, Scope.Main, logger).orThrow
+    val project =
+      Build.buildProject(inputs, sources, Nil, options, None, Scope.Main, logger).orThrow
 
     expect(project.workspace == workspacePath)
   }

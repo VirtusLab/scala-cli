@@ -189,6 +189,8 @@ Available in commands:
 
 #### `--cross`
 
+Aliases: `-X`
+
 Cross-compile sources
 
 ## Coursier options
@@ -229,6 +231,8 @@ Available in commands:
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
 #### `--cross`
+
+Aliases: `-X`
 
 ## Dependency options
 
