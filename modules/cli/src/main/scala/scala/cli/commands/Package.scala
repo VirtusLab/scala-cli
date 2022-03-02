@@ -47,6 +47,7 @@ object Package extends ScalaCommand[PackageOptions] {
     val cross = options.compileCross.cross.getOrElse(false)
 
     if (options.watch.watch) {
+      var expectedModifyEpochSecondOpt = Option.empty[Long]
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -59,8 +60,17 @@ object Package extends ScalaCommand[PackageOptions] {
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
-            doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+            val mtimeDestPath = doPackage(
+              inputs,
+              logger,
+              options.output.filter(_.nonEmpty),
+              options.force,
+              s,
+              expectedModifyEpochSecondOpt
+            )
               .orReport(logger)
+            for (valueOpt <- mtimeDestPath)
+              expectedModifyEpochSecondOpt = valueOpt
           case _: Build.Failed =>
             System.err.println("Compilation failed")
           case _: Build.Cancelled =>
@@ -84,7 +94,7 @@ object Package extends ScalaCommand[PackageOptions] {
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
-          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s, None)
             .orExit(logger)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
@@ -101,8 +111,9 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger,
     outputOpt: Option[String],
     force: Boolean,
-    build: Build.Successful
-  ): Either[BuildException, Unit] = either {
+    build: Build.Successful,
+    expectedModifyEpochSecondOpt: Option[Long]
+  ): Either[BuildException, Option[Long]] = either {
 
     // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
     val packageType =
@@ -160,13 +171,18 @@ object Package extends ScalaCommand[PackageOptions] {
       if (destPath.startsWith(Os.pwd)) "." + File.separator + destPath.relativeTo(Os.pwd).toString
       else destPath.toString
 
-    def alreadyExistsCheck(): Unit =
-      if (!force && os.exists(destPath)) {
-        System.err.println(
-          s"Error: $printableDest already exists. Pass -f or --force to force erasing it."
-        )
+    def alreadyExistsCheck(): Unit = {
+      val alreadyExists = !force &&
+        os.exists(destPath) &&
+        expectedModifyEpochSecondOpt.forall(exp => os.mtime(destPath) != exp)
+      if (alreadyExists) {
+        val msg =
+          if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
+          else s"$printableDest was overwritten by another process"
+        System.err.println(s"Error: $msg. Pass -f or --force to force erasing it.")
         sys.exit(1)
       }
+    }
 
     alreadyExistsCheck()
 
@@ -278,9 +294,9 @@ object Package extends ScalaCommand[PackageOptions] {
         docker(inputs, build, value(mainClass), logger)
     }
 
-    if (!packageOptions.isDockerEnabled)
+    if (packageType.runnable.nonEmpty)
       logger.message {
-        if (packageType.runnable)
+        if (packageType.runnable.contains(true))
           s"Wrote $dest, run it with" + System.lineSeparator() +
             "  " + printableDest
         else if (packageType == PackageType.Js)
@@ -289,6 +305,9 @@ object Package extends ScalaCommand[PackageOptions] {
         else
           s"Wrote $dest"
       }
+
+    val mTimeDestPathOpt = if (packageType.runnable.isEmpty) None else Some(os.mtime(destPath))
+    mTimeDestPathOpt
   }
 
   def libraryJar(
