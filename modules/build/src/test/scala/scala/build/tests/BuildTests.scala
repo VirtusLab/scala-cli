@@ -677,7 +677,7 @@ class BuildTests extends munit.FunSuite {
   test("ScalaNativeOptions for native-mode with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-mode` 78, 12
+        """//> using `native-mode` "debug", "release-full"
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -809,6 +809,86 @@ class BuildTests extends munit.FunSuite {
       )
       assert(
         maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2"
+      )
+    }
+  }
+
+  test("ScalaNativeOptions for native-clang") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using `native-clang` "clang/path"
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(
+        maybeBuild.toOption.get.options.scalaNativeOptions.clang.get == "clang/path"
+      )
+    }
+  }
+
+  test("ScalaNativeOptions for native-clang and multiple values") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using `native-clang` "path1", "path2"
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(
+        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+      )
+    }
+  }
+
+  test("ScalaNativeOptions for native-clang-pp") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using `native-clang-pp` "clangpp/path"
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(
+        maybeBuild.toOption.get.options.scalaNativeOptions.clang.get == "clangpp/path"
+      )
+    }
+  }
+
+  test("ScalaNativeOptions for native-clang-pp and multiple values") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using `native-clang-pp` "path1", "path2"
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    val buildOptions: BuildOptions = defaultOptions.copy(
+      internal = defaultOptions.internal.copy(
+        keepDiagnostics = true
+      )
+    )
+
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(
+        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
       )
     }
   }
