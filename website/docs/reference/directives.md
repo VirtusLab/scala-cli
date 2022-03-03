@@ -192,7 +192,7 @@ Add Scala Native options
 
 `//> using nativeClang` _value_
 
-`//> using nativeClangPP`
+`//> using nativeClangPP` _value_
 
 #### Examples
 `//> using nativeVersion "0.4.0"`

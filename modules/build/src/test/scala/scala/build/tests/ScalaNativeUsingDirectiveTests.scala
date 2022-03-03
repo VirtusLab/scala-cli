@@ -230,7 +230,7 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.clang.get == "clangpp/path"
+        maybeBuild.toOption.get.options.scalaNativeOptions.clangpp.get == "clangpp/path"
       )
     }
   }
