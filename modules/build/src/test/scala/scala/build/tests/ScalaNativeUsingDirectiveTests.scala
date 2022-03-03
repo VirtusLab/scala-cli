@@ -26,6 +26,11 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
       scalaBinaryVersion = None
     )
   )
+  val buildOptions = defaultOptions.copy(
+    internal = defaultOptions.internal.copy(
+      keepDiagnostics = true
+    )
+  )
 
   test("ScalaNativeOptions for native-gc with no values") {
     val inputs = TestInputs(
@@ -33,11 +38,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
         """//> using `native-gc`
           |def foo() = println("hello foo")
           |""".stripMargin
-    )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       expect(
@@ -52,11 +52,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
         """//> using `native-gc` 78, 12
           |def foo() = println("hello foo")
           |""".stripMargin
-    )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
@@ -73,12 +68,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.gcStr.get == "78")
     }
@@ -90,11 +79,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
         """//> using `native-mode`
           |def foo() = println("hello foo")
           |""".stripMargin
-    )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       expect(
@@ -110,11 +94,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
         maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
@@ -129,12 +108,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.modeStr.get == "release-full")
     }
@@ -146,11 +119,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
         """//> using `native-version` "0.4.0", "0.3.3"
           |def foo() = println("hello foo")
           |""".stripMargin
-    )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
@@ -185,11 +153,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
@@ -208,12 +171,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions.isEmpty)
     }
@@ -226,12 +183,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
         maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1"
@@ -249,12 +200,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
         maybeBuild.toOption.get.options.scalaNativeOptions.clang.get == "clang/path"
@@ -269,12 +214,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
         maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
@@ -289,12 +228,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
         maybeBuild.toOption.get.options.scalaNativeOptions.clang.get == "clangpp/path"
@@ -309,12 +242,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
         maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
