@@ -11,7 +11,12 @@ case object CustomCodeWrapper extends CodeWrapper {
     indexedWrapperName: Name,
     extraCode: String
   ) = {
-    val name = mainClassObject(indexedWrapperName).backticked
+    val name               = mainClassObject(indexedWrapperName).backticked
+    val aliasedWrapperName = name + "$$alias"
+    val funHashCodeMethod =
+      if (name == "main_sc")
+        s"$aliasedWrapperName.alias.hashCode()" // https://github.com/VirtusLab/scala-cli/issues/314
+      else s"${indexedWrapperName.backticked}.hashCode()"
     // We need to call hashCode (or any other method so compiler does not report a warning)
     val mainObjectCode =
       AmmUtil.normalizeNewlines(s"""|object $name {
@@ -25,13 +30,20 @@ case object CustomCodeWrapper extends CodeWrapper {
                                     |  }
                                     |  def main(args: Array[String]): Unit = {
                                     |    args$$set(args)
-                                    |    ${indexedWrapperName.backticked}.hashCode() // hasCode to clear scalac warning about pure expression in statement position
+                                    |    $funHashCodeMethod // hasCode to clear scalac warning about pure expression in statement position
                                     |  }
                                     |}
                                     |""".stripMargin)
 
     val packageDirective =
       if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
+
+    val aliasObject =
+      if (name == "main_sc")
+        s"""object $aliasedWrapperName {
+           |  val alias = ${indexedWrapperName.backticked}
+           |}""".stripMargin
+      else ""
 
     // indentation is important in the generated code, so we don't want scalafmt to touch that
     // format: off
@@ -45,6 +57,7 @@ object ${indexedWrapperName.backticked} {
 def args = $name.args$$
   $extraCode
 }
+$aliasObject
 $mainObjectCode
 """)
     // format: on
