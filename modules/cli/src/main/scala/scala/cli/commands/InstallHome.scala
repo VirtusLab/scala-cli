@@ -68,7 +68,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     if (os.exists(binDirPath))
       if (options.force) () // skip logging
       else if (newVersion == oldVersion) logEqual(newVersion)
-      else if (CommandUtils.isOutOfDateVersion(newVersion, oldVersion))
+      else if (Version.isOutOfDateVersion(newVersion, oldVersion))
         logUpdate(options.env, newVersion, oldVersion)
       else logDowngrade(options.env, newVersion, oldVersion)
 

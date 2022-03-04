@@ -12,10 +12,14 @@ class ScalaCliCommands(
   isSipScala: Boolean
 ) extends CommandsEntryPoint {
 
+  val appName =
+    if (isSipScala) "Scala command"
+    else "Scala CLI"
+
   lazy val actualDefaultCommand = new Default(help)
 
   private def allCommands = Seq[ScalaCommand[_]](
-    new About(isSipScala = isSipScala),
+    new About(appName),
     AddPath,
     BloopExit,
     BloopStart,

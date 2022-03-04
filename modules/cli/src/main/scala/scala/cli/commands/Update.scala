@@ -4,11 +4,16 @@ import caseapp._
 
 import scala.build.Logger
 import scala.cli.CurrentParams
+import scala.cli.commands.Version.{getCurrentVersion, isOutdated, newestScalaCliVersion}
 import scala.cli.internal.ProcUtil
 import scala.io.StdIn.readLine
 import scala.util.{Failure, Properties, Success, Try}
 
 object Update extends ScalaCommand[UpdateOptions] {
+
+  private val programName = argvOpt.flatMap(_.headOption).getOrElse {
+    sys.error("update called in a non-standard way :|")
+  }
 
   private def updateScalaCli(options: UpdateOptions, newVersion: String) = {
     if (!options.force)
@@ -50,48 +55,35 @@ object Update extends ScalaCommand[UpdateOptions] {
     }
   }
 
-  def update(options: UpdateOptions, scalaCliBinPath: os.Path) = {
-    val currentVersion = {
-      val res = os.proc(scalaCliBinPath, "version").call(cwd = os.pwd, check = false)
-      if (res.exitCode == 0)
-        res.out.text().trim
-      else
-        "0.0.0"
-    }
+  lazy val updateInstructions: String =
+    s"""Your Scala CLI version is outdated. The newest version is $newestScalaCliVersion
+       |It is recommended that you update Scala CLI through the same tool or method you used for its initial installation for avoiding the creation of outdated duplicates.""".stripMargin
 
-    lazy val newestScalaCliVersion = {
-      val resp = ProcUtil.downloadFile("https://github.com/VirtusLab/scala-cli/releases/latest")
+  def update(options: UpdateOptions, maybeScalaCliBinPath: Option[os.Path]): Unit = {
 
-      val scalaCliVersionRegex = "tag/v(.*?)\"".r
-      scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))
-    }.getOrElse(
-      sys.error("Can not resolve ScalaCLI version to update")
-    )
+    val currentVersion = getCurrentVersion(maybeScalaCliBinPath)
 
-    val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion, currentVersion)
+    val outDated = isOutdated(maybeScalaCliBinPath)
 
     if (!options.isInternalRun)
-      if (isOutdated)
+      if (outDated)
         updateScalaCli(options, newestScalaCliVersion)
       else println("ScalaCLI is up-to-date")
-    else if (isOutdated)
+    else if (outDated)
       println(
         s"""Your ScalaCLI $currentVersion is outdated, please update ScalaCLI to $newestScalaCliVersion
            |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update ScalaCLI.""".stripMargin
       )
   }
 
-  def checkUpdate(options: UpdateOptions) = {
+  def checkUpdate(options: UpdateOptions): Unit = {
 
     val scalaCliBinPath = options.installDirPath / options.binaryName
 
-    lazy val execScalaCliPath = os.proc("which", "scala-cli").call(
-      cwd = os.pwd,
-      mergeErrIntoOut = true,
-      check = false
-    ).out.text().trim
-    lazy val isScalaCliInPath = // if binDir is non empty, we not except scala-cli in PATH, it is useful in tests
-      execScalaCliPath.contains(options.installDirPath.toString()) || options.binDir.isDefined
+    lazy val isScalaCliInPath = // if binDir is non empty, we do not expect scala-cli in PATH. But having it there is useful in tests
+      CommandUtils.getAbsolutePathToScalaCli(programName).contains(
+        options.installDirPath.toString()
+      ) || options.binDir.isDefined
 
     if (!os.exists(scalaCliBinPath) || !isScalaCliInPath) {
       if (!options.isInternalRun) {
@@ -107,7 +99,9 @@ object Update extends ScalaCommand[UpdateOptions] {
         sys.exit(1)
       }
     }
-    else update(options, scalaCliBinPath)
+    else if (options.binaryName == "scala-cli") update(options, None)
+    else
+      update(options, Some(scalaCliBinPath))
   }
 
   def run(options: UpdateOptions, args: RemainingArgs): Unit = {
