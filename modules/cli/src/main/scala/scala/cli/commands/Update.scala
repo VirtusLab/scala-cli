@@ -11,10 +11,6 @@ import scala.util.{Failure, Properties, Success, Try}
 
 object Update extends ScalaCommand[UpdateOptions] {
 
-  private val programName = argvOpt.flatMap(_.headOption).getOrElse {
-    sys.error("update called in a non-standard way :|")
-  }
-
   private def updateScalaCli(options: UpdateOptions, newVersion: String) = {
     if (!options.force)
       if (coursier.paths.Util.useAnsiOutput()) {
@@ -79,6 +75,10 @@ object Update extends ScalaCommand[UpdateOptions] {
   def checkUpdate(options: UpdateOptions): Unit = {
 
     val scalaCliBinPath = options.installDirPath / options.binaryName
+
+    val programName = argvOpt.flatMap(_.headOption).getOrElse {
+      sys.error("update called in a non-standard way :|")
+    }
 
     lazy val isScalaCliInPath = // if binDir is non empty, we do not expect scala-cli in PATH. But having it there is useful in tests
       CommandUtils.getAbsolutePathToScalaCli(programName).contains(

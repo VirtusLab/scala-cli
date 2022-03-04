@@ -19,10 +19,6 @@ import scala.jdk.CollectionConverters._
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
-  private val programName = argvOpt.flatMap(_.headOption).getOrElse {
-    sys.error("setup-ide called in a non-standard way :|")
-  }
-
   def downloadDeps(
     inputs: Inputs,
     options: BuildOptions,
@@ -101,6 +97,10 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         if (os.isFile(path))
           path.toString().stripSuffix(s"${path.last}")
         else path.toString
+    }
+
+    val programName = argvOpt.flatMap(_.headOption).getOrElse {
+      sys.error("update called in a non-standard way :|")
     }
 
     val bspArgs =
