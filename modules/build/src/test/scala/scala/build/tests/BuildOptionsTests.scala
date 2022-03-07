@@ -128,9 +128,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("3.1.2-RC1"),
-        scalaBinaryVersion = None,
-        supportedScalaVersionsUrl = None
+        scalaVersion = Some("3.1.2-RC1")
       )
     )
     val scalaParams = options.scalaParams.orThrow
@@ -190,9 +188,7 @@ class BuildOptionsTests extends munit.FunSuite {
   test("-S 2.13.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.13.nightly"),
-        scalaBinaryVersion = None,
-        supportedScalaVersionsUrl = None
+        scalaVersion = Some("2.13.nightly")
       )
     )
     val scalaParams = options.scalaParams.orThrow
@@ -205,9 +201,7 @@ class BuildOptionsTests extends munit.FunSuite {
   test("-S 2.12.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.12.nightly"),
-        scalaBinaryVersion = None,
-        supportedScalaVersionsUrl = None
+        scalaVersion = Some("2.12.nightly")
       )
     )
     val scalaParams = options.scalaParams.orThrow

@@ -49,18 +49,17 @@ final case class BuildOptions(
     Seq(s"Scala ${value(scalaParams).scalaVersion}", platform0)
   }
 
-  lazy val scalaVersionIsExotic: Boolean = scalaParams match {
-    case Left(_) => false
-    case Right(ScalaParameters(scalaVersion, _, _)) =>
-      if (scalaVersion.startsWith("2") && "[a-zA-Z]".r.findAllIn(scalaVersion).nonEmpty) true
-      else false
+  lazy val scalaVersionIsExotic = scalaParams.exists { params =>
+    val sv = params.scalaVersion
+    sv.startsWith("2") && sv.exists(_.isLetter)
   }
 
   def addRunnerDependency: Option[Boolean] =
     internalDependencies.addRunnerDependencyOpt
-      .orElse(if (scalaVersionIsExotic) Some(false)
-      else if (platform.value == Platform.JVM) None
-      else Some(false))
+      .orElse {
+        if (platform.value == Platform.JVM && !scalaVersionIsExotic) None
+        else Some(false)
+      }
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value != Platform.Native && scalaOptions.addScalaLibrary.getOrElse(true)) {
@@ -620,7 +619,7 @@ final case class BuildOptions(
             turnScala3NightlyVersionArgIntoVersion(versionString)
           case Some(versionString) if isScala2Nightly(versionString) =>
             turnScala2NightlyVersionArgToVersions(versionString)
-          case Some(versionString) if "[a-zA-Z]".r.findAllIn(versionString).nonEmpty =>
+          case Some(versionString) if versionString.exists(_.isLetter) =>
             turnScalaVersionArgToNonStableScalaVersions(
               scalaOptions.scalaVersion,
               scalaOptions.scalaBinaryVersion
