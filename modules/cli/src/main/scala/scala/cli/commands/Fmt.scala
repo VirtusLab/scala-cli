@@ -106,7 +106,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
           ).orExit(logger)
         val sharedOptions = crossSources.sharedOptions(options.buildOptions)
         sharedOptions
-          .scalaParams
+          .eitherBuildExceptionOrScalaParams
           .orExit(logger)
           .scalaVersion
       }

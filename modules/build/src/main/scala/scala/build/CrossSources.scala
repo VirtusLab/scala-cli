@@ -24,7 +24,7 @@ final case class CrossSources(
 
     val sharedOptions0 = sharedOptions(baseOptions)
 
-    val retainedScalaVersion = value(sharedOptions0.scalaParams).scalaVersion
+    val retainedScalaVersion = value(sharedOptions0.eitherBuildExceptionOrScalaParams).scalaVersion
 
     val buildOptionsWithScalaVersion = buildOptions
       .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)

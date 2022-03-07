@@ -46,24 +46,24 @@ final case class BuildOptions(
       case Platform.JS     => "Scala.JS"
       case Platform.Native => "Scala Native"
     }
-    Seq(s"Scala ${value(scalaParams).scalaVersion}", platform0)
+    Seq(s"Scala ${value(eitherBuildExceptionOrScalaParams).scalaVersion}", platform0)
   }
 
-  lazy val scalaVersionIsExotic = scalaParams.exists { params =>
-    val sv = params.scalaVersion
-    sv.startsWith("2") && sv.exists(_.isLetter)
+  lazy val scalaVersionIsExotic = eitherBuildExceptionOrScalaParams.exists { scalaParameters =>
+    scalaParameters.scalaVersion.startsWith("2") && scalaParameters.scalaVersion.exists(_.isLetter)
   }
 
   def addRunnerDependency: Option[Boolean] =
     internalDependencies.addRunnerDependencyOpt
       .orElse {
-        if (platform.value == Platform.JVM && !scalaVersionIsExotic) None
+        if (platform.value == Platform.JVM && !scalaVersionIsExotic)
+          None // TODO what difference do None and Some(false) make in this context?
         else Some(false)
       }
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value != Platform.Native && scalaOptions.addScalaLibrary.getOrElse(true)) {
-      val scalaParams0 = value(scalaParams)
+      val scalaParams0 = value(eitherBuildExceptionOrScalaParams)
       val lib =
         if (scalaParams0.scalaVersion.startsWith("3."))
           dep"org.scala-lang::scala3-library::${scalaParams0.scalaVersion}"
@@ -76,12 +76,12 @@ final case class BuildOptions(
 
   private def maybeJsDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.JS)
-      scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion)
+      scalaJsOptions.jsDependencies(value(eitherBuildExceptionOrScalaParams).scalaVersion)
     else Nil
   }
   private def maybeNativeDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.Native)
-      scalaNativeOptions.nativeDependencies(value(scalaParams).scalaVersion)
+      scalaNativeOptions.nativeDependencies(value(eitherBuildExceptionOrScalaParams).scalaVersion)
     else Nil
   }
   private def dependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
@@ -93,7 +93,7 @@ final case class BuildOptions(
 
   private def semanticDbPlugins: Either[BuildException, Seq[AnyDependency]] = either {
     val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false) &&
-      value(scalaParams).scalaVersion.startsWith("2.")
+      value(eitherBuildExceptionOrScalaParams).scalaVersion.startsWith("2.")
     if (generateSemDbs)
       Seq(
         dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
@@ -104,7 +104,7 @@ final case class BuildOptions(
 
   private def maybeJsCompilerPlugins: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.JS)
-      scalaJsOptions.compilerPlugins(value(scalaParams).scalaVersion)
+      scalaJsOptions.compilerPlugins(value(eitherBuildExceptionOrScalaParams).scalaVersion)
     else Nil
   }
   private def maybeNativeCompilerPlugins: Seq[AnyDependency] =
@@ -308,59 +308,38 @@ final case class BuildOptions(
     maxSupportedStableScalaVersions.map(_.repr)
 
   private def getAllMatchingStableVersions(scalaVersionArg: Option[String]): Seq[String] = {
-    val modules = {
-      import coursier.moduleString
-      def scala2 = mod"org.scala-lang:scala-library"
-      // No unstable, that *ought* not to be a problem down-the-line…?
-      def scala3 = mod"org.scala-lang:scala3-library_3"
-      if (scalaVersionArg.contains("2") || scalaVersionArg.exists(_.startsWith("2."))) Seq(scala2)
-      else if (scalaVersionArg.contains("3") || scalaVersionArg.exists(_.startsWith("3.")))
-        Seq(scala3)
-      else Seq(scala2, scala3)
-    }
+
     def isStable(v: String): Boolean =
       !v.endsWith("-NIGHTLY") && !v.contains("-RC")
-    def moduleVersions(mod: Module): Seq[String] = {
-      val res = finalCache.logger.use {
-        try Versions(finalCache)
-            .withModule(mod)
-            .result()
-            .unsafeRun()(finalCache.ec)
-        catch {
-          case NonFatal(e) => throw new Exception(e)
-        }
-      }
-      res.versions.available.filter(isStable)
-    }
-    modules.flatMap(moduleVersions).distinct
+
+    modules(scalaVersionArg).flatMap(moduleVersions(_).versions.available.filter(isStable)).distinct
   }
 
-  private def getAllMatchingVersions(scalaVersionArg: Option[String]): Seq[String] = {
-    val modules = {
-      import coursier.moduleString
-      def scala2 = mod"org.scala-lang:scala-library"
-      // No unstable, that *ought* not to be a problem down-the-line…?
-      def scala3 = mod"org.scala-lang:scala3-library_3"
-      if (scalaVersionArg.contains("2") || scalaVersionArg.exists(_.startsWith("2."))) Seq(scala2)
-      else if (scalaVersionArg.contains("3") || scalaVersionArg.exists(_.startsWith("3.")))
-        Seq(scala3)
-      else Seq(scala2, scala3)
+  private def modules(maybeScalaVersionArg: Option[String]) = {
+    import coursier.moduleString
+    def scala2 = mod"org.scala-lang:scala-library"
+    // No unstable, that *ought* not to be a problem down-the-line…?
+    def scala3 = mod"org.scala-lang:scala3-library_3"
+    if (maybeScalaVersionArg.contains("2") || maybeScalaVersionArg.exists(_.startsWith("2.")))
+      Seq(scala2)
+    else if (maybeScalaVersionArg.contains("3") || maybeScalaVersionArg.exists(_.startsWith("3.")))
+      Seq(scala3)
+    else Seq(scala2, scala3)
+  }
+
+  private def moduleVersions(mod: Module): Versions.Result =
+    finalCache.logger.use {
+      try Versions(finalCache)
+          .withModule(mod)
+          .result()
+          .unsafeRun()(finalCache.ec)
+      catch {
+        case NonFatal(e) => throw new Exception(e)
+      }
     }
 
-    def moduleVersions(mod: Module): Seq[String] = {
-      val res = finalCache.logger.use {
-        try Versions(finalCache)
-            .withModule(mod)
-            .result()
-            .unsafeRun()(finalCache.ec)
-        catch {
-          case NonFatal(e) => throw new Exception(e)
-        }
-      }
-      res.versions.available
-    }
-    modules.flatMap(moduleVersions).distinct
-  }
+  private def getAllMatchingVersions(maybeScalaVersionArg: Option[String]): Seq[String] =
+    modules(maybeScalaVersionArg).flatMap(moduleVersions(_).versions.available).distinct
 
   /** @param scalaVersionArg
     *   the command line, using directive, or default argument passed as scala version
@@ -447,23 +426,20 @@ final case class BuildOptions(
   ): Either[ScalaVersionError, String] =
     maybeScalaVersionStringArg match {
       case Some(scalaVersionStringArg) =>
-        val matchingVersions =
-          versionPool.filter(_ == scalaVersionStringArg).map(Version(_))
-        if (matchingVersions.isEmpty)
-          Left(new InvalidBinaryScalaVersionError(
-            scalaVersionStringArg,
-            latestSupportedStableVersions
-          ))
-        else {
-          val validMatchingVersions = matchingVersions.filter(v => isSupportedVersion(v.repr))
-          if (validMatchingVersions.isEmpty)
+        if (versionPool.contains(scalaVersionStringArg))
+          if (isSupportedVersion(scalaVersionStringArg))
+            Right(scalaVersionStringArg)
+          else
             Left(new UnsupportedScalaVersionError(
               scalaVersionStringArg,
               latestSupportedStableVersions
             ))
-          else
-            Right(validMatchingVersions.max.repr)
-        }
+        else
+          Left(new InvalidBinaryScalaVersionError(
+            scalaVersionStringArg,
+            latestSupportedStableVersions
+          ))
+
       case None =>
         Left(new NoValidScalaVersionFoundError(
           versionPool,
@@ -602,7 +578,7 @@ final case class BuildOptions(
       (scalaVersion, scalaBinaryVersion)
     }
 
-  lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
+  lazy val eitherBuildExceptionOrScalaParams: Either[BuildException, ScalaParameters] = either {
     def isScala2Nightly(version: String): Boolean =
       scala2NightlyRegex.unapplySeq(version).isDefined
     def isScala3Nightly(version: String): Boolean =
@@ -641,7 +617,7 @@ final case class BuildOptions(
 
   def artifacts(logger: Logger): Either[BuildException, Artifacts] = either {
     val maybeArtifacts = Artifacts(
-      params = value(scalaParams),
+      params = value(eitherBuildExceptionOrScalaParams),
       compilerPlugins = value(compilerPlugins),
       javacPluginDependencies = value(javacPluginDependencies),
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
