@@ -56,9 +56,7 @@ final case class BuildOptions(
   def addRunnerDependency: Option[Boolean] =
     internalDependencies.addRunnerDependencyOpt
       .orElse {
-        if (platform.value == Platform.JVM && !scalaVersionIsExotic)
-          None // TODO what difference do None and Some(false) make in this context?
-        else Some(false)
+        Some(platform.value == Platform.JVM && !scalaVersionIsExotic)
       }
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
@@ -298,8 +296,13 @@ final case class BuildOptions(
     JavaHome().withCache(jvmCache)
   }
 
+  private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
+
   def finalRepositories: Seq[String] =
-    classPathOptions.extraRepositories ++ internal.localRepository.toSeq
+    eitherBuildExceptionOrScalaParams.map { params =>
+      if (isScala2Nightly(params.scalaVersion)) scala2NightlyRepo else Seq.empty
+    }.getOrElse(Seq.empty) ++ classPathOptions
+      .extraRepositories ++ internal.localRepository.toSeq
 
   private lazy val maxSupportedStableScalaVersions: Seq[Version] =
     latestSupportedStableScalaVersion()
@@ -309,8 +312,8 @@ final case class BuildOptions(
 
   private def getAllMatchingStableVersions(scalaVersionArg: Option[String]): Seq[String] = {
 
-    def isStable(v: String): Boolean =
-      !v.endsWith("-NIGHTLY") && !v.contains("-RC")
+    def isStable(version: String): Boolean =
+      !version.exists(_.isLetter)
 
     modules(scalaVersionArg).flatMap(moduleVersions(_).versions.available.filter(isStable)).distinct
   }
@@ -578,9 +581,10 @@ final case class BuildOptions(
       (scalaVersion, scalaBinaryVersion)
     }
 
+  private def isScala2Nightly(version: String): Boolean =
+    scala2NightlyRegex.unapplySeq(version).isDefined
+
   lazy val eitherBuildExceptionOrScalaParams: Either[BuildException, ScalaParameters] = either {
-    def isScala2Nightly(version: String): Boolean =
-      scala2NightlyRegex.unapplySeq(version).isDefined
     def isScala3Nightly(version: String): Boolean =
       version.startsWith("3") && version.endsWith("-NIGHTLY")
 
