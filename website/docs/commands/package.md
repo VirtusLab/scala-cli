@@ -152,6 +152,16 @@ Packaging Scala Native applications to a Docker image is only supported on Linux
 scala-cli package --native --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 
+### Building Docker container from base image
+
+`--docker-from` lets you specify your base docker image.
+
+The following command generate a `hello-docker` image using base image `openjdk:11` 
+
+```bash ignore
+scala-cli package --docker HelloDocker.scala --docker-from openjdk:11 --docker-image-repository hello-docker
+```
+
 ## Scala.JS
 
 Packaging Scala.JS applications results in a `.js` file, that can be run with `node`:
