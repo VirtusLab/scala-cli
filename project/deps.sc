@@ -39,11 +39,7 @@ object TestDeps {
 
 object InternalDeps {
   object Versions {
-    def mill =
-      // Current Mill version in the Scala CLI build doesn't support Scala Native 0.4.3,
-      // so we use a higher hard-coded version instead.
-      // os.read(os.pwd / ".mill-version").trim
-      "0.10.0-21-c4247b"
+    def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
   }
 }
