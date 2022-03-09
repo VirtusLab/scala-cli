@@ -4,7 +4,6 @@ import caseapp._
 
 import scala.build.Logger
 import scala.cli.CurrentParams
-import scala.cli.commands.Version
 import scala.cli.commands.Version.{getCurrentVersion, newestScalaCliVersion}
 import scala.cli.internal.ProcUtil
 import scala.io.StdIn.readLine
@@ -60,7 +59,7 @@ object Update extends ScalaCommand[UpdateOptions] {
 
     val currentVersion = getCurrentVersion(maybeScalaCliBinPath)
 
-    val isOutdated = Version.isOutdated(maybeScalaCliBinPath)
+    val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion, currentVersion)
 
     if (!options.isInternalRun)
       if (isOutdated)
@@ -81,7 +80,7 @@ object Update extends ScalaCommand[UpdateOptions] {
       sys.error("update called in a non-standard way :|")
     }
 
-    lazy val isScalaCliInPath = // if binDir is non empty, we do not expect scala-cli in PATH. But having it there is useful in tests
+    lazy val isScalaCliInPath = // if binDir is non empty, we not except scala-cli in PATH, it is useful in tests
       CommandUtils.getAbsolutePathToScalaCli(programName).contains(
         options.installDirPath.toString()
       ) || options.binDir.isDefined
