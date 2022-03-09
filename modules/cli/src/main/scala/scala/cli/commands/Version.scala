@@ -10,11 +10,9 @@ object Version extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
   def run(options: VersionOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.verbosity.verbosity
-    println(Version.version)
+    println(Constants.version)
   }
 
-  val version            = Constants.version
-  val detailedVersionOpt = Constants.detailedVersion.filter(_ != version)
   lazy val newestScalaCliVersion = {
     val scalaCliVersionRegex = "tag/v(.*?)\"".r
 
@@ -25,11 +23,8 @@ object Version extends ScalaCommand[VersionOptions] {
     sys.error("Can not resolve ScalaCLI version to update")
   )
 
-  def isOutOfDateVersion(newVersion: String, oldVersion: String): Boolean =
-    coursier.core.Version(newVersion) > coursier.core.Version(oldVersion)
-
   def isOutdated(maybeScalaCliBinPath: Option[os.Path]): Boolean =
-    isOutOfDateVersion(newestScalaCliVersion, getCurrentVersion(maybeScalaCliBinPath))
+    CommandUtils.isOutOfDateVersion(newestScalaCliVersion, getCurrentVersion(maybeScalaCliBinPath))
 
   def getCurrentVersion(maybeScalaCliBinPath: Option[os.Path]): String = {
     val maybeCurrentVersion = maybeScalaCliBinPath.map {

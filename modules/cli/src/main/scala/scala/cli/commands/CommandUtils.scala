@@ -8,10 +8,11 @@ import scala.util.Try
 
 object CommandUtils {
 
-  /** we only want to check for update within 10% random calls; not everytime
-    */
-  lazy val shouldCheckUpdate: Boolean =
-    scala.util.Random.nextInt % 10 == 1
+  def isOutOfDateVersion(newVersion: String, oldVersion: String): Boolean = {
+    import coursier.core.Version
+
+    Version(newVersion) > Version(oldVersion)
+  }
 
   // Ensure the path to the CLI is absolute
   def getAbsolutePathToScalaCli(programName: String): String =
@@ -34,4 +35,5 @@ object CommandUtils {
         }
         .getOrElse(programName)
 
+  lazy val shouldCheckUpdate: Boolean = scala.util.Random.nextInt() % 10 == 1
 }

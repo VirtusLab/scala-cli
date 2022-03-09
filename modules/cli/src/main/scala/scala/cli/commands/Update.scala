@@ -4,7 +4,8 @@ import caseapp._
 
 import scala.build.Logger
 import scala.cli.CurrentParams
-import scala.cli.commands.Version.{getCurrentVersion, isOutdated, newestScalaCliVersion}
+import scala.cli.commands.Version
+import scala.cli.commands.Version.{getCurrentVersion, newestScalaCliVersion}
 import scala.cli.internal.ProcUtil
 import scala.io.StdIn.readLine
 import scala.util.{Failure, Properties, Success, Try}
@@ -59,20 +60,20 @@ object Update extends ScalaCommand[UpdateOptions] {
 
     val currentVersion = getCurrentVersion(maybeScalaCliBinPath)
 
-    val outDated = isOutdated(maybeScalaCliBinPath)
+    val isOutdated = Version.isOutdated(maybeScalaCliBinPath)
 
     if (!options.isInternalRun)
-      if (outDated)
+      if (isOutdated)
         updateScalaCli(options, newestScalaCliVersion)
       else println("ScalaCLI is up-to-date")
-    else if (outDated)
+    else if (isOutdated)
       println(
         s"""Your ScalaCLI $currentVersion is outdated, please update ScalaCLI to $newestScalaCliVersion
            |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update ScalaCLI.""".stripMargin
       )
   }
 
-  def checkUpdate(options: UpdateOptions): Unit = {
+  def checkUpdate(options: UpdateOptions) = {
 
     val scalaCliBinPath = options.installDirPath / options.binaryName
 

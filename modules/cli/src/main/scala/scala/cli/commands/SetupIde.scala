@@ -82,6 +82,10 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     if (virtualInputs.nonEmpty)
       value(Left(new FoundVirtualInputsError(virtualInputs)))
 
+    val progName = argvOpt.flatMap(_.headOption).getOrElse {
+      sys.error("setup-ide called in a non-standard way :|")
+    }
+
     val logger = options.shared.logger
 
     if (options.buildOptions.classPathOptions.extraDependencies.toSeq.nonEmpty)
@@ -99,12 +103,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         else path.toString
     }
 
-    val programName = argvOpt.flatMap(_.headOption).getOrElse {
-      sys.error("update called in a non-standard way :|")
-    }
-
     val bspArgs =
-      List(CommandUtils.getAbsolutePathToScalaCli(programName), "bsp") ++
+      List(CommandUtils.getAbsolutePathToScalaCli(progName), "bsp") ++
         List("--json-options", scalaCliBspJsonDestination.toString) ++
         inputArgs
     val details = new BspConnectionDetails(
