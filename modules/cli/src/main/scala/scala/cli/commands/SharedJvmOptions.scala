@@ -47,7 +47,12 @@ final case class SharedJvmOptions(
   @HelpMessage("Javac options")
   @Name("javacOpt")
   @Hidden
-    javacOption: List[String] = Nil
+    javacOption: List[String] = Nil,
+
+  @Group("Java")
+  @HelpMessage("Port for BSP debugging")
+  @Hidden
+    bspDebugPort: Option[String] = None
 ) {
   // format: on
 

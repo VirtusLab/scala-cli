@@ -563,6 +563,10 @@ Aliases: `--javac-opt`
 
 Javac options
 
+#### `--bsp-debug-port`
+
+Port for BSP debugging
+
 ## Logging options
 
 Available in commands:
