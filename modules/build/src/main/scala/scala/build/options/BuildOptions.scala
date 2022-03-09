@@ -56,7 +56,8 @@ final case class BuildOptions(
   def addRunnerDependency: Option[Boolean] =
     internalDependencies.addRunnerDependencyOpt
       .orElse {
-        Some(platform.value == Platform.JVM && !scalaVersionIsExotic)
+        if (platform.value == Platform.JVM && !scalaVersionIsExotic) None
+        else Some(false)
       }
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
