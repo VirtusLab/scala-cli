@@ -302,7 +302,7 @@ final case class BuildOptions(
     scalaParams.map { params =>
       if (isScala2Nightly(params.scalaVersion)) scala2NightlyRepo else Seq.empty
     }.getOrElse(Seq.empty) ++
-    classPathOptions.extraRepositories ++ internal.localRepository.toSeq
+      classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
   private lazy val maxSupportedStableScalaVersions = latestSupportedStableScalaVersion()
 
