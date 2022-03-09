@@ -1,5 +1,6 @@
 package scala.cli
 
+import coursier.cache.CacheUrl
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{ByteArrayOutputStream, File, PrintStream}
@@ -127,6 +128,8 @@ object ScalaCli {
     }
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
     setSystemProps(systemProps)
+
+    CacheUrl.setupProxyAuth()
 
     // Getting killed by SIGPIPE quite often when on musl (in the "static" native
     // image), but also sometimes on glibc, or even on macOS, when we use domain

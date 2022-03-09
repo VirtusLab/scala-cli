@@ -414,8 +414,10 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
   trait Tests extends super.Tests with ScalaCliScalafixModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
+      Deps.dockerClient,
       Deps.pprint,
       Deps.scalaAsync,
+      Deps.slf4jNop,
       Deps.upickle
     )
     def forkEnv = super.forkEnv() ++ Seq(
@@ -461,6 +463,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def munitVersion = "${TestDeps.munit.dep.version}"
            |  def dockerTestImage = "${Docker.testImage}"
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
+           |  def authProxyTestImage = "${Docker.authProxyTestImage}"
            |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
            |  def workspaceDirName = "$workspaceDirName"
