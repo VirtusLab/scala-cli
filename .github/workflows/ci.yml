@@ -299,6 +299,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+        ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
     - uses: coursier/cache-action@v6.3
     - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
       with:
@@ -316,13 +317,12 @@ jobs:
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
     - name: Update stable branch
       if: env.SHOULD_PUBLISH == 'true' && startsWith(github.ref, 'refs/tags/v')
-      uses: devmasx/merge-branch@8b86512c768bec19827894f0a39a776809668189
-      with:
-        type: now
-        message: 'Back port of documentation changes to stable'
-        from_branch: main
-        target_branch: stable
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config user.name gh-actions
+        git config user.email actions@github.com
+        git checkout stable
+        git merge main -m "Back port of documentation changes to stable"
+        git push origin stable
 
   launchers:
     timeout-minutes: 20
