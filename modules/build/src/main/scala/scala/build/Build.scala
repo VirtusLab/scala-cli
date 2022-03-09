@@ -367,7 +367,7 @@ object Build {
     inputs: Inputs
   ): Either[BuildException, Option[ScalaNativeCompatibilityError]] =
     either {
-      val scalaVersion  = value(options.eitherBuildExceptionOrScalaParams).scalaVersion
+      val scalaVersion  = value(options.scalaParams).scalaVersion
       val nativeVersion = options.scalaNativeOptions.numeralVersion
       val isCompatible = nativeVersion match {
         case Some(snNumeralVer) =>
@@ -599,7 +599,7 @@ object Build {
     logger: Logger
   ): Either[BuildException, Project] = either {
 
-    val params     = value(options.eitherBuildExceptionOrScalaParams)
+    val params     = value(options.scalaParams)
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
@@ -729,7 +729,7 @@ object Build {
     logger: Logger
   ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
 
-    val params = value(options.eitherBuildExceptionOrScalaParams)
+    val params = value(options.scalaParams)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
 

@@ -46,10 +46,10 @@ final case class BuildOptions(
       case Platform.JS     => "Scala.JS"
       case Platform.Native => "Scala Native"
     }
-    Seq(s"Scala ${value(eitherBuildExceptionOrScalaParams).scalaVersion}", platform0)
+    Seq(s"Scala ${value(scalaParams).scalaVersion}", platform0)
   }
 
-  lazy val scalaVersionIsExotic = eitherBuildExceptionOrScalaParams.exists { scalaParameters =>
+  lazy val scalaVersionIsExotic = scalaParams.exists { scalaParameters =>
     scalaParameters.scalaVersion.startsWith("2") && scalaParameters.scalaVersion.exists(_.isLetter)
   }
 
@@ -61,7 +61,7 @@ final case class BuildOptions(
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value != Platform.Native && scalaOptions.addScalaLibrary.getOrElse(true)) {
-      val scalaParams0 = value(eitherBuildExceptionOrScalaParams)
+      val scalaParams0 = value(scalaParams)
       val lib =
         if (scalaParams0.scalaVersion.startsWith("3."))
           dep"org.scala-lang::scala3-library::${scalaParams0.scalaVersion}"
@@ -74,12 +74,12 @@ final case class BuildOptions(
 
   private def maybeJsDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.JS)
-      scalaJsOptions.jsDependencies(value(eitherBuildExceptionOrScalaParams).scalaVersion)
+      scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion)
     else Nil
   }
   private def maybeNativeDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.Native)
-      scalaNativeOptions.nativeDependencies(value(eitherBuildExceptionOrScalaParams).scalaVersion)
+      scalaNativeOptions.nativeDependencies(value(scalaParams).scalaVersion)
     else Nil
   }
   private def dependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
@@ -91,7 +91,7 @@ final case class BuildOptions(
 
   private def semanticDbPlugins: Either[BuildException, Seq[AnyDependency]] = either {
     val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false) &&
-      value(eitherBuildExceptionOrScalaParams).scalaVersion.startsWith("2.")
+      value(scalaParams).scalaVersion.startsWith("2.")
     if (generateSemDbs)
       Seq(
         dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
@@ -102,7 +102,7 @@ final case class BuildOptions(
 
   private def maybeJsCompilerPlugins: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.JS)
-      scalaJsOptions.compilerPlugins(value(eitherBuildExceptionOrScalaParams).scalaVersion)
+      scalaJsOptions.compilerPlugins(value(scalaParams).scalaVersion)
     else Nil
   }
   private def maybeNativeCompilerPlugins: Seq[AnyDependency] =
@@ -250,9 +250,8 @@ final case class BuildOptions(
     val scalaCliVersion = version
     val launchersTask   = cache.logger.using(task)
 
-    /** If an error occurred while downloading stable versions, it uses stable scala versions from
-      * `Deps.sc`
-      */
+    //  If an error occurred while downloading stable versions,
+    //  it uses stable scala versions from Deps.sc
     val supportedScalaVersions =
       launchersTask.attempt.unsafeRun()(cache.ec) match {
         case Left(_) =>
@@ -299,16 +298,14 @@ final case class BuildOptions(
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
 
   def finalRepositories: Seq[String] =
-    eitherBuildExceptionOrScalaParams.map { params =>
+    scalaParams.map { params =>
       if (isScala2Nightly(params.scalaVersion)) scala2NightlyRepo else Seq.empty
-    }.getOrElse(Seq.empty) ++ classPathOptions
-      .extraRepositories ++ internal.localRepository.toSeq
+    }.getOrElse(Seq.empty) ++
+    classPathOptions.extraRepositories ++ internal.localRepository.toSeq
 
-  private lazy val maxSupportedStableScalaVersions: Seq[Version] =
-    latestSupportedStableScalaVersion()
+  private lazy val maxSupportedStableScalaVersions = latestSupportedStableScalaVersion()
 
-  private lazy val latestSupportedStableVersions: Seq[String] =
-    maxSupportedStableScalaVersions.map(_.repr)
+  private lazy val latestSupportedStableVersions = maxSupportedStableScalaVersions.map(_.repr)
 
   private def getAllMatchingStableVersions(scalaVersionArg: Option[String]): Seq[String] = {
 
@@ -584,7 +581,7 @@ final case class BuildOptions(
   private def isScala2Nightly(version: String): Boolean =
     scala2NightlyRegex.unapplySeq(version).isDefined
 
-  lazy val eitherBuildExceptionOrScalaParams: Either[BuildException, ScalaParameters] = either {
+  lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
     def isScala3Nightly(version: String): Boolean =
       version.startsWith("3") && version.endsWith("-NIGHTLY")
 
@@ -621,7 +618,7 @@ final case class BuildOptions(
 
   def artifacts(logger: Logger): Either[BuildException, Artifacts] = either {
     val maybeArtifacts = Artifacts(
-      params = value(eitherBuildExceptionOrScalaParams),
+      params = value(scalaParams),
       compilerPlugins = value(compilerPlugins),
       javacPluginDependencies = value(javacPluginDependencies),
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
