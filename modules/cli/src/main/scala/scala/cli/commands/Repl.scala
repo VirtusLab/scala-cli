@@ -23,7 +23,8 @@ object Repl extends ScalaCommand[ReplOptions] {
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd)
     }
-    val inputs = options.shared.inputsOrExit(args, defaultInputs = () => Some(default))
+    val inputs      = options.shared.inputsOrExit(args, defaultInputs = () => Some(default))
+    val programArgs = args.unparsed
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = options.buildOptions
@@ -51,6 +52,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     ): Unit = {
       val res = runRepl(
         buildOptions,
+        programArgs,
         artifacts,
         classDir,
         directories,
@@ -122,6 +124,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
   private def runRepl(
     options: BuildOptions,
+    programArgs: Seq[String],
     artifacts: Artifacts,
     classDir: Option[os.Path],
     directories: scala.build.Directories,
@@ -176,6 +179,8 @@ object Repl extends ScalaCommand[ReplOptions] {
           " These will not be accessible from the REPL."
       )
 
+    val replArgs = options.notForBloopOptions.replOptions.ammoniteArgs ++ programArgs
+
     if (dryRun)
       logger.message("Dry run, not running REPL.")
     else
@@ -185,12 +190,12 @@ object Repl extends ScalaCommand[ReplOptions] {
         classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toIO),
         replArtifacts.replMainClass,
         if (Properties.isWin)
-          options.notForBloopOptions.replOptions.ammoniteArgs.map { a =>
+          replArgs.map { a =>
             if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
             else a
           }
         else
-          options.notForBloopOptions.replOptions.ammoniteArgs,
+          replArgs,
         logger,
         allowExecve = allowExit
       )
