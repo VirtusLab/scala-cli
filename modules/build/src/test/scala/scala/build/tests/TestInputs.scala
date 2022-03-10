@@ -3,6 +3,7 @@ package scala.build.tests
 import java.nio.charset.StandardCharsets
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Build, BuildThreads, Directories, Inputs}
+import scala.build.compiler.BloopCompilerMaker
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
@@ -54,8 +55,7 @@ final case class TestInputs(
         Build.build(
           inputs,
           options,
-          buildThreads,
-          bloopConfig,
+          new BloopCompilerMaker(bloopConfig, buildThreads.bloop, strictBloopJsonCheck = true),
           TestLogger(),
           crossBuilds = false,
           buildTests = true,

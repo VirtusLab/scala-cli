@@ -19,10 +19,11 @@ import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
+import scala.build._
+import scala.build.compiler.BloopCompilerMaker
 import scala.build.errors.{BuildException, ScalaNativeBuildError}
 import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsConfig}
 import scala.build.options.{PackageType, Platform}
-import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
 import scala.cli.errors.ScalaJsLinkingError
@@ -43,6 +44,13 @@ object Package extends ScalaCommand[PackageOptions] {
     val initialBuildOptions = options.buildOptions
     val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
+    val threads             = BuildThreads.create()
+
+    val compilerMaker = new BloopCompilerMaker(
+      bloopRifleConfig,
+      threads.bloop,
+      options.shared.strictBloopJsonCheckOrDefault
+    )
 
     val cross = options.compileCross.cross.getOrElse(false)
 
@@ -51,7 +59,7 @@ object Package extends ScalaCommand[PackageOptions] {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
         buildTests = false,
@@ -85,7 +93,7 @@ object Package extends ScalaCommand[PackageOptions] {
         Build.build(
           inputs,
           initialBuildOptions,
-          bloopRifleConfig,
+          compilerMaker,
           logger,
           crossBuilds = cross,
           buildTests = false,

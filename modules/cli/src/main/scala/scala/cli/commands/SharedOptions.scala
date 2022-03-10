@@ -271,6 +271,9 @@ final case class SharedOptions(
       .checkAttributes(directories.directories)
       .avoid(forbiddenDirs, directories.directories)
   }
+
+  def strictBloopJsonCheckOrDefault =
+    strictBloopJsonCheck.getOrElse(bo.InternalOptions.defaultStrictBloopJsonCheck)
 }
 
 object SharedOptions {
