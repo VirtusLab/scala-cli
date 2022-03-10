@@ -11,18 +11,9 @@ import scala.build.Positioned
 import scala.build.errors.{
   DependencyFormatError,
   InvalidBinaryScalaVersionError,
-  NoValueProvidedError,
-  ScalaNativeCompatibilityError,
-  SingleValueExpectedError
+  ScalaNativeCompatibilityError
 }
-import scala.build.options.{
-  BuildOptions,
-  InternalOptions,
-  JavaOpt,
-  ScalacOpt,
-  ScalaOptions,
-  ShadowingSeq
-}
+import scala.build.options.{BuildOptions, InternalOptions, JavaOpt, ScalacOpt, ShadowingSeq}
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
@@ -649,8 +640,8 @@ class BuildTests extends munit.FunSuite {
            |
            |""".stripMargin
     )
-    val buildOptions = BuildOptions(
-      scalaOptions = ScalaOptions(
+    val buildOptions = baseOptions.copy(
+      scalaOptions = baseOptions.scalaOptions.copy(
         scalaVersion = Some(s"3.${Int.MaxValue}.3"),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
@@ -680,7 +671,7 @@ class BuildTests extends munit.FunSuite {
     )
 
     // Emulates options derived from cli
-    val buildOptions: BuildOptions = defaultOptions.copy(
+    val buildOptions = defaultOptions.copy(
       internal = defaultOptions.internal.copy(
         keepDiagnostics = true
       ),
@@ -745,7 +736,7 @@ class BuildTests extends munit.FunSuite {
     )
 
     // Emulates options derived from cli
-    val buildOptions: BuildOptions = defaultOptions.copy(
+    val buildOptions = defaultOptions.copy(
       internal = defaultOptions.internal.copy(
         keepDiagnostics = true
       ),
@@ -772,7 +763,7 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
 
-    val buildOptions: BuildOptions = defaultOptions.copy(
+    val buildOptions = defaultOptions.copy(
       internal = defaultOptions.internal.copy(
         keepDiagnostics = true
       )
@@ -799,7 +790,7 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
 
-    val buildOptions: BuildOptions = defaultOptions.copy(
+    val buildOptions = defaultOptions.copy(
       internal = defaultOptions.internal.copy(
         keepDiagnostics = true
       )
