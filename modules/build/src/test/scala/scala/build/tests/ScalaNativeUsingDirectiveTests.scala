@@ -10,24 +10,14 @@ import scala.build.{BuildThreads, Directories, LocalRepo}
 class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
-  def bloopConfig  = BloopServer.bloopConfig
+  def bloopConfig  = Some(BloopServer.bloopConfig)
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories     = Directories.under(extraRepoTmpDir)
 
-  val baseOptions = BuildOptions(
+  val buildOptions = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir),
-      keepDiagnostics = true
-    )
-  )
-  val defaultOptions = baseOptions.copy(
-    scalaOptions = baseOptions.scalaOptions.copy(
-      scalaBinaryVersion = None
-    )
-  )
-  val buildOptions = defaultOptions.copy(
-    internal = defaultOptions.internal.copy(
       keepDiagnostics = true
     )
   )
@@ -134,11 +124,6 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
         """//> using `native-version` "0.4.0"
           |def foo() = println("hello foo")
           |""".stripMargin
-    )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
     )
 
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>

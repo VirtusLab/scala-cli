@@ -21,7 +21,7 @@ import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.Scope
-import scala.build.{Build, Builds, Logger, Os}
+import scala.build.{Build, BuildThreads, Builds, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.errors.{MissingRepositoryError, UploadError}
 
@@ -40,7 +40,9 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val logger              = options.shared.logger
     val initialBuildOptions = options.buildOptions.orExit(logger)
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
+    val threads             = BuildThreads.create()
+
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val cross = options.compileCross.cross.getOrElse(false)
 
@@ -58,7 +60,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
         buildTests = false,
@@ -77,7 +79,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         Build.build(
           inputs,
           initialBuildOptions,
-          bloopRifleConfig,
+          compilerMaker,
           logger,
           crossBuilds = cross,
           buildTests = false,

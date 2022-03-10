@@ -4,10 +4,10 @@ import caseapp._
 import coursier.cache.FileCache
 
 import scala.build.EitherCps.{either, value}
+import scala.build._
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.build.options.BuildOptions
-import scala.build.{Artifacts, Build, Inputs, Logger, Os, ReplArtifacts}
 import scala.cli.CurrentParams
 import scala.util.Properties
 
@@ -28,8 +28,10 @@ object Repl extends ScalaCommand[ReplOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
+    val threads             = BuildThreads.create()
+
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val directories = options.shared.directories.directories
 
@@ -83,7 +85,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
         buildTests = false,
@@ -106,7 +108,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         Build.build(
           inputs,
           initialBuildOptions,
-          bloopRifleConfig,
+          compilerMaker,
           logger,
           crossBuilds = cross,
           buildTests = false,

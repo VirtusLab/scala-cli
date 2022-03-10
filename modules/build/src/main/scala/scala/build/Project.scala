@@ -14,7 +14,7 @@ final case class Project(
   workspace: os.Path,
   directory: os.Path,
   classesDir: os.Path,
-  scalaCompiler: ScalaCompiler,
+  scalaCompiler: ScalaCompilerParams,
   scalaJsOptions: Option[BloopConfig.JsConfig],
   scalaNativeOptions: Option[BloopConfig.NativeConfig],
   projectName: String,

@@ -156,6 +156,10 @@ JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
 
 Working directory for Bloop, if it needs to be started
 
+#### `--server`
+
+Enable / disable compilation server
+
 ## Compile options
 
 Available in commands:
