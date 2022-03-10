@@ -15,6 +15,36 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     os.proc(TestUtil.cli, "directories").call().out.text()
   }
 
+  val mainInput = 
+    os.rel / "Main.scala" ->
+      """//> using lib "com.lihaoyi::utest:0.7.10"
+        |
+        |object Main {
+        |  val err = utest.compileError("pprint.log(2)")
+        |  def message = "Hello from " + "tests"
+        |  def main(args: Array[String]): Unit = {
+        |    println(message)
+        |    println(err)
+        |  }
+        |}
+        |""".stripMargin
+
+  val testInput = 
+    os.rel / "Tests.scala" ->
+      """//> using lib "com.lihaoyi::pprint:0.6.6"
+        |//> using target.scope "test"
+        |
+        |import utest._
+        |
+        |object Tests extends TestSuite {
+        |  val tests = Tests {
+        |    test("message") {
+        |      assert(Main.message.startsWith("Hello"))
+        |    }
+        |  }
+        |}
+        |""".stripMargin
+
   val simpleInputs = TestInputs(
     Seq(
       os.rel / "MyTests.test.scala" ->
@@ -57,40 +87,35 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("test scope") {
+  test("copy compile output") {
     val inputs = TestInputs(
       Seq(
-        os.rel / "Main.scala" ->
-          """//> using lib "com.lihaoyi::utest:0.7.10"
-            |
-            |object Main {
-            |  val err = utest.compileError("pprint.log(2)")
-            |  def message = "Hello from " + "tests"
-            |  def main(args: Array[String]): Unit = {
-            |    println(message)
-            |    println(err)
-            |  }
-            |}
-            |""".stripMargin,
-        os.rel / "Tests.scala" ->
-          """//> using lib "com.lihaoyi::pprint:0.6.6"
-            |//> using target.scope "test"
-            |
-            |import utest._
-            |
-            |object Tests extends TestSuite {
-            |  val tests = Tests {
-            |    test("message") {
-            |      assert(Main.message.startsWith("Hello"))
-            |    }
-            |  }
-            |}
-            |""".stripMargin
+        mainInput,
+        testInput
       )
     )
+    val tempOutput = os.temp.dir()
+    val res = inputs.fromRoot { root =>
+      val outputOptions = Seq("--output", tempOutput.toString)
+      val cmd = os.proc(TestUtil.cli, "compile", outputOptions, extraOptions, ".")
+        cmd.call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
+    }
+    val compileOutputCoppied = os.list(tempOutput).forall(_.baseName.startsWith("Main"))
+    expect(compileOutputCoppied)
+  }
+
+  test("test scope with copy output") {
+    val inputs = TestInputs(
+      Seq(
+        mainInput,
+        testInput
+      )
+    )
+    val tempOutput = os.temp.dir()
+    val outputOptions = Seq("--output", tempOutput.toString)
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, "compile", "--test", "--class-path", extraOptions, ".").call(cwd =
+        os.proc(TestUtil.cli, "compile", "--test", outputOptions, "--class-path", extraOptions, ".").call(cwd =
           root
         ).out.text().trim
       val classPath = output.split(File.pathSeparator).map(_.trim).filter(_.nonEmpty)
@@ -99,7 +124,9 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           p.startsWith((root / Constants.workspaceDirName).toString()) &&
           p.endsWith(Seq("classes", "test").mkString(File.separator))
         )
+      val mainAndTestOutputCoppied = os.list(tempOutput).forall(a => a.baseName.startsWith("Tests"))
       expect(isDefinedTestPathInClassPath)
+      expect(mainAndTestOutputCoppied)
     }
   }
 
