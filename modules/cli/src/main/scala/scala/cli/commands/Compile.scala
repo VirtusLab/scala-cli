@@ -4,7 +4,6 @@ import caseapp._
 
 import java.io.File
 
-import scala.build.compiler.BloopCompilerMaker
 import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds}
 import scala.cli.CurrentParams
@@ -62,15 +61,10 @@ object Compile extends ScalaCommand[CompileOptions] {
         }
     }
 
-    val buildOptions     = options.buildOptions
-    val bloopRifleConfig = options.shared.bloopRifleConfig()
-    val threads          = BuildThreads.create()
+    val buildOptions = options.buildOptions
+    val threads      = BuildThreads.create()
 
-    val compilerMaker = new BloopCompilerMaker(
-      bloopRifleConfig,
-      threads.bloop,
-      options.shared.strictBloopJsonCheckOrDefault
-    )
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     if (options.watch.watch) {
       val watcher = Build.watch(

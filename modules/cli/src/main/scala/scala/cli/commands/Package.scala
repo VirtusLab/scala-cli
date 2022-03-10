@@ -20,7 +20,6 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
 import scala.build._
-import scala.build.compiler.BloopCompilerMaker
 import scala.build.errors.{BuildException, ScalaNativeBuildError}
 import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsConfig}
 import scala.build.options.{PackageType, Platform}
@@ -42,15 +41,10 @@ object Package extends ScalaCommand[PackageOptions] {
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
     val threads             = BuildThreads.create()
 
-    val compilerMaker = new BloopCompilerMaker(
-      bloopRifleConfig,
-      threads.bloop,
-      options.shared.strictBloopJsonCheckOrDefault
-    )
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val cross = options.compileCross.cross.getOrElse(false)
 

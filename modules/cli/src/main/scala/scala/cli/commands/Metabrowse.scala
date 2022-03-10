@@ -5,7 +5,6 @@ import caseapp._
 import java.io.File
 import java.nio.file.Path
 
-import scala.build.compiler.BloopCompilerMaker
 import scala.build.internal.Runner
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
@@ -30,14 +29,9 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val logger = options.shared.logger
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val threads             = BuildThreads.create()
 
-    val compilerMaker = new BloopCompilerMaker(
-      bloopRifleConfig,
-      threads.bloop,
-      options.shared.strictBloopJsonCheckOrDefault
-    )
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val builds =
       Build.build(

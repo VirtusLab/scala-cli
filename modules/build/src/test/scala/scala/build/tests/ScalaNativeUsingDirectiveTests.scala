@@ -10,7 +10,7 @@ import scala.build.{BuildThreads, Directories, LocalRepo}
 class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
-  def bloopConfig  = BloopServer.bloopConfig
+  def bloopConfig  = Some(BloopServer.bloopConfig)
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories     = Directories.under(extraRepoTmpDir)

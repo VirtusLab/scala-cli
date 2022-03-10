@@ -10,13 +10,15 @@ import upickle.default.{ReadWriter, macroRW}
 import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.{Constants, OsLibc}
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
-import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned, options => bo}
+import scala.build.{options => bo, _}
 import scala.concurrent.duration._
 import scala.util.Properties
 import scala.util.control.NonFatal
+
 // format: off
 final case class SharedOptions(
   @Recurse
@@ -215,6 +217,16 @@ final case class SharedOptions(
       Some(17)
     )
   }
+
+  def compilerMaker(threads: BuildThreads): ScalaCompilerMaker =
+    if (compilationServer.server.getOrElse(true))
+      new BloopCompilerMaker(
+        bloopRifleConfig(),
+        threads.bloop,
+        strictBloopJsonCheckOrDefault
+      )
+    else
+      SimpleScalaCompilerMaker("java", Nil)
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 

@@ -5,7 +5,6 @@ import coursier.cache.FileCache
 
 import scala.build.EitherCps.{either, value}
 import scala.build._
-import scala.build.compiler.BloopCompilerMaker
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.build.options.BuildOptions
@@ -29,15 +28,10 @@ object Repl extends ScalaCommand[ReplOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
     val threads             = BuildThreads.create()
 
-    val compilerMaker = new BloopCompilerMaker(
-      bloopRifleConfig,
-      threads.bloop,
-      options.shared.strictBloopJsonCheckOrDefault
-    )
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val directories = options.shared.directories.directories
 

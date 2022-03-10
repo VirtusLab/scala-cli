@@ -4,7 +4,6 @@ import caseapp._
 import org.scalajs.linker.interface.StandardConfig
 
 import scala.build.EitherCps.{either, value}
-import scala.build.compiler.BloopCompilerMaker
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.Platform
@@ -38,15 +37,10 @@ object Run extends ScalaCommand[RunOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
     val threads             = BuildThreads.create()
 
-    val compilerMaker = new BloopCompilerMaker(
-      bloopRifleConfig,
-      threads.bloop,
-      options.shared.strictBloopJsonCheckOrDefault
-    )
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Either[BuildException, Unit] =
       maybeRunOnce(

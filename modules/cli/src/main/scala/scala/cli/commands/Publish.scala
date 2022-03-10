@@ -18,7 +18,6 @@ import java.time.Instant
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.compiler.BloopCompilerMaker
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.Scope
@@ -41,14 +40,9 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val logger              = options.shared.logger
     val initialBuildOptions = options.buildOptions.orExit(logger)
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val threads             = BuildThreads.create()
 
-    val compilerMaker = new BloopCompilerMaker(
-      bloopRifleConfig,
-      threads.bloop,
-      options.shared.strictBloopJsonCheckOrDefault
-    )
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val cross = options.compileCross.cross.getOrElse(false)
 
