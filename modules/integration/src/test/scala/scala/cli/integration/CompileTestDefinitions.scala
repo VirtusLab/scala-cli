@@ -15,7 +15,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     os.proc(TestUtil.cli, "directories").call().out.text()
   }
 
-  val mainInput = 
+  val mainInput =
     os.rel / "Main.scala" ->
       """//> using lib "com.lihaoyi::utest:0.7.10"
         |
@@ -29,7 +29,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         |}
         |""".stripMargin
 
-  val testInput = 
+  val testInput =
     os.rel / "Tests.scala" ->
       """//> using lib "com.lihaoyi::pprint:0.6.6"
         |//> using target.scope "test"
@@ -97,8 +97,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     val tempOutput = os.temp.dir()
     val res = inputs.fromRoot { root =>
       val outputOptions = Seq("--output", tempOutput.toString)
-      val cmd = os.proc(TestUtil.cli, "compile", outputOptions, extraOptions, ".")
-        cmd.call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
+      val cmd           = os.proc(TestUtil.cli, "compile", outputOptions, extraOptions, ".")
+      cmd.call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
     }
     val compileOutputCoppied = os.list(tempOutput).forall(_.baseName.startsWith("Main"))
     expect(compileOutputCoppied)
@@ -111,11 +111,19 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         testInput
       )
     )
-    val tempOutput = os.temp.dir()
+    val tempOutput    = os.temp.dir()
     val outputOptions = Seq("--output", tempOutput.toString)
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, "compile", "--test", outputOptions, "--class-path", extraOptions, ".").call(cwd =
+        os.proc(
+          TestUtil.cli,
+          "compile",
+          "--test",
+          outputOptions,
+          "--class-path",
+          extraOptions,
+          "."
+        ).call(cwd =
           root
         ).out.text().trim
       val classPath = output.split(File.pathSeparator).map(_.trim).filter(_.nonEmpty)

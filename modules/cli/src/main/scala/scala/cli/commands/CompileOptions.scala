@@ -37,7 +37,7 @@ final case class CompileOptions(
   def outputPath() =
     output
       .filter(_.nonEmpty)
-      .map{p =>
+      .map { p =>
         os.Path(Paths.get(p), os.pwd)
       }
 
