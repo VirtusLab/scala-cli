@@ -4,6 +4,7 @@ import caseapp._
 import caseapp.core.help.Help
 
 import java.nio.file.Paths
+
 import scala.build.options.BuildOptions
 
 // format: off

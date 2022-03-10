@@ -95,7 +95,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     val tempOutput = os.temp.dir()
-    val res = inputs.fromRoot { root =>
+    inputs.fromRoot { root =>
       val outputOptions = Seq("--output", tempOutput.toString)
       val cmd           = os.proc(TestUtil.cli, "compile", outputOptions, extraOptions, ".")
       cmd.call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
