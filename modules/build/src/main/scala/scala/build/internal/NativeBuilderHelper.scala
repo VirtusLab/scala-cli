@@ -1,6 +1,7 @@
 package scala.build.internal
 
 import java.math.BigInteger
+import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.build.Build
@@ -22,11 +23,22 @@ object NativeBuilderHelper {
   }
 
   private def projectSha(build: Build.Successful, config: List[String]) = {
-    val md = MessageDigest.getInstance("SHA-1")
-    md.update(build.inputs.sourceHash().getBytes)
-    md.update(config.toString.getBytes)
+    val md      = MessageDigest.getInstance("SHA-1")
+    val charset = StandardCharsets.UTF_8
+    md.update(build.inputs.sourceHash().getBytes(charset))
+    md.update(0: Byte)
+    md.update("<config>".getBytes(charset))
+    for (elem <- config) {
+      md.update(elem.getBytes(charset))
+      md.update(0: Byte)
+    }
+    md.update("</config>".getBytes(charset))
     md.update(Constants.version.getBytes)
-    md.update(build.options.hash.getOrElse("").getBytes)
+    md.update(0: Byte)
+    for (h <- build.options.hash) {
+      md.update(h.getBytes(charset))
+      md.update(0: Byte)
+    }
 
     val digest        = md.digest()
     val calculatedSum = new BigInteger(1, digest)
