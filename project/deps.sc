@@ -65,6 +65,7 @@ object Deps {
   def coursierPublish            = ivy"io.get-coursier.publish::publish:0.1.0"
   def dataClass                  = ivy"io.github.alexarchambault::data-class:0.2.5"
   def dependency                 = ivy"io.get-coursier::dependency:0.2.1"
+  def dockerClient               = ivy"com.spotify:docker-client:8.16.0"
   def expecty                    = ivy"com.eed3si9n.expecty::expecty:0.15.4"
   def guava                      = ivy"com.google.guava:guava:31.1-jre"
   def jimfs                      = ivy"com.google.jimfs:jimfs:1.2"
@@ -120,6 +121,8 @@ object Docker {
   def testImage = "ubuntu:18.04"
   def alpineTestImage =
     "alpine@sha256:234cb88d3020898631af0ccbbcca9a66ae7306ecd30c9720690858c1b007d2a0"
+  def authProxyTestImage =
+    "bahamat/authenticated-proxy@sha256:568c759ac687f93d606866fbb397f39fe1350187b95e648376b971e9d7596e75"
 }
 
 def customRepositories =
