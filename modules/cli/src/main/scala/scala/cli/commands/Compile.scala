@@ -5,7 +5,7 @@ import caseapp._
 import java.io.File
 
 import scala.build.options.Scope
-import scala.build.{Build, Builds}
+import scala.build.{Build, BuildThreads, Builds}
 import scala.cli.CurrentParams
 
 object Compile extends ScalaCommand[CompileOptions] {
@@ -61,14 +61,16 @@ object Compile extends ScalaCommand[CompileOptions] {
         }
     }
 
-    val buildOptions     = options.buildOptions
-    val bloopRifleConfig = options.shared.bloopRifleConfig()
+    val buildOptions = options.buildOptions
+    val threads      = BuildThreads.create()
+
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     if (options.watch.watch) {
       val watcher = Build.watch(
         inputs,
         buildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
         buildTests = options.test,
@@ -85,7 +87,7 @@ object Compile extends ScalaCommand[CompileOptions] {
       val res = Build.build(
         inputs,
         buildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
         buildTests = options.test,

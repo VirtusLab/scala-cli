@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
 
+import scala.cli.integration.util.DockerServer
 import scala.util.Properties
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
@@ -1484,5 +1485,77 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   if (Properties.isLinux && TestUtil.isNativeCli && TestUtil.cliKind != "native-static")
     test("sudo") {
       sudoTest()
+    }
+
+  def authProxyTest(): Unit = {
+    val okDir    = os.rel / "ok"
+    val wrongDir = os.rel / "wrong"
+    val inputs = TestInputs(
+      Seq(okDir, wrongDir).flatMap { baseDir =>
+        Seq(
+          baseDir / "Simple.scala" ->
+            """object Simple {
+              |  def main(args: Array[String]): Unit = {
+              |    println("Hello proxy")
+              |  }
+              |}
+              |""".stripMargin
+        )
+      }
+    )
+    def authProperties(host: String, port: Int, user: String, password: String): Seq[String] =
+      Seq("http", "https").flatMap { scheme =>
+        Seq(
+          s"-D$scheme.proxyHost=$host",
+          s"-D$scheme.proxyPort=$port",
+          s"-D$scheme.proxyUser=$user",
+          s"-D$scheme.proxyPassword=$password"
+        )
+      }
+    val proxyArgs      = authProperties("localhost", 9083, "jack", "insecure")
+    val wrongProxyArgs = authProperties("localhost", 9084, "wrong", "nope")
+    val image          = Constants.authProxyTestImage
+    inputs.fromRoot { root =>
+      DockerServer.withServer(image, root.toString, 80 -> 9083) { _ =>
+        DockerServer.withServer(image, root.toString, 80 -> 9084) { _ =>
+
+          val okRes = os.proc(
+            TestUtil.cli,
+            proxyArgs,
+            "-Dcoursier.cache.throw-exceptions=true",
+            "run",
+            ".",
+            "--cache",
+            os.rel / "tmp-cache-ok"
+          )
+            .call(cwd = root / okDir)
+          val okOutput = okRes.out.text().trim
+          expect(okOutput == "Hello proxy")
+
+          val wrongRes = os.proc(
+            TestUtil.cli,
+            wrongProxyArgs,
+            "-Dcoursier.cache.throw-exceptions=true",
+            "run",
+            ".",
+            "--cache",
+            os.rel / "tmp-cache-wrong"
+          )
+            .call(cwd = root / wrongDir, mergeErrIntoOut = true, check = false)
+          val wrongOutput = wrongRes.out.text().trim
+          expect(wrongRes.exitCode == 1)
+          expect(wrongOutput.contains(
+            """Unable to tunnel through proxy. Proxy returns "HTTP/1.1 407 Proxy Authentication Required""""
+          ))
+        }
+      }
+    }
+  }
+
+  def runAuthProxyTest =
+    Properties.isLinux || (Properties.isMac && !TestUtil.isCI)
+  if (runAuthProxyTest)
+    test("auth proxy") {
+      authProxyTest()
     }
 }

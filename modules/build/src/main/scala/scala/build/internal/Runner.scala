@@ -65,7 +65,8 @@ object Runner {
     mainClass: String,
     args: Seq[String],
     logger: Logger,
-    allowExecve: Boolean = false
+    allowExecve: Boolean = false,
+    cwd: Option[os.Path] = None
   ): Int = {
 
     val command =
@@ -78,7 +79,7 @@ object Runner {
         ) ++
         args
 
-    run("java", command, logger, allowExecve)
+    run("java", command, logger, allowExecve, cwd = cwd)
   }
 
   private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =
