@@ -16,6 +16,7 @@ final case class PackageOptions(
   windowsOptions: WindowsOptions = WindowsOptions(),
   redHatOptions: RedHatOptions = RedHatOptions(),
   dockerOptions: DockerOptions = DockerOptions(),
+  nativeImageOptions: NativeImageOptions = NativeImageOptions(),
   useDefaultScaladocOptions: Option[Boolean] = None
 ) {
 

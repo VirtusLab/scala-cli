@@ -719,6 +719,9 @@ final case class BuildOptions(
     BuildOptions.monoid.orElse(this, other)
 
   def validate: Seq[Diagnostic] = BuildOptionsRule.validateAll(this)
+
+  def nativeImageWorkDir(root: os.Path, projectName: String): os.Path =
+    root / workspaceDirName / projectName / "native-image"
 }
 
 object BuildOptions {

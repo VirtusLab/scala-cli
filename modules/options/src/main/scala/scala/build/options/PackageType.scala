@@ -26,6 +26,9 @@ object PackageType {
   case object Docker extends PackageType {
     override def runnable = None
   }
+  case object GraalVMNativeImage extends PackageType {
+    override def runnable = Some(true)
+  }
   case object Debian extends NativePackagerType
   case object Dmg    extends NativePackagerType
   case object Pkg    extends NativePackagerType

@@ -27,7 +27,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
 import scala.cli.errors.{ScalaJsLinkingError, ScaladocGenerationFailedError}
 import scala.cli.internal.{ProcUtil, ScalaJsLinker}
-import scala.cli.packaging.Library
+import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
@@ -144,34 +144,36 @@ object Package extends ScalaCommand[PackageOptions] {
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
     def extension = packageType match {
-      case PackageType.LibraryJar                 => ".jar"
-      case PackageType.SourceJar                  => ".jar"
-      case PackageType.DocJar                     => ".jar"
-      case PackageType.Assembly                   => ".jar"
-      case PackageType.Js                         => ".js"
-      case PackageType.Debian                     => ".deb"
-      case PackageType.Dmg                        => ".dmg"
-      case PackageType.Pkg                        => ".pkg"
-      case PackageType.Rpm                        => ".rpm"
-      case PackageType.Msi                        => ".msi"
-      case PackageType.Native if Properties.isWin => ".exe"
-      case _ if Properties.isWin                  => ".bat"
-      case _                                      => ""
+      case PackageType.LibraryJar                             => ".jar"
+      case PackageType.SourceJar                              => ".jar"
+      case PackageType.DocJar                                 => ".jar"
+      case PackageType.Assembly                               => ".jar"
+      case PackageType.Js                                     => ".js"
+      case PackageType.Debian                                 => ".deb"
+      case PackageType.Dmg                                    => ".dmg"
+      case PackageType.Pkg                                    => ".pkg"
+      case PackageType.Rpm                                    => ".rpm"
+      case PackageType.Msi                                    => ".msi"
+      case PackageType.Native if Properties.isWin             => ".exe"
+      case PackageType.GraalVMNativeImage if Properties.isWin => ".exe"
+      case _ if Properties.isWin                              => ".bat"
+      case _                                                  => ""
     }
     def defaultName = packageType match {
-      case PackageType.LibraryJar                 => "library.jar"
-      case PackageType.SourceJar                  => "source.jar"
-      case PackageType.DocJar                     => "scaladoc.jar"
-      case PackageType.Assembly                   => "app.jar"
-      case PackageType.Js                         => "app.js"
-      case PackageType.Debian                     => "app.deb"
-      case PackageType.Dmg                        => "app.dmg"
-      case PackageType.Pkg                        => "app.pkg"
-      case PackageType.Rpm                        => "app.rpm"
-      case PackageType.Msi                        => "app.msi"
-      case PackageType.Native if Properties.isWin => "app.exe"
-      case _ if Properties.isWin                  => "app.bat"
-      case _                                      => "app"
+      case PackageType.LibraryJar                             => "library.jar"
+      case PackageType.SourceJar                              => "source.jar"
+      case PackageType.DocJar                                 => "scaladoc.jar"
+      case PackageType.Assembly                               => "app.jar"
+      case PackageType.Js                                     => "app.js"
+      case PackageType.Debian                                 => "app.deb"
+      case PackageType.Dmg                                    => "app.dmg"
+      case PackageType.Pkg                                    => "app.pkg"
+      case PackageType.Rpm                                    => "app.rpm"
+      case PackageType.Msi                                    => "app.msi"
+      case PackageType.Native if Properties.isWin             => "app.exe"
+      case PackageType.GraalVMNativeImage if Properties.isWin => "app.exe"
+      case _ if Properties.isWin                              => "app.bat"
+      case _                                                  => "app"
     }
 
     val dest = outputOpt
@@ -237,6 +239,10 @@ object Package extends ScalaCommand[PackageOptions] {
 
       case PackageType.Native =>
         buildNative(build, destPath, value(mainClass), logger)
+
+      case PackageType.GraalVMNativeImage =>
+        buildGraalVMNativeImage(build, destPath, value(mainClass), extraArgs, logger)
+
       case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
         bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck())
@@ -535,6 +541,19 @@ object Package extends ScalaCommand[PackageOptions] {
       )
 
     buildNative(build, mainClass, destPath, workDir, logger)
+  }
+
+  private def buildGraalVMNativeImage(
+    build: Build.Successful,
+    destPath: os.Path,
+    mainClass: String,
+    extraArgs: Seq[String],
+    logger: Logger
+  ): Unit = {
+    val workDir =
+      build.options.nativeImageWorkDir(build.inputs.workspace, build.inputs.projectName)
+
+    NativeImage.buildNativeImage(build, mainClass, destPath, workDir, extraArgs, logger)
   }
 
   private def bootstrap(
