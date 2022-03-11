@@ -12,6 +12,6 @@ class LoggingBuildServerAll(
 
   def buildTargetWrappedSources(params: WrappedSourcesParams)
     : CompletableFuture[WrappedSourcesResult] =
-    underlying.buildTargetWrappedSources(pprint.stderr.log(params)).logF
+    underlying.buildTargetWrappedSources(pprint.err.log(params)).logF
 
 }

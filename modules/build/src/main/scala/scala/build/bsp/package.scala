@@ -12,9 +12,9 @@ package object bsp {
     def logF: CompletableFuture[T] =
       f.handle { (res, err) =>
         if (err == null)
-          pprint.stderr.log(res)
+          pprint.err.log(res)
         else
-          throw pprint.stderr.log(err)
+          throw pprint.err.log(err)
       }
   }
 
