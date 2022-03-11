@@ -24,6 +24,7 @@ import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.errors.{MissingRepositoryError, UploadError}
+import scala.cli.packaging.Library
 
 object Publish extends ScalaCommand[PublishOptions] {
 
@@ -177,7 +178,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         case Right(cls) => Some(cls)
       }
     }
-    val mainJarContent = Package.libraryJar(build, mainClassOpt)
+    val mainJarContent = Library.libraryJar(build, mainClassOpt)
     val mainJar        = workingDir / org / s"$fullName-$ver.jar"
     os.write(mainJar, mainJarContent, createFolders = true)
 

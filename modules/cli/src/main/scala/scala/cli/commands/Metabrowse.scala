@@ -9,6 +9,7 @@ import scala.build.internal.Runner
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
 import scala.cli.internal.FetchExternalBinary
+import scala.cli.packaging.Library
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
   override def hidden     = true
@@ -52,7 +53,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       case s: Build.Successful => s
     }
 
-    Package.withLibraryJar(successfulBuild) { jar =>
+    Library.withLibraryJar(successfulBuild) { jar =>
       Package.withSourceJar(successfulBuild, System.currentTimeMillis()) { sourceJar =>
         runServer(options, logger, successfulBuild, jar, sourceJar)
       }
