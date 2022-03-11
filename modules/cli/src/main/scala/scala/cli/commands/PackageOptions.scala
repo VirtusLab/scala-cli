@@ -3,6 +3,8 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
+import scala.build.BuildThreads
+import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.options._
 
 // format: off
@@ -33,6 +35,11 @@ final case class PackageOptions(
   @HelpMessage("Generate a source JAR rather than an executable JAR")
     source: Boolean = false,
   @Group("Package")
+  @HelpMessage("Generate a scaladoc JAR rather than an executable JAR")
+  @ExtraName("scaladoc")
+  @ExtraName("javadoc")
+    doc: Boolean = false,
+  @Group("Package")
   @HelpMessage("Generate an assembly JAR")
     assembly: Boolean = false,
   @Group("Package")
@@ -57,18 +64,28 @@ final case class PackageOptions(
     pkg: Boolean = false,
   @Group("Package")
   @HelpMessage("Build Docker image")
-    docker: Boolean = false
+    docker: Boolean = false,
+
+  @Group("Package")
+  @HelpMessage("Use default scaladoc options")
+  @ExtraName("defaultScaladocOpts")
+    defaultScaladocOptions: Option[Boolean] = None
 ) {
   // format: on
   def packageTypeOpt: Option[PackageType] =
-    if (library) Some(PackageType.LibraryJar)
-    else if (source) Some(PackageType.SourceJar)
-    else if (assembly) Some(PackageType.Assembly)
-    else if (deb) Some(PackageType.Debian)
-    else if (dmg) Some(PackageType.Dmg)
-    else if (pkg) Some(PackageType.Pkg)
-    else if (rpm) Some(PackageType.Rpm)
-    else if (msi) Some(PackageType.Msi)
+    forcedPackageTypeOpt.orElse {
+      if (library) Some(PackageType.LibraryJar)
+      else if (source) Some(PackageType.SourceJar)
+      else if (assembly) Some(PackageType.Assembly)
+      else if (deb) Some(PackageType.Debian)
+      else if (dmg) Some(PackageType.Dmg)
+      else if (pkg) Some(PackageType.Pkg)
+      else if (rpm) Some(PackageType.Rpm)
+      else if (msi) Some(PackageType.Msi)
+      else None
+    }
+  def forcedPackageTypeOpt: Option[PackageType] =
+    if (doc) Some(PackageType.DocJar)
     else None
 
   def buildOptions: BuildOptions = {
@@ -110,11 +127,18 @@ final case class PackageOptions(
             imageRepository = packager.dockerImageRepository,
             imageTag = packager.dockerImageTag,
             isDockerEnabled = Some(docker)
-          )
+          ),
+          useDefaultScaladocOptions = defaultScaladocOptions
         )
       )
     )
   }
+
+  def compilerMaker(threads: BuildThreads): ScalaCompilerMaker =
+    if (forcedPackageTypeOpt.contains(PackageType.DocJar))
+      SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
+    else
+      shared.compilerMaker(threads)
 }
 
 object PackageOptions {

@@ -16,6 +16,7 @@ final case class Project(
   workspace: os.Path,
   directory: os.Path,
   classesDir: os.Path,
+  scaladocDir: os.Path,
   scalaCompiler: ScalaCompilerParams,
   scalaJsOptions: Option[BloopConfig.JsConfig],
   scalaNativeOptions: Option[BloopConfig.NativeConfig],

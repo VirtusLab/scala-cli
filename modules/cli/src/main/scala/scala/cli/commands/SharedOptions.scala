@@ -233,8 +233,12 @@ final case class SharedOptions(
   def inputsOrExit(
     args: RemainingArgs,
     defaultInputs: () => Option[Inputs] = () => Inputs.default()
-  ): Inputs = inputsOrExit(args.remaining, defaultInputs)
+  ): Inputs = inputsOrExit(args.all, defaultInputs)
 
+  def inputsOrExit(
+    args: Seq[String]
+  ): Inputs =
+    inputsOrExit(args, () => Inputs.default())
   def inputsOrExit(
     args: Seq[String],
     defaultInputs: () => Option[Inputs]

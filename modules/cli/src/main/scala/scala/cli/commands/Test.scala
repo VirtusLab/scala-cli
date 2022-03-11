@@ -23,7 +23,7 @@ object Test extends ScalaCommand[TestOptions] {
   def run(options: TestOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args)
+    val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val logger = options.shared.logger
     SetupIde.runSafe(

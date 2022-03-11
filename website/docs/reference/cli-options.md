@@ -678,6 +678,12 @@ Generate a library JAR rather than an executable JAR
 
 Generate a source JAR rather than an executable JAR
 
+#### `--doc`
+
+Aliases: `--scaladoc`, `--javadoc`
+
+Generate a scaladoc JAR rather than an executable JAR
+
 #### `--assembly`
 
 Generate an assembly JAR
@@ -709,6 +715,12 @@ Build pkg package, available only on macOS
 #### `--docker`
 
 Build Docker image
+
+#### `--default-scaladoc-options`
+
+Aliases: `--default-scaladoc-opts`
+
+Use default scaladoc options
 
 ## Packager options
 

@@ -8,7 +8,8 @@ import scala.util.Properties
 
 final case class SimpleScalaCompiler(
   defaultJavaCommand: String,
-  defaultJavaOptions: Seq[String]
+  defaultJavaOptions: Seq[String],
+  scaladoc: Boolean
 ) extends ScalaCompiler {
 
   def jvmVersion: Option[Positioned[Int]] =
@@ -28,7 +29,13 @@ final case class SimpleScalaCompiler(
     if (project.sources.isEmpty) true
     else {
 
-      os.makeDir.all(project.classesDir)
+      val isScala2 = project.scalaCompiler.scalaVersion.startsWith("2.")
+
+      val outputDir =
+        if (isScala2 && scaladoc) project.scaladocDir
+        else project.classesDir
+
+      os.makeDir.all(outputDir)
 
       // initially adapted from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-d13a7e6d602b8f84d9177e3138487872f0341d006accfe425886a561f029a9c3R120 and around
 
@@ -36,14 +43,18 @@ final case class SimpleScalaCompiler(
         project.scalaCompiler.scalacOptions ++
           Seq(
             "-d",
-            project.classesDir.toString,
+            outputDir.toString,
             "-cp",
             project.classPath.map(_.toString).mkString(File.pathSeparator)
           ) ++
           project.sources.map(_.toString)
 
       val mainClass =
-        if (project.scalaCompiler.scalaVersion.startsWith("2.")) "scala.tools.nsc.Main"
+        if (isScala2)
+          if (scaladoc)
+            "scala.tools.nsc.ScalaDoc"
+          else
+            "scala.tools.nsc.Main"
         else "dotty.tools.dotc.Main"
 
       val javaCommand = project.javaHomeOpt match {
