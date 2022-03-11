@@ -42,11 +42,11 @@ object TestInputs {
   def compress(zipFilepath: os.Path, files: Seq[(os.RelPath, String)]) = {
     val zip = new ZipOutputStream(new FileOutputStream(zipFilepath.toString()))
     try for ((relPath, content) <- files) {
-      zip.putNextEntry(new ZipEntry(relPath.toString()))
-      val in: Array[Byte] = content.getBytes
-      zip.write(in)
-      zip.closeEntry()
-    }
+        zip.putNextEntry(new ZipEntry(relPath.toString()))
+        val in: Array[Byte] = content.getBytes
+        zip.write(in)
+        zip.closeEntry()
+      }
     finally zip.close()
   }
 

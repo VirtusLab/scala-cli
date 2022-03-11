@@ -69,11 +69,12 @@ class NativePackagerTests extends munit.FunSuite {
       testInputs.fromRoot { root =>
 
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
+        val output  = s"$appName.dmg"
 
         // format: off
         val cmd = Seq[os.Shellable](
           TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--dmg",
-          "--output", appName,
+          "--output", output,
           "--identifier", "scala-cli",
           "--launcher-app", appName
         )
@@ -84,7 +85,7 @@ class NativePackagerTests extends munit.FunSuite {
           stdout = os.Inherit
         )
 
-        val launcher = root / s"$appName.dmg"
+        val launcher = root / output
         expect(os.isFile(launcher))
 
         if (TestUtil.isCI) {

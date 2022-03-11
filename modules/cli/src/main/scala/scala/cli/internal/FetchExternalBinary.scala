@@ -25,12 +25,12 @@ object FetchExternalBinary {
     val f = cache.logger.use {
       logger.log(s"Getting $url")
       try cache.file(Artifact(url).withChanging(changing))
-        .run
-        .flatMap {
-          case Left(e)  => Task.fail(e)
-          case Right(f) => Task.point(os.Path(f, os.pwd))
-        }
-        .unsafeRun()(cache.ec)
+          .run
+          .flatMap {
+            case Left(e)  => Task.fail(e)
+            case Right(f) => Task.point(os.Path(f, os.pwd))
+          }
+          .unsafeRun()(cache.ec)
       catch {
         case NonFatal(e) => throw new Exception(e)
       }

@@ -31,6 +31,7 @@ class ScalaCliCommands(
     Metabrowse,
     Repl,
     Package,
+    Publish,
     Run,
     SetupIde,
     Shebang,

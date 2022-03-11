@@ -11,18 +11,9 @@ import scala.build.Positioned
 import scala.build.errors.{
   DependencyFormatError,
   InvalidBinaryScalaVersionError,
-  NoValueProvidedError,
-  ScalaNativeCompatibilityError,
-  SingleValueExpectedError
+  ScalaNativeCompatibilityError
 }
-import scala.build.options.{
-  BuildOptions,
-  InternalOptions,
-  JavaOpt,
-  ScalacOpt,
-  ScalaOptions,
-  ShadowingSeq
-}
+import scala.build.options.{BuildOptions, InternalOptions, JavaOpt, ScalacOpt, ShadowingSeq}
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
@@ -30,10 +21,14 @@ import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 
-class BuildTests extends munit.FunSuite {
+abstract class BuildTests(server: Boolean) extends munit.FunSuite {
+
+  private def hasDiagnostics = server
 
   val buildThreads = BuildThreads.create()
-  def bloopConfig  = BloopServer.bloopConfig
+  def bloopConfigOpt =
+    if (server) Some(BloopServer.bloopConfig)
+    else None
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories     = Directories.under(extraRepoTmpDir)
@@ -73,7 +68,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       if (checkResults)
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple.class",
@@ -100,7 +95,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultScala3Options, buildThreads, bloopConfig) {
+    testInputs.withBuild(defaultScala3Options, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple.class",
@@ -120,7 +115,7 @@ class BuildTests extends munit.FunSuite {
       os.rel / "other.sc" ->
         "class A"
     )
-    testInputs.withBuild(defaultScala3Options, buildThreads, bloopConfig) {
+    testInputs.withBuild(defaultScala3Options, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
         val build = maybeBuild.orThrow
         build.assertGeneratedEquals(
@@ -148,7 +143,7 @@ class BuildTests extends munit.FunSuite {
         generateSemanticDbs = Some(true)
       )
     )
-    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val build = maybeBuild.orThrow
       build.assertGeneratedEquals(
         "simple.class",
@@ -179,7 +174,7 @@ class BuildTests extends munit.FunSuite {
         generateSemanticDbs = Some(true)
       )
     )
-    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val build = maybeBuild.orThrow
       build.assertGeneratedEquals(
         "simple.class",
@@ -205,7 +200,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.enableJs, buildThreads, bloopConfig) {
+    testInputs.withBuild(defaultOptions.enableJs, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple.class",
@@ -228,7 +223,7 @@ class BuildTests extends munit.FunSuite {
           |println(s"n=$n")
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions.enableNative, buildThreads, bloopConfig) {
+    testInputs.withBuild(defaultOptions.enableNative, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple$.class",
@@ -258,7 +253,7 @@ class BuildTests extends munit.FunSuite {
           |println(g.mkString)
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
         "simple_sc.class",
@@ -277,7 +272,7 @@ class BuildTests extends munit.FunSuite {
           |println(g.mkString)
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
         "simple_sc.class",
@@ -296,7 +291,7 @@ class BuildTests extends munit.FunSuite {
           |println(g.mkString)
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
         "simple_sc.class",
@@ -317,7 +312,7 @@ class BuildTests extends munit.FunSuite {
           |pprint.log(g)
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
         "simple_sc.class",
@@ -344,7 +339,7 @@ class BuildTests extends munit.FunSuite {
           |pprint.log(g)
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
         "simple_sc.class",
@@ -359,7 +354,11 @@ class BuildTests extends munit.FunSuite {
     }
   }
 
-  test("diagnostics") {
+  if (hasDiagnostics)
+    test("diagnostics") {
+      diagnosticsTest()
+    }
+  def diagnosticsTest(): Unit = {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
         """val n = 2
@@ -367,12 +366,7 @@ class BuildTests extends munit.FunSuite {
           |zz
           |""".stripMargin
     )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (root, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (root, _, maybeBuild) =>
       val expectedDiag = {
         val start = new bsp4j.Position(2, 0)
         val end   = new bsp4j.Position(2, 2)
@@ -388,7 +382,11 @@ class BuildTests extends munit.FunSuite {
     }
   }
 
-  test("diagnostics Scala 3") {
+  if (hasDiagnostics)
+    test("diagnostics Scala 3") {
+      scala3DiagnosticsTest()
+    }
+  def scala3DiagnosticsTest(): Unit = {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
         """val n = 2
@@ -396,24 +394,20 @@ class BuildTests extends munit.FunSuite {
           |zz
           |""".stripMargin
     )
-    val buildOptions = defaultScala3Options.copy(
-      internal = defaultScala3Options.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (root, _, maybeBuild) =>
-      val expectedDiag = {
-        val start = new bsp4j.Position(2, 0)
-        val end   = new bsp4j.Position(2, 0) // would have expected (2, 2) here :|
-        val range = new bsp4j.Range(start, end)
-        val d     = new bsp4j.Diagnostic(range, "Not found: zz")
-        d.setSource("bloop")
-        d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
-        d
-      }
-      val diagnostics = maybeBuild.orThrow.diagnostics
-      val expected    = Some(Seq(Right(root / "simple.sc") -> expectedDiag))
-      expect(diagnostics == expected)
+    testInputs.withBuild(defaultScala3Options, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        val expectedDiag = {
+          val start = new bsp4j.Position(2, 0)
+          val end   = new bsp4j.Position(2, 0) // would have expected (2, 2) here :|
+          val range = new bsp4j.Range(start, end)
+          val d     = new bsp4j.Diagnostic(range, "Not found: zz")
+          d.setSource("bloop")
+          d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
+          d
+        }
+        val diagnostics = maybeBuild.orThrow.diagnostics
+        val expected    = Some(Seq(Right(root / "simple.sc") -> expectedDiag))
+        expect(diagnostics == expected)
     }
   }
 
@@ -432,7 +426,7 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "Simple.class",
         "Simple$.class"
@@ -454,7 +448,7 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "Simple.class",
         "Simple$.class"
@@ -484,7 +478,7 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
     val options = defaultOptions.enableJs
-    testInputs.withBuild(options, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(options, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "Simple.class",
         "Simple$.class",
@@ -509,7 +503,7 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "Simple.class",
         "Simple$.class"
@@ -531,7 +525,7 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "Simple.class",
         "Simple$.class"
@@ -549,26 +543,25 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin
     )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val sources = maybeBuild.toOption.get.successfulOpt.get.sources
       expect(sources.inMemory.isEmpty)
       expect(sources.paths.lengthCompare(1) == 0)
     }
   }
 
-  test("Ignore malformed import $ivy") {
+  if (hasDiagnostics)
+    test("Ignore malformed import $ivy") {
+      ignoreMalformedImportIvyTest()
+    }
+  def ignoreMalformedImportIvyTest(): Unit = {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
         """#!/usr/bin/env scala-cli
           |import $ivy"com.lihaoyi::os-lib:0.7.8"
           |""".stripMargin
     )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val diagnostics = maybeBuild.orThrow.diagnostics.getOrElse(Nil).map(_._2)
       expect(
         diagnostics.exists(_.getMessage.contains("identifier expected but string literal found"))
@@ -589,189 +582,8 @@ class BuildTests extends munit.FunSuite {
           |} yield x + y
           |""".stripMargin
     )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       assert(clue(maybeBuild.orThrow.diagnostics).toSeq.flatten.isEmpty)
-    }
-  }
-  test("ScalaNativeOptions for native-gc with no values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """  using `native-gc`
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      expect(
-        maybeBuild.left.exists { case _: NoValueProvidedError => true; case _ => false }
-      )
-    }
-  }
-
-  test("ScalaNativeOptions for native-gc with multiple values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-gc` 78, 12
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
-      )
-    }
-
-  }
-
-  test("ScalaNativeOptions for native-gc") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-gc` 78
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.gcStr.get == "78")
-    }
-  }
-
-  test("ScalaNativeOptions for native-version with multiple values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-version` "0.4.0", "0.3.3"
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
-      )
-    }
-
-  }
-
-  test("ScalaNativeOptions for native-version") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-version` "0.4.0"
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.version.get == "0.4.0")
-    }
-  }
-
-  test("ScalaNativeOptions for native-compile") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-compile` "compileOption1", "compileOption2"
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(0) == "compileOption1"
-      )
-      assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(1) == "compileOption2"
-      )
-    }
-  }
-
-  test("ScalaNativeOptions for native-linking and no value") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-linking`
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions.isEmpty)
-    }
-  }
-
-  test("ScalaNativeOptions for native-linking") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-linking` "linkingOption1", "linkingOption2"
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1"
-      )
-      assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2"
-      )
-    }
-  }
-
-  test("ScalaNativeOptions for native-linking and no value") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-linking`
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions.isEmpty)
     }
   }
 
@@ -789,7 +601,7 @@ class BuildTests extends munit.FunSuite {
         scalaVersion = None
       )
     )
-    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       assert(maybeBuild.isRight)
     }
   }
@@ -808,7 +620,7 @@ class BuildTests extends munit.FunSuite {
         scalaVersion = None
       )
     )
-    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
       assert(maybeBuild.swap.toOption.get.isInstanceOf[ScalaNativeCompatibilityError])
     }
@@ -825,14 +637,14 @@ class BuildTests extends munit.FunSuite {
            |
            |""".stripMargin
     )
-    val buildOptions = BuildOptions(
-      scalaOptions = ScalaOptions(
+    val buildOptions = baseOptions.copy(
+      scalaOptions = baseOptions.scalaOptions.copy(
         scalaVersion = Some(s"3.${Int.MaxValue}.3"),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
     )
-    testInputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       assert(
         maybeBuild.swap.exists { case _: InvalidBinaryScalaVersionError => true; case _ => false },
         s"specifying Scala 3.${Int.MaxValue}.3 as version does not lead to InvalidBinaryScalaVersionError"
@@ -856,16 +668,13 @@ class BuildTests extends munit.FunSuite {
     )
 
     // Emulates options derived from cli
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      ),
+    val buildOptions = defaultOptions.copy(
       classPathOptions = defaultOptions.classPathOptions.copy(
         extraDependencies = ShadowingSeq.from(Seq(Positioned.none(parsedCliDependency)))
       )
     )
 
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       assert(maybeBuild.isRight)
       val build     = maybeBuild.toOption.get
       val artifacts = build.options.classPathOptions.extraDependencies.toSeq
@@ -888,9 +697,6 @@ class BuildTests extends munit.FunSuite {
 
     // Emulates options derived from cli
     val buildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      ),
       scalaOptions = defaultOptions.scalaOptions.copy(
         scalacOptions = ShadowingSeq.from(
           cliScalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine(_))
@@ -898,7 +704,7 @@ class BuildTests extends munit.FunSuite {
       )
     )
 
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       assert(maybeBuild.isRight)
       val build         = maybeBuild.toOption.get
       val scalacOptions = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
@@ -921,10 +727,7 @@ class BuildTests extends munit.FunSuite {
     )
 
     // Emulates options derived from cli
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      ),
+    val buildOptions = defaultOptions.copy(
       javaOptions = defaultOptions.javaOptions.copy(
         javaOpts = ShadowingSeq.from(
           cliJavaOptions.map(JavaOpt(_)).map(Positioned.commandLine(_))
@@ -932,7 +735,7 @@ class BuildTests extends munit.FunSuite {
       )
     )
 
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val build       = maybeBuild.orThrow
       val javaOptions = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
       assert(javaOptions == expectedJavaOptions)
@@ -948,13 +751,7 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
 
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val expectedOptions = Seq("-source:future")
       val scalacOptions =
         maybeBuild.orThrow.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
@@ -975,13 +772,7 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
 
-    val buildOptions: BuildOptions = defaultOptions.copy(
-      internal = defaultOptions.internal.copy(
-        keepDiagnostics = true
-      )
-    )
-
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val expectedOptions =
         Seq("-deprecation", "-feature", "-Xmaxwarns", "1", "-Xdisable-assertions")
       val scalacOptions =
@@ -1000,7 +791,7 @@ class BuildTests extends munit.FunSuite {
           |""".stripMargin
     )
 
-    inputs.withBuild(defaultOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val expectedOptions =
         Seq(
           "-Xplugin:/paradise_2.12.15-2.1.1.jar",
@@ -1025,10 +816,10 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin
     )
-    inputs.withBuild(baseOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       expect(maybeBuild.exists(_.success))
       val build = maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
-      val cp    = build.artifacts.classPath.map(_.getFileName.toString)
+      val cp    = build.artifacts.classPath.map(_.last)
 
       val scalaLibraryJarNameOpt =
         cp.find(n => n.startsWith("scala-library-") && n.endsWith(".jar"))
@@ -1055,10 +846,10 @@ class BuildTests extends munit.FunSuite {
           |}
           |""".stripMargin
     )
-    inputs.withBuild(baseOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       expect(maybeBuild.exists(_.success))
       val build = maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
-      val cp    = build.artifacts.classPath.map(_.getFileName.toString)
+      val cp    = build.artifacts.classPath.map(_.last)
 
       val scalaLibraryJarNameOpt =
         cp.find(n => n.startsWith("scala3-library_3-") && n.endsWith(".jar"))

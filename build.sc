@@ -254,7 +254,9 @@ class Build(val crossScalaVersion: String)
          |  def stubsModuleName = "${stubs.artifactName()}"
          |  def stubsVersion = "${stubs.publishVersion()}"
          |
-         |  def testRunnerOrganization = "${`test-runner`(Scala.defaultInternal).pomSettings().organization}"
+         |  def testRunnerOrganization = "${`test-runner`(
+          Scala.defaultInternal
+        ).pomSettings().organization}"
          |  def testRunnerModuleName = "${`test-runner`(Scala.defaultInternal).artifactName()}"
          |  def testRunnerVersion = "${`test-runner`(Scala.defaultInternal).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"
@@ -353,6 +355,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.coursierLauncher,
+    Deps.coursierPublish,
     Deps.dataClass,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
@@ -411,8 +414,10 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
   trait Tests extends super.Tests with ScalaCliScalafixModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
+      Deps.dockerClient,
       Deps.pprint,
       Deps.scalaAsync,
+      Deps.slf4jNop,
       Deps.upickle
     )
     def forkEnv = super.forkEnv() ++ Seq(
@@ -458,6 +463,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def munitVersion = "${TestDeps.munit.dep.version}"
            |  def dockerTestImage = "${Docker.testImage}"
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
+           |  def authProxyTestImage = "${Docker.authProxyTestImage}"
            |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
            |  def workspaceDirName = "$workspaceDirName"
@@ -1120,4 +1126,8 @@ object ci extends Module {
     System.err.println(s"New Java home $destJavaHome")
     destJavaHome
   }
+}
+
+def updateLicensesFile() = T.command {
+  settings.updateLicensesFile()
 }

@@ -3,6 +3,7 @@ package scala.build.tests
 import java.nio.charset.StandardCharsets
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Build, BuildThreads, Directories, Inputs}
+import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
@@ -45,20 +46,26 @@ final case class TestInputs(
 
   def withBuild[T](
     options: BuildOptions,
-    buildThreads: BuildThreads,
-    bloopConfig: BloopRifleConfig,
+    buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
+    bloopConfigOpt: Option[BloopRifleConfig],
     fromDirectory: Boolean = false
   )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
     withCustomInputs(fromDirectory, None) { (root, inputs) =>
+      val compilerMaker = bloopConfigOpt match {
+        case Some(bloopConfig) =>
+          new BloopCompilerMaker(bloopConfig, buildThreads.bloop, strictBloopJsonCheck = true)
+        case None =>
+          SimpleScalaCompilerMaker("java", Nil)
+      }
       val res =
         Build.build(
           inputs,
           options,
-          buildThreads,
-          bloopConfig,
+          compilerMaker,
           TestLogger(),
           crossBuilds = false,
-          buildTests = true
+          buildTests = true,
+          partial = None
         )
       f(root, inputs, res.map(_.main))
     }

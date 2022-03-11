@@ -1,8 +1,8 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
 import $file.deps, deps.{Deps, Docker, buildCsVersion}
+import $file.scalafixthings, scalafixthings.ScalafixModule
 
-import com.goyeau.mill.scalafix.ScalafixModule
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.NativeImage
 import java.io.{ByteArrayOutputStream, File, FileInputStream, InputStream}
@@ -12,6 +12,7 @@ import java.util.zip.{GZIPInputStream, ZipFile}
 import mill._, scalalib._
 import scala.collection.JavaConverters._
 import scala.util.Properties
+import upickle.default._
 
 private def isCI = System.getenv("CI") != null
 
@@ -777,14 +778,13 @@ trait ScalaCliCompile extends ScalaModule {
                 val proc = os.proc(
                   cli,
                   Seq("compile", "--classpath"),
-                  if (scalaVersion().startsWith("3")) Nil
-                  else Seq("-O", s"-P:semanticdb:sourceroot:$millSourcePath"),
                   Seq("-S", scalaVersion()),
                   asOpt("-O", scalacOptions()),
                   asOpt("--jar", compileClasspath().map(_.path)),
                   asOpt("-O", scalacPluginClasspath().map(p => s"-Xplugin:${p.path}")),
                   Seq("--jvm", "zulu:17"),
-                  "--strict-bloop-json-check=false", // don't check Bloop JSON files at each run
+                  // re-enable this when switching to Scala CLI > 0.1.2
+                  // "--strict-bloop-json-check=false", // don't check Bloop JSON files at each run
                   workspace,
                   sourceFiles
                 )
@@ -839,6 +839,20 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
   }
+  def scalacOptions = T {
+    val sv       = scalaVersion()
+    val isScala2 = sv.startsWith("2.")
+    val sourceFiles = allSources()
+      .map(_.path)
+      .filter(os.exists(_))
+    val sourceRoot = sourceFiles.find(_.last == "scala")
+      .orElse(sourceFiles.headOption)
+      .getOrElse(millSourcePath)
+    val semDbOptions =
+      if (isScala2) Seq(s"-P:semanticdb:sourceroot:$sourceRoot")
+      else Nil
+    super.scalacOptions() ++ semDbOptions
+  }
 }
 
 trait ScalaCliCrossSbtModule extends CrossSbtModule {
@@ -857,3 +871,58 @@ trait ScalaCliCrossSbtModule extends CrossSbtModule {
 }
 
 def workspaceDirName = ".scala-build"
+
+final case class License(licenseId: String, name: String, reference: String)
+object License {
+  implicit val rw: ReadWriter[License] = macroRW
+}
+final case class Licenses(licenses: List[License])
+object Licenses {
+  implicit val rw: ReadWriter[Licenses] = macroRW
+}
+
+def updateLicensesFile() = {
+  val url             = "https://github.com/spdx/license-list-data/raw/master/json/licenses.json"
+  var is: InputStream = null
+  val b =
+    try {
+      is = new java.net.URL(url).openStream()
+      is.readAllBytes()
+    }
+    finally if (is != null) is.close()
+  val content = new String(b, "UTF-8")
+
+  val licenses = read[Licenses](content).licenses
+
+  System.err.println(s"Found ${licenses.length} licenses")
+
+  val licensesCode = licenses
+    .sortBy(_.licenseId)
+    .map { license =>
+      s"""    License("${license.licenseId}", "${license.name.replace(
+          "\"",
+          "\\\""
+        )}", "${license.reference}")"""
+    }
+    .mkString(",\n")
+
+  val genSource =
+    s"""package scala.build.internal
+       |
+       |object Licenses {
+       |  // format: off
+       |  val list = Seq(
+       |$licensesCode
+       |  )
+       |  // format: on
+       |
+       |  lazy val map = list.map(l => l.id -> l).toMap
+       |}
+       |""".stripMargin
+
+  val dest =
+    os.rel / "modules" / "build" / "src" / "main" / "scala" / "scala" / "build" / "internal" / "Licenses.scala"
+  os.write.over(os.pwd / dest, genSource)
+
+  System.err.println(s"Wrote $dest")
+}

@@ -6,7 +6,7 @@ import scala.build.preprocessing._
 
 final case class Sources(
   paths: Seq[(os.Path, os.RelPath)],
-  inMemory: Seq[(Either[String, os.Path], os.RelPath, String, Int)],
+  inMemory: Seq[Sources.InMemory],
   mainClass: Option[String],
   resourceDirs: Seq[os.Path],
   buildOptions: BuildOptions
@@ -26,9 +26,17 @@ final case class Sources(
 
   def generateSources(generatedSrcRoot: os.Path): Seq[GeneratedSource] = {
     val generated =
-      for ((reportingPath, relPath, code, topWrapperLen) <- inMemory) yield {
-        os.write.over(generatedSrcRoot / relPath, code.getBytes("UTF-8"), createFolders = true)
-        (reportingPath, relPath, topWrapperLen)
+      for (inMemSource <- inMemory) yield {
+        os.write.over(
+          generatedSrcRoot / inMemSource.generatedRelPath,
+          inMemSource.generatedContent.getBytes("UTF-8"),
+          createFolders = true
+        )
+        (
+          inMemSource.originalPath.map(_._2),
+          inMemSource.generatedRelPath,
+          inMemSource.topWrapperLen
+        )
       }
 
     val generatedSet = generated.map(_._2).toSet
@@ -46,6 +54,13 @@ final case class Sources(
 }
 
 object Sources {
+
+  final case class InMemory(
+    originalPath: Either[String, (os.SubPath, os.Path)],
+    generatedRelPath: os.RelPath,
+    generatedContent: String,
+    topWrapperLen: Int
+  )
 
   def defaultPreprocessors(codeWrapper: CodeWrapper): Seq[Preprocessor] =
     Seq(

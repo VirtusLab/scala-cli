@@ -46,7 +46,7 @@ class ConsoleBloopBuildClient(
     diagnosticMappings.get(path).collect {
       case (originalPath, lineOffset)
           if diag.getRange.getStart.getLine + lineOffset >= 0 &&
-            diag.getRange.getEnd.getLine + lineOffset >= 0 =>
+          diag.getRange.getEnd.getLine + lineOffset >= 0 =>
         val start = new bsp4j.Position(
           diag.getRange.getStart.getLine + lineOffset,
           diag.getRange.getStart.getCharacter

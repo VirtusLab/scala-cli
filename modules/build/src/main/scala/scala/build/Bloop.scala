@@ -61,7 +61,7 @@ object Bloop {
           cache.withMessage(s"Downloading compilation server ${dep.version}")
         )
       }
-      res.map(_._2.toFile)
+      res.map(_._2.toIO)
     }
 
   def bloopClassPath(logger: Logger, cache: FileCache[Task]): Either[BuildException, Seq[File]] =

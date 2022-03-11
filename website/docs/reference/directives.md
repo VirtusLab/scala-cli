@@ -103,6 +103,22 @@ Set the default platform to Scala.JS or Scala Native
 
 `//> using platform "jvm", "scala-native"`
 
+### Publish
+
+Set parameters for publishing
+
+`//> using publish.organization `"value"
+`//> using publish.moduleName `"value"
+`//> using publish.version `"value"
+
+
+#### Examples
+`//> using publish.organization "io.github.myself"`
+
+`//> using publish.moduleName "my-library"`
+
+`//> using publish.version "0.1.1"`
+
 ### Repository
 
 Add a repository for dependency resolution
@@ -166,11 +182,17 @@ Add Scala Native options
 
 `//> using nativeGc` _value_
 
+`//> using nativeMode` _value_
+
 `//> using nativeVersion` _value_
 
 `//> using nativeCompile` _value1_, _value2_
 
 `//> using nativeLinking` _value1_, _value2_
+
+`//> using nativeClang` _value_
+
+`//> using nativeClangPP` _value_
 
 #### Examples
 `//> using nativeVersion "0.4.0"`
