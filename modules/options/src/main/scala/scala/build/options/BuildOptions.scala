@@ -161,7 +161,7 @@ final case class BuildOptions(
 
   private lazy val javaCommand0: Positioned[JavaHomeInfo] = javaHomeLocation().map { javaHome =>
     val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
-    JavaHomeInfo(javaCmd, javaVersion)
+    JavaHomeInfo(javaHome, javaCmd, javaVersion)
   }
 
   private def jvmIndexOs = javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)
@@ -728,7 +728,11 @@ object BuildOptions {
     platform: Platform
   )
 
-  final case class JavaHomeInfo(javaCommand: String, version: Int)
+  final case class JavaHomeInfo(
+    javaHome: os.Path,
+    javaCommand: String,
+    version: Int
+  )
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive
