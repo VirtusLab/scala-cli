@@ -52,23 +52,18 @@ object Compile extends ScalaCommand[CompileOptions] {
           sys.exit(1)
       }
       else {
-        if (options.classPath)
+        val successulBuildOpt =
           for {
             build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
             s     <- build.successfulOpt
-          } {
+          } yield s
+        if (options.classPath)
+          for (s <- successulBuildOpt) {
             val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
             println(cp)
           }
-        options.outputPath()
-          .foreach {
-            output =>
-              for {
-                build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
-                s     <- build.successfulOpt
-              }
-                os.copy.over(s.output, output)
-          }
+        for (output <- options.outputPath; s <- successulBuildOpt)
+          os.copy.over(s.output, output)
       }
     }
 

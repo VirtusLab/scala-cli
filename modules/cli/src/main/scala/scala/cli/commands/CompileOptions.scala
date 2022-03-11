@@ -3,8 +3,7 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
-import java.nio.file.Paths
-
+import scala.build.Os
 import scala.build.options.BuildOptions
 
 // format: off
@@ -35,12 +34,7 @@ final case class CompileOptions(
   def buildOptions: BuildOptions =
     shared.buildOptions(enableJmh = false, jmhVersion = None)
 
-  def outputPath() =
-    output
-      .filter(_.nonEmpty)
-      .map { p =>
-        os.Path(Paths.get(p), os.pwd)
-      }
+  def outputPath = output.filter(_.nonEmpty).map(p => os.Path(p, Os.pwd))
 
 }
 

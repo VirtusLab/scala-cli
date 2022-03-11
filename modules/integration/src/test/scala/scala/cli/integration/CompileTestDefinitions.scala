@@ -10,6 +10,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
   protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected def compileFilesExtensions: Seq[String]
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
     os.proc(TestUtil.cli, "directories").call().out.text()
@@ -87,6 +88,11 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  def checkIfCompileOutputIsCoppied(baseName: String, output: os.Path): Unit =
+    expect(os.list(output).map(_.relativeTo(output)) == compileFilesExtensions.map(ext =>
+      os.rel / s"$baseName$ext"
+    ))
+
   test("copy compile output") {
     val inputs = TestInputs(
       Seq(
@@ -94,14 +100,13 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         testInput
       )
     )
-    val tempOutput = os.temp.dir()
     inputs.fromRoot { root =>
+      val tempOutput    = root / "output"
       val outputOptions = Seq("--output", tempOutput.toString)
       val cmd           = os.proc(TestUtil.cli, "compile", outputOptions, extraOptions, ".")
       cmd.call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
+      checkIfCompileOutputIsCoppied("Main", tempOutput)
     }
-    val compileOutputCoppied = os.list(tempOutput).forall(_.baseName.startsWith("Main"))
-    expect(compileOutputCoppied)
   }
 
   test("test scope with copy output") {
@@ -111,9 +116,9 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         testInput
       )
     )
-    val tempOutput    = os.temp.dir()
-    val outputOptions = Seq("--output", tempOutput.toString)
     inputs.fromRoot { root =>
+      val tempOutput    = root / "output"
+      val outputOptions = Seq("--output", tempOutput.toString)
       val output =
         os.proc(
           TestUtil.cli,
@@ -132,9 +137,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           p.startsWith((root / Constants.workspaceDirName).toString()) &&
           p.endsWith(Seq("classes", "test").mkString(File.separator))
         )
-      val mainAndTestOutputCoppied = os.list(tempOutput).forall(a => a.baseName.startsWith("Tests"))
       expect(isDefinedTestPathInClassPath)
-      expect(mainAndTestOutputCoppied)
+      checkIfCompileOutputIsCoppied("Tests", tempOutput)
     }
   }
 
