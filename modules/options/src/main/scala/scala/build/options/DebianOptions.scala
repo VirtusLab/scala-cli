@@ -7,6 +7,5 @@ final case class DebianOptions(
 )
 
 object DebianOptions {
-  implicit val hasHashData: HasHashData[DebianOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[DebianOptions]     = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[DebianOptions] = ConfigMonoid.derive
 }

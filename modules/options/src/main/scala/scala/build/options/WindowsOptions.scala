@@ -11,6 +11,5 @@ final case class WindowsOptions(
 )
 
 object WindowsOptions {
-  implicit val hasHashData: HasHashData[WindowsOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[WindowsOptions]     = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[WindowsOptions] = ConfigMonoid.derive
 }

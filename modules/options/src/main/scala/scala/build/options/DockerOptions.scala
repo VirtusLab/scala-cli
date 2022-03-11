@@ -10,7 +10,6 @@ final case class DockerOptions(
 
 object DockerOptions {
 
-  implicit val hasHashData: HasHashData[DockerOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[DockerOptions]     = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[DockerOptions] = ConfigMonoid.derive
 
 }
