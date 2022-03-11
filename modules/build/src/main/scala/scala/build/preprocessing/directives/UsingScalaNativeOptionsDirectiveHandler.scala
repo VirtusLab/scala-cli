@@ -16,11 +16,17 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
   override def usageMd: String =
     """`//> using nativeGc` _value_
       |
+      |`//> using nativeMode` _value_
+      |
       |`//> using nativeVersion` _value_
       |
       |`//> using nativeCompile` _value1_, _value2_
       |
-      |`//> using nativeLinking` _value1_, _value2_""".stripMargin
+      |`//> using nativeLinking` _value1_, _value2_
+      |
+      |`//> using nativeClang` _value_
+      |
+      |`//> using nativeClangPP` _value_""".stripMargin
 
   override def examples: Seq[String] = Seq(
     "//> using nativeVersion \"0.4.0\""
@@ -29,13 +35,19 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
   def keys: Seq[String] =
     Seq(
       "native-gc",
+      "native-mode",
       "native-version",
       "native-compile",
       "native-linking",
+      "native-clang",
+      "native-clang-pp",
       "nativeGc",
+      "nativeMode",
       "nativeVersion",
       "nativeCompile",
-      "nativeLinking"
+      "nativeLinking",
+      "nativeClang",
+      "nativeClangPP"
     )
 
   def handleValues(
@@ -47,29 +59,31 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
     val values =
       DirectiveUtil.numericValues(directive.values, path, cwd).toList ++
         DirectiveUtil.stringValues(directive.values, path, cwd).toList
+
+    def withOneValue(setter: String => ScalaNativeOptions)
+      : Either[BuildException, ScalaNativeOptions] =
+      values match {
+        case Seq(value0) =>
+          Right(setter(value0._1.value))
+        case Seq() =>
+          Left(new NoValueProvidedError(directive))
+        case _ =>
+          Left(new SingleValueExpectedError(directive, path))
+      }
+
     val scalaNativeOptions = directive.key match {
       case "native-gc" | "nativeGc" =>
-        values match {
-          case Seq(value0) =>
-            ScalaNativeOptions(
-              gcStr = Some(value0._1.value)
-            )
-          case Seq() =>
-            value(Left(new NoValueProvidedError(directive)))
-          case _ =>
-            value(Left(new SingleValueExpectedError(directive, path)))
-        }
+        value(withOneValue { value =>
+          ScalaNativeOptions(gcStr = Some(value))
+        })
+      case "native-mode" | "nativeMode" =>
+        value(withOneValue { value =>
+          ScalaNativeOptions(modeStr = Some(value))
+        })
       case "native-version" | "nativeVersion" =>
-        values match {
-          case Seq(value0) =>
-            ScalaNativeOptions(
-              version = Some(value0._1.value)
-            )
-          case Seq() =>
-            value(Left(new NoValueProvidedError(directive)))
-          case _ =>
-            value(Left(new SingleValueExpectedError(directive, path)))
-        }
+        value(withOneValue { value =>
+          ScalaNativeOptions(version = Some(value))
+        })
       case "native-compile" | "nativeCompile" =>
         ScalaNativeOptions(
           compileOptions = values.map(_._1.value)
@@ -78,6 +92,14 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
         ScalaNativeOptions(
           linkingOptions = values.map(_._1.value)
         )
+      case "native-clang" | "nativeClang" =>
+        value(withOneValue { value =>
+          ScalaNativeOptions(clang = Some(value))
+        })
+      case "native-clang-pp" | "nativeClangPP" =>
+        value(withOneValue { value =>
+          ScalaNativeOptions(clangpp = Some(value))
+        })
     }
     val options = BuildOptions(scalaNativeOptions = scalaNativeOptions)
     ProcessedDirective(Some(options), Nil)

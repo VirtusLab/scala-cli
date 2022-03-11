@@ -24,7 +24,7 @@ object PreprocessedSource {
       ScopePath.fromPath(path)
   }
   final case class InMemory(
-    reportingPath: Either[String, os.Path],
+    originalPath: Either[String, (os.SubPath, os.Path)],
     relPath: os.RelPath,
     code: String,
     ignoreLen: Int,
@@ -33,7 +33,10 @@ object PreprocessedSource {
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
     scopePath: ScopePath
-  ) extends PreprocessedSource
+  ) extends PreprocessedSource {
+    def reportingPath: Either[String, os.Path] =
+      originalPath.map(_._2)
+  }
   final case class NoSourceCode(
     options: Option[BuildOptions],
     requirements: Option[BuildRequirements],

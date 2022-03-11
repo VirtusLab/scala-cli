@@ -10,7 +10,7 @@ import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
-import scala.build.{Build, Builds, CrossKey, Logger}
+import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger}
 import scala.cli.CurrentParams
 
 object Test extends ScalaCommand[TestOptions] {
@@ -36,7 +36,9 @@ object Test extends ScalaCommand[TestOptions] {
       Update.checkUpdateSafe(logger)
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
+    val threads             = BuildThreads.create()
+
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val cross = options.compileCross.cross.getOrElse(false)
 
@@ -97,11 +99,12 @@ object Test extends ScalaCommand[TestOptions] {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
-        postAction = () => WatchUtil.printWatchMessage(),
-        buildTests = true
+        buildTests = true,
+        partial = None,
+        postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
           maybeTest(builds, allowExit = false)
@@ -114,10 +117,11 @@ object Test extends ScalaCommand[TestOptions] {
         Build.build(
           inputs,
           initialBuildOptions,
-          bloopRifleConfig,
+          compilerMaker,
           logger,
           crossBuilds = cross,
-          buildTests = true
+          buildTests = true,
+          partial = None
         )
           .orExit(logger)
       maybeTest(builds, allowExit = true)

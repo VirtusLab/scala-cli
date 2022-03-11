@@ -128,7 +128,8 @@ final case class Inputs(
     String.format(s"%040x", calculatedSum)
   }
 
-  private def singleFilesFromDirectory(d: Inputs.Directory): Seq[Inputs.SingleFile] =
+  private def singleFilesFromDirectory(d: Inputs.Directory): Seq[Inputs.SingleFile] = {
+    import Ordering.Implicits.seqOrdering
     os.walk.stream(d.path, skip = _.last.startsWith("."))
       .filter(os.isFile(_))
       .collect {
@@ -140,6 +141,8 @@ final case class Inputs(
           Inputs.Script(d.path, p.subRelativeTo(d.path))
       }
       .toVector
+      .sortBy(_.subPath.segments)
+  }
 }
 
 object Inputs {
@@ -175,8 +178,10 @@ object Inputs {
       ScopePath(Left(source), subPath)
   }
 
-  sealed trait SingleFile   extends OnDisk with SingleElement
-  sealed trait SourceFile   extends SingleFile
+  sealed trait SingleFile extends OnDisk with SingleElement
+  sealed trait SourceFile extends SingleFile {
+    def subPath: os.SubPath
+  }
   sealed trait Compiled     extends Element
   sealed trait AnyScalaFile extends Compiled
 

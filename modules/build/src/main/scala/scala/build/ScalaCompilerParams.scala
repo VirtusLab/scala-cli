@@ -1,10 +1,8 @@
 package scala.build
 
-import java.nio.file.Path
-
-final case class ScalaCompiler(
+final case class ScalaCompilerParams(
   scalaVersion: String,
   scalaBinaryVersion: String,
   scalacOptions: Seq[String],
-  compilerClassPath: Seq[Path]
+  compilerClassPath: Seq[os.Path]
 )

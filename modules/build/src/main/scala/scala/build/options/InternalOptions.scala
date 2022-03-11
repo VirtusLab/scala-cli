@@ -8,10 +8,17 @@ final case class InternalOptions(
   cache: Option[FileCache[Task]] = None,
   localRepository: Option[String] = None,
   verbosity: Option[Int] = None,
+  // FIXME Should be removed, not a real option (not meant to be set from using directives)
   strictBloopJsonCheck: Option[Boolean] = None
-)
+) {
+  def strictBloopJsonCheckOrDefault =
+    strictBloopJsonCheck.getOrElse(InternalOptions.defaultStrictBloopJsonCheck)
+}
 
 object InternalOptions {
+
+  def defaultStrictBloopJsonCheck = true
+
   implicit val hasHashData: HasHashData[InternalOptions] = HasHashData.nop
   implicit val monoid: ConfigMonoid[InternalOptions]     = ConfigMonoid.derive
 }

@@ -91,7 +91,12 @@ final case class SharedCompilationServerOptions(
   @Group("Compilation server")
   @HelpMessage("Working directory for Bloop, if it needs to be started")
   @Hidden
-    bloopWorkingDir: Option[String] = None
+    bloopWorkingDir: Option[String] = None,
+
+  @Group("Compilation server")
+  @HelpMessage("Enable / disable compilation server")
+  @Hidden
+    server: Option[Boolean] = None
 ) {
   // format: on
 
