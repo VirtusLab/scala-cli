@@ -1,4 +1,6 @@
-package scala.build.options
+package scala.build.options.packaging
+
+import scala.build.options.ConfigMonoid
 
 final case class WindowsOptions(
   licensePath: Option[os.Path] = None,

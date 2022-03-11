@@ -37,6 +37,8 @@ final case class BuildOptions(
   notForBloopOptions: PostBuildOptions = PostBuildOptions()
 ) {
 
+  import BuildOptions.JavaHomeInfo
+
   lazy val platform: Positioned[Platform] =
     scalaOptions.platform.getOrElse(Positioned(List(Position.Custom("DEFAULT")), Platform.JVM))
 
@@ -156,8 +158,6 @@ final case class BuildOptions(
 
   lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
-
-  case class JavaHomeInfo(javaCommand: String, version: Int)
 
   private lazy val javaCommand0: Positioned[JavaHomeInfo] = {
     val javaHome               = javaHomeLocation()
@@ -728,6 +728,8 @@ object BuildOptions {
     scalaVersion: String,
     platform: Platform
   )
+
+  final case class JavaHomeInfo(javaCommand: String, version: Int)
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive
