@@ -77,7 +77,7 @@ object Deps {
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def organizeImports            = ivy"com.github.liancheng::organize-imports:0.5.0"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.8.1"
-  def pprint                     = ivy"com.lihaoyi::pprint:0.6.6"
+  def pprint                     = ivy"com.lihaoyi::pprint:0.7.2"
   def prettyStacktraces          = ivy"org.virtuslab::pretty-stacktraces:0.0.1-M1"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalaAsync               = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
@@ -103,7 +103,7 @@ object Deps {
   def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
   def upickle                  = ivy"com.lihaoyi::upickle:1.5.0"
   def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"
-  val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.9.15"
+  val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
 }
 
 private def graalVmVersion = "22.0.0"

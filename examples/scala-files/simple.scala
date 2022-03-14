@@ -1,4 +1,4 @@
-import $ivy.`com.lihaoyi::pprint:0.6.6`
+import $ivy.`com.lihaoyi::pprint:0.7.2`
 
 object Test {
   def something[F[_]] = ()

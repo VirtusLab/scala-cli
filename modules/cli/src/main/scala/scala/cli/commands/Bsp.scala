@@ -15,7 +15,7 @@ object Bsp extends ScalaCommand[BspOptions] {
   def run(options: BspOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     if (options.shared.logging.verbosity >= 3)
-      pprint.stderr.log(args)
+      pprint.err.log(args)
 
     val sharedOptions: SharedOptions =
       options.jsonOptions.map { optionsPath =>
@@ -30,7 +30,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     val inputs = {
       val initialInputs = options.shared.inputsOrExit(args)
       if (options.shared.logging.verbosity >= 3)
-        pprint.stderr.log(initialInputs)
+        pprint.err.log(initialInputs)
       Build.updateInputs(initialInputs, buildOptionsToUse)
     }
     CurrentParams.workspaceOpt = Some(inputs.workspace)
