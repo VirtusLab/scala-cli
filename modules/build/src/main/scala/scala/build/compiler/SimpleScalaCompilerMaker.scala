@@ -6,7 +6,8 @@ import scala.build.Logger
 
 final case class SimpleScalaCompilerMaker(
   defaultJavaCommand: String,
-  defaultJavaOptions: Seq[String]
+  defaultJavaOptions: Seq[String],
+  scaladoc: Boolean = false
 ) extends ScalaCompilerMaker {
   def create(
     workspace: os.Path,
@@ -14,5 +15,5 @@ final case class SimpleScalaCompilerMaker(
     buildClient: BuildClient,
     logger: Logger
   ): SimpleScalaCompiler =
-    SimpleScalaCompiler(defaultJavaCommand, defaultJavaOptions)
+    SimpleScalaCompiler(defaultJavaCommand, defaultJavaOptions, scaladoc)
 }

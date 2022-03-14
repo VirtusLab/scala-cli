@@ -77,7 +77,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, inputsOpt) =
-      if (args.remaining.isEmpty)
+      if (args.all.isEmpty)
         (Seq(os.pwd), os.pwd, None)
       else {
         val i = options.shared.inputsOrExit(args)

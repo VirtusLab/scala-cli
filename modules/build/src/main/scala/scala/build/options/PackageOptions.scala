@@ -14,7 +14,8 @@ final case class PackageOptions(
   debianOptions: DebianOptions = DebianOptions(),
   windowsOptions: WindowsOptions = WindowsOptions(),
   redHatOptions: RedHatOptions = RedHatOptions(),
-  dockerOptions: DockerOptions = DockerOptions()
+  dockerOptions: DockerOptions = DockerOptions(),
+  useDefaultScaladocOptions: Option[Boolean] = None
 ) {
 
   def packageVersion: String =

@@ -357,8 +357,8 @@ object Build {
 
   def classesRootDir(root: os.Path, projectName: String): os.Path =
     root / Constants.workspaceDirName / projectName / "classes"
-  def classesDir(root: os.Path, projectName: String, scope: Scope): os.Path =
-    classesRootDir(root, projectName) / scope.name
+  def classesDir(root: os.Path, projectName: String, scope: Scope, suffix: String = ""): os.Path =
+    classesRootDir(root, projectName) / s"${scope.name}$suffix"
 
   def scalaNativeSupported(
     options: BuildOptions,
@@ -573,6 +573,7 @@ object Build {
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
+    val scaladocDir = classesDir(inputs.workspace, inputs.projectName, scope, suffix = "-doc")
 
     val artifacts = value(options.artifacts(logger))
 
@@ -669,6 +670,7 @@ object Build {
       directory = inputs.workspace / Constants.workspaceDirName,
       workspace = inputs.workspace,
       classesDir = classesDir0,
+      scaladocDir = scaladocDir,
       scalaCompiler = scalaCompilerParams,
       scalaJsOptions =
         if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config(logger))
