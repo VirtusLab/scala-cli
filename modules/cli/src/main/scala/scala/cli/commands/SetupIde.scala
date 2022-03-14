@@ -2,8 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 import ch.epfl.scala.bsp4j.BspConnectionDetails
+import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.google.gson.GsonBuilder
-import upickle.default._
 
 import java.nio.charset.Charset
 
@@ -93,7 +93,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val (bspName, bspJsonDestination) = options.bspFile.bspDetails(inputs.workspace)
     val scalaCliBspJsonDestination =
-      inputs.workspace / Constants.workspaceDirName / "ide-options.json"
+      inputs.workspace / Constants.workspaceDirName / "ide-options-v2.json"
 
     val inputArgs = inputs.elements.collect {
       case d: Inputs.OnDisk =>
@@ -124,7 +124,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val gson = new GsonBuilder().setPrettyPrinting().create()
 
     val json                      = gson.toJson(details)
-    val scalaCliOptionsForBspJson = write(options.shared)
+    val scalaCliOptionsForBspJson = writeToArray(options.shared)(SharedOptions.jsonCodec)
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(
@@ -137,7 +137,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       os.write.over(bspJsonDestination, json.getBytes(charset), createFolders = true)
       os.write.over(
         scalaCliBspJsonDestination,
-        scalaCliOptionsForBspJson.getBytes(charset),
+        scalaCliOptionsForBspJson,
         createFolders = true
       )
       logger.debug(s"Wrote $bspJsonDestination")

@@ -1,7 +1,8 @@
 package scala.cli.commands
 
 import caseapp._
-import upickle.default.{ReadWriter, macroRW}
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
 import scala.build.Os
 
@@ -26,5 +27,5 @@ object SharedDirectoriesOptions {
   lazy val parser: Parser[SharedDirectoriesOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[SharedDirectoriesOptions, parser.D] = parser
   implicit lazy val help: Help[SharedDirectoriesOptions]                      = Help.derive
-  implicit lazy val jsonCodec: ReadWriter[SharedDirectoriesOptions]           = macroRW
+  implicit lazy val jsonCodec: JsonValueCodec[SharedDirectoriesOptions]       = JsonCodecMaker.make
 }

@@ -1,4 +1,6 @@
 package scala.build.options
+
+import com.github.plokhotnyuk.jsoniter_scala.core._
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Version, Versions => CoreVersions}
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
@@ -242,8 +244,8 @@ final case class BuildOptions(
         case Left(e) => Task.fail(e)
         case Right(f) =>
           Task.delay {
-            val content = os.read(os.Path(f, Os.pwd))
-            upickle.default.read[Seq[StableScalaVersion]](content)
+            val content = os.read.bytes(os.Path(f, Os.pwd))
+            readFromArray(content)(StableScalaVersion.seqCodec)
           }
       }
     }

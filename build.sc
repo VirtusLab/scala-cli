@@ -190,6 +190,7 @@ class Build(val crossScalaVersion: String)
   def repositories = super.repositories ++ customRepositories
 
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.jsoniterMacros,
     Deps.svm
   )
   def ivyDeps = super.ivyDeps() ++ Agg(
@@ -201,6 +202,7 @@ class Build(val crossScalaVersion: String)
       .exclude(("com.google.collections", "google-collections")),
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
+    Deps.jsoniterCore,
     Deps.nativeTestRunner,
     Deps.nativeTools, // Used only for discovery methods. For linking, look for scala-native-cli
     Deps.osLib,
@@ -212,7 +214,6 @@ class Build(val crossScalaVersion: String)
     Deps.scalaparse,
     Deps.shapeless,
     Deps.swoval,
-    Deps.upickle,
     Deps.usingDirectives
   )
 
@@ -359,13 +360,14 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     Deps.dataClass,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
+    Deps.jsoniterCore,
     Deps.scalaJsLinker,
     Deps.scalaPackager,
     Deps.svmSubs,
-    Deps.upickle,
     Deps.metaconfigTypesafe
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.jsoniterMacros,
     Deps.svm
   )
   def mainClass = Some("scala.cli.ScalaCli")
@@ -415,10 +417,11 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
       Deps.dockerClient,
+      Deps.jsoniterCore,
+      Deps.jsoniterMacros,
       Deps.pprint,
       Deps.scalaAsync,
-      Deps.slf4jNop,
-      Deps.upickle
+      Deps.slf4jNop
     )
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI"      -> testLauncher().path.toString,
