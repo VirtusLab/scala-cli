@@ -64,6 +64,6 @@ object ScalacOptions {
         NilParser
     baseParser.to[ScalacOptions]
   }
-  implicit lazy val help: Help[SharedOptions]            = Help.derive
+  implicit lazy val help: Help[ScalacOptions]            = Help.derive
   implicit lazy val jsonCodec: ReadWriter[ScalacOptions] = macroRW
 }
