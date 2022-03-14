@@ -66,7 +66,7 @@ object Operations {
         val res = libdaemonjvm.client.Connect.tryConnect(files)
         logger.debug(s"Connection attempt result: $res")
         res match {
-          case Some(Right(e)) => e.merge.close()
+          case Some(Right(e)) => e.close()
           case _              =>
         }
         res.exists(_.isRight)
@@ -185,11 +185,8 @@ object Operations {
           res match {
             case None          => ??? // not running
             case Some(Left(_)) => ??? // error
-            case Some(Right(e)) =>
-              e match {
-                case Left(s)        => s
-                case Right(channel) => libdaemonjvm.Util.socketFromChannel(channel)
-              }
+            case Some(Right(channel)) =>
+              libdaemonjvm.Util.socketFromChannel(channel)
           }
         }
     }
