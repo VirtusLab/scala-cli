@@ -53,6 +53,5 @@ Once Metals picks up the project structure that’s created by Scala CLI, basic 
 
 Here are a few notes related to IntelliJ support:
 
-- The most significant problem with IntelliJ is that it requires sources to be placed within a directory. Therefore, if you use IntelliJ, we strongly suggest that you place your sources in a directory (like `src`).
 - IntelliJ currently does not automatically pick up changes in the project structure, so any change in dependencies, compiler options, etc., need to be manually reloaded.
 - We currently don’t advise using IntelliJ as a source of truth, and we recommend falling back to command line in such cases.
