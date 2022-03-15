@@ -4,12 +4,21 @@ import caseapp._
 
 import scala.build.Logger
 import scala.cli.CurrentParams
-import scala.cli.commands.Version.{getCurrentVersion, newestScalaCliVersion}
+import scala.cli.commands.Version.getCurrentVersion
 import scala.cli.internal.ProcUtil
 import scala.io.StdIn.readLine
 import scala.util.{Failure, Properties, Success, Try}
 
 object Update extends ScalaCommand[UpdateOptions] {
+
+  lazy val newestScalaCliVersion = {
+    val resp = ProcUtil.downloadFile("https://github.com/VirtusLab/scala-cli/releases/latest")
+
+    val scalaCliVersionRegex = "tag/v(.*?)\"".r
+    scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))
+  }.getOrElse(
+    sys.error("Can not resolve ScalaCLI version to update")
+  )
 
   private def updateScalaCli(options: UpdateOptions, newVersion: String) = {
     if (!options.force)
