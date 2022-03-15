@@ -5,9 +5,10 @@ import ch.epfl.scala.{bsp4j => b}
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
-import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.{util => ju}
+
 import scala.build.Logger
 import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
 import scala.build.internal.Constants
@@ -147,10 +148,9 @@ class BspServer(
       scala.build.blooprifle.internal.Constants.bspVersion,
       capabilities
     )
-    val intellijBSPName        = "IntelliJ-BSP"
-    val buildComesFromIntelliJ = params.getDisplayName == "IntelliJ-BSP"
+    val buildComesFromIntelliJ = params.getDisplayName.toLowerCase.contains("intellij")
     isIntelliJ.set(buildComesFromIntelliJ)
-    logger.debug(s"$intellijBSPName build: $buildComesFromIntelliJ")
+    logger.debug(s"IntelliJ build: $buildComesFromIntelliJ")
     CompletableFuture.completedFuture(res)
   }
 
@@ -213,7 +213,9 @@ class BspServer(
         val capabilities = target.getCapabilities
         capabilities.setCanDebug(true)
         val baseDirectory = new File(new URI(target.getBaseDirectory))
-        if(isIntelliJ.get() && baseDirectory.getName == ".scala-build" && baseDirectory.getParentFile != null) {
+        if (
+          isIntelliJ.get() && baseDirectory.getName == ".scala-build" && baseDirectory.getParentFile != null
+        ) {
           val newBaseDirectory = baseDirectory.getParentFile.toPath.toUri.toASCIIString
           target.setBaseDirectory(newBaseDirectory)
         }
