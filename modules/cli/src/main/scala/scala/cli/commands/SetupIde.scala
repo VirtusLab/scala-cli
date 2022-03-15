@@ -103,8 +103,13 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         else path.toString
     }
 
+    val debugOpt = options.shared.jvm.bspDebugPort.toSeq.map(port =>
+      s"-J-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:$port,suspend=y"
+    )
+
     val bspArgs =
       List(CommandUtils.getAbsolutePathToScalaCli(progName), "bsp") ++
+        debugOpt ++
         List("--json-options", scalaCliBspJsonDestination.toString) ++
         inputArgs
     val details = new BspConnectionDetails(
