@@ -1,7 +1,8 @@
 package scala.cli.commands
 
 import caseapp._
-import upickle.default.{ReadWriter, macroRW}
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
 // format: off
 final case class SharedDependencyOptions(
@@ -29,5 +30,5 @@ object SharedDependencyOptions {
   lazy val parser: Parser[SharedDependencyOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[SharedDependencyOptions, parser.D] = parser
   implicit lazy val help: Help[SharedDependencyOptions]                      = Help.derive
-  implicit lazy val jsonCodec: ReadWriter[SharedDependencyOptions]           = macroRW
+  implicit lazy val jsonCodec: JsonValueCodec[SharedDependencyOptions]       = JsonCodecMaker.make
 }

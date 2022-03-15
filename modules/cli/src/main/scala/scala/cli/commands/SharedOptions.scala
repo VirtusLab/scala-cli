@@ -2,10 +2,11 @@ package scala.cli.commands
 
 import caseapp._
 import caseapp.core.help.Help
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import coursier.util.Artifact
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
-import upickle.default.{ReadWriter, macroRW}
 
 import java.io.{ByteArrayOutputStream, File, InputStream}
 
@@ -293,9 +294,9 @@ final case class SharedOptions(
 }
 
 object SharedOptions {
-  implicit lazy val parser: Parser[SharedOptions]        = Parser.derive
-  implicit lazy val help: Help[SharedOptions]            = Help.derive
-  implicit lazy val jsonCodec: ReadWriter[SharedOptions] = macroRW
+  implicit lazy val parser: Parser[SharedOptions]            = Parser.derive
+  implicit lazy val help: Help[SharedOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[SharedOptions] = JsonCodecMaker.make
 
   def parseDependencies(
     deps: List[Positioned[String]],

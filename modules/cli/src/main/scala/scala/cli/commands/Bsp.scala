@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import upickle.default._
+import com.github.plokhotnyuk.jsoniter_scala.core._
 
 import scala.build.Build
 import scala.build.bsp.BspThreads
@@ -19,8 +19,8 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     val sharedOptions: SharedOptions =
       options.jsonOptions.map { optionsPath =>
-        val source = os.read(os.Path(optionsPath, os.pwd))
-        read[SharedOptions](source)
+        val content = os.read.bytes(os.Path(optionsPath, os.pwd))
+        readFromArray(content)(SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
 
     val buildOptionsToUse = buildOptions(sharedOptions)

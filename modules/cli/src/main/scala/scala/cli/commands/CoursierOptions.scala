@@ -1,8 +1,9 @@
 package scala.cli.commands
 
 import caseapp._
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import coursier.cache.{CacheLogger, FileCache}
-import upickle.default.{ReadWriter, macroRW}
 
 import scala.concurrent.duration.Duration
 
@@ -35,5 +36,5 @@ object CoursierOptions {
   lazy val parser: Parser[CoursierOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[CoursierOptions, parser.D] = parser
   implicit lazy val help: Help[CoursierOptions]                      = Help.derive
-  implicit lazy val jsonCodec: ReadWriter[CoursierOptions]           = macroRW
+  implicit lazy val jsonCodec: JsonValueCodec[CoursierOptions]       = JsonCodecMaker.make
 }

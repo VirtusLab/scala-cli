@@ -1,7 +1,8 @@
 package scala.cli.commands
 
 import caseapp._
-import upickle.default.{ReadWriter => RW, _}
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
 import scala.build.Logger
 import scala.cli.internal.CliLogger
@@ -31,5 +32,5 @@ object LoggingOptions {
   lazy val parser: Parser[LoggingOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[LoggingOptions, parser.D] = parser
   implicit lazy val help: Help[LoggingOptions]                      = Help.derive
-  implicit val rw: RW[LoggingOptions]                               = macroRW
+  implicit lazy val jsonCodec: JsonValueCodec[LoggingOptions]       = JsonCodecMaker.make
 }
