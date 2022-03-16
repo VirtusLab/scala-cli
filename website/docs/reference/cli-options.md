@@ -959,6 +959,10 @@ The Scala JS module kind: commonjs/common, esmodule/es, nomodule/none
 
 Emit source maps
 
+#### `--js-source-maps-path`
+
+Set the destination path of source maps
+
 #### `--js-dom`
 
 Enable jsdom

@@ -22,6 +22,7 @@ final case class ScalaJsOptions(
   moduleKindStr: Option[String] = None,
   checkIr: Option[Boolean] = None,
   emitSourceMaps: Boolean = false,
+  sourceMapsDest: Option[os.Path] = None,
   dom: Option[Boolean] = None,
   header: Option[String] = None,
   allowBigIntsForLongs: Option[Boolean] = None,
