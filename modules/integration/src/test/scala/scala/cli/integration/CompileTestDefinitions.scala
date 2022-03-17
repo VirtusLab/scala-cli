@@ -104,7 +104,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       val tempOutput    = root / "output"
       val outputOptions = Seq("--output", tempOutput.toString)
       val cmd           = os.proc(TestUtil.cli, "compile", outputOptions, extraOptions, ".")
-      cmd.call(cwd = root, check = false, stderr = os.Pipe, mergeErrIntoOut = true)
+      cmd.call(cwd = root)
       checkIfCompileOutputIsCoppied("Main", tempOutput)
     }
   }
