@@ -475,6 +475,32 @@ final case class BuildOptions(
   /** @return
     *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
     */
+  private def computeLatestScalaThreeOneNightlyVersions()
+    : Either[BuildException, (String, String)] =
+    either {
+      val moduleVersion: Either[ScalaVersionError, String] = {
+        import coursier.moduleString
+        def scala3 = mod"org.scala-lang:scala3-library_3"
+        val res = finalCache.logger.use {
+          Versions(finalCache)
+            .withModule(scala3)
+            .result()
+            .unsafeRun()(finalCache.ec)
+        }.versions.available
+        val threeOneNightlies = res.filter(_.startsWith("3.1.")).map(Version(_))
+        if (threeOneNightlies.nonEmpty) Right(threeOneNightlies.max.repr)
+        else Left(
+          new NoValidScalaVersionFoundError(res, latestSupportedStableVersions)
+        )
+      }
+      val scalaVersion       = value(moduleVersion)
+      val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
+      (scalaVersion, scalaBinaryVersion)
+    }
+
+  /** @return
+    *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
+    */
   private def computeLatestScalaTwoNightlyVersions(): Either[BuildException, (String, String)] =
     either {
       val moduleVersion: Either[ScalaVersionError, String] = {
@@ -574,6 +600,7 @@ final case class BuildOptions(
       value {
         scalaOptions.scalaVersion match {
           case Some("3.nightly")    => computeLatestScalaThreeNightlyVersions()
+          case Some("3.1.nightly")  => computeLatestScalaThreeOneNightlyVersions()
           case Some("2.nightly")    => computeLatestScalaTwoNightlyVersions()
           case Some("2.13.nightly") => computeLatestScalaTwoNightlyVersions()
           case Some("2.12.nightly") => computeLatestScalaTwoTwelveNightlyVersions()
