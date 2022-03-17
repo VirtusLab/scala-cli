@@ -41,9 +41,7 @@ class BuildOptionsTests extends munit.FunSuite {
   test("-S 3.1.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("3.1.nightly"),
-        scalaBinaryVersion = None,
-        supportedScalaVersionsUrl = None
+        scalaVersion = Some("3.1.nightly")
       )
     )
     val scalaParams = options.scalaParams.orThrow
