@@ -1,6 +1,8 @@
 package scala.build
 
 import ch.epfl.scala.bsp4j
+import coursier.cache.FileCache
+import coursier.util.Task
 import dependency.parser.ModuleParser
 import dependency.{AnyDependency, DependencyLike, ScalaParameters, ScalaVersion}
 
@@ -9,6 +11,7 @@ import java.io.File
 import scala.build.EitherCps.{either, value}
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.{BuildException, ModuleFormatError}
+import scala.build.internal.CsLoggerUtil._
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
 
@@ -45,18 +48,28 @@ object Bloop {
   def bloopClassPath(
     dep: AnyDependency,
     params: ScalaParameters,
-    logger: Logger
+    logger: Logger,
+    cache: FileCache[Task]
   ): Either[BuildException, Seq[File]] =
     either {
-      value(Artifacts.artifacts(Positioned.none(Seq(dep)), Nil, params, logger))
-        .map(_._2.toFile)
+      val res = value {
+        Artifacts.artifacts(
+          Positioned.none(Seq(dep)),
+          Nil,
+          params,
+          logger,
+          cache.withMessage(s"Downloading compilation server ${dep.version}")
+        )
+      }
+      res.map(_._2.toIO)
     }
 
-  def bloopClassPath(logger: Logger): Either[BuildException, Seq[File]] =
-    bloopClassPath(logger, BloopRifleConfig.defaultVersion)
+  def bloopClassPath(logger: Logger, cache: FileCache[Task]): Either[BuildException, Seq[File]] =
+    bloopClassPath(logger, cache, BloopRifleConfig.defaultVersion)
 
   def bloopClassPath(
     logger: Logger,
+    cache: FileCache[Task],
     bloopVersion: String
   ): Either[BuildException, Seq[File]] = either {
     val moduleStr = BloopRifleConfig.defaultModule
@@ -68,6 +81,6 @@ object Bloop {
     val sv     = BloopRifleConfig.defaultScalaVersion
     val sbv    = ScalaVersion.binary(sv)
     val params = ScalaParameters(sv, sbv)
-    value(bloopClassPath(dep, params, logger))
+    value(bloopClassPath(dep, params, logger, cache))
   }
 }

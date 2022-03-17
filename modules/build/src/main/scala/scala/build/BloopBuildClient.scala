@@ -2,8 +2,6 @@ package scala.build
 
 import ch.epfl.scala.bsp4j
 
-import java.io.PrintStream
-
 import scala.build.options.Scope
 
 trait BloopBuildClient extends bsp4j.BuildClient {
@@ -15,26 +13,11 @@ trait BloopBuildClient extends bsp4j.BuildClient {
 
 object BloopBuildClient {
   def create(
-    logger: Logger
-  ): BloopBuildClient =
-    create(logger, out = System.err, keepDiagnostics = false)
-  def create(
     logger: Logger,
-    keepDiagnostics: Boolean
-  ): BloopBuildClient =
-    create(
-      logger,
-      out = logger.compilerOutputStream,
-      keepDiagnostics = keepDiagnostics
-    )
-  def create(
-    logger: Logger,
-    out: PrintStream,
     keepDiagnostics: Boolean
   ): BloopBuildClient =
     new ConsoleBloopBuildClient(
       logger,
-      out,
       keepDiagnostics
     )
 }

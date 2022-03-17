@@ -29,8 +29,7 @@ object TestUtil {
   )
   // format: on
 
-  lazy val canRunJs     = !isNativeCli || !Properties.isWin
-  lazy val canRunNative = true
+  lazy val canRunJs = !isNativeCli || !Properties.isWin
 
   def fromPath(app: String): Option[String] = {
 
@@ -41,10 +40,11 @@ object TestUtil {
           .flatMap(_.split(File.pathSeparator).toSeq)
       else
         Seq("")
-    val path = Option(System.getenv("PATH"))
-      .toSeq
-      .flatMap(_.split(File.pathSeparator))
-      .map(new File(_))
+    val path = Seq(new File("").getAbsoluteFile) ++
+      Option(System.getenv("PATH"))
+        .toSeq
+        .flatMap(_.split(File.pathSeparator))
+        .map(new File(_))
 
     def candidates =
       for {

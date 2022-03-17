@@ -25,6 +25,7 @@ import scala.build.options.{PackageType, Platform}
 import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
+import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{ProcUtil, ScalaJsLinker}
 import scala.util.Properties
 
@@ -46,20 +47,34 @@ object Package extends ScalaCommand[PackageOptions] {
     val cross = options.compileCross.cross.getOrElse(false)
 
     if (options.watch.watch) {
+      var expectedModifyEpochSecondOpt = Option.empty[Long]
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
         bloopRifleConfig,
         logger,
         crossBuilds = cross,
+        buildTests = false,
+        partial = None,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
-            doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+            val mtimeDestPath = doPackage(
+              inputs,
+              logger,
+              options.output.filter(_.nonEmpty),
+              options.force,
+              s,
+              expectedModifyEpochSecondOpt
+            )
               .orReport(logger)
+            for (valueOpt <- mtimeDestPath)
+              expectedModifyEpochSecondOpt = valueOpt
           case _: Build.Failed =>
             System.err.println("Compilation failed")
+          case _: Build.Cancelled =>
+            System.err.println("Build cancelled")
         }
       }
       try WatchUtil.waitForCtrlC()
@@ -67,14 +82,25 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     else {
       val builds =
-        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
+        Build.build(
+          inputs,
+          initialBuildOptions,
+          bloopRifleConfig,
+          logger,
+          crossBuilds = cross,
+          buildTests = false,
+          partial = None
+        )
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
-          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s)
+          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s, None)
             .orExit(logger)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
+          sys.exit(1)
+        case _: Build.Cancelled =>
+          System.err.println("Build cancelled")
           sys.exit(1)
       }
     }
@@ -85,16 +111,27 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger,
     outputOpt: Option[String],
     force: Boolean,
-    build: Build.Successful
-  ): Either[BuildException, Unit] = either {
+    build: Build.Successful,
+    expectedModifyEpochSecondOpt: Option[Long]
+  ): Either[BuildException, Option[Long]] = either {
 
-    val packageType = build.options.packageTypeOpt
-      .getOrElse(PackageType.Bootstrap)
+    // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
+    val packageType =
+      if (build.options.notForBloopOptions.packageOptions.isDockerEnabled)
+        PackageType.Docker
+      else if (build.options.platform.value == Platform.JS)
+        PackageType.Js
+      else if (build.options.platform.value == Platform.Native)
+        PackageType.Native
+      else
+        build.options.notForBloopOptions.packageOptions.packageTypeOpt
+          .getOrElse(PackageType.Bootstrap)
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
     def extension = packageType match {
       case PackageType.LibraryJar                 => ".jar"
+      case PackageType.SourceJar                  => ".jar"
       case PackageType.Assembly                   => ".jar"
       case PackageType.Js                         => ".js"
       case PackageType.Debian                     => ".deb"
@@ -108,6 +145,7 @@ object Package extends ScalaCommand[PackageOptions] {
     }
     def defaultName = packageType match {
       case PackageType.LibraryJar                 => "library.jar"
+      case PackageType.SourceJar                  => "source.jar"
       case PackageType.Assembly                   => "app.jar"
       case PackageType.Js                         => "app.js"
       case PackageType.Debian                     => "app.deb"
@@ -133,13 +171,18 @@ object Package extends ScalaCommand[PackageOptions] {
       if (destPath.startsWith(Os.pwd)) "." + File.separator + destPath.relativeTo(Os.pwd).toString
       else destPath.toString
 
-    def alreadyExistsCheck(): Unit =
-      if (!force && os.exists(destPath)) {
-        System.err.println(
-          s"Error: $printableDest already exists. Pass -f or --force to force erasing it."
-        )
+    def alreadyExistsCheck(): Unit = {
+      val alreadyExists = !force &&
+        os.exists(destPath) &&
+        expectedModifyEpochSecondOpt.forall(exp => os.mtime(destPath) != exp)
+      if (alreadyExists) {
+        val msg =
+          if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
+          else s"$printableDest was overwritten by another process"
+        System.err.println(s"Error: $msg. Pass -f or --force to force erasing it.")
         sys.exit(1)
       }
+    }
 
     alreadyExistsCheck()
 
@@ -149,6 +192,8 @@ object Package extends ScalaCommand[PackageOptions] {
         case None      => build.retainedMainClass
       }
 
+    val packageOptions = build.options.notForBloopOptions.packageOptions
+
     packageType match {
       case PackageType.Bootstrap =>
         bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
@@ -157,11 +202,17 @@ object Package extends ScalaCommand[PackageOptions] {
         alreadyExistsCheck()
         if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
+      case PackageType.SourceJar =>
+        val now     = System.currentTimeMillis()
+        val content = sourceJar(build, now)
+        alreadyExistsCheck()
+        if (force) os.write.over(destPath, content)
+        else os.write(destPath, content)
       case PackageType.Assembly =>
         assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
 
       case PackageType.Js =>
-        buildJs(build, destPath, value(mainClass), logger)
+        value(buildJs(build, destPath, value(mainClass), logger))
 
       case PackageType.Native =>
         buildNative(inputs, build, destPath, value(mainClass), logger)
@@ -170,13 +221,12 @@ object Package extends ScalaCommand[PackageOptions] {
         bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck())
         val sharedSettings = SharedSettings(
           sourceAppPath = bootstrapPath,
-          version = build.options.packageOptions.packageVersion,
+          version = packageOptions.packageVersion,
           force = force,
           outputPath = destPath,
-          logoPath = build.options.packageOptions.logoPath,
-          launcherApp = build.options.packageOptions.launcherApp
+          logoPath = packageOptions.logoPath,
+          launcherApp = packageOptions.launcherApp
         )
-        val packageOptions = build.options.packageOptions
 
         lazy val debianSettings = DebianSettings(
           shared = sharedSettings,
@@ -244,9 +294,9 @@ object Package extends ScalaCommand[PackageOptions] {
         docker(inputs, build, value(mainClass), logger)
     }
 
-    if (!build.options.packageOptions.isDockerEnabled)
+    if (packageType.runnable.nonEmpty)
       logger.message {
-        if (packageType.runnable)
+        if (packageType.runnable.contains(true))
           s"Wrote $dest, run it with" + System.lineSeparator() +
             "  " + printableDest
         else if (packageType == PackageType.Js)
@@ -255,15 +305,21 @@ object Package extends ScalaCommand[PackageOptions] {
         else
           s"Wrote $dest"
       }
+
+    val mTimeDestPathOpt = if (packageType.runnable.isEmpty) None else Some(os.mtime(destPath))
+    mTimeDestPathOpt
   }
 
-  private def libraryJar(build: Build.Successful): Array[Byte] = {
+  def libraryJar(
+    build: Build.Successful,
+    mainClassOpt: Option[String] = None
+  ): Array[Byte] = {
 
     val baos = new ByteArrayOutputStream
 
     val manifest = new java.util.jar.Manifest
     manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
-    for (mainClass <- build.sources.mainClass)
+    for (mainClass <- mainClassOpt.orElse(build.sources.mainClass) if mainClass.nonEmpty)
       manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
 
     var zos: ZipOutputStream = null
@@ -289,7 +345,8 @@ object Package extends ScalaCommand[PackageOptions] {
     baos.toByteArray
   }
 
-  private def sourceJar(build: Build.Successful, defaultLastModified: Long): Array[Byte] = {
+  private val generatedSourcesPrefix = os.rel / "META-INF" / "generated"
+  def sourceJar(build: Build.Successful, defaultLastModified: Long): Array[Byte] = {
 
     val baos                 = new ByteArrayOutputStream
     var zos: ZipOutputStream = null
@@ -301,13 +358,23 @@ object Package extends ScalaCommand[PackageOptions] {
         (relPath, content, lastModified)
     }
 
-    def fromGeneratedSources = build.sources.inMemory.iterator.map {
-      case (Right(path), relPath, _, _) =>
-        val lastModified = os.mtime(path)
-        val content      = os.read.bytes(path)
-        (relPath, content, lastModified)
-      case (Left(_), relPath, content, _) =>
-        (relPath, content.getBytes(StandardCharsets.UTF_8), defaultLastModified)
+    def fromGeneratedSources = build.sources.inMemory.iterator.flatMap { inMemSource =>
+      val lastModified = inMemSource.originalPath match {
+        case Right((_, origPath)) => os.mtime(origPath)
+        case Left(_)              => defaultLastModified
+      }
+      val originalOpt = inMemSource.originalPath.toOption.collect {
+        case (subPath, origPath) if subPath != inMemSource.generatedRelPath =>
+          val origContent = os.read.bytes(origPath)
+          (subPath, origContent, lastModified)
+      }
+      val prefix = if (originalOpt.isEmpty) os.rel else generatedSourcesPrefix
+      val generated = (
+        prefix / inMemSource.generatedRelPath,
+        inMemSource.generatedContent.getBytes(StandardCharsets.UTF_8),
+        lastModified
+      )
+      Iterator(generated) ++ originalOpt.iterator
     }
 
     def paths = fromSimpleSources ++ fromGeneratedSources
@@ -336,6 +403,8 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     logger: Logger
   ): Unit = {
+    val packageOptions = build.options.notForBloopOptions.packageOptions
+
     if (build.options.platform.value == Platform.Native && (Properties.isMac || Properties.isWin)) {
       System.err.println(
         "Package scala native application to docker image is not supported on MacOs and Windows"
@@ -348,22 +417,22 @@ object Package extends ScalaCommand[PackageOptions] {
       case Platform.JS     => Some("node")
       case Platform.Native => None
     }
-    val from = build.options.packageOptions.dockerOptions.from.getOrElse {
+    val from = packageOptions.dockerOptions.from.getOrElse {
       build.options.platform.value match {
         case Platform.JVM    => "openjdk:17-slim"
         case Platform.JS     => "node"
         case Platform.Native => "debian:stable-slim"
       }
     }
-    val repository = build.options.packageOptions.dockerOptions.imageRepository.mandatory(
+    val repository = packageOptions.dockerOptions.imageRepository.mandatory(
       "--docker-image-repository",
       "docker"
     )
-    val tag = build.options.packageOptions.dockerOptions.imageTag.getOrElse("latest")
+    val tag = packageOptions.dockerOptions.imageTag.getOrElse("latest")
 
     val dockerSettings = DockerSettings(
       from = from,
-      registry = build.options.packageOptions.dockerOptions.imageRegistry,
+      registry = packageOptions.dockerOptions.imageRegistry,
       repository = repository,
       tag = Some(tag),
       exec = exec
@@ -393,9 +462,9 @@ object Package extends ScalaCommand[PackageOptions] {
     destPath: os.Path,
     mainClass: String,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = {
     val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig)
+    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig, logger)
   }
 
   private def buildNative(
@@ -440,11 +509,9 @@ object Package extends ScalaCommand[PackageOptions] {
 
     def dependencyEntries =
       build.artifacts.artifacts.map {
-        case (url, artifactPath) =>
-          if (build.options.packageOptions.isStandalone) {
-            val path = os.Path(artifactPath)
+        case (url, path) =>
+          if (build.options.notForBloopOptions.packageOptions.isStandalone)
             ClassPathEntry.Resource(path.last, os.mtime(path), os.read.bytes(path))
-          }
           else
             ClassPathEntry.Url(url)
       }
@@ -487,7 +554,7 @@ object Package extends ScalaCommand[PackageOptions] {
       .callsItself(Properties.isWin)
     val params = Parameters.Assembly()
       .withExtraZipEntries(byteCodeZipEntries)
-      .withFiles(build.artifacts.artifacts.map(_._2.toFile))
+      .withFiles(build.artifacts.artifacts.map(_._2.toIO))
       .withMainClass(mainClass)
       .withPreamble(preamble)
     alreadyExistsCheck()
@@ -524,17 +591,31 @@ object Package extends ScalaCommand[PackageOptions] {
     dest: os.Path,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
-    config: StandardConfig
-  ): Unit =
+    config: StandardConfig,
+    logger: Logger
+  ): Either[BuildException, Unit] =
     withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
-      val classPath = mainJar +: build.artifacts.classPath
+      val classPath  = mainJar +: build.artifacts.classPath.map(_.toNIO)
+      val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
       (new ScalaJsLinker).link(
         classPath.toArray,
         mainClassOpt.orNull,
         addTestInitializer,
         new ScalaJsConfig(config),
-        dest.toNIO
+        linkingDir.toNIO,
+        logger.scalaJsLogger
       )
+      val relMainJs = os.rel / "main.js"
+      val mainJs    = linkingDir / relMainJs
+      if (os.exists(mainJs)) {
+        os.copy(mainJs, dest, replaceExisting = true)
+        os.remove.all(linkingDir)
+        Right(())
+      }
+      else {
+        val found = os.walk(linkingDir).map(_.relativeTo(linkingDir))
+        Left(new ScalaJsLinkingError(relMainJs, found))
+      }
     }
 
   def buildNative(
@@ -577,7 +658,7 @@ object Package extends ScalaCommand[PackageOptions] {
           Runner.runJvm(
             build.options.javaHome().value.javaCommand,
             build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            build.artifacts.scalaNativeCli.map(_.toFile),
+            build.artifacts.scalaNativeCli.map(_.toIO),
             "scala.scalanative.cli.ScalaNativeLd",
             args,
             logger

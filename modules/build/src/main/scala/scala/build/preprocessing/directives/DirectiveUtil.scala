@@ -2,6 +2,7 @@ package scala.build.preprocessing.directives
 
 import com.virtuslab.using_directives.custom.model.{NumericValue, StringValue, Value}
 
+import scala.build.errors.SingleValueExpectedError
 import scala.build.preprocessing.ScopePath
 import scala.build.{Position, Positioned}
 
@@ -47,4 +48,16 @@ object DirectiveUtil {
       val column = v.getRelatedASTNode.getPosition.getColumn
       Position.File(path, (line, column), (line, column))
     }
+
+  def singleStringValue(
+    directive: StrictDirective,
+    path: Either[String, os.Path],
+    cwd: ScopePath
+  ): Either[SingleValueExpectedError, Positioned[String]] = {
+    val values = DirectiveUtil.stringValues(directive.values, path, cwd)
+    values match {
+      case Seq((v, _)) => Right(v)
+      case _           => Left(new SingleValueExpectedError(directive, path))
+    }
+  }
 }

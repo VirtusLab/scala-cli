@@ -10,7 +10,8 @@ import java.nio.charset.Charset
 import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.BuildException
+import scala.build.Inputs.WorkspaceOrigin
+import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
@@ -51,11 +52,13 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
-    doRun(
+    val bspPath = writeBspConfiguration(
       options,
       inputs,
       previousCommandName = None
     ).orExit(options.shared.logging.logger)
+
+    bspPath.foreach(path => println(s"Wrote configuration file for ide in: $path"))
   }
 
   def runSafe(
@@ -64,17 +67,17 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     logger: Logger,
     previousCommandName: Option[String]
   ): Unit =
-    doRun(SetupIdeOptions(shared = options), inputs, previousCommandName) match {
+    writeBspConfiguration(SetupIdeOptions(shared = options), inputs, previousCommandName) match {
       case Left(ex) =>
         logger.debug(s"Ignoring error during setup-ide: ${ex.message}")
-      case Right(()) =>
+      case Right(_) =>
     }
 
-  private def doRun(
+  private def writeBspConfiguration(
     options: SetupIdeOptions,
     inputs: Inputs,
     previousCommandName: Option[String]
-  ): Either[BuildException, Unit] = either {
+  ): Either[BuildException, Option[os.Path]] = either {
 
     val virtualInputs = inputs.elements.collect {
       case v: Inputs.Virtual => v
@@ -96,7 +99,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       inputs.workspace / Constants.workspaceDirName / "ide-options.json"
 
     // Ensure the path to the CLI is absolute
-    val absolutePathToScalaCli: String = {
+    val absolutePathToScalaCli: String =
       if (progName.contains(File.separator))
         os.Path(progName, Os.pwd).toString
       else
@@ -115,7 +118,6 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
             ).toOption
           }
           .getOrElse(progName)
-    }
 
     val inputArgs = inputs.elements.collect {
       case d: Inputs.OnDisk =>
@@ -148,6 +150,13 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val json                      = gson.toJson(details)
     val scalaCliOptionsForBspJson = write(options.shared)
 
+    if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
+      value(Left(new WorkspaceError(
+        """scala-cli can not determine where to write its BSP configuration.
+          |Set an explicit BSP directory path via `--bsp-directory`.
+          |""".stripMargin
+      )))
+
     if (previousCommandName.isEmpty || !bspJsonDestination.toIO.exists()) {
       os.write.over(bspJsonDestination, json.getBytes(charset), createFolders = true)
       os.write.over(
@@ -156,6 +165,9 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         createFolders = true
       )
       logger.debug(s"Wrote $bspJsonDestination")
+      Some(bspJsonDestination)
     }
+    else
+      None
   }
 }

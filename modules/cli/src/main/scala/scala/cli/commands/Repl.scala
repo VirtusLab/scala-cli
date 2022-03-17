@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
+import coursier.cache.FileCache
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
@@ -83,6 +84,8 @@ object Repl extends ScalaCommand[ReplOptions] {
         bloopRifleConfig,
         logger,
         crossBuilds = cross,
+        buildTests = false,
+        partial = None,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
@@ -98,7 +101,15 @@ object Repl extends ScalaCommand[ReplOptions] {
     }
     else {
       val builds =
-        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
+        Build.build(
+          inputs,
+          initialBuildOptions,
+          bloopRifleConfig,
+          logger,
+          crossBuilds = cross,
+          buildTests = false,
+          partial = None
+        )
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
@@ -119,23 +130,26 @@ object Repl extends ScalaCommand[ReplOptions] {
     dryRun: Boolean
   ): Either[BuildException, Unit] = either {
 
+    val cache = options.internal.cache.getOrElse(FileCache())
     val replArtifacts = value {
-      if (options.replOptions.useAmmonite)
+      if (options.notForBloopOptions.replOptions.useAmmonite)
         ReplArtifacts.ammonite(
           artifacts.params,
-          options.replOptions.ammoniteVersion,
-          artifacts.dependencies,
+          options.notForBloopOptions.replOptions.ammoniteVersion,
+          artifacts.userDependencies,
           artifacts.extraClassPath,
           artifacts.extraSourceJars,
           logger,
+          cache,
           directories
         )
       else
         ReplArtifacts.default(
           artifacts.params,
-          artifacts.dependencies,
+          artifacts.userDependencies,
           artifacts.extraClassPath,
           logger,
+          cache,
           options.finalRepositories
         )
     }
@@ -154,7 +168,9 @@ object Repl extends ScalaCommand[ReplOptions] {
       .filter(os.isFile(_)) // just in case
       .map(_.last.stripSuffix(".class"))
       .sorted
-    if (rootClasses.nonEmpty && options.replOptions.useAmmoniteOpt.exists(_ == true))
+    val warnRootClasses = rootClasses.nonEmpty &&
+      options.notForBloopOptions.replOptions.useAmmoniteOpt.exists(_ == true)
+    if (warnRootClasses)
       logger.message(
         s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")})." +
           " These will not be accessible from the REPL."
@@ -166,15 +182,15 @@ object Repl extends ScalaCommand[ReplOptions] {
       Runner.runJvm(
         options.javaHome().value.javaCommand,
         replArtifacts.replJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
-        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toFile),
+        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toIO),
         replArtifacts.replMainClass,
         if (Properties.isWin)
-          options.replOptions.ammoniteArgs.map { a =>
+          options.notForBloopOptions.replOptions.ammoniteArgs.map { a =>
             if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
             else a
           }
         else
-          options.replOptions.ammoniteArgs,
+          options.notForBloopOptions.replOptions.ammoniteArgs,
         logger,
         allowExecve = allowExit
       )

@@ -78,8 +78,8 @@ object AsmTestRunner {
       fingerprints.find {
         case f: SubclassFingerprint =>
           f.isModule == isModule &&
-            parentInspector.allParents(checker.name)
-              .contains(f.superclassName().replace('.', '/'))
+          parentInspector.allParents(checker.name)
+            .contains(f.superclassName().replace('.', '/'))
 
         case _: AnnotatedFingerprint =>
           // val annotationCls = loader.loadClass(f.annotationName())
@@ -341,7 +341,7 @@ object AsmTestRunner {
       taskDefs(
         classPath,
         keepJars = false,
-        framework.fingerprints(),
+        framework.fingerprints().toIndexedSeq,
         parentCache
       ).toArray
 

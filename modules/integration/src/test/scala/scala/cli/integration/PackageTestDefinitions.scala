@@ -2,9 +2,12 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.zip.ZipFile
 
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
@@ -297,6 +300,101 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
       val output = maybeUseBash(runnableLauncher.toString)(cwd = root).out.text().trim
       expect(output == message)
+    }
+  }
+
+  test("ignore test scope") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Main.scala" ->
+          """|object Main {
+             |  def main(args: Array[String]): Unit = {
+             |    println("Hello World")
+             |  }
+             |}""".stripMargin,
+        os.rel / "Tests.test.scala" ->
+          """|import utest._ // compilation error, not included test library
+             |
+             |object Tests extends TestSuite {
+             |  val tests = Tests {
+             |    test("message") {
+             |      assert(1 == 1)
+             |    }
+             |  }
+             |}""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val launcher   = root / outputName
+
+      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      expect(output == "Hello World")
+    }
+  }
+
+  private def readEntry(zf: ZipFile, name: String): Array[Byte] = {
+    val ent             = zf.getEntry(name)
+    var is: InputStream = null
+    try {
+      is = zf.getInputStream(ent)
+      is.readAllBytes()
+    }
+    finally if (is != null)
+        is.close()
+  }
+
+  test("source JAR") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "lib" / "Messages.scala" ->
+          """package lib
+            |
+            |object Messages {
+            |  def msg = "Hello"
+            |}
+            |""".stripMargin,
+        os.rel / "simple.sc" ->
+          """val msg = lib.Messages.msg
+            |println(msg)
+            |""".stripMargin
+      )
+    )
+    val dest = os.rel / "sources.jar"
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", dest, "--source").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      expect(os.isFile(root / dest))
+
+      val zf                 = new ZipFile((root / dest).toIO)
+      val genSourceEntryName = "META-INF/generated/simple.scala"
+      val expectedEntries = Set(
+        "lib/Messages.scala",
+        genSourceEntryName,
+        "simple.sc"
+      )
+      val entries = zf.entries().asScala.iterator.map(_.getName).toSet
+      expect(entries == expectedEntries)
+
+      for ((relPath, expectedStrContent) <- inputs.files) {
+        val content    = readEntry(zf, relPath.toString)
+        val strContent = new String(content, StandardCharsets.UTF_8)
+        expect(strContent == expectedStrContent)
+      }
+
+      val genContent    = readEntry(zf, genSourceEntryName)
+      val genContentStr = new String(genContent, StandardCharsets.UTF_8)
+      expect(genContentStr.contains("object simple {"))
     }
   }
 

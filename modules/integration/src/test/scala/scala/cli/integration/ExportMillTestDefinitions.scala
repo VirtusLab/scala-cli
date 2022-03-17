@@ -79,7 +79,7 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
       simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
     }
 
-  if (runExportTests && TestUtil.canRunNative && !actualScalaVersion.startsWith("3."))
+  if (runExportTests && !actualScalaVersion.startsWith("3."))
     test("Scala Native") {
       simpleTest(ExportTestProjects.nativeTest(actualScalaVersion))
     }

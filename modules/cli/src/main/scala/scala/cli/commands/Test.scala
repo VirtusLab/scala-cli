@@ -100,6 +100,8 @@ object Test extends ScalaCommand[TestOptions] {
         bloopRifleConfig,
         logger,
         crossBuilds = cross,
+        buildTests = true,
+        partial = None,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
@@ -110,7 +112,15 @@ object Test extends ScalaCommand[TestOptions] {
     }
     else {
       val builds =
-        Build.build(inputs, initialBuildOptions, bloopRifleConfig, logger, crossBuilds = cross)
+        Build.build(
+          inputs,
+          initialBuildOptions,
+          bloopRifleConfig,
+          logger,
+          crossBuilds = cross,
+          buildTests = true,
+          partial = None
+        )
           .orExit(logger)
       maybeTest(builds, allowExit = true)
     }
@@ -132,7 +142,7 @@ object Test extends ScalaCommand[TestOptions] {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         value {
-          Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig) { js =>
+          Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig, logger) { js =>
             Runner.testJs(
               build.fullClassPath,
               js.toIO,
@@ -141,7 +151,7 @@ object Test extends ScalaCommand[TestOptions] {
               testFrameworkOpt,
               logger
             )
-          }
+          }.flatMap(e => e)
         }
       case Platform.Native =>
         value {

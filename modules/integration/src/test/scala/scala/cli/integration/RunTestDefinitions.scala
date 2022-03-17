@@ -62,7 +62,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
-        root).out.text().trim
+        root
+      ).out.text().trim
       expect(output.linesIterator.toSeq.last == message)
     }
   }
@@ -129,7 +130,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (TestUtil.canRunNative && canRunScWithNative())
+  if (canRunScWithNative())
     test("simple script native") {
       simpleNativeTests()
     }
@@ -203,7 +204,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc").call(cwd =
-        root).out.text().trim
+        root
+      ).out.text().trim
       expect(output == message)
     }
   }
@@ -224,7 +226,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--js").call(cwd =
-        root).out.text().trim
+        root
+      ).out.text().trim
       expect(output == message)
     }
   }
@@ -260,7 +263,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (TestUtil.canRunNative && canRunScWithNative())
+  if (canRunScWithNative())
     test("Multiple scripts native") {
       multipleScriptsNative()
     }
@@ -279,7 +282,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", "print_sc").call(cwd =
-        root).out.text().trim
+        root
+      ).out.text().trim
       expect(output == message)
     }
   }
@@ -401,7 +405,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   // TODO: make nice messages that the scenario is unsupported with 2.12
-  if (TestUtil.canRunNative && actualScalaVersion.startsWith("2.13"))
+  if (actualScalaVersion.startsWith("2.13"))
     test("Directory native") {
       directoryNative()
     }
@@ -513,7 +517,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
-        else if (actualScalaVersion.startsWith("3.0."))
+        else if (actualScalaVersion.startsWith("3."))
           s"""Exception in thread main: java.lang.Exception: Caught exception during processing
              |    at method main in Throws.scala:8$sp
              |
@@ -524,15 +528,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |
              |""".stripMargin.linesIterator.toVector
         else
-          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
-             |${tab}at Throws$$.main(Throws.scala:8)
-             |${tab}at Throws.main(Throws.scala)
-             |Caused by: java.lang.RuntimeException: nope
-             |${tab}at scala.sys.package$$.error(package.scala:27)
-             |${tab}at Throws$$.something(Throws.scala:3)
-             |${tab}at Throws$$.main(Throws.scala:5)
-             |$tab... 1 more
-             |""".stripMargin.linesIterator.toVector
+          sys.error(s"Unexpected Scala version: $actualScalaVersion")
       if (exceptionLines != expectedLines) {
         pprint.log(exceptionLines)
         pprint.log(expectedLines)
@@ -828,7 +824,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     // format: off
     val cmd = Seq[os.Shellable](
       TestUtil.cs, "fetch",
-      "--intransitive", "com.chuusai::shapeless:2.3.7",
+      "--intransitive", "com.chuusai::shapeless:2.3.8",
       "--scala", actualScalaVersion
     )
     // format: on
@@ -1173,7 +1169,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("resources") {
     resourcesInputs().fromRoot { root =>
       os.proc(TestUtil.cli, "run", "src", "--resource-dirs", "./src/proj/resources").call(cwd =
-        root)
+        root
+      )
     }
   }
   test("resources via directive") {
@@ -1422,7 +1419,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |apt install -y sudo
            |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee output-root
            |sudo -u test ./scala clean $fileName
-           |sudo -u test ./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee output-user
+           |sudo -u test ./scala ${extraOptions.mkString(
+            " "
+          ) /* meh escaping */} $fileName | tee output-user
            |""".stripMargin
       os.write(root / "script.sh", script)
       os.perms.set(root / "script.sh", "rwxr-xr-x")

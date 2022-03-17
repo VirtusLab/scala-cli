@@ -1,6 +1,6 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.0-M2`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.16`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.19`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
 import $file.project.settings, settings.{
@@ -65,7 +65,8 @@ object integration extends Module {
       }
       def forkEnv = super.forkEnv() ++ Seq(
         "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
-        "SCALA_CLI_IMAGE" -> "scala-cli"
+        "SCALA_CLI_IMAGE" -> "scala-cli",
+        "CI"              -> "1"
       )
     }
   }
@@ -79,7 +80,8 @@ object integration extends Module {
       }
       def forkEnv = super.forkEnv() ++ Seq(
         "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
-        "SCALA_CLI_IMAGE" -> "scala-cli-slim"
+        "SCALA_CLI_IMAGE" -> "scala-cli-slim",
+        "CI"              -> "1"
       )
     }
   }
@@ -221,7 +223,8 @@ class Build(val crossScalaVersion: String)
     else state + "-maybe-stale"
   }
   def constantsFile = T.persistent {
-    val dest = T.dest / "Constants.scala"
+    val dir  = T.dest / "constants"
+    val dest = dir / "Constants.scala"
     val testRunnerMainClass = `test-runner`(Scala.defaultInternal)
       .mainClass()
       .getOrElse(sys.error("No main class defined for test-runner"))
@@ -251,7 +254,9 @@ class Build(val crossScalaVersion: String)
          |  def stubsModuleName = "${stubs.artifactName()}"
          |  def stubsVersion = "${stubs.publishVersion()}"
          |
-         |  def testRunnerOrganization = "${`test-runner`(Scala.defaultInternal).pomSettings().organization}"
+         |  def testRunnerOrganization = "${`test-runner`(
+          Scala.defaultInternal
+        ).pomSettings().organization}"
          |  def testRunnerModuleName = "${`test-runner`(Scala.defaultInternal).artifactName()}"
          |  def testRunnerVersion = "${`test-runner`(Scala.defaultInternal).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"
@@ -289,8 +294,8 @@ class Build(val crossScalaVersion: String)
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
-      os.write.over(dest, code)
-    PathRef(dest)
+      os.write.over(dest, code, createFolders = true)
+    PathRef(dir)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
@@ -309,7 +314,8 @@ class Build(val crossScalaVersion: String)
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
     def constantsFile = T.persistent {
-      val dest = T.dest / "Constants2.scala"
+      val dir  = T.dest / "constants"
+      val dest = dir / "Constants2.scala"
       val code =
         s"""package scala.build.tests
            |
@@ -319,8 +325,8 @@ class Build(val crossScalaVersion: String)
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)
-        os.write.over(dest, code)
-      PathRef(dest)
+        os.write.over(dest, code, createFolders = true)
+      PathRef(dir)
     }
 
     // uncomment below to debug tests in attach mode on 5005 port
@@ -349,6 +355,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.coursierLauncher,
+    Deps.coursierPublish,
     Deps.dataClass,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
@@ -414,7 +421,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI"      -> testLauncher().path.toString,
       "SCALA_CLI_KIND" -> cliKind(),
-      "SCALA_CLI_TMP"  -> tmpDirBase().path.toString
+      "SCALA_CLI_TMP"  -> tmpDirBase().path.toString,
+      "CI"             -> "1"
     )
     def sources = T.sources {
       val name = mainArtifactName().stripPrefix(prefix)
@@ -429,7 +437,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     }
 
     def constantsFile = T.persistent {
-      val dest = T.dest / "Constants.scala"
+      val dir  = T.dest / "constants"
+      val dest = dir / "Constants.scala"
       val mostlyStaticDockerfile =
         os.rel / ".github" / "scripts" / "docker" / "ScalaCliSlimDockerFile"
       assert(
@@ -458,8 +467,8 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)
-        os.write.over(dest, code)
-      PathRef(dest)
+        os.write.over(dest, code, createFolders = true)
+      PathRef(dir)
     }
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
@@ -583,7 +592,8 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
   def mainClass = Some("scala.build.blooprifle.BloopRifle")
 
   def constantsFile = T.persistent {
-    val dest = T.dest / "Constants.scala"
+    val dir  = T.dest / "constants"
+    val dest = dir / "Constants.scala"
     val code =
       s"""package scala.build.blooprifle.internal
          |
@@ -595,8 +605,8 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
-      os.write.over(dest, code)
-    PathRef(dest)
+      os.write.over(dest, code, createFolders = true)
+    PathRef(dir)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
@@ -766,6 +776,7 @@ private def commitChanges(name: String, branch: String, repoDir: os.Path): Unit 
   if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit"))
     println("Nothing Changes")
   else {
+    os.proc("git", "switch", "-c", branch).call(cwd = repoDir)
     os.proc("git", "add", "-A").call(cwd = repoDir)
     os.proc("git", "commit", "-am", name).call(cwd = repoDir)
     println(s"Trying to push on $branch branch")
@@ -791,8 +802,9 @@ object ci extends Module {
     if (os.exists(scalaCliDir)) os.remove.all(scalaCliDir)
     if (!os.exists(targetDir)) os.makeDir.all(targetDir)
 
-    val branch = "main"
-    val repo   = s"https://oauth2:${ghToken()}@github.com/VirtusLab/scala-cli.git"
+    val branch       = "main"
+    val targetBranch = s"update-standalone-launcher-$version"
+    val repo         = s"https://oauth2:${ghToken()}@github.com/VirtusLab/scala-cli.git"
 
     // Cloning
     gitClone(repo, branch, targetDir)
@@ -813,7 +825,10 @@ object ci extends Module {
       )
     os.write.over(standaloneWindowsLauncherPath, updatedWindowsLauncherScript)
 
-    commitChanges(s"Update scala-cli.sh launcher for $version", branch, scalaCliDir)
+    commitChanges(s"Update scala-cli.sh launcher for $version", targetBranch, scalaCliDir)
+    os.proc("gh", "auth", "login", "--with-token").call(cwd = scalaCliDir, stdin = ghToken())
+    os.proc("gh", "pr", "create", "--fill", "--base", "main", "--head", targetBranch)
+      .call(cwd = scalaCliDir)
   }
   def updateBrewFormula() = T.command {
     val version = cli.publishVersion()
@@ -1108,4 +1123,8 @@ object ci extends Module {
     System.err.println(s"New Java home $destJavaHome")
     destJavaHome
   }
+}
+
+def updateLicensesFile() = T.command {
+  settings.updateLicensesFile()
 }

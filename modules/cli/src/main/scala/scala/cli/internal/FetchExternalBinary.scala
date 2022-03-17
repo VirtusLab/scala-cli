@@ -10,6 +10,7 @@ import java.util.{Locale, UUID}
 import scala.build.Logger
 import scala.build.internal.OsLibc
 import scala.util.Properties
+import scala.util.control.NonFatal
 
 object FetchExternalBinary {
 
@@ -23,10 +24,16 @@ object FetchExternalBinary {
 
     val f = cache.logger.use {
       logger.log(s"Getting $url")
-      cache.file(Artifact(url).withChanging(changing)).run.flatMap {
-        case Left(e)  => Task.fail(e)
-        case Right(f) => Task.point(os.Path(f, os.pwd))
-      }.unsafeRun()(cache.ec)
+      try cache.file(Artifact(url).withChanging(changing))
+          .run
+          .flatMap {
+            case Left(e)  => Task.fail(e)
+            case Right(f) => Task.point(os.Path(f, os.pwd))
+          }
+          .unsafeRun()(cache.ec)
+      catch {
+        case NonFatal(e) => throw new Exception(e)
+      }
     }
     logger.debug(s"$url is available locally at $f")
 

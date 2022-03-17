@@ -2,15 +2,18 @@ package scala.cli.internal
 
 import ch.epfl.scala.{bsp4j => b}
 import coursier.cache.CacheLogger
-import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
+import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
+import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, ScalaConsoleLogger}
 
 import java.io.PrintStream
 
 import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
+import scala.build.internal.CustomProgressBarRefreshDisplay
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
 import scala.collection.mutable
 import scala.scalanative.{build => sn}
+
 class CliLogger(
   verbosity: Int,
   quiet: Boolean,
@@ -81,7 +84,7 @@ class CliLogger(
             diag.setCode(lines(f.startPos._1))
         }
         ConsoleBloopBuildClient.printFileDiagnostic(
-          out,
+          this,
           f.path,
           diag
         )
@@ -89,7 +92,7 @@ class CliLogger(
 
       if (otherPositions.nonEmpty)
         ConsoleBloopBuildClient.printOtherDiagnostic(
-          out,
+          this,
           message,
           severity,
           otherPositions
@@ -124,11 +127,17 @@ class CliLogger(
     else
       throw new Exception(ex)
 
-  def coursierLogger =
+  def coursierLogger(printBefore: String) =
     if (quiet)
       CacheLogger.nop
     else if (progress.getOrElse(coursier.paths.Util.useAnsiOutput()))
-      RefreshLogger.create(ProgressBarRefreshDisplay.create())
+      RefreshLogger.create(
+        CustomProgressBarRefreshDisplay.create(
+          keepOnScreen = verbosity >= 1,
+          if (printBefore.nonEmpty) System.err.println(printBefore),
+          ()
+        )
+      )
     else
       RefreshLogger.create(new FallbackRefreshDisplay)
 
@@ -150,20 +159,29 @@ class CliLogger(
       def bloopCliInheritStderr = verbosity >= 3
     }
 
+  def scalaJsLogger: ScalaJsLogger =
+    // FIXME Doesn't use 'out'
+    new ScalaConsoleLogger(
+      minLevel =
+        if (verbosity >= 2) ScalaJsLevel.Debug
+        else if (verbosity >= 1) ScalaJsLevel.Info
+        else if (verbosity >= 0) ScalaJsLevel.Warn
+        else ScalaJsLevel.Error
+    )
+
   def scalaNativeTestLogger: sn.Logger =
     new sn.Logger {
       def trace(msg: Throwable) = ()
       def debug(msg: String)    = logger.debug(msg)
-      def info(msg: String)     = logger.message(msg)
+      def info(msg: String)     = logger.log(msg)
       def warn(msg: String)     = logger.log(msg)
-      def error(msg: String)    = logger.log(msg)
+      def error(msg: String)    = logger.message(msg)
     }
 
-  val scalaNativeCliInternalLoggerOptions: List[String] = {
+  val scalaNativeCliInternalLoggerOptions: List[String] =
     if (verbosity >= 1) List("-v", "-v", "-v") // debug
     else if (verbosity >= 0) List("-v", "-v")  // info
     else List()                                // error
-  }
 
   // Allow to disable that?
   def compilerOutputStream = out

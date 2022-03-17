@@ -6,7 +6,7 @@ import scala.build.options.{BuildOptions, ScalaJsOptions}
 import scala.build.{Logger, Sources}
 
 abstract class BuildTool extends Product with Serializable {
-  def export(
+  def `export`(
     optionsMain: BuildOptions,
     optionsTest: BuildOptions,
     sourcesMain: Sources,
@@ -26,12 +26,15 @@ object BuildTool {
         (relPath.asSubPath, language, os.read.bytes(path))
     }
 
-    val extraMainSources = sources.inMemory.map {
-      case (_, relPath, content, _) =>
-        val language =
-          if (relPath.last.endsWith(".java")) "java"
-          else "scala"
-        (relPath.asSubPath, language, content.getBytes(charSet))
+    val extraMainSources = sources.inMemory.map { inMemSource =>
+      val language =
+        if (inMemSource.generatedRelPath.last.endsWith(".java")) "java"
+        else "scala"
+      (
+        inMemSource.generatedRelPath.asSubPath,
+        language,
+        inMemSource.generatedContent.getBytes(charSet)
+      )
     }
 
     mainSources ++ extraMainSources

@@ -14,7 +14,5 @@ final case class ReplOptions(
 }
 
 object ReplOptions {
-  /* Using HasHashData.nop here (PublishOptions values are not used during compilation) */
-  implicit val hasHashData: HasHashData[ReplOptions] = HasHashData.nop
-  implicit val monoid: ConfigMonoid[ReplOptions]     = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[ReplOptions] = ConfigMonoid.derive
 }

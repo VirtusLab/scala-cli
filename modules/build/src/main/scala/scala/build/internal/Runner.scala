@@ -189,13 +189,13 @@ object Runner {
       AsmTestRunner.taskDefs(
         classPath,
         keepJars = false,
-        framework.fingerprints(),
+        framework.fingerprints().toIndexedSeq,
         parentInspector
       ).toArray
 
     val runner       = framework.runner(args.toArray, Array(), null)
     val initialTasks = runner.tasks(taskDefs)
-    val events       = TestRunner.runTasks(initialTasks, System.out)
+    val events       = TestRunner.runTasks(initialTasks.toIndexedSeq, System.out)
 
     val doneMsg = runner.done()
     if (doneMsg.nonEmpty)
@@ -241,7 +241,6 @@ object Runner {
   ): Either[TestError, Int] = either {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
-    import org.scalajs.logging.ScalaConsoleLogger
     import org.scalajs.testing.adapter.TestAdapter
     val nodePath = findInPath("node").fold("node")(_.toString)
     val jsEnv = new NodeJSEnv(
@@ -251,7 +250,7 @@ object Runner {
         .withEnv(Map.empty)
         .withSourceMap(NodeJSEnv.SourceMap.Disable)
     )
-    val adapterConfig        = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+    val adapterConfig        = TestAdapter.Config().withLogger(logger.scalaJsLogger)
     val inputs               = Seq(Input.Script(entrypoint.toPath))
     var adapter: TestAdapter = null
 

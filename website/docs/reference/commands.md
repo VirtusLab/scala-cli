@@ -19,6 +19,7 @@ Accepts options:
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `compile`
 
@@ -40,6 +41,7 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `export`
 
@@ -60,6 +62,7 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `fmt`
 
@@ -83,6 +86,7 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `help`
 
@@ -125,6 +129,7 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `package`
 
@@ -148,6 +153,28 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
+
+## `publish`
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
+- [compile cross](./cli-options.md#compile-cross-options)
+- [coursier](./cli-options.md#coursier-options)
+- [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
+- [help group](./cli-options.md#help-group-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [main class](./cli-options.md#main-class-options)
+- [publish](./cli-options.md#publish-options)
+- [Scala.JS](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [shared](./cli-options.md#shared-options)
+- [verbosity](./cli-options.md#verbosity-options)
+- [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `run`
 
@@ -177,6 +204,7 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `setup-ide`
 
@@ -197,6 +225,7 @@ Accepts options:
 - [setup IDE](./cli-options.md#setup-ide-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `shebang`
 
@@ -244,6 +273,7 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `test`
 
@@ -266,6 +296,7 @@ Accepts options:
 - [test](./cli-options.md#test-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [watch](./cli-options.md#watch-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ## `update`
 
@@ -294,6 +325,7 @@ Accepts options:
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 - [verbosity](./cli-options.md#verbosity-options)
@@ -327,6 +359,7 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 
 ### `directories`
 
@@ -365,4 +398,5 @@ Accepts options:
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
 

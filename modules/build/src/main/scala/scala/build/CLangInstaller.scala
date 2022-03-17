@@ -60,7 +60,7 @@ object CLangInstaller {
   }.toEither
 
   def fetchAndDecompress(url: String, logger: Logger) = {
-    val fileCache = FileCache().withLogger(logger.coursierLogger)
+    val fileCache = FileCache().withLogger(logger.coursierLogger("micromamba binary"))
     val cache     = ArchiveCache().withCache(fileCache)
     val artifact  = Artifact(url).withChanging(false)
     cache.get(artifact).unsafeRun()(fileCache.ec).map(file => Path(file.toPath))

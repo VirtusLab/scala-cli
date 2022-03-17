@@ -93,34 +93,33 @@ final class BspImpl(
     actualLocalServer.setGeneratedSources(Scope.Test, generatedSourcesTest)
 
     val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
-      Build.prepareBuild(
+      val res = Build.prepareBuild(
         inputs,
         sourcesMain,
         generatedSourcesMain,
         options0Main,
+        None,
         Scope.Main,
-        persistentLogger,
-        localClient
-      ) match {
-        case Right(v) => Right(v)
-        case Left(e)  => Left((e, Scope.Main))
-      }
+        persistentLogger
+      )
+      res.left.map((_, Scope.Main))
     }
 
     val (classesDir0Test, scalaParamsTest, artifactsTest, projectTest, buildChangedTest) = value {
-      Build.prepareBuild(
+      val res = Build.prepareBuild(
         inputs,
         sourcesTest,
         generatedSourcesTest,
         options0Test,
+        None,
         Scope.Test,
-        persistentLogger,
-        localClient
-      ) match {
-        case Right(v) => Right(v)
-        case Left(e)  => Left((e, Scope.Main))
-      }
+        persistentLogger
+      )
+      res.left.map((_, Scope.Test))
     }
+
+    localClient.setGeneratedSources(Scope.Main, generatedSourcesMain)
+    localClient.setGeneratedSources(Scope.Test, generatedSourcesTest)
 
     val mainScope = PreBuildData(
       sourcesMain,
@@ -161,7 +160,8 @@ final class BspImpl(
         scope,
         logger,
         actualLocalClient,
-        bloopServer
+        bloopServer,
+        partialOpt = None
       ).left.map(_ -> scope)
 
     for {

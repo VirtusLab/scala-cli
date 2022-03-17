@@ -18,7 +18,7 @@ final case class Project(
   scalaJsOptions: Option[BloopConfig.JsConfig],
   scalaNativeOptions: Option[BloopConfig.NativeConfig],
   projectName: String,
-  classPath: Seq[Path],
+  classPath: Seq[os.Path],
   sources: Seq[os.Path],
   resolution: Option[BloopConfig.Resolution],
   resourceDirs: Seq[os.Path],
@@ -44,7 +44,7 @@ final case class Project(
     val scalaConfig =
       bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler.scalaVersion).copy(
         options = scalaCompiler.scalacOptions.toList,
-        jars = scalaCompiler.compilerClassPath.toList
+        jars = scalaCompiler.compilerClassPath.map(_.toNIO).toList
       )
     baseBloopProject(
       projectName,
@@ -55,7 +55,7 @@ final case class Project(
     )
       .copy(
         workspaceDir = Some(workspace.toNIO),
-        classpath = classPath.toList,
+        classpath = classPath.map(_.toNIO).toList,
         sources = sources.iterator.map(_.toNIO).toList,
         resources = Some(resourceDirs).filter(_.nonEmpty).map(_.iterator.map(_.toNIO).toList),
         platform = Some(platform),
@@ -68,12 +68,16 @@ final case class Project(
   def bloopFile: BloopConfig.File =
     BloopConfig.File(BloopConfig.File.LatestVersion, bloopProject)
 
-  def writeBloopFile(logger: Logger): Boolean = {
-    val bloopFileContent = writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
-    val dest             = directory / ".bloop" / s"$projectName.json"
+  def writeBloopFile(strictCheck: Boolean, logger: Logger): Boolean = {
+    lazy val bloopFileContent =
+      writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
+    val dest = directory / ".bloop" / s"$projectName.json"
     val doWrite = !os.isFile(dest) || {
-      val currentContent = os.read.bytes(dest)
-      !Arrays.equals(currentContent, bloopFileContent)
+      strictCheck && {
+        logger.debug(s"Checking Bloop project in $dest")
+        val currentContent = os.read.bytes(dest)
+        !Arrays.equals(currentContent, bloopFileContent)
+      }
     }
     if (doWrite) {
       logger.debug(s"Writing bloop project in $dest")
@@ -88,7 +92,7 @@ final case class Project(
 object Project {
 
   def resolution(
-    detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, Path)]
+    detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)]
   ): BloopConfig.Resolution = {
     val indices = detailedArtifacts.map(_._1.moduleVersion).zipWithIndex.toMap
     val modules = detailedArtifacts
@@ -103,7 +107,7 @@ object Project {
               val classifier =
                 if (pub.classifier == Classifier.empty) None
                 else Some(pub.classifier.value)
-              BloopConfig.Artifact(pub.name, classifier, None, f)
+              BloopConfig.Artifact(pub.name, classifier, None, f.toNIO)
           }
           BloopConfig.Module(mod.organization.value, mod.name.value, ver, None, artifacts)
       }

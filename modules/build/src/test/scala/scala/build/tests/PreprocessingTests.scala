@@ -17,7 +17,7 @@ class PreprocessingTests extends munit.FunSuite {
 
     assert(res.nonEmpty)
     assert(res.get.isLeft)
-    expect(res.get.left.get.message == expectedMessage)
+    expect(res.get.swap.toOption.get.message == expectedMessage)
   }
 
   test("Report error if scala script not exists") {
@@ -29,6 +29,6 @@ class PreprocessingTests extends munit.FunSuite {
 
     assert(res.nonEmpty)
     assert(res.get.isLeft)
-    expect(res.get.left.get.message == expectedMessage)
+    expect(res.get.swap.toOption.get.message == expectedMessage)
   }
 }

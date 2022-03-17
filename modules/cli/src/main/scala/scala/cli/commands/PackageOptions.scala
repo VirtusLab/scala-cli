@@ -30,6 +30,9 @@ final case class PackageOptions(
   @HelpMessage("Generate a library JAR rather than an executable JAR")
     library: Boolean = false,
   @Group("Package")
+  @HelpMessage("Generate a source JAR rather than an executable JAR")
+    source: Boolean = false,
+  @Group("Package")
   @HelpMessage("Generate an assembly JAR")
     assembly: Boolean = false,
   @Group("Package")
@@ -59,6 +62,7 @@ final case class PackageOptions(
   // format: on
   def packageTypeOpt: Option[PackageType] =
     if (library) Some(PackageType.LibraryJar)
+    else if (source) Some(PackageType.SourceJar)
     else if (assembly) Some(PackageType.Assembly)
     else if (deb) Some(PackageType.Debian)
     else if (dmg) Some(PackageType.Dmg)
@@ -71,40 +75,42 @@ final case class PackageOptions(
     val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
-      packageOptions = baseOptions.packageOptions.copy(
-        standalone = standalone,
-        version = Some(packager.version),
-        launcherApp = packager.launcherApp,
-        maintainer = packager.maintainer,
-        description = packager.description,
-        packageTypeOpt = packageTypeOpt,
-        logoPath = packager.logoPath.map(os.Path(_, os.pwd)),
-        macOSidentifier = packager.identifier,
-        debianOptions = DebianOptions(
-          conflicts = packager.debianConflicts,
-          dependencies = packager.debianDependencies,
-          architecture = Some(packager.debArchitecture)
-        ),
-        redHatOptions = RedHatOptions(
-          license = packager.license,
-          release = Some(packager.release),
-          architecture = Some(packager.rpmArchitecture)
-        ),
-        windowsOptions = WindowsOptions(
-          licensePath = packager.licensePath.map(os.Path(_, os.pwd)),
-          productName = Some(packager.productName),
-          exitDialog = packager.exitDialog,
-          suppressValidation = packager.suppressValidation,
-          extraConfig = packager.extraConfig,
-          is64Bits = Some(packager.is64Bits),
-          installerVersion = packager.installerVersion
-        ),
-        dockerOptions = DockerOptions(
-          from = packager.dockerFrom,
-          imageRegistry = packager.dockerImageRegistry,
-          imageRepository = packager.dockerImageRepository,
-          imageTag = packager.dockerImageTag,
-          isDockerEnabled = Some(docker)
+      notForBloopOptions = baseOptions.notForBloopOptions.copy(
+        packageOptions = baseOptions.notForBloopOptions.packageOptions.copy(
+          standalone = standalone,
+          version = Some(packager.version),
+          launcherApp = packager.launcherApp,
+          maintainer = packager.maintainer,
+          description = packager.description,
+          packageTypeOpt = packageTypeOpt,
+          logoPath = packager.logoPath.map(os.Path(_, os.pwd)),
+          macOSidentifier = packager.identifier,
+          debianOptions = DebianOptions(
+            conflicts = packager.debianConflicts,
+            dependencies = packager.debianDependencies,
+            architecture = Some(packager.debArchitecture)
+          ),
+          redHatOptions = RedHatOptions(
+            license = packager.license,
+            release = Some(packager.release),
+            architecture = Some(packager.rpmArchitecture)
+          ),
+          windowsOptions = WindowsOptions(
+            licensePath = packager.licensePath.map(os.Path(_, os.pwd)),
+            productName = Some(packager.productName),
+            exitDialog = packager.exitDialog,
+            suppressValidation = packager.suppressValidation,
+            extraConfig = packager.extraConfig,
+            is64Bits = Some(packager.is64Bits),
+            installerVersion = packager.installerVersion
+          ),
+          dockerOptions = DockerOptions(
+            from = packager.dockerFrom,
+            imageRegistry = packager.dockerImageRegistry,
+            imageRepository = packager.dockerImageRepository,
+            imageTag = packager.dockerImageTag,
+            isDockerEnabled = Some(docker)
+          )
         )
       )
     )

@@ -59,7 +59,7 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
       Right(Some(req))
     case _ =>
       // TODO: Handle errors and conflicts
-      Left(new DirectiveErrors(::("Match error in ScalaVersionDirectiveHandler", Nil)))
+      Left(new DirectiveErrors(::("Match error in ScalaVersionDirectiveHandler", Nil), Seq.empty))
   }
 
   def handleValues(

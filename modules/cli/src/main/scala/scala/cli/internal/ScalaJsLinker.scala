@@ -1,14 +1,16 @@
 package scala.cli.internal
 
-import org.scalajs.linker.interface.{LinkerOutput, ModuleInitializer}
-import org.scalajs.linker.{PathIRContainer, PathOutputFile, StandardImpl}
-import org.scalajs.logging.{Level, ScalaConsoleLogger}
+import org.scalajs.linker.interface.ModuleInitializer
+import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, StandardImpl}
+import org.scalajs.logging.Logger
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
-import java.net.URI
 import java.nio.file.Path
 
 import scala.build.internal.ScalaJsConfig
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.{global => ec}
+import scala.concurrent.duration.Duration
 
 final class ScalaJsLinker {
 
@@ -17,21 +19,15 @@ final class ScalaJsLinker {
     mainClassOrNull: String,
     addTestInitializer: Boolean,
     config: ScalaJsConfig,
-    dest: Path
+    linkingDir: Path,
+    logger: Logger
   ): Unit = {
 
     // adapted from https://github.com/scala-js/scala-js-cli/blob/729824848e25961a3d9a1cfe6ac0260745033148/src/main/scala/org/scalajs/cli/Scalajsld.scala#L158-L193
 
     val linker = StandardImpl.linker(config.config)
 
-    def relURI(f: Path) =
-      new URI(null, null, f.getFileName.toString, null)
-
-    val sm = dest.resolveSibling(dest.getFileName.toString + ".map")
-    val output = LinkerOutput(PathOutputFile(dest))
-      .withSourceMap(PathOutputFile(sm))
-      .withSourceMapURI(relURI(sm))
-      .withJSFileURI(relURI(dest))
+    val output = PathOutputDirectory(linkingDir)
 
     val cache = StandardImpl.irFileCache().newCache
 
@@ -46,13 +42,9 @@ final class ScalaJsLinker {
 
     val moduleInitializers = mainInitializers ++ testInitializers
 
-    val logger = new ScalaConsoleLogger(Level.Info)
-
-    import scala.concurrent.Await
-    import scala.concurrent.duration.Duration
-    import scala.concurrent.ExecutionContext.Implicits.global
+    implicit val ec0 = ec
     val futureResult = PathIRContainer
-      .fromClasspath(classPath)
+      .fromClasspath(classPath.toVector)
       .flatMap(containers => cache.cached(containers._1))
       .flatMap(linker.link(_, moduleInitializers, output, logger))
     Await.result(futureResult, Duration.Inf)

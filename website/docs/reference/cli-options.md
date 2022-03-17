@@ -92,6 +92,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -169,10 +170,15 @@ Aliases: `-p`, `--classpath`
 
 Print the resulting class path
 
+#### `--test`
+
+Compile test scope
+
 ## Compile cross options
 
 Available in commands:
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
@@ -183,11 +189,14 @@ Available in commands:
 
 #### `--cross`
 
+Aliases: `-X`
+
 Cross-compile sources
 
 ## Coursier options
 
 Available in commands:
+- [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
@@ -195,6 +204,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -208,6 +218,10 @@ Available in commands:
 
 Specify a TTL for changing dependencies, such as snapshots
 
+#### `--cache`
+
+Set the coursier cache location
+
 ## Cross options
 
 Available in commands:
@@ -218,6 +232,8 @@ Available in commands:
 
 #### `--cross`
 
+Aliases: `-X`
+
 ## Dependency options
 
 Available in commands:
@@ -227,6 +243,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -268,6 +285,7 @@ Available in commands:
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -349,6 +367,7 @@ Available in commands:
 - [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -385,6 +404,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -497,6 +517,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -551,6 +572,7 @@ Available in commands:
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -575,6 +597,7 @@ Use progress bars
 Available in commands:
 - [`export`](./commands.md#export)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
 
@@ -646,6 +669,10 @@ Overwrite the destination file, if it exists
 #### `--library`
 
 Generate a library JAR rather than an executable JAR
+
+#### `--source`
+
+Generate a source JAR rather than an executable JAR
 
 #### `--assembly`
 
@@ -781,6 +808,68 @@ The image repository
 
 The image tag; the default tag is `latest`
 
+## Publish options
+
+Available in commands:
+- [`publish`](./commands.md#publish)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--working-dir`
+
+Directory where temporary files for publishing should be written
+
+#### `--organization`
+
+Organization to publish artifacts under
+
+#### `--module-name`
+
+Module name to publish artifacts as
+
+#### `--version`
+
+Version to publish artifacts as
+
+#### `--url`
+
+URL to put in publishing metadata
+
+#### `--license`
+
+License to put in publishing metadata
+
+#### `--vcs`
+
+VCS information to put in publishing metadata
+
+#### `--description`
+
+Description to put in publishing metadata
+
+#### `--developer`
+
+Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" or "alex|Alex|https://alex.info|alex@alex.me"
+
+#### `--scala-version-suffix`
+
+Scala version suffix to append to the module name, like "_2.13" or "_3"
+
+#### `--scala-platform-suffix`
+
+Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
+
+#### `--publish-repository`
+
+Aliases: `-R`, `--publish-repo`
+
+Repository to publish to
+
+#### `--sources`
+
+Whether to build and publish source JARs
+
 ## Repl options
 
 Available in commands:
@@ -818,6 +907,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -886,6 +976,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -948,6 +1039,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -982,6 +1074,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -1043,6 +1136,8 @@ Generate SemanticDBs
 
 #### `--forbid`
 
+#### `--strict-bloop-json-check`
+
 ## Test options
 
 Available in commands:
@@ -1100,6 +1195,7 @@ Available in commands:
 - [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -1122,6 +1218,7 @@ Increase verbosity (can be specified multiple times)
 Available in commands:
 - [`compile`](./commands.md#compile)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
@@ -1135,4 +1232,28 @@ Available in commands:
 Aliases: `-w`
 
 Watch source files for changes
+
+## Workspace options
+
+Available in commands:
+- [`bsp`](./commands.md#bsp)
+- [`clean`](./commands.md#clean)
+- [`compile`](./commands.md#compile)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--workspace`
+
+Directory where .scala-build is written
 

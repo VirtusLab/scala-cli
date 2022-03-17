@@ -1,8 +1,8 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.16`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
 import $file.deps, deps.{Deps, Docker, buildCsVersion}
+import $file.scalafixthings, scalafixthings.ScalafixModule
 
-import com.goyeau.mill.scalafix.ScalafixModule
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.NativeImage
 import java.io.{ByteArrayOutputStream, File, FileInputStream, InputStream}
@@ -12,6 +12,7 @@ import java.util.zip.{GZIPInputStream, ZipFile}
 import mill._, scalalib._
 import scala.collection.JavaConverters._
 import scala.util.Properties
+import upickle.default._
 
 private def isCI = System.getenv("CI") != null
 
@@ -60,6 +61,36 @@ private def readFully(is: InputStream): Array[Byte] = {
   buffer.flush()
   buffer.toByteArray
 }
+
+def fromPath(name: String): String =
+  if (Properties.isWin) {
+    val pathExt = Option(System.getenv("PATHEXT"))
+      .toSeq
+      .flatMap(_.split(File.pathSeparator).toSeq)
+    val path = Seq(new File("").getAbsoluteFile) ++
+      Option(System.getenv("PATH"))
+        .toSeq
+        .flatMap(_.split(File.pathSeparator))
+        .map(new File(_))
+
+    def candidates =
+      for {
+        dir <- path.iterator
+        ext <- pathExt.iterator
+      } yield new File(dir, name + ext)
+
+    candidates
+      .filter(_.canExecute)
+      .toStream
+      .headOption
+      .map(_.getAbsolutePath)
+      .getOrElse {
+        System.err.println(s"Warning: could not find $name in PATH.")
+        name
+      }
+  }
+  else
+    name
 
 def cs: T[String] = T.persistent {
 
@@ -132,43 +163,11 @@ def cs: T[String] = T.persistent {
     }
   }
 
-  def fromPath: String =
-    if (Properties.isWin) {
-      val pathExt = Option(System.getenv("PATHEXT"))
-        .toSeq
-        .flatMap(_.split(File.pathSeparator).toSeq)
-      val path = Option(System.getenv("PATH"))
-        .toSeq
-        .flatMap(_.split(File.pathSeparator))
-        .map(new File(_))
-
-      def candidates =
-        for {
-          dir <- path.iterator
-          ext <- pathExt.iterator
-        } yield new File(dir, s"cs$ext")
-
-      candidates
-        .filter(_.canExecute)
-        .toStream
-        .headOption
-        .map(_.getAbsolutePath)
-        .getOrElse {
-          System.err.println("Warning: could not find cs in PATH.")
-          "cs"
-        }
-    }
-    else
-      "cs"
-
   if (os.isFile(dest))
     dest.toString
   else
-    (downloadOpt().getOrElse(fromPath): String)
+    (downloadOpt().getOrElse(fromPath("cs")): String)
 }
-
-// should be the default index in the upcoming coursier release (> 2.0.16)
-def jvmIndex = "https://github.com/coursier/jvm-index/raw/master/index.json"
 
 def platformExtension: String =
   if (Properties.isWin) ".exe"
@@ -271,19 +270,14 @@ trait CliLaunchers extends SbtModule { self =>
         )
       )
     }
-    def nativeImageOptions = T {
-      super.nativeImageOptions() ++ Seq(
-        "-H:-CheckToolchain"
-      )
-    }
     def buildHelperImage = T {
       os.proc("docker", "build", "-t", Docker.customMuslBuilderImageName, ".")
         .call(cwd = os.pwd / "project" / "musl-image", stdout = os.Inherit)
       ()
     }
-    def writeNativeImageScript(dest: String) = T.command {
+    def writeNativeImageScript(scriptDest: String, imageDest: String = "") = T.command {
       buildHelperImage()
-      super.writeNativeImageScript(dest)()
+      super.writeNativeImageScript(scriptDest, imageDest)()
     }
   }
 
@@ -339,13 +333,7 @@ trait CliLaunchers extends SbtModule { self =>
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val graalVmHome = Option(System.getenv("GRAALVM_HOME")).getOrElse {
       import sys.process._
-      // format: off
-      Seq(
-        cs(), "java-home",
-        "--jvm", deps.graalVmJvmId,
-        "--jvm-index", jvmIndex
-      ).!!.trim
-      // format: on
+      Seq(cs(), "java-home", "--jvm", deps.graalVmJvmId).!!.trim
     }
     val outputDir = T.ctx().dest / "config"
     // format: off
@@ -688,11 +676,18 @@ trait FormatNativeImageConf extends JavaModule {
     for (dir <- nativeImageConfDirs())
       needsFormatting = doFormatNativeImageConf(dir, format = false) ::: needsFormatting
     if (needsFormatting.nonEmpty) {
-      System.err.println(s"Error: ${needsFormatting.length} file(s) needs formatting:")
+      val msg = s"Error: ${needsFormatting.length} file(s) needs formatting"
+      System.err.println(msg)
       for (f <- needsFormatting)
         System.err.println(
           s"  ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd).toString else f.toString}"
         )
+      System.err.println(
+        """Run
+          |  ./mill -i __.formatNativeImageConf
+          |to format them.""".stripMargin
+      )
+      sys.error(msg)
     }
     ()
   }
@@ -707,38 +702,128 @@ trait FormatNativeImageConf extends JavaModule {
 
 import mill.scalalib.api.CompilationResult
 trait ScalaCliCompile extends ScalaModule {
-  override def compile: T[CompilationResult] =
-    if (System.getenv("CI") != null) super.compile
-    else T.persistent {
-      val out = os.pwd / workspaceDirName / ".unused"
-
-      val sourceFiles = allSourceFiles()
-      val classFilesDir =
-        if (sourceFiles.isEmpty) out / "classes"
+  def compileScalaCliVersion = "0.1.2"
+  def compileScalaCliUrl = {
+    val ver = compileScalaCliVersion
+    if (Properties.isLinux) Some(
+      s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-pc-linux.gz"
+    )
+    else if (Properties.isWin) Some(
+      s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-pc-win32.zip"
+    )
+    else if (Properties.isMac) Some(
+      s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-apple-darwin.gz"
+    )
+    else None
+  }
+  def compileScalaCliIsChanging = false
+  lazy val compileScalaCliImpl = compileScalaCliUrl.map { url =>
+    import coursier.cache.{ArchiveCache, FileCache}
+    import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
+    import coursier.util.Artifact
+    val logger = RefreshLogger.create(
+      if (coursier.paths.Util.useAnsiOutput())
+        ProgressBarRefreshDisplay.create()
+      else
+        new FallbackRefreshDisplay
+    )
+    val cache = FileCache().withLogger(logger)
+    val archiveCache = ArchiveCache()
+      .withCache(cache)
+    val artifact = Artifact(url).withChanging(compileScalaCliIsChanging)
+    val file = archiveCache.get(artifact).unsafeRun()(cache.ec) match {
+      case Left(e) => throw new Exception(e)
+      case Right(f) =>
+        if (Properties.isWin)
+          os.list(os.Path(f, os.pwd)).filter(_.last.endsWith(".exe")).headOption match {
+            case None      => sys.error(s"No .exe found under $f")
+            case Some(exe) => exe
+          }
         else {
-          def asOpt[T](values: IterableOnce[T], opt: String): Seq[String] =
-            values.toList.flatMap(v => Seq(opt, v.toString))
-
-          val proc = os.proc(
-            Seq("scala-cli", "compile", "--classpath"),
-            if (scalaVersion().startsWith("3")) Nil
-            else Seq("-O", s"-P:semanticdb:sourceroot:${os.pwd}"),
-            Seq("-S", scalaVersion()),
-            asOpt(scalacOptions(), "-O"),
-            asOpt(compileClasspath().map(_.path), "--jar"),
-            asOpt(scalacPluginClasspath().map(p => s"-Xplugin:${p.path}"), "-O"),
-            Seq("--jvm", "zulu:17"),
-            sourceFiles.map(_.path)
-          )
-
-          val compile = proc.call()
-          val out     = compile.out.trim
-
-          os.Path(out.split(File.pathSeparator).head)
+          f.setExecutable(true)
+          os.Path(f, os.pwd)
         }
-
-      CompilationResult(out / "unused.txt", PathRef(classFilesDir))
     }
+    PathRef(file)
+  }
+  // disable using scala-cli to build scala-cli on unsupported architectures
+  lazy val isUnsupportedArch: Boolean = {
+    val supportedArch = Seq("x86_64", "amd64")
+    val osArch        = sys.props("os.arch").toLowerCase(Locale.ROOT)
+    val isSupported   = supportedArch.exists(osArch.contains(_))
+    !isSupported
+  }
+  def compileScalaCli =
+    compileScalaCliImpl
+  override def compile: T[CompilationResult] =
+    if (isCI || isUnsupportedArch) super.compile
+    else
+      compileScalaCli.map(_.path) match {
+        case None => super.compile
+        case Some(cli) =>
+          T.persistent {
+            val out = os.pwd / workspaceDirName / ".unused"
+
+            val sourceFiles = allSources()
+              .map(_.path)
+              .filter(os.exists(_))
+            val workspace = T.dest / "workspace"
+            os.makeDir.all(workspace)
+            val classFilesDir =
+              if (sourceFiles.isEmpty) out / "classes"
+              else {
+                def asOpt[T](opt: String, values: IterableOnce[T]): Seq[String] =
+                  values.toList.flatMap(v => Seq(opt, v.toString))
+
+                val proc = os.proc(
+                  cli,
+                  Seq("compile", "--classpath"),
+                  Seq("-S", scalaVersion()),
+                  asOpt("-O", scalacOptions()),
+                  asOpt("--jar", compileClasspath().map(_.path)),
+                  asOpt("-O", scalacPluginClasspath().map(p => s"-Xplugin:${p.path}")),
+                  Seq("--jvm", "zulu:17"),
+                  "--strict-bloop-json-check=false", // don't check Bloop JSON files at each run
+                  workspace,
+                  sourceFiles
+                )
+
+                val compile = proc.call()
+                val out     = compile.out.trim
+
+                os.Path(out.split(File.pathSeparator).head)
+              }
+
+            CompilationResult(out / "unused.txt", PathRef(classFilesDir))
+          }
+      }
+
+  // Same as https://github.com/com-lihaoyi/mill/blob/084a6650c587629900560b92e3eeb3b836a6f04f/scalalib/src/Lib.scala#L165-L173
+  // but ignoring hidden directories too, and calling os.isFile only after checking the extension
+  private def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
+    def isHiddenFile(path: os.Path) = {
+      val isHidden = path.last.startsWith(".")
+      if (isHidden) {
+        val printable =
+          if (path.startsWith(os.pwd)) path.relativeTo(os.pwd).segments.mkString(File.separator)
+          else path.toString
+        System.err.println(
+          s"Warning: found unexpected hidden file $printable in sources, you may want to remove it."
+        )
+      }
+      isHidden
+    }
+    for {
+      root <- sources
+      if os.exists(root.path)
+      path <-
+        (if (os.isDir(root.path)) os.walk(root.path, skip = isHiddenFile(_)) else Seq(root.path))
+      if extensions.exists(path.ext == _) && os.isFile(path)
+    } yield path
+  }
+  override def allSourceFiles = T {
+    findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
+  }
 }
 
 trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
@@ -753,6 +838,20 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
   }
+  def scalacOptions = T {
+    val sv       = scalaVersion()
+    val isScala2 = sv.startsWith("2.")
+    val sourceFiles = allSources()
+      .map(_.path)
+      .filter(os.exists(_))
+    val sourceRoot = sourceFiles.find(_.last == "scala")
+      .orElse(sourceFiles.headOption)
+      .getOrElse(millSourcePath)
+    val semDbOptions =
+      if (isScala2) Seq(s"-P:semanticdb:sourceroot:$sourceRoot")
+      else Nil
+    super.scalacOptions() ++ semDbOptions
+  }
 }
 
 trait ScalaCliCrossSbtModule extends CrossSbtModule {
@@ -760,6 +859,69 @@ trait ScalaCliCrossSbtModule extends CrossSbtModule {
     "--release",
     "16"
   )
+  def scalacOptions = T {
+    val sv         = scalaVersion()
+    val isScala213 = sv.startsWith("2.13.")
+    val extraOptions =
+      if (isScala213) Seq("-Xsource:3")
+      else Nil
+    super.scalacOptions() ++ extraOptions
+  }
 }
 
 def workspaceDirName = ".scala-build"
+
+final case class License(licenseId: String, name: String, reference: String)
+object License {
+  implicit val rw: ReadWriter[License] = macroRW
+}
+final case class Licenses(licenses: List[License])
+object Licenses {
+  implicit val rw: ReadWriter[Licenses] = macroRW
+}
+
+def updateLicensesFile() = {
+  val url             = "https://github.com/spdx/license-list-data/raw/master/json/licenses.json"
+  var is: InputStream = null
+  val b =
+    try {
+      is = new java.net.URL(url).openStream()
+      is.readAllBytes()
+    }
+    finally if (is != null) is.close()
+  val content = new String(b, "UTF-8")
+
+  val licenses = read[Licenses](content).licenses
+
+  System.err.println(s"Found ${licenses.length} licenses")
+
+  val licensesCode = licenses
+    .sortBy(_.licenseId)
+    .map { license =>
+      s"""    License("${license.licenseId}", "${license.name.replace(
+          "\"",
+          "\\\""
+        )}", "${license.reference}")"""
+    }
+    .mkString(",\n")
+
+  val genSource =
+    s"""package scala.build.internal
+       |
+       |object Licenses {
+       |  // format: off
+       |  val list = Seq(
+       |$licensesCode
+       |  )
+       |  // format: on
+       |
+       |  lazy val map = list.map(l => l.id -> l).toMap
+       |}
+       |""".stripMargin
+
+  val dest =
+    os.rel / "modules" / "build" / "src" / "main" / "scala" / "scala" / "build" / "internal" / "Licenses.scala"
+  os.write.over(os.pwd / dest, genSource)
+
+  System.err.println(s"Wrote $dest")
+}

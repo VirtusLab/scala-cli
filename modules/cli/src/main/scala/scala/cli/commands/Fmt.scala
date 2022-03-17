@@ -19,7 +19,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
   private def getGitRoot(workspace: os.Path, logger: Logger): Option[String] =
     try {
-      val result = os.proc("git", "rev-parse", "--show-toplevel").call(cwd = workspace).out.trim
+      val result = os.proc("git", "rev-parse", "--show-toplevel").call(cwd = workspace).out.trim()
       Option(result)
     }
     catch {

@@ -14,7 +14,7 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
   )
   def run(options: BloopExitOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.logging.verbosity
-    val bloopRifleConfig = options.bloopRifleConfig
+    val bloopRifleConfig = options.bloopRifleConfig()
     val logger           = options.logging.logger
 
     val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)

@@ -14,7 +14,8 @@ object Clean extends ScalaCommand[CleanOptions] {
       args.all,
       Os.pwd,
       options.directories.directories,
-      defaultInputs = () => Inputs.default()
+      defaultInputs = () => Inputs.default(),
+      forcedWorkspace = options.workspace.forcedWorkspaceOpt
     ) match {
       case Left(message) =>
         System.err.println(message)

@@ -24,6 +24,13 @@ The most common `compile` options are shown below.
 For a full list of options, run `scala-cli compile --help`, or check the options linked in the
 [reference documentation](../reference/commands.md#compile).
 
+## Test scope
+
+`--test` makes `scala-cli` compile main and test scopes:
+```bash ignore
+scala-cli compile --test Hello.scala 
+```
+
 ## Watch mode
 
 `--watch` makes `scala-cli` watch your code for changes, and re-compiles it upon any change:
@@ -55,6 +62,39 @@ case, it picks the highest corresponding stable Scala version:
 scala-cli compile --scala 2.12 Hello.scala
 scala-cli compile --scala 2 Hello.scala
 scala-cli compile --scala 3 Hello.scala
+```
+
+## Scala Nightlies
+
+The nightly builds of Scala compiler are unstable ones which are published on a nightly basis.
+
+For using the latest Scala 2 and Scala 3 nightly builds, you should pass `2.nightly` and `3.nightly`, respectively.
+
+Scala CLI takes care of fetching the nightly builds of Scala 2 and Scala 3 from different repositories, without you having to pass their addresses as input after the `--repo` flag.
+
+For compiling with the latest Scala 2 nightly build: 
+```bash
+scala-cli Hello.scala -S 2.nightly
+```
+For compiling with the latest Scala 3 nightly build:
+```bash
+scala-cli Hello.scala -S 3.nightly
+```
+For compiling with an specific nightly build, you have the full version for:
+```bash
+scala-cli Hello.scala -S 2.13.9-bin-4505094 
+```
+
+For adding this inside scala files with [using directives](../guides/using-directives.md), use:
+
+```scala
+//> using scala "2.nightly"
+```
+```scala
+//> using scala "3.nightly"
+```
+```scala
+//> using scala "2.13.9-bin-4505094"
 ```
 
 ## Dependencies

@@ -45,13 +45,14 @@ object Build {
     project: Project,
     output: os.Path,
     diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]],
-    generatedSources: Seq[GeneratedSource]
+    generatedSources: Seq[GeneratedSource],
+    isPartial: Boolean
   ) extends Build {
     def success: Boolean               = true
     def successfulOpt: Some[this.type] = Some(this)
     def outputOpt: Some[os.Path]       = Some(output)
     def fullClassPath: Seq[Path] =
-      Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath
+      Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath.map(_.toNIO)
     def foundMainClasses(): Seq[String] =
       MainClass.find(output)
     def retainedMainClass: Either[MainClassError, String] = {
@@ -59,11 +60,7 @@ object Build {
       val defaultMainClassOpt = sources.mainClass
         .filter(name => foundMainClasses0.contains(name))
       def foundMainClass =
-        if (foundMainClasses0.isEmpty) {
-          val msg = "No main class found"
-          System.err.println(msg)
-          Left(new NoMainClassFoundError)
-        }
+        if (foundMainClasses0.isEmpty) Left(new NoMainClassFoundError)
         else if (foundMainClasses0.length == 1) Right(foundMainClasses0.head)
         else
           Left(
@@ -115,6 +112,8 @@ object Build {
     def diagnostics: None.type   = None
   }
 
+  def defaultStrictBloopJsonCheck = true
+
   def updateInputs(
     inputs: Inputs,
     options: BuildOptions,
@@ -128,9 +127,10 @@ object Build {
     val testOptionsHash = testOptions.flatMap(_.hash)
 
     inputs.copy(
-      baseProjectName = inputs.baseProjectName
-        + optionsHash.map("_" + _).getOrElse("")
-        + testOptionsHash.map("_" + _).getOrElse("")
+      baseProjectName =
+        inputs.baseProjectName
+          + optionsHash.map("_" + _).getOrElse("")
+          + testOptionsHash.map("_" + _).getOrElse("")
     )
   }
 
@@ -140,7 +140,9 @@ object Build {
     logger: Logger,
     buildClient: BloopBuildClient,
     bloopServer: bloop.BloopServer,
-    crossBuilds: Boolean
+    crossBuilds: Boolean,
+    buildTests: Boolean,
+    partial: Option[Boolean]
   ): Either[BuildException, Builds] = either {
 
     val crossSources = value {
@@ -171,7 +173,7 @@ object Build {
 
     def doBuild(
       overrideOptions: BuildOptions
-    ): Either[BuildException, (Build, Build)] = either {
+    ): Either[BuildException, (Build, Option[Build])] = either {
 
       val baseOptions   = overrideOptions.orElse(sharedOptions)
       val scopedSources = value(crossSources.scopedSources(baseOptions))
@@ -212,7 +214,9 @@ object Build {
             scope,
             logger,
             buildClient,
-            bloopServer
+            bloopServer,
+            buildTests,
+            partial
           )
 
           value(res)
@@ -220,33 +224,39 @@ object Build {
 
       val mainBuild = value(doBuildScope(mainOptions, mainSources, Scope.Main))
 
-      val testBuild = value {
-        mainBuild match {
-          case s: Build.Successful =>
-            val extraTestOptions = BuildOptions(
-              classPathOptions = ClassPathOptions(
-                extraClassPath = Seq(s.output)
-              )
-            )
-            val testOptions0 = extraTestOptions.orElse(testOptions)
-            doBuildScope(testOptions0, testSources, Scope.Test)
-          case _ =>
-            Right(Build.Cancelled(
-              inputs,
-              sharedOptions,
-              Scope.Test,
-              "Parent build failed or cancelled"
-            ))
+      val testBuildOpt =
+        if (buildTests) {
+          val testBuild = value {
+            mainBuild match {
+              case s: Build.Successful =>
+                val extraTestOptions = BuildOptions(
+                  classPathOptions = ClassPathOptions(
+                    extraClassPath = Seq(s.output)
+                  )
+                )
+                val testOptions0 = extraTestOptions.orElse(testOptions)
+                doBuildScope(testOptions0, testSources, Scope.Test)
+              case _ =>
+                Right(Build.Cancelled(
+                  inputs,
+                  sharedOptions,
+                  Scope.Test,
+                  "Parent build failed or cancelled"
+                ))
+            }
+          }
+          Some(testBuild)
         }
-      }
+        else None
 
       doPostProcess(mainBuild, inputs0, Scope.Main)
-      doPostProcess(testBuild, inputs0, Scope.Test)
+      for (testBuild <- testBuildOpt)
+        doPostProcess(testBuild, inputs0, Scope.Test)
 
-      (mainBuild, testBuild)
+      (mainBuild, testBuildOpt)
     }
 
-    def buildScopes(): Either[BuildException, (Build, Seq[Build], Build, Seq[Build])] =
+    def buildScopes(): Either[BuildException, (Build, Seq[Build], Option[Build], Seq[Build])] =
       either {
         val (mainBuild, testBuild) = value(doBuild(BuildOptions()))
 
@@ -259,7 +269,7 @@ object Build {
                 .sequence
                 .left.map(CompositeBuildException(_))
             }
-            (extraBuilds.map(_._1), extraBuilds.map(_._2))
+            (extraBuilds.map(_._1), extraBuilds.flatMap(_._2))
           }
           else
             (Nil, Nil)
@@ -267,12 +277,13 @@ object Build {
         (mainBuild, extraMainBuilds, testBuild, extraTestBuilds)
       }
 
-    val (mainBuild, extraBuilds, testBuild, extraTestBuilds) = value(buildScopes())
+    val (mainBuild, extraBuilds, testBuildOpt, extraTestBuilds) = value(buildScopes())
 
     copyResourceToClassesDir(mainBuild)
-    copyResourceToClassesDir(testBuild)
+    for (testBuild <- testBuildOpt)
+      copyResourceToClassesDir(testBuild)
 
-    Builds(Seq(mainBuild, testBuild), Seq(extraBuilds, extraTestBuilds))
+    Builds(Seq(mainBuild) ++ testBuildOpt.toSeq, Seq(extraBuilds, extraTestBuilds))
   }
 
   private def copyResourceToClassesDir(build: Build) = build match {
@@ -303,7 +314,9 @@ object Build {
     scope: Scope,
     logger: Logger,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    bloopServer: bloop.BloopServer,
+    buildTests: Boolean,
+    partial: Option[Boolean]
   ): Either[BuildException, Build] = either {
 
     val build0 = value {
@@ -315,7 +328,8 @@ object Build {
         scope,
         logger,
         buildClient,
-        bloopServer
+        bloopServer,
+        partial
       )
     }
 
@@ -329,7 +343,8 @@ object Build {
               logger,
               successful.options.javaHome().value.javaCommand,
               buildClient,
-              bloopServer
+              bloopServer,
+              buildTests
             )
             res.flatMap {
               case Some(b) => Right(b)
@@ -388,7 +403,9 @@ object Build {
     threads: BuildThreads,
     bloopConfig: BloopRifleConfig,
     logger: Logger,
-    crossBuilds: Boolean
+    crossBuilds: Boolean,
+    buildTests: Boolean,
+    partial: Option[Boolean]
   ): Either[BuildException, Builds] = {
     val buildClient = BloopBuildClient.create(
       logger,
@@ -412,7 +429,9 @@ object Build {
         logger = logger,
         buildClient = buildClient,
         bloopServer = bloopServer,
-        crossBuilds = crossBuilds
+        crossBuilds = crossBuilds,
+        buildTests = buildTests,
+        partial = partial
       )
     }
   }
@@ -422,14 +441,18 @@ object Build {
     options: BuildOptions,
     bloopConfig: BloopRifleConfig,
     logger: Logger,
-    crossBuilds: Boolean
+    crossBuilds: Boolean,
+    buildTests: Boolean,
+    partial: Option[Boolean]
   ): Either[BuildException, Builds] =
     build(
       inputs,
       options, /*scope,*/ BuildThreads.create(),
       bloopConfig,
       logger,
-      crossBuilds = crossBuilds
+      crossBuilds = crossBuilds,
+      buildTests = buildTests,
+      partial = partial
     )
 
   def validate(
@@ -450,6 +473,8 @@ object Build {
     bloopConfig: BloopRifleConfig,
     logger: Logger,
     crossBuilds: Boolean,
+    buildTests: Boolean,
+    partial: Option[Boolean],
     postAction: () => Unit = () => ()
   )(action: Either[BuildException, Builds] => Unit): Watcher = {
 
@@ -478,7 +503,9 @@ object Build {
           logger,
           buildClient,
           bloopServer,
-          crossBuilds = crossBuilds
+          crossBuilds = crossBuilds,
+          buildTests = buildTests,
+          partial = partial
         )
         action(res)
       }
@@ -538,21 +565,25 @@ object Build {
 
   def releaseFlag(
     options: BuildOptions,
+    compilerJvmVersionOpt: Option[Positioned[Int]],
     logger: Logger
   ): Option[Int] = {
-    val bloopJvmV = options.javaOptions.bloopJvmVersion
-    val javaHome  = options.javaHome()
-    if (bloopJvmV.exists(javaHome.value.version > _.value)) {
+    lazy val javaHome = options.javaHome()
+    if (compilerJvmVersionOpt.exists(javaHome.value.version > _.value)) {
       logger.log(List(Diagnostic(
         Diagnostic.Messages.bloopTooOld,
         Severity.Warning,
-        javaHome.positions ++ bloopJvmV.map(_.positions).getOrElse(Nil)
+        javaHome.positions ++ compilerJvmVersionOpt.map(_.positions).getOrElse(Nil)
       )))
       None
     }
-    else if (options.javaOptions.bloopJvmVersion.exists(_.value == 8))
+    else if (compilerJvmVersionOpt.exists(_.value == 8))
       None
-    else if (options.scalaOptions.scalacOptions.toSeq.exists(_.value.value == "-release"))
+    else if (
+      options.scalaOptions.scalacOptions.values.exists(
+        _.headOption.exists(_.value.value == "-release")
+      )
+    )
       None
     else
       Some(javaHome.value.version)
@@ -563,6 +594,7 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
+    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     logger: Logger
   ): Either[BuildException, Project] = either {
@@ -576,7 +608,7 @@ object Build {
 
     val pluginScalacOptions = artifacts.compilerPlugins.distinct.map {
       case (_, _, path) =>
-        s"-Xplugin:${path.toAbsolutePath}"
+        s"-Xplugin:$path"
     }
 
     val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
@@ -628,7 +660,7 @@ object Build {
         Seq("-scalajs")
       else Nil
 
-    val releaseFlagVersion = releaseFlag(options, logger).map(_.toString)
+    val releaseFlagVersion = releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
     val scalacReleaseV = releaseFlagVersion.map(v => List("-release", v)).getOrElse(Nil)
     val javacReleaseV  = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
@@ -653,7 +685,7 @@ object Build {
     // `test` scope should contains class path to main scope
     val mainClassesPath =
       if (scope == Scope.Test)
-        List(classesDir(inputs.workspace, inputs.projectName, Scope.Main).toNIO)
+        List(classesDir(inputs.workspace, inputs.projectName, Scope.Main))
       else Nil
 
     value(validate(logger, options))
@@ -692,9 +724,9 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
+    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
-    logger: Logger,
-    buildClient: BloopBuildClient
+    logger: Logger
   ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
 
     val params = value(options.scalaParams)
@@ -705,9 +737,22 @@ object Build {
 
     value(validate(logger, options))
 
-    val project = value(buildProject(inputs, sources, generatedSources, options, scope, logger))
+    val project = value {
+      buildProject(
+        inputs,
+        sources,
+        generatedSources,
+        options,
+        compilerJvmVersionOpt,
+        scope,
+        logger
+      )
+    }
 
-    val updatedBloopConfig = project.writeBloopFile(logger)
+    val updatedBloopConfig = project.writeBloopFile(
+      options.internal.strictBloopJsonCheck.getOrElse(defaultStrictBloopJsonCheck),
+      logger
+    )
 
     if (updatedBloopConfig && os.isDir(classesDir0)) {
       logger.debug(s"Clearing $classesDir0")
@@ -721,9 +766,6 @@ object Build {
       }
     }
 
-    buildClient.clear()
-    buildClient.setGeneratedSources(scope, generatedSources)
-
     (classesDir0, params, artifacts, project, updatedBloopConfig)
   }
 
@@ -731,20 +773,13 @@ object Build {
     inputs: Inputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
-    options0: BuildOptions,
+    options: BuildOptions,
     scope: Scope,
     logger: Logger,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    bloopServer: bloop.BloopServer,
+    partialOpt: Option[Boolean]
   ): Either[BuildException, Build] = either {
-    val options = options0.copy(javaOptions =
-      options0.javaOptions.copy(bloopJvmVersion =
-        Some(Positioned[Int](
-          List(Position.Bloop(bloopServer.bloopInfo.javaHome)),
-          bloopServer.bloopInfo.jvmVersion
-        ))
-      )
-    )
 
     if (options.platform.value == Platform.Native)
       value(scalaNativeSupported(options, inputs)) match {
@@ -753,14 +788,18 @@ object Build {
       }
 
     val (classesDir0, scalaParams, artifacts, project, updatedBloopConfig) = value {
+      val bloopJvmVersion = Positioned(
+        List(Position.Bloop(bloopServer.bloopInfo.javaHome)),
+        bloopServer.bloopInfo.jvmVersion
+      )
       prepareBuild(
         inputs,
         sources,
         generatedSources,
         options,
+        Some(bloopJvmVersion),
         scope,
-        logger,
-        buildClient
+        logger
       )
     }
 
@@ -778,12 +817,19 @@ object Build {
 
     buildClient.clear()
     buildClient.setGeneratedSources(scope, generatedSources)
-    val success = Bloop.compile(
-      inputs.scopeProjectName(scope),
-      bloopServer,
-      logger,
-      buildTargetsTimeout = 20.seconds
-    )
+
+    val partial = partialOpt.getOrElse {
+      options.notForBloopOptions.packageOptions.packageTypeOpt.exists(_.sourceBased)
+    }
+
+    val success =
+      partial ||
+      Bloop.compile(
+        inputs.scopeProjectName(scope),
+        bloopServer,
+        logger,
+        buildTargetsTimeout = 20.seconds
+      )
 
     if (success)
       Successful(
@@ -796,7 +842,8 @@ object Build {
         project,
         classesDir0,
         buildClient.diagnostics,
-        generatedSources
+        generatedSources,
+        partial
       )
     else
       Failed(
@@ -818,31 +865,34 @@ object Build {
     workspace: os.Path,
     updateSemanticDbs: Boolean,
     scalaVersion: String
-  ): Either[Seq[String], Unit] = {
+  ): Either[Seq[String], Unit] =
+    if (os.exists(classesDir)) {
 
-    // TODO Write classes to a separate directory during post-processing
-    logger.debug("Post-processing class files of pre-processed sources")
-    val mappings = generatedSources
-      .map { source =>
-        val lineShift =
-          -os.read(source.generated).take(source.topWrapperLen).count(_ == '\n') // charset?
-        val relPath       = source.generated.relativeTo(generatedSrcRoot).toString
-        val reportingPath = source.reportingPath.fold(s => s, _.last)
-        (relPath, (reportingPath, lineShift))
-      }
-      .toMap
+      // TODO Write classes to a separate directory during post-processing
+      logger.debug("Post-processing class files of pre-processed sources")
+      val mappings = generatedSources
+        .map { source =>
+          val lineShift =
+            -os.read(source.generated).take(source.topWrapperLen).count(_ == '\n') // charset?
+          val relPath       = source.generated.relativeTo(generatedSrcRoot).toString
+          val reportingPath = source.reportingPath.fold(s => s, _.last)
+          (relPath, (reportingPath, lineShift))
+        }
+        .toMap
 
-    val postProcessors =
-      Seq(ByteCodePostProcessor) ++
-        (if (updateSemanticDbs) Seq(SemanticDbPostProcessor) else Nil) ++
-        Seq(TastyPostProcessor)
+      val postProcessors =
+        Seq(ByteCodePostProcessor) ++
+          (if (updateSemanticDbs) Seq(SemanticDbPostProcessor) else Nil) ++
+          Seq(TastyPostProcessor)
 
-    val failures = postProcessors.flatMap(
-      _.postProcess(generatedSources, mappings, workspace, classesDir, logger, scalaVersion)
-        .fold(e => Seq(e), _ => Nil)
-    )
-    if (failures.isEmpty) Right(()) else Left(failures)
-  }
+      val failures = postProcessors.flatMap(
+        _.postProcess(generatedSources, mappings, workspace, classesDir, logger, scalaVersion)
+          .fold(e => Seq(e), _ => Nil)
+      )
+      if (failures.isEmpty) Right(()) else Left(failures)
+    }
+    else
+      Right(())
 
   def onChangeBufferedObserver(onEvent: PathWatchers.Event => Unit): Observer[PathWatchers.Event] =
     new Observer[PathWatchers.Event] {
@@ -908,7 +958,8 @@ object Build {
     logger: Logger,
     javaCommand: String,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer
+    bloopServer: bloop.BloopServer,
+    buildTests: Boolean
   ): Either[BuildException, Option[Build]] = either {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir   = inputs.workspace / Constants.workspaceDirName / jmhProjectName
@@ -954,7 +1005,9 @@ object Build {
           logger,
           buildClient,
           bloopServer,
-          crossBuilds = false
+          crossBuilds = false,
+          buildTests = buildTests,
+          partial = None
         )
       }
       Some(jmhBuilds.main)

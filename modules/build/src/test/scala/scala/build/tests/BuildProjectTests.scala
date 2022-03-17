@@ -1,18 +1,24 @@
 package scala.build.tests
 
-import scala.build.errors.Severity
 import com.eed3si9n.expecty.Expecty.expect
-import scala.build.options.{BuildOptions, InternalOptions, JavaOptions, Scope}
-import scala.build.{Build, Inputs, LocalRepo, Positioned, Sources}
-import scala.build.options.{ScalacOpt, ScalaOptions, ShadowingSeq}
-import scala.build.Logger
+import coursier.cache.CacheLogger
+import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
+
+import java.io.PrintStream
+
 import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleLogger
-import scala.build.errors.BuildException
-import scala.build.errors.Diagnostic
-import java.io.PrintStream
-import coursier.cache.CacheLogger
-import scala.build.Position
+import scala.build.errors.{BuildException, Diagnostic, Severity}
+import scala.build.options.{
+  BuildOptions,
+  InternalOptions,
+  JavaOptions,
+  ScalacOpt,
+  ScalaOptions,
+  Scope,
+  ShadowingSeq
+}
+import scala.build.{Build, Inputs, LocalRepo, Logger, Position, Positioned, Sources}
 
 class BuildProjectTests extends munit.FunSuite {
 
@@ -36,9 +42,10 @@ class BuildProjectTests extends munit.FunSuite {
 
     override def exit(ex: BuildException): Nothing = ???
 
-    override def coursierLogger: CacheLogger = CacheLogger.nop
+    override def coursierLogger(message: String): CacheLogger = CacheLogger.nop
 
     override def bloopRifleLogger: BloopRifleLogger = BloopRifleLogger.nop
+    override def scalaJsLogger: ScalaJsLogger       = NullLogger
 
     override def scalaNativeTestLogger: scala.scalanative.build.Logger =
       scala.scalanative.build.Logger.nullLogger
@@ -62,8 +69,6 @@ class BuildProjectTests extends munit.FunSuite {
         LocalRepo.localRepo(scala.build.Directories.default().localRepoDir)
       ),
       javaOptions = JavaOptions(
-        bloopJvmVersion =
-          Some(Positioned(bloopJavaPath, bloopJvmVersion)),
         javaHomeOpt = Some(Positioned.none(os.Path(javaHome)))
       ),
       scalaOptions = ScalaOptions(
@@ -73,10 +78,18 @@ class BuildProjectTests extends munit.FunSuite {
       )
     )
 
-    val inputs  = Inputs(Nil, None, os.pwd, "project", false)
+    val inputs  = Inputs(Nil, None, os.pwd, "project", false, None)
     val sources = Sources(Nil, Nil, None, Nil, options)
     val logger  = new LoggerMock()
-    val res     = Build.buildProject(inputs, sources, Nil, options, Scope.Test, logger)
+    val res = Build.buildProject(
+      inputs,
+      sources,
+      Nil,
+      options,
+      Some(Positioned(bloopJavaPath, bloopJvmVersion)),
+      Scope.Test,
+      logger
+    )
 
     val scalaCompilerOptions = res.fold(throw _, identity).scalaCompiler.scalacOptions
     (scalaCompilerOptions, res.fold(throw _, identity).javacOptions, logger.diagnostics)
@@ -145,13 +158,15 @@ class BuildProjectTests extends munit.FunSuite {
     val workspacePath = os.pwd
     val options = BuildOptions(
       internal = InternalOptions(localRepository =
-        LocalRepo.localRepo(scala.build.Directories.default().localRepoDir))
+        LocalRepo.localRepo(scala.build.Directories.default().localRepoDir)
+      )
     )
-    val inputs  = Inputs(Nil, None, workspacePath, "project", false)
+    val inputs  = Inputs(Nil, None, workspacePath, "project", false, None)
     val sources = Sources(Nil, Nil, None, Nil, options)
     val logger  = new LoggerMock()
 
-    val project = Build.buildProject(inputs, sources, Nil, options, Scope.Main, logger).orThrow
+    val project =
+      Build.buildProject(inputs, sources, Nil, options, None, Scope.Main, logger).orThrow
 
     expect(project.workspace == workspacePath)
   }
