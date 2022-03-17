@@ -26,6 +26,19 @@ This section is currently a work in progress, but here are some initial notes:
 - Beware platform dependencies
 - `run` / `test` / `package` should all work
 
+## Emit source maps
+
+Passing `--js-emit-source-maps` to the `package` sub-command emits source maps alongside js files. To set the destination path of source maps, pass `--js-source-maps-path` flag with the argument.
+
+The following command emits a `main.js.map` alongside js files:
+
+```bash ignore
+scala-cli package Hello.scala --js --js-emit-source-maps
+# Emitted js source maps to: ./Hello.js.map
+# Wrote Hello.js, run it with
+#  node ./Hello.js
+```
+
 ## Using Directives 
 
 Scala.Js options are supported by using directives in ScalaCLI:

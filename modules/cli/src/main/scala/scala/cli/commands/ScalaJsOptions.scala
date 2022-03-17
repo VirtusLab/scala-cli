@@ -63,7 +63,7 @@ final case class ScalaJsOptions(
       moduleKindStr = jsModuleKind,
       checkIr = jsCheckIr,
       emitSourceMaps = jsEmitSourceMaps,
-      sourceMapsDest = jsSourceMapsPath.map(os.Path(_, Os.pwd)),
+      sourceMapsDest = jsSourceMapsPath.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
       dom = jsDom,
       header = jsHeader,
       allowBigIntsForLongs = jsAllowBigIntsForLongs,
