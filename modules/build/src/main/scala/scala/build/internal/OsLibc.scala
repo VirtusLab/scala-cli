@@ -5,7 +5,12 @@ import coursier.jvm.{JavaHome, JvmIndex}
 import java.io.IOException
 import java.nio.charset.Charset
 
-import scala.util.Try
+import scala.build.Positioned
+import scala.build.blooprifle.VersionUtil.parseJavaVersion
+import scala.build.internal.CsLoggerUtil.*
+import scala.build.options.BuildOptions
+import scala.util.control.NonFatal
+import scala.util.{Properties, Try}
 
 object OsLibc {
 
@@ -79,6 +84,43 @@ object OsLibc {
       defaultJvm0
     else
       s"${JavaHome.systemId}|$defaultJvm0"
+  }
+
+  def javaHomeVersion(javaHome: Positioned[os.Path]): (Int, String) = {
+    val ext     = if (Properties.isWin) ".exe" else ""
+    val javaCmd = (javaHome.value / "bin" / s"java$ext").toString
+
+    val javaVersionOutput = os.proc(javaCmd, "-version").call(
+      cwd = os.pwd,
+      stdout = os.Pipe,
+      stderr = os.Pipe,
+      mergeErrIntoOut = true
+    ).out.text().trim()
+    val javaVersion = parseJavaVersion(javaVersionOutput).getOrElse {
+      throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
+    }
+    (javaVersion, javaCmd)
+  }
+
+  def downloadJvm(jvmId: String, options: BuildOptions): String = {
+    implicit val ec = options.finalCache.ec
+    val javaHomeManager = options.javaHomeManager
+      .withMessage(s"Downloading JVM $jvmId")
+    val logger = javaHomeManager.cache
+      .flatMap(_.archiveCache.cache.loggerOpt)
+      .getOrElse(_root_.coursier.cache.CacheLogger.nop)
+    val command = {
+      val path = logger.use {
+        try javaHomeManager.get(jvmId).unsafeRun()
+        catch {
+          case NonFatal(e) => throw new Exception(e)
+        }
+      }
+      os.Path(path)
+    }
+    val ext     = if (Properties.isWin) ".exe" else ""
+    val javaCmd = (command / "bin" / s"java$ext").toString
+    javaCmd
   }
 
 }

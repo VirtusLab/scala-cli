@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
-import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.build.errors._
 import scala.build.internal.Constants._
 import scala.build.internal.CsLoggerUtil._
@@ -21,7 +20,6 @@ import scala.build.internal.ScalaParse.scala2NightlyRegex
 import scala.build.internal.{OsLibc, StableScalaVersion, Util}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
-import scala.util.Properties
 import scala.util.control.NonFatal
 
 final case class BuildOptions(
@@ -162,20 +160,8 @@ final case class BuildOptions(
   case class JavaHomeInfo(javaCommand: String, version: Int)
 
   private lazy val javaCommand0: Positioned[JavaHomeInfo] = {
-    val javaHome = javaHomeLocation()
-    val ext      = if (Properties.isWin) ".exe" else ""
-    val javaCmd  = (javaHome.value / "bin" / s"java$ext").toString
-
-    val javaVersionOutput = os.proc(javaCmd, "-version").call(
-      cwd = os.pwd,
-      stdout = os.Pipe,
-      stderr = os.Pipe,
-      mergeErrIntoOut = true
-    ).out.text().trim()
-    val javaVersion = parseJavaVersion(javaVersionOutput).getOrElse {
-      throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
-    }
-
+    val javaHome               = javaHomeLocation()
+    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
     Positioned(javaHome.positions, JavaHomeInfo(javaCmd, javaVersion))
   }
 
