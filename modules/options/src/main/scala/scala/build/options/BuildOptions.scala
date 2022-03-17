@@ -159,10 +159,9 @@ final case class BuildOptions(
   lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
 
-  private lazy val javaCommand0: Positioned[JavaHomeInfo] = {
-    val javaHome               = javaHomeLocation()
-    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome.value)
-    Positioned(javaHome.positions, JavaHomeInfo(javaCmd, javaVersion))
+  private lazy val javaCommand0: Positioned[JavaHomeInfo] = javaHomeLocation().map { javaHome =>
+    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
+    JavaHomeInfo(javaCmd, javaVersion)
   }
 
   private def jvmIndexOs = javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)
