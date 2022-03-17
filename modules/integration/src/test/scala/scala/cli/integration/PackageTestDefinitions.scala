@@ -350,24 +350,24 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         is.close()
   }
 
-  test("source JAR") {
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "lib" / "Messages.scala" ->
-          """package lib
-            |
-            |object Messages {
-            |  def msg = "Hello"
-            |}
-            |""".stripMargin,
-        os.rel / "simple.sc" ->
-          """val msg = lib.Messages.msg
-            |println(msg)
-            |""".stripMargin
-      )
+  private val simpleInputWithScalaAndSc = TestInputs(
+    Seq(
+      os.rel / "lib" / "Messages.scala" ->
+        """package lib
+          |
+          |object Messages {
+          |  def msg = "Hello"
+          |}
+          |""".stripMargin,
+      os.rel / "simple.sc" ->
+        """val msg = lib.Messages.msg
+          |println(msg)
+          |""".stripMargin
     )
+  )
+  test("source JAR") {
     val dest = os.rel / "sources.jar"
-    inputs.fromRoot { root =>
+    simpleInputWithScalaAndSc.fromRoot { root =>
       os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", dest, "--source").call(
         cwd = root,
         stdin = os.Inherit,
@@ -386,7 +386,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val entries = zf.entries().asScala.iterator.map(_.getName).toSet
       expect(entries == expectedEntries)
 
-      for ((relPath, expectedStrContent) <- inputs.files) {
+      for ((relPath, expectedStrContent) <- simpleInputWithScalaAndSc.files) {
         val content    = readEntry(zf, relPath.toString)
         val strContent = new String(content, StandardCharsets.UTF_8)
         expect(strContent == expectedStrContent)
@@ -395,6 +395,37 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val genContent    = readEntry(zf, genSourceEntryName)
       val genContentStr = new String(genContent, StandardCharsets.UTF_8)
       expect(genContentStr.contains("object simple {"))
+    }
+  }
+
+  test("doc JAR") {
+    val dest = os.rel / "doc.jar"
+    simpleInputWithScalaAndSc.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", dest, "--doc").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      expect(os.isFile(root / dest))
+
+      val zf = new ZipFile((root / dest).toIO)
+      val expectedEntries =
+        if (actualScalaVersion.startsWith("2."))
+          Seq(
+            "index.html",
+            "lib/Messages$.html",
+            "simple$.html"
+          )
+        else
+          Seq(
+            "index.html",
+            "inkuire-db.json",
+            "_empty_/simple$.html",
+            "lib/Messages$.html"
+          )
+      val entries = zf.entries().asScala.iterator.map(_.getName).toSet
+      expect(expectedEntries.forall(e => entries.contains(e)))
     }
   }
 

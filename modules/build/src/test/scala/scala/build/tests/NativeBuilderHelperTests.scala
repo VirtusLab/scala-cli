@@ -43,7 +43,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
 
     test(s"should build native app at first time ($additionalMessage)") {
 
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
           val build = maybeBuild.toOption.get.successfulOpt.get
 
@@ -60,7 +60,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should not rebuild the second time ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
           val build = maybeBuild.toOption.get.successfulOpt.get
 
@@ -86,7 +86,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should build native if output file was deleted ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
           val build = maybeBuild.toOption.get.successfulOpt.get
 
@@ -113,7 +113,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should build native if output file was changed ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
           val build = maybeBuild.toOption.get.successfulOpt.get
 
@@ -140,7 +140,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should build native if input file was changed ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
           val build = maybeBuild.toOption.get.successfulOpt.get
 
@@ -166,7 +166,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should build native if native config was changed ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, bloopConfig, fromDirectory) {
+      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
           val build = maybeBuild.toOption.get.successfulOpt.get
 

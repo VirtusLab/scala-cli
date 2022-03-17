@@ -156,6 +156,10 @@ JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
 
 Working directory for Bloop, if it needs to be started
 
+#### `--server`
+
+Enable / disable compilation server
+
 ## Compile options
 
 Available in commands:
@@ -360,6 +364,7 @@ Available in commands:
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doctor`](./commands.md#doctor)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`help`](./commands.md#help)
@@ -559,6 +564,10 @@ Aliases: `--javac-opt`
 
 Javac options
 
+#### `--bsp-debug-port`
+
+Port for BSP debugging
+
 ## Logging options
 
 Available in commands:
@@ -674,6 +683,12 @@ Generate a library JAR rather than an executable JAR
 
 Generate a source JAR rather than an executable JAR
 
+#### `--doc`
+
+Aliases: `--scaladoc`, `--javadoc`
+
+Generate a scaladoc JAR rather than an executable JAR
+
 #### `--assembly`
 
 Generate an assembly JAR
@@ -705,6 +720,12 @@ Build pkg package, available only on macOS
 #### `--docker`
 
 Build Docker image
+
+#### `--default-scaladoc-options`
+
+Aliases: `--default-scaladoc-opts`
+
+Use default scaladoc options
 
 ## Packager options
 
@@ -1189,6 +1210,7 @@ Available in commands:
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doctor`](./commands.md#doctor)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)

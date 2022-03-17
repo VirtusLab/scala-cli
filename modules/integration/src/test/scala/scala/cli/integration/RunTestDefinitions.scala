@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
 
+import scala.cli.integration.util.DockerServer
 import scala.util.Properties
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
@@ -204,6 +205,43 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc").call(cwd =
+        root
+      ).out.text().trim
+      expect(output == message)
+    }
+  }
+
+  test("main.sc is not a special case") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "main.sc" ->
+          s"""println("$message")
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
+        root
+      ).out.text().trim
+      expect(output == message)
+    }
+  }
+
+  test("use method from main.sc file") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "message.sc" ->
+          s"""println(main.msg)
+             |""".stripMargin,
+        os.rel / "main.sc" ->
+          s"""def msg = "$message"
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc").call(cwd =
         root
       ).out.text().trim
       expect(output == message)
@@ -565,7 +603,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val expectedLines =
         if (actualScalaVersion.startsWith("2.12."))
           s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-             |${tab}at throws_sc$$.main(throws.sc:23)
+             |${tab}at throws_sc$$.main(throws.sc:24)
              |${tab}at throws_sc.main(throws.sc)
              |Caused by: java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.<init>(throws.sc:6)
@@ -578,7 +616,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |$tab... 3 more""".stripMargin.linesIterator.toVector
         else
           s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-             |${tab}at throws_sc$$.main(throws.sc:23)
+             |${tab}at throws_sc$$.main(throws.sc:24)
              |${tab}at throws_sc.main(throws.sc)
              |Caused by: java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.<clinit>(throws.sc:6)
@@ -640,7 +678,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val tab = "\t"
       val expectedLines =
         s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-           |${tab}at throws_sc$$.main(throws.sc:25)
+           |${tab}at throws_sc$$.main(throws.sc:26)
            |${tab}at throws_sc.main(throws.sc)
            |Caused by: java.lang.Exception: Caught exception during processing
            |${tab}at throws$$.<clinit>(throws.sc:8)
@@ -1447,5 +1485,77 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   if (Properties.isLinux && TestUtil.isNativeCli && TestUtil.cliKind != "native-static")
     test("sudo") {
       sudoTest()
+    }
+
+  def authProxyTest(): Unit = {
+    val okDir    = os.rel / "ok"
+    val wrongDir = os.rel / "wrong"
+    val inputs = TestInputs(
+      Seq(okDir, wrongDir).flatMap { baseDir =>
+        Seq(
+          baseDir / "Simple.scala" ->
+            """object Simple {
+              |  def main(args: Array[String]): Unit = {
+              |    println("Hello proxy")
+              |  }
+              |}
+              |""".stripMargin
+        )
+      }
+    )
+    def authProperties(host: String, port: Int, user: String, password: String): Seq[String] =
+      Seq("http", "https").flatMap { scheme =>
+        Seq(
+          s"-D$scheme.proxyHost=$host",
+          s"-D$scheme.proxyPort=$port",
+          s"-D$scheme.proxyUser=$user",
+          s"-D$scheme.proxyPassword=$password"
+        )
+      }
+    val proxyArgs      = authProperties("localhost", 9083, "jack", "insecure")
+    val wrongProxyArgs = authProperties("localhost", 9084, "wrong", "nope")
+    val image          = Constants.authProxyTestImage
+    inputs.fromRoot { root =>
+      DockerServer.withServer(image, root.toString, 80 -> 9083) { _ =>
+        DockerServer.withServer(image, root.toString, 80 -> 9084) { _ =>
+
+          val okRes = os.proc(
+            TestUtil.cli,
+            proxyArgs,
+            "-Dcoursier.cache.throw-exceptions=true",
+            "run",
+            ".",
+            "--cache",
+            os.rel / "tmp-cache-ok"
+          )
+            .call(cwd = root / okDir)
+          val okOutput = okRes.out.text().trim
+          expect(okOutput == "Hello proxy")
+
+          val wrongRes = os.proc(
+            TestUtil.cli,
+            wrongProxyArgs,
+            "-Dcoursier.cache.throw-exceptions=true",
+            "run",
+            ".",
+            "--cache",
+            os.rel / "tmp-cache-wrong"
+          )
+            .call(cwd = root / wrongDir, mergeErrIntoOut = true, check = false)
+          val wrongOutput = wrongRes.out.text().trim
+          expect(wrongRes.exitCode == 1)
+          expect(wrongOutput.contains(
+            """Unable to tunnel through proxy. Proxy returns "HTTP/1.1 407 Proxy Authentication Required""""
+          ))
+        }
+      }
+    }
+  }
+
+  def runAuthProxyTest =
+    Properties.isLinux || (Properties.isMac && !TestUtil.isCI)
+  if (runAuthProxyTest)
+    test("auth proxy") {
+      authProxyTest()
     }
 }

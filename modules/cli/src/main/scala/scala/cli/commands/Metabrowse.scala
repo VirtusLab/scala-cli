@@ -6,7 +6,7 @@ import java.io.File
 import java.nio.file.Path
 
 import scala.build.internal.Runner
-import scala.build.{Build, Logger}
+import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
 import scala.cli.internal.FetchExternalBinary
 
@@ -28,13 +28,16 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val logger = options.shared.logger
 
-    val bloopRifleConfig = options.shared.bloopRifleConfig()
+    val initialBuildOptions = options.buildOptions
+    val threads             = BuildThreads.create()
+
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val builds =
       Build.build(
         inputs,
-        options.buildOptions,
-        bloopRifleConfig,
+        initialBuildOptions,
+        compilerMaker,
         logger,
         crossBuilds = false,
         buildTests = false,

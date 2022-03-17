@@ -12,10 +12,12 @@ import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.compiler.{BloopCompiler, ScalaCompiler}
 import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
@@ -52,7 +54,8 @@ final class BspImpl(
   )
 
   private def prepareBuild(
-    actualLocalServer: BspServer
+    actualLocalServer: BspServer,
+    compiler: ScalaCompiler
   ): Either[(BuildException, Scope), PreBuildProject] = either {
     logger.log("Preparing build")
 
@@ -69,18 +72,18 @@ final class BspImpl(
     }
 
     if (verbosity >= 3)
-      pprint.stderr.log(crossSources)
+      pprint.err.log(crossSources)
 
     val scopedSources = value(crossSources.scopedSources(buildOptions))
 
     if (verbosity >= 3)
-      pprint.stderr.log(scopedSources)
+      pprint.err.log(scopedSources)
 
     val sourcesMain = scopedSources.sources(Scope.Main, crossSources.sharedOptions(buildOptions))
     val sourcesTest = scopedSources.sources(Scope.Test, crossSources.sharedOptions(buildOptions))
 
     if (verbosity >= 3)
-      pprint.stderr.log(sourcesMain)
+      pprint.err.log(sourcesMain)
 
     val options0Main = sourcesMain.buildOptions
     val options0Test = sourcesTest.buildOptions.orElse(options0Main)
@@ -100,6 +103,7 @@ final class BspImpl(
         options0Main,
         None,
         Scope.Main,
+        compiler,
         persistentLogger
       )
       res.left.map((_, Scope.Main))
@@ -113,6 +117,7 @@ final class BspImpl(
         options0Test,
         None,
         Scope.Test,
+        compiler,
         persistentLogger
       )
       res.left.map((_, Scope.Test))
@@ -148,7 +153,7 @@ final class BspImpl(
 
   private def buildE(
     actualLocalServer: BspServer,
-    bloopServer: BloopServer,
+    compiler: ScalaCompiler,
     notifyChanges: Boolean
   ): Either[(BuildException, Scope), Unit] = {
     def doBuildOnce(data: PreBuildData, scope: Scope) =
@@ -160,12 +165,12 @@ final class BspImpl(
         scope,
         logger,
         actualLocalClient,
-        bloopServer,
+        compiler,
         partialOpt = None
       ).left.map(_ -> scope)
 
     for {
-      preBuild <- prepareBuild(actualLocalServer)
+      preBuild <- prepareBuild(actualLocalServer, compiler)
       _ = {
         if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
           notifyBuildChange(actualLocalServer)
@@ -177,12 +182,12 @@ final class BspImpl(
 
   private def build(
     actualLocalServer: BspServer,
-    bloopServer: BloopServer,
+    compiler: ScalaCompiler,
     client: BspClient,
     notifyChanges: Boolean,
     logger: Logger
   ): Unit =
-    buildE(actualLocalServer, bloopServer, notifyChanges) match {
+    buildE(actualLocalServer, compiler, notifyChanges) match {
       case Left((ex, scope)) =>
         client.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.debug(s"Caught $ex during BSP build, ignoring it")
@@ -210,7 +215,7 @@ final class BspImpl(
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () =>
-        prepareBuild(actualLocalServer) match {
+        prepareBuild(actualLocalServer, remoteServer) match {
           case Right(preBuild) =>
             if (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged)
               notifyBuildChange(actualLocalServer)
@@ -299,7 +304,7 @@ final class BspImpl(
     else
       actualLocalClient
 
-  var remoteServer: BloopServer    = null
+  var remoteServer: BloopCompiler  = null
   var actualLocalServer: BspServer = null
 
   val watcher = new Build.Watcher(
@@ -313,21 +318,28 @@ final class BspImpl(
 
     val classesDir = Build.classesRootDir(inputs.workspace, inputs.projectName)
 
-    remoteServer = BloopServer.buildServer(
-      bloopRifleConfig,
-      "scala-cli",
-      Constants.version,
-      (inputs.workspace / Constants.workspaceDirName).toNIO,
-      classesDir.toNIO,
-      localClient,
-      threads.buildThreads.bloop,
-      logger.bloopRifleLogger
-    )
-    localClient.onConnectWithServer(remoteServer.server)
+    remoteServer = {
+      val bloopServer = BloopServer.buildServer(
+        bloopRifleConfig,
+        "scala-cli",
+        Constants.version,
+        (inputs.workspace / Constants.workspaceDirName).toNIO,
+        classesDir.toNIO,
+        localClient,
+        threads.buildThreads.bloop,
+        logger.bloopRifleLogger
+      )
+      new BloopCompiler(
+        bloopServer,
+        20.seconds,
+        strictBloopJsonCheck = buildOptions.internal.strictBloopJsonCheckOrDefault
+      )
+    }
+    localClient.onConnectWithServer(remoteServer.bloopServer.server)
 
     actualLocalServer =
       new BspServer(
-        remoteServer.server,
+        remoteServer.bloopServer.server,
         compile = doCompile =>
           compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
         logger = logger
@@ -360,7 +372,7 @@ final class BspImpl(
         case _: Inputs.Virtual =>
       }
 
-    prepareBuild(actualLocalServer) match {
+    prepareBuild(actualLocalServer, remoteServer) match {
       case Left((ex, scope)) =>
         actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.log(ex)

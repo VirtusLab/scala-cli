@@ -11,7 +11,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.blooprifle.BloopRifleConfig
+import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.validation.ValidationException
@@ -112,8 +112,6 @@ object Build {
     def diagnostics: None.type   = None
   }
 
-  def defaultStrictBloopJsonCheck = true
-
   def updateInputs(
     inputs: Inputs,
     options: BuildOptions,
@@ -139,7 +137,7 @@ object Build {
     options: BuildOptions,
     logger: Logger,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer,
+    compiler: ScalaCompiler,
     crossBuilds: Boolean,
     buildTests: Boolean,
     partial: Option[Boolean]
@@ -214,7 +212,7 @@ object Build {
             scope,
             logger,
             buildClient,
-            bloopServer,
+            compiler,
             buildTests,
             partial
           )
@@ -314,7 +312,7 @@ object Build {
     scope: Scope,
     logger: Logger,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer,
+    compiler: ScalaCompiler,
     buildTests: Boolean,
     partial: Option[Boolean]
   ): Either[BuildException, Build] = either {
@@ -328,7 +326,7 @@ object Build {
         scope,
         logger,
         buildClient,
-        bloopServer,
+        compiler,
         partial
       )
     }
@@ -343,7 +341,7 @@ object Build {
               logger,
               successful.options.javaHome().value.javaCommand,
               buildClient,
-              bloopServer,
+              compiler,
               buildTests
             )
             res.flatMap {
@@ -359,8 +357,8 @@ object Build {
 
   def classesRootDir(root: os.Path, projectName: String): os.Path =
     root / Constants.workspaceDirName / projectName / "classes"
-  def classesDir(root: os.Path, projectName: String, scope: Scope): os.Path =
-    classesRootDir(root, projectName) / scope.name
+  def classesDir(root: os.Path, projectName: String, scope: Scope, suffix: String = ""): os.Path =
+    classesRootDir(root, projectName) / s"${scope.name}$suffix"
 
   def scalaNativeSupported(
     options: BuildOptions,
@@ -400,8 +398,7 @@ object Build {
   def build(
     inputs: Inputs,
     options: BuildOptions,
-    threads: BuildThreads,
-    bloopConfig: BloopRifleConfig,
+    compilerMaker: ScalaCompilerMaker,
     logger: Logger,
     crossBuilds: Boolean,
     buildTests: Boolean,
@@ -413,47 +410,24 @@ object Build {
     )
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
 
-    bloop.BloopServer.withBuildServer(
-      bloopConfig,
-      "scala-cli",
-      Constants.version,
-      (inputs.workspace / Constants.workspaceDirName).toNIO,
-      classesDir0.toNIO,
+    compilerMaker.withCompiler(
+      inputs.workspace / Constants.workspaceDirName,
+      classesDir0,
       buildClient,
-      threads.bloop,
-      logger.bloopRifleLogger
-    ) { bloopServer =>
+      logger
+    ) { compiler =>
       build(
         inputs = inputs,
         options = options,
         logger = logger,
         buildClient = buildClient,
-        bloopServer = bloopServer,
+        compiler = compiler,
         crossBuilds = crossBuilds,
         buildTests = buildTests,
         partial = partial
       )
     }
   }
-
-  def build(
-    inputs: Inputs,
-    options: BuildOptions,
-    bloopConfig: BloopRifleConfig,
-    logger: Logger,
-    crossBuilds: Boolean,
-    buildTests: Boolean,
-    partial: Option[Boolean]
-  ): Either[BuildException, Builds] =
-    build(
-      inputs,
-      options, /*scope,*/ BuildThreads.create(),
-      bloopConfig,
-      logger,
-      crossBuilds = crossBuilds,
-      buildTests = buildTests,
-      partial = partial
-    )
 
   def validate(
     logger: Logger,
@@ -470,7 +444,7 @@ object Build {
   def watch(
     inputs: Inputs,
     options: BuildOptions,
-    bloopConfig: BloopRifleConfig,
+    compilerMaker: ScalaCompilerMaker,
     logger: Logger,
     crossBuilds: Boolean,
     buildTests: Boolean,
@@ -484,15 +458,11 @@ object Build {
     )
     val threads     = BuildThreads.create()
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
-    val bloopServer = bloop.BloopServer.buildServer(
-      bloopConfig,
-      "scala-cli",
-      Constants.version,
-      (inputs.workspace / Constants.workspaceDirName).toNIO,
-      classesDir0.toNIO,
+    val compiler = compilerMaker.create(
+      inputs.workspace / Constants.workspaceDirName,
+      classesDir0,
       buildClient,
-      threads.bloop,
-      logger.bloopRifleLogger
+      logger
     )
 
     def run() = {
@@ -502,7 +472,7 @@ object Build {
           options,
           logger,
           buildClient,
-          bloopServer,
+          compiler,
           crossBuilds = crossBuilds,
           buildTests = buildTests,
           partial = partial
@@ -518,7 +488,7 @@ object Build {
 
     run()
 
-    val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), bloopServer.shutdown())
+    val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), compiler.shutdown())
 
     def doWatch(): Unit =
       for (elem <- inputs.elements) {
@@ -603,6 +573,7 @@ object Build {
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
+    val scaladocDir = classesDir(inputs.workspace, inputs.projectName, scope, suffix = "-doc")
 
     val artifacts = value(options.artifacts(logger))
 
@@ -673,7 +644,7 @@ object Build {
         scalaJsScalacOptions ++
         scalacReleaseV
 
-    val scalaCompiler = ScalaCompiler(
+    val scalaCompilerParams = ScalaCompilerParams(
       scalaVersion = params.scalaVersion,
       scalaBinaryVersion = params.scalaBinaryVersion,
       scalacOptions = scalacOptions,
@@ -699,7 +670,8 @@ object Build {
       directory = inputs.workspace / Constants.workspaceDirName,
       workspace = inputs.workspace,
       classesDir = classesDir0,
-      scalaCompiler = scalaCompiler,
+      scaladocDir = scaladocDir,
+      scalaCompiler = scalaCompilerParams,
       scalaJsOptions =
         if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config(logger))
         else None,
@@ -726,6 +698,7 @@ object Build {
     options: BuildOptions,
     compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
+    compiler: ScalaCompiler,
     logger: Logger
   ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
 
@@ -749,12 +722,9 @@ object Build {
       )
     }
 
-    val updatedBloopConfig = project.writeBloopFile(
-      options.internal.strictBloopJsonCheck.getOrElse(defaultStrictBloopJsonCheck),
-      logger
-    )
+    val projectChanged = compiler.prepareProject(project, logger)
 
-    if (updatedBloopConfig && os.isDir(classesDir0)) {
+    if (projectChanged && os.isDir(classesDir0)) {
       logger.debug(s"Clearing $classesDir0")
       os.list(classesDir0).foreach { p =>
         logger.debug(s"Removing $p")
@@ -766,7 +736,7 @@ object Build {
       }
     }
 
-    (classesDir0, params, artifacts, project, updatedBloopConfig)
+    (classesDir0, params, artifacts, project, projectChanged)
   }
 
   def buildOnce(
@@ -777,7 +747,7 @@ object Build {
     scope: Scope,
     logger: Logger,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer,
+    compiler: ScalaCompiler,
     partialOpt: Option[Boolean]
   ): Either[BuildException, Build] = either {
 
@@ -787,23 +757,20 @@ object Build {
         case Some(error) => value(Left(error))
       }
 
-    val (classesDir0, scalaParams, artifacts, project, updatedBloopConfig) = value {
-      val bloopJvmVersion = Positioned(
-        List(Position.Bloop(bloopServer.bloopInfo.javaHome)),
-        bloopServer.bloopInfo.jvmVersion
-      )
+    val (classesDir0, scalaParams, artifacts, project, projectChanged) = value {
       prepareBuild(
         inputs,
         sources,
         generatedSources,
         options,
-        Some(bloopJvmVersion),
+        compiler.jvmVersion,
         scope,
+        compiler,
         logger
       )
     }
 
-    if (updatedBloopConfig && os.isDir(classesDir0)) {
+    if (projectChanged && os.isDir(classesDir0)) {
       logger.debug(s"Clearing $classesDir0")
       os.list(classesDir0).foreach { p =>
         logger.debug(s"Removing $p")
@@ -822,14 +789,7 @@ object Build {
       options.notForBloopOptions.packageOptions.packageTypeOpt.exists(_.sourceBased)
     }
 
-    val success =
-      partial ||
-      Bloop.compile(
-        inputs.scopeProjectName(scope),
-        bloopServer,
-        logger,
-        buildTargetsTimeout = 20.seconds
-      )
+    val success = partial || compiler.compile(project, logger)
 
     if (success)
       Successful(
@@ -958,7 +918,7 @@ object Build {
     logger: Logger,
     javaCommand: String,
     buildClient: BloopBuildClient,
-    bloopServer: bloop.BloopServer,
+    compiler: ScalaCompiler,
     buildTests: Boolean
   ): Either[BuildException, Option[Build]] = either {
     val jmhProjectName = inputs.projectName + "_jmh"
@@ -1004,7 +964,7 @@ object Build {
           updatedOptions,
           logger,
           buildClient,
-          bloopServer,
+          compiler,
           crossBuilds = false,
           buildTests = buildTests,
           partial = None

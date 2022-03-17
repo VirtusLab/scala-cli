@@ -46,7 +46,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
         threads.startServerChecks,
         logger.bloopRifleLogger,
         Constants.bloopVersion,
-        options.buildOptions.javaHome().value.javaCommand
+        bloopRifleConfig.javaPath
       )
       Await.result(f, Duration.Inf)
       logger.message("Bloop server started.")

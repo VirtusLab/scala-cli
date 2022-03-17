@@ -5,6 +5,8 @@ import _root_.coursier.{Dependency => CsDependency, core => csCore, util => csUt
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonToArray}
 import coursier.core.Classifier
 
+import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.Arrays
 
@@ -14,7 +16,8 @@ final case class Project(
   workspace: os.Path,
   directory: os.Path,
   classesDir: os.Path,
-  scalaCompiler: ScalaCompiler,
+  scaladocDir: os.Path,
+  scalaCompiler: ScalaCompilerParams,
   scalaJsOptions: Option[BloopConfig.JsConfig],
   scalaNativeOptions: Option[BloopConfig.NativeConfig],
   projectName: String,
@@ -68,17 +71,46 @@ final case class Project(
   def bloopFile: BloopConfig.File =
     BloopConfig.File(BloopConfig.File.LatestVersion, bloopProject)
 
+  private def maybeUpdateInputs(logger: Logger): Boolean = {
+    val dest = directory / ".bloop" / s"$projectName.inputs.txt"
+    val onDiskOpt =
+      if (os.exists(dest)) Some(os.read.bytes(dest))
+      else None
+    val newContent = {
+      val linesIt =
+        if (sources.forall(_.startsWith(workspace)))
+          sources.iterator.map(_.relativeTo(workspace).toString)
+        else
+          sources.iterator.map(_.toString)
+      val it = linesIt.map(_ + System.lineSeparator()).map(_.getBytes(StandardCharsets.UTF_8))
+      val b  = new ByteArrayOutputStream
+      for (elem <- it)
+        b.write(elem)
+      b.toByteArray()
+    }
+    val doWrite = onDiskOpt.forall(onDisk => !Arrays.equals(onDisk, newContent))
+    if (doWrite) {
+      logger.debug(s"Writing source file list in $dest")
+      os.write.over(dest, newContent, createFolders = true)
+    }
+    else
+      logger.debug(s"Source file list in $dest doesn't need updating")
+    doWrite
+  }
+
   def writeBloopFile(strictCheck: Boolean, logger: Logger): Boolean = {
     lazy val bloopFileContent =
       writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
     val dest = directory / ".bloop" / s"$projectName.json"
-    val doWrite = !os.isFile(dest) || {
-      strictCheck && {
-        logger.debug(s"Checking Bloop project in $dest")
-        val currentContent = os.read.bytes(dest)
-        !Arrays.equals(currentContent, bloopFileContent)
-      }
-    }
+    val doWrite =
+      if (strictCheck)
+        !os.isFile(dest) || {
+          logger.debug(s"Checking Bloop project in $dest")
+          val currentContent = os.read.bytes(dest)
+          !Arrays.equals(currentContent, bloopFileContent)
+        }
+      else
+        maybeUpdateInputs(logger) || !os.isFile(dest)
     if (doWrite) {
       logger.debug(s"Writing bloop project in $dest")
       os.write.over(dest, bloopFileContent, createFolders = true)

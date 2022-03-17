@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.launcher._
+import dependency.dependencyString
 import org.scalajs.linker.interface.StandardConfig
 import packager.config._
 import packager.deb.DebianPackage
@@ -19,13 +20,13 @@ import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
+import scala.build._
 import scala.build.errors.{BuildException, ScalaNativeBuildError}
 import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsConfig}
 import scala.build.options.{PackageType, Platform}
-import scala.build.{Build, Inputs, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
-import scala.cli.errors.ScalaJsLinkingError
+import scala.cli.errors.{ScalaJsLinkingError, ScaladocGenerationFailedError}
 import scala.cli.internal.{ProcUtil, ScalaJsLinker}
 import scala.util.Properties
 
@@ -35,14 +36,16 @@ object Package extends ScalaCommand[PackageOptions] {
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args)
+    val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
+    val threads             = BuildThreads.create()
+
+    val compilerMaker = options.compilerMaker(threads)
 
     val cross = options.compileCross.cross.getOrElse(false)
 
@@ -51,7 +54,7 @@ object Package extends ScalaCommand[PackageOptions] {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
         buildTests = false,
@@ -65,7 +68,9 @@ object Package extends ScalaCommand[PackageOptions] {
               logger,
               options.output.filter(_.nonEmpty),
               options.force,
+              options.forcedPackageTypeOpt,
               s,
+              args.unparsed,
               expectedModifyEpochSecondOpt
             )
               .orReport(logger)
@@ -85,7 +90,7 @@ object Package extends ScalaCommand[PackageOptions] {
         Build.build(
           inputs,
           initialBuildOptions,
-          bloopRifleConfig,
+          compilerMaker,
           logger,
           crossBuilds = cross,
           buildTests = false,
@@ -94,8 +99,17 @@ object Package extends ScalaCommand[PackageOptions] {
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
-          doPackage(inputs, logger, options.output.filter(_.nonEmpty), options.force, s, None)
-            .orExit(logger)
+          val res0 = doPackage(
+            inputs,
+            logger,
+            options.output.filter(_.nonEmpty),
+            options.force,
+            options.forcedPackageTypeOpt,
+            s,
+            args.unparsed,
+            None
+          )
+          res0.orExit(logger)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -111,12 +125,14 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger,
     outputOpt: Option[String],
     force: Boolean,
+    forcedPackageType: Option[PackageType],
     build: Build.Successful,
+    extraArgs: Seq[String],
     expectedModifyEpochSecondOpt: Option[Long]
   ): Either[BuildException, Option[Long]] = either {
 
-    // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
-    val packageType =
+    val packageType = forcedPackageType.getOrElse {
+      // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
       if (build.options.notForBloopOptions.packageOptions.isDockerEnabled)
         PackageType.Docker
       else if (build.options.platform.value == Platform.JS)
@@ -126,12 +142,14 @@ object Package extends ScalaCommand[PackageOptions] {
       else
         build.options.notForBloopOptions.packageOptions.packageTypeOpt
           .getOrElse(PackageType.Bootstrap)
+    }
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
     def extension = packageType match {
       case PackageType.LibraryJar                 => ".jar"
       case PackageType.SourceJar                  => ".jar"
+      case PackageType.DocJar                     => ".jar"
       case PackageType.Assembly                   => ".jar"
       case PackageType.Js                         => ".js"
       case PackageType.Debian                     => ".deb"
@@ -146,6 +164,7 @@ object Package extends ScalaCommand[PackageOptions] {
     def defaultName = packageType match {
       case PackageType.LibraryJar                 => "library.jar"
       case PackageType.SourceJar                  => "source.jar"
+      case PackageType.DocJar                     => "scaladoc.jar"
       case PackageType.Assembly                   => "app.jar"
       case PackageType.Js                         => "app.js"
       case PackageType.Debian                     => "app.deb"
@@ -205,6 +224,11 @@ object Package extends ScalaCommand[PackageOptions] {
       case PackageType.SourceJar =>
         val now     = System.currentTimeMillis()
         val content = sourceJar(build, now)
+        alreadyExistsCheck()
+        if (force) os.write.over(destPath, content)
+        else os.write(destPath, content)
+      case PackageType.DocJar =>
+        val content = value(docJar(build, logger, extraArgs))
         alreadyExistsCheck()
         if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
@@ -312,22 +336,27 @@ object Package extends ScalaCommand[PackageOptions] {
 
   def libraryJar(
     build: Build.Successful,
-    mainClassOpt: Option[String] = None
+    mainClassOpt: Option[String] = None,
+    hasActualManifest: Boolean = true,
+    contentDirOverride: Option[os.Path] = None
   ): Array[Byte] = {
 
     val baos = new ByteArrayOutputStream
 
     val manifest = new java.util.jar.Manifest
     manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
-    for (mainClass <- mainClassOpt.orElse(build.sources.mainClass) if mainClass.nonEmpty)
-      manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
+
+    if (hasActualManifest)
+      for (mainClass <- mainClassOpt.orElse(build.sources.mainClass) if mainClass.nonEmpty)
+        manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
 
     var zos: ZipOutputStream = null
+    val contentDir           = contentDirOverride.getOrElse(build.output)
 
     try {
       zos = new JarOutputStream(baos, manifest)
-      for (path <- os.walk(build.output) if os.isFile(path)) {
-        val name         = path.relativeTo(build.output).toString
+      for (path <- os.walk(contentDir) if os.isFile(path)) {
+        val name         = path.relativeTo(contentDir).toString
         val lastModified = os.mtime(path)
         val ent          = new ZipEntry(name)
         ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
@@ -343,6 +372,76 @@ object Package extends ScalaCommand[PackageOptions] {
     finally if (zos != null) zos.close()
 
     baos.toByteArray
+  }
+
+  // from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-1039b442cbd23f605a61fdb9c3620b600aa4af6cab757932a719c54235d8e402R60
+  private def defaultScaladocArgs = Seq(
+    "-snippet-compiler:compile",
+    "-Ygenerate-inkuire",
+    "-external-mappings:" +
+      ".*scala.*::scaladoc3::https://scala-lang.org/api/3.x/," +
+      ".*java.*::javadoc::https://docs.oracle.com/javase/8/docs/api/",
+    "-author",
+    "-groups"
+  )
+  private def docJar(
+    build: Build.Successful,
+    logger: Logger,
+    extraArgs: Seq[String]
+  ): Either[BuildException, Array[Byte]] = either {
+    val isScala2 = build.scalaParams.scalaVersion.startsWith("2.")
+    if (isScala2)
+      libraryJar(
+        build,
+        hasActualManifest = false,
+        contentDirOverride = Some(build.project.scaladocDir)
+      )
+    else {
+      val res = value {
+        Artifacts.fetch(
+          Positioned.none(Seq(dep"org.scala-lang::scaladoc:${build.scalaParams.scalaVersion}")),
+          build.options.finalRepositories,
+          build.scalaParams,
+          logger,
+          build.options.finalCache,
+          None
+        )
+      }
+      val destDir = build.project.scaladocDir
+      os.makeDir.all(destDir)
+      val ext = if (Properties.isWin) ".exe" else ""
+      val baseArgs = Seq(
+        "-classpath",
+        build.artifacts.classPath.map(_.toString).mkString(File.pathSeparator),
+        "-d",
+        destDir.toString
+      )
+      val defaultArgs =
+        if (
+          build.options.notForBloopOptions.packageOptions.useDefaultScaladocOptions.getOrElse(true)
+        )
+          defaultScaladocArgs
+        else
+          Nil
+      val args = baseArgs ++
+        build.project.scalaCompiler.scalacOptions ++
+        extraArgs ++
+        defaultArgs ++
+        Seq(build.output.toString)
+      val retCode = Runner.runJvm(
+        (build.options.javaHomeLocation().value / "bin" / s"java$ext").toString,
+        Nil, // FIXME Allow to customize that?
+        res.files,
+        "dotty.tools.scaladoc.Main",
+        args,
+        logger,
+        cwd = Some(build.inputs.workspace)
+      )
+      if (retCode == 0)
+        libraryJar(build, hasActualManifest = false, contentDirOverride = Some(destDir))
+      else
+        value(Left(new ScaladocGenerationFailedError(retCode)))
+    }
   }
 
   private val generatedSourcesPrefix = os.rel / "META-INF" / "generated"

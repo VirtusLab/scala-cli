@@ -39,11 +39,7 @@ object TestDeps {
 
 object InternalDeps {
   object Versions {
-    def mill =
-      // Current Mill version in the Scala CLI build doesn't support Scala Native 0.4.3,
-      // so we use a higher hard-coded version instead.
-      // os.read(os.pwd / ".mill-version").trim
-      "0.10.0-21-c4247b"
+    def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
   }
 }
@@ -51,36 +47,41 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier = "2.1.0-M5"
-
+    def coursier      = "2.1.0-M5"
+    def jsoniterScala = "2.13.7"
     def scalaJs       = "1.9.0"
     def scalaMeta     = "4.5.0"
-    def scalaNative   = "0.4.3"
+    def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
   }
-  def ammonite                   = ivy"com.lihaoyi:::ammonite:2.5.2"
-  def asm                        = ivy"org.ow2.asm:asm:9.2"
-  def bloopConfig                = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19"
-  def bsp4j                      = ivy"ch.epfl.scala:bsp4j:2.0.0"
-  def caseApp                    = ivy"com.github.alexarchambault::case-app:2.1.0-M13"
-  def collectionCompat           = ivy"org.scala-lang.modules::scala-collection-compat:2.6.0"
-  def coursierJvm                = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
-  def coursierLauncher           = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
-  def coursierPublish            = ivy"io.get-coursier.publish::publish:0.1.0"
-  def dataClass                  = ivy"io.github.alexarchambault::data-class:0.2.5"
-  def dependency                 = ivy"io.get-coursier::dependency:0.2.1"
-  def expecty                    = ivy"com.eed3si9n.expecty::expecty:0.15.4"
-  def guava                      = ivy"com.google.guava:guava:31.1-jre"
-  def jimfs                      = ivy"com.google.jimfs:jimfs:1.2"
-  def jniUtils                   = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
-  def libdaemonjvm               = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.9"
+  def ammonite         = ivy"com.lihaoyi:::ammonite:2.5.2"
+  def asm              = ivy"org.ow2.asm:asm:9.2"
+  def bloopConfig      = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19"
+  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.0.0"
+  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M13"
+  def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.6.0"
+  def coursierJvm      = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
+  def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
+  def coursierPublish  = ivy"io.get-coursier.publish::publish:0.1.0"
+  def dataClass        = ivy"io.github.alexarchambault::data-class:0.2.5"
+  def dependency       = ivy"io.get-coursier::dependency:0.2.1"
+  def dockerClient     = ivy"com.spotify:docker-client:8.16.0"
+  def expecty          = ivy"com.eed3si9n.expecty::expecty:0.15.4"
+  def guava            = ivy"com.google.guava:guava:31.1-jre"
+  def jimfs            = ivy"com.google.jimfs:jimfs:1.2"
+  def jniUtils         = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
+  def jsoniterCore =
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
+  def jsoniterMacros =
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
+  def libdaemonjvm               = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
   def macroParadise              = ivy"org.scalamacros:::paradise:2.1.1"
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def organizeImports            = ivy"com.github.liancheng::organize-imports:0.5.0"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.8.1"
-  def pprint                     = ivy"com.lihaoyi::pprint:0.6.6"
+  def pprint                     = ivy"com.lihaoyi::pprint:0.7.2"
   def prettyStacktraces          = ivy"org.virtuslab::pretty-stacktraces:0.0.1-M1"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalaAsync               = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
@@ -104,9 +105,8 @@ object Deps {
   def svmSubs                  = ivy"org.scalameta::svm-subs:20.2.0"
   def swoval                   = ivy"com.swoval:file-tree-views:2.1.8"
   def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
-  def upickle                  = ivy"com.lihaoyi::upickle:1.5.0"
   def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"
-  val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.9.15"
+  val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
 }
 
 private def graalVmVersion = "22.0.0"
@@ -124,6 +124,8 @@ object Docker {
   def testImage = "ubuntu:18.04"
   def alpineTestImage =
     "alpine@sha256:234cb88d3020898631af0ccbbcca9a66ae7306ecd30c9720690858c1b007d2a0"
+  def authProxyTestImage =
+    "bahamat/authenticated-proxy@sha256:568c759ac687f93d606866fbb397f39fe1350187b95e648376b971e9d7596e75"
 }
 
 def customRepositories =

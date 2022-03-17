@@ -53,6 +53,9 @@ Once Metals picks up the project structure that’s created by Scala CLI, basic 
 
 Here are a few notes related to IntelliJ support:
 
-- The most significant problem with IntelliJ is that it requires sources to be placed within a directory. Therefore, if you use IntelliJ, we strongly suggest that you place your sources in a directory (like `src`).
+- IntelliJ operates strictly on directories (and not just individual source files, as allowed by `scala-cli`).
+  - This means that even if you pass a single file to Scala CLI (for example by running `scala-cli setup-ide some-dir/A.scala`), all the other files within the same directory (`some-dir`) would be imported to IntelliJ. 
+    This might change the behaviour of your builds in IntelliJ (or even break them), even though they run just fine in `scala-cli`.
+  - As a result, it is recommended to isolate Scala CLI builds' source files in separate directories before importing to IntelliJ.
 - IntelliJ currently does not automatically pick up changes in the project structure, so any change in dependencies, compiler options, etc., need to be manually reloaded.
 - We currently don’t advise using IntelliJ as a source of truth, and we recommend falling back to command line in such cases.
