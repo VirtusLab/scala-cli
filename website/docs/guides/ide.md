@@ -46,16 +46,47 @@ In an ideal world we would replace the rest of this guide with something along t
 
 Once Metals picks up the project structure that’s created by Scala CLI, basic features like navigation, diagnostics, and code completion should work.
 
-
-
-
 ## IntelliJ
 
 Here are a few notes related to IntelliJ support:
-
-- IntelliJ operates strictly on directories (and not just individual source files, as allowed by `scala-cli`).
-  - This means that even if you pass a single file to Scala CLI (for example by running `scala-cli setup-ide some-dir/A.scala`), all the other files within the same directory (`some-dir`) would be imported to IntelliJ. 
-    This might change the behaviour of your builds in IntelliJ (or even break them), even though they run just fine in `scala-cli`.
-  - As a result, it is recommended to isolate Scala CLI builds' source files in separate directories before importing to IntelliJ.
 - IntelliJ currently does not automatically pick up changes in the project structure, so any change in dependencies, compiler options, etc., need to be manually reloaded.
 - We currently don’t advise using IntelliJ as a source of truth, and we recommend falling back to command line in such cases.
+
+## Directories vs single files when working with an IDE
+When working with Scala CLI in an IDE, it is generally suggested to use directories rather than single files.
+
+```shell
+scala-cli setup-ide some-directory
+```
+
+Of course, nothing is stopping you from working with whatever you like as normal,
+but please do keep in mind that the IDE will import the exact build that you have set up,
+without second-guessing the user's intentions. In many IDEs, IDEA IntelliJ & Visual Studio Code included,
+everything within a given project root directory is at least implicitly treated as
+a part of the project (and probably shown as part of your project structure).
+
+This means that when you pass just a single source file to Scala CLI like this:
+```shell
+scala-cli setup-ide some-directory/A.scala
+```
+If you open its surrounding directory as a project, any other files present in that directory will be visible
+in your IDE project's structure, but they will not be included in your builds.
+
+So if you want to include another file in your build, let's say `some-directory/B.scala`
+alongside the previously configured `some-directory/A.scala`, it is probably not enough
+to create the file within the same directory in your IDE.
+
+What you need to do instead is add it to your build with Scala CLI from the command line:
+```shell
+scala-cli setup-ide some-directory/A.scala some-directory/B.scala
+```
+There, now both `A.scala` and `B.scala` should be included in your builds when the IDE picks up the new structure.
+
+Still, if you want to add/remove files like this a lot while working in an IDE,
+it may be a lot simpler to work on the whole directory instead:
+```shell
+cd some-directory
+scala-cli setup-ide .
+```
+That way all the contents of `some-directory` will be treated as a part of the project as you go,
+without the need to jump into the command line whenever you create a new file.
