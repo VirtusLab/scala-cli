@@ -110,7 +110,7 @@ Below is a list of the most important `using` directives that Scala CLI supports
 
 - `//> using scala "<scala-version>"` - defines version of Scala used
 - `//> using lib "org::name:version"` - defines dependency to given library [more in dedicated guide](./guides/dependencies.md)
-- `//> using resource "<file-or-dir>"` - marks file/directory as resources. Resources accessible at runtime and packaged together with compiled code.
+- `//> using resourceDir "<dir>"` - marks directory as source of resources. Resources accessible at runtime and packaged together with compiled code.
 - ``//> using `java-opt` "<opt>"`` - use given java options when running application or tests
 - `//> using target ["test"|"main"]` used to marked or unmarked given source as test
 - ``//> using `test-framework` <framework> `` - select test framework to use
