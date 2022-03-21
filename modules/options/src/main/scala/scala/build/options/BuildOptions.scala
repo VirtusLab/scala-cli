@@ -16,7 +16,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors._
 import scala.build.internal.Constants._
 import scala.build.internal.CsLoggerUtil._
-import scala.build.internal.ScalaParse.scala2NightlyRegex
+import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.internal.{OsLibc, StableScalaVersion, Util}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
@@ -161,7 +161,7 @@ final case class BuildOptions(
 
   private lazy val javaCommand0: Positioned[JavaHomeInfo] = {
     val javaHome               = javaHomeLocation()
-    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
+    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome.value)
     Positioned(javaHome.positions, JavaHomeInfo(javaCmd, javaVersion))
   }
 

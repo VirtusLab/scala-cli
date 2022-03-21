@@ -66,7 +66,8 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
         case Seq(value0) =>
           Right(setter(value0._1.value))
         case Seq() =>
-          Left(new NoValueProvidedError(directive))
+          assert(directive.numericalOrStringValuesCount == 0)
+          Left(new NoValueProvidedError(directive.key))
         case _ =>
           Left(new SingleValueExpectedError(directive, path))
       }

@@ -10,7 +10,7 @@ import scala.build.errors.{
   UnsupportedScalaVersionError
 }
 import scala.build.internal.Constants._
-import scala.build.internal.ScalaParse.scala2NightlyRegex
+import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.options.{BuildOptions, BuildRequirements, ScalaOptions}
 
 class BuildOptionsTests extends munit.FunSuite {
