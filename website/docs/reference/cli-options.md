@@ -174,6 +174,12 @@ Aliases: `-p`, `--classpath`
 
 Print the resulting class path
 
+#### `--output`
+
+Aliases: `--output-directory`
+
+Copy compilation results to output directory using either relative or absolute path
+
 #### `--test`
 
 Compile test scope
