@@ -16,7 +16,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors._
 import scala.build.internal.Constants._
 import scala.build.internal.CsLoggerUtil._
-import scala.build.internal.ScalaParse.scala2NightlyRegex
+import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.internal.{OsLibc, StableScalaVersion, Util}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
