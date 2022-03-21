@@ -1,6 +1,4 @@
 package scala.build.errors
 
-import scala.build.preprocessing.directives.StrictDirective
-
-final class UnexpectedDirectiveError(val directive: StrictDirective)
-    extends BuildException(s"Unexpected directive: ${directive.key}")
+final class UnexpectedDirectiveError(val key: String)
+    extends BuildException(s"Unexpected directive: $key}")

@@ -59,7 +59,7 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     val singleValue = DirectiveUtil.singleStringValue(directive, path, cwd)
 
     if (!directive.key.startsWith(prefix))
-      value(Left(new UnexpectedDirectiveError(directive)))
+      value(Left(new UnexpectedDirectiveError(directive.key)))
 
     val publishOptions = directive.key.stripPrefix(prefix) match {
       case "organization" =>
@@ -86,7 +86,7 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
       case "repository" =>
         PublishOptions(repository = Some(value(singleValue).value))
       case _ =>
-        value(Left(new UnexpectedDirectiveError(directive)))
+        value(Left(new UnexpectedDirectiveError(directive.key)))
     }
     val options = BuildOptions(
       notForBloopOptions = PostBuildOptions(
