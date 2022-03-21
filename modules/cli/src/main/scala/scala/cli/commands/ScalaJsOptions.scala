@@ -4,7 +4,7 @@ import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.build.options
+import scala.build.{Os, options}
 
 // format: off
 final case class ScalaJsOptions(
@@ -29,6 +29,9 @@ final case class ScalaJsOptions(
   @Group("Scala.JS")
   @HelpMessage("Emit source maps")
     jsEmitSourceMaps: Boolean = false,
+  @Group("Scala.JS")
+  @HelpMessage("Set the destination path of source maps")
+   jsSourceMapsPath: Option[String] = None,
   @Group("Scala.JS")
   @HelpMessage("Enable jsdom")
     jsDom: Option[Boolean] = None,
@@ -60,6 +63,7 @@ final case class ScalaJsOptions(
       moduleKindStr = jsModuleKind,
       checkIr = jsCheckIr,
       emitSourceMaps = jsEmitSourceMaps,
+      sourceMapsDest = jsSourceMapsPath.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
       dom = jsDom,
       header = jsHeader,
       allowBigIntsForLongs = jsAllowBigIntsForLongs,
