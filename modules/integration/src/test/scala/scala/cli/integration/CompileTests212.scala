@@ -5,7 +5,6 @@ class CompileTests212 extends CompileTestDefinitions(
   scalaVersionOpt = Some(Constants.scala212)
 ) {
 // format: on
-  override protected def compileFilesExtensions: Seq[String] = Seq("$.class", ".class")
 
   val pluginInputs = TestInputs(
     Seq(

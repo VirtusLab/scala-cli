@@ -10,41 +10,10 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
   protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
-  protected def compileFilesExtensions: Seq[String]
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
     os.proc(TestUtil.cli, "directories").call().out.text()
   }
-
-  val mainInput =
-    os.rel / "Main.scala" ->
-      """//> using lib "com.lihaoyi::utest:0.7.10"
-        |
-        |object Main {
-        |  val err = utest.compileError("pprint.log(2)")
-        |  def message = "Hello from " + "tests"
-        |  def main(args: Array[String]): Unit = {
-        |    println(message)
-        |    println(err)
-        |  }
-        |}
-        |""".stripMargin
-
-  val testInput =
-    os.rel / "Tests.scala" ->
-      """//> using lib "com.lihaoyi::pprint:0.6.6"
-        |//> using target.scope "test"
-        |
-        |import utest._
-        |
-        |object Tests extends TestSuite {
-        |  val tests = Tests {
-        |    test("message") {
-        |      assert(Main.message.startsWith("Hello"))
-        |    }
-        |  }
-        |}
-        |""".stripMargin
 
   val simpleInputs = TestInputs(
     Seq(
@@ -57,6 +26,37 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           |    test("foo") {
           |      assert(2 + 2 == 4)
           |      println("Hello from " + "tests")
+          |    }
+          |  }
+          |}
+          |""".stripMargin
+    )
+  )
+
+  val mainAndTestInputs = TestInputs(
+    Seq(
+      os.rel / "Main.scala" ->
+        """//> using lib "com.lihaoyi::utest:0.7.10"
+          |
+          |object Main {
+          |  val err = utest.compileError("pprint.log(2)")
+          |  def message = "Hello from " + "tests"
+          |  def main(args: Array[String]): Unit = {
+          |    println(message)
+          |    println(err)
+          |  }
+          |}
+          |""".stripMargin,
+      os.rel / "Tests.scala" ->
+        """//> using lib "com.lihaoyi::pprint:0.6.6"
+          |//> using target.scope "test"
+          |
+          |import utest._
+          |
+          |object Tests extends TestSuite {
+          |  val tests = Tests {
+          |    test("message") {
+          |      assert(Main.message.startsWith("Hello"))
           |    }
           |  }
           |}
@@ -88,43 +88,32 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def checkIfCompileOutputIsCoppied(baseName: String, output: os.Path): Unit =
-    expect(os.list(output).map(_.relativeTo(output)) == compileFilesExtensions.map(ext =>
-      os.rel / s"$baseName$ext"
-    ))
+  def checkIfCompileOutputIsCopied(baseName: String, output: os.Path): Unit = {
+    val extraExtensions = if (actualScalaVersion.startsWith("2.")) Nil else Seq(".tasty")
+    val extensions      = Seq(".class", "$.class") ++ extraExtensions
+    val foundFiles      = os.list(output).map(_.relativeTo(output))
+    val expectedFiles   = extensions.map(ext => os.rel / s"$baseName$ext")
+    expect(foundFiles == expectedFiles)
+  }
 
   test("copy compile output") {
-    val inputs = TestInputs(
-      Seq(
-        mainInput,
-        testInput
-      )
-    )
-    inputs.fromRoot { root =>
-      val tempOutput    = root / "output"
-      val outputOptions = Seq("--output", tempOutput.toString)
-      val cmd           = os.proc(TestUtil.cli, "compile", outputOptions, extraOptions, ".")
-      cmd.call(cwd = root)
-      checkIfCompileOutputIsCoppied("Main", tempOutput)
+    mainAndTestInputs.fromRoot { root =>
+      val tempOutput = root / "output"
+      os.proc(TestUtil.cli, "compile", "--output", tempOutput, extraOptions, ".").call(cwd = root)
+      checkIfCompileOutputIsCopied("Main", tempOutput)
     }
   }
 
-  test("test scope with copy output") {
-    val inputs = TestInputs(
-      Seq(
-        mainInput,
-        testInput
-      )
-    )
-    inputs.fromRoot { root =>
-      val tempOutput    = root / "output"
-      val outputOptions = Seq("--output", tempOutput.toString)
+  test("test scope") {
+    mainAndTestInputs.fromRoot { root =>
+      val tempOutput = root / "output"
       val output =
         os.proc(
           TestUtil.cli,
           "compile",
           "--test",
-          outputOptions,
+          "--output",
+          tempOutput,
           "--class-path",
           extraOptions,
           "."
@@ -138,7 +127,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           p.endsWith(Seq("classes", "test").mkString(File.separator))
         )
       expect(isDefinedTestPathInClassPath)
-      checkIfCompileOutputIsCoppied("Tests", tempOutput)
+      checkIfCompileOutputIsCopied("Tests", tempOutput)
     }
   }
 
