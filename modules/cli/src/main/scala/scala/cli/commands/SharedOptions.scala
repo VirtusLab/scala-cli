@@ -12,6 +12,7 @@ import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
+import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.{Constants, OsLibc}
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.{options => bo, _}
@@ -186,14 +187,35 @@ final case class SharedOptions(
     )
   }
 
+  private def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
+    implicit val ec = options.finalCache.ec
+    val javaHomeManager = options.javaHomeManager
+      .withMessage(s"Downloading JVM $jvmId")
+    val logger = javaHomeManager.cache
+      .flatMap(_.archiveCache.cache.loggerOpt)
+      .getOrElse(_root_.coursier.cache.CacheLogger.nop)
+    val command = {
+      val path = logger.use {
+        try javaHomeManager.get(jvmId).unsafeRun()
+        catch {
+          case NonFatal(e) => throw new Exception(e)
+        }
+      }
+      os.Path(path)
+    }
+    val ext     = if (Properties.isWin) ".exe" else ""
+    val javaCmd = (command / "bin" / s"java$ext").toString
+    javaCmd
+  }
+
   def bloopRifleConfig(): BloopRifleConfig = {
 
     val options = buildOptions(false, None)
     lazy val defaultJvmCmd =
-      OsLibc.downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
-    val javaCmd = compilationServer.bloopJvm.map(OsLibc.downloadJvm(_, options)).orElse {
+      downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
+    val javaCmd = compilationServer.bloopJvm.map(downloadJvm(_, options)).orElse {
       for (javaHome <- options.javaHomeLocationOpt()) yield {
-        val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome)
+        val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
         if (javaHomeVersion >= 17) javaHomeCmd
         else defaultJvmCmd
       }

@@ -161,7 +161,7 @@ final case class BuildOptions(
 
   private lazy val javaCommand0: Positioned[JavaHomeInfo] = {
     val javaHome               = javaHomeLocation()
-    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
+    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome.value)
     Positioned(javaHome.positions, JavaHomeInfo(javaCmd, javaVersion))
   }
 
