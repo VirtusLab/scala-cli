@@ -6,7 +6,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import java.io.File
 import java.net.URI
 import java.nio.file.Paths
 
@@ -225,7 +224,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         "bsp",
         "--json-options",
         (root / "directory" / Constants.workspaceDirName / "ide-options-v2.json").toString,
-        s"${(root / "directory").toString}${File.separator}"
+        (root / "directory" / "simple.sc").toString
       )
       expect(details.argv == expectedArgv)
     }
