@@ -178,7 +178,8 @@ object Test extends ScalaCommand[TestOptions] {
               requireTests,
               args,
               testFrameworkOpt,
-              logger
+              logger,
+              build.options.scalaJsOptions.dom.getOrElse(false)
             )
           }.flatMap(e => e)
         }

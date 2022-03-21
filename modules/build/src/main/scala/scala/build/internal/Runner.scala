@@ -1,6 +1,9 @@
 package scala.build.internal
 
 import coursier.jvm.Execve
+import org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
+import org.scalajs.jsenv.nodejs.NodeJSEnv
+import org.scalajs.jsenv.{Input, RunConfig}
 import sbt.testing.{Framework, Status}
 
 import java.io.File
@@ -116,7 +119,9 @@ object Runner {
     entrypoint: File,
     args: Seq[String],
     logger: Logger,
-    allowExecve: Boolean = false
+    allowExecve: Boolean = false,
+    jsDom: Boolean = false,
+    sourceMap: Boolean = false
   ): Process = {
 
     import logger.{log, debug}
@@ -130,6 +135,22 @@ object Runner {
         command.iterator.map(_ + System.lineSeparator()).mkString
     )
 
+    lazy val envJs =
+      if (jsDom)
+        new JSDOMNodeJSEnv(
+          JSDOMNodeJSEnv.Config()
+            .withExecutable(nodePath)
+            .withArgs(Nil)
+            .withEnv(Map.empty)
+        )
+      else new NodeJSEnv(
+        NodeJSEnv.Config()
+          .withExecutable(nodePath)
+          .withArgs(Nil)
+          .withEnv(Map.empty)
+          .withSourceMap(sourceMap)
+      )
+
     if (allowExecve && Execve.available()) {
       debug("execve available")
       Execve.execve(
@@ -140,10 +161,16 @@ object Runner {
       sys.error("should not happen")
     }
     else {
-      val process = new ProcessBuilder(command: _*)
-        .inheritIO()
-        .start()
-      process
+      val inputs = Seq(Input.Script(entrypoint.toPath))
+
+      val config  = RunConfig().withLogger(logger.scalaJsLogger)
+      val startJs = envJs.start(inputs, config)
+
+      val processField =
+        startJs.getClass.getDeclaredField("org$scalajs$jsenv$ExternalJSRun$$process")
+      processField.setAccessible(true)
+      val process = processField.get(startJs).asInstanceOf[Process]
+      process.waitFor()
     }
   }
 
@@ -241,19 +268,28 @@ object Runner {
     requireTests: Boolean,
     args: Seq[String],
     testFrameworkOpt: Option[String],
-    logger: Logger
+    logger: Logger,
+    jsDom: Boolean
   ): Either[TestError, Int] = either {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
     import org.scalajs.testing.adapter.TestAdapter
     val nodePath = findInPath("node").fold("node")(_.toString)
-    val jsEnv = new NodeJSEnv(
-      NodeJSEnv.Config()
-        .withExecutable(nodePath)
-        .withArgs(Nil)
-        .withEnv(Map.empty)
-        .withSourceMap(NodeJSEnv.SourceMap.Disable)
-    )
+    val jsEnv =
+      if (jsDom)
+        new JSDOMNodeJSEnv(
+          JSDOMNodeJSEnv.Config()
+            .withExecutable(nodePath)
+            .withArgs(Nil)
+            .withEnv(Map.empty)
+        )
+      else new NodeJSEnv(
+        NodeJSEnv.Config()
+          .withExecutable(nodePath)
+          .withArgs(Nil)
+          .withEnv(Map.empty)
+          .withSourceMap(NodeJSEnv.SourceMap.Disable)
+      )
     val adapterConfig        = TestAdapter.Config().withLogger(logger.scalaJsLogger)
     val inputs               = Seq(Input.Script(entrypoint.toPath))
     var adapter: TestAdapter = null

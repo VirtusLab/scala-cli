@@ -504,4 +504,47 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         expect(output.contains("Hello from native"))
     }
   }
+
+  def jsDomTest(): Unit = {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "JsDom.scala" ->
+          s"""//> using lib "com.lihaoyi::utest::0.7.10"
+             |//> using lib "org.scala-js::scalajs-dom::2.1.0"
+             |
+             |import utest._
+             |
+             |import scala.scalajs.js
+             |
+             |import org.scalajs.dom
+             |import org.scalajs.dom.document
+             |import org.scalajs.dom.ext._
+             |
+             |object MyTests extends TestSuite {
+             |  val tests = Tests {
+             |    test("Hello World") {
+             |      assert(document.querySelectorAll("p").size == 0)
+             |      println("Hello from tests")
+             |    }
+             |  }
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      // install jsdom library
+      os.proc("npm", "init", "private").call(cwd = root)
+      os.proc("npm", "install", "jsdom").call(cwd = root)
+
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js", "--js-dom")
+        .call(cwd = root)
+        .out.text()
+      expect(output.contains("Hello from tests"))
+    }
+  }
+
+  if (TestUtil.isCI)
+    test("Js DOM") {
+      jsDomTest()
+    }
 }
