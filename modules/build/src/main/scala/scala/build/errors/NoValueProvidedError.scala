@@ -1,12 +1,7 @@
 package scala.build.errors
 
-import scala.build.preprocessing.directives.StrictDirective
-
-final class NoValueProvidedError(
-  val directive: StrictDirective
-) extends BuildException(
-      s"Expected a value for directive ${directive.key}",
+final class NoValueProvidedError(val key: String) extends BuildException(
+      s"Expected a value for directive $key",
+      // TODO - this seems like outdated thing
       positions = Nil // I wish using_directives provided the key position…
-    ) {
-  assert(directive.numericalOrStringValuesCount == 0)
-}
+    )
