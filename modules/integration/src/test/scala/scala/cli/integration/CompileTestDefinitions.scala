@@ -93,7 +93,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     val extensions      = Seq(".class", "$.class") ++ extraExtensions
     val foundFiles      = os.list(output).map(_.relativeTo(output))
     val expectedFiles   = extensions.map(ext => os.rel / s"$baseName$ext")
-    expect(foundFiles == expectedFiles)
+    expect(foundFiles.toSet == expectedFiles.toSet)
   }
 
   test("copy compile output") {
