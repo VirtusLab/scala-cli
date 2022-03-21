@@ -69,16 +69,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (TestUtil.canRunJs) {
-    test("simple script JS") {
-      simpleJsTest()
-    }
-    test("simple script JS in release mode") {
-      simpleJsTest("--js-mode", "release")
-    }
+  test("simple script JS") {
+    simpleJsTest()
+  }
+  test("simple script JS in release mode") {
+    simpleJsTest("--js-mode", "release")
   }
 
-  def simpleJsViaConfigFileTest(): Unit = {
+  test("simple script JS via config file") {
     val message = "Hello"
     val inputs = TestInputs(
       Seq(
@@ -96,11 +94,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == message)
     }
   }
-
-  if (TestUtil.canRunJs)
-    test("simple script JS via config file") {
-      simpleJsViaConfigFileTest()
-    }
 
   def platformNl = if (Properties.isWin) "\\r\\n" else "\\n"
 
@@ -248,7 +241,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def multipleScriptsJs(): Unit = {
+  test("Multiple scripts JS") {
     val message = "Hello"
     val inputs = TestInputs(
       Seq(
@@ -269,11 +262,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == message)
     }
   }
-
-  if (TestUtil.canRunJs)
-    test("Multiple scripts JS") {
-      multipleScriptsJs()
-    }
 
   def multipleScriptsNative(): Unit = {
     val message = "Hello"
@@ -389,7 +377,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       passArgumentsScala3()
     }
 
-  def directoryJs(): Unit = {
+  test("Directory JS") {
     val message = "Hello"
     val inputs = TestInputs(
       Seq(
@@ -410,11 +398,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == message)
     }
   }
-
-  if (TestUtil.canRunJs)
-    test("Directory JS") {
-      directoryJs()
-    }
 
   def directoryNative(): Unit = {
     val message = "Hello"

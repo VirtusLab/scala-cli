@@ -29,8 +29,6 @@ object TestUtil {
   )
   // format: on
 
-  lazy val canRunJs = true
-
   def fromPath(app: String): Option[String] = {
 
     val pathExt =
