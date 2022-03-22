@@ -488,8 +488,8 @@ final case class BuildOptions(
             .unsafeRun()(finalCache.ec)
         }.versions.available
 
-        val threeOneNightlies = res.filter(_.startsWith(s"3.$threeSubBinaryNum.")).map(Version(_))
-        if (threeOneNightlies.nonEmpty) Right(threeOneNightlies.max.repr)
+        val threeXNightlies = res.filter(_.startsWith(s"3.$threeSubBinaryNum.")).map(Version(_))
+        if (threeXNightlies.nonEmpty) Right(threeXNightlies.max.repr)
         else Left(
           new NoValidScalaVersionFoundError(res, latestSupportedStableVersions)
         )
