@@ -95,13 +95,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val scalaCliBspJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-options-v2.json"
 
-    val inputArgs = inputs.elements.collect {
-      case d: Inputs.OnDisk =>
-        val path = d.path
-        if (os.isFile(path))
-          path.toString().stripSuffix(s"${path.last}")
-        else path.toString
-    }
+    val inputArgs = inputs.elements.collect { case d: Inputs.OnDisk => d.path.toString }
 
     val debugOpt = options.shared.jvm.bspDebugPort.toSeq.map(port =>
       s"-J-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:$port,suspend=y"

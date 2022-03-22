@@ -187,13 +187,8 @@ final case class SharedOptions(
     )
   }
 
-  def bloopRifleConfig(): BloopRifleConfig = {
-
-    val options     = buildOptions(false, None)
+  private def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
     implicit val ec = options.finalCache.ec
-    val jvmId = compilationServer.bloopJvm.getOrElse {
-      OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")
-    }
     val javaHomeManager = options.javaHomeManager
       .withMessage(s"Downloading JVM $jvmId")
     val logger = javaHomeManager.cache
@@ -208,12 +203,29 @@ final case class SharedOptions(
       }
       os.Path(path)
     }
-    val ext = if (Properties.isWin) ".exe" else ""
+    val ext     = if (Properties.isWin) ".exe" else ""
+    val javaCmd = (command / "bin" / s"java$ext").toString
+    javaCmd
+  }
+
+  def bloopRifleConfig(): BloopRifleConfig = {
+
+    val options = buildOptions(false, None)
+    lazy val defaultJvmCmd =
+      downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
+    val javaCmd = compilationServer.bloopJvm.map(downloadJvm(_, options)).orElse {
+      for (javaHome <- options.javaHomeLocationOpt()) yield {
+        val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
+        if (javaHomeVersion >= 17) javaHomeCmd
+        else defaultJvmCmd
+      }
+    }.getOrElse(defaultJvmCmd)
+
     compilationServer.bloopRifleConfig(
       logging.logger,
       coursierCache,
       logging.verbosity,
-      (command / "bin" / s"java$ext").toString,
+      javaCmd,
       directories.directories,
       Some(17)
     )

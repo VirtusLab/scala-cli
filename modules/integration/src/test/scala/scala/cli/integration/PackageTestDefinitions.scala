@@ -209,10 +209,44 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!TestUtil.isNativeCli || !Properties.isWin)
+  def sourceMapJsTest(): Unit = {
+    val fileName = "simple.sc"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""import scala.scalajs.js
+             |println("Hello World")
+             |""".stripMargin
+      )
+    )
+    val destName = fileName.stripSuffix(".sc") + ".js"
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        extraOptions,
+        fileName,
+        "--js",
+        "--js-emit-source-maps"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val expectedSourceMapsPath = root / s"$destName.map"
+      expect(os.isFile(expectedSourceMapsPath))
+    }
+  }
+
+  if (!TestUtil.isNativeCli || !Properties.isWin) {
     test("simple JS") {
       simpleJsTest()
     }
+    test("source maps js") {
+      sourceMapJsTest()
+    }
+  }
 
   def simpleNativeTest(): Unit = {
     val fileName   = "simple.sc"

@@ -704,10 +704,18 @@ object Package extends ScalaCommand[PackageOptions] {
         linkingDir.toNIO,
         logger.scalaJsLogger
       )
-      val relMainJs = os.rel / "main.js"
-      val mainJs    = linkingDir / relMainJs
+      val relMainJs      = os.rel / "main.js"
+      val relSourceMapJs = os.rel / "main.js.map"
+      val mainJs         = linkingDir / relMainJs
+      val sourceMapJs    = linkingDir / relSourceMapJs
       if (os.exists(mainJs)) {
         os.copy(mainJs, dest, replaceExisting = true)
+        if (build.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
+          val sourceMapDest =
+            build.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
+          os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
+          logger.message(s"Emitted js source maps to: $sourceMapDest")
+        }
         os.remove.all(linkingDir)
         Right(())
       }

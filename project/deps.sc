@@ -47,16 +47,16 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier      = "2.1.0-M5"
+    def coursier      = "2.1.0-M5-18-gfebf9838c"
     def jsoniterScala = "2.13.7"
     def scalaJs       = "1.9.0"
-    def scalaMeta     = "4.5.0"
+    def scalaMeta     = "4.5.1"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
   }
   def ammonite         = ivy"com.lihaoyi:::ammonite:2.5.2"
   def asm              = ivy"org.ow2.asm:asm:9.2"
-  def bloopConfig      = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19"
+  def bloopConfig      = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.0.0"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M13"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.6.0"
@@ -102,7 +102,6 @@ object Deps {
   def slf4jNop                 = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   def snailgun                 = ivy"me.vican.jorge::snailgun-core:0.4.0"
   def svm                      = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
-  def svmSubs                  = ivy"org.scalameta::svm-subs:20.2.0"
   def swoval                   = ivy"com.swoval:file-tree-views:2.1.8"
   def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
   def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"

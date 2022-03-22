@@ -174,6 +174,12 @@ Aliases: `-p`, `--classpath`
 
 Print the resulting class path
 
+#### `--output`
+
+Aliases: `--output-directory`
+
+Copy compilation results to output directory using either relative or absolute path
+
 #### `--test`
 
 Compile test scope
@@ -959,6 +965,10 @@ The Scala JS module kind: commonjs/common, esmodule/es, nomodule/none
 #### `--js-emit-source-maps`
 
 Emit source maps
+
+#### `--js-source-maps-path`
+
+Set the destination path of source maps
 
 #### `--js-dom`
 

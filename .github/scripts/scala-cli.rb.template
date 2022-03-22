@@ -10,9 +10,6 @@ class ScalaCli < Formula
   sha256 "@LAUNCHER_SHA256@"
   license "Apache-2.0"
 
-  depends_on java: "1.8+" if MacOS.version < :catalina
-  depends_on "openjdk" if MacOS.version >= :catalina
-
   def install
     bin.install "scala-cli-x86_64-apple-darwin" => "scala-cli"
   end
