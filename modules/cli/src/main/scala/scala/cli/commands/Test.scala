@@ -144,7 +144,15 @@ object Test extends ScalaCommand[TestOptions] {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         value {
-          Run.withLinkedJs(build, None, addTestInitializer = true, linkerConfig, logger) { js =>
+          Run.withLinkedJs(
+            build,
+            None,
+            addTestInitializer = true,
+            linkerConfig,
+            build.options.scalaJsOptions.fullOpt.getOrElse(false),
+            build.options.scalaJsOptions.noOpt.getOrElse(false),
+            logger
+          ) { js =>
             Runner.testJs(
               build.fullClassPath,
               js.toIO,

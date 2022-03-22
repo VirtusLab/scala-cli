@@ -28,6 +28,7 @@ final case class Artifacts(
   extraJavacPlugins: Seq[os.Path],
   userDependencies: Seq[AnyDependency],
   internalDependencies: Seq[AnyDependency],
+  scalaJsCli: Seq[os.Path],
   scalaNativeCli: Seq[os.Path],
   detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)],
   extraClassPath: Seq[os.Path],
@@ -79,6 +80,7 @@ object Artifacts {
     addJsTestBridge: Option[String],
     addNativeTestInterface: Option[String],
     addJmhDependencies: Option[String],
+    scalaJsCliVersion: Option[String],
     scalaNativeCliVersion: Option[String],
     extraRepositories: Seq[String],
     cache: FileCache[Task],
@@ -132,6 +134,15 @@ object Artifacts {
       else
         Nil
     }
+
+    val scalaJsCliDependency =
+      scalaJsCliVersion.map { version =>
+        import coursier.moduleString
+        val mod =
+          if (version.contains("-sc")) mod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+          else mod"org.scala-js:scalajs-cli_2.13"
+        Seq(coursier.Dependency(mod, version))
+      }
 
     val scalaNativeCliDependency =
       scalaNativeCliVersion.map { version =>
@@ -201,6 +212,7 @@ object Artifacts {
               Positioned.none(dependency),
               allExtraRepositories,
               None,
+              Nil,
               logger,
               cache.withMessage("Downloading Scala Native CLI"),
               None
@@ -212,6 +224,35 @@ object Artifacts {
     }
 
     val scalaNativeCli = fetchedScalaNativeCli.toSeq.flatMap { fetched =>
+      fetched.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) =>
+        os.Path(f, Os.pwd)
+      }
+    }
+
+    val fetchedScalaJsCli = scalaJsCliDependency match {
+      case Some(dependency) =>
+        import coursier.moduleString
+        val forcedVersions = Seq(
+          mod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
+        )
+        Some(
+          value {
+            fetch0(
+              Positioned.none(dependency),
+              allExtraRepositories,
+              None,
+              forcedVersions,
+              logger,
+              cache.withMessage("Downloading Scala.JS CLI"),
+              None
+            )
+          }
+        )
+      case None =>
+        None
+    }
+
+    val scalaJsCli = fetchedScalaJsCli.toSeq.flatMap { fetched =>
       fetched.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) =>
         os.Path(f, Os.pwd)
       }
@@ -269,6 +310,7 @@ object Artifacts {
       extraJavacPlugins,
       dependencies.map(_.value),
       internalDependencies.map(_.value),
+      scalaJsCli,
       scalaNativeCli,
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) =>
         (d, p, a, os.Path(f, Os.pwd))
@@ -315,6 +357,7 @@ object Artifacts {
       dependencies.map(_.map(_.toCs(params))),
       extraRepositories,
       Some(params.scalaVersion),
+      Nil,
       logger,
       cache,
       classifiersOpt
@@ -324,6 +367,7 @@ object Artifacts {
     dependencies: Positioned[Seq[coursier.Dependency]],
     extraRepositories: Seq[String],
     forceScalaVersionOpt: Option[String],
+    forcedVersions: Seq[(coursier.Module, String)],
     logger: Logger,
     cache: FileCache[Task],
     classifiersOpt: Option[Set[String]]
@@ -339,7 +383,7 @@ object Artifacts {
         .left.map(errors => new RepositoryFormatError(errors))
     }
 
-    val forceVersions = forceScalaVersionOpt match {
+    val forceScalaVersions = forceScalaVersionOpt match {
       case None => Nil
       case Some(sv) =>
         import coursier.moduleString
@@ -367,7 +411,8 @@ object Artifacts {
       .addRepositories(extraRepositories0: _*)
       .addDependencies(dependencies.value: _*)
       .mapResolutionParams { params =>
-        params.addForceVersion(forceVersions: _*)
+        params
+          .addForceVersion(forceScalaVersions ++ forcedVersions: _*)
       }
     for (classifiers <- classifiersOpt) {
       if (classifiers("_"))

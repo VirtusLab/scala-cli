@@ -2,19 +2,11 @@ package scala.build.options
 
 import bloop.config.{Config => BloopConfig}
 import dependency._
-import org.scalajs.linker.interface.{
-  ESFeatures,
-  ESVersion,
-  ModuleKind,
-  ModuleSplitStyle,
-  Semantics,
-  StandardConfig
-}
 
 import java.util.Locale
 
 import scala.build.Logger
-import scala.build.internal.Constants
+import scala.build.internal.{Constants, ScalaJsLinkerConfig}
 
 final case class ScalaJsOptions(
   version: Option[String] = None,
@@ -29,7 +21,9 @@ final case class ScalaJsOptions(
   avoidClasses: Option[Boolean] = None,
   avoidLetsAndConsts: Option[Boolean] = None,
   moduleSplitStyleStr: Option[String] = None,
-  esVersionStr: Option[String] = None
+  esVersionStr: Option[String] = None,
+  fullOpt: Option[Boolean] = None,
+  noOpt: Option[Boolean] = None
 ) {
   def platformSuffix: String =
     "sjs" + ScalaVersion.jsBinary(finalVersion).getOrElse(finalVersion)
@@ -44,54 +38,65 @@ final case class ScalaJsOptions(
     else
       Nil
 
-  def moduleKind(logger: Logger): ModuleKind =
-    moduleKindStr.map(_.trim.toLowerCase(Locale.ROOT)).map {
-      case "commonjs" | "common" => ModuleKind.CommonJSModule
-      case "esmodule" | "es"     => ModuleKind.ESModule
-      case "nomodule" | "none"   => ModuleKind.NoModule
-      case unknown =>
-        logger.message(
-          s"Warning: unrecognized argument: $unknown for --js-module-kind parameter, use default value: nomodule"
-        )
-        ModuleKind.NoModule
-    }.getOrElse(ModuleKind.NoModule)
+  def moduleKind(logger: Logger): String =
+    moduleKindStr
+      .map(_.trim.toLowerCase(Locale.ROOT))
+      .map {
+        case "commonjs" | "common" => ScalaJsLinkerConfig.ModuleKind.CommonJSModule
+        case "esmodule" | "es"     => ScalaJsLinkerConfig.ModuleKind.ESModule
+        case "nomodule" | "none"   => ScalaJsLinkerConfig.ModuleKind.NoModule
+        case unknown =>
+          logger.message(
+            s"Warning: unrecognized argument: $unknown for --js-module-kind parameter, using default value: nomodule"
+          )
+          ScalaJsLinkerConfig.ModuleKind.NoModule
+      }
+      .getOrElse(ScalaJsLinkerConfig.ModuleKind.NoModule)
 
-  def moduleSplitStyle(logger: Logger): ModuleSplitStyle =
-    moduleSplitStyleStr.map(_.trim.toLowerCase(Locale.ROOT)).map {
-      case "fewestmodules"   => ModuleSplitStyle.FewestModules
-      case "smallestmodules" => ModuleSplitStyle.SmallestModules
-      case unknown =>
-        logger.message(
-          s"Warning: unrecognized argument: $unknown for --js-module-split-style parameter, use default value: fewestmodules"
-        )
-        ModuleSplitStyle.FewestModules
-    }.getOrElse(ModuleSplitStyle.FewestModules)
+  def moduleSplitStyle(logger: Logger): String =
+    moduleSplitStyleStr
+      .map(_.trim.toLowerCase(Locale.ROOT))
+      .map {
+        case "fewestmodules"   => ScalaJsLinkerConfig.ModuleSplitStyle.FewestModules
+        case "smallestmodules" => ScalaJsLinkerConfig.ModuleSplitStyle.SmallestModules
+        case unknown =>
+          logger.message(
+            s"Warning: unrecognized argument: $unknown for --js-module-split-style parameter, use default value: fewestmodules"
+          )
+          ScalaJsLinkerConfig.ModuleSplitStyle.FewestModules
+      }
+      .getOrElse(ScalaJsLinkerConfig.ModuleSplitStyle.FewestModules)
 
-  def esVersion(logger: Logger): ESVersion =
-    esVersionStr.map(_.trim.toLowerCase(Locale.ROOT)).map {
-      case "es5_1"  => ESVersion.ES5_1
-      case "es2015" => ESVersion.ES2015
-      case "es2016" => ESVersion.ES2016
-      case "es2017" => ESVersion.ES2017
-      case "es2018" => ESVersion.ES2018
-      case "es2019" => ESVersion.ES2019
-      case "es2020" => ESVersion.ES2020
-      case "es2021" => ESVersion.ES2021
-      case unknown =>
-        val default = ESFeatures.Defaults.esVersion
-        logger.message(
-          s"Warning: unrecognized argument: $unknown for --js-es-version parameter, use default value: ${default.name}"
-        )
-        default
-    }.getOrElse(ESFeatures.Defaults.esVersion)
+  def esVersion(logger: Logger): String =
+    esVersionStr
+      .map(_.trim.toLowerCase(Locale.ROOT))
+      .map {
+        case "es5_1"  => ScalaJsLinkerConfig.ESVersion.ES5_1
+        case "es2015" => ScalaJsLinkerConfig.ESVersion.ES2015
+        case "es2016" => ScalaJsLinkerConfig.ESVersion.ES2016
+        case "es2017" => ScalaJsLinkerConfig.ESVersion.ES2017
+        case "es2018" => ScalaJsLinkerConfig.ESVersion.ES2018
+        case "es2019" => ScalaJsLinkerConfig.ESVersion.ES2019
+        case "es2020" => ScalaJsLinkerConfig.ESVersion.ES2020
+        case "es2021" => ScalaJsLinkerConfig.ESVersion.ES2021
+        case unknown =>
+          val default = ScalaJsLinkerConfig.ESVersion.default
+          logger.message(
+            s"Warning: unrecognized argument: $unknown for --js-es-version parameter, use default value: $default"
+          )
+          default
+      }
+      .getOrElse(ScalaJsLinkerConfig.ESVersion.default)
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
 
   private def configUnsafe(logger: Logger): BloopConfig.JsConfig = {
     val kind = moduleKind(logger) match {
-      case ModuleKind.CommonJSModule => BloopConfig.ModuleKindJS.CommonJSModule
-      case ModuleKind.ESModule       => BloopConfig.ModuleKindJS.ESModule
-      case ModuleKind.NoModule       => BloopConfig.ModuleKindJS.NoModule
+      case ScalaJsLinkerConfig.ModuleKind.CommonJSModule => BloopConfig.ModuleKindJS.CommonJSModule
+      case ScalaJsLinkerConfig.ModuleKind.ESModule       => BloopConfig.ModuleKindJS.ESModule
+      case ScalaJsLinkerConfig.ModuleKind.NoModule       => BloopConfig.ModuleKindJS.NoModule
+      // shouldn't happen
+      case _ => BloopConfig.ModuleKindJS.NoModule
     }
     BloopConfig.JsConfig(
       version = finalVersion,
@@ -110,41 +115,24 @@ final case class ScalaJsOptions(
   def config(logger: Logger): BloopConfig.JsConfig =
     configUnsafe(logger)
 
-  def linkerConfig(logger: Logger): StandardConfig = {
-    var config = StandardConfig()
+  def linkerConfig(logger: Logger): ScalaJsLinkerConfig = {
+    val esFeatureDefaults = ScalaJsLinkerConfig.ESFeatures()
+    val esFeatures = ScalaJsLinkerConfig.ESFeatures(
+      allowBigIntsForLongs =
+        allowBigIntsForLongs.getOrElse(esFeatureDefaults.allowBigIntsForLongs),
+      avoidClasses = avoidClasses.getOrElse(esFeatureDefaults.avoidClasses),
+      avoidLetsAndConsts = avoidLetsAndConsts.getOrElse(esFeatureDefaults.avoidLetsAndConsts),
+      esVersion = esVersion(logger)
+    )
 
-    config = config
-      .withModuleKind(moduleKind(logger))
-      .withModuleSplitStyle(moduleSplitStyle(logger))
-
-    for (checkIr <- checkIr)
-      config = config.withCheckIR(checkIr)
-
-    val release   = mode.contains("release")
-    val jsHeader0 = header.getOrElse("")
-
-    val esFeatureDefaults = ESFeatures.Defaults
-    val esFeature = ESFeatures.Defaults
-      .withAllowBigIntsForLongs(
-        allowBigIntsForLongs.getOrElse(esFeatureDefaults.allowBigIntsForLongs)
-      )
-      .withAvoidClasses(avoidClasses.getOrElse(esFeatureDefaults.avoidClasses))
-      .withAvoidLetsAndConsts(avoidLetsAndConsts.getOrElse(esFeatureDefaults.avoidLetsAndConsts))
-      .withESVersion(esVersion(logger))
-
-    config = config
-      .withSemantics(Semantics.Defaults)
-      .withESFeatures(esFeature)
-      .withOptimizer(release)
-      .withParallel(true)
-      .withSourceMap(emitSourceMaps)
-      .withRelativizeSourceMapBase(None)
-      .withClosureCompiler(release)
-      .withPrettyPrint(false)
-      .withBatchMode(true)
-      .withJSHeader(jsHeader0)
-
-    config
+    ScalaJsLinkerConfig(
+      moduleKind(logger),
+      checkIr.getOrElse(false), // meh
+      emitSourceMaps,
+      moduleSplitStyle(logger),
+      esFeatures,
+      header
+    )
   }
 }
 

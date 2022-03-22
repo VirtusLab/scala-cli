@@ -1,53 +1,100 @@
 package scala.cli.internal
 
-import org.scalajs.linker.interface.ModuleInitializer
-import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, StandardImpl}
-import org.scalajs.logging.Logger
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
-import java.nio.file.Path
+import scala.build.Logger
+import scala.build.errors.ScalaJsLinkingError
+import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 
-import scala.build.internal.ScalaJsConfig
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.{global => ec}
-import scala.concurrent.duration.Duration
-
-final class ScalaJsLinker {
+object ScalaJsLinker {
 
   def link(
-    classPath: Array[Path],
+    javaCommand: String,
+    javaArgs: Seq[String],
+    linkerClassPath: Seq[os.Path],
+    classPath: Seq[os.Path],
     mainClassOrNull: String,
     addTestInitializer: Boolean,
-    config: ScalaJsConfig,
-    linkingDir: Path,
+    config: ScalaJsLinkerConfig,
+    linkingDir: os.Path,
+    fullOpt: Boolean,
+    noOpt: Boolean,
     logger: Logger
-  ): Unit = {
+  ): Either[ScalaJsLinkingError, Unit] = {
 
-    // adapted from https://github.com/scala-js/scala-js-cli/blob/729824848e25961a3d9a1cfe6ac0260745033148/src/main/scala/org/scalajs/cli/Scalajsld.scala#L158-L193
-
-    val linker = StandardImpl.linker(config.config)
-
-    val output = PathOutputDirectory(linkingDir)
-
-    val cache = StandardImpl.irFileCache().newCache
-
-    val mainInitializers = Option(mainClassOrNull).toSeq.map { mainClass =>
-      ModuleInitializer.mainMethodWithArgs(mainClass, "main")
-    }
-    val testInitializers =
+    val outputArgs = Seq("--outputDir", linkingDir.toString)
+    val mainClassArgs =
+      Option(mainClassOrNull).toSeq.flatMap(mainClass => Seq("--mainMethod", mainClass + ".main"))
+    val testInitializerArgs =
       if (addTestInitializer)
-        Seq(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
+        Seq("--mainMethod", TAI.ModuleClassName + "." + TAI.MainMethodName + "!")
       else
         Nil
+    // FIXME Fatal asInstanceOfs should be the default, but it seems we can't
+    // pass Unchecked via the CLI here
+    // It seems we can't pass the other semantics fields either.
+    val semanticsArgs =
+      if (config.semantics.asInstanceOfs == ScalaJsLinkerConfig.CheckedBehavior.Compliant)
+        Seq("--compliantAsInstanceOfs")
+      else
+        Nil
+    val moduleKindArgs       = Seq("--moduleKind", config.moduleKind)
+    val moduleSplitStyleArgs = Seq("--moduleSplitStyle", config.moduleSplitStyle)
+    val esFeaturesArgs =
+      if (config.esFeatures.esVersion == ScalaJsLinkerConfig.ESVersion.ES2015)
+        Seq("--es2015")
+      else
+        Nil
+    val checkIRArgs = if (config.checkIR) Seq("--checkIR") else Nil
+    val optArg =
+      if (noOpt) "--noOpt"
+      else if (fullOpt) "--fullOpt"
+      else "--fastOpt"
+    val sourceMapArgs = if (config.sourceMap) Seq("--sourceMap") else Nil
+    val relativizeSourceMapBaseArgs =
+      config.relativizeSourceMapBase.toSeq
+        .flatMap(uri => Seq("--relativizeSourceMap", uri))
+    val prettyPrintArgs =
+      if (config.prettyPrint) Seq("--prettyPrint")
+      else Nil
+    val configArgs = Seq[os.Shellable](
+      semanticsArgs,
+      moduleKindArgs,
+      moduleSplitStyleArgs,
+      esFeaturesArgs,
+      checkIRArgs,
+      optArg,
+      sourceMapArgs,
+      relativizeSourceMapBaseArgs,
+      prettyPrintArgs
+    )
 
-    val moduleInitializers = mainInitializers ++ testInitializers
+    val allArgs = Seq[os.Shellable](
+      outputArgs,
+      mainClassArgs,
+      testInitializerArgs,
+      configArgs,
+      classPath.map(_.toString)
+    )
 
-    implicit val ec0 = ec
-    val futureResult = PathIRContainer
-      .fromClasspath(classPath.toVector)
-      .flatMap(containers => cache.cached(containers._1))
-      .flatMap(linker.link(_, moduleInitializers, output, logger))
-    Await.result(futureResult, Duration.Inf)
+    // FIXME In quiet mode, silence the output of that?
+    val retCode = Runner.runJvm(
+      javaCommand,
+      javaArgs,
+      linkerClassPath.map(_.toIO),
+      "org.scalajs.cli.Scalajsld",
+      allArgs.flatMap(_.value),
+      logger
+    )
+
+    if (retCode == 0) {
+      logger.debug("Scala.JS linker ran successfully")
+      Right(())
+    }
+    else {
+      logger.debug(s"Scala.JS linker exited with return code $retCode")
+      Left(new ScalaJsLinkingError)
+    }
   }
 
 }

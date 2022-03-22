@@ -614,6 +614,8 @@ final case class BuildOptions(
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
       dependencies = value(dependencies),
       extraClassPath = allExtraJars,
+      scalaJsCliVersion =
+        if (platform.value == Platform.JS) Some(scalaJsCliVersion) else None,
       scalaNativeCliVersion =
         if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
