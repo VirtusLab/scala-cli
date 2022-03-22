@@ -193,7 +193,13 @@ trait BuildLikeModule
 }
 
 class Core(val crossScalaVersion: String) extends BuildLikeModule {
-  def moduleDeps = Seq(`bloop-rifle`())
+  def moduleDeps = Seq(
+    `bloop-rifle`(),
+    `build-macros`()
+  )
+  def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-Xasync")
+  }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.collectionCompat,

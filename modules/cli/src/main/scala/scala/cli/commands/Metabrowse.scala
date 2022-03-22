@@ -77,7 +77,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         FetchExternalBinary.fetch(
           url,
           changing,
-          options.shared.coursierCache,
+          successfulBuild.options.archiveCache,
           logger,
           "metabrowse"
         )

@@ -89,7 +89,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       }
     CurrentParams.workspaceOpt = Some(workspace)
     val (versionMaybe, confExists) = readVersionFromFile(workspace, logger)
-    val cache                      = options.shared.coursierCache
+    val cache                      = options.shared.buildOptions(false, None).archiveCache
 
     if (sourceFiles.isEmpty)
       logger.debug("No source files, not formatting anything")

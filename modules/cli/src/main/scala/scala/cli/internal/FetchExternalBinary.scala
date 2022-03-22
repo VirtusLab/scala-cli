@@ -1,110 +1,46 @@
 package scala.cli.internal
 
-import coursier.cache.{ArchiveType, FileCache, UnArchiver}
+import coursier.cache.{ArchiveCache, CacheLogger}
+import coursier.error.FetchError
 import coursier.util.{Artifact, Task}
 
-import java.io.{FileInputStream, FileOutputStream, IOException}
-import java.util.zip.GZIPInputStream
-import java.util.{Locale, UUID}
+import java.util.Locale
 
+import scala.build.EitherCps.{either, value}
 import scala.build.Logger
+import scala.build.errors.{BuildException, FetchingDependenciesError}
 import scala.build.internal.OsLibc
 import scala.util.Properties
-import scala.util.control.NonFatal
 
 object FetchExternalBinary {
 
   def fetch(
     url: String,
     changing: Boolean,
-    cache: FileCache[Task],
+    archiveCache: ArchiveCache[Task],
     logger: Logger,
     launcherPrefix: String
-  ) = {
+  ): Either[BuildException, os.Path] = either {
 
-    val f = cache.logger.use {
+    val artifact = Artifact(url).withChanging(changing)
+    val res = archiveCache.cache.loggerOpt.getOrElse(CacheLogger.nop).use {
       logger.log(s"Getting $url")
-      try cache.file(Artifact(url).withChanging(changing))
-          .run
-          .flatMap {
-            case Left(e)  => Task.fail(e)
-            case Right(f) => Task.point(os.Path(f, os.pwd))
-          }
-          .unsafeRun()(cache.ec)
-      catch {
-        case NonFatal(e) => throw new Exception(e)
-      }
+      archiveCache.get(artifact)
+        .unsafeRun()(archiveCache.cache.ec)
+    }
+    val f = res match {
+      case Left(err) =>
+        val err0 = new FetchError.DownloadingArtifacts(Seq((artifact, err)))
+        value(Left(new FetchingDependenciesError(err0, Nil)))
+      case Right(f) => os.Path(f, os.pwd)
     }
     logger.debug(s"$url is available locally at $f")
 
     val launcher =
-      // FIXME Once coursier has proper support for extracted archives in cache, use it instead of those hacks
-      if (f.last.endsWith(".zip")) {
-        val baseDir = f / os.up
-        val dir     = baseDir / s".${f.last.stripSuffix(".zip")}-content"
-        if (os.exists(dir))
-          logger.debug(s"Found $dir")
-        else {
-          logger.debug(s"Unzipping $f under $dir")
-          val tmpDir = baseDir / s".${f.last.stripSuffix(".zip")}-content-${UUID.randomUUID()}"
-          def removeAll(): Unit =
-            try os.remove.all(tmpDir)
-            catch {
-              case _: IOException if Properties.isWin =>
-            }
-          try {
-            UnArchiver.default().extract(
-              ArchiveType.Zip,
-              f.toIO,
-              tmpDir.toIO,
-              overwrite = false
-            )
-            if (!os.exists(dir))
-              try os.move(tmpDir, dir, atomicMove = true)
-              catch {
-                case ex: IOException =>
-                  if (!os.exists(dir))
-                    throw new Exception(ex)
-              }
-          }
-          finally removeAll()
-        }
-
-        val dirContent = os.list(dir)
+      if (os.isDir(f)) {
+        val dirContent = os.list(f)
         if (dirContent.length == 1) dirContent.head
         else dirContent.filter(_.last.startsWith(launcherPrefix)).head
-      }
-      else if (f.last.endsWith(".gz")) {
-        val dest = f / os.up / s".${f.last.stripSuffix(".gz")}"
-        if (os.exists(dest))
-          logger.debug(s"Found $dest")
-        else {
-          logger.debug(s"Uncompression $f at $dest")
-          var fis: FileInputStream  = null
-          var fos: FileOutputStream = null
-          var gzis: GZIPInputStream = null
-          try {
-            fis = new FileInputStream(f.toIO)
-            gzis = new GZIPInputStream(fis)
-            fos = new FileOutputStream(dest.toIO)
-
-            val buf  = Array.ofDim[Byte](16 * 1024)
-            var read = -1
-            while ({
-              read = gzis.read(buf)
-              read >= 0
-            })
-              if (read > 0)
-                fos.write(buf, 0, read)
-            fos.flush()
-          }
-          finally {
-            if (gzis != null) gzis.close()
-            if (fos != null) fos.close()
-            if (fis != null) fis.close()
-          }
-        }
-        dest
       }
       else
         f
