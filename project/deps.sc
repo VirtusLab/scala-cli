@@ -59,7 +59,7 @@ object Deps {
   def bloopConfig      = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.0.0"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M13"
-  def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.6.0"
+  def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.7.0"
   def coursierJvm      = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
   def coursierPublish  = ivy"io.get-coursier.publish::publish:0.1.0"
