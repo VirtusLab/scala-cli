@@ -2,10 +2,9 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.internal.{CustomCodeWrapper, Runner}
+import scala.build.internal.{CustomCodeWrapper, FetchExternalBinary, Runner}
 import scala.build.{CrossSources, Inputs, Logger, Sources}
 import scala.cli.CurrentParams
-import scala.cli.internal.FetchExternalBinary
 import scala.util.control.NonFatal
 
 object Fmt extends ScalaCommand[FmtOptions] {

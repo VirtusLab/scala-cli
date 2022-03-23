@@ -1,4 +1,4 @@
-package scala.cli.internal
+package scala.build.internal
 
 import coursier.cache.{ArchiveCache, CacheLogger}
 import coursier.error.FetchError
