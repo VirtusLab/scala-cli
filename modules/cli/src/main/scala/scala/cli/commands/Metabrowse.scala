@@ -5,10 +5,9 @@ import caseapp._
 import java.io.File
 import java.nio.file.Path
 
-import scala.build.internal.Runner
+import scala.build.internal.{FetchExternalBinary, Runner}
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
-import scala.cli.internal.FetchExternalBinary
 import scala.cli.packaging.Library
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
@@ -77,7 +76,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         FetchExternalBinary.fetch(
           url,
           changing,
-          options.shared.coursierCache,
+          successfulBuild.options.archiveCache,
           logger,
           "metabrowse"
         )

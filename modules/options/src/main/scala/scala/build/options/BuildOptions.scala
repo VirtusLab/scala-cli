@@ -159,6 +159,8 @@ final case class BuildOptions(
   lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
 
+  lazy val archiveCache = ArchiveCache().withCache(finalCache)
+
   private lazy val javaCommand0: Positioned[JavaHomeInfo] = javaHomeLocation().map { javaHome =>
     val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
     JavaHomeInfo(javaHome, javaCmd, javaVersion)
@@ -274,7 +276,7 @@ final case class BuildOptions(
     val jvmCache = JvmCache()
       .withIndex(indexTask)
       .withArchiveCache(
-        ArchiveCache().withCache(
+        archiveCache.withCache(
           finalCache.withMessage("Downloading JVM")
         )
       )
@@ -612,6 +614,8 @@ final case class BuildOptions(
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
       dependencies = value(dependencies),
       extraClassPath = allExtraJars,
+      scalaJsCliVersion =
+        if (platform.value == Platform.JS) Some(scalaJsCliVersion) else None,
       scalaNativeCliVersion =
         if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
       extraCompileOnlyJars = allExtraCompileOnlyJars,

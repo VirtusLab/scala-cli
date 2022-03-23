@@ -1,11 +1,10 @@
 package scala.cli.commands
 
 import caseapp._
-import org.scalajs.linker.interface.StandardConfig
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.internal.{Constants, Runner}
+import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.Platform
 import scala.build.{Build, BuildThreads, Inputs, Logger}
 import scala.cli.CurrentParams
@@ -162,7 +161,15 @@ object Run extends ScalaCommand[RunOptions] {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         val res =
-          withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig, logger) {
+          withLinkedJs(
+            build,
+            Some(mainClass),
+            addTestInitializer = false,
+            linkerConfig,
+            build.options.scalaJsOptions.fullOpt.getOrElse(false),
+            build.options.scalaJsOptions.noOpt.getOrElse(false),
+            logger
+          ) {
             js =>
               Runner.runJs(
                 js.toIO,
@@ -215,11 +222,22 @@ object Run extends ScalaCommand[RunOptions] {
     build: Build.Successful,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
-    config: StandardConfig,
+    config: ScalaJsLinkerConfig,
+    fullOpt: Boolean,
+    noOpt: Boolean,
     logger: Logger
   )(f: os.Path => T): Either[BuildException, T] = {
     val dest = os.temp(prefix = "main", suffix = ".js")
-    try Package.linkJs(build, dest, mainClassOpt, addTestInitializer, config, logger).map { _ =>
+    try Package.linkJs(
+        build,
+        dest,
+        mainClassOpt,
+        addTestInitializer,
+        config,
+        fullOpt,
+        noOpt,
+        logger
+      ).map { _ =>
         f(dest)
       }
     finally if (os.exists(dest)) os.remove(dest)

@@ -193,7 +193,13 @@ trait BuildLikeModule
 }
 
 class Core(val crossScalaVersion: String) extends BuildLikeModule {
-  def moduleDeps = Seq(`bloop-rifle`())
+  def moduleDeps = Seq(
+    `bloop-rifle`(),
+    `build-macros`()
+  )
+  def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-Xasync")
+  }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.collectionCompat,
@@ -205,7 +211,7 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.nativeTools, // Used only for discovery methods. For linking, look for scala-native-cli
     Deps.osLib,
     Deps.pprint,
-    Deps.scalaJsLinkerInterface,
+    Deps.scalaJsLogging,
     Deps.swoval
   )
 
@@ -244,8 +250,10 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |  def version = "${publishVersion()}"
          |  def detailedVersion: Option[String] = $detailedVersionValue
          |
-         |  def scalaJsVersion = "${Deps.scalaJsLinker.dep.version}"
+         |  def scalaJsVersion = "${Scala.scalaJs}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
+         |
+         |  def scalaJsCliVersion = "${InternalDeps.Versions.scalaJsCli}"
          |
          |  def stubsOrganization = "${stubs.pomSettings().organization}"
          |  def stubsModuleName = "${stubs.artifactName()}"
@@ -493,7 +501,6 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
-    Deps.scalaJsLinker,
     Deps.scalaPackager,
     Deps.metaconfigTypesafe
   )

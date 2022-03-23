@@ -3,7 +3,6 @@ package scala.cli.commands
 import caseapp._
 import coursier.launcher._
 import dependency.dependencyString
-import org.scalajs.linker.interface.StandardConfig
 import packager.config._
 import packager.deb.DebianPackage
 import packager.docker.DockerPackage
@@ -21,7 +20,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.errors.{BuildException, ScalaNativeBuildError}
-import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsConfig}
+import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
@@ -525,7 +524,16 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger
   ): Either[BuildException, Unit] = {
     val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-    linkJs(build, destPath, Some(mainClass), addTestInitializer = false, linkerConfig, logger)
+    linkJs(
+      build,
+      destPath,
+      Some(mainClass),
+      addTestInitializer = false,
+      linkerConfig,
+      build.options.scalaJsOptions.fullOpt.getOrElse(false),
+      build.options.scalaJsOptions.noOpt.getOrElse(false),
+      logger
+    )
   }
 
   private def buildNative(
@@ -657,38 +665,50 @@ object Package extends ScalaCommand[PackageOptions] {
     dest: os.Path,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
-    config: StandardConfig,
+    config: ScalaJsLinkerConfig,
+    fullOpt: Boolean,
+    noOpt: Boolean,
     logger: Logger
   ): Either[BuildException, Unit] =
     Library.withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
-      val classPath  = mainJar +: build.artifacts.classPath.map(_.toNIO)
+      val classPath  = os.Path(mainJar, os.pwd) +: build.artifacts.classPath
       val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
-      (new ScalaJsLinker).link(
-        classPath.toArray,
-        mainClassOpt.orNull,
-        addTestInitializer,
-        new ScalaJsConfig(config),
-        linkingDir.toNIO,
-        logger.scalaJsLogger
-      )
-      val relMainJs      = os.rel / "main.js"
-      val relSourceMapJs = os.rel / "main.js.map"
-      val mainJs         = linkingDir / relMainJs
-      val sourceMapJs    = linkingDir / relSourceMapJs
-      if (os.exists(mainJs)) {
-        os.copy(mainJs, dest, replaceExisting = true)
-        if (build.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
-          val sourceMapDest =
-            build.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
-          os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
-          logger.message(s"Emitted js source maps to: $sourceMapDest")
+      either {
+        value {
+          ScalaJsLinker.link(
+            build.options.notForBloopOptions.scalaJsLinkerOptions,
+            build.options.javaHome().value.javaCommand, // FIXME Allow users to use another JVM here?
+            classPath,
+            mainClassOpt.orNull,
+            addTestInitializer,
+            config,
+            linkingDir,
+            fullOpt,
+            noOpt,
+            logger,
+            build.options.finalCache,
+            build.options.archiveCache,
+            build.options.scalaJsOptions.finalVersion
+          )
         }
-        os.remove.all(linkingDir)
-        Right(())
-      }
-      else {
-        val found = os.walk(linkingDir).map(_.relativeTo(linkingDir))
-        Left(new ScalaJsLinkingError(relMainJs, found))
+        val relMainJs      = os.rel / "main.js"
+        val relSourceMapJs = os.rel / "main.js.map"
+        val mainJs         = linkingDir / relMainJs
+        val sourceMapJs    = linkingDir / relSourceMapJs
+        if (os.exists(mainJs)) {
+          os.copy(mainJs, dest, replaceExisting = true)
+          if (build.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
+            val sourceMapDest =
+              build.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
+            os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
+            logger.message(s"Emitted js source maps to: $sourceMapDest")
+          }
+          os.remove.all(linkingDir)
+        }
+        else {
+          val found = os.walk(linkingDir).map(_.relativeTo(linkingDir))
+          value(Left(new ScalaJsLinkingError(relMainJs, found)))
+        }
       }
     }
 

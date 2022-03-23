@@ -2,10 +2,9 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.internal.{CustomCodeWrapper, Runner}
+import scala.build.internal.{CustomCodeWrapper, FetchExternalBinary, Runner}
 import scala.build.{CrossSources, Inputs, Logger, Sources}
 import scala.cli.CurrentParams
-import scala.cli.internal.FetchExternalBinary
 import scala.util.control.NonFatal
 
 object Fmt extends ScalaCommand[FmtOptions] {
@@ -89,7 +88,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       }
     CurrentParams.workspaceOpt = Some(workspace)
     val (versionMaybe, confExists) = readVersionFromFile(workspace, logger)
-    val cache                      = options.shared.coursierCache
+    val cache                      = options.shared.buildOptions(false, None).archiveCache
 
     if (sourceFiles.isEmpty)
       logger.debug("No source files, not formatting anything")
@@ -132,6 +131,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
         case None =>
           val (url, changing) = options.binaryUrl(versionMaybe)
           FetchExternalBinary.fetch(url, changing, cache, logger, "scalafmt")
+            .orExit(logger)
       }
 
       logger.debug(s"Using scalafmt launcher $fmtLauncher")

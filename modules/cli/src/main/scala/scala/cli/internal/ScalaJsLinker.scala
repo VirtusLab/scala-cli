@@ -1,53 +1,149 @@
 package scala.cli.internal
 
-import org.scalajs.linker.interface.ModuleInitializer
-import org.scalajs.linker.{PathIRContainer, PathOutputDirectory, StandardImpl}
-import org.scalajs.logging.Logger
+import coursier.cache.{ArchiveCache, FileCache}
+import coursier.util.Task
+import coursier.{Repositories, moduleString}
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
-import java.nio.file.Path
+import java.io.File
 
-import scala.build.internal.ScalaJsConfig
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.{global => ec}
-import scala.concurrent.duration.Duration
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.{BuildException, ScalaJsLinkingError}
+import scala.build.internal.{FetchExternalBinary, Runner, ScalaJsLinkerConfig}
+import scala.build.options.scalajs.ScalaJsLinkerOptions
+import scala.build.{Logger, Positioned}
+import scala.util.Properties
 
-final class ScalaJsLinker {
+object ScalaJsLinker {
+
+  private def linkerCommand(
+    options: ScalaJsLinkerOptions,
+    javaCommand: String,
+    logger: Logger,
+    cache: FileCache[Task],
+    archiveCache: ArchiveCache[Task],
+    scalaJsVersion: String
+  ): Either[BuildException, Seq[String]] = either {
+
+    options.linkerPath match {
+      case Some(path) =>
+        Seq(path.toString)
+      case None =>
+        val scalaJsCliVersion = options.finalScalaJsCliVersion
+
+        options.finalUseJvm match {
+          case Right(()) =>
+            val scalaJsCliDep = {
+              val mod =
+                if (scalaJsCliVersion.contains("-sc"))
+                  mod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+                else mod"org.scala-js:scalajs-cli_2.13"
+              coursier.Dependency(mod, scalaJsCliVersion)
+            }
+
+            val forcedVersions = Seq(
+              mod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
+            )
+
+            val extraRepos =
+              if (scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT"))
+                Seq(Repositories.sonatype("snapshots").root)
+              else
+                Nil
+
+            val linkerClassPath = value {
+              scala.build.Artifacts.fetch0(
+                Positioned.none(Seq(scalaJsCliDep)),
+                extraRepos,
+                None,
+                forcedVersions,
+                logger,
+                cache,
+                None
+              )
+            }.files
+
+            val command = Seq[os.Shellable](
+              javaCommand,
+              options.javaArgs,
+              "-cp",
+              linkerClassPath.map(_.getAbsolutePath).mkString(File.pathSeparator),
+              "org.scalajs.cli.Scalajsld"
+            )
+
+            command.flatMap(_.value)
+
+          case Left(osArch) =>
+            val useLatest = scalaJsCliVersion == "latest"
+            val ext       = if (Properties.isWin) ".zip" else ".gz"
+            val tag       = if (useLatest) "launchers" else s"v$scalaJsCliVersion"
+            val url =
+              s"https://github.com/scala-cli/scala-js-cli-native-image/releases/download/$tag/scala-js-ld-$scalaJsVersion-$osArch$ext"
+            val launcher = value {
+              FetchExternalBinary.fetch(url, useLatest, archiveCache, logger, "scala-js-ld")
+            }
+            Seq(launcher.toString)
+        }
+    }
+  }
 
   def link(
-    classPath: Array[Path],
+    options: ScalaJsLinkerOptions,
+    javaCommand: String,
+    classPath: Seq[os.Path],
     mainClassOrNull: String,
     addTestInitializer: Boolean,
-    config: ScalaJsConfig,
-    linkingDir: Path,
-    logger: Logger
-  ): Unit = {
+    config: ScalaJsLinkerConfig,
+    linkingDir: os.Path,
+    fullOpt: Boolean,
+    noOpt: Boolean,
+    logger: Logger,
+    cache: FileCache[Task],
+    archiveCache: ArchiveCache[Task],
+    scalaJsVersion: String
+  ): Either[ScalaJsLinkingError, Unit] = either {
 
-    // adapted from https://github.com/scala-js/scala-js-cli/blob/729824848e25961a3d9a1cfe6ac0260745033148/src/main/scala/org/scalajs/cli/Scalajsld.scala#L158-L193
-
-    val linker = StandardImpl.linker(config.config)
-
-    val output = PathOutputDirectory(linkingDir)
-
-    val cache = StandardImpl.irFileCache().newCache
-
-    val mainInitializers = Option(mainClassOrNull).toSeq.map { mainClass =>
-      ModuleInitializer.mainMethodWithArgs(mainClass, "main")
+    val command = value {
+      linkerCommand(options, javaCommand, logger, cache, archiveCache, scalaJsVersion)
     }
-    val testInitializers =
-      if (addTestInitializer)
-        Seq(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
-      else
-        Nil
 
-    val moduleInitializers = mainInitializers ++ testInitializers
+    val allArgs = {
+      val outputArgs = Seq("--outputDir", linkingDir.toString)
+      val mainClassArgs =
+        Option(mainClassOrNull).toSeq.flatMap(mainClass => Seq("--mainMethod", mainClass + ".main"))
+      val testInitializerArgs =
+        if (addTestInitializer)
+          Seq("--mainMethod", TAI.ModuleClassName + "." + TAI.MainMethodName + "!")
+        else
+          Nil
+      val optArg =
+        if (noOpt) "--noOpt"
+        else if (fullOpt) "--fullOpt"
+        else "--fastOpt"
 
-    implicit val ec0 = ec
-    val futureResult = PathIRContainer
-      .fromClasspath(classPath.toVector)
-      .flatMap(containers => cache.cached(containers._1))
-      .flatMap(linker.link(_, moduleInitializers, output, logger))
-    Await.result(futureResult, Duration.Inf)
+      Seq[os.Shellable](
+        outputArgs,
+        mainClassArgs,
+        testInitializerArgs,
+        optArg,
+        config.linkerCliArgs,
+        classPath.map(_.toString)
+      )
+    }
+
+    val cmd = command ++ allArgs.flatMap(_.value)
+    val retCode = Runner.run(
+      "unused",
+      cmd,
+      logger
+    )
+
+    if (retCode == 0)
+      logger.debug("Scala.JS linker ran successfully")
+    else {
+      logger.debug(s"Scala.JS linker exited with return code $retCode")
+      value(Left(new ScalaJsLinkingError))
+    }
   }
 
 }

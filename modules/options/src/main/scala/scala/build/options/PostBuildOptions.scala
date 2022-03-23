@@ -1,9 +1,12 @@
 package scala.build.options
 
+import scala.build.options.scalajs.ScalaJsLinkerOptions
+
 final case class PostBuildOptions(
   packageOptions: PackageOptions = PackageOptions(),
   replOptions: ReplOptions = ReplOptions(),
-  publishOptions: PublishOptions = PublishOptions()
+  publishOptions: PublishOptions = PublishOptions(),
+  scalaJsLinkerOptions: ScalaJsLinkerOptions = ScalaJsLinkerOptions()
 )
 
 object PostBuildOptions {

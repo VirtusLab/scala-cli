@@ -9,6 +9,8 @@ object Scala {
   val allScala2 = Seq(scala213, scala212)
   val all       = allScala2 ++ Seq(scala3)
 
+  def scalaJs = "1.9.0"
+
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
       sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
@@ -41,6 +43,7 @@ object InternalDeps {
   object Versions {
     def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
+    def scalaJsCli    = "1.1.1-sc1"
   }
 }
 
@@ -49,7 +52,6 @@ object Deps {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier      = "2.1.0-M5-18-gfebf9838c"
     def jsoniterScala = "2.13.7"
-    def scalaJs       = "1.9.0"
     def scalaMeta     = "4.5.1"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
@@ -88,9 +90,8 @@ object Deps {
   def scalac(sv: String)       = ivy"org.scala-lang:scala-compiler:$sv"
   def scalafmtCli              = ivy"org.scalameta::scalafmt-cli:3.0.8"
   def scalaJsEnvNodeJs         = ivy"org.scala-js::scalajs-env-nodejs:1.3.0"
-  def scalaJsLinker            = ivy"org.scala-js::scalajs-linker:${Versions.scalaJs}"
-  def scalaJsLinkerInterface   = ivy"org.scala-js::scalajs-linker-interface:${Versions.scalaJs}"
-  def scalaJsTestAdapter       = ivy"org.scala-js::scalajs-sbt-test-adapter:${Versions.scalaJs}"
+  def scalaJsLogging           = ivy"org.scala-js:scalajs-logging_2.13:1.1.1"
+  def scalaJsTestAdapter       = ivy"org.scala-js::scalajs-sbt-test-adapter:${Scala.scalaJs}"
   def scalametaTrees           = ivy"org.scalameta::trees:${Versions.scalaMeta}"
   def scalaPackager            = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
   def scalaPackagerCli         = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
