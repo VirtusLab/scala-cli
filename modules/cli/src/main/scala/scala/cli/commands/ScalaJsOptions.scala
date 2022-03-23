@@ -4,6 +4,7 @@ import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
+import scala.build.internal.FetchExternalBinary
 import scala.build.{Os, options}
 
 // format: off
@@ -52,11 +53,31 @@ final case class ScalaJsOptions(
     jsModuleSplitStyle: Option[String] = None,
   @Group("Scala.JS")
   @HelpMessage("The Scala JS ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021")
-    jsEsVersion: Option[String] = None
+    jsEsVersion: Option[String] = None,
+
+  @Group("Scala.JS")
+  @HelpMessage("Path to the Scala.JS linker")
+  @ValueDescription("path")
+  @Hidden
+    jsLinkerPath: Option[String] = None,
+  @Group("Scala.JS")
+  @HelpMessage("Scala.JS CLI version to use for linking")
+  @ValueDescription("version")
+  @Hidden
+    jsCliVersion: Option[String] = None,
+  @Group("Scala.JS")
+  @HelpMessage("Scala.JS CLI Java options")
+  @ValueDescription("option")
+  @Hidden
+    jsCliJavaArg: List[String] = Nil,
+  @Group("Scala.JS")
+  @HelpMessage("Whether to run the Scala.JS CLI on the JVM or using a native executable")
+  @Hidden
+    jsCliOnJvm: Option[Boolean] = None
 ) {
   // format: on
 
-  def buildOptions: options.ScalaJsOptions =
+  def scalaJsOptions: options.ScalaJsOptions =
     options.ScalaJsOptions(
       version = jsVersion,
       mode = jsMode,
@@ -71,6 +92,18 @@ final case class ScalaJsOptions(
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyle,
       esVersionStr = jsEsVersion
+    )
+  def linkerOptions: options.scalajs.ScalaJsLinkerOptions =
+    options.scalajs.ScalaJsLinkerOptions(
+      linkerPath = jsLinkerPath
+        .filter(_.trim.nonEmpty)
+        .map(os.Path(_, Os.pwd)),
+      scalaJsCliVersion = jsCliVersion.map(_.trim).filter(_.nonEmpty),
+      javaArgs = jsCliJavaArg,
+      useJvm = jsCliOnJvm.map {
+        case false => Left(FetchExternalBinary.platformSuffix())
+        case true  => Right(())
+      }
     )
 }
 

@@ -148,7 +148,7 @@ final case class SharedOptions(
       scriptOptions = bo.ScriptOptions(
         codeWrapper = None
       ),
-      scalaJsOptions = js.buildOptions,
+      scalaJsOptions = js.scalaJsOptions,
       scalaNativeOptions = native.buildOptions,
       javaOptions = jvm.javaOptions,
       internalDependencies = bo.InternalDependenciesOptions(
@@ -183,6 +183,9 @@ final case class SharedOptions(
         localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
         verbosity = Some(logging.verbosity),
         strictBloopJsonCheck = strictBloopJsonCheck
+      ),
+      notForBloopOptions = bo.PostBuildOptions(
+        scalaJsLinkerOptions = js.linkerOptions
       )
     )
   }

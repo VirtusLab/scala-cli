@@ -1016,6 +1016,22 @@ The Scala JS module split style: fewestmodules, smallestmodules
 
 The Scala JS ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021
 
+#### `--js-linker-path`
+
+Path to the Scala.JS linker
+
+#### `--js-cli-version`
+
+Scala.JS CLI version to use for linking
+
+#### `--js-cli-java-arg`
+
+Scala.JS CLI Java options
+
+#### `--js-cli-on-jvm`
+
+Whether to run the Scala.JS CLI on the JVM or using a native executable
+
 ## Scala Native options
 
 Available in commands:

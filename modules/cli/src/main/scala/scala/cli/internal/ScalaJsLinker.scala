@@ -1,17 +1,95 @@
 package scala.cli.internal
 
+import coursier.cache.{ArchiveCache, FileCache}
+import coursier.util.Task
+import coursier.{Repositories, moduleString}
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
-import scala.build.Logger
-import scala.build.errors.ScalaJsLinkingError
-import scala.build.internal.{Runner, ScalaJsLinkerConfig}
+import java.io.File
+
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.{BuildException, ScalaJsLinkingError}
+import scala.build.internal.{FetchExternalBinary, Runner, ScalaJsLinkerConfig}
+import scala.build.options.scalajs.ScalaJsLinkerOptions
+import scala.build.{Logger, Positioned}
+import scala.util.Properties
 
 object ScalaJsLinker {
 
-  def link(
+  private def linkerCommand(
+    options: ScalaJsLinkerOptions,
     javaCommand: String,
-    javaArgs: Seq[String],
-    linkerClassPath: Seq[os.Path],
+    logger: Logger,
+    cache: FileCache[Task],
+    archiveCache: ArchiveCache[Task],
+    scalaJsVersion: String
+  ): Either[BuildException, Seq[String]] = either {
+
+    options.linkerPath match {
+      case Some(path) =>
+        Seq(path.toString)
+      case None =>
+        val scalaJsCliVersion = options.finalScalaJsCliVersion
+
+        options.finalUseJvm match {
+          case Right(()) =>
+            val scalaJsCliDep = {
+              val mod =
+                if (scalaJsCliVersion.contains("-sc"))
+                  mod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+                else mod"org.scala-js:scalajs-cli_2.13"
+              coursier.Dependency(mod, scalaJsCliVersion)
+            }
+
+            val forcedVersions = Seq(
+              mod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
+            )
+
+            val extraRepos =
+              if (scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT"))
+                Seq(Repositories.sonatype("snapshots").root)
+              else
+                Nil
+
+            val linkerClassPath = value {
+              scala.build.Artifacts.fetch0(
+                Positioned.none(Seq(scalaJsCliDep)),
+                extraRepos,
+                None,
+                forcedVersions,
+                logger,
+                cache,
+                None
+              )
+            }.files
+
+            val command = Seq[os.Shellable](
+              javaCommand,
+              options.javaArgs,
+              "-cp",
+              linkerClassPath.map(_.getAbsolutePath).mkString(File.pathSeparator),
+              "org.scalajs.cli.Scalajsld"
+            )
+
+            command.flatMap(_.value)
+
+          case Left(osArch) =>
+            val useLatest = scalaJsCliVersion == "latest"
+            val ext       = if (Properties.isWin) ".zip" else ".gz"
+            val tag       = if (useLatest) "launchers" else s"v$scalaJsCliVersion"
+            val url =
+              s"https://github.com/scala-cli/scala-js-cli-native-image/releases/download/$tag/scala-js-ld-$scalaJsVersion-$osArch$ext"
+            val launcher = value {
+              FetchExternalBinary.fetch(url, useLatest, archiveCache, logger, "scala-js-ld")
+            }
+            Seq(launcher.toString)
+        }
+    }
+  }
+
+  def link(
+    options: ScalaJsLinkerOptions,
+    javaCommand: String,
     classPath: Seq[os.Path],
     mainClassOrNull: String,
     addTestInitializer: Boolean,
@@ -19,81 +97,52 @@ object ScalaJsLinker {
     linkingDir: os.Path,
     fullOpt: Boolean,
     noOpt: Boolean,
-    logger: Logger
-  ): Either[ScalaJsLinkingError, Unit] = {
+    logger: Logger,
+    cache: FileCache[Task],
+    archiveCache: ArchiveCache[Task],
+    scalaJsVersion: String
+  ): Either[ScalaJsLinkingError, Unit] = either {
 
-    val outputArgs = Seq("--outputDir", linkingDir.toString)
-    val mainClassArgs =
-      Option(mainClassOrNull).toSeq.flatMap(mainClass => Seq("--mainMethod", mainClass + ".main"))
-    val testInitializerArgs =
-      if (addTestInitializer)
-        Seq("--mainMethod", TAI.ModuleClassName + "." + TAI.MainMethodName + "!")
-      else
-        Nil
-    // FIXME Fatal asInstanceOfs should be the default, but it seems we can't
-    // pass Unchecked via the CLI here
-    // It seems we can't pass the other semantics fields either.
-    val semanticsArgs =
-      if (config.semantics.asInstanceOfs == ScalaJsLinkerConfig.CheckedBehavior.Compliant)
-        Seq("--compliantAsInstanceOfs")
-      else
-        Nil
-    val moduleKindArgs       = Seq("--moduleKind", config.moduleKind)
-    val moduleSplitStyleArgs = Seq("--moduleSplitStyle", config.moduleSplitStyle)
-    val esFeaturesArgs =
-      if (config.esFeatures.esVersion == ScalaJsLinkerConfig.ESVersion.ES2015)
-        Seq("--es2015")
-      else
-        Nil
-    val checkIRArgs = if (config.checkIR) Seq("--checkIR") else Nil
-    val optArg =
-      if (noOpt) "--noOpt"
-      else if (fullOpt) "--fullOpt"
-      else "--fastOpt"
-    val sourceMapArgs = if (config.sourceMap) Seq("--sourceMap") else Nil
-    val relativizeSourceMapBaseArgs =
-      config.relativizeSourceMapBase.toSeq
-        .flatMap(uri => Seq("--relativizeSourceMap", uri))
-    val prettyPrintArgs =
-      if (config.prettyPrint) Seq("--prettyPrint")
-      else Nil
-    val configArgs = Seq[os.Shellable](
-      semanticsArgs,
-      moduleKindArgs,
-      moduleSplitStyleArgs,
-      esFeaturesArgs,
-      checkIRArgs,
-      optArg,
-      sourceMapArgs,
-      relativizeSourceMapBaseArgs,
-      prettyPrintArgs
-    )
+    val command = value {
+      linkerCommand(options, javaCommand, logger, cache, archiveCache, scalaJsVersion)
+    }
 
-    val allArgs = Seq[os.Shellable](
-      outputArgs,
-      mainClassArgs,
-      testInitializerArgs,
-      configArgs,
-      classPath.map(_.toString)
-    )
+    val allArgs = {
+      val outputArgs = Seq("--outputDir", linkingDir.toString)
+      val mainClassArgs =
+        Option(mainClassOrNull).toSeq.flatMap(mainClass => Seq("--mainMethod", mainClass + ".main"))
+      val testInitializerArgs =
+        if (addTestInitializer)
+          Seq("--mainMethod", TAI.ModuleClassName + "." + TAI.MainMethodName + "!")
+        else
+          Nil
+      val optArg =
+        if (noOpt) "--noOpt"
+        else if (fullOpt) "--fullOpt"
+        else "--fastOpt"
 
-    // FIXME In quiet mode, silence the output of that?
-    val retCode = Runner.runJvm(
-      javaCommand,
-      javaArgs,
-      linkerClassPath.map(_.toIO),
-      "org.scalajs.cli.Scalajsld",
-      allArgs.flatMap(_.value),
+      Seq[os.Shellable](
+        outputArgs,
+        mainClassArgs,
+        testInitializerArgs,
+        optArg,
+        config.linkerCliArgs,
+        classPath.map(_.toString)
+      )
+    }
+
+    val cmd = command ++ allArgs.flatMap(_.value)
+    val retCode = Runner.run(
+      "unused",
+      cmd,
       logger
     )
 
-    if (retCode == 0) {
+    if (retCode == 0)
       logger.debug("Scala.JS linker ran successfully")
-      Right(())
-    }
     else {
       logger.debug(s"Scala.JS linker exited with return code $retCode")
-      Left(new ScalaJsLinkingError)
+      value(Left(new ScalaJsLinkingError))
     }
   }
 

@@ -676,9 +676,8 @@ object Package extends ScalaCommand[PackageOptions] {
       either {
         value {
           ScalaJsLinker.link(
-            build.options.javaHome().value.javaCommand,
-            build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            build.artifacts.scalaJsCli,
+            build.options.notForBloopOptions.scalaJsLinkerOptions,
+            build.options.javaHome().value.javaCommand, // FIXME Allow users to use another JVM here?
             classPath,
             mainClassOpt.orNull,
             addTestInitializer,
@@ -686,7 +685,10 @@ object Package extends ScalaCommand[PackageOptions] {
             linkingDir,
             fullOpt,
             noOpt,
-            logger
+            logger,
+            build.options.finalCache,
+            build.options.archiveCache,
+            build.options.scalaJsOptions.finalVersion
           )
         }
         val relMainJs      = os.rel / "main.js"

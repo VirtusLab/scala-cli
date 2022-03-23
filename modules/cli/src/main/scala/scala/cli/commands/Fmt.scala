@@ -131,6 +131,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
         case None =>
           val (url, changing) = options.binaryUrl(versionMaybe)
           FetchExternalBinary.fetch(url, changing, cache, logger, "scalafmt")
+            .orExit(logger)
       }
 
       logger.debug(s"Using scalafmt launcher $fmtLauncher")

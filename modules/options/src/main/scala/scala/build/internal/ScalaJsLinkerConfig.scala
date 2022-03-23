@@ -11,7 +11,46 @@ final case class ScalaJsLinkerConfig(
   prettyPrint: Boolean = false,
   relativizeSourceMapBase: Option[String] = None,
   semantics: ScalaJsLinkerConfig.Semantics = ScalaJsLinkerConfig.Semantics()
-)
+) {
+  def linkerCliArgs: Seq[String] = {
+
+    // FIXME Fatal asInstanceOfs should be the default, but it seems we can't
+    // pass Unchecked via the CLI here
+    // It seems we can't pass the other semantics fields either.
+    val semanticsArgs =
+      if (semantics.asInstanceOfs == ScalaJsLinkerConfig.CheckedBehavior.Compliant)
+        Seq("--compliantAsInstanceOfs")
+      else
+        Nil
+    val moduleKindArgs       = Seq("--moduleKind", moduleKind)
+    val moduleSplitStyleArgs = Seq("--moduleSplitStyle", moduleSplitStyle)
+    val esFeaturesArgs =
+      if (esFeatures.esVersion == ScalaJsLinkerConfig.ESVersion.ES2015)
+        Seq("--es2015")
+      else
+        Nil
+    val checkIRArgs   = if (checkIR) Seq("--checkIR") else Nil
+    val sourceMapArgs = if (sourceMap) Seq("--sourceMap") else Nil
+    val relativizeSourceMapBaseArgs =
+      relativizeSourceMapBase.toSeq
+        .flatMap(uri => Seq("--relativizeSourceMap", uri))
+    val prettyPrintArgs =
+      if (prettyPrint) Seq("--prettyPrint")
+      else Nil
+    val configArgs = Seq[os.Shellable](
+      semanticsArgs,
+      moduleKindArgs,
+      moduleSplitStyleArgs,
+      esFeaturesArgs,
+      checkIRArgs,
+      sourceMapArgs,
+      relativizeSourceMapBaseArgs,
+      prettyPrintArgs
+    )
+
+    configArgs.flatMap(_.value)
+  }
+}
 
 object ScalaJsLinkerConfig {
   object ModuleKind {

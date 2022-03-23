@@ -51,21 +51,29 @@ object FetchExternalBinary {
     launcher
   }
 
-  def platformSuffix(supportsMusl: Boolean = true): String = {
+  def maybePlatformSuffix(supportsMusl: Boolean = true): Either[String, String] = {
     val arch = sys.props("os.arch").toLowerCase(Locale.ROOT) match {
       case "amd64" => "x86_64"
       case other   => other
     }
-    val os =
-      if (Properties.isWin) "pc-win32"
+    val maybeOs =
+      if (Properties.isWin) Right("pc-win32")
       else if (Properties.isLinux)
-        if (supportsMusl && OsLibc.isMusl.getOrElse(false))
-          "pc-linux-static"
-        else
-          "pc-linux"
-      else if (Properties.isMac) "apple-darwin"
-      else sys.error(s"Unrecognized OS: ${sys.props("os.name")}")
-    s"$arch-$os"
+        Right {
+          if (supportsMusl && OsLibc.isMusl.getOrElse(false))
+            "pc-linux-static"
+          else
+            "pc-linux"
+        }
+      else if (Properties.isMac) Right("apple-darwin")
+      else Left(s"Unrecognized OS: ${sys.props("os.name")}")
+    maybeOs.map(os => s"$arch-$os")
   }
+
+  def platformSuffix(supportsMusl: Boolean = true): String =
+    maybePlatformSuffix(supportsMusl) match {
+      case Left(err)    => sys.error(err)
+      case Right(value) => value
+    }
 
 }

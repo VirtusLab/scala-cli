@@ -363,7 +363,7 @@ object Artifacts {
       classifiersOpt
     )
 
-  private def fetch0(
+  def fetch0(
     dependencies: Positioned[Seq[coursier.Dependency]],
     extraRepositories: Seq[String],
     forceScalaVersionOpt: Option[String],
