@@ -30,7 +30,7 @@ class ScalaCliCommands(
     InstallHome,
     Metabrowse,
     Repl,
-    Package,
+    PackageCmd,
     Publish,
     Run,
     SetupIde,

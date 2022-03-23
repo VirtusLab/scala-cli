@@ -12,11 +12,10 @@ import scala.build.Inputs.WorkspaceOrigin
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Artifacts, CrossSources, Inputs, Logger, Sources}
+import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
 import scala.cli.CurrentParams
 import scala.cli.errors.FoundVirtualInputsError
 import scala.jdk.CollectionConverters._
-
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
   def downloadDeps(
@@ -70,6 +69,9 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       case Right(_) =>
     }
 
+  private def buildOptions(opts: SetupIdeOptions): BuildOptions =
+    opts.shared.buildOptions(enableJmh = false, jmhVersion = None)
+
   private def writeBspConfiguration(
     options: SetupIdeOptions,
     inputs: Inputs,
@@ -88,10 +90,10 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val logger = options.shared.logger
 
-    if (options.buildOptions.classPathOptions.extraDependencies.toSeq.nonEmpty)
-      value(downloadDeps(inputs, options.buildOptions, logger))
+    if (buildOptions(options).classPathOptions.extraDependencies.toSeq.nonEmpty)
+      value(downloadDeps(inputs, buildOptions(options), logger))
 
-    val (bspName, bspJsonDestination) = options.bspFile.bspDetails(inputs.workspace)
+    val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
     val scalaCliBspJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-options-v2.json"
 
@@ -144,5 +146,16 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     }
     else
       None
+  }
+
+  def bspDetails(workspace: os.Path, ops: SharedBspFileOptions): (String, os.Path) = {
+    import ops._
+    val dir = bspDirectory
+      .filter(_.nonEmpty)
+      .map(os.Path(_, Os.pwd))
+      .getOrElse(workspace / ".bsp")
+    val bspName0 = bspName.map(_.trim).filter(_.nonEmpty).getOrElse("scala-cli")
+
+    (bspName0, dir / s"$bspName0.json")
   }
 }

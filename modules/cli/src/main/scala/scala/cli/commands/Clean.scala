@@ -24,7 +24,7 @@ object Clean extends ScalaCommand[CleanOptions] {
     }
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val workDir       = inputs.workspace / Constants.workspaceDirName
-    val (_, bspEntry) = options.bspFile.bspDetails(inputs.workspace)
+    val (_, bspEntry) = SetupIde.bspDetails(inputs.workspace, options.bspFile)
 
     val logger = options.logging.logger
     if (os.exists(workDir)) {

@@ -9,6 +9,7 @@ import scala.build.internal.{FetchExternalBinary, Runner}
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
 import scala.cli.packaging.Library
+import scala.util.Properties
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
   override def hidden     = true
@@ -21,6 +22,21 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
   override def sharedOptions(options: MetabrowseOptions) = Some(options.shared)
 
+  private def metabrowseBinaryUrl(
+    scalaVersion: String,
+    options: MetabrowseOptions
+  ): (String, Boolean) = {
+    import options._
+    val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
+      .getOrElse(FetchExternalBinary.platformSuffix(supportsMusl = false))
+    val metabrowseTag0           = metabrowseTag.getOrElse("latest")
+    val metabrowseGithubOrgName0 = metabrowseGithubOrgName.getOrElse("alexarchambault/metabrowse")
+    val metabrowseExtension0     = if (Properties.isWin) ".zip" else ".gz"
+    val url =
+      s"https://github.com/$metabrowseGithubOrgName0/releases/download/$metabrowseTag0/metabrowse-$scalaVersion-$osArchSuffix0$metabrowseExtension0"
+    (url, !metabrowseTag0.startsWith("v"))
+  }
+
   def run(options: MetabrowseOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
@@ -28,8 +44,16 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val logger = options.shared.logger
 
-    val initialBuildOptions = options.buildOptions
-    val threads             = BuildThreads.create()
+    val baseOptions = options.shared.buildOptions(enableJmh = false, jmhVersion = None)
+    val initialBuildOptions = baseOptions.copy(
+      classPathOptions = baseOptions.classPathOptions.copy(
+        fetchSources = Some(true)
+      ),
+      javaOptions = baseOptions.javaOptions.copy(
+        jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse(Some("8"))
+      )
+    )
+    val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)
 
@@ -53,7 +77,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     }
 
     Library.withLibraryJar(successfulBuild) { jar =>
-      Package.withSourceJar(successfulBuild, System.currentTimeMillis()) { sourceJar =>
+      PackageCmd.withSourceJar(successfulBuild, System.currentTimeMillis()) { sourceJar =>
         runServer(options, logger, successfulBuild, jar, sourceJar)
       }
     }
@@ -72,7 +96,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       .map(os.Path(_, os.pwd))
       .getOrElse {
         val (url, changing) =
-          options.metabrowseBinaryUrl(successfulBuild.scalaParams.scalaVersion)
+          metabrowseBinaryUrl(successfulBuild.scalaParams.scalaVersion, options)
         FetchExternalBinary.fetch(
           url,
           changing,

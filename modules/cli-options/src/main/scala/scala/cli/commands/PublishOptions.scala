@@ -2,12 +2,6 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
-import scala.build.Positioned
-import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.options.{BuildOptions, PublishOptions => BPublishOptions}
-
 // format: off
 final case class PublishOptions(
   @Recurse
@@ -72,49 +66,8 @@ final case class PublishOptions(
   @Group("Publishing")
   @HelpMessage("Whether to build and publish source JARs")
     sources: Option[Boolean] = None
-) {
-  // format: on
-
-  def buildOptions: Either[BuildException, BuildOptions] = either {
-    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
-    baseOptions.copy(
-      mainClass = mainClass.mainClass.filter(_.nonEmpty),
-      notForBloopOptions = baseOptions.notForBloopOptions.copy(
-        publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
-          organization = organization.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          name = moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          version = version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          url = url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          license = value {
-            license
-              .map(_.trim).filter(_.nonEmpty)
-              .map(Positioned.commandLine(_))
-              .map(BPublishOptions.parseLicense(_))
-              .sequence
-          },
-          versionControl = value {
-            vcs.map(_.trim).filter(_.nonEmpty)
-              .map(Positioned.commandLine(_))
-              .map(BPublishOptions.parseVcs(_))
-              .sequence
-          },
-          description = description.map(_.trim).filter(_.nonEmpty),
-          developers = value {
-            developer.filter(_.trim.nonEmpty)
-              .map(Positioned.commandLine(_))
-              .map(BPublishOptions.parseDeveloper(_))
-              .sequence
-              .left.map(CompositeBuildException(_))
-          },
-          scalaVersionSuffix = scalaVersionSuffix.map(_.trim),
-          scalaPlatformSuffix = scalaPlatformSuffix.map(_.trim),
-          repository = publishRepository.filter(_.trim.nonEmpty),
-          sourceJar = sources
-        )
-      )
-    )
-  }
-}
+)
+// format: on
 
 object PublishOptions {
   implicit lazy val parser: Parser[PublishOptions] = Parser.derive

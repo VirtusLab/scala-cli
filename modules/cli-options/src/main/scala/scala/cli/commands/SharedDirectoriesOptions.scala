@@ -4,24 +4,12 @@ import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.build.Os
-
 // format: off
 final case class SharedDirectoriesOptions(
   @Name("home")
     homeDirectory: Option[String] = None
-) {
-  // format: on
-
-  lazy val directories: scala.build.Directories =
-    homeDirectory.filter(_.trim.nonEmpty) match {
-      case None =>
-        scala.build.Directories.default()
-      case Some(homeDir) =>
-        val homeDir0 = os.Path(homeDir, Os.pwd)
-        scala.build.Directories.under(homeDir0)
-    }
-}
+) 
+// format: on
 
 object SharedDirectoriesOptions {
   lazy val parser: Parser[SharedDirectoriesOptions]                           = Parser.derive

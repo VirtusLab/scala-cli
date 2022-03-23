@@ -4,8 +4,6 @@ import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.build.options
-
 // format: off
 final case class ScalaNativeOptions(
 
@@ -46,24 +44,8 @@ final case class ScalaNativeOptions(
   @Hidden
   @HelpMessage("Use default compile options")
     nativeCompileDefaults: Option[Boolean] = None //TODO does it even work when we default it to true while handling?
-
-) {
-  // format: on
-
-  def buildOptions: options.ScalaNativeOptions =
-    options.ScalaNativeOptions(
-      nativeVersion,
-      nativeMode,
-      nativeGc,
-      nativeClang,
-      nativeClangpp,
-      nativeLinking,
-      nativeLinkingDefaults,
-      nativeCompile,
-      nativeCompileDefaults
-    )
-
-}
+)
+// format: on
 
 object ScalaNativeOptions {
   lazy val parser: Parser[ScalaNativeOptions]                           = Parser.derive
