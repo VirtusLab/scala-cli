@@ -437,9 +437,10 @@ object BspImpl {
 
   private final class LoggingBspClient(actualLocalClient: BspClient) extends LoggingBuildClient
       with BloopBuildClient {
-    def underlying  = actualLocalClient
-    def clear()     = underlying.clear()
-    def diagnostics = underlying.diagnostics
+    // in Scala 3 type of the method needs to be explicitly overridden
+    def underlying: scala.build.bsp.BspClient = actualLocalClient
+    def clear()                               = underlying.clear()
+    def diagnostics                           = underlying.diagnostics
     def setProjectParams(newParams: Seq[String]) =
       underlying.setProjectParams(newParams)
     def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =

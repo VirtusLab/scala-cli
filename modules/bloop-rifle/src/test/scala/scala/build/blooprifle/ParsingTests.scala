@@ -7,10 +7,10 @@ import scala.build.blooprifle.VersionUtil.{jvmRelease, parseBloopAbout, parseJav
 class ParsingTests extends munit.FunSuite {
 
   implicit class BV(s: String) {
-    implicit def v  = BloopVersion(s)
-    implicit def p  = parseBloopAbout(s)
-    implicit def j  = jvmRelease(s)
-    implicit def jv = parseJavaVersion(s)
+    implicit def v: BloopVersion  = BloopVersion(s)
+    implicit def p: Option[BloopServerRuntimeInfo]  = parseBloopAbout(s)
+    implicit def j: Option[Int]  = jvmRelease(s)
+    implicit def jv: Option[Int] = parseJavaVersion(s)
   }
 
   test("bloop version comparisons test") {

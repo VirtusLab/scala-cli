@@ -447,13 +447,16 @@ trait CliLaunchers extends SbtModule { self =>
 }
 
 trait HasTests extends SbtModule {
-  trait Tests extends super.Tests {
+  trait Tests extends super.Tests with ScalaCliCompile {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.expecty,
       Deps.munit
     )
     def testFramework = "munit.Framework"
     def forkArgs      = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
+
+    def repositoriesTask =
+      T.task(super.repositoriesTask() :+ coursier.Repositories.sonatype("snapshots"))
   }
 }
 

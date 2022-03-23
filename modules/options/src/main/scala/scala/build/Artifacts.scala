@@ -7,6 +7,7 @@ import coursier.util.Task
 import coursier.{Dependency => CsDependency, Fetch, core => csCore, util => csUtil}
 import dependency._
 
+import scala.build.CoursierUtils._
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{
@@ -137,17 +138,16 @@ object Artifacts {
 
     val scalaJsCliDependency =
       scalaJsCliVersion.map { version =>
-        import coursier.moduleString
         val mod =
-          if (version.contains("-sc")) mod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
-          else mod"org.scala-js:scalajs-cli_2.13"
+          if (version.contains("-sc")) cmod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+          else cmod"org.scala-js:scalajs-cli_2.13"
         Seq(coursier.Dependency(mod, version))
       }
 
     val scalaNativeCliDependency =
       scalaNativeCliVersion.map { version =>
-        import coursier.moduleString
-        Seq(coursier.Dependency(mod"org.scala-native:scala-native-cli_2.12", version))
+        val module = cmod"org.scala-native:scala-native-cli_2.12"
+        Seq(coursier.Dependency(module, version))
       }
 
     val allExtraRepositories =
@@ -231,9 +231,8 @@ object Artifacts {
 
     val fetchedScalaJsCli = scalaJsCliDependency match {
       case Some(dependency) =>
-        import coursier.moduleString
         val forcedVersions = Seq(
-          mod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
+          cmod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
         )
         Some(
           value {
@@ -386,22 +385,21 @@ object Artifacts {
     val forceScalaVersions = forceScalaVersionOpt match {
       case None => Nil
       case Some(sv) =>
-        import coursier.moduleString
         if (sv.startsWith("2."))
           Seq(
-            mod"org.scala-lang:scala-library"  -> sv,
-            mod"org.scala-lang:scala-compiler" -> sv,
-            mod"org.scala-lang:scala-reflect"  -> sv
+            cmod"org.scala-lang:scala-library"  -> sv,
+            cmod"org.scala-lang:scala-compiler" -> sv,
+            cmod"org.scala-lang:scala-reflect"  -> sv
           )
         else
           // FIXME Shouldn't we force the org.scala-lang:scala-library version too?
           // (to a 2.13.x version)
           Seq(
-            mod"org.scala-lang:scala3-library_3"         -> sv,
-            mod"org.scala-lang:scala3-compiler_3"        -> sv,
-            mod"org.scala-lang:scala3-interfaces_3"      -> sv,
-            mod"org.scala-lang:scala3-tasty-inspector_3" -> sv,
-            mod"org.scala-lang:tasty-core_3"             -> sv
+            cmod"org.scala-lang:scala3-library_3"         -> sv,
+            cmod"org.scala-lang:scala3-compiler_3"        -> sv,
+            cmod"org.scala-lang:scala3-interfaces_3"      -> sv,
+            cmod"org.scala-lang:scala3-tasty-inspector_3" -> sv,
+            cmod"org.scala-lang:tasty-core_3"             -> sv
           )
     }
 

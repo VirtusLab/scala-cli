@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import shapeless._
+import com.softwaremill.quicklens._
 
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
@@ -50,20 +50,20 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
   def getSingleString(
     param: String,
     value: Seq[Positioned[String]],
-    buildOptionLens: Lens[BuildOptions, Option[String]]
+    buildOptionLens: PathModify[BuildOptions, Option[String]]
   ): Either[BuildException, BuildOptions] =
     value match {
-      case Seq(head) => Right(buildOptionLens.set(BuildOptions())(Some(head.value)))
+      case Seq(head) => Right(buildOptionLens.setTo(Some(head.value)))
       case _         => Left(MultiValue(param, value))
     }
 
   def getBooleanOpt(
     param: String,
     value: Seq[Positioned[String]],
-    buildOptionLens: Lens[BuildOptions, Option[Boolean]]
+    buildOptionLens: PathModify[BuildOptions, Option[Boolean]]
   ) =
     value.map(v => v.copy(value = Try(v.value.toBoolean))).toSeq match {
-      case Seq(Positioned(_, Success(a))) => Right(buildOptionLens.set(BuildOptions())(Some(a)))
+      case Seq(Positioned(_, Success(a))) => Right(buildOptionLens.setTo(Some(a)))
       case Seq(_)                         => Left(NotABoolean(param, value.head))
       case _                              => Left(MultiValue(param, value))
     }
@@ -71,32 +71,44 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
   def getBoolean(
     param: String,
     value: Seq[Positioned[String]],
-    buildOptionLens: Lens[BuildOptions, Boolean]
+    buildOptionLens: PathModify[BuildOptions, Boolean]
   ) =
     value.map(v => v.copy(value = Try(v.value.toBoolean))).toSeq match {
-      case Seq(Positioned(_, Success(a))) => Right(buildOptionLens.set(BuildOptions())(a))
+      case Seq(Positioned(_, Success(a))) => Right(buildOptionLens.setTo(a))
       case Seq(_)                         => Left(NotABoolean(param, value.head))
       case _                              => Left(MultiValue(param, value))
     }
 
   lazy val directiveMap
-    : Map[String, (String, Seq[Positioned[String]]) => Either[BuildException, BuildOptions]] = {
-    val l = lens[BuildOptions].scalaJsOptions
+    : Map[String, (String, Seq[Positioned[String]]) => Either[BuildException, BuildOptions]] =
     Map(
-      "jsVersion"              -> { getSingleString(_, _, l.version) },
-      "jsMode"                 -> { getSingleString(_, _, l.mode) },
-      "jsModuleKind"           -> { getSingleString(_, _, l.moduleKindStr) },
-      "jsCheckIr"              -> { getBooleanOpt(_, _, l.checkIr) },
-      "jsEmitSourceMaps"       -> { getBoolean(_, _, l.emitSourceMaps) },
-      "jsDom"                  -> { getBooleanOpt(_, _, l.dom) },
-      "jsHeader"               -> { getSingleString(_, _, l.header) },
-      "jsAllowBigIntsForLongs" -> { getBooleanOpt(_, _, l.allowBigIntsForLongs) },
-      "jsAvoidClasses"         -> { getBooleanOpt(_, _, l.avoidClasses) },
-      "jsAvoidLetsAndConsts"   -> { getBooleanOpt(_, _, l.avoidLetsAndConsts) },
-      "jsModuleSplitStyleStr"  -> { getSingleString(_, _, l.moduleSplitStyleStr) },
-      "jsEsVersionStr"         -> { getSingleString(_, _, l.esVersionStr) }
+      "jsVersion" -> { getSingleString(_, _, BuildOptions().modify(_.scalaJsOptions.version)) },
+      "jsMode"    -> { getSingleString(_, _, BuildOptions().modify(_.scalaJsOptions.mode)) },
+      "jsModuleKind" -> {
+        getSingleString(_, _, BuildOptions().modify(_.scalaJsOptions.moduleKindStr))
+      },
+      "jsCheckIr" -> { getBooleanOpt(_, _, BuildOptions().modify(_.scalaJsOptions.checkIr)) },
+      "jsEmitSourceMaps" -> {
+        getBoolean(_, _, BuildOptions().modify(_.scalaJsOptions.emitSourceMaps))
+      },
+      "jsDom"    -> { getBooleanOpt(_, _, BuildOptions().modify(_.scalaJsOptions.dom)) },
+      "jsHeader" -> { getSingleString(_, _, BuildOptions().modify(_.scalaJsOptions.header)) },
+      "jsAllowBigIntsForLongs" -> {
+        getBooleanOpt(_, _, BuildOptions().modify(_.scalaJsOptions.allowBigIntsForLongs))
+      },
+      "jsAvoidClasses" -> {
+        getBooleanOpt(_, _, BuildOptions().modify(_.scalaJsOptions.avoidClasses))
+      },
+      "jsAvoidLetsAndConsts" -> {
+        getBooleanOpt(_, _, BuildOptions().modify(_.scalaJsOptions.avoidLetsAndConsts))
+      },
+      "jsModuleSplitStyleStr" -> {
+        getSingleString(_, _, BuildOptions().modify(_.scalaJsOptions.moduleSplitStyleStr))
+      },
+      "jsEsVersionStr" -> {
+        getSingleString(_, _, BuildOptions().modify(_.scalaJsOptions.esVersionStr))
+      }
     )
-  }
 
   def keys = directiveMap.keys.toSeq
 

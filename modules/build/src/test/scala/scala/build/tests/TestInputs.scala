@@ -44,6 +44,19 @@ final case class TestInputs(
       }
     }
 
+  def withLoadedBuild[T](
+    options: BuildOptions,
+    buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
+    bloopConfigOpt: Option[BloopRifleConfig],
+    fromDirectory: Boolean = false
+  )(f: (os.Path, Inputs, Build) => T) =
+    withBuild(options, buildThreads, bloopConfigOpt, fromDirectory)((p, i, maybeBuild) =>
+      maybeBuild match {
+        case Left(e)  => throw e
+        case Right(b) => f(p, i, b)
+      }
+    )
+
   def withBuild[T](
     options: BuildOptions,
     buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
