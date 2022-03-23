@@ -386,8 +386,9 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
 
   object test extends Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      Deps.pprint
+      Deps.munit
     )
+    def testFramework = "munit.Framework"
 
     // uncomment below to debug tests in attach mode on 5005 port
     // def forkArgs = T {
