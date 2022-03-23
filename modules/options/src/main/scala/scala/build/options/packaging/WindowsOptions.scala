@@ -1,4 +1,6 @@
-package scala.build.options
+package scala.build.options.packaging
+
+import scala.build.options.ConfigMonoid
 
 final case class WindowsOptions(
   licensePath: Option[os.Path] = None,
@@ -11,6 +13,5 @@ final case class WindowsOptions(
 )
 
 object WindowsOptions {
-  implicit val hasHashData: HasHashData[WindowsOptions] = HasHashData.derive
-  implicit val monoid: ConfigMonoid[WindowsOptions]     = ConfigMonoid.derive
+  implicit val monoid: ConfigMonoid[WindowsOptions] = ConfigMonoid.derive
 }

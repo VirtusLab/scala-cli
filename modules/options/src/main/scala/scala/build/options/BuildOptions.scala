@@ -37,6 +37,8 @@ final case class BuildOptions(
   notForBloopOptions: PostBuildOptions = PostBuildOptions()
 ) {
 
+  import BuildOptions.JavaHomeInfo
+
   lazy val platform: Positioned[Platform] =
     scalaOptions.platform.getOrElse(Positioned(List(Position.Custom("DEFAULT")), Platform.JVM))
 
@@ -157,12 +159,9 @@ final case class BuildOptions(
   lazy val finalCache = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
 
-  case class JavaHomeInfo(javaCommand: String, version: Int)
-
-  private lazy val javaCommand0: Positioned[JavaHomeInfo] = {
-    val javaHome               = javaHomeLocation()
-    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome.value)
-    Positioned(javaHome.positions, JavaHomeInfo(javaCmd, javaVersion))
+  private lazy val javaCommand0: Positioned[JavaHomeInfo] = javaHomeLocation().map { javaHome =>
+    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
+    JavaHomeInfo(javaHome, javaCmd, javaVersion)
   }
 
   private def jvmIndexOs = javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)
@@ -720,6 +719,9 @@ final case class BuildOptions(
     BuildOptions.monoid.orElse(this, other)
 
   def validate: Seq[Diagnostic] = BuildOptionsRule.validateAll(this)
+
+  def nativeImageWorkDir(root: os.Path, projectName: String): os.Path =
+    root / workspaceDirName / projectName / "native-image"
 }
 
 object BuildOptions {
@@ -727,6 +729,12 @@ object BuildOptions {
   final case class CrossKey(
     scalaVersion: String,
     platform: Platform
+  )
+
+  final case class JavaHomeInfo(
+    javaHome: os.Path,
+    javaCommand: String,
+    version: Int
   )
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive

@@ -742,6 +742,46 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     }
   }
 
+  test("repeated Java options") {
+    val inputs = TestInputs(
+      os.rel / "foo.sc" ->
+        """//> using javaOpt "--add-opens", "foo/bar"
+          |//> using javaOpt "--add-opens", "other/thing"
+          |//> using javaOpt "--add-exports", "foo/bar"
+          |//> using javaOpt "--add-exports", "other/thing"
+          |//> using javaOpt "--add-modules", "foo/bar"
+          |//> using javaOpt "--add-modules", "other/thing"
+          |//> using javaOpt "--add-reads", "foo/bar"
+          |//> using javaOpt "--add-reads", "other/thing"
+          |//> using javaOpt "--patch-module", "foo/bar"
+          |//> using javaOpt "--patch-module", "other/thing"
+          |
+          |def foo = "bar"
+          |""".stripMargin
+    )
+
+    inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val expectedOptions =
+        // format: off
+        Seq(
+          "--add-opens", "foo/bar",
+          "--add-opens", "other/thing",
+          "--add-exports", "foo/bar",
+          "--add-exports", "other/thing",
+          "--add-modules", "foo/bar",
+          "--add-modules", "other/thing",
+          "--add-reads", "foo/bar",
+          "--add-reads", "other/thing",
+          "--patch-module", "foo/bar",
+          "--patch-module", "other/thing"
+        )
+        // format: on
+      val javaOptions =
+        maybeBuild.toOption.get.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+      expect(javaOptions == expectedOptions)
+    }
+  }
+
   // Issue #607
   test("-source:future not internally duplicating") {
     val inputs = TestInputs(

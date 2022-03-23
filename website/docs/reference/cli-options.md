@@ -733,6 +733,12 @@ Aliases: `--default-scaladoc-opts`
 
 Use default scaladoc options
 
+#### `--native-image`
+
+Aliases: `--graal`
+
+Build GraalVM native image
+
 ## Packager options
 
 Available in commands:
@@ -834,6 +840,18 @@ The image repository
 #### `--docker-image-tag`
 
 The image tag; the default tag is `latest`
+
+#### `--graalvm-java-version`
+
+GraalVM Java major version to use to build GraalVM native images (like 17)
+
+#### `--graalvm-version`
+
+GraalVM version to use to build GraalVM native images (like 22.0.0)
+
+#### `--graalvm-jvm-id`
+
+JVM id of GraalVM distribution to build GraalVM native images (like "graalvm-java17:22.0.0")
 
 ## Publish options
 

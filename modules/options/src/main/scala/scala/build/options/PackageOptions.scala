@@ -1,6 +1,7 @@
 package scala.build.options
 
 import scala.build.internal.Constants
+import scala.build.options.packaging._
 
 final case class PackageOptions(
   standalone: Option[Boolean] = None,
@@ -15,6 +16,7 @@ final case class PackageOptions(
   windowsOptions: WindowsOptions = WindowsOptions(),
   redHatOptions: RedHatOptions = RedHatOptions(),
   dockerOptions: DockerOptions = DockerOptions(),
+  nativeImageOptions: NativeImageOptions = NativeImageOptions(),
   useDefaultScaladocOptions: Option[Boolean] = None
 ) {
 

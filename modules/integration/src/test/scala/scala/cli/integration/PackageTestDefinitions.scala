@@ -442,7 +442,6 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       )
 
       expect(os.isFile(root / dest))
-
       val zf = new ZipFile((root / dest).toIO)
       val expectedEntries =
         if (actualScalaVersion.startsWith("2."))
@@ -463,4 +462,45 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("native image") {
+    val message = "Hello from native-image"
+    val dest =
+      if (Properties.isWin) "hello.exe"
+      else "hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("$message")
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        extraOptions,
+        ".",
+        "--native-image",
+        "-o",
+        dest,
+        "--",
+        "--no-fallback"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      expect(os.isFile(root / dest))
+
+      // FIXME Check that dest is indeed a binary?
+
+      val res    = os.proc(root / dest).call(cwd = root)
+      val output = res.out.text().trim
+      expect(output == message)
+    }
+  }
 }

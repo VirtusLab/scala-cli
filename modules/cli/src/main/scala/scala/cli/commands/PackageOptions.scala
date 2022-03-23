@@ -6,6 +6,7 @@ import caseapp.core.help.Help
 import scala.build.BuildThreads
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.options._
+import scala.build.options.packaging._
 
 // format: off
 @HelpMessage("Compile and package Scala code")
@@ -69,7 +70,12 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Use default scaladoc options")
   @ExtraName("defaultScaladocOpts")
-    defaultScaladocOptions: Option[Boolean] = None
+    defaultScaladocOptions: Option[Boolean] = None,
+
+  @Group("Package")
+  @HelpMessage("Build GraalVM native image")
+  @ExtraName("graal")
+    nativeImage: Boolean = false
 ) {
   // format: on
   def packageTypeOpt: Option[PackageType] =
@@ -82,6 +88,7 @@ final case class PackageOptions(
       else if (pkg) Some(PackageType.Pkg)
       else if (rpm) Some(PackageType.Rpm)
       else if (msi) Some(PackageType.Msi)
+      else if (nativeImage) Some(PackageType.GraalVMNativeImage)
       else None
     }
   def forcedPackageTypeOpt: Option[PackageType] =
@@ -127,6 +134,11 @@ final case class PackageOptions(
             imageRepository = packager.dockerImageRepository,
             imageTag = packager.dockerImageTag,
             isDockerEnabled = Some(docker)
+          ),
+          nativeImageOptions = NativeImageOptions(
+            graalvmJvmId = packager.graalvmJvmId.map(_.trim).filter(_.nonEmpty),
+            graalvmJavaVersion = packager.graalvmJavaVersion.filter(_ > 0),
+            graalvmVersion = packager.graalvmVersion.map(_.trim).filter(_.nonEmpty)
           ),
           useDefaultScaladocOptions = defaultScaladocOptions
         )

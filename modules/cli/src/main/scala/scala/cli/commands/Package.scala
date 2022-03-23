@@ -16,7 +16,6 @@ import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
 import java.nio.file.{Files, Path}
-import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
@@ -28,6 +27,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
 import scala.cli.errors.{ScalaJsLinkingError, ScaladocGenerationFailedError}
 import scala.cli.internal.{ProcUtil, ScalaJsLinker}
+import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
@@ -64,7 +64,6 @@ object Package extends ScalaCommand[PackageOptions] {
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
             val mtimeDestPath = doPackage(
-              inputs,
               logger,
               options.output.filter(_.nonEmpty),
               options.force,
@@ -100,7 +99,6 @@ object Package extends ScalaCommand[PackageOptions] {
       builds.main match {
         case s: Build.Successful =>
           val res0 = doPackage(
-            inputs,
             logger,
             options.output.filter(_.nonEmpty),
             options.force,
@@ -121,7 +119,6 @@ object Package extends ScalaCommand[PackageOptions] {
   }
 
   private def doPackage(
-    inputs: Inputs,
     logger: Logger,
     outputOpt: Option[String],
     force: Boolean,
@@ -147,34 +144,36 @@ object Package extends ScalaCommand[PackageOptions] {
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
     def extension = packageType match {
-      case PackageType.LibraryJar                 => ".jar"
-      case PackageType.SourceJar                  => ".jar"
-      case PackageType.DocJar                     => ".jar"
-      case PackageType.Assembly                   => ".jar"
-      case PackageType.Js                         => ".js"
-      case PackageType.Debian                     => ".deb"
-      case PackageType.Dmg                        => ".dmg"
-      case PackageType.Pkg                        => ".pkg"
-      case PackageType.Rpm                        => ".rpm"
-      case PackageType.Msi                        => ".msi"
-      case PackageType.Native if Properties.isWin => ".exe"
-      case _ if Properties.isWin                  => ".bat"
-      case _                                      => ""
+      case PackageType.LibraryJar                             => ".jar"
+      case PackageType.SourceJar                              => ".jar"
+      case PackageType.DocJar                                 => ".jar"
+      case PackageType.Assembly                               => ".jar"
+      case PackageType.Js                                     => ".js"
+      case PackageType.Debian                                 => ".deb"
+      case PackageType.Dmg                                    => ".dmg"
+      case PackageType.Pkg                                    => ".pkg"
+      case PackageType.Rpm                                    => ".rpm"
+      case PackageType.Msi                                    => ".msi"
+      case PackageType.Native if Properties.isWin             => ".exe"
+      case PackageType.GraalVMNativeImage if Properties.isWin => ".exe"
+      case _ if Properties.isWin                              => ".bat"
+      case _                                                  => ""
     }
     def defaultName = packageType match {
-      case PackageType.LibraryJar                 => "library.jar"
-      case PackageType.SourceJar                  => "source.jar"
-      case PackageType.DocJar                     => "scaladoc.jar"
-      case PackageType.Assembly                   => "app.jar"
-      case PackageType.Js                         => "app.js"
-      case PackageType.Debian                     => "app.deb"
-      case PackageType.Dmg                        => "app.dmg"
-      case PackageType.Pkg                        => "app.pkg"
-      case PackageType.Rpm                        => "app.rpm"
-      case PackageType.Msi                        => "app.msi"
-      case PackageType.Native if Properties.isWin => "app.exe"
-      case _ if Properties.isWin                  => "app.bat"
-      case _                                      => "app"
+      case PackageType.LibraryJar                             => "library.jar"
+      case PackageType.SourceJar                              => "source.jar"
+      case PackageType.DocJar                                 => "scaladoc.jar"
+      case PackageType.Assembly                               => "app.jar"
+      case PackageType.Js                                     => "app.js"
+      case PackageType.Debian                                 => "app.deb"
+      case PackageType.Dmg                                    => "app.dmg"
+      case PackageType.Pkg                                    => "app.pkg"
+      case PackageType.Rpm                                    => "app.rpm"
+      case PackageType.Msi                                    => "app.msi"
+      case PackageType.Native if Properties.isWin             => "app.exe"
+      case PackageType.GraalVMNativeImage if Properties.isWin => "app.exe"
+      case _ if Properties.isWin                              => "app.bat"
+      case _                                                  => "app"
     }
 
     val dest = outputOpt
@@ -217,7 +216,7 @@ object Package extends ScalaCommand[PackageOptions] {
       case PackageType.Bootstrap =>
         bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
       case PackageType.LibraryJar =>
-        val content = libraryJar(build)
+        val content = Library.libraryJar(build)
         alreadyExistsCheck()
         if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
@@ -239,7 +238,11 @@ object Package extends ScalaCommand[PackageOptions] {
         value(buildJs(build, destPath, value(mainClass), logger))
 
       case PackageType.Native =>
-        buildNative(inputs, build, destPath, value(mainClass), logger)
+        buildNative(build, destPath, value(mainClass), logger)
+
+      case PackageType.GraalVMNativeImage =>
+        buildGraalVMNativeImage(build, destPath, value(mainClass), extraArgs, logger)
+
       case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
         bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck())
@@ -315,7 +318,7 @@ object Package extends ScalaCommand[PackageOptions] {
             WindowsPackage(windowsSettings).build()
         }
       case PackageType.Docker =>
-        docker(inputs, build, value(mainClass), logger)
+        docker(build, value(mainClass), logger)
     }
 
     if (packageType.runnable.nonEmpty)
@@ -332,46 +335,6 @@ object Package extends ScalaCommand[PackageOptions] {
 
     val mTimeDestPathOpt = if (packageType.runnable.isEmpty) None else Some(os.mtime(destPath))
     mTimeDestPathOpt
-  }
-
-  def libraryJar(
-    build: Build.Successful,
-    mainClassOpt: Option[String] = None,
-    hasActualManifest: Boolean = true,
-    contentDirOverride: Option[os.Path] = None
-  ): Array[Byte] = {
-
-    val baos = new ByteArrayOutputStream
-
-    val manifest = new java.util.jar.Manifest
-    manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
-
-    if (hasActualManifest)
-      for (mainClass <- mainClassOpt.orElse(build.sources.mainClass) if mainClass.nonEmpty)
-        manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
-
-    var zos: ZipOutputStream = null
-    val contentDir           = contentDirOverride.getOrElse(build.output)
-
-    try {
-      zos = new JarOutputStream(baos, manifest)
-      for (path <- os.walk(contentDir) if os.isFile(path)) {
-        val name         = path.relativeTo(contentDir).toString
-        val lastModified = os.mtime(path)
-        val ent          = new ZipEntry(name)
-        ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
-
-        val content = os.read.bytes(path)
-        ent.setSize(content.length)
-
-        zos.putNextEntry(ent)
-        zos.write(content)
-        zos.closeEntry()
-      }
-    }
-    finally if (zos != null) zos.close()
-
-    baos.toByteArray
   }
 
   // from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-1039b442cbd23f605a61fdb9c3620b600aa4af6cab757932a719c54235d8e402R60
@@ -391,7 +354,7 @@ object Package extends ScalaCommand[PackageOptions] {
   ): Either[BuildException, Array[Byte]] = either {
     val isScala2 = build.scalaParams.scalaVersion.startsWith("2.")
     if (isScala2)
-      libraryJar(
+      Library.libraryJar(
         build,
         hasActualManifest = false,
         contentDirOverride = Some(build.project.scaladocDir)
@@ -438,7 +401,7 @@ object Package extends ScalaCommand[PackageOptions] {
         cwd = Some(build.inputs.workspace)
       )
       if (retCode == 0)
-        libraryJar(build, hasActualManifest = false, contentDirOverride = Some(destDir))
+        Library.libraryJar(build, hasActualManifest = false, contentDirOverride = Some(destDir))
       else
         value(Left(new ScaladocGenerationFailedError(retCode)))
     }
@@ -497,7 +460,6 @@ object Package extends ScalaCommand[PackageOptions] {
   }
 
   private def docker(
-    inputs: Inputs,
     build: Build.Successful,
     mainClass: String,
     logger: Logger
@@ -541,7 +503,7 @@ object Package extends ScalaCommand[PackageOptions] {
     build.options.platform.value match {
       case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
       case Platform.JS     => buildJs(build, appPath, mainClass, logger)
-      case Platform.Native => buildNative(inputs, build, appPath, mainClass, logger)
+      case Platform.Native => buildNative(build, appPath, mainClass, logger)
     }
 
     logger.message(
@@ -567,16 +529,31 @@ object Package extends ScalaCommand[PackageOptions] {
   }
 
   private def buildNative(
-    inputs: Inputs,
     build: Build.Successful,
     destPath: os.Path,
     mainClass: String,
     logger: Logger
   ): Unit = {
     val workDir =
-      build.options.scalaNativeOptions.nativeWorkDir(inputs.workspace, inputs.projectName)
+      build.options.scalaNativeOptions.nativeWorkDir(
+        build.inputs.workspace,
+        build.inputs.projectName
+      )
 
     buildNative(build, mainClass, destPath, workDir, logger)
+  }
+
+  private def buildGraalVMNativeImage(
+    build: Build.Successful,
+    destPath: os.Path,
+    mainClass: String,
+    extraArgs: Seq[String],
+    logger: Logger
+  ): Unit = {
+    val workDir =
+      build.options.nativeImageWorkDir(build.inputs.workspace, build.inputs.projectName)
+
+    NativeImage.buildNativeImage(build, mainClass, destPath, workDir, extraArgs, logger)
   }
 
   private def bootstrap(
@@ -661,16 +638,6 @@ object Package extends ScalaCommand[PackageOptions] {
     ProcUtil.maybeUpdatePreamble(destPath)
   }
 
-  def withLibraryJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {
-    val mainJarContent = libraryJar(build)
-    val mainJar        = Files.createTempFile(fileName.stripSuffix(".jar"), ".jar")
-    try {
-      Files.write(mainJar, mainJarContent)
-      f(mainJar)
-    }
-    finally Files.deleteIfExists(mainJar)
-  }
-
   def withSourceJar[T](
     build: Build.Successful,
     defaultLastModified: Long,
@@ -693,7 +660,7 @@ object Package extends ScalaCommand[PackageOptions] {
     config: StandardConfig,
     logger: Logger
   ): Either[BuildException, Unit] =
-    withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
+    Library.withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
       val classPath  = mainJar +: build.artifacts.classPath.map(_.toNIO)
       val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
       (new ScalaJsLinker).link(
@@ -746,7 +713,7 @@ object Package extends ScalaCommand[PackageOptions] {
       )
 
     if (cacheData.changed)
-      withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
+      Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
         val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString()
         val args =
