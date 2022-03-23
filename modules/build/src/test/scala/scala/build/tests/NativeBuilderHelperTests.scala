@@ -43,9 +43,9 @@ class NativeBuilderHelperTests extends munit.FunSuite {
 
     test(s"should build native app at first time ($additionalMessage)") {
 
-      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
+      inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
-          val build = maybeBuild.toOption.get.successfulOpt.get
+          val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
           val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
@@ -60,9 +60,9 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should not rebuild the second time ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
+      inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
-          val build = maybeBuild.toOption.get.successfulOpt.get
+          val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
           val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
@@ -86,9 +86,9 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should build native if output file was deleted ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
+      inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
-          val build = maybeBuild.toOption.get.successfulOpt.get
+          val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
           val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
@@ -113,9 +113,9 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should build native if output file was changed ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
+      inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
-          val build = maybeBuild.toOption.get.successfulOpt.get
+          val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
           val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
@@ -140,9 +140,9 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should build native if input file was changed ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
+      inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
-          val build = maybeBuild.toOption.get.successfulOpt.get
+          val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
           val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
@@ -166,9 +166,9 @@ class NativeBuilderHelperTests extends munit.FunSuite {
     }
 
     test(s"should build native if native config was changed ($additionalMessage)") {
-      inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
+      inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (root, _, maybeBuild) =>
-          val build = maybeBuild.toOption.get.successfulOpt.get
+          val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
           val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")

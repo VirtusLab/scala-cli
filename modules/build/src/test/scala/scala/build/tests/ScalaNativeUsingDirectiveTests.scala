@@ -58,8 +58,8 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.gcStr.get == "78")
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.options.scalaNativeOptions.gcStr.get == "78")
     }
   }
 
@@ -98,8 +98,8 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.modeStr.get == "release-full")
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.options.scalaNativeOptions.modeStr.get == "release-full")
     }
   }
 
@@ -126,8 +126,8 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |""".stripMargin
     )
 
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.version.get == "0.4.0")
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.options.scalaNativeOptions.version.get == "0.4.0")
     }
   }
 
@@ -139,12 +139,12 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |""".stripMargin
     )
 
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(0) == "compileOption1"
+        maybeBuild.options.scalaNativeOptions.compileOptions(0) == "compileOption1"
       )
       assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.compileOptions(1) == "compileOption2"
+        maybeBuild.options.scalaNativeOptions.compileOptions(1) == "compileOption2"
       )
     }
   }
@@ -156,8 +156,8 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions.isEmpty)
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.options.scalaNativeOptions.linkingOptions.isEmpty)
     }
   }
 
@@ -168,12 +168,12 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1"
+        maybeBuild.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1"
       )
       assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2"
+        maybeBuild.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2"
       )
     }
   }
@@ -185,9 +185,9 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.clang.get == "clang/path"
+        maybeBuild.options.scalaNativeOptions.clang.get == "clang/path"
       )
     }
   }
@@ -213,9 +213,9 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.toOption.get.options.scalaNativeOptions.clangpp.get == "clangpp/path"
+        maybeBuild.options.scalaNativeOptions.clangpp.get == "clangpp/path"
       )
     }
   }
