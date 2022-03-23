@@ -175,6 +175,17 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
       Deps.scalaReflect(scalaVersion())
     )
   }
+
+  object test extends Tests {
+    def scalacOptions = T {
+      super.scalacOptions() ++ Seq("-Xasync")
+    }
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      TestDeps.munit
+    )
+    def testFramework = "munit.Framework"
+  }
 }
 
 trait BuildLikeModule
