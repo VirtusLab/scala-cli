@@ -34,14 +34,15 @@ implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
 object cli            extends Cli
-object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal)
-object options        extends Cross[Options](Scala.defaultInternal)
-object directives     extends Cross[Directives](Scala.defaultInternal)
-object core           extends Cross[Core](Scala.defaultInternal)
-object build          extends Cross[Build](Scala.defaultInternal)
+object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal, Scala.scala3)
+object options        extends Cross[Options](Scala.defaultInternal, Scala.scala3)
+object scalaparse     extends ScalaParse
+object directives     extends Cross[Directives](Scala.defaultInternal, Scala.scala3)
+object core           extends Cross[Core](Scala.defaultInternal, Scala.scala3)
+object build          extends Cross[Build](Scala.defaultInternal, Scala.scala3)
 object runner         extends Cross[Runner](Scala.all: _*)
 object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
-object `bloop-rifle`  extends Cross[BloopRifle](Scala.allScala2: _*)
+object `bloop-rifle`  extends Cross[BloopRifle](Scala.all: _*)
 object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
 
 object stubs extends JavaModule with ScalaCliPublishModule {
@@ -171,14 +172,17 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     super.scalacOptions() ++ Seq("-Ywarn-unused")
   }
   def compileIvyDeps = T {
-    super.compileIvyDeps() ++ Agg(
-      Deps.scalaReflect(scalaVersion())
-    )
+    if (scalaVersion().startsWith("3"))
+      super.compileIvyDeps()
+    else
+      super.compileIvyDeps() ++ Agg(
+        Deps.scalaReflect(scalaVersion())
+      )
   }
 
   object test extends Tests {
     def scalacOptions = T {
-      super.scalacOptions() ++ Seq("-Xasync")
+      super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
     }
 
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -187,6 +191,9 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     def testFramework = "munit.Framework"
   }
 }
+
+def asyncScalacOptions(scalaVersion: String) =
+  if (scalaVersion.startsWith("3")) Nil else Seq("-Xasync")
 
 trait BuildLikeModule
     extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests
@@ -209,14 +216,17 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
     `build-macros`()
   )
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync")
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.collectionCompat,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
-      .exclude(("com.google.collections", "google-collections")),
+      .exclude(("com.google.collections", "google-collections"))
+      // Coursier is not cross-compiled and pulls jsoniter-scala-macros in 2.13
+      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
+    Deps.jsoniterMacros, // pulls jsoniter macros manually
     Deps.dependency,
     Deps.guava,       // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.nativeTools, // Used only for discovery methods. For linking, look for scala-native-cli
@@ -323,7 +333,7 @@ class Directives(val crossScalaVersion: String) extends BuildLikeModule {
     `core`()
   )
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync")
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
   }
 
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
@@ -379,7 +389,7 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
     `build-macros`()
   )
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync")
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(Deps.bloopConfig)
@@ -397,16 +407,22 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
   }
 }
 
+trait ScalaParse extends SbtModule with ScalaCliPublishModule with settings.ScalaCliCompile {
+  def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
+  def scalaVersion = Scala.scala213
+}
+
 class Build(val crossScalaVersion: String) extends BuildLikeModule {
   def moduleDeps = Seq(
     `options`(),
+    scalaparse,
     `directives`(),
     `scala-cli-bsp`,
     `test-runner`(),
     `tasty-lib`()
   )
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync")
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
   }
 
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
@@ -423,10 +439,8 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
-    Deps.scalaparse,
-    Deps.shapeless,
     Deps.swoval
-  )
+  ) ++ (if (scalaVersion().startsWith("3")) Agg() else Agg(Deps.shapeless))
 
   object test extends Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -712,7 +726,7 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     Deps.bsp4j,
     Deps.collectionCompat,
     Deps.libdaemonjvm,
-    Deps.snailgun
+    Deps.snailgun(force213 = scalaVersion().startsWith("3."))
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
