@@ -1,21 +1,25 @@
 package scala.build.bsp
 
+import _root_.bloop.config.{Config, ConfigCodecs as BloopCodecs}
 import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
+import com.github.plokhotnyuk.jsoniter_scala.core
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CompletableFuture, TimeUnit}
-import java.{util => ju}
+import java.util as ju
 
 import scala.build.Logger
 import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
 import scala.build.internal.Constants
 import scala.build.options.Scope
+import scala.collection.concurrent
 import scala.concurrent.{Future, Promise}
-import scala.jdk.CollectionConverters._
-import scala.util.Random
+import scala.jdk.CollectionConverters.*
+import scala.util.{Random, Try}
+
 
 class BspServer(
   bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
@@ -28,6 +32,7 @@ class BspServer(
 
   private var client: Option[BuildClient] = None
   private val isIntelliJ: AtomicBoolean   = new AtomicBoolean(false)
+  private val buildTargetNamesByUri: concurrent.Map[String, String] = concurrent.TrieMap.empty
 
   override def onConnectWithClient(client: BuildClient): Unit = this.client = Some(client)
 
@@ -219,6 +224,7 @@ class BspServer(
           val newBaseDirectory = baseDirectory.getParentFile.toPath.toUri.toASCIIString
           target.setBaseDirectory(newBaseDirectory)
         }
+        buildTargetNamesByUri.put(target.getId.getUri, target.getDisplayName)
       }
       res0
     }
@@ -253,6 +259,31 @@ class BspServer(
   }
 
   override def onBuildExit(): Unit = ()
+
+  override def workspaceReload(): CompletableFuture[Object] =
+    super.workspaceReload().thenApply { res =>
+      for {
+        case (targetUri, targetName) <- buildTargetNamesByUri.toSeq
+        scalaBuildDirPath = os.Path(new URI(targetUri).getRawPath)
+        if os.isDir(scalaBuildDirPath)
+        ideInputsJsonPath = scalaBuildDirPath / "ide-inputs.json"
+        if os.isFile(ideInputsJsonPath)
+        bloopDirPath = scalaBuildDirPath / ".bloop"
+        if os.isDir(bloopDirPath)
+        bloopFileJsonPath = bloopDirPath / s"$targetName.json"
+        if os.isFile(bloopFileJsonPath)
+        bloopFile <- Try { core.readFromString(os.read(bloopFileJsonPath))(BloopCodecs.codecFile) }.toOption
+        ideInputs <- Try { core.readFromString(os.read(ideInputsJsonPath))(IdeInputs.codec) }.toOption
+        ideSources = if (targetName.endsWith("-test")) ideInputs.mainScopeSources else ideInputs.testScopeSources
+        ideInputPaths = ideSources.map(os.Path(_).toNIO)
+        if !bloopFile.project.sources.toSet.equals(ideInputPaths.toSet)
+      } {
+        val updatedBloopFile: Config.File = bloopFile.copy(project = bloopFile.project.copy(sources = ideInputPaths))
+        val updatedBloopFileJson: Array[Byte] = core.writeToArray(updatedBloopFile)(BloopCodecs.codecFile)
+        os.write.over(bloopFileJsonPath, updatedBloopFileJson, createFolders = true)
+      }
+      res
+    }
 
   def initiateShutdown: Future[Unit] =
     shutdownPromise.future

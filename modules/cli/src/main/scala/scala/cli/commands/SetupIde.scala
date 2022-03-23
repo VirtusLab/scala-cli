@@ -9,6 +9,7 @@ import java.nio.charset.Charset
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Inputs.WorkspaceOrigin
+import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
@@ -99,8 +100,23 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
     val scalaCliBspJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-options-v2.json"
+    val scalaCliBspInputsJsonDestination =
+      inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
 
     val inputArgs = inputs.elements.collect { case d: Inputs.OnDisk => d.path.toString }
+
+    val ideInputs = {
+      val crossSources = value {
+        CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper), logger)
+      }
+      val scopedSources = value(crossSources.scopedSources(options.buildOptions))
+      val mainSources   = scopedSources.sources(Scope.Main, options.buildOptions)
+      val testSources   = scopedSources.sources(Scope.Test, options.buildOptions)
+      IdeInputs(
+        mainScopeSources = mainSources.paths.toList.map(_._1.toString()),
+        testScopeSources = testSources.paths.toList.map(_._1.toString())
+      )
+    }
 
     val debugOpt = options.shared.jvm.bspDebugPort.toSeq.map(port =>
       s"-J-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:$port,suspend=y"
@@ -129,6 +145,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val json                      = gson.toJson(details)
     val scalaCliOptionsForBspJson = writeToArray(options.shared)(SharedOptions.jsonCodec)
+    val scalaCliBspInputsJson     = writeToArray(ideInputs)
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(
@@ -142,6 +159,11 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       os.write.over(
         scalaCliBspJsonDestination,
         scalaCliOptionsForBspJson,
+        createFolders = true
+      )
+      os.write.over(
+        scalaCliBspInputsJsonDestination,
+        scalaCliBspInputsJson,
         createFolders = true
       )
       logger.debug(s"Wrote $bspJsonDestination")
