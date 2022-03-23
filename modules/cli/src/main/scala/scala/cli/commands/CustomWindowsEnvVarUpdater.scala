@@ -1,18 +1,18 @@
 package scala.cli.commands
 
 import coursier.env._
-import dataclass._
 
 // Only using this instead of coursier.env.WindowsEnvVarUpdater for the "\u0000" striping thing,
 // that earlier version of the Scala CLI may have left behind.
 // We should be able to switch back to coursier.env.WindowsEnvVarUpdater
 // after a bit of time (once super early users used this code more).
 
-@data class CustomWindowsEnvVarUpdater(
+case class CustomWindowsEnvVarUpdater(
   powershellRunner: PowershellRunner = PowershellRunner(),
-  @since
   useJni: Option[Boolean] = None
 ) extends EnvVarUpdater {
+
+  def withUseJni(opt: Option[Boolean]) = copy(useJni = opt)
 
   private lazy val useJni0 = useJni.getOrElse {
     // FIXME Should be coursier.paths.Util.useJni(), but it's not available from here.

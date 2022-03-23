@@ -27,8 +27,8 @@ jobs:
         jvm: "temurin:17"
     - name: Unit 3.x tests
       run: |
-        ./mill -i _[3.1.1].compile
-        ./mill -i _[3.1.1].test
+        ./mill -i _[2.13.8].compile 
+        ./mill -i _[2.13.8].test 
   jvm-tests:
     timeout-minutes: 120
     runs-on: ${{ matrix.OS }}
@@ -198,7 +198,7 @@ jobs:
     - name: Test gifs
       run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
     - name: Build binary
-      run: ./mill copyTo cli.launcher ./scala-cli
+      run: ./mill copyTo cli-cross[3.1.1].launcher ./scala-cli
     - name: Check examples
       run: bash ./scala-cli --jvm temurin:17  .github/scripts/check_examples.sc
 

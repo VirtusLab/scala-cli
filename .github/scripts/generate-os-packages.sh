@@ -15,7 +15,7 @@ packager() {
 }
 
 launcher() {
-  local launcherMillCommand="cli.nativeImage"
+  local launcherMillCommand="cli-cross[3.1.1].nativeImage"
   local launcherName
 
   if [[ "$OSTYPE" == "msys" ]]; then

@@ -3,7 +3,7 @@ set -e
 
 dest="$(pwd)/out/sclicheck/bin"
 
-./mill copyTo cli.launcher "$dest/scala-cli.sh"
+./mill copyTo cli-cross[3.1.1].launcher "$dest/scala-cli.sh"
 
 # work around sh issues (sh ignores PATH entries with '+' or '%', and the cs-provided Java 17 entry has one)
 # so we try to run the scala-cli launcher with bash instead

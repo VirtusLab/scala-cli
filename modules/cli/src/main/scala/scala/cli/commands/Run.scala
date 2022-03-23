@@ -161,6 +161,7 @@ object Run extends ScalaCommand[RunOptions] {
       exitOnError
     )
     value(res)
+    ()
   }
 
   private def runOnce(

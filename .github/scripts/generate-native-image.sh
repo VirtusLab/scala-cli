@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-COMMAND="cli.base-image.writeNativeImageScript"
+COMMAND="cli-cross[3.1.1].base-image.writeNativeImageScript"
 
 # Using 'mill -i' so that the Mill process doesn't outlive this invocation
 
@@ -16,7 +16,7 @@ if [[ "$OSTYPE" == "msys" ]]; then
 else
   if [ $# == "0" ]; then
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
-      COMMAND="cli.linux-docker-image.writeNativeImageScript"
+      COMMAND="cli-cross[3.1.1].linux-docker-image.writeNativeImageScript"
       CLEANUP=("sudo" "rm" "-rf" "out/cli/linux-docker-image/nativeImageDockerWorkingDir")
     else
       CLEANUP=("true")
@@ -24,11 +24,11 @@ else
   else
     case "$1" in
       "static")
-        COMMAND="cli.static-image.writeNativeImageScript"
+        COMMAND="cli-cross[3.1.1].static-image.writeNativeImageScript"
         CLEANUP=("sudo" "rm" "-rf" "out/cli/static-image/nativeImageDockerWorkingDir")
         ;;
       "mostly-static")
-        COMMAND="cli.mostly-static-image.writeNativeImageScript"
+        COMMAND="cli-cross[3.1.1].mostly-static-image.writeNativeImageScript"
         CLEANUP=("sudo" "rm" "-rf" "out/cli/mostly-static-image/nativeImageDockerWorkingDir")
         ;;
       *)

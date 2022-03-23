@@ -29,16 +29,15 @@ object ProfileFileUpdater {
 
     def updated(content: String): Option[String] = {
       val start = s"# >>> $title >>>\n"
-      val end   = s"# <<< $title <<<\n"
+      val endStr   = s"# <<< $title <<<\n"
       val withTags = "\n" +
         start +
-        addition.stripSuffix("\n") + "\n" +
-        end
+        addition.stripSuffix("\n") + "\n" + endStr
       if (content.contains(withTags))
         None
       else
         Some {
-          startEndIndices(start, end, content) match {
+          startEndIndices(start, endStr, content) match {
             case None =>
               content + withTags
             case Some((startIdx, endIdx)) =>
