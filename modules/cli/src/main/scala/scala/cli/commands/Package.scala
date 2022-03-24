@@ -24,6 +24,7 @@ import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
+import scala.cli.commands.util.PackageOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.errors.{ScalaJsLinkingError, ScaladocGenerationFailedError}
 import scala.cli.internal.{ProcUtil, ScalaJsLinker}
@@ -31,6 +32,7 @@ import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
+  override def name                                   = "package"
   override def group                                  = "Main"
   override def sharedOptions(options: PackageOptions) = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
