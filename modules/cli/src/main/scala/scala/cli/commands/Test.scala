@@ -8,9 +8,9 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
-import scala.build.options.{Platform, Scope}
+import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
-import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger}
+import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 
@@ -20,6 +20,24 @@ object Test extends ScalaCommand[TestOptions] {
 
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET
+
+  private def buildOptions(opts: TestOptions): BuildOptions = {
+    import opts._
+    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
+    baseOptions.copy(
+      javaOptions = baseOptions.javaOptions.copy(
+        javaOpts =
+          baseOptions.javaOptions.javaOpts ++
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
+      ),
+      testOptions = baseOptions.testOptions.copy(
+        frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty)
+      ),
+      internalDependencies = baseOptions.internalDependencies.copy(
+        addTestRunnerDependencyOpt = Some(true)
+      )
+    )
+  }
 
   def run(options: TestOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
@@ -36,7 +54,7 @@ object Test extends ScalaCommand[TestOptions] {
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
 
-    val initialBuildOptions = options.buildOptions
+    val initialBuildOptions = buildOptions(options)
     val threads             = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)

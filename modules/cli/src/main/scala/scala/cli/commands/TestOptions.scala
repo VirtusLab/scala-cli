@@ -3,10 +3,6 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
-import scala.build.Positioned
-import scala.build.options.{BuildOptions, JavaOpt}
-import scala.cli.commands.util.SharedOptionsUtil._
-
 // format: off
 @HelpMessage("Compile and test Scala code")
 final case class TestOptions(
@@ -27,25 +23,8 @@ final case class TestOptions(
   @Group("Test")
   @HelpMessage("Fail if no test suites were run")
     requireTests: Boolean = false
-) {
-  // format: on
-  def buildOptions: BuildOptions = {
-    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
-    baseOptions.copy(
-      javaOptions = baseOptions.javaOptions.copy(
-        javaOpts =
-          baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
-      ),
-      testOptions = baseOptions.testOptions.copy(
-        frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty)
-      ),
-      internalDependencies = baseOptions.internalDependencies.copy(
-        addTestRunnerDependencyOpt = Some(true)
-      )
-    )
-  }
-}
+)
+// format: on
 
 object TestOptions {
   implicit lazy val parser: Parser[TestOptions] = Parser.derive
