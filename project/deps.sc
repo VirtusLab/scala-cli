@@ -66,7 +66,7 @@ object Deps {
   def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
   def coursierPublish  = ivy"io.get-coursier.publish::publish:0.1.0"
   def dataClass        = ivy"io.github.alexarchambault::data-class:0.2.5"
-  def dependency       = ivy"io.get-coursier::dependency:0.2.1"
+  def dependency       = ivy"io.get-coursier::dependency:0.2.2"
   def dockerClient     = ivy"com.spotify:docker-client:8.16.0"
   def expecty          = ivy"com.eed3si9n.expecty::expecty:0.15.4"
   def guava            = ivy"com.google.guava:guava:31.1-jre"
