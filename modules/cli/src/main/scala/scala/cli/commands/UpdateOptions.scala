@@ -20,12 +20,8 @@ final case class UpdateOptions(
     force: Boolean = false,
   @Hidden
     isInternalRun: Boolean = false,
-) {
-  // format: on
-  lazy val binDirPath = binDir.map(os.Path(_, os.pwd))
-  lazy val installDirPath =
-    binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / binaryName)
-}
+)
+// format: on
 
 object UpdateOptions {
   implicit lazy val parser: Parser[UpdateOptions] = Parser.derive

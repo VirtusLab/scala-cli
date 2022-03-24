@@ -20,6 +20,11 @@ object Update extends ScalaCommand[UpdateOptions] {
     sys.error("Can not resolve ScalaCLI version to update")
   )
 
+  def installDirPath(options: UpdateOptions): os.Path =
+    options.binDir.map(os.Path(_, os.pwd)).getOrElse(
+      scala.build.Directories.default().binRepoDir / options.binaryName
+    )
+
   private def updateScalaCli(options: UpdateOptions, newVersion: String) = {
     if (!options.force)
       if (coursier.paths.Util.useAnsiOutput()) {
@@ -44,7 +49,7 @@ object Update extends ScalaCommand[UpdateOptions] {
       "--version", newVersion,
       "--force",
       "--binary-name", options.binaryName,
-      "--bin-dir", options.installDirPath,
+      "--bin-dir", installDirPath(options),
     ).call(
       cwd = os.pwd,
       stdin = installationScript,
@@ -83,7 +88,7 @@ object Update extends ScalaCommand[UpdateOptions] {
 
   def checkUpdate(options: UpdateOptions) = {
 
-    val scalaCliBinPath = options.installDirPath / options.binaryName
+    val scalaCliBinPath = installDirPath(options) / options.binaryName
 
     val programName = argvOpt.flatMap(_.headOption).getOrElse {
       sys.error("update called in a non-standard way :|")
@@ -91,7 +96,7 @@ object Update extends ScalaCommand[UpdateOptions] {
 
     lazy val isScalaCliInPath = // if binDir is non empty, we not except scala-cli in PATH, it is useful in tests
       CommandUtils.getAbsolutePathToScalaCli(programName).contains(
-        options.installDirPath.toString()
+        installDirPath(options).toString()
       ) || options.binDir.isDefined
 
     if (!os.exists(scalaCliBinPath) || !isScalaCliInPath) {
