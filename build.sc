@@ -34,6 +34,7 @@ implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
 object cli            extends Cli
+object `cli-options`  extends CliOptions
 object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal, Scala.scala3)
 object options        extends Cross[Options](Scala.defaultInternal, Scala.scala3)
 object scalaparse     extends ScalaParse
@@ -475,6 +476,12 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
   }
 }
 
+trait CliOptions extends SbtModule with ScalaCliPublishModule with settings.ScalaCliCompile {
+  def ivyDeps =
+    super.ivyDeps() ++ Agg(Deps.caseApp, Deps.jsoniterCore, Deps.jsoniterMacros, Deps.osLib)
+  def scalaVersion = Scala.defaultInternal
+}
+
 trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf
     with HasTests with HasMacroAnnotations with ScalaCliScalafixModule {
   def scalaVersion = Scala.defaultInternal
@@ -486,7 +493,8 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   }
   def moduleDeps = Seq(
     build(Scala.defaultInternal),
-    `test-runner`(Scala.defaultInternal)
+    `test-runner`(Scala.defaultInternal),
+    `cli-options`
   )
 
   def repositories = super.repositories ++ customRepositories
