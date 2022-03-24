@@ -5,6 +5,7 @@ import caseapp.core.help.Help
 
 import scala.build.Positioned
 import scala.build.options.{BuildOptions, JavaOpt}
+import scala.cli.commands.util.SharedOptionsUtil._
 
 // format: off
 @HelpMessage("Compile and test Scala code")

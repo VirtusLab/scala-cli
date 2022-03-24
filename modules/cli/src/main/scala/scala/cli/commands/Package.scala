@@ -24,6 +24,7 @@ import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
+import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.errors.{ScalaJsLinkingError, ScaladocGenerationFailedError}
 import scala.cli.internal.{ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}

@@ -4,6 +4,7 @@ import caseapp._
 
 import scala.build.Positioned
 import scala.build.options.{BuildOptions, JavaOpt}
+import scala.cli.commands.util.SharedOptionsUtil._
 
 // format: off
 @HelpMessage("Fire-up a Scala REPL")

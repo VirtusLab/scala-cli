@@ -14,6 +14,7 @@ import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Artifacts, CrossSources, Inputs, Logger, Sources}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.errors.FoundVirtualInputsError
 import scala.jdk.CollectionConverters._
 

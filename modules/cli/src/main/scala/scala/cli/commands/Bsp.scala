@@ -7,6 +7,7 @@ import scala.build.Build
 import scala.build.bsp.BspThreads
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
+import scala.cli.commands.util.SharedOptionsUtil._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 

@@ -10,6 +10,7 @@ import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Inputs, Logger, Os, Sources}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.export._
 
 object Export extends ScalaCommand[ExportOptions] {

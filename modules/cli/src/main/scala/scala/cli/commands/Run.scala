@@ -8,6 +8,7 @@ import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.Platform
 import scala.build.{Build, BuildThreads, Inputs, Logger}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.Properties
 
 object Run extends ScalaCommand[RunOptions] {

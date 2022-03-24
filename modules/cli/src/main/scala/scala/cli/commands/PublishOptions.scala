@@ -7,6 +7,7 @@ import scala.build.Ops._
 import scala.build.Positioned
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.{BuildOptions, PublishOptions => BPublishOptions}
+import scala.cli.commands.util.SharedOptionsUtil._
 
 // format: off
 final case class PublishOptions(

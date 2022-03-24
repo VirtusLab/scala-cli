@@ -12,6 +12,7 @@ import scala.build.options.{Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.SharedOptionsUtil._
 
 object Test extends ScalaCommand[TestOptions] {
   override def group                               = "Main"

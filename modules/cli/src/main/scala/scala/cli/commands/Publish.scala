@@ -23,6 +23,7 @@ import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Logger, Os}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.errors.{MissingRepositoryError, UploadError}
 import scala.cli.packaging.Library
 

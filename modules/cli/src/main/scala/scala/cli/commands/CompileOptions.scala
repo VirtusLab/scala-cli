@@ -5,6 +5,7 @@ import caseapp.core.help.Help
 
 import scala.build.Os
 import scala.build.options.BuildOptions
+import scala.cli.commands.util.SharedOptionsUtil._
 
 // format: off
 @HelpMessage("Compile Scala code")

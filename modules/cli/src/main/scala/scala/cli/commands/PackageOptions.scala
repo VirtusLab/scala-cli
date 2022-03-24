@@ -7,6 +7,7 @@ import scala.build.BuildThreads
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.options._
 import scala.build.options.packaging._
+import scala.cli.commands.util.SharedOptionsUtil._
 
 // format: off
 @HelpMessage("Compile and package Scala code")

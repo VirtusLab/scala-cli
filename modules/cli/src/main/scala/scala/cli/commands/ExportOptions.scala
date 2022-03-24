@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.options.BuildOptions
+import scala.cli.commands.util.SharedOptionsUtil._
 
 // format: off
 @HelpMessage("Export current project to sbt or Mill")

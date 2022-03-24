@@ -8,6 +8,7 @@ import java.nio.file.Path
 import scala.build.internal.{FetchExternalBinary, Runner}
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.packaging.Library
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {

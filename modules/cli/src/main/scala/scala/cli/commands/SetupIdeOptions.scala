@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.options.BuildOptions
+import scala.cli.commands.util.SharedOptionsUtil._
 
 // format: off
 @HelpMessage("Generate a BSP file that you can import into your IDE")
