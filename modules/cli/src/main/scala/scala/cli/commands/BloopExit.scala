@@ -3,9 +3,10 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.Os
-import scala.build.blooprifle.BloopRifle
+import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {
   override def hidden     = true
@@ -13,9 +14,21 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
   override def names: List[List[String]] = List(
     List("bloop", "exit")
   )
+
+  private def mkBloopRifleConfig(opts: BloopExitOptions): BloopRifleConfig = {
+    import opts._
+    compilationServer.bloopRifleConfig(
+      logging.logger,
+      coursier.coursierCache(logging.logger.coursierLogger("Downloading Bloop")),
+      logging.verbosity,
+      "java", // shouldn't be used…
+      directories.directories
+    )
+  }
+
   def run(options: BloopExitOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.logging.verbosity
-    val bloopRifleConfig = options.bloopRifleConfig()
+    val bloopRifleConfig = mkBloopRifleConfig(options)
     val logger           = options.logging.logger
 
     val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)
