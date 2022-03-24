@@ -12,6 +12,7 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
+import scala.build.CoursierUtils._
 import scala.build.EitherCps.{either, value}
 import scala.build.errors._
 import scala.build.internal.Constants._
@@ -306,10 +307,9 @@ final case class BuildOptions(
   }
 
   private def modules(maybeScalaVersionArg: Option[String]) = {
-    import coursier.moduleString
-    def scala2 = mod"org.scala-lang:scala-library"
+    def scala2 = cmod"org.scala-lang:scala-library"
     // No unstable, that *ought* not to be a problem down-the-line…?
-    def scala3 = mod"org.scala-lang:scala3-library_3"
+    def scala3 = cmod"org.scala-lang:scala3-library_3"
     if (maybeScalaVersionArg.contains("2") || maybeScalaVersionArg.exists(_.startsWith("2.")))
       Seq(scala2)
     else if (maybeScalaVersionArg.contains("3") || maybeScalaVersionArg.exists(_.startsWith("3.")))
@@ -457,8 +457,7 @@ final case class BuildOptions(
   private def computeLatestScalaThreeNightlyVersions(): Either[BuildException, (String, String)] =
     either {
       val moduleVersion: Either[ScalaVersionError, String] = {
-        import coursier.moduleString
-        def scala3 = mod"org.scala-lang:scala3-library_3"
+        def scala3 = cmod"org.scala-lang:scala3-library_3"
         val res = finalCache.logger.use {
           Versions(finalCache)
             .withModule(scala3)
@@ -479,8 +478,7 @@ final case class BuildOptions(
   private def computeLatestScalaTwoNightlyVersions(): Either[BuildException, (String, String)] =
     either {
       val moduleVersion: Either[ScalaVersionError, String] = {
-        import coursier.moduleString
-        def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
+        def scalaNightly2Module: Module = cmod"org.scala-lang:scala-library"
         val res = finalCache.logger.use {
           Versions(finalCache)
             .withModule(scalaNightly2Module)
@@ -500,8 +498,7 @@ final case class BuildOptions(
     : Either[BuildException, (String, String)] = either {
 
     val moduleVersion: Either[ScalaVersionError, String] = {
-      import coursier.moduleString
-      def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
+      def scalaNightly2Module: Module = cmod"org.scala-lang:scala-library"
       val res = finalCache.logger.use {
         Versions(finalCache)
           .withModule(scalaNightly2Module)
@@ -524,8 +521,7 @@ final case class BuildOptions(
   private def turnScala3NightlyVersionArgIntoVersion(versionString: String)
     : Either[BuildException, (String, String)] = either {
     val moduleVersion: Either[ScalaVersionError, String] = {
-      import coursier.moduleString
-      def scala3 = mod"org.scala-lang:scala3-library_3"
+      def scala3 = cmod"org.scala-lang:scala3-library_3"
       val res = finalCache.logger.use {
         Versions(finalCache)
           .withModule(scala3)
@@ -547,8 +543,7 @@ final case class BuildOptions(
   def computeLatestScalaTwoTwelveNightlyVersions(): Either[BuildException, (String, String)] =
     either {
       val moduleVersion: Either[ScalaVersionError, String] = {
-        import coursier.moduleString
-        def scalaNightly2Module: Module = mod"org.scala-lang:scala-library"
+        def scalaNightly2Module: Module = cmod"org.scala-lang:scala-library"
         val res = finalCache.logger.use {
           Versions(finalCache)
             .withModule(scalaNightly2Module)

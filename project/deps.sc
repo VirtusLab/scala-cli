@@ -56,22 +56,26 @@ object Deps {
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
   }
-  def ammonite         = ivy"com.lihaoyi:::ammonite:2.5.2"
-  def asm              = ivy"org.ow2.asm:asm:9.2"
-  def bloopConfig      = ivy"io.github.alexarchambault.bleep::bloop-config:1.4.19-1"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.2"
+  def asm      = ivy"org.ow2.asm:asm:9.2"
+  // Force using of 2.13 - is there a better way?
+  def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.4.19-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.0.0"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M13"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.7.0"
-  def coursierJvm      = ivy"io.get-coursier::coursier-jvm:${Versions.coursier}"
+  // Force using of 2.13 - is there a better way?
+  def coursierJvm      = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
   def coursierPublish  = ivy"io.get-coursier.publish::publish:0.1.0"
   def dataClass        = ivy"io.github.alexarchambault::data-class:0.2.5"
-  def dependency       = ivy"io.get-coursier::dependency:0.2.2"
-  def dockerClient     = ivy"com.spotify:docker-client:8.16.0"
-  def expecty          = ivy"com.eed3si9n.expecty::expecty:0.15.4"
-  def guava            = ivy"com.google.guava:guava:31.1-jre"
-  def jimfs            = ivy"com.google.jimfs:jimfs:1.2"
-  def jniUtils         = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
+  // TODO - update to working version
+  def dependency   = ivy"io.get-coursier::dependency:0.2.2"
+  def dockerClient = ivy"com.spotify:docker-client:8.16.0"
+  // TODO bump once 0.15.5 is out
+  def expecty  = ivy"com.eed3si9n.expecty::expecty:0.15.4+22-9c7fb771-SNAPSHOT"
+  def guava    = ivy"com.google.guava:guava:31.1-jre"
+  def jimfs    = ivy"com.google.jimfs:jimfs:1.2"
+  def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
   def jsoniterMacros =
@@ -86,27 +90,34 @@ object Deps {
   def pprint                     = ivy"com.lihaoyi::pprint:0.7.2"
   def prettyStacktraces          = ivy"org.virtuslab::pretty-stacktraces:0.0.1-M1"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
-  def scalaAsync               = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
-  def scalac(sv: String)       = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli              = ivy"org.scalameta::scalafmt-cli:3.0.8"
-  def scalaJsEnvNodeJs         = ivy"org.scala-js::scalajs-env-nodejs:1.3.0"
-  def scalaJsLogging           = ivy"org.scala-js:scalajs-logging_2.13:1.1.1"
-  def scalaJsTestAdapter       = ivy"org.scala-js::scalajs-sbt-test-adapter:${Scala.scalaJs}"
-  def scalametaTrees           = ivy"org.scalameta::trees:${Versions.scalaMeta}"
-  def scalaPackager            = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
-  def scalaPackagerCli         = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
-  def scalaparse               = ivy"com.lihaoyi::scalaparse:2.3.3"
+  def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
+  def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
+  def scalafmtCli        = ivy"org.scalameta::scalafmt-cli:3.0.8"
+  // Force using of 2.13 - is there a better way?
+  def scalaJsEnvNodeJs = ivy"org.scala-js:scalajs-env-nodejs_2.13:1.3.0"
+  def scalaJsLogging   = ivy"org.scala-js:scalajs-logging_2.13:1.1.1"
+  // Force using of 2.13 - is there a better way?
+  def scalaJsTestAdapter = ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
+  // Force using of 2.13 - is there a better way?
+  def scalametaTrees   = ivy"org.scalameta:trees_2.13:${Versions.scalaMeta}"
+  def scalaPackager    = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
+  def scalaPackagerCli = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
+  // Force using of 2.13 - is there a better way?
+  def scalaparse               = ivy"com.lihaoyi:scalaparse_2.13:2.3.3"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                = ivy"com.chuusai::shapeless:2.3.8"
   def slf4jNop                 = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
-  def snailgun                 = ivy"me.vican.jorge::snailgun-core:0.4.0"
-  def svm                      = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
-  def swoval                   = ivy"com.swoval:file-tree-views:2.1.9"
-  def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
-  def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"
-  val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
+  // Force using of 2.13 - is there a better way?
+  def snailgun(force213: Boolean = false) =
+    if (force213) ivy"me.vican.jorge:snailgun-core_2.13:0.4.0"
+    else ivy"me.vican.jorge::snailgun-core:0.4.0"
+  def svm                = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
+  def swoval             = ivy"com.swoval:file-tree-views:2.1.9"
+  def testInterface      = ivy"org.scala-sbt:test-interface:1.0"
+  def usingDirectives    = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"
+  val metaconfigTypesafe = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
 }
 
 def graalVmVersion     = "22.0.0"
