@@ -103,7 +103,7 @@ object Deps {
   def slf4jNop                 = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   def snailgun                 = ivy"me.vican.jorge::snailgun-core:0.4.0"
   def svm                      = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
-  def swoval                   = ivy"com.swoval:file-tree-views:2.1.8"
+  def swoval                   = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface            = ivy"org.scala-sbt:test-interface:1.0"
   def usingDirectives          = ivy"org.virtuslab:using_directives:0.0.7-277bd4a-SNAPSHOT"
   val metaconfigTypesafe       = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
