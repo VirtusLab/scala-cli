@@ -10,7 +10,7 @@ import scala.build.errors.{
   UnsupportedScalaVersionError
 }
 import scala.build.internal.Constants._
-import scala.build.internal.ScalaParse.scala2NightlyRegex
+import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.options.{BuildOptions, BuildRequirements, ScalaOptions}
 
 class BuildOptionsTests extends munit.FunSuite {
@@ -124,6 +124,20 @@ class BuildOptionsTests extends munit.FunSuite {
     )
   }
 
+  test("Scala 3.1.2-RC1 works") {
+
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some("3.1.2-RC1")
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow
+    assert(
+      scalaParams.scalaVersion == "3.1.2-RC1",
+      "-S 3.1.2-RC1 argument does not lead to 3.1.2-RC1 build option"
+    )
+  }
+
   test("Scala 2.12.9-bin-1111111 shows No Valid Scala Version Error") {
 
     val options = BuildOptions(
@@ -168,6 +182,32 @@ class BuildOptionsTests extends munit.FunSuite {
     assert(
       scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.nightly argument does not lead to scala2 nightly build option"
+    )
+  }
+
+  test("-S 2.13.nightly option works") {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some("2.13.nightly")
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow
+    assert(
+      scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
+      "-S 2.13.nightly argument does not lead to scala2 nightly build option"
+    )
+  }
+
+  test("-S 2.12.nightly option works") {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some("2.12.nightly")
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow
+    assert(
+      scalaParams.scalaVersion == "2.12.16-bin-586302a",
+      "-S 2.12.nightly argument does not lead to scala2 nightly build option"
     )
   }
 

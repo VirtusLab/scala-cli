@@ -2,7 +2,6 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 import dependency._
-import org.scalajs.linker.interface.{ESVersion, ModuleKind, ModuleSplitStyle}
 
 import scala.build.Ops._
 import scala.build.Sources
@@ -12,6 +11,7 @@ import scala.build.Position
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.preprocessing.directives.MultiValue
 import scala.build.preprocessing.directives.NotABoolean
+import scala.build.internal.ScalaJsLinkerConfig
 
 class SourcesTests extends munit.FunSuite {
 
@@ -52,7 +52,7 @@ class SourcesTests extends munit.FunSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
     }
   }
 
@@ -308,7 +308,7 @@ class SourcesTests extends munit.FunSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
     }
   }
 
@@ -368,7 +368,7 @@ class SourcesTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
-      val parsedCodes: Seq[String] = sources.inMemory.map(_._3)
+      val parsedCodes: Seq[String] = sources.inMemory.map(_.generatedContent)
 
       parsedCodes.zip(expectedParsedCodes).foreach { case (parsedCode, expectedCode) =>
         expect(parsedCode.contains(expectedCode))
@@ -405,7 +405,7 @@ class SourcesTests extends munit.FunSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
     }
   }
 
@@ -440,7 +440,7 @@ class SourcesTests extends munit.FunSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_._2) == Seq(os.rel / "something.scala"))
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
     }
   }
 
@@ -508,15 +508,15 @@ class SourcesTests extends munit.FunSuite {
         jsOptions.dom == Some(true)
       )
       expect(
-        jsConfig.moduleKind == ModuleKind.CommonJSModule,
+        jsConfig.moduleKind == ScalaJsLinkerConfig.ModuleKind.CommonJSModule,
         jsConfig.checkIR == true,
         jsConfig.sourceMap == true,
-        jsConfig.jsHeader == "#!/usr/bin/env node\n",
+        jsConfig.jsHeader == Some("#!/usr/bin/env node\n"),
         jsConfig.esFeatures.allowBigIntsForLongs == true,
         jsConfig.esFeatures.avoidClasses == false,
         jsConfig.esFeatures.avoidLetsAndConsts == false,
-        jsConfig.esFeatures.esVersion == ESVersion.ES2017,
-        jsConfig.moduleSplitStyle == ModuleSplitStyle.SmallestModules
+        jsConfig.esFeatures.esVersion == "ES2017",
+        jsConfig.moduleSplitStyle == ScalaJsLinkerConfig.ModuleSplitStyle.SmallestModules
       )
     }
   }

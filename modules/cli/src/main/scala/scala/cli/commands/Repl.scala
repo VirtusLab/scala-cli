@@ -4,10 +4,10 @@ import caseapp._
 import coursier.cache.FileCache
 
 import scala.build.EitherCps.{either, value}
+import scala.build._
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.build.options.BuildOptions
-import scala.build.{Artifacts, Build, Inputs, Logger, Os, ReplArtifacts}
 import scala.cli.CurrentParams
 import scala.util.Properties
 
@@ -23,12 +23,15 @@ object Repl extends ScalaCommand[ReplOptions] {
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd)
     }
-    val inputs = options.shared.inputsOrExit(args, defaultInputs = () => Some(default))
+    val inputs      = options.shared.inputsOrExit(args, defaultInputs = () => Some(default))
+    val programArgs = args.unparsed
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
+    val threads             = BuildThreads.create()
+
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val directories = options.shared.directories.directories
 
@@ -51,6 +54,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     ): Unit = {
       val res = runRepl(
         buildOptions,
+        programArgs,
         artifacts,
         classDir,
         directories,
@@ -81,11 +85,12 @@ object Repl extends ScalaCommand[ReplOptions] {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
-        postAction = () => WatchUtil.printWatchMessage(),
-        buildTests = false
+        buildTests = false,
+        partial = None,
+        postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
           builds.main match {
@@ -103,10 +108,11 @@ object Repl extends ScalaCommand[ReplOptions] {
         Build.build(
           inputs,
           initialBuildOptions,
-          bloopRifleConfig,
+          compilerMaker,
           logger,
           crossBuilds = cross,
-          buildTests = false
+          buildTests = false,
+          partial = None
         )
           .orExit(logger)
       builds.main match {
@@ -120,6 +126,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
   private def runRepl(
     options: BuildOptions,
+    programArgs: Seq[String],
     artifacts: Artifacts,
     classDir: Option[os.Path],
     directories: scala.build.Directories,
@@ -134,7 +141,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         ReplArtifacts.ammonite(
           artifacts.params,
           options.notForBloopOptions.replOptions.ammoniteVersion,
-          artifacts.dependencies,
+          artifacts.userDependencies,
           artifacts.extraClassPath,
           artifacts.extraSourceJars,
           logger,
@@ -144,7 +151,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       else
         ReplArtifacts.default(
           artifacts.params,
-          artifacts.dependencies,
+          artifacts.userDependencies,
           artifacts.extraClassPath,
           logger,
           cache,
@@ -174,21 +181,23 @@ object Repl extends ScalaCommand[ReplOptions] {
           " These will not be accessible from the REPL."
       )
 
+    val replArgs = options.notForBloopOptions.replOptions.ammoniteArgs ++ programArgs
+
     if (dryRun)
       logger.message("Dry run, not running REPL.")
     else
       Runner.runJvm(
         options.javaHome().value.javaCommand,
         replArtifacts.replJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
-        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toFile),
+        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toIO),
         replArtifacts.replMainClass,
         if (Properties.isWin)
-          options.notForBloopOptions.replOptions.ammoniteArgs.map { a =>
+          replArgs.map { a =>
             if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\""
             else a
           }
         else
-          options.notForBloopOptions.replOptions.ammoniteArgs,
+          replArgs,
         logger,
         allowExecve = allowExit
       )

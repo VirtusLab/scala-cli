@@ -1,9 +1,10 @@
 package scala.cli.commands
 
-import upickle.default.{ReadWriter, macroRW}
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-case class BloopJson(javaOptions: List[String] = Nil)
+final case class BloopJson(javaOptions: List[String] = Nil)
 
-case object BloopJson {
-  implicit lazy val jsonCodec: ReadWriter[BloopJson] = macroRW
+object BloopJson {
+  val codec: JsonValueCodec[BloopJson] = JsonCodecMaker.make
 }

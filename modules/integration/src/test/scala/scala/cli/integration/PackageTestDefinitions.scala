@@ -2,9 +2,12 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.InputStream
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.zip.ZipFile
 
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
@@ -206,10 +209,44 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!TestUtil.isNativeCli || !Properties.isWin)
+  def sourceMapJsTest(): Unit = {
+    val fileName = "simple.sc"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""import scala.scalajs.js
+             |println("Hello World")
+             |""".stripMargin
+      )
+    )
+    val destName = fileName.stripSuffix(".sc") + ".js"
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        extraOptions,
+        fileName,
+        "--js",
+        "--js-emit-source-maps"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val expectedSourceMapsPath = root / s"$destName.map"
+      expect(os.isFile(expectedSourceMapsPath))
+    }
+  }
+
+  if (!TestUtil.isNativeCli || !Properties.isWin) {
     test("simple JS") {
       simpleJsTest()
     }
+    test("source maps js") {
+      sourceMapJsTest()
+    }
+  }
 
   def simpleNativeTest(): Unit = {
     val fileName   = "simple.sc"
@@ -312,7 +349,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         os.rel / "Tests.test.scala" ->
           """|import utest._ // compilation error, not included test library
              |
-             |object Tests extends TestSuite { 
+             |object Tests extends TestSuite {
              |  val tests = Tests {
              |    test("message") {
              |      assert(1 == 1)
@@ -336,4 +373,134 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  private def readEntry(zf: ZipFile, name: String): Array[Byte] = {
+    val ent             = zf.getEntry(name)
+    var is: InputStream = null
+    try {
+      is = zf.getInputStream(ent)
+      is.readAllBytes()
+    }
+    finally if (is != null)
+        is.close()
+  }
+
+  private val simpleInputWithScalaAndSc = TestInputs(
+    Seq(
+      os.rel / "lib" / "Messages.scala" ->
+        """package lib
+          |
+          |object Messages {
+          |  def msg = "Hello"
+          |}
+          |""".stripMargin,
+      os.rel / "simple.sc" ->
+        """val msg = lib.Messages.msg
+          |println(msg)
+          |""".stripMargin
+    )
+  )
+  test("source JAR") {
+    val dest = os.rel / "sources.jar"
+    simpleInputWithScalaAndSc.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", dest, "--source").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      expect(os.isFile(root / dest))
+
+      val zf                 = new ZipFile((root / dest).toIO)
+      val genSourceEntryName = "META-INF/generated/simple.scala"
+      val expectedEntries = Set(
+        "lib/Messages.scala",
+        genSourceEntryName,
+        "simple.sc"
+      )
+      val entries = zf.entries().asScala.iterator.map(_.getName).toSet
+      expect(entries == expectedEntries)
+
+      for ((relPath, expectedStrContent) <- simpleInputWithScalaAndSc.files) {
+        val content    = readEntry(zf, relPath.toString)
+        val strContent = new String(content, StandardCharsets.UTF_8)
+        expect(strContent == expectedStrContent)
+      }
+
+      val genContent    = readEntry(zf, genSourceEntryName)
+      val genContentStr = new String(genContent, StandardCharsets.UTF_8)
+      expect(genContentStr.contains("object simple {"))
+    }
+  }
+
+  test("doc JAR") {
+    val dest = os.rel / "doc.jar"
+    simpleInputWithScalaAndSc.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", dest, "--doc").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      expect(os.isFile(root / dest))
+      val zf = new ZipFile((root / dest).toIO)
+      val expectedEntries =
+        if (actualScalaVersion.startsWith("2."))
+          Seq(
+            "index.html",
+            "lib/Messages$.html",
+            "simple$.html"
+          )
+        else
+          Seq(
+            "index.html",
+            "inkuire-db.json",
+            "_empty_/simple$.html",
+            "lib/Messages$.html"
+          )
+      val entries = zf.entries().asScala.iterator.map(_.getName).toSet
+      expect(expectedEntries.forall(e => entries.contains(e)))
+    }
+  }
+
+  test("native image") {
+    val message = "Hello from native-image"
+    val dest =
+      if (Properties.isWin) "hello.exe"
+      else "hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("$message")
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        extraOptions,
+        ".",
+        "--native-image",
+        "-o",
+        dest,
+        "--",
+        "--no-fallback"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      expect(os.isFile(root / dest))
+
+      // FIXME Check that dest is indeed a binary?
+
+      val res    = os.proc(root / dest).call(cwd = root)
+      val output = res.out.text().trim
+      expect(output == message)
+    }
+  }
 }

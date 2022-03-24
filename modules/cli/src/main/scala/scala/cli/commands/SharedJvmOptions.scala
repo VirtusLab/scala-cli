@@ -1,7 +1,8 @@
 package scala.cli.commands
 
 import caseapp._
-import upickle.default.{ReadWriter, macroRW}
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
 import java.io.File
 
@@ -47,7 +48,12 @@ final case class SharedJvmOptions(
   @HelpMessage("Javac options")
   @Name("javacOpt")
   @Hidden
-    javacOption: List[String] = Nil
+    javacOption: List[String] = Nil,
+
+  @Group("Java")
+  @HelpMessage("Port for BSP debugging")
+  @Hidden
+    bspDebugPort: Option[String] = None
 ) {
   // format: on
 
@@ -82,5 +88,5 @@ object SharedJvmOptions {
   lazy val parser: Parser[SharedJvmOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[SharedJvmOptions, parser.D] = parser
   implicit lazy val help: Help[SharedJvmOptions]                      = Help.derive
-  implicit lazy val jsonCodec: ReadWriter[SharedJvmOptions]           = macroRW
+  implicit lazy val jsonCodec: JsonValueCodec[SharedJvmOptions]       = JsonCodecMaker.make
 }

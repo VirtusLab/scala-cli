@@ -56,7 +56,8 @@ case object ScalaPreprocessor extends Preprocessor {
     UsingCustomJarDirectiveHandler,
     UsingResourcesDirectiveHandler,
     UsingCompilerPluginDirectiveHandler,
-    UsingMainClassDirectiveHandler
+    UsingMainClassDirectiveHandler,
+    UsingPublishDirectiveHandler
   )
 
   val requireDirectiveHandlers = Seq[RequireDirectiveHandler](
@@ -88,7 +89,7 @@ case object ScalaPreprocessor extends Preprocessor {
                   Some(updatedCode)
                 )) =>
               PreprocessedSource.InMemory(
-                Right(f.path),
+                Right((f.subPath, f.path)),
                 f.subPath,
                 updatedCode,
                 0,

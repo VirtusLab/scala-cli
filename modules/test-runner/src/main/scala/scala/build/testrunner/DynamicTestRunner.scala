@@ -31,8 +31,8 @@ object DynamicTestRunner {
       fingerprints.find {
         case f: SubclassFingerprint =>
           f.isModule == isModule &&
-            loader.loadClass(f.superclassName())
-              .isAssignableFrom(cls)
+          loader.loadClass(f.superclassName())
+            .isAssignableFrom(cls)
 
         case f: AnnotatedFingerprint =>
           val annotationCls = loader.loadClass(f.annotationName())

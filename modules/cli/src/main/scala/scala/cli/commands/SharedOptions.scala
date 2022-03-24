@@ -2,21 +2,24 @@ package scala.cli.commands
 
 import caseapp._
 import caseapp.core.help.Help
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import coursier.util.Artifact
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
-import upickle.default.{ReadWriter, macroRW}
 
 import java.io.{ByteArrayOutputStream, File, InputStream}
 
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.{Constants, OsLibc}
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
-import scala.build.{Inputs, LocalRepo, Logger, Os, Position, Positioned, options => bo}
+import scala.build.{options => bo, _}
 import scala.concurrent.duration._
 import scala.util.Properties
 import scala.util.control.NonFatal
+
 // format: off
 final case class SharedOptions(
   @Recurse
@@ -145,7 +148,7 @@ final case class SharedOptions(
       scriptOptions = bo.ScriptOptions(
         codeWrapper = None
       ),
-      scalaJsOptions = js.buildOptions,
+      scalaJsOptions = js.scalaJsOptions,
       scalaNativeOptions = native.buildOptions,
       javaOptions = jvm.javaOptions,
       internalDependencies = bo.InternalDependenciesOptions(
@@ -180,17 +183,15 @@ final case class SharedOptions(
         localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
         verbosity = Some(logging.verbosity),
         strictBloopJsonCheck = strictBloopJsonCheck
+      ),
+      notForBloopOptions = bo.PostBuildOptions(
+        scalaJsLinkerOptions = js.linkerOptions
       )
     )
   }
 
-  def bloopRifleConfig(): BloopRifleConfig = {
-
-    val options     = buildOptions(false, None)
+  private def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
     implicit val ec = options.finalCache.ec
-    val jvmId = compilationServer.bloopJvm.getOrElse {
-      OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")
-    }
     val javaHomeManager = options.javaHomeManager
       .withMessage(s"Downloading JVM $jvmId")
     val logger = javaHomeManager.cache
@@ -205,24 +206,55 @@ final case class SharedOptions(
       }
       os.Path(path)
     }
-    val ext = if (Properties.isWin) ".exe" else ""
+    val ext     = if (Properties.isWin) ".exe" else ""
+    val javaCmd = (command / "bin" / s"java$ext").toString
+    javaCmd
+  }
+
+  def bloopRifleConfig(): BloopRifleConfig = {
+
+    val options = buildOptions(false, None)
+    lazy val defaultJvmCmd =
+      downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
+    val javaCmd = compilationServer.bloopJvm.map(downloadJvm(_, options)).orElse {
+      for (javaHome <- options.javaHomeLocationOpt()) yield {
+        val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
+        if (javaHomeVersion >= 17) javaHomeCmd
+        else defaultJvmCmd
+      }
+    }.getOrElse(defaultJvmCmd)
+
     compilationServer.bloopRifleConfig(
       logging.logger,
       coursierCache,
       logging.verbosity,
-      (command / "bin" / s"java$ext").toString,
+      javaCmd,
       directories.directories,
       Some(17)
     )
   }
+
+  def compilerMaker(threads: BuildThreads): ScalaCompilerMaker =
+    if (compilationServer.server.getOrElse(true))
+      new BloopCompilerMaker(
+        bloopRifleConfig(),
+        threads.bloop,
+        strictBloopJsonCheckOrDefault
+      )
+    else
+      SimpleScalaCompilerMaker("java", Nil)
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 
   def inputsOrExit(
     args: RemainingArgs,
     defaultInputs: () => Option[Inputs] = () => Inputs.default()
-  ): Inputs = inputsOrExit(args.remaining, defaultInputs)
+  ): Inputs = inputsOrExit(args.all, defaultInputs)
 
+  def inputsOrExit(
+    args: Seq[String]
+  ): Inputs =
+    inputsOrExit(args, () => Inputs.default())
   def inputsOrExit(
     args: Seq[String],
     defaultInputs: () => Option[Inputs]
@@ -271,12 +303,15 @@ final case class SharedOptions(
       .checkAttributes(directories.directories)
       .avoid(forbiddenDirs, directories.directories)
   }
+
+  def strictBloopJsonCheckOrDefault =
+    strictBloopJsonCheck.getOrElse(bo.InternalOptions.defaultStrictBloopJsonCheck)
 }
 
 object SharedOptions {
-  implicit lazy val parser: Parser[SharedOptions]        = Parser.derive
-  implicit lazy val help: Help[SharedOptions]            = Help.derive
-  implicit lazy val jsonCodec: ReadWriter[SharedOptions] = macroRW
+  implicit lazy val parser: Parser[SharedOptions]            = Parser.derive
+  implicit lazy val help: Help[SharedOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[SharedOptions] = JsonCodecMaker.make
 
   def parseDependencies(
     deps: List[Positioned[String]],

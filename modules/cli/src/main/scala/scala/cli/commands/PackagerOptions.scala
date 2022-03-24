@@ -92,6 +92,19 @@ final case class PackagerOptions(
     "The image tag; the default tag is `latest`"
   )
   dockerImageTag: Option[String] = None,
+
+  @Group("Native image")
+  @HelpMessage("GraalVM Java major version to use to build GraalVM native images (like 17)")
+  @ValueDescription("java-major-version")
+    graalvmJavaVersion: Option[Int] = None,
+  @Group("Native image")
+  @HelpMessage("GraalVM version to use to build GraalVM native images (like 22.0.0)")
+  @ValueDescription("version")
+    graalvmVersion: Option[String] = None,
+  @Group("Native image")
+  @HelpMessage("JVM id of GraalVM distribution to build GraalVM native images (like \"graalvm-java17:22.0.0\")")
+  @ValueDescription("jvm-id")
+    graalvmJvmId: Option[String] = None
 )
 // format: on
 

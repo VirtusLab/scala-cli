@@ -1,13 +1,12 @@
 package scala.cli.commands
 
 import caseapp._
-import org.scalajs.linker.interface.StandardConfig
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.internal.{Constants, Runner}
+import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.Platform
-import scala.build.{Build, Inputs, Logger}
+import scala.build.{Build, BuildThreads, Inputs, Logger}
 import scala.cli.CurrentParams
 import scala.util.Properties
 
@@ -37,8 +36,10 @@ object Run extends ScalaCommand[RunOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = options.buildOptions
-    val bloopRifleConfig    = options.shared.bloopRifleConfig()
     val logger              = options.shared.logger
+    val threads             = BuildThreads.create()
+
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     def maybeRun(build: Build.Successful, allowTerminate: Boolean): Either[BuildException, Unit] =
       maybeRunOnce(
@@ -66,11 +67,12 @@ object Run extends ScalaCommand[RunOptions] {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
-        postAction = () => WatchUtil.printWatchMessage(),
-        buildTests = false
+        buildTests = false,
+        partial = None,
+        postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
@@ -88,10 +90,11 @@ object Run extends ScalaCommand[RunOptions] {
         Build.build(
           inputs,
           initialBuildOptions,
-          bloopRifleConfig,
+          compilerMaker,
           logger,
           crossBuilds = cross,
-          buildTests = false
+          buildTests = false,
+          partial = None
         )
           .orExit(logger)
       builds.main match {
@@ -158,7 +161,15 @@ object Run extends ScalaCommand[RunOptions] {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
         val res =
-          withLinkedJs(build, Some(mainClass), addTestInitializer = false, linkerConfig, logger) {
+          withLinkedJs(
+            build,
+            Some(mainClass),
+            addTestInitializer = false,
+            linkerConfig,
+            build.options.scalaJsOptions.fullOpt.getOrElse(false),
+            build.options.scalaJsOptions.noOpt.getOrElse(false),
+            logger
+          ) {
             js =>
               Runner.runJs(
                 js.toIO,
@@ -211,11 +222,22 @@ object Run extends ScalaCommand[RunOptions] {
     build: Build.Successful,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
-    config: StandardConfig,
+    config: ScalaJsLinkerConfig,
+    fullOpt: Boolean,
+    noOpt: Boolean,
     logger: Logger
   )(f: os.Path => T): Either[BuildException, T] = {
     val dest = os.temp(prefix = "main", suffix = ".js")
-    try Package.linkJs(build, dest, mainClassOpt, addTestInitializer, config, logger).map { _ =>
+    try Package.linkJs(
+        build,
+        dest,
+        mainClassOpt,
+        addTestInitializer,
+        config,
+        fullOpt,
+        noOpt,
+        logger
+      ).map { _ =>
         f(dest)
       }
     finally if (os.exists(dest)) os.remove(dest)

@@ -15,5 +15,6 @@ class About(isSipScala: Boolean) extends ScalaCommand[AboutOptions] {
       if (isSipScala) "Scala command"
       else "Scala CLI"
     println(s"$appName version $version" + detailedVersionOpt.fold("")(" (" + _ + ")"))
+    if (Version.isOutdated(None)) println(Update.updateInstructions)
   }
 }

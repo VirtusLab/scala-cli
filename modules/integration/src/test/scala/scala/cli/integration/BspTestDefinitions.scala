@@ -3,10 +3,10 @@ package scala.cli.integration
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import java.io.File
 import java.net.URI
-import java.nio.charset.Charset
 import java.nio.file.Paths
 
 import scala.annotation.tailrec
@@ -14,7 +14,6 @@ import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
-import scala.io.Codec
 import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
@@ -141,11 +140,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   private def readBspConfig(root: os.Path): Details = {
     val bspFile = root / ".bsp" / "scala-cli.json"
     expect(os.isFile(bspFile))
-    val json = ujson.read(
-      os.read(bspFile: os.ReadablePath, charSet = Codec(Charset.defaultCharset()))
-    )
+    val content = os.read.bytes(bspFile)
     // check that we can decode the connection details
-    upickle.default.read(json)(detailsCodec)
+    readFromArray(content)(detailsCodec)
   }
 
   test("setup-ide") {
@@ -178,7 +175,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
         val details                = readBspConfig(root)
-        val expectedIdeOptionsFile = root / Constants.workspaceDirName / "ide-options.json"
+        val expectedIdeOptionsFile = root / Constants.workspaceDirName / "ide-options-v2.json"
         val expectedArgv = Seq(
           TestUtil.cliPath,
           "bsp",
@@ -226,8 +223,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         TestUtil.cliPath,
         "bsp",
         "--json-options",
-        (root / "directory" / Constants.workspaceDirName / "ide-options.json").toString,
-        s"${(root / "directory").toString}${File.separator}"
+        (root / "directory" / Constants.workspaceDirName / "ide-options-v2.json").toString,
+        (root / "directory" / "simple.sc").toString
       )
       expect(details.argv == expectedArgv)
     }
@@ -936,6 +933,6 @@ object BspTestDefinitions {
     argv: List[String],
     languages: List[String]
   )
-  private val detailsCodec = upickle.default.macroRW[Details]
+  private val detailsCodec: JsonValueCodec[Details] = JsonCodecMaker.make
 
 }

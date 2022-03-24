@@ -4,21 +4,19 @@ import coursier.cache.FileCache
 import coursier.util.Task
 import dependency._
 
-import java.nio.file.Path
-
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.CsLoggerUtil._
 
 final case class ReplArtifacts(
-  replArtifacts: Seq[(String, Path)],
-  extraClassPath: Seq[Path],
-  extraSourceJars: Seq[Path],
+  replArtifacts: Seq[(String, os.Path)],
+  extraClassPath: Seq[os.Path],
+  extraSourceJars: Seq[os.Path],
   replMainClass: String,
   replJavaOpts: Seq[String],
   addSourceJars: Boolean
 ) {
-  lazy val replClassPath: Seq[Path] =
+  lazy val replClassPath: Seq[os.Path] =
     if (addSourceJars)
       extraClassPath ++ extraSourceJars ++ replArtifacts.map(_._2)
     else
@@ -39,8 +37,8 @@ object ReplArtifacts {
     scalaParams: ScalaParameters,
     ammoniteVersion: String,
     dependencies: Seq[AnyDependency],
-    extraClassPath: Seq[Path],
-    extraSourceJars: Seq[Path],
+    extraClassPath: Seq[os.Path],
+    extraSourceJars: Seq[os.Path],
     logger: Logger,
     cache: FileCache[Task],
     directories: Directories
@@ -75,7 +73,7 @@ object ReplArtifacts {
   def default(
     scalaParams: ScalaParameters,
     dependencies: Seq[AnyDependency],
-    extraClassPath: Seq[Path],
+    extraClassPath: Seq[os.Path],
     logger: Logger,
     cache: FileCache[Task],
     repositories: Seq[String]

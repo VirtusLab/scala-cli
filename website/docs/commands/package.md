@@ -9,6 +9,7 @@ The `package` command can package your Scala code in various formats, such as:
 - so called ["assemblies" or "fat JARs"](#assemblies)
 - [docker container](#docker-container)
 - [JavaScript files](#scalajs) for Scala.JS code
+- [GraalVM native image executables](#native-image)
 - [native executables](#scala-native) for Scala Native code
 - [OS-specific formats](#os-specific-packages), such as deb or rpm (Linux), pkg (macOS), or MSI (Windows)
 
@@ -152,6 +153,16 @@ Packaging Scala Native applications to a Docker image is only supported on Linux
 scala-cli package --native --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 
+### Building Docker container from base image
+
+`--docker-from` lets you specify your base docker image.
+
+The following command generate a `hello-docker` image using base image `openjdk:11` 
+
+```bash ignore
+scala-cli package --docker HelloDocker.scala --docker-from openjdk:11 --docker-image-repository hello-docker
+```
+
 ## Scala.JS
 
 Packaging Scala.JS applications results in a `.js` file, that can be run with `node`:
@@ -177,6 +188,39 @@ Hello
 
 
 Note that the Scala CLI doesn't offer to link the resulting JavaScript with linkers, such as Webpack (yet).
+
+## Native image
+
+[GraalVM native image](https://www.graalvm.org/22.0/reference-manual/native-image/)
+allows to build native executables out of JVM applications. It can
+be used from Scala CLI to build native executables for Scala applications.
+
+<!-- clear -->
+
+```scala title=Hello.scala
+object Hello {
+  def main(args: Array[String]): Unit =
+    println("Hello")
+}
+```
+
+```bash
+scala-cli package Hello.scala -o hello --native-image
+./hello
+# Hello
+```
+
+<!-- Expected:
+Hello
+-->
+
+Note that Scala CLI automatically downloads and unpacks a GraalVM distribution
+using the [JVM management capabilities of coursier](https://get-coursier.io/docs/cli-java).
+
+Several options can be passed to adjust the GraalVM version used by Scala CLI:
+- `--graalvm-jvm-id` accepts a JVM identifier, such as `graalvm-java17:22.0.0` or `graalvm-java17:21` (short versions accepted).
+- `--graalvm-java-version` allows to specify only a target Java version, such as `11` or `17` (note that only specific Java versions may be supported by the default GraalVM version that Scala CLI picks)
+- `--graalvm-version` allows to specify only a GraalVM version, such as `22.0.0` or `21` (short versions accepted)
 
 ## Scala Native
 

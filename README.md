@@ -176,3 +176,8 @@ Just add it to your PATH to get the already-released-scala-cli experience.
 ## Releases
 
 Instructions on how to release - [Release Procedure](https://github.com/VirtusLab/scala-cli/blob/main/.github/release/release-procedure.md)
+
+
+## Debugging BSP server
+
+The easiest way to debug BSP sever is using `scala-cli-src` script with `--bsp-debug-port 5050` flag (the port should be unique to the workspace where BSP will be debugged). In such case BSP will be launched using local source and will run on JVM. It will also expects a debugger running in the listen mode using provided port (so the initialization of the connection can be debugged). In such case we recommend to have option to auto rerun debugging session off (so there is always a debugger instance ready to be used). 

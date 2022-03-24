@@ -4,7 +4,8 @@ import caseapp._
 import caseapp.core.Arg
 import caseapp.core.parser.{Argument, NilParser, StandardArgument}
 import caseapp.core.util.Formatter
-import upickle.default.{ReadWriter, macroRW}
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
 // format: off
 final case class ScalacOptions(
@@ -28,8 +29,10 @@ object ScalacOptions {
     .withGroup(Some(Group("Scala")))
     .withOrigin(Some("ScalacOptions"))
   // .withIsFlag(true) // The scalac options we handle accept no value after the -… argument
+  private val scalacOptionsPurePrefixes =
+    Set("-V", "-W", "-X", "-Y")
   private val scalacOptionsPrefixes =
-    Set("-g", "-language", "-opt", "-P", "-target", "-V", "-W", "-X", "-Y")
+    Set("-g", "-language", "-opt", "-P", "-target") ++ scalacOptionsPurePrefixes
   private val scalacOptionsArgument: Argument[List[String]] =
     new Argument[List[String]] {
 
@@ -46,7 +49,9 @@ object ScalacOptions {
         formatter: Formatter[Name]
       ) =
         args match {
-          case h :: t if scalacOptionsPrefixes.exists(h.startsWith) =>
+          case h :: t
+              if scalacOptionsPrefixes.exists(h.startsWith) &&
+              !scalacOptionsPurePrefixes.contains(h) =>
             Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
           case _ => underlying.step(args, index, acc, formatter)
         }
@@ -60,6 +65,6 @@ object ScalacOptions {
         NilParser
     baseParser.to[ScalacOptions]
   }
-  implicit lazy val help: Help[SharedOptions]            = Help.derive
-  implicit lazy val jsonCodec: ReadWriter[ScalacOptions] = macroRW
+  implicit lazy val help: Help[ScalacOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[ScalacOptions] = JsonCodecMaker.make
 }

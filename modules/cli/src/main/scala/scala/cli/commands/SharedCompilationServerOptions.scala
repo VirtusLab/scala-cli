@@ -1,13 +1,13 @@
 package scala.cli.commands
 
 import caseapp._
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import coursier.cache.FileCache
 import coursier.core.{Version => Ver}
 import coursier.util.Task
-import upickle.default.{ReadWriter, macroRW}
 
 import java.io.File
-import java.nio.charset.Charset
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files, Paths}
 import java.util.Random
 
@@ -17,7 +17,6 @@ import scala.build.internal.Util
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.io.Codec
 import scala.util.Properties
 
 // format: off
@@ -91,7 +90,12 @@ final case class SharedCompilationServerOptions(
   @Group("Compilation server")
   @HelpMessage("Working directory for Bloop, if it needs to be started")
   @Hidden
-    bloopWorkingDir: Option[String] = None
+    bloopWorkingDir: Option[String] = None,
+
+  @Group("Compilation server")
+  @HelpMessage("Enable / disable compilation server")
+  @Hidden
+    server: Option[Boolean] = None
 ) {
   // format: on
 
@@ -194,10 +198,8 @@ final case class SharedCompilationServerOptions(
       yield
         if (os.exists(filePath) && os.isFile(filePath))
           try {
-            val json = ujson.read(
-              os.read(filePath: os.ReadablePath, charSet = Codec(Charset.defaultCharset()))
-            )
-            val bloopJson = upickle.default.read(json)(BloopJson.jsonCodec)
+            val content   = os.read.bytes(filePath)
+            val bloopJson = readFromArray(content)(BloopJson.codec)
             bloopJson.javaOptions
           }
           catch {
@@ -281,5 +283,5 @@ object SharedCompilationServerOptions {
   lazy val parser: Parser[SharedCompilationServerOptions]                           = Parser.derive
   implicit lazy val parserAux: Parser.Aux[SharedCompilationServerOptions, parser.D] = parser
   implicit lazy val help: Help[SharedCompilationServerOptions]                      = Help.derive
-  implicit lazy val jsonCodec: ReadWriter[SharedCompilationServerOptions]           = macroRW
+  implicit lazy val jsonCodec: JsonValueCodec[SharedCompilationServerOptions] = JsonCodecMaker.make
 }

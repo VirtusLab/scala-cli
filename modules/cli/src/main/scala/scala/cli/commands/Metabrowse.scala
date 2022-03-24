@@ -5,10 +5,10 @@ import caseapp._
 import java.io.File
 import java.nio.file.Path
 
-import scala.build.internal.Runner
-import scala.build.{Build, Logger}
+import scala.build.internal.{FetchExternalBinary, Runner}
+import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
-import scala.cli.internal.FetchExternalBinary
+import scala.cli.packaging.Library
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
   override def hidden     = true
@@ -28,16 +28,20 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val logger = options.shared.logger
 
-    val bloopRifleConfig = options.shared.bloopRifleConfig()
+    val initialBuildOptions = options.buildOptions
+    val threads             = BuildThreads.create()
+
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val builds =
       Build.build(
         inputs,
-        options.buildOptions,
-        bloopRifleConfig,
+        initialBuildOptions,
+        compilerMaker,
         logger,
         crossBuilds = false,
-        buildTests = false
+        buildTests = false,
+        partial = None
       )
         .orExit(logger)
 
@@ -48,7 +52,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       case s: Build.Successful => s
     }
 
-    Package.withLibraryJar(successfulBuild) { jar =>
+    Library.withLibraryJar(successfulBuild) { jar =>
       Package.withSourceJar(successfulBuild, System.currentTimeMillis()) { sourceJar =>
         runServer(options, logger, successfulBuild, jar, sourceJar)
       }
@@ -72,7 +76,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         FetchExternalBinary.fetch(
           url,
           changing,
-          options.shared.coursierCache,
+          successfulBuild.options.archiveCache,
           logger,
           "metabrowse"
         )

@@ -34,11 +34,15 @@ implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
 object cli            extends Cli
-object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal)
-object build          extends Cross[Build](Scala.defaultInternal)
+object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal, Scala.scala3)
+object options        extends Cross[Options](Scala.defaultInternal, Scala.scala3)
+object scalaparse     extends ScalaParse
+object directives     extends Cross[Directives](Scala.defaultInternal, Scala.scala3)
+object core           extends Cross[Core](Scala.defaultInternal, Scala.scala3)
+object build          extends Cross[Build](Scala.defaultInternal, Scala.scala3)
 object runner         extends Cross[Runner](Scala.all: _*)
 object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
-object `bloop-rifle`  extends Cross[BloopRifle](Scala.allScala2: _*)
+object `bloop-rifle`  extends Cross[BloopRifle](Scala.all: _*)
 object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
 
 object stubs extends JavaModule with ScalaCliPublishModule {
@@ -168,52 +172,68 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     super.scalacOptions() ++ Seq("-Ywarn-unused")
   }
   def compileIvyDeps = T {
-    super.compileIvyDeps() ++ Agg(
-      Deps.scalaReflect(scalaVersion())
+    if (scalaVersion().startsWith("3"))
+      super.compileIvyDeps()
+    else
+      super.compileIvyDeps() ++ Agg(
+        Deps.scalaReflect(scalaVersion())
+      )
+  }
+
+  object test extends Tests {
+    def scalacOptions = T {
+      super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+    }
+
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      Deps.munit
     )
+    def testFramework = "munit.Framework"
   }
 }
 
-class Build(val crossScalaVersion: String)
+def asyncScalacOptions(scalaVersion: String) =
+  if (scalaVersion.startsWith("3")) Nil else Seq("-Xasync")
+
+trait BuildLikeModule
     extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
-  def moduleDeps = Seq(
-    `bloop-rifle`(),
-    `build-macros`(),
-    `scala-cli-bsp`,
-    `test-runner`(),
-    `tasty-lib`()
-  )
+
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
   }
+
   def repositories = super.repositories ++ customRepositories
 
-  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
-    Deps.svm
+  def localRepoJar = T {
+    `local-repo`.localRepoJar()
+  }
+}
+
+class Core(val crossScalaVersion: String) extends BuildLikeModule {
+  def moduleDeps = Seq(
+    `bloop-rifle`(),
+    `build-macros`()
   )
+  def scalacOptions = T {
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+  }
+
   def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.asm,
-    Deps.bloopConfig,
     Deps.collectionCompat,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
-      .exclude(("com.google.collections", "google-collections")),
+      .exclude(("com.google.collections", "google-collections"))
+      // Coursier is not cross-compiled and pulls jsoniter-scala-macros in 2.13
+      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
+    Deps.jsoniterMacros, // pulls jsoniter macros manually
     Deps.dependency,
-    Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
-    Deps.nativeTestRunner,
+    Deps.guava,       // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.nativeTools, // Used only for discovery methods. For linking, look for scala-native-cli
     Deps.osLib,
     Deps.pprint,
-    Deps.scalaJsEnvNodeJs,
-    Deps.scalaJsLinkerInterface,
-    Deps.scalaJsTestAdapter,
-    Deps.scalametaTrees,
-    Deps.scalaparse,
-    Deps.shapeless,
-    Deps.swoval,
-    Deps.upickle,
-    Deps.usingDirectives
+    Deps.scalaJsLogging,
+    Deps.swoval
   )
 
   private def vcsState = T.persistent {
@@ -222,6 +242,7 @@ class Build(val crossScalaVersion: String)
     if (isCI) state
     else state + "-maybe-stale"
   }
+
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
     val dest = dir / "Constants.scala"
@@ -239,6 +260,9 @@ class Build(val crossScalaVersion: String)
     val detailedVersionValue =
       if (`local-repo`.developingOnStubModules) s"""Some("${vcsState()}")"""
       else "None"
+    val testRunnerOrganization = `test-runner`(Scala.defaultInternal)
+      .pomSettings()
+      .organization
     val code =
       s"""package scala.build.internal
          |
@@ -247,14 +271,16 @@ class Build(val crossScalaVersion: String)
          |  def version = "${publishVersion()}"
          |  def detailedVersion: Option[String] = $detailedVersionValue
          |
-         |  def scalaJsVersion = "${Deps.scalaJsLinker.dep.version}"
+         |  def scalaJsVersion = "${Scala.scalaJs}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
+         |
+         |  def scalaJsCliVersion = "${InternalDeps.Versions.scalaJsCli}"
          |
          |  def stubsOrganization = "${stubs.pomSettings().organization}"
          |  def stubsModuleName = "${stubs.artifactName()}"
          |  def stubsVersion = "${stubs.publishVersion()}"
          |
-         |  def testRunnerOrganization = "${`test-runner`(Scala.defaultInternal).pomSettings().organization}"
+         |  def testRunnerOrganization = "$testRunnerOrganization"
          |  def testRunnerModuleName = "${`test-runner`(Scala.defaultInternal).artifactName()}"
          |  def testRunnerVersion = "${`test-runner`(Scala.defaultInternal).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"
@@ -289,6 +315,9 @@ class Build(val crossScalaVersion: String)
          |  def defaultScala213Version = "${Scala.scala213}"
          |
          |  def workspaceDirName = "$workspaceDirName"
+         |
+         |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
+         |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -296,10 +325,122 @@ class Build(val crossScalaVersion: String)
     PathRef(dir)
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
+}
 
-  def localRepoJar = T {
-    `local-repo`.localRepoJar()
+class Directives(val crossScalaVersion: String) extends BuildLikeModule {
+  def moduleDeps = Seq(
+    `options`(),
+    `core`()
+  )
+  def scalacOptions = T {
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
   }
+
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.jsoniterMacros,
+    Deps.svm
+  )
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    // Deps.asm,
+    Deps.bloopConfig,
+    Deps.jsoniterCore,
+    Deps.pprint,
+    Deps.scalametaTrees,
+    Deps.scalaparse,
+    Deps.usingDirectives
+  )
+
+  object test extends Tests {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      Deps.pprint
+    )
+    def runClasspath = T {
+      super.runClasspath() ++ Seq(localRepoJar())
+    }
+
+    def generatedSources = super.generatedSources() ++ Seq(constantsFile())
+
+    def constantsFile = T.persistent {
+      val dir  = T.dest / "constants"
+      val dest = dir / "Constants2.scala"
+      val code =
+        s"""package scala.build.tests
+           |
+           |/** Build-time constants. Generated by mill. */
+           |object Constants {
+           |  def cs = "${settings.cs().replace("\\", "\\\\")}"
+           |}
+           |""".stripMargin
+      if (!os.isFile(dest) || os.read(dest) != code)
+        os.write.over(dest, code, createFolders = true)
+      PathRef(dir)
+    }
+
+    // uncomment below to debug tests in attach mode on 5005 port
+    // def forkArgs = T {
+    //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
+    // }
+  }
+}
+
+class Options(val crossScalaVersion: String) extends BuildLikeModule {
+  def moduleDeps = Seq(
+    `core`(),
+    `build-macros`()
+  )
+  def scalacOptions = T {
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+  }
+
+  def ivyDeps = super.ivyDeps() ++ Agg(Deps.bloopConfig)
+
+  object test extends Tests {
+    def ivyDeps = super.ivyDeps() ++ Agg(
+      Deps.munit
+    )
+    def testFramework = "munit.Framework"
+
+    // uncomment below to debug tests in attach mode on 5005 port
+    // def forkArgs = T {
+    //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
+    // }
+  }
+}
+
+trait ScalaParse extends SbtModule with ScalaCliPublishModule with settings.ScalaCliCompile {
+  def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
+  def scalaVersion = Scala.scala213
+}
+
+class Build(val crossScalaVersion: String) extends BuildLikeModule {
+  def moduleDeps = Seq(
+    `options`(),
+    scalaparse,
+    `directives`(),
+    `scala-cli-bsp`,
+    `test-runner`(),
+    `tasty-lib`()
+  )
+  def scalacOptions = T {
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+  }
+
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.jsoniterMacros,
+    Deps.svm
+  )
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.asm,
+    Deps.collectionCompat,
+    Deps.jsoniterCore,
+    Deps.nativeTestRunner,
+    Deps.osLib,
+    Deps.pprint,
+    Deps.scalaJsEnvNodeJs,
+    Deps.scalaJsTestAdapter,
+    Deps.scalametaTrees,
+    Deps.swoval
+  ) ++ (if (scalaVersion().startsWith("3")) Agg() else Agg(Deps.shapeless))
 
   object test extends Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -353,16 +494,16 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.coursierLauncher,
+    Deps.coursierPublish,
     Deps.dataClass,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
-    Deps.scalaJsLinker,
+    Deps.jsoniterCore,
     Deps.scalaPackager,
-    Deps.svmSubs,
-    Deps.upickle,
     Deps.metaconfigTypesafe
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.jsoniterMacros,
     Deps.svm
   )
   def mainClass = Some("scala.cli.ScalaCli")
@@ -411,9 +552,12 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
   trait Tests extends super.Tests with ScalaCliScalafixModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
+      Deps.dockerClient,
+      Deps.jsoniterCore,
+      Deps.jsoniterMacros,
       Deps.pprint,
       Deps.scalaAsync,
-      Deps.upickle
+      Deps.slf4jNop
     )
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI"      -> testLauncher().path.toString,
@@ -458,6 +602,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def munitVersion = "${TestDeps.munit.dep.version}"
            |  def dockerTestImage = "${Docker.testImage}"
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
+           |  def authProxyTestImage = "${Docker.authProxyTestImage}"
            |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
            |  def workspaceDirName = "$workspaceDirName"
@@ -581,7 +726,7 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     Deps.bsp4j,
     Deps.collectionCompat,
     Deps.libdaemonjvm,
-    Deps.snailgun
+    Deps.snailgun(force213 = scalaVersion().startsWith("3."))
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm
@@ -1120,4 +1265,8 @@ object ci extends Module {
     System.err.println(s"New Java home $destJavaHome")
     destJavaHome
   }
+}
+
+def updateLicensesFile() = T.command {
+  settings.updateLicensesFile()
 }

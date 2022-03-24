@@ -92,6 +92,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -155,6 +156,10 @@ JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
 
 Working directory for Bloop, if it needs to be started
 
+#### `--server`
+
+Enable / disable compilation server
+
 ## Compile options
 
 Available in commands:
@@ -169,6 +174,12 @@ Aliases: `-p`, `--classpath`
 
 Print the resulting class path
 
+#### `--output`
+
+Aliases: `--output-directory`
+
+Copy compilation results to output directory using either relative or absolute path
+
 #### `--test`
 
 Compile test scope
@@ -177,6 +188,7 @@ Compile test scope
 
 Available in commands:
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
@@ -186,6 +198,8 @@ Available in commands:
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
 #### `--cross`
+
+Aliases: `-X`
 
 Cross-compile sources
 
@@ -200,6 +214,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -227,6 +242,8 @@ Available in commands:
 
 #### `--cross`
 
+Aliases: `-X`
+
 ## Dependency options
 
 Available in commands:
@@ -236,6 +253,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -277,6 +295,7 @@ Available in commands:
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -351,6 +370,7 @@ Available in commands:
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doctor`](./commands.md#doctor)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`help`](./commands.md#help)
@@ -358,6 +378,7 @@ Available in commands:
 - [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -394,6 +415,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -506,6 +528,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -547,6 +570,10 @@ Aliases: `--javac-opt`
 
 Javac options
 
+#### `--bsp-debug-port`
+
+Port for BSP debugging
+
 ## Logging options
 
 Available in commands:
@@ -560,6 +587,7 @@ Available in commands:
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -584,6 +612,7 @@ Use progress bars
 Available in commands:
 - [`export`](./commands.md#export)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
 
@@ -656,6 +685,16 @@ Overwrite the destination file, if it exists
 
 Generate a library JAR rather than an executable JAR
 
+#### `--source`
+
+Generate a source JAR rather than an executable JAR
+
+#### `--doc`
+
+Aliases: `--scaladoc`, `--javadoc`
+
+Generate a scaladoc JAR rather than an executable JAR
+
 #### `--assembly`
 
 Generate an assembly JAR
@@ -687,6 +726,18 @@ Build pkg package, available only on macOS
 #### `--docker`
 
 Build Docker image
+
+#### `--default-scaladoc-options`
+
+Aliases: `--default-scaladoc-opts`
+
+Use default scaladoc options
+
+#### `--native-image`
+
+Aliases: `--graal`
+
+Build GraalVM native image
 
 ## Packager options
 
@@ -790,6 +841,80 @@ The image repository
 
 The image tag; the default tag is `latest`
 
+#### `--graalvm-java-version`
+
+GraalVM Java major version to use to build GraalVM native images (like 17)
+
+#### `--graalvm-version`
+
+GraalVM version to use to build GraalVM native images (like 22.0.0)
+
+#### `--graalvm-jvm-id`
+
+JVM id of GraalVM distribution to build GraalVM native images (like "graalvm-java17:22.0.0")
+
+## Publish options
+
+Available in commands:
+- [`publish`](./commands.md#publish)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--working-dir`
+
+Directory where temporary files for publishing should be written
+
+#### `--organization`
+
+Organization to publish artifacts under
+
+#### `--module-name`
+
+Module name to publish artifacts as
+
+#### `--version`
+
+Version to publish artifacts as
+
+#### `--url`
+
+URL to put in publishing metadata
+
+#### `--license`
+
+License to put in publishing metadata
+
+#### `--vcs`
+
+VCS information to put in publishing metadata
+
+#### `--description`
+
+Description to put in publishing metadata
+
+#### `--developer`
+
+Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" or "alex|Alex|https://alex.info|alex@alex.me"
+
+#### `--scala-version-suffix`
+
+Scala version suffix to append to the module name, like "_2.13" or "_3"
+
+#### `--scala-platform-suffix`
+
+Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
+
+#### `--publish-repository`
+
+Aliases: `-R`, `--publish-repo`
+
+Repository to publish to
+
+#### `--sources`
+
+Whether to build and publish source JARs
+
 ## Repl options
 
 Available in commands:
@@ -827,6 +952,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -858,6 +984,10 @@ The Scala JS module kind: commonjs/common, esmodule/es, nomodule/none
 
 Emit source maps
 
+#### `--js-source-maps-path`
+
+Set the destination path of source maps
+
 #### `--js-dom`
 
 Enable jsdom
@@ -886,6 +1016,22 @@ The Scala JS module split style: fewestmodules, smallestmodules
 
 The Scala JS ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021
 
+#### `--js-linker-path`
+
+Path to the Scala.JS linker
+
+#### `--js-cli-version`
+
+Scala.JS CLI version to use for linking
+
+#### `--js-cli-java-arg`
+
+Scala.JS CLI Java options
+
+#### `--js-cli-on-jvm`
+
+Whether to run the Scala.JS CLI on the JVM or using a native executable
+
 ## Scala Native options
 
 Available in commands:
@@ -895,6 +1041,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -953,6 +1100,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -987,6 +1135,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -1101,12 +1250,14 @@ Available in commands:
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doctor`](./commands.md#doctor)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`install-home`](./commands.md#install-home)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -1129,6 +1280,7 @@ Increase verbosity (can be specified multiple times)
 Available in commands:
 - [`compile`](./commands.md#compile)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
@@ -1153,6 +1305,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)

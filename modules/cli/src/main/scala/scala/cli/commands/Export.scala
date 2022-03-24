@@ -37,7 +37,7 @@ object Export extends ScalaCommand[ExportOptions] {
     val sources       = scopedSources.sources(scope, crossSources.sharedOptions(buildOptions))
 
     if (verbosity >= 3)
-      pprint.stderr.log(sources)
+      pprint.err.log(sources)
 
     val options0 = buildOptions.orElse(sources.buildOptions)
 

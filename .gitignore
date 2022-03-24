@@ -2,9 +2,6 @@ out/
 .bloop/
 .metals/
 .vscode/
-.scala
-.scala-build/
-.bsp
 .idea/
 
 *.semanticdb

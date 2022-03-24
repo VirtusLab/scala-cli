@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import upickle.default._
+import com.github.plokhotnyuk.jsoniter_scala.core._
 
 import scala.build.Build
 import scala.build.bsp.BspThreads
@@ -15,12 +15,12 @@ object Bsp extends ScalaCommand[BspOptions] {
   def run(options: BspOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     if (options.shared.logging.verbosity >= 3)
-      pprint.stderr.log(args)
+      pprint.err.log(args)
 
     val sharedOptions: SharedOptions =
       options.jsonOptions.map { optionsPath =>
-        val source = os.read(os.Path(optionsPath, os.pwd))
-        read[SharedOptions](source)
+        val content = os.read.bytes(os.Path(optionsPath, os.pwd))
+        readFromArray(content)(SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
 
     val buildOptionsToUse = buildOptions(sharedOptions)
@@ -30,7 +30,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     val inputs = {
       val initialInputs = options.shared.inputsOrExit(args)
       if (options.shared.logging.verbosity >= 3)
-        pprint.stderr.log(initialInputs)
+        pprint.err.log(initialInputs)
       Build.updateInputs(initialInputs, buildOptionsToUse)
     }
     CurrentParams.workspaceOpt = Some(inputs.workspace)

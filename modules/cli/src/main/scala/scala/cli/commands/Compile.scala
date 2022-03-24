@@ -5,7 +5,7 @@ import caseapp._
 import java.io.File
 
 import scala.build.options.Scope
-import scala.build.{Build, Builds}
+import scala.build.{Build, BuildThreads, Builds}
 import scala.cli.CurrentParams
 
 object Compile extends ScalaCommand[CompileOptions] {
@@ -51,28 +51,37 @@ object Compile extends ScalaCommand[CompileOptions] {
         if (allowExit)
           sys.exit(1)
       }
-      else if (options.classPath)
-        for {
-          build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
-          s     <- build.successfulOpt
-        } {
-          val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
-          println(cp)
-        }
+      else {
+        val successulBuildOpt =
+          for {
+            build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
+            s     <- build.successfulOpt
+          } yield s
+        if (options.classPath)
+          for (s <- successulBuildOpt) {
+            val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
+            println(cp)
+          }
+        for (output <- options.outputPath; s <- successulBuildOpt)
+          os.copy.over(s.output, output)
+      }
     }
 
-    val buildOptions     = options.buildOptions
-    val bloopRifleConfig = options.shared.bloopRifleConfig()
+    val buildOptions = options.buildOptions
+    val threads      = BuildThreads.create()
+
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     if (options.watch.watch) {
       val watcher = Build.watch(
         inputs,
         buildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
-        postAction = () => WatchUtil.printWatchMessage(),
-        buildTests = options.test
+        buildTests = options.test,
+        partial = None,
+        postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
           postBuild(builds, allowExit = false)
@@ -84,10 +93,11 @@ object Compile extends ScalaCommand[CompileOptions] {
       val res = Build.build(
         inputs,
         buildOptions,
-        bloopRifleConfig,
+        compilerMaker,
         logger,
         crossBuilds = cross,
-        buildTests = options.test
+        buildTests = options.test,
+        partial = None
       )
       val builds = res.orExit(logger)
       postBuild(builds, allowExit = true)

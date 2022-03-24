@@ -2,9 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.internal.Constants
+import scala.build.internal.{Constants, FetchExternalBinary}
 import scala.build.options.BuildOptions
-import scala.cli.internal.FetchExternalBinary
 import scala.util.Properties
 
 // format: off

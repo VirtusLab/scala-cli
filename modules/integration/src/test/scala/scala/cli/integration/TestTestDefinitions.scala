@@ -177,18 +177,14 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
 
-  def successfulJsTest(): Unit =
+  test("successful test JS") {
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
         .call(cwd = root)
         .out.text()
       expect(output.contains("Hello from tests"))
     }
-
-  if (TestUtil.canRunJs)
-    test("successful test JS") {
-      successfulJsTest()
-    }
+  }
 
   def successfulNativeTest(): Unit =
     successfulTestInputs.fromRoot { root =>
@@ -212,18 +208,14 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def failingJsTest(): Unit =
+  test("failing test JS") {
     failingTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
         .call(cwd = root, check = false)
         .out.text()
       expect(output.contains("Hello from tests"))
     }
-
-  if (TestUtil.canRunJs)
-    test("failing test JS") {
-      failingJsTest()
-    }
+  }
 
   def failingNativeTest(): Unit =
     failingTestInputs.fromRoot { root =>
@@ -257,18 +249,14 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def utestJs(): Unit =
+  test("utest JS") {
     successfulUtestJsInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
         .call(cwd = root)
         .out.text()
       expect(output.contains("Hello from tests"))
     }
-
-  if (TestUtil.canRunJs)
-    test("utest JS") {
-      utestJs()
-    }
+  }
 
   def utestNative(): Unit =
     successfulUtestNativeInputs.fromRoot { root =>
@@ -314,7 +302,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   val platforms = {
-    val maybeJs = if (TestUtil.canRunJs) Seq("JS" -> Seq("--js")) else Nil
+    val maybeJs = Seq("JS" -> Seq("--js"))
     val maybeNative =
       if (actualScalaVersion.startsWith("2."))
         Seq("Native" -> Seq("--native"))
@@ -453,9 +441,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   test("Cross-tests") {
     val supportsNative = actualScalaVersion.startsWith("2.")
     val platforms = {
-      var pf = Seq("\"jvm\"")
-      if (TestUtil.canRunJs)
-        pf = pf :+ "\"js\""
+      var pf = Seq("\"jvm\"", "\"js\"")
       if (supportsNative)
         pf = pf :+ "\"native\""
       pf.mkString(", ")
@@ -481,11 +467,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
               |    println("Hello from " + "jvm")
               |  }
               |}
-              |""".stripMargin
-        )
-      )
-      if (TestUtil.canRunJs)
-        inputs0 = inputs0.add(
+              |""".stripMargin,
           os.rel / "MyJsTests.scala" ->
             """//> using target.platform "js"
               |
@@ -496,6 +478,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
               |}
               |""".stripMargin
         )
+      )
       if (supportsNative)
         inputs0 = inputs0.add(
           os.rel / "MyNativeTests.scala" ->
@@ -513,11 +496,10 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val res    = os.proc(TestUtil.cli, "test", extraOptions, ".", "--cross").call(cwd = root)
       val output = res.out.text()
-      val expectedCount = 1 + (if (TestUtil.canRunJs) 1 else 0) + (if (supportsNative) 1 else 0)
+      val expectedCount = 2 + (if (supportsNative) 1 else 0)
       expect(countSubStrings(output, "Hello from shared") == expectedCount)
       expect(output.contains("Hello from jvm"))
-      if (TestUtil.canRunJs)
-        expect(output.contains("Hello from js"))
+      expect(output.contains("Hello from js"))
       if (supportsNative)
         expect(output.contains("Hello from native"))
     }
