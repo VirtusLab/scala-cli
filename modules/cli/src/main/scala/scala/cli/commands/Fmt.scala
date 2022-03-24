@@ -2,10 +2,12 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.internal.{CustomCodeWrapper, FetchExternalBinary, Runner}
+import scala.build.internal.{Constants, CustomCodeWrapper, FetchExternalBinary, Runner}
+import scala.build.options.BuildOptions
 import scala.build.{CrossSources, Inputs, Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.util.Properties
 import scala.util.control.NonFatal
 
 object Fmt extends ScalaCommand[FmtOptions] {
@@ -69,6 +71,27 @@ object Fmt extends ScalaCommand[FmtOptions] {
       case conf if conf.version.trim.nonEmpty => conf.version
     }
     (versionMaybe, pathMaybe.isDefined)
+  }
+
+  private implicit class FmtOptionsOps(v: FmtOptions) {
+    import v._
+    def binaryUrl(versionMaybe: Option[String]): (String, Boolean) = {
+      val defaultVersion = versionMaybe.getOrElse(Constants.defaultScalafmtVersion)
+      val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
+        .getOrElse(FetchExternalBinary.platformSuffix())
+      val tag0           = scalafmtTag.getOrElse("v" + defaultVersion)
+      val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse("alexarchambault/scalafmt-native-image")
+      val extension0     = if (Properties.isWin) ".zip" else ".gz"
+      val url =
+        s"https://github.com/$gitHubOrgName0/releases/download/$tag0/scalafmt-$osArchSuffix0$extension0"
+      (url, !tag0.startsWith("v"))
+    }
+
+    def buildOptions: BuildOptions =
+      shared.buildOptions(enableJmh = false, jmhVersion = None, ignoreErrors = false)
+
+    def scalafmtCliOptions: List[String] =
+      scalafmtArg ::: (if (check) List("--check") else Nil)
   }
 
   def run(options: FmtOptions, args: RemainingArgs): Unit = {
