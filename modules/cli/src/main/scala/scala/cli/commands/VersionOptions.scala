@@ -12,5 +12,5 @@ final case class VersionOptions(
 
 object VersionOptions {
   implicit lazy val parser: Parser[VersionOptions] = Parser.derive
-  implicit lazy val help: Help[RunOptions]         = Help.derive
+  implicit lazy val help: Help[VersionOptions]     = Help.derive
 }
