@@ -261,8 +261,9 @@ class BspServer(
   override def onBuildExit(): Unit = ()
 
   override def workspaceReload(): CompletableFuture[Object] =
-    super.workspaceReload().thenApply { res =>
-      for {
+    super.workspaceReload().thenApply[Object] { res =>
+      for { // this is just a workaround hack to emulate workspace reloading until Bloop starts supporting it
+        // TODO: reload dependencies
         case (targetUri, targetName) <- buildTargetNamesByUri.toSeq
         scalaBuildDirPath = os.Path(new URI(targetUri).getRawPath)
         if os.isDir(scalaBuildDirPath)
@@ -282,7 +283,7 @@ class BspServer(
         val updatedBloopFileJson: Array[Byte] = core.writeToArray(updatedBloopFile)(BloopCodecs.codecFile)
         os.write.over(bloopFileJsonPath, updatedBloopFileJson, createFolders = true)
       }
-      res
+      res // TODO: return a valid message in case of an error
     }
 
   def initiateShutdown: Future[Unit] =
