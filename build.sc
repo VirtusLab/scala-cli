@@ -409,7 +409,7 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
 
 trait ScalaParse extends SbtModule with ScalaCliPublishModule with settings.ScalaCliCompile {
   def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
-  def scalaVersion = Scala.scala213
+  def scalaVersion = Scala.defaultInternal
 }
 
 class Build(val crossScalaVersion: String) extends BuildLikeModule {
