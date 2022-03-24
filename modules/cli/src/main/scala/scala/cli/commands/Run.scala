@@ -5,8 +5,8 @@ import caseapp._
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
-import scala.build.options.Platform
-import scala.build.{Build, BuildThreads, Inputs, Logger}
+import scala.build.options.{BuildOptions, JavaOpt, Platform}
+import scala.build.{Build, BuildThreads, Inputs, Logger, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.Properties
@@ -26,6 +26,22 @@ object Run extends ScalaCommand[RunOptions] {
     )
   }
 
+  def buildOptions(options: RunOptions): BuildOptions = {
+    import options._
+    val baseOptions = shared.buildOptions(
+      enableJmh = benchmarking.jmh.contains(true),
+      jmhVersion = benchmarking.jmhVersion
+    )
+    baseOptions.copy(
+      mainClass = mainClass.mainClass,
+      javaOptions = baseOptions.javaOptions.copy(
+        javaOpts =
+          baseOptions.javaOptions.javaOpts ++
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
+      )
+    )
+  }
+
   def run(
     options: RunOptions,
     inputArgs: Seq[String],
@@ -36,7 +52,7 @@ object Run extends ScalaCommand[RunOptions] {
     val inputs = options.shared.inputsOrExit(inputArgs, defaultInputs = defaultInputs)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
-    val initialBuildOptions = options.buildOptions
+    val initialBuildOptions = buildOptions(options)
     val logger              = options.shared.logger
     val threads             = BuildThreads.create()
 
