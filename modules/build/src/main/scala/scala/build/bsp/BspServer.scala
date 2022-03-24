@@ -1,7 +1,7 @@
 package scala.build.bsp
 
 import _root_.bloop.config.{Config, ConfigCodecs as BloopCodecs}
-import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
+import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier, CompileParams, LogMessageParams, MessageType}
 import ch.epfl.scala.bsp4j as b
 import com.github.plokhotnyuk.jsoniter_scala.core
 
@@ -10,7 +10,6 @@ import java.net.URI
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util as ju
-
 import scala.build.Logger
 import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
 import scala.build.internal.Constants
@@ -262,27 +261,30 @@ class BspServer(
 
   override def workspaceReload(): CompletableFuture[Object] =
     super.workspaceReload().thenApply[Object] { res =>
-      for { // this is just a workaround hack to emulate workspace reloading until Bloop starts supporting it
-        // TODO: reload dependencies
-        case (targetUri, targetName) <- buildTargetNamesByUri.toSeq
-        scalaBuildDirPath = os.Path(new URI(targetUri).getRawPath)
-        if os.isDir(scalaBuildDirPath)
-        ideInputsJsonPath = scalaBuildDirPath / "ide-inputs.json"
-        if os.isFile(ideInputsJsonPath)
-        bloopDirPath = scalaBuildDirPath / ".bloop"
-        if os.isDir(bloopDirPath)
-        bloopFileJsonPath = bloopDirPath / s"$targetName.json"
-        if os.isFile(bloopFileJsonPath)
-        bloopFile <- Try { core.readFromString(os.read(bloopFileJsonPath))(BloopCodecs.codecFile) }.toOption
-        ideInputs <- Try { core.readFromString(os.read(ideInputsJsonPath))(IdeInputs.codec) }.toOption
-        ideSources = if (targetName.endsWith("-test")) ideInputs.mainScopeSources else ideInputs.testScopeSources
-        ideInputPaths = ideSources.map(os.Path(_).toNIO)
-        if !bloopFile.project.sources.toSet.equals(ideInputPaths.toSet)
-      } {
-        val updatedBloopFile: Config.File = bloopFile.copy(project = bloopFile.project.copy(sources = ideInputPaths))
-        val updatedBloopFileJson: Array[Byte] = core.writeToArray(updatedBloopFile)(BloopCodecs.codecFile)
-        os.write.over(bloopFileJsonPath, updatedBloopFileJson, createFolders = true)
-      }
+      val buildTargetsToRecompile: List[BuildTargetIdentifier] =
+        for { // this is just a workaround hack to emulate workspace reloading until Bloop starts supporting it
+          // TODO: reload dependencies
+          case (targetUri, targetName) <- buildTargetNamesByUri.toList
+          scalaBuildDirPath = os.Path(new URI(targetUri).getRawPath)
+          if os.isDir(scalaBuildDirPath)
+          ideInputsJsonPath = scalaBuildDirPath / "ide-inputs.json"
+          if os.isFile(ideInputsJsonPath)
+          bloopDirPath = scalaBuildDirPath / ".bloop"
+          if os.isDir(bloopDirPath)
+          bloopFileJsonPath = bloopDirPath / s"$targetName.json"
+          if os.isFile(bloopFileJsonPath)
+          bloopFile <- Try { core.readFromString(os.read(bloopFileJsonPath))(BloopCodecs.codecFile) }.toOption
+          ideInputs <- Try { core.readFromString(os.read(ideInputsJsonPath))(IdeInputs.codec) }.toOption
+          ideSources = if (targetName.endsWith("-test")) ideInputs.testScopeSources else ideInputs.mainScopeSources
+          ideInputPaths = ideSources.map(os.Path(_).toNIO)
+          if !bloopFile.project.sources.toSet.equals(ideInputPaths.toSet)
+        } yield {
+          val updatedBloopFile: Config.File = bloopFile.copy(project = bloopFile.project.copy(sources = ideInputPaths))
+          val updatedBloopFileJson: Array[Byte] = core.writeToArray(updatedBloopFile)(BloopCodecs.codecFile)
+          os.write.over(bloopFileJsonPath, updatedBloopFileJson, createFolders = true)
+          new b.BuildTargetIdentifier(targetUri)
+        }
+      bloopServer.buildTargetCompile(new CompileParams(buildTargetsToRecompile.asJava))
       res // TODO: return a valid message in case of an error
     }
 
