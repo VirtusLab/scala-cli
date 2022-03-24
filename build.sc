@@ -182,7 +182,7 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     }
 
     def ivyDeps = super.ivyDeps() ++ Agg(
-      TestDeps.munit
+      Deps.munit
     )
     def testFramework = "munit.Framework"
   }
