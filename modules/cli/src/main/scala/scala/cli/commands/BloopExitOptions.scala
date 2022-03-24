@@ -4,6 +4,7 @@ import caseapp._
 
 import scala.build.blooprifle.BloopRifleConfig
 import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
 
 // format: off
 final case class BloopExitOptions(
