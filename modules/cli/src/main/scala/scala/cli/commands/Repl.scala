@@ -9,6 +9,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
+import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.Properties
 

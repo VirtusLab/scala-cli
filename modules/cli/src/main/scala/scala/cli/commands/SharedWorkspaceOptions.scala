@@ -4,23 +4,14 @@ import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.build.Os
-
 // format: off
 final case class SharedWorkspaceOptions(
   @Hidden
   @HelpMessage("Directory where .scala-build is written")
   @ValueDescription("path")
     workspace: Option[String] = None
-) {
-  // format: on
-
-  def forcedWorkspaceOpt: Option[os.Path] =
-    workspace
-      .filter(_.trim.nonEmpty)
-      .map(os.Path(_, Os.pwd))
-
-}
+)
+// format: on
 
 object SharedWorkspaceOptions {
   lazy val parser: Parser[SharedWorkspaceOptions]                           = Parser.derive

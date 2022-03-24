@@ -4,6 +4,7 @@ import caseapp._
 
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.options.{BuildOptions, InternalOptions}
+import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.JvmUtils
 
 // format: off

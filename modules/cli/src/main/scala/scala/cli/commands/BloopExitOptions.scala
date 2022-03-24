@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.blooprifle.BloopRifleConfig
+import scala.cli.commands.util.CommonOps._
 
 // format: off
 final case class BloopExitOptions(

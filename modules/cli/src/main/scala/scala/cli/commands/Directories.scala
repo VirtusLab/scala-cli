@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import scala.cli.CurrentParams
+import scala.cli.commands.util.CommonOps._
 
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true

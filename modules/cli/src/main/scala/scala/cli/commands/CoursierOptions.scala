@@ -3,9 +3,6 @@ package scala.cli.commands
 import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
-import coursier.cache.{CacheLogger, FileCache}
-
-import scala.concurrent.duration.Duration
 
 // format: off
 final case class CoursierOptions(
@@ -19,18 +16,8 @@ final case class CoursierOptions(
   @ValueDescription("path")
   @Hidden
     cache: Option[String] = None
-) {
-  // format: on
-  def coursierCache(logger: CacheLogger) = {
-    var baseCache = FileCache().withLogger(logger)
-    val ttlOpt    = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_))
-    for (ttl0 <- ttlOpt)
-      baseCache = baseCache.withTtl(ttl0)
-    for (loc <- cache.filter(_.trim.nonEmpty))
-      baseCache = baseCache.withLocation(loc)
-    baseCache
-  }
-}
+)
+// format: on
 
 object CoursierOptions {
   lazy val parser: Parser[CoursierOptions]                           = Parser.derive

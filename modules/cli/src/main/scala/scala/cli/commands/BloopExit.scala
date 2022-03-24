@@ -5,6 +5,7 @@ import caseapp._
 import scala.build.Os
 import scala.build.blooprifle.BloopRifle
 import scala.cli.CurrentParams
+import scala.cli.commands.util.CommonOps._
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {
   override def hidden     = true

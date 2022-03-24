@@ -16,6 +16,7 @@ import scala.build.internal.{Constants, FetchExternalBinary, OsLibc}
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.{options => bo}
 import scala.cli.commands.ScalaJsOptions
+import scala.cli.commands.util.CommonOps._
 import scala.concurrent.duration._
 import scala.util.Properties
 import scala.util.control.NonFatal

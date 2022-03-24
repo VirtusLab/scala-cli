@@ -7,6 +7,7 @@ import scala.build.bloop.BloopThreads
 import scala.build.blooprifle.BloopRifle
 import scala.build.blooprifle.internal.Constants
 import scala.cli.CurrentParams
+import scala.cli.commands.util.CommonOps._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
