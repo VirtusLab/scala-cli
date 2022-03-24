@@ -7,7 +7,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, JavaOpt}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -20,6 +20,32 @@ object Repl extends ScalaCommand[ReplOptions] {
     List("repl")
   )
   override def sharedOptions(options: ReplOptions) = Some(options.shared)
+
+  def buildOptions(ops: ReplOptions): BuildOptions = {
+    import ops._
+    def ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
+
+    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
+    baseOptions.copy(
+      javaOptions = baseOptions.javaOptions.copy(
+        javaOpts =
+          baseOptions.javaOptions.javaOpts ++
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
+      ),
+      notForBloopOptions = baseOptions.notForBloopOptions.copy(
+        replOptions = baseOptions.notForBloopOptions.replOptions.copy(
+          useAmmoniteOpt = ammonite,
+          ammoniteVersionOpt = ammoniteVersionOpt,
+          ammoniteArgs = ammoniteArg
+        )
+      ),
+      internalDependencies = baseOptions.internalDependencies.copy(
+        addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt
+          .orElse(Some(false))
+      )
+    )
+  }
+
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     def default = Inputs.default().getOrElse {
@@ -29,7 +55,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     val programArgs = args.unparsed
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
-    val initialBuildOptions = options.buildOptions
+    val initialBuildOptions = buildOptions(options)
     val logger              = options.shared.logger
     val threads             = BuildThreads.create()
 
