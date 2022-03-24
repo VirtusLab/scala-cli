@@ -72,6 +72,9 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       case Right(_) =>
     }
 
+  private def buildOptions(opts: SetupIdeOptions): BuildOptions =
+    opts.shared.buildOptions(enableJmh = false, jmhVersion = None)
+
   private def writeBspConfiguration(
     options: SetupIdeOptions,
     inputs: Inputs,
@@ -90,8 +93,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val logger = options.shared.logger
 
-    if (options.buildOptions.classPathOptions.extraDependencies.toSeq.nonEmpty)
-      value(downloadDeps(inputs, options.buildOptions, logger))
+    if (buildOptions(options).classPathOptions.extraDependencies.toSeq.nonEmpty)
+      value(downloadDeps(inputs, buildOptions(options), logger))
 
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
     val scalaCliBspJsonDestination =
