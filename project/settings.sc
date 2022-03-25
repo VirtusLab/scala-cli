@@ -780,6 +780,8 @@ trait ScalaCliCompile extends ScalaModule {
 
                 val proc = os.proc(
                   cli,
+                  "--cli-version", "0.1.2+169-ga5d7bd70-SNAPSHOT",  
+                  "--cli-scala-version","2.13",
                   Seq("compile", "--classpath"),
                   Seq("-S", scalaVersion()),
                   asOpt("-O", scalacOptions()),
