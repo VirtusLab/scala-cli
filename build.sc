@@ -489,7 +489,7 @@ class Cli(val crossScalaVersion: String) extends BuildLikeModule with CliLaunche
   def millSourcePath = super.millSourcePath / os.up / "cli"
 
   def scalacOptions = T {
-    super.scalacOptions() ++ asychScalacOptions(scalaVersion())
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
   }
   def javacOptions = T {
     super.javacOptions() ++ Seq("--release", "16")

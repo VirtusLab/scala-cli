@@ -3,5 +3,6 @@ out/
 .metals/
 .vscode/
 .idea/
+.scala-build
 
 *.semanticdb
