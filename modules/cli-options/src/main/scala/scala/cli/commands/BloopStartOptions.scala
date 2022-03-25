@@ -2,9 +2,6 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.blooprifle.BloopRifleConfig
-import scala.build.options.{BuildOptions, InternalOptions}
-
 // format: off
 final case class BloopStartOptions(
   @Recurse
@@ -19,27 +16,8 @@ final case class BloopStartOptions(
     coursier: CoursierOptions = CoursierOptions(),
   @Name("f")
     force: Boolean = false
-) {
-  // format: on
-
-  def buildOptions: BuildOptions =
-    BuildOptions(
-      javaOptions = jvm.javaOptions,
-      internal = InternalOptions(
-        cache = Some(coursier.coursierCache(logging.logger.coursierLogger("")))
-      )
-    )
-
-  def bloopRifleConfig(): BloopRifleConfig =
-    compilationServer.bloopRifleConfig(
-      logging.logger,
-      coursier.coursierCache(logging.logger.coursierLogger("Downloading Bloop")),
-      logging.verbosity,
-      buildOptions.javaHome().value.javaCommand,
-      directories.directories
-    )
-
-}
+)
+// format: on
 
 object BloopStartOptions {
 

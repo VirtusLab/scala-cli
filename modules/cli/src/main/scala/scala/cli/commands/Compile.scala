@@ -5,12 +5,17 @@ import caseapp._
 import java.io.File
 
 import scala.build.options.Scope
-import scala.build.{Build, BuildThreads, Builds}
+import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.SharedOptionsUtil._
 
 object Compile extends ScalaCommand[CompileOptions] {
   override def group                                  = "Main"
   override def sharedOptions(options: CompileOptions) = Some(options.shared)
+
+  def outputPath(options: CompileOptions) =
+    options.output.filter(_.nonEmpty).map(p => os.Path(p, Os.pwd))
+
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
@@ -62,12 +67,12 @@ object Compile extends ScalaCommand[CompileOptions] {
             val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
             println(cp)
           }
-        for (output <- options.outputPath; s <- successulBuildOpt)
+        for (output <- outputPath(options); s <- successulBuildOpt)
           os.copy.over(s.output, output)
       }
     }
 
-    val buildOptions = options.buildOptions
+    val buildOptions = options.shared.buildOptions(enableJmh = false, jmhVersion = None)
     val threads      = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)

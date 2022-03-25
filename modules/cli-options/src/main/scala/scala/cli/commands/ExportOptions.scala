@@ -2,8 +2,6 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.options.BuildOptions
-
 // format: off
 @HelpMessage("Export current project to sbt or Mill")
 final case class ExportOptions(
@@ -26,17 +24,8 @@ final case class ExportOptions(
   @Name("o")
   @Group("Build Tool export options")
     output: Option[String] = None
-) {
-  // format: on
-
-  def buildOptions: BuildOptions = {
-    val baseOptions = shared.buildOptions(enableJmh = false, None, ignoreErrors = false)
-    baseOptions.copy(
-      mainClass = mainClass.mainClass.filter(_.nonEmpty)
-    )
-  }
-}
-
+)
+// format: on
 object ExportOptions {
   implicit lazy val parser: Parser[ExportOptions] = Parser.derive
   implicit lazy val help: Help[ExportOptions]     = Help.derive

@@ -2,9 +2,6 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.Positioned
-import scala.build.options.{BuildOptions, JavaOpt}
-
 // format: off
 @HelpMessage("Fire-up a Scala REPL")
 final case class ReplOptions(
@@ -37,31 +34,8 @@ final case class ReplOptions(
   @Hidden
   @HelpMessage("Don't actually run the REPL, just fetch it")
     replDryRun: Boolean = false
-) {
-  // format: on
-  private def ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
-  def buildOptions: BuildOptions = {
-    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
-    baseOptions.copy(
-      javaOptions = baseOptions.javaOptions.copy(
-        javaOpts =
-          baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
-      ),
-      notForBloopOptions = baseOptions.notForBloopOptions.copy(
-        replOptions = baseOptions.notForBloopOptions.replOptions.copy(
-          useAmmoniteOpt = ammonite,
-          ammoniteVersionOpt = ammoniteVersionOpt,
-          ammoniteArgs = ammoniteArg
-        )
-      ),
-      internalDependencies = baseOptions.internalDependencies.copy(
-        addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt
-          .orElse(Some(false))
-      )
-    )
-  }
-}
+)
+// format: on
 
 object ReplOptions {
   implicit lazy val parser: Parser[ReplOptions] = Parser.derive

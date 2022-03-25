@@ -8,6 +8,7 @@ import java.nio.charset.Charset
 import java.util.Arrays
 
 import scala.cli.CurrentParams
+import scala.cli.commands.util.CommonOps._
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {

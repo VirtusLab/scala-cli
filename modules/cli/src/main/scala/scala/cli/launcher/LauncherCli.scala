@@ -7,6 +7,7 @@ import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.{OsLibc, Runner}
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Positioned}
+import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.{CoursierOptions, LoggingOptions}
 import scala.util.Properties
 

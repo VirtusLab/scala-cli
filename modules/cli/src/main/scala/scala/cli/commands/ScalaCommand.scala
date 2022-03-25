@@ -10,6 +10,7 @@ import caseapp.core.{Arg, Error}
 
 import scala.build.Logger
 import scala.build.errors.BuildException
+import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.{Properties, Try}
 
 abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])

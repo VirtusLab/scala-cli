@@ -4,9 +4,6 @@ import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.build.internal.FetchExternalBinary
-import scala.build.{Os, options}
-
 // format: off
 final case class ScalaJsOptions(
 
@@ -74,38 +71,8 @@ final case class ScalaJsOptions(
   @HelpMessage("Whether to run the Scala.JS CLI on the JVM or using a native executable")
   @Hidden
     jsCliOnJvm: Option[Boolean] = None
-) {
-  // format: on
-
-  def scalaJsOptions: options.ScalaJsOptions =
-    options.ScalaJsOptions(
-      version = jsVersion,
-      mode = jsMode,
-      moduleKindStr = jsModuleKind,
-      checkIr = jsCheckIr,
-      emitSourceMaps = jsEmitSourceMaps,
-      sourceMapsDest = jsSourceMapsPath.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
-      dom = jsDom,
-      header = jsHeader,
-      allowBigIntsForLongs = jsAllowBigIntsForLongs,
-      avoidClasses = jsAvoidClasses,
-      avoidLetsAndConsts = jsAvoidLetsAndConsts,
-      moduleSplitStyleStr = jsModuleSplitStyle,
-      esVersionStr = jsEsVersion
-    )
-  def linkerOptions: options.scalajs.ScalaJsLinkerOptions =
-    options.scalajs.ScalaJsLinkerOptions(
-      linkerPath = jsLinkerPath
-        .filter(_.trim.nonEmpty)
-        .map(os.Path(_, Os.pwd)),
-      scalaJsCliVersion = jsCliVersion.map(_.trim).filter(_.nonEmpty),
-      javaArgs = jsCliJavaArg,
-      useJvm = jsCliOnJvm.map {
-        case false => Left(FetchExternalBinary.platformSuffix())
-        case true  => Right(())
-      }
-    )
-}
+)
+// format: on
 
 object ScalaJsOptions {
   lazy val parser: Parser[ScalaJsOptions]                           = Parser.derive

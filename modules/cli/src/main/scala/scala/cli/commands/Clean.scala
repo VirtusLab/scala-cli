@@ -5,6 +5,7 @@ import caseapp._
 import scala.build.internal.Constants
 import scala.build.{Inputs, Os}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.CommonOps._
 
 object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"
@@ -24,7 +25,7 @@ object Clean extends ScalaCommand[CleanOptions] {
     }
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val workDir       = inputs.workspace / Constants.workspaceDirName
-    val (_, bspEntry) = options.bspFile.bspDetails(inputs.workspace)
+    val (_, bspEntry) = SetupIde.bspDetails(inputs.workspace, options.bspFile)
 
     val logger = options.logging.logger
     if (os.exists(workDir)) {

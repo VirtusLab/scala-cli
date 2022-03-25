@@ -3,8 +3,6 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
-import scala.build.Positioned
-import scala.build.options.{BuildOptions, JavaOpt}
 // format: off
 @HelpMessage("""|Compile and run Scala code.
                 |
@@ -26,24 +24,8 @@ final case class RunOptions(
     compileCross: CompileCrossOptions = CompileCrossOptions(),
   @Recurse
     mainClass: MainClassOptions = MainClassOptions()
-) {
-  // format: on
-
-  def buildOptions: BuildOptions = {
-    val baseOptions = shared.buildOptions(
-      enableJmh = benchmarking.jmh.contains(true),
-      jmhVersion = benchmarking.jmhVersion
-    )
-    baseOptions.copy(
-      mainClass = mainClass.mainClass,
-      javaOptions = baseOptions.javaOptions.copy(
-        javaOpts =
-          baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
-      )
-    )
-  }
-}
+) 
+// format: on
 
 object RunOptions {
   implicit lazy val parser: Parser[RunOptions] = Parser.derive

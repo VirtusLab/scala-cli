@@ -20,9 +20,10 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.Scope
-import scala.build.{Build, BuildThreads, Builds, Logger, Os}
+import scala.build.options.{BuildOptions, PublishOptions => BPublishOptions, Scope}
+import scala.build.{Build, BuildThreads, Builds, Logger, Os, Positioned}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.errors.{MissingRepositoryError, UploadError}
 import scala.cli.packaging.Library
 
@@ -33,6 +34,47 @@ object Publish extends ScalaCommand[PublishOptions] {
   override def sharedOptions(options: PublishOptions) =
     Some(options.shared)
 
+  def mkBuildOptions(ops: PublishOptions): Either[BuildException, BuildOptions] = either {
+    import ops._
+    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
+    baseOptions.copy(
+      mainClass = mainClass.mainClass.filter(_.nonEmpty),
+      notForBloopOptions = baseOptions.notForBloopOptions.copy(
+        publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
+          organization = organization.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          name = moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          version = version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          url = url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          license = value {
+            license
+              .map(_.trim).filter(_.nonEmpty)
+              .map(Positioned.commandLine(_))
+              .map(BPublishOptions.parseLicense(_))
+              .sequence
+          },
+          versionControl = value {
+            vcs.map(_.trim).filter(_.nonEmpty)
+              .map(Positioned.commandLine(_))
+              .map(BPublishOptions.parseVcs(_))
+              .sequence
+          },
+          description = description.map(_.trim).filter(_.nonEmpty),
+          developers = value {
+            developer.filter(_.trim.nonEmpty)
+              .map(Positioned.commandLine(_))
+              .map(BPublishOptions.parseDeveloper(_))
+              .sequence
+              .left.map(CompositeBuildException(_))
+          },
+          scalaVersionSuffix = scalaVersionSuffix.map(_.trim),
+          scalaPlatformSuffix = scalaPlatformSuffix.map(_.trim),
+          repository = publishRepository.filter(_.trim.nonEmpty),
+          sourceJar = sources
+        )
+      )
+    )
+  }
+
   def run(options: PublishOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
@@ -40,7 +82,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val logger              = options.shared.logger
-    val initialBuildOptions = options.buildOptions.orExit(logger)
+    val initialBuildOptions = mkBuildOptions(options).orExit(logger)
     val threads             = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)
