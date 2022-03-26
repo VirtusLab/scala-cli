@@ -13,6 +13,7 @@ import mill._, scalalib._
 import scala.collection.JavaConverters._
 import scala.util.Properties
 import upickle.default._
+import java.io.File
 
 private def isCI = System.getenv("CI") != null
 
@@ -217,7 +218,16 @@ trait CliLaunchers extends SbtModule { self =>
       )
     }
     def nativeImageName      = "scala-cli"
-    def nativeImageClassPath = self.nativeImageClassPath()
+    def nativeImageClassPath = T {
+      val cp = self.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
+      val out = T.ctx().dest / "processed"
+      println("Running !!")
+      os.makeDir(out)
+      os.proc("scala-cli", "bytecode_processor", "--", cp, out).call()
+      os.proc("scala-cli", "package", "bytecode_processor/BetterLazyVal.scala", "--library","-f", "-o", out / "cp-0001.jar").call()
+      os.list(out).filter(_.last.endsWith(".jar")).sortBy(_.last).map(mill.PathRef(_))
+    }
+
     def nativeImageMainClass = self.nativeImageMainClass()
 
     private def staticLibDirName = "native-libs"
