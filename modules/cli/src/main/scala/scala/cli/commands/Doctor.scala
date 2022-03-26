@@ -67,15 +67,14 @@ object Doctor extends ScalaCommand[DoctorOptions] {
       if (path.head == pathSeparatorChar) { path = os.pwd.toString + path }
       if (path.last == pathSeparatorChar) { path = path + os.pwd.toString }
       // on unix and macs, an empty PATH item is like "." (current dir).
-      path = s"${pathSeparator}${pathSeparator}".r.replaceAllIn(path, os.pwd.toString)
+      path = s"${pathSeparator}${pathSeparator}".r
+        .replaceAllIn(path, pathSeparator + os.pwd.toString + pathSeparator)
     }
 
-    val directories: Array[String] = path
+    val scalaCliPaths = path
       .split(pathSeparator)
     // on unix & macs, a bare "." counts as the current dir
       .map(d => if (d == ".") os.pwd.toString else d)
-
-    val scalaCliPaths = directories
       .map(_ + "/scala-cli")
       .filter { f => os.isFile(os.Path(f)) }
       .toSet
