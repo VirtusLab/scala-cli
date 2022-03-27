@@ -44,10 +44,10 @@ object Doctor extends ScalaCommand[DoctorOptions] {
     val isOutdated = CommandUtils.isOutOfDateVersion(Update.newestScalaCliVersion, currentVersion)
     if (isOutdated)
       println(
-        s"the version is outdated current version : $currentVersion please update to ${Update.newestScalaCliVersion}"
+        s"Your scala-cli version is out of date. your version: $currentVersion. please update to: ${Update.newestScalaCliVersion}"
       )
     else
-      println("scala-cli version is updated")
+      println(s"Your scala-cli version ($currentVersion) is current.")
   }
 
   private def checkBloopStatus(): Unit = {
@@ -83,9 +83,9 @@ object Doctor extends ScalaCommand[DoctorOptions] {
       .toSet
 
     if (scalaCliPaths.size > 1)
-      println(s"scala-cli installed on multiple paths ${scalaCliPaths.mkString(", ")} ")
+      println(s"scala-cli would not be able to update itself since it is installed in multiple directories: ${scalaCliPaths.mkString(", ")}.")
     else
-      println("scala-cli installed correctly (only one instance in your PATH)")
+      println(s"scala-cli could update itself since it is correctly installed in only one location: ${scalaCliPaths}.")
   }
 
   private def checkNativeDependencies(): Unit = {
@@ -104,11 +104,17 @@ object Doctor extends ScalaCommand[DoctorOptions] {
 
   private def checkIsNativeOrJvm(): Unit = {
     val jvmVersion = System.getProperty("java.vm.name")
+    val javaVendorVersion = System.getProperty("java.vendor.version")
 
+    // val p = new SystemProperties
+    // val r = "^(java|jdk|jvm)".r
+    // p.keys.filter(r.unanchored.matches).toArray.sorted.foreach(k => println(s"key: $k value: ${p.get(k)}"))
+
+    // this test is NOT right
     if (jvmVersion.isEmpty)
-      println("scala-cli is used as a native application")
+      println("Your scala-cli is a native application.")
     else
-      println(s"scala-cli using JVM : $jvmVersion")
+      println(s"Your scala-cli is using the java launcher with JVM: $jvmVersion ($javaVendorVersion).")
   }
 
 }
