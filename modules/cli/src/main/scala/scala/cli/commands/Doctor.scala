@@ -9,11 +9,11 @@ import scala.build.internal.Constants
 
 // the state of bloop (running/not running + version and JVM used)
 
-// if there are duplicated scala-cli on classpath
+// if there are duplicate scala-cli's on your PATH.
 
-// whether all native dependencies for native / js are installed
+// whether all native dependencies for native / js are installed.
 
-// information about location of binary / main class that is being used
+// information about location of binary / main class that is being used?
 
 // information if scala-cli can access Maven central / scala-cli
 // github with some tips and diagnostics about proxies
@@ -75,6 +75,7 @@ object Doctor extends ScalaCommand[DoctorOptions] {
         .replaceAllIn(path, pathSeparator + pwd + pathSeparator)
     }
 
+    // this is wrong for windows. we need to search for scala-cli.bat and scala-cli.exe
     val scalaCliPaths = path
       .split(pathSeparator)
       .map(d => if (d == ".") pwd else d) // on unix a bare "." counts as the current dir
