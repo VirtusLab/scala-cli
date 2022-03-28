@@ -267,7 +267,7 @@ object ExportTestProjects {
         TestUtil.cs,
         "fetch",
         "--intransitive",
-        "com.chuusai::shapeless:2.3.8",
+        "com.chuusai::shapeless:2.3.9",
         "--scala",
         scalaVersion
       )

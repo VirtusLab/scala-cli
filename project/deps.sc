@@ -107,7 +107,7 @@ object Deps {
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
-  def shapeless                = ivy"com.chuusai::shapeless:2.3.8"
+  def shapeless                = ivy"com.chuusai::shapeless:2.3.9"
   def slf4jNop                 = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   // Force using of 2.13 - is there a better way?
   def snailgun(force213: Boolean = false) =
