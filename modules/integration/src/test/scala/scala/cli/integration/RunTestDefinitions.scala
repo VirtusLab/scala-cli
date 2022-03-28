@@ -1548,11 +1548,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         os.rel / "JsDom.scala" ->
           s"""|//> using lib "org.scala-js::scalajs-dom::2.1.0"
               |
-              |import scala.scalajs.js
-              |
-              |import org.scalajs.dom
               |import org.scalajs.dom.document
-              |import org.scalajs.dom.ext._
               |
               |object JsDom extends App {
               |  val pSize = document.querySelectorAll("p")

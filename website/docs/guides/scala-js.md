@@ -68,9 +68,8 @@ object Hello {
 }
 ```
 
-```bash
+```bash ignore
 scala-cli Hello.scala --js-dom
-# Hello
 ```
 
 ## Using Directives 

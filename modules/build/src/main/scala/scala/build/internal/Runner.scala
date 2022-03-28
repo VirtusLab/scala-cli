@@ -151,7 +151,7 @@ object Runner {
           .withSourceMap(sourceMap)
       )
 
-    if (!jsDom && allowExecve && Execve.available() ) {
+    if (!jsDom && allowExecve && Execve.available()) {
       debug("execve available")
       Execve.execve(
         command.head,
@@ -163,7 +163,7 @@ object Runner {
     else {
       val inputs = Seq(Input.Script(entrypoint.toPath))
 
-      val config  = RunConfig().withLogger(logger.scalaJsLogger)
+      val config    = RunConfig().withLogger(logger.scalaJsLogger)
       val processJs = envJs.start(inputs, config)
 
       val processField =
