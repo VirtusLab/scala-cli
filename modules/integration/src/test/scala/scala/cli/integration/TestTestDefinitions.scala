@@ -529,8 +529,9 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       // install jsdom library
-      os.proc("npm", "init", "private").call(cwd = root)
-      os.proc("npm", "install", "jsdom").call(cwd = root)
+      val npmPath = TestUtil.fromPath("npm").getOrElse("npm")
+      os.proc(npmPath, "init", "private").call(cwd = root)
+      os.proc(npmPath, "install", "jsdom").call(cwd = root)
 
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js", "--js-dom")
         .call(cwd = root)
