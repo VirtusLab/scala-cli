@@ -1,11 +1,9 @@
 package scala.build.preprocessing.directives
 
-import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.{BuildException, UnexpectedDirectiveError}
 import scala.build.options.publish.{ComputeVersion, Developer, License, Vcs}
 import scala.build.options.{BuildOptions, PostBuildOptions, PublishOptions}
-import scala.build.preprocessing.ScopePath
 
 case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
 
@@ -57,52 +55,62 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
 
   def handleValues(
                     scopedDirective: ScopedDirective,
-    logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = either {
+                    logger: Logger
+                  ): Either[BuildException, ProcessedUsingDirective] = checkIfValuesAreExpected(scopedDirective).flatMap { groupedScopedValuesContainer =>
     // This head is fishy!
+
     val singleValue = groupedScopedValuesContainer.scopedStringValues.head.positioned
     def severalValues = groupedScopedValuesContainer.scopedStringValues
 
-    if (!directive.key.startsWith(prefix))
-      value(Left(new UnexpectedDirectiveError(directive.key)))
-
-    val publishOptions = directive.key.stripPrefix(prefix) match {
+    if (!scopedDirective.directive.key.startsWith(prefix))
+      Left(new UnexpectedDirectiveError(scopedDirective.directive.key))
+    else scopedDirective.directive.key.stripPrefix(prefix) match {
       case "organization" =>
-        PublishOptions(organization = Some(value(singleValue)))
+        Right(PublishOptions(organization = Some(singleValue)))
       case "name" =>
-        PublishOptions(name = Some(value(singleValue)))
+        Right(PublishOptions(name = Some(singleValue)))
       case "version" =>
-        PublishOptions(version = Some(value(singleValue)))
+        Right(PublishOptions(version = Some(singleValue)))
       case "computeVersion" | "compute-version" =>
-        PublishOptions(
-          computeVersion = Some(
-            value(ComputeVersion.parse(value(singleValue)))
+        ComputeVersion.parse(singleValue).map{
+          computeVersion => PublishOptions(
+            computeVersion = Some(
+              computeVersion
+            )
           )
-        )
+        }
+
       case "url" =>
-        PublishOptions(url = Some(value(singleValue)))
+        Right(PublishOptions(url = Some(singleValue)))
       case "license" =>
-        val license = value(License.parse(value(singleValue)))
-        PublishOptions(license = Some(license))
+        License.parse(singleValue).map { license =>
+          PublishOptions(license = Some(license))
+        }
       case "versionControl" | "version-control" | "scm" =>
-        PublishOptions(versionControl = Some(value(Vcs.parse(value(singleValue)))))
+        Vcs.parse(singleValue).map { versionControl =>
+          PublishOptions(versionControl = Some(versionControl))
+        }
       case "description" =>
-        PublishOptions(description = Some(value(singleValue).value))
+        Right(PublishOptions(description = Some(singleValue.value)))
       case "developer" =>
-        PublishOptions(developers = Seq(value(Developer.parse(value(singleValue)))))
+        Developer.parse(singleValue).map{
+          developer =>  PublishOptions(developers = Seq(developer))
+
+        }
       case "scalaVersionSuffix" | "scala-version-suffix" =>
-        PublishOptions(scalaVersionSuffix = Some(value(singleValue).value))
+        Right(PublishOptions(scalaVersionSuffix = Some(singleValue.value)))
       case "scalaPlatformSuffix" | "scala-platform-suffix" =>
-        PublishOptions(scalaPlatformSuffix = Some(value(singleValue).value))
+        Right(PublishOptions(scalaPlatformSuffix = Some(singleValue.value)))
       case "repository" =>
-        PublishOptions(repository = Some(value(singleValue).value))
+        Right(PublishOptions(repository = Some(singleValue.value)))
       case "gpgKey" | "gpg-key" =>
-        PublishOptions(gpgSignatureId = Some(value(singleValue).value))
+        Right(PublishOptions(gpgSignatureId = Some(singleValue.value)))
       case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
-        PublishOptions(gpgOptions = severalValues.map(_._1.value).toList)
+        Right(PublishOptions(gpgOptions = severalValues.map(_.positioned.value).toList))
       case _ =>
-        value(Left(new UnexpectedDirectiveError(directive.key)))
+        Left(new UnexpectedDirectiveError(scopedDirective.directive.key))
     }
+  }.map { publishOptions =>
     val options = BuildOptions(
       notForBloopOptions = PostBuildOptions(
         publishOptions = publishOptions

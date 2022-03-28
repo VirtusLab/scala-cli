@@ -44,51 +44,33 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     "//> using jsModuleKind \"common\""
   )
 
-  def string(
-    param: String,
-    values: Seq[Positioned[String]],
-    f: String => ScalaJsOptions
-  ): Either[BuildException, ScalaJsOptions] =
-    values match {
-      case Seq(elem) => Right(f(elem.value))
-      case _         => Left(MultiValue(param, values))
-    }
+  def string(f: String => ScalaJsOptions)(values: Seq[Positioned[String]]): ScalaJsOptions =
+    f(values.head.value)
 
-  def boolean(
-    param: String,
-    values: Seq[Positioned[String]],
-    f: Boolean => ScalaJsOptions
-  ): Either[BuildException, ScalaJsOptions] =
-    values match {
-      case Seq(elem) =>
-        elem.value.toBooleanOption match {
-          case Some(a) => Right(f(a))
-          case None    => Left(NotABoolean(param, elem))
-        }
-      case _ => Left(MultiValue(param, values))
-    }
+  def boolean(f: Boolean => ScalaJsOptions)(values: Seq[Positioned[String]]): ScalaJsOptions =
+    f(values.head.value.toBoolean)
 
   lazy val directiveMap =
-    Map[String, (String, Seq[Positioned[String]]) => Either[BuildException, ScalaJsOptions]](
-      "jsVersion" -> ((p, v) => string(p, v, value => ScalaJsOptions(version = Some(value)))),
-      "jsMode"    -> ((p, v) => string(p, v, value => ScalaJsOptions(mode = Some(value)))),
+    Map[String, Seq[Positioned[String]] => ScalaJsOptions](
+      "jsVersion" ->  string(value => ScalaJsOptions(version = Some(value))),
+      "jsMode"    -> string(value => ScalaJsOptions(mode = Some(value))),
       "jsModuleKind" ->
-        ((p, v) => string(p, v, value => ScalaJsOptions(moduleKindStr = Some(value)))),
-      "jsCheckIr" -> ((p, v) => boolean(p, v, value => ScalaJsOptions(checkIr = Some(value)))),
+        string(value => ScalaJsOptions(moduleKindStr = Some(value))),
+      "jsCheckIr" -> boolean(value => ScalaJsOptions(checkIr = Some(value))),
       "jsEmitSourceMaps" ->
-        ((p, v) => boolean(p, v, value => ScalaJsOptions(emitSourceMaps = value))),
-      "jsDom"    -> ((p, v) => boolean(p, v, value => ScalaJsOptions(dom = Some(value)))),
-      "jsHeader" -> ((p, v) => string(p, v, value => ScalaJsOptions(header = Some(value)))),
+        boolean(value => ScalaJsOptions(emitSourceMaps = value)),
+      "jsDom"    -> boolean(value => ScalaJsOptions(dom = Some(value))),
+      "jsHeader" -> string(value => ScalaJsOptions(header = Some(value))),
       "jsAllowBigIntsForLongs" ->
-        ((p, v) => boolean(p, v, value => ScalaJsOptions(allowBigIntsForLongs = Some(value)))),
+        boolean(value => ScalaJsOptions(allowBigIntsForLongs = Some(value))),
       "jsAvoidClasses" ->
-        ((p, v) => boolean(p, v, value => ScalaJsOptions(avoidClasses = Some(value)))),
+        boolean(value => ScalaJsOptions(avoidClasses = Some(value))),
       "jsAvoidLetsAndConsts" ->
-        ((p, v) => boolean(p, v, value => ScalaJsOptions(avoidLetsAndConsts = Some(value)))),
+        boolean(value => ScalaJsOptions(avoidLetsAndConsts = Some(value))),
       "jsModuleSplitStyleStr" ->
-        ((p, v) => string(p, v, value => ScalaJsOptions(moduleSplitStyleStr = Some(value)))),
+        string(value => ScalaJsOptions(moduleSplitStyleStr = Some(value))),
       "jsEsVersionStr" ->
-        ((p, v) => string(p, v, value => ScalaJsOptions(esVersionStr = Some(value))))
+        string(value => ScalaJsOptions(esVersionStr = Some(value)))
     )
 
   def keys = directiveMap.keys.toSeq
@@ -113,6 +95,6 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
       val buildOptions = directiveMap(scopedDirective.directive.key)(
         positionedValues
       )
-      ProcessedDirective(Some(buildOptions), Seq.empty)
+      ProcessedDirective(Some(BuildOptions(scalaJsOptions = buildOptions)), Seq.empty)
     }
 }
