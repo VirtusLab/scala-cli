@@ -226,7 +226,7 @@ object Run extends ScalaCommand[RunOptions] {
               jsDest.toIO,
               args,
               logger,
-              allowExecve = allowExecve,,
+              allowExecve = allowExecve,
               jsDom = build.options.scalaJsOptions.dom.getOrElse(false),
               sourceMap = build.options.scalaJsOptions.emitSourceMaps
             )

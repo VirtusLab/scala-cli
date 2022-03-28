@@ -870,6 +870,13 @@
     "allDeclaredFields": true
   },
   {
+    "name": "org.scalajs.jsenv.ExternalJSRun",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "scala.build.BloopBuildClient",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,

@@ -151,7 +151,7 @@ object Runner {
           .withSourceMap(sourceMap)
       )
 
-    if (allowExecve && Execve.available()) {
+    if (!jsDom && allowExecve && Execve.available() ) {
       debug("execve available")
       Execve.execve(
         command.head,
@@ -164,13 +164,13 @@ object Runner {
       val inputs = Seq(Input.Script(entrypoint.toPath))
 
       val config  = RunConfig().withLogger(logger.scalaJsLogger)
-      val startJs = envJs.start(inputs, config)
+      val processJs = envJs.start(inputs, config)
 
       val processField =
-        startJs.getClass.getDeclaredField("org$scalajs$jsenv$ExternalJSRun$$process")
+        processJs.getClass.getDeclaredField("org$scalajs$jsenv$ExternalJSRun$$process")
       processField.setAccessible(true)
-      val process = processField.get(startJs).asInstanceOf[Process]
-      process.waitFor()
+      val process = processField.get(processJs).asInstanceOf[Process]
+      process
     }
   }
 
