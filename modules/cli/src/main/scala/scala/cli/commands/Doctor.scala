@@ -1,6 +1,10 @@
 package scala.cli.commands
 
 import caseapp.core.RemainingArgs
+
+import java.io.File
+import scala.build.bloop.BloopThreads
+import scala.build.blooprifle.BloopRifle
 import scala.build.internal.Constants
 
 // current version / latest version + potentially information that
@@ -51,7 +55,22 @@ object Doctor extends ScalaCommand[DoctorOptions] {
   }
 
   private def checkBloopStatus(): Unit = {
-    // TODO
+    val options = BloopStartOptions()
+    val bloopRifleConfig = options.bloopRifleConfig()
+    val logger           = options.logging.logger
+    val workdir = new File(".").getCanonicalFile.toPath
+    val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)
+    if (isRunning) {
+      val threads = BloopThreads.create()
+      val bloopInfoEither = BloopRifle.getCurrentBloopVersion(bloopRifleConfig,
+        logger.bloopRifleLogger,
+        workdir,
+        threads.startServerChecks)
+      val bloopVersion = bloopInfoEither.toOption.fold("couldn't retrieve")(_.bloopVersion.raw)
+      println(s"Bloop is running and bloop version $bloopVersion")
+    }
+    else
+      println("Bloop is not running")
   }
 
   // the semantics of PATH isn't just built into unix shells.  it is
