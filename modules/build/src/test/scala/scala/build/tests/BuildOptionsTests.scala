@@ -38,6 +38,18 @@ class BuildOptionsTests extends munit.FunSuite {
       "-S 3.nightly argument does not lead to scala3 nightly build option"
     )
   }
+  test("-S 3.1.nightly option works") {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some("3.1.nightly")
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow
+    assert(
+      scalaParams.scalaVersion.startsWith("3.1.") && scalaParams.scalaVersion.endsWith("-NIGHTLY"),
+      "-S 3.1.nightly argument does not lead to scala 3.1. nightly build option"
+    )
+  }
 
   test(s"Scala 3.${Int.MaxValue} shows Invalid Binary Scala Version Error") {
 

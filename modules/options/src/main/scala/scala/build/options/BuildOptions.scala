@@ -17,7 +17,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors._
 import scala.build.internal.Constants._
 import scala.build.internal.CsLoggerUtil._
-import scala.build.internal.Regexes.scala2NightlyRegex
+import scala.build.internal.Regexes.{scala2NightlyRegex, scala3NightlyNicknameRegex}
 import scala.build.internal.{OsLibc, StableScalaVersion, Util}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
@@ -475,6 +475,32 @@ final case class BuildOptions(
   /** @return
     *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
     */
+  private def computeLatestScalaThreeXNightlyVersions(threeSubBinaryNum: String)
+    : Either[BuildException, (String, String)] =
+    either {
+      val moduleVersion: Either[ScalaVersionError, String] = {
+        def scala3 = cmod"org.scala-lang:scala3-library_3"
+        val res = finalCache.logger.use {
+          Versions(finalCache)
+            .withModule(scala3)
+            .result()
+            .unsafeRun()(finalCache.ec)
+        }.versions.available
+
+        val threeXNightlies = res.filter(_.startsWith(s"3.$threeSubBinaryNum.")).map(Version(_))
+        if (threeXNightlies.nonEmpty) Right(threeXNightlies.max.repr)
+        else Left(
+          new NoValidScalaVersionFoundError(res, latestSupportedStableVersions)
+        )
+      }
+      val scalaVersion       = value(moduleVersion)
+      val scalaBinaryVersion = ScalaVersion.binary(scalaVersion)
+      (scalaVersion, scalaBinaryVersion)
+    }
+
+  /** @return
+    *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
+    */
   private def computeLatestScalaTwoNightlyVersions(): Either[BuildException, (String, String)] =
     either {
       val moduleVersion: Either[ScalaVersionError, String] = {
@@ -573,7 +599,9 @@ final case class BuildOptions(
     val (scalaVersion, scalaBinaryVersion) =
       value {
         scalaOptions.scalaVersion match {
-          case Some("3.nightly")    => computeLatestScalaThreeNightlyVersions()
+          case Some("3.nightly") => computeLatestScalaThreeNightlyVersions()
+          case Some(scala3NightlyNicknameRegex(threeSubBinaryNum)) =>
+            computeLatestScalaThreeXNightlyVersions(threeSubBinaryNum)
           case Some("2.nightly")    => computeLatestScalaTwoNightlyVersions()
           case Some("2.13.nightly") => computeLatestScalaTwoNightlyVersions()
           case Some("2.12.nightly") => computeLatestScalaTwoTwelveNightlyVersions()

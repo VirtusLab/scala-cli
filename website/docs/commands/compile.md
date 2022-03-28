@@ -68,7 +68,9 @@ scala-cli compile --scala 3 Hello.scala
 
 The nightly builds of Scala compiler are unstable ones which are published on a nightly basis.
 
-To use the latest Scala 2 and Scala 3 nightly builds, pass `2.nightly` and `3.nightly`, respectively. You can also request the last `2.12.nightly` and `2.13.nightly` versions. `2.13.nightly` is the same as `2.nightly`.
+To use the latest Scala 2 and Scala 3 nightly builds, pass `2.nightly` and `3.nightly`, respectively. 
+You can also request the last `2.12.nightly` and `2.13.nightly` versions. `2.13.nightly` is the same as `2.nightly`.
+Moreover, passing the `3.{sub binary number}.nightly` format, such as `3.0.nightly` or `3.1.nightly` is accepted, too.
 
 Scala CLI takes care of fetching the nightly builds of Scala 2 and Scala 3 from different repositories, without you having to pass their addresses as input after the `--repo` flag.
 
