@@ -39,12 +39,12 @@ scala-cli package Hello.scala --js --js-emit-source-maps
 #  node ./Hello.js
 ```
 
-## Scala.Js DOM support
+## Scala.js DOM support
 
-Passing `--js-dom` to the sub-commands to simulate a DOM in Nodej.js
+Pass `--js-dom` to `compile`, `run`, or `test` to simulate a DOM in Node.js
 
 :::note
-If you see the following error, it means that you don't have installed `jsdom` library to simulate DOM.
+If you see the following error, it means that you don't have the `jsdom` library installed to simulate the DOM.
 ```
 Error: Cannot find module 'jsdom'
 ```

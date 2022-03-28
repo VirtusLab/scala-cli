@@ -50,12 +50,11 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier              = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala         = "2.13.8"
-    def scalaJsEnvJsdomNodejs = "1.1.0"
-    def scalaMeta             = "4.5.1"
-    def scalaNative           = "0.4.4"
-    def scalaPackager         = "0.1.26"
+    def coursier      = "2.1.0-M5-18-gfebf9838c"
+    def jsoniterScala = "2.13.8"
+    def scalaMeta     = "4.5.1"
+    def scalaNative   = "0.4.4"
+    def scalaPackager = "0.1.26"
   }
   def ammonite = ivy"com.lihaoyi:::ammonite:2.5.2"
   def asm      = ivy"org.ow2.asm:asm:9.2"
@@ -96,7 +95,7 @@ object Deps {
   def scalafmtCli        = ivy"org.scalameta::scalafmt-cli:3.0.8"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
-    ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:${Versions.scalaJsEnvJsdomNodejs}"
+    ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvNodeJs = ivy"org.scala-js:scalajs-env-nodejs_2.13:1.3.0"
   def scalaJsLogging   = ivy"org.scala-js:scalajs-logging_2.13:1.1.1"
