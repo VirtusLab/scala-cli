@@ -109,9 +109,10 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       val crossSources = value {
         CrossSources.forInputs(inputs, Sources.defaultPreprocessors(CustomCodeWrapper), logger)
       }
-      val scopedSources = value(crossSources.scopedSources(options.buildOptions))
-      val mainSources   = scopedSources.sources(Scope.Main, options.buildOptions)
-      val testSources   = scopedSources.sources(Scope.Test, options.buildOptions)
+      val bOpts         = buildOptions(options)
+      val scopedSources = value(crossSources.scopedSources(bOpts))
+      val mainSources   = scopedSources.sources(Scope.Main, bOpts)
+      val testSources   = scopedSources.sources(Scope.Test, bOpts)
       IdeInputs(
         mainScopeSources = mainSources.paths.toList.map(_._1.toString()),
         testScopeSources = testSources.paths.toList.map(_._1.toString())

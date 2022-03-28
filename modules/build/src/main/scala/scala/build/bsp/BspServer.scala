@@ -1,15 +1,16 @@
 package scala.build.bsp
 
-import _root_.bloop.config.{Config, ConfigCodecs as BloopCodecs}
-import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetIdentifier, CompileParams, LogMessageParams, MessageType}
-import ch.epfl.scala.bsp4j as b
+import _root_.bloop.config.{Config, ConfigCodecs => BloopCodecs}
+import ch.epfl.scala.bsp4j.{BuildClient, BuildTargetEvent, LogMessageParams, MessageType}
+import ch.epfl.scala.{bsp4j => b}
 import com.github.plokhotnyuk.jsoniter_scala.core
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CompletableFuture, TimeUnit}
-import java.util as ju
+import java.{util => ju}
+
 import scala.build.Logger
 import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
 import scala.build.internal.Constants
@@ -18,7 +19,6 @@ import scala.collection.concurrent
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Random, Try}
-
 
 class BspServer(
   bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
@@ -29,8 +29,8 @@ class BspServer(
     with ScalaDebugServerForwardStubs
     with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs with HasGeneratedSources {
 
-  private var client: Option[BuildClient] = None
-  private val isIntelliJ: AtomicBoolean   = new AtomicBoolean(false)
+  private var client: Option[BuildClient]                           = None
+  private val isIntelliJ: AtomicBoolean                             = new AtomicBoolean(false)
   private val buildTargetNamesByUri: concurrent.Map[String, String] = concurrent.TrieMap.empty
 
   override def onConnectWithClient(client: BuildClient): Unit = this.client = Some(client)
@@ -259,11 +259,13 @@ class BspServer(
 
   override def onBuildExit(): Unit = ()
 
+  // TODO: reload dependencies
+  // TODO: reload scalac & javac options
+  // TODO: fix IntelliJ run tasks not picking up new sources
   override def workspaceReload(): CompletableFuture[Object] =
     super.workspaceReload().thenApply[Object] { res =>
-      val buildTargetsToRecompile: List[BuildTargetIdentifier] =
-        for { // this is just a workaround hack to emulate workspace reloading until Bloop starts supporting it
-          // TODO: reload dependencies
+      val buildTargetsToRecompile: List[b.BuildTargetIdentifier] =
+        for { // this is just a workaround hack to emulate workspace reloading until Bloop itself supports it
           case (targetUri, targetName) <- buildTargetNamesByUri.toList
           scalaBuildDirPath = os.Path(new URI(targetUri).getRawPath)
           if os.isDir(scalaBuildDirPath)
@@ -273,19 +275,37 @@ class BspServer(
           if os.isDir(bloopDirPath)
           bloopFileJsonPath = bloopDirPath / s"$targetName.json"
           if os.isFile(bloopFileJsonPath)
-          bloopFile <- Try { core.readFromString(os.read(bloopFileJsonPath))(BloopCodecs.codecFile) }.toOption
-          ideInputs <- Try { core.readFromString(os.read(ideInputsJsonPath))(IdeInputs.codec) }.toOption
-          ideSources = if (targetName.endsWith("-test")) ideInputs.testScopeSources else ideInputs.mainScopeSources
+          bloopFile <-
+            Try(core.readFromString(os.read(bloopFileJsonPath))(BloopCodecs.codecFile)).toOption
+          ideInputs <-
+            Try(core.readFromString(os.read(ideInputsJsonPath))(IdeInputs.codec)).toOption
+          ideSources =
+            if (targetName.endsWith("-test")) ideInputs.testScopeSources
+            else ideInputs.mainScopeSources
           ideInputPaths = ideSources.map(os.Path(_).toNIO)
           if !bloopFile.project.sources.toSet.equals(ideInputPaths.toSet)
         } yield {
-          val updatedBloopFile: Config.File = bloopFile.copy(project = bloopFile.project.copy(sources = ideInputPaths))
-          val updatedBloopFileJson: Array[Byte] = core.writeToArray(updatedBloopFile)(BloopCodecs.codecFile)
+          val updatedBloopFile: Config.File =
+            bloopFile.copy(project = bloopFile.project.copy(sources = ideInputPaths))
+          val updatedBloopFileJson: Array[Byte] =
+            core.writeToArray(updatedBloopFile)(BloopCodecs.codecFile)
           os.write.over(bloopFileJsonPath, updatedBloopFileJson, createFolders = true)
           new b.BuildTargetIdentifier(targetUri)
         }
-      bloopServer.buildTargetCompile(new CompileParams(buildTargetsToRecompile.asJava))
-      res // TODO: return a valid message in case of an error
+      if (buildTargetsToRecompile.nonEmpty) {
+        val buildTargetCompileParams = new b.CompileParams(buildTargetsToRecompile.asJava)
+        bloopServer.buildTargetCompile(buildTargetCompileParams).thenApply { compileRes =>
+          val buildTargetEvents: ju.List[BuildTargetEvent] = buildTargetsToRecompile.map { bt =>
+            val event = new b.BuildTargetEvent(bt)
+            event.setKind(b.BuildTargetEventKind.CHANGED)
+            event
+          }.asJava
+          val buildTargetChangedParams = new b.DidChangeBuildTarget(buildTargetEvents)
+          client.foreach(_.onBuildTargetDidChange(buildTargetChangedParams))
+          compileRes
+        }
+      }
+      res // TODO: return a valid json-rpc error message in case of any failures
     }
 
   def initiateShutdown: Future[Unit] =
