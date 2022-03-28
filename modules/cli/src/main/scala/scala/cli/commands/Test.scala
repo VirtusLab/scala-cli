@@ -114,7 +114,7 @@ object Test extends ScalaCommand[TestOptions] {
         }
     }
 
-    if (options.watch.watch) {
+    if (options.watch.watchMode) {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -221,7 +221,7 @@ object Test extends ScalaCommand[TestOptions] {
           extraArgs,
           logger,
           allowExecve = allowExecve
-        )
+        ).waitFor()
     }
   }
 

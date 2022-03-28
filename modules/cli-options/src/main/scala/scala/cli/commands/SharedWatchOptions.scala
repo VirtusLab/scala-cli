@@ -7,10 +7,13 @@ final case class SharedWatchOptions(
 
   @HelpMessage("Watch source files for changes")
   @Name("w")
-    watch: Boolean = false
+    watch: Boolean = false,
+  @HelpMessage("Run your application in background and automatically restart if sources have been changed") 
+    revolver: Boolean = false
+) { // format: on
 
-)
-// format: on
+  lazy val watchMode = watch || revolver
+}
 
 object SharedWatchOptions {
   lazy val parser: Parser[SharedWatchOptions]                           = Parser.derive

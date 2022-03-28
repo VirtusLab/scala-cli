@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
+import java.util.concurrent.CompletableFuture
+
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
@@ -9,6 +11,7 @@ import scala.build.options.{BuildOptions, JavaOpt, Platform}
 import scala.build.{Build, BuildThreads, Inputs, Logger, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.internal.ProcUtil
 import scala.util.Properties
 
 object Run extends ScalaCommand[RunOptions] {
@@ -58,17 +61,37 @@ object Run extends ScalaCommand[RunOptions] {
 
     val compilerMaker = options.shared.compilerMaker(threads)
 
-    def maybeRun(build: Build.Successful, allowTerminate: Boolean): Either[BuildException, Unit] =
-      maybeRunOnce(
+    def maybeRun(
+      build: Build.Successful,
+      allowTerminate: Boolean
+    ): Either[BuildException, (Process, CompletableFuture[_])] = either {
+      val process = value(maybeRunOnce(
         inputs.workspace,
         inputs.projectName,
         build,
         programArgs,
         logger,
         allowExecve = allowTerminate,
-        exitOnError = allowTerminate,
         jvmRunner = build.options.addRunnerDependency.getOrElse(true)
-      )
+      ))
+
+      val onExitProcess = process.onExit().thenApply { p1 =>
+        val retCode = p1.exitValue()
+        if (retCode != 0)
+          if (allowTerminate)
+            sys.exit(retCode)
+          else {
+            val red      = Console.RED
+            val lightRed = "\u001b[91m"
+            val reset    = Console.RESET
+            System.err.println(
+              s"${red}Program exited with return code $lightRed$retCode$red.$reset"
+            )
+          }
+      }
+
+      (process, onExitProcess)
+    }
 
     val cross = options.compileCross.cross.getOrElse(false)
     SetupIde.runSafe(
@@ -80,7 +103,8 @@ object Run extends ScalaCommand[RunOptions] {
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
 
-    if (options.watch.watch) {
+    if (options.watch.watchMode) {
+      var processOpt = Option.empty[(Process, CompletableFuture[_])]
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -91,10 +115,21 @@ object Run extends ScalaCommand[RunOptions] {
         partial = None,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
+        for ((process, onExitProcess) <- processOpt) {
+          onExitProcess.cancel(true)
+          ProcUtil.interruptProcess(process, logger)
+        }
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
-            maybeRun(s, allowTerminate = false)
+            for ((proc, _) <- processOpt) // If the process doesn't exit, send SIGKILL
+              if (proc.isAlive) ProcUtil.forceKillProcess(proc, logger)
+            val maybeProcess = maybeRun(s, allowTerminate = false)
               .orReport(logger)
+            if (options.watch.revolver)
+              processOpt = maybeProcess
+            else
+              for ((proc, onExit) <- maybeProcess)
+                ProcUtil.waitForProcess(proc, onExit)
           case _: Build.Failed =>
             System.err.println("Compilation failed")
         }
@@ -116,8 +151,9 @@ object Run extends ScalaCommand[RunOptions] {
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
-          maybeRun(s, allowTerminate = true)
+          val (process, onExit) = maybeRun(s, allowTerminate = true)
             .orExit(logger)
+          ProcUtil.waitForProcess(process, onExit)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -132,9 +168,8 @@ object Run extends ScalaCommand[RunOptions] {
     args: Seq[String],
     logger: Logger,
     allowExecve: Boolean,
-    exitOnError: Boolean,
     jvmRunner: Boolean
-  ): Either[BuildException, Unit] = either {
+  ): Either[BuildException, Process] = either {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
       .orElse {
@@ -157,8 +192,7 @@ object Run extends ScalaCommand[RunOptions] {
       finalMainClass,
       finalArgs,
       logger,
-      allowExecve,
-      exitOnError
+      allowExecve
     )
     value(res)
   }
@@ -170,30 +204,32 @@ object Run extends ScalaCommand[RunOptions] {
     mainClass: String,
     args: Seq[String],
     logger: Logger,
-    allowExecve: Boolean,
-    exitOnError: Boolean
-  ): Either[BuildException, Boolean] = either {
+    allowExecve: Boolean
+  ): Either[BuildException, Process] = either {
 
-    val retCode = build.options.platform.value match {
+    val process = build.options.platform.value match {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
+        val jsDest       = os.temp(prefix = "main", suffix = ".js")
         val res =
-          withLinkedJs(
+          Package.linkJs(
             build,
+            jsDest,
             Some(mainClass),
             addTestInitializer = false,
             linkerConfig,
             build.options.scalaJsOptions.fullOpt.getOrElse(false),
             build.options.scalaJsOptions.noOpt.getOrElse(false),
             logger
-          ) {
-            js =>
-              Runner.runJs(
-                js.toIO,
-                args,
-                logger,
-                allowExecve = allowExecve
-              )
+          ).map { _ =>
+            val process = Runner.runJs(
+              jsDest.toIO,
+              args,
+              logger,
+              allowExecve = allowExecve
+            )
+            process.onExit().thenApply(_ => if (os.exists(jsDest)) os.remove(jsDest))
+            process
           }
         value(res)
       case Platform.Native =>
@@ -222,17 +258,7 @@ object Run extends ScalaCommand[RunOptions] {
         )
     }
 
-    if (retCode != 0)
-      if (exitOnError)
-        sys.exit(retCode)
-      else {
-        val red      = Console.RED
-        val lightRed = "\u001b[91m"
-        val reset    = Console.RESET
-        System.err.println(s"${red}Program exited with return code $lightRed$retCode$red.$reset")
-      }
-
-    retCode == 0
+    process
   }
 
   def withLinkedJs[T](

@@ -78,7 +78,7 @@ final case class SimpleScalaCompiler(
         args,
         logger,
         cwd = Some(project.workspace)
-      )
+      ).waitFor()
 
       res == 0
     }

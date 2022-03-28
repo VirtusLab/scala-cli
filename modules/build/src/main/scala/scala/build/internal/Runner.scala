@@ -26,7 +26,7 @@ object Runner {
     logger: Logger,
     allowExecve: Boolean = false,
     cwd: Option[os.Path] = None
-  ): Int = {
+  ): Process = {
 
     import logger.{log, debug}
 
@@ -54,7 +54,8 @@ object Runner {
         .inheritIO()
       for (dir <- cwd)
         b.directory(dir.toIO)
-      b.start().waitFor()
+      val process = b.start()
+      process
     }
   }
 
@@ -67,7 +68,7 @@ object Runner {
     logger: Logger,
     allowExecve: Boolean = false,
     cwd: Option[os.Path] = None
-  ): Int = {
+  ): Process = {
 
     val command =
       Seq(javaCommand) ++
@@ -116,7 +117,7 @@ object Runner {
     args: Seq[String],
     logger: Logger,
     allowExecve: Boolean = false
-  ): Int = {
+  ): Process = {
 
     import logger.{log, debug}
 
@@ -138,11 +139,12 @@ object Runner {
       )
       sys.error("should not happen")
     }
-    else
-      new ProcessBuilder(command: _*)
+    else {
+      val process = new ProcessBuilder(command: _*)
         .inheritIO()
         .start()
-        .waitFor()
+      process
+    }
   }
 
   def runNative(
@@ -150,7 +152,7 @@ object Runner {
     args: Seq[String],
     logger: Logger,
     allowExecve: Boolean = false
-  ): Int = {
+  ): Process = {
 
     import logger.{log, debug}
 
@@ -171,11 +173,12 @@ object Runner {
       )
       sys.error("should not happen")
     }
-    else
-      new ProcessBuilder(command: _*)
+    else {
+      val process = new ProcessBuilder(command: _*)
         .inheritIO()
         .start()
-        .waitFor()
+      process
+    }
   }
 
   private def runTests(

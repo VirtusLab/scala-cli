@@ -51,7 +51,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     val cross = options.compileCross.cross.getOrElse(false)
 
-    if (options.watch.watch) {
+    if (options.watch.watchMode) {
       var expectedModifyEpochSecondOpt = Option.empty[Long]
       val watcher = Build.watch(
         inputs,
@@ -401,7 +401,7 @@ object Package extends ScalaCommand[PackageOptions] {
         args,
         logger,
         cwd = Some(build.inputs.workspace)
-      )
+      ).waitFor()
       if (retCode == 0)
         Library.libraryJar(build, hasActualManifest = false, contentDirOverride = Some(destDir))
       else
@@ -759,7 +759,7 @@ object Package extends ScalaCommand[PackageOptions] {
             "scala.scalanative.cli.ScalaNativeLd",
             args,
             logger
-          )
+          ).waitFor()
         if (exitCode == 0)
           NativeBuilderHelper.updateProjectAndOutputSha(dest, nativeWorkDir, cacheData.projectSha)
         else
