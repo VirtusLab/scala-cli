@@ -479,8 +479,7 @@ final case class BuildOptions(
     : Either[BuildException, (String, String)] =
     either {
       val moduleVersion: Either[ScalaVersionError, String] = {
-        import coursier.moduleString
-        def scala3 = mod"org.scala-lang:scala3-library_3"
+        def scala3 = cmod"org.scala-lang:scala3-library_3"
         val res = finalCache.logger.use {
           Versions(finalCache)
             .withModule(scala3)
