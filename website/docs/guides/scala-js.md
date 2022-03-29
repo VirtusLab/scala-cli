@@ -39,6 +39,39 @@ scala-cli package Hello.scala --js --js-emit-source-maps
 #  node ./Hello.js
 ```
 
+## Scala.js DOM support
+
+Pass `--js-dom` to `compile`, `run`, or `test` to simulate a DOM in Node.js
+
+:::note
+If you see the following error, it means that you don't have the `jsdom` library installed to simulate the DOM.
+```
+Error: Cannot find module 'jsdom'
+```
+To fix it, install `jsdom` locally for your project. You can install install `jsdom` as follows:
+```
+npm init private
+npm install jsdom
+```
+:::
+
+```scala title=Hello.scala
+//> using lib "org.scala-js::scalajs-dom::2.1.0"
+//> using platform scala-js
+
+object Hello {
+  def main(args: Array[String]): Unit = {
+      val parNode = document.createElement("p")
+      parNode.textContent = "Hello World"
+      document.body.appendChild(parNode)
+  }
+}
+```
+
+```bash ignore
+scala-cli Hello.scala --js-dom
+```
+
 ## Using Directives 
 
 Scala.Js options are supported by using directives in ScalaCLI:
@@ -62,3 +95,6 @@ The table below lists the last supported version of Scala.JS in ScalaCLI. If you
 | ScalaCLI versions   |      ScalaJs      | 
 |---------------------|:-----------------:|
 | 0.0.9               |   1.7.1           |
+| 0.1.0               |   1.8.0           |
+| 0.1.1               |   1.8.0           |
+| 0.1.2               |   1.8.0           |

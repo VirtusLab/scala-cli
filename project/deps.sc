@@ -94,6 +94,9 @@ object Deps {
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
   def scalafmtCli        = ivy"org.scalameta::scalafmt-cli:3.0.8"
   // Force using of 2.13 - is there a better way?
+  def scalaJsEnvJsdomNodejs =
+    ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"
+  // Force using of 2.13 - is there a better way?
   def scalaJsEnvNodeJs = ivy"org.scala-js:scalajs-env-nodejs_2.13:1.3.0"
   def scalaJsLogging   = ivy"org.scala-js:scalajs-logging_2.13:1.1.1"
   // Force using of 2.13 - is there a better way?

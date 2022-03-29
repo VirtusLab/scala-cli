@@ -233,6 +233,7 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.nativeTools, // Used only for discovery methods. For linking, look for scala-native-cli
     Deps.osLib,
     Deps.pprint,
+    Deps.scalaJsEnvJsdomNodejs,
     Deps.scalaJsLogging,
     Deps.swoval
   )
@@ -273,6 +274,7 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |  def detailedVersion: Option[String] = $detailedVersionValue
          |
          |  def scalaJsVersion = "${Scala.scalaJs}"
+         |  def scalajsEnvJsdomNodejsVersion = "${Deps.scalaJsEnvJsdomNodejs.dep.version}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
          |
          |  def scalaJsCliVersion = "${InternalDeps.Versions.scalaJsCli}"

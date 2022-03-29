@@ -1541,4 +1541,37 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     test("auth proxy") {
       authProxyTest()
     }
+
+  def jsDomTest(): Unit = {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "JsDom.scala" ->
+          s"""|//> using lib "org.scala-js::scalajs-dom::2.1.0"
+              |
+              |import org.scalajs.dom.document
+              |
+              |object JsDom extends App {
+              |  val pSize = document.querySelectorAll("p")
+              |  println("Hello from js dom")
+              |}
+              |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      // install jsdom library
+      val npmPath = TestUtil.fromPath("npm").getOrElse("npm")
+      os.proc(npmPath, "init", "private").call(cwd = root)
+      os.proc(npmPath, "install", "jsdom").call(cwd = root)
+
+      val output = os.proc(TestUtil.cli, extraOptions, ".", "--js", "--js-dom")
+        .call(cwd = root)
+        .out.text()
+      expect(output.contains("Hello from js dom"))
+    }
+  }
+
+  if (TestUtil.isCI)
+    test("Js DOM") {
+      jsDomTest()
+    }
 }
