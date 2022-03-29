@@ -6,6 +6,7 @@ import java.io.File
 import scala.build.bloop.BloopThreads
 import scala.build.blooprifle.BloopRifle
 import scala.build.internal.Constants
+import scala.util.Properties
 
 // current version / latest version + potentially information that
 // scala-cli should be updated (and that should take SNAPSHOT version
@@ -67,26 +68,27 @@ object Doctor extends ScalaCommand[DoctorOptions] {
         workdir,
         threads.startServerChecks)
       val bloopVersion = bloopInfoEither.toOption.fold("couldn't retrieve")(_.bloopVersion.raw)
-      println(s"Bloop is running and bloop version $bloopVersion")
+      println(s"Bloop is running (version $bloopVersion).")
     }
     else
       println("Bloop is not running")
   }
 
-  // the semantics of PATH isn't just built into unix shells.  it is
-  // part of the 'exec' series of system calls.
+  // the semantics of PATH isn't just defined by unix shells.  it is
+  // built into the 'exec' family of system calls (e.g. execlp,
+  // execvp, and execvpe).
   private def checkDuplicatesOnPath(): Unit = {
     import java.io.File.pathSeparator, java.io.File.pathSeparatorChar
 
     var path = System.getenv("PATH")
     val pwd = os.pwd.toString
 
-    // on unix & macs, an empty PATH counts as ".", the working directory
+    // on unix & macs, an empty PATH counts as ".", the working directory.
     if (path.length == 0) {
       path = pwd
     } else {
       // scala 'split' doesn't handle leading or trailing pathSeparators
-      // correctly so expand them now.
+      // the way we need it to so expand them now by hand.
       if (path.head == pathSeparatorChar) { path = pwd + path }
       if (path.last == pathSeparatorChar) { path = path + pwd }
       // on unix and macs, an empty PATH item is like "." (current dir).
@@ -94,18 +96,21 @@ object Doctor extends ScalaCommand[DoctorOptions] {
         .replaceAllIn(path, pathSeparator + pwd + pathSeparator)
     }
 
-    // this is wrong for windows. we need to search for scala-cli.bat and scala-cli.exe
     val scalaCliPaths = path
       .split(pathSeparator)
       .map(d => if (d == ".") pwd else d) // on unix a bare "." counts as the current dir
-      .map(_ + "/scala-cli")
+      .flatMap(d =>
+        if (Properties.isWin)
+          List(d + "/scala-cli.bat", d + "/scala-cli.exe")
+        else
+          List(d + "/scala-cli"))
       .filter { f => os.isFile(os.Path(f)) }
       .toSet
 
     if (scalaCliPaths.size > 1)
-      println(s"scala-cli would not be able to update itself since it is installed in multiple directories: ${scalaCliPaths.mkString(", ")}.")
+      println(s"scala-cli would not be able to update itself since it is installed in multiple directories on your PATH: ${scalaCliPaths.mkString(", ")}.")
     else
-      println(s"scala-cli could update itself since it is correctly installed in only one location: ${scalaCliPaths}.")
+      println(s"scala-cli could update itself since it is installed in only one directory on your PATH: ${scalaCliPaths}.")
   }
 
   private def checkNativeDependencies(): Unit = {
