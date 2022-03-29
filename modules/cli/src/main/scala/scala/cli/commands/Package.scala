@@ -709,10 +709,22 @@ object Package extends ScalaCommand[PackageOptions] {
         val sourceMapJs    = linkingDir / relSourceMapJs
 
         if (os.exists(mainJs))
-          if (os.walk(linkingDir).filterNot(_ == mainJs).filterNot(_ == sourceMapJs).nonEmpty) {
-            // copy linking dir to dest,
-            os.copy(linkingDir, dest, createFolders = true, replaceExisting = true)
-            logger.debug(s"Scala.js linker generate multiple files for js multi-modules. Copy files to $dest directory.")
+          if (
+            os.walk.stream(linkingDir)
+              .filter(_ != mainJs).filter(_ != sourceMapJs)
+              .headOption.nonEmpty
+          ) {
+            // copy linking dir to dest
+            os.copy(
+              linkingDir,
+              dest,
+              createFolders = true,
+              replaceExisting = true,
+              mergeFolders = true
+            )
+            logger.debug(
+              s"Scala.js linker generate multiple files for js multi-modules. Copy files to $dest directory."
+            )
             dest / "main.js"
           }
           else {
