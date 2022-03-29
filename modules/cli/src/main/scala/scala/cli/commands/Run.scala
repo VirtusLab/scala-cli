@@ -221,9 +221,9 @@ object Run extends ScalaCommand[RunOptions] {
             build.options.scalaJsOptions.fullOpt.getOrElse(false),
             build.options.scalaJsOptions.noOpt.getOrElse(false),
             logger
-          ).map { _ =>
+          ).map { outputPath =>
             val process = Runner.runJs(
-              jsDest.toIO,
+              outputPath.toIO,
               args,
               logger,
               allowExecve = allowExecve,
@@ -282,8 +282,8 @@ object Run extends ScalaCommand[RunOptions] {
         fullOpt,
         noOpt,
         logger
-      ).map { _ =>
-        f(dest)
+      ).map { outputPath =>
+        f(outputPath)
       }
     finally if (os.exists(dest)) os.remove(dest)
   }

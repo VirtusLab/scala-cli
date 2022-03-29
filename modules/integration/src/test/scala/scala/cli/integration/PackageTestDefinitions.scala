@@ -239,12 +239,48 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  def multiModulesJsTest(): Unit = {
+    val fileName = "Hello.scala"
+    val message  = "Hello World from JS"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""|//> using jsModuleKind "es"
+              |//> using jsModuleSplitStyleStr "smallestmodules"
+              |
+              |case class Foo(bar: String)
+              |
+              |object Hello extends App {
+              |  println(Foo("$message").bar)
+              |}
+              |""".stripMargin
+      )
+    )
+    val destDir = fileName.stripSuffix(".scala")
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, fileName, "--js", "-o", destDir).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val launcher = root / destDir / "main.js"
+      val nodePath = TestUtil.fromPath("node").getOrElse("node")
+      os.write(root / "package.json", "{\n\n  \"type\": \"module\"\n\n}") // enable es module
+      val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.text().trim
+      expect(output == message)
+    }
+  }
+
   if (!TestUtil.isNativeCli || !Properties.isWin) {
     test("simple JS") {
       simpleJsTest()
     }
     test("source maps js") {
       sourceMapJsTest()
+    }
+    test("multi modules js") {
+      multiModulesJsTest()
     }
   }
 

@@ -36,4 +36,8 @@ object CommandUtils {
         .getOrElse(programName)
 
   lazy val shouldCheckUpdate: Boolean = scala.util.Random.nextInt() % 10 == 1
+
+  def printablePath(path: os.Path): String =
+    if (path.startsWith(Os.pwd)) "." + File.separator + path.relativeTo(Os.pwd).toString
+    else path.toString
 }
