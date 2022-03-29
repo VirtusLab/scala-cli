@@ -191,12 +191,12 @@ Running another Scala CLI version might be slower because it uses JVM-based Scal
 To run another Scala CLI version, specify it with `--cli-version` before any other argument:
 
 ```bash 
-scala-cli --cli-version 0.0.9+131-gf0ab5c40-SNAPSHOT about
-# Scala CLI version 0.0.9+131-gf0ab5c40-SNAPSHOT (v0.0.9-131-f0ab5c)
+scala-cli --cli-version 0.1.2+209-geb58be9d-SNAPSHOT about
+# Scala CLI version 0.1.2+209-geb58be9d-SNAPSHOT (v0.0.9-131-f0ab5c)
 ```
 
 <!-- Expected:
-Scala CLI version 0.0.9+131-gf0ab5c40-SNAPSHOT (v0.0.9-131-f0ab5c)
+Scala CLI version 0.1.2+209-geb58be9d-SNAPSHOT
 -->
 
 ## Process substitution

@@ -17,7 +17,6 @@ chmod +x "$dest/scala-cli"
 
 echo "Adding $dest to PATH"
 export PATH="$dest:$PATH"
-ls "$dest"
 
 if [ $# -eq 0 ] 
 then
@@ -27,7 +26,11 @@ else
 fi
 
 statusFile="$(pwd)/out/sclicheck/.status"
-scala-cli sclicheck/sclicheck.scala -- --status-file "$statusFile" "${toCheck[@]}"
+scala-cli sclicheck/sclicheck.scala -- --status-file "$statusFile" "${toCheck[@]}" || (
+  echo "Checking documentation failed. To run tests locally run `.github/scripts/check_docs.sh <failing_file>`" &&
+  echo "You can find more about automatic documentaiton testing in sclicheck/Readme.md file." &&
+  exit 1
+)
 
 test -f "$statusFile" || 
   ( echo "Fatal error. Status file: $statusFile does not exists what signal problem with running tests." &&

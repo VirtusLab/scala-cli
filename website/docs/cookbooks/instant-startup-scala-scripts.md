@@ -3,6 +3,8 @@ title: Scala Scripts with instant startup
 sidebar_position: 8
 ---
 
+import {ChainedSnippets, GiflikeVideo} from "../src/components/MarkdownComponents.js";
+
 `scala-cli` allows to easly compile and run Scala Scripts.
 It also allows for straightforward compilation with Scala Native. 
 Scala Native is an ahead-of-time compiler to native binary allowing 
@@ -14,7 +16,7 @@ perfectly suit the needs of a fast scripting tool.
 As an example, let’s build a script printing files from
 a directory with sizes bigger than a passed value.
 
-```scala title=size-higher-than.scala
+```scala compile title=size-higher-than.scala
 //> using scala "3.1.1"
 //> using lib "com.lihaoyi::os-lib::0.8.1"
  
@@ -30,18 +32,25 @@ def sizeHigherThan(dir: String, minSizeMB: Int) =
 Running this for a `dir` directory and 20 MB as a lower limit with
 `scala-cli size-higher-than.scala – dir 20` can give us for example:
 
-```bash
+
+<ChainedSnippets>
+
+```bash ignore
 scala-cli size-higher-than.scala -- dir 20
+```
+
+```
 Compiling project (Scala 3.1.1, JVM)
 Compiled project (Scala 3.1.1, JVM)
 /Users/user/Documents/workspace/dir/large-file.txt
 ```
+</ChainedSnippets>
 
 A keen eye will notice that we have not yet compiled to Scala Native. We are still running on the JVM!
 We can fix that by either running with a `—-native` option, or,
 in this case, by including an additional using directive:
 
-```scala title=size-higher-than.scala
+```scala compile title=size-higher-than.scala
 //> using scala "3.1.1"
 //> using lib "com.lihaoyi::os-lib::0.8.1"
 //> using platform "scala-native"
@@ -67,11 +76,11 @@ We can make the runtime itself even faster, using various Scala Native optimizat
 
 We pass these using a `-–native-mode` scala-cli option or, like previously, by adding a using directive:
 
-```scala title=size-higher-than.scala
+```scala compile title=size-higher-than.scala
 //> using scala "3.1.1"
 //> using lib "com.lihaoyi::os-lib::0.8.1"
 //> using platform "scala-native"
-//> using native-mode “release-full”
+//> using nativeMode "release-full"
  
 @main
 def sizeHigherThan(dir: String, minSizeMB: Int) =

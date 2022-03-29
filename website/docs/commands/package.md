@@ -119,9 +119,8 @@ scala-cli package --docker HelloDocker.scala --docker-image-repository hello-doc
 ```
 
 <!-- Expected:
-Started building docker image with your application, it would take some time
-Built docker image, run it with
-  docker run hello-docker:latest
+Started building docker image with your application
+docker run hello-docker:latest
 -->
 
 ```bash
@@ -140,9 +139,8 @@ This command shows how to create a Docker image (`--docker`) for a Scala JS (`--
 scala-cli package --js --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 <!-- Expected:
-Started building docker image with your application, it would take some time
-Built docker image, run it with
-  docker run hello-docker:latest
+Started building docker image with your application
+docker run hello-docker:latest
 -->
 
 Packaging Scala Native applications to a Docker image is only supported on Linux.

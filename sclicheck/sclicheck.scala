@@ -116,7 +116,7 @@ def checkPath(options: Options)(path: os.Path): Seq[TestCase] =
       toCheck.toList.flatMap(checkPath(options))
   catch
     case e @ FailedCheck(line, file, text) =>
-      println(Red(e.getMessage))
+      println(Console.RED + e.getMessage + Console.RESET)
       Seq(TestCase(path.relativeTo(os.pwd), Some(e.getMessage)))
     case e: Throwable =>
       val short = s"Unexpected exception ${e.getClass.getName}"
@@ -175,11 +175,11 @@ def checkFile(file: os.Path, options: Options): Unit =
 
     def writeFile(file: os.Path, code: Seq[String], c: Context) =
       val (prefixLines, codeLines) =
-          code match
-            case shbang :: tail if shbang.startsWith("#!") =>
-              List(shbang + "\n") -> tail
-            case other =>
-              Nil -> other
+        code match
+          case shbang :: tail if shbang.startsWith("#!") =>
+            List(shbang + "\n") -> tail
+          case other =>
+            Nil -> other
 
       codeLines.foreach(log)
 
@@ -212,7 +212,6 @@ def checkFile(file: os.Path, options: Options): Unit =
       case Commands.Write(name, code, c) =>
         writeFile(out / os.RelPath(name), code, c)
 
-
       case Commands.Compile(name, code, c, shouldFail) =>
         val dest = out / ".snippets" / name
         writeFile(dest, code, c)
@@ -222,7 +221,6 @@ def checkFile(file: os.Path, options: Options): Unit =
           check(exitCode != 0, s"Compilation should fail.")
         else
           check(exitCode == 0, s"Compilation failed.")
-
 
       case Commands.Check(patterns, regex, line) =>
         check(lastOutput != null, "No output stored from previous commands")
@@ -311,11 +309,11 @@ def checkFile(file: os.Path, options: Options): Unit =
 
     os.list(out).filter(_.toString.endsWith(".scala")).foreach(p => os.copy.into(p, exampleDir))
 
-def asPath(pathStr: String ): os.Path = 
-    os.FilePath(pathStr) match 
-        case p: os.Path => p
-        case s: os.SubPath => os.pwd / s
-        case r: os.RelPath => os.pwd / r
+def asPath(pathStr: String): os.Path =
+  os.FilePath(pathStr) match
+    case p: os.Path    => p
+    case s: os.SubPath => os.pwd / s
+    case r: os.RelPath => os.pwd / r
 
 @main def check(args: String*) =
   def processFiles(options: Options) =
@@ -338,9 +336,9 @@ def asPath(pathStr: String ): os.Path =
         println(lines.mkString("\n"))
         println("")
         sys.exit(1)
-    
+
     options.statusFile.foreach { file =>
-      os.write(file, s"Test completed:\n${testCases.map(_.path).mkString("\n")}" )  
+      os.write.over(file, s"Test completed:\n${testCases.map(_.path).mkString("\n")}")
     }
 
   case class PathParameter(name: String):
@@ -355,9 +353,8 @@ def asPath(pathStr: String ): os.Path =
         sys.exit(1)
       case _ => None
 
-  val Dest = PathParameter("--dest")
+  val Dest       = PathParameter("--dest")
   val StatusFile = PathParameter("--status-file")
-  
 
   def parseArgs(args: Seq[String], options: Options): Options = args match
     case Nil => options
@@ -368,7 +365,7 @@ def asPath(pathStr: String ): os.Path =
     case Dest(dest, rest) =>
       parseArgs(rest, options.copy(dest = Some(dest)))
     case StatusFile(file, rest) =>
-      parseArgs(rest, options.copy(statusFile = Some(file)))    
+      parseArgs(rest, options.copy(statusFile = Some(file)))
     case path :: rest => parseArgs(rest, options.copy(files = options.files :+ path))
 
   processFiles(parseArgs(args, Options()))
