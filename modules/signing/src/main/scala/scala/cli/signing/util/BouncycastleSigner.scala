@@ -185,4 +185,11 @@ object BouncycastleSigner {
     sig.verify()
   }
 
+  def apply(
+    secretKey: os.Path,
+    password: Secret[String]
+  ): BouncycastleSigner = {
+    val secretKey0 = readSecretKey(os.read.inputStream(secretKey))
+    BouncycastleSigner(secretKey0, password)
+  }
 }
