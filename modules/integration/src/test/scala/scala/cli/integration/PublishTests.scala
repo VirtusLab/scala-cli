@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.nio.file.Paths
 import java.util.zip.ZipFile
 
 import scala.jdk.CollectionConverters._
@@ -49,6 +50,9 @@ class PublishTests extends munit.FunSuite {
     )
     val expectedArtifacts = baseExpectedArtifacts
       .flatMap { n =>
+        Seq(n, n + ".asc")
+      }
+      .flatMap { n =>
         Seq("", ".md5", ".sha1").map(n + _)
       }
       .map(os.rel / _)
@@ -59,8 +63,37 @@ class PublishTests extends munit.FunSuite {
       "foo/Messages.scala"
     )
 
+    val publicKey = {
+      val uri = Thread.currentThread().getContextClassLoader
+        .getResource("test-keys/key.asc")
+        .toURI
+      os.Path(Paths.get(uri))
+    }
+    val secretKey = {
+      val uri = Thread.currentThread().getContextClassLoader
+        .getResource("test-keys/key.skr")
+        .toURI
+      os.Path(Paths.get(uri))
+    }
+
+    // format: off
+    val signingOptions = Seq(
+      "--secret-key", secretKey.toString,
+      "--secret-key-password", "value:1234",
+      "--signer", "bc"
+    )
+    // format: on
+
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "publish", extraOptions, "project", "-R", "test-repo").call(
+      os.proc(
+        TestUtil.cli,
+        "publish",
+        extraOptions,
+        signingOptions,
+        "project",
+        "-R",
+        "test-repo"
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -93,6 +126,18 @@ class PublishTests extends munit.FunSuite {
       val zf             = new ZipFile(sourceJarViaCs.toIO)
       val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
       expect(entries == expectedSourceEntries)
+
+      val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
+      assert(signatures.nonEmpty)
+      os.proc(
+        TestUtil.cli,
+        "pgp",
+        "verify",
+        "--key",
+        publicKey,
+        signatures.map(os.rel / "test-repo" / expectedArtifactsDir / _)
+      )
+        .call(cwd = root)
     }
   }
 }

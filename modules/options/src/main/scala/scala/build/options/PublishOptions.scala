@@ -3,6 +3,7 @@ package scala.build.options
 import scala.build.Positioned
 import scala.build.errors.{BuildException, MalformedInputError}
 import scala.build.internal.Licenses
+import scala.cli.signing.shared.PasswordOption
 
 final case class PublishOptions(
   organization: Option[Positioned[String]] = None,
@@ -16,7 +17,12 @@ final case class PublishOptions(
   scalaVersionSuffix: Option[String] = None,
   scalaPlatformSuffix: Option[String] = None,
   repository: Option[String] = None,
-  sourceJar: Option[Boolean] = None
+  sourceJar: Option[Boolean] = None,
+  gpgSignatureId: Option[String] = None,
+  gpgOptions: List[String] = Nil,
+  signer: Option[PublishOptions.Signer] = None,
+  secretKey: Option[os.Path] = None,
+  secretKeyPassword: Option[PasswordOption] = None
 )
 
 object PublishOptions {
@@ -25,6 +31,19 @@ object PublishOptions {
   final case class License(name: String, url: String)
   final case class Developer(id: String, name: String, url: String, mail: Option[String] = None)
   final case class Vcs(url: String, connection: String, developerConnection: String)
+
+  sealed abstract class Signer extends Product with Serializable
+  object Signer {
+    case object Gpg          extends Signer
+    case object BouncyCastle extends Signer
+  }
+
+  def parseSigner(input: Positioned[String]): Either[MalformedInputError, Signer] =
+    input.value match {
+      case "gpg"                 => Right(Signer.Gpg)
+      case "bc" | "bouncycastle" => Right(Signer.BouncyCastle)
+      case _ => Left(new MalformedInputError("signer", input.value, "gpg|bc", input.positions))
+    }
 
   def parseLicense(input: Positioned[String]): Either[BuildException, Positioned[License]] =
     input.value.split(":", 2) match {

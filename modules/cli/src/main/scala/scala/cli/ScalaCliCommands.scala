@@ -6,6 +6,7 @@ import caseapp.core.help.{Help, RuntimeCommandsHelp}
 import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
+import scala.cli.commands.pgp.PgpCommands
 
 class ScalaCliCommands(
   val progName: String,
@@ -13,6 +14,8 @@ class ScalaCliCommands(
 ) extends CommandsEntryPoint {
 
   lazy val actualDefaultCommand = new Default(help)
+
+  private def pgpCommands = new PgpCommands
 
   private def allCommands = Seq[ScalaCommand[_]](
     new About(isSipScala = isSipScala),
@@ -39,9 +42,11 @@ class ScalaCliCommands(
     Test,
     Update,
     Version
-  )
+  ) ++ pgpCommands.allScalaCommands
 
-  def commands = allCommands.filter(c => !isSipScala || c.inSipScala)
+  def commands =
+    allCommands.filter(c => !isSipScala || c.inSipScala) ++
+      pgpCommands.allExternalCommands
 
   override def description =
     "Scala CLI is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."

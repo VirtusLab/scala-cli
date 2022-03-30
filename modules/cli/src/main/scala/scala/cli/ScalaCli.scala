@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.internal.Constants
 import scala.cli.internal.Argv0
 import scala.cli.launcher.{LauncherCli, LauncherOptions}
+import scala.cli.publish.BouncycastleSignerMaker
 import scala.util.Properties
 
 object ScalaCli {
@@ -128,6 +129,8 @@ object ScalaCli {
     }
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
     setSystemProps(systemProps)
+
+    (new BouncycastleSignerMaker).maybeInit()
 
     CacheUrl.setupProxyAuth()
 

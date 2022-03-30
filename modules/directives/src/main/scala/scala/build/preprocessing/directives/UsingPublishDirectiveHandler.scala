@@ -56,7 +56,8 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     cwd: ScopePath,
     logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] = either {
-    val singleValue = DirectiveUtil.singleStringValue(directive, path, cwd)
+    def singleValue   = DirectiveUtil.singleStringValue(directive, path, cwd)
+    def severalValues = DirectiveUtil.stringValues(directive.values, path, cwd)
 
     if (!directive.key.startsWith(prefix))
       value(Left(new UnexpectedDirectiveError(directive.key)))
@@ -85,6 +86,10 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
         PublishOptions(scalaPlatformSuffix = Some(value(singleValue).value))
       case "repository" =>
         PublishOptions(repository = Some(value(singleValue).value))
+      case "gpgKey" | "gpg-key" =>
+        PublishOptions(gpgSignatureId = Some(value(singleValue).value))
+      case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
+        PublishOptions(gpgOptions = severalValues.map(_._1.value).toList)
       case _ =>
         value(Left(new UnexpectedDirectiveError(directive.key)))
     }

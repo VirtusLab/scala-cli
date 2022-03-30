@@ -317,6 +317,8 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
+         |
+         |  def scalaCliSigningVersion = "${Deps.signingCli.dep.version}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -391,7 +393,10 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
   }
 
-  def ivyDeps = super.ivyDeps() ++ Agg(Deps.bloopConfig)
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.bloopConfig,
+    Deps.signingCliShared
+  )
 
   object test extends Tests {
     // uncomment below to debug tests in attach mode on 5005 port
@@ -470,9 +475,15 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
 }
 
 trait CliOptions extends SbtModule with ScalaCliPublishModule with settings.ScalaCliCompile {
-  def ivyDeps =
-    super.ivyDeps() ++ Agg(Deps.caseApp, Deps.jsoniterCore, Deps.jsoniterMacros, Deps.osLib)
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.caseApp,
+    Deps.jsoniterCore,
+    Deps.jsoniterMacros,
+    Deps.osLib,
+    Deps.signingCliShared
+  )
   def scalaVersion = Scala.defaultInternal
+  def repositories = super.repositories ++ customRepositories
 }
 
 trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf
@@ -501,6 +512,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
     Deps.jniUtils,
     Deps.jsoniterCore,
     Deps.scalaPackager,
+    Deps.signingCli,
     Deps.metaconfigTypesafe
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
@@ -535,14 +547,21 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
   }
 
-  def sources = T.sources {
+  def modulesPath = T {
     val name                = mainArtifactName().stripPrefix(prefix)
     val baseIntegrationPath = os.Path(millSourcePath.toString.stripSuffix(name))
-    val modulesPath = os.Path(
+    val p = os.Path(
       baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName)
     )
-    val mainPath = PathRef(modulesPath / "integration" / "src" / "main" / "scala")
+    PathRef(p)
+  }
+  def sources = T.sources {
+    val mainPath = PathRef(modulesPath().path / "integration" / "src" / "main" / "scala")
     super.sources() ++ Seq(mainPath)
+  }
+  def resources = T.sources {
+    val mainPath = PathRef(modulesPath().path / "integration" / "src" / "main" / "resources")
+    super.resources() ++ Seq(mainPath)
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
@@ -566,15 +585,23 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
       "SCALA_CLI_TMP"  -> tmpDirBase().path.toString,
       "CI"             -> "1"
     )
+    private def updateRef(name: String, ref: PathRef): PathRef = {
+      val rawPath = ref.path.toString.replace(
+        File.separator + name + File.separator,
+        File.separator
+      )
+      PathRef(os.Path(rawPath))
+    }
     def sources = T.sources {
       val name = mainArtifactName().stripPrefix(prefix)
       super.sources().flatMap { ref =>
-        val rawPath = ref.path.toString.replace(
-          File.separator + name + File.separator,
-          File.separator
-        )
-        val base = PathRef(os.Path(rawPath))
-        Seq(base, ref)
+        Seq(updateRef(name, ref), ref)
+      }
+    }
+    def resources = T.sources {
+      val name = mainArtifactName().stripPrefix(prefix)
+      super.resources().flatMap { ref =>
+        Seq(updateRef(name, ref), ref)
       }
     }
 

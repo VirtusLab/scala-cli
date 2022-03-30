@@ -8,13 +8,12 @@ import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 
-import scala.build.Logger
-import scala.build.errors.BuildException
+import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.{Properties, Try}
 
 abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
-    extends Command()(parser, help) with NeedsArgvCommand {
+    extends Command()(parser, help) with NeedsArgvCommand with CommandHelpers {
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
   override def hasFullHelp = true
@@ -136,19 +135,4 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
           // This requires writing our own minimal JNI library, that publishes '.a' files too for static linking in the executable of Scala CLI.
           None
       }
-
-  implicit class EitherBuildExceptionOps[E <: BuildException, T](private val either: Either[E, T]) {
-    def orReport(logger: Logger): Option[T] =
-      either match {
-        case Left(ex) =>
-          logger.log(ex)
-          None
-        case Right(t) => Some(t)
-      }
-    def orExit(logger: Logger): T =
-      either match {
-        case Left(ex) => logger.exit(ex)
-        case Right(t) => t
-      }
-  }
 }
