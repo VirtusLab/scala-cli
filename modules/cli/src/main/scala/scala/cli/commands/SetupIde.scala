@@ -68,7 +68,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     previousCommandName: Option[String],
     args: Seq[String]
   ): Unit =
-    writeBspConfiguration(SetupIdeOptions(shared = options), inputs, previousCommandName, args) match {
+    writeBspConfiguration(
+      SetupIdeOptions(shared = options),
+      inputs,
+      previousCommandName,
+      args
+    ) match {
       case Left(ex) =>
         logger.debug(s"Ignoring error during setup-ide: ${ex.message}")
       case Right(_) =>

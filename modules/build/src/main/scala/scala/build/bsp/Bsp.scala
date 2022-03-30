@@ -14,7 +14,8 @@ trait Bsp {
 
 object Bsp {
   def create(
-    inputs: Inputs,
+    initialInputs: Inputs,
+    argsToInputs: Seq[String] => Either[String, Inputs],
     buildOptions: BuildOptions,
     logger: Logger,
     bloopRifleConfig: BloopRifleConfig,
@@ -26,7 +27,8 @@ object Bsp {
     new BspImpl(
       logger,
       bloopRifleConfig,
-      inputs,
+      initialInputs,
+      argsToInputs,
       buildOptions,
       verbosity,
       threads,

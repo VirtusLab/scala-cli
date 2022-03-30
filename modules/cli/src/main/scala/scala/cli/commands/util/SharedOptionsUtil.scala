@@ -219,12 +219,14 @@ object SharedOptionsUtil {
       inputsOrExit(args, () => Inputs.default())
 
     def inputsOrExit(args: Seq[String], defaultInputs: () => Option[Inputs]): Inputs =
-      inputs(args, defaultInputs) match {
-        case Left(message) =>
-          System.err.println(message)
-          sys.exit(1)
-        case Right(i) => i
-      }
+      inputsOrExit(inputs(args, defaultInputs))
+
+    def inputsOrExit(maybeInputs: Either[String, Inputs]): Inputs = maybeInputs match {
+      case Left(message) =>
+        System.err.println(message)
+        sys.exit(1)
+      case Right(i) => i
+    }
 
     def inputs(args: Seq[String], defaultInputs: () => Option[Inputs]): Either[String, Inputs] = {
       val download: String => Either[String, Array[Byte]] = { url =>
@@ -257,7 +259,7 @@ object SharedOptionsUtil {
         acceptFds = !Properties.isWin,
         forcedWorkspace = workspace.forcedWorkspaceOpt
       ) match {
-        case l@Left(_) => l
+        case l @ Left(_) => l
         case Right(inputs) =>
           val forbiddenDirs =
             (if (defaultForbiddenDirectories) myDefaultForbiddenDirectories else Nil) ++

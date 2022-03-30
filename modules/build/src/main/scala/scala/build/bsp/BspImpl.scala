@@ -25,7 +25,8 @@ import scala.util.{Failure, Success}
 final class BspImpl(
   logger: Logger,
   bloopRifleConfig: BloopRifleConfig,
-  inputs: Inputs,
+  initialInputs: Inputs,
+  argsToInputs: Seq[String] => Either[String, Inputs],
   buildOptions: BuildOptions,
   verbosity: Int,
   threads: BspThreads,
@@ -63,7 +64,7 @@ final class BspImpl(
 
     val crossSources = value {
       CrossSources.forInputs(
-        inputs,
+        initialInputs,
         Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
         ),
@@ -88,8 +89,10 @@ final class BspImpl(
     val options0Main = sourcesMain.buildOptions
     val options0Test = sourcesTest.buildOptions.orElse(options0Main)
 
-    val generatedSourcesMain = sourcesMain.generateSources(inputs.generatedSrcRoot(Scope.Main))
-    val generatedSourcesTest = sourcesTest.generateSources(inputs.generatedSrcRoot(Scope.Test))
+    val generatedSourcesMain =
+      sourcesMain.generateSources(initialInputs.generatedSrcRoot(Scope.Main))
+    val generatedSourcesTest =
+      sourcesTest.generateSources(initialInputs.generatedSrcRoot(Scope.Test))
 
     val currentBspServer = actualLocalServer.currentBspServer
     currentBspServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
@@ -98,7 +101,7 @@ final class BspImpl(
 
     val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
       val res = Build.prepareBuild(
-        inputs,
+        initialInputs,
         sourcesMain,
         generatedSourcesMain,
         options0Main,
@@ -112,7 +115,7 @@ final class BspImpl(
 
     val (classesDir0Test, scalaParamsTest, artifactsTest, projectTest, buildChangedTest) = value {
       val res = Build.prepareBuild(
-        inputs,
+        initialInputs,
         sourcesTest,
         generatedSourcesTest,
         options0Test,
@@ -159,7 +162,7 @@ final class BspImpl(
   ): Either[(BuildException, Scope), Unit] = {
     def doBuildOnce(data: PreBuildData, scope: Scope) =
       Build.buildOnce(
-        inputs,
+        initialInputs,
         data.sources,
         data.generatedSources,
         data.buildOptions,
@@ -245,10 +248,10 @@ final class BspImpl(
             def doPostProcess(data: PreBuildData, scope: Scope) =
               Build.postProcess(
                 data.generatedSources,
-                inputs.generatedSrcRoot(scope),
+                initialInputs.generatedSrcRoot(scope),
                 data.classesDir,
                 logger,
-                inputs.workspace,
+                initialInputs.workspace,
                 updateSemanticDbs = true,
                 scalaVersion = data.project.scalaCompiler.scalaVersion
               ).left.foreach(_.foreach(showGlobalWarningOnce))
@@ -270,7 +273,7 @@ final class BspImpl(
   }
 
   def registerWatchInputs(watcher: Build.Watcher): Unit =
-    inputs.elements.foreach {
+    initialInputs.elements.foreach {
       case elem: Inputs.OnDisk =>
         val eventFilter: PathWatchers.Event => Boolean = { event =>
           val newOrDeletedFile =
@@ -298,7 +301,7 @@ final class BspImpl(
     threads.buildThreads.bloop.jsonrpc, // meh
     logger
   )
-  actualLocalClient.setProjectName(inputs.workspace, inputs.projectName, Scope.Main)
+  actualLocalClient.setProjectName(initialInputs.workspace, initialInputs.projectName, Scope.Main)
   val localClient: b.BuildClient with BloopBuildClient =
     if (verbosity >= 3)
       new BspImpl.LoggingBspClient(actualLocalClient)
@@ -317,14 +320,14 @@ final class BspImpl(
 
   def run(): Future[Unit] = {
 
-    val classesDir = Build.classesRootDir(inputs.workspace, inputs.projectName)
+    val classesDir = Build.classesRootDir(initialInputs.workspace, initialInputs.projectName)
 
     remoteServer = {
       val bloopServer = BloopServer.buildServer(
         bloopRifleConfig,
         "scala-cli",
         Constants.version,
-        (inputs.workspace / Constants.workspaceDirName).toNIO,
+        (initialInputs.workspace / Constants.workspaceDirName).toNIO,
         classesDir.toNIO,
         localClient,
         threads.buildThreads.bloop,
@@ -344,7 +347,8 @@ final class BspImpl(
         compile = doCompile =>
           compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
         logger = logger,
-        initialInputs = inputs
+        initialInputs = initialInputs,
+        argsToInputs = argsToInputs
       )
 
     val localServer
@@ -366,7 +370,7 @@ final class BspImpl(
     actualLocalServer.onConnectWithClient(actualLocalClient)
 
     for (targetId <- actualLocalServer.currentBspServer.targetIds)
-      inputs.flattened().foreach {
+      initialInputs.flattened().foreach {
         case f: Inputs.SingleFile =>
           actualLocalClient.resetDiagnostics(f.path, targetId)
         case _: Inputs.Virtual =>
