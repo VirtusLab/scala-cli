@@ -228,6 +228,6 @@ object Repl extends ScalaCommand[ReplOptions] {
           replArgs,
         logger,
         allowExecve = allowExit
-      )
+      ).waitFor()
   }
 }
