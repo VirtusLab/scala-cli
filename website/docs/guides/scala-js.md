@@ -26,6 +26,58 @@ This section is currently a work in progress, but here are some initial notes:
 - Beware platform dependencies
 - `run` / `test` / `package` should all work
 
+## Package
+
+Packaging Scala.JS applications results in a `.js` file, that can be run with `node`:
+
+```scala title=HelloJs.scala
+import scala.scalajs.js
+
+object Hello {
+  def main(args: Array[String]): Unit = {
+    val console = js.Dynamic.global.console
+    val msg = "Hello World from Scala.js"
+    console.log(msg)
+  }
+}
+```
+
+```bash
+scala-cli package --js HelloJs.scala -o hello.js
+node hello.js
+# Hello World from Scala.js
+```
+
+<!-- Expected:
+Hello World from Scala.js
+-->
+
+### Module Split Style - Smallest Modules
+
+Passing `--js-module-split-style smallestmodules` to the `package` sub-command creates js modules that are as small as possible. 
+Scala.js linker generates a lot of js modules, which are copied to the `output` directory.
+
+```scala title=SmallestModules.scala
+import scala.scalajs.js
+
+case class Foo(txt: String)
+
+object Hello extends App {
+  println(Foo("Hello World from Scala.js").txt)
+}
+```
+
+```bash
+scala-cli package --js SmallestModules.scala --js-module-split-style smallestmodules --js-module-kind es --output hello 
+echo "{\"type\": \"module\"}" >> package.json # enable ES module
+node hello/main.js
+# Hello World from Scala.js
+```
+
+<!-- Expected:
+Hello World from Scala.js
+-->
+
 ## Emit source maps
 
 Passing `--js-emit-source-maps` to the `package` sub-command emits source maps alongside js files. To set the destination path of source maps, pass `--js-source-maps-path` flag with the argument.
