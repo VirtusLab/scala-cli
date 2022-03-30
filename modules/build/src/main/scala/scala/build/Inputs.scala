@@ -4,7 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-import java.util.zip.{ZipEntry, ZipInputStream}
+import java.util.zip.ZipInputStream
 
 import scala.annotation.tailrec
 import scala.build.Inputs.WorkspaceOrigin
@@ -310,8 +310,9 @@ object Inputs {
     val zipInputStream = new ZipInputStream(new ByteArrayInputStream(content))
     @tailrec
     def readArchive(acc: Seq[Element]): Seq[Element] =
-      zipInputStream.getNextEntry() match {
-        case entry: ZipEntry if !entry.isDirectory =>
+      Option(zipInputStream.getNextEntry()) match {
+        case Some(entry) if entry.isDirectory => readArchive(acc)
+        case Some(entry) =>
           val content = {
             val baos = new ByteArrayOutputStream
             val buf  = Array.ofDim[Byte](16 * 1024)
@@ -325,8 +326,7 @@ object Inputs {
             baos.toByteArray
           }
           readArchive(resolve(entry.getName, content) +: acc)
-        case _: ZipEntry => readArchive(acc)
-        case _           => acc
+        case None => acc
       }
     readArchive(Nil)
   }

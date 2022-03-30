@@ -36,7 +36,6 @@ object Platform {
           case Some(p0) => parseSpec0(tail, acc + p0)
           case None     => None
         }
-      case _ => None
     }
 
   def parseSpec(input: Seq[String]): Option[Set[Platform]] =
