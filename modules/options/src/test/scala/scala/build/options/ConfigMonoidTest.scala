@@ -1,7 +1,5 @@
 package scala.build.options
 
-import scala.deriving.*
-
 case class Inner(
   foo: Boolean = false,
   bar: Seq[String] = Nil,
@@ -10,7 +8,7 @@ case class Inner(
 
 object Inner {
   import ConfigMonoid.*
-  def monoid: ConfigMonoid[Inner] = ConfigMonoid.derive
+  implicit def monoid: ConfigMonoid[Inner] = ConfigMonoid.derive
 }
 
 case class Outer(
