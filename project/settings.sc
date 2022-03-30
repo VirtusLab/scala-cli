@@ -212,7 +212,6 @@ trait CliLaunchers extends SbtModule { self =>
       Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
         "-H:-ParseRuntimeOptions",
-        "-H:IncludeResourceBundles=com.google.javascript.jscomp.parsing.ParserConfig",
         s"-H:CLibraryPath=$cLibPath"
       )
     }
