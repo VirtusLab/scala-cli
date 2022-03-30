@@ -11,6 +11,7 @@ final case class InternalOptions(
   // FIXME Should be removed, not a real option (not meant to be set from using directives)
   strictBloopJsonCheck: Option[Boolean] = None
 ) {
+  def verbosityOrDefault = verbosity.getOrElse(0)
   def strictBloopJsonCheckOrDefault =
     strictBloopJsonCheck.getOrElse(InternalOptions.defaultStrictBloopJsonCheck)
 }
