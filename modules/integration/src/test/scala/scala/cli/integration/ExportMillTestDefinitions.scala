@@ -75,7 +75,7 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
     }
 
   if (runExportTests)
-    test("Scala.JS") {
+    test("Scala.js") {
       simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
     }
 

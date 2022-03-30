@@ -8,7 +8,7 @@ The `package` command can package your Scala code in various formats, such as:
 - [standard library JARs](#library-jars)
 - so called ["assemblies" or "fat JARs"](#assemblies)
 - [docker container](#docker-container)
-- [JavaScript files](#scalajs) for Scala.JS code
+- [JavaScript files](#scalajs) for Scala.js code
 - [GraalVM native image executables](#native-image)
 - [native executables](#scala-native) for Scala Native code
 - [OS-specific formats](#os-specific-packages), such as deb or rpm (Linux), pkg (macOS), or MSI (Windows)
@@ -163,9 +163,9 @@ The following command generate a `hello-docker` image using base image `openjdk:
 scala-cli package --docker HelloDocker.scala --docker-from openjdk:11 --docker-image-repository hello-docker
 ```
 
-## Scala.JS
+## Scala.js
 
-Packaging Scala.JS applications results in a `.js` file, that can be run with `node`:
+Packaging Scala.js applications results in a `.js` file, that can be run with `node`:
 
 <!-- TODO: add something js specific -->
 

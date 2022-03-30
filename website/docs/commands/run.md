@@ -89,9 +89,9 @@ scala-cli run Hello.scala --revolver
 # Watching sources, press Ctrl+C to exit.
 ```
 
-## Scala.JS
+## Scala.js
 
-Scala.JS applications can also be compiled and run with the `--js` option.
+Scala.js applications can also be compiled and run with the `--js` option.
 Note that this requires `node` to be [installed](/install#scala-js) on your system:
 
 ```bash

@@ -110,7 +110,7 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
         ""
       )))
       .withHiddenGroups(Some(Seq(
-        "Scala.JS",
+        "Scala.js",
         "Scala Native"
       )))
       .withTerminalWidthOpt {

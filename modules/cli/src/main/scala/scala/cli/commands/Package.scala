@@ -131,7 +131,7 @@ object Package extends ScalaCommand[PackageOptions] {
   ): Either[BuildException, Option[Long]] = either {
 
     val packageType = forcedPackageType.getOrElse {
-      // FIXME We'll probably need more refined rules if we start to support extra Scala.JS or Scala Native specific types
+      // FIXME We'll probably need more refined rules if we start to support extra Scala.js or Scala Native specific types
       if (build.options.notForBloopOptions.packageOptions.isDockerEnabled)
         PackageType.Docker
       else if (build.options.platform.value == Platform.JS)
