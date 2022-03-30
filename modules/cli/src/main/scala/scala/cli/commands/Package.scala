@@ -186,10 +186,8 @@ object Package extends ScalaCommand[PackageOptions] {
           .map(_ + extension)
       }
       .getOrElse(defaultName)
-    val destPath = os.Path(dest, Os.pwd)
-    val printableDest =
-      if (destPath.startsWith(Os.pwd)) "." + File.separator + destPath.relativeTo(Os.pwd).toString
-      else destPath.toString
+    val destPath      = os.Path(dest, Os.pwd)
+    val printableDest = CommandUtils.printablePath(destPath)
 
     def alreadyExistsCheck(): Unit = {
       val alreadyExists = !force &&
@@ -214,36 +212,43 @@ object Package extends ScalaCommand[PackageOptions] {
 
     val packageOptions = build.options.notForBloopOptions.packageOptions
 
-    packageType match {
+    val outputPath = packageType match {
       case PackageType.Bootstrap =>
         bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
+        destPath
       case PackageType.LibraryJar =>
         val content = Library.libraryJar(build)
         alreadyExistsCheck()
         if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
+        destPath
       case PackageType.SourceJar =>
         val now     = System.currentTimeMillis()
         val content = sourceJar(build, now)
         alreadyExistsCheck()
         if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
+        destPath
       case PackageType.DocJar =>
         val content = value(docJar(build, logger, extraArgs))
         alreadyExistsCheck()
         if (force) os.write.over(destPath, content)
         else os.write(destPath, content)
+        destPath
       case PackageType.Assembly =>
         assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
+        destPath
 
       case PackageType.Js =>
         value(buildJs(build, destPath, value(mainClass), logger))
 
       case PackageType.Native =>
         buildNative(build, destPath, value(mainClass), logger)
+        destPath
 
       case PackageType.GraalVMNativeImage =>
         buildGraalVMNativeImage(build, destPath, value(mainClass), extraArgs, logger)
+        destPath
 
       case nativePackagerType: PackageType.NativePackagerType =>
         val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
@@ -319,20 +324,24 @@ object Package extends ScalaCommand[PackageOptions] {
           case PackageType.Msi =>
             WindowsPackage(windowsSettings).build()
         }
+        destPath
       case PackageType.Docker =>
         docker(build, value(mainClass), logger)
+        destPath
     }
+
+    val printableOutput = CommandUtils.printablePath(outputPath)
 
     if (packageType.runnable.nonEmpty)
       logger.message {
         if (packageType.runnable.contains(true))
-          s"Wrote $dest, run it with" + System.lineSeparator() +
-            "  " + printableDest
+          s"Wrote $outputPath, run it with" + System.lineSeparator() +
+            "  " + printableOutput
         else if (packageType == PackageType.Js)
-          s"Wrote $dest, run it with" + System.lineSeparator() +
-            "  node " + printableDest
+          s"Wrote $outputPath, run it with" + System.lineSeparator() +
+            "  node " + printableOutput
         else
-          s"Wrote $dest"
+          s"Wrote $outputPath"
       }
 
     val mTimeDestPathOpt = if (packageType.runnable.isEmpty) None else Some(os.mtime(destPath))
@@ -525,7 +534,7 @@ object Package extends ScalaCommand[PackageOptions] {
     destPath: os.Path,
     mainClass: String,
     logger: Logger
-  ): Either[BuildException, Unit] = {
+  ): Either[BuildException, os.Path] = {
     val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
     linkJs(
       build,
@@ -672,7 +681,7 @@ object Package extends ScalaCommand[PackageOptions] {
     fullOpt: Boolean,
     noOpt: Boolean,
     logger: Logger
-  ): Either[BuildException, Unit] =
+  ): Either[BuildException, os.Path] =
     Library.withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
       val classPath  = os.Path(mainJar, os.pwd) +: build.artifacts.classPath
       val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
@@ -698,16 +707,37 @@ object Package extends ScalaCommand[PackageOptions] {
         val relSourceMapJs = os.rel / "main.js.map"
         val mainJs         = linkingDir / relMainJs
         val sourceMapJs    = linkingDir / relSourceMapJs
-        if (os.exists(mainJs)) {
-          os.copy(mainJs, dest, replaceExisting = true)
-          if (build.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
-            val sourceMapDest =
-              build.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
-            os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
-            logger.message(s"Emitted js source maps to: $sourceMapDest")
+
+        if (os.exists(mainJs))
+          if (
+            os.walk.stream(linkingDir)
+              .filter(_ != mainJs).filter(_ != sourceMapJs)
+              .headOption.nonEmpty
+          ) {
+            // copy linking dir to dest
+            os.copy(
+              linkingDir,
+              dest,
+              createFolders = true,
+              replaceExisting = true,
+              mergeFolders = true
+            )
+            logger.debug(
+              s"Scala.js linker generate multiple files for js multi-modules. Copy files to $dest directory."
+            )
+            dest / "main.js"
           }
-          os.remove.all(linkingDir)
-        }
+          else {
+            os.copy(mainJs, dest, replaceExisting = true)
+            if (build.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
+              val sourceMapDest =
+                build.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
+              os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
+              logger.message(s"Emitted js source maps to: $sourceMapDest")
+            }
+            os.remove.all(linkingDir)
+            dest
+          }
         else {
           val found = os.walk(linkingDir).map(_.relativeTo(linkingDir))
           value(Left(new ScalaJsLinkingError(relMainJs, found)))
