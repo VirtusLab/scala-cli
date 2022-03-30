@@ -5,6 +5,9 @@ final class Secret[+T](
 ) {
   def value: T = value0
 
+  def map[U](f: T => U): Secret[U] =
+    Secret(f(value0))
+
   override def equals(obj: Any): Boolean =
     obj match {
       case other: Secret[_] => value == other.value

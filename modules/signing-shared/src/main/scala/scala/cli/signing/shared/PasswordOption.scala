@@ -7,11 +7,12 @@ import scala.io.Codec
 
 sealed abstract class PasswordOption extends Product with Serializable {
   def get(): Secret[String]
+  def asString: Secret[String]
 }
 
 abstract class LowPriorityPasswordOption {
 
-  private lazy val commandCodec: JsonValueCodec[List[String]] =
+  protected lazy val commandCodec: JsonValueCodec[List[String]] =
     JsonCodecMaker.make
 
   def parse(str: String): Either[String, PasswordOption] =
@@ -38,13 +39,18 @@ abstract class LowPriorityPasswordOption {
 object PasswordOption extends LowPriorityPasswordOption {
 
   final case class Value(value: Secret[String]) extends PasswordOption {
-    def get(): Secret[String] = value
+    def get(): Secret[String]    = value
+    def asString: Secret[String] = get().map(v => s"value:$v")
   }
   final case class Command(command: Seq[String]) extends PasswordOption {
     def get(): Secret[String] = {
       // should we add a timeout?
       val res = os.proc(command).call(stdin = os.Inherit)
       Secret(res.out.text(Codec.default)) // should we trim that?
+    }
+    def asString: Secret[String] = {
+      val json = writeToString(command.toList)(commandCodec)
+      Secret(s"command:$json")
     }
   }
 }

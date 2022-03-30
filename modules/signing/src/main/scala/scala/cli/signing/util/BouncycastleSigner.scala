@@ -150,28 +150,23 @@ object BouncycastleSigner {
     secretKey
   }
 
-  def readSignature(in: InputStream): PGPSignature = {
+  def readSignature(in: InputStream): Either[String, PGPSignature] = {
 
     val factory = new JcaPGPObjectFactory(PGPUtil.getDecoderStream(in))
 
-    val obj = factory.nextObject()
-    val sigList = obj match {
+    factory.nextObject() match {
       case data: PGPCompressedData =>
         val factory0 = new JcaPGPObjectFactory(data.getDataStream())
         factory0.nextObject() match {
-          case l: PGPSignatureList => l
+          case l: PGPSignatureList => Right(l.get(0))
           case other =>
-            System.err.println(s"Unrecognized PGP object type: $other")
-            sys.exit(1)
+            Left(s"Unrecognized PGP object type: $other")
         }
       case sigList0: PGPSignatureList =>
-        sigList0
-      case _ =>
-        System.err.println(s"Unrecognized PGP object type: $obj")
-        sys.exit(1)
+        Right(sigList0.get(0))
+      case obj =>
+        Left(s"Unrecognized PGP object type: $obj")
     }
-
-    sigList.get(0)
   }
 
   def verifySignature(sig: PGPSignature, key: PGPPublicKey, content: InputStream): Boolean = {

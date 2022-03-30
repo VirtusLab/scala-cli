@@ -66,7 +66,7 @@ object PgpSign extends Command[PgpSignOptions] {
               else
                 os.write(destPath, value)
             case Left(outputStream) =>
-              outputStream.print(value.getBytes(StandardCharsets.UTF_8))
+              outputStream.write(value.getBytes(StandardCharsets.UTF_8))
           }
       }
     }

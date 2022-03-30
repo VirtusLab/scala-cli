@@ -37,7 +37,13 @@ object PgpVerify extends Command[PgpVerifyOptions] {
         val filePath         = os.Path(path0.stripSuffix(".asc"), os.pwd)
         val signatureContent = os.read.bytes(os.Path(path0, os.pwd))
 
-        val sig = BouncycastleSigner.readSignature(new ByteArrayInputStream(signatureContent))
+        val sig =
+          BouncycastleSigner.readSignature(new ByteArrayInputStream(signatureContent)) match {
+            case Left(err) =>
+              System.err.println(err)
+              sys.exit(1)
+            case Right(sig0) => sig0
+          }
         val key = pgpPubRingCollection.getPublicKey(sig.getKeyID)
 
         var is: InputStream = null
