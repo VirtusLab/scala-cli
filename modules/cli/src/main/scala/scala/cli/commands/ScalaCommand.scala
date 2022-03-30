@@ -15,8 +15,9 @@ import scala.util.{Properties, Try}
 
 abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
     extends Command()(parser, help) with NeedsArgvCommand {
-  def sharedOptions(t: T): Option[SharedOptions] = None
-  override def hasFullHelp                       = true
+  def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
+    None
+  override def hasFullHelp = true
 
   def inSipScala: Boolean = true
 
