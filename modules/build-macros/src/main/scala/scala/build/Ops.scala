@@ -1,9 +1,28 @@
 package scala.build
 
+import scala.collection.mutable.ListBuffer
+
 object Ops {
   implicit class EitherSeqOps[E, T](private val seq: Seq[Either[E, T]]) extends AnyVal {
     def sequence: Either[::[E], Seq[T]] =
       EitherSequence.sequence(seq)
+  }
+
+  implicit class EitherIteratorOps[E, T](private val it: Iterator[Either[E, T]]) extends AnyVal {
+    def sequence0: Either[E, Seq[T]] = {
+      val b      = new ListBuffer[T]
+      var errOpt = Option.empty[E]
+      while (it.hasNext && errOpt.isEmpty) {
+        val e = it.next()
+        e match {
+          case Left(err) =>
+            errOpt = Some(err)
+          case Right(t) =>
+            b += t
+        }
+      }
+      errOpt.toLeft(b.result())
+    }
   }
 
   implicit class EitherOptOps[E, T](private val opt: Option[Either[E, T]]) extends AnyVal {

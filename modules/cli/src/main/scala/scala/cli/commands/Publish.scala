@@ -24,7 +24,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.publish.{Developer, License, Signer => PSigner, Vcs}
+import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
 import scala.build.options.{BuildOptions, ConfigMonoid, Scope}
 import scala.build.{Build, BuildThreads, Builds, Logger, Os, Positioned}
 import scala.cli.CurrentParams
@@ -86,6 +86,12 @@ object Publish extends ScalaCommand[PublishOptions] {
             signer
               .map(Positioned.commandLine(_))
               .map(PSigner.parse(_))
+              .sequence
+          },
+          computeVersion = value {
+            computeVersion
+              .map(Positioned.commandLine(_))
+              .map(ComputeVersion.parse(_))
               .sequence
           }
         )
@@ -220,7 +226,13 @@ object Publish extends ScalaCommand[PublishOptions] {
     }
     val ver = publishOptions.version match {
       case Some(ver0) => ver0.value
-      case None       => value(defaultVersion)
+      case None =>
+        value {
+          publishOptions.computeVersion match {
+            case Some(cv) => cv.get(build.inputs.workspace)
+            case None     => defaultVersion
+          }
+        }
     }
 
     val dependencies = build.artifacts.userDependencies.map { dep =>
@@ -348,9 +360,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           case (build, docBuildOpt) =>
             buildFileSet(build, docBuildOpt, workingDir, now, logger)
         }
-        .toVector
-        .sequence
-        .left.map(CompositeBuildException(_))
+        .sequence0
         .map(_.foldLeft(FileSet.empty)(_ ++ _))
     }
 

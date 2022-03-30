@@ -31,6 +31,9 @@ final case class PublishOptions(
   @HelpMessage("Version to publish artifacts as")
     version: Option[String] = None,
   @Group("Publishing")
+  @HelpMessage("How to compute the version to publish artifacts as")
+    computeVersion: Option[String] = None,
+  @Group("Publishing")
   @HelpMessage("URL to put in publishing metadata")
     url: Option[String] = None,
   @Group("Publishing")

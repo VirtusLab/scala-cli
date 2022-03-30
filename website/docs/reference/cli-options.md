@@ -926,6 +926,10 @@ Module name to publish artifacts as
 
 Version to publish artifacts as
 
+#### `--compute-version`
+
+How to compute the version to publish artifacts as
+
 #### `--url`
 
 URL to put in publishing metadata

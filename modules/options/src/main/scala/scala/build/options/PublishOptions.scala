@@ -1,7 +1,7 @@
 package scala.build.options
 
 import scala.build.Positioned
-import scala.build.options.publish.{Developer, License, Signer, Vcs}
+import scala.build.options.publish.{ComputeVersion, Developer, License, Signer, Vcs}
 import scala.cli.signing.shared.PasswordOption
 
 final case class PublishOptions(
@@ -22,7 +22,8 @@ final case class PublishOptions(
   gpgOptions: List[String] = Nil,
   signer: Option[Signer] = None,
   secretKey: Option[os.Path] = None,
-  secretKeyPassword: Option[PasswordOption] = None
+  secretKeyPassword: Option[PasswordOption] = None,
+  computeVersion: Option[ComputeVersion] = None
 )
 
 object PublishOptions {

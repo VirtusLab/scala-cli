@@ -3,7 +3,7 @@ package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.{BuildException, UnexpectedDirectiveError}
-import scala.build.options.publish.{Developer, License, Vcs}
+import scala.build.options.publish.{ComputeVersion, Developer, License, Vcs}
 import scala.build.options.{BuildOptions, PostBuildOptions, PublishOptions}
 import scala.build.preprocessing.ScopePath
 
@@ -31,6 +31,8 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     "organization",
     "name",
     "version",
+    "computeVersion",
+    "compute-version",
     "url",
     "license",
     "versionControl",
@@ -70,6 +72,12 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
         PublishOptions(name = Some(value(singleValue)))
       case "version" =>
         PublishOptions(version = Some(value(singleValue)))
+      case "computeVersion" | "compute-version" =>
+        PublishOptions(
+          computeVersion = Some(
+            value(ComputeVersion.parse(value(singleValue)))
+          )
+        )
       case "url" =>
         PublishOptions(url = Some(value(singleValue)))
       case "license" =>
