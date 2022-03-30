@@ -11,6 +11,6 @@ final case class DoctorOptions(
 // format: on
 
 object DoctorOptions {
-  implicit lazy val healtCheck: Parser[DoctorOptions] = Parser.derive
-  implicit lazy val help: Help[DoctorOptions]         = Help.derive
+  implicit lazy val parser: Parser[DoctorOptions] = Parser.derive
+  implicit lazy val help: Help[DoctorOptions]     = Help.derive
 }
