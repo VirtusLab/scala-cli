@@ -119,7 +119,7 @@ object Deps {
   def svm                = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval             = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface      = ivy"org.scala-sbt:test-interface:1.0"
-  def usingDirectives    = ivy"org.virtuslab:using_directives:0.0.7-d329f97-SNAPSHOT"
+  def usingDirectives    = ivy"org.virtuslab:using_directives:0.0.8"
   val metaconfigTypesafe = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
 }
 

@@ -6,11 +6,11 @@ import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
 
 import scala.build.errors.Diagnostic
 import scala.build.preprocessing.{ExtractedDirectives, ScopePath}
-import scala.meta.internal.semanticdb
 import scala.build.errors.Severity
+import scala.build.errors.CompositeBuildException
+import scala.build.errors.BuildException
 
 class DirectiveParsingTest extends munit.FunSuite {
-  
 
   val path = os.pwd
 
@@ -40,17 +40,21 @@ class DirectiveParsingTest extends munit.FunSuite {
       matching.isEmpty
     }
   }
-  
+
   case class Error(messagePattern: String) extends Check {
-    def test(diags: Seq[Diagnostic]): Boolean = {
-      val Regex    = s".*$messagePattern.*".r
-      val matching = diags.filter(d => d.severity == Severity.Error && Regex.unapplySeq(d.message).nonEmpty)
+    def test(diags: Seq[Diagnostic]): Boolean =
+      testMsgs(diags.filter(_.severity == Severity.Error).map(_.message))
+
+    def testMsgs(diags: Seq[String]): Boolean = {
+      val Regex = s".*$messagePattern.*".r
+      println("Errors: " + diags)
+      val matching = diags.filter(d => Regex.unapplySeq(d).nonEmpty)
       expect(matching.nonEmpty)
       matching.nonEmpty
     }
   }
 
-  private def testDiagnostics(lines: String*)(expectedWarnings: Check*): List[Diagnostic] = {
+  private def testDiagnostics(lines: String*)(checks: Check*): List[Diagnostic] = {
     val persistentLogger = new PersistentDiagnosticLogger(Logger.nop)
     val code             = lines.mkString("\n").toCharArray()
     val res = ExtractedDirectives.from(
@@ -61,12 +65,32 @@ class DirectiveParsingTest extends munit.FunSuite {
       ScopePath.fromPath(path)
     )
 
-    if (!expectedWarnings.exists(_.isInstanceOf[Error])) expect(res.isRight)
+    def checkDiag(checks: Seq[Check]) = {
+      val diags = persistentLogger.diagnostics
+      if (checks.isEmpty) expect(diags.isEmpty)
+      else checks.foreach(warn => expect(warn.test(diags)))
+      diags
+    }
 
-    val diags = persistentLogger.diagnostics
-    if (expectedWarnings.isEmpty) expect(diags.isEmpty)
-    else expectedWarnings.foreach(warn => expect(warn.test(diags)))
-    diags
+    val (expectedError, expectedWarnings) =
+      checks.partitionMap { case e: Error => Left(e); case o => Right(o) }
+    if (expectedError.isEmpty) expect(res.isRight)
+    else
+      res match {
+        case Left(exception) =>
+          def flatten(e: BuildException): Seq[String] = e match {
+            case c: CompositeBuildException =>
+              c.exceptions.flatMap(flatten)
+            case e =>
+              Seq(e.getMessage())
+          }
+          val msgs = flatten(exception)
+          expectedError.foreach(e => expect(e.testMsgs(msgs)))
+        case _ =>
+          checkDiag(expectedError)
+      }
+    checkDiag(expectedWarnings)
+
   }
 
   val commentDirective        = """// using commentDirective "b" """
@@ -104,9 +128,13 @@ class DirectiveParsingTest extends munit.FunSuite {
   }
 
   test("interpolator in dependency") {
-    val diags = testDiagnostics("""//> using lib ivy"org.scala-sbt::io:1.6.0"""")(Error("illegal"))
+    val diags =
+      testDiagnostics("""//> using lib ivy"org.scala-sbt::io:1.6.0"""")(Error("interpolator"))
     println(diags)
-   
   }
 
+  test("unicode in using directives") {
+    val diags = testDiagnostics("""using nativeMode “release-full”"""")(Error("illegal"))
+    println(diags)
+  }
 }
