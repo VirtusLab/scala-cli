@@ -7,7 +7,6 @@ import scala.io.StdIn.readLine
 import fansi.Color.{Red, Blue, Green}
 import java.security.SecureRandom
 import scala.util.Random
-import os.stat
 
 val SnippetBlock  = """ *```[^ ]+ title=([\w\d\.\-\/_]+) *""".r
 val CompileBlock  = """ *``` *(\w+) +(compile|fail) *(?:title=([\w\d\.\-\/_]+))? *""".r

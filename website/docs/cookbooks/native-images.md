@@ -20,9 +20,9 @@ The following command packages this application as a native executable:
 scala-cli package Echo.scala -o echo
 ```
 
-<!-- Expected:
-Wrote echo, run it with
-  ./echo
+<!-- Expected-regex:
+Wrote .*echo
+.*/echo
 -->
 
 ```bash
@@ -42,7 +42,7 @@ You can pass custom options to GraalVM native image by passing them after `--`, 
 scala-cli package Echo.scala -o echo -- --no-fallback
 ```
 
-<!-- Expected:
-Wrote echo, run it with
-  ./echo
+<!-- Expected-regex:
+Wrote .*echo, run it with
+  .*/echo
 -->

@@ -130,3 +130,45 @@ Therefore, when your project needs to centralize its configuration, we recommend
 We plan to add ways to Scala CLI to migrate these settings into a centralized location with one command or click.
 
 We are aware that `using` directives may be a controversial topic, so we’ve created a [dedicated space for discussing `using` directives](https://github.com/VirtusLab/scala-cli/discussions/categories/using-directives-and-cmd-configuration-options).
+
+
+## How to comment out using directives?
+
+Using directives are part of the code so similarly, developers should be able to comment them out. Until 0.2.x when plain comment syntax will be removed commenting out using directives requires special care.
+
+Paradoxically, commenting out comment-based directives does not cause any problems. Below, some examples how to do it:
+
+```scala compile
+// //> using lib "no::lib:123"
+```
+
+```scala compile
+// // using lib "no::lib:123"
+```
+
+Until plain using directives in plain comments are supported, commenting keyword base syntax require some attention. Let' assume that we have a following code:
+
+```scala fail
+using scala "3.1.1"
+using lib "no::lib:123"
+```
+
+and we want to comment out broken using directive: `lib "no::lib:123"` when we simply comment it out we will actually turn it into a using directive that is using a plain comment syntax!
+
+```scala compile
+using scala "3.1.1"
+// using lib "no::lib:123"
+```
+
+In cases where there are other uncommented directives, scala-cli will ignore that directives, producing a warning. In cases that this is the only directive in the file, the commented directive will be still used to configure build.
+
+In such cases we suggest to use triple `/` for single line comments, or use `//` withing multiline comments:
+
+```scala compile
+/// using lib "in::single-line-comments:123"
+/*
+// using lib "in::multiline-line-comments:123" 
+*/
+```
+
+Generally, our recommendation is to not use keyword based directives until scala-cli will stop supporting plain comments-based directives.
