@@ -217,10 +217,16 @@ object SharedOptionsUtil {
       args: Seq[String]
     ): Inputs =
       inputsOrExit(args, () => Inputs.default())
-    def inputsOrExit(
-      args: Seq[String],
-      defaultInputs: () => Option[Inputs]
-    ): Inputs = {
+
+    def inputsOrExit(args: Seq[String], defaultInputs: () => Option[Inputs]): Inputs =
+      inputs(args, defaultInputs) match {
+        case Left(message) =>
+          System.err.println(message)
+          sys.exit(1)
+        case Right(i) => i
+      }
+
+    def inputs(args: Seq[String], defaultInputs: () => Option[Inputs]): Either[String, Inputs] = {
       val download: String => Either[String, Array[Byte]] = { url =>
         val artifact = Artifact(url).withChanging(true)
         val res = coursierCache.logger.use {
@@ -240,8 +246,8 @@ object SharedOptionsUtil {
             logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
           path
         }
-        .map(Inputs.ResourceDirectory(_))
-      val inputs = Inputs(
+        .map(Inputs.ResourceDirectory)
+      Inputs(
         args,
         Os.pwd,
         directories.directories,
@@ -251,19 +257,17 @@ object SharedOptionsUtil {
         acceptFds = !Properties.isWin,
         forcedWorkspace = workspace.forcedWorkspaceOpt
       ) match {
-        case Left(message) =>
-          System.err.println(message)
-          sys.exit(1)
-        case Right(i) => i
-      }
-      val forbiddenDirs =
-        (if (defaultForbiddenDirectories) myDefaultForbiddenDirectories else Nil) ++
-          forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
+        case l@Left(_) => l
+        case Right(inputs) =>
+          val forbiddenDirs =
+            (if (defaultForbiddenDirectories) myDefaultForbiddenDirectories else Nil) ++
+              forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
 
-      inputs
-        .add(resourceInputs)
-        .checkAttributes(directories.directories)
-        .avoid(forbiddenDirs, directories.directories)
+          Right(inputs
+            .add(resourceInputs)
+            .checkAttributes(directories.directories)
+            .avoid(forbiddenDirs, directories.directories))
+      }
     }
 
     def strictBloopJsonCheckOrDefault =
