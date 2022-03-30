@@ -7,9 +7,10 @@ import java.util.zip.ZipFile
 
 import scala.jdk.CollectionConverters._
 
-class PublishTests extends munit.FunSuite {
+abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
+    extends munit.FunSuite with TestScalaVersionArgs {
 
-  private def extraOptions = TestUtil.extraOptions
+  private def extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   test("simple") {
     val inputs = TestInputs(
@@ -21,8 +22,6 @@ class PublishTests extends munit.FunSuite {
             |//> using publish.url "https://github.com/VirtusLab/scala-cli"
             |//> using publish.license "Apache 2.0:http://opensource.org/licenses/Apache-2.0"
             |//> using publish.developer "someone|Someone||https://github.com/someone"
-            |
-            |//> using scala "3.1.1"
             |
             |package foo
             |
@@ -41,12 +40,15 @@ class PublishTests extends munit.FunSuite {
       )
     )
 
+    val scalaSuffix =
+      if (actualScalaVersion.startsWith("3.")) "_3"
+      else "_" + actualScalaVersion.split('.').take(2).mkString(".")
     val expectedArtifactsDir =
-      os.rel / "org" / "virtuslab" / "scalacli" / "test" / "simple_3" / "0.2.0-SNAPSHOT"
+      os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple$scalaSuffix" / "0.2.0-SNAPSHOT"
     val baseExpectedArtifacts = Seq(
-      "simple_3-0.2.0-SNAPSHOT.pom",
-      "simple_3-0.2.0-SNAPSHOT.jar",
-      "simple_3-0.2.0-SNAPSHOT-sources.jar"
+      s"simple$scalaSuffix-0.2.0-SNAPSHOT.pom",
+      s"simple$scalaSuffix-0.2.0-SNAPSHOT.jar",
+      s"simple$scalaSuffix-0.2.0-SNAPSHOT-sources.jar"
     )
     val expectedArtifacts = baseExpectedArtifacts
       .flatMap { n =>
@@ -113,7 +115,7 @@ class PublishTests extends munit.FunSuite {
 
       val repoArgs =
         Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
-      val dep    = "org.virtuslab.scalacli.test:simple_3:0.2.0-SNAPSHOT"
+      val dep    = s"org.virtuslab.scalacli.test:simple$scalaSuffix:0.2.0-SNAPSHOT"
       val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
       val output = res.out.text().trim
       expect(output == "Hello")
