@@ -23,6 +23,7 @@ class ScalaCliCommands(
     Clean,
     Compile,
     Directories,
+    Doctor,
     Export,
     Fmt,
     new HelpCmd(help),
@@ -37,8 +38,7 @@ class ScalaCliCommands(
     Shebang,
     Test,
     Update,
-    Version,
-    Doctor
+    Version
   )
 
   def commands = allCommands.filter(c => !isSipScala || c.inSipScala)

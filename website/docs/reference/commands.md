@@ -43,6 +43,13 @@ Accepts options:
 - [watch](./cli-options.md#watch-options)
 - [workspace](./cli-options.md#workspace-options)
 
+## `doctor`
+
+Print details about this application
+
+Accepts options:
+- [verbosity](./cli-options.md#verbosity-options)
+
 ## `export`
 
 Export current project to sbt or Mill
@@ -309,13 +316,6 @@ Accepts options:
 ## `version`
 
 Print `scala-cli` version
-
-Accepts options:
-- [verbosity](./cli-options.md#verbosity-options)
-
-## `doctor`
-
-Print details about this application
 
 Accepts options:
 - [verbosity](./cli-options.md#verbosity-options)
