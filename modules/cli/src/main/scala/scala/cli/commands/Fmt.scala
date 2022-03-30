@@ -41,9 +41,11 @@ object Fmt extends ScalaCommand[FmtOptions] {
   def readVersionFromFile(workspace: os.Path, logger: Logger): (Option[String], Boolean) = {
     case class ScalafmtVersionConfig(version: String = "")
     object ScalafmtVersionConfig {
-      lazy val default          = ScalafmtVersionConfig()
-      implicit lazy val surface = metaconfig.generic.deriveSurface[ScalafmtVersionConfig]
-      implicit lazy val decoder = metaconfig.generic.deriveDecoder[ScalafmtVersionConfig](default)
+      lazy val default = ScalafmtVersionConfig()
+      implicit lazy val surface: metaconfig.generic.Surface[ScalafmtVersionConfig] =
+        metaconfig.generic.deriveSurface[ScalafmtVersionConfig]
+      implicit lazy val decoder: metaconfig.ConfDecoder[ScalafmtVersionConfig] =
+        metaconfig.generic.deriveDecoder[ScalafmtVersionConfig](default)
     }
 
     val confName = ".scalafmt.conf"

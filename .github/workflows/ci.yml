@@ -27,7 +27,8 @@ jobs:
         jvm: "temurin:17"
     - name: Unit 3.x tests
       run: |
-        ./mill -i _[3.1.1].compile
+        ./mill -i cli3.compile
+        ./mill -i cli3.test
         ./mill -i _[3.1.1].test
   jvm-tests:
     timeout-minutes: 120

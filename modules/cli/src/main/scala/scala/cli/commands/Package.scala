@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.launcher._
-import dependency.dependencyString
+import dependency._
 import packager.config._
 import packager.deb.DebianPackage
 import packager.docker.DockerPackage
