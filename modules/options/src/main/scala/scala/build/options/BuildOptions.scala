@@ -223,7 +223,11 @@ final case class BuildOptions(
 
   private def latestSupportedStableScalaVersion(): Seq[Version] = {
 
-    val cache = finalCache.withMessage("Getting list of Scala CLI-supported Scala versions")
+    val msg =
+      if (internal.verbosityOrDefault > 0)
+        "Getting list of Scala CLI-supported Scala versions"
+      else ""
+    val cache                     = finalCache.withMessage(msg)
     val supportedScalaVersionsUrl = scalaOptions.scalaVersionsUrl
 
     val task = {
@@ -269,7 +273,8 @@ final case class BuildOptions(
   lazy val javaHomeManager = {
     val indexUrl = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
     val indexTask = {
-      val cache = finalCache.withMessage("Downloading JVM index")
+      val msg   = if (internal.verbosityOrDefault > 0) "Downloading JVM index" else ""
+      val cache = finalCache.withMessage(msg)
       cache.logger.using {
         JvmIndex.load(cache, indexUrl)
       }
