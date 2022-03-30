@@ -131,12 +131,7 @@ object Doctor extends ScalaCommand[DoctorOptions] {
     val jvmVersion = System.getProperty("java.vm.name")
     val javaVendorVersion = System.getProperty("java.vendor.version")
 
-    // val p = new SystemProperties
-    // val r = "^(java|jdk|jvm)".r
-    // p.keys.filter(r.unanchored.matches).toArray.sorted.foreach(k => println(s"key: $k value: ${p.get(k)}"))
-
-    // this test is NOT right
-    if (jvmVersion.isEmpty)
+    if (scala.sys.props.contains("org.graalvm.nativeimage.imagecode"))
       println("Your scala-cli is a native application.")
     else
       println(s"Your scala-cli is using the java launcher with JVM: $jvmVersion ($javaVendorVersion).")
