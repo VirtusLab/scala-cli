@@ -48,6 +48,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     val baseExpectedArtifacts = Seq(
       s"simple$scalaSuffix-0.2.0-SNAPSHOT.pom",
       s"simple$scalaSuffix-0.2.0-SNAPSHOT.jar",
+      s"simple$scalaSuffix-0.2.0-SNAPSHOT-javadoc.jar",
       s"simple$scalaSuffix-0.2.0-SNAPSHOT-sources.jar"
     )
     val expectedArtifacts = baseExpectedArtifacts

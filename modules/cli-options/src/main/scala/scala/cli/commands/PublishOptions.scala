@@ -71,6 +71,12 @@ final case class PublishOptions(
     sources: Option[Boolean] = None,
 
   @Group("Publishing")
+  @HelpMessage("Whether to build and publish doc JARs")
+  @ExtraName("scaladoc")
+  @ExtraName("javadoc")
+    doc: Option[Boolean] = None,
+
+  @Group("Publishing")
   @HelpMessage("ID of the GPG key to use to sign artifacts")
   @ValueDescription("key-id")
   @ExtraName("K")

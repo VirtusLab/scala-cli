@@ -38,3 +38,17 @@ trait ScalaCompilerMaker {
     // format: on
   }
 }
+
+object ScalaCompilerMaker {
+  final case class IgnoreScala2(compilerMaker: ScalaCompilerMaker) extends ScalaCompilerMaker {
+    def create(
+      workspace: os.Path,
+      classesDir: os.Path,
+      buildClient: BuildClient,
+      logger: Logger
+    ): ScalaCompiler =
+      ScalaCompiler.IgnoreScala2(
+        compilerMaker.create(workspace, classesDir, buildClient, logger)
+      )
+  }
+}

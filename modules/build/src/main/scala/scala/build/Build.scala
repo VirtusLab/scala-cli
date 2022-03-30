@@ -138,6 +138,7 @@ object Build {
     logger: Logger,
     buildClient: BloopBuildClient,
     compiler: ScalaCompiler,
+    docCompilerOpt: Option[ScalaCompiler],
     crossBuilds: Boolean,
     buildTests: Boolean,
     partial: Option[Boolean]
@@ -169,9 +170,16 @@ object Build {
       case _ =>
     }
 
+    final case class NonCrossBuilds(
+      main: Build,
+      testOpt: Option[Build],
+      docOpt: Option[Build],
+      testDocOpt: Option[Build]
+    )
+
     def doBuild(
       overrideOptions: BuildOptions
-    ): Either[BuildException, (Build, Option[Build])] = either {
+    ): Either[BuildException, NonCrossBuilds] = either {
 
       val baseOptions   = overrideOptions.orElse(sharedOptions)
       val scopedSources = value(crossSources.scopedSources(baseOptions))
@@ -191,7 +199,8 @@ object Build {
       def doBuildScope(
         options: BuildOptions,
         sources: Sources,
-        scope: Scope
+        scope: Scope,
+        actualCompiler: ScalaCompiler = compiler
       ): Either[BuildException, Build] =
         either {
           val sources0 = sources.withVirtualDir(inputs0, scope, options)
@@ -212,7 +221,7 @@ object Build {
             scope,
             logger,
             buildClient,
-            compiler,
+            actualCompiler,
             buildTests,
             partial
           )
@@ -221,44 +230,70 @@ object Build {
         }
 
       val mainBuild = value(doBuildScope(mainOptions, mainSources, Scope.Main))
+      val mainDocBuildOpt = docCompilerOpt match {
+        case None => None
+        case Some(docCompiler) =>
+          Some(value(doBuildScope(
+            mainOptions,
+            mainSources,
+            Scope.Main,
+            actualCompiler = docCompiler
+          )))
+      }
 
-      val testBuildOpt =
+      def testBuildOpt(doc: Boolean = false) = either {
         if (buildTests) {
-          val testBuild = value {
-            mainBuild match {
-              case s: Build.Successful =>
-                val extraTestOptions = BuildOptions(
-                  classPathOptions = ClassPathOptions(
-                    extraClassPath = Seq(s.output)
-                  )
-                )
-                val testOptions0 = extraTestOptions.orElse(testOptions)
-                doBuildScope(testOptions0, testSources, Scope.Test)
-              case _ =>
-                Right(Build.Cancelled(
-                  inputs,
-                  sharedOptions,
-                  Scope.Test,
-                  "Parent build failed or cancelled"
-                ))
-            }
+          val actualCompilerOpt =
+            if (doc) docCompilerOpt
+            else Some(compiler)
+          actualCompilerOpt match {
+            case None => None
+            case Some(actualCompiler) =>
+              val testBuild = value {
+                mainBuild match {
+                  case s: Build.Successful =>
+                    val extraTestOptions = BuildOptions(
+                      classPathOptions = ClassPathOptions(
+                        extraClassPath = Seq(s.output)
+                      )
+                    )
+                    val testOptions0 = extraTestOptions.orElse(testOptions)
+                    doBuildScope(
+                      testOptions0,
+                      testSources,
+                      Scope.Test,
+                      actualCompiler = actualCompiler
+                    )
+                  case _ =>
+                    Right(Build.Cancelled(
+                      inputs,
+                      sharedOptions,
+                      Scope.Test,
+                      "Parent build failed or cancelled"
+                    ))
+                }
+              }
+              Some(testBuild)
           }
-          Some(testBuild)
         }
         else None
+      }
 
+      val testBuildOpt0 = value(testBuildOpt())
       doPostProcess(mainBuild, inputs0, Scope.Main)
-      for (testBuild <- testBuildOpt)
+      for (testBuild <- testBuildOpt0)
         doPostProcess(testBuild, inputs0, Scope.Test)
 
-      (mainBuild, testBuildOpt)
+      val docTestBuildOpt0 = value(testBuildOpt(doc = true))
+
+      NonCrossBuilds(mainBuild, testBuildOpt0, mainDocBuildOpt, docTestBuildOpt0)
     }
 
-    def buildScopes(): Either[BuildException, (Build, Seq[Build], Option[Build], Seq[Build])] =
+    def buildScopes(): Either[BuildException, Builds] =
       either {
-        val (mainBuild, testBuild) = value(doBuild(BuildOptions()))
+        val nonCrossBuilds = value(doBuild(BuildOptions()))
 
-        val (extraMainBuilds: Seq[Build], extraTestBuilds: Seq[Build]) =
+        val (extraMainBuilds, extraTestBuilds, extraDocBuilds, extraDocTestBuilds) =
           if (crossBuilds) {
             val extraBuilds = value {
               val maybeBuilds = crossOptions.map(doBuild)
@@ -267,21 +302,31 @@ object Build {
                 .sequence
                 .left.map(CompositeBuildException(_))
             }
-            (extraBuilds.map(_._1), extraBuilds.flatMap(_._2))
+            (
+              extraBuilds.map(_.main),
+              extraBuilds.flatMap(_.testOpt),
+              extraBuilds.flatMap(_.docOpt),
+              extraBuilds.flatMap(_.testDocOpt)
+            )
           }
           else
-            (Nil, Nil)
+            (Nil, Nil, Nil, Nil)
 
-        (mainBuild, extraMainBuilds, testBuild, extraTestBuilds)
+        Builds(
+          Seq(nonCrossBuilds.main) ++ nonCrossBuilds.testOpt.toSeq,
+          Seq(extraMainBuilds, extraTestBuilds),
+          nonCrossBuilds.docOpt.toSeq ++ nonCrossBuilds.testDocOpt.toSeq,
+          Seq(extraDocBuilds, extraDocTestBuilds)
+        )
       }
 
-    val (mainBuild, extraBuilds, testBuildOpt, extraTestBuilds) = value(buildScopes())
+    val builds = value(buildScopes())
 
-    copyResourceToClassesDir(mainBuild)
-    for (testBuild <- testBuildOpt)
+    copyResourceToClassesDir(builds.main)
+    for (testBuild <- builds.get(Scope.Test))
       copyResourceToClassesDir(testBuild)
 
-    Builds(Seq(mainBuild) ++ testBuildOpt.toSeq, Seq(extraBuilds, extraTestBuilds))
+    builds
   }
 
   private def copyResourceToClassesDir(build: Build) = build match {
@@ -399,6 +444,7 @@ object Build {
     inputs: Inputs,
     options: BuildOptions,
     compilerMaker: ScalaCompilerMaker,
+    docCompilerMakerOpt: Option[ScalaCompilerMaker],
     logger: Logger,
     crossBuilds: Boolean,
     buildTests: Boolean,
@@ -416,16 +462,39 @@ object Build {
       buildClient,
       logger
     ) { compiler =>
-      build(
-        inputs = inputs,
-        options = options,
-        logger = logger,
-        buildClient = buildClient,
-        compiler = compiler,
-        crossBuilds = crossBuilds,
-        buildTests = buildTests,
-        partial = partial
-      )
+      docCompilerMakerOpt match {
+        case None =>
+          build(
+            inputs = inputs,
+            options = options,
+            logger = logger,
+            buildClient = buildClient,
+            compiler = compiler,
+            docCompilerOpt = None,
+            crossBuilds = crossBuilds,
+            buildTests = buildTests,
+            partial = partial
+          )
+        case Some(docCompilerMaker) =>
+          docCompilerMaker.withCompiler(
+            inputs.workspace / Constants.workspaceDirName,
+            classesDir0, // ???
+            buildClient,
+            logger
+          ) { docCompiler =>
+            build(
+              inputs = inputs,
+              options = options,
+              logger = logger,
+              buildClient = buildClient,
+              compiler = compiler,
+              docCompilerOpt = Some(docCompiler),
+              crossBuilds = crossBuilds,
+              buildTests = buildTests,
+              partial = partial
+            )
+          }
+      }
     }
   }
 
@@ -445,6 +514,7 @@ object Build {
     inputs: Inputs,
     options: BuildOptions,
     compilerMaker: ScalaCompilerMaker,
+    docCompilerMakerOpt: Option[ScalaCompilerMaker],
     logger: Logger,
     crossBuilds: Boolean,
     buildTests: Boolean,
@@ -464,6 +534,12 @@ object Build {
       buildClient,
       logger
     )
+    val docCompilerOpt = docCompilerMakerOpt.map(_.create(
+      inputs.workspace / Constants.workspaceDirName,
+      classesDir0,
+      buildClient,
+      logger
+    ))
 
     def run() = {
       try {
@@ -473,6 +549,7 @@ object Build {
           logger,
           buildClient,
           compiler,
+          docCompilerOpt,
           crossBuilds = crossBuilds,
           buildTests = buildTests,
           partial = partial
@@ -724,7 +801,7 @@ object Build {
 
     val projectChanged = compiler.prepareProject(project, logger)
 
-    if (projectChanged && os.isDir(classesDir0)) {
+    if (compiler.usesClassDir && projectChanged && os.isDir(classesDir0)) {
       logger.debug(s"Clearing $classesDir0")
       os.list(classesDir0).foreach { p =>
         logger.debug(s"Removing $p")
@@ -770,7 +847,7 @@ object Build {
       )
     }
 
-    if (projectChanged && os.isDir(classesDir0)) {
+    if (compiler.usesClassDir && projectChanged && os.isDir(classesDir0)) {
       logger.debug(s"Clearing $classesDir0")
       os.list(classesDir0).foreach { p =>
         logger.debug(s"Removing $p")
@@ -965,6 +1042,7 @@ object Build {
           logger,
           buildClient,
           compiler,
+          None,
           crossBuilds = false,
           buildTests = buildTests,
           partial = None

@@ -63,6 +63,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         inputs,
         initialBuildOptions,
         compilerMaker,
+        None,
         logger,
         crossBuilds = false,
         buildTests = false,

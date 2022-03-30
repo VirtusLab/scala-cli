@@ -964,6 +964,12 @@ Repository to publish to
 
 Whether to build and publish source JARs
 
+#### `--doc`
+
+Aliases: `--scaladoc`, `--javadoc`
+
+Whether to build and publish doc JARs
+
 #### `--gpg-key`
 
 Aliases: `-K`

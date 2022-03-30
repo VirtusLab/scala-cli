@@ -77,6 +77,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           scalaPlatformSuffix = scalaPlatformSuffix.map(_.trim),
           repository = publishRepository.filter(_.trim.nonEmpty),
           sourceJar = sources,
+          docJar = doc,
           gpgSignatureId = gpgKey.map(_.trim).filter(_.nonEmpty),
           gpgOptions = gpgOption,
           secretKey = secretKey.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
@@ -102,7 +103,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     val initialBuildOptions = mkBuildOptions(options).orExit(logger)
     val threads             = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
+    val compilerMaker    = options.shared.compilerMaker(threads)
+    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true)
 
     val cross = options.compileCross.cross.getOrElse(false)
 
@@ -121,6 +123,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         inputs,
         initialBuildOptions,
         compilerMaker,
+        Some(docCompilerMaker),
         logger,
         crossBuilds = cross,
         buildTests = false,
@@ -140,6 +143,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           inputs,
           initialBuildOptions,
           compilerMaker,
+          Some(docCompilerMaker),
           logger,
           crossBuilds = cross,
           buildTests = false,
@@ -165,20 +169,30 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val allOk = builds.all.forall {
       case _: Build.Successful => true
+      case _: Build.Cancelled  => false
       case _: Build.Failed     => false
     }
-    if (allOk) {
+    val allDocsOk = builds.allDoc.forall {
+      case _: Build.Successful => true
+      case _: Build.Cancelled  => true
+      case _: Build.Failed     => false
+    }
+    if (allOk && allDocsOk) {
       val builds0 = builds.all.collect {
         case s: Build.Successful => s
       }
-      val res = doPublish(builds0, workingDir, logger)
+      val docBuilds0 = builds.allDoc.collect {
+        case s: Build.Successful => s
+      }
+      val res = doPublish(builds0, docBuilds0, workingDir, logger)
       if (allowExit)
         res.orExit(logger)
       else
         res.orReport(logger)
     }
     else {
-      System.err.println("Compilation failed")
+      val msg = if (allOk) "Scaladoc generation failed" else "Compilation failed"
+      System.err.println(msg)
       if (allowExit)
         sys.exit(1)
     }
@@ -186,6 +200,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
   private def buildFileSet(
     build: Build.Successful,
+    docBuildOpt: Option[Build.Successful],
     workingDir: os.Path,
     now: Instant,
     logger: Logger
@@ -271,6 +286,19 @@ object Publish extends ScalaCommand[PublishOptions] {
       else
         None
 
+    val docJarOpt =
+      if (publishOptions.docJar.getOrElse(true))
+        docBuildOpt match {
+          case None => None
+          case Some(docBuild) =>
+            val content = value(Package.docJar(docBuild, logger, Nil))
+            val docJar  = workingDir / org / s"$fullName-$ver-javadoc.jar"
+            os.write(docJar, content, createFolders = true)
+            Some(docJar)
+        }
+      else
+        None
+
     val basePath = Path(org.split('.').toSeq ++ Seq(fullName, ver))
 
     val mainEntries = Seq(
@@ -287,24 +315,40 @@ object Publish extends ScalaCommand[PublishOptions] {
       }
       .toSeq
 
+    val docJarEntries = docJarOpt
+      .map { docJar =>
+        (basePath / s"$fullName-$ver-javadoc.jar") -> Content.File(docJar.toNIO)
+      }
+      .toSeq
+
     // TODO version listings, …
-    FileSet(mainEntries ++ sourceJarEntries)
+    FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries)
   }
 
   private def doPublish(
     builds: Seq[Build.Successful],
+    docBuilds: Seq[Build.Successful],
     workingDir: os.Path,
     logger: Logger
   ): Either[BuildException, Unit] = either {
 
+    assert(docBuilds.isEmpty || docBuilds.length == builds.length)
+
+    val it = builds.iterator.zip {
+      if (docBuilds.isEmpty) Iterator.continually(None)
+      else docBuilds.iterator.map(Some(_))
+    }
+
     val now = Instant.now()
     val fileSet0 = value {
-      builds
+      it
         // TODO Allow to add test JARs to the main build artifacts
-        .filter(_.scope != Scope.Test)
-        .map { build =>
-          buildFileSet(build, workingDir, now, logger)
+        .filter(_._1.scope != Scope.Test)
+        .map {
+          case (build, docBuildOpt) =>
+            buildFileSet(build, docBuildOpt, workingDir, now, logger)
         }
+        .toVector
         .sequence
         .left.map(CompositeBuildException(_))
         .map(_.foldLeft(FileSet.empty)(_ ++ _))

@@ -18,6 +18,7 @@ final case class PublishOptions(
   scalaPlatformSuffix: Option[String] = None,
   repository: Option[String] = None,
   sourceJar: Option[Boolean] = None,
+  docJar: Option[Boolean] = None,
   gpgSignatureId: Option[String] = None,
   gpgOptions: List[String] = Nil,
   signer: Option[PublishOptions.Signer] = None,

@@ -4,7 +4,9 @@ import scala.build.options.Scope
 
 final case class Builds(
   builds: Seq[Build],
-  crossBuilds: Seq[Seq[Build]]
+  crossBuilds: Seq[Seq[Build]],
+  docBuilds: Seq[Build],
+  docCrossBuilds: Seq[Seq[Build]]
 ) {
   def main: Build =
     get(Scope.Main).getOrElse {
@@ -22,4 +24,7 @@ final case class Builds(
       }
       .map(b => b.crossKey -> b)
       .toMap
+
+  def allDoc: Seq[Build] =
+    docBuilds ++ docCrossBuilds.flatten
 }

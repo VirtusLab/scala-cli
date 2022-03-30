@@ -194,8 +194,10 @@ object SharedOptionsUtil {
       )
     }
 
-    def compilerMaker(threads: BuildThreads): ScalaCompilerMaker =
-      if (compilationServer.server.getOrElse(true))
+    def compilerMaker(threads: BuildThreads, scaladoc: Boolean = false): ScalaCompilerMaker =
+      if (scaladoc)
+        SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
+      else if (compilationServer.server.getOrElse(true))
         new BloopCompilerMaker(
           bloopRifleConfig(),
           threads.bloop,
