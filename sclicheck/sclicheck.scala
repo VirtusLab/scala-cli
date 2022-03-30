@@ -229,7 +229,7 @@ def checkFile(file: os.Path, options: Options): Unit =
           patterns.foreach { pattern =>
             val regex = pattern.r
             check(
-              lines.exists(regex.matches),
+              lines.exists(regex.findFirstIn(_).nonEmpty),
               s"Regex: $pattern, does not matches any line in:\n$lastOutput"
             )
           }

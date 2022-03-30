@@ -25,9 +25,9 @@ By default, the `package` sub-command generates a lightweight JAR that contains 
 scala-cli package DetectOsApp.scala
 ```
 
-<!-- Expected:
-Wrote DetectOsApp, run it with
-  ./DetectOsApp
+<!-- Expected-regex:
+Wrote .*DetectOsApp, run it with
+  .*/DetectOsApp
 -->
 
 Lightweight JARs require the `java` command to be available, and access to the internet, if dependencies need to be downloaded. This is how you run it on macOS:
