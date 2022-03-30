@@ -36,8 +36,8 @@ docker run hello-docker
 Hello from Docker
 -->
 
-You can also package your app in the Scala.JS or Scala Native environments.
-For example, this command creates a Scala.JS Docker image:
+You can also package your app in the Scala.js or Scala Native environments.
+For example, this command creates a Scala.js Docker image:
 
 ```bash
 scala-cli package --js --docker HelloDocker.scala --docker-image-repository hello-docker

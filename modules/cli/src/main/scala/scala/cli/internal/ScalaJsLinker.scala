@@ -140,9 +140,9 @@ object ScalaJsLinker {
     val retCode = res.waitFor()
 
     if (retCode == 0)
-      logger.debug("Scala.JS linker ran successfully")
+      logger.debug("Scala.js linker ran successfully")
     else {
-      logger.debug(s"Scala.JS linker exited with return code $retCode")
+      logger.debug(s"Scala.js linker exited with return code $retCode")
       value(Left(new ScalaJsLinkingError))
     }
   }

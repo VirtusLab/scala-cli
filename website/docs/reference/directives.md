@@ -94,7 +94,7 @@ Specify default main class
 
 ### Platform
 
-Set the default platform to Scala.JS or Scala Native
+Set the default platform to Scala.js or Scala Native
 
 `//> using platform `(`jvm`|`scala-js`|`scala-native`)+
 

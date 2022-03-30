@@ -242,7 +242,7 @@ object Artifacts {
               None,
               forcedVersions,
               logger,
-              cache.withMessage("Downloading Scala.JS CLI"),
+              cache.withMessage("Downloading Scala.js CLI"),
               None
             )
           }

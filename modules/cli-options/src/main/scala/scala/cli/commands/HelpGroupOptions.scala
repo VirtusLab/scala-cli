@@ -23,7 +23,7 @@ case class HelpGroupOptions(
   }
 
   def maybePrintGroupHelp(help: Help[_]): Unit = {
-    if (helpJs) printHelpWithGroup(help, "Scala.JS")
+    if (helpJs) printHelpWithGroup(help, "Scala.js")
     else if (helpNative) printHelpWithGroup(help, "Scala Native")
   }
 }

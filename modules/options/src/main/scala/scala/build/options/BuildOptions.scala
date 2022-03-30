@@ -46,7 +46,7 @@ final case class BuildOptions(
   lazy val projectParams: Either[BuildException, Seq[String]] = either {
     val platform0 = platform.value match {
       case Platform.JVM    => "JVM"
-      case Platform.JS     => "Scala.JS"
+      case Platform.JS     => "Scala.js"
       case Platform.Native => "Scala Native"
     }
     Seq(s"Scala ${value(scalaParams).scalaVersion}", platform0)

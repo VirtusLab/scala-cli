@@ -32,7 +32,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     }
     val value = l.mkString
       .replace("Scala native", "Scala Native")
-      .replace("Scala js", "Scala.JS")
+      .replace("Scala js", "Scala.js")
       .split("\\s+")
       .map(w => if (w == "ide") "IDE" else w)
       .mkString(" ")

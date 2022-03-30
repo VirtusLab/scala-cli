@@ -6,6 +6,6 @@ import scala.scalajs.js
 object Test {
   def main(args: Array[String]): Unit = {
     val console = js.Dynamic.global.console
-    console.log("Hello from Scala.JS")
+    console.log("Hello from Scala.js")
   }
 }

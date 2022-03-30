@@ -943,7 +943,7 @@ Aliases: `-a`
 
 Don't actually run the REPL, just fetch it
 
-## Scala.JS options
+## Scala.js options
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
@@ -964,7 +964,7 @@ Available in commands:
 
 #### `--js`
 
-Enable Scala.JS. To show more options for Scala.Js pass `--help-js`
+Enable Scala.js. To show more options for Scala.Js pass `--help-js`
 
 #### `--js-version`
 
@@ -1018,19 +1018,19 @@ The Scala JS ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019,
 
 #### `--js-linker-path`
 
-Path to the Scala.JS linker
+Path to the Scala.js linker
 
 #### `--js-cli-version`
 
-Scala.JS CLI version to use for linking
+Scala.js CLI version to use for linking
 
 #### `--js-cli-java-arg`
 
-Scala.JS CLI Java options
+Scala.js CLI Java options
 
 #### `--js-cli-on-jvm`
 
-Whether to run the Scala.JS CLI on the JVM or using a native executable
+Whether to run the Scala.js CLI on the JVM or using a native executable
 
 ## Scala Native options
 

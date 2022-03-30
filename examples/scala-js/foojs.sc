@@ -1,1 +1,1 @@
-println(s"Hello from Scala.JS ${scala.scalajs.runtime.linkingInfo.linkerVersion}")
+println(s"Hello from Scala.js ${scala.scalajs.runtime.linkingInfo.linkerVersion}")
