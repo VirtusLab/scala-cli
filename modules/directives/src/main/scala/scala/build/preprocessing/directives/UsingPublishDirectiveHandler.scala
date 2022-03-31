@@ -3,6 +3,7 @@ package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.{BuildException, UnexpectedDirectiveError}
+import scala.build.options.publish.{Developer, License, Vcs}
 import scala.build.options.{BuildOptions, PostBuildOptions, PublishOptions}
 import scala.build.preprocessing.ScopePath
 
@@ -72,14 +73,14 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
       case "url" =>
         PublishOptions(url = Some(value(singleValue)))
       case "license" =>
-        val license = value(PublishOptions.parseLicense(value(singleValue)))
+        val license = value(License.parse(value(singleValue)))
         PublishOptions(license = Some(license))
       case "versionControl" | "version-control" | "scm" =>
-        PublishOptions(versionControl = Some(value(PublishOptions.parseVcs(value(singleValue)))))
+        PublishOptions(versionControl = Some(value(Vcs.parse(value(singleValue)))))
       case "description" =>
         PublishOptions(description = Some(value(singleValue).value))
       case "developer" =>
-        PublishOptions(developers = Seq(value(PublishOptions.parseDeveloper(value(singleValue)))))
+        PublishOptions(developers = Seq(value(Developer.parse(value(singleValue)))))
       case "scalaVersionSuffix" | "scala-version-suffix" =>
         PublishOptions(scalaVersionSuffix = Some(value(singleValue).value))
       case "scalaPlatformSuffix" | "scala-platform-suffix" =>
