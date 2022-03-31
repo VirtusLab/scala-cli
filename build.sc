@@ -168,7 +168,8 @@ object dummy extends Module {
 
 class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
-    with ScalaCliScalafixModule {
+    with ScalaCliScalafixModule
+    with HasTests {
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Ywarn-unused")
   }
@@ -185,11 +186,6 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     def scalacOptions = T {
       super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
     }
-
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      Deps.munit
-    )
-    def testFramework = "munit.Framework"
   }
 }
 
@@ -398,11 +394,6 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
   def ivyDeps = super.ivyDeps() ++ Agg(Deps.bloopConfig)
 
   object test extends Tests {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      Deps.munit
-    )
-    def testFramework = "munit.Framework"
-
     // uncomment below to debug tests in attach mode on 5005 port
     // def forkArgs = T {
     //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
