@@ -49,19 +49,6 @@ private def withFirstFileInZip[T](zip: File)(f: InputStream => T): T = {
   }
 }
 
-private def readFully(is: InputStream): Array[Byte] = {
-  val buffer = new ByteArrayOutputStream
-  val data   = Array.ofDim[Byte](16384)
-  var nRead  = 0
-  while ({
-    nRead = is.read(data, 0, data.length)
-    nRead != -1
-  })
-    buffer.write(data, 0, nRead)
-  buffer.flush()
-  buffer.toByteArray
-}
-
 def fromPath(name: String): String =
   if (Properties.isWin) {
     val pathExt = Option(System.getenv("PATHEXT"))
@@ -144,12 +131,12 @@ def cs: T[String] = T.persistent {
       val f = maybeFile.fold(ex => throw new Exception(ex), identity)
       val exec =
         if (f.getName.endsWith(".gz")) {
-          val b = withGzipContent(f)(readFully)
+          val b = withGzipContent(f)(_.readAllBytes())
           os.write(dest, b)
           dest
         }
         else if (f.getName.endsWith(".zip")) {
-          val b = withFirstFileInZip(f)(readFully)
+          val b = withFirstFileInZip(f)(_.readAllBytes())
           os.write(dest, b)
           dest
         }

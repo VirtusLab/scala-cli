@@ -1,6 +1,6 @@
 package scala.build
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.ByteArrayInputStream
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -313,18 +313,7 @@ object Inputs {
       Option(zipInputStream.getNextEntry()) match {
         case Some(entry) if entry.isDirectory => readArchive(acc)
         case Some(entry) =>
-          val content = {
-            val baos = new ByteArrayOutputStream
-            val buf  = Array.ofDim[Byte](16 * 1024)
-            var read = -1
-            while ({
-              read = zipInputStream.read(buf)
-              read >= 0
-            })
-              if (read > 0)
-                baos.write(buf, 0, read)
-            baos.toByteArray
-          }
+          val content = zipInputStream.readAllBytes()
           readArchive(resolve(entry.getName, content) +: acc)
         case None => acc
       }
