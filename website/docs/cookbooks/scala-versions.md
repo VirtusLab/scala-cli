@@ -90,7 +90,7 @@ The `using` directives syntax is still experimental, and may change in future ve
 Here’s an example of a source code file named `version.scala` that contains a `using` directive:
 
 ```scala title=version.scala
-//> using scala 2.12.5
+//> using scala "2.12"
 
 object OldCode
 //rest of the config
@@ -102,11 +102,11 @@ Now when you compile that code along with the previous `ScalaVersion.scala` file
 scala-cli ScalaVersion.scala version.scala
 ```
 
-<!-- Expected-regex: TODO -
-Scala: 2\.12\.5
+<!-- Expected-regex:
+Scala: 2\.12\.15
 -->
 
-The output at the time of this writing is "`2.12.5`".
+The output at the time of this writing is "`2.12.15`".
 
 The `scala-cli` philosophy is “command line first,” so any configuration information that’s passed to the command line will override `using` directives. So when you run this command with the `-S` option:
 

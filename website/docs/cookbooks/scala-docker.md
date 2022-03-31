@@ -22,9 +22,8 @@ scala-cli package --docker HelloDocker.scala --docker-image-repository hello-doc
 ```
 
 <!-- Expected:
-Started building docker image with your application, it would take some time
-Built docker image, run it with
-  docker run hello-docker:latest
+Started building docker image with your application
+docker run hello-docker:latest
 -->
 
 ```bash
@@ -43,9 +42,8 @@ For example, this command creates a Scala.js Docker image:
 scala-cli package --js --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 <!-- Expected:
-Started building docker image with your application, it would take some time
-Built docker image, run it with
-  docker run hello-docker:latest
+Started building docker image with your application
+docker run hello-docker:latest
 -->
 
 This command creates a Scala Native Docker image:

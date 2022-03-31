@@ -9,20 +9,28 @@ dest="$(pwd)/out/sclicheck/bin"
 # so we try to run the scala-cli launcher with bash instead
 cat > "$dest/scala-cli" << EOF
 #!/usr/bin/env bash
-exec bash "$dest/scala-cli.sh"
+exec bash "$dest/scala-cli.sh" "\$@"
 EOF
 chmod +x "$dest/scala-cli"
 
 echo "Adding $dest to PATH"
 export PATH="$dest:$PATH"
-ls "$dest"
 
-if [ $# -eq 0 ]
-  then
+if [ $# -eq 0 ] 
+then
     toCheck=("website/docs/cookbooks" "website/docs/commands")
-  else
+else
     toCheck=("$@")
 fi
 
-# adding --resource-dirs is a hack to get file watching for free on .md files
-scala-cli sclicheck/sclicheck.scala docs -- "${toCheck[@]}"
+statusFile="$(pwd)/out/sclicheck/.status"
+scala-cli sclicheck/sclicheck.scala -- --status-file "$statusFile" "${toCheck[@]}" || (
+  echo "Checking documentation failed. To run tests locally run `.github/scripts/check_docs.sh <failing_file>`"
+  echo "You can find more about automatic documentaiton testing in sclicheck/Readme.md file."
+  exit 1
+)
+
+test -f "$statusFile" || ( 
+  echo "Fatal error. Status file: $statusFile does not exists what signal problem with running tests."
+  exit 1
+)

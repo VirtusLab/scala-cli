@@ -6,8 +6,10 @@ import scala.util.matching.Regex
 import scala.io.StdIn.readLine
 import fansi.Color.{Red, Blue, Green}
 import java.security.SecureRandom
+import scala.util.Random
 
 val SnippetBlock  = """ *```[^ ]+ title=([\w\d\.\-\/_]+) *""".r
+val CompileBlock  = """ *``` *(\w+) +(compile|fail) *(?:title=([\w\d\.\-\/_]+))? *""".r
 val CodeBlockEnds = """ *``` *""".r
 val BashCommand   = """ *```bash *(fail)? *""".r
 val CheckBlock    = """ *\<\!-- Expected(-regex)?: *""".r
@@ -18,6 +20,7 @@ case class Options(
   files: Seq[String] = Nil,
   dest: Option[os.Path] = None,
   stopAtFailure: Boolean = false,
+  statusFile: Option[os.Path] = None,
   step: Boolean = false
 )
 
@@ -34,9 +37,13 @@ enum Commands:
       cmd.mkString(prefix, " ", "")
     case Write(name, _, _) =>
       name
+    case Compile(_, _, _, _) =>
+      "compile snippet"
   }
 
   case Write(fileName: String, lines: Seq[String], context: Context)
+
+  case Compile(fileName: String, lines: Seq[String], context: Context, shouldFail: Boolean)
   case Run(scriptLines: Seq[String], shouldFail: Boolean, context: Context)
   case Check(patterns: Seq[String], regex: Boolean, context: Context)
   case Clear(context: Context)
@@ -75,6 +82,10 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
     case SnippetBlock(name) :: tail =>
       parseMultiline(tail, Commands.Write(name, _, context))
 
+    case CompileBlock(name, status, fileName) :: tail =>
+      val file = Option(fileName).getOrElse("snippet_" + Random.nextInt(1000) + "." + name)
+      parseMultiline(tail, Commands.Compile(file, _, context, status == "fail"))
+
     case BashCommand(failGroup) :: tail =>
       parseMultiline(tail, Commands.Run(_, failGroup != null, context))
 
@@ -104,7 +115,7 @@ def checkPath(options: Options)(path: os.Path): Seq[TestCase] =
       toCheck.toList.flatMap(checkPath(options))
   catch
     case e @ FailedCheck(line, file, text) =>
-      println(Red(e.getMessage))
+      println(Console.RED + e.getMessage + Console.RESET)
       Seq(TestCase(path.relativeTo(os.pwd), Some(e.getMessage)))
     case e: Throwable =>
       val short = s"Unexpected exception ${e.getClass.getName}"
@@ -161,38 +172,54 @@ def checkFile(file: os.Path, options: Options): Unit =
   def runCommand(cmd: Commands, log: String => Unit) =
     given Context = cmd.context
 
+    def writeFile(file: os.Path, code: Seq[String], c: Context) =
+      val (prefixLines, codeLines) =
+        code match
+          case shbang :: tail if shbang.startsWith("#!") =>
+            List(shbang + "\n") -> tail
+          case other =>
+            Nil -> other
+
+      codeLines.foreach(log)
+
+      val prefix =
+        if !shouldAlignContent(file) then prefixLines.mkString("")
+        else prefixLines.mkString("", "", s"$fakeLineMarker\n" * c.line)
+
+      os.write.over(file, code.mkString(prefix, "\n", ""), createFolders = true)
+
+    def run(cmd: os.proc): Int =
+      val res = cmd.call(cwd = out, mergeErrIntoOut = true, check = false)
+
+      log(res.out.text())
+
+      lastOutput = res.out.text()
+      res.exitCode
+
     cmd match
       case Commands.Run(cmds, shouldFail, _) =>
         val script = out / ".scala-build" / "run.sh"
         os.write.over(script, mkBashScript(cmds), createFolders = true)
         os.perms.set(script, "rwxr-xr-x")
-        val res = os.proc(script).call(cwd = out, mergeErrIntoOut = true, check = false)
 
-        log(res.out.text())
-
+        val exitCode = run(os.proc(script))
         if shouldFail then
-          check(res.exitCode != 0, s"Commands should fail.")
+          check(exitCode != 0, s"Commands should fail.")
         else
-          check(res.exitCode == 0, s"Commands failed.")
-
-        lastOutput = res.out.text()
+          check(exitCode == 0, s"Commands failed.")
 
       case Commands.Write(name, code, c) =>
-        val (prefixLines, codeLines) =
-          code match
-            case shbang :: tail if shbang.startsWith("#!") =>
-              List(shbang + "\n") -> tail
-            case other =>
-              Nil -> other
+        writeFile(out / os.RelPath(name), code, c)
 
-        val file = out / os.RelPath(name)
-        codeLines.foreach(log)
+      case Commands.Compile(name, code, c, shouldFail) =>
+        val dest = out / ".snippets" / name
+        writeFile(dest, code, c)
 
-        val prefix =
-          if !shouldAlignContent(file) then prefixLines.mkString("")
-          else prefixLines.mkString("", "", s"$fakeLineMarker\n" * c.line)
-
-        os.write.over(file, code.mkString(prefix, "\n", ""), createFolders = true)
+        val exitCode = run(os.proc("scala-cli", "compile", dest))
+        if shouldFail then
+          check(exitCode != 0, s"Compilation should fail.")
+        else
+          check(exitCode == 0, s"Compilation failed.")
 
       case Commands.Check(patterns, regex, line) =>
         check(lastOutput != null, "No output stored from previous commands")
@@ -202,7 +229,7 @@ def checkFile(file: os.Path, options: Options): Unit =
           patterns.foreach { pattern =>
             val regex = pattern.r
             check(
-              lines.exists(regex.matches),
+              lines.exists(regex.findFirstIn(_).nonEmpty),
               s"Regex: $pattern, does not matches any line in:\n$lastOutput"
             )
           }
@@ -281,14 +308,20 @@ def checkFile(file: os.Path, options: Options): Unit =
 
     os.list(out).filter(_.toString.endsWith(".scala")).foreach(p => os.copy.into(p, exampleDir))
 
+def asPath(pathStr: String): os.Path =
+  os.FilePath(pathStr) match
+    case p: os.Path    => p
+    case s: os.SubPath => os.pwd / s
+    case r: os.RelPath => os.pwd / r
+
 @main def check(args: String*) =
-  def processFiles(dest: Options) =
-    val paths = dest.files.map { str =>
-      val path = os.pwd / os.RelPath(str)
+  def processFiles(options: Options) =
+    val paths = options.files.map { str =>
+      val path = asPath(str)
       assert(os.exists(path), s"Provided path $str does not exists in ${os.pwd}")
       path
     }
-    val testCases    = paths.flatMap(checkPath(dest))
+    val testCases    = paths.flatMap(checkPath(options))
     val (failed, ok) = testCases.partition(_.failure.nonEmpty)
     if testCases.size > 1 then
       if ok.nonEmpty then
@@ -303,20 +336,35 @@ def checkFile(file: os.Path, options: Options): Unit =
         println("")
         sys.exit(1)
 
+    options.statusFile.foreach { file =>
+      os.write.over(file, s"Test completed:\n${testCases.map(_.path).mkString("\n")}")
+    }
+
+  case class PathParameter(name: String):
+    def unapply(args: Seq[String]): Option[(os.Path, Seq[String])] = args.match
+      case `name` :: param :: tail =>
+        if param.startsWith("--") then
+          println(s"Please provide file name not an option: $param")
+          sys.exit(1)
+        Some((asPath(param), tail))
+      case `name` :: Nil =>
+        println(Red(s"Expected an argument after `--$name` parameter"))
+        sys.exit(1)
+      case _ => None
+
+  val Dest       = PathParameter("--dest")
+  val StatusFile = PathParameter("--status-file")
+
   def parseArgs(args: Seq[String], options: Options): Options = args match
     case Nil => options
     case "--step" :: rest =>
       parseArgs(rest, options.copy(step = true))
     case "--stopAtFailure" :: rest =>
       parseArgs(rest, options.copy(stopAtFailure = true))
-    case "--dest" :: dest :: rest =>
-      if dest.startsWith("--") then
-        println(s"Please provide file name not an option: $dest")
-
-      parseArgs(rest, options.copy(dest = Some(os.pwd / dest)))
-    case "--dest" :: Nil =>
-      println(Red("Exptected a destanation after `--dest` parameter"))
-      sys.exit(1)
+    case Dest(dest, rest) =>
+      parseArgs(rest, options.copy(dest = Some(dest)))
+    case StatusFile(file, rest) =>
+      parseArgs(rest, options.copy(statusFile = Some(file)))
     case path :: rest => parseArgs(rest, options.copy(files = options.files :+ path))
 
   processFiles(parseArgs(args, Options()))
