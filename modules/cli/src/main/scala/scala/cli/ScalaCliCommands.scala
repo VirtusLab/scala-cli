@@ -6,6 +6,7 @@ import caseapp.core.help.{Help, RuntimeCommandsHelp}
 import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
+import scala.cli.commands.mamba.{Mamba, MambaFreeze}
 import scala.cli.commands.pgp.PgpCommands
 
 class ScalaCliCommands(
@@ -32,6 +33,8 @@ class ScalaCliCommands(
     new HelpCmd(help),
     InstallCompletions,
     InstallHome,
+    Mamba,
+    MambaFreeze,
     Metabrowse,
     Repl,
     Package,

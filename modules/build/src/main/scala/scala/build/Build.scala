@@ -13,7 +13,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors._
-import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
+import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Mamba, Util}
 import scala.build.options.validation.ValidationException
 import scala.build.options.{BuildOptions, ClassPathOptions, Platform, SNNumeralVersion, Scope}
 import scala.build.postprocessing._
@@ -743,6 +743,11 @@ object Build {
       artifacts.javacPluginDependencies.map(_._3) ++
       artifacts.extraJavacPlugins
 
+    // Computing thos options might trigger unwanted side effects, like
+    // creating a conda env with clang for Scala Native. Users can disable those
+    // at this point with this option.
+    val putPlatformConfigInBloopFile =
+      options.internal.putPlatformConfigInBloopFile.getOrElse(true)
     val project = Project(
       directory = inputs.workspace / Constants.workspaceDirName,
       workspace = inputs.workspace,
@@ -750,12 +755,25 @@ object Build {
       scaladocDir = scaladocDir,
       scalaCompiler = scalaCompilerParams,
       scalaJsOptions =
-        if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config(logger))
-        else None,
+        if (putPlatformConfigInBloopFile && options.platform.value == Platform.JS)
+          Some(options.scalaJsOptions.config(logger))
+        else
+          None,
       scalaNativeOptions =
-        if (options.platform.value == Platform.Native)
-          Some(options.scalaNativeOptions.bloopConfig())
-        else None,
+        if (putPlatformConfigInBloopFile && options.platform.value == Platform.Native) {
+          val scalaNativeOptions = value {
+            Mamba.updateOptions(
+              options.archiveCache,
+              logger,
+              options.internal.directories.getOrElse {
+                scala.build.Directories.default()
+              }
+            )(options.scalaNativeOptions)
+          }
+          Some(scalaNativeOptions.bloopConfig())
+        }
+        else
+          None,
       projectName = inputs.scopeProjectName(scope),
       classPath = fullClassPath,
       resolution = Some(Project.resolution(artifacts.detailedArtifacts)),

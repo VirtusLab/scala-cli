@@ -17,7 +17,11 @@ final case class ScalaNativeOptions(
   linkingOptions: List[String] = Nil,
   linkingDefaults: Option[Boolean] = None,
   compileOptions: List[String] = Nil,
-  compileDefaults: Option[Boolean] = None
+  compileDefaults: Option[Boolean] = None,
+  useManagedClang: Option[Boolean] = None,
+  microMambaVersion: Option[String] = None,
+  microMambaSuffix: Option[String] = None,
+  condaPlatform: Option[String] = None
 ) {
 
   def nativeWorkDir(root: os.Path, projectName: String): os.Path =
@@ -26,6 +30,9 @@ final case class ScalaNativeOptions(
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
 
   def numeralVersion = SNNumeralVersion.parse(finalVersion)
+
+  def finalMicroMambaVersion = microMambaVersion.getOrElse(Constants.defaultMicroMambaVersion)
+  def finalMicroMambaSuffix  = microMambaSuffix.getOrElse(Constants.defaultMicroMambaSuffix)
 
   private def gc(): sn.GC =
     gcStr.map(_.trim).filter(_.nonEmpty) match {
@@ -80,6 +87,7 @@ final case class ScalaNativeOptions(
   def compilerPlugins: Seq[AnyDependency] =
     Seq(dep"org.scala-native:::nscplugin:$finalVersion")
 
+  // important: useManagedClang has to be taken into account by *callers* of this method
   def bloopConfig(): BloopConfig.NativeConfig =
     BloopConfig.NativeConfig(
       version = finalVersion,
@@ -103,6 +111,7 @@ final case class ScalaNativeOptions(
       output = None
     )
 
+  // important: useManagedClang has to be taken into account by *callers* of this method
   def configCliOptions(): List[String] =
     gcCliOption() ++
       modeCliOption() ++

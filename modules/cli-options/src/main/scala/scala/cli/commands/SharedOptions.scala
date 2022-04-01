@@ -96,7 +96,9 @@ final case class SharedOptions(
   helpGroups: HelpGroupOptions = HelpGroupOptions(),
 
   @Hidden
-    strictBloopJsonCheck: Option[Boolean] = None
+    strictBloopJsonCheck: Option[Boolean] = None,
+  @Hidden
+    putPlatformConfigInBloopFile: Option[Boolean] = None
 )
   // format: on
 

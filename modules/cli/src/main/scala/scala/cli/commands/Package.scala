@@ -20,7 +20,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.errors.{BuildException, ScalaNativeBuildError}
-import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsLinkerConfig}
+import scala.build.internal.{Mamba, NativeBuilderHelper, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
@@ -246,7 +246,7 @@ object Package extends ScalaCommand[PackageOptions] {
         value(buildJs(build, destPath, value(mainClass), logger))
 
       case PackageType.Native =>
-        buildNative(build, destPath, value(mainClass), logger)
+        value(buildNative(build, destPath, value(mainClass), logger))
         destPath
 
       case PackageType.GraalVMNativeImage =>
@@ -329,7 +329,7 @@ object Package extends ScalaCommand[PackageOptions] {
         }
         destPath
       case PackageType.Docker =>
-        docker(build, value(mainClass), logger)
+        value(docker(build, value(mainClass), logger))
         destPath
     }
 
@@ -477,7 +477,7 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful,
     mainClass: String,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
     val packageOptions = build.options.notForBloopOptions.packageOptions
 
     if (build.options.platform.value == Platform.Native && (Properties.isMac || Properties.isWin)) {
@@ -517,7 +517,7 @@ object Package extends ScalaCommand[PackageOptions] {
     build.options.platform.value match {
       case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
       case Platform.JS     => buildJs(build, appPath, mainClass, logger)
-      case Platform.Native => buildNative(build, appPath, mainClass, logger)
+      case Platform.Native => value(buildNative(build, appPath, mainClass, logger))
     }
 
     logger.message(
@@ -556,7 +556,7 @@ object Package extends ScalaCommand[PackageOptions] {
     destPath: os.Path,
     mainClass: String,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = {
     val workDir =
       build.options.scalaNativeOptions.nativeWorkDir(
         build.inputs.workspace,
@@ -754,9 +754,16 @@ object Package extends ScalaCommand[PackageOptions] {
     dest: os.Path,
     nativeWorkDir: os.Path,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
 
-    val cliOptions = build.options.scalaNativeOptions.configCliOptions()
+    val scalaNativeOptions = value {
+      Mamba.updateOptions(
+        build.options.archiveCache,
+        logger,
+        build.options.internal.directories.getOrElse(???)
+      )(build.options.scalaNativeOptions)
+    }
+    val cliOptions = scalaNativeOptions.configCliOptions()
 
     os.makeDir.all(nativeWorkDir)
 

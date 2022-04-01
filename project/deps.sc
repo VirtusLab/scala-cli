@@ -38,6 +38,7 @@ object TestDeps {
   def pprint           = Deps.pprint
   def munit            = Deps.munit
   def scalaSnapshot213 = "2.13.8-bin-e814d78"
+  def cs               = Deps.Versions.coursier
 }
 
 object InternalDeps {
@@ -45,6 +46,9 @@ object InternalDeps {
     def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
     def scalaJsCli    = "1.1.1-sc1"
+
+    def microMambaVersion = "0.22.0"
+    def microMambaSuffix  = "-0"
   }
 }
 
@@ -140,7 +144,8 @@ object Docker {
   def muslBuilder =
     s"$customMuslBuilderImageName:latest"
 
-  def testImage = "ubuntu:18.04"
+  def testImage        = "ubuntu:18.04"
+  def openjdkTestImage = "openjdk:17-slim"
   def alpineTestImage =
     "alpine@sha256:234cb88d3020898631af0ccbbcca9a66ae7306ecd30c9720690858c1b007d2a0"
   def authProxyTestImage =

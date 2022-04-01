@@ -237,18 +237,20 @@ object Run extends ScalaCommand[RunOptions] {
           }
         value(res)
       case Platform.Native =>
-        withNativeLauncher(
-          build,
-          mainClass,
-          build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
-          logger
-        ) { launcher =>
-          Runner.runNative(
-            launcher.toIO,
-            args,
-            logger,
-            allowExecve = allowExecve
-          )
+        value {
+          withNativeLauncher(
+            build,
+            mainClass,
+            build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
+            logger
+          ) { launcher =>
+            Runner.runNative(
+              launcher.toIO,
+              args,
+              logger,
+              allowExecve = allowExecve
+            )
+          }
         }
       case Platform.JVM =>
         Runner.runJvm(
@@ -295,9 +297,10 @@ object Run extends ScalaCommand[RunOptions] {
     mainClass: String,
     workDir: os.Path,
     logger: Logger
-  )(f: os.Path => T): T = {
+  )(f: os.Path => T): Either[BuildException, T] = {
     val dest = workDir / s"main${if (Properties.isWin) ".exe" else ""}"
-    Package.buildNative(build, mainClass, dest, workDir, logger)
-    f(dest)
+    Package.buildNative(build, mainClass, dest, workDir, logger).map { _ =>
+      f(dest)
+    }
   }
 }

@@ -201,7 +201,7 @@ object Test extends ScalaCommand[TestOptions] {
               args,
               logger
             )
-          }
+          }.flatMap(identity)
         }
       case Platform.JVM =>
         val classPath = build.fullClassPath
