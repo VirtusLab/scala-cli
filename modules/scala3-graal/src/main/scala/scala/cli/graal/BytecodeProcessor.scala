@@ -150,41 +150,40 @@ object BytecodeProcessor {
   def processClassFile(content: Array[Byte]): Option[Array[Byte]] =
     processClassReader(new ClassReader(content))
 
-
   class LazyValVisitor(writer: ClassWriter) extends ClassVisitor(Opcodes.ASM9, writer) {
 
     var changed: Boolean = false
 
     class StaticInitVistor(parent: MethodVisitor)
-      extends MethodVisitor(Opcodes.ASM9, parent) {
+        extends MethodVisitor(Opcodes.ASM9, parent) {
 
-    override def visitMethodInsn(
-      opcode: Int,
-      owner: String,
-      name: String,
-      descr: String,
-      isInterface: Boolean
-    ): Unit = 
-      if (owner == "scala/runtime/LazyVals$" && name == "getOffset") {
-        changed = true
-        super.visitMethodInsn(
-          Opcodes.INVOKEVIRTUAL,
-          "java/lang/Class",
-          "getDeclaredField",
-          "(Ljava/lang/String;)Ljava/lang/reflect/Field;",
-          false
-        )
-        super.visitMethodInsn(
-          Opcodes.INVOKESTATIC,
-          "scala/cli/runtime/SafeLazyVals",
-          "getOffset",
-          "(Ljava/lang/Object;Ljava/lang/reflect/Field;)J",
-          false
-        )
-      }
-      else
-        super.visitMethodInsn(opcode, owner, name, descr, isInterface)
-  }
+      override def visitMethodInsn(
+        opcode: Int,
+        owner: String,
+        name: String,
+        descr: String,
+        isInterface: Boolean
+      ): Unit =
+        if (owner == "scala/runtime/LazyVals$" && name == "getOffset") {
+          changed = true
+          super.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/lang/Class",
+            "getDeclaredField",
+            "(Ljava/lang/String;)Ljava/lang/reflect/Field;",
+            false
+          )
+          super.visitMethodInsn(
+            Opcodes.INVOKESTATIC,
+            "scala/cli/runtime/SafeLazyVals",
+            "getOffset",
+            "(Ljava/lang/Object;Ljava/lang/reflect/Field;)J",
+            false
+          )
+        }
+        else
+          super.visitMethodInsn(opcode, owner, name, descr, isInterface)
+    }
 
     override def visitMethod(
       access: Int,
