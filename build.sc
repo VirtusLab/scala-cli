@@ -636,6 +636,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def pprintVersion = "${TestDeps.pprint.dep.version}"
            |  def munitVersion = "${TestDeps.munit.dep.version}"
            |  def dockerTestImage = "${Docker.testImage}"
+           |  def dockerOpenjdkTestImage = "${Docker.openjdkTestImage}"
            |  def dockerAlpineTestImage = "${Docker.alpineTestImage}"
            |  def authProxyTestImage = "${Docker.authProxyTestImage}"
            |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"

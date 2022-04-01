@@ -140,7 +140,8 @@ object Docker {
   def muslBuilder =
     s"$customMuslBuilderImageName:latest"
 
-  def testImage = "ubuntu:18.04"
+  def testImage        = "ubuntu:18.04"
+  def openjdkTestImage = "openjdk:17-slim"
   def alpineTestImage =
     "alpine@sha256:234cb88d3020898631af0ccbbcca9a66ae7306ecd30c9720690858c1b007d2a0"
   def authProxyTestImage =

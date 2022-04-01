@@ -160,7 +160,7 @@ class NativePackagerTests extends munit.FunSuite {
             "/workdir",
             "-v",
             s"${root / destDir}:/workdir",
-            "openjdk:17-slim",
+            Constants.dockerOpenjdkTestImage,
             "./run.sh"
           ).call(
             cwd = root,
@@ -260,7 +260,7 @@ class NativePackagerTests extends munit.FunSuite {
 
       try {
         val output =
-          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
+          os.proc("docker", "run", "--rm", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
         expect(output == message)
       }
       // clear
@@ -297,7 +297,7 @@ class NativePackagerTests extends munit.FunSuite {
 
       try {
         val output =
-          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
+          os.proc("docker", "run", "--rm", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
         expect(output == message)
 
       }
@@ -336,7 +336,7 @@ class NativePackagerTests extends munit.FunSuite {
 
       try {
         val output =
-          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
+          os.proc("docker", "run", "--rm", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
         expect(output == message)
 
       }
