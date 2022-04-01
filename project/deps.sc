@@ -61,13 +61,12 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.4.19-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.0.0"
-  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M13"
+  def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M13"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.7.0"
   // Force using of 2.13 - is there a better way?
   def coursierJvm      = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
-  def coursierLauncher = ivy"io.get-coursier::coursier-launcher:${Versions.coursier}"
-  def coursierPublish  = ivy"io.get-coursier.publish::publish:0.1.0"
-  def dataClass        = ivy"io.github.alexarchambault::data-class:0.2.5"
+  def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
+  def coursierPublish  = ivy"io.get-coursier.publish:publish_2.13:0.1.0"
   // TODO - update to working version
   def dependency   = ivy"io.get-coursier::dependency:0.2.2"
   def dockerClient = ivy"com.spotify:docker-client:8.16.0"
@@ -103,8 +102,8 @@ object Deps {
   def scalaJsTestAdapter = ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
   // Force using of 2.13 - is there a better way?
   def scalametaTrees   = ivy"org.scalameta:trees_2.13:${Versions.scalaMeta}"
-  def scalaPackager    = ivy"org.virtuslab::scala-packager:${Versions.scalaPackager}"
-  def scalaPackagerCli = ivy"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
+  def scalaPackager    = ivy"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
+  def scalaPackagerCli = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
   // Force using of 2.13 - is there a better way?
   def scalaparse               = ivy"com.lihaoyi:scalaparse_2.13:2.3.3"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"

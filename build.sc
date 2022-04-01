@@ -33,7 +33,9 @@ import _root_.scala.util.Properties
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli            extends Cli
+object cli extends Cli
+// remove once migrate to Scala 3
+object cli3           extends Cli { override def myScalaVersion = Scala.scala3 }
 object `cli-options`  extends CliOptions
 object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal, Scala.scala3)
 object options        extends Cross[Options](Scala.defaultInternal, Scala.scala3)
@@ -196,9 +198,10 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
 def asyncScalacOptions(scalaVersion: String) =
   if (scalaVersion.startsWith("3")) Nil else Seq("-Xasync")
 
-trait BuildLikeModule
-    extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests
-    with ScalaCliScalafixModule {
+trait ProtoBuildModule extends ScalaCliPublishModule with HasTests
+    with ScalaCliScalafixModule
+
+trait BuildLikeModule extends ScalaCliCrossSbtModule with ProtoBuildModule {
 
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
@@ -484,28 +487,32 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with settings.Scal
   def scalaVersion = Scala.defaultInternal
 }
 
-trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with FormatNativeImageConf
-    with HasTests with HasMacroAnnotations with ScalaCliScalafixModule {
-  def scalaVersion = Scala.defaultInternal
+trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
+    with HasMacroAnnotations with FormatNativeImageConf {
+
+  def millSourcePath = super.millSourcePath / os.up / "cli"
+
+  def myScalaVersion = Scala.defaultInternal
+
+  def scalaVersion = T(myScalaVersion)
+
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion()) ++ Seq("-Ywarn-unused")
   }
   def javacOptions = T {
     super.javacOptions() ++ Seq("--release", "16")
   }
   def moduleDeps = Seq(
-    build(Scala.defaultInternal),
-    `test-runner`(Scala.defaultInternal),
-    `cli-options`
+    build(myScalaVersion),
+    `cli-options`,
+    `test-runner`(myScalaVersion)
   )
 
   def repositories = super.repositories ++ customRepositories
 
   def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.caseApp,
     Deps.coursierLauncher,
     Deps.coursierPublish,
-    Deps.dataClass,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
@@ -522,7 +529,7 @@ trait Cli extends SbtModule with CliLaunchers with ScalaCliPublishModule with Fo
 
   object test extends Tests with ScalaCliScalafixModule {
     def moduleDeps = super.moduleDeps ++ Seq(
-      build(Scala.defaultInternal).test
+      build(myScalaVersion).test
     )
   }
 }

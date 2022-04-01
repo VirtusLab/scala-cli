@@ -1,12 +1,13 @@
 package scala.cli.internal
 
+import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
-import coursier.{Repositories, moduleString}
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
 import java.io.File
 
+import scala.build.CoursierUtils._
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, ScalaJsLinkingError}
 import scala.build.internal.{FetchExternalBinary, Runner, ScalaJsLinkerConfig}
@@ -36,13 +37,13 @@ object ScalaJsLinker {
             val scalaJsCliDep = {
               val mod =
                 if (scalaJsCliVersion.contains("-sc"))
-                  mod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
-                else mod"org.scala-js:scalajs-cli_2.13"
+                  cmod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+                else cmod"org.scala-js:scalajs-cli_2.13"
               coursier.Dependency(mod, scalaJsCliVersion)
             }
 
             val forcedVersions = Seq(
-              mod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
+              cmod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
             )
 
             val extraRepos =

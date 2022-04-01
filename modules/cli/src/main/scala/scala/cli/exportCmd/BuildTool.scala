@@ -1,4 +1,4 @@
-package scala.cli.export
+package scala.cli.exportCmd
 
 import java.nio.charset.Charset
 
