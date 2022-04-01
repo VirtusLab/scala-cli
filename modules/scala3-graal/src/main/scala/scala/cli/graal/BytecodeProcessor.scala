@@ -1,16 +1,12 @@
 package scala.cli.graal
 
-import java.io.File
 import org.objectweb.asm._
-import java.nio.file.Path
-import java.io.InputStream
-import java.util.jar.JarFile
-import java.util.jar.JarEntry
-import org.objectweb.asm.ClassWriter
+
+import java.io.{File, InputStream}
+import java.nio.file.{Files, Path, StandardOpenOption}
+import java.util.jar.{JarEntry, JarFile, JarOutputStream}
+
 import scala.jdk.CollectionConverters._
-import java.util.jar.JarOutputStream
-import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 
 trait JarCache {
   def cache(path: os.Path)(processPath: os.Path => ClassPathEntry): ClassPathEntry
@@ -20,8 +16,11 @@ trait JarCache {
 sealed trait ClassPathEntry {
   def nioPath: Path = path.toNIO
   def path: os.Path
+  def modified = true
 }
-case class Unmodified(path: os.Path)                                    extends ClassPathEntry
+case class Unmodified(path: os.Path) extends ClassPathEntry {
+  override def modified: Boolean = false
+}
 case class Processed(path: os.Path, original: os.Path, cache: JarCache) extends ClassPathEntry
 case class CreatedEntry(path: os.Path)                                  extends ClassPathEntry
 
@@ -54,10 +53,16 @@ object BytecodeProcessor {
         else Unmodified(dest)
       }
     }
-    if (cp.exists(_.isInstanceOf[Processed])) {
+    if (cp.exists(_.modified)) {
       // jar with runtime deps is added as a resource
-      val runtimeJar = getClass().getClassLoader.getResourceAsStream("out.jar").readAllBytes()
-      val created    = cache.put(os.RelPath("safeBytecode.jar"), runtimeJar)
+      // scala3RuntimeFixes.jar is also used within
+      // resource-config.json and BytecodeProcessor.scala
+      val jarName      = "scala3RuntimeFixes.jar"
+      val runtimeJarIs = getClass().getClassLoader.getResourceAsStream(jarName)
+      if (runtimeJarIs == null) throw new NoSuchElementException(
+        "Unable to find scala3RuntimeFixes.jar on classpath, did you add scala3-graal jar on classpath?"
+      )
+      val created = cache.put(os.RelPath(jarName), runtimeJarIs.readAllBytes())
       created +: cp
     }
     else cp // No need to add processed jar

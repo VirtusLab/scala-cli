@@ -198,6 +198,7 @@ trait CliLaunchers extends SbtModule { self =>
         else staticLibDir().path.toString
       Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
+        "-H:IncludeResources='.*scala3RuntimeFixes.jar$'",
         "-H:-ParseRuntimeOptions",
         s"-H:CLibraryPath=$cLibPath"
       )

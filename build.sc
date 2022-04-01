@@ -35,7 +35,7 @@ implicit def millModuleBasePath: define.BasePath =
 
 object cli extends Cli
 // remove once migrate to Scala 3
-object cli3            extends Cli3
+object cli3           extends Cli3
 object `cli-options`  extends CliOptions
 object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal, Scala.scala3)
 object options        extends Cross[Options](Scala.defaultInternal, Scala.scala3)
@@ -426,6 +426,14 @@ trait ScalaParse extends SbtModule with ScalaCliPublishModule with settings.Scal
 trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with settings.ScalaCliCompile {
   def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
   def scalaVersion = Scala.scala3
+  def jar = T {
+    val original = super.jar().path
+    // scala3RuntimeFixes.jar is also used within
+    // resource-config.json and BytecodeProcessor.scala
+    val dest = original / os.up / "scala3RuntimeFixes.jar"
+    os.copy(original, dest)
+    PathRef(dest)
+  }
 }
 
 class Scala3Graal(val crossScalaVersion: String) extends BuildLikeModule {
@@ -527,6 +535,9 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with settings.Scal
 trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     with HasMacroAnnotations with FormatNativeImageConf {
 
+
+  
+
   def millSourcePath = super.millSourcePath / os.up / "cli"
 
   def myScalaVersion = Scala.defaultInternal
@@ -545,6 +556,9 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     `test-runner`(myScalaVersion),
     `scala3-graal`(myScalaVersion)
   )
+
+  // We are adding graal as compile deps and adding jat on classpath since we want to build a native image from jar not from directories
+  def runClasspath = T { Seq(`scala3-graal`(myScalaVersion).jar()) ++ super.runClasspath() }
 
   def repositories = super.repositories ++ customRepositories
 

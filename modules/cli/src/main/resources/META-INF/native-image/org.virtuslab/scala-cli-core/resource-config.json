@@ -18,6 +18,9 @@
       },
       {
         "pattern": "\\Qcommons-logging.properties\\E"
+      },
+      {
+        "pattern": ".*scala3RuntimeFixes.jar$"
       }
     ]
   },
