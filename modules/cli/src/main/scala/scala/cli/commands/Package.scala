@@ -47,7 +47,8 @@ object Package extends ScalaCommand[PackageOptions] {
     val logger              = options.shared.logger
     val threads             = BuildThreads.create()
 
-    val compilerMaker = options.compilerMaker(threads)
+    val compilerMaker       = options.compilerMaker(threads)
+    val docCompilerMakerOpt = options.docCompilerMakerOpt
 
     val cross = options.compileCross.cross.getOrElse(false)
 
@@ -57,6 +58,7 @@ object Package extends ScalaCommand[PackageOptions] {
         inputs,
         initialBuildOptions,
         compilerMaker,
+        docCompilerMakerOpt,
         logger,
         crossBuilds = cross,
         buildTests = false,
@@ -92,6 +94,7 @@ object Package extends ScalaCommand[PackageOptions] {
           inputs,
           initialBuildOptions,
           compilerMaker,
+          docCompilerMakerOpt,
           logger,
           crossBuilds = cross,
           buildTests = false,
@@ -358,7 +361,7 @@ object Package extends ScalaCommand[PackageOptions] {
     "-author",
     "-groups"
   )
-  private def docJar(
+  def docJar(
     build: Build.Successful,
     logger: Logger,
     extraArgs: Seq[String]
@@ -386,7 +389,7 @@ object Package extends ScalaCommand[PackageOptions] {
       val ext = if (Properties.isWin) ".exe" else ""
       val baseArgs = Seq(
         "-classpath",
-        build.artifacts.classPath.map(_.toString).mkString(File.pathSeparator),
+        build.fullClassPath.map(_.toString).mkString(File.pathSeparator),
         "-d",
         destDir.toString
       )

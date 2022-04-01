@@ -1,11 +1,14 @@
 package scala.cli.commands
 
 import caseapp.core.RemainingArgs
+import coursier.cache.ArchiveCache
 import coursier.core.Configuration
 import coursier.maven.MavenRepository
 import coursier.publish.checksum.logger.InteractiveChecksumLogger
 import coursier.publish.checksum.{ChecksumType, Checksums}
 import coursier.publish.fileset.{FileSet, Path}
+import coursier.publish.signing.logger.InteractiveSignerLogger
+import coursier.publish.signing.{GpgSigner, NopSigner, Signer}
 import coursier.publish.upload.logger.InteractiveUploadLogger
 import coursier.publish.upload.{FileUpload, HttpURLConnectionUpload}
 import coursier.publish.{Content, Pom}
@@ -13,19 +16,23 @@ import coursier.publish.{Content, Pom}
 import java.io.OutputStreamWriter
 import java.net.URI
 import java.nio.charset.StandardCharsets
-import java.nio.file.Paths
+import java.nio.file.{Path => NioPath, Paths}
 import java.time.Instant
+import java.util.function.Supplier
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.{BuildOptions, PublishOptions => BPublishOptions, Scope}
+import scala.build.options.PublishOptions.{Signer => PSigner}
+import scala.build.options.{BuildOptions, ConfigMonoid, PublishOptions => BPublishOptions, Scope}
 import scala.build.{Build, BuildThreads, Builds, Logger, Os, Positioned}
 import scala.cli.CurrentParams
+import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.util.SharedOptionsUtil._
-import scala.cli.errors.{MissingRepositoryError, UploadError}
+import scala.cli.errors.{FailedToSignFileError, MissingRepositoryError, UploadError}
 import scala.cli.packaging.Library
+import scala.cli.publish.BouncycastleSignerMaker
 
 object Publish extends ScalaCommand[PublishOptions] {
 
@@ -69,7 +76,18 @@ object Publish extends ScalaCommand[PublishOptions] {
           scalaVersionSuffix = scalaVersionSuffix.map(_.trim),
           scalaPlatformSuffix = scalaPlatformSuffix.map(_.trim),
           repository = publishRepository.filter(_.trim.nonEmpty),
-          sourceJar = sources
+          sourceJar = sources,
+          docJar = doc,
+          gpgSignatureId = gpgKey.map(_.trim).filter(_.nonEmpty),
+          gpgOptions = gpgOption,
+          secretKey = secretKey.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
+          secretKeyPassword = secretKeyPassword,
+          signer = value {
+            signer
+              .map(Positioned.commandLine(_))
+              .map(BPublishOptions.parseSigner(_))
+              .sequence
+          }
         )
       )
     )
@@ -85,7 +103,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     val initialBuildOptions = mkBuildOptions(options).orExit(logger)
     val threads             = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
+    val compilerMaker    = options.shared.compilerMaker(threads)
+    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true)
 
     val cross = options.compileCross.cross.getOrElse(false)
 
@@ -104,6 +123,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         inputs,
         initialBuildOptions,
         compilerMaker,
+        Some(docCompilerMaker),
         logger,
         crossBuilds = cross,
         buildTests = false,
@@ -123,6 +143,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           inputs,
           initialBuildOptions,
           compilerMaker,
+          Some(docCompilerMaker),
           logger,
           crossBuilds = cross,
           buildTests = false,
@@ -148,20 +169,30 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val allOk = builds.all.forall {
       case _: Build.Successful => true
+      case _: Build.Cancelled  => false
       case _: Build.Failed     => false
     }
-    if (allOk) {
+    val allDocsOk = builds.allDoc.forall {
+      case _: Build.Successful => true
+      case _: Build.Cancelled  => true
+      case _: Build.Failed     => false
+    }
+    if (allOk && allDocsOk) {
       val builds0 = builds.all.collect {
         case s: Build.Successful => s
       }
-      val res = doPublish(builds0, workingDir, logger)
+      val docBuilds0 = builds.allDoc.collect {
+        case s: Build.Successful => s
+      }
+      val res = doPublish(builds0, docBuilds0, workingDir, logger)
       if (allowExit)
         res.orExit(logger)
       else
         res.orReport(logger)
     }
     else {
-      System.err.println("Compilation failed")
+      val msg = if (allOk) "Scaladoc generation failed" else "Compilation failed"
+      System.err.println(msg)
       if (allowExit)
         sys.exit(1)
     }
@@ -169,6 +200,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
   private def buildFileSet(
     build: Build.Successful,
+    docBuildOpt: Option[Build.Successful],
     workingDir: os.Path,
     now: Instant,
     logger: Logger
@@ -254,6 +286,19 @@ object Publish extends ScalaCommand[PublishOptions] {
       else
         None
 
+    val docJarOpt =
+      if (publishOptions.docJar.getOrElse(true))
+        docBuildOpt match {
+          case None => None
+          case Some(docBuild) =>
+            val content = value(Package.docJar(docBuild, logger, Nil))
+            val docJar  = workingDir / org / s"$fullName-$ver-javadoc.jar"
+            os.write(docJar, content, createFolders = true)
+            Some(docJar)
+        }
+      else
+        None
+
     val basePath = Path(org.split('.').toSeq ++ Seq(fullName, ver))
 
     val mainEntries = Seq(
@@ -270,24 +315,40 @@ object Publish extends ScalaCommand[PublishOptions] {
       }
       .toSeq
 
+    val docJarEntries = docJarOpt
+      .map { docJar =>
+        (basePath / s"$fullName-$ver-javadoc.jar") -> Content.File(docJar.toNIO)
+      }
+      .toSeq
+
     // TODO version listings, …
-    FileSet(mainEntries ++ sourceJarEntries)
+    FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries)
   }
 
   private def doPublish(
     builds: Seq[Build.Successful],
+    docBuilds: Seq[Build.Successful],
     workingDir: os.Path,
     logger: Logger
   ): Either[BuildException, Unit] = either {
 
+    assert(docBuilds.isEmpty || docBuilds.length == builds.length)
+
+    val it = builds.iterator.zip {
+      if (docBuilds.isEmpty) Iterator.continually(None)
+      else docBuilds.iterator.map(Some(_))
+    }
+
     val now = Instant.now()
     val fileSet0 = value {
-      builds
+      it
         // TODO Allow to add test JARs to the main build artifacts
-        .filter(_.scope != Scope.Test)
-        .map { build =>
-          buildFileSet(build, workingDir, now, logger)
+        .filter(_._1.scope != Scope.Test)
+        .map {
+          case (build, docBuildOpt) =>
+            buildFileSet(build, docBuildOpt, workingDir, now, logger)
         }
+        .toVector
         .sequence
         .left.map(CompositeBuildException(_))
         .map(_.foldLeft(FileSet.empty)(_ ++ _))
@@ -295,18 +356,88 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val ec = builds.head.options.finalCache.ec
 
+    val signerOpt = ConfigMonoid.sum(
+      builds.map(_.options.notForBloopOptions.publishOptions.signer)
+    )
+    val signer: Signer = signerOpt match {
+      case Some(PSigner.Gpg) =>
+        val gpgSignatureIdOpt = ConfigMonoid.sum(
+          builds.map(_.options.notForBloopOptions.publishOptions.gpgSignatureId)
+        )
+        gpgSignatureIdOpt match {
+          case Some(gpgSignatureId) =>
+            val gpgOptions =
+              builds.toList.flatMap(_.options.notForBloopOptions.publishOptions.gpgOptions)
+            GpgSigner(
+              GpgSigner.Key.Id(gpgSignatureId),
+              extraOptions = gpgOptions
+            )
+          case None => NopSigner
+        }
+      case Some(PSigner.BouncyCastle) =>
+        val secretKeyOpt = ConfigMonoid.sum(
+          builds.map(_.options.notForBloopOptions.publishOptions.secretKey)
+        )
+        secretKeyOpt match {
+          case Some(secretKey) =>
+            val passwordOpt = ConfigMonoid.sum(
+              builds.map(_.options.notForBloopOptions.publishOptions.secretKeyPassword)
+            )
+            val getLauncher: Supplier[NioPath] = { () =>
+              val archiveCache = builds.headOption
+                .map(_.options.archiveCache)
+                .getOrElse(ArchiveCache())
+              PgpExternalCommand.launcher(archiveCache, None, logger) match {
+                case Left(e)      => throw new Exception(e)
+                case Right(value) => value.wrapped
+              }
+            }
+            (new BouncycastleSignerMaker).get(
+              passwordOpt.orNull,
+              secretKey.wrapped,
+              getLauncher,
+              logger
+            )
+          case None => NopSigner
+        }
+      case None => NopSigner
+    }
+    val signerLogger =
+      new InteractiveSignerLogger(new OutputStreamWriter(System.err), verbosity = 1)
+    val signRes = signer.signatures(
+      fileSet0,
+      now,
+      ChecksumType.all.map(_.extension).toSet,
+      Set("maven-metadata.xml"),
+      signerLogger
+    )
+
+    val fileSet1 = value {
+      signRes
+        .left.map {
+          case (path, content, err) =>
+            val path0 = content.pathOpt
+              .map(os.Path(_, Os.pwd))
+              .toRight(path.repr)
+            new FailedToSignFileError(path0, err)
+        }
+        .map { signatures =>
+          fileSet0 ++ signatures
+        }
+    }
+
     val checksumLogger =
       new InteractiveChecksumLogger(new OutputStreamWriter(System.err), verbosity = 1)
     val checksums = Checksums(
       Seq(ChecksumType.MD5, ChecksumType.SHA1),
-      fileSet0,
+      fileSet1,
       now,
       ec,
       checksumLogger
     ).unsafeRun()(ec)
-    val fileSet1 = fileSet0 ++ checksums
+    val fileSet2 = fileSet1 ++ checksums
 
-    val finalFileSet = fileSet1.order(ec).unsafeRun()(ec)
+    val finalFileSet = fileSet2.order(ec).unsafeRun()(ec)
 
     val repoUrl = builds.head.options.notForBloopOptions.publishOptions.repository match {
       case None =>

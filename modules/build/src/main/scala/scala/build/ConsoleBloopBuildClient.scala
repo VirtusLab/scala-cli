@@ -130,7 +130,6 @@ class ConsoleBloopBuildClient(
               case bsp4j.StatusCode.OK        => s"Compiled $projectName"
               case bsp4j.StatusCode.ERROR     => s"Error compiling $projectName"
               case bsp4j.StatusCode.CANCELLED => s"Compilation cancelled$projectNameSuffix"
-              case _                          => s"Compiled $projectName" // ???
             }
           else msg
         logger.message(gray + msg0 + reset)

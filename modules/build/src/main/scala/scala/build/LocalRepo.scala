@@ -2,7 +2,7 @@ package scala.build
 
 import coursier.paths.Util
 
-import java.io.{BufferedInputStream, ByteArrayOutputStream, Closeable, InputStream}
+import java.io.{BufferedInputStream, Closeable}
 import java.nio.channels.{FileChannel, FileLock}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, StandardOpenOption}
@@ -23,20 +23,6 @@ object LocalRepo {
     finally if (is0.nonEmpty) is0.get.close()
   }
 
-  private def readContent(is: InputStream): Array[Byte] = {
-    val baos = new ByteArrayOutputStream
-
-    val buf  = Array.ofDim[Byte](16 * 1024)
-    var read = -1
-    while ({
-      read = is.read(buf)
-      read >= 0
-    })
-      baos.write(buf, 0, read)
-
-    baos.toByteArray
-  }
-
   private def extractZip(zis: ZipInputStream, dest: os.Path): Unit = {
     var ent: ZipEntry = null
     while ({
@@ -44,7 +30,7 @@ object LocalRepo {
       ent != null
     })
       if (!ent.isDirectory) {
-        val content = readContent(zis)
+        val content = zis.readAllBytes()
         zis.closeEntry()
         os.write(
           dest / ent.getName.split('/').toSeq,
@@ -64,7 +50,7 @@ object LocalRepo {
     else {
       assert(ent.getName == entryPath)
 
-      val content = readContent(zis)
+      val content = zis.readAllBytes()
       zis.closeEntry()
       Some(content)
     }

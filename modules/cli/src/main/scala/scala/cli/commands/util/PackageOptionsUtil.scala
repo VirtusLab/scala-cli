@@ -80,10 +80,17 @@ object PackageOptionsUtil {
       )
     }
 
-    def compilerMaker(threads: BuildThreads): ScalaCompilerMaker =
+    def compilerMaker(threads: BuildThreads): ScalaCompilerMaker = {
+      val maker = shared.compilerMaker(threads)
       if (forcedPackageTypeOpt.contains(PackageType.DocJar))
-        SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
+        ScalaCompilerMaker.IgnoreScala2(maker)
       else
-        shared.compilerMaker(threads)
+        maker
+    }
+    def docCompilerMakerOpt: Option[ScalaCompilerMaker] =
+      if (forcedPackageTypeOpt.contains(PackageType.DocJar))
+        Some(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
+      else
+        None
   }
 }

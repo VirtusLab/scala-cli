@@ -2,6 +2,9 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.internal.PasswordOptionParsers._
+import scala.cli.signing.shared.PasswordOption
+
 // format: off
 final case class PublishOptions(
   @Recurse
@@ -65,7 +68,42 @@ final case class PublishOptions(
 
   @Group("Publishing")
   @HelpMessage("Whether to build and publish source JARs")
-    sources: Option[Boolean] = None
+    sources: Option[Boolean] = None,
+
+  @Group("Publishing")
+  @HelpMessage("Whether to build and publish doc JARs")
+  @ExtraName("scaladoc")
+  @ExtraName("javadoc")
+    doc: Option[Boolean] = None,
+
+  @Group("Publishing")
+  @HelpMessage("ID of the GPG key to use to sign artifacts")
+  @ValueDescription("key-id")
+  @ExtraName("K")
+    gpgKey: Option[String] = None,
+
+  @Group("Publishing")
+  @HelpMessage("Secret key to use to sign artifacts with BouncyCastle")
+  @ValueDescription("path")
+    secretKey: Option[String] = None,
+
+  @Group("Publishing")
+  @HelpMessage("Password of secret key to use to sign artifacts with BouncyCastle")
+  @ValueDescription("value:…")
+  @ExtraName("secretKeyPass")
+    secretKeyPassword: Option[PasswordOption] = None,
+
+  @Group("Publishing")
+  @HelpMessage("Method to use to sign artifacts")
+  @ValueDescription("gpg|bc")
+    signer: Option[String] = None,
+
+  @Group("Publishing")
+  @HelpMessage("gpg command-line options")
+  @ValueDescription("argument")
+  @ExtraName("G")
+  @ExtraName("gpgOpt")
+    gpgOption: List[String] = Nil
 )
 // format: on
 

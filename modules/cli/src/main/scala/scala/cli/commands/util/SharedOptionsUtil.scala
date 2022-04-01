@@ -6,7 +6,7 @@ import coursier.util.Artifact
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
-import java.io.{ByteArrayOutputStream, File, InputStream}
+import java.io.{File, InputStream}
 
 import scala.build._
 import scala.build.blooprifle.BloopRifleConfig
@@ -194,8 +194,10 @@ object SharedOptionsUtil {
       )
     }
 
-    def compilerMaker(threads: BuildThreads): ScalaCompilerMaker =
-      if (compilationServer.server.getOrElse(true))
+    def compilerMaker(threads: BuildThreads, scaladoc: Boolean = false): ScalaCompilerMaker =
+      if (scaladoc)
+        SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
+      else if (compilationServer.server.getOrElse(true))
         new BloopCompilerMaker(
           bloopRifleConfig(),
           threads.bloop,
@@ -275,16 +277,7 @@ object SharedOptionsUtil {
     }
     else {
       logger.debug("Reading stdin")
-      val baos = new ByteArrayOutputStream
-      val buf  = Array.ofDim[Byte](16 * 1024)
-      var read = -1
-      while ({
-        read = in.read(buf)
-        read >= 0
-      })
-        if (read > 0)
-          baos.write(buf, 0, read)
-      val result = baos.toByteArray
+      val result = in.readAllBytes()
       logger.debug(s"Done reading stdin (${result.length} B)")
       Some(result)
     }

@@ -1,3 +1,4 @@
+import coursier.mavenRepositoryString
 import mill._, scalalib._
 
 import scala.util.Properties
@@ -55,6 +56,7 @@ object Deps {
     def scalaMeta     = "4.5.1"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
+    def signingCli    = "0.1.2"
   }
   def ammonite = ivy"com.lihaoyi:::ammonite:2.5.2"
   def asm      = ivy"org.ow2.asm:asm:9.2"
@@ -110,7 +112,10 @@ object Deps {
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                = ivy"com.chuusai::shapeless:2.3.9"
-  def slf4jNop                 = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
+  def signingCliShared =
+    ivy"io.github.alexarchambault.scala-cli.signing:shared_2.13:${Versions.signingCli}"
+  def signingCli = ivy"io.github.alexarchambault.scala-cli.signing:cli_2.13:${Versions.signingCli}"
+  def slf4jNop   = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   // Force using of 2.13 - is there a better way?
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"me.vican.jorge:snailgun-core_2.13:0.4.0"

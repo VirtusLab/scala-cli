@@ -70,6 +70,14 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     }
   }
 
+  private def actualHelp(command: Command[_]): Help[_] =
+    command match {
+      case ext: scala.cli.commands.pgp.ExternalCommand =>
+        ext.actualHelp
+      case _ =>
+        command.finalHelp
+    }
+
   private def cliOptionsContent(
     commands: Seq[Command[_]],
     allArgs: Seq[Arg],
@@ -80,7 +88,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
     val commandOrigins = for {
       command <- commands
-      origin  <- command.finalHelp.args.map(_.origin.getOrElse("")).map(cleanUpOrigin)
+      origin  <- actualHelp(command).args.map(_.origin.getOrElse("")).map(cleanUpOrigin)
     } yield origin -> command
 
     val commandOriginsMap = commandOrigins.groupBy(_._1)
@@ -285,7 +293,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
 
     val scalaCli      = new ScalaCliCommands("scala-cli", isSipScala = false)
     val commands      = scalaCli.commands
-    val allArgs       = commands.flatMap(_.finalHelp.args)
+    val allArgs       = commands.flatMap(actualHelp(_).args)
     val nameFormatter = scalaCli.actualDefaultCommand.nameFormatter
 
     val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)

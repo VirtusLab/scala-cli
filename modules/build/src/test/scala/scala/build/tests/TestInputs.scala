@@ -75,6 +75,7 @@ final case class TestInputs(
           inputs,
           options,
           compilerMaker,
+          None,
           TestLogger(),
           crossBuilds = false,
           buildTests = true,
