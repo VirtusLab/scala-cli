@@ -915,3 +915,29 @@ def updateLicensesFile() = {
 
   System.err.println(s"Wrote $dest")
 }
+
+def checksum(sumType: String, len: Int, f: os.Path): String = {
+  val md = java.security.MessageDigest.getInstance(sumType)
+  md.update(os.read.bytes(f))
+  val rawSum  = md.digest()
+  val baseSum = new java.math.BigInteger(1, rawSum).toString(16)
+  "0" * (baseSum.length - len) + baseSum
+}
+
+// Warning: somehow also in Mamba.scala in the build module
+lazy val maybeMambaPlatform: Either[String, String] = {
+  val maybeMambaOs =
+    if (Properties.isWin) Right("win")
+    else if (Properties.isMac) Right("osx")
+    else if (Properties.isLinux) Right("linux")
+    else Left(s"Unsupported mamba OS: ${sys.props("os.name")}")
+  val arch = sys.props("os.arch").toLowerCase(Locale.ROOT)
+  val maybeMambaArch = arch match {
+    case "x86_64" | "amd64"  => Right("64")
+    case "arm64" | "aarch64" => Right("arm64")
+    case "ppc64le"           => Right("ppc64le")
+    case _                   => Left(s"Unsupported mamba architecture: $arch")
+  }
+  for (mambaOs <- maybeMambaOs; mambaArch <- maybeMambaArch)
+    yield s"$mambaOs-$mambaArch"
+}

@@ -384,6 +384,23 @@ Accepts options:
 - [install home](./cli-options.md#install-home-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
+### `mamba`
+
+Run mamba (lightweight native mamba executable)
+
+Accepts options:
+- [coursier](./cli-options.md#coursier-options)
+- [logging](./cli-options.md#logging-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
+### `mamba freeze`
+
+Accepts options:
+- [coursier](./cli-options.md#coursier-options)
+- [logging](./cli-options.md#logging-options)
+- [mamba freeze](./cli-options.md#mamba-freeze-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ### `browse`
 
 Aliases:

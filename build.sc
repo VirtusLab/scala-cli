@@ -264,6 +264,22 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
     val testRunnerOrganization = `test-runner`(Scala.defaultInternal)
       .pomSettings()
       .organization
+    val nativeCondaLockFileChecksumCode = {
+      val maybeFileNamePrefix = settings.maybeMambaPlatform
+      val maybeChecksum = maybeFileNamePrefix.flatMap { fileNamePrefix =>
+        val path =
+          os.pwd / "modules" / "build" / "src" / "main" / "resources" / "scala" / "build" / "internal" / "mamba" / s"$fileNamePrefix-packages.txt"
+        if (os.isFile(path)) {
+          val sha1 = settings.checksum("SHA1", 48, path)
+          Right(sha1.take(10))
+        }
+        else Left(s"Platform $fileNamePrefix not supported")
+      }
+      maybeChecksum match {
+        case Left(err)       => "sys.error(\"" + err.replace("\"", "\\\"") + "\")"
+        case Right(checksum) => "\"" + checksum + "\""
+      }
+    }
     val code =
       s"""package scala.build.internal
          |
@@ -322,6 +338,10 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
          |
          |  def scalaCliSigningVersion = "${Deps.signingCli.dep.version}"
+         |
+         |  def nativeCondaLockFileChecksum = $nativeCondaLockFileChecksumCode
+         |  def defaultMicroMambaVersion = "${InternalDeps.Versions.microMambaVersion}"
+         |  def defaultMicroMambaSuffix = "${InternalDeps.Versions.microMambaSuffix}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -641,6 +661,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def authProxyTestImage = "${Docker.authProxyTestImage}"
            |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
+           |  def csVersion = "${TestDeps.cs}"
            |  def workspaceDirName = "$workspaceDirName"
            |}
            |""".stripMargin

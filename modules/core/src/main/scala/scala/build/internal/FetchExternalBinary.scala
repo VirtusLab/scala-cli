@@ -19,7 +19,8 @@ object FetchExternalBinary {
     changing: Boolean,
     archiveCache: ArchiveCache[Task],
     logger: Logger,
-    launcherPrefix: String
+    launcherPrefix: String = "",
+    makeExecutable: Boolean = true
   ): Either[BuildException, os.Path] = either {
 
     val artifact = Artifact(url).withChanging(changing)
@@ -37,7 +38,7 @@ object FetchExternalBinary {
     logger.debug(s"$url is available locally at $f")
 
     val launcher =
-      if (os.isDir(f)) {
+      if (os.isDir(f) && launcherPrefix.nonEmpty) {
         val dirContent = os.list(f)
         if (dirContent.length == 1) dirContent.head
         else dirContent.filter(_.last.startsWith(launcherPrefix)).head
@@ -45,7 +46,7 @@ object FetchExternalBinary {
       else
         f
 
-    if (!Properties.isWin)
+    if (makeExecutable && !Properties.isWin)
       os.perms.set(launcher, "rwxr-xr-x")
 
     launcher

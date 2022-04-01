@@ -212,6 +212,8 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`mamba`](./commands.md#mamba)
+- [`mamba freeze`](./commands.md#mamba-freeze)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
@@ -376,6 +378,8 @@ Available in commands:
 - [`help`](./commands.md#help)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`install-home`](./commands.md#install-home)
+- [`mamba`](./commands.md#mamba)
+- [`mamba freeze`](./commands.md#mamba-freeze)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`pgp create`](./commands.md#pgp-create)
@@ -588,6 +592,8 @@ Available in commands:
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
+- [`mamba`](./commands.md#mamba)
+- [`mamba freeze`](./commands.md#mamba-freeze)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
@@ -627,6 +633,18 @@ Available in commands:
 Aliases: `-M`
 
 Specify which main class to run
+
+## Mamba freeze options
+
+Available in commands:
+- [`mamba freeze`](./commands.md#mamba-freeze)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--prefix`
+
+Aliases: `-p`
 
 ## Metabrowse options
 
@@ -1172,6 +1190,8 @@ List of compile options
 
 Use default compile options
 
+#### `--use-managed-clang`
+
 ## Scalac options
 
 Available in commands:
@@ -1280,6 +1300,8 @@ Generate SemanticDBs
 
 #### `--strict-bloop-json-check`
 
+#### `--put-platform-config-in-bloop-file`
+
 ## Test options
 
 Available in commands:
@@ -1336,6 +1358,8 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`install-home`](./commands.md#install-home)
+- [`mamba`](./commands.md#mamba)
+- [`mamba freeze`](./commands.md#mamba-freeze)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)

@@ -73,7 +73,8 @@ object SharedOptionsUtil {
         nativeLinking,
         nativeLinkingDefaults,
         nativeCompile,
-        nativeCompileDefaults
+        nativeCompileDefaults,
+        useManagedClang = useManagedClang
       )
     }
 
@@ -140,9 +141,11 @@ object SharedOptionsUtil {
         ),
         internal = bo.InternalOptions(
           cache = Some(coursierCache),
+          directories = Some(directories.directories),
           localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
           verbosity = Some(logging.verbosity),
-          strictBloopJsonCheck = strictBloopJsonCheck
+          strictBloopJsonCheck = strictBloopJsonCheck,
+          putPlatformConfigInBloopFile = putPlatformConfigInBloopFile
         ),
         notForBloopOptions = bo.PostBuildOptions(
           scalaJsLinkerOptions = linkerOptions(js)

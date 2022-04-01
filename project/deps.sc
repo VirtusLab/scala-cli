@@ -38,6 +38,7 @@ object TestDeps {
   def pprint           = Deps.pprint
   def munit            = Deps.munit
   def scalaSnapshot213 = "2.13.8-bin-e814d78"
+  def cs               = Deps.Versions.coursier
 }
 
 object InternalDeps {
@@ -45,6 +46,9 @@ object InternalDeps {
     def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
     def scalaJsCli    = "1.1.1-sc1"
+
+    def microMambaVersion = "0.22.0"
+    def microMambaSuffix  = "-0"
   }
 }
 

@@ -13,6 +13,7 @@ trait Directories {
   def bspSocketDir: os.Path
   def bloopDaemonDir: os.Path
   def bloopWorkingDir: os.Path
+  def condaEnvsDir: os.Path
 }
 
 object Directories {
@@ -38,6 +39,8 @@ object Directories {
         else projDirs.dataLocalDir
       os.Path(baseDir, Os.pwd) / "bloop"
     }
+    lazy val condaEnvsDir: os.Path =
+      os.Path(projDirs.dataLocalDir, Os.pwd) / "conda-envs"
   }
 
   final case class SubDir(dir: os.Path) extends Directories {
@@ -55,6 +58,8 @@ object Directories {
       bloopWorkingDir / "daemon"
     lazy val bloopWorkingDir: os.Path =
       dir / "data-local" / "bloop"
+    lazy val condaEnvsDir: os.Path =
+      dir / "data-local" / "conda-envs"
   }
 
   def default(): Directories = {
