@@ -1,10 +1,14 @@
 package scala.build.options
 
-import scala.deriving.*
 import scala.compiletime.*
+import scala.deriving.*
+
 trait ConfigMonoid[T]:
   def zero: T
   def orElse(main: T, defaults: T): T
+
+  def sum(values: Seq[T]): T =
+    values.foldLeft(zero)(orElse(_, _))
 
 case class ConfigMonoidImpl[T](override val zero: T)(orElseFun: (T, T) => T)
     extends ConfigMonoid[T]:
@@ -18,6 +22,9 @@ object ConfigMonoid:
       def zero                         = zeroValue
       def orElse(main: T, defaults: T) = orElseFn(main, defaults)
     }
+
+  def sum[T](values: Seq[T])(implicit monoid: ConfigMonoid[T]): T =
+    monoid.sum(values)
 
   given seq[T]: ConfigMonoid[Seq[T]]       = ConfigMonoidImpl(Nil)(_ ++ _)
   given list[T]: ConfigMonoid[List[T]]     = ConfigMonoidImpl(Nil)(_ ++ _)
