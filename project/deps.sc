@@ -10,7 +10,7 @@ object Scala {
   val allScala2 = Seq(scala213, scala212)
   val all       = allScala2 ++ Seq(scala3)
 
-  def scalaJs = "1.9.0"
+  def scalaJs = "1.10.0"
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
