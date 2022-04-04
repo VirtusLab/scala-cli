@@ -27,7 +27,7 @@ scala-cli package DetectOsApp.scala
 
 <!-- Expected-regex:
 Wrote .*DetectOsApp, run it with
-  .*/DetectOsApp
+  .*\/DetectOsApp
 -->
 
 Lightweight JARs require the `java` command to be available, and access to the internet, if dependencies need to be downloaded. This is how you run it on macOS:

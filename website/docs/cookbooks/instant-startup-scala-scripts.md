@@ -3,7 +3,7 @@ title: Scala Scripts with instant startup
 sidebar_position: 8
 ---
 
-import {ChainedSnippets, GiflikeVideo} from "../src/components/MarkdownComponents.js";
+import {ChainedSnippets, GiflikeVideo} from "../../src/components/MarkdownComponents.js";
 
 `scala-cli` allows to easly compile and run Scala Scripts.
 It also allows for straightforward compilation with Scala Native. 
