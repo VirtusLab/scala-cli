@@ -1,9 +1,10 @@
 package scala.build.bsp
 
-import scala.build.bloop.ScalaDebugServer
 import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
+
+import scala.build.bloop.ScalaDebugServer
 import scala.build.options.Scope
 import scala.concurrent.Future
 

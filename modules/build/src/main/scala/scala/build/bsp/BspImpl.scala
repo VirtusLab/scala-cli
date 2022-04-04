@@ -9,17 +9,14 @@ import java.io.{InputStream, OutputStream}
 import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.EitherCps.{either, value}
-import scala.build._
-import scala.build.bloop.BloopServer
+import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.compiler.{BloopCompiler, ScalaCompiler}
 import scala.build.errors.{BuildException, Diagnostic}
-import scala.build.internal.{Constants, CustomCodeWrapper}
+import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success}
 
 final class BspImpl(
@@ -54,10 +51,8 @@ final class BspImpl(
     diagnostics: Seq[Diagnostic]
   )
 
-  private def prepareBuild(
-    actualLocalServer: BspServerProxy,
-    compiler: ScalaCompiler
-  ): Either[(BuildException, Scope), PreBuildProject] = either {
+  private def prepareBuild(actualLocalServer: BspServerProxy)
+    : Either[(BuildException, Scope), PreBuildProject] = either {
     logger.log("Preparing build")
 
     val persistentLogger = new PersistentDiagnosticLogger(logger)
@@ -107,7 +102,7 @@ final class BspImpl(
         options0Main,
         None,
         Scope.Main,
-        compiler,
+        actualLocalServer.currentBloopCompiler,
         persistentLogger
       )
       res.left.map((_, Scope.Main))
@@ -121,7 +116,7 @@ final class BspImpl(
         options0Test,
         None,
         Scope.Test,
-        compiler,
+        actualLocalServer.currentBloopCompiler,
         persistentLogger
       )
       res.left.map((_, Scope.Test))
@@ -157,7 +152,6 @@ final class BspImpl(
 
   private def buildE(
     actualLocalServer: BspServerProxy,
-    compiler: ScalaCompiler,
     notifyChanges: Boolean
   ): Either[(BuildException, Scope), Unit] = {
     def doBuildOnce(data: PreBuildData, scope: Scope) =
@@ -169,12 +163,12 @@ final class BspImpl(
         scope,
         logger,
         actualLocalClient,
-        compiler,
+        actualLocalServer.currentBloopCompiler,
         partialOpt = None
       ).left.map(_ -> scope)
 
     for {
-      preBuild <- prepareBuild(actualLocalServer, compiler)
+      preBuild <- prepareBuild(actualLocalServer)
       _ = {
         if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
           notifyBuildChange(actualLocalServer)
@@ -186,12 +180,11 @@ final class BspImpl(
 
   private def build(
     actualLocalServer: BspServerProxy,
-    compiler: ScalaCompiler,
     client: BspClient,
     notifyChanges: Boolean,
     logger: Logger
   ): Unit =
-    buildE(actualLocalServer, compiler, notifyChanges) match {
+    buildE(actualLocalServer, notifyChanges) match {
       case Left((ex, scope)) =>
         client.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.debug(s"Caught $ex during BSP build, ignoring it")
@@ -203,7 +196,7 @@ final class BspImpl(
   private val shownGlobalMessages =
     new java.util.concurrent.ConcurrentHashMap[String, Unit]()
 
-  private def showGlobalWarningOnce(msg: String) =
+  private def showGlobalWarningOnce(msg: String): Unit =
     shownGlobalMessages.computeIfAbsent(
       msg,
       _ => {
@@ -219,7 +212,7 @@ final class BspImpl(
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () =>
-        prepareBuild(actualLocalServer, remoteServer) match {
+        prepareBuild(actualLocalServer) match {
           case Right(preBuild) =>
             if (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged)
               notifyBuildChange(actualLocalServer)
@@ -230,45 +223,43 @@ final class BspImpl(
       executor
     )
 
-    preBuild.thenCompose { maybeParams =>
-      maybeParams match {
-        case Left((ex, scope)) =>
-          actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
-          CompletableFuture.completedFuture(
-            new b.CompileResult(b.StatusCode.ERROR)
-          )
-        case Right(params) =>
-          for (targetId <- actualLocalServer.targetIds)
-            actualLocalClient.resetBuildExceptionDiagnostics(targetId)
+    preBuild.thenCompose {
+      case Left((ex, scope)) =>
+        actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
+        CompletableFuture.completedFuture(
+          new b.CompileResult(b.StatusCode.ERROR)
+        )
+      case Right(params) =>
+        for (targetId <- actualLocalServer.targetIds)
+          actualLocalClient.resetBuildExceptionDiagnostics(targetId)
 
-          val targetId = actualLocalServer.targetIds.head
-          params.diagnostics.foreach(actualLocalClient.reportDiagnosticForFiles(targetId))
+        val targetId = actualLocalServer.targetIds.head
+        params.diagnostics.foreach(actualLocalClient.reportDiagnosticForFiles(targetId))
 
-          doCompile().thenCompose { res =>
-            def doPostProcess(data: PreBuildData, scope: Scope) =
-              Build.postProcess(
-                data.generatedSources,
-                initialInputs.generatedSrcRoot(scope),
-                data.classesDir,
-                logger,
-                initialInputs.workspace,
-                updateSemanticDbs = true,
-                scalaVersion = data.project.scalaCompiler.scalaVersion
-              ).left.foreach(_.foreach(showGlobalWarningOnce))
+        doCompile().thenCompose { res =>
+          def doPostProcess(data: PreBuildData, scope: Scope): Unit =
+            Build.postProcess(
+              data.generatedSources,
+              initialInputs.generatedSrcRoot(scope),
+              data.classesDir,
+              logger,
+              initialInputs.workspace,
+              updateSemanticDbs = true,
+              scalaVersion = data.project.scalaCompiler.scalaVersion
+            ).left.foreach(_.foreach(showGlobalWarningOnce))
 
-            if (res.getStatusCode == b.StatusCode.OK)
-              CompletableFuture.supplyAsync(
-                () => {
-                  doPostProcess(params.mainScope, Scope.Main)
-                  doPostProcess(params.testScope, Scope.Test)
-                  res
-                },
-                executor
-              )
-            else
-              CompletableFuture.completedFuture(res)
-          }
-      }
+          if (res.getStatusCode == b.StatusCode.OK)
+            CompletableFuture.supplyAsync(
+              () => {
+                doPostProcess(params.mainScope, Scope.Main)
+                doPostProcess(params.testScope, Scope.Test)
+                res
+              },
+              executor
+            )
+          else
+            CompletableFuture.completedFuture(res)
+        }
     }
   }
 
@@ -302,48 +293,28 @@ final class BspImpl(
     logger
   )
   actualLocalClient.setProjectName(initialInputs.workspace, initialInputs.projectName, Scope.Main)
-  val localClient: b.BuildClient with BloopBuildClient =
+  val localClient: b.BuildClient & BloopBuildClient =
     if (verbosity >= 3)
       new BspImpl.LoggingBspClient(actualLocalClient)
     else
       actualLocalClient
 
-  var remoteServer: BloopCompiler       = _
   var actualLocalServer: BspServerProxy = _
 
   val watcher = new Build.Watcher(
     ListBuffer(),
     threads.buildThreads.fileWatcher,
-    build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = true, logger),
+    build(actualLocalServer, actualLocalClient, notifyChanges = true, logger),
     ()
   )
 
   def run(): Future[Unit] = {
-
-    val classesDir = Build.classesRootDir(initialInputs.workspace, initialInputs.projectName)
-
-    remoteServer = {
-      val bloopServer = BloopServer.buildServer(
-        bloopRifleConfig,
-        "scala-cli",
-        Constants.version,
-        (initialInputs.workspace / Constants.workspaceDirName).toNIO,
-        classesDir.toNIO,
-        localClient,
-        threads.buildThreads.bloop,
-        logger.bloopRifleLogger
-      )
-      new BloopCompiler(
-        bloopServer,
-        20.seconds,
-        strictBloopJsonCheck = buildOptions.internal.strictBloopJsonCheckOrDefault
-      )
-    }
-    localClient.onConnectWithServer(remoteServer.bloopServer.server)
-
     actualLocalServer =
       new BspServerProxy(
-        remoteServer.bloopServer.server,
+        bloopRifleConfig = bloopRifleConfig,
+        threads = threads,
+        localClient = localClient,
+        buildOptions = buildOptions,
         compile = doCompile =>
           compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
         logger = logger,
@@ -351,8 +322,8 @@ final class BspImpl(
         argsToInputs = argsToInputs
       )
 
-    val localServer
-      : b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaScriptBuildServer =
+    val localServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer &
+      ScalaScriptBuildServer =
       if (verbosity >= 3)
         new LoggingBuildServerAll(actualLocalServer)
       else
@@ -376,7 +347,7 @@ final class BspImpl(
         case _: Inputs.Virtual =>
       }
 
-    prepareBuild(actualLocalServer, remoteServer) match {
+    prepareBuild(actualLocalServer) match {
       case Left((ex, scope)) =>
         actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.log(ex)
@@ -393,7 +364,7 @@ final class BspImpl(
     val f = launcher.startListening()
 
     val initiateFirstBuild: Runnable = { () =>
-      try build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = false, logger)
+      try build(actualLocalServer, actualLocalClient, notifyChanges = false, logger)
       catch {
         case t: Throwable =>
           logger.debug(s"Caught $t during initial BSP build, ignoring it")
@@ -413,8 +384,8 @@ final class BspImpl(
 
   def shutdown(): Unit = {
     watcher.dispose()
-    if (remoteServer != null)
-      remoteServer.shutdown()
+    if (actualLocalServer.currentBloopCompiler != null)
+      actualLocalServer.currentBloopCompiler.shutdown()
   }
 
 }

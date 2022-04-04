@@ -9,10 +9,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.{util => ju}
 
-import scala.build.{Inputs, Logger}
 import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
 import scala.build.internal.Constants
 import scala.build.options.Scope
+import scala.build.{Inputs, Logger}
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters.*
 import scala.util.Random
@@ -29,8 +29,8 @@ class BspServer(
   setProjectName(inputs.workspace, mainProjectName, Scope.Main)
   setProjectName(inputs.workspace, testProjectName, Scope.Test)
 
-  private var client: Option[BuildClient] = None
-  private val isIntelliJ: AtomicBoolean   = new AtomicBoolean(false)
+  var client: Option[BuildClient]       = None
+  private val isIntelliJ: AtomicBoolean = new AtomicBoolean(false)
 
   def testProjectName: String = s"${inputs.projectName}-test"
   def mainProjectName: String = inputs.projectName

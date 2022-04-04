@@ -6,6 +6,8 @@ import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.Charset
+import java.nio.file.Paths
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Inputs.WorkspaceOrigin
 import scala.build.bsp.IdeInputs
@@ -112,7 +114,10 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val inputArgs = inputs.elements.collect { case d: Inputs.OnDisk => d.path.toString }
 
-    val ideInputs = IdeInputs(args = args)
+    val ideInputs = IdeInputs(args = args.map { arg =>
+      if (Paths.get(arg).isAbsolute) arg
+      else (os.pwd / arg).toString()
+    })
 
     val debugOpt = options.shared.jvm.bspDebugPort.toSeq.map(port =>
       s"-J-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:$port,suspend=y"
