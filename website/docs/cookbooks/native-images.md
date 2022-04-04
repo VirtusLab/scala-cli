@@ -22,7 +22,7 @@ scala-cli package Echo.scala -o echo
 
 <!-- Expected-regex:
 Wrote .*echo
-.*/echo
+.*\/echo
 -->
 
 ```bash
@@ -44,5 +44,5 @@ scala-cli package Echo.scala -o echo -- --no-fallback
 
 <!-- Expected-regex:
 Wrote .*echo, run it with
-  .*/echo
+  .*\/echo
 -->
