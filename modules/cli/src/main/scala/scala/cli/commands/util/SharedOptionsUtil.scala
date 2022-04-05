@@ -228,19 +228,20 @@ object SharedOptionsUtil {
       case Right(i) => i
     }
 
-    def inputs(args: Seq[String], defaultInputs: () => Option[Inputs]): Either[String, Inputs] = {
-      val download: String => Either[String, Array[Byte]] = { url =>
-        val artifact = Artifact(url).withChanging(true)
-        val res = coursierCache.logger.use {
-          try coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
-          catch {
-            case NonFatal(e) => throw new Exception(e)
-          }
+    private def downloadInputs: String => Either[String, Array[Byte]] = { url =>
+      val artifact = Artifact(url).withChanging(true)
+      val res = coursierCache.logger.use {
+        try coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
+        catch {
+          case NonFatal(e) => throw new Exception(e)
         }
-        res
-          .left.map(_.describe)
-          .map(f => os.read.bytes(os.Path(f, Os.pwd)))
       }
+      res
+        .left.map(_.describe)
+        .map(f => os.read.bytes(os.Path(f, Os.pwd)))
+    }
+
+    def inputs(args: Seq[String], defaultInputs: () => Option[Inputs]): Either[String, Inputs] = {
       val resourceInputs = resourceDirs
         .map(os.Path(_, Os.pwd))
         .map { path =>
@@ -254,7 +255,7 @@ object SharedOptionsUtil {
         Os.pwd,
         directories.directories,
         defaultInputs = defaultInputs,
-        download = download,
+        download = downloadInputs,
         stdinOpt = readStdin(logger = logger),
         acceptFds = !Properties.isWin,
         forcedWorkspace = workspace.forcedWorkspaceOpt
@@ -271,6 +272,9 @@ object SharedOptionsUtil {
             .avoid(forbiddenDirs, directories.directories))
       }
     }
+
+    def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Inputs.Element]]] =
+      Inputs.validateArgs(args, Os.pwd, downloadInputs, readStdin(logger = logger), !Properties.isWin)
 
     def strictBloopJsonCheckOrDefault =
       strictBloopJsonCheck.getOrElse(bo.InternalOptions.defaultStrictBloopJsonCheck)

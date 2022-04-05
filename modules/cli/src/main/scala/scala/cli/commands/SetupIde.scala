@@ -114,10 +114,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val inputArgs = inputs.elements.collect { case d: Inputs.OnDisk => d.path.toString }
 
-    val ideInputs = IdeInputs(args = args.map { arg =>
-      if (Paths.get(arg).isAbsolute) arg
-      else (os.pwd / arg).toString()
-    })
+    val ideInputs = IdeInputs(args =
+      options.shared.validateInputArgs(args)
+        .flatMap(_.toOption)
+        .flatten
+        .collect { case d: Inputs.OnDisk => d.path.toString }
+    )
 
     val debugOpt = options.shared.jvm.bspDebugPort.toSeq.map(port =>
       s"-J-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:$port,suspend=y"
