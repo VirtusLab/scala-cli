@@ -1,7 +1,7 @@
 package scala.build.internal
 
 import coursier.cache.FileCache
-import coursier.cache.loggers.RefreshLogger
+import coursier.cache.loggers.{ProgressBarRefreshDisplay, RefreshDisplay, RefreshLogger}
 import coursier.jvm.JavaHome
 import coursier.util.Task
 
@@ -9,22 +9,36 @@ object CsLoggerUtil {
 
   // All of these methods are a bit flaky…
 
+  private lazy val loggerDisplay: RefreshLogger => RefreshDisplay = {
+    val m = classOf[RefreshLogger].getDeclaredField("display")
+    m.setAccessible(true)
+    logger => m.get(logger).asInstanceOf[RefreshDisplay]
+  }
+
   implicit class CsCacheExtensions(private val cache: FileCache[Task]) extends AnyVal {
     def withMessage(message: String): FileCache[Task] =
       cache.logger match {
-        case _: RefreshLogger =>
-          var displayed = false
-          val logger = RefreshLogger.create(
-            CustomProgressBarRefreshDisplay.create(
-              keepOnScreen = false,
-              if (!displayed) {
-                System.err.println(message)
-                displayed = true
-              },
-              ()
+        case logger: RefreshLogger =>
+          val shouldUpdateLogger = loggerDisplay(logger) match {
+            case _: CustomProgressBarRefreshDisplay => true
+            case _: ProgressBarRefreshDisplay       => true
+            case _                                  => false
+          }
+          if (shouldUpdateLogger) {
+            var displayed = false
+            val updatedLogger = RefreshLogger.create(
+              CustomProgressBarRefreshDisplay.create(
+                keepOnScreen = false,
+                if (!displayed) {
+                  System.err.println(message)
+                  displayed = true
+                },
+                ()
+              )
             )
-          )
-          cache.withLogger(logger)
+            cache.withLogger(updatedLogger)
+          }
+          else cache
         case _ => cache
       }
   }

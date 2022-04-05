@@ -820,6 +820,10 @@
     ]
   },
   {
+    "name": "coursier.cache.loggers.RefreshLogger",
+    "allDeclaredFields": true
+  },
+  {
     "name": "java.lang.String"
   },
   {
