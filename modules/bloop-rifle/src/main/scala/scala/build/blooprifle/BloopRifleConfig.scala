@@ -74,7 +74,8 @@ object BloopRifleConfig {
       "-XX:MaxInlineLevel=20", // Specific option for faster C2, ignored by GraalVM
       "-XX:+UseZGC", // ZGC returns unused memory back to the OS, so Bloop does not occupy so much memory if unused
       "-XX:ZUncommitDelay=30",
-      "-XX:ZCollectionInterval=5"
+      "-XX:ZCollectionInterval=5",
+      "-Dbloop.ignore-sig-int=true"
     )
 
   lazy val defaultJavaOpts: Seq[String] = {
