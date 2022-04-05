@@ -1,4 +1,5 @@
 package scala.cli.launcher
+
 import coursier.Repositories
 import coursier.cache.FileCache
 import coursier.core.Version
@@ -92,9 +93,11 @@ object LauncherCli {
         val snapshotRepoPage = os.read(os.Path(f, Os.pwd))
         val rawVersions      = coursier.CoursierUtil.rawVersions(snapshotRepoUrl, snapshotRepoPage)
         val versions         = rawVersions.map(Version(_))
-        val nightlyVersion   = versions.max
 
-        nightlyVersion.repr
+        if (versions.isEmpty)
+          sys.error(s"No versions found in $snapshotRepoUrl (locally at $f)")
+        else
+          versions.max.repr
     }
 
   }
