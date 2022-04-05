@@ -172,7 +172,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
         logger,
         allowExecve = true,
         cwd = Some(workspace)
-      )
+      ).waitFor()
     }
   }
 }
