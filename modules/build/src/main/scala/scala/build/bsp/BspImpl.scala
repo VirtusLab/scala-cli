@@ -2,7 +2,6 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 import com.swoval.files.PathWatchers
-import dependency.ScalaParameters
 import org.eclipse.lsp4j.jsonrpc
 
 import java.io.{InputStream, OutputStream}
@@ -11,7 +10,7 @@ import java.util.concurrent.{CompletableFuture, Executor}
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.errors.{BuildException, Diagnostic}
+import scala.build.errors.BuildException
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -30,9 +29,6 @@ final class BspImpl(
   in: InputStream,
   out: OutputStream
 ) extends Bsp {
-
-  import BspImpl.PreBuildData
-
   def notifyBuildChange(actualLocalServer: BspServerProxy): Unit = {
     val events =
       for (targetId <- actualLocalServer.targetIds)
@@ -45,19 +41,13 @@ final class BspImpl(
     actualLocalClient.onBuildTargetDidChange(params)
   }
 
-  private case class PreBuildProject(
-    mainScope: PreBuildData,
-    testScope: PreBuildData,
-    diagnostics: Seq[Diagnostic]
-  )
-
   private def prepareBuild(actualLocalServer: BspServerProxy)
     : Either[(BuildException, Scope), PreBuildProject] = either {
     logger.log("Preparing build")
 
     val persistentLogger = new PersistentDiagnosticLogger(logger)
     val currentBspServer = actualLocalServer.currentBspServer
-    val inputs = currentBspServer.inputs
+    val inputs           = currentBspServer.inputs
 
     val crossSources = value {
       CrossSources.forInputs(
@@ -320,7 +310,8 @@ final class BspImpl(
           compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
         logger = logger,
         initialInputs = initialInputs,
-        argsToInputs = argsToInputs
+        argsToInputs = argsToInputs,
+        prepareBuild = () => prepareBuild(actualLocalServer)
       )
 
     val localServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer &
@@ -422,15 +413,4 @@ object BspImpl {
     def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =
       underlying.setGeneratedSources(scope, newGeneratedSources)
   }
-
-  private final case class PreBuildData(
-    sources: Sources,
-    buildOptions: BuildOptions,
-    classesDir: os.Path,
-    scalaParams: ScalaParameters,
-    artifacts: Artifacts,
-    project: Project,
-    generatedSources: Seq[GeneratedSource],
-    buildChanged: Boolean
-  )
 }

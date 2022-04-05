@@ -1,5 +1,5 @@
 package scala.build.bsp
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.github.plokhotnyuk.jsoniter_scala.core
 
 import java.util.concurrent.CompletableFuture
@@ -7,8 +7,9 @@ import java.util.concurrent.CompletableFuture
 import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.BloopCompiler
+import scala.build.errors.BuildException
 import scala.build.internal.Constants
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, Scope}
 import scala.build.{BloopBuildClient, Build, Inputs, Logger}
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
@@ -22,7 +23,8 @@ class BspServerProxy(
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger,
   initialInputs: Inputs,
-  argsToInputs: Seq[String] => Either[String, Inputs]
+  argsToInputs: Seq[String] => Either[String, Inputs],
+  prepareBuild: () => Either[(BuildException, Scope), PreBuildProject]
 ) extends BspServerWrapper {
   var currentBloopCompiler: BloopCompiler = createBloopCompiler(initialInputs)
   localClient.onConnectWithServer(currentBloopCompiler.bloopServer.server)
@@ -30,7 +32,8 @@ class BspServerProxy(
 
   override def workspaceReload(): CompletableFuture[AnyRef] =
     super.workspaceReload().thenCompose { res =>
-      val ideInputsJsonPath = currentBspServer.workspace / Constants.workspaceDirName / "ide-inputs.json"
+      val ideInputsJsonPath =
+        currentBspServer.workspace / Constants.workspaceDirName / "ide-inputs.json"
       if (os.isFile(ideInputsJsonPath))
         (for {
           ideInputs <-
@@ -58,16 +61,18 @@ class BspServerProxy(
     currentBloopCompiler = createBloopCompiler(newInputs)
     currentBspServer = createBspServer(currentBloopCompiler, newInputs)
     val newTargetIds = currentBspServer.targetIds
-    if (previousInputs.projectName != newInputs.projectName) {
-      val events = newTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.CREATED)) ++
-        previousTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.DELETED))
-      val didChangeBuildTargetParams = new b.DidChangeBuildTarget(events.asJava)
-      currentBspServer.client.foreach(_.onBuildTargetDidChange(didChangeBuildTargetParams))
+    prepareBuild() match {
+      case Left((_, _)) =>
+        CompletableFuture.completedFuture(new Object()) // TODO add proper error handling
+      case Right(preBuildProject) =>
+        if (previousInputs.projectName != preBuildProject.mainScope.project.projectName) {
+          val events = newTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.CREATED)) ++
+            previousTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.DELETED))
+          val didChangeBuildTargetParams = new b.DidChangeBuildTarget(events.asJava)
+          currentBspServer.client.foreach(_.onBuildTargetDidChange(didChangeBuildTargetParams))
+        }
+        CompletableFuture.completedFuture(new Object())
     }
-    buildTargetCompile(new b.CompileParams(newTargetIds.asJava))
-      .thenApply[AnyRef] { _ => // TODO add proper error handling
-        new Object()
-      }
   }
 
   private def createBloopCompiler(inputs: Inputs): BloopCompiler = {
