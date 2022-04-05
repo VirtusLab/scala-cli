@@ -117,16 +117,15 @@ object Operations {
     b.directory(workingDir)
     b.redirectInput(ProcessBuilder.Redirect.PIPE)
 
-    // https://stackoverflow.com/questions/55628999/java-processbuilder-how-to-suppress-output-instead-of-redirecting-it/55629297#55629297
-    if (logger.bloopCliInheritStdout)
-      b.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-    else
-      b.redirectOutput(Util.devNull)
+    b.redirectOutput {
+      if (logger.bloopCliInheritStdout) ProcessBuilder.Redirect.INHERIT
+      else ProcessBuilder.Redirect.DISCARD
+    }
 
-    if (logger.bloopCliInheritStderr)
-      b.redirectError(ProcessBuilder.Redirect.INHERIT)
-    else
-      b.redirectError(Util.devNull)
+    b.redirectError {
+      if (logger.bloopCliInheritStderr) ProcessBuilder.Redirect.INHERIT
+      else ProcessBuilder.Redirect.DISCARD
+    }
 
     val p = b.start()
     p.getOutputStream.close()
