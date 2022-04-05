@@ -192,12 +192,21 @@ To run another Scala CLI version, specify it with `--cli-version` before any oth
 
 ```bash 
 scala-cli --cli-version 0.1.2+209-geb58be9d-SNAPSHOT about
-# Scala CLI version 0.1.2+209-geb58be9d-SNAPSHOT (v0.0.9-131-f0ab5c)
+# Scala CLI version 0.1.2+209-geb58be9d-SNAPSHOT
 ```
 
 <!-- Expected:
 Scala CLI version 0.1.2+209-geb58be9d-SNAPSHOT
 -->
+
+To use the latest Scala CLI nightly build, pass `nightly` to `--cli-version` parameter:
+
+```bash 
+scala-cli --cli-version nightly about
+# Scala CLI version 0.1.3-8-g431cc15f-SNAPSHOT
+```
+
+
 
 ## Process substitution
 

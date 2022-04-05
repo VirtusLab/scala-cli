@@ -1,37 +1,42 @@
 package scala.cli.launcher
 
 import coursier.Repositories
+import coursier.cache.FileCache
+import coursier.core.Version
+import coursier.util.{Artifact, Task}
 import dependency._
 
-import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.CsLoggerUtil.CsCacheExtensions
 import scala.build.internal.{OsLibc, Runner}
 import scala.build.options.{BuildOptions, JavaOptions}
-import scala.build.{Artifacts, Positioned}
+import scala.build.{Artifacts, Os, Positioned}
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.{CoursierOptions, LoggingOptions}
+import scala.concurrent.duration._
 import scala.util.Properties
+import scala.util.control.NonFatal
 
 object LauncherCli {
 
   def runAndExit(version: String, options: LauncherOptions, remainingArgs: Seq[String]): Nothing = {
 
-    val logger       = LoggingOptions().logger
-    val cache        = CoursierOptions().coursierCache(logger.coursierLogger(""))
-    val scalaVersion = options.cliScalaVersion.getOrElse(Properties.versionNumberString)
+    val logger          = LoggingOptions().logger
+    val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
+    val scalaVersion    = options.cliScalaVersion.getOrElse(Properties.versionNumberString)
+    val scalaParameters = ScalaParameters(scalaVersion)
+    val snapshotsRepo   = Seq(Repositories.central.root, Repositories.sonatype("snapshots").root)
 
-    val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli::cli:$version")
-    val snapshotsRepo = Seq(
-      Repositories.central.root,
-      Repositories.sonatype("snapshots").root
-    )
+    val cliVersion: String =
+      if (version == "nightly") resolveNightlyScalaCliVersion(cache, scalaParameters) else version
+    val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli::cli:$cliVersion")
 
     val fetchedScalaCli =
       Artifacts.fetch(
         Positioned.none(scalaCliDependency),
         snapshotsRepo,
-        ScalaParameters(scalaVersion),
+        scalaParameters,
         logger,
-        cache.withMessage(s"Fetching Scala CLI $version"),
+        cache.withMessage(s"Fetching Scala CLI $cliVersion"),
         None
       ) match {
         case Right(value) => value
@@ -63,6 +68,38 @@ object LauncherCli {
       ).waitFor()
 
     sys.exit(exitCode)
+  }
+
+  def resolveNightlyScalaCliVersion(
+    cache: FileCache[Task],
+    scalaParameters: ScalaParameters
+  ): String = {
+
+    val snapshotRepoUrl =
+      s"https://oss.sonatype.org/content/repositories/snapshots/org/virtuslab/scala-cli/cli_${scalaParameters.scalaBinaryVersion}/"
+    val artifact = Artifact(snapshotRepoUrl).withChanging(true)
+    val res = cache.logger.use {
+      try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)
+      catch {
+        case NonFatal(e) => throw new Exception(e)
+      }
+    }
+
+    res match {
+      case Left(_) =>
+        System.err.println("Unable to find nightly Scala CLI version")
+        sys.exit(1)
+      case Right(f) =>
+        val snapshotRepoPage = os.read(os.Path(f, Os.pwd))
+        val rawVersions      = coursier.CoursierUtil.rawVersions(snapshotRepoUrl, snapshotRepoPage)
+        val versions         = rawVersions.map(Version(_))
+
+        if (versions.isEmpty)
+          sys.error(s"No versions found in $snapshotRepoUrl (locally at $f)")
+        else
+          versions.max.repr
+    }
+
   }
 
 }
