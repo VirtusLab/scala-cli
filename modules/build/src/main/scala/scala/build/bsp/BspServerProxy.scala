@@ -15,6 +15,8 @@ import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
+import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
+
 class BspServerProxy(
   bloopRifleConfig: BloopRifleConfig,
   threads: BspThreads,
@@ -44,16 +46,20 @@ class BspServerProxy(
           newInputs <- argsToInputs(ideInputs.args)
           previousInputs = currentBspServer.inputs
         } yield
-          if (newInputs != previousInputs) reloadBspServer(previousInputs, newInputs)
+          if (newInputs != previousInputs) reloadBsp(previousInputs, newInputs)
           else CompletableFuture.completedFuture(res)) match {
-          case Left(_) =>
-            CompletableFuture.completedFuture(res) // TODO return a proper json-rpc error message
+          case Left(errorMessage) =>
+            CompletableFuture.completedFuture(
+              responseError(s"Workspace reload failed, couldn't load sources: $errorMessage")
+            )
           case Right(r) => r
         }
-      else CompletableFuture.completedFuture(res)
+      else CompletableFuture.completedFuture(
+        responseError(s"Workspace reload failed, inputs file missing from workspace directory: ${ideInputsJsonPath.toString()}")
+      )
     }
 
-  private def reloadBspServer(
+  private def reloadBsp(
     previousInputs: Inputs,
     newInputs: Inputs
   ): CompletableFuture[AnyRef] = {
@@ -62,8 +68,14 @@ class BspServerProxy(
     currentBspServer = createBspServer(currentBloopCompiler, newInputs)
     val newTargetIds = currentBspServer.targetIds
     prepareBuild() match {
-      case Left((_, _)) =>
-        CompletableFuture.completedFuture(new Object()) // TODO add proper error handling
+      case Left((buildException, scope)) =>
+        CompletableFuture.completedFuture(
+          new ResponseError(
+            JsonRpcErrorCodes.InternalError,
+            s"Can't reload workspace, build failed for scope: ${scope.name}: ${buildException.message}",
+            new Object()
+          )
+        )
       case Right(preBuildProject) =>
         if (previousInputs.projectName != preBuildProject.mainScope.project.projectName) {
           val events = newTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.CREATED)) ++
@@ -104,4 +116,7 @@ class BspServerProxy(
     event.setKind(eventKind)
     event
   }
+
+  private def responseError(message: String, errorCode: Int = JsonRpcErrorCodes.InternalError): ResponseError =
+    new ResponseError(errorCode, message, new Object())
 }
