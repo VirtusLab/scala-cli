@@ -16,7 +16,7 @@ In order to run Scala.js sources, `node` is required.
 Enable Scala.js support by passing `--js` to `scala-cli`, such as:
 
 ```scala
-scala Test.scala --js
+scala-cli Test.scala --js
 ```
 
 ## Dependencies
@@ -151,3 +151,4 @@ The table below lists the last supported version of Scala.js in ScalaCLI. If you
 | 0.1.1               |   1.8.0           |
 | 0.1.2               |   1.8.0           |
 | 0.1.3               |   1.9.0           |
+
