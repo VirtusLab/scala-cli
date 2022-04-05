@@ -1,9 +1,8 @@
 package scala.build.bsp
 
-/**
- * Response error codes as defined in JSON RPC.
- * [[https://www.jsonrpc.org/specification#error_object]]
- */
+/** Response error codes as defined in JSON RPC.
+  * [[https://www.jsonrpc.org/specification#error_object]]
+  */
 object JsonRpcErrorCodes {
   val ParseError: Int     = -32700 // Invalid JSON was received by the server.
   val InvalidRequest: Int = -32600 // The JSON sent is not a valid Request object.

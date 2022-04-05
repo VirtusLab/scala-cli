@@ -6,7 +6,6 @@ import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.Charset
-import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Inputs.WorkspaceOrigin

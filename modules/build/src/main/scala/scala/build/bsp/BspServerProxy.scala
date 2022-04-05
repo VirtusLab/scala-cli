@@ -1,6 +1,7 @@
 package scala.build.bsp
 import ch.epfl.scala.bsp4j as b
 import com.github.plokhotnyuk.jsoniter_scala.core
+import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.util.concurrent.CompletableFuture
 
@@ -14,8 +15,6 @@ import scala.build.{BloopBuildClient, Build, Inputs, Logger}
 import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
-
-import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 class BspServerProxy(
   bloopRifleConfig: BloopRifleConfig,
@@ -55,7 +54,9 @@ class BspServerProxy(
           case Right(r) => r
         }
       else CompletableFuture.completedFuture(
-        responseError(s"Workspace reload failed, inputs file missing from workspace directory: ${ideInputsJsonPath.toString()}")
+        responseError(
+          s"Workspace reload failed, inputs file missing from workspace directory: ${ideInputsJsonPath.toString()}"
+        )
       )
     }
 
@@ -117,6 +118,9 @@ class BspServerProxy(
     event
   }
 
-  private def responseError(message: String, errorCode: Int = JsonRpcErrorCodes.InternalError): ResponseError =
+  private def responseError(
+    message: String,
+    errorCode: Int = JsonRpcErrorCodes.InternalError
+  ): ResponseError =
     new ResponseError(errorCode, message, new Object())
 }

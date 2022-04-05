@@ -274,7 +274,13 @@ object SharedOptionsUtil {
     }
 
     def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Inputs.Element]]] =
-      Inputs.validateArgs(args, Os.pwd, downloadInputs, readStdin(logger = logger), !Properties.isWin)
+      Inputs.validateArgs(
+        args,
+        Os.pwd,
+        downloadInputs,
+        readStdin(logger = logger),
+        !Properties.isWin
+      )
 
     def strictBloopJsonCheckOrDefault =
       strictBloopJsonCheck.getOrElse(bo.InternalOptions.defaultStrictBloopJsonCheck)
