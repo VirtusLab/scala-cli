@@ -14,8 +14,9 @@ class FmtTests extends munit.FunSuite {
   val simpleInputs = TestInputs(
     Seq(
       os.rel / ".scalafmt.conf" ->
-        """runner.dialect = scala213
-          |""".stripMargin,
+        s"""|version = "${Constants.defaultScalafmtVersion}"
+            |runner.dialect = scala213
+            |""".stripMargin,
       os.rel / "Foo.scala" -> simpleInputsUnformattedContent
     )
   )
