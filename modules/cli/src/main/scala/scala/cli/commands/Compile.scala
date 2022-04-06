@@ -26,7 +26,8 @@ object Compile extends ScalaCommand[CompileOptions] {
       options.shared,
       inputs,
       logger,
-      Some(name)
+      Some(name),
+      args.all
     )
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)

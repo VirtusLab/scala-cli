@@ -98,7 +98,8 @@ object Run extends ScalaCommand[RunOptions] {
       options.shared,
       inputs,
       logger,
-      Some(name)
+      Some(name),
+      inputArgs
     )
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
