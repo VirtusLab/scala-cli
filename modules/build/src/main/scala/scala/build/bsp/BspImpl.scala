@@ -145,7 +145,7 @@ final class BspImpl(
   private def buildE(
     notifyChanges: Boolean
   ): Either[(BuildException, Scope), Unit] = {
-    def doBuildOnce(data: PreBuildData, scope: Scope) =
+    def doBuildOnce(data: PreBuildData, scope: Scope): Either[(BuildException, Scope), Build] =
       Build.buildOnce(
         inputs,
         data.sources,
@@ -158,15 +158,14 @@ final class BspImpl(
         partialOpt = None
       ).left.map(_ -> scope)
 
-    for {
-      preBuild <- prepareBuild()
-      _ = {
-        if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
-          notifyBuildChange()
-      }
-      _ <- doBuildOnce(preBuild.mainScope, Scope.Main)
-      _ <- doBuildOnce(preBuild.testScope, Scope.Test)
-    } yield ()
+    either[(BuildException, Scope)] {
+      val preBuild = value(prepareBuild())
+      if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
+        notifyBuildChange()
+      value(doBuildOnce(preBuild.mainScope, Scope.Main))
+      value(doBuildOnce(preBuild.testScope, Scope.Test))
+      ()
+    }
   }
 
   private def build(
