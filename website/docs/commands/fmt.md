@@ -29,11 +29,12 @@ For a list of all possible values, consult the [official Scala Dialects document
 scala-cli fmt --dialect scala212
 ```
 
-### Current limitations
+### Scalafmt version
 
-At this time, `scala-cli` doesn't read a `scalafmt` version from `.scalafmt.conf` files.
-Therefore, in some scenarios, wrong version may be used. In such situations,  it is possible to set the version manually if you encounter any issues:
+At this time, `scala-cli` read a `scalafmt` version from `.scalafmt.conf` files. If the version is missing, `scala-cli` throws an error, that user should declare explicitly the Scalafmt version. From Scalafmt `3.5.0` it is a mandatory parameter.
 
-```bash
-scala-cli fmt --scalafmt-tag v3.0.3
+To configure the Scalafmt version add the following config into `.scalafmt.conf`. For example, to set version `3.5.0` you should add the following line:
+
+```
+version = "3.5.0"
 ```
