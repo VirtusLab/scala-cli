@@ -8,6 +8,9 @@ import scala.build.bloop.ScalaDebugServer
 import scala.build.options.Scope
 import scala.concurrent.Future
 
+/** Wrapper trait containing all the boilerplate logic forwarding all RPC traffic to the wrapped
+  * [[BspServer]] instance.
+  */
 trait BspServerWrapper extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
     with ScalaDebugServer with ScalaScriptBuildServer {
   wrapper: BspServerProxy =>

@@ -16,6 +16,29 @@ import scala.concurrent.duration.DurationInt
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
+/** A wrapper layer for the actual [[BspServer]] & [[BloopCompiler]] instances. Added to enable live
+  * hot-swapping of both instances on a BSP:workspace/reload request. All RPC traffic is forwarded
+  * to the actual [[BspServer]] instance.
+  *
+  * @param bloopRifleConfig
+  *   Bloop rifle config
+  * @param threads
+  *   BSP threads
+  * @param localClient
+  *   BSP build client
+  * @param buildOptions
+  *   CLI build options
+  * @param compile
+  *   a function allowing to compile the bloop build targets
+  * @param logger
+  *   the logger
+  * @param initialInputs
+  *   the inputs to initialize BSP with (only used when the constructor is called)
+  * @param argsToInputs
+  *   a function allowing to convert raw input args to an Inputs instance
+  * @param prepareBuild
+  *   a function allowing to re-build bloop projects
+  */
 class BspServerProxy(
   bloopRifleConfig: BloopRifleConfig,
   threads: BspThreads,
@@ -71,10 +94,8 @@ class BspServerProxy(
     prepareBuild() match {
       case Left((buildException, scope)) =>
         CompletableFuture.completedFuture(
-          new ResponseError(
-            JsonRpcErrorCodes.InternalError,
-            s"Can't reload workspace, build failed for scope: ${scope.name}: ${buildException.message}",
-            new Object()
+          responseError(
+            s"Can't reload workspace, build failed for scope: ${scope.name}: ${buildException.message}"
           )
         )
       case Right(preBuildProject) =>
