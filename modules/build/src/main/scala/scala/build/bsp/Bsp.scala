@@ -8,13 +8,13 @@ import scala.build.{Inputs, Logger}
 import scala.concurrent.Future
 
 trait Bsp {
-  def run(): Future[Unit]
+  def run(initialInputs: Inputs): Future[Unit]
   def shutdown(): Unit
 }
 
 object Bsp {
   def create(
-    inputs: Inputs,
+    argsToInputs: Seq[String] => Either[String, Inputs],
     buildOptions: BuildOptions,
     logger: Logger,
     bloopRifleConfig: BloopRifleConfig,
@@ -26,7 +26,7 @@ object Bsp {
     new BspImpl(
       logger,
       bloopRifleConfig,
-      inputs,
+      argsToInputs,
       buildOptions,
       verbosity,
       threads,

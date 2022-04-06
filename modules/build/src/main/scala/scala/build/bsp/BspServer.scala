@@ -30,6 +30,8 @@ class BspServer(
   private var client: Option[BuildClient] = None
   private val isIntelliJ: AtomicBoolean   = new AtomicBoolean(false)
 
+  def clientOpt: Option[BuildClient] = client
+
   override def onConnectWithClient(client: BuildClient): Unit = this.client = Some(client)
 
   private var extraDependencySources: Seq[os.Path] = Nil

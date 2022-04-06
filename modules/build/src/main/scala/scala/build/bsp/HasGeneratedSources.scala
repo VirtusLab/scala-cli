@@ -2,14 +2,16 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 
-import scala.build.GeneratedSource
 import scala.build.internal.Constants
 import scala.build.options.Scope
+import scala.build.{GeneratedSource, Inputs}
 
 trait HasGeneratedSources {
   def targetIds: List[b.BuildTargetIdentifier]
   def targetScopeIdOpt(scope: Scope): Option[b.BuildTargetIdentifier]
   def setProjectName(workspace: os.Path, name: String, scope: Scope): Unit
+  def resetProjectNames(): Unit
+  def newInputs(inputs: Inputs): Unit
   def setGeneratedSources(scope: Scope, sources: Seq[GeneratedSource]): Unit
 }
 

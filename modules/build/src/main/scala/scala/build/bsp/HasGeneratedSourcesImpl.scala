@@ -2,8 +2,8 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 
-import scala.build.GeneratedSource
 import scala.build.options.Scope
+import scala.build.{GeneratedSource, Inputs}
 import scala.collection.mutable
 
 trait HasGeneratedSourcesImpl extends HasGeneratedSources {
@@ -27,9 +27,17 @@ trait HasGeneratedSourcesImpl extends HasGeneratedSources {
       .flatMap(_.targetUriOpt)
       .map(uri => new b.BuildTargetIdentifier(uri))
 
+  def resetProjectNames(): Unit =
+    projectNames.clear()
   def setProjectName(workspace: os.Path, name: String, scope: Scope): Unit =
     if (!projectNames.contains(scope))
       projectNames(scope) = ProjectName(workspace, name)
+
+  def newInputs(inputs: Inputs): Unit = {
+    resetProjectNames()
+    setProjectName(inputs.workspace, inputs.projectName, Scope.Main)
+    setProjectName(inputs.workspace, inputs.scopeProjectName(Scope.Test), Scope.Test)
+  }
 
   def setGeneratedSources(scope: Scope, sources: Seq[GeneratedSource]): Unit = {
     generatedSources(scope) = GeneratedSources(sources)
