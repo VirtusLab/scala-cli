@@ -217,22 +217,37 @@ object SharedOptionsUtil {
       args: Seq[String]
     ): Inputs =
       inputsOrExit(args, () => Inputs.default())
+
     def inputsOrExit(
       args: Seq[String],
       defaultInputs: () => Option[Inputs]
-    ): Inputs = {
-      val download: String => Either[String, Array[Byte]] = { url =>
-        val artifact = Artifact(url).withChanging(true)
-        val res = coursierCache.logger.use {
-          try coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
-          catch {
-            case NonFatal(e) => throw new Exception(e)
-          }
+    ): Inputs =
+      inputsOrExit(inputs(args, defaultInputs))
+
+    def inputsOrExit(maybeInputs: Either[String, Inputs]): Inputs = maybeInputs match {
+      case Left(message) =>
+        System.err.println(message)
+        sys.exit(1)
+      case Right(i) => i
+    }
+
+    private def downloadInputs: String => Either[String, Array[Byte]] = { url =>
+      val artifact = Artifact(url).withChanging(true)
+      val res = coursierCache.logger.use {
+        try coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
+        catch {
+          case NonFatal(e) => throw new Exception(e)
         }
-        res
-          .left.map(_.describe)
-          .map(f => os.read.bytes(os.Path(f, Os.pwd)))
       }
+      res
+        .left.map(_.describe)
+        .map(f => os.read.bytes(os.Path(f, Os.pwd)))
+    }
+
+    def inputs(
+      args: Seq[String],
+      defaultInputs: () => Option[Inputs]
+    ): Either[String, Inputs] = {
       val resourceInputs = resourceDirs
         .map(os.Path(_, Os.pwd))
         .map { path =>
@@ -241,30 +256,36 @@ object SharedOptionsUtil {
           path
         }
         .map(Inputs.ResourceDirectory(_))
-      val inputs = Inputs(
+      val maybeInputs = Inputs(
         args,
         Os.pwd,
         directories.directories,
         defaultInputs = defaultInputs,
-        download = download,
+        download = downloadInputs,
         stdinOpt = readStdin(logger = logger),
         acceptFds = !Properties.isWin,
         forcedWorkspace = workspace.forcedWorkspaceOpt
-      ) match {
-        case Left(message) =>
-          System.err.println(message)
-          sys.exit(1)
-        case Right(i) => i
-      }
-      val forbiddenDirs =
-        (if (defaultForbiddenDirectories) myDefaultForbiddenDirectories else Nil) ++
-          forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
+      )
+      maybeInputs.map { inputs =>
+        val forbiddenDirs =
+          (if (defaultForbiddenDirectories) myDefaultForbiddenDirectories else Nil) ++
+            forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
 
-      inputs
-        .add(resourceInputs)
-        .checkAttributes(directories.directories)
-        .avoid(forbiddenDirs, directories.directories)
+        inputs
+          .add(resourceInputs)
+          .checkAttributes(directories.directories)
+          .avoid(forbiddenDirs, directories.directories)
+      }
     }
+
+    def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Inputs.Element]]] =
+      Inputs.validateArgs(
+        args,
+        Os.pwd,
+        downloadInputs,
+        readStdin(logger = logger),
+        !Properties.isWin
+      )
 
     def strictBloopJsonCheckOrDefault =
       strictBloopJsonCheck.getOrElse(bo.InternalOptions.defaultStrictBloopJsonCheck)
