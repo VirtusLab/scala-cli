@@ -82,7 +82,7 @@ final class BspImpl(
     val generatedSourcesMain = sourcesMain.generateSources(inputs.generatedSrcRoot(Scope.Main))
     val generatedSourcesTest = sourcesTest.generateSources(inputs.generatedSrcRoot(Scope.Test))
 
-    actualLocalServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
+    actualLocalServer.setExtraDependencySources(options0Main.classPathOptions.extraSourceJars)
     actualLocalServer.setGeneratedSources(Scope.Main, generatedSourcesMain)
     actualLocalServer.setGeneratedSources(Scope.Test, generatedSourcesTest)
 
