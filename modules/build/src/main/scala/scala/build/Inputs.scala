@@ -4,11 +4,11 @@ import java.io.ByteArrayInputStream
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-import java.util.zip.ZipInputStream
 
 import scala.annotation.tailrec
 import scala.build.Inputs.WorkspaceOrigin
 import scala.build.internal.Constants
+import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope
 import scala.build.preprocessing.ScopePath
 import scala.util.Properties
@@ -310,17 +310,15 @@ object Inputs {
     else VirtualData(content, path)
 
   private def resolveZipArchive(content: Array[Byte]): Seq[Element] = {
-    val zipInputStream = new ZipInputStream(new ByteArrayInputStream(content))
-    @tailrec
-    def readArchive(acc: Seq[Element]): Seq[Element] =
-      Option(zipInputStream.getNextEntry) match {
-        case Some(entry) if entry.isDirectory => readArchive(acc)
-        case Some(entry) =>
+    val zipInputStream = WrappedZipInputStream.create(new ByteArrayInputStream(content))
+    zipInputStream.entries().foldLeft(List.empty[Element]) {
+      (acc, ent) =>
+        if (ent.isDirectory) acc
+        else {
           val content = zipInputStream.readAllBytes()
-          readArchive(resolve(entry.getName, content) +: acc)
-        case None => acc
-      }
-    readArchive(Nil)
+          resolve(ent.getName, content) :: acc
+        }
+    }
   }
 
   def validateArgs(

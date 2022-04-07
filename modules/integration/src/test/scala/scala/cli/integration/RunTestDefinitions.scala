@@ -12,9 +12,9 @@ import scala.util.Properties
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
-  private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
-  private val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
+  protected val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
 
   def simpleScriptTest(ignoreErrors: Boolean = false): Unit = {
     val fileName = "simple.sc"
