@@ -1,24 +1,24 @@
 package scala.build.bsp
 
 import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CompletableFuture, TimeUnit}
-import java.{util => ju}
+import java.util as ju
 
 import scala.build.Logger
 import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
 import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Random
 
 class BspServer(
-  bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
+  bloopServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & ScalaDebugServer,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger,
   presetIntelliJ: Boolean = false
@@ -113,7 +113,7 @@ class BspServer(
   private def mapGeneratedSources(res: b.SourcesResult): Unit = {
     val gen = generatedSources.values.toVector
     for {
-      item <- res.getItems().asScala
+      item <- res.getItems.asScala
       if validTarget(item.getTarget)
       sourceItem <- item.getSources.asScala
       genSource  <- gen.iterator.flatMap(_.uriMap.get(sourceItem.getUri).iterator).take(1)
@@ -124,7 +124,8 @@ class BspServer(
     }
   }
 
-  protected def forwardTo = bloopServer
+  protected def forwardTo
+    : b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & ScalaDebugServer = bloopServer
 
   private val supportedLanguages: ju.List[String] = List("scala", "java").asJava
 
@@ -174,7 +175,7 @@ class BspServer(
     params: b.DependencySourcesParams
   ): CompletableFuture[b.DependencySourcesResult] =
     super.buildTargetDependencySources(check(params)).thenApply { res =>
-      val updatedItems = res.getItems().asScala.map {
+      val updatedItems = res.getItems.asScala.map {
         case item if validTarget(item.getTarget) =>
           val updatedSources = item.getSources.asScala ++ extraDependencySources.map { sourceJar =>
             sourceJar.toNIO.toUri.toASCIIString
