@@ -49,7 +49,8 @@ object Test extends ScalaCommand[TestOptions] {
       options.shared,
       inputs,
       logger,
-      Some(name)
+      Some(name),
+      args.remaining
     )
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)

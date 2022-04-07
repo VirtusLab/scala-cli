@@ -1,18 +1,19 @@
 package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
-import com.swoval.files.PathWatchers
+import com.github.plokhotnyuk.jsoniter_scala.core.{JsonReaderException, readFromArray}
 import dependency.ScalaParameters
 import org.eclipse.lsp4j.jsonrpc
+import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.io.{InputStream, OutputStream}
 import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.EitherCps.{either, value}
 import scala.build._
-import scala.build.bloop.BloopServer
+import scala.build.bloop.{BloopServer, ScalaDebugServer}
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.compiler.{BloopCompiler, ScalaCompiler}
+import scala.build.compiler.BloopCompiler
 import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
@@ -25,7 +26,7 @@ import scala.util.{Failure, Success}
 final class BspImpl(
   logger: Logger,
   bloopRifleConfig: BloopRifleConfig,
-  inputs: Inputs,
+  argsToInputs: Seq[String] => Either[String, Inputs],
   buildOptions: BuildOptions,
   verbosity: Int,
   threads: BspThreads,
@@ -33,11 +34,11 @@ final class BspImpl(
   out: OutputStream
 ) extends Bsp {
 
-  import BspImpl.PreBuildData
+  import BspImpl.{PreBuildData, PreBuildProject, buildTargetIdToEvent, responseError}
 
-  def notifyBuildChange(actualLocalServer: BspServer): Unit = {
+  private def notifyBuildChange(currentBloopSession: BloopSession): Unit = {
     val events =
-      for (targetId <- actualLocalServer.targetIds)
+      for (targetId <- currentBloopSession.bspServer.targetIds)
         yield {
           val event = new b.BuildTargetEvent(targetId)
           event.setKind(b.BuildTargetEventKind.CHANGED)
@@ -47,19 +48,14 @@ final class BspImpl(
     actualLocalClient.onBuildTargetDidChange(params)
   }
 
-  private case class PreBuildProject(
-    mainScope: PreBuildData,
-    testScope: PreBuildData,
-    diagnostics: Seq[Diagnostic]
-  )
-
   private def prepareBuild(
-    actualLocalServer: BspServer,
-    compiler: ScalaCompiler
-  ): Either[(BuildException, Scope), PreBuildProject] = either {
+    currentBloopSession: BloopSession
+  ): Either[(BuildException, Scope), PreBuildProject] = either[(BuildException, Scope)] {
     logger.log("Preparing build")
 
     val persistentLogger = new PersistentDiagnosticLogger(logger)
+    val bspServer        = currentBloopSession.bspServer
+    val inputs           = currentBloopSession.inputs
 
     val crossSources = value {
       CrossSources.forInputs(
@@ -91,9 +87,9 @@ final class BspImpl(
     val generatedSourcesMain = sourcesMain.generateSources(inputs.generatedSrcRoot(Scope.Main))
     val generatedSourcesTest = sourcesTest.generateSources(inputs.generatedSrcRoot(Scope.Test))
 
-    actualLocalServer.setExtraDependencySources(buildOptions.classPathOptions.extraSourceJars)
-    actualLocalServer.setGeneratedSources(Scope.Main, generatedSourcesMain)
-    actualLocalServer.setGeneratedSources(Scope.Test, generatedSourcesTest)
+    bspServer.setExtraDependencySources(options0Main.classPathOptions.extraSourceJars)
+    bspServer.setGeneratedSources(Scope.Main, generatedSourcesMain)
+    bspServer.setGeneratedSources(Scope.Test, generatedSourcesTest)
 
     val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
       val res = Build.prepareBuild(
@@ -103,7 +99,7 @@ final class BspImpl(
         options0Main,
         None,
         Scope.Main,
-        compiler,
+        currentBloopSession.remoteServer,
         persistentLogger
       )
       res.left.map((_, Scope.Main))
@@ -117,7 +113,7 @@ final class BspImpl(
         options0Test,
         None,
         Scope.Test,
-        compiler,
+        currentBloopSession.remoteServer,
         persistentLogger
       )
       res.left.map((_, Scope.Test))
@@ -152,47 +148,47 @@ final class BspImpl(
   }
 
   private def buildE(
-    actualLocalServer: BspServer,
-    compiler: ScalaCompiler,
+    currentBloopSession: BloopSession,
     notifyChanges: Boolean
   ): Either[(BuildException, Scope), Unit] = {
-    def doBuildOnce(data: PreBuildData, scope: Scope) =
+    def doBuildOnce(data: PreBuildData, scope: Scope): Either[(BuildException, Scope), Build] =
       Build.buildOnce(
-        inputs,
+        currentBloopSession.inputs,
         data.sources,
         data.generatedSources,
         data.buildOptions,
         scope,
         logger,
         actualLocalClient,
-        compiler,
+        currentBloopSession.remoteServer,
         partialOpt = None
       ).left.map(_ -> scope)
 
-    for {
-      preBuild <- prepareBuild(actualLocalServer, compiler)
-      _ = {
-        if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
-          notifyBuildChange(actualLocalServer)
-      }
-      _ <- doBuildOnce(preBuild.mainScope, Scope.Main)
-      _ <- doBuildOnce(preBuild.testScope, Scope.Test)
-    } yield ()
+    either[(BuildException, Scope)] {
+      val preBuild = value(prepareBuild(currentBloopSession))
+      if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
+        notifyBuildChange(currentBloopSession)
+      value(doBuildOnce(preBuild.mainScope, Scope.Main))
+      value(doBuildOnce(preBuild.testScope, Scope.Test))
+      ()
+    }
   }
 
   private def build(
-    actualLocalServer: BspServer,
-    compiler: ScalaCompiler,
+    currentBloopSession: BloopSession,
     client: BspClient,
     notifyChanges: Boolean,
     logger: Logger
   ): Unit =
-    buildE(actualLocalServer, compiler, notifyChanges) match {
+    buildE(currentBloopSession, notifyChanges) match {
       case Left((ex, scope)) =>
-        client.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
+        client.reportBuildException(
+          currentBloopSession.bspServer.targetScopeIdOpt(scope),
+          ex
+        )
         logger.debug(s"Caught $ex during BSP build, ignoring it")
       case Right(()) =>
-        for (targetId <- actualLocalServer.targetIds)
+        for (targetId <- currentBloopSession.bspServer.targetIds)
           client.resetBuildExceptionDiagnostics(targetId)
     }
 
@@ -208,17 +204,17 @@ final class BspImpl(
       }
     )
 
-  def compile(
-    actualLocalServer: BspServer,
+  private def compile(
+    currentBloopSession: BloopSession,
     executor: Executor,
     doCompile: () => CompletableFuture[b.CompileResult]
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () =>
-        prepareBuild(actualLocalServer, remoteServer) match {
+        prepareBuild(currentBloopSession) match {
           case Right(preBuild) =>
             if (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged)
-              notifyBuildChange(actualLocalServer)
+              notifyBuildChange(currentBloopSession)
             Right(preBuild)
           case Left((ex, scope)) =>
             Left((ex, scope))
@@ -226,126 +222,113 @@ final class BspImpl(
       executor
     )
 
-    preBuild.thenCompose { maybeParams =>
-      maybeParams match {
-        case Left((ex, scope)) =>
-          actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
-          CompletableFuture.completedFuture(
-            new b.CompileResult(b.StatusCode.ERROR)
-          )
-        case Right(params) =>
-          for (targetId <- actualLocalServer.targetIds)
-            actualLocalClient.resetBuildExceptionDiagnostics(targetId)
+    preBuild.thenCompose {
+      case Left((ex, scope)) =>
+        actualLocalClient.reportBuildException(
+          currentBloopSession.bspServer.targetScopeIdOpt(scope),
+          ex
+        )
+        CompletableFuture.completedFuture(
+          new b.CompileResult(b.StatusCode.ERROR)
+        )
+      case Right(params) =>
+        for (targetId <- currentBloopSession.bspServer.targetIds)
+          actualLocalClient.resetBuildExceptionDiagnostics(targetId)
 
-          val targetId = actualLocalServer.targetIds.head
-          params.diagnostics.foreach(actualLocalClient.reportDiagnosticForFiles(targetId))
+        val targetId = currentBloopSession.bspServer.targetIds.head
+        params.diagnostics.foreach(actualLocalClient.reportDiagnosticForFiles(targetId))
 
-          doCompile().thenCompose { res =>
-            def doPostProcess(data: PreBuildData, scope: Scope) =
-              Build.postProcess(
-                data.generatedSources,
-                inputs.generatedSrcRoot(scope),
-                data.classesDir,
-                logger,
-                inputs.workspace,
-                updateSemanticDbs = true,
-                scalaVersion = data.project.scalaCompiler.scalaVersion
-              ).left.foreach(_.foreach(showGlobalWarningOnce))
+        doCompile().thenCompose { res =>
+          def doPostProcess(data: PreBuildData, scope: Scope) =
+            Build.postProcess(
+              data.generatedSources,
+              currentBloopSession.inputs.generatedSrcRoot(scope),
+              data.classesDir,
+              logger,
+              currentBloopSession.inputs.workspace,
+              updateSemanticDbs = true,
+              scalaVersion = data.project.scalaCompiler.scalaVersion
+            ).left.foreach(_.foreach(showGlobalWarningOnce))
 
-            if (res.getStatusCode == b.StatusCode.OK)
-              CompletableFuture.supplyAsync(
-                () => {
-                  doPostProcess(params.mainScope, Scope.Main)
-                  doPostProcess(params.testScope, Scope.Test)
-                  res
-                },
-                executor
-              )
-            else
-              CompletableFuture.completedFuture(res)
-          }
-      }
+          if (res.getStatusCode == b.StatusCode.OK)
+            CompletableFuture.supplyAsync(
+              () => {
+                doPostProcess(params.mainScope, Scope.Main)
+                doPostProcess(params.testScope, Scope.Test)
+                res
+              },
+              executor
+            )
+          else
+            CompletableFuture.completedFuture(res)
+        }
     }
   }
 
-  def registerWatchInputs(watcher: Build.Watcher): Unit =
-    inputs.elements.foreach {
-      case elem: Inputs.OnDisk =>
-        val eventFilter: PathWatchers.Event => Boolean = { event =>
-          val newOrDeletedFile =
-            event.getKind == PathWatchers.Event.Kind.Create ||
-            event.getKind == PathWatchers.Event.Kind.Delete
-          lazy val p        = os.Path(event.getTypedPath.getPath.toAbsolutePath)
-          lazy val relPath  = p.relativeTo(elem.path)
-          lazy val isHidden = relPath.segments.exists(_.startsWith("."))
-          def isScalaFile   = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
-          def isJavaFile    = relPath.last.endsWith(".java")
-          newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile)
-        }
-        val watcher0 = watcher.newWatcher()
-        watcher0.register(elem.path.toNIO, Int.MaxValue)
-        watcher0.addObserver {
-          Build.onChangeBufferedObserver { event =>
-            if (eventFilter(event))
-              watcher.schedule()
-          }
-        }
-      case _ =>
-    }
-
-  val actualLocalClient = new BspClient(
+  private val actualLocalClient = new BspClient(
     threads.buildThreads.bloop.jsonrpc, // meh
     logger
   )
-  actualLocalClient.setProjectName(inputs.workspace, inputs.projectName, Scope.Main)
-  val localClient: b.BuildClient with BloopBuildClient =
+  private val localClient: b.BuildClient with BloopBuildClient =
     if (verbosity >= 3)
       new BspImpl.LoggingBspClient(actualLocalClient)
     else
       actualLocalClient
 
-  var remoteServer: BloopCompiler  = null
-  var actualLocalServer: BspServer = null
+  private def newBloopSession(inputs: Inputs): BloopSession = {
+    val bloopServer = BloopServer.buildServer(
+      bloopRifleConfig,
+      "scala-cli",
+      Constants.version,
+      (inputs.workspace / Constants.workspaceDirName).toNIO,
+      Build.classesRootDir(inputs.workspace, inputs.projectName).toNIO,
+      localClient,
+      threads.buildThreads.bloop,
+      logger.bloopRifleLogger
+    )
+    val remoteServer = new BloopCompiler(
+      bloopServer,
+      20.seconds,
+      strictBloopJsonCheck = buildOptions.internal.strictBloopJsonCheckOrDefault
+    )
+    lazy val bspServer = new BspServer(
+      remoteServer.bloopServer.server,
+      doCompile => compile(bloopSession0, threads.prepareBuildExecutor, doCompile),
+      logger
+    )
 
-  val watcher = new Build.Watcher(
-    ListBuffer(),
-    threads.buildThreads.fileWatcher,
-    build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = true, logger),
-    ()
-  )
+    lazy val watcher = new Build.Watcher(
+      ListBuffer(),
+      threads.buildThreads.fileWatcher,
+      build(bloopSession0, actualLocalClient, notifyChanges = true, logger),
+      ()
+    )
+    lazy val bloopSession0: BloopSession = new BloopSession(
+      inputs,
+      remoteServer,
+      bspServer,
+      watcher
+    )
 
-  def run(): Future[Unit] = {
+    bloopSession0.registerWatchInputs()
+    bspServer.newInputs(inputs)
 
-    val classesDir = Build.classesRootDir(inputs.workspace, inputs.projectName)
+    bloopSession0
+  }
 
-    remoteServer = {
-      val bloopServer = BloopServer.buildServer(
-        bloopRifleConfig,
-        "scala-cli",
-        Constants.version,
-        (inputs.workspace / Constants.workspaceDirName).toNIO,
-        classesDir.toNIO,
-        localClient,
-        threads.buildThreads.bloop,
-        logger.bloopRifleLogger
+  private val bloopSession = new BloopSession.Reference
+
+  def run(initialInputs: Inputs): Future[Unit] = {
+
+    val currentBloopSession = newBloopSession(initialInputs)
+    bloopSession.update(null, currentBloopSession, "BSP server already initialized")
+
+    val actualLocalServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
+      with ScalaDebugServer with ScalaScriptBuildServer with HasGeneratedSources =
+      new BuildServerProxy(
+        () => bloopSession.get().bspServer,
+        () => onReload()
       )
-      new BloopCompiler(
-        bloopServer,
-        20.seconds,
-        strictBloopJsonCheck = buildOptions.internal.strictBloopJsonCheckOrDefault
-      )
-    }
-    localClient.onConnectWithServer(remoteServer.bloopServer.server)
-
-    actualLocalServer =
-      new BspServer(
-        remoteServer.bloopServer.server,
-        compile = doCompile =>
-          compile(actualLocalServer, threads.prepareBuildExecutor, doCompile),
-        logger = logger
-      )
-    actualLocalServer.setProjectName(inputs.workspace, inputs.projectName, Scope.Main)
-    actualLocalServer.setProjectName(inputs.workspace, inputs.projectName + "-test", Scope.Test)
 
     val localServer
       : b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaScriptBuildServer =
@@ -365,14 +348,11 @@ final class BspImpl(
     actualLocalClient.forwardToOpt = Some(remoteClient)
     actualLocalServer.onConnectWithClient(actualLocalClient)
 
-    for (targetId <- actualLocalServer.targetIds)
-      inputs.flattened().foreach {
-        case f: Inputs.SingleFile =>
-          actualLocalClient.resetDiagnostics(f.path, targetId)
-        case _: Inputs.Virtual =>
-      }
+    localClient.onConnectWithServer(currentBloopSession.remoteServer.bloopServer.server)
+    actualLocalClient.newInputs(initialInputs)
+    currentBloopSession.resetDiagnostics(actualLocalClient)
 
-    prepareBuild(actualLocalServer, remoteServer) match {
+    prepareBuild(currentBloopSession) match {
       case Left((ex, scope)) =>
         actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.log(ex)
@@ -389,7 +369,7 @@ final class BspImpl(
     val f = launcher.startListening()
 
     val initiateFirstBuild: Runnable = { () =>
-      try build(actualLocalServer, remoteServer, actualLocalClient, notifyChanges = false, logger)
+      try build(currentBloopSession, actualLocalClient, notifyChanges = false, logger)
       catch {
         case t: Throwable =>
           logger.debug(s"Caught $t during initial BSP build, ignoring it")
@@ -397,25 +377,104 @@ final class BspImpl(
     }
     threads.prepareBuildExecutor.submit(initiateFirstBuild)
 
-    registerWatchInputs(watcher)
-
     val es = ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc)
     val futures = Seq(
       BspImpl.naiveJavaFutureToScalaFuture(f).map(_ => ())(es),
-      actualLocalServer.initiateShutdown
+      currentBloopSession.bspServer.initiateShutdown
     )
     Future.firstCompletedOf(futures)(es)
   }
 
-  def shutdown(): Unit = {
-    watcher.dispose()
-    if (remoteServer != null)
-      remoteServer.shutdown()
+  def shutdown(): Unit =
+    for (currentBloopSession <- bloopSession.getAndNullify())
+      currentBloopSession.dispose()
+
+  private def reloadBsp(
+    currentBloopSession: BloopSession,
+    previousInputs: Inputs,
+    newInputs: Inputs
+  ): CompletableFuture[AnyRef] = {
+    val previousTargetIds = currentBloopSession.bspServer.targetIds
+    val newBloopSession0  = newBloopSession(newInputs)
+    bloopSession.update(currentBloopSession, newBloopSession0, "Concurrent reload of workspace")
+    currentBloopSession.dispose()
+    actualLocalClient.newInputs(newInputs)
+    localClient.onConnectWithServer(newBloopSession0.remoteServer.bloopServer.server)
+
+    newBloopSession0.resetDiagnostics(actualLocalClient)
+    prepareBuild(newBloopSession0) match {
+      case Left((buildException, scope)) =>
+        CompletableFuture.completedFuture(
+          responseError(
+            s"Can't reload workspace, build failed for scope ${scope.name}: ${buildException.message}"
+          )
+        )
+      case Right(preBuildProject) =>
+        if (previousInputs.projectName != preBuildProject.mainScope.project.projectName)
+          for (client <- newBloopSession0.bspServer.clientOpt) {
+            val newTargetIds = newBloopSession0.bspServer.targetIds
+            val events =
+              newTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.CREATED)) ++
+                previousTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.DELETED))
+            val didChangeBuildTargetParams = new b.DidChangeBuildTarget(events.asJava)
+            client.onBuildTargetDidChange(didChangeBuildTargetParams)
+          }
+        CompletableFuture.completedFuture(new Object())
+    }
   }
 
+  private def onReload(): CompletableFuture[AnyRef] = {
+    val currentBloopSession = bloopSession.get()
+    val ideInputsJsonPath =
+      currentBloopSession.inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
+    if (os.isFile(ideInputsJsonPath)) {
+      val maybeResponse = either[String] {
+        val ideInputs = value {
+          try Right(readFromArray(os.read.bytes(ideInputsJsonPath))(IdeInputs.codec))
+          catch {
+            case e: JsonReaderException =>
+              logger.debug(s"Caught $e while decoding $ideInputsJsonPath")
+              Left(e.getMessage)
+          }
+        }
+        val newInputs      = value(argsToInputs(ideInputs.args))
+        val previousInputs = currentBloopSession.inputs
+        if (newInputs == previousInputs) CompletableFuture.completedFuture(new Object)
+        else reloadBsp(currentBloopSession, previousInputs, newInputs)
+      }
+      maybeResponse match {
+        case Left(errorMessage) =>
+          CompletableFuture.completedFuture(
+            responseError(s"Workspace reload failed, couldn't load sources: $errorMessage")
+          )
+        case Right(r) => r
+      }
+    }
+    else
+      CompletableFuture.completedFuture(
+        responseError(
+          s"Workspace reload failed, inputs file missing from workspace directory: ${ideInputsJsonPath.toString()}"
+        )
+      )
+  }
 }
 
 object BspImpl {
+
+  private def buildTargetIdToEvent(
+    targetId: b.BuildTargetIdentifier,
+    eventKind: b.BuildTargetEventKind
+  ): b.BuildTargetEvent = {
+    val event = new b.BuildTargetEvent(targetId)
+    event.setKind(eventKind)
+    event
+  }
+
+  private def responseError(
+    message: String,
+    errorCode: Int = JsonRpcErrorCodes.InternalError
+  ): ResponseError =
+    new ResponseError(errorCode, message, new Object())
 
   // from https://github.com/com-lihaoyi/Ammonite/blob/7eb58c58ec8c252dc5bd1591b041fcae01cccf90/amm/interp/src/main/scala/ammonite/interp/script/AmmoniteBuildServer.scala#L550-L565
   private def naiveJavaFutureToScalaFuture[T](
@@ -456,5 +515,11 @@ object BspImpl {
     project: Project,
     generatedSources: Seq[GeneratedSource],
     buildChanged: Boolean
+  )
+
+  private final case class PreBuildProject(
+    mainScope: PreBuildData,
+    testScope: PreBuildData,
+    diagnostics: Seq[Diagnostic]
   )
 }

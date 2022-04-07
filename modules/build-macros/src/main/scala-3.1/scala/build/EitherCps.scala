@@ -11,9 +11,12 @@ object EitherCps:
       case Left(e)  => throw EitherFailure(e, cps)
       case Right(v) => v
 
-  def either[E, V](op: EitherCps[E] ?=> V): Either[E, V] =
-    val cps = new EitherCps[E]
-    try Right(op(using cps))
-    catch
-      case EitherFailure(e: E @unchecked, `cps`) =>
-        Left(e)
+  final case class Helper[E]():
+    def apply[V](op: EitherCps[E] ?=> V): Either[E, V] =
+      val cps = new EitherCps[E]
+      try Right(op(using cps))
+      catch
+        case EitherFailure(e: E @unchecked, `cps`) =>
+          Left(e)
+
+  def either[E]: Helper[E] = Helper[E]()

@@ -9,6 +9,7 @@ import java.nio.charset.Charset
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Inputs.WorkspaceOrigin
+import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
@@ -54,7 +55,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val bspPath = writeBspConfiguration(
       options,
       inputs,
-      previousCommandName = None
+      previousCommandName = None,
+      args = args.all
     ).orExit(options.shared.logging.logger)
 
     bspPath.foreach(path => println(s"Wrote configuration file for ide in: $path"))
@@ -64,9 +66,15 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     options: SharedOptions,
     inputs: Inputs,
     logger: Logger,
-    previousCommandName: Option[String]
+    previousCommandName: Option[String],
+    args: Seq[String]
   ): Unit =
-    writeBspConfiguration(SetupIdeOptions(shared = options), inputs, previousCommandName) match {
+    writeBspConfiguration(
+      SetupIdeOptions(shared = options),
+      inputs,
+      previousCommandName,
+      args
+    ) match {
       case Left(ex) =>
         logger.debug(s"Ignoring error during setup-ide: ${ex.message}")
       case Right(_) =>
@@ -78,7 +86,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   private def writeBspConfiguration(
     options: SetupIdeOptions,
     inputs: Inputs,
-    previousCommandName: Option[String]
+    previousCommandName: Option[String],
+    args: Seq[String]
   ): Either[BuildException, Option[os.Path]] = either {
 
     val virtualInputs = inputs.elements.collect {
@@ -99,8 +108,17 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
     val scalaCliBspJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-options-v2.json"
+    val scalaCliBspInputsJsonDestination =
+      inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
 
     val inputArgs = inputs.elements.collect { case d: Inputs.OnDisk => d.path.toString }
+
+    val ideInputs = IdeInputs(
+      options.shared.validateInputArgs(args)
+        .flatMap(_.toOption)
+        .flatten
+        .collect { case d: Inputs.OnDisk => d.path.toString }
+    )
 
     val debugOpt = options.shared.jvm.bspDebugPort.toSeq.map(port =>
       s"-J-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:$port,suspend=y"
@@ -129,6 +147,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val json                      = gson.toJson(details)
     val scalaCliOptionsForBspJson = writeToArray(options.shared)(SharedOptions.jsonCodec)
+    val scalaCliBspInputsJson     = writeToArray(ideInputs)
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(
@@ -142,6 +161,11 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       os.write.over(
         scalaCliBspJsonDestination,
         scalaCliOptionsForBspJson,
+        createFolders = true
+      )
+      os.write.over(
+        scalaCliBspInputsJsonDestination,
+        scalaCliBspInputsJson,
         createFolders = true
       )
       logger.debug(s"Wrote $bspJsonDestination")

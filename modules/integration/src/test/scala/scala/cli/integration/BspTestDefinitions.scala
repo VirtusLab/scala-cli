@@ -176,6 +176,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
         val details                = readBspConfig(root)
         val expectedIdeOptionsFile = root / Constants.workspaceDirName / "ide-options-v2.json"
+        val expectedIdeInputsFile  = root / Constants.workspaceDirName / "ide-inputs.json"
         val expectedArgv = Seq(
           TestUtil.cliPath,
           "bsp",
@@ -185,6 +186,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         )
         expect(details.argv == expectedArgv)
         expect(os.isFile(expectedIdeOptionsFile))
+        expect(os.isFile(expectedIdeInputsFile))
       }
     }
 

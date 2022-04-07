@@ -24,10 +24,13 @@ class BspServer(
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
     with ScalaScriptBuildServer
     with ScalaDebugServerForwardStubs
-    with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs with HasGeneratedSources {
+    with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs
+    with HasGeneratedSourcesImpl {
 
   private var client: Option[BuildClient] = None
   private val isIntelliJ: AtomicBoolean   = new AtomicBoolean(false)
+
+  def clientOpt: Option[BuildClient] = client
 
   override def onConnectWithClient(client: BuildClient): Unit = this.client = Some(client)
 
