@@ -20,7 +20,8 @@ import scala.util.Random
 class BspServer(
   bloopServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with ScalaDebugServer,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
-  logger: Logger
+  logger: Logger,
+  presetIntelliJ: Boolean = false
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
     with ScalaScriptBuildServer
     with ScalaDebugServerForwardStubs
@@ -28,7 +29,9 @@ class BspServer(
     with HasGeneratedSourcesImpl {
 
   private var client: Option[BuildClient] = None
-  private val isIntelliJ: AtomicBoolean   = new AtomicBoolean(false)
+
+  private val atomicIntelliJ: AtomicBoolean = new AtomicBoolean(presetIntelliJ)
+  def isIntelliJ: Boolean                   = atomicIntelliJ.get()
 
   def clientOpt: Option[BuildClient] = client
 
@@ -152,7 +155,7 @@ class BspServer(
       capabilities
     )
     val buildComesFromIntelliJ = params.getDisplayName.toLowerCase.contains("intellij")
-    isIntelliJ.set(buildComesFromIntelliJ)
+    atomicIntelliJ.set(buildComesFromIntelliJ)
     logger.debug(s"IntelliJ build: $buildComesFromIntelliJ")
     CompletableFuture.completedFuture(res)
   }
@@ -217,7 +220,7 @@ class BspServer(
         capabilities.setCanDebug(true)
         val baseDirectory = new File(new URI(target.getBaseDirectory))
         if (
-          isIntelliJ.get() && baseDirectory.getName == ".scala-build" && baseDirectory.getParentFile != null
+          isIntelliJ && baseDirectory.getName == Constants.workspaceDirName && baseDirectory.getParentFile != null
         ) {
           val newBaseDirectory = baseDirectory.getParentFile.toPath.toUri.toASCIIString
           target.setBaseDirectory(newBaseDirectory)
