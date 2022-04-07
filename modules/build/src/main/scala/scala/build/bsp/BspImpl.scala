@@ -2,7 +2,6 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonReaderException, readFromArray}
-import com.swoval.files.PathWatchers
 import dependency.ScalaParameters
 import org.eclipse.lsp4j.jsonrpc
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -311,7 +310,7 @@ final class BspImpl(
       watcher
     )
 
-    BspImpl.registerWatchInputs(bloopSession0)
+    bloopSession0.registerWatchInputs()
     bspServer.newInputs(inputs)
 
     bloopSession0
@@ -494,31 +493,6 @@ object BspImpl {
     t.start()
     p.future
   }
-
-  private def registerWatchInputs(currentBloopSession: BloopSession): Unit =
-    currentBloopSession.inputs.elements.foreach {
-      case elem: Inputs.OnDisk =>
-        val eventFilter: PathWatchers.Event => Boolean = { event =>
-          val newOrDeletedFile =
-            event.getKind == PathWatchers.Event.Kind.Create ||
-            event.getKind == PathWatchers.Event.Kind.Delete
-          lazy val p        = os.Path(event.getTypedPath.getPath.toAbsolutePath)
-          lazy val relPath  = p.relativeTo(elem.path)
-          lazy val isHidden = relPath.segments.exists(_.startsWith("."))
-          def isScalaFile   = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
-          def isJavaFile    = relPath.last.endsWith(".java")
-          newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile)
-        }
-        val watcher0 = currentBloopSession.watcher.newWatcher()
-        watcher0.register(elem.path.toNIO, Int.MaxValue)
-        watcher0.addObserver {
-          Build.onChangeBufferedObserver { event =>
-            if (eventFilter(event))
-              currentBloopSession.watcher.schedule()
-          }
-        }
-      case _ =>
-    }
 
   private final class LoggingBspClient(actualLocalClient: BspClient) extends LoggingBuildClient
       with BloopBuildClient {
