@@ -1,5 +1,7 @@
 package scala.build.preprocessing.directives
 
+import shapeless.{Lens, lens}
+
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaJsOptions}
 import scala.build.preprocessing.ScopePath
@@ -44,34 +46,41 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     "//> using jsModuleKind \"common\""
   )
 
-  def string(f: String => ScalaJsOptions)(values: Seq[Positioned[String]]): ScalaJsOptions =
-    f(values.head.value)
+  def passStringToBuildOptionsLens(
+                                    value: Seq[Positioned[String]],
+                                    buildOptionLens: Lens[BuildOptions, Option[String]]
+                                  ): BuildOptions =
+    buildOptionLens.set(BuildOptions())(Some(value.head.value))
 
-  def boolean(f: Boolean => ScalaJsOptions)(values: Seq[Positioned[String]]): ScalaJsOptions =
-    f(values.head.value.toBoolean)
+  def passBooleanOptionToBuildOptionLens(
+                                          value: Seq[Positioned[String]],
+                                          buildOptionLens: Lens[BuildOptions, Option[Boolean]]
+                                        ): BuildOptions =
+    buildOptionLens.set(BuildOptions())(Some(value.head.value.toBoolean))
 
-  lazy val directiveMap =
-    Map[String, Seq[Positioned[String]] => ScalaJsOptions](
-      "jsVersion" ->  string(value => ScalaJsOptions(version = Some(value))),
-      "jsMode"    -> string(value => ScalaJsOptions(mode = Some(value))),
-      "jsModuleKind" ->
-        string(value => ScalaJsOptions(moduleKindStr = Some(value))),
-      "jsCheckIr" -> boolean(value => ScalaJsOptions(checkIr = Some(value))),
-      "jsEmitSourceMaps" ->
-        boolean(value => ScalaJsOptions(emitSourceMaps = value)),
-      "jsDom"    -> boolean(value => ScalaJsOptions(dom = Some(value))),
-      "jsHeader" -> string(value => ScalaJsOptions(header = Some(value))),
-      "jsAllowBigIntsForLongs" ->
-        boolean(value => ScalaJsOptions(allowBigIntsForLongs = Some(value))),
-      "jsAvoidClasses" ->
-        boolean(value => ScalaJsOptions(avoidClasses = Some(value))),
-      "jsAvoidLetsAndConsts" ->
-        boolean(value => ScalaJsOptions(avoidLetsAndConsts = Some(value))),
-      "jsModuleSplitStyleStr" ->
-        string(value => ScalaJsOptions(moduleSplitStyleStr = Some(value))),
-      "jsEsVersionStr" ->
-        string(value => ScalaJsOptions(esVersionStr = Some(value)))
+  def passBooleanToBuildOptionsLens(
+                                     value: Seq[Positioned[String]],
+                                     buildOptionLens: Lens[BuildOptions, Boolean]
+                                   ): BuildOptions =
+    buildOptionLens.set(BuildOptions())(value.head.value.toBoolean)
+
+  lazy val directiveMap: Map[String, Seq[Positioned[String]] => BuildOptions] = {
+    val l = lens[BuildOptions].scalaJsOptions
+    Map(
+      "jsVersion"              -> { passStringToBuildOptionsLens(_, l.version) },
+      "jsMode"                 -> { passStringToBuildOptionsLens(_, l.mode) },
+      "jsModuleKind"           -> { passStringToBuildOptionsLens(_, l.moduleKindStr) },
+      "jsCheckIr"              -> { passBooleanOptionToBuildOptionLens(_, l.checkIr) },
+      "jsEmitSourceMaps"       -> { passBooleanToBuildOptionsLens(_, l.emitSourceMaps) },
+      "jsDom"                  -> { passBooleanOptionToBuildOptionLens(_, l.dom) },
+      "jsHeader"               -> { passStringToBuildOptionsLens(_, l.header) },
+      "jsAllowBigIntsForLongs" -> { passBooleanOptionToBuildOptionLens(_, l.allowBigIntsForLongs) },
+      "jsAvoidClasses"         -> { passBooleanOptionToBuildOptionLens(_, l.avoidClasses) },
+      "jsAvoidLetsAndConsts"   -> { passBooleanOptionToBuildOptionLens(_, l.avoidLetsAndConsts) },
+      "jsModuleSplitStyleStr"  -> { passStringToBuildOptionsLens(_, l.moduleSplitStyleStr) },
+      "jsEsVersionStr"         -> { passStringToBuildOptionsLens(_, l.esVersionStr) }
     )
+  }
 
   def keys = directiveMap.keys.toSeq
 
@@ -79,7 +88,7 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" =>
       Set(UsingDirectiveValueKind.STRING)
     case "jsCheckIr" | "jsAllowBigIntsForLongs" | "jsEmitSourceMaps" | "jsDom" | "jsAvoidClasses" | "jsAvoidLetsAndConsts" =>
-      Set(UsingDirectiveValueKind.BOOLEAN)
+      Set(UsingDirectiveValueKind.BOOLEAN, UsingDirectiveValueKind.EMPTY)
   }
 
   override def getValueNumberBounds(key: String) = UsingDirectiveValueNumberBounds(1, 1)

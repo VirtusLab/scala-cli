@@ -51,6 +51,9 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
 
   override def getValueNumberBounds(key: String): UsingDirectiveValueNumberBounds = key match {
     case "native-gc" | "nativeGc"           => UsingDirectiveValueNumberBounds(1, 1)
+    case "native-mode" | "nativeMode"           => UsingDirectiveValueNumberBounds(1, 1)
+    case "native-clang" | "native-clang-pp" | "nativeClang" | "nativeClangPP"           => UsingDirectiveValueNumberBounds(1, 1)
+    case "native-clang-pp" | "nativeMode"           => UsingDirectiveValueNumberBounds(1, 1)
     case "native-version" | "nativeVersion" => UsingDirectiveValueNumberBounds(1, 1)
     case "native-linking" | "nativeLinking" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
     case "native-compile" | "nativeCompile" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
@@ -72,6 +75,10 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
           ScalaNativeOptions(
             gcStr = Some(values.head.positioned.value)
           )
+        case "native-mode" | "nativeMode" =>
+          ScalaNativeOptions(
+            modeStr = Some(values.head.positioned.value)
+          )
         case "native-version" | "nativeVersion" =>
           ScalaNativeOptions(
             version = Some(values.head.positioned.value)
@@ -83,6 +90,14 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
         case "native-linking" | "nativeLinking" =>
           ScalaNativeOptions(
             linkingOptions = values.map(_.positioned.value).toList
+          )
+        case "native-clang" | "nativeClang" =>
+          ScalaNativeOptions(
+            clang = Some(values.head.positioned.value)
+          )
+        case "native-clang-pp" | "nativeClangPP" =>
+          ScalaNativeOptions(
+            clangpp = Some(values.head.positioned.value)
           )
       }
       val options = BuildOptions(scalaNativeOptions = scalaNativeOptions)

@@ -17,6 +17,7 @@ case class ScopedValue[T <: Value[_]](
     case _: ScopedValue[StringValue]  => UsingDirectiveValueKind.STRING
     case _: ScopedValue[NumericValue] => UsingDirectiveValueKind.NUMERIC
     case _: ScopedValue[BooleanValue] => UsingDirectiveValueKind.BOOLEAN
+    case _: ScopedValue[EmptyValue] => UsingDirectiveValueKind.EMPTY
     case _                            => UsingDirectiveValueKind.UNKNOWN
   }
 
