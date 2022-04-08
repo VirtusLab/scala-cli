@@ -275,7 +275,7 @@ final class BspImpl(
     else
       actualLocalClient
 
-  private def newBloopSession(inputs: Inputs): BloopSession = {
+  private def newBloopSession(inputs: Inputs, presetIntelliJ: Boolean = false): BloopSession = {
     val bloopServer = BloopServer.buildServer(
       bloopRifleConfig,
       "scala-cli",
@@ -294,7 +294,8 @@ final class BspImpl(
     lazy val bspServer = new BspServer(
       remoteServer.bloopServer.server,
       doCompile => compile(bloopSession0, threads.prepareBuildExecutor, doCompile),
-      logger
+      logger,
+      presetIntelliJ
     )
 
     lazy val watcher = new Build.Watcher(
@@ -395,7 +396,8 @@ final class BspImpl(
     newInputs: Inputs
   ): CompletableFuture[AnyRef] = {
     val previousTargetIds = currentBloopSession.bspServer.targetIds
-    val newBloopSession0  = newBloopSession(newInputs)
+    val wasIntelliJ       = currentBloopSession.bspServer.isIntelliJ
+    val newBloopSession0  = newBloopSession(newInputs, wasIntelliJ)
     bloopSession.update(currentBloopSession, newBloopSession0, "Concurrent reload of workspace")
     currentBloopSession.dispose()
     actualLocalClient.newInputs(newInputs)
