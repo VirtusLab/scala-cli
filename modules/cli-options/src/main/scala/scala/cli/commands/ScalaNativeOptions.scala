@@ -43,7 +43,12 @@ final case class ScalaNativeOptions(
   @Group("Scala Native")
   @Hidden
   @HelpMessage("Use default compile options")
-    nativeCompileDefaults: Option[Boolean] = None //TODO does it even work when we default it to true while handling?
+    nativeCompileDefaults: Option[Boolean] = None, //TODO does it even work when we default it to true while handling?
+
+  @Group("Scala Native")
+  @HelpMessage("Embed resources into the Scala Native binary (can be read with the Java resources API)")
+    embedResources: Option[Boolean] = None
+
 )
 // format: on
 

@@ -114,11 +114,6 @@ final case class Inputs(
           case dirInput: Inputs.Directory =>
             Seq("dir:") ++ Inputs.singleFilesFromDirectory(dirInput, enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
-          case resDirInput: Inputs.ResourceDirectory =>
-            // Resource changes for SN require relinking, so they should also be hashed
-            Seq("resource-dir:") ++ os.walk(resDirInput.path)
-              .filter(os.isFile(_))
-              .map(filePath => s"$filePath:" + os.read(filePath))
           case _ => Seq(os.read(elem.path))
         }
         (Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")).map(bytes)

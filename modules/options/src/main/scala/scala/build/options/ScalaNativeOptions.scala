@@ -17,7 +17,8 @@ final case class ScalaNativeOptions(
   linkingOptions: List[String] = Nil,
   linkingDefaults: Option[Boolean] = None,
   compileOptions: List[String] = Nil,
-  compileDefaults: Option[Boolean] = None
+  compileDefaults: Option[Boolean] = None,
+  embedResources: Option[Boolean] = None
 ) {
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
@@ -65,6 +66,15 @@ final case class ScalaNativeOptions(
   private def compileCliOptions(): List[String] =
     finalCompileOptions().flatMap(option => List("--compile-option", option))
 
+  private def resourcesCliOptions(resourcesExist: Boolean): List[String] =
+    if (embedResources.getOrElse(true))
+      (numeralVersion, resourcesExist) match {
+        case (Some(numeralVersion), true) if numeralVersion >= SNNumeralVersion(0, 4, 4) =>
+          List("--embed-resources")
+        case _ => Nil
+      }
+    else Nil
+
   def platformSuffix: String =
     "native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion)
 
@@ -100,13 +110,14 @@ final case class ScalaNativeOptions(
       output = None
     )
 
-  def configCliOptions(): List[String] =
+  def configCliOptions(resourcesExist: Boolean): List[String] =
     gcCliOption() ++
       modeCliOption() ++
       clangCliOption() ++
       clangppCliOption() ++
       linkingCliOptions() ++
-      compileCliOptions()
+      compileCliOptions() ++
+      resourcesCliOptions(resourcesExist)
 
 }
 

@@ -1705,6 +1705,10 @@ List of compile options
 
 Use default compile options
 
+#### `--embed-resources`
+
+Embed resources into the Scala Native binary (can be read with the Java resources API)
+
 ## Scalac options
 
 Available in commands:

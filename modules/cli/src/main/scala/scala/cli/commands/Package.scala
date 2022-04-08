@@ -912,7 +912,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     logger: Logger
   ): Either[BuildException, Unit] = either {
 
-    val cliOptions = build.options.scalaNativeOptions.configCliOptions()
+    val cliOptions =
+      build.options.scalaNativeOptions.configCliOptions(!build.sources.resourceDirs.isEmpty)
 
     val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
     val pythonLdFlags =
@@ -943,7 +944,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     if (cacheData.changed)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
-        val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString
+        val classpath = mainJar.toString +: build.artifacts.classPath.map(_.toString)
         val args =
           allCliOptions ++
             logger.scalaNativeCliInternalLoggerOptions ++

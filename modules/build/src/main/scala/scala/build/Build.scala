@@ -472,34 +472,60 @@ object Build {
 
   def scalaNativeSupported(
     options: BuildOptions,
-    inputs: Inputs
+    inputs: Inputs,
+    logger: Logger
   ): Either[BuildException, Option[ScalaNativeCompatibilityError]] =
     either {
       val scalaParamsOpt = value(options.scalaParams)
       scalaParamsOpt.flatMap { scalaParams =>
-        val scalaVersion  = scalaParams.scalaVersion
-        val nativeVersion = options.scalaNativeOptions.numeralVersion
-        val isCompatible = nativeVersion match {
-          case Some(snNumeralVer) =>
-            if (snNumeralVer < SNNumeralVersion(0, 4, 1) && Properties.isWin)
-              false
-            else if (scalaVersion.startsWith("3.0"))
-              false
-            else if (scalaVersion.startsWith("3") || scalaVersion.startsWith("2.12"))
-              snNumeralVer >= SNNumeralVersion(0, 4, 3)
-            else if (scalaVersion.startsWith("2.13"))
-              true
-            else false
-          case None => false
-        }
-        if (isCompatible) None
-        else
-          Some(
+        val scalaVersion       = scalaParams.scalaVersion
+        val nativeVersionMaybe = options.scalaNativeOptions.numeralVersion
+        def snCompatError =
+          Left(
             new ScalaNativeCompatibilityError(
               scalaVersion,
               options.scalaNativeOptions.finalVersion
             )
           )
+        def warnIncompatibleNativeOptions(numeralVersion: SNNumeralVersion) =
+          if (
+            numeralVersion < SNNumeralVersion(0, 4, 4)
+            && options.scalaNativeOptions.embedResources.isDefined
+          )
+            logger.diagnostic(
+              "This Scala Version cannot embed resources, regardless of the options used."
+            )
+
+        val numeralOrError: Either[ScalaNativeCompatibilityError, SNNumeralVersion] =
+          nativeVersionMaybe match {
+            case Some(snNumeralVer) =>
+              if (snNumeralVer < SNNumeralVersion(0, 4, 1) && Properties.isWin)
+                snCompatError
+              else if (scalaVersion.startsWith("3.0"))
+                snCompatError
+              else if (scalaVersion.startsWith("3"))
+                if (snNumeralVer >= SNNumeralVersion(0, 4, 3)) Right(snNumeralVer)
+                else snCompatError
+              else if (scalaVersion.startsWith("2.13"))
+                Right(snNumeralVer)
+              else if (scalaVersion.startsWith("2.12"))
+                if (
+                  inputs.sourceFiles().forall {
+                    case _: Inputs.AnyScript => snNumeralVer >= SNNumeralVersion(0, 4, 3)
+                    case _                   => true
+                  }
+                ) Right(snNumeralVer)
+                else snCompatError
+              else snCompatError
+            case None => snCompatError
+          }
+
+        numeralOrError match {
+          case Left(compatError) => Some(compatError)
+          case Right(snNumeralVersion) =>
+            warnIncompatibleNativeOptions(snNumeralVersion)
+            None
+        }
       }
     }
 
@@ -981,7 +1007,7 @@ object Build {
   ): Either[BuildException, Build] = either {
 
     if (options.platform.value == Platform.Native)
-      value(scalaNativeSupported(options, inputs)) match {
+      value(scalaNativeSupported(options, inputs, logger)) match {
         case None        =>
         case Some(error) => value(Left(error))
       }

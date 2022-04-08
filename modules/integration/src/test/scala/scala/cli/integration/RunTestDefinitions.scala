@@ -258,6 +258,40 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("Resource embedding in Scala Native") {
+    val projectDir       = "nativeres"
+    val resourceContent  = "resource contents"
+    val resourceFileName = "embeddedfile.txt"
+    val inputs = TestInputs(
+      os.rel / projectDir / "main.scala" ->
+        s"""|//> using platform "scala-native"
+            |//> using resourceDir "resources"
+            |
+            |import java.nio.charset.StandardCharsets
+            |import java.io.{BufferedReader, InputStreamReader}
+            |
+            |object Main {
+            |  def main(args: Array[String]): Unit = {
+            |    val inputStream = getClass().getResourceAsStream("/$resourceFileName")
+            |    val nativeResourceText = new BufferedReader(
+            |      new InputStreamReader(inputStream, StandardCharsets.UTF_8)
+            |    ).readLine()
+            |    println(nativeResourceText)
+            |  }
+            |}
+            |""".stripMargin,
+      os.rel / projectDir / "resources" / resourceFileName -> resourceContent
+    )
+    inputs.fromRoot { root =>
+      val output =
+        os.proc(TestUtil.cli, extraOptions, projectDir, "-q")
+          .call(cwd = root)
+          .out.trim()
+      println(output)
+      expect(output == resourceContent)
+    }
+  }
+
   if (actualScalaVersion.startsWith("3.1"))
     test("Scala 3 in Scala Native") {
       val message  = "using Scala 3 Native"
