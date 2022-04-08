@@ -192,7 +192,7 @@ class CachedBinaryTests extends munit.FunSuite {
               )
             )
           )
-          val updatedConfig = updatedBuild.options.scalaNativeOptions.configCliOptions()
+          val updatedConfig = updatedBuild.options.scalaNativeOptions.configCliOptions(false)
 
           val cacheAfterConfigUpdate =
             CachedBinary.getCacheData(

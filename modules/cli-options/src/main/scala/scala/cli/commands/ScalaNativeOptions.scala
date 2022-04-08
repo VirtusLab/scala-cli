@@ -43,9 +43,14 @@ final case class ScalaNativeOptions(
   @Group("Scala Native")
   @Hidden
   @HelpMessage("Use default compile options")
-    nativeCompileDefaults: Option[Boolean] = None //TODO does it even work when we default it to true while handling?
+    nativeCompileDefaults: Option[Boolean] = None, //TODO does it even work when we default it to true while handling?
+
+  @Group("Scala Native")
+  @HelpMessage("Do not embed resources into the Scala Native binary (resources will not be able to be used)")
+    noEmbed: Option[Boolean] = None
+
 )
-// format: on
+  // format: on
 
 object ScalaNativeOptions {
   lazy val parser: Parser[ScalaNativeOptions]                           = Parser.derive

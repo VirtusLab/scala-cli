@@ -873,7 +873,8 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger
   ): Unit = {
 
-    val cliOptions = build.options.scalaNativeOptions.configCliOptions()
+    val cliOptions =
+      build.options.scalaNativeOptions.configCliOptions(!build.sources.resourceDirs.isEmpty)
 
     val nativeWorkDir = build.inputs.nativeWorkDir
     os.makeDir.all(nativeWorkDir)
@@ -889,7 +890,7 @@ object Package extends ScalaCommand[PackageOptions] {
     if (cacheData.changed)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
-        val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString
+        val classpath = build.artifacts.classPath.map(_.toString) :+ mainJar.toString
         val args =
           cliOptions ++
             logger.scalaNativeCliInternalLoggerOptions ++

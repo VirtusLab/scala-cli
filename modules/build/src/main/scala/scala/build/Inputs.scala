@@ -103,7 +103,7 @@ final case class Inputs(
     if (canWrite) this
     else inHomeDir(directories)
   }
-  def sourceHash(): String = {
+  def sourceHash(resourceDirs: Seq[os.Path] = Seq.empty): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
     val it = elements.iterator.flatMap {
       case elem: Inputs.OnDisk =>
@@ -122,8 +122,15 @@ final case class Inputs(
       case v: Inputs.Virtual =>
         Iterator(v.content, bytes("\n"))
     }
+    val resourceDirsIt = (resourceDirs.flatMap { dir =>
+      os.walk(dir)
+        .filter(os.isFile(_))
+        .map(filePath => s"$filePath:" + os.read(filePath))
+    }.iterator ++ Iterator("\n")).map(bytes)
+
     val md = MessageDigest.getInstance("SHA-1")
     it.foreach(md.update)
+    resourceDirsIt.foreach(md.update)
     val digest        = md.digest()
     val calculatedSum = new BigInteger(1, digest)
     String.format(s"%040x", calculatedSum)
