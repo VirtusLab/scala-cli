@@ -211,7 +211,13 @@ object Repl extends ScalaCommand[ReplOptions] {
           " These will not be accessible from the REPL."
       )
 
-    val replArgs = options.notForBloopOptions.replOptions.ammoniteArgs ++ programArgs
+    val additionalArgs =
+      if (options.notForBloopOptions.replOptions.useAmmonite)
+        options.notForBloopOptions.replOptions.ammoniteArgs
+      else
+        options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+
+    val replArgs = additionalArgs ++ programArgs
 
     if (dryRun)
       logger.message("Dry run, not running REPL.")
