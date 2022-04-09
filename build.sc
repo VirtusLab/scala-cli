@@ -439,8 +439,7 @@ trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with settings.S
 class Scala3Graal(val crossScalaVersion: String) extends BuildLikeModule {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
-    Deps.osLib,
-    Deps.sbtIO
+    Deps.osLib
   )
 
   def resources = T.sources {
@@ -535,9 +534,6 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with settings.Scal
 trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     with HasMacroAnnotations with FormatNativeImageConf {
 
-
-  
-
   def millSourcePath = super.millSourcePath / os.up / "cli"
 
   def myScalaVersion = Scala.defaultInternal
@@ -558,7 +554,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   )
 
   // We are adding graal as compile deps and adding jat on classpath since we want to build a native image from jar not from directories
-  def runClasspath = T { Seq(`scala3-graal`(myScalaVersion).jar()) ++ super.runClasspath() }
+  def runClasspath = T(Seq(`scala3-graal`(myScalaVersion).jar()) ++ super.runClasspath())
 
   def repositories = super.repositories ++ customRepositories
 

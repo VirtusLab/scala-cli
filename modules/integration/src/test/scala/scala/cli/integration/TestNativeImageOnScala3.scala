@@ -6,7 +6,7 @@ import scala.util.Properties
 
 class TestNativeImageOnScala3 extends munit.FunSuite {
 
-  def runTest(expectedResult: String, args: String*)(code: String): Unit = {
+  def runTest(args: String*)(expectedLines: String*)(code: String): Unit = {
     val dest =
       if (Properties.isWin) "testApp.exe"
       else "testApp"
@@ -32,14 +32,14 @@ class TestNativeImageOnScala3 extends munit.FunSuite {
 
       // FIXME Check that dest is indeed a binary?
 
-      val res    = os.proc(root / dest, args).call(cwd = root)
-      val output = res.out.text().trim
-      expect(output == expectedResult)
+      val res         = os.proc(root / dest, args).call(cwd = root)
+      val outputLines = res.out.text().trim.linesIterator.to(Seq)
+      expect(expectedLines == outputLines)
     }
   }
 
   test("lazy vals") {
-    runTest("2", "1") {
+    runTest("1")("2") {
       """//> using scala "3.1.1"
         |class A(a: String) { lazy val b = a.toInt + 1 }
         |@main def add1(i: String) = println(A(i).b)
@@ -48,7 +48,7 @@ class TestNativeImageOnScala3 extends munit.FunSuite {
   }
 
   test("lazy vals and enums with default scala version") {
-    runTest("2\nA", "1") {
+    runTest("1")("2", "A") {
       """class A(a: String) { lazy val b = a.toInt + 1 }
         |enum Ala:
         |  case A

@@ -4,7 +4,7 @@ import org.objectweb.asm._
 
 import java.io.{File, InputStream}
 import java.nio.file.{Files, Path, StandardOpenOption}
-import java.util.jar.{JarEntry, JarFile, JarOutputStream}
+import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
 
 import scala.jdk.CollectionConverters._
 
@@ -24,8 +24,8 @@ case class Unmodified(path: os.Path) extends ClassPathEntry {
 case class Processed(path: os.Path, original: os.Path, cache: JarCache) extends ClassPathEntry
 case class CreatedEntry(path: os.Path)                                  extends ClassPathEntry
 
-case class ProcessedClasspath(entries: Seq[ClassPathEntry]) {
-  def newClassPath = entries.map(_.path.toNIO).mkString(File.pathSeparator)
+case class PathingJar(jar: ClassPathEntry, entries: Seq[ClassPathEntry]) extends ClassPathEntry {
+  override def path: os.Path = jar.path
 }
 
 object TempCache extends JarCache {
@@ -44,8 +44,50 @@ object TempCache extends JarCache {
 }
 
 object BytecodeProcessor {
-  def processClasspath(classpath: String, cache: JarCache = TempCache) = {
-    val cp = classpath.split(File.pathSeparator).map { str =>
+
+  def toClean(classpath: Seq[ClassPathEntry]): Seq[os.Path] = classpath.flatMap {
+    case Processed(path, _, TempCache) => Seq(path)
+    case PathingJar(path, entries)     => toClean(path +: entries)
+    case _                             => Nil
+  }
+
+  def processPathingJar(pathingJar: String, cache: JarCache): Seq[ClassPathEntry] = {
+    val originalJar = toPath(pathingJar)
+    val jarFile     = new JarFile(originalJar.toIO)
+    try {
+      val cp = jarFile.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH)
+      if (cp != null && cp.nonEmpty) {
+        // paths in pathing jars are spectated by spaces
+        val entries     = cp.split(" +").toSeq
+        val processedCp = processClasspathEntries(entries, cache)
+        val dest        = os.temp(suffix = ".jar")
+        val outStream   = Files.newOutputStream(dest.toNIO, StandardOpenOption.CREATE)
+        try {
+          val stringCp = processedCp.map(_.path.toNIO).mkString(" ")
+          val manifest = new Manifest(jarFile.getManifest())
+          manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, stringCp)
+          val outjar = new JarOutputStream(outStream, manifest)
+          outjar.close()
+          dest.toNIO.toString()
+          Seq(PathingJar(Processed(dest, originalJar, TempCache), processedCp))
+        }
+        finally outStream.close()
+      }
+      else processClasspathEntries(Seq(pathingJar), cache)
+    }
+    finally jarFile.close()
+  }
+
+  def processClasspath(classpath: String, cache: JarCache = TempCache): Seq[ClassPathEntry] = {
+    val cp = classpath.split(File.pathSeparator)
+    if (cp.size == 1 && cp.head.endsWith(".jar"))
+      processPathingJar(cp.head, cache)
+    else
+      processClasspathEntries(cp.toSeq, cache)
+  }
+
+  def processClasspathEntries(entries: Seq[String], cache: JarCache): Seq[ClassPathEntry] = {
+    val cp = entries.map { str =>
       val path = toPath(str)
       cache.cache(path) { dest =>
         if (path.ext == "jar" && os.isFile(path)) processJar(path, dest, cache)
