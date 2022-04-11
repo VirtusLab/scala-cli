@@ -28,7 +28,7 @@ EOF
 
   # Wait a bit to read output of last command
   doSleep 2
-  clearConsole 
+  clearConsole
 
  cat <<EOF | updateFile Hello.scala
 // using scala 2.13.6

@@ -5,10 +5,10 @@ sidebar_position: 7
 
 Scala CLI can generate the files that are necessary for providing IDE support in Visual Studio Code.
 
-For example, here is a simple project in scala-cli which contains only one main and test class. 
+For example, here is a simple project in scala-cli which contains only one main and test class.
 
 ```scala title=HelloWorld.scala
-@main 
+@main
     def hello() = println("Hello, world")
 ```
 
@@ -36,7 +36,7 @@ scala-cli run .
 # "Hello, world"
 ```
 
-and then, we launch Visual Studio Code 
+and then, we launch Visual Studio Code
 
 ```bash ignore
 code .

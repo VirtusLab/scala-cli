@@ -36,7 +36,7 @@ scala-cli package Hello.scala -o hello
 # Hello
 ```
 
-<!-- Expected 
+<!-- Expected
 Hello
 -->
 
@@ -155,7 +155,7 @@ scala-cli package --native --docker HelloDocker.scala --docker-image-repository 
 
 `--docker-from` lets you specify your base docker image.
 
-The following command generate a `hello-docker` image using base image `openjdk:11` 
+The following command generate a `hello-docker` image using base image `openjdk:11`
 
 ```bash ignore
 scala-cli package --docker HelloDocker.scala --docker-from openjdk:11 --docker-image-repository hello-docker

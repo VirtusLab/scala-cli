@@ -13,4 +13,3 @@ Current Scala CLI versions support Scala 3, 2.13 and 2.12. The table below lists
 | 0.1.2               |   3.1.1           |    2.13.8   | 2.12.15    |
 | 0.1.3               |   3.1.1           |    2.13.8   | 2.12.15    |
 
- 

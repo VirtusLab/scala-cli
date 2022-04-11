@@ -30,7 +30,7 @@ EOF
 
   # Wait a bit to read output of last command
   doSleep 5
-  clearConsole 
+  clearConsole
       cat <<EOF | updateFile HelloWorld.sc
 println("Hello world from script")
 EOF

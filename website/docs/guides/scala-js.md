@@ -54,7 +54,7 @@ Hello World from Scala.js
 
 ### Module Split Style - Smallest Modules
 
-Passing `--js-module-split-style smallestmodules` to the `package` sub-command creates js modules that are as small as possible. 
+Passing `--js-module-split-style smallestmodules` to the `package` sub-command creates js modules that are as small as possible.
 Scala.js linker generates a lot of js modules, which are copied to the `output` directory.
 
 ```scala title=SmallestModules.scala
@@ -68,7 +68,7 @@ object Hello extends App {
 ```
 
 ```bash
-scala-cli package --js SmallestModules.scala --js-module-split-style smallestmodules --js-module-kind es --output hello 
+scala-cli package --js SmallestModules.scala --js-module-split-style smallestmodules --js-module-kind es --output hello
 echo "{\"type\": \"module\"}" >> package.json # enable ES module
 node hello/main.js
 # Hello World from Scala.js
@@ -124,7 +124,7 @@ object Hello {
 scala-cli Hello.scala --js-dom
 ```
 
-## Using Directives 
+## Using Directives
 
 Scala.js options are supported by using directives in Scala CLI:
 
