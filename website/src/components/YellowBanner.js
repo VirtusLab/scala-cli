@@ -17,8 +17,8 @@ export default function YellowBanner(props){
             className="image"
             alt={props.image}
             sources={{
-              light: `img/${props.image}`,
-              dark: `img/dark/${props.image}`,
+              light: `/img/${props.image}`,
+              dark: `/img/dark/${props.image}`,
             }}
             />
 				</div>
