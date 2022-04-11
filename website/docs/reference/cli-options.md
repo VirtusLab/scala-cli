@@ -1045,19 +1045,19 @@ Available in commands:
 
 #### `--js`
 
-Enable Scala.js. To show more options for Scala.Js pass `--help-js`
+Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 #### `--js-version`
 
-The Scala JS version
+The Scala.js version
 
 #### `--js-mode`
 
-The Scala JS mode, either `dev` or `release`
+The Scala.js mode, either `dev` or `release`
 
 #### `--js-module-kind`
 
-The Scala JS module kind: commonjs/common, esmodule/es, nomodule/none
+The Scala.js module kind: commonjs/common, esmodule/es, nomodule/none
 
 #### `--js-check-ir`
 
@@ -1091,11 +1091,11 @@ Avoid lets and consts when using vars has the same observable semantics.
 
 #### `--js-module-split-style`
 
-The Scala JS module split style: fewestmodules, smallestmodules
+The Scala.js module split style: fewestmodules, smallestmodules
 
 #### `--js-es-version`
 
-The Scala JS ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021
+The Scala.js ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021
 
 #### `--js-linker-path`
 

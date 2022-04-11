@@ -21,20 +21,20 @@ else
    cat <<EOF | updateFile Hello.scala
 // using scala 3.0.2
 
-@main def hello() = println("Hello world from ScalaCLI")
+@main def hello() = println("Hello world from Scala CLI")
 EOF
 
   pe "scala-cli Hello.scala"
 
   # Wait a bit to read output of last command
   doSleep 2
-  clearConsole 
+  clearConsole
 
  cat <<EOF | updateFile Hello.scala
 // using scala 2.13.6
 
 object Hello extends App {
- println("Hello world from ScalaCLI")
+ println("Hello world from Scala CLI")
 }
 EOF
 

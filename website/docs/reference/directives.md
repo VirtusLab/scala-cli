@@ -143,39 +143,6 @@ Manually add a resource directory to the class path
 #### Examples
 `//> using resourceDir "./resources"`
 
-### Scala JS options
-
-Add Scala JS options
-
-
-`//> using jsVersion` _value_
-
-`//> using jsMode` _value_
-
-`//> using jsModuleKind` _value_
-
-`//> using jsCheckIr` _true|false_
-
-`//> using jsEmitSourceMaps` _true|false_
-
-`//> using jsDom` _true|false_
-
-`//> using jsHeader` _value_
-
-`//> using jsAllowBigIntsForLongs` _true|false_
-
-`//> using jsAvoidClasses` _true|false_
-
-`//> using jsAvoidLetsAndConsts` _true|false_
-
-`//> using jsModuleSplitStyleStr` _value_
-
-`//> using jsEsVersionStr` _value_
-
-
-#### Examples
-`//> using jsModuleKind "common"`
-
 ### Scala Native options
 
 Add Scala Native options
@@ -211,6 +178,39 @@ Set the default Scala version
 `//> using scala "2"`
 
 `//> using scala "2.13.6", "2.12.15"`
+
+### Scala.js options
+
+Add Scala.js options
+
+
+`//> using jsVersion` _value_
+
+`//> using jsMode` _value_
+
+`//> using jsModuleKind` _value_
+
+`//> using jsCheckIr` _true|false_
+
+`//> using jsEmitSourceMaps` _true|false_
+
+`//> using jsDom` _true|false_
+
+`//> using jsHeader` _value_
+
+`//> using jsAllowBigIntsForLongs` _true|false_
+
+`//> using jsAvoidClasses` _true|false_
+
+`//> using jsAvoidLetsAndConsts` _true|false_
+
+`//> using jsModuleSplitStyleStr` _value_
+
+`//> using jsEsVersionStr` _value_
+
+
+#### Examples
+`//> using jsModuleKind "common"`
 
 ### Test framework
 

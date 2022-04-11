@@ -20,7 +20,7 @@ else
     cat <<EOF | updateFile HelloWorld.scala
 object HelloWorld {
     def main(args: Array[String]) = {
-        println("Hello world from ScalaCLI")
+        println("Hello world from Scala CLI")
     }
 }
 EOF
@@ -30,7 +30,7 @@ EOF
 
   # Wait a bit to read output of last command
   doSleep 5
-  clearConsole 
+  clearConsole
       cat <<EOF | updateFile HelloWorld.sc
 println("Hello world from script")
 EOF

@@ -7,9 +7,9 @@ import scala.build.{Logger, Positioned}
 
 case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
 
-  def name: String = "Scala JS options"
+  def name: String = "Scala.js options"
 
-  def description: String = "Add Scala JS options"
+  def description: String = "Add Scala.js options"
 
   def usage: String = s"//> using ${keys.mkString("|")} _value_"
 
