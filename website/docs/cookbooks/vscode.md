@@ -1,5 +1,5 @@
 ---
-title: Setup ScalaCLI project in VSCode 
+title: Setup Scala CLI project in VSCode
 sidebar_position: 7
 ---
 

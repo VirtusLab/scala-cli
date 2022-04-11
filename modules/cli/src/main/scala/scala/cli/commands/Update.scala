@@ -17,7 +17,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     val scalaCliVersionRegex = "tag/v(.*?)\"".r
     scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))
   }.getOrElse(
-    sys.error("Can not resolve ScalaCLI version to update")
+    sys.error("Can not resolve Scala CLI version to update")
   )
 
   def installDirPath(options: UpdateOptions): os.Path =
@@ -78,11 +78,11 @@ object Update extends ScalaCommand[UpdateOptions] {
     if (!options.isInternalRun)
       if (isOutdated)
         updateScalaCli(options, newestScalaCliVersion)
-      else println("ScalaCLI is up-to-date")
+      else println("Scala CLI is up-to-date")
     else if (isOutdated)
       println(
-        s"""Your ScalaCLI $currentVersion is outdated, please update ScalaCLI to $newestScalaCliVersion
-           |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update ScalaCLI.""".stripMargin
+        s"""Your Scala CLI $currentVersion is outdated, please update Scala CLI to $newestScalaCliVersion
+           |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update Scala CLI.""".stripMargin
       )
   }
 
@@ -109,7 +109,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     }
     else if (Properties.isWin) {
       if (!options.isInternalRun) {
-        System.err.println("ScalaCLI update is not supported on Windows.")
+        System.err.println("Scala CLI update is not supported on Windows.")
         sys.exit(1)
       }
     }

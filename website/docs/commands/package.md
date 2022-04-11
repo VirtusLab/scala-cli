@@ -132,8 +132,8 @@ docker run hello-docker
 Hello from Docker
 -->
 
-You can also create Docker images for the Scala JS and Scala Native environments.
-This command shows how to create a Docker image (`--docker`) for a Scala JS (`--js`) application:
+You can also create Docker images for the Scala.js and Scala Native environments.
+This command shows how to create a Docker image (`--docker`) for a Scala.js (`--js`) application:
 
 ```bash
 scala-cli package --js --docker HelloDocker.scala --docker-image-repository hello-docker
@@ -321,8 +321,8 @@ scala-cli package --rpm --output 'path.rpm' Hello.scala
 
 ### macOS (PKG)
 
-PKG is the software package format for macOs.
-To build a PKG you will need to have [`pkgbuild`](https://www.unix.com/man-page/osx/1/pkgbuild/) installed. 
+PKG is the software package format for macOS.
+To build a PKG you will need to have [`pkgbuild`](https://www.unix.com/man-page/osx/1/pkgbuild/) installed.
 
 Example:
 

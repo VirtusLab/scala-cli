@@ -126,11 +126,11 @@ scala-cli Hello.scala --js-dom
 
 ## Using Directives 
 
-Scala.Js options are supported by using directives in ScalaCLI:
+Scala.js options are supported by using directives in Scala CLI:
 
 #### `--js-version`
 
- The Scala JS version
+ The Scala.js version
 
  #### `--js-header`
 
@@ -140,14 +140,14 @@ For more options, see our [`using` directive section](./reference/directives.md#
 
 ## Supported Scala.js Versions
 
-In the future, the ScalaCLI will be able to support any version of Scala.js independently of the version of scala-cli. But for now, there are some limitations and it isn't possible to use each version of Scala.js. 
+In the future, the Scala CLI will be able to support any version of Scala.js independently of the version of scala-cli. But for now, there are some limitations and it isn't possible to use each version of Scala.js.
 
-The table below lists the last supported version of Scala.js in ScalaCLI. If you want to use newer Scala.js, update scala-cli.
+The table below lists the last supported version of Scala.js in Scala CLI. If you want to use newer Scala.js, update scala-cli.
 
-| ScalaCLI versions   |      ScalaJs      | 
-|---------------------|:-----------------:|
-| 0.0.9               |   1.7.1           |
-| 0.1.0               |   1.8.0           |
-| 0.1.1               |   1.8.0           |
-| 0.1.2               |   1.8.0           |
-| 0.1.3               |   1.9.0           |
+| Scala CLI versions   |      Scala.js      |
+|----------------------|:------------------:|
+| 0.0.9                |   1.7.1            |
+| 0.1.0                |   1.8.0            |
+| 0.1.1                |   1.8.0            |
+| 0.1.2                |   1.8.0            |
+| 0.1.3                |   1.9.0            |

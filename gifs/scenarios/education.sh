@@ -20,7 +20,7 @@ else
     cat <<EOF | updateFile HelloWorld.scala
 object HelloWorld {
     def main(args: Array[String]) = {
-        println("Hello world from ScalaCLI")
+        println("Hello world from Scala CLI")
     }
 }
 EOF
