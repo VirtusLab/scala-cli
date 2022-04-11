@@ -476,13 +476,13 @@ class SourcesTests extends munit.FunSuite {
         """//> using jsVersion "1.8.0"
           |//> using jsMode "mode"
           |//> using jsModuleKind "commonjs"
-          |//> using jsCheckIr "true"
-          |//> using jsEmitSourceMaps "true"
-          |//> using jsDom "true"
+          |//> using jsCheckIr true
+          |//> using jsEmitSourceMaps true
+          |//> using jsDom true
           |//> using jsHeader "#!/usr/bin/env node\n"
-          |//> using jsAllowBigIntsForLongs "true"
-          |//> using jsAvoidClasses "false"
-          |//> using jsAvoidLetsAndConsts "false"
+          |//> using jsAllowBigIntsForLongs true
+          |//> using jsAvoidClasses false
+          |//> using jsAvoidLetsAndConsts false
           |//> using jsModuleSplitStyleStr "smallestmodules"
           |//> using jsEsVersionStr "es2017"
           |""".stripMargin

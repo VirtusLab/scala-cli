@@ -1,5 +1,11 @@
 package scala.build.preprocessing.directives
-import com.virtuslab.using_directives.custom.model.{BooleanValue, NumericValue}
+import com.virtuslab.using_directives.custom.model.{
+  BooleanValue,
+  EmptyValue,
+  NumericValue,
+  StringValue,
+  Value
+}
 
 import scala.build.Logger
 import scala.build.errors.{
@@ -10,6 +16,7 @@ import scala.build.errors.{
 }
 import scala.build.preprocessing.directives.UsingDirectiveValueKind.{
   BOOLEAN,
+  EMPTY,
   NUMERIC,
   STRING,
   UsingDirectiveValueKind
@@ -95,7 +102,12 @@ trait DirectiveHandler[T] {
   final protected def receiveTheRightNumberOfValues(
     scopedDirective: ScopedDirective
   ): Either[UsingDirectiveExpectationError, ScopedDirective] = {
-    val values       = scopedDirective.directive.values
+    val values: Seq[Value[_]] = scopedDirective.directive.values.collect {
+      case n: NumericValue => n
+      case b: BooleanValue =>
+        b
+      case s: StringValue => s
+    } // TODO or perhaps `.filterNot(_.isInstanceOf[EmptyValue])` ??
     val length       = values.length
     val numberBounds = getValueNumberBounds(scopedDirective.directive.key)
 
@@ -106,7 +118,7 @@ trait DirectiveHandler[T] {
         numberBounds,
         length
       ))
-    else Right(scopedDirective)
+    else Right(scopedDirective.copy(directive = scopedDirective.directive.copy(values = values)))
   }
 
   /** It checks the values ascribed to the key inside the passed in `scopedDirective`, in order to
@@ -120,50 +132,28 @@ trait DirectiveHandler[T] {
   final protected def siftSupportedValueTypesWithNoResidue(
     scopedDirective: ScopedDirective
   ): Either[UsingDirectiveExpectationError, GroupedScopedValuesContainer] = {
-    var groupedPositionedValuesContainer = DirectiveUtil.getGroupedValues(scopedDirective)
-    val scopedBooleanValues              = groupedPositionedValuesContainer.scopedBooleanValues
-    val scopedNumericValues              = groupedPositionedValuesContainer.scopedNumericValues
-    val scopedStringValues               = groupedPositionedValuesContainer.scopedStringValues
+    val groupedPositionedValuesContainer = DirectiveUtil.getGroupedValues(scopedDirective)
 
     var groupedUnsupportedValues = GroupedScopedValuesContainer()
 
     val supportedTypes = getSupportedTypes(scopedDirective.directive.key)
 
     if (!supportedTypes.contains(BOOLEAN)) groupedUnsupportedValues =
-      groupedUnsupportedValues.copy(scopedBooleanValues = scopedBooleanValues)
+      groupedUnsupportedValues.copy(scopedBooleanValues =
+        groupedPositionedValuesContainer.scopedBooleanValues
+      )
     if (!supportedTypes.contains(NUMERIC)) groupedUnsupportedValues =
-      groupedUnsupportedValues.copy(scopedNumericValues = scopedNumericValues)
+      groupedUnsupportedValues.copy(scopedNumericValues =
+        groupedPositionedValuesContainer.scopedNumericValues
+      )
     if (!supportedTypes.contains(STRING))
-      if (supportedTypes.contains(NUMERIC) || supportedTypes.contains(BOOLEAN))
-        scopedStringValues.foreach { scopedStringValue =>
-          scala.util.Try(scopedStringValue.positioned.value.toDouble) match {
-            case Failure(_) =>
-              scala.util.Try(scopedStringValue.positioned.value.toBoolean) match {
-                case Failure(_) =>
-                  groupedUnsupportedValues = groupedUnsupportedValues.copy(scopedStringValues =
-                    groupedUnsupportedValues.scopedStringValues ++ Seq(scopedStringValue)
-                  )
-                case Success(_) => groupedPositionedValuesContainer =
-                    groupedPositionedValuesContainer.copy(scopedBooleanValues =
-                      groupedPositionedValuesContainer.scopedBooleanValues ++ Seq(
-                        ScopedValue[BooleanValue](
-                          scopedStringValue.positioned,
-                          scopedStringValue.maybeScopePath
-                        )
-                      )
-                    )
-              }
-            case Success(_) => groupedPositionedValuesContainer =
-                groupedPositionedValuesContainer.copy(scopedNumericValues =
-                  groupedPositionedValuesContainer.scopedNumericValues ++ Seq(
-                    ScopedValue[NumericValue](
-                      scopedStringValue.positioned,
-                      scopedStringValue.maybeScopePath
-                    )
-                  )
-                )
-          }
-        }
+      groupedUnsupportedValues = groupedUnsupportedValues.copy(scopedStringValues =
+        groupedPositionedValuesContainer.scopedStringValues
+      )
+    if (!supportedTypes.contains(EMPTY))
+      groupedUnsupportedValues = groupedUnsupportedValues.copy(maybeScopedEmptyValue =
+        groupedPositionedValuesContainer.maybeScopedEmptyValue
+      )
 
     if (groupedUnsupportedValues.isEmpty)
       Right(groupedPositionedValuesContainer)

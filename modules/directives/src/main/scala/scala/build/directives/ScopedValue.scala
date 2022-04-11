@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import com.virtuslab.using_directives.custom.model.{BooleanValue, NumericValue, StringValue, Value}
+import com.virtuslab.using_directives.custom.model.{BooleanValue, NumericValue, StringValue, EmptyValue, Value}
 
 import scala.build.Positioned
 import scala.build.preprocessing.ScopePath

@@ -1,6 +1,12 @@
 package scala.build.preprocessing.directives
 
-import com.virtuslab.using_directives.custom.model.{BooleanValue, NumericValue, StringValue, Value}
+import com.virtuslab.using_directives.custom.model.{
+  BooleanValue,
+  EmptyValue,
+  NumericValue,
+  StringValue,
+  Value
+}
 
 import scala.build.preprocessing.ScopePath
 import scala.build.preprocessing.directives.UsingDirectiveValueKind.UsingDirectiveValueKind
@@ -9,11 +15,12 @@ import scala.build.{Position, Positioned}
 case class GroupedScopedValuesContainer(
   scopedStringValues: Seq[ScopedValue[StringValue]] = Seq.empty,
   scopedNumericValues: Seq[ScopedValue[NumericValue]] = Seq.empty,
-  scopedBooleanValues: Seq[ScopedValue[BooleanValue]] = Seq.empty
+  scopedBooleanValues: Seq[ScopedValue[BooleanValue]] = Seq.empty,
+  maybeScopedEmptyValue: Option[ScopedValue[EmptyValue]] = None
 ) {
 
   def isEmpty =
-    scopedStringValues.isEmpty && scopedNumericValues.isEmpty && scopedBooleanValues.isEmpty
+    scopedStringValues.isEmpty && scopedNumericValues.isEmpty && scopedBooleanValues.isEmpty && maybeScopedEmptyValue.isEmpty
 
   def size = scopedStringValues.length + scopedBooleanValues.length + scopedNumericValues.length
 
@@ -27,6 +34,10 @@ case class GroupedScopedValuesContainer(
   } + {
     if (scopedBooleanValues.nonEmpty)
       " " + scopedBooleanValues.map(_.positioned.value).mkString(", ")
+    else ""
+  } + {
+    if (maybeScopedEmptyValue.nonEmpty)
+      " " + maybeScopedEmptyValue.map(_.positioned.value).mkString
     else ""
   }
 }
@@ -50,6 +61,7 @@ object DirectiveUtil {
     case _: StringValue  => UsingDirectiveValueKind.STRING
     case _: NumericValue => UsingDirectiveValueKind.NUMERIC
     case _: BooleanValue => UsingDirectiveValueKind.BOOLEAN
+    case _: EmptyValue   => UsingDirectiveValueKind.EMPTY
     case _               => UsingDirectiveValueKind.UNKNOWN
   }
 
@@ -65,9 +77,11 @@ object DirectiveUtil {
       groupedPositionedValuesContainer.scopedNumericValues.partition(_.maybeScopePath.isEmpty)
     val (nonScopedBooleans, scopedBoleans) =
       groupedPositionedValuesContainer.scopedBooleanValues.partition(_.maybeScopePath.isEmpty)
+    val (nonScopedEmpty, scopedEmpty) =
+      groupedPositionedValuesContainer.maybeScopedEmptyValue.to(Seq).partition(_.maybeScopePath.isEmpty)
     (
-      scopedStrings ++ scopedNumerics ++ scopedBoleans,
-      nonScopedStrings ++ nonScopedNumerics ++ nonScopedBooleans
+      scopedStrings ++ scopedNumerics ++ scopedBoleans ++ scopedEmpty,
+      nonScopedStrings ++ nonScopedNumerics ++ nonScopedBooleans ++ nonScopedEmpty
     )
   }
 
@@ -75,7 +89,8 @@ object DirectiveUtil {
     : Seq[ScopedValue[_]] =
     groupedPositionedValuesContainer.scopedStringValues ++
       groupedPositionedValuesContainer.scopedNumericValues ++
-      groupedPositionedValuesContainer.scopedBooleanValues
+      groupedPositionedValuesContainer.scopedBooleanValues ++
+      groupedPositionedValuesContainer.maybeScopedEmptyValue.to(Seq)
 
   def getGroupedValues(
     scopedDirective: ScopedDirective
@@ -107,6 +122,14 @@ object DirectiveUtil {
             Positioned(pos, v.get.toString),
             scope(v, scopedDirective.cwd)
           )
+        )
+      case v: EmptyValue =>
+        val pos = position(v, scopedDirective.maybePath, skipQuotes = false)
+        result = result.copy(maybeScopedEmptyValue =
+          Some(ScopedValue[EmptyValue](
+            Positioned(pos, v.get),
+            scope(v, scopedDirective.cwd)
+          ))
         )
     }
     result

@@ -59,8 +59,8 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
                   ): Either[BuildException, ProcessedUsingDirective] = checkIfValuesAreExpected(scopedDirective).flatMap { groupedScopedValuesContainer =>
     // This head is fishy!
 
-    val singleValue = groupedScopedValuesContainer.scopedStringValues.head.positioned
-    def severalValues = groupedScopedValuesContainer.scopedStringValues
+    val severalValues = groupedScopedValuesContainer.scopedStringValues.map(_.positioned)
+    val singleValue = severalValues.head
 
     if (!scopedDirective.directive.key.startsWith(prefix))
       Left(new UnexpectedDirectiveError(scopedDirective.directive.key))
@@ -106,7 +106,7 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
       case "gpgKey" | "gpg-key" =>
         Right(PublishOptions(gpgSignatureId = Some(singleValue.value)))
       case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
-        Right(PublishOptions(gpgOptions = severalValues.map(_.positioned.value).toList))
+        Right(PublishOptions(gpgOptions = severalValues.map(_.value).toList))
       case _ =>
         Left(new UnexpectedDirectiveError(scopedDirective.directive.key))
     }

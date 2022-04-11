@@ -55,8 +55,11 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
   def passBooleanOptionToBuildOptionLens(
                                           value: Seq[Positioned[String]],
                                           buildOptionLens: Lens[BuildOptions, Option[Boolean]]
-                                        ): BuildOptions =
-    buildOptionLens.set(BuildOptions())(Some(value.head.value.toBoolean))
+                                        ): BuildOptions = {
+    val stringValue = value.head.value
+    val booleanValue = scala.util.Try(stringValue.toBoolean).getOrElse(true)
+    buildOptionLens.set(BuildOptions())(Some(booleanValue))
+  }
 
   def passBooleanToBuildOptionsLens(
                                      value: Seq[Positioned[String]],
@@ -91,7 +94,12 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
       Set(UsingDirectiveValueKind.BOOLEAN, UsingDirectiveValueKind.EMPTY)
   }
 
-  override def getValueNumberBounds(key: String) = UsingDirectiveValueNumberBounds(1, 1)
+  override def getValueNumberBounds(key: String) = key match {
+    case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" =>
+      UsingDirectiveValueNumberBounds(1, 1)
+    case "jsCheckIr" | "jsAllowBigIntsForLongs" | "jsEmitSourceMaps" | "jsDom" | "jsAvoidClasses" | "jsAvoidLetsAndConsts" =>
+      UsingDirectiveValueNumberBounds(0, 1)
+  }
 
   def handleValues(
     scopedDirective: ScopedDirective,
@@ -104,6 +112,6 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
       val buildOptions = directiveMap(scopedDirective.directive.key)(
         positionedValues
       )
-      ProcessedDirective(Some(BuildOptions(scalaJsOptions = buildOptions)), Seq.empty)
+      ProcessedDirective(Some(buildOptions), Seq.empty)
     }
 }
