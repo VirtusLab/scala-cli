@@ -838,6 +838,8 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
       .getOrElse(millSourcePath)
     val semDbOptions =
       if (isScala2) Seq(s"-P:semanticdb:sourceroot:$sourceRoot")
+      // Once we switch to Scala CLI 0.1.4, change this to
+      // else Seq(s"-sourceroot", sourceRoot.toString)
       else Nil
     super.scalacOptions() ++ semDbOptions
   }
