@@ -17,7 +17,8 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
   override def usageMd = "`//> using lib \"`_org_`:`name`:`ver\""
   override def examples = Seq(
     "//> using lib \"org.scalatest::scalatest:3.2.10\"",
-    "//> using lib \"org.scalameta::munit:0.7.29\""
+    "//> using lib \"org.scalameta::munit:0.7.29\"",
+    "//> using lib \"tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar\""
   )
 
   private def parseDependency(depStr: String): Either[BuildException, AnyDependency] =
