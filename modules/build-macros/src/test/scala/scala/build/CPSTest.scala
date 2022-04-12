@@ -41,6 +41,9 @@ class CPSTest extends munit.FunSuite {
   class V
   class VV extends V
 
+  class E2 { def ala = 123 }
+  class V2
+
   val ee: Either[EE, V] = Left(new EE)
   val vv: Either[E, VV] = Right(new VV)
 
@@ -49,6 +52,14 @@ class CPSTest extends munit.FunSuite {
     value(vv.left.map(_ => new EE))
     new V
   }
+
+  // When changing something in EitherCPS.scala uncomment this and make sure it does not compile
+  // def ee3: Either[E2, V] = either {
+  //   value(Left(new EEE))
+  //   value(vv.left.map(_ => new EE))
+  //   new V
+  // }
+  // println(ee3.left.map(_.ala))
 
   // Mainly to see if compiles
   test("variance 123") {
@@ -60,4 +71,11 @@ class CPSTest extends munit.FunSuite {
 
   }
 
+  test("fallback to Right") {
+    val res = new V2
+    val a: Either[E2, V2] = either {
+      value(Right(res))
+    }
+    assert(Right(res) == a)
+  }
 }

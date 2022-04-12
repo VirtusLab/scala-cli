@@ -4,7 +4,7 @@ import dependency.parser.DependencyParser
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
-import scala.build.errors.{BuildException, DependencyFormatError}
+import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
@@ -42,7 +42,7 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
             parseDependency(dep0).map(Positioned(dep.positions, _))
         }
         .sequence
-        .left.map(errors => errors.mkString(", "))
+        .left.map(errors => CompositeBuildException(errors))
     }
 
     ProcessedDirective(

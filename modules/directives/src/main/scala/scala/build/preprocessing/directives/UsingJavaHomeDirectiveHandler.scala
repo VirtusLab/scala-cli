@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, MalformedDirectiveError}
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
@@ -29,7 +29,7 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
       DirectiveUtil.stringValues(values, path, cwd)
         .lastOption
         .map(_._1)
-        .toRight("No value passed to javaHome directive")
+        .toRight(new MalformedDirectiveError("No value passed to javaHome directive", Nil))
     }
     val root = value(Directive.osRoot(cwd, rawHome.positions.headOption))
     // FIXME Might throw
