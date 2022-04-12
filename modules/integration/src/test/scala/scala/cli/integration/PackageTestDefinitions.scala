@@ -272,6 +272,36 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  def jsHeaderTest(): Unit = {
+    val fileName        = "Hello.scala"
+    val jsHeader        = "#!/usr/bin/env node"
+    val jsHeaderNewLine = s"$jsHeader\\n"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""|//> using jsHeader "$jsHeaderNewLine"
+              |//> using jsMode "release"
+              |             
+              |object Hello extends App {
+              |  println("Hello")
+              |}
+              |""".stripMargin
+      )
+    )
+    val destName = fileName.stripSuffix(".sc") + ".js"
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", extraOptions, fileName, "--js", "-o", destName).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val launcher        = root / destName
+      val launcherContent = os.read(launcher)
+      expect(launcherContent.startsWith(jsHeader))
+    }
+  }
+
   if (!TestUtil.isNativeCli || !Properties.isWin) {
     test("simple JS") {
       simpleJsTest()
@@ -281,6 +311,9 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
     test("multi modules js") {
       multiModulesJsTest()
+    }
+    test("js header in release mode") {
+      jsHeaderTest()
     }
   }
 

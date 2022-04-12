@@ -22,9 +22,9 @@ final case class ScalaJsOptions(
   avoidLetsAndConsts: Option[Boolean] = None,
   moduleSplitStyleStr: Option[String] = None,
   esVersionStr: Option[String] = None,
-  fullOpt: Option[Boolean] = None,
   noOpt: Option[Boolean] = None
 ) {
+  def fullOpt: Boolean = mode.contains("release")
   def platformSuffix: String =
     "sjs" + ScalaVersion.jsBinary(finalVersion).getOrElse(finalVersion)
   def jsDependencies(scalaVersion: String): Seq[AnyDependency] =
