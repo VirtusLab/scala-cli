@@ -1,11 +1,8 @@
 package scala.build.preprocessing.directives
 
-import shapeless.{Lens, lens}
-
+import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaJsOptions}
-import scala.build.preprocessing.ScopePath
-import scala.build.{Logger, Positioned}
 
 case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
 
@@ -46,46 +43,32 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     "//> using jsModuleKind \"common\""
   )
 
-  def passStringToBuildOptionsLens(
-                                    value: Seq[Positioned[String]],
-                                    buildOptionLens: Lens[BuildOptions, Option[String]]
-                                  ): BuildOptions =
-    buildOptionLens.set(BuildOptions())(Some(value.head.value))
-
-  def passBooleanOptionToBuildOptionLens(
-                                          value: Seq[Positioned[String]],
-                                          buildOptionLens: Lens[BuildOptions, Option[Boolean]]
-                                        ): BuildOptions = {
-    val stringValue = value.head.value
-    val booleanValue = scala.util.Try(stringValue.toBoolean).getOrElse(true)
-    buildOptionLens.set(BuildOptions())(Some(booleanValue))
-  }
-
-  def passBooleanToBuildOptionsLens(
-                                     value: Seq[Positioned[String]],
-                                     buildOptionLens: Lens[BuildOptions, Boolean]
-                                   ): BuildOptions =
-    buildOptionLens.set(BuildOptions())(value.head.value.toBoolean)
-
-  lazy val directiveMap: Map[String, Seq[Positioned[String]] => BuildOptions] = {
-    val l = lens[BuildOptions].scalaJsOptions
-    Map(
-      "jsVersion"              -> { passStringToBuildOptionsLens(_, l.version) },
-      "jsMode"                 -> { passStringToBuildOptionsLens(_, l.mode) },
-      "jsModuleKind"           -> { passStringToBuildOptionsLens(_, l.moduleKindStr) },
-      "jsCheckIr"              -> { passBooleanOptionToBuildOptionLens(_, l.checkIr) },
-      "jsEmitSourceMaps"       -> { passBooleanToBuildOptionsLens(_, l.emitSourceMaps) },
-      "jsDom"                  -> { passBooleanOptionToBuildOptionLens(_, l.dom) },
-      "jsHeader"               -> { passStringToBuildOptionsLens(_, l.header) },
-      "jsAllowBigIntsForLongs" -> { passBooleanOptionToBuildOptionLens(_, l.allowBigIntsForLongs) },
-      "jsAvoidClasses"         -> { passBooleanOptionToBuildOptionLens(_, l.avoidClasses) },
-      "jsAvoidLetsAndConsts"   -> { passBooleanOptionToBuildOptionLens(_, l.avoidLetsAndConsts) },
-      "jsModuleSplitStyleStr"  -> { passStringToBuildOptionsLens(_, l.moduleSplitStyleStr) },
-      "jsEsVersionStr"         -> { passStringToBuildOptionsLens(_, l.esVersionStr) }
+  override def keys: Seq[String] =
+    Seq(
+      "jsVersion",
+      "jsMode",
+      "jsModuleKind",
+      "jsCheckIr",
+      "jsEmitSourceMaps",
+      "jsDom",
+      "jsHeader",
+      "jsAllowBigIntsForLongs",
+      "jsAvoidClasses",
+      "jsAvoidLetsAndConsts",
+      "jsModuleSplitStyleStr",
+      "jsEsVersionStr"
     )
-  }
 
-  def keys = directiveMap.keys.toSeq
+  def getBooleanOption(groupedValues: GroupedScopedValuesContainer): Option[Boolean] =
+    groupedValues.scopedBooleanValues.map(_.positioned.value.toBoolean).headOption.orElse(Some(
+      true
+    ))
+
+  def getBooleanValue(groupedValues: GroupedScopedValuesContainer): Boolean =
+    groupedValues.scopedBooleanValues.map(_.positioned.value.toBoolean).headOption.getOrElse(true)
+
+  def getStringOption(groupedValues: GroupedScopedValuesContainer): Option[String] =
+    groupedValues.scopedStringValues.headOption.map(_.positioned.value)
 
   override def getSupportedTypes(key: String) = key match {
     case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" =>
@@ -106,12 +89,40 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     logger: Logger
   ): Either[BuildException, ProcessedUsingDirective] =
     checkIfValuesAreExpected(scopedDirective).map { groupedValues =>
-      val scalaJsOptions =
-        groupedValues.scopedStringValues ++ groupedValues.scopedNumericValues ++ groupedValues.scopedBooleanValues
-      val positionedValues = scalaJsOptions.map(_.positioned)
-      val buildOptions = directiveMap(scopedDirective.directive.key)(
-        positionedValues
-      )
+      val buildOptions = scopedDirective.directive.key match {
+        case "jsVersion" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(version = getStringOption(groupedValues)))
+        case "jsMode" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(mode = getStringOption(groupedValues)))
+        case "jsModuleKind" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(moduleKindStr = getStringOption(groupedValues))
+          )
+        case "jsCheckIr" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(checkIr = getBooleanOption(groupedValues)))
+        case "jsEmitSourceMaps" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(emitSourceMaps = getBooleanValue(groupedValues))
+          )
+        case "jsDom" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(dom = getBooleanOption(groupedValues)))
+        case "jsHeader" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(header = getStringOption(groupedValues)))
+        case "jsAllowBigIntsForLongs" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(allowBigIntsForLongs = getBooleanOption(groupedValues))
+          )
+        case "jsAvoidClasses" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(avoidClasses = getBooleanOption(groupedValues))
+          )
+        case "jsAvoidLetsAndConsts" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(avoidLetsAndConsts = getBooleanOption(groupedValues))
+          )
+        case "jsModuleSplitStyleStr" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(moduleSplitStyleStr = getStringOption(groupedValues))
+          )
+        case "jsEsVersionStr" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(esVersionStr = getStringOption(groupedValues))
+          )
+
+      }
       ProcessedDirective(Some(buildOptions), Seq.empty)
     }
 }

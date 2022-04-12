@@ -78,7 +78,9 @@ object DirectiveUtil {
     val (nonScopedBooleans, scopedBoleans) =
       groupedPositionedValuesContainer.scopedBooleanValues.partition(_.maybeScopePath.isEmpty)
     val (nonScopedEmpty, scopedEmpty) =
-      groupedPositionedValuesContainer.maybeScopedEmptyValue.to(Seq).partition(_.maybeScopePath.isEmpty)
+      groupedPositionedValuesContainer.maybeScopedEmptyValue.to(Seq).partition(
+        _.maybeScopePath.isEmpty
+      )
     (
       scopedStrings ++ scopedNumerics ++ scopedBoleans ++ scopedEmpty,
       nonScopedStrings ++ nonScopedNumerics ++ nonScopedBooleans ++ nonScopedEmpty

@@ -5,6 +5,6 @@ object UsingDirectiveValueKind extends Enumeration {
   val STRING  = Value("String")
   val NUMERIC = Value("Numeric")
   val BOOLEAN = Value("Boolean")
-  val EMPTY = Value("Empty")
+  val EMPTY   = Value("Empty")
   val UNKNOWN = Value("Unknown")
 }

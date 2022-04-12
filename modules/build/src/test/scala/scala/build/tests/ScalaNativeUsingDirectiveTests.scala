@@ -157,7 +157,9 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |""".stripMargin
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false })
+      assert(maybeBuild.left.exists {
+        case _: UsingDirectiveValueNumError => true; case _ => false
+      })
     }
   }
 
