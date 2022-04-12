@@ -7,7 +7,7 @@ import coursier.util.{Artifact, Task}
 import dependency._
 
 import scala.build.internal.CsLoggerUtil.CsCacheExtensions
-import scala.build.internal.{OsLibc, Runner}
+import scala.build.internal.{Constants, OsLibc, Runner}
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Os, Positioned}
 import scala.cli.commands.util.CommonOps._
@@ -22,7 +22,7 @@ object LauncherCli {
 
     val logger          = LoggingOptions().logger
     val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
-    val scalaVersion    = options.cliScalaVersion.getOrElse(Properties.versionNumberString)
+    val scalaVersion    = scalaCliVersion(version, options.cliScalaVersion)
     val scalaParameters = ScalaParameters(scalaVersion)
     val snapshotsRepo   = Seq(Repositories.central.root, Repositories.sonatype("snapshots").root)
 
@@ -69,6 +69,15 @@ object LauncherCli {
 
     sys.exit(exitCode)
   }
+
+  def scalaCliVersion(cliVersion: String, cliScalaVersion: Option[String]): String =
+    cliScalaVersion match {
+      case Some(v) => v
+      case None => // it should be updated after migratation to Scala 3 => (Version(cliVersion) <= Version(x)) Constants.defaultScala213Version
+        if (cliVersion == "nightly") Properties.versionNumberString
+        else if (Version(cliVersion) <= Version("0.1.2")) Constants.defaultScala212Version
+        else Properties.versionNumberString
+    }
 
   def resolveNightlyScalaCliVersion(
     cache: FileCache[Task],
