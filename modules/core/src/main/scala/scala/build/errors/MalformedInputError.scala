@@ -6,11 +6,13 @@ final class MalformedInputError(
   val inputType: String,
   val input: String,
   val expectedShape: String,
-  positions: Seq[Position] = Nil
+  positions: Seq[Position] = Nil,
+  cause: Option[Throwable] = None
 ) extends BuildException(
       {
         val q = "\""
         s"Malformed $inputType $q$input$q, expected $expectedShape"
       },
-      positions = positions
+      positions = positions,
+      cause = cause.orNull
     )
