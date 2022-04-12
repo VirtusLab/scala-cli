@@ -12,7 +12,6 @@ import java.util.concurrent.{CompletableFuture, Executor}
 import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.bloop.{BloopServer, ScalaDebugServer}
-import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internal.{Constants, CustomCodeWrapper}
@@ -24,15 +23,16 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
 
 final class BspImpl(
-  logger: Logger,
-  bloopRifleConfig: BloopRifleConfig,
   argsToInputs: Seq[String] => Either[String, Inputs],
-  getBuildOptions: () => BuildOptions,
-  verbosity: Int,
+  bspReloadableOptionsReference: BspReloadableOptions.Reference,
   threads: BspThreads,
   in: InputStream,
   out: OutputStream
 ) extends Bsp {
+  private def reloadableOptions: BspReloadableOptions = bspReloadableOptionsReference.get
+  private def logger: Logger                          = reloadableOptions.logger
+  private def buildOptions: BuildOptions              = reloadableOptions.buildOptions
+  private def verbosity: Int                          = reloadableOptions.verbosity
 
   import BspImpl.{PreBuildData, PreBuildProject, buildTargetIdToEvent, responseError}
 
@@ -56,8 +56,6 @@ final class BspImpl(
     val persistentLogger = new PersistentDiagnosticLogger(logger)
     val bspServer        = currentBloopSession.bspServer
     val inputs           = currentBloopSession.inputs
-
-    val buildOptions = getBuildOptions()
 
     val crossSources = value {
       CrossSources.forInputs(
@@ -279,7 +277,7 @@ final class BspImpl(
 
   private def newBloopSession(inputs: Inputs, presetIntelliJ: Boolean = false): BloopSession = {
     val bloopServer = BloopServer.buildServer(
-      bloopRifleConfig,
+      reloadableOptions.bloopRifleConfig,
       "scala-cli",
       Constants.version,
       (inputs.workspace / Constants.workspaceDirName).toNIO,
@@ -291,7 +289,7 @@ final class BspImpl(
     val remoteServer = new BloopCompiler(
       bloopServer,
       20.seconds,
-      strictBloopJsonCheck = getBuildOptions().internal.strictBloopJsonCheckOrDefault
+      strictBloopJsonCheck = buildOptions.internal.strictBloopJsonCheckOrDefault
     )
     lazy val bspServer = new BspServer(
       remoteServer.bloopServer.server,
@@ -429,6 +427,7 @@ final class BspImpl(
 
   private def onReload(): CompletableFuture[AnyRef] = {
     val currentBloopSession = bloopSession.get()
+    bspReloadableOptionsReference.reload()
     val ideInputsJsonPath =
       currentBloopSession.inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
     if (os.isFile(ideInputsJsonPath)) {

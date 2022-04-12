@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 
-import scala.build.bsp.BspThreads
+import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.options.BuildOptions
 import scala.build.{Build, Inputs}
 import scala.cli.CurrentParams
@@ -36,19 +36,22 @@ object Bsp extends ScalaCommand[BspOptions] {
           }
       }
 
-    val sharedOptions    = getSharedOptions()
-    val bloopRifleConfig = sharedOptions.bloopRifleConfig()
-    val logger           = sharedOptions.logging.logger
+    val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
+      val sharedOptions = getSharedOptions()
+      BspReloadableOptions(
+        buildOptions = buildOptions(sharedOptions),
+        bloopRifleConfig = sharedOptions.bloopRifleConfig(),
+        logger = sharedOptions.logging.logger,
+        verbosity = sharedOptions.logging.verbosity
+      )
+    }
 
-    val inputs = sharedOptions.inputsOrExit(argsToInputs(args.all))
+    val inputs = getSharedOptions().inputsOrExit(argsToInputs(args.all))
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(
         argsToInputs,
-        () => buildOptions(getSharedOptions()),
-        logger,
-        bloopRifleConfig,
-        options.shared.logging.verbosity,
+        bspReloadableOptionsReference,
         threads,
         System.in,
         System.out
