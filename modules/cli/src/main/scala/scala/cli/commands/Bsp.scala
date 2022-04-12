@@ -19,30 +19,33 @@ object Bsp extends ScalaCommand[BspOptions] {
     if (options.shared.logging.verbosity >= 3)
       pprint.err.log(args)
 
-    val sharedOptions: SharedOptions =
+    val getSharedOptions: () => SharedOptions = () =>
       options.jsonOptions.map { optionsPath =>
         val content = os.read.bytes(os.Path(optionsPath, os.pwd))
         readFromArray(content)(SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
 
-    val buildOptionsToUse = buildOptions(sharedOptions)
-    val bloopRifleConfig  = sharedOptions.bloopRifleConfig()
-    val logger            = sharedOptions.logging.logger
-
     val argsToInputs: Seq[String] => Either[String, Inputs] =
-      argsSeq =>
-        options.shared.inputs(argsSeq, () => Inputs.default())
+      argsSeq => {
+        val sharedOptions = getSharedOptions()
+        sharedOptions.inputs(argsSeq, () => Inputs.default())
           .map { i =>
-            if (options.shared.logging.verbosity >= 3)
+            if (sharedOptions.logging.verbosity >= 3)
               pprint.err.log(i)
-            Build.updateInputs(i, buildOptionsToUse)
+            Build.updateInputs(i, buildOptions(sharedOptions))
           }
-    val inputs = options.shared.inputsOrExit(argsToInputs(args.all))
+      }
+
+    val sharedOptions    = getSharedOptions()
+    val bloopRifleConfig = sharedOptions.bloopRifleConfig()
+    val logger           = sharedOptions.logging.logger
+
+    val inputs = sharedOptions.inputsOrExit(argsToInputs(args.all))
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(
         argsToInputs,
-        buildOptionsToUse,
+        () => buildOptions(getSharedOptions()),
         logger,
         bloopRifleConfig,
         options.shared.logging.verbosity,

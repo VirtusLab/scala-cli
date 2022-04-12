@@ -27,7 +27,7 @@ final class BspImpl(
   logger: Logger,
   bloopRifleConfig: BloopRifleConfig,
   argsToInputs: Seq[String] => Either[String, Inputs],
-  buildOptions: BuildOptions,
+  getBuildOptions: () => BuildOptions,
   verbosity: Int,
   threads: BspThreads,
   in: InputStream,
@@ -56,6 +56,8 @@ final class BspImpl(
     val persistentLogger = new PersistentDiagnosticLogger(logger)
     val bspServer        = currentBloopSession.bspServer
     val inputs           = currentBloopSession.inputs
+
+    val buildOptions = getBuildOptions()
 
     val crossSources = value {
       CrossSources.forInputs(
@@ -289,7 +291,7 @@ final class BspImpl(
     val remoteServer = new BloopCompiler(
       bloopServer,
       20.seconds,
-      strictBloopJsonCheck = buildOptions.internal.strictBloopJsonCheckOrDefault
+      strictBloopJsonCheck = getBuildOptions().internal.strictBloopJsonCheckOrDefault
     )
     lazy val bspServer = new BspServer(
       remoteServer.bloopServer.server,

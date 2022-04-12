@@ -15,7 +15,7 @@ trait Bsp {
 object Bsp {
   def create(
     argsToInputs: Seq[String] => Either[String, Inputs],
-    buildOptions: BuildOptions,
+    getBuildOptions: () => BuildOptions,
     logger: Logger,
     bloopRifleConfig: BloopRifleConfig,
     verbosity: Int,
@@ -27,7 +27,7 @@ object Bsp {
       logger,
       bloopRifleConfig,
       argsToInputs,
-      buildOptions,
+      getBuildOptions,
       verbosity,
       threads,
       in,
