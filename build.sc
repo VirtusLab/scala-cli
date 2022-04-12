@@ -12,6 +12,7 @@ import $file.project.settings, settings.{
   PublishLocalNoFluff,
   ScalaCliCrossSbtModule,
   ScalaCliScalafixModule,
+  ScalaCliCompile,
   localRepoResourcePath,
   platformExecutableJarExtension,
   workspaceDirName
@@ -418,22 +419,14 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
   }
 }
 
-trait ScalaParse extends SbtModule with ScalaCliPublishModule with settings.ScalaCliCompile {
+trait ScalaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
   def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
   def scalaVersion = Scala.defaultInternal
 }
 
-trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with settings.ScalaCliCompile {
-  def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
+trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
+  def ivyDeps      = super.ivyDeps()
   def scalaVersion = Scala.scala3
-  def jar = T {
-    val original = super.jar().path
-    // scala3RuntimeFixes.jar is also used within
-    // resource-config.json and BytecodeProcessor.scala
-    val dest = original / os.up / "scala3RuntimeFixes.jar"
-    os.copy(original, dest)
-    PathRef(dest)
-  }
 }
 
 class Scala3Graal(val crossScalaVersion: String) extends BuildLikeModule {
@@ -443,15 +436,21 @@ class Scala3Graal(val crossScalaVersion: String) extends BuildLikeModule {
   )
 
   def resources = T.sources {
-    super.resources() ++ Seq(`scala3-runtime`.jar())
+    val extraResourceDir = T.dest / "extra"
+    // scala3RuntimeFixes.jar is also used within
+    // resource-config.json and BytecodeProcessor.scala
+    os.copy.over(
+      `scala3-runtime`.jar().path,
+      extraResourceDir / "scala3RuntimeFixes.jar",
+      createFolders = true
+    )
+    super.resources() ++ Seq(mill.PathRef(extraResourceDir))
   }
 }
 
 trait Scala3GraalProcessor extends ScalaModule {
-  def moduleDeps   = Seq(`scala3-graal`(Scala.scala3))
-  def scalaVersion = Scala.scala3
-  // Make sure that we put jar on run classpath
-  def runClasspath   = T(`scala3-graal`(Scala.scala3).jar() +: super.runClasspath())
+  def moduleDeps     = Seq(`scala3-graal`(Scala.scala3))
+  def scalaVersion   = Scala.scala3
   def finalMainClass = "scala.cli.graal.CoursierCacheProcessor"
 }
 
@@ -519,7 +518,7 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
   }
 }
 
-trait CliOptions extends SbtModule with ScalaCliPublishModule with settings.ScalaCliCompile {
+trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.jsoniterCore,
@@ -553,9 +552,6 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     `scala3-graal`(myScalaVersion)
   )
 
-  // We are adding graal as compile deps and adding jat on classpath since we want to build a native image from jar not from directories
-  def runClasspath = T(Seq(`scala3-graal`(myScalaVersion).jar()) ++ super.runClasspath())
-
   def repositories = super.repositories ++ customRepositories
 
   def ivyDeps = super.ivyDeps() ++ Agg(
@@ -586,8 +582,6 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
 trait Cli3 extends Cli {
   override def myScalaVersion = Scala.scala3
-
-  val argsFile = os.pwd / os.RelPath("out") / ".graal-cp-args"
 
   override def nativeImageClassPath = T {
     // TODO - results are cached - need to add inputs or caching method

@@ -52,14 +52,14 @@ object BytecodeProcessor {
   }
 
   def processPathingJar(pathingJar: String, cache: JarCache): Seq[ClassPathEntry] = {
-    val originalJar = toPath(pathingJar)
+    val originalJar = os.Path(pathingJar, os.pwd)
     val jarFile     = new JarFile(originalJar.toIO)
     try {
       val cp = jarFile.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH)
       if (cp != null && cp.nonEmpty) {
         // paths in pathing jars are spectated by spaces
         val entries     = cp.split(" +").toSeq
-        val processedCp = processClasspathEntries(entries, cache)
+        val processedCp = processClassPathEntries(entries, cache)
         val dest        = os.temp(suffix = ".jar")
         val outStream   = Files.newOutputStream(dest.toNIO, StandardOpenOption.CREATE)
         try {
@@ -73,22 +73,22 @@ object BytecodeProcessor {
         }
         finally outStream.close()
       }
-      else processClasspathEntries(Seq(pathingJar), cache)
+      else processClassPathEntries(Seq(pathingJar), cache)
     }
     finally jarFile.close()
   }
 
-  def processClasspath(classpath: String, cache: JarCache = TempCache): Seq[ClassPathEntry] = {
-    val cp = classpath.split(File.pathSeparator)
-    if (cp.size == 1 && cp.head.endsWith(".jar"))
-      processPathingJar(cp.head, cache)
-    else
-      processClasspathEntries(cp.toSeq, cache)
-  }
+  def processClassPath(classPath: String, cache: JarCache = TempCache): Seq[ClassPathEntry] =
+    classPath.split(File.pathSeparator) match {
+      case Array(maybePathingJar) if maybePathingJar.endsWith(".jar") =>
+        processPathingJar(maybePathingJar, cache)
+      case cp =>
+        processClassPathEntries(cp.toSeq, cache)
+    }
 
-  def processClasspathEntries(entries: Seq[String], cache: JarCache): Seq[ClassPathEntry] = {
+  def processClassPathEntries(entries: Seq[String], cache: JarCache): Seq[ClassPathEntry] = {
     val cp = entries.map { str =>
-      val path = toPath(str)
+      val path = os.Path(str, os.pwd)
       cache.cache(path) { dest =>
         if (path.ext == "jar" && os.isFile(path)) processJar(path, dest, cache)
         else if (os.isDir(path)) processDir(path, dest, cache)
@@ -243,11 +243,5 @@ object BytecodeProcessor {
         new StaticInitVistor(super.visitMethod(access, name, desc, sig, exceptions))
       else
         super.visitMethod(access, name, desc, sig, exceptions)
-  }
-
-  def toPath(str: String) = os.FilePath(str) match {
-    case p: os.Path    => p
-    case r: os.RelPath => os.pwd / r
-    case s: os.SubPath => os.pwd / s
   }
 }

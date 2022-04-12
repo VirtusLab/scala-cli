@@ -234,15 +234,15 @@ object NativeImage {
         maybeWithManifestClassPath(
           createManifest = Properties.isWin,
           classPath = originalClasspath.map(os.Path(_, os.pwd))
-        ) { processedClasspath =>
+        ) { processedClassPath =>
           val (classPath, toClean, scala3extraOptions) =
             if (!build.scalaParams.scalaBinaryVersion.startsWith("3"))
-              (processedClasspath, Seq[os.Path](), Seq[String]())
+              (processedClassPath, Seq[os.Path](), Seq[String]())
             else {
               val coursierCacheLocation = os.Path(FileCache().location.toPath())
               val cache                 = CoursierCache(coursierCacheLocation)
-              val cpString              = processedClasspath.mkString(File.pathSeparator)
-              val processed             = BytecodeProcessor.processClasspath(cpString, cache).toSeq
+              val cpString              = processedClassPath.mkString(File.pathSeparator)
+              val processed             = BytecodeProcessor.processClassPath(cpString, cache).toSeq
               val nativeConfigFile      = os.temp(suffix = ".json")
               os.write.over(
                 nativeConfigFile,
