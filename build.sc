@@ -635,6 +635,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
            |  def scalaSnapshot213 = "${TestDeps.scalaSnapshot213}"
            |  def scala3   = "${Scala.scala3}"
            |  def defaultScala = "${Scala.defaultUser}"
+           |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
            |  def bloopVersion = "${Deps.bloopConfig.dep.version}"
            |  def pprintVersion = "${TestDeps.pprint.dep.version}"
            |  def munitVersion = "${TestDeps.munit.dep.version}"

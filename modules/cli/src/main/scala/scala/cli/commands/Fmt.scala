@@ -77,11 +77,10 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
   private implicit class FmtOptionsOps(v: FmtOptions) {
     import v._
-    def binaryUrl(versionMaybe: Option[String]): (String, Boolean) = {
-      val defaultVersion = versionMaybe.getOrElse(Constants.defaultScalafmtVersion)
+    def binaryUrl(version: String): (String, Boolean) = {
       val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
         .getOrElse(FetchExternalBinary.platformSuffix())
-      val tag0           = scalafmtTag.getOrElse("v" + defaultVersion)
+      val tag0           = scalafmtTag.getOrElse("v" + version)
       val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse("alexarchambault/scalafmt-native-image")
       val extension0     = if (Properties.isWin) ".zip" else ".gz"
       val url =
@@ -115,6 +114,15 @@ object Fmt extends ScalaCommand[FmtOptions] {
     CurrentParams.workspaceOpt = Some(workspace)
     val (versionMaybe, confExists) = readVersionFromFile(workspace, logger)
     val cache                      = options.shared.buildOptions(false, None).archiveCache
+
+    val version = versionMaybe.getOrElse {
+      System.err.println(
+        s"""|Scalafmt requires explicitly specified version.
+            |To configure the scalafmt version add the following line into .scalafmt.conf:
+            |    version = ${Constants.defaultScalafmtVersion} """".stripMargin
+      )
+      sys.exit(1)
+    }
 
     if (sourceFiles.isEmpty)
       logger.debug("No source files, not formatting anything")
@@ -155,7 +163,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
         case Some(launcher) =>
           os.Path(launcher, os.pwd)
         case None =>
-          val (url, changing) = options.binaryUrl(versionMaybe)
+          val (url, changing) = options.binaryUrl(version)
           FetchExternalBinary.fetch(url, changing, cache, logger, "scalafmt")
             .orExit(logger)
       }
@@ -172,7 +180,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
         logger,
         allowExecve = true,
         cwd = Some(workspace)
-      )
+      ).waitFor()
     }
   }
 }
