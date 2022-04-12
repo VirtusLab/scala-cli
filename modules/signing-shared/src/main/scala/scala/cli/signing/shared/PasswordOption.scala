@@ -18,6 +18,8 @@ abstract class LowPriorityPasswordOption {
   def parse(str: String): Either[String, PasswordOption] =
     if (str.startsWith("value:"))
       Right(PasswordOption.Value(Secret(str.stripPrefix("value:"))))
+    else if (str.startsWith("file:"))
+      Right(PasswordOption.File(os.Path(str.stripPrefix("file:"), os.pwd)))
     else if (str.startsWith("command:["))
       try {
         val command = readFromString(str.stripPrefix("command:"))(commandCodec)
@@ -41,6 +43,14 @@ object PasswordOption extends LowPriorityPasswordOption {
   final case class Value(value: Secret[String]) extends PasswordOption {
     def get(): Secret[String]    = value
     def asString: Secret[String] = get().map(v => s"value:$v")
+  }
+  final case class File(path: os.Path) extends PasswordOption {
+    def get(): Secret[String] = {
+      val value = os.read(path) // trim that?
+      Secret(value)
+    }
+    def asString: Secret[String] =
+      Secret(s"file:$path")
   }
   final case class Command(command: Seq[String]) extends PasswordOption {
     def get(): Secret[String] = {
