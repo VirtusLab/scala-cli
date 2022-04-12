@@ -75,7 +75,7 @@ object Deps {
   // TODO bump once 0.15.5 is out
   def expecty  = ivy"com.eed3si9n.expecty::expecty:0.15.4+22-9c7fb771-SNAPSHOT"
   def guava    = ivy"com.google.guava:guava:31.1-jre"
-  def jgit     = ivy"org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r"
+  def jgit     = ivy"org.eclipse.jgit:org.eclipse.jgit:6.1.0.202203080745-r"
   def jimfs    = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
