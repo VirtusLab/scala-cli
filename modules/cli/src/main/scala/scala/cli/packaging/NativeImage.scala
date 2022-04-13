@@ -1,14 +1,12 @@
 package scala.cli.packaging
 
-import coursier.cache.FileCache
-
 import java.io.{File, OutputStream}
 
 import scala.annotation.tailrec
 import scala.build.internal.{NativeBuilderHelper, Runner}
 import scala.build.{Build, Logger}
 import scala.cli.errors.GraalVMNativeImageError
-import scala.cli.graal.{BytecodeProcessor, CoursierCache}
+import scala.cli.graal.{BytecodeProcessor, TempCache}
 import scala.util.Properties
 
 object NativeImage {
@@ -239,11 +237,9 @@ object NativeImage {
             if (!build.scalaParams.scalaBinaryVersion.startsWith("3"))
               (processedClassPath, Seq[os.Path](), Seq[String]())
             else {
-              val coursierCacheLocation = os.Path(FileCache().location.toPath())
-              val cache                 = CoursierCache(coursierCacheLocation)
-              val cpString              = processedClassPath.mkString(File.pathSeparator)
-              val processed             = BytecodeProcessor.processClassPath(cpString, cache).toSeq
-              val nativeConfigFile      = os.temp(suffix = ".json")
+              val cpString         = processedClassPath.mkString(File.pathSeparator)
+              val processed        = BytecodeProcessor.processClassPath(cpString, TempCache).toSeq
+              val nativeConfigFile = os.temp(suffix = ".json")
               os.write.over(
                 nativeConfigFile,
                 """[

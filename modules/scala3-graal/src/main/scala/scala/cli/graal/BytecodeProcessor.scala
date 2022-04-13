@@ -3,45 +3,10 @@ package scala.cli.graal
 import org.objectweb.asm._
 
 import java.io.{File, InputStream}
-import java.nio.file.{Files, Path, StandardOpenOption}
+import java.nio.file.{Files, StandardOpenOption}
 import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
 
 import scala.jdk.CollectionConverters._
-
-trait JarCache {
-  def cache(path: os.Path)(processPath: os.Path => ClassPathEntry): ClassPathEntry
-  def put(entry: os.RelPath, bytes: Array[Byte]): ClassPathEntry
-}
-
-sealed trait ClassPathEntry {
-  def nioPath: Path = path.toNIO
-  def path: os.Path
-  def modified = true
-}
-case class Unmodified(path: os.Path) extends ClassPathEntry {
-  override def modified: Boolean = false
-}
-case class Processed(path: os.Path, original: os.Path, cache: JarCache) extends ClassPathEntry
-case class CreatedEntry(path: os.Path)                                  extends ClassPathEntry
-
-case class PathingJar(jar: ClassPathEntry, entries: Seq[ClassPathEntry]) extends ClassPathEntry {
-  override def path: os.Path = jar.path
-}
-
-object TempCache extends JarCache {
-  override def cache(path: os.Path)(processPath: os.Path => ClassPathEntry): ClassPathEntry =
-    processPath(
-      if (os.isDir(path)) os.temp.dir(prefix = path.last)
-      else os.temp(prefix = path.baseName, suffix = path.ext)
-    )
-
-  override def put(entry: os.RelPath, content: Array[Byte]): ClassPathEntry = {
-    val path = os.temp(prefix = entry.baseName, suffix = entry.ext)
-    os.write(path, content, createFolders = true)
-    CreatedEntry(path)
-  }
-
-}
 
 object BytecodeProcessor {
 

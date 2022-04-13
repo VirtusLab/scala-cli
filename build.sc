@@ -584,14 +584,13 @@ trait Cli3 extends Cli {
   override def myScalaVersion = Scala.scala3
 
   override def nativeImageClassPath = T {
-    // TODO - results are cached - need to add inputs or caching method
-    val classpath     = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
-    val coursierCache = coursier.cache.FileCache[coursier.util.Task]().location.toString
+    val classpath = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
+    val cache     = T.dest / "native-cp"
     // `scala3-graal-processor`.run() do not give me output and I cannot pass dynamically computed values like classpath
     val res = mill.modules.Jvm.callSubprocess(
       mainClass = `scala3-graal-processor`.finalMainClass(),
       classPath = `scala3-graal-processor`.runClasspath().map(_.path),
-      mainArgs = Seq(coursierCache, classpath),
+      mainArgs = Seq(cache.toNIO.toString, classpath),
       workingDir = os.pwd
     )
     val cp = res.out.text
