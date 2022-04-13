@@ -1,8 +1,6 @@
 package scala.build
 
-// When changing something in this file uncomment a test case in CPSTest.scala and make sure it does not compile
-
-case class EitherFailure[E](v: E, cps: EitherCps[_]) extends RuntimeException:
+final case class EitherFailure[E](v: E, cps: EitherCps[_]) extends RuntimeException:
   override def fillInStackTrace() = this // disable stack trace generation
 
 class EitherCps[E]
@@ -15,7 +13,7 @@ object EitherCps:
       case Left(e)  => throw EitherFailure(e, cps)
       case Right(v) => v
 
-  final case class Helper[E]():
+  final class Helper[E]():
     def apply[V](op: EitherCps[E] ?=> V): Either[E, V] =
       val cps = new EitherCps[E]
       try Right(op(using cps))
@@ -23,4 +21,4 @@ object EitherCps:
         case EitherFailure(e: E @unchecked, `cps`) =>
           Left(e)
 
-  def either[E]: Helper[E] = Helper[E]()
+  def either[E]: Helper[E] = new Helper[E]()

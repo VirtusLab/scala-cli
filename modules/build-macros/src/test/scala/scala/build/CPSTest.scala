@@ -53,14 +53,6 @@ class CPSTest extends munit.FunSuite {
     new V
   }
 
-  // When changing something in EitherCPS.scala uncomment this and make sure it does not compile
-  // def ee3: Either[E2, V] = either {
-  //   value(Left(new EEE))
-  //   value(vv.left.map(_ => new EE))
-  //   new V
-  // }
-  // println(ee3.left.map(_.ala))
-
   // Mainly to see if compiles
   test("variance 123") {
     val errorRes: Either[E, V] = either(value(ee))
