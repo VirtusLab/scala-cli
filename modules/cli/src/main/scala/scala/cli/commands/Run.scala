@@ -221,7 +221,7 @@ object Run extends ScalaCommand[RunOptions] {
             Some(mainClass),
             addTestInitializer = false,
             linkerConfig,
-            build.options.scalaJsOptions.fullOpt.getOrElse(false),
+            build.options.scalaJsOptions.fullOpt,
             build.options.scalaJsOptions.noOpt.getOrElse(false),
             logger
           ).map { outputPath =>

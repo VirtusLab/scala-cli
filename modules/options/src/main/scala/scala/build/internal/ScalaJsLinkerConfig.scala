@@ -37,6 +37,7 @@ final case class ScalaJsLinkerConfig(
     val prettyPrintArgs =
       if (prettyPrint) Seq("--prettyPrint")
       else Nil
+    val jsHeaderArg = if (jsHeader.nonEmpty) Seq("--jsHeader", jsHeader.getOrElse("")) else Nil
     val configArgs = Seq[os.Shellable](
       semanticsArgs,
       moduleKindArgs,
@@ -45,6 +46,7 @@ final case class ScalaJsLinkerConfig(
       checkIRArgs,
       sourceMapArgs,
       relativizeSourceMapBaseArgs,
+      jsHeaderArg,
       prettyPrintArgs
     )
 

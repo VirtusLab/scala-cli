@@ -114,7 +114,7 @@ object ScalaJsLinker {
         Option(mainClassOrNull).toSeq.flatMap(mainClass => Seq("--mainMethod", mainClass + ".main"))
       val testInitializerArgs =
         if (addTestInitializer)
-          Seq("--mainMethod", TAI.ModuleClassName + "." + TAI.MainMethodName + "!")
+          Seq("--mainMethodWithNoArgs", TAI.ModuleClassName + "." + TAI.MainMethodName)
         else
           Nil
       val optArg =
