@@ -45,7 +45,7 @@ class BuildOptionsTests extends munit.FunSuite {
       )
     )
     val scalaParams = options.scalaParams.orThrow
-    assert(
+    expect(
       scalaParams.scalaVersion.startsWith("3.1.") && scalaParams.scalaVersion.endsWith("-NIGHTLY"),
       "-S 3.1.nightly argument does not lead to scala 3.1. nightly build option"
     )

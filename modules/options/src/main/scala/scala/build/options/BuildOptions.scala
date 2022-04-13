@@ -490,7 +490,7 @@ final case class BuildOptions(
             .withModule(scala3)
             .result()
             .unsafeRun()(finalCache.ec)
-        }.versions.available
+        }.versions.available.filter(_.endsWith("-NIGHTLY"))
 
         val threeXNightlies = res.filter(_.startsWith(s"3.$threeSubBinaryNum.")).map(Version(_))
         if (threeXNightlies.nonEmpty) Right(threeXNightlies.max.repr)
