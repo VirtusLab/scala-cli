@@ -102,7 +102,7 @@ object ScalaJsLinker {
     cache: FileCache[Task],
     archiveCache: ArchiveCache[Task],
     scalaJsVersion: String
-  ): Either[ScalaJsLinkingError, Unit] = either {
+  ): Either[BuildException, Unit] = either {
 
     val command = value {
       linkerCommand(options, javaCommand, logger, cache, archiveCache, scalaJsVersion)

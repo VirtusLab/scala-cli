@@ -187,8 +187,68 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
   }
 
   object test extends Tests {
+
+    // Is there a better way to add task dependency to test?
+    def test(args: String*) = T.command {
+      val res = super.test(args: _*)()
+      testNegativeCompilation()()
+      res
+    }
+
     def scalacOptions = T {
       super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+    }
+
+    def testNegativeCompilation() = T.command {
+      if (crossScalaVersion.startsWith("3.")) {
+        val base = os.pwd / "modules" / "build-macros" / "src"
+        val negativeTests = Seq(
+          "MismatchedLeft.scala" -> Seq(
+            "Found\\: +EE1".r,
+            "Found\\: +EE2".r,
+            "Required\\: +E2".r
+          )
+        )
+
+        val cpsSource = base / "main" / "scala-3.1" / "scala" / "build" / "EitherCps.scala"
+        assert(os.exists(cpsSource))
+
+        val cli = compileScalaCli.get.path // we need scala-cli
+        def compile(extraSources: os.Path*) =
+          os.proc(cli, "compile", "-S", crossScalaVersion, cpsSource, extraSources).call(
+            check =
+              false,
+            mergeErrIntoOut = true
+          )
+        assert(0 == compile().exitCode)
+
+        val notPassed = negativeTests.filter { case (testName, expectedErrors) =>
+          val testFile = base / "negative-tests" / testName
+          val res      = compile(testFile)
+          println(s"Compiling $testName:")
+          println(res.out.text)
+          val name = testFile.last
+          if (res.exitCode != 0) {
+            println(s"Test case $name failed to compile as expected")
+            val lines = res.out.lines
+            println(lines)
+            expectedErrors.forall { expected =>
+              if (lines.exists(expected.findFirstIn(_).nonEmpty)) false
+              else {
+                println(s"ERROR: regex `$expected` not found in compilation output for $testName")
+                true
+              }
+            }
+          }
+          else {
+            println(s"[ERROR] $name compiled successfully but it should not!")
+            true
+          }
+
+        }
+        assert(notPassed.isEmpty)
+      }
+      ()
     }
   }
 }

@@ -70,7 +70,7 @@ final class BspImpl(
     if (verbosity >= 3)
       pprint.err.log(crossSources)
 
-    val scopedSources = value(crossSources.scopedSources(buildOptions))
+    val scopedSources = value(crossSources.scopedSources(buildOptions).left.map((_, Scope.Main)))
 
     if (verbosity >= 3)
       pprint.err.log(scopedSources)

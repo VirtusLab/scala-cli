@@ -241,7 +241,7 @@ object Build {
           )))
       }
 
-      def testBuildOpt(doc: Boolean = false) = either {
+      def testBuildOpt(doc: Boolean = false): Either[BuildException, Option[Build]] = either {
         if (buildTests) {
           val actualCompilerOpt =
             if (doc) docCompilerOpt
