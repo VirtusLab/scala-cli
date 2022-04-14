@@ -12,7 +12,6 @@ import java.util.concurrent.{CompletableFuture, Executor}
 import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.bloop.{BloopServer, ScalaDebugServer}
-import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internal.{Constants, CustomCodeWrapper}
@@ -24,11 +23,8 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
 
 final class BspImpl(
-  logger: Logger,
-  bloopRifleConfig: BloopRifleConfig,
   argsToInputs: Seq[String] => Either[String, Inputs],
-  buildOptions: BuildOptions,
-  verbosity: Int,
+  bspReloadableOptionsReference: BspReloadableOptions.Reference,
   threads: BspThreads,
   in: InputStream,
   out: OutputStream
@@ -49,8 +45,12 @@ final class BspImpl(
   }
 
   private def prepareBuild(
-    currentBloopSession: BloopSession
+    currentBloopSession: BloopSession,
+    reloadableOptions: BspReloadableOptions
   ): Either[(BuildException, Scope), PreBuildProject] = either[(BuildException, Scope)] {
+    val logger       = reloadableOptions.logger
+    val buildOptions = reloadableOptions.buildOptions
+    val verbosity    = reloadableOptions.verbosity
     logger.log("Preparing build")
 
     val persistentLogger = new PersistentDiagnosticLogger(logger)
@@ -149,7 +149,8 @@ final class BspImpl(
 
   private def buildE(
     currentBloopSession: BloopSession,
-    notifyChanges: Boolean
+    notifyChanges: Boolean,
+    reloadableOptions: BspReloadableOptions
   ): Either[(BuildException, Scope), Unit] = {
     def doBuildOnce(data: PreBuildData, scope: Scope): Either[(BuildException, Scope), Build] =
       Build.buildOnce(
@@ -158,14 +159,14 @@ final class BspImpl(
         data.generatedSources,
         data.buildOptions,
         scope,
-        logger,
+        reloadableOptions.logger,
         actualLocalClient,
         currentBloopSession.remoteServer,
         partialOpt = None
       ).left.map(_ -> scope)
 
     either[(BuildException, Scope)] {
-      val preBuild = value(prepareBuild(currentBloopSession))
+      val preBuild = value(prepareBuild(currentBloopSession, reloadableOptions))
       if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
         notifyBuildChange(currentBloopSession)
       value(doBuildOnce(preBuild.mainScope, Scope.Main))
@@ -178,15 +179,15 @@ final class BspImpl(
     currentBloopSession: BloopSession,
     client: BspClient,
     notifyChanges: Boolean,
-    logger: Logger
+    reloadableOptions: BspReloadableOptions
   ): Unit =
-    buildE(currentBloopSession, notifyChanges) match {
+    buildE(currentBloopSession, notifyChanges, reloadableOptions) match {
       case Left((ex, scope)) =>
         client.reportBuildException(
           currentBloopSession.bspServer.targetScopeIdOpt(scope),
           ex
         )
-        logger.debug(s"Caught $ex during BSP build, ignoring it")
+        reloadableOptions.logger.debug(s"Caught $ex during BSP build, ignoring it")
       case Right(()) =>
         for (targetId <- currentBloopSession.bspServer.targetIds)
           client.resetBuildExceptionDiagnostics(targetId)
@@ -207,11 +208,12 @@ final class BspImpl(
   private def compile(
     currentBloopSession: BloopSession,
     executor: Executor,
+    reloadableOptions: BspReloadableOptions,
     doCompile: () => CompletableFuture[b.CompileResult]
   ): CompletableFuture[b.CompileResult] = {
     val preBuild = CompletableFuture.supplyAsync(
       () =>
-        prepareBuild(currentBloopSession) match {
+        prepareBuild(currentBloopSession, reloadableOptions) match {
           case Right(preBuild) =>
             if (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged)
               notifyBuildChange(currentBloopSession)
@@ -244,7 +246,7 @@ final class BspImpl(
               data.generatedSources,
               currentBloopSession.inputs.generatedSrcRoot(scope),
               data.classesDir,
-              logger,
+              reloadableOptions.logger,
               currentBloopSession.inputs.workspace,
               updateSemanticDbs = true,
               scalaVersion = data.project.scalaCompiler.scalaVersion
@@ -265,19 +267,24 @@ final class BspImpl(
     }
   }
 
-  private val actualLocalClient = new BspClient(
-    threads.buildThreads.bloop.jsonrpc, // meh
-    logger
-  )
-  private val localClient: b.BuildClient with BloopBuildClient =
+  private var actualLocalClient: BspClient                     = _
+  private var localClient: b.BuildClient with BloopBuildClient = _
+
+  private def getLocalClient(verbosity: Int): b.BuildClient with BloopBuildClient =
     if (verbosity >= 3)
       new BspImpl.LoggingBspClient(actualLocalClient)
     else
       actualLocalClient
 
-  private def newBloopSession(inputs: Inputs, presetIntelliJ: Boolean = false): BloopSession = {
+  private def newBloopSession(
+    inputs: Inputs,
+    reloadableOptions: BspReloadableOptions,
+    presetIntelliJ: Boolean = false
+  ): BloopSession = {
+    val logger       = reloadableOptions.logger
+    val buildOptions = reloadableOptions.buildOptions
     val bloopServer = BloopServer.buildServer(
-      bloopRifleConfig,
+      reloadableOptions.bloopRifleConfig,
       "scala-cli",
       Constants.version,
       (inputs.workspace / Constants.workspaceDirName).toNIO,
@@ -293,7 +300,8 @@ final class BspImpl(
     )
     lazy val bspServer = new BspServer(
       remoteServer.bloopServer.server,
-      doCompile => compile(bloopSession0, threads.prepareBuildExecutor, doCompile),
+      doCompile =>
+        compile(bloopSession0, threads.prepareBuildExecutor, reloadableOptions, doCompile),
       logger,
       presetIntelliJ
     )
@@ -301,7 +309,7 @@ final class BspImpl(
     lazy val watcher = new Build.Watcher(
       ListBuffer(),
       threads.buildThreads.fileWatcher,
-      build(bloopSession0, actualLocalClient, notifyChanges = true, logger),
+      build(bloopSession0, actualLocalClient, notifyChanges = true, reloadableOptions),
       ()
     )
     lazy val bloopSession0: BloopSession = new BloopSession(
@@ -320,8 +328,17 @@ final class BspImpl(
   private val bloopSession = new BloopSession.Reference
 
   def run(initialInputs: Inputs): Future[Unit] = {
+    val reloadableOptions = bspReloadableOptionsReference.get
+    val logger            = reloadableOptions.logger
+    val verbosity         = reloadableOptions.verbosity
 
-    val currentBloopSession = newBloopSession(initialInputs)
+    actualLocalClient = new BspClient(
+      threads.buildThreads.bloop.jsonrpc, // meh
+      logger
+    )
+    localClient = getLocalClient(verbosity)
+
+    val currentBloopSession = newBloopSession(initialInputs, reloadableOptions)
     bloopSession.update(null, currentBloopSession, "BSP server already initialized")
 
     val actualLocalServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
@@ -353,7 +370,7 @@ final class BspImpl(
     actualLocalClient.newInputs(initialInputs)
     currentBloopSession.resetDiagnostics(actualLocalClient)
 
-    prepareBuild(currentBloopSession) match {
+    prepareBuild(currentBloopSession, reloadableOptions) match {
       case Left((ex, scope)) =>
         actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
         logger.log(ex)
@@ -370,7 +387,7 @@ final class BspImpl(
     val f = launcher.startListening()
 
     val initiateFirstBuild: Runnable = { () =>
-      try build(currentBloopSession, actualLocalClient, notifyChanges = false, logger)
+      try build(currentBloopSession, actualLocalClient, notifyChanges = false, reloadableOptions)
       catch {
         case t: Throwable =>
           logger.debug(s"Caught $t during initial BSP build, ignoring it")
@@ -393,18 +410,19 @@ final class BspImpl(
   private def reloadBsp(
     currentBloopSession: BloopSession,
     previousInputs: Inputs,
-    newInputs: Inputs
+    newInputs: Inputs,
+    reloadableOptions: BspReloadableOptions
   ): CompletableFuture[AnyRef] = {
     val previousTargetIds = currentBloopSession.bspServer.targetIds
     val wasIntelliJ       = currentBloopSession.bspServer.isIntelliJ
-    val newBloopSession0  = newBloopSession(newInputs, wasIntelliJ)
+    val newBloopSession0  = newBloopSession(newInputs, reloadableOptions, wasIntelliJ)
     bloopSession.update(currentBloopSession, newBloopSession0, "Concurrent reload of workspace")
     currentBloopSession.dispose()
     actualLocalClient.newInputs(newInputs)
     localClient.onConnectWithServer(newBloopSession0.remoteServer.bloopServer.server)
 
     newBloopSession0.resetDiagnostics(actualLocalClient)
-    prepareBuild(newBloopSession0) match {
+    prepareBuild(newBloopSession0, reloadableOptions) match {
       case Left((buildException, scope)) =>
         CompletableFuture.completedFuture(
           responseError(
@@ -427,6 +445,12 @@ final class BspImpl(
 
   private def onReload(): CompletableFuture[AnyRef] = {
     val currentBloopSession = bloopSession.get()
+    bspReloadableOptionsReference.reload()
+    val reloadableOptions = bspReloadableOptionsReference.get
+    val logger            = reloadableOptions.logger
+    val verbosity         = reloadableOptions.verbosity
+    actualLocalClient.logger = logger
+    localClient = getLocalClient(verbosity)
     val ideInputsJsonPath =
       currentBloopSession.inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
     if (os.isFile(ideInputsJsonPath)) {
@@ -442,7 +466,7 @@ final class BspImpl(
         val newInputs      = value(argsToInputs(ideInputs.args))
         val previousInputs = currentBloopSession.inputs
         if (newInputs == previousInputs) CompletableFuture.completedFuture(new Object)
-        else reloadBsp(currentBloopSession, previousInputs, newInputs)
+        else reloadBsp(currentBloopSession, previousInputs, newInputs, reloadableOptions)
       }
       maybeResponse match {
         case Left(errorMessage) =>

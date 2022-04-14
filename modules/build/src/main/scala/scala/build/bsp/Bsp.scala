@@ -2,9 +2,7 @@ package scala.build.bsp
 
 import java.io.{InputStream, OutputStream}
 
-import scala.build.blooprifle.BloopRifleConfig
-import scala.build.options.BuildOptions
-import scala.build.{Inputs, Logger}
+import scala.build.Inputs
 import scala.concurrent.Future
 
 trait Bsp {
@@ -15,20 +13,14 @@ trait Bsp {
 object Bsp {
   def create(
     argsToInputs: Seq[String] => Either[String, Inputs],
-    buildOptions: BuildOptions,
-    logger: Logger,
-    bloopRifleConfig: BloopRifleConfig,
-    verbosity: Int,
+    bspReloadableOptionsReference: BspReloadableOptions.Reference,
     threads: BspThreads,
     in: InputStream,
     out: OutputStream
   ): Bsp =
     new BspImpl(
-      logger,
-      bloopRifleConfig,
       argsToInputs,
-      buildOptions,
-      verbosity,
+      bspReloadableOptionsReference,
       threads,
       in,
       out
