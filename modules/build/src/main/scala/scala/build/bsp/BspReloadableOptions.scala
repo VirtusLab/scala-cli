@@ -1,7 +1,5 @@
 package scala.build.bsp
 
-import java.util.concurrent.atomic.AtomicReference
-
 import scala.build.Logger
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.options.BuildOptions
@@ -14,13 +12,12 @@ case class BspReloadableOptions(
 )
 
 object BspReloadableOptions {
-  case class Reference(getReloaded: () => BspReloadableOptions) {
-    private val ref: AtomicReference[BspReloadableOptions] = new AtomicReference(getReloaded())
-
-    def get: BspReloadableOptions = ref.get()
-    def reload(): Unit = {
-      val reloaded = getReloaded()
-      if (ref.get() != reloaded) ref.set(reloaded)
-    }
+  class Reference(getReloaded: () => BspReloadableOptions) {
+    @volatile private var ref: BspReloadableOptions = getReloaded()
+    def get: BspReloadableOptions                   = ref
+    def reload(): Unit                              = ref = getReloaded()
+  }
+  object Reference {
+    def apply(getReloaded: () => BspReloadableOptions): Reference = new Reference(getReloaded)
   }
 }
