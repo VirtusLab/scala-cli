@@ -28,8 +28,8 @@ class LauncherCliTest extends munit.FunSuite {
   )
 
   for ((cliVersion, expectedScalaVersion) <- expectedScalaCliVersions)
-    test(s"use expected scala version for JVM Scala CLi launcher: $cliVersion") {
-      val scalaVersion = LauncherCli.scalaCliVersion(cliVersion, None)
+    test(s"use expected scala version for Scala CLI launcher: $cliVersion") {
+      val scalaVersion = LauncherCli.scalaCliScalaVersion(cliVersion)
 
       expect(scalaVersion == expectedScalaVersion)
     }
