@@ -95,17 +95,28 @@ object Operations {
     scheduler: ScheduledExecutorService,
     waitInterval: FiniteDuration,
     timeout: Duration,
-    logger: BloopRifleLogger
+    logger: BloopRifleLogger,
+    bloopServerSupportsFileTruncating: Boolean
   ): Future[Unit] = {
 
-    val (addressArgs, mainClass) = address match {
+    val (addressArgs, mainClass, writeOutputToOpt) = address match {
       case BloopRifleConfig.Address.Tcp(host, port) =>
-        (Seq(host, port.toString), "bloop.Server")
-      case BloopRifleConfig.Address.DomainSocket(path) =>
-        (Seq(s"daemon:$path"), "bloop.Bloop")
+        (Seq(host, port.toString), "bloop.Server", None)
+      case s: BloopRifleConfig.Address.DomainSocket =>
+        val writeOutputToOpt0 =
+          if (bloopServerSupportsFileTruncating) Some(s.outputPath)
+          else None
+        (Seq(s"daemon:${s.path}"), "bloop.Bloop", writeOutputToOpt0)
     }
+
+    val extraJavaOpts =
+      writeOutputToOpt.toSeq.map { writeOutputTo =>
+        s"-Dbloop.truncate-output-file-periodically=${writeOutputTo.toAbsolutePath}"
+      }
+
     val command =
       Seq(javaPath) ++
+        extraJavaOpts ++
         javaOpts ++
         Seq(
           "-cp",
@@ -117,15 +128,25 @@ object Operations {
     b.directory(workingDir)
     b.redirectInput(ProcessBuilder.Redirect.PIPE)
 
-    b.redirectOutput {
-      if (logger.bloopCliInheritStdout) ProcessBuilder.Redirect.INHERIT
-      else ProcessBuilder.Redirect.DISCARD
-    }
+    if (logger.bloopCliInheritStdout)
+      b.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+    else
+      writeOutputToOpt match {
+        case Some(writeOutputTo) =>
+          b.redirectOutput(writeOutputTo.toFile)
+        case None =>
+          b.redirectOutput(ProcessBuilder.Redirect.DISCARD)
+      }
 
-    b.redirectError {
-      if (logger.bloopCliInheritStderr) ProcessBuilder.Redirect.INHERIT
-      else ProcessBuilder.Redirect.DISCARD
-    }
+    if (logger.bloopCliInheritStderr)
+      b.redirectError(ProcessBuilder.Redirect.INHERIT)
+    else
+      writeOutputToOpt match {
+        case Some(writeOutputTo) =>
+          b.redirectError(writeOutputTo.toFile)
+        case None =>
+          b.redirectError(ProcessBuilder.Redirect.DISCARD)
+      }
 
     val p = b.start()
     p.getOutputStream.close()

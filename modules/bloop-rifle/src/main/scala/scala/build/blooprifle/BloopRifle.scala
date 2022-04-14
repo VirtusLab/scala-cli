@@ -47,7 +47,25 @@ object BloopRifle {
   ): Future[Unit] =
     config.classPath(version) match {
       case Left(ex) => Future.failed(new Exception("Error getting Bloop class path", ex))
-      case Right(cp) =>
+      case Right((cp, isScalaCliBloop)) =>
+        object IntValue {
+          def unapply(s: String): Option[Int] =
+            // no String.toIntOption in Scala 2.12.x
+            try Some(s.toInt)
+            catch {
+              case _: NumberFormatException => None
+            }
+        }
+        val bloopServerSupportsFileTruncating =
+          isScalaCliBloop && {
+            version.takeWhile(c => c.isDigit || c == '.').split('.') match {
+              case Array(IntValue(maj), IntValue(min), IntValue(patch)) =>
+                import scala.math.Ordering.Implicits._
+                Seq(maj, min, patch) >= Seq(1, 14, 20)
+              case _ =>
+                false
+            }
+          }
         Operations.startServer(
           config.address,
           bloopJava,
@@ -57,7 +75,8 @@ object BloopRifle {
           scheduler,
           config.startCheckPeriod,
           config.startCheckTimeout,
-          logger
+          logger,
+          bloopServerSupportsFileTruncating = bloopServerSupportsFileTruncating
         )
     }
 

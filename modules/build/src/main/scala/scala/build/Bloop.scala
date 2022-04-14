@@ -64,23 +64,28 @@ object Bloop {
       res.map(_._2.toIO)
     }
 
-  def bloopClassPath(logger: Logger, cache: FileCache[Task]): Either[BuildException, Seq[File]] =
+  def bloopClassPath(
+    logger: Logger,
+    cache: FileCache[Task]
+  ): Either[BuildException, (Seq[File], Boolean)] =
     bloopClassPath(logger, cache, BloopRifleConfig.defaultVersion)
 
   def bloopClassPath(
     logger: Logger,
     cache: FileCache[Task],
     bloopVersion: String
-  ): Either[BuildException, Seq[File]] = either {
+  ): Either[BuildException, (Seq[File], Boolean)] = either {
     val moduleStr = BloopRifleConfig.defaultModule
     val mod = value {
       ModuleParser.parse(moduleStr)
         .left.map(err => new ModuleFormatError(moduleStr, err, Some("Bloop")))
     }
-    val dep    = DependencyLike(mod, bloopVersion)
-    val sv     = BloopRifleConfig.defaultScalaVersion
-    val sbv    = ScalaVersion.binary(sv)
-    val params = ScalaParameters(sv, sbv)
-    value(bloopClassPath(dep, params, logger, cache))
+    val dep             = DependencyLike(mod, bloopVersion)
+    val sv              = BloopRifleConfig.defaultScalaVersion
+    val sbv             = ScalaVersion.binary(sv)
+    val params          = ScalaParameters(sv, sbv)
+    val cp              = value(bloopClassPath(dep, params, logger, cache))
+    val isScalaCliBloop = moduleStr.startsWith(BloopRifleConfig.scalaCliBloopOrg + ":")
+    (cp, isScalaCliBloop)
   }
 }
