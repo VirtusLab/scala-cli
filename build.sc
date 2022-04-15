@@ -620,10 +620,10 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
+    Deps.metaconfigTypesafe,
     Deps.scalaPackager,
     Deps.signingCli,
-    Deps.slf4jNop, // to silence jgit
-    Deps.metaconfigTypesafe
+    Deps.slf4jNop // to silence jgit
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros,
