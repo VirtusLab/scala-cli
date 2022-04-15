@@ -70,7 +70,7 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
       else scopedDirective.directive.key.stripPrefix(prefix) match {
         case "organization" =>
           Right(PublishOptions(organization = Some(singleValue)))
-        case "name" =>
+        case "name" | "moduleName" =>
           Right(PublishOptions(name = Some(singleValue)))
         case "version" =>
           Right(PublishOptions(version = Some(singleValue)))
