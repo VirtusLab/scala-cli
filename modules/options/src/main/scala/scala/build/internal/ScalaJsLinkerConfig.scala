@@ -6,6 +6,7 @@ final case class ScalaJsLinkerConfig(
   checkIR: Boolean = false,
   sourceMap: Boolean = true,
   moduleSplitStyle: String = ScalaJsLinkerConfig.ModuleSplitStyle.FewestModules,
+  smallModuleForPackage: List[String] = Nil,
   esFeatures: ScalaJsLinkerConfig.ESFeatures = ScalaJsLinkerConfig.ESFeatures(),
   jsHeader: Option[String] = None,
   prettyPrint: Boolean = false,
@@ -24,6 +25,11 @@ final case class ScalaJsLinkerConfig(
         Nil
     val moduleKindArgs       = Seq("--moduleKind", moduleKind)
     val moduleSplitStyleArgs = Seq("--moduleSplitStyle", moduleSplitStyle)
+    val smallModuleForPackageArgs =
+      if (smallModuleForPackage.nonEmpty)
+        Seq("--smallModuleForPackages", smallModuleForPackage.mkString(","))
+      else
+        Nil
     val esFeaturesArgs =
       if (esFeatures.esVersion == ScalaJsLinkerConfig.ESVersion.ES2015)
         Seq("--es2015")
@@ -42,6 +48,7 @@ final case class ScalaJsLinkerConfig(
       semanticsArgs,
       moduleKindArgs,
       moduleSplitStyleArgs,
+      smallModuleForPackageArgs,
       esFeaturesArgs,
       checkIRArgs,
       sourceMapArgs,
@@ -64,6 +71,7 @@ object ScalaJsLinkerConfig {
   object ModuleSplitStyle {
     val FewestModules   = "FewestModules"
     val SmallestModules = "SmallestModules"
+    val SmallModulesFor = "SmallModulesFor"
   }
 
   final case class ESFeatures(

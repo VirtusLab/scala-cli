@@ -46,8 +46,11 @@ final case class ScalaJsOptions(
   @HelpMessage("Avoid lets and consts when using vars has the same observable semantics.")
     jsAvoidLetsAndConsts: Option[Boolean] = None,
   @Group("Scala.js")
-  @HelpMessage("The Scala.js module split style: fewestmodules, smallestmodules")
+  @HelpMessage("The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor")
     jsModuleSplitStyle: Option[String] = None,
+  @Group("Scala.js")
+  @HelpMessage("Create as many small modules as possible for the classes in the passed packages and their subpackages.")
+    jsSmallModuleForPackage: List[String] = Nil,
   @Group("Scala.js")
   @HelpMessage("The Scala.js ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021")
     jsEsVersion: Option[String] = None,

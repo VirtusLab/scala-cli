@@ -20,6 +20,8 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
       |
       |`//> using jsModuleKind` _value_
       |
+      |`//> using jsSmallModuleForPackage` _value1_, _value2_
+      |
       |`//> using jsCheckIr` _true|false_
       |
       |`//> using jsEmitSourceMaps` _true|false_
@@ -50,6 +52,7 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
       "jsModuleKind",
       "jsCheckIr",
       "jsEmitSourceMaps",
+      "jsSmallModuleForPackage",
       "jsDom",
       "jsHeader",
       "jsAllowBigIntsForLongs",
@@ -71,7 +74,7 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     groupedValues.scopedStringValues.headOption.map(_.positioned.value)
 
   override def getSupportedTypes(key: String) = key match {
-    case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" =>
+    case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" | "jsSmallModuleForPackage" =>
       Set(UsingDirectiveValueKind.STRING)
     case "jsCheckIr" | "jsAllowBigIntsForLongs" | "jsEmitSourceMaps" | "jsDom" | "jsAvoidClasses" | "jsAvoidLetsAndConsts" =>
       Set(UsingDirectiveValueKind.BOOLEAN, UsingDirectiveValueKind.EMPTY)
@@ -82,6 +85,8 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
       UsingDirectiveValueNumberBounds(1, 1)
     case "jsCheckIr" | "jsAllowBigIntsForLongs" | "jsEmitSourceMaps" | "jsDom" | "jsAvoidClasses" | "jsAvoidLetsAndConsts" =>
       UsingDirectiveValueNumberBounds(0, 1)
+    case "jsSmallModuleForPackage" =>
+      UsingDirectiveValueNumberBounds(1)
   }
 
   def handleValues(
@@ -101,6 +106,11 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
           BuildOptions(scalaJsOptions = ScalaJsOptions(checkIr = getBooleanOption(groupedValues)))
         case "jsEmitSourceMaps" => BuildOptions(scalaJsOptions =
             ScalaJsOptions(emitSourceMaps = getBooleanValue(groupedValues))
+          )
+        case "jsSmallModuleForPackage" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(smallModuleForPackage =
+              groupedValues.scopedStringValues.map(_.positioned.value).toList
+            )
           )
         case "jsDom" =>
           BuildOptions(scalaJsOptions = ScalaJsOptions(dom = getBooleanOption(groupedValues)))

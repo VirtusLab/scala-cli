@@ -1095,7 +1095,11 @@ Avoid lets and consts when using vars has the same observable semantics.
 
 #### `--js-module-split-style`
 
-The Scala.js module split style: fewestmodules, smallestmodules
+The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
+
+#### `--js-small-module-for-package`
+
+Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
 #### `--js-es-version`
 
