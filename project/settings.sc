@@ -442,7 +442,7 @@ trait HasTests extends SbtModule {
     def forkArgs      = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
 
     def repositoriesTask =
-      T.task(super.repositoriesTask() :+ coursier.Repositories.sonatype("snapshots"))
+      T.task(super.repositoriesTask() ++ deps.customRepositories)
   }
 }
 
