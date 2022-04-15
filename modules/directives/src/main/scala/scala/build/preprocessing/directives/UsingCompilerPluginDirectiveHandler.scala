@@ -23,11 +23,8 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("plugin", "plugins")
 
-  override def getValueNumberBounds(key: String): UsingDirectiveValueNumberBounds = key match {
-    case "plugin"  => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
-    case "plugins" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
-    case _         => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
-  }
+  override def getValueNumberBounds(key: String): UsingDirectiveValueNumberBounds =
+    UsingDirectiveValueNumberBounds(1, Int.MaxValue)
 
   def handleValues(
     scopedDirective: ScopedDirective,

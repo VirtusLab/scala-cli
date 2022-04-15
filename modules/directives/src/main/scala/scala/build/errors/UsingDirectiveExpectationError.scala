@@ -22,7 +22,7 @@ final class UsingDirectiveWrongValueTypeError(
       maybePath,
       key,
       s"""${expectedTypes.mkString(
-          ",or "
+          ", or "
         )} expected for the $key using directive key${maybePath.map(path => s" at $path").getOrElse(
           ""
         )}; but $providedPositionedTypesContainer  provided.
@@ -40,4 +40,4 @@ final class UsingDirectiveValueNumError(
       s"expected $usingDirectiveValueNumberBounds for the $key using directive key${maybePath.map(path => s" at $path").getOrElse(
           ""
         )}; but got $providedValueNum values, instead."
-    )
+    ) {}

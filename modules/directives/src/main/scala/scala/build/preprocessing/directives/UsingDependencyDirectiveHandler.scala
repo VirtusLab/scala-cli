@@ -25,9 +25,9 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("lib", "libs")
   def handleValues(
-                    scopedDirective: ScopedDirective,
-                    logger: Logger
-                  ): Either[BuildException, ProcessedUsingDirective] =
+    scopedDirective: ScopedDirective,
+    logger: Logger
+  ): Either[BuildException, ProcessedUsingDirective] =
     checkIfValuesAreExpected(scopedDirective).flatMap { groupedScopedValuesContainer =>
       groupedScopedValuesContainer.scopedStringValues
         .map {

@@ -1,5 +1,5 @@
 package scala.build.preprocessing.directives
-import com.virtuslab.using_directives.custom.model.{BooleanValue, NumericValue, StringValue, Value}
+import com.virtuslab.using_directives.custom.model.{EmptyValue, Value}
 
 import scala.build.Logger
 import scala.build.errors.{
@@ -48,7 +48,7 @@ trait DirectiveHandler[T] {
     scopedDirective: ScopedDirective
   ): Either[BuildException, GroupedScopedValuesContainer] =
     receiveTheRightNumberOfValues(scopedDirective) flatMap (
-      siftSupportedValueTypesWithNoResidue(_)
+      checkAndGroupValuesByType(_)
     )
 
   /** the default implementation only includes `UsingDirectiveValueKind.STRING` Override for
@@ -75,8 +75,8 @@ trait DirectiveHandler[T] {
     * Therefore, it should get overrided if other information is to be shown instead in any
     * particular handler.
     *
-    * This method gets internally called in the implementation of
-    * [[siftSupportedValueTypesWithNoResidue]] for producing the error value.
+    * This method gets internally called in the implementation of [[checkAndGroupValuesByType]] for
+    * producing the error value.
     * @param key
     *   the using directive key for which the unexpected value(s) are passed.
     * @return
@@ -85,6 +85,11 @@ trait DirectiveHandler[T] {
     */
   protected def unexpectedValueHint(key: String): String =
     s"Did you forget to put the quotation marks around the string values passed to the using directive key $key?"
+
+  private def isEmptyValue(v: Value[_]) = v match {
+    case _: EmptyValue => true
+    case _             => false
+  }
 
   /** checks if the passed in `scopedDirective` has the expected number of values according to the
     * implementation of [[getValueNumberBounds]] for the handler on which this is called
@@ -95,14 +100,9 @@ trait DirectiveHandler[T] {
   final protected def receiveTheRightNumberOfValues(
     scopedDirective: ScopedDirective
   ): Either[UsingDirectiveExpectationError, ScopedDirective] = {
-    val values: Seq[Value[_]] = scopedDirective.directive.values.collect {
-      case n: NumericValue => n
-      case b: BooleanValue =>
-        b
-      case s: StringValue => s
-    } // TODO or perhaps `.filterNot(_.isInstanceOf[EmptyValue])` ??
-    val length       = values.length
-    val numberBounds = getValueNumberBounds(scopedDirective.directive.key)
+    val nonEmptyValues: Seq[Value[_]] = scopedDirective.directive.values.filterNot(isEmptyValue(_))
+    val length                        = nonEmptyValues.length
+    val numberBounds                  = getValueNumberBounds(scopedDirective.directive.key)
 
     if (length < numberBounds.lower || length > numberBounds.upper)
       Left(new UsingDirectiveValueNumError(
@@ -111,7 +111,9 @@ trait DirectiveHandler[T] {
         numberBounds,
         length
       ))
-    else Right(scopedDirective.copy(directive = scopedDirective.directive.copy(values = values)))
+    else Right(scopedDirective.copy(directive =
+      scopedDirective.directive.copy(values = nonEmptyValues)
+    ))
   }
 
   /** It checks the values ascribed to the key inside the passed in `scopedDirective`, in order to
@@ -122,7 +124,7 @@ trait DirectiveHandler[T] {
     *   Either a [[UsingDirectiveExpectationError]] or the using directive values of the
     *   `scopedDirective` grouped in `string`, `boolean`, or `numeric` sequences.
     */
-  final protected def siftSupportedValueTypesWithNoResidue(
+  final protected def checkAndGroupValuesByType(
     scopedDirective: ScopedDirective
   ): Either[UsingDirectiveExpectationError, GroupedScopedValuesContainer] = {
     val groupedPositionedValuesContainer = DirectiveUtil.getGroupedValues(scopedDirective)

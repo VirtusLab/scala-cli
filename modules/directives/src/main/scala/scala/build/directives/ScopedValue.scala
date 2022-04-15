@@ -15,9 +15,6 @@ case class ScopedValue[T <: Value[_]](
   positioned: Positioned[String],
   maybeScopePath: Option[ScopePath] = None
 ) {
-//  override def toString = s"$positioned of type ${kind(this)}${maybeScopePath.map { scopePath =>
-//      s" with scope path $scopePath"
-//    }.getOrElse("")}"
 
   def kind(scopedValue: ScopedValue[_]) = scopedValue match {
     case _: ScopedValue[StringValue]  => UsingDirectiveValueKind.STRING
