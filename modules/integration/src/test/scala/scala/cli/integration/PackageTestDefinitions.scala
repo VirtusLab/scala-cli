@@ -271,6 +271,49 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == message)
     }
   }
+  def smallModulesJsTest(): Unit = {
+    val fileName = "Hello.scala"
+    val message  = "Hello World from JS"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""|//> using jsModuleKind "es"
+              |//> using jsModuleSplitStyleStr "smallmodulesfor"
+              |//> using jsSmallModuleForPackage "test"
+              |
+              |package test
+              |
+              |case class Foo(bar: String)
+              |
+              |object Hello extends App {
+              |  println(Foo("$message").bar)
+              |}
+              |""".stripMargin
+      )
+    )
+    val destDir = fileName.stripSuffix(".scala")
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        extraOptions,
+        fileName,
+        "--js",
+        "-o",
+        destDir
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val launcher = root / destDir / "main.js"
+      val nodePath = TestUtil.fromPath("node").getOrElse("node")
+      os.write(root / "package.json", "{\n\n  \"type\": \"module\"\n\n}") // enable es module
+      val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.text().trim
+      expect(output == message)
+    }
+  }
 
   def jsHeaderTest(): Unit = {
     val fileName        = "Hello.scala"
@@ -311,6 +354,9 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
     test("multi modules js") {
       multiModulesJsTest()
+    }
+    test("small modules js") {
+      smallModulesJsTest()
     }
     test("js header in release mode") {
       jsHeaderTest()

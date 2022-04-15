@@ -192,6 +192,8 @@ Add Scala.js options
 
 `//> using jsModuleKind` _value_
 
+`//> using jsSmallModuleForPackage` _value1_, _value2_
+
 `//> using jsCheckIr` _true|false_
 
 `//> using jsEmitSourceMaps` _true|false_

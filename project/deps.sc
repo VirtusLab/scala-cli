@@ -44,7 +44,7 @@ object InternalDeps {
   object Versions {
     def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
-    def scalaJsCli    = "1.1.1-sc3.1"
+    def scalaJsCli    = "1.1.1-sc4.1"
   }
 }
 

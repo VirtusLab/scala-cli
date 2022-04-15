@@ -21,6 +21,7 @@ final case class ScalaJsOptions(
   avoidClasses: Option[Boolean] = None,
   avoidLetsAndConsts: Option[Boolean] = None,
   moduleSplitStyleStr: Option[String] = None,
+  smallModuleForPackage: List[String] = Nil,
   esVersionStr: Option[String] = None,
   noOpt: Option[Boolean] = None
 ) {
@@ -59,6 +60,7 @@ final case class ScalaJsOptions(
       .map {
         case "fewestmodules"   => ScalaJsLinkerConfig.ModuleSplitStyle.FewestModules
         case "smallestmodules" => ScalaJsLinkerConfig.ModuleSplitStyle.SmallestModules
+        case "smallmodulesfor" => ScalaJsLinkerConfig.ModuleSplitStyle.SmallModulesFor
         case unknown =>
           logger.message(
             s"Warning: unrecognized argument: $unknown for --js-module-split-style parameter, use default value: fewestmodules"
@@ -130,6 +132,7 @@ final case class ScalaJsOptions(
       checkIr.getOrElse(false), // meh
       emitSourceMaps,
       moduleSplitStyle(logger),
+      smallModuleForPackage,
       esFeatures,
       header
     )
