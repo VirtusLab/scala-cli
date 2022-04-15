@@ -55,6 +55,8 @@ class BuildProjectTests extends munit.FunSuite {
 
     override def compilerOutputStream: PrintStream = ???
 
+    override def verbosity = ???
+
   }
 
   val bloopJavaPath = Position.Bloop("/home/empty/jvm/8/")

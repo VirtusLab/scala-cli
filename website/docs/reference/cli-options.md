@@ -217,6 +217,7 @@ Available in commands:
 - [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
@@ -380,6 +381,7 @@ Available in commands:
 - [`help`](./commands.md#help)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`install-home`](./commands.md#install-home)
+- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`pgp create`](./commands.md#pgp-create)
@@ -388,6 +390,7 @@ Available in commands:
 - [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
@@ -592,11 +595,13 @@ Available in commands:
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
+- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
@@ -1209,6 +1214,39 @@ Aliases: `--scala-opt`, `-O`
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
 
+## Secret options
+
+Available in commands:
+- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--token`
+
+#### `--repository`
+
+Aliases: `--repo`
+
+## Secret create options
+
+Available in commands:
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--public-key`
+
+Aliases: `--pub-key`
+
+#### `--dummy`
+
+Aliases: `-n`
+
+#### `--print-request`
+
 ## Setup IDE options
 
 Available in commands:
@@ -1348,11 +1386,13 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`install-home`](./commands.md#install-home)
+- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)

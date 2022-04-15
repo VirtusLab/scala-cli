@@ -51,7 +51,7 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier      = "2.1.0-M5-18-gfebf9838c"
+    def coursier      = "2.1.0-M5-24-g678b31710"
     def coursierCli   = "2.1.0-M5-18-gfebf9838c"
     def jsoniterScala = "2.13.15"
     def scalaMeta     = "4.5.4"
@@ -67,6 +67,7 @@ object Deps {
   def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M13"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.7.0"
   // Force using of 2.13 - is there a better way?
+  def coursier         = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
   def coursierJvm      = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
   def coursierPublish  = ivy"io.get-coursier.publish:publish_2.13:0.1.0"
@@ -83,16 +84,17 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
   def jsoniterMacros =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
-  def libdaemonjvm               = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
-  def macroParadise              = ivy"org.scalamacros:::paradise:2.1.1"
-  def metaconfigTypesafe         = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
-  def munit                      = ivy"org.scalameta::munit:0.7.29"
-  def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
-  def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
-  def organizeImports            = ivy"com.github.liancheng::organize-imports:0.5.0"
-  def osLib                      = ivy"com.lihaoyi::os-lib:0.8.1"
-  def pprint                     = ivy"com.lihaoyi::pprint:0.7.3"
-  def prettyStacktraces          = ivy"org.virtuslab::pretty-stacktraces:0.0.1-M1"
+  def libdaemonjvm       = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
+  def libsodiumjni       = ivy"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:0.0.2"
+  def macroParadise      = ivy"org.scalamacros:::paradise:2.1.1"
+  def metaconfigTypesafe = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
+  def munit              = ivy"org.scalameta::munit:0.7.29"
+  def nativeTestRunner   = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
+  def nativeTools        = ivy"org.scala-native::tools:${Versions.scalaNative}"
+  def organizeImports    = ivy"com.github.liancheng::organize-imports:0.5.0"
+  def osLib              = ivy"com.lihaoyi::os-lib:0.8.1"
+  def pprint             = ivy"com.lihaoyi::pprint:0.7.3"
+  def prettyStacktraces  = ivy"org.virtuslab::pretty-stacktraces:0.0.1-M1"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
@@ -123,6 +125,7 @@ object Deps {
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"me.vican.jorge:snailgun-core_2.13:0.4.0"
     else ivy"me.vican.jorge::snailgun-core:0.4.0"
+  def sttp            = ivy"com.softwaremill.sttp.client3::core:3.5.1"
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
@@ -136,6 +139,9 @@ def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 def csDockerVersion = Deps.Versions.coursierCli
 
 def buildCsVersion = Deps.Versions.coursierCli
+
+// Native library used to encrypt GitHub secrets
+def libsodiumVersion = "1.0.18"
 
 object Docker {
   def customMuslBuilderImageName = "scala-cli-base-musl"

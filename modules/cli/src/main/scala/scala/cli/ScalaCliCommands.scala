@@ -6,6 +6,7 @@ import caseapp.core.help.{Help, RuntimeCommandsHelp}
 import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
+import scala.cli.commands.github.{SecretCreate, SecretList}
 import scala.cli.commands.pgp.PgpCommands
 
 class ScalaCliCommands(
@@ -37,6 +38,8 @@ class ScalaCliCommands(
     Package,
     Publish,
     Run,
+    SecretCreate,
+    SecretList,
     SetupIde,
     Shebang,
     Test,
