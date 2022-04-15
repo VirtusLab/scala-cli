@@ -976,6 +976,58 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
     }
   }
+
+  test("workspace/reload of an extra sources directory") {
+    val dir1 = "dir1"
+    val dir2 = "dir2"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / dir1 / "ReloadTest.scala" ->
+          s"""object ReloadTest {
+             |  val container = MissingCaseClass(value = "Hello")
+             |  println(container.value)
+             |}
+             |""".stripMargin
+      )
+    )
+    val extraInputs = inputs.add(
+      os.rel / dir2 / "MissingCaseClass.scala" -> "case class MissingCaseClass(value: String)"
+    )
+    extraInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", dir1, extraOptions)
+        .call(
+          cwd = root,
+          stdout = os.Inherit
+        )
+      withBsp(inputs, Seq(dir1), reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+
+            val resp =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(resp.getStatusCode == b.StatusCode.ERROR)
+
+            os.proc(TestUtil.cli, "setup-ide", dir1, dir2, extraOptions)
+              .call(
+                cwd = root,
+                stdout = os.Inherit
+              )
+
+            await(remoteServer.workspaceReload().asScala)
+
+            val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
+
+            val resp0 =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala)
+            expect(resp0.getStatusCode == b.StatusCode.OK)
+          }
+      }
+
+    }
+  }
 }
 
 object BspTestDefinitions {
