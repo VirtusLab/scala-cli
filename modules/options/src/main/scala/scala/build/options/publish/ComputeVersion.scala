@@ -55,7 +55,7 @@ object ComputeVersion {
             .call()
             .asScala
             .iterator
-            .map(tag => (tag.getPeeledObjectId.name, tag))
+            .flatMap(tag => Option(tag.getPeeledObjectId).iterator.map(id => (id.name, tag)))
             .toMap
           val tagsIt = git.log()
             .call()
@@ -88,7 +88,8 @@ object ComputeVersion {
         (lastTagOpt, lastStableTagOpt) match {
           case (None, _) =>
             Right(defaultFirstVersion)
-          case (Some((tag, name)), _) if tag.getPeeledObjectId.name == headCommit.name =>
+          case (Some((tag, name)), _)
+              if Option(tag.getPeeledObjectId).exists(_.name == headCommit.name) =>
             Right(name)
           case (Some((tag, _)), _) if dynVer =>
             val tagOrNull = git.describe()
