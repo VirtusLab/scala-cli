@@ -191,12 +191,12 @@ Running another Scala CLI version might be slower because it uses JVM-based Scal
 To run another Scala CLI version, specify it with `--cli-version` before any other argument:
 
 ```bash 
-scala-cli --cli-version 0.1.2+209-geb58be9d-SNAPSHOT about
-# Scala CLI version 0.1.2+209-geb58be9d-SNAPSHOT
+scala-cli --cli-version 0.1.3-51-g4d314eee-SNAPSHOT about
+# Scala CLI version 0.1.3-51-g4d314eee-SNAPSHOT
 ```
 
 <!-- Expected:
-Scala CLI version 0.1.2+209-geb58be9d-SNAPSHOT
+Scala CLI version 0.1.3-51-g4d314eee-SNAPSHOT
 -->
 
 To use the latest Scala CLI nightly build, pass `nightly` to `--cli-version` parameter:
