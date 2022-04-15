@@ -72,7 +72,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     inputs: TestInputs,
     args: Seq[String],
     attempts: Int = if (TestUtil.isCI) 3 else 1,
-    pauseDuration: FiniteDuration = 5.seconds
+    pauseDuration: FiniteDuration = 5.seconds,
+    bspOptions: List[String] = List.empty,
+    reuseRoot: Option[os.Path] = None
   )(
     f: (
       os.Path,
@@ -82,9 +84,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   ): T = {
 
     def attempt(): Try[T] = Try {
-      val root = inputs.root()
+      val root = reuseRoot.getOrElse(inputs.root())
 
-      val proc = os.proc(TestUtil.cli, "bsp", extraOptions, args)
+      val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptions, args)
         .spawn(cwd = root)
       var remoteServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer = null
 
@@ -922,6 +924,56 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           )
         }
       }
+    }
+  }
+
+  test("workspace/reload --dependency option") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "ReloadTest.scala" ->
+          s"""import os.pwd
+             |object ReloadTest {
+             |  println(pwd)
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions)
+        .call(
+          cwd = root,
+          stdout = os.Inherit
+        )
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      val jsonOptions    = List("--json-options", ideOptionsPath.toString)
+      withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+
+            val resp =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(resp.getStatusCode == b.StatusCode.ERROR)
+
+            val dependencyOptions = List("--dependency", "com.lihaoyi::os-lib::0.8.0")
+            os.proc(TestUtil.cli, "setup-ide", ".", dependencyOptions ++ extraOptions)
+              .call(
+                cwd = root,
+                stdout = os.Inherit
+              )
+
+            await(remoteServer.workspaceReload().asScala)
+
+            val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
+
+            val resp0 =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala)
+            expect(resp0.getStatusCode == b.StatusCode.OK)
+          }
+      }
+
     }
   }
 }
