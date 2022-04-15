@@ -2,7 +2,6 @@ package scala.build.preprocessing.directives
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ClassPathOptions}
-import scala.build.preprocessing.ScopePath
 
 case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
   def name             = "Repository"
@@ -17,18 +16,17 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("repository", "repositories")
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
+    scopedDirective: ScopedDirective,
     logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = {
-    val values       = directive.values
-    val repositories = DirectiveUtil.stringValues(values, path, cwd)
-    val options = BuildOptions(
-      classPathOptions = ClassPathOptions(
-        extraRepositories = repositories.map(_._1.value)
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).map { groupedValues =>
+      val exraRepositories = groupedValues.scopedStringValues.map(_.positioned.value)
+      val options = BuildOptions(
+        classPathOptions = ClassPathOptions(
+          extraRepositories = exraRepositories
+        )
       )
-    )
-    Right(ProcessedDirective(Some(options), Seq.empty))
-  }
+      ProcessedDirective(Some(options), Seq.empty)
+    }
+
 }

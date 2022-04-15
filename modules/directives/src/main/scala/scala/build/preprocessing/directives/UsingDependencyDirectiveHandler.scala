@@ -2,11 +2,9 @@ package scala.build.preprocessing.directives
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
-import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.options.{BuildOptions, ClassPathOptions, ShadowingSeq}
-import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
 
 case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
@@ -27,32 +25,31 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("lib", "libs")
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
+    scopedDirective: ScopedDirective,
     logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = either {
-    val values = directive.values
-    val extraDependencies = value {
-      DirectiveUtil.stringValues(values, path, cwd)
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).flatMap { groupedScopedValuesContainer =>
+      groupedScopedValuesContainer.scopedStringValues
         .map {
-          case (dep, _) =>
+          case ScopedValue(positioned, _) =>
             // Really necessary? (might already be handled by the coursier-dependency library)
-            val dep0 = dep.value.filter(!_.isSpaceChar)
+            val dep0 = positioned.value.filter(!_.isSpaceChar)
 
-            parseDependency(dep0).map(Positioned(dep.positions, _))
+            parseDependency(dep0).map(Positioned(positioned.positions, _))
         }
         .sequence
-        .left.map(errors => CompositeBuildException(errors))
+        .left.map(CompositeBuildException(_))
+
+    }.map { extraDependencies =>
+
+      ProcessedDirective(
+        Some(BuildOptions(
+          classPathOptions = ClassPathOptions(
+            extraDependencies = ShadowingSeq.from(extraDependencies)
+          )
+        )),
+        Seq.empty
+      )
     }
 
-    ProcessedDirective(
-      Some(BuildOptions(
-        classPathOptions = ClassPathOptions(
-          extraDependencies = ShadowingSeq.from(extraDependencies)
-        )
-      )),
-      Seq.empty
-    )
-  }
 }

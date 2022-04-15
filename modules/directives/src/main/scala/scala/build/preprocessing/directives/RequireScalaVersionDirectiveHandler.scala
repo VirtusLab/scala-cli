@@ -1,12 +1,10 @@
 package scala.build.preprocessing.directives
-
-import os.Path
-
 import scala.build.Logger
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErrors}
 import scala.build.options.BuildRequirements
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.Scoped
+import scala.build.preprocessing.directives.UsingDirectiveValueKind.UsingDirectiveValueKind
 
 case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Scala version"
@@ -27,6 +25,9 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
     "target.scala.<",
     "target.scala"
   )
+
+  override def getSupportedTypes(key: String): Set[UsingDirectiveValueKind] =
+    Set(UsingDirectiveValueKind.STRING, UsingDirectiveValueKind.NUMERIC)
 
   private def handleVersion(
     key: String,
@@ -63,32 +64,37 @@ case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler 
   }
 
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, Path],
-    cwd: ScopePath,
+    scopedDirective: ScopedDirective,
     logger: Logger
-  ): Either[BuildException, ProcessedRequireDirective] = {
-    val values         = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val nonscopedValue = values.find(_._2.isEmpty).map(_._1.value)
-    val nonscoped = nonscopedValue match {
-      case None    => Right(None)
-      case Some(v) => handleVersion(directive.key, v)
+  ): Either[BuildException, ProcessedRequireDirective] =
+    checkIfValuesAreExpected(scopedDirective).flatMap {
+      groupedPositionedValuesContainer =>
+
+        val (scopedValues, nonScopedValues) =
+          DirectiveUtil.partitionBasedOnHavingScope(groupedPositionedValuesContainer)
+
+        val nonScopedBuildRequirements = nonScopedValues.headOption match {
+          case None => Right(None)
+          case Some(ScopedValue(positioned, None)) =>
+            handleVersion(scopedDirective.directive.key, positioned.value)
+        }
+
+        val scopedBuildRequirements = scopedValues.map {
+          case ScopedValue(positioned, Some(scopePath)) => handleVersion(
+              scopedDirective.directive.key,
+              positioned.value
+            ).map(_.map(buildRequirements => Scoped(scopePath, buildRequirements)))
+        }
+          .sequence
+          .left.map(CompositeBuildException(_))
+          .map(_.flatten)
+
+        (nonScopedBuildRequirements, scopedBuildRequirements)
+          .traverseN
+          .left.map(CompositeBuildException(_))
+          .map {
+            case (ns, s) => ProcessedDirective(ns, s)
+          }
     }
 
-    val scoped = values.collect {
-      case (v, Some(scopePath)) =>
-        handleVersion(directive.key, v.value).map(_.map(req => Scoped(scopePath, req)))
-    }
-      .toSeq
-      .sequence
-      .left.map(CompositeBuildException(_))
-      .map(_.flatten)
-
-    (nonscoped, scoped)
-      .traverseN
-      .left.map(CompositeBuildException(_))
-      .map {
-        case (ns, s) => ProcessedDirective(ns, s)
-      }
-  }
 }

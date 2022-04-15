@@ -1,11 +1,9 @@
 package scala.build.preprocessing.directives
-import os.Path
-
 import scala.build.Logger
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedPlatformError}
 import scala.build.options.{BuildRequirements, Platform}
-import scala.build.preprocessing.{ScopePath, Scoped}
+import scala.build.preprocessing.Scoped
 
 case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
   def name             = "Platform"
@@ -23,53 +21,55 @@ case object RequirePlatformsDirectiveHandler extends RequireDirectiveHandler {
   )
 
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, Path],
-    cwd: ScopePath,
+    scopedDirective: ScopedDirective,
     logger: Logger
-  ): Either[BuildException, ProcessedRequireDirective] = {
-    val values          = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val nonscopedValues = values.filter(_._2.isEmpty)
-    val scopedValues    = values.collect { case (v, Some(scope)) => (v, scope) }
-    val nonScopedPlatforms = Option(nonscopedValues.map(v => Platform.normalize(v._1.value)))
-      .filter(_.nonEmpty)
+  ): Either[BuildException, ProcessedRequireDirective] =
+    checkIfValuesAreExpected(scopedDirective) flatMap { groupedPositionedValuesContainer =>
+      val stringValues                    = groupedPositionedValuesContainer.scopedStringValues
+      val (nonScopedValues, scopedValues) = stringValues.partition(_.maybeScopePath.isEmpty)
+      val nonScopedPlatforms =
+        Option(nonScopedValues.map(v => Platform.normalize(v.positioned.value)))
+          .filter(_.nonEmpty)
 
-    val nonscoped = nonScopedPlatforms match {
-      case Some(platforms) =>
-        val parsed = Platform.parseSpec(platforms)
-        parsed match {
-          case None => Left(new MalformedPlatformError(platforms.mkString(", ")))
-          case Some(p) => Right(Some(BuildRequirements(
-              platform = Seq(BuildRequirements.PlatformRequirement(p))
-            )))
+      val nonscoped: Either[MalformedPlatformError, Option[BuildRequirements]] =
+        nonScopedPlatforms match {
+          case Some(platforms) =>
+            val parsed = Platform.parseSpec(platforms)
+            parsed match {
+              case None => Left(new MalformedPlatformError(platforms.mkString(", ")))
+              case Some(p) => Right(Some(BuildRequirements(
+                  platform = Seq(BuildRequirements.PlatformRequirement(p))
+                )))
+            }
+          case None => Right(None)
         }
-      case None => Right(None)
+
+      val scoped: Either[BuildException, Seq[Scoped[BuildRequirements]]] =
+        scopedValues.groupBy(_.maybeScopePath.get).map {
+          case (scopePath, list) =>
+            val platforms = list.map(_.positioned.value).map(Platform.normalize)
+            val parsed    = Platform.parseSpec(platforms)
+            parsed match {
+              case None => Left(new MalformedPlatformError(platforms.mkString(", ")))
+              case Some(p) => Right(Seq(Scoped(
+                  scopePath,
+                  BuildRequirements(
+                    platform = Seq(BuildRequirements.PlatformRequirement(p))
+                  )
+                )))
+            }
+        }
+          .toSeq
+          .sequence
+          .left.map(CompositeBuildException(_))
+          .map(_.flatten)
+
+      (nonscoped, scoped)
+        .traverseN
+        .left.map(CompositeBuildException(_))
+        .map {
+          case (ns, s) => ProcessedDirective(ns, s)
+        }
     }
 
-    val scoped = scopedValues.groupBy(_._2).map {
-      case (scopePath, list) =>
-        val platforms = list.map(_._1.value).map(Platform.normalize)
-        val parsed    = Platform.parseSpec(platforms)
-        parsed match {
-          case None => Left(new MalformedPlatformError(platforms.mkString(", ")))
-          case Some(p) => Right(Seq(Scoped(
-              scopePath,
-              BuildRequirements(
-                platform = Seq(BuildRequirements.PlatformRequirement(p))
-              )
-            )))
-        }
-    }
-      .toSeq
-      .sequence
-      .left.map(CompositeBuildException(_))
-      .map(_.flatten)
-
-    (nonscoped, scoped)
-      .traverseN
-      .left.map(CompositeBuildException(_))
-      .map {
-        case (ns, s) => ProcessedDirective(ns, s)
-      }
-  }
 }

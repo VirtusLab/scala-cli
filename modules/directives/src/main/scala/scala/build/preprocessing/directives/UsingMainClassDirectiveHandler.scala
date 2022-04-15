@@ -1,13 +1,12 @@
 package scala.build.preprocessing.directives
-
 import scala.build.Logger
-import scala.build.errors.{BuildException, SeveralMainClassesFoundError}
+import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
-import scala.build.preprocessing.ScopePath
 
 case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
 
-  def name        = "Main class"
+  def name = "Main class"
+
   def description = "Specify default main class"
 
   def usage = "//> using main-class _main class_ | //> using mainClass _main class_"
@@ -23,26 +22,19 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("main-class", "mainClass")
 
+  override def getValueNumberBounds(key: String) = UsingDirectiveValueNumberBounds(1, 1)
+
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
+    scopedDirective: ScopedDirective,
     logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = {
-    val mainClasses = DirectiveUtil.stringValues(directive.values, path, cwd).map(_._1)
-    if (mainClasses.size >= 2)
-      Left(
-        new SeveralMainClassesFoundError(
-          ::(mainClasses.head.value, mainClasses.tail.toList.map(_.value)),
-          mainClasses.flatMap(_.positions)
-        )
-      )
-    else {
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).map { groupedValues =>
+      val mainClasses = groupedValues.scopedStringValues.map(_.positioned)
       val options = BuildOptions(
         mainClass = mainClasses.headOption.map(_.value)
       )
-      Right(ProcessedDirective(Some(options), Seq.empty))
+      ProcessedDirective(Some(options), Seq.empty)
+
     }
-  }
 
 }

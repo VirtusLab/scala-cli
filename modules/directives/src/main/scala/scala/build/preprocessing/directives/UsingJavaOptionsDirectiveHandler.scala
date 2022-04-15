@@ -1,9 +1,7 @@
 package scala.build.preprocessing.directives
-
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOpt, JavaOptions, ShadowingSeq}
-import scala.build.preprocessing.ScopePath
 
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java options"
@@ -19,19 +17,19 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
+    scopedDirective: ScopedDirective,
     logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = {
-    val javaOpts = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val options = BuildOptions(
-      javaOptions = JavaOptions(
-        javaOpts = ShadowingSeq.from(
-          javaOpts.map(_._1.map(JavaOpt(_)))
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).map { groupedValuesContainer =>
+      val javaOptions = groupedValuesContainer.scopedStringValues
+      val options = BuildOptions(
+        javaOptions = JavaOptions(
+          javaOpts = ShadowingSeq.from(
+            javaOptions.map(_.positioned.map(JavaOpt(_)))
+          )
         )
       )
-    )
-    Right(ProcessedDirective(Some(options), Seq.empty))
-  }
+      ProcessedDirective(Some(options), Seq.empty)
+    }
+
 }

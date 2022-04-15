@@ -1,11 +1,9 @@
 package scala.build.preprocessing.directives
 
-import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.{BuildException, UnexpectedDirectiveError}
 import scala.build.options.publish.{ComputeVersion, Developer, License, Vcs}
 import scala.build.options.{BuildOptions, PostBuildOptions, PublishOptions}
-import scala.build.preprocessing.ScopePath
 
 case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
 
@@ -53,60 +51,75 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     "gpg-options"
   ).map(prefix + _)
 
-  def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
-    logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = either {
-    def singleValue   = DirectiveUtil.singleStringValue(directive, path, cwd)
-    def severalValues = DirectiveUtil.stringValues(directive.values, path, cwd)
-
-    if (!directive.key.startsWith(prefix))
-      value(Left(new UnexpectedDirectiveError(directive.key)))
-
-    val publishOptions = directive.key.stripPrefix(prefix) match {
-      case "organization" =>
-        PublishOptions(organization = Some(value(singleValue)))
-      case "name" =>
-        PublishOptions(name = Some(value(singleValue)))
-      case "version" =>
-        PublishOptions(version = Some(value(singleValue)))
-      case "computeVersion" | "compute-version" =>
-        PublishOptions(
-          computeVersion = Some(
-            value(ComputeVersion.parse(value(singleValue)))
-          )
-        )
-      case "url" =>
-        PublishOptions(url = Some(value(singleValue)))
-      case "license" =>
-        val license = value(License.parse(value(singleValue)))
-        PublishOptions(license = Some(license))
-      case "versionControl" | "version-control" | "scm" =>
-        PublishOptions(versionControl = Some(value(Vcs.parse(value(singleValue)))))
-      case "description" =>
-        PublishOptions(description = Some(value(singleValue).value))
-      case "developer" =>
-        PublishOptions(developers = Seq(value(Developer.parse(value(singleValue)))))
-      case "scalaVersionSuffix" | "scala-version-suffix" =>
-        PublishOptions(scalaVersionSuffix = Some(value(singleValue).value))
-      case "scalaPlatformSuffix" | "scala-platform-suffix" =>
-        PublishOptions(scalaPlatformSuffix = Some(value(singleValue).value))
-      case "repository" =>
-        PublishOptions(repository = Some(value(singleValue).value))
-      case "gpgKey" | "gpg-key" =>
-        PublishOptions(gpgSignatureId = Some(value(singleValue).value))
-      case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
-        PublishOptions(gpgOptions = severalValues.map(_._1.value).toList)
-      case _ =>
-        value(Left(new UnexpectedDirectiveError(directive.key)))
-    }
-    val options = BuildOptions(
-      notForBloopOptions = PostBuildOptions(
-        publishOptions = publishOptions
-      )
-    )
-    ProcessedDirective(Some(options), Seq.empty)
+  override def getValueNumberBounds(key: String) = key match {
+    case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
+      UsingDirectiveValueNumberBounds(1, Int.MaxValue)
+    case _ => UsingDirectiveValueNumberBounds(1, 1)
   }
+
+  def handleValues(
+    scopedDirective: ScopedDirective,
+    logger: Logger
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).flatMap { groupedScopedValuesContainer =>
+      val severalValues = groupedScopedValuesContainer.scopedStringValues.map(_.positioned)
+      val singleValue   = severalValues.head
+
+      if (!scopedDirective.directive.key.startsWith(prefix))
+        Left(new UnexpectedDirectiveError(scopedDirective.directive.key))
+      else scopedDirective.directive.key.stripPrefix(prefix) match {
+        case "organization" =>
+          Right(PublishOptions(organization = Some(singleValue)))
+        case "name" =>
+          Right(PublishOptions(name = Some(singleValue)))
+        case "version" =>
+          Right(PublishOptions(version = Some(singleValue)))
+        case "computeVersion" | "compute-version" =>
+          ComputeVersion.parse(singleValue).map {
+            computeVersion =>
+              PublishOptions(
+                computeVersion = Some(
+                  computeVersion
+                )
+              )
+          }
+
+        case "url" =>
+          Right(PublishOptions(url = Some(singleValue)))
+        case "license" =>
+          License.parse(singleValue).map { license =>
+            PublishOptions(license = Some(license))
+          }
+        case "versionControl" | "version-control" | "scm" =>
+          Vcs.parse(singleValue).map { versionControl =>
+            PublishOptions(versionControl = Some(versionControl))
+          }
+        case "description" =>
+          Right(PublishOptions(description = Some(singleValue.value)))
+        case "developer" =>
+          Developer.parse(singleValue).map {
+            developer => PublishOptions(developers = Seq(developer))
+
+          }
+        case "scalaVersionSuffix" | "scala-version-suffix" =>
+          Right(PublishOptions(scalaVersionSuffix = Some(singleValue.value)))
+        case "scalaPlatformSuffix" | "scala-platform-suffix" =>
+          Right(PublishOptions(scalaPlatformSuffix = Some(singleValue.value)))
+        case "repository" =>
+          Right(PublishOptions(repository = Some(singleValue.value)))
+        case "gpgKey" | "gpg-key" =>
+          Right(PublishOptions(gpgSignatureId = Some(singleValue.value)))
+        case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
+          Right(PublishOptions(gpgOptions = severalValues.map(_.value).toList))
+        case _ =>
+          Left(new UnexpectedDirectiveError(scopedDirective.directive.key))
+      }
+    }.map { publishOptions =>
+      val options = BuildOptions(
+        notForBloopOptions = PostBuildOptions(
+          publishOptions = publishOptions
+        )
+      )
+      ProcessedDirective(Some(options), Seq.empty)
+    }
 }

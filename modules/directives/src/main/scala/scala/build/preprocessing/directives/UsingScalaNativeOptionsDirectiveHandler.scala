@@ -1,10 +1,9 @@
 package scala.build.preprocessing.directives
 
-import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors.{BuildException, NoValueProvidedError, SingleValueExpectedError}
+import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaNativeOptions}
-import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.directives.UsingDirectiveValueKind.UsingDirectiveValueKind
 
 case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name: String = "Scala Native options"
@@ -50,59 +49,60 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
       "nativeClangPP"
     )
 
-  def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
-    logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = either {
-    val values =
-      DirectiveUtil.numericValues(directive.values, path, cwd).toList ++
-        DirectiveUtil.stringValues(directive.values, path, cwd).toList
-
-    def withOneValue(setter: String => ScalaNativeOptions)
-      : Either[BuildException, ScalaNativeOptions] =
-      values match {
-        case Seq(value0) =>
-          Right(setter(value0._1.value))
-        case Seq() =>
-          assert(directive.numericalOrStringValuesCount == 0)
-          Left(new NoValueProvidedError(directive.key))
-        case _ =>
-          Left(new SingleValueExpectedError(directive, path))
-      }
-
-    val scalaNativeOptions = directive.key match {
-      case "native-gc" | "nativeGc" =>
-        value(withOneValue { value =>
-          ScalaNativeOptions(gcStr = Some(value))
-        })
-      case "native-mode" | "nativeMode" =>
-        value(withOneValue { value =>
-          ScalaNativeOptions(modeStr = Some(value))
-        })
-      case "native-version" | "nativeVersion" =>
-        value(withOneValue { value =>
-          ScalaNativeOptions(version = Some(value))
-        })
-      case "native-compile" | "nativeCompile" =>
-        ScalaNativeOptions(
-          compileOptions = values.map(_._1.value)
-        )
-      case "native-linking" | "nativeLinking" =>
-        ScalaNativeOptions(
-          linkingOptions = values.map(_._1.value)
-        )
-      case "native-clang" | "nativeClang" =>
-        value(withOneValue { value =>
-          ScalaNativeOptions(clang = Some(value))
-        })
-      case "native-clang-pp" | "nativeClangPP" =>
-        value(withOneValue { value =>
-          ScalaNativeOptions(clangpp = Some(value))
-        })
-    }
-    val options = BuildOptions(scalaNativeOptions = scalaNativeOptions)
-    ProcessedDirective(Some(options), Nil)
+  override def getValueNumberBounds(key: String): UsingDirectiveValueNumberBounds = key match {
+    case "native-gc" | "nativeGc"     => UsingDirectiveValueNumberBounds(1, 1)
+    case "native-mode" | "nativeMode" => UsingDirectiveValueNumberBounds(1, 1)
+    case "native-clang" | "native-clang-pp" | "nativeClang" | "nativeClangPP" =>
+      UsingDirectiveValueNumberBounds(1, 1)
+    case "native-clang-pp" | "nativeMode"   => UsingDirectiveValueNumberBounds(1, 1)
+    case "native-version" | "nativeVersion" => UsingDirectiveValueNumberBounds(1, 1)
+    case "native-linking" | "nativeLinking" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
+    case "native-compile" | "nativeCompile" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
   }
+
+  override def getSupportedTypes(key: String): Set[UsingDirectiveValueKind] = Set(
+    UsingDirectiveValueKind.STRING,
+    UsingDirectiveValueKind.NUMERIC
+  )
+
+  def handleValues(
+    scopedDirective: ScopedDirective,
+    logger: Logger
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).map { groupedValuesContainer =>
+      val values = DirectiveUtil.concatAllValues(groupedValuesContainer)
+      val scalaNativeOptions = scopedDirective.directive.key match {
+        case "native-gc" | "nativeGc" =>
+          ScalaNativeOptions(
+            gcStr = Some(values.head.positioned.value)
+          )
+        case "native-mode" | "nativeMode" =>
+          ScalaNativeOptions(
+            modeStr = Some(values.head.positioned.value)
+          )
+        case "native-version" | "nativeVersion" =>
+          ScalaNativeOptions(
+            version = Some(values.head.positioned.value)
+          )
+        case "native-compile" | "nativeCompile" =>
+          ScalaNativeOptions(
+            compileOptions = values.map(_.positioned.value).toList
+          )
+        case "native-linking" | "nativeLinking" =>
+          ScalaNativeOptions(
+            linkingOptions = values.map(_.positioned.value).toList
+          )
+        case "native-clang" | "nativeClang" =>
+          ScalaNativeOptions(
+            clang = Some(values.head.positioned.value)
+          )
+        case "native-clang-pp" | "nativeClangPP" =>
+          ScalaNativeOptions(
+            clangpp = Some(values.head.positioned.value)
+          )
+      }
+      val options = BuildOptions(scalaNativeOptions = scalaNativeOptions)
+      ProcessedDirective(Some(options), Nil)
+    }
+
 }
