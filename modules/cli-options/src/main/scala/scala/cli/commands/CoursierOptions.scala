@@ -15,7 +15,11 @@ final case class CoursierOptions(
   @HelpMessage("Set the coursier cache location")
   @ValueDescription("path")
   @Hidden
-    cache: Option[String] = None
+    cache: Option[String] = None,
+  @Group("Dependency")
+  @HelpMessage("Enable checksum validation of artifacts downloaded by coursier")
+  @Hidden
+    coursierValidateChecksums: Option[Boolean] = None
 )
 // format: on
 

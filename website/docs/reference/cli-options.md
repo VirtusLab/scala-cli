@@ -232,6 +232,10 @@ Specify a TTL for changing dependencies, such as snapshots
 
 Set the coursier cache location
 
+#### `--coursier-validate-checksums`
+
+Enable checksum validation of artifacts downloaded by coursier
+
 ## Cross options
 
 Available in commands:
