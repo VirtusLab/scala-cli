@@ -691,7 +691,7 @@ trait FormatNativeImageConf extends JavaModule {
 
 import mill.scalalib.api.CompilationResult
 trait ScalaCliCompile extends ScalaModule {
-  def compileScalaCliVersion = "0.1.2"
+  def compileScalaCliVersion = "0.1.3"
   def compileScalaCliUrl = {
     val ver = compileScalaCliVersion
     if (Properties.isLinux) Some(
