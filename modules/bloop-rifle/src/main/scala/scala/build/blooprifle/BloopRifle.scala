@@ -1,13 +1,12 @@
 package scala.build.blooprifle
 
-import java.io.{ByteArrayOutputStream, FileInputStream, FileOutputStream, InputStream, OutputStream}
+import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 
 import scala.build.blooprifle.internal.{Operations, Util}
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
-import scala.util.control.NonFatal
 
 object BloopRifle {
 
@@ -48,7 +47,25 @@ object BloopRifle {
   ): Future[Unit] =
     config.classPath(version) match {
       case Left(ex) => Future.failed(new Exception("Error getting Bloop class path", ex))
-      case Right(cp) =>
+      case Right((cp, isScalaCliBloop)) =>
+        object IntValue {
+          def unapply(s: String): Option[Int] =
+            // no String.toIntOption in Scala 2.12.x
+            try Some(s.toInt)
+            catch {
+              case _: NumberFormatException => None
+            }
+        }
+        val bloopServerSupportsFileTruncating =
+          isScalaCliBloop && {
+            version.takeWhile(c => c.isDigit || c == '.').split('.') match {
+              case Array(IntValue(maj), IntValue(min), IntValue(patch)) =>
+                import scala.math.Ordering.Implicits._
+                Seq(maj, min, patch) >= Seq(1, 14, 20)
+              case _ =>
+                false
+            }
+          }
         Operations.startServer(
           config.address,
           bloopJava,
@@ -58,7 +75,8 @@ object BloopRifle {
           scheduler,
           config.startCheckPeriod,
           config.startCheckTimeout,
-          logger
+          logger,
+          bloopServerSupportsFileTruncating = bloopServerSupportsFileTruncating
         )
     }
 
@@ -86,46 +104,29 @@ object BloopRifle {
         def read(): Int = -1
       }
     }
-    var devNullOs: OutputStream = null
-    def devNull(): OutputStream = {
-      if (devNullOs == null)
-        devNullOs = new FileOutputStream(Util.devNull)
-      devNullOs
-    }
 
-    try {
-      val out = config.bspStdout.getOrElse(devNull())
-      val err = config.bspStderr.getOrElse(devNull())
+    val out = config.bspStdout.getOrElse(OutputStream.nullOutputStream())
+    val err = config.bspStderr.getOrElse(OutputStream.nullOutputStream())
 
-      val conn = Operations.bsp(
-        config.address,
-        bspSocketOrPort,
-        workingDir,
-        in,
-        out,
-        err,
-        logger
-      )
+    val conn = Operations.bsp(
+      config.address,
+      bspSocketOrPort,
+      workingDir,
+      in,
+      out,
+      err,
+      logger
+    )
 
-      new BspConnection {
-        def address = conn.address
-        def openSocket(
-          period: FiniteDuration,
-          timeout: FiniteDuration
-        ) = conn.openSocket(period, timeout)
-        def closed = conn.closed
-        def stop(): Unit = {
-          if (devNullOs != null)
-            devNullOs.close()
-          conn.stop()
-        }
-      }
-    }
-    catch {
-      case NonFatal(e) =>
-        if (devNullOs != null)
-          devNullOs.close()
-        throw e
+    new BspConnection {
+      def address = conn.address
+      def openSocket(
+        period: FiniteDuration,
+        timeout: FiniteDuration
+      ) = conn.openSocket(period, timeout)
+      def closed = conn.closed
+      def stop(): Unit =
+        conn.stop()
     }
   }
 
@@ -140,37 +141,19 @@ object BloopRifle {
         def read(): Int = -1
       }
     }
-    var devNullOs: OutputStream = null
-    def devNull(): OutputStream = {
-      if (devNullOs == null)
-        devNullOs = new FileOutputStream(Util.devNull)
-      devNullOs
-    }
 
-    try {
-      val out = config.bspStdout.getOrElse(devNull())
-      val err = config.bspStderr.getOrElse(devNull())
+    val out = config.bspStdout.getOrElse(OutputStream.nullOutputStream())
+    val err = config.bspStderr.getOrElse(OutputStream.nullOutputStream())
 
-      Operations.exit(
-        config.address,
-        workingDir,
-        in,
-        out,
-        err,
-        logger
-      )
-    }
-    catch {
-      case NonFatal(e) =>
-        if (devNullOs != null)
-          devNullOs.close()
-        throw e
-    }
+    Operations.exit(
+      config.address,
+      workingDir,
+      in,
+      out,
+      err,
+      logger
+    )
   }
-
-  def nullOutputStream() = new FileOutputStream(Util.devNull)
-
-  def nullInputStream() = new FileInputStream(Util.devNull)
 
   def getCurrentBloopVersion(
     config: BloopRifleConfig,
@@ -185,9 +168,9 @@ object BloopRifle {
       Operations.about(
         config.address,
         workdir,
-        nullInputStream(),
+        InputStream.nullInputStream(),
         bufferedOStream,
-        nullOutputStream(),
+        OutputStream.nullOutputStream(),
         logger,
         scheduler
       )

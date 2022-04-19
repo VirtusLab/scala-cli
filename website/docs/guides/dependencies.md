@@ -11,6 +11,12 @@ scala-cli compile Hello.scala \
   --dependency org.scala-lang.modules::scala-parallel-collections:1.0.4
 ```
 
+You can also add a URL fallback for a JAR dependency, if it can't be fetched otherwise:
+```bash
+scala-cli compile Hello.scala \
+  -- dependency "org::name::version,url=https://url-to-the-jar"
+```
+
 Note that `--dependency` is only meant as a convenience.
 You should favor adding dependencies in the sources themselves via [using directives](./guides/configuration.md#special-imports).
 <!-- TODO #344 

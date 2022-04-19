@@ -15,10 +15,10 @@ import scala.jdk.CollectionConverters._
 
 class BspClient(
   readFilesEs: ExecutorService,
-  logger: Logger,
+  @volatile var logger: Logger,
   var forwardToOpt: Option[b.BuildClient] = None
 ) extends b.BuildClient with BuildClientForwardStubs with BloopBuildClient
-    with HasGeneratedSources {
+    with HasGeneratedSourcesImpl {
 
   private def updatedPublishDiagnosticsParams(
     params: b.PublishDiagnosticsParams,

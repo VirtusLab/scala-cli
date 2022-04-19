@@ -2,7 +2,7 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.errors.{NoValueProvidedError, SingleValueExpectedError}
+import scala.build.errors.UsingDirectiveValueNumError
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
@@ -31,7 +31,7 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       expect(
-        maybeBuild.left.exists { case _: NoValueProvidedError => true; case _ => false }
+        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
       )
     }
   }
@@ -45,7 +45,7 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
       )
     }
 
@@ -72,7 +72,7 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       expect(
-        maybeBuild.left.exists { case _: NoValueProvidedError => true; case _ => false }
+        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
       )
     }
   }
@@ -86,7 +86,7 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
       )
     }
   }
@@ -112,7 +112,7 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
       )
     }
 
@@ -156,8 +156,10 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |def foo() = println("hello foo")
           |""".stripMargin
     )
-    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.options.scalaNativeOptions.linkingOptions.isEmpty)
+    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      assert(maybeBuild.left.exists {
+        case _: UsingDirectiveValueNumError => true; case _ => false
+      })
     }
   }
 
@@ -201,7 +203,7 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
       )
     }
   }
@@ -229,7 +231,7 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.left.exists { case _: SingleValueExpectedError => true; case _ => false }
+        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
       )
     }
   }

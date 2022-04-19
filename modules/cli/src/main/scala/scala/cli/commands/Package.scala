@@ -545,7 +545,7 @@ object Package extends ScalaCommand[PackageOptions] {
       Some(mainClass),
       addTestInitializer = false,
       linkerConfig,
-      build.options.scalaJsOptions.fullOpt.getOrElse(false),
+      build.options.scalaJsOptions.fullOpt,
       build.options.scalaJsOptions.noOpt.getOrElse(false),
       logger
     )

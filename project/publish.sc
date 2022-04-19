@@ -43,7 +43,7 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
         .replace("latest", "0.0.0")
         .replace("nightly", "0.0.0")
       val idx = rawVersion.indexOf("-")
-      if (idx >= 0) rawVersion.take(idx) + "+" + rawVersion.drop(idx + 1) + "-SNAPSHOT"
+      if (idx >= 0) rawVersion.take(idx) + "-" + rawVersion.drop(idx + 1) + "-SNAPSHOT"
       else rawVersion
     }
   else

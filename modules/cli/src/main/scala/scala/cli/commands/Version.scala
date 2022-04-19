@@ -20,7 +20,7 @@ object Version extends ScalaCommand[VersionOptions] {
 
     scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))
   }.getOrElse(
-    sys.error("Can not resolve ScalaCLI version to update")
+    sys.error("Can not resolve Scala CLI version to update")
   )
 
   def isOutdated(maybeScalaCliBinPath: Option[os.Path]): Boolean =

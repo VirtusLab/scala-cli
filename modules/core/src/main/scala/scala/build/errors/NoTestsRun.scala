@@ -1,3 +1,3 @@
 package scala.build.errors
 
-final class NoTestsRun extends BuildException("No tests were run")
+final class NoTestsRun extends TestError("No tests were run")

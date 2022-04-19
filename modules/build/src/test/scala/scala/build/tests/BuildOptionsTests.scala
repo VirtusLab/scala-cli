@@ -11,7 +11,17 @@ import scala.build.errors.{
 }
 import scala.build.internal.Constants._
 import scala.build.internal.Regexes.scala2NightlyRegex
-import scala.build.options.{BuildOptions, BuildRequirements, ScalaOptions}
+import scala.build.options.{
+  BuildOptions,
+  BuildRequirements,
+  InternalOptions,
+  ScalaOptions,
+  ShadowingSeq
+}
+import scala.build.{Build, BuildThreads, LocalRepo}
+import scala.build.Directories
+import scala.build.options.ScalacOpt
+import scala.build.Positioned
 
 class BuildOptionsTests extends munit.FunSuite {
 
@@ -45,7 +55,7 @@ class BuildOptionsTests extends munit.FunSuite {
       )
     )
     val scalaParams = options.scalaParams.orThrow
-    assert(
+    expect(
       scalaParams.scalaVersion.startsWith("3.1.") && scalaParams.scalaVersion.endsWith("-NIGHTLY"),
       "-S 3.1.nightly argument does not lead to scala 3.1. nightly build option"
     )
@@ -315,5 +325,57 @@ class BuildOptionsTests extends munit.FunSuite {
       }
 
     }
+
+  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories     = Directories.under(extraRepoTmpDir)
+  val buildThreads    = BuildThreads.create()
+  override def afterAll(): Unit = {
+    buildThreads.shutdown()
+  }
+
+  test("User scalac options shadow internal ones") {
+    val defaultOptions = BuildOptions(
+      internal = InternalOptions(
+        localRepository = LocalRepo.localRepo(directories.localRepoDir)
+      )
+    )
+
+    val newSourceRoot = os.pwd / "out" / "foo"
+
+    val extraScalacOpt = Seq("-sourceroot", newSourceRoot.toString)
+    val options = defaultOptions.copy(
+      scalaOptions = defaultOptions.scalaOptions.copy(
+        scalaVersion = Some("3.1.1"),
+        scalacOptions = ShadowingSeq.from(
+          extraScalacOpt
+            .map(ScalacOpt(_))
+            .map(Positioned.none)
+        )
+      )
+    )
+
+    val dummyInputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        """object Foo
+          |""".stripMargin
+    )
+
+    dummyInputs.withLoadedBuild(options, buildThreads, None) {
+      (_, _, build) =>
+
+        val build0 = build match {
+          case s: Build.Successful => s
+          case _                   => sys.error(s"Unexpected failed or cancelled build $build")
+        }
+
+        val rawOptions = build0.project.scalaCompiler.scalacOptions
+        val seq        = ShadowingSeq.from(rawOptions.map(ScalacOpt(_)))
+
+        expect(seq.toSeq.length == rawOptions.length) // no option needs to be shadowed
+
+        pprint.err.log(rawOptions)
+        expect(rawOptions.containsSlice(extraScalacOpt))
+    }
+  }
 
 }

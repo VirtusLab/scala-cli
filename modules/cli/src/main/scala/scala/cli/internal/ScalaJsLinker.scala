@@ -102,7 +102,7 @@ object ScalaJsLinker {
     cache: FileCache[Task],
     archiveCache: ArchiveCache[Task],
     scalaJsVersion: String
-  ): Either[ScalaJsLinkingError, Unit] = either {
+  ): Either[BuildException, Unit] = either {
 
     val command = value {
       linkerCommand(options, javaCommand, logger, cache, archiveCache, scalaJsVersion)
@@ -114,7 +114,7 @@ object ScalaJsLinker {
         Option(mainClassOrNull).toSeq.flatMap(mainClass => Seq("--mainMethod", mainClass + ".main"))
       val testInitializerArgs =
         if (addTestInitializer)
-          Seq("--mainMethod", TAI.ModuleClassName + "." + TAI.MainMethodName + "!")
+          Seq("--mainMethodWithNoArgs", TAI.ModuleClassName + "." + TAI.MainMethodName)
         else
           Nil
       val optArg =

@@ -10,7 +10,7 @@ object EitherCps {
   final case class Helper[E]() {
     def apply[T](body: T): Either[E, T] = macro impl
   }
-  def either[E]: Helper[E] = Helper[E]()
+  def either[E]: Helper[E] = new Helper[E]
   @compileTimeOnly("[async] `value` must be enclosed in `EitherCps.either`")
   def value[E, T](option: Either[E, T]): T = ???
   def impl(c: blackbox.Context)(body: c.Tree): c.Tree = {

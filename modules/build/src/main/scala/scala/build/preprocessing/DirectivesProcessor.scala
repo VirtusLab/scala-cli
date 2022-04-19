@@ -3,7 +3,12 @@ import scala.build.Logger
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.ConfigMonoid
-import scala.build.preprocessing.directives.{DirectiveHandler, ProcessedDirective, StrictDirective}
+import scala.build.preprocessing.directives.{
+  DirectiveHandler,
+  ProcessedDirective,
+  ScopedDirective,
+  StrictDirective
+}
 
 object DirectivesProcessor {
 
@@ -29,7 +34,7 @@ object DirectivesProcessor {
 
     val handlersMap = handlers
       .flatMap { handler =>
-        handler.keys.map(k => k -> (handler.handleValues _))
+        handler.keys.map(k => k -> handler.handleValues _)
       }
       .toMap
 
@@ -39,7 +44,7 @@ object DirectivesProcessor {
       .iterator
       .flatMap {
         case d @ StrictDirective(k, _) =>
-          handlersMap.get(k).iterator.map(_(d, path, cwd, logger))
+          handlersMap.get(k).iterator.map(_(ScopedDirective(d, path, cwd), logger))
       }
       .toVector
       .sequence

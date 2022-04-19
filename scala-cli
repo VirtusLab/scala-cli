@@ -11,7 +11,7 @@ if [ "$(uname)" = "Darwin" ]; then
   fi
 fi
 DIR="$(dirname "$("$READLINK" -f "${BASH_SOURCE[0]}")")"
-LAUNCHER_DIR="$DIR/out/cli/base-image/nativeImage/dest"
+LAUNCHER_DIR="$DIR/out/cli/base-image/nativeImage.dest"
 
 if [ ! -x "$LAUNCHER_DIR/scala-cli" ]; then
   echo "native-image launcher not built yet." 1>&2
@@ -22,4 +22,4 @@ if [ ! -x "$LAUNCHER_DIR/scala-cli" ]; then
 fi
 
 export PATH="$LAUNCHER_DIR:$PATH"
-exec scala "$@"
+exec scala-cli "$@"

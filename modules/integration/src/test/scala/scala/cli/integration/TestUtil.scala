@@ -12,9 +12,12 @@ object TestUtil {
 
   val cliKind     = System.getenv("SCALA_CLI_KIND")
   val isNativeCli = cliKind.startsWith("native")
-  val isCI        = System.getenv("CI") != null
-  val cliPath     = System.getenv("SCALA_CLI")
-  val cli         = cliCommand(cliPath)
+  val isCI = Option(System.getenv("ACTUAL_CI")) match {
+    case None        => System.getenv("CI") != null
+    case Some(value) => value.nonEmpty
+  }
+  val cliPath = System.getenv("SCALA_CLI")
+  val cli     = cliCommand(cliPath)
 
   def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)

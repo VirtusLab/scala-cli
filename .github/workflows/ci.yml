@@ -13,23 +13,6 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  migration-tests:
-    timeout-minutes: 120
-    runs-on: "ubuntu-latest"
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
-      with:
-        jvm: "temurin:17"
-    - name: Unit 3.x tests
-      run: |
-        ./mill -i cli3.compile
-        ./mill -i cli3.test
-        ./mill -i _[3.1.1].test
   jvm-tests:
     timeout-minutes: 120
     runs-on: ${{ matrix.OS }}
@@ -203,6 +186,24 @@ jobs:
     - name: Check examples
       run: bash ./scala-cli --jvm temurin:17  .github/scripts/check_examples.sc
 
+  migration-tests:
+    timeout-minutes: 120
+    runs-on: "ubuntu-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+      with:
+        jvm: "temurin:17"
+    - name: Unit 3.x tests
+      run: |
+        ./mill -i cli3.compile
+        ./mill -i cli3.test
+        ./mill -i _[3.1.1].test
+
   checks:
     timeout-minutes: 15
     runs-on: ubuntu-latest
@@ -316,7 +317,6 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-        ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
     - uses: coursier/cache-action@v6.3
     - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
       with:
@@ -332,13 +332,17 @@ jobs:
         PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+    - uses: webfactory/ssh-agent@fc49353b67b2b7c1e0e6a600572d01a69f2672dd
+      with:
+        ssh-private-key: |
+          ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
     - name: Update stable branch
       if: env.SHOULD_PUBLISH == 'true' && startsWith(github.ref, 'refs/tags/v')
       run: |
         git config user.name gh-actions
         git config user.email actions@github.com
         git checkout stable
-        git merge main -m "Back port of documentation changes to stable"
+        git merge origin/main -m "Back port of documentation changes to stable"
         git push origin stable
 
   launchers:
@@ -356,7 +360,7 @@ jobs:
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: launchers
@@ -380,7 +384,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: launchers
           path: artifacts/
@@ -414,3 +418,6 @@ jobs:
       - name: Publish to SDKMAN
         run: .github/scripts/publish-sdkman.sh
         shell: bash
+        env:
+          SDKMAN_KEY: ${{ secrets.SDKMAN_KEY }}
+          SDKMAN_TOKEN: ${{ secrets.SDKMAN_TOKEN }}

@@ -1,9 +1,7 @@
 package scala.build.blooprifle.internal
 
-import java.io.{File, IOException}
+import java.io.IOException
 import java.net.{ServerSocket, Socket}
-
-import scala.util.Properties
 
 object Util {
 
@@ -25,9 +23,6 @@ object Util {
     }
     // format: on
   }
-
-  def devNull: File =
-    new File(if (Properties.isWin) "NUL" else "/dev/null")
 
   def randomPort(): Int = {
     val s    = new ServerSocket(0)

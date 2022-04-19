@@ -10,7 +10,7 @@ object Scala {
   val allScala2 = Seq(scala213, scala212)
   val all       = allScala2 ++ Seq(scala3)
 
-  def scalaJs = "1.9.0"
+  def scalaJs = "1.10.0"
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
@@ -44,7 +44,7 @@ object InternalDeps {
   object Versions {
     def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
-    def scalaJsCli    = "1.1.1-sc1"
+    def scalaJsCli    = "1.1.1-sc4.1"
   }
 }
 
@@ -52,16 +52,16 @@ object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier      = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.13.11"
-    def scalaMeta     = "4.5.2"
+    def jsoniterScala = "2.13.15"
+    def scalaMeta     = "4.5.4"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
     def signingCli    = "0.1.2"
   }
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.2"
-  def asm      = ivy"org.ow2.asm:asm:9.2"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.3"
+  def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.4.19-1"
+  def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.4.20"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.0.0"
   def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M13"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.7.0"
@@ -75,6 +75,7 @@ object Deps {
   // TODO bump once 0.15.5 is out
   def expecty  = ivy"com.eed3si9n.expecty::expecty:0.15.4+22-9c7fb771-SNAPSHOT"
   def guava    = ivy"com.google.guava:guava:31.1-jre"
+  def jgit     = ivy"org.eclipse.jgit:org.eclipse.jgit:6.1.0.202203080745-r"
   def jimfs    = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
@@ -93,7 +94,7 @@ object Deps {
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = ivy"org.scalameta::scalafmt-cli:3.0.8"
+  def scalafmtCli        = ivy"org.scalameta::scalafmt-cli:3.5.1"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"

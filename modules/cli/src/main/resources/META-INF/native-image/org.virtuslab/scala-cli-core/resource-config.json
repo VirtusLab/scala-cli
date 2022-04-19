@@ -20,7 +20,7 @@
         "pattern": "\\Qcommons-logging.properties\\E"
       },
       {
-        "pattern": "\\Qcom/google/javascript/jscomp/js/polyfills.txt\\E"
+        "pattern": ".*scala3RuntimeFixes.jar$"
       }
     ]
   },

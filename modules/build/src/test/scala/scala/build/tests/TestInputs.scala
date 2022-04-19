@@ -16,18 +16,23 @@ final case class TestInputs(
   def withInputs[T](f: (os.Path, Inputs) => T): T =
     withCustomInputs(false, None)(f)
 
-  def withCustomInputs[T](
-    viaDirectory: Boolean,
-    forcedWorkspaceOpt: Option[os.FilePath]
-  )(
-    f: (os.Path, Inputs) => T
-  ): T =
+  def fromRoot[T](f: os.Path => T): T =
     TestInputs.withTmpDir("scala-cli-tests-") { tmpDir =>
       for ((relPath, content) <- files) {
         val path = tmpDir / relPath
         os.write(path, content.getBytes(StandardCharsets.UTF_8), createFolders = true)
       }
 
+      f(tmpDir)
+    }
+
+  def withCustomInputs[T](
+    viaDirectory: Boolean,
+    forcedWorkspaceOpt: Option[os.FilePath]
+  )(
+    f: (os.Path, Inputs) => T
+  ): T =
+    fromRoot { tmpDir =>
       val inputArgs0 =
         if (viaDirectory) Seq(tmpDir.toString)
         else if (inputArgs.isEmpty) files.map(_._1.toString)

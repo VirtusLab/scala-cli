@@ -320,6 +320,54 @@ object Inputs {
     readArchive(Nil)
   }
 
+  def validateArgs(
+    args: Seq[String],
+    cwd: os.Path,
+    download: String => Either[String, Array[Byte]],
+    stdinOpt: => Option[Array[Byte]],
+    acceptFds: Boolean
+  ): Seq[Either[String, Seq[Element]]] = args.zipWithIndex.map {
+    case (arg, idx) =>
+      lazy val path      = os.Path(arg, cwd)
+      lazy val dir       = path / os.up
+      lazy val subPath   = path.subRelativeTo(dir)
+      lazy val stdinOpt0 = stdinOpt
+      val isStdin = (arg == "-.scala" || arg == "_" || arg == "_.scala") &&
+        stdinOpt0.nonEmpty
+      if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>")))
+      else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
+        Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
+      else if (arg.endsWith(".zip") && os.exists(os.Path(arg, cwd))) {
+        val content = os.read.bytes(os.Path(arg, cwd))
+        Right(resolveZipArchive(content))
+      }
+      else if (arg.contains("://")) {
+        val url =
+          if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) s"$arg/download" else arg
+        download(url).map { content =>
+          if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty)
+            resolveZipArchive(content)
+          else
+            List(resolve(url, content))
+        }
+      }
+      else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
+      else if (arg.endsWith(".scala")) Right(Seq(ScalaFile(dir, subPath)))
+      else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
+      else if (os.isDir(path)) Right(Seq(Directory(path)))
+      else if (acceptFds && arg.startsWith("/dev/fd/")) {
+        val content = os.read.bytes(os.Path(arg, cwd))
+        Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
+      }
+      else {
+        val msg =
+          if (os.exists(path))
+            s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
+          else s"$arg: not found"
+        Left(msg)
+      }
+  }
+
   private def forNonEmptyArgs(
     args: Seq[String],
     cwd: os.Path,
@@ -330,47 +378,8 @@ object Inputs {
     acceptFds: Boolean,
     forcedWorkspace: Option[os.Path]
   ): Either[String, Inputs] = {
-    val validatedArgs = args.zipWithIndex.map {
-      case (arg, idx) =>
-        lazy val path      = os.Path(arg, cwd)
-        lazy val dir       = path / os.up
-        lazy val subPath   = path.subRelativeTo(dir)
-        lazy val stdinOpt0 = stdinOpt
-        val isStdin = (arg == "-.scala" || arg == "_" || arg == "_.scala") &&
-          stdinOpt0.nonEmpty
-        if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>")))
-        else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
-          Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
-        else if (arg.endsWith(".zip") && os.exists(os.Path(arg, cwd))) {
-          val content = os.read.bytes(os.Path(arg, cwd))
-          Right(resolveZipArchive(content))
-        }
-        else if (arg.contains("://")) {
-          val url =
-            if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) s"$arg/download" else arg
-          download(url).map { content =>
-            if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty)
-              resolveZipArchive(content)
-            else
-              List(resolve(url, content))
-          }
-        }
-        else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
-        else if (arg.endsWith(".scala")) Right(Seq(ScalaFile(dir, subPath)))
-        else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
-        else if (os.isDir(path)) Right(Seq(Directory(path)))
-        else if (acceptFds && arg.startsWith("/dev/fd/")) {
-          val content = os.read.bytes(os.Path(arg, cwd))
-          Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
-        }
-        else {
-          val msg =
-            if (os.exists(path))
-              s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
-            else s"$arg: not found"
-          Left(msg)
-        }
-    }
+    val validatedArgs: Seq[Either[String, Seq[Element]]] =
+      validateArgs(args, cwd, download, stdinOpt, acceptFds)
     val invalid = validatedArgs.collect {
       case Left(msg) => msg
     }

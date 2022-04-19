@@ -21,10 +21,11 @@ final case class ScalaJsOptions(
   avoidClasses: Option[Boolean] = None,
   avoidLetsAndConsts: Option[Boolean] = None,
   moduleSplitStyleStr: Option[String] = None,
+  smallModuleForPackage: List[String] = Nil,
   esVersionStr: Option[String] = None,
-  fullOpt: Option[Boolean] = None,
   noOpt: Option[Boolean] = None
 ) {
+  def fullOpt: Boolean = mode.contains("release")
   def platformSuffix: String =
     "sjs" + ScalaVersion.jsBinary(finalVersion).getOrElse(finalVersion)
   def jsDependencies(scalaVersion: String): Seq[AnyDependency] =
@@ -59,6 +60,7 @@ final case class ScalaJsOptions(
       .map {
         case "fewestmodules"   => ScalaJsLinkerConfig.ModuleSplitStyle.FewestModules
         case "smallestmodules" => ScalaJsLinkerConfig.ModuleSplitStyle.SmallestModules
+        case "smallmodulesfor" => ScalaJsLinkerConfig.ModuleSplitStyle.SmallModulesFor
         case unknown =>
           logger.message(
             s"Warning: unrecognized argument: $unknown for --js-module-split-style parameter, use default value: fewestmodules"
@@ -130,6 +132,7 @@ final case class ScalaJsOptions(
       checkIr.getOrElse(false), // meh
       emitSourceMaps,
       moduleSplitStyle(logger),
+      smallModuleForPackage,
       esFeatures,
       header
     )

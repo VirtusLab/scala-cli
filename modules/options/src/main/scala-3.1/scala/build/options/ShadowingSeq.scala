@@ -7,6 +7,8 @@ import scala.collection.mutable
 /** Seq ensuring some of its values are unique according to some key */
 final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
   lazy val toSeq: Seq[T] = values.flatten
+  def map[U](f: T => U)(implicit key: ShadowingSeq.KeyOf[U]): ShadowingSeq[U] =
+    ShadowingSeq.empty[U] ++ toSeq.map(f)
   def ++(other: Seq[T])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =
     addGroups(ShadowingSeq.groups(other, key.groups(other)))
   private def addGroups(other: Seq[Seq[T]])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =

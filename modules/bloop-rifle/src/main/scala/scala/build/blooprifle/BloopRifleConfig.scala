@@ -11,7 +11,7 @@ final case class BloopRifleConfig(
   address: BloopRifleConfig.Address,
   javaPath: String,
   javaOpts: Seq[String],
-  classPath: String => Either[Throwable, Seq[File]],
+  classPath: String => Either[Throwable, (Seq[File], Boolean)],
   workingDir: File,
   bspSocketOrPort: Option[() => BspConnectionAddress],
   bspStdin: Option[InputStream],
@@ -38,6 +38,8 @@ object BloopRifleConfig {
     }
     final case class DomainSocket(path: Path) extends Address {
       def render = path.toString
+      def outputPath: Path =
+        path.resolve("output")
     }
   }
 
@@ -74,7 +76,8 @@ object BloopRifleConfig {
       "-XX:MaxInlineLevel=20", // Specific option for faster C2, ignored by GraalVM
       "-XX:+UseZGC", // ZGC returns unused memory back to the OS, so Bloop does not occupy so much memory if unused
       "-XX:ZUncommitDelay=30",
-      "-XX:ZCollectionInterval=5"
+      "-XX:ZCollectionInterval=5",
+      "-Dbloop.ignore-sig-int=true"
     )
 
   lazy val defaultJavaOpts: Seq[String] = {
@@ -86,8 +89,9 @@ object BloopRifleConfig {
       .getOrElse(hardCodedDefaultJavaOpts)
   }
 
+  def scalaCliBloopOrg = "io.github.alexarchambault.bleep"
   def hardCodedDefaultModule: String =
-    "io.github.alexarchambault.bleep:bloop-frontend_2.12"
+    s"$scalaCliBloopOrg:bloop-frontend_2.12"
   def hardCodedDefaultVersion: String =
     Constants.bloopVersion
   def hardCodedDefaultScalaVersion: String =
@@ -117,7 +121,7 @@ object BloopRifleConfig {
 
   def default(
     address: Address,
-    bloopClassPath: String => Either[Throwable, Seq[File]],
+    bloopClassPath: String => Either[Throwable, (Seq[File], Boolean)],
     workingDir: File
   ): BloopRifleConfig =
     BloopRifleConfig(

@@ -98,7 +98,8 @@ object Run extends ScalaCommand[RunOptions] {
       options.shared,
       inputs,
       logger,
-      Some(name)
+      Some(name),
+      inputArgs
     )
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
@@ -220,7 +221,7 @@ object Run extends ScalaCommand[RunOptions] {
             Some(mainClass),
             addTestInitializer = false,
             linkerConfig,
-            build.options.scalaJsOptions.fullOpt.getOrElse(false),
+            build.options.scalaJsOptions.fullOpt,
             build.options.scalaJsOptions.noOpt.getOrElse(false),
             logger
           ).map { outputPath =>
