@@ -14,7 +14,7 @@ import scala.util.control.NonFatal
 
 object ScalaNightlyVersion {
 
-  object Scala2Repo {
+  private object Scala2Repo {
     final case class ScalaVersion(name: String, lastModified: Long)
     final case class ScalaVersionsMetaData(repo: String, children: List[ScalaVersion])
 
@@ -24,7 +24,7 @@ object ScalaNightlyVersion {
   private def downloadScala2RepoPage(cache: FileCache[Task]): Either[BuildException, Array[Byte]] =
     either {
       val scala2NightlyRepo =
-        s"https://scala-ci.typesafe.com/ui/api/v1/ui/nativeBrowser/scala-integration/org/scala-lang/scala-compiler"
+        "https://scala-ci.typesafe.com/ui/api/v1/ui/nativeBrowser/scala-integration/org/scala-lang/scala-compiler"
       val artifact = Artifact(scala2NightlyRepo).withChanging(true)
       val res = cache.logger.use {
         try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)

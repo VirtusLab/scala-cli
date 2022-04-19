@@ -228,7 +228,7 @@ class BuildOptionsTests extends munit.FunSuite {
     )
     val scalaParams = options.scalaParams.orThrow
     assert(
-      scalaParams.scalaVersion.contains("2.12"),
+      scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.12.nightly argument does not lead to scala2 nightly build option"
     )
   }
