@@ -7,7 +7,7 @@
 
 set -eu
 
-SCALA_CLI_VERSION="0.1.3"
+SCALA_CLI_VERSION="0.1.4"
 
 if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
   SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$SCALA_CLI_VERSION/scala-cli-x86_64-pc-linux.gz"
