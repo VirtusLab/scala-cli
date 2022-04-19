@@ -8,6 +8,7 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.BuildClient",
+    "queryAllDeclaredMethods": true,
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -22,6 +23,7 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.BuildServer",
+    "queryAllDeclaredMethods": true,
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -133,6 +135,10 @@
     "allDeclaredFields": true
   },
   {
+    "name": "ch.epfl.scala.bsp4j.DebugProvider",
+    "allDeclaredFields": true
+  },
+  {
     "name": "ch.epfl.scala.bsp4j.DebugSessionAddress",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
@@ -239,6 +245,7 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.JavaBuildServer",
+    "queryAllDeclaredMethods": true,
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -414,6 +421,7 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.ScalaBuildServer",
+    "queryAllDeclaredMethods": true,
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -886,6 +894,10 @@
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
     "allDeclaredFields": true
+  },
+  {
+    "name": "scala.build.ConsoleBloopBuildClient",
+    "queryAllDeclaredMethods": true
   },
   {
     "name": "scala.build.bloop.BuildServer",

@@ -1,9 +1,8 @@
 package scala.build.preprocessing.directives
 
+import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaJsOptions}
-import scala.build.preprocessing.ScopePath
-import scala.build.{Logger, Positioned}
 
 case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
 
@@ -20,6 +19,8 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
       |`//> using jsMode` _value_
       |
       |`//> using jsModuleKind` _value_
+      |
+      |`//> using jsSmallModuleForPackage` _value1_, _value2_
       |
       |`//> using jsCheckIr` _true|false_
       |
@@ -44,76 +45,94 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     "//> using jsModuleKind \"common\""
   )
 
-  def string(
-    param: String,
-    values: Seq[Positioned[String]],
-    f: String => ScalaJsOptions
-  ): Either[BuildException, ScalaJsOptions] =
-    values match {
-      case Seq(elem) => Right(f(elem.value))
-      case _         => Left(MultiValue(param, values))
-    }
-
-  def boolean(
-    param: String,
-    values: Seq[Positioned[String]],
-    f: Boolean => ScalaJsOptions
-  ): Either[BuildException, ScalaJsOptions] =
-    values match {
-      case Seq(elem) =>
-        elem.value.toBooleanOption match {
-          case Some(a) => Right(f(a))
-          case None    => Left(NotABoolean(param, elem))
-        }
-      case _ => Left(MultiValue(param, values))
-    }
-
-  lazy val directiveMap =
-    Map[String, (String, Seq[Positioned[String]]) => Either[BuildException, ScalaJsOptions]](
-      "jsVersion" -> ((p, v) => string(p, v, value => ScalaJsOptions(version = Some(value)))),
-      "jsMode"    -> ((p, v) => string(p, v, value => ScalaJsOptions(mode = Some(value)))),
-      "jsModuleKind" ->
-        ((p, v) => string(p, v, value => ScalaJsOptions(moduleKindStr = Some(value)))),
-      "jsCheckIr" -> ((p, v) => boolean(p, v, value => ScalaJsOptions(checkIr = Some(value)))),
-      "jsEmitSourceMaps" ->
-        ((p, v) => boolean(p, v, value => ScalaJsOptions(emitSourceMaps = value))),
-      "jsDom"    -> ((p, v) => boolean(p, v, value => ScalaJsOptions(dom = Some(value)))),
-      "jsHeader" -> ((p, v) => string(p, v, value => ScalaJsOptions(header = Some(value)))),
-      "jsAllowBigIntsForLongs" ->
-        ((p, v) => boolean(p, v, value => ScalaJsOptions(allowBigIntsForLongs = Some(value)))),
-      "jsAvoidClasses" ->
-        ((p, v) => boolean(p, v, value => ScalaJsOptions(avoidClasses = Some(value)))),
-      "jsAvoidLetsAndConsts" ->
-        ((p, v) => boolean(p, v, value => ScalaJsOptions(avoidLetsAndConsts = Some(value)))),
-      "jsModuleSplitStyleStr" ->
-        ((p, v) => string(p, v, value => ScalaJsOptions(moduleSplitStyleStr = Some(value)))),
-      "jsEsVersionStr" ->
-        ((p, v) => string(p, v, value => ScalaJsOptions(esVersionStr = Some(value))))
+  override def keys: Seq[String] =
+    Seq(
+      "jsVersion",
+      "jsMode",
+      "jsModuleKind",
+      "jsCheckIr",
+      "jsEmitSourceMaps",
+      "jsSmallModuleForPackage",
+      "jsDom",
+      "jsHeader",
+      "jsAllowBigIntsForLongs",
+      "jsAvoidClasses",
+      "jsAvoidLetsAndConsts",
+      "jsModuleSplitStyleStr",
+      "jsEsVersionStr"
     )
 
-  def keys = directiveMap.keys.toSeq
+  def getBooleanOption(groupedValues: GroupedScopedValuesContainer): Option[Boolean] =
+    groupedValues.scopedBooleanValues.map(_.positioned.value.toBoolean).headOption.orElse(Some(
+      true
+    ))
+
+  def getBooleanValue(groupedValues: GroupedScopedValuesContainer): Boolean =
+    groupedValues.scopedBooleanValues.map(_.positioned.value.toBoolean).headOption.getOrElse(true)
+
+  def getStringOption(groupedValues: GroupedScopedValuesContainer): Option[String] =
+    groupedValues.scopedStringValues.headOption.map(_.positioned.value)
+
+  override def getSupportedTypes(key: String) = key match {
+    case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" | "jsSmallModuleForPackage" =>
+      Set(UsingDirectiveValueKind.STRING)
+    case "jsCheckIr" | "jsAllowBigIntsForLongs" | "jsEmitSourceMaps" | "jsDom" | "jsAvoidClasses" | "jsAvoidLetsAndConsts" =>
+      Set(UsingDirectiveValueKind.BOOLEAN, UsingDirectiveValueKind.EMPTY)
+  }
+
+  override def getValueNumberBounds(key: String) = key match {
+    case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" =>
+      UsingDirectiveValueNumberBounds(1, 1)
+    case "jsCheckIr" | "jsAllowBigIntsForLongs" | "jsEmitSourceMaps" | "jsDom" | "jsAvoidClasses" | "jsAvoidLetsAndConsts" =>
+      UsingDirectiveValueNumberBounds(0, 1)
+    case "jsSmallModuleForPackage" =>
+      UsingDirectiveValueNumberBounds(1)
+  }
 
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
+    scopedDirective: ScopedDirective,
     logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = {
-    val scalaJsOptions   = DirectiveUtil.stringValues(directive.values, path, cwd)
-    val positionedValues = scalaJsOptions.map(_._1)
-    val intermediate     = directiveMap(directive.key)(directive.key, positionedValues)
-    intermediate.map(opts =>
-      ProcessedDirective(Some(BuildOptions(scalaJsOptions = opts)), Seq.empty)
-    )
-  }
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).map { groupedValues =>
+      val buildOptions = scopedDirective.directive.key match {
+        case "jsVersion" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(version = getStringOption(groupedValues)))
+        case "jsMode" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(mode = getStringOption(groupedValues)))
+        case "jsModuleKind" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(moduleKindStr = getStringOption(groupedValues))
+          )
+        case "jsCheckIr" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(checkIr = getBooleanOption(groupedValues)))
+        case "jsEmitSourceMaps" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(emitSourceMaps = getBooleanValue(groupedValues))
+          )
+        case "jsSmallModuleForPackage" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(smallModuleForPackage =
+              groupedValues.scopedStringValues.map(_.positioned.value).toList
+            )
+          )
+        case "jsDom" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(dom = getBooleanOption(groupedValues)))
+        case "jsHeader" =>
+          BuildOptions(scalaJsOptions = ScalaJsOptions(header = getStringOption(groupedValues)))
+        case "jsAllowBigIntsForLongs" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(allowBigIntsForLongs = getBooleanOption(groupedValues))
+          )
+        case "jsAvoidClasses" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(avoidClasses = getBooleanOption(groupedValues))
+          )
+        case "jsAvoidLetsAndConsts" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(avoidLetsAndConsts = getBooleanOption(groupedValues))
+          )
+        case "jsModuleSplitStyleStr" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(moduleSplitStyleStr = getStringOption(groupedValues))
+          )
+        case "jsEsVersionStr" => BuildOptions(scalaJsOptions =
+            ScalaJsOptions(esVersionStr = getStringOption(groupedValues))
+          )
+
+      }
+      ProcessedDirective(Some(buildOptions), Seq.empty)
+    }
 }
-
-final case class MultiValue(param: String, values: Seq[Positioned[String]]) extends BuildException(
-      s"Expected single value for $param but found $values",
-      values.headOption.flatMap(_.positions.headOption).toSeq
-    )
-
-final case class NotABoolean(param: String, value: Positioned[String]) extends BuildException(
-      s"Boolean expected for $param but ${value.value} found",
-      value.positions
-    )

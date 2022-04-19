@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 
-import scala.build.bsp.BspThreads
+import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.options.BuildOptions
 import scala.build.{Build, Inputs}
 import scala.cli.CurrentParams
@@ -19,33 +19,39 @@ object Bsp extends ScalaCommand[BspOptions] {
     if (options.shared.logging.verbosity >= 3)
       pprint.err.log(args)
 
-    val sharedOptions: SharedOptions =
+    val getSharedOptions: () => SharedOptions = () =>
       options.jsonOptions.map { optionsPath =>
         val content = os.read.bytes(os.Path(optionsPath, os.pwd))
         readFromArray(content)(SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
 
-    val buildOptionsToUse = buildOptions(sharedOptions)
-    val bloopRifleConfig  = sharedOptions.bloopRifleConfig()
-    val logger            = sharedOptions.logging.logger
-
     val argsToInputs: Seq[String] => Either[String, Inputs] =
-      argsSeq =>
-        options.shared.inputs(argsSeq, () => Inputs.default())
+      argsSeq => {
+        val sharedOptions = getSharedOptions()
+        sharedOptions.inputs(argsSeq, () => Inputs.default())
           .map { i =>
-            if (options.shared.logging.verbosity >= 3)
+            if (sharedOptions.logging.verbosity >= 3)
               pprint.err.log(i)
-            Build.updateInputs(i, buildOptionsToUse)
+            Build.updateInputs(i, buildOptions(sharedOptions))
           }
-    val inputs = options.shared.inputsOrExit(argsToInputs(args.all))
+      }
+
+    val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
+      val sharedOptions = getSharedOptions()
+      BspReloadableOptions(
+        buildOptions = buildOptions(sharedOptions),
+        bloopRifleConfig = sharedOptions.bloopRifleConfig(),
+        logger = sharedOptions.logging.logger,
+        verbosity = sharedOptions.logging.verbosity
+      )
+    }
+
+    val inputs = getSharedOptions().inputsOrExit(argsToInputs(args.all))
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(
         argsToInputs,
-        buildOptionsToUse,
-        logger,
-        bloopRifleConfig,
-        options.shared.logging.verbosity,
+        bspReloadableOptionsReference,
         threads,
         System.in,
         System.out

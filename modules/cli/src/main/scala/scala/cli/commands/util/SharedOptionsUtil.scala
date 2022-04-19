@@ -43,6 +43,7 @@ object SharedOptionsUtil {
         avoidClasses = jsAvoidClasses,
         avoidLetsAndConsts = jsAvoidLetsAndConsts,
         moduleSplitStyleStr = jsModuleSplitStyle,
+        smallModuleForPackage = jsSmallModuleForPackage,
         esVersionStr = jsEsVersion
       )
     }

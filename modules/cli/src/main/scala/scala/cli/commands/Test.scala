@@ -171,7 +171,7 @@ object Test extends ScalaCommand[TestOptions] {
             None,
             addTestInitializer = true,
             linkerConfig,
-            build.options.scalaJsOptions.fullOpt.getOrElse(false),
+            build.options.scalaJsOptions.fullOpt,
             build.options.scalaJsOptions.noOpt.getOrElse(false),
             logger
           ) { js =>

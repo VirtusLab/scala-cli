@@ -1,10 +1,9 @@
 package scala.build.preprocessing.directives
-import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.Ops._
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.errors.{BuildException, CompositeBuildException, WrongJarPathError}
 import scala.build.options.{BuildOptions, ClassPathOptions}
-import scala.build.preprocessing.ScopePath
+import scala.util.{Failure, Success}
 
 case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Custom JAR"
@@ -21,31 +20,35 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("jar", "jars")
   def handleValues(
-    directive: StrictDirective,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
+    scopedDirective: ScopedDirective,
     logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] = either {
-    val values = directive.values
-    val extraJars: Seq[Either[BuildException, os.Path]] =
-      DirectiveUtil.stringValues(values, path, cwd).map {
-        case (p, _) =>
-          val root = Directive.osRoot(cwd, p.positions.headOption)
-          // FIXME Handle malformed paths here
-          root.map(os.Path(p.value, _))
+  ): Either[BuildException, ProcessedUsingDirective] =
+    checkIfValuesAreExpected(scopedDirective).flatMap { groupedScopedValuesContainer =>
+      groupedScopedValuesContainer.scopedStringValues.map {
+        case ScopedValue(positioned, _) =>
+          val eitherRootPathOrBuildException =
+            Directive.osRoot(scopedDirective.cwd, positioned.positions.headOption)
+          eitherRootPathOrBuildException.flatMap { root =>
+            scala.util.Try(os.Path(positioned.value, root)) match {
+              case Failure(exception) => Left(new WrongJarPathError(exception.getLocalizedMessage))
+              case Success(jarPath)   => Right(jarPath)
+            }
+          }
       }
+        .sequence
+        .left.map(CompositeBuildException(_))
 
-    val res = extraJars
-      .sequence
-      .left.map(CompositeBuildException(_))
+    }.map { pathSequence =>
 
-    ProcessedDirective(
-      Some(BuildOptions(
-        classPathOptions = ClassPathOptions(
-          extraClassPath = value(res)
-        )
-      )),
-      Seq.empty
-    )
-  }
+      ProcessedDirective(
+        Some(BuildOptions(
+          classPathOptions = ClassPathOptions(
+            extraClassPath = pathSequence
+          )
+        )),
+        Seq.empty
+      )
+
+    }
+
 }

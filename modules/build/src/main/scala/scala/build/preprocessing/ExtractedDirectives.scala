@@ -10,7 +10,7 @@ import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
 import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 
 import scala.build.errors._
-import scala.build.preprocessing.directives.{DirectiveUtil, StrictDirective}
+import scala.build.preprocessing.directives.{DirectiveUtil, ScopedDirective, StrictDirective}
 import scala.build.{Logger, Position}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
@@ -116,11 +116,14 @@ object ExtractedDirectives {
       else {
         val directiveVales =
           usedDirectives.getFlattenedMap.values().asScala.toList.flatMap(_.asScala)
-        val values = DirectiveUtil.stringValues(directiveVales, path, cwd) ++
-          DirectiveUtil.numericValues(directiveVales, path, cwd)
+        val values = DirectiveUtil.concatAllValues(DirectiveUtil.getGroupedValues(ScopedDirective(
+          StrictDirective("", directiveVales),
+          path,
+          cwd
+        )))
         Left(new DirectiveErrors(
           ::(s"Directive '${usedDirectives.getKind}' is not supported in the given context'", Nil),
-          values.flatMap(_._1.positions)
+          values.flatMap(_.positioned.positions)
         ))
       }
     }

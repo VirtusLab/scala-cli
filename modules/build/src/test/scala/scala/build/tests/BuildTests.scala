@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import dependency.parser.DependencyParser
 
 import java.io.IOException
-
 import scala.build.Ops._
 import scala.build.Positioned
 import scala.build.errors.{
@@ -17,7 +16,7 @@ import scala.build.options.{BuildOptions, InternalOptions, JavaOpt, ScalacOpt, S
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
-import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.build.{BuildThreads, Directories, LocalRepo, Positioned}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 

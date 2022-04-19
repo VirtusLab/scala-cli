@@ -52,7 +52,9 @@ node hello.js
 Hello World from Scala.js
 -->
 
-### Module Split Style - Smallest Modules
+### Module Split Style 
+
+### Smallest Modules
 
 Passing `--js-module-split-style smallestmodules` to the `package` sub-command creates js modules that are as small as possible.
 Scala.js linker generates a lot of js modules, which are copied to the `output` directory.
@@ -77,6 +79,26 @@ node hello/main.js
 <!-- Expected:
 Hello World from Scala.js
 -->
+
+### Small Modules For
+
+Passing `--js-module-split-style smallestmodules` to the `package` sub-command creates many small modules as possibles for the classes in the listed packages (and their subpackages). To define packages use `jsSmallModuleForPackage` parameter.
+
+```scala title=SmallestModules.scala
+//> using jsModuleKind "es"
+//> using jsModuleSplitStyleStr "smallmodulesfor"
+//> using jsSmallModuleForPackage "com.example.test", "com.example.example""
+
+package com.example.test
+
+import scala.scalajs.js
+
+case class Foo(txt: String)
+
+object Hello extends App {
+  println(Foo("Hello World from Scala.js").txt)
+}
+```
 
 ## Emit source maps
 
@@ -151,3 +173,4 @@ The table below lists the last supported version of Scala.js in Scala CLI. If yo
 | 0.1.1                |   1.8.0            |
 | 0.1.2                |   1.8.0            |
 | 0.1.3                |   1.9.0            |
+| 0.1.4                |   1.10.0            |

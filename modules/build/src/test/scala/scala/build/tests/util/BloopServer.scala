@@ -4,7 +4,6 @@ import coursier.cache.FileCache
 
 import scala.build.{Bloop, Logger}
 import scala.build.blooprifle.BloopRifleConfig
-import scala.util.Properties
 
 object BloopServer {
 
@@ -14,10 +13,7 @@ object BloopServer {
   // Not sure how to properly shut it down or have it exit after a period
   // of inactivity, so we keep using our default global Bloop for now.
   private def bloopAddress =
-    if (Properties.isWin)
-      BloopRifleConfig.Address.Tcp(BloopRifleConfig.defaultHost, BloopRifleConfig.defaultPort)
-    else
-      BloopRifleConfig.Address.DomainSocket(directories.bloopDaemonDir.toNIO)
+    BloopRifleConfig.Address.DomainSocket(directories.bloopDaemonDir.toNIO)
 
   val bloopConfig = BloopRifleConfig.default(
     bloopAddress,

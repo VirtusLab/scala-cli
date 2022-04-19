@@ -14,8 +14,8 @@ import scala.build.Ops._
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors._
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
+import scala.build.options._
 import scala.build.options.validation.ValidationException
-import scala.build.options.{BuildOptions, ClassPathOptions, Platform, SNNumeralVersion, Scope}
 import scala.build.postprocessing._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -241,7 +241,7 @@ object Build {
           )))
       }
 
-      def testBuildOpt(doc: Boolean = false) = either {
+      def testBuildOpt(doc: Boolean = false): Either[BuildException, Option[Build]] = either {
         if (buildTests) {
           val actualCompilerOpt =
             if (doc) docCompilerOpt
@@ -656,7 +656,7 @@ object Build {
 
     val pluginScalacOptions = artifacts.compilerPlugins.distinct.map {
       case (_, _, path) =>
-        s"-Xplugin:$path"
+        ScalacOpt(s"-Xplugin:$path")
     }
 
     val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
@@ -669,11 +669,13 @@ object Build {
             "-P:semanticdb:failures:warning",
             "-P:semanticdb:synthetics:on",
             s"-P:semanticdb:sourceroot:${inputs.workspace}"
-          )
+          ).map(ScalacOpt(_))
         else
           Seq(
-            "-Xsemanticdb"
-          )
+            "-Xsemanticdb",
+            "-sourceroot",
+            inputs.workspace.toString
+          ).map(ScalacOpt(_))
       else Nil
 
     val semanticDbJavacOptions =
@@ -701,20 +703,22 @@ object Build {
 
     val sourceRootScalacOptions =
       if (params.scalaVersion.startsWith("2.")) Nil
-      else Seq("-sourceroot", inputs.workspace.toString)
+      else Seq("-sourceroot", inputs.workspace.toString).map(ScalacOpt(_))
 
     val scalaJsScalacOptions =
       if (options.platform.value == Platform.JS && !params.scalaVersion.startsWith("2."))
-        Seq("-scalajs")
+        Seq(ScalacOpt("-scalajs"))
       else Nil
 
     val releaseFlagVersion = releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
-    val scalacReleaseV = releaseFlagVersion.map(v => List("-release", v)).getOrElse(Nil)
-    val javacReleaseV  = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
+    val scalacReleaseV = releaseFlagVersion
+      .map(v => List("-release", v).map(ScalacOpt(_)))
+      .getOrElse(Nil)
+    val javacReleaseV = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
 
     val scalacOptions =
-      options.scalaOptions.scalacOptions.toSeq.map(_.value.value) ++
+      options.scalaOptions.scalacOptions.map(_.value) ++
         pluginScalacOptions ++
         semanticDbScalacOptions ++
         sourceRootScalacOptions ++
@@ -724,7 +728,7 @@ object Build {
     val scalaCompilerParams = ScalaCompilerParams(
       scalaVersion = params.scalaVersion,
       scalaBinaryVersion = params.scalaBinaryVersion,
-      scalacOptions = scalacOptions,
+      scalacOptions = scalacOptions.toSeq.map(_.value),
       compilerClassPath = artifacts.compilerClassPath
     )
 

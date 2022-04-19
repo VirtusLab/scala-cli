@@ -44,7 +44,7 @@ object InternalDeps {
   object Versions {
     def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
-    def scalaJsCli    = "1.1.1-sc2"
+    def scalaJsCli    = "1.1.1-sc4.1"
   }
 }
 
@@ -52,13 +52,13 @@ object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier      = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.13.13"
-    def scalaMeta     = "4.5.3"
+    def jsoniterScala = "2.13.15"
+    def scalaMeta     = "4.5.4"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
     def signingCli    = "0.1.3"
   }
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.2"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.3"
   def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.4.20"

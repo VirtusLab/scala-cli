@@ -41,6 +41,9 @@ class CPSTest extends munit.FunSuite {
   class V
   class VV extends V
 
+  class E2 { def ala = 123 }
+  class V2
+
   val ee: Either[EE, V] = Left(new EE)
   val vv: Either[E, VV] = Right(new VV)
 
@@ -60,4 +63,11 @@ class CPSTest extends munit.FunSuite {
 
   }
 
+  test("fallback to Right") {
+    val res = new V2
+    val a: Either[E2, V2] = either {
+      value(Right(res))
+    }
+    assert(Right(res) == a)
+  }
 }

@@ -7,7 +7,7 @@ import coursier.util.{Artifact, Task}
 import dependency._
 
 import scala.build.internal.CsLoggerUtil.CsCacheExtensions
-import scala.build.internal.{OsLibc, Runner}
+import scala.build.internal.{Constants, OsLibc, Runner}
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Os, Positioned}
 import scala.cli.commands.util.CommonOps._
@@ -22,7 +22,7 @@ object LauncherCli {
 
     val logger          = LoggingOptions().logger
     val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
-    val scalaVersion    = options.cliScalaVersion.getOrElse(Properties.versionNumberString)
+    val scalaVersion    = options.cliScalaVersion.getOrElse(scalaCliScalaVersion(version))
     val scalaParameters = ScalaParameters(scalaVersion)
     val snapshotsRepo   = Seq(Repositories.central.root, Repositories.sonatype("snapshots").root)
 
@@ -69,6 +69,11 @@ object LauncherCli {
 
     sys.exit(exitCode)
   }
+
+  def scalaCliScalaVersion(cliVersion: String): String =
+    if (cliVersion == "nightly") Properties.versionNumberString
+    else if (Version(cliVersion) <= Version("0.1.2")) Constants.defaultScala212Version
+    else Properties.versionNumberString
 
   def resolveNightlyScalaCliVersion(
     cache: FileCache[Task],

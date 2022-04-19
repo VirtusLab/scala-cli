@@ -8,9 +8,8 @@ import scala.build.Sources
 import scala.build.internal.CustomCodeWrapper
 import scala.build.CrossSources
 import scala.build.Position
+import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.preprocessing.directives.MultiValue
-import scala.build.preprocessing.directives.NotABoolean
 import scala.build.internal.ScalaJsLinkerConfig
 
 class SourcesTests extends munit.FunSuite {
@@ -477,13 +476,13 @@ class SourcesTests extends munit.FunSuite {
         """//> using jsVersion "1.8.0"
           |//> using jsMode "mode"
           |//> using jsModuleKind "commonjs"
-          |//> using jsCheckIr "true"
-          |//> using jsEmitSourceMaps "true"
-          |//> using jsDom "true"
+          |//> using jsCheckIr true
+          |//> using jsEmitSourceMaps true
+          |//> using jsDom true
           |//> using jsHeader "#!/usr/bin/env node\n"
-          |//> using jsAllowBigIntsForLongs "true"
-          |//> using jsAvoidClasses "false"
-          |//> using jsAvoidLetsAndConsts "false"
+          |//> using jsAllowBigIntsForLongs true
+          |//> using jsAvoidClasses false
+          |//> using jsAvoidLetsAndConsts false
           |//> using jsModuleSplitStyleStr "smallestmodules"
           |//> using jsEsVersionStr "es2017"
           |""".stripMargin
@@ -535,8 +534,8 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         )
       crossSources match {
-        case Left(_: MultiValue) =>
-        case o                   => fail("Exception expected", clues(o))
+        case Left(_: UsingDirectiveValueNumError) =>
+        case o                                    => fail("Exception expected", clues(o))
       }
     }
   }
@@ -555,8 +554,8 @@ class SourcesTests extends munit.FunSuite {
           TestLogger()
         )
       crossSources match {
-        case Left(_: NotABoolean) =>
-        case o                    => fail("Exception expected", clues(o))
+        case Left(_: UsingDirectiveWrongValueTypeError) =>
+        case o                                          => fail("Exception expected", clues(o))
       }
     }
   }

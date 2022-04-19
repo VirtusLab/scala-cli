@@ -5,7 +5,6 @@ import ch.epfl.scala.bsp4j as b
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util as ju
 
@@ -30,8 +29,8 @@ class BspServer(
 
   private var client: Option[BuildClient] = None
 
-  private val atomicIntelliJ: AtomicBoolean = new AtomicBoolean(presetIntelliJ)
-  def isIntelliJ: Boolean                   = atomicIntelliJ.get()
+  @volatile private var intelliJ: Boolean = presetIntelliJ
+  def isIntelliJ: Boolean                 = intelliJ
 
   def clientOpt: Option[BuildClient] = client
 
@@ -156,7 +155,7 @@ class BspServer(
       capabilities
     )
     val buildComesFromIntelliJ = params.getDisplayName.toLowerCase.contains("intellij")
-    atomicIntelliJ.set(buildComesFromIntelliJ)
+    intelliJ = buildComesFromIntelliJ
     logger.debug(s"IntelliJ build: $buildComesFromIntelliJ")
     CompletableFuture.completedFuture(res)
   }
