@@ -882,6 +882,13 @@
     "allDeclaredFields": true
   },
   {
+    "name": "org.eclipse.lsp4j.jsonrpc.messages.ResponseError",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "org.scalajs.jsenv.ExternalJSRun",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
