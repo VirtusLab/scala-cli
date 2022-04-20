@@ -9,15 +9,12 @@ import scala.cli.signing.util.ArgParsers._
 @HelpMessage("Sign files with PGP")
 final case class PgpSignOptions(
   password: PasswordOption,
-  secretKey: String,
+  secretKey: PasswordOption,
   @ExtraName("f")
     force: Boolean = false,
   stdout: Boolean = false
-) {
-  // format: on
-  def secretKeyPath: os.Path =
-    os.Path(secretKey, os.pwd)
-}
+)
+// format: on
 
 object PgpSignOptions {
   implicit lazy val parser: Parser[PgpSignOptions] = Parser.derive

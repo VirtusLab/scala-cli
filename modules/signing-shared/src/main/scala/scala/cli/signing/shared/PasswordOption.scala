@@ -3,10 +3,13 @@ package scala.cli.signing.shared
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
+import java.nio.charset.StandardCharsets
+
 import scala.io.Codec
 
 sealed abstract class PasswordOption extends Product with Serializable {
   def get(): Secret[String]
+  def getBytes(): Secret[Array[Byte]] = get().map(_.getBytes(StandardCharsets.UTF_8))
   def asString: Secret[String]
 }
 
@@ -47,6 +50,10 @@ object PasswordOption extends LowPriorityPasswordOption {
   final case class File(path: os.Path) extends PasswordOption {
     def get(): Secret[String] = {
       val value = os.read(path) // trim that?
+      Secret(value)
+    }
+    override def getBytes(): Secret[Array[Byte]] = {
+      val value = os.read.bytes(path)
       Secret(value)
     }
     def asString: Secret[String] =
