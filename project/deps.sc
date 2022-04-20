@@ -4,11 +4,12 @@ import mill._, scalalib._
 import scala.util.Properties
 
 object Scala {
-  def scala212  = "2.12.15"
-  def scala213  = "2.13.8"
-  def scala3    = "3.1.1"
-  val allScala2 = Seq(scala213, scala212)
-  val all       = allScala2 ++ Seq(scala3)
+  def scala212     = "2.12.15"
+  def scala213     = "2.13.8"
+  def scala3       = "3.1.1"
+  val allScala2    = Seq(scala213, scala212)
+  val all          = allScala2 ++ Seq(scala3)
+  val mainVersions = Seq(scala3, scala213)
 
   def scalaJs = "1.10.0"
 
@@ -28,7 +29,7 @@ object Scala {
   // The Scala version used to build the CLI itself.
   // We should be able to switch to 3.x when it'll have CPS support
   // (for the either { value(…) } stuff)
-  def defaultInternal = scala213
+  def defaultInternal = scala3
 
   // The Scala version used by default to compile user input.
   def defaultUser = scala3

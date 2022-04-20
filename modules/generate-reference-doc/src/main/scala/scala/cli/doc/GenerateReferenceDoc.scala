@@ -16,7 +16,7 @@ import scala.build.preprocessing.directives.{
 }
 import scala.cli.ScalaCliCommands
 
-object GenerateReferenceDoc extends CaseApp[Options] {
+object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
   private def cleanUpOrigin(origin: String): String = {
     val origin0      = origin.takeWhile(_ != '[').stripSuffix("Options")
@@ -289,7 +289,7 @@ object GenerateReferenceDoc extends CaseApp[Options] {
     b.toString
   }
 
-  def run(options: Options, args: RemainingArgs): Unit = {
+  def run(options: InternalDocOptions, args: RemainingArgs): Unit = {
 
     val scalaCli      = new ScalaCliCommands("scala-cli", isSipScala = false)
     val commands      = scalaCli.commands
