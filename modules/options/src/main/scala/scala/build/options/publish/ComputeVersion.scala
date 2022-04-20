@@ -49,76 +49,84 @@ object ComputeVersion {
     def get(workspace: os.Path): Either[BuildException, String] = {
       val repo0 = repo.resolveFrom(workspace)
       if (os.exists(repo0 / ".git")) {
-        val git = Git.open(repo0.toIO)
-        val (lastTagOpt, lastStableTagOpt) = {
-          val tagMap = git.tagList()
-            .call()
-            .asScala
-            .iterator
-            .map(tag => (tag.getPeeledObjectId.name, tag))
-            .toMap
-          val tagsIt = git.log()
-            .call()
-            .asScala
-            .iterator
-            .flatMap(c => tagMap.get(c.name()).iterator)
-            .flatMap(r => versionOf(r.getName).map((r, _)).iterator)
-            .scanLeft((Option.empty[(Ref, String)], Option.empty[(Ref, String)])) {
-              case ((acc, stableAcc), v @ (_, name)) =>
-                val acc0 = acc.orElse(Some(v))
-                val stableAcc0 = stableAcc.orElse {
-                  if (name.forall(c => c == '.' || c.isDigit)) Some(v)
-                  else None
-                }
-                (acc0, stableAcc0)
-            }
-          var lastTagOpt0       = Option.empty[(Ref, String)]
-          var lastStableTagOpt0 = Option.empty[(Ref, String)]
-          while (tagsIt.hasNext && (lastTagOpt0.isEmpty || lastStableTagOpt0.isEmpty)) {
-            val v = tagsIt.next()
-            if (lastTagOpt0.isEmpty)
-              lastTagOpt0 = v._1
-            if (lastStableTagOpt0.isEmpty)
-              lastStableTagOpt0 = v._2
-          }
-          (lastTagOpt0, lastStableTagOpt0)
-        }
-        val headCommit = git.log().call().asScala.iterator.next()
-
-        (lastTagOpt, lastStableTagOpt) match {
-          case (None, _) =>
-            Right(defaultFirstVersion)
-          case (Some((tag, name)), _) if tag.getPeeledObjectId.name == headCommit.name =>
-            Right(name)
-          case (Some((tag, _)), _) if dynVer =>
-            val tagOrNull = git.describe()
-              .setMatch("v[0-9]*", "[0-9]*")
-              .setTags(true)
-              .setTarget(headCommit)
+        val git     = Git.open(repo0.toIO)
+        val hasHead = git.getRepository.resolve(Constants.HEAD) != null
+        if (hasHead) {
+          val (lastTagOpt, lastStableTagOpt) = {
+            val tagMap = git.tagList()
               .call()
-            Option(tagOrNull) match {
-              case None =>
-                Left(new GitTagError(
-                  s"Unexpected error when running git describe from Git repository $repo0 (git describe doesn't find back tag $tag)"
-                ))
-              case Some(tag) =>
-                versionOf(tag).map(_ + "-SNAPSHOT").toRight(
-                  new GitTagError(
-                    s"Unexpected error when running git describe from Git repository $repo0 (git describe-provided tag $tag doesn't have the expected shape)"
-                  )
-                )
+              .asScala
+              .iterator
+              .flatMap(tag => Option(tag.getPeeledObjectId).iterator.map(id => (id.name, tag)))
+              .toMap
+            val tagsIt = git.log()
+              .call()
+              .asScala
+              .iterator
+              .flatMap(c => tagMap.get(c.name()).iterator)
+              .flatMap(r => versionOf(r.getName).map((r, _)).iterator)
+              .scanLeft((Option.empty[(Ref, String)], Option.empty[(Ref, String)])) {
+                case ((acc, stableAcc), v @ (_, name)) =>
+                  val acc0 = acc.orElse(Some(v))
+                  val stableAcc0 = stableAcc.orElse {
+                    if (name.forall(c => c == '.' || c.isDigit)) Some(v)
+                    else None
+                  }
+                  (acc0, stableAcc0)
+              }
+            var lastTagOpt0       = Option.empty[(Ref, String)]
+            var lastStableTagOpt0 = Option.empty[(Ref, String)]
+            while (tagsIt.hasNext && (lastTagOpt0.isEmpty || lastStableTagOpt0.isEmpty)) {
+              val v = tagsIt.next()
+              if (lastTagOpt0.isEmpty)
+                lastTagOpt0 = v._1
+              if (lastStableTagOpt0.isEmpty)
+                lastStableTagOpt0 = v._2
             }
-          case (Some(_), None) =>
-            Left(new GitTagError(s"No stable tag found in Git repository $repo0"))
-          case (_, Some((tag, name))) =>
-            val idx = name.lastIndexOf('.')
-            if (idx >= 0 && idx < name.length - 1 && name.iterator.drop(idx + 1).forall(_.isDigit))
-              Right(name.take(idx + 1) + (name.drop(idx + 1).toInt + 1).toString + "-SNAPSHOT")
-            else
-              Left(new GitTagError(
-                s"Don't know how to bump version in tag $tag in Git repository $repo0"
-              ))
+            (lastTagOpt0, lastStableTagOpt0)
+          }
+          val headCommit = git.log().call().asScala.iterator.next()
+
+          (lastTagOpt, lastStableTagOpt) match {
+            case (None, _) =>
+              Right(defaultFirstVersion)
+            case (Some((tag, name)), _)
+                if Option(tag.getPeeledObjectId).exists(_.name == headCommit.name) =>
+              Right(name)
+            case (Some((tag, _)), _) if dynVer =>
+              val tagOrNull = git.describe()
+                .setMatch("v[0-9]*", "[0-9]*")
+                .setTags(true)
+                .setTarget(headCommit)
+                .call()
+              Option(tagOrNull) match {
+                case None =>
+                  Left(new GitTagError(
+                    s"Unexpected error when running git describe from Git repository $repo0 (git describe doesn't find back tag $tag)"
+                  ))
+                case Some(tag) =>
+                  versionOf(tag).map(_ + "-SNAPSHOT").toRight(
+                    new GitTagError(
+                      s"Unexpected error when running git describe from Git repository $repo0 (git describe-provided tag $tag doesn't have the expected shape)"
+                    )
+                  )
+              }
+            case (Some(_), None) =>
+              Left(new GitTagError(s"No stable tag found in Git repository $repo0"))
+            case (_, Some((tag, name))) =>
+              val idx = name.lastIndexOf('.')
+              if (
+                idx >= 0 && idx < name.length - 1 && name.iterator.drop(idx + 1).forall(_.isDigit)
+              )
+                Right(name.take(idx + 1) + (name.drop(idx + 1).toInt + 1).toString + "-SNAPSHOT")
+              else
+                Left(new GitTagError(
+                  s"Don't know how to bump version in tag $tag in Git repository $repo0"
+                ))
+          }
         }
+        else
+          Right(defaultFirstVersion)
       }
       else
         Left(new GitTagError(s"$repo0 doesn't look like a Git repository"))

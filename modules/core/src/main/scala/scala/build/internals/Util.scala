@@ -27,7 +27,7 @@ object Util {
         }
     }
 
-  private implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
+  implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
     def toCs: coursier.Dependency = {
       val mod = coursier.Module(
         coursier.Organization(dep.organization),
@@ -42,7 +42,11 @@ object Util {
           }
         }
       for (clOpt <- dep.userParams.get("classifier"); cl <- clOpt)
-        dep0 = dep0.withConfiguration(coursier.core.Configuration(cl))
+        dep0 = dep0.withPublication(dep0.publication.withClassifier(coursier.core.Classifier(cl)))
+      for (tpeOpt <- dep.userParams.get("type"); tpe <- tpeOpt)
+        dep0 = dep0.withPublication(dep0.publication.withType(coursier.core.Type(tpe)))
+      for (extOpt <- dep.userParams.get("ext"); ext <- extOpt)
+        dep0 = dep0.withPublication(dep0.publication.withExt(coursier.core.Extension(ext)))
       for (_ <- dep.userParams.get("intransitive"))
         dep0 = dep0.withTransitive(false)
       // FIXME
