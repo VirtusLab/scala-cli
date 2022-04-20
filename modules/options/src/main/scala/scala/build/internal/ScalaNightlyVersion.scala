@@ -32,9 +32,10 @@ object ScalaNightlyVersion {
           case NonFatal(e) => throw new Exception(e)
         }
       }.left.map { err =>
-        Util.printException(err)
         val msg =
-          s"Unable to compute latest nightly Scala 2 Version"
+          s"""|Unable to compute the latest Scala 2 nightly version.
+              |Throws error during downloading web page repository for Scala 2.
+              |   Caused by: $err""".stripMargin
         new ScalaVersionError(msg)
       }
 
@@ -62,8 +63,8 @@ object ScalaNightlyVersion {
         val scalaBinaryVersion = ScalaVersion.binary(nightlyVersion)
         (nightlyVersion, scalaBinaryVersion)
       case None =>
-        val msg = s"""Unable to compute latest Scala $versionPrefix nightly version.
-                         |Pass explicitly full Scala 2 nightly version."""
+        val msg = s"""|Unable to compute the latest Scala $versionPrefix nightly version.
+                      |Pass explicitly full Scala 2 nightly version.""".stripMargin
         throw new ScalaVersionError(msg)
     }
 
