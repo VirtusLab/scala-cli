@@ -5,10 +5,12 @@ import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.net.URI
 import java.nio.file.Paths
-
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -963,7 +965,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
                 stdout = os.Inherit
               )
 
-            await(remoteServer.workspaceReload().asScala)
+            val reloadResponse = extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+            expect(reloadResponse.isEmpty)
 
             val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
             val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
@@ -1015,7 +1018,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
                 stdout = os.Inherit
               )
 
-            await(remoteServer.workspaceReload().asScala)
+            val reloadResponse = extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+            expect(reloadResponse.isEmpty)
 
             val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
             val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
@@ -1028,6 +1032,42 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
     }
   }
+
+  test("workspace/reload error response when no inputs json present") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "ReloadTest.scala" ->
+          s"""object ReloadTest {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".")) {
+      (_, _, remoteServer) =>
+        async {
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+
+          val resp =
+            await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+          expect(resp.getStatusCode == b.StatusCode.OK)
+
+          val Some(responseError) = extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+          expect(responseError.getCode == -32603)
+          expect(responseError.getMessage.nonEmpty)
+        }
+    }
+
+  }
+
+  private def extractWorkspaceReloadResponse(workspaceReloadResult: AnyRef): Option[ResponseError] =
+    workspaceReloadResult match {
+      case gsonMap: LinkedTreeMap[_, _] if !gsonMap.isEmpty =>
+        val gson = new Gson()
+        Some(gson.fromJson(gson.toJson(gsonMap), classOf[ResponseError]))
+      case _ => None
+    }
 }
 
 object BspTestDefinitions {
