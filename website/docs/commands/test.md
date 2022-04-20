@@ -12,7 +12,7 @@ By default, all command line options apply to both the main and test sources, so
 
 A source file is treated as test source if:
 
- - it contains the `using target test` directive, or
+ - it contains the `//> using target.scope "test"` directive, or
  - the file name ends with `.test.scala`, or
  - the file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a `test` directory
 
