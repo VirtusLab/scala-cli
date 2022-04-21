@@ -20,7 +20,7 @@ import java.nio.file.Paths
 object Stacktraces:
   lazy val classpathDirectories = ClasspathDirectoriesLoader.getClasspathDirectories()
 
-  def convertToPrettyStackTrace(e: Exception): PrettyException =
+  def convertToPrettyStackTrace(e: Throwable): PrettyException =
     val st = filterInternalStackFrames(e.getStackTrace).flatMap { ste =>
       val tastyFilesLocator = TastyFilesLocator(classpathDirectories)
       tastyFilesLocator.findTastyFile(ste.getClassName) match

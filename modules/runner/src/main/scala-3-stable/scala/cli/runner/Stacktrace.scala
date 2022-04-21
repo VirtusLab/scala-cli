@@ -7,10 +7,7 @@ object Stacktrace {
   private lazy val disable = java.lang.Boolean.getBoolean("scala.cli.runner.Stacktrace.disable")
 
   def print(t: Throwable, prefix: String, verbosity: Int): Boolean = !disable && {
-    val e = t match {
-      case e: Exception => e
-      case _            => new Exception(t) // meh
-    }
+    val e = t
     try
       val prettyStackTrace = Stacktraces.convertToPrettyStackTrace(e)
       Console.out.print(prefix)
