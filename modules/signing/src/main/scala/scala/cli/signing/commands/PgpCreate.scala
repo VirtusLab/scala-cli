@@ -44,8 +44,10 @@ object PgpCreate extends Command[PgpCreateOptions] {
     val secretKeyPath = options.secretKeyPath
 
     os.write(publicKeyPath, pubKeyContent)
-    System.err.println(s"Wrote public key to ${printable(publicKeyPath)}")
+    if (options.verbosity >= 0)
+      System.err.println(s"Wrote public key to ${printable(publicKeyPath)}")
     os.write(secretKeyPath, secretKeyContent)
-    System.err.println(s"Wrote secret key to ${printable(secretKeyPath)}")
+    if (options.verbosity >= 0)
+      System.err.println(s"Wrote secret key to ${printable(secretKeyPath)}")
   }
 }

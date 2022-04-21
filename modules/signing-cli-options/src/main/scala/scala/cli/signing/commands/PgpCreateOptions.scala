@@ -11,7 +11,9 @@ final case class PgpCreateOptions(
   password: PasswordOption,
   dest: Option[String] = None,
   pubDest: Option[String] = None,
-  secretDest: Option[String] = None
+  secretDest: Option[String] = None,
+  verbose: Int @@ Counter = Tag.of(0),
+  quiet: Boolean = false
 ) {
   def publicKeyPath: os.Path = {
     val str = pubDest.filter(_.trim.nonEmpty)
@@ -27,6 +29,8 @@ final case class PgpCreateOptions(
       .getOrElse("key.skr")
     os.Path(str, os.pwd)
   }
+  def verbosity: Int =
+    Tag.unwrap(verbose) + (if (quiet) -1 else 0)
 }
 
 object PgpCreateOptions {
