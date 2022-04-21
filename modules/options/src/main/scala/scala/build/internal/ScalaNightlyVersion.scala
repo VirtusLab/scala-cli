@@ -27,7 +27,7 @@ object ScalaNightlyVersion {
         "https://scala-ci.typesafe.com/ui/api/v1/ui/nativeBrowser/scala-integration/org/scala-lang/scala-compiler"
       val artifact = Artifact(scala2NightlyRepo).withChanging(true)
       val res = cache.logger.use {
-        try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)
+        try cache.withTtl(1.hours).file(artifact).run.unsafeRun()(cache.ec)
         catch {
           case NonFatal(e) => throw new Exception(e)
         }
