@@ -23,6 +23,8 @@ abstract class LowPriorityPasswordOption {
       Right(PasswordOption.Value(Secret(str.stripPrefix("value:"))))
     else if (str.startsWith("file:"))
       Right(PasswordOption.File(os.Path(str.stripPrefix("file:"), os.pwd)))
+    else if (str.startsWith("env:"))
+      Right(PasswordOption.Env(str.stripPrefix("env:")))
     else if (str.startsWith("command:["))
       try {
         val command = readFromString(str.stripPrefix("command:"))(commandCodec)
@@ -46,6 +48,16 @@ object PasswordOption extends LowPriorityPasswordOption {
   final case class Value(value: Secret[String]) extends PasswordOption {
     def get(): Secret[String]    = value
     def asString: Secret[String] = get().map(v => s"value:$v")
+  }
+  final case class Env(name: String) extends PasswordOption {
+    def get(): Secret[String] = {
+      val value = Option(System.getenv(name)).getOrElse {
+        sys.error(s"Error: environment variable $name not set")
+      }
+      Secret(value)
+    }
+    def asString: Secret[String] =
+      Secret(s"env:$name")
   }
   final case class File(path: os.Path) extends PasswordOption {
     def get(): Secret[String] = {
