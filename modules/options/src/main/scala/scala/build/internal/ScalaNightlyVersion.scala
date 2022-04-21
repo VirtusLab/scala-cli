@@ -33,10 +33,9 @@ object ScalaNightlyVersion {
         }
       }.left.map { err =>
         val msg =
-          s"""|Unable to compute the latest Scala 2 nightly version.
-              |Throws error during downloading web page repository for Scala 2.
-              |   Caused by: $err""".stripMargin
-        new ScalaVersionError(msg)
+          """|Unable to compute the latest Scala 2 nightly version.
+             |Throws error during downloading web page repository for Scala 2.""".stripMargin
+        new ScalaVersionError(msg, cause = err)
       }
 
       val res0    = value(res)
