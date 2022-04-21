@@ -34,10 +34,34 @@ import _root_.scala.util.Properties
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli extends Cli3
+object cli extends Cli3 {
+  object test extends Tests {
+    def moduleDeps = super.moduleDeps ++ Seq(
+      `build-module`(myScalaVersion).test
+    )
+  }
+}
 
 // remove once we do not have blockers with Scala 3
-object cli2 extends Cli
+object cli2 extends Cli {
+  def sources = T.sources {
+    super.sources() ++ cli.sources()
+  }
+  def resources = T.sources {
+    super.resources() ++ cli.resources()
+  }
+  object test extends Tests {
+    def sources = T.sources {
+      super.sources() ++ cli.test.sources()
+    }
+    def resources = T.sources {
+      super.resources() ++ cli.test.resources()
+    }
+    def moduleDeps = super.moduleDeps ++ Seq(
+      `build-module`(myScalaVersion).test
+    )
+  }
+}
 
 object `cli-options`  extends CliOptions
 object `build-macros` extends Cross[BuildMacros](Scala.mainVersions: _*)
@@ -596,8 +620,6 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
 trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     with HasMacroAnnotations with FormatNativeImageConf {
 
-  def millSourcePath = super.millSourcePath / os.up / "cli"
-
   def myScalaVersion = Scala.defaultInternal
 
   def scalaVersion = T(myScalaVersion)
@@ -636,11 +658,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   def localRepoJar = `local-repo`.localRepoJar()
 
-  object test extends Tests with ScalaCliScalafixModule {
-    def moduleDeps = super.moduleDeps ++ Seq(
-      `build-module`(myScalaVersion).test
-    )
-  }
+  trait Tests extends super.Tests with ScalaCliScalafixModule
 }
 
 trait Cli3 extends Cli {
