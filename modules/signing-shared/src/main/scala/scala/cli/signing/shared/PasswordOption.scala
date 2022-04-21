@@ -3,10 +3,13 @@ package scala.cli.signing.shared
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
+import java.nio.charset.StandardCharsets
+
 import scala.io.Codec
 
 sealed abstract class PasswordOption extends Product with Serializable {
   def get(): Secret[String]
+  def getBytes(): Secret[Array[Byte]] = get().map(_.getBytes(StandardCharsets.UTF_8))
   def asString: Secret[String]
 }
 
@@ -20,6 +23,8 @@ abstract class LowPriorityPasswordOption {
       Right(PasswordOption.Value(Secret(str.stripPrefix("value:"))))
     else if (str.startsWith("file:"))
       Right(PasswordOption.File(os.Path(str.stripPrefix("file:"), os.pwd)))
+    else if (str.startsWith("env:"))
+      Right(PasswordOption.Env(str.stripPrefix("env:")))
     else if (str.startsWith("command:["))
       try {
         val command = readFromString(str.stripPrefix("command:"))(commandCodec)
@@ -44,9 +49,23 @@ object PasswordOption extends LowPriorityPasswordOption {
     def get(): Secret[String]    = value
     def asString: Secret[String] = get().map(v => s"value:$v")
   }
+  final case class Env(name: String) extends PasswordOption {
+    def get(): Secret[String] = {
+      val value = Option(System.getenv(name)).getOrElse {
+        sys.error(s"Error: environment variable $name not set")
+      }
+      Secret(value)
+    }
+    def asString: Secret[String] =
+      Secret(s"env:$name")
+  }
   final case class File(path: os.Path) extends PasswordOption {
     def get(): Secret[String] = {
       val value = os.read(path) // trim that?
+      Secret(value)
+    }
+    override def getBytes(): Secret[Array[Byte]] = {
+      val value = os.read.bytes(path)
       Secret(value)
     }
     def asString: Secret[String] =

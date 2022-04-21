@@ -3,10 +3,10 @@ package scala.cli.signing.commands
 import caseapp.core.RemainingArgs
 import caseapp.core.app.Command
 
-import java.io.InputStream
+import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 
-import scala.cli.signing.util.BouncycastleSigner
+import scala.cli.signing.util.{BouncycastleSigner, Util}
 
 object PgpSign extends Command[PgpSignOptions] {
 
@@ -16,8 +16,10 @@ object PgpSign extends Command[PgpSignOptions] {
 
   def run(options: PgpSignOptions, args: RemainingArgs): Unit = {
 
-    val privateKey = BouncycastleSigner.readSecretKey(os.read.inputStream(options.secretKeyPath))
-    val signer     = BouncycastleSigner(privateKey, options.password.get())
+    val privateKey = BouncycastleSigner.readSecretKey {
+      new ByteArrayInputStream(Util.maybeDecodeBase64(options.secretKey.getBytes().value))
+    }
+    val signer = BouncycastleSigner(privateKey, options.password.get())
 
     val allArgs = args.all
 
