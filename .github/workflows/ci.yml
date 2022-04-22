@@ -186,24 +186,6 @@ jobs:
     - name: Check examples
       run: bash ./scala-cli --jvm temurin:17  .github/scripts/check_examples.sc
 
-  migration-tests:
-    timeout-minutes: 120
-    runs-on: "ubuntu-latest"
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        submodules: true
-    - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
-      with:
-        jvm: "temurin:17"
-    - name: Unit 3.x tests
-      run: |
-        ./mill -i cli3.compile
-        ./mill -i cli3.test
-        ./mill -i _[3.1.1].test
-
   checks:
     timeout-minutes: 15
     runs-on: ubuntu-latest
