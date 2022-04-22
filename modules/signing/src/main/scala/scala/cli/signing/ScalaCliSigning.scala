@@ -6,13 +6,14 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 import java.security.Security
 
-import scala.cli.signing.commands.{PgpCreate, PgpSign, PgpVerify}
+import scala.cli.signing.commands.{PgpCreate, PgpKeyId, PgpSign, PgpVerify}
 import scala.util.Properties
 
 object ScalaCliSigning extends CommandsEntryPoint {
 
   def commands = Seq(
     PgpCreate,
+    PgpKeyId,
     PgpSign,
     PgpVerify
   )
