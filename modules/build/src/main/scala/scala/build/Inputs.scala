@@ -201,6 +201,10 @@ object Inputs {
       extends OnDisk with SourceFile with Compiled {
     lazy val path: os.Path = base / subPath
   }
+  final case class CFile(base: os.Path, subPath: os.SubPath)
+      extends OnDisk with SourceFile with Compiled {
+    lazy val path = base / subPath    
+  }
   final case class Directory(path: os.Path)         extends OnDisk with Compiled
   final case class ResourceDirectory(path: os.Path) extends OnDisk
 
@@ -224,6 +228,8 @@ object Inputs {
           Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".sc") =>
           Inputs.Script(d.path, p.subRelativeTo(d.path))
+        case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
+          Inputs.CFile(d.path, p.subRelativeTo(d.path))
       }
       .toVector
       .sortBy(_.subPath.segments)
@@ -238,6 +244,7 @@ object Inputs {
           case _: Inputs.ResourceDirectory => "resource-dir:"
           case _: Inputs.JavaFile          => "java:"
           case _: Inputs.ScalaFile         => "scala:"
+          case _: Inputs.CFile             => "c:"
           case _: Inputs.Script            => "sc:"
         }
         Iterator(prefix, elem.path.toString, "\n").map(bytes)
@@ -396,6 +403,7 @@ object Inputs {
       else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
       else if (arg.endsWith(".scala")) Right(Seq(ScalaFile(dir, subPath)))
       else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
+      else if (arg.endsWith(".c") || arg.endsWith(".h")) Right(Seq(CFile(dir, subPath)))
       else if (os.isDir(path)) Right(Seq(Directory(path)))
       else if (acceptFds && arg.startsWith("/dev/fd/")) {
         val content = os.read.bytes(os.Path(arg, cwd))
