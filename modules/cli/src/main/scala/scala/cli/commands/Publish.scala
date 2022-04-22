@@ -449,18 +449,21 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val finalFileSet = fileSet2.order(ec).unsafeRun()(ec)
 
-    val repoUrl = builds.head.options.notForBloopOptions.publishOptions.repository match {
+    val repo = builds.head.options.notForBloopOptions.publishOptions.repository match {
       case None =>
         value(Left(new MissingRepositoryError))
       case Some(repo) =>
-        if (repo.contains("://")) repo
-        else os.Path(repo, Os.pwd).toNIO.toUri.toASCIIString
+        val url =
+          if (repo.contains("://")) repo
+          else os.Path(repo, Os.pwd).toNIO.toUri.toASCIIString
+        MavenRepository(url)
     }
-    val repo = MavenRepository(repoUrl)
 
     val upload =
-      if (repo.root.startsWith("http")) HttpURLConnectionUpload.create()
-      else FileUpload(Paths.get(new URI(repo.root)))
+      if (repo.root.startsWith("http://") || repo.root.startsWith("https://"))
+        HttpURLConnectionUpload.create()
+      else
+        FileUpload(Paths.get(new URI(repo.root)))
 
     val dummy        = false
     val isLocal      = true

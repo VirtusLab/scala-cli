@@ -54,7 +54,6 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
     case "native-mode" | "nativeMode" => UsingDirectiveValueNumberBounds(1, 1)
     case "native-clang" | "native-clang-pp" | "nativeClang" | "nativeClangPP" =>
       UsingDirectiveValueNumberBounds(1, 1)
-    case "native-clang-pp" | "nativeMode"   => UsingDirectiveValueNumberBounds(1, 1)
     case "native-version" | "nativeVersion" => UsingDirectiveValueNumberBounds(1, 1)
     case "native-linking" | "nativeLinking" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
     case "native-compile" | "nativeCompile" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)

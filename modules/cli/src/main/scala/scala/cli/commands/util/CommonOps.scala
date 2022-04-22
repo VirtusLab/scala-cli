@@ -35,9 +35,14 @@ object CommonOps {
   implicit class CoursierOptionsOps(v: CoursierOptions) {
     import v._
 
+    private def validateChecksums =
+      coursierValidateChecksums.getOrElse(true)
+
     def coursierCache(logger: CacheLogger) = {
       var baseCache = FileCache().withLogger(logger)
-      val ttlOpt    = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_))
+      if (!validateChecksums)
+        baseCache = baseCache.withChecksums(Nil)
+      val ttlOpt = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_))
       for (ttl0 <- ttlOpt)
         baseCache = baseCache.withTtl(ttl0)
       for (loc <- cache.filter(_.trim.nonEmpty))

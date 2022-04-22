@@ -43,7 +43,7 @@ object options        extends Cross[Options](Scala.defaultInternal, Scala.scala3
 object scalaparse     extends ScalaParse
 object directives     extends Cross[Directives](Scala.defaultInternal, Scala.scala3)
 object core           extends Cross[Core](Scala.defaultInternal, Scala.scala3)
-object build          extends Cross[Build](Scala.defaultInternal, Scala.scala3)
+object `build-module` extends Cross[Build](Scala.defaultInternal, Scala.scala3)
 object runner         extends Cross[Runner](Scala.all: _*)
 object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
 object `bloop-rifle`  extends Cross[BloopRifle](Scala.all: _*)
@@ -515,6 +515,7 @@ trait Scala3GraalProcessor extends ScalaModule {
 }
 
 class Build(val crossScalaVersion: String) extends BuildLikeModule {
+  def millSourcePath = super.millSourcePath / os.up / "build"
   def moduleDeps = Seq(
     `options`(),
     scalaparse,
@@ -606,7 +607,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     super.javacOptions() ++ Seq("--release", "16")
   }
   def moduleDeps = Seq(
-    build(myScalaVersion),
+    `build-module`(myScalaVersion),
     `cli-options`,
     `test-runner`(myScalaVersion),
     `scala3-graal`(myScalaVersion)
@@ -620,10 +621,10 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
+    Deps.metaconfigTypesafe,
     Deps.scalaPackager,
     Deps.signingCli,
-    Deps.slf4jNop, // to silence jgit
-    Deps.metaconfigTypesafe
+    Deps.slf4jNop // to silence jgit
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros,
@@ -635,7 +636,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   object test extends Tests with ScalaCliScalafixModule {
     def moduleDeps = super.moduleDeps ++ Seq(
-      build(myScalaVersion).test
+      `build-module`(myScalaVersion).test
     )
   }
 }
@@ -1015,7 +1016,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 }
 
 def unitTests() = T.command {
-  build(Scala.defaultInternal).test.test()()
+  `build-module`(Scala.defaultInternal).test.test()()
   cli.test.test()()
 }
 

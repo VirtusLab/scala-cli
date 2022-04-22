@@ -1,7 +1,7 @@
 import scala.build.EitherCps.*
 
 class E
-class EE1  extends E
+class EE1 extends E
 class EE2 extends E
 class E2
 class V

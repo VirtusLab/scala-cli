@@ -5,49 +5,15 @@ import $file.scalafixthings, scalafixthings.ScalafixModule
 
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.NativeImage
-import java.io.{ByteArrayOutputStream, File, FileInputStream, InputStream}
+import java.io.{ByteArrayOutputStream, File, InputStream}
 import java.nio.charset.StandardCharsets
 import java.util.Locale
-import java.util.zip.{GZIPInputStream, ZipFile}
 import mill._, scalalib._
 import scala.collection.JavaConverters._
 import scala.util.Properties
 import upickle.default._
 
 private def isCI = System.getenv("CI") != null
-
-private def withGzipContent[T](gzFile: File)(f: InputStream => T): T = {
-  var fis: FileInputStream  = null
-  var gzis: GZIPInputStream = null
-  try {
-    fis = new FileInputStream(gzFile)
-    gzis = new GZIPInputStream(fis)
-    f(gzis)
-  }
-  finally {
-    if (gzis != null) gzis.close()
-    if (fis != null) fis.close()
-  }
-}
-
-private def withFirstFileInZip[T](zip: File)(f: InputStream => T): T = {
-  var zf: ZipFile     = null
-  var is: InputStream = null
-  try {
-    zf = new ZipFile(zip)
-    val ent = zf.entries().asScala.find(e => !e.isDirectory).getOrElse {
-      throw new NoSuchElementException(s"No file found in $zip")
-    }
-    is = zf.getInputStream(ent)
-    f(is)
-  }
-  finally {
-    if (zf != null)
-      zf.close()
-    if (is != null)
-      is.close()
-  }
-}
 
 def fromPath(name: String): String =
   if (Properties.isWin) {
@@ -88,60 +54,47 @@ def cs: T[String] = T.persistent {
     val arch = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT)
     val urlOpt = arch match {
       case "x86_64" | "amd64" =>
-        if (Properties.isWin) Some(
-          if (buildCsVersion == "2.0.16")
-            "https://github.com/coursier/coursier/releases/download/v2.0.13/cs-x86_64-pc-win32.exe"
-          else
+        if (Properties.isWin)
+          Some(
             s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-x86_64-pc-win32.zip"
-        )
-        else if (Properties.isMac) Some(
-          if (buildCsVersion == "2.0.16")
-            "https://github.com/coursier/coursier/releases/download/v2.0.16/cs-x86_64-apple-darwin"
-          else
+          )
+        else if (Properties.isMac)
+          Some(
             s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-x86_64-apple-darwin.gz"
-        )
-        else if (Properties.isLinux) Some(
-          if (buildCsVersion == "2.0.16")
-            "https://github.com/coursier/coursier/releases/download/v2.0.16/cs-x86_64-pc-linux"
-          else
+          )
+        else if (Properties.isLinux)
+          Some(
             s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-x86_64-pc-linux.gz"
-        )
+          )
         else None
       case "aarch64" =>
-        if (Properties.isLinux) Some(
-          if (buildCsVersion == "2.0.16")
-            "https://github.com/coursier/coursier/releases/download/v2.0.16/cs-aarch64-pc-linux"
-          else
+        if (Properties.isLinux)
+          Some(
             s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-aarch64-pc-linux.gz"
-        )
+          )
         else None
       case _ =>
         None
     }
 
     urlOpt.map { url =>
-      val cache = coursier.cache.FileCache()
-      val task  = cache.logger.using(cache.file(coursier.util.Artifact(url)).run)
+      val cache        = coursier.cache.FileCache()
+      val archiveCache = coursier.cache.ArchiveCache().withCache(cache)
+      val task         = cache.logger.using(archiveCache.get(coursier.util.Artifact(url)))
       val maybeFile =
         try task.unsafeRun()(cache.ec)
         catch {
           case t: Throwable =>
             throw new Exception(t)
         }
-      val f = maybeFile.fold(ex => throw new Exception(ex), identity)
+      val f = maybeFile.fold(ex => throw new Exception(ex), os.Path(_, os.pwd))
       val exec =
-        if (f.getName.endsWith(".gz")) {
-          val b = withGzipContent(f)(_.readAllBytes())
-          os.write(dest, b)
-          dest
-        }
-        else if (f.getName.endsWith(".zip")) {
-          val b = withFirstFileInZip(f)(_.readAllBytes())
-          os.write(dest, b)
-          dest
-        }
+        if (Properties.isWin && os.isDir(f) && f.last.endsWith(".zip"))
+          os.list(f).find(_.last.endsWith(".exe")).getOrElse(
+            sys.error(s"No .exe found under $f")
+          )
         else
-          os.Path(f, os.pwd)
+          f
 
       if (!Properties.isWin)
         exec.toIO.setExecutable(true)
@@ -442,7 +395,7 @@ trait HasTests extends SbtModule {
     def forkArgs      = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
 
     def repositoriesTask =
-      T.task(super.repositoriesTask() :+ coursier.Repositories.sonatype("snapshots"))
+      T.task(super.repositoriesTask() ++ deps.customRepositories)
   }
 }
 
@@ -691,7 +644,7 @@ trait FormatNativeImageConf extends JavaModule {
 
 import mill.scalalib.api.CompilationResult
 trait ScalaCliCompile extends ScalaModule {
-  def compileScalaCliVersion = "0.1.2"
+  def compileScalaCliVersion = "0.1.4"
   def compileScalaCliUrl = {
     val ver = compileScalaCliVersion
     if (Properties.isLinux) Some(
@@ -772,7 +725,7 @@ trait ScalaCliCompile extends ScalaModule {
                   asOpt("--jar", compileClasspath().map(_.path)),
                   asOpt("-O", scalacPluginClasspath().map(p => s"-Xplugin:${p.path}")),
                   Seq("--jvm", "zulu:17"),
-                  "--strict-bloop-json-check=false", // don't check Bloop JSON files at each run
+                  // "--strict-bloop-json-check=false", // don't check Bloop JSON files at each run
                   workspace,
                   sourceFiles
                 )
