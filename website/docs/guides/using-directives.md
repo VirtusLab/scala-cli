@@ -73,7 +73,7 @@ Scala CLI produces warnings if any of the syntaxes above is used:
 [warn] ^^^^^^
 ```
 
-## Details
+## Semantics
 
 `using` directives can be only declared **before any other Scala code**:
 
