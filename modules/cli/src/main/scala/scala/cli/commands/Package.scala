@@ -22,6 +22,7 @@ import scala.build.errors.*
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
+import scala.build.internal.resource.NativeResourceMapper
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
@@ -941,7 +942,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         nativeWorkDir
       )
 
-    if (cacheData.changed)
+    if (cacheData.changed) {
+      NativeResourceMapper.copyCFilesToScalaNativeDir(build, nativeWorkDir)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
         val classpath = mainJar.toString +: build.artifacts.classPath.map(_.toString)
@@ -977,5 +979,6 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         else
           throw new ScalaNativeBuildError
       }
+    }
   }
 }
