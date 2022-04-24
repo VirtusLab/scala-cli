@@ -31,9 +31,9 @@ Adds compiler plugins
 
 Manually add JAR(s) to the class path
 
-//> using jar _path_
+`//> using jar <path>
 
-//> using jars _path1_, _path2_ …
+//> using jars <path1>, <path2>`
 
 #### Examples
 `//> using jar "/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"`
@@ -82,6 +82,32 @@ Add Java properties
 
 #### Examples
 `//> using javaProp "foo1=bar", "foo2"`
+
+### Location of clang
+
+Path to the Clang command
+
+`//> using nativeClang "path"
+
+//> using native-clang "path"`
+
+#### Examples
+`//> using nativeClang "/usr/bin/clang"`
+
+`//> using native-clang "/usr/bin/clang"`
+
+### Location of clang++
+
+TODO no arg
+
+`//> using nativeClangPP "path"
+
+//> using native-clang-pp "path"`
+
+#### Examples
+`//> using nativeClangPP "/usr/bin/clang++"`
+
+`//> using native-clang-pp "/usr/bin/clang++"`
 
 ### Main class
 
@@ -145,35 +171,87 @@ Manually add a resource directory to the class path
 #### Examples
 `//> using resourceDir "./resources"`
 
-### Scala Native options
+### Scala Native GC
 
-Add Scala Native options
+TODO no arg
 
-`//> using nativeGc` _value_
+`//> using nativeGC "gc"
 
-`//> using nativeMode` _value_
+//> using native-g-c "gc"`
 
-`//> using nativeVersion` _value_
+#### Examples
+`//> using nativeGC "none"`
 
-`//> using nativeCompile` _value1_, _value2_
+`//> using native-g-c "boehm"`
 
-`//> using nativeLinking` _value1_, _value2_
+### Scala Native Mode
 
-`//> using nativeClang` _value_
+Set Scala Native compilation mode
 
-`//> using nativeClangPP` _value_
+`//> using nativeMode "mode"
+
+//> using native-mode "mode"`
+
+#### Examples
+`//> using nativeMode "release"`
+
+`//> using native-mode "release-fast"`
+
+### Scala Native Version
+
+Set the Scala Native version
+
+`//> using nativeVersion "version"
+
+//> using native-version "version"`
 
 #### Examples
 `//> using nativeVersion "0.4.0"`
+
+`//> using native-version "0.4.1"`
+
+### Scala Native compile
+
+List of compile options
+
+`//> using nativeCompile "option0"
+
+//> using native-compile "option0, option1"`
+
+#### Examples
+`//> using nativeCompile List("TODO", "TODO", "TODO")`
+
+`//> using native-compile List("TODO", "TODO", "TODO")`
+
+### Scala Native linking
+
+Extra options passed to `clang` verbatim during linking
+
+`//> using nativeLinking "option0"
+
+//> using native-linking "option0, option1"`
+
+#### Examples
+`//> using nativeLinking List("TODO", "TODO", "TODO")`
+
+`//> using native-linking List("TODO", "TODO", "TODO")`
 
 ### Scala version
 
 Set the default Scala version
 
-`//> using scala `_version_+
+`//> using scala <version>
+
+//> using scala <base-version>, <cross-version>
+
+//> using scala <base-version>, <cross-version1>, <cross-version2>`
 
 #### Examples
 `//> using scala "3.0.2"`
+
+`//> using scala 3`
+
+`//> using scala 3.1`
 
 `//> using scala "2.13"`
 
@@ -181,46 +259,156 @@ Set the default Scala version
 
 `//> using scala "2.13.6", "2.12.15"`
 
-### Scala.js options
+### Scala.js AvoidClasses
 
-Add Scala.js options
+Avoid class'es when using functions and prototypes has the same observable semantics.
 
+`//> using jsAvoidClasses [true|false]
 
-`//> using jsVersion` _value_
-
-`//> using jsMode` _value_
-
-`//> using jsModuleKind` _value_
-
-`//> using jsSmallModuleForPackage` _value1_, _value2_
-
-`//> using jsCheckIr` _true|false_
-
-`//> using jsEmitSourceMaps` _true|false_
-
-`//> using jsDom` _true|false_
-
-`//> using jsHeader` _value_
-
-`//> using jsAllowBigIntsForLongs` _true|false_
-
-`//> using jsAvoidClasses` _true|false_
-
-`//> using jsAvoidLetsAndConsts` _true|false_
-
-`//> using jsModuleSplitStyleStr` _value_
-
-`//> using jsEsVersionStr` _value_
-
+//> using js-avoid-classes [true|false]`
 
 #### Examples
-`//> using jsModuleKind "common"`
+`//> using jsAvoidClasses`
+
+`//> using js-avoid-classes false`
+
+### Scala.js AvoidLetsAndConsts
+
+Avoid lets and consts when using vars has the same observable semantics.
+
+`//> using jsAvoidLetsAndConsts [true|false]
+
+//> using js-avoid-lets-and-consts [true|false]`
+
+#### Examples
+`//> using jsAvoidLetsAndConsts`
+
+`//> using js-avoid-lets-and-consts false`
+
+### Scala.js CheckIr
+
+TODO nod help
+
+`//> using jsCheckIr [true|false]
+
+//> using js-check-ir [true|false]`
+
+#### Examples
+`//> using jsCheckIr`
+
+`//> using js-check-ir false`
+
+### Scala.js Dom
+
+Enable jsdom
+
+`//> using jsDom [true|false]
+
+//> using js-dom [true|false]`
+
+#### Examples
+`//> using jsDom`
+
+`//> using js-dom false`
+
+### Scala.js EmitSourceMaps
+
+Emit source maps
+
+`//> using jsEmitSourceMaps [true|false]
+
+//> using js-emit-source-maps [true|false]`
+
+#### Examples
+`//> using jsEmitSourceMaps`
+
+`//> using js-emit-source-maps false`
+
+### Scala.js EsVersionStr
+
+TODO no arg
+
+`//> using jsEsVersionStr "version"
+
+//> using js-es-version-str "version"`
+
+#### Examples
+`//> using jsEsVersionStr "TODO"`
+
+`//> using js-es-version-str "TODO"`
+
+### Scala.js Header
+
+A header that will be added at the top of generated .js files
+
+`//> using jsHeader "header"
+
+//> using js-header "header"`
+
+#### Examples
+`//> using jsHeader "TODO"`
+
+`//> using js-header "TODO"`
+
+### Scala.js Mode
+
+The Scala.js mode, either `dev` or `release`
+
+`//> using jsMode "mode"
+
+//> using js-mode "mode"`
+
+#### Examples
+`//> using jsMode "TODO"`
+
+`//> using js-mode "TODO"`
+
+### Scala.js ModuleKind
+
+The Scala.js module kind: commonjs/common, esmodule/es, nomodule/none
+
+`//> using jsModuleKind "kind"
+
+//> using js-module-kind "kind"`
+
+#### Examples
+`//> using jsModuleKind "TODO"`
+
+`//> using js-module-kind "TODO"`
+
+### Scala.js SmallModuleForPackage
+
+Create as many small modules as possible for the classes in the passed packages and their subpackages.
+
+`//> using jsSmallModuleForPackage "value0, value1"
+
+//> using js-small-module-for-package "value0"`
+
+#### Examples
+`//> using jsSmallModuleForPackage List("pckA", "pckB", "packC")`
+
+`//> using js-small-module-for-package List("pckA", "pckB", "packC")`
+
+### Scala.js Version
+
+The Scala.js version
+
+`//> using jsVersion "version"
+
+//> using js-version "version"`
+
+#### Examples
+`//> using jsVersion "3.2.1"`
+
+`//> using js-version "TODO"`
 
 ### Test framework
 
 Set the test framework
 
-`//> using testFramework `_class_name_ | ``//> using `test-framework` ``_class_name_
+`using testFramework <class_name> 
+
+using test-framework <class_name>`
 
 #### Examples
 `//> using testFramework "utest.runner.Framework"`

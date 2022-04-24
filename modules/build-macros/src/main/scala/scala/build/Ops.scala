@@ -3,6 +3,7 @@ package scala.build
 import scala.collection.mutable.ListBuffer
 
 object Ops {
+
   implicit class EitherSeqOps[E, T](private val seq: Seq[Either[E, T]]) extends AnyVal {
     def sequence: Either[::[E], Seq[T]] =
       EitherSequence.sequence(seq)

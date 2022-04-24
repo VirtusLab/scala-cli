@@ -15,6 +15,178 @@ import scala.build.preprocessing.directives.UsingDirectiveValueKind.{
   STRING,
   UsingDirectiveValueKind
 }
+import scala.build.preprocessing.Scoped
+import scala.build.options.BuildOptions
+import scala.build.Positioned
+import com.virtuslab.using_directives.custom.model.StringValue
+import com.virtuslab.using_directives.custom.model.BooleanValue
+import com.virtuslab.using_directives.custom.model.NumericValue
+import scala.util.Try
+import scala.build.Position
+import scala.compiletime.testing.ErrorKind
+
+sealed trait DirectiveValue[Out] {
+  def extract(v: Value[_]): Option[Out]
+}
+
+object ValueType {
+  case object String extends DirectiveValue[String] {
+    def extract(v: Value[_]): Option[String] = v match {
+      case s: StringValue => Some(s.get())
+      case _ => None
+    }
+  }
+  case object Boolean extends DirectiveValue[Boolean] {
+    def extract(v: Value[_]): Option[Boolean] = v match {
+      case s: BooleanValue => Some(s.get())
+      case _: EmptyValue => Some(true) // TODO it that ok?
+      case _ => None
+    }
+  
+  }
+  case object Number extends DirectiveValue[String] {
+    def extract(v: Value[_]): Option[String] = v match {
+      case n: NumericValue => Some(n.get())
+      case _ => None
+    }
+  }  
+}
+
+sealed trait DirectiveConstrains[R, U] {
+  def extract(values: Seq[Value[_]])(using DirectiveContext): Either[BuildException, R]
+
+  final protected def fromTypes[V](v: Value[_], types: Seq[DirectiveValue[V]])(using DirectiveContext): Either[BuildException, Positioned[V]] = {
+    val positions = summon[DirectiveContext].positionsFor(v)
+    types.flatMap(_.extract(v)) match {
+      case Seq(single) =>
+        Right(Positioned(positions, single))
+      case Seq() => 
+        UsingDirectiveError.NotMatching(v, types)(positions)
+        
+      case _ =>
+        val matchingTypes = types.filter(_.extract(v).nonEmpty)
+        UsingDirectiveError.MatchingMultipleValue(matchingTypes)(positions)
+    }
+  }
+
+  def types: Seq[DirectiveValue[_]]
+}
+
+case class Single[V](val types: DirectiveValue[V]*)
+    extends DirectiveConstrains[Positioned[V], Any] {
+  def extract(values: Seq[Value[_]])(using ctx: DirectiveContext): Either[BuildException, Positioned[V]] = values match {
+    case Seq(v: EmptyValue) => UsingDirectiveError.NoValueProvided(types, Some(v))
+    case Seq(s) => fromTypes(s, types)
+    case Nil     => UsingDirectiveError.NoValueProvided(types)
+    case multiple => UsingDirectiveError.ExpectedSingle(multiple, types)
+  }
+}
+
+case class AtLeastOne[V](types: DirectiveValue[V]*)
+    extends DirectiveConstrains[::[Positioned[V]], Seq[String]] {
+  def extract(values: Seq[Value[_]])(using DirectiveContext): Either[BuildException, ::[Positioned[V]]] =
+    values match 
+      case Nil =>  UsingDirectiveError.NoValueProvided(types)
+      case Seq(e: EmptyValue) => UsingDirectiveError.NoValueProvided(types, Some(e))
+      case _ =>
+        Seq(1).map(_ + 1)
+        values.map(fromTypes(_, types)).sequenceToComposite.map(l => ::(l.head, l.tail.toList))
+}
+
+abstract class SimpleUsingDirectiveHandler[V, U](
+  val name: String,
+  val description: String,
+  val keys: Seq[String],
+  val constrains: DirectiveConstrains[V, U]
+) extends SimpleDirectiveHandler[BuildOptions, V, U] {
+
+  type Ctx = DirectiveContext
+
+  def process(v: V)(using ctx: Ctx): Either[BuildException, BuildOptions]
+
+  def processGlobalValue(v: V)(using DirectiveContext): Either[BuildException, Option[BuildOptions]] 
+    = process(v).map(Some(_))
+  def processScopedValue(v: V)(using DirectiveContext): Either[BuildException, Seq[Scoped[BuildOptions]]] 
+    = Right(Nil)
+}
+
+case class UsingDirectiveError(msg: String, pos: Seq[Position], kind: UsingDirectiveError.Kind)
+  extends BuildException(msg, pos)
+
+object UsingDirectiveError {
+  trait Kind:
+    def error(msg: String)(positions: Seq[Position]) = 
+      Left(UsingDirectiveError(msg, positions, this))
+
+  object NoValueProvided extends Kind:
+    def apply(types: Seq[DirectiveValue[_]], value: Option[Value[_]] = None)(using ctx: DirectiveContext) =
+      val pos = value.fold(ctx.positionOnTop)(ctx.positionsFor(_))
+      error(s"No value provided, expected at least one of ${types.mkString(", ")}")(pos)
+      
+  object MatchingMultipleValue extends Kind:
+    def apply(types: Seq[DirectiveValue[_]]) = 
+      error(s"Value matching is matching to multiple types: ${types.mkString(" | ")}")
+
+  object NotMatching extends Kind:
+    def apply(v: Value[_], expected: Seq[DirectiveValue[_]]) =
+      // s"The value of type ${v.getClass().getSimpleName()} does not much any of the supported types: ${types}"
+      error("TODO")
+
+  object ExpectedSingle extends Kind:
+    def apply(v: Seq[Value[_]], expected: Seq[DirectiveValue[_]])(using ctx: DirectiveContext) =
+      // s"The value of type ${v.getClass().getSimpleName()} does not much any of the supported types: ${types}"
+      error("TODO 123")(ctx.positionsFor(v:_*))
+}
+
+case class DirectiveContext(scopedDirective: ScopedDirective, logger: Logger) {
+  def asRoot(pos: Positioned[_]): Either[BuildException, os.Path] =
+    scopedDirective.cwd.root match {
+      case Left(virtualRoot) =>
+        pos.error(s"Can't reference paths from sources from $virtualRoot")
+      case Right(root) =>
+        Right(root / scopedDirective.cwd.path)
+    }
+
+  def positionsFor(vs: Value[_]*) = vs.flatMap { v =>
+    val skipQuotes = v.isInstanceOf[StringValue]
+    Seq(DirectiveUtil.position(v, scopedDirective.maybePath, skipQuotes))
+  }
+
+  def positionOnTop = 
+    List(Position.File(scopedDirective.maybePath, (0,0), (0, 0)))
+}
+
+trait SimpleDirectiveHandler[T, V, U] extends DirectiveHandler[T] {
+
+  def constrains: DirectiveConstrains[V, U]
+
+  def usagesCode: Seq[String]
+
+  override def usage = usagesCode.mkString("\n\n")
+
+  def processGlobalValue(v: V)(using DirectiveContext): Either[BuildException, Option[T]]
+  def processScopedValue(v: V)(using DirectiveContext): Either[BuildException, Seq[Scoped[T]]]
+
+  def handleValues(
+    scopedDirective: ScopedDirective,
+    logger: Logger
+  ): Either[BuildException, ProcessedDirective[T]] = {
+    given DirectiveContext(scopedDirective, logger)
+    if (keys.contains(scopedDirective.directive.key)){
+      val values = scopedDirective.directive.values match {
+        case Seq(single) => Seq(single)
+        case other => other.filterNot(_.isInstanceOf[EmptyValue])
+      }
+      for {
+        wrapped <- constrains.extract(values)
+        global  <- processGlobalValue(wrapped)
+        scoped  <- processScopedValue(wrapped)
+      } yield ProcessedDirective(global, scoped)
+    } else Right(ProcessedDirective(None, Nil))
+  }
+}
+
+case class DirectiveHandlerGroup[T](name:String, handlers: Seq[DirectiveHandler[T]])
 
 trait DirectiveHandler[T] {
   def name: String
@@ -22,7 +194,7 @@ trait DirectiveHandler[T] {
   def descriptionMd: String = description
   def usage: String
   def usageMd: String       = s"`$usage`"
-  def examples: Seq[String] = Nil
+  def examples: Seq[String]
 
   def keys: Seq[String]
 

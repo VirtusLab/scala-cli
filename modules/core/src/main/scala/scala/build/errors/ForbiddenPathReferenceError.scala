@@ -4,8 +4,8 @@ import scala.build.Position
 
 final class ForbiddenPathReferenceError(
   val virtualRoot: String,
-  val positionOpt: Option[Position]
+  val positionOpt: Seq[Position]
 ) extends BuildException(
       s"Can't reference paths from sources from $virtualRoot",
-      positionOpt.toSeq
+      positionOpt
     )

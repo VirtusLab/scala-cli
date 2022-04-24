@@ -9,3 +9,10 @@ abstract class BuildException(
 ) extends Exception(message, cause) with Diagnostic {
   final override def severity: Severity = Severity.Error
 }
+
+object BuildException {
+  implicit class EitherOps[T](seq: Seq[Either[BuildException, T]]) {
+    import scala.build.Ops._
+    def sequenceToComposite = seq.sequence.left.map(CompositeBuildException.apply)
+  }
+}

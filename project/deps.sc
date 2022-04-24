@@ -9,7 +9,7 @@ object Scala {
   def scala3       = "3.1.2"
   val allScala2    = Seq(scala213, scala212)
   val all          = allScala2 ++ Seq(scala3)
-  val mainVersions = Seq(scala3, scala213)
+  val mainVersions = Seq(scala3 /*, scala213*/ )
 
   def scalaJs = "1.10.0"
 
@@ -126,7 +126,7 @@ object Deps {
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
-  def usingDirectives = ivy"org.virtuslab:using_directives:0.0.8"
+  def usingDirectives = ivy"org.virtuslab:using_directives:0.0.8-172be8d-SNAPSHOT"
 }
 
 def graalVmVersion     = "22.0.0"
@@ -152,7 +152,7 @@ object Docker {
 def customRepositories =
   Seq(
     coursier.Repositories.sonatype("snapshots"),
-    coursier.MavenRepository("https://s01.oss.sonatype.org/content/repositories/snapshots")
+    coursier.MavenRepository("https://s01.oss.sonatype.org/content/repositories/snapshots"),
     // Uncomment for local development
-    // coursier.LocalRepositories.Dangerous.maven2Local
+    coursier.LocalRepositories.Dangerous.maven2Local
   )

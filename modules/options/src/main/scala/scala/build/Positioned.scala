@@ -1,6 +1,7 @@
 package scala.build
 
 import scala.build.options.{ConfigMonoid, HashedType, ShadowingSeq}
+import scala.build.errors.BuildException
 
 final case class Positioned[+T](
   positions: Seq[Position],
@@ -20,6 +21,8 @@ final case class Positioned[+T](
       pos0.value
     )
   }
+
+  def error(msg: String) = Left(new BuildException(msg, positions) {})
 }
 
 object Positioned {

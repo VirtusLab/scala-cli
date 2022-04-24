@@ -26,7 +26,7 @@ object Directive {
   def osRoot(cwd: ScopePath, pos: Option[Position]): Either[BuildException, os.Path] =
     cwd.root match {
       case Left(virtualRoot) =>
-        Left(new ForbiddenPathReferenceError(virtualRoot, pos))
+        Left(new ForbiddenPathReferenceError(virtualRoot, pos.toSeq))
       case Right(root) =>
         Right(root / cwd.path)
     }

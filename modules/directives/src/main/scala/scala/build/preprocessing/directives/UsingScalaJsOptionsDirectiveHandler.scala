@@ -3,136 +3,86 @@ package scala.build.preprocessing.directives
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaJsOptions}
+import scala.meta.Mod
+import scala.build.internal.ScalaJsLinkerConfig.ModuleKind
+import org.checkerframework.checker.units.qual.m
 
-case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
+case object ScalaJsDirectiveHandlers 
+  extends PrefixedDirectiveGroup[ScalaJsOptions]("js", "Scala.js", scala.cli.commands.ScalaJsOptions.help) {
 
-  def name: String = "Scala.js options"
+    case object Version extends StringSetting(
+      v => ScalaJsOptions(version =  Some(v)),
+      Seq("3.2.1", "TODO"),
+      "version",
+    )
+    
 
-  def description: String = "Add Scala.js options"
-
-  def usage: String = s"//> using ${keys.mkString("|")} _value_"
-
-  override def usageMd: String =
-    """
-      |`//> using jsVersion` _value_
-      |
-      |`//> using jsMode` _value_
-      |
-      |`//> using jsModuleKind` _value_
-      |
-      |`//> using jsSmallModuleForPackage` _value1_, _value2_
-      |
-      |`//> using jsCheckIr` _true|false_
-      |
-      |`//> using jsEmitSourceMaps` _true|false_
-      |
-      |`//> using jsDom` _true|false_
-      |
-      |`//> using jsHeader` _value_
-      |
-      |`//> using jsAllowBigIntsForLongs` _true|false_
-      |
-      |`//> using jsAvoidClasses` _true|false_
-      |
-      |`//> using jsAvoidLetsAndConsts` _true|false_
-      |
-      |`//> using jsModuleSplitStyleStr` _value_
-      |
-      |`//> using jsEsVersionStr` _value_
-      |""".stripMargin
-
-  override def examples: Seq[String] = Seq(
-    "//> using jsModuleKind \"common\""
-  )
-
-  override def keys: Seq[String] =
-    Seq(
-      "jsVersion",
-      "jsMode",
-      "jsModuleKind",
-      "jsCheckIr",
-      "jsEmitSourceMaps",
-      "jsSmallModuleForPackage",
-      "jsDom",
-      "jsHeader",
-      "jsAllowBigIntsForLongs",
-      "jsAvoidClasses",
-      "jsAvoidLetsAndConsts",
-      "jsModuleSplitStyleStr",
-      "jsEsVersionStr"
+    case object Mode extends StringSetting(
+      v => ScalaJsOptions(mode =  Some(v)),
+      Seq("TODO", "TODO"),
+      "mode"
     )
 
-  def getBooleanOption(groupedValues: GroupedScopedValuesContainer): Option[Boolean] =
-    groupedValues.scopedBooleanValues.map(_.positioned.value.toBoolean).headOption.orElse(Some(
-      true
-    ))
+    case object ModuleKind extends StringSetting(
+      v => ScalaJsOptions(mode =  Some(v)),
+      Seq("TODO", "TODO"),
+      "kind"
+    )
 
-  def getBooleanValue(groupedValues: GroupedScopedValuesContainer): Boolean =
-    groupedValues.scopedBooleanValues.map(_.positioned.value.toBoolean).headOption.getOrElse(true)
+    case object CheckIr extends BooleanDirective( // TODO - check keys
+      parse = v => ScalaJsOptions(checkIr =  Some(v))
+    )
 
-  def getStringOption(groupedValues: GroupedScopedValuesContainer): Option[String] =
-    groupedValues.scopedStringValues.headOption.map(_.positioned.value)
+    case object EmitSourceMaps extends BooleanDirective( // TODO - check keys
+      parse = v => ScalaJsOptions(emitSourceMaps =  v)
+    )
 
-  override def getSupportedTypes(key: String) = key match {
-    case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" | "jsSmallModuleForPackage" =>
-      Set(UsingDirectiveValueKind.STRING)
-    case "jsCheckIr" | "jsAllowBigIntsForLongs" | "jsEmitSourceMaps" | "jsDom" | "jsAvoidClasses" | "jsAvoidLetsAndConsts" =>
-      Set(UsingDirectiveValueKind.BOOLEAN, UsingDirectiveValueKind.EMPTY)
+    case object SmallModuleForPackage extends StringListSetting(
+      parse = v => ScalaJsOptions(smallModuleForPackage = v.toList),
+      Seq(Seq("pckA", "pckB"), Seq("packC"))
+    )
+
+    case object Dom extends BooleanDirective( // TODO - check keys
+      parse = v => ScalaJsOptions(dom =  Some(v))
+    )
+
+    case object Header extends StringSetting( // TODO - check keys
+      parse = v => ScalaJsOptions(header =  Some(v)),
+      Seq("TODO", "TODO"),
+      usageValue = "header"
+    )
+
+    case object AllowBigIntsForLongs extends BooleanDirective( // TODO - check keys
+      parse = v => ScalaJsOptions(allowBigIntsForLongs =  Some(v)),
+    )
+
+    case object AvoidLetsAndConsts extends BooleanDirective( // TODO - check keys
+      parse = v => ScalaJsOptions(avoidLetsAndConsts =  Some(v)),
+    )
+
+    case object AvoidClasses extends BooleanDirective( // TODO - check keys
+      parse = v => ScalaJsOptions(avoidClasses =  Some(v)),
+    )
+
+    case object ModuleSplitStyleStr extends StringSetting( // TODO - check keys
+      parse = v => ScalaJsOptions(moduleSplitStyleStr =  Some(v)),
+      Seq("TODO", "TODO"),
+      usageValue = "splitter-style",
+    )
+
+    case object EsVersionStr extends StringSetting( // TODO - check keys
+      parse = v => ScalaJsOptions(esVersionStr =  Some(v)),
+      Seq("TODO", "TODO"),
+      usageValue = "version"
+    )
+
+    def group =
+      DirectiveHandlerGroup(
+        "Scala Native",
+        Seq(Version, Mode, ModuleKind, CheckIr, EmitSourceMaps, SmallModuleForPackage, Dom, Header, AvoidClasses, AvoidLetsAndConsts, EsVersionStr)
+      )
+  
+  protected def mkBuildOptions(parsed: ScalaJsOptions) = 
+    BuildOptions(scalaJsOptions = parsed)
+  
   }
-
-  override def getValueNumberBounds(key: String) = key match {
-    case "jsVersion" | "jsHeader" | "jsModuleKind" | "jsMode" | "jsModuleSplitStyleStr" | "jsEsVersionStr" =>
-      UsingDirectiveValueNumberBounds(1, 1)
-    case "jsCheckIr" | "jsAllowBigIntsForLongs" | "jsEmitSourceMaps" | "jsDom" | "jsAvoidClasses" | "jsAvoidLetsAndConsts" =>
-      UsingDirectiveValueNumberBounds(0, 1)
-    case "jsSmallModuleForPackage" =>
-      UsingDirectiveValueNumberBounds(1)
-  }
-
-  def handleValues(
-    scopedDirective: ScopedDirective,
-    logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] =
-    checkIfValuesAreExpected(scopedDirective).map { groupedValues =>
-      val buildOptions = scopedDirective.directive.key match {
-        case "jsVersion" =>
-          BuildOptions(scalaJsOptions = ScalaJsOptions(version = getStringOption(groupedValues)))
-        case "jsMode" =>
-          BuildOptions(scalaJsOptions = ScalaJsOptions(mode = getStringOption(groupedValues)))
-        case "jsModuleKind" => BuildOptions(scalaJsOptions =
-            ScalaJsOptions(moduleKindStr = getStringOption(groupedValues))
-          )
-        case "jsCheckIr" =>
-          BuildOptions(scalaJsOptions = ScalaJsOptions(checkIr = getBooleanOption(groupedValues)))
-        case "jsEmitSourceMaps" => BuildOptions(scalaJsOptions =
-            ScalaJsOptions(emitSourceMaps = getBooleanValue(groupedValues))
-          )
-        case "jsSmallModuleForPackage" => BuildOptions(scalaJsOptions =
-            ScalaJsOptions(smallModuleForPackage =
-              groupedValues.scopedStringValues.map(_.positioned.value).toList
-            )
-          )
-        case "jsDom" =>
-          BuildOptions(scalaJsOptions = ScalaJsOptions(dom = getBooleanOption(groupedValues)))
-        case "jsHeader" =>
-          BuildOptions(scalaJsOptions = ScalaJsOptions(header = getStringOption(groupedValues)))
-        case "jsAllowBigIntsForLongs" => BuildOptions(scalaJsOptions =
-            ScalaJsOptions(allowBigIntsForLongs = getBooleanOption(groupedValues))
-          )
-        case "jsAvoidClasses" => BuildOptions(scalaJsOptions =
-            ScalaJsOptions(avoidClasses = getBooleanOption(groupedValues))
-          )
-        case "jsAvoidLetsAndConsts" => BuildOptions(scalaJsOptions =
-            ScalaJsOptions(avoidLetsAndConsts = getBooleanOption(groupedValues))
-          )
-        case "jsModuleSplitStyleStr" => BuildOptions(scalaJsOptions =
-            ScalaJsOptions(moduleSplitStyleStr = getStringOption(groupedValues))
-          )
-        case "jsEsVersionStr" => BuildOptions(scalaJsOptions =
-            ScalaJsOptions(esVersionStr = getStringOption(groupedValues))
-          )
-
-      }
-      ProcessedDirective(Some(buildOptions), Seq.empty)
-    }
-}

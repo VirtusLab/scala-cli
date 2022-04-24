@@ -15,6 +15,7 @@ import scala.build.preprocessing.directives.{
   UsingDirectiveHandler
 }
 import scala.cli.ScalaCliCommands
+import scala.build.options.BuildOptions
 
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
@@ -233,7 +234,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
   }
 
   private def usingContent(
-    usingHandlers: Seq[UsingDirectiveHandler],
+    usingHandlers: Seq[DirectiveHandler[BuildOptions]],
     requireHandlers: Seq[RequireDirectiveHandler]
   ): String = {
     val b = new StringBuilder
@@ -298,6 +299,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)
     val commandsContent0   = commandsContent(commands)
+    // TODO render in groups
     val usingContent0 = usingContent(
       ScalaPreprocessor.usingDirectiveHandlers,
       ScalaPreprocessor.requireDirectiveHandlers

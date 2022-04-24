@@ -6,6 +6,9 @@ import scala.build.errors.UsingDirectiveValueNumError
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.build.Position
+import scala.build.preprocessing.directives.UsingDirectiveError
+import scala.build.preprocessing.directives.ValueType
 
 class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
 
@@ -22,217 +25,139 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
     )
   )
 
-  test("ScalaNativeOptions for native-gc with no values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-gc`
-          |def foo() = println("hello foo")
-          |""".stripMargin
-    )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      expect(
-        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
-      )
+  def assertUsingDirectiveError(
+    kind: UsingDirectiveError.Kind,
+    line: Int = 0
+  )(directiveCode: String) = {
+    val code = s"""$directiveCode
+                  |def foo() = println("hello foo")
+                  |""".stripMargin
+    TestInputs(os.rel / "p.sc" -> code).withBuild(buildOptions, buildThreads, bloopConfig) {
+      (_, _, maybeBuild) =>
+        expect(maybeBuild.isLeft)
+        maybeBuild match {
+          case Left(UsingDirectiveError(msg, pos +: _, reportedKind)) =>
+            println(msg)
+            assertEquals(reportedKind, kind)
+            assertEquals(clue(pos).asInstanceOf[Position.File].startPos._1, line)
+            assert(msg.nonEmpty)
+          case res =>
+            fail(s"Expected error related to using directeives, but got $res")
+        }
     }
+  }
+
+  test("ScalaNativeOptions for native-gc with no values") {
+    assertUsingDirectiveError(UsingDirectiveError.NoValueProvided)(
+      """//> using `native-gc` """
+    )
   }
 
   test("ScalaNativeOptions for native-gc with multiple values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-gc` 78, 12
-          |def foo() = println("hello foo")
-          |""".stripMargin
+    assertUsingDirectiveError(UsingDirectiveError.ExpectedSingle)(
+      """//> using `native-gc` "none", "boehm" """
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
-      )
-    }
-
   }
 
-  test("ScalaNativeOptions for native-gc") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-gc` 78
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-gc with wrong value types") {
+    assertUsingDirectiveError(UsingDirectiveError.NotMatching)(
+      """//> using `native-gc` 1 """
     )
-    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.options.scalaNativeOptions.gcStr.get == "78")
-    }
   }
 
   test("ScalaNativeOptions for native-mode with no values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-mode`
-          |def foo() = println("hello foo")
-          |""".stripMargin
+    assertUsingDirectiveError(UsingDirectiveError.NoValueProvided)(
+      """//> using `native-mode` """
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      expect(
-        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
-      )
-    }
   }
 
   test("ScalaNativeOptions for native-mode with multiple values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-mode` "debug", "release-full"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+    assertUsingDirectiveError(UsingDirectiveError.ExpectedSingle)(
+      """//> using `native-mode` "none", "boehm" """
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
-      )
-    }
   }
 
-  test("ScalaNativeOptions for native-mode") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-mode` "release-full"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-mode with wrong value types") {
+    assertUsingDirectiveError(UsingDirectiveError.NotMatching)(
+      """//> using `native-mode` 1 """
     )
-    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.options.scalaNativeOptions.modeStr.get == "release-full")
-    }
+  }
+
+  test("ScalaNativeOptions for native-version with no values") {
+    assertUsingDirectiveError(UsingDirectiveError.NoValueProvided)(
+      """//> using `native-version` """
+    )
   }
 
   test("ScalaNativeOptions for native-version with multiple values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-version` "0.4.0", "0.3.3"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+    assertUsingDirectiveError(UsingDirectiveError.ExpectedSingle)(
+      """//> using `native-version` "none", "boehm" """
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
-      )
-    }
-
   }
 
-  test("ScalaNativeOptions for native-version") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-version` "0.4.0"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-version with wrong value types") {
+    assertUsingDirectiveError(UsingDirectiveError.NotMatching)(
+      """//> using `native-version` 1 """
     )
-
-    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.options.scalaNativeOptions.version.get == "0.4.0")
-    }
   }
 
-  test("ScalaNativeOptions for native-compile") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-compile` "compileOption1", "compileOption2"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-clang with no values") {
+    assertUsingDirectiveError(UsingDirectiveError.NoValueProvided)(
+      """//> using `native-clang` """
     )
-
-    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.options.scalaNativeOptions.compileOptions(0) == "compileOption1"
-      )
-      assert(
-        maybeBuild.options.scalaNativeOptions.compileOptions(1) == "compileOption2"
-      )
-    }
   }
 
-  test("ScalaNativeOptions for native-linking and no value") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-linking`
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-clang with multiple values") {
+    assertUsingDirectiveError(UsingDirectiveError.ExpectedSingle)(
+      """//> using `native-clang` "none", "boehm" """
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.left.exists {
-        case _: UsingDirectiveValueNumError => true; case _ => false
-      })
-    }
   }
 
-  test("ScalaNativeOptions for native-linking") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-linking` "linkingOption1", "linkingOption2"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-clang with wrong value types") {
+    assertUsingDirectiveError(UsingDirectiveError.NotMatching)(
+      """//> using `native-clang` 1 """
     )
-    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1"
-      )
-      assert(
-        maybeBuild.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2"
-      )
-    }
   }
 
-  test("ScalaNativeOptions for native-clang") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-clang` "clang/path"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-clang-pp with no values") {
+    assertUsingDirectiveError(UsingDirectiveError.NoValueProvided)(
+      """//> using `native-clang-pp` """
     )
-    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.options.scalaNativeOptions.clang.get == "clang/path"
-      )
-    }
   }
 
-  test("ScalaNativeOptions for native-clang and multiple values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-clang` "path1", "path2"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-clang-pp with multiple values") {
+    assertUsingDirectiveError(UsingDirectiveError.ExpectedSingle)(
+      """//> using `native-clang-pp` "none", "boehm" """
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
-      )
-    }
   }
 
-  test("ScalaNativeOptions for native-clang-pp") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-clang-pp` "clangpp/path"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-clang-pp with wrong value types") {
+    assertUsingDirectiveError(UsingDirectiveError.NotMatching)(
+      """//> using `native-clang-pp` 1"""
     )
-    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.options.scalaNativeOptions.clangpp.get == "clangpp/path"
-      )
-    }
   }
 
-  test("ScalaNativeOptions for native-clang-pp and multiple values") {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """//> using `native-clang-pp` "path1", "path2"
-          |def foo() = println("hello foo")
-          |""".stripMargin
+  test("ScalaNativeOptions for native-compile with no values") {
+    assertUsingDirectiveError(UsingDirectiveError.NoValueProvided)(
+      """//> using `native-compile`"""
     )
-    inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(
-        maybeBuild.left.exists { case _: UsingDirectiveValueNumError => true; case _ => false }
-      )
-    }
+  }
+
+  test("ScalaNativeOptions for native-compile with wrong value types") {
+    assertUsingDirectiveError(UsingDirectiveError.NotMatching)(
+      """//> using `native-compile` 1"""
+    )
+  }
+
+  test("ScalaNativeOptions for native-linking with no values") {
+    assertUsingDirectiveError(UsingDirectiveError.NoValueProvided)(
+      """//> using `native-linking`"""
+    )
+  }
+
+  test("ScalaNativeOptions for native-linking with wrong value types") {
+    assertUsingDirectiveError(UsingDirectiveError.NotMatching)(
+      """//> using `native-linking` 1"""
+    )
   }
 }

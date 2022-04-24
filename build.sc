@@ -430,7 +430,8 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
 class Directives(val crossScalaVersion: String) extends BuildLikeModule {
   def moduleDeps = Seq(
     `options`(),
-    `core`()
+    `core`(),
+    `cli-options`
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
