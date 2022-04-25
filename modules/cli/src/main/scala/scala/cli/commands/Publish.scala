@@ -49,7 +49,8 @@ object Publish extends ScalaCommand[PublishOptions] {
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
           organization = organization.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          name = moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          name = ops.name.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          moduleName = moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
           version = version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
           url = url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
           license = value {
@@ -220,10 +221,25 @@ object Publish extends ScalaCommand[PublishOptions] {
       case Some(org0) => org0.value
       case None       => value(defaultOrganization)
     }
-    val name = publishOptions.name match {
+
+    val moduleName = publishOptions.moduleName match {
       case Some(name0) => name0.value
-      case None        => value(defaultName)
+      case None =>
+        val name = publishOptions.name match {
+          case Some(name0) => name0.value
+          case None        => value(defaultName)
+        }
+        val params = build.artifacts.params
+        val pf = publishOptions.scalaPlatformSuffix.getOrElse {
+          // FIXME Allow full cross version too
+          "_" + params.scalaBinaryVersion
+        }
+        val sv = publishOptions.scalaVersionSuffix.getOrElse {
+          params.platform.fold("")("_" + _)
+        }
+        name + pf + sv
     }
+
     val ver = publishOptions.version match {
       case Some(ver0) => ver0.value
       case None =>
@@ -243,18 +259,6 @@ object Publish extends ScalaCommand[PublishOptions] {
       (dep0.module.organization, dep0.module.name, dep0.version, config)
     }
 
-    val fullName = {
-      val params = build.artifacts.params
-      val pf = publishOptions.scalaPlatformSuffix.getOrElse {
-        // FIXME Allow full cross version too
-        "_" + params.scalaBinaryVersion
-      }
-      val sv = publishOptions.scalaVersionSuffix.getOrElse {
-        params.platform.fold("")("_" + _)
-      }
-      name + pf + sv
-    }
-
     val mainClassOpt = build.options.mainClass.orElse {
       build.retainedMainClass match {
         case Left(_: NoMainClassFoundError) => None
@@ -265,12 +269,12 @@ object Publish extends ScalaCommand[PublishOptions] {
       }
     }
     val mainJarContent = Library.libraryJar(build, mainClassOpt)
-    val mainJar        = workingDir / org / s"$fullName-$ver.jar"
+    val mainJar        = workingDir / org / s"$moduleName-$ver.jar"
     os.write(mainJar, mainJarContent, createFolders = true)
 
     val pomContent = Pom.create(
       organization = coursier.Organization(org),
-      moduleName = coursier.ModuleName(fullName),
+      moduleName = coursier.ModuleName(moduleName),
       version = ver,
       packaging = None,
       url = publishOptions.url.map(_.value),
@@ -291,7 +295,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     val sourceJarOpt =
       if (publishOptions.sourceJar.getOrElse(true)) {
         val content   = Package.sourceJar(build, now.toEpochMilli)
-        val sourceJar = workingDir / org / s"$fullName-$ver-sources.jar"
+        val sourceJar = workingDir / org / s"$moduleName-$ver-sources.jar"
         os.write(sourceJar, content, createFolders = true)
         Some(sourceJar)
       }
@@ -304,32 +308,32 @@ object Publish extends ScalaCommand[PublishOptions] {
           case None => None
           case Some(docBuild) =>
             val content = value(Package.docJar(docBuild, logger, Nil))
-            val docJar  = workingDir / org / s"$fullName-$ver-javadoc.jar"
+            val docJar  = workingDir / org / s"$moduleName-$ver-javadoc.jar"
             os.write(docJar, content, createFolders = true)
             Some(docJar)
         }
       else
         None
 
-    val basePath = Path(org.split('.').toSeq ++ Seq(fullName, ver))
+    val basePath = Path(org.split('.').toSeq ++ Seq(moduleName, ver))
 
     val mainEntries = Seq(
-      (basePath / s"$fullName-$ver.pom") -> Content.InMemory(
+      (basePath / s"$moduleName-$ver.pom") -> Content.InMemory(
         now,
         pomContent.getBytes(StandardCharsets.UTF_8)
       ),
-      (basePath / s"$fullName-$ver.jar") -> Content.File(mainJar.toNIO)
+      (basePath / s"$moduleName-$ver.jar") -> Content.File(mainJar.toNIO)
     )
 
     val sourceJarEntries = sourceJarOpt
       .map { sourceJar =>
-        (basePath / s"$fullName-$ver-sources.jar") -> Content.File(sourceJar.toNIO)
+        (basePath / s"$moduleName-$ver-sources.jar") -> Content.File(sourceJar.toNIO)
       }
       .toSeq
 
     val docJarEntries = docJarOpt
       .map { docJar =>
-        (basePath / s"$fullName-$ver-javadoc.jar") -> Content.File(docJar.toNIO)
+        (basePath / s"$moduleName-$ver-javadoc.jar") -> Content.File(docJar.toNIO)
       }
       .toSeq
 

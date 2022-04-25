@@ -110,14 +110,14 @@ Set the default platform to Scala.js or Scala Native
 Set parameters for publishing
 
 `//> using publish.organization `"value"
-`//> using publish.moduleName `"value"
+`//> using publish.name `"value"
 `//> using publish.version `"value"
 
 
 #### Examples
 `//> using publish.organization "io.github.myself"`
 
-`//> using publish.moduleName "my-library"`
+`//> using publish.name "my-library"`
 
 `//> using publish.version "0.1.1"`
 
