@@ -272,11 +272,18 @@ object Package extends ScalaCommand[PackageOptions] {
         value(buildJs(build, destPath, value(mainClass), logger))
 
       case PackageType.Native =>
-        buildNative(build, destPath, value(mainClass), logger)
+        buildNative(build, value(mainClass), destPath, logger)
         destPath
 
       case PackageType.GraalVMNativeImage =>
-        buildGraalVMNativeImage(build, destPath, value(mainClass), extraArgs, logger)
+        NativeImage.buildNativeImage(
+          build,
+          value(mainClass),
+          destPath,
+          build.inputs.nativeImageWorkDir,
+          extraArgs,
+          logger
+        )
         destPath
 
       case nativePackagerType: PackageType.NativePackagerType =>
@@ -543,7 +550,7 @@ object Package extends ScalaCommand[PackageOptions] {
     build.options.platform.value match {
       case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
       case Platform.JS     => buildJs(build, appPath, mainClass, logger)
-      case Platform.Native => buildNative(build, appPath, mainClass, logger)
+      case Platform.Native => buildNative(build, mainClass, appPath, logger)
     }
 
     logger.message(
@@ -575,34 +582,6 @@ object Package extends ScalaCommand[PackageOptions] {
       build.options.scalaJsOptions.noOpt.getOrElse(false),
       logger
     )
-  }
-
-  private def buildNative(
-    build: Build.Successful,
-    destPath: os.Path,
-    mainClass: String,
-    logger: Logger
-  ): Unit = {
-    val workDir =
-      build.options.scalaNativeOptions.nativeWorkDir(
-        build.inputs.workspace,
-        build.inputs.projectName
-      )
-
-    buildNative(build, mainClass, destPath, workDir, logger)
-  }
-
-  private def buildGraalVMNativeImage(
-    build: Build.Successful,
-    destPath: os.Path,
-    mainClass: String,
-    extraArgs: Seq[String],
-    logger: Logger
-  ): Unit = {
-    val workDir =
-      build.options.nativeImageWorkDir(build.inputs.workspace, build.inputs.projectName)
-
-    NativeImage.buildNativeImage(build, mainClass, destPath, workDir, extraArgs, logger)
   }
 
   private def bootstrap(
@@ -778,12 +757,12 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful,
     mainClass: String,
     dest: os.Path,
-    nativeWorkDir: os.Path,
     logger: Logger
   ): Unit = {
 
     val cliOptions = build.options.scalaNativeOptions.configCliOptions()
 
+    val nativeWorkDir = build.inputs.nativeWorkDir
     os.makeDir.all(nativeWorkDir)
 
     val cacheData =

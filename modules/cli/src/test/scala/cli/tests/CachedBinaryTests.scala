@@ -49,7 +49,7 @@ class CachedBinaryTests extends munit.FunSuite {
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
-          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           // generate dummy output
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
@@ -66,7 +66,7 @@ class CachedBinaryTests extends munit.FunSuite {
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
-          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           // generate dummy output
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
@@ -92,7 +92,7 @@ class CachedBinaryTests extends munit.FunSuite {
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
-          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           // generate dummy output
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
@@ -119,7 +119,7 @@ class CachedBinaryTests extends munit.FunSuite {
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
-          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           // generate dummy output
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
@@ -146,7 +146,7 @@ class CachedBinaryTests extends munit.FunSuite {
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
-          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
@@ -172,7 +172,7 @@ class CachedBinaryTests extends munit.FunSuite {
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
-          val nativeWorkDir = build.options.scalaNativeOptions.nativeWorkDir(root, "native-test")
+          val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
