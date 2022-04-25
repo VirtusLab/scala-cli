@@ -648,7 +648,6 @@ object Build {
     logger: Logger
   ): Either[BuildException, Project] = either {
 
-    val params     = value(options.scalaParams)
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
@@ -656,85 +655,94 @@ object Build {
 
     val artifacts = value(options.artifacts(logger))
 
-    val pluginScalacOptions = artifacts.compilerPlugins.distinct.map {
-      case (_, _, path) =>
-        ScalacOpt(s"-Xplugin:$path")
-    }
-
     val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
-
-    val semanticDbScalacOptions =
-      if (generateSemanticDbs)
-        if (params.scalaVersion.startsWith("2."))
-          Seq(
-            "-Yrangepos",
-            "-P:semanticdb:failures:warning",
-            "-P:semanticdb:synthetics:on",
-            s"-P:semanticdb:sourceroot:${inputs.workspace}"
-          ).map(ScalacOpt(_))
-        else
-          Seq(
-            "-Xsemanticdb",
-            "-sourceroot",
-            inputs.workspace.toString
-          ).map(ScalacOpt(_))
-      else Nil
-
-    val semanticDbJavacOptions =
-      // FIXME Should this be in scalaOptions, now that we use it for javac stuff too?
-      if (generateSemanticDbs) {
-        // from https://github.com/scalameta/metals/blob/04405c0401121b372ea1971c361e05108fb36193/metals/src/main/scala/scala/meta/internal/metals/JavaInteractiveSemanticdb.scala#L137-L146
-        val compilerPackages = Seq(
-          "com.sun.tools.javac.api",
-          "com.sun.tools.javac.code",
-          "com.sun.tools.javac.model",
-          "com.sun.tools.javac.tree",
-          "com.sun.tools.javac.util"
-        )
-        val exports = compilerPackages.flatMap { pkg =>
-          Seq("-J--add-exports", s"-Jjdk.compiler/$pkg=ALL-UNNAMED")
-        }
-
-        Seq(
-          // does the path need to be escaped somehow?
-          s"-Xplugin:semanticdb -sourceroot:${inputs.workspace} -targetroot:javac-classes-directory"
-        ) ++ exports
-      }
-      else
-        Nil
-
-    val sourceRootScalacOptions =
-      if (params.scalaVersion.startsWith("2.")) Nil
-      else Seq("-sourceroot", inputs.workspace.toString).map(ScalacOpt(_))
-
-    val scalaJsScalacOptions =
-      if (options.platform.value == Platform.JS && !params.scalaVersion.startsWith("2."))
-        Seq(ScalacOpt("-scalajs"))
-      else Nil
 
     val releaseFlagVersion = releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
-    val scalacReleaseV = releaseFlagVersion
-      .map(v => List("-release", v).map(ScalacOpt(_)))
-      .getOrElse(Nil)
-    val javacReleaseV = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
+    val scalaCompilerParams = {
 
-    val scalacOptions =
-      options.scalaOptions.scalacOptions.map(_.value) ++
-        pluginScalacOptions ++
-        semanticDbScalacOptions ++
-        sourceRootScalacOptions ++
-        scalaJsScalacOptions ++
-        scalacReleaseV
+      val params = value(options.scalaParams)
 
-    val scalaCompilerParams = ScalaCompilerParams(
-      scalaVersion = params.scalaVersion,
-      scalaBinaryVersion = params.scalaBinaryVersion,
-      scalacOptions = scalacOptions.toSeq.map(_.value),
-      compilerClassPath = artifacts.compilerClassPath
-    )
+      val pluginScalacOptions = artifacts.compilerPlugins.distinct.map {
+        case (_, _, path) =>
+          ScalacOpt(s"-Xplugin:$path")
+      }
 
-    val javacOptions = javacReleaseV ++ semanticDbJavacOptions ++ options.javaOptions.javacOptions
+      val semanticDbScalacOptions =
+        if (generateSemanticDbs)
+          if (params.scalaVersion.startsWith("2."))
+            Seq(
+              "-Yrangepos",
+              "-P:semanticdb:failures:warning",
+              "-P:semanticdb:synthetics:on",
+              s"-P:semanticdb:sourceroot:${inputs.workspace}"
+            ).map(ScalacOpt(_))
+          else
+            Seq(
+              "-Xsemanticdb",
+              "-sourceroot",
+              inputs.workspace.toString
+            ).map(ScalacOpt(_))
+        else Nil
+
+      val sourceRootScalacOptions =
+        if (params.scalaVersion.startsWith("2.")) Nil
+        else Seq("-sourceroot", inputs.workspace.toString).map(ScalacOpt(_))
+
+      val scalaJsScalacOptions =
+        if (options.platform.value == Platform.JS && !params.scalaVersion.startsWith("2."))
+          Seq(ScalacOpt("-scalajs"))
+        else Nil
+
+      val scalacReleaseV = releaseFlagVersion
+        .map(v => List("-release", v).map(ScalacOpt(_)))
+        .getOrElse(Nil)
+
+      val scalacOptions =
+        options.scalaOptions.scalacOptions.map(_.value) ++
+          pluginScalacOptions ++
+          semanticDbScalacOptions ++
+          sourceRootScalacOptions ++
+          scalaJsScalacOptions ++
+          scalacReleaseV
+
+      ScalaCompilerParams(
+        scalaVersion = params.scalaVersion,
+        scalaBinaryVersion = params.scalaBinaryVersion,
+        scalacOptions = scalacOptions.toSeq.map(_.value),
+        compilerClassPath = artifacts.compilerClassPath
+      )
+    }
+
+    val javacOptions = {
+
+      val semanticDbJavacOptions =
+        // FIXME Should this be in scalaOptions, now that we use it for javac stuff too?
+        if (generateSemanticDbs) {
+          // from https://github.com/scalameta/metals/blob/04405c0401121b372ea1971c361e05108fb36193/metals/src/main/scala/scala/meta/internal/metals/JavaInteractiveSemanticdb.scala#L137-L146
+          val compilerPackages = Seq(
+            "com.sun.tools.javac.api",
+            "com.sun.tools.javac.code",
+            "com.sun.tools.javac.model",
+            "com.sun.tools.javac.tree",
+            "com.sun.tools.javac.util"
+          )
+          val exports = compilerPackages.flatMap { pkg =>
+            Seq("-J--add-exports", s"-Jjdk.compiler/$pkg=ALL-UNNAMED")
+          }
+
+          Seq(
+            // does the path need to be escaped somehow?
+            s"-Xplugin:semanticdb -sourceroot:${inputs.workspace} -targetroot:javac-classes-directory"
+          ) ++ exports
+        }
+        else
+          Nil
+
+      val javacReleaseV = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
+
+      javacReleaseV ++ semanticDbJavacOptions ++ options.javaOptions.javacOptions
+    }
 
     // `test` scope should contains class path to main scope
     val mainClassesPath =
