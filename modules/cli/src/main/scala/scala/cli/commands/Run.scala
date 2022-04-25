@@ -254,7 +254,7 @@ object Run extends ScalaCommand[RunOptions] {
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
           build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-          build.fullClassPath.map(_.toFile),
+          build.fullClassPath.map(_.toIO),
           mainClass,
           args,
           logger,

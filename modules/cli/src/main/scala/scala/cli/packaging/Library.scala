@@ -10,14 +10,14 @@ import scala.build.Build
 
 object Library {
 
-  def withLibraryJar[T](build: Build.Successful, fileName: String = "library")(f: Path => T): T = {
+  def withLibraryJar[T](
+    build: Build.Successful,
+    fileName: String = "library"
+  )(f: os.Path => T): T = {
     val mainJarContent = libraryJar(build)
-    val mainJar        = Files.createTempFile(fileName.stripSuffix(".jar"), ".jar")
-    try {
-      Files.write(mainJar, mainJarContent)
-      f(mainJar)
-    }
-    finally Files.deleteIfExists(mainJar)
+    val mainJar = os.temp(mainJarContent, prefix = fileName.stripSuffix(".jar"), suffix = ".jar")
+    try f(mainJar)
+    finally os.remove(mainJar)
   }
 
   def libraryJar(

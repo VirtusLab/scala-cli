@@ -6,7 +6,7 @@ import com.swoval.files.{PathWatcher, PathWatchers}
 import dependency.ScalaParameters
 
 import java.io.File
-import java.nio.file.{FileSystemException, Path}
+import java.nio.file.FileSystemException
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.annotation.tailrec
@@ -52,8 +52,7 @@ object Build {
     def success: Boolean               = true
     def successfulOpt: Some[this.type] = Some(this)
     def outputOpt: Some[os.Path]       = Some(output)
-    def fullClassPath: Seq[Path] =
-      Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath.map(_.toNIO)
+    def fullClassPath: Seq[os.Path]    = Seq(output) ++ sources.resourceDirs ++ artifacts.classPath
     def foundMainClasses(): Seq[String] =
       MainClass.find(output)
     def retainedMainClass: Either[MainClassError, String] = {
@@ -1021,7 +1020,7 @@ object Build {
 
     val retCode = run(
       javaCommand,
-      build.fullClassPath.map(_.toFile),
+      build.fullClassPath.map(_.toIO),
       "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
       Seq(printable(build.output), printable(jmhSourceDir), printable(jmhResourceDir), "default"),
       logger

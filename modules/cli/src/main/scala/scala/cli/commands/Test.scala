@@ -176,7 +176,7 @@ object Test extends ScalaCommand[TestOptions] {
             logger
           ) { js =>
             Runner.testJs(
-              build.fullClassPath,
+              build.fullClassPath.map(_.toNIO),
               js.toIO,
               requireTests,
               args,
@@ -194,7 +194,7 @@ object Test extends ScalaCommand[TestOptions] {
             logger
           ) { launcher =>
             Runner.testNative(
-              build.fullClassPath,
+              build.fullClassPath.map(_.toNIO),
               launcher.toIO,
               testFrameworkOpt,
               requireTests,
@@ -207,7 +207,7 @@ object Test extends ScalaCommand[TestOptions] {
         val classPath = build.fullClassPath
 
         val testFrameworkOpt0 = testFrameworkOpt.orElse {
-          findTestFramework(classPath, logger)
+          findTestFramework(classPath.map(_.toNIO), logger)
         }
 
         val extraArgs =
@@ -219,7 +219,7 @@ object Test extends ScalaCommand[TestOptions] {
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
           build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-          classPath.map(_.toFile),
+          classPath.map(_.toIO),
           Constants.testRunnerMainClass,
           extraArgs,
           logger,

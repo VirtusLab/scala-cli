@@ -14,7 +14,6 @@ import packager.windows.WindowsPackage
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
-import java.nio.file.{Files, Path}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
@@ -603,13 +602,13 @@ object Package extends ScalaCommand[PackageOptions] {
       }
 
     // TODO Generate that in memory
-    val tmpJar = Files.createTempFile(destPath.last.stripSuffix(".jar"), ".jar")
+    val tmpJar = os.temp(prefix = destPath.last.stripSuffix(".jar"), suffix = ".jar")
     val tmpJarParams = Parameters.Assembly()
       .withExtraZipEntries(byteCodeZipEntries)
       .withMainClass(mainClass)
-    AssemblyGenerator.generate(tmpJarParams, tmpJar)
-    val tmpJarContent = os.read.bytes(os.Path(tmpJar))
-    Files.deleteIfExists(tmpJar)
+    AssemblyGenerator.generate(tmpJarParams, tmpJar.toNIO)
+    val tmpJarContent = os.read.bytes(tmpJar)
+    os.remove(tmpJar)
 
     def dependencyEntries =
       build.artifacts.artifacts.map {
@@ -670,14 +669,11 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful,
     defaultLastModified: Long,
     fileName: String = "library"
-  )(f: Path => T): T = {
+  )(f: os.Path => T): T = {
     val jarContent = sourceJar(build, defaultLastModified)
-    val jar        = Files.createTempFile(fileName.stripSuffix(".jar"), "-sources.jar")
-    try {
-      Files.write(jar, jarContent)
-      f(jar)
-    }
-    finally Files.deleteIfExists(jar)
+    val jar = os.temp(jarContent, prefix = fileName.stripSuffix(".jar"), suffix = "-sources.jar")
+    try f(jar)
+    finally os.remove(jar)
   }
 
   def linkJs(
@@ -691,7 +687,7 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger
   ): Either[BuildException, os.Path] =
     Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
-      val classPath  = os.Path(mainJar, os.pwd) +: build.artifacts.classPath
+      val classPath  = mainJar +: build.artifacts.classPath
       val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
       either {
         value {

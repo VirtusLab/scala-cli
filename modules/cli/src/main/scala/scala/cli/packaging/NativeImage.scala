@@ -232,7 +232,7 @@ object NativeImage {
         val originalClasspath = build.fullClassPath :+ mainJar
         maybeWithManifestClassPath(
           createManifest = Properties.isWin,
-          classPath = originalClasspath.map(os.Path(_, os.pwd))
+          classPath = originalClasspath
         ) { processedClassPath =>
           val (classPath, toClean, scala3extraOptions) =
             if (!build.scalaParams.scalaBinaryVersion.startsWith("3"))

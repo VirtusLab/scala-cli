@@ -89,8 +89,8 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     options: MetabrowseOptions,
     logger: Logger,
     successfulBuild: Build.Successful,
-    jar: Path,
-    sourceJar: Path
+    jar: os.Path,
+    sourceJar: os.Path
   ): Unit = {
 
     val launcher = options.metabrowseLauncher
@@ -117,7 +117,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
           successfulBuild.options.javaHomeLocation().value / "jre" / "lib" / "rt.jar"
 
         val rtJarOpt =
-          if (os.isFile(rtJarLocation)) Some(rtJarLocation.toNIO)
+          if (os.isFile(rtJarLocation)) Some(rtJarLocation)
           else None
 
         if (rtJarOpt.isEmpty && options.shared.logging.verbosity >= 0)
