@@ -32,7 +32,7 @@ final case class SimpleScalaCompiler(
     if (project.sources.isEmpty) true
     else {
 
-      val isScala2 = project.scalaCompiler.scalaVersion.startsWith("2.")
+      val isScala2 = project.scalaCompiler.exists(_.scalaVersion.startsWith("2."))
 
       val mainClassOpt =
         if (isScala2)
@@ -54,7 +54,7 @@ final case class SimpleScalaCompiler(
         // initially adapted from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-d13a7e6d602b8f84d9177e3138487872f0341d006accfe425886a561f029a9c3R120 and around
 
         val args =
-          project.scalaCompiler.scalacOptions ++
+          project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
             Seq(
               "-d",
               outputDir.toString,
@@ -79,7 +79,7 @@ final case class SimpleScalaCompiler(
         val res = Runner.runJvm(
           javaCommand,
           javaOptions,
-          project.scalaCompiler.compilerClassPath.map(_.toIO),
+          project.scalaCompiler.map(_.compilerClassPath.map(_.toIO)).getOrElse(Nil),
           mainClass,
           args,
           logger,

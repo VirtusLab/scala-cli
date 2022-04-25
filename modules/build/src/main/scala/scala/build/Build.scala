@@ -159,15 +159,16 @@ object Build {
 
     def doPostProcess(build: Build, inputs: Inputs, scope: Scope): Unit = build match {
       case build: Build.Successful =>
-        postProcess(
-          build.generatedSources,
-          inputs.generatedSrcRoot(scope),
-          build.output,
-          logger,
-          inputs.workspace,
-          updateSemanticDbs = true,
-          scalaVersion = build.project.scalaCompiler.scalaVersion
-        ).left.foreach(_.foreach(logger.message(_)))
+        for (sv <- build.project.scalaCompiler.map(_.scalaVersion))
+          postProcess(
+            build.generatedSources,
+            inputs.generatedSrcRoot(scope),
+            build.output,
+            logger,
+            inputs.workspace,
+            updateSemanticDbs = true,
+            scalaVersion = sv
+          ).left.foreach(_.foreach(logger.message(_)))
       case _ =>
     }
 
@@ -753,7 +754,7 @@ object Build {
       workspace = inputs.workspace,
       classesDir = classesDir0,
       scaladocDir = scaladocDir,
-      scalaCompiler = scalaCompilerParams,
+      scalaCompiler = Some(scalaCompilerParams),
       scalaJsOptions =
         if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config(logger))
         else None,

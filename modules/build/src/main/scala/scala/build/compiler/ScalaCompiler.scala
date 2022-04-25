@@ -22,12 +22,13 @@ object ScalaCompiler {
     private def ignore(
       project: Project,
       logger: Logger
-    ): Boolean = {
-      val scalaVer = project.scalaCompiler.scalaVersion
-      val isScala2 = scalaVer.startsWith("2.")
-      logger.debug(s"Ignoring compilation for Scala version $scalaVer")
-      isScala2
-    }
+    ): Boolean =
+      project.scalaCompiler.exists { scalaCompiler0 =>
+        val scalaVer = scalaCompiler0.scalaVersion
+        val isScala2 = scalaVer.startsWith("2.")
+        logger.debug(s"Ignoring compilation for Scala version $scalaVer")
+        isScala2
+      }
 
     def jvmVersion: Option[Positioned[Int]] =
       compiler.jvmVersion
