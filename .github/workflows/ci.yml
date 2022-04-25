@@ -39,6 +39,8 @@ jobs:
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
+    - name: Compile everything
+      run: ./mill -i __.compile
     - name: Unit tests
       run: |
         ./mill -i unitTests
