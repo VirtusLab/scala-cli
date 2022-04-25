@@ -16,7 +16,7 @@ import scala.util.matching.Regex
 
 final case class Inputs(
   elements: Seq[Inputs.Element],
-  mainClassElement: Option[Inputs.SourceFile],
+  mainClassElement: Option[Inputs.SingleElement],
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean,
@@ -281,7 +281,8 @@ object Inputs {
     }
     val mainClassElemOpt = validElems
       .collectFirst {
-        case f: SourceFile => f
+        case f: SourceFile         => f
+        case vsf: VirtualScalaFile => vsf
       }
     Inputs(
       updatedElems,

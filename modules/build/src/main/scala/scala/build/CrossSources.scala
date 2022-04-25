@@ -133,7 +133,10 @@ object CrossSources {
     }
 
     val mainClassOpt = for {
-      mainClassPath      <- inputs.mainClassElement.map(_.path).map(ScopePath.fromPath(_).path)
+      mainClassPath <- inputs.mainClassElement.map {
+        case sf: Inputs.SourceFile        => ScopePath.fromPath(sf.path).path
+        case vsf: Inputs.VirtualScalaFile => vsf.scopePath.path
+      }
       processedMainClass <- preprocessedSources.find(_.scopePath.path == mainClassPath)
       mainClass          <- processedMainClass.mainClassOpt
     } yield mainClass

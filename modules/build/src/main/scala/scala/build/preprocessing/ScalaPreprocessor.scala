@@ -114,6 +114,11 @@ case object ScalaPreprocessor extends Preprocessor {
 
       case v: Inputs.VirtualScalaFile =>
         val res = either {
+          val relPath = os.sub / "stdin.scala"
+          val className = {
+            val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(relPath)
+            (pkg :+ wrapper).map(_.raw).mkString(".")
+          }
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
             value(
@@ -123,15 +128,15 @@ case object ScalaPreprocessor extends Preprocessor {
                 (reqs, scopedReqs, opts, updatedContent)
             }.getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
           val s = PreprocessedSource.InMemory(
-            Left(v.source),
-            v.subPath,
+            originalPath = Left(v.source),
+            relPath = relPath,
             updatedContentOpt.getOrElse(content),
-            0,
-            Some(options),
-            Some(requirements),
+            ignoreLen = 0,
+            options = Some(options),
+            requirements = Some(requirements),
             scopedRequirements,
-            None,
-            v.scopePath
+            mainClassOpt = Some(className),
+            scopePath = v.scopePath
           )
           Seq(s)
         }
