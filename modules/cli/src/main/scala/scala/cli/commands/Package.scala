@@ -20,14 +20,14 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.errors.{BuildException, MalformedCliInputError, ScalaNativeBuildError}
-import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsLinkerConfig}
+import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
 import scala.cli.commands.util.PackageOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.errors.{ScalaJsLinkingError, ScaladocGenerationFailedError}
-import scala.cli.internal.{ProcUtil, ScalaJsLinker}
+import scala.cli.internal.{CachedBinary, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
 
@@ -787,7 +787,7 @@ object Package extends ScalaCommand[PackageOptions] {
     os.makeDir.all(nativeWorkDir)
 
     val cacheData =
-      NativeBuilderHelper.getCacheData(
+      CachedBinary.getCacheData(
         build,
         cliOptions,
         dest,
@@ -820,7 +820,7 @@ object Package extends ScalaCommand[PackageOptions] {
             logger
           ).waitFor()
         if (exitCode == 0)
-          NativeBuilderHelper.updateProjectAndOutputSha(dest, nativeWorkDir, cacheData.projectSha)
+          CachedBinary.updateProjectAndOutputSha(dest, nativeWorkDir, cacheData.projectSha)
         else
           throw new ScalaNativeBuildError
       }

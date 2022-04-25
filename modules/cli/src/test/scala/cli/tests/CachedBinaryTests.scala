@@ -1,14 +1,15 @@
-package scala.build.tests
+package scala.cli.tests
 
 import com.eed3si9n.expecty.Expecty.{assert => expect}
 
-import scala.build.internal.NativeBuilderHelper
 import scala.build.options.{BuildOptions, InternalOptions}
+import scala.build.tests.TestInputs
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.cli.internal.CachedBinary
 import scala.util.{Properties, Random}
 
-class NativeBuilderHelperTests extends munit.FunSuite {
+class CachedBinaryTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
   def bloopConfig  = BloopServer.bloopConfig
@@ -54,7 +55,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
           expect(cacheData.changed)
       }
     }
@@ -71,8 +72,8 @@ class NativeBuilderHelperTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-          NativeBuilderHelper.updateProjectAndOutputSha(
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+          CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
             cacheData.projectSha
@@ -80,7 +81,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
           expect(cacheData.changed)
 
           val sameBuildCache =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
           expect(!sameBuildCache.changed)
       }
     }
@@ -97,8 +98,8 @@ class NativeBuilderHelperTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-          NativeBuilderHelper.updateProjectAndOutputSha(
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+          CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
             cacheData.projectSha
@@ -107,7 +108,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
 
           os.remove(destPath)
           val afterDeleteCache =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
           expect(afterDeleteCache.changed)
       }
     }
@@ -124,8 +125,8 @@ class NativeBuilderHelperTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-          NativeBuilderHelper.updateProjectAndOutputSha(
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+          CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
             cacheData.projectSha
@@ -134,7 +135,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
 
           os.write.over(destPath, Random.alphanumeric.take(10).mkString(""))
           val cacheAfterFileUpdate =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
           expect(cacheAfterFileUpdate.changed)
       }
     }
@@ -150,8 +151,8 @@ class NativeBuilderHelperTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-          NativeBuilderHelper.updateProjectAndOutputSha(
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+          CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
             cacheData.projectSha
@@ -160,7 +161,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
 
           os.write.append(root / helloFileName, Random.alphanumeric.take(10).mkString(""))
           val cacheAfterFileUpdate =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
           expect(cacheAfterFileUpdate.changed)
       }
     }
@@ -176,8 +177,8 @@ class NativeBuilderHelperTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            NativeBuilderHelper.getCacheData(build, config, destPath, nativeWorkDir)
-          NativeBuilderHelper.updateProjectAndOutputSha(
+            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+          CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
             cacheData.projectSha
@@ -194,7 +195,7 @@ class NativeBuilderHelperTests extends munit.FunSuite {
           val updatedConfig = updatedBuild.options.scalaNativeOptions.configCliOptions()
 
           val cacheAfterConfigUpdate =
-            NativeBuilderHelper.getCacheData(
+            CachedBinary.getCacheData(
               updatedBuild,
               updatedConfig,
               destPath,

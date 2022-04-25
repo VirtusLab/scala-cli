@@ -3,10 +3,11 @@ package scala.cli.packaging
 import java.io.{File, OutputStream}
 
 import scala.annotation.tailrec
-import scala.build.internal.{NativeBuilderHelper, Runner}
+import scala.build.internal.Runner
 import scala.build.{Build, Logger}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
+import scala.cli.internal.CachedBinary
 import scala.util.Properties
 
 object NativeImage {
@@ -218,7 +219,7 @@ object NativeImage {
 
     val javaHome = options.javaHome().value
 
-    val cacheData = NativeBuilderHelper.getCacheData(
+    val cacheData = CachedBinary.getCacheData(
       build,
       s"--java-home=${javaHome.javaHome.toString}" :: "--" :: extraOptions.toList,
       dest,
@@ -290,7 +291,7 @@ object NativeImage {
                     else dest / os.up / s"${dest.last}.exe"
                   else
                     dest
-                NativeBuilderHelper.updateProjectAndOutputSha(
+                CachedBinary.updateProjectAndOutputSha(
                   actualDest,
                   nativeImageWorkDir,
                   cacheData.projectSha

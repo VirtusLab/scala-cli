@@ -368,7 +368,7 @@ class BuildOptionsTests extends munit.FunSuite {
           case _                   => sys.error(s"Unexpected failed or cancelled build $build")
         }
 
-        val rawOptions = build0.project.scalaCompiler.scalacOptions
+        val rawOptions = build0.project.scalaCompiler.toSeq.flatMap(_.scalacOptions)
         val seq        = ShadowingSeq.from(rawOptions.map(ScalacOpt(_)))
 
         expect(seq.toSeq.length == rawOptions.length) // no option needs to be shadowed
