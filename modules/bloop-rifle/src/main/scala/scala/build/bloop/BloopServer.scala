@@ -22,7 +22,7 @@ trait BloopServer {
 
   def shutdown(): Unit
 
-  def bloopInfo: BloopServerRuntimeInfo
+  def bloopInfo: BloopRifle.BloopServerRuntimeInfo
 }
 
 object BloopServer {
@@ -30,7 +30,7 @@ object BloopServer {
     server: BuildServer,
     listeningFuture: JFuture[Void],
     socket: Socket,
-    bloopInfo: BloopServerRuntimeInfo
+    bloopInfo: BloopRifle.BloopServerRuntimeInfo
   ) extends BloopServer {
     def shutdown(): Unit = {
       // Close the jsonrpc thread listening to input messages
@@ -47,7 +47,7 @@ object BloopServer {
   )
 
   private def resolveBloopInfo(
-    bloopInfo: BloopServerRuntimeInfo,
+    bloopInfo: BloopRifle.BloopServerRuntimeInfo,
     config: BloopRifleConfig
   ): ResolvedBloopParameters = {
     val bloopV: BloopVersion = config.retainedBloopVersion match {
@@ -66,7 +66,7 @@ object BloopServer {
     config: BloopRifleConfig,
     startServerChecksPool: ScheduledExecutorService,
     logger: BloopRifleLogger
-  ): BloopServerRuntimeInfo = {
+  ): BloopRifle.BloopServerRuntimeInfo = {
     val workdir = new File(".").getCanonicalFile.toPath
     def startBloop(bloopVersion: String, bloopJava: String) = {
       logger.info("Starting compilation server")
@@ -89,8 +89,8 @@ object BloopServer {
       bloopInfo match {
         case Left(error) =>
           error match {
-            case BloopNotRunning =>
-            case ParsingFailed(bloopAboutOutput) =>
+            case BloopRifle.BloopNotRunning =>
+            case BloopRifle.ParsingFailed(bloopAboutOutput) =>
               logger.info(s"Failed to parse output of 'bloop about':\n$bloopAboutOutput")
           }
           ResolvedBloopParameters(
@@ -149,7 +149,7 @@ object BloopServer {
     logger: BloopRifleLogger,
     period: FiniteDuration,
     timeout: FiniteDuration
-  ): (BspConnection, Socket, BloopServerRuntimeInfo) = {
+  ): (BspConnection, Socket, BloopRifle.BloopServerRuntimeInfo) = {
 
     val bloopInfo = ensureBloopRunning(config, threads.startServerChecks, logger)
 
