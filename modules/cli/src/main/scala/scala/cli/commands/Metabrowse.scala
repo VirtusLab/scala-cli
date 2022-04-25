@@ -5,7 +5,7 @@ import caseapp._
 import java.io.File
 import java.nio.file.Path
 
-import scala.build.internal.{FetchExternalBinary, Runner}
+import scala.build.internal.{Constants, FetchExternalBinary, Runner}
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -97,8 +97,11 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       .filter(_.nonEmpty)
       .map(os.Path(_, os.pwd))
       .getOrElse {
+        val sv = successfulBuild.scalaParams
+          .map(_.scalaVersion)
+          .getOrElse(Constants.defaultScalaVersion)
         val (url, changing) =
-          metabrowseBinaryUrl(successfulBuild.scalaParams.scalaVersion, options)
+          metabrowseBinaryUrl(sv, options)
         FetchExternalBinary.fetch(
           url,
           changing,
@@ -157,7 +160,9 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     }
 
     def defaultDialect = {
-      val sv = successfulBuild.scalaParams.scalaVersion
+      val sv = successfulBuild.scalaParams
+        .map(_.scalaVersion)
+        .getOrElse(Constants.defaultScalaVersion)
       if (sv.startsWith("2.12.")) "Scala212"
       else if (sv.startsWith("2.13.")) "Scala213"
       else "Scala3"

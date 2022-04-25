@@ -34,7 +34,7 @@ object LauncherCli {
       Artifacts.fetch(
         Positioned.none(scalaCliDependency),
         snapshotsRepo,
-        scalaParameters,
+        Some(scalaParameters),
         logger,
         cache.withMessage(s"Fetching Scala CLI $cliVersion"),
         None

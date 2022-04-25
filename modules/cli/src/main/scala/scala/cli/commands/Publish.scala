@@ -229,15 +229,19 @@ object Publish extends ScalaCommand[PublishOptions] {
           case Some(name0) => name0.value
           case None        => value(defaultName)
         }
-        val params = build.artifacts.params
-        val pf = publishOptions.scalaPlatformSuffix.getOrElse {
-          // FIXME Allow full cross version too
-          "_" + params.scalaBinaryVersion
+        build.artifacts.scalaOpt.map(_.params) match {
+          case Some(scalaParams) =>
+            val pf = publishOptions.scalaPlatformSuffix.getOrElse {
+              // FIXME Allow full cross version too
+              "_" + scalaParams.scalaBinaryVersion
+            }
+            val sv = publishOptions.scalaVersionSuffix.getOrElse {
+              scalaParams.platform.fold("")("_" + _)
+            }
+            name + pf + sv
+          case None =>
+            name
         }
-        val sv = publishOptions.scalaVersionSuffix.getOrElse {
-          params.platform.fold("")("_" + _)
-        }
-        name + pf + sv
     }
 
     val ver = publishOptions.version match {
@@ -251,13 +255,17 @@ object Publish extends ScalaCommand[PublishOptions] {
         }
     }
 
-    val dependencies = build.artifacts.userDependencies.map { dep =>
-      val dep0 = dep.toCs(build.artifacts.params)
-      val config =
-        if (build.scope == Scope.Main) None
-        else Some(Configuration(build.scope.name))
-      (dep0.module.organization, dep0.module.name, dep0.version, config)
-    }
+    val dependencies = build.artifacts.userDependencies
+      .map(_.toCs(build.artifacts.scalaOpt.map(_.params)))
+      .sequence
+      .left.map(CompositeBuildException(_))
+      .orExit(logger)
+      .map { dep0 =>
+        val config =
+          if (build.scope == Scope.Main) None
+          else Some(Configuration(build.scope.name))
+        (dep0.module.organization, dep0.module.name, dep0.version, config)
+      }
 
     val mainClassOpt = build.options.mainClass.orElse {
       build.retainedMainClass match {
@@ -307,9 +315,9 @@ object Publish extends ScalaCommand[PublishOptions] {
         docBuildOpt match {
           case None => None
           case Some(docBuild) =>
-            val content = value(Package.docJar(docBuild, logger, Nil))
-            val docJar  = workingDir / org / s"$moduleName-$ver-javadoc.jar"
-            os.write(docJar, content, createFolders = true)
+            val docJarPath = value(Package.docJar(docBuild, logger, Nil))
+            val docJar     = workingDir / org / s"$moduleName-$ver-javadoc.jar"
+            os.copy(docJarPath, docJar, createFolders = true)
             Some(docJar)
         }
       else

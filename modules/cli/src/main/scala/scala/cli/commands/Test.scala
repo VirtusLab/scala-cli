@@ -73,9 +73,10 @@ object Test extends ScalaCommand[TestOptions] {
       val results =
         for ((s, idx) <- builds0.zipWithIndex) yield {
           if (printBeforeAfterMessages) {
-            val optionsKey = s.crossKey.optionsKey
+            val scalaStr    = s.crossKey.scalaVersion.versionOpt.fold("")(v => s" for Scala $v")
+            val platformStr = s.crossKey.platform.fold("")(p => s", ${p.repr}")
             System.err.println(
-              s"${gray}Running tests for Scala ${optionsKey.scalaVersion}, ${optionsKey.platform.repr}$reset"
+              s"${gray}Running tests$scalaStr$platformStr$reset"
             )
             System.err.println()
           }

@@ -11,7 +11,7 @@ import packager.mac.pkg.PkgPackage
 import packager.rpm.RedHatPackage
 import packager.windows.WindowsPackage
 
-import java.io.{ByteArrayOutputStream, File}
+import java.io.{ByteArrayOutputStream, File, OutputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
@@ -258,10 +258,10 @@ object Package extends ScalaCommand[PackageOptions] {
         else os.write(destPath, content)
         destPath
       case PackageType.DocJar =>
-        val content = value(docJar(build, logger, extraArgs))
+        val docJarPath = value(docJar(build, logger, extraArgs))
         alreadyExistsCheck()
-        if (force) os.write.over(destPath, content)
-        else os.write(destPath, content)
+        if (force) os.copy.over(docJarPath, destPath)
+        else os.copy(docJarPath, destPath)
         destPath
       case PackageType.Assembly =>
         assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
@@ -397,60 +397,114 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful,
     logger: Logger,
     extraArgs: Seq[String]
-  ): Either[BuildException, Array[Byte]] = either {
-    val isScala2 = build.scalaParams.scalaVersion.startsWith("2.")
-    if (isScala2)
-      Library.libraryJar(
+  ): Either[BuildException, os.Path] = either {
+
+    val workDir = build.inputs.docJarWorkDir
+    val dest    = workDir / "doc.jar"
+    val cacheData =
+      CachedBinary.getCacheData(
         build,
-        hasActualManifest = false,
-        contentDirOverride = Some(build.project.scaladocDir)
+        extraArgs.toList,
+        dest,
+        workDir
       )
-    else {
-      val res = value {
-        Artifacts.fetch(
-          Positioned.none(Seq(dep"org.scala-lang::scaladoc:${build.scalaParams.scalaVersion}")),
-          build.options.finalRepositories,
-          build.scalaParams,
-          logger,
-          build.options.finalCache,
-          None
+
+    if (cacheData.changed) {
+
+      val contentDir = build.scalaParams match {
+        case Some(scalaParams) if scalaParams.scalaVersion.startsWith("2.") =>
+          build.project.scaladocDir
+        case Some(scalaParams) =>
+          val res = value {
+            Artifacts.fetch(
+              Positioned.none(Seq(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
+              build.options.finalRepositories,
+              Some(scalaParams),
+              logger,
+              build.options.finalCache,
+              None
+            )
+          }
+          val destDir = build.project.scaladocDir
+          os.makeDir.all(destDir)
+          val ext = if (Properties.isWin) ".exe" else ""
+          val baseArgs = Seq(
+            "-classpath",
+            build.fullClassPath.map(_.toString).mkString(File.pathSeparator),
+            "-d",
+            destDir.toString
+          )
+          val defaultArgs =
+            if (
+              build.options.notForBloopOptions.packageOptions.useDefaultScaladocOptions.getOrElse(
+                true
+              )
+            )
+              defaultScaladocArgs
+            else
+              Nil
+          val args = baseArgs ++
+            build.project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
+            extraArgs ++
+            defaultArgs ++
+            Seq(build.output.toString)
+          val retCode = Runner.runJvm(
+            (build.options.javaHomeLocation().value / "bin" / s"java$ext").toString,
+            Nil, // FIXME Allow to customize that?
+            res.files,
+            "dotty.tools.scaladoc.Main",
+            args,
+            logger,
+            cwd = Some(build.inputs.workspace)
+          ).waitFor()
+          if (retCode == 0)
+            destDir
+          else
+            value(Left(new ScaladocGenerationFailedError(retCode)))
+        case None =>
+          val destDir = build.project.scaladocDir
+          os.makeDir.all(destDir)
+          val ext = if (Properties.isWin) ".exe" else ""
+          val javaSources =
+            (build.sources.paths.map(_._1) ++ build.generatedSources.map(_.generated))
+              .filter(_.last.endsWith(".java"))
+          val command = Seq(
+            (build.options.javaHomeLocation().value / "bin" / s"javadoc$ext").toString,
+            "-d",
+            destDir.toString,
+            "-classpath",
+            build.project.classesDir.toString
+          ) ++
+            javaSources.map(_.toString)
+          val retCode = Runner.run(
+            command,
+            logger,
+            cwd = Some(build.inputs.workspace)
+          ).waitFor()
+          if (retCode == 0)
+            destDir
+          else
+            value(Left(new ScaladocGenerationFailedError(retCode)))
+      }
+
+      var outputStream: OutputStream = null
+      try {
+        outputStream = os.write.outputStream(dest, createFolders = true)
+        Library.writeLibraryJarTo(
+          outputStream,
+          build,
+          hasActualManifest = false,
+          contentDirOverride = Some(contentDir)
         )
       }
-      val destDir = build.project.scaladocDir
-      os.makeDir.all(destDir)
-      val ext = if (Properties.isWin) ".exe" else ""
-      val baseArgs = Seq(
-        "-classpath",
-        build.fullClassPath.map(_.toString).mkString(File.pathSeparator),
-        "-d",
-        destDir.toString
-      )
-      val defaultArgs =
-        if (
-          build.options.notForBloopOptions.packageOptions.useDefaultScaladocOptions.getOrElse(true)
-        )
-          defaultScaladocArgs
-        else
-          Nil
-      val args = baseArgs ++
-        build.project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
-        extraArgs ++
-        defaultArgs ++
-        Seq(build.output.toString)
-      val retCode = Runner.runJvm(
-        (build.options.javaHomeLocation().value / "bin" / s"java$ext").toString,
-        Nil, // FIXME Allow to customize that?
-        res.files,
-        "dotty.tools.scaladoc.Main",
-        args,
-        logger,
-        cwd = Some(build.inputs.workspace)
-      ).waitFor()
-      if (retCode == 0)
-        Library.libraryJar(build, hasActualManifest = false, contentDirOverride = Some(destDir))
-      else
-        value(Left(new ScaladocGenerationFailedError(retCode)))
+      finally
+        if (outputStream != null)
+          outputStream.close()
+
+      CachedBinary.updateProjectAndOutputSha(dest, workDir, cacheData.projectSha)
     }
+
+    dest
   }
 
   private val generatedSourcesPrefix = os.rel / "META-INF" / "generated"
@@ -785,11 +839,17 @@ object Package extends ScalaCommand[PackageOptions] {
               mainClass
             ) ++ classpath
 
+        val scalaNativeCli = build.artifacts.scalaOpt
+          .getOrElse {
+            sys.error("Expected Scala artifacts to be fetched")
+          }
+          .scalaNativeCli
+
         val exitCode =
           Runner.runJvm(
             build.options.javaHome().value.javaCommand,
             build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            build.artifacts.scalaNativeCli.map(_.toIO),
+            scalaNativeCli.map(_.toIO),
             "scala.scalanative.cli.ScalaNativeLd",
             args,
             logger

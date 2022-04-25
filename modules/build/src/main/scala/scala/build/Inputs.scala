@@ -148,6 +148,8 @@ final case class Inputs(
     workspace / Constants.workspaceDirName / projectName / "native"
   def nativeImageWorkDir: os.Path =
     workspace / Constants.workspaceDirName / projectName / "native-image"
+  def docJarWorkDir: os.Path =
+    workspace / Constants.workspaceDirName / projectName / "doc"
 }
 
 object Inputs {

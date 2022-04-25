@@ -128,7 +128,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       logger.debug("No source files, not formatting anything")
     else {
 
-      def scalaVerOpt = inputsOpt.map { inputs =>
+      def scalaVerOpt = inputsOpt.flatMap { inputs =>
         val crossSources =
           CrossSources.forInputs(
             inputs,
@@ -141,7 +141,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
         sharedOptions
           .scalaParams
           .orExit(logger)
-          .scalaVersion
+          .map(_.scalaVersion)
       }
 
       def dialectOpt = options.dialect.map(_.trim).filter(_.nonEmpty).orElse {

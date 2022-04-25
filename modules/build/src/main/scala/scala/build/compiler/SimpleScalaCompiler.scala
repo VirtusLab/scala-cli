@@ -4,7 +4,6 @@ import java.io.File
 
 import scala.build.internal.Runner
 import scala.build.{Logger, Positioned, Project}
-import scala.util.Properties
 
 final case class SimpleScalaCompiler(
   defaultJavaCommand: String,
@@ -46,13 +45,7 @@ final case class SimpleScalaCompiler(
         ) ++
         project.sources.map(_.toString)
 
-    val javaCommand = project.javaHomeOpt match {
-      case Some(javaHome) =>
-        val ext  = if (Properties.isWin) ".exe" else ""
-        val path = javaHome / "bin" / s"java$ext"
-        path.toString
-      case None => defaultJavaCommand
-    }
+    val javaCommand = SimpleJavaCompiler.javaCommand(project).getOrElse(defaultJavaCommand)
 
     val javaOptions = defaultJavaOptions ++
       project.javacOptions
@@ -77,28 +70,32 @@ final case class SimpleScalaCompiler(
     logger: Logger
   ): Boolean =
     if (project.sources.isEmpty) true
-    else {
+    else
+      project.scalaCompiler match {
+        case Some(compiler) =>
+          val isScala2 = compiler.scalaVersion.startsWith("2.")
+          val mainClassOpt =
+            if (isScala2)
+              Some {
+                if (scaladoc) "scala.tools.nsc.ScalaDoc"
+                else "scala.tools.nsc.Main"
+              }
+            else if (scaladoc) None
+            else Some("dotty.tools.dotc.Main")
 
-      val isScala2 = project.scalaCompiler.exists(_.scalaVersion.startsWith("2."))
+          mainClassOpt.forall { mainClass =>
 
-      val mainClassOpt =
-        if (isScala2)
-          Some {
-            if (scaladoc) "scala.tools.nsc.ScalaDoc"
-            else "scala.tools.nsc.Main"
+            val outputDir =
+              if (isScala2 && scaladoc) project.scaladocDir
+              else project.classesDir
+
+            runScalacLike(project, mainClass, outputDir, logger)
           }
-        else if (scaladoc) None
-        else Some("dotty.tools.dotc.Main")
 
-      mainClassOpt.forall { mainClass =>
-
-        val outputDir =
-          if (isScala2 && scaladoc) project.scaladocDir
-          else project.classesDir
-
-        runScalacLike(project, mainClass, outputDir, logger)
+        case None =>
+          scaladoc ||
+          SimpleJavaCompiler(defaultJavaCommand, defaultJavaOptions).compile(project, logger)
       }
-    }
 
   def shutdown(): Unit =
     ()

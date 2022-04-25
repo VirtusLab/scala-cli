@@ -72,7 +72,7 @@ object Run extends ScalaCommand[RunOptions] {
         programArgs,
         logger,
         allowExecve = allowTerminate,
-        jvmRunner = build.options.addRunnerDependency.getOrElse(true)
+        jvmRunner = build.artifacts.hasJvmRunner
       ))
 
       val onExitProcess = process.onExit().thenApply { p1 =>

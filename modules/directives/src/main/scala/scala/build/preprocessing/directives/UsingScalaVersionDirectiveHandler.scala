@@ -1,7 +1,7 @@
 package scala.build.preprocessing.directives
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, ScalaOptions}
+import scala.build.options.{BuildOptions, MaybeScalaVersion, ScalaOptions}
 
 case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
   def name = "Scala version"
@@ -30,7 +30,9 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
 
       val options = BuildOptions(
         scalaOptions = ScalaOptions(
-          scalaVersion = scalaVersions.headOption.map(_.positioned.value),
+          scalaVersion = scalaVersions.headOption
+            .map(_.positioned.value)
+            .map(MaybeScalaVersion(_)),
           extraScalaVersions = scalaVersions.drop(1).map(_.positioned.value).toSet
         )
       )

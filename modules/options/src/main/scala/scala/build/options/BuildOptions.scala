@@ -42,15 +42,20 @@ final case class BuildOptions(
     scalaOptions.platform.getOrElse(Positioned(List(Position.Custom("DEFAULT")), Platform.JVM))
 
   lazy val projectParams: Either[BuildException, Seq[String]] = either {
-    val platform0 = platform.value match {
-      case Platform.JVM    => "JVM"
-      case Platform.JS     => "Scala.js"
-      case Platform.Native => "Scala Native"
+    value(scalaParams) match {
+      case Some(scalaParams0) =>
+        val platform0 = platform.value match {
+          case Platform.JVM    => "JVM"
+          case Platform.JS     => "Scala.js"
+          case Platform.Native => "Scala Native"
+        }
+        Seq(s"Scala ${scalaParams0.scalaVersion}", platform0)
+      case None =>
+        Seq("Java")
     }
-    Seq(s"Scala ${value(scalaParams).scalaVersion}", platform0)
   }
 
-  lazy val scalaVersionIsExotic = scalaParams.exists { scalaParameters =>
+  lazy val scalaVersionIsExotic = scalaParams.toOption.flatten.exists { scalaParameters =>
     scalaParameters.scalaVersion.startsWith("2") && scalaParameters.scalaVersion.exists(_.isLetter)
   }
 
@@ -62,26 +67,30 @@ final case class BuildOptions(
       }
 
   private def scalaLibraryDependencies: Either[BuildException, Seq[AnyDependency]] = either {
-    if (platform.value != Platform.Native && scalaOptions.addScalaLibrary.getOrElse(true)) {
-      val scalaParams0 = value(scalaParams)
-      val lib =
-        if (scalaParams0.scalaVersion.startsWith("3."))
-          dep"org.scala-lang::scala3-library::${scalaParams0.scalaVersion}"
-        else
-          dep"org.scala-lang:scala-library:${scalaParams0.scalaVersion}"
-      Seq(lib)
+    value(scalaParams).toSeq.flatMap { scalaParams0 =>
+      if (platform.value != Platform.Native && scalaOptions.addScalaLibrary.getOrElse(true))
+        Seq(
+          if (scalaParams0.scalaVersion.startsWith("3."))
+            dep"org.scala-lang::scala3-library::${scalaParams0.scalaVersion}"
+          else
+            dep"org.scala-lang:scala-library:${scalaParams0.scalaVersion}"
+        )
+      else Nil
     }
-    else Nil
   }
 
   private def maybeJsDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.JS)
-      scalaJsOptions.jsDependencies(value(scalaParams).scalaVersion)
+      value(scalaParams).toSeq.flatMap { scalaParams0 =>
+        scalaJsOptions.jsDependencies(scalaParams0.scalaVersion)
+      }
     else Nil
   }
   private def maybeNativeDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.Native)
-      scalaNativeOptions.nativeDependencies(value(scalaParams).scalaVersion)
+      value(scalaParams).toSeq.flatMap { scalaParams0 =>
+        scalaNativeOptions.nativeDependencies(scalaParams0.scalaVersion)
+      }
     else Nil
   }
   private def dependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
@@ -93,7 +102,7 @@ final case class BuildOptions(
 
   private def semanticDbPlugins: Either[BuildException, Seq[AnyDependency]] = either {
     val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false) &&
-      value(scalaParams).scalaVersion.startsWith("2.")
+      value(scalaParams).exists(_.scalaVersion.startsWith("2."))
     if (generateSemDbs)
       Seq(
         dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
@@ -104,7 +113,9 @@ final case class BuildOptions(
 
   private def maybeJsCompilerPlugins: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.JS)
-      scalaJsOptions.compilerPlugins(value(scalaParams).scalaVersion)
+      value(scalaParams).toSeq.flatMap { scalaParams0 =>
+        scalaJsOptions.compilerPlugins(scalaParams0.scalaVersion)
+      }
     else Nil
   }
   private def maybeNativeCompilerPlugins: Seq[AnyDependency] =
@@ -294,7 +305,11 @@ final case class BuildOptions(
   def finalRepositories: Seq[String] = {
 
     val nightlyRepos =
-      if (scalaParams.exists(params => ScalaVersionUtil.isScala2Nightly(params.scalaVersion)))
+      if (
+        scalaParams.toOption.flatten.exists(params =>
+          ScalaVersionUtil.isScala2Nightly(params.scalaVersion)
+        )
+      )
         scala2NightlyRepo
       else
         Nil
@@ -304,100 +319,129 @@ final case class BuildOptions(
       internal.localRepository.toSeq
   }
 
-  lazy val scalaParams: Either[BuildException, ScalaParameters] = either {
+  lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {
 
     lazy val maxSupportedStableScalaVersions = latestSupportedStableScalaVersion()
     lazy val latestSupportedStableVersions   = maxSupportedStableScalaVersions.map(_.repr)
 
-    val scalaVersion = value {
-      scalaOptions.scalaVersion match {
-        case Some("3.nightly") =>
-          ScalaVersionUtil.GetNightly.scala3(finalCache)
-        case Some(scala3NightlyNicknameRegex(threeSubBinaryNum)) =>
-          ScalaVersionUtil.GetNightly.scala3X(
-            threeSubBinaryNum,
-            finalCache,
-            latestSupportedStableVersions
-          )
-        case Some("2.nightly" | "2.13.nightly") =>
-          ScalaVersionUtil.GetNightly.scala2("2.13", finalCache)
-        case Some("2.12.nightly") =>
-          ScalaVersionUtil.GetNightly.scala2("2.12", finalCache)
-        case Some(versionString) if ScalaVersionUtil.isScala3Nightly(versionString) =>
-          ScalaVersionUtil.CheckNightly.scala3(
-            versionString,
-            finalCache,
-            latestSupportedStableVersions
-          )
-            .map(_ => versionString)
-        case Some(versionString) if ScalaVersionUtil.isScala2Nightly(versionString) =>
-          ScalaVersionUtil.CheckNightly.scala2(
-            versionString,
-            finalCache,
-            latestSupportedStableVersions
-          )
-            .map(_ => versionString)
-        case Some(versionString) if versionString.exists(_.isLetter) =>
-          val allVersions = ScalaVersionUtil.allMatchingVersions(Some(versionString), finalCache)
-          ScalaVersionUtil.validateNonStable(
-            versionString,
-            allVersions,
-            latestSupportedStableVersions
-          )
-        case Some(versionString) =>
-          val allStableVersions =
-            ScalaVersionUtil.allMatchingVersions(Some(versionString), finalCache)
-              .filter(ScalaVersionUtil.isStable)
-          ScalaVersionUtil.validateStable(
-            versionString,
-            allStableVersions,
-            latestSupportedStableVersions,
-            maxSupportedStableScalaVersions
-          )
-        case None =>
-          val allStableVersions = ScalaVersionUtil.allMatchingVersions(None, finalCache)
-            .filter(ScalaVersionUtil.isStable)
+    val svOpt: Option[String] = scalaOptions.scalaVersion match {
+      case Some(MaybeScalaVersion(None)) =>
+        None
+      case Some(MaybeScalaVersion(Some(svInput))) =>
+        val sv = value {
+          svInput match {
+            case "3.nightly" =>
+              ScalaVersionUtil.GetNightly.scala3(finalCache)
+            case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
+              ScalaVersionUtil.GetNightly.scala3X(
+                threeSubBinaryNum,
+                finalCache,
+                latestSupportedStableVersions
+              )
+            case "2.nightly" | "2.13.nightly" =>
+              ScalaVersionUtil.GetNightly.scala2("2.13", finalCache)
+            case "2.12.nightly" =>
+              ScalaVersionUtil.GetNightly.scala2("2.12", finalCache)
+            case versionString if ScalaVersionUtil.isScala3Nightly(versionString) =>
+              ScalaVersionUtil.CheckNightly.scala3(
+                versionString,
+                finalCache,
+                latestSupportedStableVersions
+              )
+                .map(_ => versionString)
+            case versionString if ScalaVersionUtil.isScala2Nightly(versionString) =>
+              ScalaVersionUtil.CheckNightly.scala2(
+                versionString,
+                finalCache,
+                latestSupportedStableVersions
+              )
+                .map(_ => versionString)
+            case versionString if versionString.exists(_.isLetter) =>
+              val allVersions =
+                ScalaVersionUtil.allMatchingVersions(Some(versionString), finalCache)
+              ScalaVersionUtil.validateNonStable(
+                versionString,
+                allVersions,
+                latestSupportedStableVersions
+              )
+            case versionString =>
+              val allStableVersions =
+                ScalaVersionUtil.allMatchingVersions(Some(versionString), finalCache)
+                  .filter(ScalaVersionUtil.isStable)
+              ScalaVersionUtil.validateStable(
+                versionString,
+                allStableVersions,
+                latestSupportedStableVersions,
+                maxSupportedStableScalaVersions
+              )
+          }
+        }
+        Some(sv)
+
+      case None =>
+        val allStableVersions = ScalaVersionUtil.allMatchingVersions(None, finalCache)
+          .filter(ScalaVersionUtil.isStable)
+        val sv = value {
           ScalaVersionUtil.default(
             allStableVersions,
             latestSupportedStableVersions,
             maxSupportedStableScalaVersions
           )
-      }
+        }
+        Some(sv)
     }
 
-    val scalaBinaryVersion = scalaOptions.scalaBinaryVersion.getOrElse {
-      ScalaVersion.binary(scalaVersion)
-    }
+    svOpt match {
+      case Some(scalaVersion) =>
+        val scalaBinaryVersion = scalaOptions.scalaBinaryVersion.getOrElse {
+          ScalaVersion.binary(scalaVersion)
+        }
 
-    val maybePlatformSuffix = platform.value match {
-      case Platform.JVM    => None
-      case Platform.JS     => Some(scalaJsOptions.platformSuffix)
-      case Platform.Native => Some(scalaNativeOptions.platformSuffix)
-    }
+        val maybePlatformSuffix = platform.value match {
+          case Platform.JVM    => None
+          case Platform.JS     => Some(scalaJsOptions.platformSuffix)
+          case Platform.Native => Some(scalaNativeOptions.platformSuffix)
+        }
 
-    ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix)
+        Some(ScalaParameters(scalaVersion, scalaBinaryVersion, maybePlatformSuffix))
+      case None =>
+        None
+    }
   }
 
   def artifacts(logger: Logger): Either[BuildException, Artifacts] = either {
+    val scalaArtifactsParamsOpt = value(scalaParams) match {
+      case Some(scalaParams0) =>
+        val params = Artifacts.ScalaArtifactsParams(
+          params = scalaParams0,
+          compilerPlugins = value(compilerPlugins),
+          addJsTestBridge = addJsTestBridge,
+          addNativeTestInterface = addNativeTestInterface,
+          scalaJsCliVersion =
+            if (platform.value == Platform.JS) Some(scalaJsCliVersion) else None,
+          scalaNativeCliVersion =
+            if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None
+        )
+        Some(params)
+      case None =>
+        None
+    }
+    val addRunnerDependency0 = addRunnerDependency.orElse {
+      if (scalaArtifactsParamsOpt.isDefined) None
+      else Some(false) // no runner in pure Java mode
+    }
     val maybeArtifacts = Artifacts(
-      params = value(scalaParams),
-      compilerPlugins = value(compilerPlugins),
+      scalaArtifactsParamsOpt,
       javacPluginDependencies = value(javacPluginDependencies),
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
       dependencies = value(dependencies),
       extraClassPath = allExtraJars,
-      scalaJsCliVersion =
-        if (platform.value == Platform.JS) Some(scalaJsCliVersion) else None,
-      scalaNativeCliVersion =
-        if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
       addStubs = internalDependencies.addStubsDependency,
-      addJvmRunner = addRunnerDependency,
+      addJvmRunner = addRunnerDependency0,
       addJvmTestRunner = addJvmTestRunner,
-      addJsTestBridge = addJsTestBridge,
-      addNativeTestInterface = addNativeTestInterface,
       addJmhDependencies = jmhOptions.addJmhDependencies,
       extraRepositories = finalRepositories,
       cache = finalCache,
@@ -418,7 +462,7 @@ final case class BuildOptions(
     this +: sortedExtraScalaVersions.map { sv =>
       copy(
         scalaOptions = scalaOptions0.copy(
-          scalaVersion = Some(sv),
+          scalaVersion = Some(MaybeScalaVersion(sv)),
           extraScalaVersions = Set.empty
         )
       )

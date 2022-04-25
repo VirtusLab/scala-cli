@@ -234,10 +234,9 @@ object NativeImage {
           createManifest = Properties.isWin,
           classPath = originalClasspath
         ) { processedClassPath =>
+          val needsProcessing = build.scalaParams.exists(_.scalaVersion.startsWith("3."))
           val (classPath, toClean, scala3extraOptions) =
-            if (!build.scalaParams.scalaBinaryVersion.startsWith("3"))
-              (processedClassPath, Seq[os.Path](), Seq[String]())
-            else {
+            if (needsProcessing) {
               val cpString         = processedClassPath.mkString(File.pathSeparator)
               val processed        = BytecodeProcessor.processClassPath(cpString, TempCache).toSeq
               val nativeConfigFile = os.temp(suffix = ".json")
@@ -259,6 +258,8 @@ object NativeImage {
 
               (cp, nativeConfigFile +: BytecodeProcessor.toClean(processed), options)
             }
+            else
+              (processedClassPath, Seq[os.Path](), Seq[String]())
 
           try {
             val args = extraOptions ++ scala3extraOptions ++ Seq(

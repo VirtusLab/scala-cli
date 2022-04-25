@@ -100,7 +100,8 @@ final class BspImpl(
         None,
         Scope.Main,
         currentBloopSession.remoteServer,
-        persistentLogger
+        persistentLogger,
+        localClient
       )
       res.left.map((_, Scope.Main))
     }
@@ -114,7 +115,8 @@ final class BspImpl(
         None,
         Scope.Test,
         currentBloopSession.remoteServer,
-        persistentLogger
+        persistentLogger,
+        localClient
       )
       res.left.map((_, Scope.Test))
     }
@@ -537,7 +539,7 @@ object BspImpl {
     sources: Sources,
     buildOptions: BuildOptions,
     classesDir: os.Path,
-    scalaParams: ScalaParameters,
+    scalaParams: Option[ScalaParameters],
     artifacts: Artifacts,
     project: Project,
     generatedSources: Seq[GeneratedSource],
