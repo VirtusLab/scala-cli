@@ -611,7 +611,7 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
     Deps.jsoniterCore,
     Deps.jsoniterMacros,
     Deps.osLib,
-    Deps.signingCliShared
+    Deps.signingCliOptions
   )
   def scalaVersion = Scala.scala213
   def repositories = super.repositories ++ customRepositories

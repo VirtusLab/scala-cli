@@ -2,8 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.cli.internal.PasswordOptionParsers._
 import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.util.ArgParsers._
 
 // format: off
 final case class PublishOptions(
