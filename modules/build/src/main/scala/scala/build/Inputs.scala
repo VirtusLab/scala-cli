@@ -204,7 +204,7 @@ object Inputs {
   final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
       extends Virtual with AnyScalaFile with AnyScript
   final case class VirtualScalaFile(content: Array[Byte], source: String)
-      extends Virtual with AnyScalaFile
+      extends Virtual with AnyScalaFile { def isStdin: Boolean = source == "<stdin>" }
   final case class VirtualJavaFile(content: Array[Byte], source: String)
       extends Virtual with Compiled
   final case class VirtualData(content: Array[Byte], source: String)

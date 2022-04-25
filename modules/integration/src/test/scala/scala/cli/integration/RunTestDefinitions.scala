@@ -813,6 +813,30 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("Zip with multiple Scala files") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""object Hello extends App {
+             |  println(Messages.hello)
+             |}
+             |""".stripMargin,
+        os.rel / "Messages.scala" ->
+          s"""object Messages {
+             |  def hello: String = "Hello"
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.asZip { (root, zipPath) =>
+      val message = "Hello"
+      val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
+        .call(cwd = root)
+        .out.text().trim
+      expect(output == message)
+    }
+  }
+
   test("Zip with Scala containing resource directive") {
     val inputs = TestInputs(
       Seq(

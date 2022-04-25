@@ -114,7 +114,7 @@ case object ScalaPreprocessor extends Preprocessor {
 
       case v: Inputs.VirtualScalaFile =>
         val res = either {
-          val relPath = os.sub / "stdin.scala"
+          val relPath = if (v.isStdin) os.sub / "stdin.scala" else v.subPath
           val className = {
             val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(relPath)
             (pkg :+ wrapper).map(_.raw).mkString(".")
