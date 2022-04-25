@@ -25,6 +25,53 @@ final case class SimpleScalaCompiler(
   override def usesClassDir: Boolean =
     !scaladoc
 
+  private def runScalacLike(
+    project: Project,
+    mainClass: String,
+    outputDir: os.Path,
+    logger: Logger
+  ): Boolean = {
+
+    os.makeDir.all(outputDir)
+
+    // initially adapted from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-d13a7e6d602b8f84d9177e3138487872f0341d006accfe425886a561f029a9c3R120 and around
+
+    val args =
+      project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
+        Seq(
+          "-d",
+          outputDir.toString,
+          "-cp",
+          project.classPath.map(_.toString).mkString(File.pathSeparator)
+        ) ++
+        project.sources.map(_.toString)
+
+    val javaCommand = project.javaHomeOpt match {
+      case Some(javaHome) =>
+        val ext  = if (Properties.isWin) ".exe" else ""
+        val path = javaHome / "bin" / s"java$ext"
+        path.toString
+      case None => defaultJavaCommand
+    }
+
+    val javaOptions = defaultJavaOptions ++
+      project.javacOptions
+        .filter(_.startsWith("-J"))
+        .map(_.stripPrefix("-J"))
+
+    val res = Runner.runJvm(
+      javaCommand,
+      javaOptions,
+      project.scalaCompiler.map(_.compilerClassPath.map(_.toIO)).getOrElse(Nil),
+      mainClass,
+      args,
+      logger,
+      cwd = Some(project.workspace)
+    ).waitFor()
+
+    res == 0
+  }
+
   def compile(
     project: Project,
     logger: Logger
@@ -49,44 +96,7 @@ final case class SimpleScalaCompiler(
           if (isScala2 && scaladoc) project.scaladocDir
           else project.classesDir
 
-        os.makeDir.all(outputDir)
-
-        // initially adapted from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-d13a7e6d602b8f84d9177e3138487872f0341d006accfe425886a561f029a9c3R120 and around
-
-        val args =
-          project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
-            Seq(
-              "-d",
-              outputDir.toString,
-              "-cp",
-              project.classPath.map(_.toString).mkString(File.pathSeparator)
-            ) ++
-            project.sources.map(_.toString)
-
-        val javaCommand = project.javaHomeOpt match {
-          case Some(javaHome) =>
-            val ext  = if (Properties.isWin) ".exe" else ""
-            val path = javaHome / "bin" / s"java$ext"
-            path.toString
-          case None => defaultJavaCommand
-        }
-
-        val javaOptions = defaultJavaOptions ++
-          project.javacOptions
-            .filter(_.startsWith("-J"))
-            .map(_.stripPrefix("-J"))
-
-        val res = Runner.runJvm(
-          javaCommand,
-          javaOptions,
-          project.scalaCompiler.map(_.compilerClassPath.map(_.toIO)).getOrElse(Nil),
-          mainClass,
-          args,
-          logger,
-          cwd = Some(project.workspace)
-        ).waitFor()
-
-        res == 0
+        runScalacLike(project, mainClass, outputDir, logger)
       }
     }
 
