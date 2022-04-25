@@ -41,7 +41,7 @@ case object ScalaPreprocessor extends Preprocessor {
     updatedContent: Option[String]
   )
 
-  val usingDirectiveHandlers = Seq(
+  val usingDirectiveHandlers: Seq[UsingDirectiveHandler] = Seq(
     UsingDependencyDirectiveHandler,
     UsingScalaVersionDirectiveHandler,
     UsingRepositoryDirectiveHandler,
@@ -60,7 +60,7 @@ case object ScalaPreprocessor extends Preprocessor {
     UsingPublishDirectiveHandler
   )
 
-  val requireDirectiveHandlers = Seq[RequireDirectiveHandler](
+  val requireDirectiveHandlers: Seq[RequireDirectiveHandler] = Seq(
     RequireScalaVersionDirectiveHandler,
     RequirePlatformsDirectiveHandler,
     RequireScopeDirectiveHandler
@@ -240,7 +240,7 @@ case object ScalaPreprocessor extends Preprocessor {
       // for standard imports.
       val buf = content.toCharArray
       for (t <- dependencyTrees) {
-        val substitute = (t.prefix(0) + ".A").padTo(t.end - t.start, ' ')
+        val substitute = (t.prefix.head + ".A").padTo(t.end - t.start, ' ')
         assert(substitute.length == (t.end - t.start))
         System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
       }
