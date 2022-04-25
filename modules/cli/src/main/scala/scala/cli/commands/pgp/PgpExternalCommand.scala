@@ -35,11 +35,10 @@ abstract class PgpExternalCommand extends ExternalCommand {
 
     val command = Seq(launcher.toString) ++ externalCommand ++ remainingArgs
 
-    val retCode = Runner.run(
+    val retCode = Runner.maybeExec(
       progName,
       command,
-      logger,
-      allowExecve = true
+      logger
     ).waitFor()
 
     if (retCode != 0)

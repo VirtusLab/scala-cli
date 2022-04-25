@@ -174,11 +174,10 @@ object Fmt extends ScalaCommand[FmtOptions] {
         sourceFiles.map(_.toString) ++
         dialectArgs ++
         options.scalafmtCliOptions
-      Runner.run(
+      Runner.maybeExec(
         "scalafmt",
         command,
         logger,
-        allowExecve = true,
         cwd = Some(workspace)
       ).waitFor()
     }

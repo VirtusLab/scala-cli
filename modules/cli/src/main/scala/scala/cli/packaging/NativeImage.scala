@@ -280,10 +280,10 @@ object NativeImage {
                     case Some(vcvars) =>
                       runFromVcvarsBat(command, vcvars, nativeImageWorkDir, logger)
                     case None =>
-                      Runner.run("unused", command, logger).waitFor()
+                      Runner.run(command, logger).waitFor()
                   }
                 else
-                  Runner.run("unused", command, logger).waitFor()
+                  Runner.run(command, logger).waitFor()
               if (exitCode == 0) {
                 val actualDest =
                   if (Properties.isWin)

@@ -181,7 +181,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       message
     )
 
-    Runner.run("metabrowse", command, logger, allowExecve = true)
+    Runner.maybeExec("metabrowse", command, logger)
   }
 
 }
