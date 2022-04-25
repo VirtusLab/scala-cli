@@ -718,6 +718,32 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         expect(output == message)
       }
     }
+    test("Scala code accepted as piped input") {
+      val expectedOutput = "Hello"
+      val pipedInput     = s"object Test extends App { println(\"$expectedOutput\") }"
+      emptyInputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, "_.scala", extraOptions)
+          .call(cwd = root, stdin = pipedInput)
+          .out.text().trim
+        expect(output == expectedOutput)
+      }
+    }
+    test("Scala code with references to existing files accepted as piped input") {
+      val expectedOutput = "Hello"
+      val pipedInput =
+        s"""object Test extends App {
+           |  val data = SomeData(value = "$expectedOutput")
+           |  println(data.value)
+           |}""".stripMargin
+      val inputs =
+        TestInputs(Seq(os.rel / "SomeData.scala" -> "case class SomeData(value: String)"))
+      inputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, ".", "_.scala", extraOptions)
+          .call(cwd = root, stdin = pipedInput)
+          .out.text().trim
+        expect(output == expectedOutput)
+      }
+    }
   }
 
   def fd(): Unit = {
