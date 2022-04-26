@@ -29,27 +29,31 @@ object PgpKeyId extends Command[PgpKeyIdOptions] {
     new String(hexChars)
   }
 
+  def get(keyContent: Array[Byte], fingerprint: Boolean): Seq[String] = {
+
+    val pgpPubRingCollection = new PGPPublicKeyRingCollection(
+      PGPUtil.getDecoderStream(new ByteArrayInputStream(keyContent)),
+      new JcaKeyFingerprintCalculator
+    )
+
+    pgpPubRingCollection.getKeyRings.asScala.toVector.map { key =>
+      if (fingerprint) {
+        val fp = key.getPublicKey.getFingerprint
+        bytesToHex(fp)
+      }
+      else {
+        val keyId = key.getPublicKey.getKeyID
+        java.util.HexFormat.of().withPrefix("0x").toHexDigits(keyId)
+      }
+    }
+  }
+
   def run(options: PgpKeyIdOptions, args: RemainingArgs): Unit =
     for (arg <- args.all) {
       val path       = os.Path(arg, os.pwd)
       val keyContent = os.read.bytes(path)
-
-      val pgpPubRingCollection = new PGPPublicKeyRingCollection(
-        PGPUtil.getDecoderStream(new ByteArrayInputStream(keyContent)),
-        new JcaKeyFingerprintCalculator
-      )
-
-      for (key <- pgpPubRingCollection.getKeyRings.asScala)
-        if (options.fingerprint) {
-          System.err.println(s"key.getPublicKey.getAlgorithm=${key.getPublicKey.getAlgorithm}")
-          System.err.println(s"key.getPublicKey.getBitStrength=${key.getPublicKey.getBitStrength}")
-          System.err.println(s"PublicKeyAlgorithmTags.RSA_SIGN=${PublicKeyAlgorithmTags.RSA_SIGN}")
-          val fp = key.getPublicKey.getFingerprint
-          println(bytesToHex(fp))
-        }
-        else {
-          val keyId = key.getPublicKey.getKeyID
-          println(java.util.HexFormat.of().withPrefix("0x").toHexDigits(keyId))
-        }
+      val values     = get(keyContent, options.fingerprint)
+      for (value <- values)
+        println(value)
     }
 }

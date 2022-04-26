@@ -19,7 +19,10 @@ object PgpCreate extends Command[PgpCreateOptions] {
     if (p.startsWith(os.pwd)) p.relativeTo(os.pwd).segments.mkString(File.separator)
     else p.toString
 
-  def run(options: PgpCreateOptions, args: RemainingArgs): Unit = {
+  def run(options: PgpCreateOptions, args: RemainingArgs): Unit =
+    tryRun(options, args)
+
+  def tryRun(options: PgpCreateOptions, args: RemainingArgs): Unit = {
 
     val pass       = options.password.get().value.toCharArray
     val keyRingGen = PgpHelper.generateKeyRingGenerator(options.email, pass)
