@@ -34,16 +34,42 @@ import _root_.scala.util.Properties
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli extends Cli
-// remove once migrate to Scala 3
-object cli3           extends Cli3
+object cli extends Cli3 {
+  object test extends Tests {
+    def moduleDeps = super.moduleDeps ++ Seq(
+      `build-module`(myScalaVersion).test
+    )
+  }
+}
+
+// remove once we do not have blockers with Scala 3
+object cli2 extends Cli {
+  def sources = T.sources {
+    super.sources() ++ cli.sources()
+  }
+  def resources = T.sources {
+    super.resources() ++ cli.resources()
+  }
+  object test extends Tests {
+    def sources = T.sources {
+      super.sources() ++ cli.test.sources()
+    }
+    def resources = T.sources {
+      super.resources() ++ cli.test.resources()
+    }
+    def moduleDeps = super.moduleDeps ++ Seq(
+      `build-module`(myScalaVersion).test
+    )
+  }
+}
+
 object `cli-options`  extends CliOptions
-object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal, Scala.scala3)
-object options        extends Cross[Options](Scala.defaultInternal, Scala.scala3)
+object `build-macros` extends Cross[BuildMacros](Scala.mainVersions: _*)
+object options        extends Cross[Options](Scala.mainVersions: _*)
 object scalaparse     extends ScalaParse
-object directives     extends Cross[Directives](Scala.defaultInternal, Scala.scala3)
-object core           extends Cross[Core](Scala.defaultInternal, Scala.scala3)
-object `build-module` extends Cross[Build](Scala.defaultInternal, Scala.scala3)
+object directives     extends Cross[Directives](Scala.mainVersions: _*)
+object core           extends Cross[Core](Scala.mainVersions: _*)
+object `build-module` extends Cross[Build](Scala.mainVersions: _*)
 object runner         extends Cross[Runner](Scala.all: _*)
 object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
 object `bloop-rifle`  extends Cross[BloopRifle](Scala.all: _*)
@@ -51,7 +77,7 @@ object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
 object `scala3-runtime` extends Scala3Runtime
 // Logic to process classes that is shared between build and the scala-cli itself
-object `scala3-graal` extends Cross[Scala3Graal](Scala.defaultInternal, Scala.scala3)
+object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions: _*)
 // Main app used to process classpath within build itself
 object `scala3-graal-processor` extends Scala3GraalProcessor
 
@@ -481,7 +507,7 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
 
 trait ScalaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
   def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
-  def scalaVersion = Scala.defaultInternal
+  def scalaVersion = Scala.scala213
 }
 
 trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
@@ -587,14 +613,12 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
     Deps.osLib,
     Deps.signingCliShared
   )
-  def scalaVersion = Scala.defaultInternal
+  def scalaVersion = Scala.scala213
   def repositories = super.repositories ++ customRepositories
 }
 
 trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     with HasMacroAnnotations with FormatNativeImageConf {
-
-  def millSourcePath = super.millSourcePath / os.up / "cli"
 
   def myScalaVersion = Scala.defaultInternal
 
@@ -634,11 +658,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   def localRepoJar = `local-repo`.localRepoJar()
 
-  object test extends Tests with ScalaCliScalafixModule {
-    def moduleDeps = super.moduleDeps ++ Seq(
-      `build-module`(myScalaVersion).test
-    )
-  }
+  trait Tests extends super.Tests with ScalaCliScalafixModule
 }
 
 trait Cli3 extends Cli {
@@ -654,7 +674,7 @@ trait Cli3 extends Cli {
       mainArgs = Seq(cache.toNIO.toString, classpath),
       workingDir = os.pwd
     )
-    val cp = res.out.text
+    val cp = res.out.text.trim
     cp.split(File.pathSeparator).toSeq.map(p => mill.PathRef(os.Path(p)))
   }
 }

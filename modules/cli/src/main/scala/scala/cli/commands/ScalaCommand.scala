@@ -62,7 +62,6 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
           case "dependency" =>
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
               val cache = sharedOptions.coursierCache
-              sharedOptions.buildOptions(false, None, ignoreErrors = true).scalaOptions.scalaVersion
               val (fromIndex, completions) = cache.logger.use {
                 coursier.complete.Complete(cache)
                   .withInput(prefix)

@@ -789,12 +789,20 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
     val sourceRoot = sourceFiles.find(_.last == "scala")
       .orElse(sourceFiles.headOption)
       .getOrElse(millSourcePath)
+    val parentOptions = {
+      val l = super.scalacOptions()
+      if (isScala2) l.filterNot(_.startsWith("-P:semanticdb:sourceroot:"))
+      else {
+        val len = l.length
+        val idx = l.indexWhere(_.startsWith("-sourceroot"))
+        if (idx < len - 1) l.take(idx) ++ l.drop(idx + 2)
+        else l
+      }
+    }
     val semDbOptions =
       if (isScala2) Seq(s"-P:semanticdb:sourceroot:$sourceRoot")
-      // Once we switch to Scala CLI 0.1.4, change this to
-      // else Seq(s"-sourceroot", sourceRoot.toString)
-      else Nil
-    super.scalacOptions() ++ semDbOptions
+      else Seq(s"-sourceroot", sourceRoot.toString)
+    parentOptions ++ semDbOptions
   }
 }
 

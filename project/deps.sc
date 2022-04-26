@@ -4,11 +4,12 @@ import mill._, scalalib._
 import scala.util.Properties
 
 object Scala {
-  def scala212  = "2.12.15"
-  def scala213  = "2.13.8"
-  def scala3    = "3.1.1"
-  val allScala2 = Seq(scala213, scala212)
-  val all       = allScala2 ++ Seq(scala3)
+  def scala212     = "2.12.15"
+  def scala213     = "2.13.8"
+  def scala3       = "3.1.1"
+  val allScala2    = Seq(scala213, scala212)
+  val all          = allScala2 ++ Seq(scala3)
+  val mainVersions = Seq(scala3, scala213)
 
   def scalaJs = "1.10.0"
 
@@ -28,7 +29,7 @@ object Scala {
   // The Scala version used to build the CLI itself.
   // We should be able to switch to 3.x when it'll have CPS support
   // (for the either { value(…) } stuff)
-  def defaultInternal = scala213
+  def defaultInternal = scala3
 
   // The Scala version used by default to compile user input.
   def defaultUser = scala3
@@ -52,7 +53,7 @@ object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier      = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.13.17"
+    def jsoniterScala = "2.13.18"
     def scalaMeta     = "4.5.4"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
@@ -95,7 +96,7 @@ object Deps {
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = ivy"org.scalameta::scalafmt-cli:3.5.1"
+  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.5.1"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"
