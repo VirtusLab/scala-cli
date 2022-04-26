@@ -57,7 +57,7 @@ final case class Inputs(
 
   private lazy val inputsHash: String =
     Inputs.inputsHash(elements)
-  lazy val projectName = {
+  lazy val projectName: String = {
     val needsSuffix = mayAppendHash && (elements match {
       case Seq(d: Inputs.Directory) => d.path != workspace
       case _                        => true
@@ -87,19 +87,18 @@ final case class Inputs(
     if (forbidden.exists(workspace.startsWith)) inHomeDir(directories)
     else this
   def checkAttributes(directories: Directories): Inputs = {
+    @tailrec
     def existingParent(p: os.Path): Option[os.Path] =
       if (os.exists(p)) Some(p)
       else if (p.segmentCount <= 0) None
       else existingParent(p / os.up)
     def reallyOwnedByUser(p: os.Path): Boolean =
       if (Properties.isWin)
-        p.toIO.canWrite() // Wondering if there's a better way to do that…
+        p.toIO.canWrite // Wondering if there's a better way to do that…
       else
         os.owner(p) == os.owner(os.home) &&
-        p.toIO.canWrite()
-    val canWrite = existingParent(workspace)
-      .map(reallyOwnedByUser)
-      .getOrElse(false)
+        p.toIO.canWrite
+    val canWrite = existingParent(workspace).exists(reallyOwnedByUser)
     if (canWrite) this
     else inHomeDir(directories)
   }
@@ -123,7 +122,7 @@ final case class Inputs(
         Iterator(v.content, bytes("\n"))
     }
     val md = MessageDigest.getInstance("SHA-1")
-    it.foreach(md.update(_))
+    it.foreach(md.update)
     val digest        = md.digest()
     val calculatedSum = new BigInteger(1, digest)
     String.format(s"%040x", calculatedSum)
@@ -188,15 +187,15 @@ object Inputs {
 
   final case class Script(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile with AnyScalaFile with AnyScript {
-    lazy val path = base / subPath
+    lazy val path: os.Path = base / subPath
   }
   final case class ScalaFile(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile with AnyScalaFile {
-    lazy val path = base / subPath
+    lazy val path: os.Path = base / subPath
   }
   final case class JavaFile(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile with Compiled {
-    lazy val path = base / subPath
+    lazy val path: os.Path = base / subPath
   }
   final case class Directory(path: os.Path)         extends OnDisk with Compiled
   final case class ResourceDirectory(path: os.Path) extends OnDisk
@@ -226,13 +225,13 @@ object Inputs {
         Iterator(bytes("virtual:"), v.content, bytes("\n"))
     }
     val md = MessageDigest.getInstance("SHA-1")
-    it.foreach(md.update(_))
+    it.foreach(md.update)
     val digest        = md.digest()
     val calculatedSum = new BigInteger(1, digest)
     String.format(s"%040x", calculatedSum).take(10)
   }
 
-  def homeWorkspace(elements: Seq[Element], directories: Directories) = {
+  def homeWorkspace(elements: Seq[Element], directories: Directories): os.Path = {
     val hash0 = inputsHash(elements)
     val dir   = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
     os.makeDir.all(dir)
@@ -292,7 +291,7 @@ object Inputs {
   }
 
   private val githubGistsArchiveRegex: Regex =
-    s""":\\/\\/gist\\.github\\.com\\/[^\\/]*?\\/[^\\/]*$$""".r
+    s"""://gist\\.github\\.com/[^/]*?/[^/]*$$""".r
 
   private def resolve(path: String, content: Array[Byte]): Element =
     if (path.endsWith(".scala")) VirtualScalaFile(content, path)
@@ -307,7 +306,7 @@ object Inputs {
     val zipInputStream = new ZipInputStream(new ByteArrayInputStream(content))
     @tailrec
     def readArchive(acc: Seq[Element]): Seq[Element] =
-      Option(zipInputStream.getNextEntry()) match {
+      Option(zipInputStream.getNextEntry) match {
         case Some(entry) if entry.isDirectory => readArchive(acc)
         case Some(entry) =>
           val content = zipInputStream.readAllBytes()

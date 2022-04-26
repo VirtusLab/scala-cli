@@ -1,10 +1,10 @@
 package scala.build
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
+import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.{BuildOptions, BuildRequirements, HasBuildRequirements, Scope}
-import scala.build.preprocessing._
+import scala.build.preprocessing.*
 
 final case class CrossSources(
   paths: Seq[HasBuildRequirements[(os.Path, os.RelPath)]],

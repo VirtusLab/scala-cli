@@ -7,11 +7,11 @@ import dependency.parser.DependencyParser
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
-import scala.build.errors._
+import scala.build.Ops.*
+import scala.build.errors.*
 import scala.build.internal.Util
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
-import scala.build.preprocessing.directives._
+import scala.build.preprocessing.directives.*
 import scala.build.{Inputs, Logger, Position, Positioned}
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -177,9 +177,9 @@ case object ScalaPreprocessor extends Preprocessor {
     path: Either[String, os.Path]
   ): Either[BuildException, Option[SpecialImportsProcessingOutput]] = either {
 
-    import fastparse._
+    import fastparse.*
 
-    import scala.build.internal.ScalaParse._
+    import scala.build.internal.ScalaParse.*
 
     val res = parse(content, Header(_))
 
@@ -315,7 +315,7 @@ case object ScalaPreprocessor extends Preprocessor {
             updatedRequirements.scoped,
             updatedContentOpt
           ))
-        case Seq(h, t @ _*) =>
+        case Seq(h, t*) =>
           val errors = ::(
             handleUnusedValues(ScopedDirective(h, path, cwd)),
             t.map(d => handleUnusedValues(ScopedDirective(d, path, cwd))).toList

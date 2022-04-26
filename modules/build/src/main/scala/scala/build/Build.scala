@@ -9,14 +9,15 @@ import java.io.File
 import java.nio.file.{FileSystemException, Path}
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
+import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
+import scala.build.Ops.*
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
-import scala.build.errors._
+import scala.build.errors.*
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
-import scala.build.options._
+import scala.build.options.*
 import scala.build.options.validation.ValidationException
-import scala.build.postprocessing._
+import scala.build.postprocessing.*
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
@@ -329,7 +330,7 @@ object Build {
     builds
   }
 
-  private def copyResourceToClassesDir(build: Build) = build match {
+  private def copyResourceToClassesDir(build: Build): Unit = build match {
     case b: Build.Successful =>
       for {
         resourceDirPath  <- b.sources.resourceDirs.filter(os.exists(_))
@@ -502,7 +503,7 @@ object Build {
     logger: Logger,
     options: BuildOptions
   ): Either[BuildException, Unit] = {
-    val (errors, otherDiagnostics) = options.validate.toSeq.partition(_.severity == Severity.Error)
+    val (errors, otherDiagnostics) = options.validate.partition(_.severity == Severity.Error)
     logger.log(otherDiagnostics)
     if (errors.nonEmpty)
       Left(CompositeBuildException(errors.map(new ValidationException(_))))
@@ -541,7 +542,7 @@ object Build {
       logger
     ))
 
-    def run() = {
+    def run(): Unit = {
       try {
         val res = build(
           inputs,
@@ -940,6 +941,7 @@ object Build {
       def onError(t: Throwable): Unit = {
         // TODO Log that properly
         System.err.println("got error:")
+        @tailrec
         def printEx(t: Throwable): Unit =
           if (t != null) {
             System.err.println(t)
@@ -973,7 +975,7 @@ object Build {
     }
 
     private val lock                  = new Object
-    private var f: ScheduledFuture[_] = null
+    private var f: ScheduledFuture[?] = _
     private val waitFor               = 50.millis
     private val runnable: Runnable = { () =>
       lock.synchronized {
@@ -1080,7 +1082,7 @@ object Build {
         command.iterator.map(_ + System.lineSeparator()).mkString
     )
 
-    new ProcessBuilder(command: _*)
+    new ProcessBuilder(command*)
       .inheritIO()
       .start()
       .waitFor()
