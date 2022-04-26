@@ -11,7 +11,6 @@
 - [ ] Create a pull request with supported scala-versions for the new release to this repository: [Virtuslab/scala-cli-scala-versions ](https://github.com/Virtuslab/scala-cli-scala-versions)
 - [ ] Update the supported scala versions for the new release in the docs:
   - [ ] Scala: [scala-cli-scala-versions.md](https://github.com/VirtusLab/scala-cli/blob/main/website/docs/reference/scala-versions.md)
-  - [ ] Scala.js: [scala-js.md](https://github.com/VirtusLab/scala-cli/blob/main/website/docs/guides/scala-js.md#supported-scalajs-versions)
 - [ ] Mark the release draft as `pre-release` and then `Publish Release`
 - [ ] Wait for a green release CI build with all the updated versions.
 - [ ] Unmark release as `pre-release`.
