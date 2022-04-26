@@ -83,9 +83,11 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
   def jsoniterMacros =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
-  def libdaemonjvm               = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
-  def macroParadise              = ivy"org.scalamacros:::paradise:2.1.1"
-  def metaconfigTypesafe         = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
+  def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
+  def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
+  def metaconfigTypesafe =
+    ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
+      .exclude(("org.scala-lang", "scala-compiler"))
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
