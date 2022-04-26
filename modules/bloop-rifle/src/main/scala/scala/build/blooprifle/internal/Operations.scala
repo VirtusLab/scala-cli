@@ -218,7 +218,7 @@ object Operations {
     *
     * @param host
     * @param port
-    * @param in
+    * @param inOpt
     * @param out
     * @param err
     * @param logger
@@ -229,7 +229,7 @@ object Operations {
     address: BloopRifleConfig.Address,
     bspSocketOrPort: BspConnectionAddress,
     workingDir: Path,
-    in: InputStream,
+    inOpt: Option[InputStream],
     out: OutputStream,
     err: OutputStream,
     logger: BloopRifleLogger
@@ -237,7 +237,7 @@ object Operations {
 
     val stop0          = new AtomicBoolean
     val nailgunClient0 = nailgunClient(address)
-    val streams        = Streams(in, out, err)
+    val streams        = Streams(inOpt, out, err)
 
     val promise    = Promise[Int]()
     val threadName = "bloop-rifle-nailgun-out"
@@ -318,7 +318,6 @@ object Operations {
   def exit(
     address: BloopRifleConfig.Address,
     workingDir: Path,
-    in: InputStream,
     out: OutputStream,
     err: OutputStream,
     logger: BloopRifleLogger
@@ -326,7 +325,7 @@ object Operations {
 
     val stop0          = new AtomicBoolean
     val nailgunClient0 = nailgunClient(address)
-    val streams        = Streams(in, out, err)
+    val streams        = Streams(None, out, err)
 
     nailgunClient0.run(
       "ng-stop",
@@ -343,7 +342,6 @@ object Operations {
   def about(
     address: BloopRifleConfig.Address,
     workingDir: Path,
-    in: InputStream,
     out: OutputStream,
     err: OutputStream,
     logger: BloopRifleLogger,
@@ -352,7 +350,7 @@ object Operations {
 
     val stop0          = new AtomicBoolean
     val nailgunClient0 = nailgunClient(address)
-    val streams        = Streams(in, out, err)
+    val streams        = Streams(None, out, err)
 
     timeout(30.seconds, scheduler, logger) {
       nailgunClient0.run(
