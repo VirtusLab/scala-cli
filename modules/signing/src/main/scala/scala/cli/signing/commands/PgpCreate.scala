@@ -5,6 +5,7 @@ import caseapp.core.app.Command
 import org.bouncycastle.bcpg.ArmoredOutputStream
 
 import java.io.{BufferedOutputStream, ByteArrayOutputStream, File}
+import java.util.{Base64, HexFormat}
 
 import scala.cli.signing.util.PgpHelper
 
@@ -44,8 +45,11 @@ object PgpCreate extends Command[PgpCreateOptions] {
     val secretKeyPath = options.secretKeyPath
 
     os.write(publicKeyPath, pubKeyContent)
-    if (options.verbosity >= 0)
-      System.err.println(s"Wrote public key to ${printable(publicKeyPath)}")
+    if (options.verbosity >= 0) {
+      val keyId    = pubKeyRing.getPublicKey.getKeyID
+      val keyIdStr = java.util.HexFormat.of().withPrefix("0x").toHexDigits(keyId)
+      System.err.println(s"Wrote public key $keyIdStr to ${printable(publicKeyPath)}")
+    }
     os.write(secretKeyPath, secretKeyContent)
     if (options.verbosity >= 0)
       System.err.println(s"Wrote secret key to ${printable(secretKeyPath)}")
