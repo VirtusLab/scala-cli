@@ -41,7 +41,7 @@ case object ScalaPreprocessor extends Preprocessor {
     updatedContent: Option[String]
   )
 
-  val usingDirectiveHandlers = Seq(
+  val usingDirectiveHandlers: Seq[UsingDirectiveHandler] = Seq(
     UsingDependencyDirectiveHandler,
     UsingScalaVersionDirectiveHandler,
     UsingRepositoryDirectiveHandler,
@@ -60,7 +60,7 @@ case object ScalaPreprocessor extends Preprocessor {
     UsingPublishDirectiveHandler
   )
 
-  val requireDirectiveHandlers = Seq[RequireDirectiveHandler](
+  val requireDirectiveHandlers: Seq[RequireDirectiveHandler] = Seq(
     RequireScalaVersionDirectiveHandler,
     RequirePlatformsDirectiveHandler,
     RequireScopeDirectiveHandler
@@ -114,6 +114,11 @@ case object ScalaPreprocessor extends Preprocessor {
 
       case v: Inputs.VirtualScalaFile =>
         val res = either {
+          val relPath = if (v.isStdin) os.sub / "stdin.scala" else v.subPath
+          val className = {
+            val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(relPath)
+            (pkg :+ wrapper).map(_.raw).mkString(".")
+          }
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
             value(
@@ -123,15 +128,15 @@ case object ScalaPreprocessor extends Preprocessor {
                 (reqs, scopedReqs, opts, updatedContent)
             }.getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
           val s = PreprocessedSource.InMemory(
-            Left(v.source),
-            v.subPath,
+            originalPath = Left(v.source),
+            relPath = relPath,
             updatedContentOpt.getOrElse(content),
-            0,
-            Some(options),
-            Some(requirements),
+            ignoreLen = 0,
+            options = Some(options),
+            requirements = Some(requirements),
             scopedRequirements,
-            None,
-            v.scopePath
+            mainClassOpt = Some(className),
+            scopePath = v.scopePath
           )
           Seq(s)
         }
@@ -235,7 +240,7 @@ case object ScalaPreprocessor extends Preprocessor {
       // for standard imports.
       val buf = content.toCharArray
       for (t <- dependencyTrees) {
-        val substitute = (t.prefix(0) + ".A").padTo(t.end - t.start, ' ')
+        val substitute = (t.prefix.head + ".A").padTo(t.end - t.start, ' ')
         assert(substitute.length == (t.end - t.start))
         System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
       }
