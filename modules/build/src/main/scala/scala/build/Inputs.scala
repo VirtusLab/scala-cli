@@ -16,7 +16,7 @@ import scala.util.matching.Regex
 
 final case class Inputs(
   elements: Seq[Inputs.Element],
-  mainClassElement: Option[Inputs.SourceFile],
+  mainClassElement: Option[Inputs.SingleElement],
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean,
@@ -204,7 +204,7 @@ object Inputs {
   final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
       extends Virtual with AnyScalaFile with AnyScript
   final case class VirtualScalaFile(content: Array[Byte], source: String)
-      extends Virtual with AnyScalaFile
+      extends Virtual with AnyScalaFile { def isStdin: Boolean = source == "<stdin>" }
   final case class VirtualJavaFile(content: Array[Byte], source: String)
       extends Virtual with Compiled
   final case class VirtualData(content: Array[Byte], source: String)
@@ -281,7 +281,8 @@ object Inputs {
     }
     val mainClassElemOpt = validElems
       .collectFirst {
-        case f: SourceFile => f
+        case f: SourceFile         => f
+        case vsf: VirtualScalaFile => vsf
       }
     Inputs(
       updatedElems,

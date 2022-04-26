@@ -4,11 +4,12 @@ import mill._, scalalib._
 import scala.util.Properties
 
 object Scala {
-  def scala212  = "2.12.15"
-  def scala213  = "2.13.8"
-  def scala3    = "3.1.1"
-  val allScala2 = Seq(scala213, scala212)
-  val all       = allScala2 ++ Seq(scala3)
+  def scala212     = "2.12.15"
+  def scala213     = "2.13.8"
+  def scala3       = "3.1.1"
+  val allScala2    = Seq(scala213, scala212)
+  val all          = allScala2 ++ Seq(scala3)
+  val mainVersions = Seq(scala3, scala213)
 
   def scalaJs = "1.10.0"
 
@@ -28,7 +29,7 @@ object Scala {
   // The Scala version used to build the CLI itself.
   // We should be able to switch to 3.x when it'll have CPS support
   // (for the either { value(…) } stuff)
-  def defaultInternal = scala213
+  def defaultInternal = scala3
 
   // The Scala version used by default to compile user input.
   def defaultUser = scala3
@@ -52,13 +53,13 @@ object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier      = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.13.13"
-    def scalaMeta     = "4.5.3"
+    def jsoniterScala = "2.13.18"
+    def scalaMeta     = "4.5.4"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
-    def signingCli    = "0.1.2"
+    def signingCli    = "0.1.3"
   }
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.2"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.3"
   def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.4.20"
@@ -84,6 +85,7 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
   def libdaemonjvm               = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
   def macroParadise              = ivy"org.scalamacros:::paradise:2.1.1"
+  def metaconfigTypesafe         = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
@@ -121,11 +123,10 @@ object Deps {
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"me.vican.jorge:snailgun-core_2.13:0.4.0"
     else ivy"me.vican.jorge::snailgun-core:0.4.0"
-  def svm                = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
-  def swoval             = ivy"com.swoval:file-tree-views:2.1.9"
-  def testInterface      = ivy"org.scala-sbt:test-interface:1.0"
-  def usingDirectives    = ivy"org.virtuslab:using_directives:0.0.8"
-  val metaconfigTypesafe = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
+  def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
+  def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
+  def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
+  def usingDirectives = ivy"org.virtuslab:using_directives:0.0.8"
 }
 
 def graalVmVersion     = "22.0.0"
@@ -150,7 +151,8 @@ object Docker {
 
 def customRepositories =
   Seq(
-    coursier.Repositories.sonatype("snapshots")
+    coursier.Repositories.sonatype("snapshots"),
+    coursier.MavenRepository("https://s01.oss.sonatype.org/content/repositories/snapshots")
     // Uncomment for local development
     // coursier.LocalRepositories.Dangerous.maven2Local
   )

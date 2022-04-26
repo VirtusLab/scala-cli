@@ -26,7 +26,7 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
   }
 
   // TODO Manage to have case-app give use the exact command name that was used instead
-  protected def commandLength = 1
+  protected def commandLength = names.headOption.fold(1)(_.length)
 
   override def error(message: Error): Nothing = {
     System.err.println(message.message)
@@ -62,7 +62,6 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
           case "dependency" =>
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
               val cache = sharedOptions.coursierCache
-              sharedOptions.buildOptions(false, None, ignoreErrors = true).scalaOptions.scalaVersion
               val (fromIndex, completions) = cache.logger.use {
                 coursier.complete.Complete(cache)
                   .withInput(prefix)

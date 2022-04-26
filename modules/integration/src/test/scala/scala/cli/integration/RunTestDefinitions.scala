@@ -35,7 +35,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   // warm-up run that downloads compiler bridges
   // The "Downloading compiler-bridge (from bloop?) pollute the output, and would make the first test fail.
-  lazy val warmupTest = {
+  lazy val warmupTest: Unit = {
     System.err.println("Running RunTests warmup test…")
     simpleScriptTest(ignoreErrors = true)
     System.err.println("Done running RunTests warmup test.")
@@ -95,9 +95,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def platformNl = if (Properties.isWin) "\\r\\n" else "\\n"
+  def platformNl: String = if (Properties.isWin) "\\r\\n" else "\\n"
 
-  def canRunScWithNative(): Boolean =
+  def canRunScWithNative: Boolean =
     !(actualScalaVersion.startsWith("2.12") || actualScalaVersion.startsWith("3.0"))
 
   def simpleNativeTests(): Unit = {
@@ -124,7 +124,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (canRunScWithNative())
+  if (canRunScWithNative)
     test("simple script native") {
       simpleNativeTests()
     }
@@ -289,7 +289,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (canRunScWithNative())
+  if (canRunScWithNative)
     test("Multiple scripts native") {
       multipleScriptsNative()
     }
@@ -618,7 +618,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         exceptionLines.length == expectedLines.length,
         clues(output, exceptionLines.length, expectedLines.length)
       )
-      for (i <- 0 until exceptionLines.length)
+      for (i <- exceptionLines.indices)
         assert(
           exceptionLines(i) == expectedLines(i),
           clues(output, exceptionLines(i), expectedLines(i))
@@ -675,7 +675,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         exceptionLines.length == expectedLines.length,
         clues(output, exceptionLines.length, expectedLines.length)
       )
-      for (i <- 0 until exceptionLines.length)
+      for (i <- exceptionLines.indices)
         assert(
           exceptionLines(i) == expectedLines(i),
           clues(output, exceptionLines(i), expectedLines(i))
@@ -688,11 +688,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       scriptStackTraceScala3()
     }
 
-  val emptyInputs = TestInputs(
-    Seq(
-      os.rel / ".placeholder" -> ""
-    )
-  )
+  val emptyInputs: TestInputs = TestInputs(Seq(os.rel / ".placeholder" -> ""))
 
   def piping(): Unit = {
     emptyInputs.fromRoot { root =>
@@ -716,6 +712,32 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           .call(cwd = root, stdin = input)
           .out.text().trim
         expect(output == message)
+      }
+    }
+    test("Scala code accepted as piped input") {
+      val expectedOutput = "Hello"
+      val pipedInput     = s"object Test extends App { println(\"$expectedOutput\") }"
+      emptyInputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, "_.scala", extraOptions)
+          .call(cwd = root, stdin = pipedInput)
+          .out.text().trim
+        expect(output == expectedOutput)
+      }
+    }
+    test("Scala code with references to existing files accepted as piped input") {
+      val expectedOutput = "Hello"
+      val pipedInput =
+        s"""object Test extends App {
+           |  val data = SomeData(value = "$expectedOutput")
+           |  println(data.value)
+           |}""".stripMargin
+      val inputs =
+        TestInputs(Seq(os.rel / "SomeData.scala" -> "case class SomeData(value: String)"))
+      inputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, ".", "_.scala", extraOptions)
+          .call(cwd = root, stdin = pipedInput)
+          .out.text().trim
+        expect(output == expectedOutput)
       }
     }
   }
@@ -781,6 +803,30 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val message = "Hello"
     emptyInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
+        .call(cwd = root)
+        .out.text().trim
+      expect(output == message)
+    }
+  }
+
+  test("Zip with multiple Scala files") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""object Hello extends App {
+             |  println(Messages.hello)
+             |}
+             |""".stripMargin,
+        os.rel / "Messages.scala" ->
+          s"""object Messages {
+             |  def hello: String = "Hello"
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.asZip { (root, zipPath) =>
+      val message = "Hello"
+      val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
         .call(cwd = root)
         .out.text().trim
       expect(output == message)
@@ -1015,7 +1061,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         // format: off
         val cmd = Seq[os.Shellable](
           "docker", "run", "--rm", termOpt,
-          "-v", s"${root}:/data",
+          "-v", s"$root:/data",
           "-w", "/data",
           ciOpt,
           baseImage,
@@ -1450,7 +1496,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       // format: off
       val cmd = Seq[os.Shellable](
         "docker", "run", "--rm", termOpt,
-        "-v", s"${root}:/data",
+        "-v", s"$root:/data",
         "-w", "/data",
         ciOpt,
         baseImage,
@@ -1535,7 +1581,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def runAuthProxyTest =
+  def runAuthProxyTest: Boolean =
     Properties.isLinux || (Properties.isMac && !TestUtil.isCI)
   if (runAuthProxyTest)
     test("auth proxy") {

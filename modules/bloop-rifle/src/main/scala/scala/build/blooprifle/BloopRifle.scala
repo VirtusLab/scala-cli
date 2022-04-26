@@ -164,7 +164,7 @@ object BloopRifle {
     val isRunning = BloopRifle.check(config, logger)
 
     if (isRunning) {
-      val bufferedOStream = new ByteArrayOutputStream(100000)
+      val bufferedOStream = new ByteArrayOutputStream
       Operations.about(
         config.address,
         workdir,
@@ -175,31 +175,29 @@ object BloopRifle {
         scheduler
       )
       val bloopAboutOutput = new String(bufferedOStream.toByteArray)
-      VersionUtil.parseBloopAbout(bloopAboutOutput) match {
-        case Some(value) => Right(value)
-        case None        => Left(ParsingFailed(bloopAboutOutput))
-      }
+      VersionUtil.parseBloopAbout(bloopAboutOutput)
+        .toRight(ParsingFailed(bloopAboutOutput))
     }
     else
       Left(BloopNotRunning)
   }
-}
 
-sealed abstract class BloopAboutFailure extends Product with Serializable {
-  def message: String
-}
-case object BloopNotRunning extends BloopAboutFailure {
-  def message = "not running"
-}
-case class ParsingFailed(bloopAboutOutput: String) extends BloopAboutFailure {
-  def message = s"failed to parse output: '$bloopAboutOutput'"
-}
+  sealed abstract class BloopAboutFailure extends Product with Serializable {
+    def message: String
+  }
+  case object BloopNotRunning extends BloopAboutFailure {
+    def message = "not running"
+  }
+  final case class ParsingFailed(bloopAboutOutput: String) extends BloopAboutFailure {
+    def message = s"failed to parse output: '$bloopAboutOutput'"
+  }
 
-case class BloopServerRuntimeInfo(
-  bloopVersion: BloopVersion,
-  jvmVersion: Int,
-  javaHome: String
-) {
-  def message: String =
-    s"version $bloopVersion, JVM $jvmVersion under $javaHome"
+  final case class BloopServerRuntimeInfo(
+    bloopVersion: BloopVersion,
+    jvmVersion: Int,
+    javaHome: String
+  ) {
+    def message: String =
+      s"version $bloopVersion, JVM $jvmVersion under $javaHome"
+  }
 }

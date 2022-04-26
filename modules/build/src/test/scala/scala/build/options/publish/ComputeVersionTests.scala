@@ -1,6 +1,8 @@
 package scala.build.options.publish
 
 import com.eed3si9n.expecty.Expecty.expect
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Constants
 
 import scala.build.tests.{TestInputs, TestUtil}
 
@@ -43,6 +45,21 @@ class ComputeVersionTests extends munit.FunSuite {
           .fold(ex => throw new Exception(ex), identity)
         expect(version == expectedVersion)
       }
+    }
+  }
+
+  test("git tag on empty repo") {
+    TestInputs().fromRoot { root =>
+      val git     = Git.init().setDirectory(root.toIO).call()
+      val hasHead = git.getRepository.resolve(Constants.HEAD) != null
+      expect(!hasHead)
+
+      val defaultVersion = "0.0.2-SNAPSHOT"
+      val cv             = ComputeVersion.GitTag(os.rel, true, defaultVersion)
+
+      val version = cv.get(root)
+        .fold(ex => throw new Exception(ex), identity)
+      expect(version == defaultVersion)
     }
   }
 

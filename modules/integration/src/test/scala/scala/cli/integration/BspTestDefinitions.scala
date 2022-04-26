@@ -5,9 +5,13 @@ import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
+import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.net.URI
 import java.nio.file.Paths
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
@@ -34,8 +38,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       new b.BuildClientCapabilities(List("java", "scala").asJava)
     )
 
-  val pool      = TestUtil.threadPool("bsp-tests-jsonrpc", 4)
-  val scheduler = TestUtil.scheduler("bsp-tests-scheduler")
+  val pool: ExecutorService               = TestUtil.threadPool("bsp-tests-jsonrpc", 4)
+  val scheduler: ScheduledExecutorService = TestUtil.scheduler("bsp-tests-scheduler")
 
   def completeIn(duration: FiniteDuration): Future[Unit] = {
     val p = Promise[Unit]()
@@ -72,7 +76,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     inputs: TestInputs,
     args: Seq[String],
     attempts: Int = if (TestUtil.isCI) 3 else 1,
-    pauseDuration: FiniteDuration = 5.seconds
+    pauseDuration: FiniteDuration = 5.seconds,
+    bspOptions: List[String] = List.empty,
+    reuseRoot: Option[os.Path] = None
   )(
     f: (
       os.Path,
@@ -82,9 +88,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   ): T = {
 
     def attempt(): Try[T] = Try {
-      val root = inputs.root()
+      val root = reuseRoot.getOrElse(inputs.root())
 
-      val proc = os.proc(TestUtil.cli, "bsp", extraOptions, args)
+      val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptions, args)
         .spawn(cwd = root)
       var remoteServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer = null
 
@@ -190,7 +196,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
 
-  val importPprintOnlyProject = TestInputs(
+  val importPprintOnlyProject: TestInputs = TestInputs(
     Seq(
       os.rel / "simple.sc" -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`"
     )
@@ -275,7 +281,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
-          val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
         }
@@ -291,9 +297,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
           }
-          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundDepSources = resp.getItems().asScala
+          val foundDepSources = resp.getItems.asScala
             .flatMap(_.getSources.asScala)
             .toSeq
             .map { uri =>
@@ -314,9 +320,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         {
           val resp = await(remoteServer.buildTargetSources(new b.SourcesParams(targets)).asScala)
-          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundSources = resp.getItems().asScala
+          val foundSources = resp.getItems.asScala
             .map(_.getSources.asScala.map(_.getUri).toSeq)
             .toSeq
             .map(_.map(TestUtil.normalizeUri))
@@ -335,12 +341,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .asScala
           }
           val foundTargets = resp
-            .getItems()
+            .getItems
             .asScala
             .map(_.getTarget.getUri)
             .map(TestUtil.normalizeUri)
           expect(foundTargets == Seq(targetUri))
-          val foundOptions = resp.getItems().asScala.flatMap(_.getOptions.asScala).toSeq
+          val foundOptions = resp.getItems.asScala.flatMap(_.getOptions.asScala).toSeq
           if (actualScalaVersion.startsWith("2."))
             expect(foundOptions.exists { opt =>
               opt.startsWith("-Xplugin:") && opt.contains("semanticdb-scalac")
@@ -355,7 +361,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             remoteServer.buildTargetJavacOptions(new b.JavacOptionsParams(targets)).asScala
           }
           val foundTargets = resp
-            .getItems()
+            .getItems
             .asScala
             .map(_.getTarget.getUri)
             .map(TestUtil.normalizeUri)
@@ -363,7 +369,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         }
 
         val classDir = os.Path(
-          Paths.get(new URI(scalacOptionsResp.getItems().asScala.head.getClassDirectory))
+          Paths.get(new URI(scalacOptionsResp.getItems.asScala.head.getClassDirectory))
         )
 
         {
@@ -398,7 +404,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
-          val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
         }
@@ -465,7 +471,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
-          val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
         }
@@ -610,7 +616,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
-          val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
         }
@@ -631,9 +637,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
           }
-          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundDepSources = resp.getItems().asScala
+          val foundDepSources = resp.getItems.asScala
             .flatMap(_.getSources.asScala)
             .toSeq
             .map { uri =>
@@ -686,9 +692,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
           }
-          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundDepSources = resp.getItems().asScala
+          val foundDepSources = resp.getItems.asScala
             .flatMap(_.getSources.asScala)
             .toSeq
             .map { uri =>
@@ -721,7 +727,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
-          val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractMainTargets(targets)
         }
@@ -742,9 +748,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
           }
-          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundDepSources = resp.getItems().asScala
+          val foundDepSources = resp.getItems.asScala
             .flatMap(_.getSources.asScala)
             .toSeq
             .map { uri =>
@@ -829,7 +835,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
-          val targets = buildTargetsResp.getTargets().asScala.map(_.getId).toSeq
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
           expect(targets.length == 2)
           extractTestTargets(targets)
         }
@@ -850,9 +856,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
               .buildTargetDependencySources(new b.DependencySourcesParams(targets))
               .asScala
           }
-          val foundTargets = resp.getItems().asScala.map(_.getTarget.getUri).toSeq
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
           expect(foundTargets == Seq(targetUri))
-          val foundDepSources = resp.getItems().asScala
+          val foundDepSources = resp.getItems.asScala
             .flatMap(_.getSources.asScala)
             .toSeq
             .map { uri =>
@@ -907,23 +913,166 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         // prepare build
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         // build code
-        val targets = buildTargetsResp.getTargets().asScala.map(_.getId()).asJava
+        val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
         await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
 
         val visibleDiagnostics =
-          localClient.diagnostics().takeWhile(!_.getReset()).flatMap(_.getDiagnostics().asScala)
+          localClient.diagnostics().takeWhile(!_.getReset).flatMap(_.getDiagnostics.asScala)
 
         expect(visibleDiagnostics.nonEmpty)
         visibleDiagnostics.foreach { d =>
           expect(
-            d.getSeverity() == b.DiagnosticSeverity.WARNING,
-            d.getMessage().contains("deprecated"),
+            d.getSeverity == b.DiagnosticSeverity.WARNING,
+            d.getMessage.contains("deprecated"),
             d.getMessage.contains("directive")
           )
         }
       }
     }
   }
+
+  test("workspace/reload --dependency option") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "ReloadTest.scala" ->
+          s"""import os.pwd
+             |object ReloadTest {
+             |  println(pwd)
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions)
+        .call(
+          cwd = root,
+          stdout = os.Inherit
+        )
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      val jsonOptions    = List("--json-options", ideOptionsPath.toString)
+      withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+
+            val resp =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(resp.getStatusCode == b.StatusCode.ERROR)
+
+            val dependencyOptions = List("--dependency", "com.lihaoyi::os-lib::0.8.0")
+            os.proc(TestUtil.cli, "setup-ide", ".", dependencyOptions ++ extraOptions)
+              .call(
+                cwd = root,
+                stdout = os.Inherit
+              )
+
+            val reloadResponse =
+              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+            expect(reloadResponse.isEmpty)
+
+            val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
+
+            val resp0 =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala)
+            expect(resp0.getStatusCode == b.StatusCode.OK)
+          }
+      }
+
+    }
+  }
+
+  test("workspace/reload of an extra sources directory") {
+    val dir1 = "dir1"
+    val dir2 = "dir2"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / dir1 / "ReloadTest.scala" ->
+          s"""object ReloadTest {
+             |  val container = MissingCaseClass(value = "Hello")
+             |  println(container.value)
+             |}
+             |""".stripMargin
+      )
+    )
+    val extraInputs = inputs.add(
+      os.rel / dir2 / "MissingCaseClass.scala" -> "case class MissingCaseClass(value: String)"
+    )
+    extraInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", dir1, extraOptions)
+        .call(
+          cwd = root,
+          stdout = os.Inherit
+        )
+      withBsp(inputs, Seq(dir1), reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+
+            val resp =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(resp.getStatusCode == b.StatusCode.ERROR)
+
+            os.proc(TestUtil.cli, "setup-ide", dir1, dir2, extraOptions)
+              .call(
+                cwd = root,
+                stdout = os.Inherit
+              )
+
+            val reloadResponse =
+              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+            expect(reloadResponse.isEmpty)
+
+            val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
+
+            val resp0 =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala)
+            expect(resp0.getStatusCode == b.StatusCode.OK)
+          }
+      }
+
+    }
+  }
+
+  test("workspace/reload error response when no inputs json present") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "ReloadTest.scala" ->
+          s"""object ReloadTest {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".")) {
+      (_, _, remoteServer) =>
+        async {
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+
+          val resp =
+            await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+          expect(resp.getStatusCode == b.StatusCode.OK)
+
+          val Some(responseError) =
+            extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+          expect(responseError.getCode == -32603)
+          expect(responseError.getMessage.nonEmpty)
+        }
+    }
+
+  }
+
+  private def extractWorkspaceReloadResponse(workspaceReloadResult: AnyRef): Option[ResponseError] =
+    workspaceReloadResult match {
+      case gsonMap: LinkedTreeMap[_, _] if !gsonMap.isEmpty =>
+        val gson = new Gson()
+        Some(gson.fromJson(gson.toJson(gsonMap), classOf[ResponseError]))
+      case _ => None
+    }
 }
 
 object BspTestDefinitions {
