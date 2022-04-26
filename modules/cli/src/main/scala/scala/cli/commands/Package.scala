@@ -19,7 +19,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
 import scala.build._
-import scala.build.errors.{BuildException, ScalaNativeBuildError}
+import scala.build.errors.{BuildException, MalformedCliInputError, ScalaNativeBuildError}
 import scala.build.internal.{NativeBuilderHelper, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
@@ -127,23 +127,47 @@ object Package extends ScalaCommand[PackageOptions] {
     logger: Logger,
     outputOpt: Option[String],
     force: Boolean,
-    forcedPackageType: Option[PackageType],
+    forcedPackageTypeOpt: Option[PackageType],
     build: Build.Successful,
     extraArgs: Seq[String],
     expectedModifyEpochSecondOpt: Option[Long]
   ): Either[BuildException, Option[Long]] = either {
 
-    val packageType = forcedPackageType.getOrElse {
-      // FIXME We'll probably need more refined rules if we start to support extra Scala.js or Scala Native specific types
-      if (build.options.notForBloopOptions.packageOptions.isDockerEnabled)
-        PackageType.Docker
-      else if (build.options.platform.value == Platform.JS)
-        PackageType.Js
-      else if (build.options.platform.value == Platform.Native)
-        PackageType.Native
-      else
-        build.options.notForBloopOptions.packageOptions.packageTypeOpt
-          .getOrElse(PackageType.Bootstrap)
+    val packageType: PackageType = {
+      val basePackageTypeOpt = build.options.notForBloopOptions.packageOptions.packageTypeOpt
+      lazy val validPackageScalaJS =
+        Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
+      lazy val validPackageScalaNative =
+        Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
+
+      (forcedPackageTypeOpt -> build.options.platform.value) match {
+        case (Some(forcedPackageType), _) => forcedPackageType
+        case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
+          for (basePackageType <- basePackageTypeOpt)
+            throw new MalformedCliInputError(
+              s"Unsuported package type: $basePackageType for Docker."
+            )
+          PackageType.Docker
+        case (_, Platform.JS) =>
+          val validatedPackageType =
+            for (basePackageType <- basePackageTypeOpt)
+              yield
+                if (validPackageScalaJS.contains(basePackageType)) basePackageType
+                else throw new MalformedCliInputError(
+                  s"Unsuported package type: $basePackageType for Scala.js."
+                )
+          validatedPackageType.getOrElse(PackageType.Js)
+        case (_, Platform.Native) =>
+          val validatedPackageType =
+            for (basePackageType <- basePackageTypeOpt)
+              yield
+                if (validPackageScalaNative.contains(basePackageType)) basePackageType
+                else throw new MalformedCliInputError(
+                  s"Unsuported package type: $basePackageType for Scala Native."
+                )
+          validatedPackageType.getOrElse(PackageType.Native)
+        case _ => basePackageTypeOpt.getOrElse(PackageType.Bootstrap)
+      }
     }
 
     // TODO When possible, call alreadyExistsCheck() before compiling stuff
