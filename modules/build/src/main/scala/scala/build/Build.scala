@@ -57,7 +57,7 @@ object Build {
       MainClass.find(output)
     def retainedMainClass: Either[MainClassError, String] = {
       lazy val foundMainClasses0 = foundMainClasses()
-      val defaultMainClassOpt = sources.mainClass
+      val defaultMainClassOpt = sources.defaultMainClass
         .filter(name => foundMainClasses0.contains(name))
       def foundMainClass =
         if (foundMainClasses0.isEmpty) Left(new NoMainClassFoundError)

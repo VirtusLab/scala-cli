@@ -9,7 +9,7 @@ import scala.build.preprocessing._
 final case class CrossSources(
   paths: Seq[HasBuildRequirements[(os.Path, os.RelPath)]],
   inMemory: Seq[HasBuildRequirements[Sources.InMemory]],
-  mainClass: Option[String],
+  defaultMainClass: Option[String],
   resourceDirs: Seq[HasBuildRequirements[os.Path]],
   buildOptions: Seq[HasBuildRequirements[BuildOptions]]
 ) {
@@ -49,7 +49,7 @@ final case class CrossSources(
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
         .flatMap(_.withPlatform(platform.value).toSeq)
         .map(_.scopedValue(defaultScope)),
-      mainClass,
+      defaultMainClass,
       resourceDirs
         .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
         .flatMap(_.withPlatform(platform.value).toSeq)
@@ -132,11 +132,8 @@ object CrossSources {
       )
     }
 
-    val mainClassOpt = for {
-      mainClassPath <- inputs.mainClassElement.map {
-        case sf: Inputs.SourceFile        => ScopePath.fromPath(sf.path).path
-        case vsf: Inputs.VirtualScalaFile => vsf.scopePath.path
-      }
+    val defaultMainClassOpt = for {
+      mainClassPath      <- inputs.defaultMainClassElement.map(s => ScopePath.fromPath(s.path).path)
       processedMainClass <- preprocessedSources.find(_.scopePath.path == mainClassPath)
       mainClass          <- processedMainClass.mainClassOpt
     } yield mainClass
@@ -165,6 +162,6 @@ object CrossSources {
       HasBuildRequirements(BuildRequirements(), _)
     )
 
-    CrossSources(paths, inMemory, mainClassOpt, resourceDirs, buildOptions)
+    CrossSources(paths, inMemory, defaultMainClassOpt, resourceDirs, buildOptions)
   }
 }

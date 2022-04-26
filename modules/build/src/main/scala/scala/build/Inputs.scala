@@ -16,7 +16,7 @@ import scala.util.matching.Regex
 
 final case class Inputs(
   elements: Seq[Inputs.Element],
-  mainClassElement: Option[Inputs.SingleElement],
+  defaultMainClassElement: Option[Inputs.Script],
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean,
@@ -279,14 +279,11 @@ object Inputs {
       case _: ResourceDirectory => true
       case _: Virtual           => true
     }
-    val mainClassElemOpt = validElems
-      .collectFirst {
-        case f: SourceFile         => f
-        case vsf: VirtualScalaFile => vsf
-      }
+    // only on-disk scripts need a main class override
+    val defaultMainClassElemOpt = validElems.collectFirst { case script: Script => script }
     Inputs(
       updatedElems,
-      mainClassElemOpt,
+      defaultMainClassElemOpt,
       workspace,
       baseProjectName,
       mayAppendHash = needsHash,
@@ -297,15 +294,14 @@ object Inputs {
   private val githubGistsArchiveRegex: Regex =
     s""":\\/\\/gist\\.github\\.com\\/[^\\/]*?\\/[^\\/]*$$""".r
 
-  private def resolve(path: String, content: Array[Byte]): Element = {
-    val wrapperPath =
-      os.sub / path.split("/").last
-
+  private def resolve(path: String, content: Array[Byte]): Element =
     if (path.endsWith(".scala")) VirtualScalaFile(content, path)
     else if (path.endsWith(".java")) VirtualJavaFile(content, path)
-    else if (path.endsWith(".sc")) VirtualScript(content, path, wrapperPath)
+    else if (path.endsWith(".sc")) {
+      val wrapperPath = os.sub / path.split("/").last
+      VirtualScript(content, path, wrapperPath)
+    }
     else VirtualData(content, path)
-  }
 
   private def resolveZipArchive(content: Array[Byte]): Seq[Element] = {
     val zipInputStream = new ZipInputStream(new ByteArrayInputStream(content))
@@ -429,7 +425,7 @@ object Inputs {
   def empty(workspace: os.Path): Inputs =
     Inputs(
       elements = Nil,
-      mainClassElement = None,
+      defaultMainClassElement = None,
       workspace = workspace,
       baseProjectName = "project",
       mayAppendHash = true,

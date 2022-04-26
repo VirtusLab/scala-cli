@@ -183,7 +183,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     val dest = outputOpt
       .orElse {
-        build.sources.mainClass
+        build.sources.defaultMainClass
           .map(n => n.drop(n.lastIndexOf('.') + 1))
           .map(_.stripSuffix("_sc"))
           .map(_ + extension)

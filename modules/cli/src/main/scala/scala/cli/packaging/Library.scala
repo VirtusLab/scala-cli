@@ -33,7 +33,7 @@ object Library {
     manifest.getMainAttributes.put(JarAttributes.Name.MANIFEST_VERSION, "1.0")
 
     if (hasActualManifest)
-      for (mainClass <- mainClassOpt.orElse(build.sources.mainClass) if mainClass.nonEmpty)
+      for (mainClass <- mainClassOpt.orElse(build.sources.defaultMainClass) if mainClass.nonEmpty)
         manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
 
     var zos: ZipOutputStream = null

@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors._
-import scala.build.internal.{AmmUtil, Util}
+import scala.build.internal.Util
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
 import scala.build.preprocessing.directives._
 import scala.build.{Inputs, Logger, Position, Positioned}
@@ -72,16 +72,12 @@ case object ScalaPreprocessor extends Preprocessor {
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: Inputs.ScalaFile =>
-        val inferredClsName = {
-          val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(f.subPath)
-          (pkg :+ wrapper).map(_.raw).mkString(".")
-        }
         val res = either {
           val content   = value(PreprocessingUtil.maybeRead(f.path))
           val scopePath = ScopePath.fromPath(f.path)
           val source = value(process(content, Right(f.path), scopePath / os.up, logger)) match {
             case None =>
-              PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
+              PreprocessedSource.OnDisk(f.path, None, None, Nil, None)
             case Some(ProcessingOutput(
                   requirements,
                   scopedRequirements,
@@ -96,7 +92,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 Some(options),
                 Some(requirements),
                 scopedRequirements,
-                Some(inferredClsName),
+                None,
                 scopePath
               )
             case Some(ProcessingOutput(requirements, scopedRequirements, options, None)) =>
@@ -105,7 +101,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 Some(options),
                 Some(requirements),
                 scopedRequirements,
-                Some(inferredClsName)
+                None
               )
           }
           Seq(source)
@@ -115,10 +111,6 @@ case object ScalaPreprocessor extends Preprocessor {
       case v: Inputs.VirtualScalaFile =>
         val res = either {
           val relPath = if (v.isStdin) os.sub / "stdin.scala" else v.subPath
-          val className = {
-            val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(relPath)
-            (pkg :+ wrapper).map(_.raw).mkString(".")
-          }
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
             value(
@@ -135,7 +127,7 @@ case object ScalaPreprocessor extends Preprocessor {
             options = Some(options),
             requirements = Some(requirements),
             scopedRequirements,
-            mainClassOpt = Some(className),
+            mainClassOpt = None,
             scopePath = v.scopePath
           )
           Seq(s)

@@ -7,7 +7,7 @@ import scala.build.preprocessing._
 final case class Sources(
   paths: Seq[(os.Path, os.RelPath)],
   inMemory: Seq[Sources.InMemory],
-  mainClass: Option[String],
+  defaultMainClass: Option[String],
   resourceDirs: Seq[os.Path],
   buildOptions: BuildOptions
 ) {
