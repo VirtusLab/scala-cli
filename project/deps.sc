@@ -129,7 +129,7 @@ object Deps {
   def usingDirectives = ivy"org.virtuslab:using_directives:0.0.8"
 }
 
-def graalVmVersion     = "22.0.0"
+def graalVmVersion     = "22.1.0"
 def graalVmJavaVersion = 17
 def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
