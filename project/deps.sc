@@ -69,7 +69,7 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def coursierJvm      = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
-  def coursierPublish  = ivy"io.get-coursier.publish:publish_2.13:0.1.0"
+  def coursierPublish  = ivy"io.get-coursier.publish:publish_2.13:0.1.2"
   // TODO - update to working version
   def dependency   = ivy"io.get-coursier::dependency:0.2.2"
   def dockerClient = ivy"com.spotify:docker-client:8.16.0"
