@@ -5,7 +5,8 @@ This project provides a CLI to
 - sign files
 - verify signatures.
 
-It's written in Scala, and uses bouncycastle. Keys (public / secret) are identified and passed around as individual files.
+It's written in Scala, and uses [bouncycastle](https://www.bouncycastle.org). Native launchers of the CLI are generated with GraalVM
+native-image. Keys (public / secret) are identified and passed around as individual files.
 
 This project is kind of a sidecar of [Scala CLI](https://github.com/VirtusLab/scala-cli). It deals with [bouncycastle](https://www.bouncycastle.org) for Scala CLI, so that native launchers of Scala CLI
 don't have to depend on it, and don't need to have native image process the bouncycastle classes.
