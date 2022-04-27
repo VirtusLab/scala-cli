@@ -8,7 +8,7 @@ The JAR file only contains the byte code that’s generated from your source cod
 
 As an example, the following snippet contains a short application to detect the OS:
 ```scala title=DetectOsApp.scala
-object DetectOSApp extends App  {
+object DetectOsApp extends App  {
     def getOperatingSystem(): String = {
         val os: String = System.getProperty("os.name")
         os

@@ -188,6 +188,8 @@ object Package extends ScalaCommand[PackageOptions] {
           .map(_.stripSuffix("_sc"))
           .map(_ + extension)
       }
+      .orElse(build.retainedMainClass.map(_.stripSuffix("_sc") + extension).toOption)
+      .orElse(build.sources.paths.collectFirst(_._1.baseName + extension))
       .getOrElse(defaultName)
     val destPath      = os.Path(dest, Os.pwd)
     val printableDest = CommandUtils.printablePath(destPath)
