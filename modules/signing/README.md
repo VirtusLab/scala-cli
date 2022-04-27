@@ -1,6 +1,13 @@
 # scala-cli-signing
 
-This project depends on and deals with [bouncycastle](https://www.bouncycastle.org), so that native launchers of Scala CLI
+This project provides a CLI to
+- create PGP keys
+- sign files
+- verify signatures.
+
+It's written in Scala, and uses bouncycastle. Keys (public / secret) are identified and passed around as individual files.
+
+This project is kind of a sidecar of [Scala CLI](https://github.com/VirtusLab/scala-cli). It deals with [bouncycastle](https://www.bouncycastle.org) for Scala CLI, so that native launchers of Scala CLI
 don't have to depend on it, and don't need to have native image process the bouncycastle classes.
 
 Note that Scala CLI depends on some scala-cli-signing modules, but the Scala CLI classes calling scala-cli-signing classes that use bouncycastle are being substituted by others at native image build time (look for `@Substitute` in the Scala CLI sources). Those substitute classes manage to run equivalent stuff by downloading a scala-cli-signing binary, and running it in a separate process.
