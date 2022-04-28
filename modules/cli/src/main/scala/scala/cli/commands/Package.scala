@@ -207,11 +207,13 @@ object Package extends ScalaCommand[PackageOptions] {
 
     val dest = outputOpt
       .orElse {
-        build.sources.mainClass
+        build.sources.defaultMainClass
           .map(n => n.drop(n.lastIndexOf('.') + 1))
           .map(_.stripSuffix("_sc"))
           .map(_ + extension)
       }
+      .orElse(build.retainedMainClass.map(_.stripSuffix("_sc") + extension).toOption)
+      .orElse(build.sources.paths.collectFirst(_._1.baseName + extension))
       .getOrElse(defaultName)
     val destPath      = os.Path(dest, Os.pwd)
     val printableDest = CommandUtils.printablePath(destPath)
@@ -219,7 +221,7 @@ object Package extends ScalaCommand[PackageOptions] {
     def alreadyExistsCheck(): Unit = {
       val alreadyExists = !force &&
         os.exists(destPath) &&
-        expectedModifyEpochSecondOpt.forall(exp => os.mtime(destPath) != exp)
+        !expectedModifyEpochSecondOpt.contains(os.mtime(destPath))
       if (alreadyExists) {
         val msg =
           if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
@@ -709,7 +711,7 @@ object Package extends ScalaCommand[PackageOptions] {
     noOpt: Boolean,
     logger: Logger
   ): Either[BuildException, os.Path] =
-    Library.withLibraryJar(build, dest.last.toString.stripSuffix(".jar")) { mainJar =>
+    Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
       val classPath  = os.Path(mainJar, os.pwd) +: build.artifacts.classPath
       val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
       either {
@@ -795,7 +797,7 @@ object Package extends ScalaCommand[PackageOptions] {
     if (cacheData.changed)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
-        val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString()
+        val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString
         val args =
           cliOptions ++
             logger.scalaNativeCliInternalLoggerOptions ++

@@ -49,7 +49,7 @@ object NativeBuilderHelper {
     dest: os.Path,
     nativeWorkDir: os.Path,
     currentProjectSha: String
-  ) = {
+  ): Unit = {
     val projectShaPath = resolveProjectShaPath(nativeWorkDir)
     os.write.over(projectShaPath, currentProjectSha, createFolders = true)
 

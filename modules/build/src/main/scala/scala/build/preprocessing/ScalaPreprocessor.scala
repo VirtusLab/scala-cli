@@ -7,11 +7,11 @@ import dependency.parser.DependencyParser
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
-import scala.build.errors._
-import scala.build.internal.{AmmUtil, Util}
+import scala.build.Ops.*
+import scala.build.errors.*
+import scala.build.internal.Util
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
-import scala.build.preprocessing.directives._
+import scala.build.preprocessing.directives.*
 import scala.build.{Inputs, Logger, Position, Positioned}
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -72,16 +72,12 @@ case object ScalaPreprocessor extends Preprocessor {
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: Inputs.ScalaFile =>
-        val inferredClsName = {
-          val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(f.subPath)
-          (pkg :+ wrapper).map(_.raw).mkString(".")
-        }
         val res = either {
           val content   = value(PreprocessingUtil.maybeRead(f.path))
           val scopePath = ScopePath.fromPath(f.path)
           val source = value(process(content, Right(f.path), scopePath / os.up, logger)) match {
             case None =>
-              PreprocessedSource.OnDisk(f.path, None, None, Nil, Some(inferredClsName))
+              PreprocessedSource.OnDisk(f.path, None, None, Nil, None)
             case Some(ProcessingOutput(
                   requirements,
                   scopedRequirements,
@@ -96,7 +92,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 Some(options),
                 Some(requirements),
                 scopedRequirements,
-                Some(inferredClsName),
+                None,
                 scopePath
               )
             case Some(ProcessingOutput(requirements, scopedRequirements, options, None)) =>
@@ -105,7 +101,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 Some(options),
                 Some(requirements),
                 scopedRequirements,
-                Some(inferredClsName)
+                None
               )
           }
           Seq(source)
@@ -115,10 +111,6 @@ case object ScalaPreprocessor extends Preprocessor {
       case v: Inputs.VirtualScalaFile =>
         val res = either {
           val relPath = if (v.isStdin) os.sub / "stdin.scala" else v.subPath
-          val className = {
-            val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(relPath)
-            (pkg :+ wrapper).map(_.raw).mkString(".")
-          }
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
             value(
@@ -135,7 +127,7 @@ case object ScalaPreprocessor extends Preprocessor {
             options = Some(options),
             requirements = Some(requirements),
             scopedRequirements,
-            mainClassOpt = Some(className),
+            mainClassOpt = None,
             scopePath = v.scopePath
           )
           Seq(s)
@@ -185,9 +177,9 @@ case object ScalaPreprocessor extends Preprocessor {
     path: Either[String, os.Path]
   ): Either[BuildException, Option[SpecialImportsProcessingOutput]] = either {
 
-    import fastparse._
+    import fastparse.*
 
-    import scala.build.internal.ScalaParse._
+    import scala.build.internal.ScalaParse.*
 
     val res = parse(content, Header(_))
 
@@ -323,7 +315,7 @@ case object ScalaPreprocessor extends Preprocessor {
             updatedRequirements.scoped,
             updatedContentOpt
           ))
-        case Seq(h, t @ _*) =>
+        case Seq(h, t*) =>
           val errors = ::(
             handleUnusedValues(ScopedDirective(h, path, cwd)),
             t.map(d => handleUnusedValues(ScopedDirective(d, path, cwd))).toList
