@@ -2,7 +2,6 @@ package scala.build.preprocessing.directives
 
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaNativeOptions}
-import scala.build.preprocessing.directives.UsingDirectiveValueKind.UsingDirectiveValueKind
 import scala.build.Positioned
 import scala.scalanative.build.{GC => NativeGC, Mode => NativeMode}
 import scala.util.Try

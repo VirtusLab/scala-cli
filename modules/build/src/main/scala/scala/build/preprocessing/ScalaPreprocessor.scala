@@ -336,12 +336,11 @@ case object ScalaPreprocessor extends Preprocessor {
   private def handleUnusedValues(
     scopedDirective: ScopedDirective
   ): BuildException = {
-    val values =
-      DirectiveUtil.concatAllValues(DirectiveUtil.getGroupedValues(scopedDirective))
+    val values = scopedDirective.directive.values
     new UnusedDirectiveError(
       scopedDirective.directive.key,
-      values.map(_.positioned.value),
-      values.flatMap(_.positioned.positions)
+      values.map(_.get.toString),
+      DirectiveUtil.positions(scopedDirective.maybePath, values*)
     )
   }
 

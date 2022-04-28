@@ -9,10 +9,7 @@ import java.nio.charset.StandardCharsets
 import java.util.{Arrays, Locale}
 
 import scala.build.preprocessing.ScalaPreprocessor
-import scala.build.preprocessing.directives.{
-  DirectiveHandler,
-  RequireDirectiveHandler
-}
+import scala.build.preprocessing.directives.DirectiveHandler
 import scala.cli.ScalaCliCommands
 import scala.build.options.BuildOptions
 
@@ -233,8 +230,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
   }
 
   private def usingContent(
-    usingHandlers: Seq[DirectiveHandler[BuildOptions]],
-    requireHandlers: Seq[RequireDirectiveHandler]
+    usingHandlers: Seq[DirectiveHandler[_]],
+    requireHandlers: Seq[DirectiveHandler[_]]
   ): String = {
     val b = new StringBuilder
 

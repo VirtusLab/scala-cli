@@ -6,7 +6,6 @@ import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErrors}
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.Scoped
-import scala.build.preprocessing.directives.UsingDirectiveValueKind.UsingDirectiveValueKind
 import scala.build.Positioned
 import scala.meta.Decl.Val
 

@@ -114,16 +114,10 @@ object ExtractedDirectives {
       if (supportedDirectives.contains(usedDirectives.getKind()))
         Right(ExtractedDirectives(offset, strictDirectives))
       else {
-        val directiveVales =
-          usedDirectives.getFlattenedMap.values().asScala.toList.flatMap(_.asScala)
-        val values = DirectiveUtil.concatAllValues(DirectiveUtil.getGroupedValues(ScopedDirective(
-          StrictDirective("", directiveVales),
-          path,
-          cwd
-        )))
+        val values = usedDirectives.getFlattenedMap.values().asScala.flatMap(_.asScala)
         Left(new DirectiveErrors(
           ::(s"Directive '${usedDirectives.getKind}' is not supported in the given context'", Nil),
-          values.flatMap(_.positioned.positions)
+          DirectiveUtil.positions(path, values.toSeq*)
         ))
       }
     }
