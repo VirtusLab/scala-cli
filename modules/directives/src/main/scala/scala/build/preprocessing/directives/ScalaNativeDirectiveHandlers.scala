@@ -66,17 +66,19 @@ object ScalaNativeDirectiveHandlers extends PrefixedDirectiveGroup[ScalaNativeOp
         //   "Provide custom options Scala Native compilation.",
         exampleValues = Seq(Seq("TODO"), Seq("TODO", "TODO")),
         usageValue = "option",
-        baseKey = Some("compile")
-      )
+      ){
+        def primaryName = "compile"
+      }
 
   case object LinkingOptions extends StringListSetting(
         parse = value => ScalaNativeOptions(linkingOptions = value.toList),
         // description =
         //   "Provide custom linking options for Scala Native.",
         exampleValues = Seq(Seq("TODO"), Seq("TODO", "TODO")),
-        usageValue = "option",
-        baseKey = Some("linking")
-      )
+        usageValue = "option"
+      ){
+        def primaryName = "linking"
+      }
 
   def group =
     DirectiveHandlerGroup(

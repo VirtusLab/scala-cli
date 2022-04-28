@@ -1,40 +1,26 @@
 package scala.build.preprocessing.directives
 import scala.build.Logger
+import scala.build.Positioned
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
+import scala.cli.commands.RunOptions
 
-case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
-
+case object UsingMainClassDirectiveHandler 
+  extends BuildOptionsUsingDirectiveHandler[Positioned[String]]{
   def name = "Main class"
-
-  def description = "Specify default main class"
-
-  def usage = "//> using main-class _main class_ | //> using mainClass _main class_"
-
-  override def usageMd =
-    """`//> using main-class `_main class_
-      |
-      |`//> using mainClass `_main class_""".stripMargin
-
-  override def examples = Seq(
-    "//> using main-class \"helloWorld\""
+  def description = fromCommand("main-class", RunOptions.help)
+  def keys = Seq("main-class", "mainClass")
+  def constrains = Single(ValueType.String)
+  
+  def usagesCode: Seq[String] = Seq(
+    "//> using mainClass <fqn>",
   )
 
-  def keys = Seq("main-class", "mainClass")
+  override def examples = Seq(
+    "//> using mainClass \"foo.bar.Baz\"",
+    "//> using main-class \"app.Main\"",
+  ) 
 
-  override def getValueNumberBounds(key: String) = UsingDirectiveValueNumberBounds(1, 1)
-
-  def handleValues(
-    scopedDirective: ScopedDirective,
-    logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] =
-    checkIfValuesAreExpected(scopedDirective).map { groupedValues =>
-      val mainClasses = groupedValues.scopedStringValues.map(_.positioned)
-      val options = BuildOptions(
-        mainClass = mainClasses.headOption.map(_.value)
-      )
-      ProcessedDirective(Some(options), Seq.empty)
-
-    }
-
+  def process(fqn: Positioned[String])(using Ctx) = 
+    Right(BuildOptions(mainClass = Some(fqn.value)))
 }

@@ -8,89 +8,67 @@ import scala.build.errors.{
 }
 import scala.build.options._
 import scala.build.{Logger, Positioned}
+import org.scalameta.logger
 
-case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
-  def name             = "Platform"
-  def description      = "Set the default platform to Scala.js or Scala Native"
-  def usage            = "//> using platform (jvm|scala-js|scala-native)+"
-  override def usageMd = "`//> using platform `(`jvm`|`scala-js`|`scala-native`)+"
+case object UsingPlatformDirectiveHandler extends BuildOptionsUsingDirectiveHandler[::[Positioned[String]]] {
+  def name              = "Platform"
+  def description       = "Set the default platform to Scala.js or Scala Native"
+  override def usageMd  = "`//> using platform `(`jvm`|`scala-js`|`scala-native`)+"
   override def examples = Seq(
     "//> using platform \"scala-js\"",
     "//> using platform \"jvm\", \"scala-native\""
   )
 
+  def usagesCode = Seq("//> using platform (jvm|scala-js[:version]|scala-native[:version])+")
+
+  def keys = Seq("platform", "platforms")
+
+  def constrains = AtLeastOne(ValueType.String)
+
+  case class ParsedPlatform(platform: Platform, version: Option[String])
+  
   private def split(input: String): (String, Option[String]) = {
     val idx = input.indexOf(':')
     if (idx < 0) (input, None)
     else (input.take(idx), Some(input.drop(idx + 1)))
   }
 
-  private def constructBuildOptions(
-    rawPfStrsWithPos: Seq[Positioned[String]]
-  ): Either[BuildException, BuildOptions] =
-    rawPfStrsWithPos
-      .map {
-        case Positioned(pos, rawPfStr) =>
-          val (pfStr, pfVerOpt) = split(rawPfStr)
-          Platform.parse(Platform.normalize(pfStr))
-            .toRight(new MalformedPlatformError(pfStr))
-            .flatMap {
-              case Platform.JVM =>
-                pfVerOpt match {
-                  case None =>
-                    val options = BuildOptions(
-                      scalaOptions = ScalaOptions(
-                        platform = Some(scala.build.Positioned(pos, Platform.JVM))
-                      )
-                    )
-                    Right(options)
-                  case Some(_) =>
-                    Left(new UnexpectedJvmPlatformVersionError)
-                }
-              case Platform.JS =>
-                val options = BuildOptions(
-                  scalaOptions = ScalaOptions(
-                    platform = Some(Positioned(pos, Platform.JS))
-                  ),
-                  scalaJsOptions = ScalaJsOptions(
-                    version = pfVerOpt
-                  )
-                )
-                Right(options)
-              case Platform.Native =>
-                val options = BuildOptions(
-                  scalaOptions = ScalaOptions(
-                    platform = Some(Positioned(pos, Platform.Native))
-                  ),
-                  scalaNativeOptions = ScalaNativeOptions(
-                    version = pfVerOpt
-                  )
-                )
-                Right(options)
-            }
-      }
-      .sequence
-      .left.map(CompositeBuildException(_)).map {
-        buildOptions =>
-          val mergedBuildOption = buildOptions.foldLeft(BuildOptions())(_ orElse _)
-          val platforms         = buildOptions.flatMap(_.scalaOptions.platform.toSeq).distinct
-          mergedBuildOption.copy(
-            scalaOptions = mergedBuildOption.scalaOptions.copy(
-              extraPlatforms =
-                mergedBuildOption.scalaOptions.extraPlatforms ++ platforms.tail.map(p =>
-                  (p.value -> Positioned(p.positions, ()))
-                ).toMap
-            )
-          )
-      }
 
-  def keys = Seq("platform", "platforms")
-  def handleValues(
-    scopedDirective: ScopedDirective,
-    logger: Logger
-  ): Either[BuildException, ProcessedUsingDirective] =
-    checkIfValuesAreExpected(scopedDirective).flatMap { groupedvaluesContainer =>
-      constructBuildOptions(groupedvaluesContainer.scopedStringValues.map(_.positioned))
-    }.map(buildOptions => ProcessedDirective(Some(buildOptions), Seq.empty))
+  def process(values: ::[Positioned[String]])(using ctx: Ctx) = {
+    val parsed = values.map { strValue =>
+      val (platformStr, versionOpt) = split(strValue.value)
+      Platform.parse(Platform.normalize(platformStr)) match {
+        case None => strValue.error("Invalid platform, supported: `js`, `jvm` and `native`")
+        case Some(Platform.JVM) if versionOpt.nonEmpty =>
+          strValue.error(s"JVM platform does not accept version, plese use just `$platformStr`")
+        case Some(platform) =>
+          Right(strValue.map(_ => ParsedPlatform(platform, versionOpt)))        
+      }
+    }.sequenceToComposite
+    parsed.flatMap { values =>
+      val byPlatform = values.groupBy(_.value.platform)
 
+      val problems = byPlatform.filter(_._2.size > 1).map { case (platform, values) =>
+        val (noVersion, versioned) = values.map(_.map(_.version)).partition(_.value.nonEmpty)
+        def warn(p: Positioned[_]): Unit = ctx.logger.diagnostic(s"Duplicated definition for platform $platform", positions = p.positions)
+        versioned match
+          case Seq() => Right(values.tail.foreach(warn)) // multiple directives without version, just warn
+          case Seq(single) => Right(noVersion.tail.foreach(warn)) // single directice with version rest without - warn on those whitout version
+          case declaration +: duplications=>
+            duplications.map(_.error(s"Version for $platform is alredy defined")).sequenceToComposite
+      }.toSeq.sequenceToComposite
+
+      problems.map { _ =>
+        val mainPlatfrom = values.head.map(_.platform)
+        val extraPlatforms = (byPlatform - mainPlatfrom.value).map{ (k, v) => k -> v.head.map(_ => ()) }
+        val jsVersion = byPlatform(Platform.JS).flatMap(_.value.version).headOption
+        val nativeVersion = byPlatform(Platform.Native).flatMap(_.value.version).headOption
+        BuildOptions(
+          scalaOptions = ScalaOptions(platform = Some(mainPlatfrom), extraPlatforms = extraPlatforms),
+          scalaJsOptions = ScalaJsOptions(version = jsVersion),
+          scalaNativeOptions = ScalaNativeOptions(version = nativeVersion)
+        )
+      }
+    }
+  }
 }

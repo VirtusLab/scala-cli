@@ -5,94 +5,81 @@ sidebar_position: 2
 
 ## using directives
 
-### Compiler options
+### Java Home
 
-Add Scala compiler options
+TODO no arg
 
-`//> using option `_option_
+`//> using javaHome "path"
 
-`//> using options `_option1_, _option2_ …
-
-#### Examples
-`//> using option "-Xasync"`
-
-`//> using options "-Xasync", "-Xfatal-warnings"`
-
-### Compiler plugins
-
-Adds compiler plugins
-
-`using plugin `_org_`:`name`:`ver
+//> using java-home "path"`
 
 #### Examples
-`//> using plugin "org.typelevel:::kind-projector:0.13.2"`
+`//> using javaHome "/home/user/jvm"`
 
-### Custom JAR
+`//> using java-home "<path>"`
 
-Manually add JAR(s) to the class path
+### Java Options
 
-//> using jar _path_
+Set Java options, such as `-Xmx1g`
 
-//> using jars _path1_, _path2_ …
+`//> using javaOpt "option0"
 
-#### Examples
-`//> using jar "/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"`
-
-### Dependency
-
-Add dependencies
-
-`//> using lib "`_org_`:`name`:`ver"
+//> using java-opt "option0, option1"`
 
 #### Examples
-`//> using lib "org.scalatest::scalatest:3.2.10"`
+`//> using javaOpt List("-Xmx2g", "-Xms1g", "-Xnoclassgc")`
 
-`//> using lib "org.scalameta::munit:0.7.29"`
+`//> using java-opt List("-Xmx2g", "-Xms1g", "-Xnoclassgc")`
 
-`//> using lib "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
+### Java Properties
 
-### Java home
+Set Java properties
 
-Sets Java home used to run your application or tests
+`//> using javaProp "option0"
 
-`//> using java-home `_path_
-
-`//> using javaHome `_path_
+//> using java-prop "option0, option1"`
 
 #### Examples
-`//> using java-home "/Users/Me/jdks/11"`
+`//> using javaProp List("-Xmx2g", "-Xms1g", "-Xnoclassgc")`
 
-### Java options
+`//> using java-prop List("-Xmx2g", "-Xms1g", "-Xnoclassgc")`
 
-Add Java options
+### Location of clang
 
-`//> using java-opt `_options_
+Path to the Clang command
 
-`//> using javaOpt `_options_
+`//> using nativeClang "path"
 
-#### Examples
-`//> using javaOpt "-Xmx2g", "-Dsomething=a"`
-
-### Java properties
-
-Add Java properties
-
-`//> using javaProp_ `_key=value_
-`//> using javaProp_ `_key_
+//> using native-clang "path"`
 
 #### Examples
-`//> using javaProp "foo1=bar", "foo2"`
+`//> using nativeClang "/usr/bin/clang"`
+
+`//> using native-clang "/usr/bin/clang"`
+
+### Location of clang++
+
+TODO no arg
+
+`//> using nativeClangPP "path"
+
+//> using native-clang-pp "path"`
+
+#### Examples
+`//> using nativeClangPP "/usr/bin/clang++"`
+
+`//> using native-clang-pp "/usr/bin/clang++"`
 
 ### Main class
 
-Specify default main class
+TODO no arg
 
-`//> using main-class `_main class_
-
-`//> using mainClass `_main class_
+`//> using mainClass <fqn>`
 
 #### Examples
-`//> using main-class "helloWorld"`
+`//> using mainClass "foo.bar.Baz"`
+
+`//> using main-class "app.Main"`
 
 ### Platform
 
@@ -105,75 +92,266 @@ Set the default platform to Scala.js or Scala Native
 
 `//> using platform "jvm", "scala-native"`
 
-### Publish
+### Publish ComputeVersion
 
-Set parameters for publishing
+TODO no arg
 
-`//> using publish.organization `"value"
-`//> using publish.moduleName `"value"
-`//> using publish.version `"value"
+`//> using publishComputeVersion "git:(dynver|tag)[:repo] | comamnd:<command>3"
 
-
-#### Examples
-`//> using publish.organization "io.github.myself"`
-
-`//> using publish.moduleName "my-library"`
-
-`//> using publish.version "0.1.1"`
-
-### Repository
-
-Add a repository for dependency resolution
-
-`//> using repository `_repository_
+//> using publish-compute-version "git:(dynver|tag)[:repo] | comamnd:<command>3"`
 
 #### Examples
-`//> using repository "jitpack"`
+`//> using publishComputeVersion "git:tag"`
 
-`//> using repository "sonatype:snapshots"`
+`//> using publish-compute-version "git:tag:<repo>"`
 
-`//> using repository "https://maven-central.storage-download.googleapis.com/maven2"`
+`//> using publishComputeVersion "git:dynver"`
 
-### Resource directories
+`//> using publish-compute-version "git:dynver:<repo>"`
 
-Manually add a resource directory to the class path
+`//> using publishComputeVersion "command:<command>"`
 
-`//> using resourceDir `_path_
+### Publish Developers
 
-`//> using resourceDirs `_path1_, _path2_ …
+TODO no arg
+
+`//> using developer "id|name|address[|email]0"
+
+//> using developers "id|name|address[|email]0, id|name|address[|email]1"`
 
 #### Examples
-`//> using resourceDir "./resources"`
+`//> using developer List("_example|Sarah Jones|https://docs.github.com/_example", "_example|Sarah Jones|https://docs.github.com/_example", "_example2|Nick Smith|https://docs.github.com/_example|nick@example.org")`
 
-### Scala Native options
+`//> using developers List("_example|Sarah Jones|https://docs.github.com/_example", "_example|Sarah Jones|https://docs.github.com/_example", "_example2|Nick Smith|https://docs.github.com/_example|nick@example.org")`
 
-Add Scala Native options
+### Publish GpgKey
 
-`//> using nativeGc` _value_
+TODO no arg
 
-`//> using nativeMode` _value_
+`//> using publishGpgKey "<key>"
 
-`//> using nativeVersion` _value_
+//> using publish-gpg-key "<key>"`
 
-`//> using nativeCompile` _value1_, _value2_
+#### Examples
+`//> using publishGpgKey "user@email.com"`
 
-`//> using nativeLinking` _value1_, _value2_
+`//> using publish-gpg-key "user@email.com"`
 
-`//> using nativeClang` _value_
+### Publish GpgOptions
 
-`//> using nativeClangPP` _value_
+TODO no arg
+
+`//> using publishGpgOptions "option0"
+
+//> using publish-gpg-options "option0, option1"`
+
+#### Examples
+`//> using publishGpgOptions List("--armor", "--local-user", "sarah_j")`
+
+`//> using publish-gpg-options List("--armor", "--local-user", "sarah_j")`
+
+### Publish License
+
+TODO no arg
+
+`//> using publishLicense "<license>"
+
+//> using publish-license "<license>"`
+
+#### Examples
+`//> using publishLicense "Apache 2.0"`
+
+`//> using publish-license "Apache 2.0"`
+
+### Publish Name
+
+TODO no arg
+
+`//> using publishName "name"
+
+//> using publish-name "name"`
+
+#### Examples
+`//> using publishName "scala-cli-core"`
+
+`//> using publish-name "scala-cli-core"`
+
+### Publish Organization
+
+TODO no arg
+
+`//> using publishOrganization "organization"
+
+//> using publish-organization "organization"`
+
+#### Examples
+`//> using publishOrganization "com.githib.scala-cli"`
+
+`//> using publish-organization "com.githib.scala-cli"`
+
+### Publish Repository
+
+Repository to publish to
+
+`//> using publishRepository "<repository>"
+
+//> using publish-repository "<repository>"`
+
+#### Examples
+`//> using publishRepository "https://repo.maven.apache.org/maven2"`
+
+`//> using publish-repository "https://repo.maven.apache.org/maven2"`
+
+### Publish ScalaPlatformSuffix
+
+TODO no arg
+
+`//> using publishScalaPlatformSuffix "<suffix>"
+
+//> using publish-scala-platform-suffix "<suffix>"`
+
+#### Examples
+`//> using publishScalaPlatformSuffix "_js"`
+
+`//> using publish-scala-platform-suffix "_js"`
+
+### Publish ScalaVersionSuffix
+
+TODO no arg
+
+`//> using publishScalaVersionSuffix "<suffix>"
+
+//> using publish-scala-version-suffix "<suffix>"`
+
+#### Examples
+`//> using publishScalaVersionSuffix "_3"`
+
+`//> using publish-scala-version-suffix "_3"`
+
+### Publish URL
+
+TODO no arg
+
+`//> using publishURL "<url>"
+
+//> using publish-u-r-l "<url>"`
+
+#### Examples
+`//> using publishURL "https://scala-cli.virtuslab.org/"`
+
+`//> using publish-u-r-l "https://scala-cli.virtuslab.org/"`
+
+### Publish Version
+
+TODO no arg
+
+`//> using publishVersion "version"
+
+//> using publish-version "version"`
+
+#### Examples
+`//> using publishVersion "1.0.1-RC2"`
+
+`//> using publish-version "1.0.1-RC2"`
+
+### Publish VersionControl
+
+TODO no arg
+
+`//> using publishVersionControl "github:<org>/<repo> | <url>|<connection>|<dev_connection>"
+
+//> using publish-version-control "github:<org>/<repo> | <url>|<connection>|<dev_connection>"
+
+//> using scm "github:<org>/<repo> | <url>|<connection>|<dev_connection>"`
+
+#### Examples
+`//> using publishVersionControl "github:VirtusLab/scala-cli.git"`
+
+`//> using publish-version-control "<url>|<connection>|<dev_connection>"`
+
+`//> using scm "github:VirtusLab/scala-cli.git"`
+
+### Scala Native CompileOptions
+
+TODO no arg
+
+`//> using nativeCompileOptions "option0"
+
+//> using native-compile-options "option0, option1"`
+
+#### Examples
+`//> using nativeCompileOptions List("TODO", "TODO", "TODO")`
+
+`//> using native-compile-options List("TODO", "TODO", "TODO")`
+
+### Scala Native GC
+
+TODO no arg
+
+`//> using nativeGC "gc"
+
+//> using native-g-c "gc"`
+
+#### Examples
+`//> using nativeGC "none"`
+
+`//> using native-g-c "boehm"`
+
+### Scala Native LinkingOptions
+
+TODO no arg
+
+`//> using nativeLinkingOptions "option0"
+
+//> using native-linking-options "option0, option1"`
+
+#### Examples
+`//> using nativeLinkingOptions List("TODO", "TODO", "TODO")`
+
+`//> using native-linking-options List("TODO", "TODO", "TODO")`
+
+### Scala Native Mode
+
+Set Scala Native compilation mode
+
+`//> using nativeMode "mode"
+
+//> using native-mode "mode"`
+
+#### Examples
+`//> using nativeMode "release"`
+
+`//> using native-mode "release-fast"`
+
+### Scala Native Version
+
+Set the Scala Native version
+
+`//> using nativeVersion "version"
+
+//> using native-version "version"`
 
 #### Examples
 `//> using nativeVersion "0.4.0"`
 
+`//> using native-version "0.4.1"`
+
 ### Scala version
 
-Set the default Scala version
+Set the Scala version
 
-`//> using scala `_version_+
+`//> using scala <version>
+
+//> using scala <base-version>, <cross-version>
+
+//> using scala <base-version>, <cross-version1>, <cross-version2>`
 
 #### Examples
 `//> using scala "3.0.2"`
+
+`//> using scala 3`
+
+`//> using scala 3.1`
 
 `//> using scala "2.13"`
 
@@ -181,46 +359,156 @@ Set the default Scala version
 
 `//> using scala "2.13.6", "2.12.15"`
 
-### Scala.js options
+### Scala.js AvoidClasses
 
-Add Scala.js options
+Avoid class'es when using functions and prototypes has the same observable semantics.
 
+`//> using jsAvoidClasses [true|false]
 
-`//> using jsVersion` _value_
-
-`//> using jsMode` _value_
-
-`//> using jsModuleKind` _value_
-
-`//> using jsSmallModuleForPackage` _value1_, _value2_
-
-`//> using jsCheckIr` _true|false_
-
-`//> using jsEmitSourceMaps` _true|false_
-
-`//> using jsDom` _true|false_
-
-`//> using jsHeader` _value_
-
-`//> using jsAllowBigIntsForLongs` _true|false_
-
-`//> using jsAvoidClasses` _true|false_
-
-`//> using jsAvoidLetsAndConsts` _true|false_
-
-`//> using jsModuleSplitStyleStr` _value_
-
-`//> using jsEsVersionStr` _value_
-
+//> using js-avoid-classes [true|false]`
 
 #### Examples
-`//> using jsModuleKind "common"`
+`//> using jsAvoidClasses`
+
+`//> using js-avoid-classes false`
+
+### Scala.js AvoidLetsAndConsts
+
+Avoid lets and consts when using vars has the same observable semantics.
+
+`//> using jsAvoidLetsAndConsts [true|false]
+
+//> using js-avoid-lets-and-consts [true|false]`
+
+#### Examples
+`//> using jsAvoidLetsAndConsts`
+
+`//> using js-avoid-lets-and-consts false`
+
+### Scala.js CheckIr
+
+TODO nod help
+
+`//> using jsCheckIr [true|false]
+
+//> using js-check-ir [true|false]`
+
+#### Examples
+`//> using jsCheckIr`
+
+`//> using js-check-ir false`
+
+### Scala.js Dom
+
+Enable jsdom
+
+`//> using jsDom [true|false]
+
+//> using js-dom [true|false]`
+
+#### Examples
+`//> using jsDom`
+
+`//> using js-dom false`
+
+### Scala.js EmitSourceMaps
+
+Emit source maps
+
+`//> using jsEmitSourceMaps [true|false]
+
+//> using js-emit-source-maps [true|false]`
+
+#### Examples
+`//> using jsEmitSourceMaps`
+
+`//> using js-emit-source-maps false`
+
+### Scala.js EsVersionStr
+
+TODO no arg
+
+`//> using jsEsVersionStr "version"
+
+//> using js-es-version-str "version"`
+
+#### Examples
+`//> using jsEsVersionStr "TODO"`
+
+`//> using js-es-version-str "TODO"`
+
+### Scala.js Header
+
+A header that will be added at the top of generated .js files
+
+`//> using jsHeader "header"
+
+//> using js-header "header"`
+
+#### Examples
+`//> using jsHeader "TODO"`
+
+`//> using js-header "TODO"`
+
+### Scala.js Mode
+
+The Scala.js mode, either `dev` or `release`
+
+`//> using jsMode "mode"
+
+//> using js-mode "mode"`
+
+#### Examples
+`//> using jsMode "TODO"`
+
+`//> using js-mode "TODO"`
+
+### Scala.js ModuleKind
+
+The Scala.js module kind: commonjs/common, esmodule/es, nomodule/none
+
+`//> using jsModuleKind "kind"
+
+//> using js-module-kind "kind"`
+
+#### Examples
+`//> using jsModuleKind "TODO"`
+
+`//> using js-module-kind "TODO"`
+
+### Scala.js SmallModuleForPackage
+
+Create as many small modules as possible for the classes in the passed packages and their subpackages.
+
+`//> using jsSmallModuleForPackage "value0, value1"
+
+//> using js-small-module-for-package "value0"`
+
+#### Examples
+`//> using jsSmallModuleForPackage List("pckA", "pckB", "packC")`
+
+`//> using js-small-module-for-package List("pckA", "pckB", "packC")`
+
+### Scala.js Version
+
+The Scala.js version
+
+`//> using jsVersion "version"
+
+//> using js-version "version"`
+
+#### Examples
+`//> using jsVersion "3.2.1"`
+
+`//> using js-version "TODO"`
 
 ### Test framework
 
-Set the test framework
+TODO no arg
 
-`//> using testFramework `_class_name_ | ``//> using `test-framework` ``_class_name_
+`using testFramework <class_name> 
+
+using test-framework <class_name>`
 
 #### Examples
 `//> using testFramework "utest.runner.Framework"`

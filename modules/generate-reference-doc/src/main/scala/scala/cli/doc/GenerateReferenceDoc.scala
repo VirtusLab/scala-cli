@@ -11,8 +11,7 @@ import java.util.{Arrays, Locale}
 import scala.build.preprocessing.ScalaPreprocessor
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
-  RequireDirectiveHandler,
-  UsingDirectiveHandler
+  RequireDirectiveHandler
 }
 import scala.cli.ScalaCliCommands
 import scala.build.options.BuildOptions
@@ -301,8 +300,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     val commandsContent0   = commandsContent(commands)
     // TODO render in groups
     val usingContent0 = usingContent(
-      ScalaPreprocessor.usingDirectiveHandlers,
-      ScalaPreprocessor.requireDirectiveHandlers
+      ScalaPreprocessor.usingDirectiveHandlers.sortBy(_.name),
+      ScalaPreprocessor.requireDirectiveHandlers.sortBy(_.name)
     )
 
     if (options.check) {

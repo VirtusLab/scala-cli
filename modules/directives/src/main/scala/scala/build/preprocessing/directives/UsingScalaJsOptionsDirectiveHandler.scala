@@ -82,7 +82,7 @@ case object ScalaJsDirectiveHandlers
         Seq(Version, Mode, ModuleKind, CheckIr, EmitSourceMaps, SmallModuleForPackage, Dom, Header, AvoidClasses, AvoidLetsAndConsts, EsVersionStr)
       )
   
-  protected def mkBuildOptions(parsed: ScalaJsOptions) = 
-    BuildOptions(scalaJsOptions = parsed)
-  
-  }
+    protected def mkBuildOptions(parsed: ScalaJsOptions) = 
+      BuildOptions(scalaJsOptions = parsed)
+    
+    }

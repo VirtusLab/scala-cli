@@ -2,6 +2,8 @@ package scala.build
 
 import scala.build.options.{ConfigMonoid, HashedType, ShadowingSeq}
 import scala.build.errors.BuildException
+import scala.util.control.NonFatal
+import scala.scalanative.build.Build
 
 final case class Positioned[+T](
   positions: Seq[Position],
@@ -22,7 +24,17 @@ final case class Positioned[+T](
     )
   }
 
-  def error(msg: String) = Left(new BuildException(msg, positions) {})
+  def mapEither[E, U](op: T => Either[E, U]): Either[E, Positioned[U]] =
+    op(value).map(v => copy(value = v))
+
+  def error(msg: String, cause: Throwable = null) = 
+    Left(new BuildException(msg, positions, cause) {})
+
+  def safeMap[V](op: T => V, message: String = "Exception") = 
+    try Right(map(op)) catch 
+      case NonFatal(e) => Left(new BuildException(s"$message: ${e.getMessage}", positions, e) {})
+
+  
 }
 
 object Positioned {

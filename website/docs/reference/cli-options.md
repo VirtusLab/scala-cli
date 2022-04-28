@@ -932,7 +932,7 @@ Version to publish artifacts as
 
 #### `--compute-version`
 
-How to compute the version to publish artifacts as
+How to compute the version to publish artifacts as.
 
 #### `--url`
 

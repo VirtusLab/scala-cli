@@ -7,98 +7,62 @@ import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErr
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.Scoped
 import scala.build.preprocessing.directives.UsingDirectiveValueKind.UsingDirectiveValueKind
+import scala.build.Positioned
+import scala.meta.Decl.Val
 
-case object RequireScalaVersionDirectiveHandler extends RequireDirectiveHandler {
-  def name             = "Scala version"
-  def description      = "Require a Scala version for the current file"
-  def usage            = "//> using target.scala _version_"
-  override def usageMd = "`//> using target.scala `_version_"
-  override def examples = Seq(
-    "//> using target.scala \"3\"",
-    "//> using target.scala.>= \"2.13\"",
-    "//> using target.scala.< \"3.0.2\""
-  )
+object RequireScalaVersionDirectiveHandlers {
+  import BuildRequirements.*
 
-  def keys: Seq[String] = Seq(
-    "target.scala.==",
-    "target.scala.>=",
-    "target.scala.<=",
-    "target.scala.>",
-    "target.scala.<",
-    "target.scala"
-  )
+  abstract class Handler(suffixes: String*)(parse: String => VersionRequirement) 
+    extends BuildRequirementsHandler[Positioned[String]]{
 
-  override def getSupportedTypes(key: String): Set[UsingDirectiveValueKind] =
-    Set(UsingDirectiveValueKind.STRING, UsingDirectiveValueKind.NUMERIC)
+      //def name             = "Platform"
+      // def description      = "Require a Scala platform for the current file"
+      def usagesCode = keys.map(k => s"//> using target.scala$k (<version> [in <path>])+ ")
+      override def examples = 
+        Seq("3", "2.12 in \"src_2.12\", 2.13 in \"src_2.13\"", "\"2.13.8\"")
+          .zip(keys ++ keys ++ keys) // make sure we do not run out of keys
+          .map{ (k, v) => s"//> using target.scala$k $v"}
+        
+      def keys: Seq[String] = suffixes.map("target.scala" + _)
+      def constrains = Single(ValueType.String, ValueType.Number) 
 
-  private def handleVersion(
-    key: String,
-    v: String
-  ): Either[BuildException, Option[BuildRequirements]] = key match {
-    case "target.scala" | "target.scala.==" =>
-      val req = BuildRequirements(
-        scalaVersion = Seq(BuildRequirements.VersionEquals(v, loose = true))
-      )
-      Right(Some(req))
-    case "target.scala.>" =>
-      val req = BuildRequirements(
-        scalaVersion = Seq(BuildRequirements.VersionHigherThan(v, orEqual = false))
-      )
-      Right(Some(req))
-    case "target.scala.<" =>
-      val req = BuildRequirements(
-        scalaVersion = Seq(BuildRequirements.VersionLowerThan(v, orEqual = false))
-      )
-      Right(Some(req))
-    case "target.scala.>=" =>
-      val req = BuildRequirements(
-        scalaVersion = Seq(BuildRequirements.VersionHigherThan(v, orEqual = true))
-      )
-      Right(Some(req))
-    case "target.scala.<=" =>
-      val req = BuildRequirements(
-        scalaVersion = Seq(BuildRequirements.VersionLowerThan(v, orEqual = true))
-      )
-      Right(Some(req))
-    case _ =>
-      // TODO: Handle errors and conflicts
-      Left(new DirectiveErrors(::("Match error in ScalaVersionDirectiveHandler", Nil), Seq.empty))
+      def process(value: Positioned[String])(using Ctx) = 
+        Right(BuildRequirements(scalaVersion =  Seq(parse(value.value))))
   }
 
-  def handleValues(
-    scopedDirective: ScopedDirective,
-    logger: Logger
-  ): Either[BuildException, ProcessedRequireDirective] = either {
-    val groupedPositionedValuesContainer = value(checkIfValuesAreExpected(scopedDirective))
-
-    val (scopedValues, nonScopedValues) =
-      DirectiveUtil.partitionBasedOnHavingScope(groupedPositionedValuesContainer)
-
-    val nonScopedBuildRequirements = nonScopedValues.headOption match {
-      case None => Right(None)
-      case Some(value) =>
-        handleVersion(scopedDirective.directive.key, value.positioned.value)
-    }
-
-    val scopedBuildRequirements = scopedValues
-      .map {
-        case (value, scopePath) =>
-          val maybeReqs = handleVersion(
-            scopedDirective.directive.key,
-            value.positioned.value
-          )
-          maybeReqs.map(_.map(buildRequirements => Scoped(scopePath, buildRequirements)))
-      }
-      .sequence
-      .left.map(CompositeBuildException(_))
-      .map(_.flatten)
-
-    val (ns, s) = value {
-      (nonScopedBuildRequirements, scopedBuildRequirements)
-        .traverseN
-        .left.map(CompositeBuildException(_))
-    }
-    ProcessedDirective(ns, s)
+  object Matching extends Handler(".==", "")(v => VersionEquals(v, loose = true)){
+    def name = "Specific Scala Version"
+    def description = "Requie specific Scala Version acording to SemVer. " +
+      "This means that when `2.12` is provided all `2.12.x` version will fulfill the requirement."
   }
 
+  object HigherThan extends Handler(".>")(v => VersionHigherThan(v, orEqual = false)){
+    def name = "Scala version higher then"
+    def description = "Requie Scala Version higher then provided acording to SemVer. " +
+      "This means that when `2.12` is provided all `2.13.x` and newer version will fulfill the requirement."
+  }
+
+  object HigherThanOrEqual extends Handler(".>=")(v => VersionHigherThan(v, orEqual = true)){
+    def name = "Scala version higher then or equal to"
+    def description = "Requie Scala Version higher then or equal to provided acording to SemVer. " +
+      "This means that when `2.12` is provided all `2.12.x` and newer version will fulfill the requirement."
+  }
+
+    object LowerThan extends Handler(".<")(v => VersionLowerThan(v, orEqual = false)){
+    def name = "Scala version lower then"
+    def description = "Requie Scala Version lower then provided acording to SemVer. " +
+      "This means that when `2.13` is provided all `2.12.x` and older version will fulfill the requirement."
+  }
+
+  object LowerThanOrEqual extends Handler(".<=")(v => VersionLowerThan(v, orEqual = true)){
+    def name = "Scala version lower then or equal to"
+    def description = "Requie Scala Version lower then or equal to provided acording to SemVer. " +
+      "This means that when `2.13` is provided all `2.13.x` and older version will fulfill the requirement."
+  }
+
+  val group = DirectiveHandlerGroup(
+      "Scala Versions", 
+      Seq(Matching, LowerThan, LowerThanOrEqual, HigherThan, HigherThanOrEqual)
+    )
 }

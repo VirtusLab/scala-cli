@@ -114,7 +114,7 @@ final case class BuildOptions(
     value(maybeJsCompilerPlugins).map(Positioned.none(_)) ++
       maybeNativeCompilerPlugins.map(Positioned.none(_)) ++
       value(semanticDbPlugins).map(Positioned.none(_)) ++
-      scalaOptions.compilerPlugins
+      scalaOptions.compilerPlugins.toSeq
   }
 
   private def semanticDbJavacPlugins: Either[BuildException, Seq[AnyDependency]] = either {

@@ -41,23 +41,17 @@ case object ScalaPreprocessor extends Preprocessor {
     updatedContent: Option[String]
   )
 
+
   val usingDirectivesGroups: Seq[DirectiveHandler[BuildOptions] | DirectiveHandlerGroup[BuildOptions]] = Seq(
-    UsingDependencyDirectiveHandler,
     UsingScalaVersionDirectiveHandler,
-    UsingRepositoryDirectiveHandler,
     UsingPlatformDirectiveHandler,
-    UsingOptionDirectiveHandler,
-    UsingJavaOptionsDirectiveHandler,
-    UsingJavaPropsDirectiveHandler,
+    JavaDirectiveHandlers.group,
     ScalaJsDirectiveHandlers.group,
     ScalaNativeDirectiveHandlers.group,
-    UsingJavaHomeDirectiveHandler,
     UsingTestFrameworkDirectiveHandler,
-    UsingCustomJarDirectiveHandler,
-    UsingResourcesDirectiveHandler,
-    UsingCompilerPluginDirectiveHandler,
+    ClassPathDirectiveHandlers.group,
     UsingMainClassDirectiveHandler,
-    UsingPublishDirectiveHandler
+    PublishDirectiveHandlers.group
   )
 
   val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] = 
@@ -67,11 +61,10 @@ case object ScalaPreprocessor extends Preprocessor {
       case handler: DirectiveHandler[BuildOptions] => Seq(handler)
     }
 
-  val requireDirectiveHandlers = Seq[RequireDirectiveHandler](
-    RequireScalaVersionDirectiveHandler,
+  val requireDirectiveHandlers = Seq[DirectiveHandler[BuildRequirements]](
     RequirePlatformsDirectiveHandler,
     RequireScopeDirectiveHandler
-  )
+  ) ++ RequireScalaVersionDirectiveHandlers.group.handlers
 
   def preprocess(
     input: Inputs.SingleElement,

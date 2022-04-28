@@ -1,17 +1,16 @@
 package scala.build.preprocessing.directives
 import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.Positioned
+import scala.cli.commands.CompileOptions
 
-case object UsingScalaVersionDirectiveHandler extends SimpleUsingDirectiveHandler(
-  name = "Scala version",
-  description = "Set the default Scala version",
-  keys = Seq("scala"),
-  constrains = AtLeastOne(ValueType.String, ValueType.Number)
-){
+case object UsingScalaVersionDirectiveHandler extends BuildOptionsUsingDirectiveHandler[::[Positioned[String]]]{
+  def name = "Scala version"
+  def description = fromCommand("scala", CompileOptions.help)
+  def keys = Seq("scala")
+  def constrains = AtLeastOne(ValueType.String, ValueType.Number)
   
   def process(versions: ::[Positioned[String]])(using Ctx) = {
     val base :: extra = versions.map(_.value)
-    // TODO add version validation here!
     Right(
       BuildOptions(
         scalaOptions = ScalaOptions(

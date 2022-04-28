@@ -87,6 +87,8 @@ object SharedOptionsUtil {
         if (js.js) Some(Platform.JS)
         else if (native.native) Some(Platform.Native)
         else None
+
+      
       bo.BuildOptions(
         scalaOptions = bo.ScalaOptions(
           scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
@@ -100,9 +102,11 @@ object SharedOptionsUtil {
               .map(Positioned.commandLine(_))
           ),
           compilerPlugins =
-            SharedOptionsUtil.parseDependencies(
-              dependencies.compilerPlugin.map(Positioned.none(_)),
-              ignoreErrors
+            ShadowingSeq.from(
+              SharedOptionsUtil.parseDependencies(
+                dependencies.compilerPlugin.map(Positioned.commandLine(_)),
+                ignoreErrors
+              )
             ),
           platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
         ),

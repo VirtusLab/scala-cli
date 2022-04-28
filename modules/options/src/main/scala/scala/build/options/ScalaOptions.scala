@@ -11,7 +11,7 @@ final case class ScalaOptions(
   generateSemanticDbs: Option[Boolean] = None,
   scalacOptions: ShadowingSeq[Positioned[ScalacOpt]] = ShadowingSeq.empty,
   extraScalaVersions: Set[String] = Set.empty,
-  compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
+  compilerPlugins: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
   platform: Option[Positioned[Platform]] = None,
   extraPlatforms: Map[Platform, Positioned[Unit]] = Map.empty,
   supportedScalaVersionsUrl: Option[String] = None
