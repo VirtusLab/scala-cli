@@ -349,11 +349,6 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
     val runnerMainClass = runner(Scala.defaultInternal)
       .mainClass()
       .getOrElse(sys.error("No main class defined for runner"))
-    val runnerNeedsSonatypeSnapshots =
-      if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT"))
-        """ !sv.startsWith("2.") """
-      else
-        "false"
     val detailedVersionValue =
       if (`local-repo`.developingOnStubModules) s"""Some("${vcsState()}")"""
       else "None"
@@ -387,8 +382,6 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |  def runnerModuleName = "${runner(Scala.defaultInternal).artifactName()}"
          |  def runnerVersion = "${runner(Scala.defaultInternal).publishVersion()}"
          |  def runnerMainClass = "$runnerMainClass"
-         |  def runnerNeedsSonatypeSnapshots(sv: String): Boolean =
-         |    $runnerNeedsSonatypeSnapshots
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
@@ -851,21 +844,6 @@ class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
 
   }
   def mainClass = Some("scala.cli.runner.Runner")
-  def ivyDeps =
-    if (crossScalaVersion.startsWith("3.") && !crossScalaVersion.contains("-RC"))
-      Agg(Deps.prettyStacktraces)
-    else
-      Agg.empty[Dep]
-  def repositories = {
-    val base = super.repositories
-    val extra =
-      if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT"))
-        Seq(coursier.Repositories.sonatype("snapshots"))
-      else
-        Nil
-
-    base ++ extra
-  }
   def sources = T.sources {
     val scala3DirNames =
       if (crossScalaVersion.startsWith("3.")) {
