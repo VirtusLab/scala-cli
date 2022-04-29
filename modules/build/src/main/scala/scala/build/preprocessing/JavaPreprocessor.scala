@@ -44,17 +44,18 @@ case object JavaPreprocessor extends Preprocessor {
           ))
         })
       case v: Inputs.VirtualJavaFile =>
+        val relPath = if (v.isStdin) os.sub / "stdin.java" else v.subPath
         val content = new String(v.content, StandardCharsets.UTF_8)
         val s = PreprocessedSource.InMemory(
-          Left(v.source),
-          v.subPath,
-          content,
-          0,
-          None,
-          None,
-          Nil,
-          None,
-          v.scopePath
+          originalPath = Left(v.source),
+          relPath = relPath,
+          code = content,
+          ignoreLen = 0,
+          options = None,
+          requirements = None,
+          scopedRequirements = Nil,
+          mainClassOpt = None,
+          scopePath = v.scopePath
         )
         Some(Right(Seq(s)))
 
