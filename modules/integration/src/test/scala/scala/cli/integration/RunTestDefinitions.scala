@@ -728,6 +728,46 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         expect(output == expectedOutput)
       }
     }
+    test("Java code accepted as piped input") {
+      val expectedOutput = "Hello"
+      val pipedInput =
+        s"""public class Main {
+           |    public static void main(String[] args) {
+           |        System.out.println("$expectedOutput");
+           |    }
+           |}
+           |""".stripMargin
+      emptyInputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, "_.java", extraOptions)
+          .call(cwd = root, stdin = pipedInput)
+          .out.text().trim
+        expect(output == expectedOutput)
+      }
+    }
+    test("Java code with multiple classes accepted as piped input") {
+      val expectedOutput = "Hello"
+      val pipedInput =
+        s"""class OtherClass {
+           |    public String message;
+           |    public OtherClass(String message) {
+           |      this.message = message;
+           |    }
+           |}
+           |
+           |public class Main {
+           |    public static void main(String[] args) {
+           |        OtherClass obj = new OtherClass("$expectedOutput");
+           |        System.out.println(obj.message);
+           |    }
+           |}
+           |""".stripMargin
+      emptyInputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, "_.java", extraOptions)
+          .call(cwd = root, stdin = pipedInput)
+          .out.text().trim
+        expect(output == expectedOutput)
+      }
+    }
   }
 
   def fd(): Unit = {
