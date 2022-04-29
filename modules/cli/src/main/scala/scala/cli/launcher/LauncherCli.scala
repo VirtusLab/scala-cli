@@ -71,9 +71,10 @@ object LauncherCli {
   }
 
   def scalaCliScalaVersion(cliVersion: String): String =
-    if (cliVersion == "nightly") Properties.versionNumberString
+    if (cliVersion == "nightly") Constants.defaultScalaVersion
     else if (Version(cliVersion) <= Version("0.1.2")) Constants.defaultScala212Version
-    else Properties.versionNumberString
+    else if (Version(cliVersion) <= Version("0.1.4")) Constants.defaultScala213Version
+    else Constants.defaultScalaVersion
 
   def resolveNightlyScalaCliVersion(
     cache: FileCache[Task],

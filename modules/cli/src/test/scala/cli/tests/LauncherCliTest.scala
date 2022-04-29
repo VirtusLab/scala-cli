@@ -14,7 +14,7 @@ class LauncherCliTest extends munit.FunSuite {
   test("resolve nightly version") {
     val logger          = TestLogger()
     val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
-    val scalaParameters = ScalaParameters(Properties.versionNumberString)
+    val scalaParameters = ScalaParameters(Constants.defaultScalaVersion)
 
     val nightlyCliVersion = LauncherCli.resolveNightlyScalaCliVersion(cache, scalaParameters)
     expect(nightlyCliVersion.endsWith("-SNAPSHOT"))
@@ -24,7 +24,7 @@ class LauncherCliTest extends munit.FunSuite {
     "0.1.2"                       -> Constants.defaultScala212Version,
     "0.1.1+43-g15666b67-SNAPSHOT" -> Constants.defaultScala212Version,
     "0.1.3"                       -> Constants.defaultScala213Version,
-    "nightly"                     -> Properties.versionNumberString
+    "nightly"                     -> Constants.defaultScalaVersion
   )
 
   for ((cliVersion, expectedScalaVersion) <- expectedScalaCliVersions)
