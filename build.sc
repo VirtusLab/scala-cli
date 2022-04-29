@@ -542,7 +542,8 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
     Deps.swoval
-  ) ++ (if (scalaVersion().startsWith("3")) Agg() else Agg(Deps.shapeless))
+  ) ++ (if (scalaVersion().startsWith("3")) Agg(Deps.scala3Compiler(scalaVersion()))
+        else Agg(Deps.shapeless))
 
   object test extends Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(

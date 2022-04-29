@@ -44,7 +44,14 @@ case object JavaPreprocessor extends Preprocessor {
           ))
         })
       case v: Inputs.VirtualJavaFile =>
-        val relPath = if (v.isStdin) os.sub / "stdin.java" else v.subPath
+        val relPath =
+          if (v.isStdin) {
+            val fileName = JavaParser.parseRootPublicClassName(v.content).map(
+              _ + ".java"
+            ).getOrElse("stdin.java")
+            os.sub / fileName
+          }
+          else v.subPath
         val content = new String(v.content, StandardCharsets.UTF_8)
         val s = PreprocessedSource.InMemory(
           originalPath = Left(v.source),
