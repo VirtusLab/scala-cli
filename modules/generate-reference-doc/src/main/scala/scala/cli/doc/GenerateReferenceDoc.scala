@@ -12,6 +12,8 @@ import scala.build.preprocessing.ScalaPreprocessor
 import scala.build.preprocessing.directives.DirectiveHandler
 import scala.cli.ScalaCliCommands
 import scala.build.options.BuildOptions
+import scala.build.preprocessing.directives.BaseBuildOptionsHandler
+import scala.build.preprocessing.directives.BuildRequirementsHandler
 
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
@@ -230,8 +232,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
   }
 
   private def usingContent(
-    usingHandlers: Seq[DirectiveHandler[_]],
-    requireHandlers: Seq[DirectiveHandler[_]]
+    usingHandlers: Seq[BaseBuildOptionsHandler[_]],
+    requireHandlers: Seq[BuildRequirementsHandler[_]]
   ): String = {
     val b = new StringBuilder
 
@@ -246,33 +248,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
         |""".stripMargin
     )
 
-    def addHandlers(handlers: Seq[DirectiveHandler[_]]): Unit =
-      for (handler <- handlers.sortBy(_.name)) {
-        b.append(
-          s"""### ${handler.name}
-             |
-             |${handler.descriptionMd}
-             |
-             |${handler.usageMd}
-             |
-             |""".stripMargin
-        )
-        val examples = handler.examples
-        if (examples.nonEmpty) {
-          b.append(
-            """#### Examples
-              |""".stripMargin
-          )
-          for (ex <- examples)
-            b.append(
-              s"""`$ex`
-                 |
-                 |""".stripMargin
-            )
-        }
-      }
-
-    addHandlers(usingHandlers)
+    val commands = new ScalaCliCommands("scala-cli", isSipScala = false).commands
+    usingHandlers.sortBy(_.name).foreach(h => b.append(h.referenceMd(commands)).append("\n\n"))
 
     b.append(
       """
@@ -281,7 +258,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
         |""".stripMargin
     )
 
-    addHandlers(requireHandlers)
+    // TODO!
+    // addHandlers(requireHandlers)
 
     b.toString
   }

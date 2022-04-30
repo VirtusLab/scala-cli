@@ -2,13 +2,12 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.errors.UsingDirectiveValueNumError
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.build.Position
 import scala.build.preprocessing.directives.UsingDirectiveError
-import scala.build.preprocessing.directives.ValueType
+import scala.build.preprocessing.directives.DirectiveValue
 
 class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
 

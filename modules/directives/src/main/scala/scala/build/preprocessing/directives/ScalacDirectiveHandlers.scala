@@ -9,21 +9,22 @@ import scala.build.options.ScalacOpt
 import scala.build.Positioned
 import scala.tools.nsc.plugins.Plugins
 
-object ScalacDirectiveHandlers extends PrefixedDirectiveGroup[ScalaOptions]("", "TODO", SharedOptions.help) {
+object ScalacDirectiveHandlers
+    extends PrefixedDirectiveGroup[ScalaOptions]("", "TODO", SharedOptions.help) {
   def mkBuildOptions(v: ScalaOptions): BuildOptions = BuildOptions(scalaOptions = v)
-  
+
   def group = DirectiveHandlerGroup("Scala compiler", Seq(Options, Version, Plugins))
 
   object Options extends BaseStringListSetting {
     override def keys = Seq("option", "options")
     def exampleValues = Seq(Seq("-Xasync"), Seq("-Xasync", "-Xfatal-warnings"))
-    def usageValue = "option"
+    def usageValue    = "option"
 
     def processOption(opts: ::[Positioned[String]])(using Ctx) =
       val opsSeq = ShadowingSeq.from(opts.map(_.map(ScalacOpt.apply)))
       Right(ScalaOptions(scalacOptions = opsSeq))
   }
-  
+
   object Version extends BaseStringListSetting {
     def processOption(opts: ::[Positioned[String]])(using Ctx) =
       val main :: rest = opts.map(_.value)
@@ -43,8 +44,8 @@ object ScalacDirectiveHandlers extends PrefixedDirectiveGroup[ScalaOptions]("", 
 
   object Plugins extends BaseStringListSetting {
     def processOption(opts: ::[Positioned[String]])(using Ctx) =
-      ClassPathDirectiveHandlers.Libs.parseDependencies(opts).map(
-        plugins => ScalaOptions(compilerPlugins = plugins)
+      ClassPathDirectiveHandlers.Libs.parseDependencies(opts).map(plugins =>
+        ScalaOptions(compilerPlugins = plugins)
       )
 
     override def keys = Seq("plugin", "plugins")

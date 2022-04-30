@@ -88,7 +88,6 @@ object SharedOptionsUtil {
         else if (native.native) Some(Platform.Native)
         else None
 
-      
       bo.BuildOptions(
         scalaOptions = bo.ScalaOptions(
           scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),

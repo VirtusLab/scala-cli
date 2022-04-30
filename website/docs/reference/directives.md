@@ -7,547 +7,841 @@ sidebar_position: 2
 
 ### Java Home
 
-TODO no arg
+**Directives**: `javaHome`, `java-home`
 
-`//> using javaHome "path"
+Set the Java home directory
 
-//> using java-home "path"`
+**Usage**:
 
-#### Examples
-`//> using javaHome "/home/user/jvm"`
+```
+//> using javaHome <path>
+```
 
-`//> using java-home "<path>"`
+Where `<path>` is String literal.
+
+**Examples**:
+
+```
+//> using javaHome "/home/user/jvm"
+//> using java-home "<path>"
+```
+
 
 ### Java Options
 
+**Directives**: `javaOpt`, `java-opt`
+
 Set Java options, such as `-Xmx1g`
 
-`//> using javaOpt "option0"
+**Usage**:
 
-//> using java-opt "option0, option1"`
+```
+//> using javaOpt <java-options> [, <java-options>]*
+```
 
-#### Examples
-`//> using javaOpt List("-Xmx2g", "-Xms1g", "-Xnoclassgc")`
+Where `<java-options>` is String literal.
 
-`//> using java-opt List("-Xmx2g", "-Xms1g", "-Xnoclassgc")`
+**Examples**:
+
+```
+//> using javaOpt List("-Xmx2g", "-Xms1g", "-Xnoclassgc")
+//> using java-opt List("-Xmx2g", "-Xms1g", "-Xnoclassgc")
+```
+
 
 ### Java Properties
 
+**Directives**: `javaProp`, `java-prop`
+
 Set Java properties
 
-`//> using javaProp "option0"
+**Usage**:
 
-//> using java-prop "option0, option1"`
+```
+//> using javaProp <key=value|key> [, <key=value|key>]*
+```
 
-#### Examples
-`//> using javaProp List("-Xmx2g", "-Xms1g", "-Xnoclassgc")`
+Where `<key=value|key>` is String literal.
 
-`//> using java-prop List("-Xmx2g", "-Xms1g", "-Xnoclassgc")`
+**Examples**:
+
+```
+//> using javaProp List("-Xmx2g", "-Xms1g", "-Xnoclassgc")
+//> using java-prop List("-Xmx2g", "-Xms1g", "-Xnoclassgc")
+```
+
 
 ### Location of clang
 
+**Directives**: `nativeClang`, `native-clang`
+
 Path to the Clang command
 
-`//> using nativeClang "path"
+**Usage**:
 
-//> using native-clang "path"`
+```
+//> using nativeClang <string?>
+```
 
-#### Examples
-`//> using nativeClang "/usr/bin/clang"`
+Where `<string?>` is String literal.
 
-`//> using native-clang "/usr/bin/clang"`
+**Examples**:
+
+```
+//> using nativeClang "/usr/bin/clang"
+//> using native-clang "/usr/bin/clang"
+```
+
 
 ### Location of clang++
 
-TODO no arg
+**Directives**: `nativeClangPP`, `native-clang-pp`
 
-`//> using nativeClangPP "path"
+No argument!
 
-//> using native-clang-pp "path"`
+**Usage**:
 
-#### Examples
-`//> using nativeClangPP "/usr/bin/clang++"`
+```
+//> using nativeClangPP <value>
+```
 
-`//> using native-clang-pp "/usr/bin/clang++"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using nativeClangPP "/usr/bin/clang++"
+//> using native-clang-pp "/usr/bin/clang++"
+```
+
 
 ### Main class
 
-TODO no arg
+**Directives**: `main-class`, `mainClass`
 
-`//> using mainClass <fqn>`
+No argument!
 
-#### Examples
-`//> using mainClass "foo.bar.Baz"`
+**Usage**:
 
-`//> using main-class "app.Main"`
+```
+//> using main-class <value>
+```
+
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using mainClass "foo.bar.Baz"
+//> using main-class "app.Main"
+```
+
 
 ### Platform
 
-Set the default platform to Scala.js or Scala Native
+**Directives**: `platform`, `platforms`
 
-`//> using platform `(`jvm`|`scala-js`|`scala-native`)+
+No argument!
 
-#### Examples
-`//> using platform "scala-js"`
+**Usage**:
 
-`//> using platform "jvm", "scala-native"`
+```
+//> using platform <value> [, <value>]*
+```
+
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using platform "scala-js"
+//> using platform "jvm", "scala-native"
+```
+
 
 ### Publish ComputeVersion
 
-TODO no arg
+**Directives**: `publishComputeVersion`, `publish-compute-version`
 
-`//> using publishComputeVersion "git:(dynver|tag)[:repo] | comamnd:<command>3"
+No argument!
 
-//> using publish-compute-version "git:(dynver|tag)[:repo] | comamnd:<command>3"`
+**Usage**:
 
-#### Examples
-`//> using publishComputeVersion "git:tag"`
+```
+//> using publishComputeVersion <value>
+```
 
-`//> using publish-compute-version "git:tag:<repo>"`
+Where `<value>` is String literal, using following format:
 
-`//> using publishComputeVersion "git:dynver"`
+ ```
+git:(dynver|tag)[:repo] | comamnd:<command>
+```
 
-`//> using publish-compute-version "git:dynver:<repo>"`
+**Examples**:
 
-`//> using publishComputeVersion "command:<command>"`
+```
+//> using publishComputeVersion "git:tag"
+//> using publish-compute-version "git:tag:<repo>"
+//> using publishComputeVersion "git:dynver"
+//> using publish-compute-version "git:dynver:<repo>"
+//> using publishComputeVersion "command:<command>"
+```
+
 
 ### Publish Developers
 
-TODO no arg
+**Directives**: `developer`, `developers`
 
-`//> using developer "id|name|address[|email]0"
+Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" or "alex|Alex|https://alex.info|alex@alex.me"
 
-//> using developers "id|name|address[|email]0, id|name|address[|email]1"`
+**Usage**:
 
-#### Examples
-`//> using developer List("_example|Sarah Jones|https://docs.github.com/_example", "_example|Sarah Jones|https://docs.github.com/_example", "_example2|Nick Smith|https://docs.github.com/_example|nick@example.org")`
+```
+//> using developer <id|name|URL|email> [, <id|name|URL|email>]*
+```
 
-`//> using developers List("_example|Sarah Jones|https://docs.github.com/_example", "_example|Sarah Jones|https://docs.github.com/_example", "_example2|Nick Smith|https://docs.github.com/_example|nick@example.org")`
+Where `<id|name|URL|email>` is String literal.
+
+**Examples**:
+
+```
+//> using developer List("_example|Sarah Jones|https://docs.github.com/_example", "_example|Sarah Jones|https://docs.github.com/_example", "_example2|Nick Smith|https://docs.github.com/_example|nick@example.org")
+//> using developers List("_example|Sarah Jones|https://docs.github.com/_example", "_example|Sarah Jones|https://docs.github.com/_example", "_example2|Nick Smith|https://docs.github.com/_example|nick@example.org")
+```
+
 
 ### Publish GpgKey
 
-TODO no arg
+**Directives**: `publishGpgKey`, `publish-gpg-key`
 
-`//> using publishGpgKey "<key>"
+No argument!
 
-//> using publish-gpg-key "<key>"`
+**Usage**:
 
-#### Examples
-`//> using publishGpgKey "user@email.com"`
+```
+//> using publishGpgKey <value>
+```
 
-`//> using publish-gpg-key "user@email.com"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using publishGpgKey "user@email.com"
+//> using publish-gpg-key "user@email.com"
+```
+
 
 ### Publish GpgOptions
 
-TODO no arg
+**Directives**: `publishGpgOptions`, `publish-gpg-options`
 
-`//> using publishGpgOptions "option0"
+No argument!
 
-//> using publish-gpg-options "option0, option1"`
+**Usage**:
 
-#### Examples
-`//> using publishGpgOptions List("--armor", "--local-user", "sarah_j")`
+```
+//> using publishGpgOptions <value> [, <value>]*
+```
 
-`//> using publish-gpg-options List("--armor", "--local-user", "sarah_j")`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using publishGpgOptions List("--armor", "--local-user", "sarah_j")
+//> using publish-gpg-options List("--armor", "--local-user", "sarah_j")
+```
+
 
 ### Publish License
 
-TODO no arg
+**Directives**: `publishLicense`, `publish-license`
 
-`//> using publishLicense "<license>"
+No argument!
 
-//> using publish-license "<license>"`
+**Usage**:
 
-#### Examples
-`//> using publishLicense "Apache 2.0"`
+```
+//> using publishLicense <value>
+```
 
-`//> using publish-license "Apache 2.0"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using publishLicense "Apache 2.0"
+//> using publish-license "Apache 2.0"
+```
+
 
 ### Publish Name
 
-TODO no arg
+**Directives**: `publishName`, `publish-name`
 
-`//> using publishName "name"
+No argument!
 
-//> using publish-name "name"`
+**Usage**:
 
-#### Examples
-`//> using publishName "scala-cli-core"`
+```
+//> using publishName <value>
+```
 
-`//> using publish-name "scala-cli-core"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using publishName "scala-cli-core"
+//> using publish-name "scala-cli-core"
+```
+
 
 ### Publish Organization
 
-TODO no arg
+**Directives**: `publishOrganization`, `publish-organization`
 
-`//> using publishOrganization "organization"
+No argument!
 
-//> using publish-organization "organization"`
+**Usage**:
 
-#### Examples
-`//> using publishOrganization "com.githib.scala-cli"`
+```
+//> using publishOrganization <value>
+```
 
-`//> using publish-organization "com.githib.scala-cli"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using publishOrganization "com.githib.scala-cli"
+//> using publish-organization "com.githib.scala-cli"
+```
+
 
 ### Publish Repository
 
+**Directives**: `publishRepository`, `publish-repository`
+
 Repository to publish to
 
-`//> using publishRepository "<repository>"
+**Usage**:
 
-//> using publish-repository "<repository>"`
+```
+//> using publishRepository <URL or path>
+```
 
-#### Examples
-`//> using publishRepository "https://repo.maven.apache.org/maven2"`
+Where `<URL or path>` is String literal.
 
-`//> using publish-repository "https://repo.maven.apache.org/maven2"`
+**Examples**:
+
+```
+//> using publishRepository "https://repo.maven.apache.org/maven2"
+//> using publish-repository "https://repo.maven.apache.org/maven2"
+```
+
 
 ### Publish ScalaPlatformSuffix
 
-TODO no arg
+**Directives**: `publishScalaPlatformSuffix`, `publish-scala-platform-suffix`
 
-`//> using publishScalaPlatformSuffix "<suffix>"
+No argument!
 
-//> using publish-scala-platform-suffix "<suffix>"`
+**Usage**:
 
-#### Examples
-`//> using publishScalaPlatformSuffix "_js"`
+```
+//> using publishScalaPlatformSuffix <value>
+```
 
-`//> using publish-scala-platform-suffix "_js"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using publishScalaPlatformSuffix "_js"
+//> using publish-scala-platform-suffix "_js"
+```
+
 
 ### Publish ScalaVersionSuffix
 
-TODO no arg
+**Directives**: `publishScalaVersionSuffix`, `publish-scala-version-suffix`
 
-`//> using publishScalaVersionSuffix "<suffix>"
+No argument!
 
-//> using publish-scala-version-suffix "<suffix>"`
+**Usage**:
 
-#### Examples
-`//> using publishScalaVersionSuffix "_3"`
+```
+//> using publishScalaVersionSuffix <value>
+```
 
-`//> using publish-scala-version-suffix "_3"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using publishScalaVersionSuffix "_3"
+//> using publish-scala-version-suffix "_3"
+```
+
 
 ### Publish URL
 
-TODO no arg
+**Directives**: `publishURL`, `publish-u-r-l`
 
-`//> using publishURL "<url>"
+No argument!
 
-//> using publish-u-r-l "<url>"`
+**Usage**:
 
-#### Examples
-`//> using publishURL "https://scala-cli.virtuslab.org/"`
+```
+//> using publishURL <value>
+```
 
-`//> using publish-u-r-l "https://scala-cli.virtuslab.org/"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using publishURL "https://scala-cli.virtuslab.org/"
+//> using publish-u-r-l "https://scala-cli.virtuslab.org/"
+```
+
 
 ### Publish Version
 
-TODO no arg
+**Directives**: `publishVersion`, `publish-version`
 
-`//> using publishVersion "version"
+No argument!
 
-//> using publish-version "version"`
+**Usage**:
 
-#### Examples
-`//> using publishVersion "1.0.1-RC2"`
+```
+//> using publishVersion <value>
+```
 
-`//> using publish-version "1.0.1-RC2"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using publishVersion "1.0.1-RC2"
+//> using publish-version "1.0.1-RC2"
+```
+
 
 ### Publish VersionControl
 
-TODO no arg
+**Directives**: `publishVersionControl`, `publish-version-control`, `scm`
 
-`//> using publishVersionControl "github:<org>/<repo> | <url>|<connection>|<dev_connection>"
+No argument!
 
-//> using publish-version-control "github:<org>/<repo> | <url>|<connection>|<dev_connection>"
+**Usage**:
 
-//> using scm "github:<org>/<repo> | <url>|<connection>|<dev_connection>"`
+```
+//> using publishVersionControl <value>
+```
 
-#### Examples
-`//> using publishVersionControl "github:VirtusLab/scala-cli.git"`
+Where `<value>` is String literal.
 
-`//> using publish-version-control "<url>|<connection>|<dev_connection>"`
+**Examples**:
 
-`//> using scm "github:VirtusLab/scala-cli.git"`
+```
+//> using publishVersionControl "github:VirtusLab/scala-cli.git"
+//> using publish-version-control "<url>|<connection>|<dev_connection>"
+//> using scm "github:VirtusLab/scala-cli.git"
+```
+
 
 ### Scala Native CompileOptions
 
-TODO no arg
+**Directives**: `nativeCompileOptions`, `native-compile-options`
 
-`//> using nativeCompileOptions "option0"
+No argument!
 
-//> using native-compile-options "option0, option1"`
+**Usage**:
 
-#### Examples
-`//> using nativeCompileOptions List("TODO", "TODO", "TODO")`
+```
+//> using nativeCompileOptions <value> [, <value>]*
+```
 
-`//> using native-compile-options List("TODO", "TODO", "TODO")`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using nativeCompileOptions List("TODO", "TODO", "TODO")
+//> using native-compile-options List("TODO", "TODO", "TODO")
+```
+
 
 ### Scala Native GC
 
-TODO no arg
+**Directives**: `nativeGC`, `native-g-c`
 
-`//> using nativeGC "gc"
+No argument!
 
-//> using native-g-c "gc"`
+**Usage**:
 
-#### Examples
-`//> using nativeGC "none"`
+```
+//> using nativeGC <value>
+```
 
-`//> using native-g-c "boehm"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using nativeGC "none"
+//> using native-g-c "boehm"
+```
+
 
 ### Scala Native LinkingOptions
 
-TODO no arg
+**Directives**: `nativeLinkingOptions`, `native-linking-options`
 
-`//> using nativeLinkingOptions "option0"
+No argument!
 
-//> using native-linking-options "option0, option1"`
+**Usage**:
 
-#### Examples
-`//> using nativeLinkingOptions List("TODO", "TODO", "TODO")`
+```
+//> using nativeLinkingOptions <value> [, <value>]*
+```
 
-`//> using native-linking-options List("TODO", "TODO", "TODO")`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using nativeLinkingOptions List("TODO", "TODO", "TODO")
+//> using native-linking-options List("TODO", "TODO", "TODO")
+```
+
 
 ### Scala Native Mode
 
+**Directives**: `nativeMode`, `native-mode`
+
 Set Scala Native compilation mode
 
-`//> using nativeMode "mode"
+**Usage**:
 
-//> using native-mode "mode"`
+```
+//> using nativeMode <string?>
+```
 
-#### Examples
-`//> using nativeMode "release"`
+Where `<string?>` is String literal.
 
-`//> using native-mode "release-fast"`
+**Examples**:
+
+```
+//> using nativeMode "release"
+//> using native-mode "release-fast"
+```
+
 
 ### Scala Native Version
 
+**Directives**: `nativeVersion`, `native-version`
+
 Set the Scala Native version
 
-`//> using nativeVersion "version"
+**Usage**:
 
-//> using native-version "version"`
+```
+//> using nativeVersion <string?>
+```
 
-#### Examples
-`//> using nativeVersion "0.4.0"`
+Where `<string?>` is String literal.
 
-`//> using native-version "0.4.1"`
+**Examples**:
+
+```
+//> using nativeVersion "0.4.0"
+//> using native-version "0.4.1"
+```
+
 
 ### Scala version
+
+**Directives**: `scala`
 
 Set the Scala version
 
-`//> using scala <version>
+**Usage**:
 
-//> using scala <base-version>, <cross-version>
+```
+//> using scala <version> [, <version>]*
+```
 
-//> using scala <base-version>, <cross-version1>, <cross-version2>`
+Where `<version>` is String literal orNumber literal.
 
-#### Examples
-`//> using scala "3.0.2"`
+**Examples**:
 
-`//> using scala 3`
+```
+//> using scala "3.0.2"
+//> using scala 3
+//> using scala 3.1
+//> using scala "2.13"
+//> using scala "2"
+//> using scala "2.13.6", "2.12.15"
+```
 
-`//> using scala 3.1`
-
-`//> using scala "2.13"`
-
-`//> using scala "2"`
-
-`//> using scala "2.13.6", "2.12.15"`
 
 ### Scala.js AvoidClasses
 
+**Directives**: `jsAvoidClasses`, `js-avoid-classes`
+
 Avoid class'es when using functions and prototypes has the same observable semantics.
 
-`//> using jsAvoidClasses [true|false]
+**Usage**:
 
-//> using js-avoid-classes [true|false]`
+```
+//> using jsAvoidClasses [true|false]
+```
 
-#### Examples
-`//> using jsAvoidClasses`
+**Examples**:
 
-`//> using js-avoid-classes false`
+```
+//> using jsAvoidClasses
+//> using js-avoid-classes false
+```
+
 
 ### Scala.js AvoidLetsAndConsts
 
+**Directives**: `jsAvoidLetsAndConsts`, `js-avoid-lets-and-consts`
+
 Avoid lets and consts when using vars has the same observable semantics.
 
-`//> using jsAvoidLetsAndConsts [true|false]
+**Usage**:
 
-//> using js-avoid-lets-and-consts [true|false]`
+```
+//> using jsAvoidLetsAndConsts [true|false]
+```
 
-#### Examples
-`//> using jsAvoidLetsAndConsts`
+**Examples**:
 
-`//> using js-avoid-lets-and-consts false`
+```
+//> using jsAvoidLetsAndConsts
+//> using js-avoid-lets-and-consts false
+```
+
 
 ### Scala.js CheckIr
 
-TODO nod help
+**Directives**: `jsCheckIr`, `js-check-ir`
 
-`//> using jsCheckIr [true|false]
+No argument!
 
-//> using js-check-ir [true|false]`
+**Usage**:
 
-#### Examples
-`//> using jsCheckIr`
+```
+//> using jsCheckIr [true|false]
+```
 
-`//> using js-check-ir false`
+**Examples**:
+
+```
+//> using jsCheckIr
+//> using js-check-ir false
+```
+
 
 ### Scala.js Dom
 
+**Directives**: `jsDom`, `js-dom`
+
 Enable jsdom
 
-`//> using jsDom [true|false]
+**Usage**:
 
-//> using js-dom [true|false]`
+```
+//> using jsDom [true|false]
+```
 
-#### Examples
-`//> using jsDom`
+**Examples**:
 
-`//> using js-dom false`
+```
+//> using jsDom
+//> using js-dom false
+```
+
 
 ### Scala.js EmitSourceMaps
 
+**Directives**: `jsEmitSourceMaps`, `js-emit-source-maps`
+
 Emit source maps
 
-`//> using jsEmitSourceMaps [true|false]
+**Usage**:
 
-//> using js-emit-source-maps [true|false]`
+```
+//> using jsEmitSourceMaps [true|false]
+```
 
-#### Examples
-`//> using jsEmitSourceMaps`
+**Examples**:
 
-`//> using js-emit-source-maps false`
+```
+//> using jsEmitSourceMaps
+//> using js-emit-source-maps false
+```
+
 
 ### Scala.js EsVersionStr
 
-TODO no arg
+**Directives**: `jsEsVersionStr`, `js-es-version-str`
 
-`//> using jsEsVersionStr "version"
+No argument!
 
-//> using js-es-version-str "version"`
+**Usage**:
 
-#### Examples
-`//> using jsEsVersionStr "TODO"`
+```
+//> using jsEsVersionStr <value>
+```
 
-`//> using js-es-version-str "TODO"`
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using jsEsVersionStr "TODO"
+//> using js-es-version-str "TODO"
+```
+
 
 ### Scala.js Header
 
+**Directives**: `jsHeader`, `js-header`
+
 A header that will be added at the top of generated .js files
 
-`//> using jsHeader "header"
+**Usage**:
 
-//> using js-header "header"`
+```
+//> using jsHeader <string?>
+```
 
-#### Examples
-`//> using jsHeader "TODO"`
+Where `<string?>` is String literal.
 
-`//> using js-header "TODO"`
+**Examples**:
+
+```
+//> using jsHeader "TODO"
+//> using js-header "TODO"
+```
+
 
 ### Scala.js Mode
 
+**Directives**: `jsMode`, `js-mode`
+
 The Scala.js mode, either `dev` or `release`
 
-`//> using jsMode "mode"
+**Usage**:
 
-//> using js-mode "mode"`
+```
+//> using jsMode <string?>
+```
 
-#### Examples
-`//> using jsMode "TODO"`
+Where `<string?>` is String literal.
 
-`//> using js-mode "TODO"`
+**Examples**:
+
+```
+//> using jsMode "TODO"
+//> using js-mode "TODO"
+```
+
 
 ### Scala.js ModuleKind
 
+**Directives**: `jsModuleKind`, `js-module-kind`
+
 The Scala.js module kind: commonjs/common, esmodule/es, nomodule/none
 
-`//> using jsModuleKind "kind"
+**Usage**:
 
-//> using js-module-kind "kind"`
+```
+//> using jsModuleKind <string?>
+```
 
-#### Examples
-`//> using jsModuleKind "TODO"`
+Where `<string?>` is String literal.
 
-`//> using js-module-kind "TODO"`
+**Examples**:
+
+```
+//> using jsModuleKind "TODO"
+//> using js-module-kind "TODO"
+```
+
 
 ### Scala.js SmallModuleForPackage
 
+**Directives**: `jsSmallModuleForPackage`, `js-small-module-for-package`
+
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-`//> using jsSmallModuleForPackage "value0, value1"
+**Usage**:
 
-//> using js-small-module-for-package "value0"`
+```
+//> using jsSmallModuleForPackage <string*> [, <string*>]*
+```
 
-#### Examples
-`//> using jsSmallModuleForPackage List("pckA", "pckB", "packC")`
+Where `<string*>` is String literal.
 
-`//> using js-small-module-for-package List("pckA", "pckB", "packC")`
+**Examples**:
+
+```
+//> using jsSmallModuleForPackage List("pckA", "pckB", "packC")
+//> using js-small-module-for-package List("pckA", "pckB", "packC")
+```
+
 
 ### Scala.js Version
 
+**Directives**: `jsVersion`, `js-version`
+
 The Scala.js version
 
-`//> using jsVersion "version"
+**Usage**:
 
-//> using js-version "version"`
+```
+//> using jsVersion <string?>
+```
 
-#### Examples
-`//> using jsVersion "3.2.1"`
+Where `<string?>` is String literal.
 
-`//> using js-version "TODO"`
+**Examples**:
+
+```
+//> using jsVersion "3.2.1"
+//> using js-version "TODO"
+```
+
 
 ### Test framework
 
-TODO no arg
+**Directives**: `test-framework`, `testFramework`
 
-`using testFramework <class_name> 
+No argument!
 
-using test-framework <class_name>`
+**Usage**:
 
-#### Examples
-`//> using testFramework "utest.runner.Framework"`
+```
+//> using test-framework <value>
+```
+
+Where `<value>` is String literal.
+
+**Examples**:
+
+```
+//> using testFramework "utest.runner.Framework"
+```
+
 
 
 ## target directives
-
-### Platform
-
-Require a Scala platform for the current file
-
-`//> using target.platform `_platform_
-
-#### Examples
-`//> using target.platform "scala-js"`
-
-`//> using target.platform "scala-js", "scala-native"`
-
-`//> using target.platform "jvm"`
-
-### Scala version
-
-Require a Scala version for the current file
-
-`//> using target.scala `_version_
-
-#### Examples
-`//> using target.scala "3"`
-
-`//> using target.scala.>= "2.13"`
-
-`//> using target.scala.< "3.0.2"`
-
-### Scope
-
-Require a scope for the current file
-
-`//> using target.scope `_scope_
-
-#### Examples
-`//> using target.scope "test"`
 

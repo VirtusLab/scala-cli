@@ -3,12 +3,12 @@ import scala.build.options.{BuildOptions, ScalaOptions}
 import scala.build.Positioned
 import scala.cli.commands.CompileOptions
 
-case object UsingScalaVersionDirectiveHandler extends BuildOptionsUsingDirectiveHandler[::[Positioned[String]]]{
-  def name = "Scala version"
+case object UsingScalaVersionDirectiveHandler
+    extends BuildOptionsHandler(AtLeastOne(DirectiveValue.String, DirectiveValue.Number)) {
+  def name        = "Scala version"
   def description = fromCommand("scala", CompileOptions.help)
-  def keys = Seq("scala")
-  def constrains = AtLeastOne(ValueType.String, ValueType.Number)
-  
+  def keys        = Seq("scala")
+
   def process(versions: ::[Positioned[String]])(using Ctx) = {
     val base :: extra = versions.map(_.value)
     Right(
@@ -17,7 +17,7 @@ case object UsingScalaVersionDirectiveHandler extends BuildOptionsUsingDirective
           scalaVersion = Some(base),
           extraScalaVersions = extra.toSet
         )
-      ) 
+      )
     )
   }
 
@@ -34,5 +34,5 @@ case object UsingScalaVersionDirectiveHandler extends BuildOptionsUsingDirective
     "//> using scala \"2.13\"",
     "//> using scala \"2\"",
     "//> using scala \"2.13.6\", \"2.12.15\""
-  ) 
+  )
 }

@@ -10,9 +10,9 @@ abstract class PrefixedDirectiveGroup[T](prefix: String, capitalizePrefx: String
 
   protected def mkBuildOptions(parsed: T): BuildOptions
 
-  def group: DirectiveHandlerGroup[BuildOptions]
+  def group: DirectiveHandlerGroup
 
-  trait NamedDirectiveHandler[V] extends BuildOptionsUsingDirectiveHandler[V] {
+  trait NamedDirectiveHandler[V] extends BaseBuildOptionsHandler[V] {
 
     def usageValue: String
 
@@ -21,26 +21,29 @@ abstract class PrefixedDirectiveGroup[T](prefix: String, capitalizePrefx: String
     override def name = s"$capitalizePrefx $primaryName"
 
     def camelCaseOpt = prefix + primaryName.capitalize
-    def hypenOpt = camelCaseOpt.map{ c => if c.isUpper then "-" + c.toLower else c.toString }.mkString
+    def hypenOpt = camelCaseOpt.map { c =>
+      if c.isUpper then "-" + c.toLower else c.toString
+    }.mkString
 
     def cmdOptionName: String = camelCaseOpt
-    
+
     override def keys = Seq(camelCaseOpt, hypenOpt)
-    
+
     override val description = fromCommand(cmdOptionName, help*)
 
-    def defaultPosition(v: V): Positioned[_] 
+    def defaultPosition(v: V): Positioned[_]
 
     def process(opts: V)(using Ctx): Either[BuildException, BuildOptions] =
-      Try(processOption(opts).map(mkBuildOptions)).toEither.left.flatMap(e => defaultPosition(opts).error(e.getMessage)).flatten
+      Try(processOption(opts).map(mkBuildOptions)).toEither.left.flatMap(e =>
+        defaultPosition(opts).error(e.getMessage)
+      ).flatten
 
     def processOption(opts: V)(using Ctx): Either[BuildException, T]
   }
 
-  trait BaseStringSetting extends NamedDirectiveHandler[Positioned[String]]{
-    def constrains = Single(ValueType.String)
-
+  trait BaseStringSetting extends NamedDirectiveHandler[Positioned[String]] {
     def exampleValues: Seq[String]
+    override def constrains = Single(DirectiveValue.String)
 
     def examples: Seq[String] = {
       def render(currentKeys: Seq[String], values: Seq[String]): Seq[String] =
@@ -56,19 +59,20 @@ abstract class PrefixedDirectiveGroup[T](prefix: String, capitalizePrefx: String
 
     def usagesCode: Seq[String] = keys.map(k => s"//> using $k \"$usageValue\"")
 
-    def defaultPosition(v: Positioned[String]): Positioned[_]  = v
+    def defaultPosition(v: Positioned[String]): Positioned[_] = v
   }
 
   class StringSetting(
     parse: (String) => T,
     val exampleValues: Seq[String],
-    val usageValue: String = "value",
+    override val usageValue: String = "value"
   ) extends BaseStringSetting {
-    def processOption(opt: Positioned[String])(using Ctx): Either[BuildException, T] = Right(parse(opt.value))
+    def processOption(opt: Positioned[String])(using Ctx): Either[BuildException, T] =
+      Right(parse(opt.value))
   }
 
-  trait BaseStringListSetting extends NamedDirectiveHandler[::[Positioned[String]]]{
-    def constrains = AtLeastOne(ValueType.String)
+  trait BaseStringListSetting extends NamedDirectiveHandler[::[Positioned[String]]] {
+    override val constrains = AtLeastOne(DirectiveValue.String)
     def exampleValues: Seq[Seq[String]]
 
     def examples: Seq[String] = {
@@ -83,36 +87,38 @@ abstract class PrefixedDirectiveGroup[T](prefix: String, capitalizePrefx: String
       keys.zip(usages).map { case (k, u) => s"//> using $k \"$u\"" }
     }
 
-    def defaultPosition(v: ::[Positioned[String]]): Positioned[_]  = v.head
+    def defaultPosition(v: ::[Positioned[String]]): Positioned[_] = v.head
 
   }
 
   class StringListSetting(
     parse: Seq[String] => T,
     val exampleValues: Seq[Seq[String]],
-    val usageValue: String = "value",
-  ) extends BaseStringListSetting{
+    override val usageValue: String = "value"
+  ) extends BaseStringListSetting {
 
-    def processOption(opt: ::[Positioned[String]])(using Ctx): Either[BuildException, T] = Right(parse(opt.map(_.value)))
+    def processOption(opt: ::[Positioned[String]])(using Ctx): Either[BuildException, T] =
+      Right(parse(opt.map(_.value)))
   }
 
   class BooleanDirective(
     parse: Boolean => T,
-    val usageValue: String = "value"  
-  ) extends NamedDirectiveHandler[Positioned[Boolean]]{
+    override val usageValue: String = "value"
+  ) extends NamedDirectiveHandler[Positioned[Boolean]] {
 
-    def constrains = Single(ValueType.Boolean)
+    override val constrains = Single(DirectiveValue.Boolean)
 
-    def processOption(opt: Positioned[Boolean])(using Ctx): Either[BuildException, T] = Right(parse(opt.value))
+    def processOption(opt: Positioned[Boolean])(using Ctx): Either[BuildException, T] =
+      Right(parse(opt.value))
 
     def examples: Seq[String] =
       Seq(
         s"//> using ${keys(0)}",
-        s"//> using ${keys(1)} false",
+        s"//> using ${keys(1)} false"
       )
 
     def usagesCode: Seq[String] = keys.map(k => s"//> using $k [true|false]")
 
-    def defaultPosition(v: Positioned[Boolean]): Positioned[_]  = v
+    def defaultPosition(v: Positioned[Boolean]): Positioned[_] = v
   }
 }

@@ -15,37 +15,35 @@ object JavaDirectiveHandlers
     extends PrefixedDirectiveGroup[ops.JavaOptions]("java", "Java", SharedJavaOptions.help) {
 
   object Opt extends BaseStringListSetting:
-    def processOption(strs: ::[Positioned[String]])(using Ctx) = 
-        Right(JavaOptions(javaOpts = ShadowingSeq.from(strs.map(_.map(ops.JavaOpt(_))))))
+    def processOption(strs: ::[Positioned[String]])(using Ctx) =
+      Right(JavaOptions(javaOpts = ShadowingSeq.from(strs.map(_.map(ops.JavaOpt(_))))))
     def exampleValues = Seq(Seq("-Xmx2g"), Seq("-Xms1g", "-Xnoclassgc"))
-    def usageValue = "option"
+    override def usageValue    = "option"
     override def name = "Java Options"
 
   object Prop extends BaseStringListSetting:
-    def processOption(strs: ::[Positioned[String]])(using Ctx) = 
+    def processOption(strs: ::[Positioned[String]])(using Ctx) =
 
-
-        val props = strs.map(_.map { _.split("=") match 
-                  case Array(k)    => ops.JavaOpt(s"-D$k")
-                  case Array(k, v) => ops.JavaOpt(s"-D$k=$v")
-              }
-            )
-        Right(JavaOptions(javaOpts = ShadowingSeq.from(strs.map(_.map(ops.JavaOpt(_))))))
+      val props = strs.map(_.map {
+        _.split("=", 2) match
+          case Array(k)    => ops.JavaOpt(s"-D$k")
+          case Array(k, v) => ops.JavaOpt(s"-D$k=$v")
+      })
+      Right(JavaOptions(javaOpts = ShadowingSeq.from(strs.map(_.map(ops.JavaOpt(_))))))
     def exampleValues = Seq(Seq("-Xmx2g"), Seq("-Xms1g", "-Xnoclassgc"))
-    def usageValue = "option"
+    override def usageValue    = "option"
     override def name = "Java Properties"
 
-
   object Home extends BaseStringSetting {
-    def processOption(rawHome: Positioned[String])(using ctx: Ctx) = 
-      for 
+    def processOption(rawHome: Positioned[String])(using ctx: Ctx) =
+      for
         root <- ctx.asRoot(rawHome)
         path <- rawHome.safeMap(p => os.Path(p, root), "Problem with processing java path")
       yield JavaOptions(javaHomeOpt = Some(path))
-    
+
     def exampleValues = Seq("/home/user/jvm", "<path>")
 
-    def usageValue = "path"
+    override def usageValue = "path"
   }
 
   def group = DirectiveHandlerGroup("Java options", Seq(Opt, Prop, Home))

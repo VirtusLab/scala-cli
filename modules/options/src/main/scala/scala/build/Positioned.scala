@@ -27,14 +27,14 @@ final case class Positioned[+T](
   def mapEither[E, U](op: T => Either[E, U]): Either[E, Positioned[U]] =
     op(value).map(v => copy(value = v))
 
-  def error(msg: String, cause: Throwable = null) = 
+  def error(msg: String, cause: Throwable = null) =
     Left(new BuildException(msg, positions, cause) {})
 
-  def safeMap[V](op: T => V, message: String = "Exception") = 
-    try Right(map(op)) catch 
-      case NonFatal(e) => Left(new BuildException(s"$message: ${e.getMessage}", positions, e) {})
+  def safeMap[V](op: T => V, message: String = "Exception") =
+    try Right(map(op))
+    catch
+    case NonFatal(e) => Left(new BuildException(s"$message: ${e.getMessage}", positions, e) {})
 
-  
 }
 
 object Positioned {

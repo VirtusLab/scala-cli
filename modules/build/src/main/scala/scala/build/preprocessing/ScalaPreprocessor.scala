@@ -41,8 +41,8 @@ case object ScalaPreprocessor extends Preprocessor {
     updatedContent: Option[String]
   )
 
-
-  val usingDirectivesGroups: Seq[DirectiveHandler[BuildOptions] | DirectiveHandlerGroup[BuildOptions]] = Seq(
+  val usingDirectivesGroups
+    : Seq[DirectiveHandler[BuildOptions] | DirectiveHandlerGroup] = Seq(
     UsingScalaVersionDirectiveHandler,
     UsingPlatformDirectiveHandler,
     JavaDirectiveHandlers.group,
@@ -54,17 +54,17 @@ case object ScalaPreprocessor extends Preprocessor {
     PublishDirectiveHandlers.group
   )
 
-  val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] = 
+  val usingDirectiveHandlers: Seq[BaseBuildOptionsHandler[_]] =
     usingDirectivesGroups.flatMap {
       // TODO why do I need to prescribe type here?
-      case DirectiveHandlerGroup(_, directives: Seq[DirectiveHandler[BuildOptions]]) => directives
-      case handler: DirectiveHandler[BuildOptions] => Seq(handler)
+      case DirectiveHandlerGroup(_, directives) => directives
+      case handler: BaseBuildOptionsHandler[_]  => Seq(handler)
     }
 
-  val requireDirectiveHandlers = Seq[DirectiveHandler[BuildRequirements]](
+  val requireDirectiveHandlers = Seq[BuildRequirementsHandler[_]](
     RequirePlatformsDirectiveHandler,
     RequireScopeDirectiveHandler
-  ) ++ RequireScalaVersionDirectiveHandlers.group.handlers
+  ) ++ RequireScalaVersionDirectiveHandlers.all
 
   def preprocess(
     input: Inputs.SingleElement,
