@@ -27,7 +27,7 @@ object VersionUtil {
     versionInt         <- jvmRelease(versionNumberGroup)
   } yield versionInt
 
-  def parseBloopAbout(stdoutFromBloopAbout: String): Option[BloopServerRuntimeInfo] = {
+  def parseBloopAbout(stdoutFromBloopAbout: String): Option[BloopRifle.BloopServerRuntimeInfo] = {
 
     val bloopVersionRegex = "bloop v(.*)\\s".r
     val bloopJvmRegex     = "Running on Java ... v([0-9._A-Za-z]+) [(](.*)[)]".r
@@ -37,7 +37,7 @@ object VersionUtil {
       bloopJvmVersion <- bloopJvmRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(1))
       javaHome        <- bloopJvmRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(2))
       jvmRelease      <- VersionUtil.jvmRelease(bloopJvmVersion)
-    } yield BloopServerRuntimeInfo(
+    } yield BloopRifle.BloopServerRuntimeInfo(
       bloopVersion = BloopVersion(bloopVersion),
       jvmVersion = jvmRelease,
       javaHome = javaHome

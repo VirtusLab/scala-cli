@@ -34,16 +34,42 @@ import _root_.scala.util.Properties
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli extends Cli
-// remove once migrate to Scala 3
-object cli3           extends Cli3
+object cli extends Cli3 {
+  object test extends Tests {
+    def moduleDeps = super.moduleDeps ++ Seq(
+      `build-module`(myScalaVersion).test
+    )
+  }
+}
+
+// remove once we do not have blockers with Scala 3
+object cli2 extends Cli {
+  def sources = T.sources {
+    super.sources() ++ cli.sources()
+  }
+  def resources = T.sources {
+    super.resources() ++ cli.resources()
+  }
+  object test extends Tests {
+    def sources = T.sources {
+      super.sources() ++ cli.test.sources()
+    }
+    def resources = T.sources {
+      super.resources() ++ cli.test.resources()
+    }
+    def moduleDeps = super.moduleDeps ++ Seq(
+      `build-module`(myScalaVersion).test
+    )
+  }
+}
+
 object `cli-options`  extends CliOptions
-object `build-macros` extends Cross[BuildMacros](Scala.defaultInternal, Scala.scala3)
-object options        extends Cross[Options](Scala.defaultInternal, Scala.scala3)
+object `build-macros` extends Cross[BuildMacros](Scala.mainVersions: _*)
+object options        extends Cross[Options](Scala.mainVersions: _*)
 object scalaparse     extends ScalaParse
-object directives     extends Cross[Directives](Scala.defaultInternal, Scala.scala3)
-object core           extends Cross[Core](Scala.defaultInternal, Scala.scala3)
-object build          extends Cross[Build](Scala.defaultInternal, Scala.scala3)
+object directives     extends Cross[Directives](Scala.mainVersions: _*)
+object core           extends Cross[Core](Scala.mainVersions: _*)
+object `build-module` extends Cross[Build](Scala.mainVersions: _*)
 object runner         extends Cross[Runner](Scala.all: _*)
 object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
 object `bloop-rifle`  extends Cross[BloopRifle](Scala.all: _*)
@@ -51,7 +77,7 @@ object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
 object `scala3-runtime` extends Scala3Runtime
 // Logic to process classes that is shared between build and the scala-cli itself
-object `scala3-graal` extends Cross[Scala3Graal](Scala.defaultInternal, Scala.scala3)
+object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions: _*)
 // Main app used to process classpath within build itself
 object `scala3-graal-processor` extends Scala3GraalProcessor
 
@@ -323,11 +349,6 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
     val runnerMainClass = runner(Scala.defaultInternal)
       .mainClass()
       .getOrElse(sys.error("No main class defined for runner"))
-    val runnerNeedsSonatypeSnapshots =
-      if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT"))
-        """ !sv.startsWith("2.") """
-      else
-        "false"
     val detailedVersionValue =
       if (`local-repo`.developingOnStubModules) s"""Some("${vcsState()}")"""
       else "None"
@@ -361,8 +382,6 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |  def runnerModuleName = "${runner(Scala.defaultInternal).artifactName()}"
          |  def runnerVersion = "${runner(Scala.defaultInternal).publishVersion()}"
          |  def runnerMainClass = "$runnerMainClass"
-         |  def runnerNeedsSonatypeSnapshots(sv: String): Boolean =
-         |    $runnerNeedsSonatypeSnapshots
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
@@ -481,7 +500,7 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
 
 trait ScalaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
   def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
-  def scalaVersion = Scala.defaultInternal
+  def scalaVersion = Scala.scala213
 }
 
 trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
@@ -515,6 +534,7 @@ trait Scala3GraalProcessor extends ScalaModule {
 }
 
 class Build(val crossScalaVersion: String) extends BuildLikeModule {
+  def millSourcePath = super.millSourcePath / os.up / "build"
   def moduleDeps = Seq(
     `options`(),
     scalaparse,
@@ -584,16 +604,14 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
     Deps.jsoniterCore,
     Deps.jsoniterMacros,
     Deps.osLib,
-    Deps.signingCliShared
+    Deps.signingCliOptions
   )
-  def scalaVersion = Scala.defaultInternal
+  def scalaVersion = Scala.scala213
   def repositories = super.repositories ++ customRepositories
 }
 
 trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     with HasMacroAnnotations with FormatNativeImageConf {
-
-  def millSourcePath = super.millSourcePath / os.up / "cli"
 
   def myScalaVersion = Scala.defaultInternal
 
@@ -606,7 +624,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     super.javacOptions() ++ Seq("--release", "16")
   }
   def moduleDeps = Seq(
-    build(myScalaVersion),
+    `build-module`(myScalaVersion),
     `cli-options`,
     `test-runner`(myScalaVersion),
     `scala3-graal`(myScalaVersion)
@@ -620,10 +638,10 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
+    Deps.metaconfigTypesafe,
     Deps.scalaPackager,
     Deps.signingCli,
-    Deps.slf4jNop, // to silence jgit
-    Deps.metaconfigTypesafe
+    Deps.slf4jNop // to silence jgit
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros,
@@ -633,10 +651,10 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   def localRepoJar = `local-repo`.localRepoJar()
 
-  object test extends Tests with ScalaCliScalafixModule {
-    def moduleDeps = super.moduleDeps ++ Seq(
-      build(myScalaVersion).test
-    )
+  trait Tests extends super.Tests with ScalaCliScalafixModule {
+    def runClasspath = T {
+      super.runClasspath() ++ Seq(localRepoJar())
+    }
   }
 }
 
@@ -653,7 +671,7 @@ trait Cli3 extends Cli {
       mainArgs = Seq(cache.toNIO.toString, classpath),
       workingDir = os.pwd
     )
-    val cp = res.out.text
+    val cp = res.out.text.trim
     cp.split(File.pathSeparator).toSeq.map(p => mill.PathRef(os.Path(p)))
   }
 }
@@ -826,21 +844,6 @@ class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
 
   }
   def mainClass = Some("scala.cli.runner.Runner")
-  def ivyDeps =
-    if (crossScalaVersion.startsWith("3.") && !crossScalaVersion.contains("-RC"))
-      Agg(Deps.prettyStacktraces)
-    else
-      Agg.empty[Dep]
-  def repositories = {
-    val base = super.repositories
-    val extra =
-      if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT"))
-        Seq(coursier.Repositories.sonatype("snapshots"))
-      else
-        Nil
-
-    base ++ extra
-  }
   def sources = T.sources {
     val scala3DirNames =
       if (crossScalaVersion.startsWith("3.")) {
@@ -1015,7 +1018,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 }
 
 def unitTests() = T.command {
-  build(Scala.defaultInternal).test.test()()
+  `build-module`(Scala.defaultInternal).test.test()()
   cli.test.test()()
 }
 

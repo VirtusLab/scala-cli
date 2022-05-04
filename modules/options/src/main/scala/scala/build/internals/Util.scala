@@ -1,10 +1,13 @@
 package scala.build.internal
 
+import dependency.NoAttributes
+
 import java.io.{File, PrintStream}
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
-import scala.build.Os
+import scala.build.errors.NoScalaVersionProvidedError
+import scala.build.{Os, Positioned}
 
 object Util {
 
@@ -27,7 +30,7 @@ object Util {
         }
     }
 
-  private implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
+  implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
     def toCs: coursier.Dependency = {
       val mod = coursier.Module(
         coursier.Organization(dep.organization),
@@ -42,7 +45,11 @@ object Util {
           }
         }
       for (clOpt <- dep.userParams.get("classifier"); cl <- clOpt)
-        dep0 = dep0.withConfiguration(coursier.core.Configuration(cl))
+        dep0 = dep0.withPublication(dep0.publication.withClassifier(coursier.core.Classifier(cl)))
+      for (tpeOpt <- dep.userParams.get("type"); tpe <- tpeOpt)
+        dep0 = dep0.withPublication(dep0.publication.withType(coursier.core.Type(tpe)))
+      for (extOpt <- dep.userParams.get("ext"); ext <- extOpt)
+        dep0 = dep0.withPublication(dep0.publication.withExt(coursier.core.Extension(ext)))
       for (_ <- dep.userParams.get("intransitive"))
         dep0 = dep0.withTransitive(false)
       // FIXME
@@ -54,6 +61,30 @@ object Util {
   implicit class ScalaDependencyOps(private val dep: dependency.AnyDependency) extends AnyVal {
     def toCs(params: dependency.ScalaParameters): coursier.Dependency =
       dep.applyParams(params).toCs
+    def toCs(paramsOpt: Option[dependency.ScalaParameters])
+      : Either[NoScalaVersionProvidedError, coursier.Dependency] =
+      paramsOpt match {
+        case Some(params) => Right(toCs(params))
+        case None =>
+          val isJavaDep = dep.module.nameAttributes == NoAttributes && dep.exclude.forall(
+            _.nameAttributes == NoAttributes
+          )
+          if (isJavaDep)
+            Right(dep.asInstanceOf[dependency.Dependency].toCs)
+          else
+            Left(new NoScalaVersionProvidedError(dep))
+      }
+  }
+  implicit class PositionedScalaDependencyOps(
+    private val posDep: Positioned[dependency.AnyDependency]
+  ) extends AnyVal {
+    def toCs(paramsOpt: Option[dependency.ScalaParameters])
+      : Either[NoScalaVersionProvidedError, Positioned[coursier.Dependency]] = {
+      val res = posDep.map(_.toCs(paramsOpt))
+      res.value
+        .left.map(_ => new NoScalaVersionProvidedError(posDep.value, posDep.positions))
+        .map(Positioned(res.positions, _))
+    }
   }
 
   def isFullScalaVersion(sv: String): Boolean =

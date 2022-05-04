@@ -89,7 +89,10 @@ object SharedOptionsUtil {
         else None
       bo.BuildOptions(
         scalaOptions = bo.ScalaOptions(
-          scalaVersion = scalaVersion.map(_.trim).filter(_.nonEmpty),
+          scalaVersion = scalaVersion
+            .map(_.trim)
+            .filter(_.nonEmpty)
+            .map(bo.MaybeScalaVersion(_)),
           scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
           addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
           generateSemanticDbs = semanticDb,

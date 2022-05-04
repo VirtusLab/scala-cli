@@ -56,7 +56,7 @@ object Bloop {
         Artifacts.artifacts(
           Positioned.none(Seq(dep)),
           Nil,
-          params,
+          Some(params),
           logger,
           cache.withMessage(s"Downloading compilation server ${dep.version}")
         )

@@ -91,7 +91,10 @@ class BuildProjectTests extends munit.FunSuite {
       logger
     )
 
-    val scalaCompilerOptions = res.fold(throw _, identity).scalaCompiler.scalacOptions
+    val scalaCompilerOptions = res.fold(throw _, identity)
+      .scalaCompiler
+      .toSeq
+      .flatMap(_.scalacOptions)
     (scalaCompilerOptions, res.fold(throw _, identity).javacOptions, logger.diagnostics)
   }
 

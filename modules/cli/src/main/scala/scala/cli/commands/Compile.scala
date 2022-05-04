@@ -65,7 +65,7 @@ object Compile extends ScalaCommand[CompileOptions] {
           } yield s
         if (options.classPath)
           for (s <- successulBuildOpt) {
-            val cp = s.fullClassPath.map(_.toAbsolutePath.toString).mkString(File.pathSeparator)
+            val cp = s.fullClassPath.map(_.toString).mkString(File.pathSeparator)
             println(cp)
           }
         for (output <- outputPath(options); s <- successulBuildOpt)

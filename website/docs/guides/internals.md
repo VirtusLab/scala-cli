@@ -98,10 +98,7 @@ That includes:
 When running your code, if the code crashes, Scala CLI processes the stack traces of the exception to make them more readable.
 This is achieved by adding a module (called `runner`) to the class path, and this module is actually used as the entry point of your application.
 The [`Runner` class](https://github.com/VirtusLab/scala-cli/blob/60eae701abc74bdd634efa5157740578bd6c4162/modules/runner/src/main/scala/scala/cli/runner/Runner.scala)
-of the `runner` module starts your main class, catches any exceptions it might throw, and pretty-prints it.
-(With Scala 3, pretty-printing of stack traces is handled by the
-[pretty-stacktraces](https://github.com/Virtuslab/pretty-stacktraces) library.)
-
+of the `runner` module starts your main class, catches any exceptions it might throw, and prints it.
 ## Logging
 
 To get a glimpse at what Scala CLI is doing, increase its verbosity with `-v`.

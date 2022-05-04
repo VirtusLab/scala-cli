@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters._
 abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
-  private def extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected def extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   test("simple") {
     val inputs = TestInputs(

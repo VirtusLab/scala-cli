@@ -70,21 +70,19 @@ object DirectiveUtil {
     */
   def partitionBasedOnHavingScope(
     groupedPositionedValuesContainer: GroupedScopedValuesContainer
-  ): (Seq[ScopedValue[_]], Seq[ScopedValue[_]]) = {
-    val (nonScopedStrings, scopedStrings) =
-      groupedPositionedValuesContainer.scopedStringValues.partition(_.maybeScopePath.isEmpty)
-    val (nonScopedNumerics, scopedNumerics) =
-      groupedPositionedValuesContainer.scopedNumericValues.partition(_.maybeScopePath.isEmpty)
-    val (nonScopedBooleans, scopedBoleans) =
-      groupedPositionedValuesContainer.scopedBooleanValues.partition(_.maybeScopePath.isEmpty)
-    val (nonScopedEmpty, scopedEmpty) =
-      groupedPositionedValuesContainer.maybeScopedEmptyValue.to(Seq).partition(
-        _.maybeScopePath.isEmpty
-      )
-    (
-      scopedStrings ++ scopedNumerics ++ scopedBoleans ++ scopedEmpty,
-      nonScopedStrings ++ nonScopedNumerics ++ nonScopedBooleans ++ nonScopedEmpty
-    )
+  ): (Seq[(ScopedValue[_], ScopePath)], Seq[ScopedValue[_]]) = {
+
+    val values = groupedPositionedValuesContainer.scopedStringValues ++
+      groupedPositionedValuesContainer.scopedNumericValues ++
+      groupedPositionedValuesContainer.scopedBooleanValues ++
+      groupedPositionedValuesContainer.maybeScopedEmptyValue.toSeq
+
+    val scoped = values.flatMap { value =>
+      value.maybeScopePath.toSeq.map((value, _))
+    }
+    val nonScoped = values.filter(_.maybeScopePath.isEmpty)
+
+    (scoped, nonScoped)
   }
 
   def concatAllValues(groupedPositionedValuesContainer: GroupedScopedValuesContainer)

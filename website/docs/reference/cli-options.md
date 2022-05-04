@@ -232,6 +232,10 @@ Specify a TTL for changing dependencies, such as snapshots
 
 Set the coursier cache location
 
+#### `--coursier-validate-checksums`
+
+Enable checksum validation of artifacts downloaded by coursier
+
 ## Cross options
 
 Available in commands:
@@ -918,9 +922,13 @@ Directory where temporary files for publishing should be written
 
 Organization to publish artifacts under
 
+#### `--name`
+
+Name to publish artifacts as
+
 #### `--module-name`
 
-Module name to publish artifacts as
+Final name to publish artifacts as, including Scala version and platform suffixes if any
 
 #### `--version`
 

@@ -8,7 +8,7 @@ import java.nio.charset.Charset
 
 import scala.concurrent.duration._
 
-def ghOrg  = "Virtuslab"
+def ghOrg  = "VirtusLab"
 def ghName = "scala-cli"
 
 private def computePublishVersion(state: VcsState, simple: Boolean): String =

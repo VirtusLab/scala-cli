@@ -15,6 +15,7 @@ import scala.build.options.{
   BuildOptions,
   BuildRequirements,
   InternalOptions,
+  MaybeScalaVersion,
   ScalaOptions,
   ShadowingSeq
 }
@@ -37,12 +38,12 @@ class BuildOptionsTests extends munit.FunSuite {
   test("-S 3.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("3.nightly"),
+        scalaVersion = Some(MaybeScalaVersion("3.nightly")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
     )
-    val scalaParams = options.scalaParams.orThrow
+    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
     assert(
       scalaParams.scalaVersion.startsWith("3") && scalaParams.scalaVersion.endsWith("-NIGHTLY"),
       "-S 3.nightly argument does not lead to scala3 nightly build option"
@@ -51,10 +52,10 @@ class BuildOptionsTests extends munit.FunSuite {
   test("-S 3.1.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("3.1.nightly")
+        scalaVersion = Some(MaybeScalaVersion("3.1.nightly"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow
+    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
     expect(
       scalaParams.scalaVersion.startsWith("3.1.") && scalaParams.scalaVersion.endsWith("-NIGHTLY"),
       "-S 3.1.nightly argument does not lead to scala 3.1. nightly build option"
@@ -65,7 +66,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some(s"3.${Int.MaxValue}"),
+        scalaVersion = Some(MaybeScalaVersion(s"3.${Int.MaxValue}")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -82,7 +83,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.11.2"),
+        scalaVersion = Some(MaybeScalaVersion("2.11.2")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -99,7 +100,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.11"),
+        scalaVersion = Some(MaybeScalaVersion("2.11")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -116,7 +117,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some(s"3.${Int.MaxValue}.3"),
+        scalaVersion = Some(MaybeScalaVersion(s"3.${Int.MaxValue}.3")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -133,7 +134,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("3.1.3-RC1-bin-20220213-fd97eee-NIGHTLY"),
+        scalaVersion = Some(MaybeScalaVersion("3.1.3-RC1-bin-20220213-fd97eee-NIGHTLY")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -150,10 +151,10 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("3.1.2-RC1")
+        scalaVersion = Some(MaybeScalaVersion("3.1.2-RC1"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow
+    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
     assert(
       scalaParams.scalaVersion == "3.1.2-RC1",
       "-S 3.1.2-RC1 argument does not lead to 3.1.2-RC1 build option"
@@ -164,7 +165,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.12.9-bin-1111111")
+        scalaVersion = Some(MaybeScalaVersion("2.12.9-bin-1111111"))
       )
     )
     assert(
@@ -179,7 +180,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some(s"2.${Int.MaxValue}"),
+        scalaVersion = Some(MaybeScalaVersion(s"2.${Int.MaxValue}")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -195,12 +196,12 @@ class BuildOptionsTests extends munit.FunSuite {
   test("-S 2.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.nightly"),
+        scalaVersion = Some(MaybeScalaVersion("2.nightly")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
     )
-    val scalaParams = options.scalaParams.orThrow
+    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
     assert(
       scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.nightly argument does not lead to scala2 nightly build option"
@@ -210,10 +211,10 @@ class BuildOptionsTests extends munit.FunSuite {
   test("-S 2.13.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.13.nightly")
+        scalaVersion = Some(MaybeScalaVersion("2.13.nightly"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow
+    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
     assert(
       scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.13.nightly argument does not lead to scala2 nightly build option"
@@ -223,12 +224,12 @@ class BuildOptionsTests extends munit.FunSuite {
   test("-S 2.12.nightly option works") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.12.nightly")
+        scalaVersion = Some(MaybeScalaVersion("2.12.nightly"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow
+    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
     assert(
-      scalaParams.scalaVersion == "2.12.16-bin-586302a",
+      scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.12.nightly argument does not lead to scala2 nightly build option"
     )
   }
@@ -236,12 +237,12 @@ class BuildOptionsTests extends munit.FunSuite {
   test("-S 2.13.9-bin-4505094 option works without repo specification") {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
-        scalaVersion = Some("2.13.9-bin-4505094"),
+        scalaVersion = Some(MaybeScalaVersion("2.13.9-bin-4505094")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
     )
-    val scalaParams = options.scalaParams.orThrow
+    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
     assert(
       scalaParams.scalaVersion == "2.13.9-bin-4505094",
       "-S 2.13.9-bin-4505094 argument does not lead to 2.13.9-bin-4505094 scala version in build option"
@@ -274,12 +275,12 @@ class BuildOptionsTests extends munit.FunSuite {
     ) {
       val options = BuildOptions(
         scalaOptions = ScalaOptions(
-          scalaVersion = prefix,
+          scalaVersion = prefix.map(MaybeScalaVersion(_)),
           scalaBinaryVersion = None,
           supportedScalaVersionsUrl = None
         )
       )
-      val scalaParams = options.scalaParams.orThrow
+      val scalaParams = options.scalaParams.orThrow.getOrElse(???)
 
       val expectedScalaParams = ScalaParameters(expectedScalaVersion)
 
@@ -312,13 +313,13 @@ class BuildOptionsTests extends munit.FunSuite {
 
         val options = BuildOptions(
           scalaOptions = ScalaOptions(
-            scalaVersion = prefix,
+            scalaVersion = prefix.map(MaybeScalaVersion(_)),
             scalaBinaryVersion = None,
             supportedScalaVersionsUrl = Some(s"file://${confFilePath.toString()}")
           )
         )
 
-        val scalaParams         = options.scalaParams.orThrow
+        val scalaParams         = options.scalaParams.orThrow.getOrElse(???)
         val expectedScalaParams = ScalaParameters(expectedScalaVersion)
 
         expect(scalaParams == expectedScalaParams)
@@ -345,7 +346,7 @@ class BuildOptionsTests extends munit.FunSuite {
     val extraScalacOpt = Seq("-sourceroot", newSourceRoot.toString)
     val options = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(
-        scalaVersion = Some("3.1.1"),
+        scalaVersion = Some(MaybeScalaVersion("3.1.1")),
         scalacOptions = ShadowingSeq.from(
           extraScalacOpt
             .map(ScalacOpt(_))
@@ -368,7 +369,7 @@ class BuildOptionsTests extends munit.FunSuite {
           case _                   => sys.error(s"Unexpected failed or cancelled build $build")
         }
 
-        val rawOptions = build0.project.scalaCompiler.scalacOptions
+        val rawOptions = build0.project.scalaCompiler.toSeq.flatMap(_.scalacOptions)
         val seq        = ShadowingSeq.from(rawOptions.map(ScalacOpt(_)))
 
         expect(seq.toSeq.length == rawOptions.length) // no option needs to be shadowed

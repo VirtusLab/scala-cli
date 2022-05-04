@@ -13,7 +13,7 @@ final case class BloopExitOptions(
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions()
-) 
+)
 // format: on
 
 object BloopExitOptions {

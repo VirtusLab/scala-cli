@@ -1,5 +1,11 @@
 package scala.build.errors
 
-final class NoScalaVersionProvidedError extends BuildException(
-      "No Scala version provided to using scala directive"
+import scala.build.Position
+
+final class NoScalaVersionProvidedError(
+  val dep: dependency.AnyDependency,
+  positions: Seq[Position] = Nil
+) extends BuildException(
+      s"Got Scala dependency ${dep.render}, but no Scala version is provided",
+      positions = positions
     )

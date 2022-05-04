@@ -6,6 +6,7 @@ import coursier.core.{Module, Dependency => CDependency}
 import coursier.parse.{DependencyParser, ModuleParser}
 
 import dependency.{DependencyLike, NameAttributes}
+import scala.build.internal.Constants
 
 def noArgs(args: Expr[Seq[Any]])(using Quotes): Unit = {} // TODO
 
@@ -23,7 +24,7 @@ object CoursierUtils {
   def parseModule(cs: Expr[StringContext], args: Expr[Seq[Any]])(using Quotes): Expr[Module] =
     noArgs(args)
     val modString = extractString(cs)
-    ModuleParser.module(modString, scala.util.Properties.versionNumberString) match {
+    ModuleParser.module(modString, Constants.defaultScalaVersion) match {
       case Left(error) =>
         quotes.reflect.report.error(error)
         ???
@@ -31,7 +32,7 @@ object CoursierUtils {
         '{
           ModuleParser.module(
             ${ Expr(modString) },
-            scala.util.Properties.versionNumberString
+            Constants.defaultScalaVersion
           ).getOrElse(???)
         }
     }

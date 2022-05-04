@@ -8,7 +8,7 @@ class ParsingTests extends munit.FunSuite {
 
   implicit class BV(s: String) {
     implicit def v: BloopVersion                   = BloopVersion(s)
-    implicit def p: Option[BloopServerRuntimeInfo] = parseBloopAbout(s)
+    implicit def p: Option[BloopRifle.BloopServerRuntimeInfo] = parseBloopAbout(s)
     implicit def j: Option[Int]                    = jvmRelease(s)
     implicit def jv: Option[Int]                   = parseJavaVersion(s)
   }
@@ -57,7 +57,7 @@ class ParsingTests extends munit.FunSuite {
        |Maintained by the Scala Center and the community.""".stripMargin
 
   test("parse jre bloop about") {
-    expect(jreBloopOutput.p == Some(BloopServerRuntimeInfo(
+    expect(jreBloopOutput.p == Some(BloopRifle.BloopServerRuntimeInfo(
       BloopVersion("1.4.11"),
       11,
       "/usr/local/openjdk-11"
@@ -65,7 +65,7 @@ class ParsingTests extends munit.FunSuite {
   }
 
   test("parse jdk bloop about") {
-    expect(jdkBloopOutput.p == Some(BloopServerRuntimeInfo(
+    expect(jdkBloopOutput.p == Some(BloopRifle.BloopServerRuntimeInfo(
       BloopVersion("1.4.11"),
       16,
       "/usr/lib/jvm/java-16-openjdk-amd64"

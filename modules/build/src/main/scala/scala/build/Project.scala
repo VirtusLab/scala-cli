@@ -17,7 +17,7 @@ final case class Project(
   directory: os.Path,
   classesDir: os.Path,
   scaladocDir: os.Path,
-  scalaCompiler: ScalaCompilerParams,
+  scalaCompiler: Option[ScalaCompilerParams],
   scalaJsOptions: Option[BloopConfig.JsConfig],
   scalaNativeOptions: Option[BloopConfig.NativeConfig],
   projectName: String,
@@ -44,11 +44,12 @@ final case class Project(
       case (_, Some(nativeConfig)) =>
         BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
     }
-    val scalaConfig =
-      bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler.scalaVersion).copy(
-        options = scalaCompiler.scalacOptions.toList,
-        jars = scalaCompiler.compilerClassPath.map(_.toNIO).toList
+    val scalaConfigOpt = scalaCompiler.map { scalaCompiler0 =>
+      bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler0.scalaVersion).copy(
+        options = scalaCompiler0.scalacOptions.toList,
+        jars = scalaCompiler0.compilerClassPath.map(_.toNIO).toList
       )
+    }
     baseBloopProject(
       projectName,
       directory.toNIO,
@@ -62,7 +63,7 @@ final case class Project(
         sources = sources.iterator.map(_.toNIO).toList,
         resources = Some(resourceDirs).filter(_.nonEmpty).map(_.iterator.map(_.toNIO).toList),
         platform = Some(platform),
-        `scala` = Some(scalaConfig),
+        `scala` = scalaConfigOpt,
         java = Some(BloopConfig.Java(javacOptions)),
         resolution = resolution
       )
