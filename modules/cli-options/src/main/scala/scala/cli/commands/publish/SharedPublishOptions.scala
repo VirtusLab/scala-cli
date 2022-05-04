@@ -50,7 +50,7 @@ final case class SharedPublishOptions(
 
   @Group("Publishing")
   @HelpMessage("Secret key to use to sign artifacts with BouncyCastle")
-    secretKey: Option[String] = None,
+    secretKey: Option[PasswordOption] = None,
 
   @Group("Publishing")
   @HelpMessage("Password of secret key to use to sign artifacts with BouncyCastle")

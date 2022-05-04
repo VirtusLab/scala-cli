@@ -917,6 +917,10 @@ Available in commands:
 
 #### `--secret-dest`
 
+#### `--verbose`
+
+#### `--quiet`
+
 ## Pgp sign options
 
 Available in commands:

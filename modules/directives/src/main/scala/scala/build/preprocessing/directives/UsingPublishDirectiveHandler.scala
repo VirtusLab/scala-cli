@@ -2,9 +2,10 @@ package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors.{BuildException, UnexpectedDirectiveError}
+import scala.build.errors.{BuildException, MalformedInputError, UnexpectedDirectiveError}
 import scala.build.options.publish.{ComputeVersion, Developer, License, Vcs}
 import scala.build.options.{BuildOptions, PostBuildOptions, PublishOptions}
+import scala.cli.signing.shared.PasswordOption
 
 case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
 
@@ -50,7 +51,9 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     "gpgOption",
     "gpg-option",
     "gpgOptions",
-    "gpg-options"
+    "gpg-options",
+    "secretKey",
+    "secretKeyPassword"
   ).map(prefix + _)
 
   override def getValueNumberBounds(key: String) = key match {
@@ -127,6 +130,10 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
         PublishOptions(gpgSignatureId = Some(singleValue.value))
       case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
         PublishOptions(gpgOptions = severalValues.map(_.value).toList)
+      case "secretKey" =>
+        PublishOptions(secretKey = Some(value(parsePasswordOption(singleValue.value))))
+      case "secretKeyPassword" =>
+        PublishOptions(secretKeyPassword = Some(value(parsePasswordOption(singleValue.value))))
       case _ =>
         value(Left(new UnexpectedDirectiveError(scopedDirective.directive.key)))
     }
@@ -139,4 +146,10 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
 
     ProcessedDirective(Some(options), Seq.empty)
   }
+
+  private def parsePasswordOption(input: String): Either[BuildException, PasswordOption] =
+    PasswordOption.parse(input)
+      .left.map(_ =>
+        new MalformedInputError("secret", input, "file:_path_|value:_value_|env:_env_var_name_")
+      )
 }

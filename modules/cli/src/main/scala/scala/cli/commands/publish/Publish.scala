@@ -88,7 +88,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           docJar = doc,
           gpgSignatureId = gpgKey.map(_.trim).filter(_.nonEmpty),
           gpgOptions = gpgOption,
-          secretKey = sharedPublish.secretKey.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
+          secretKey = sharedPublish.secretKey,
           secretKeyPassword = sharedPublish.secretKeyPassword,
           signer = value {
             signer
@@ -423,7 +423,7 @@ object Publish extends ScalaCommand[PublishOptions] {
             }
             (new BouncycastleSignerMaker).get(
               passwordOpt.orNull,
-              secretKey.wrapped,
+              secretKey,
               getLauncher,
               logger
             )
