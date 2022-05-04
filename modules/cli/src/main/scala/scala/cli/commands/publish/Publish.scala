@@ -1,4 +1,4 @@
-package scala.cli.commands
+package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
 import coursier.cache.ArchiveCache
@@ -30,6 +30,7 @@ import scala.build.{Build, BuildThreads, Builds, Logger, Os, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.{Package => PackageCmd, ScalaCommand, WatchUtil}
 import scala.cli.errors.{FailedToSignFileError, MissingPublishOptionError, UploadError}
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
@@ -302,7 +303,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val sourceJarOpt =
       if (publishOptions.sourceJar.getOrElse(true)) {
-        val content   = Package.sourceJar(build, now.toEpochMilli)
+        val content   = PackageCmd.sourceJar(build, now.toEpochMilli)
         val sourceJar = workingDir / org / s"$moduleName-$ver-sources.jar"
         os.write(sourceJar, content, createFolders = true)
         Some(sourceJar)
@@ -315,7 +316,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         docBuildOpt match {
           case None => None
           case Some(docBuild) =>
-            val docJarPath = value(Package.docJar(docBuild, logger, Nil))
+            val docJarPath = value(PackageCmd.docJar(docBuild, logger, Nil))
             val docJar     = workingDir / org / s"$moduleName-$ver-javadoc.jar"
             os.copy(docJarPath, docJar, createFolders = true)
             Some(docJar)

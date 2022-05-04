@@ -1,7 +1,8 @@
-package scala.cli.commands
+package scala.cli.commands.publish
 
 import caseapp._
 
+import scala.cli.commands.{CompileCrossOptions, MainClassOptions, SharedOptions, SharedWatchOptions}
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers._
 
