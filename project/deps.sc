@@ -52,7 +52,7 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier      = "2.1.0-M5-18-gfebf9838c"
+    def coursier      = "2.1.0-M5-24-g678b31710"
     def coursierCli   = "2.1.0-M5-18-gfebf9838c"
     def jsoniterScala = "2.13.21"
     def scalaMeta     = "4.5.6"
@@ -68,6 +68,7 @@ object Deps {
   def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M13"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.7.0"
   // Force using of 2.13 - is there a better way?
+  def coursier         = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
   def coursierJvm      = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
   def coursierPublish  = ivy"io.get-coursier.publish:publish_2.13:0.1.2"
@@ -85,6 +86,7 @@ object Deps {
   def jsoniterMacros =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
   def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
+  def libsodiumjni  = ivy"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:0.0.2"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
     ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
@@ -127,6 +129,7 @@ object Deps {
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc1"
     else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc1"
+  def sttp            = ivy"com.softwaremill.sttp.client3::core:3.5.1"
   def svm             = ivy"org.graalvm.nativeimage:svm:22.0.0.2"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
@@ -140,6 +143,11 @@ def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 def csDockerVersion = Deps.Versions.coursierCli
 
 def buildCsVersion = Deps.Versions.coursierCli
+
+// Native library used to encrypt GitHub secrets
+def libsodiumVersion = "1.0.18"
+// Using the libsodium static library from this Alpine version (in the static launcher)
+def alpineVersion = "3.15"
 
 object Docker {
   def customMuslBuilderImageName = "scala-cli-base-musl"

@@ -391,6 +391,9 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
          |
          |  def scalaCliSigningVersion = "${Deps.signingCli.dep.version}"
+         |
+         |  def libsodiumVersion = "${deps.libsodiumVersion}"
+         |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.version}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -635,10 +638,12 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
+    Deps.libsodiumjni,
     Deps.metaconfigTypesafe,
     Deps.scalaPackager,
     Deps.signingCli,
-    Deps.slf4jNop // to silence jgit
+    Deps.slf4jNop, // to silence jgit
+    Deps.sttp
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros,
@@ -713,9 +718,11 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
   trait Tests extends super.Tests with ScalaCliScalafixModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
+      Deps.coursier,
       Deps.dockerClient,
       Deps.jsoniterCore,
       Deps.jsoniterMacros,
+      Deps.libsodiumjni,
       Deps.pprint,
       Deps.scalaAsync,
       Deps.slf4jNop
@@ -775,6 +782,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
            |  def workspaceDirName = "$workspaceDirName"
+           |  def libsodiumVersion = "${deps.libsodiumVersion}"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)

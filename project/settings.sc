@@ -1,6 +1,6 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
-import $file.deps, deps.{Deps, Docker, buildCsVersion}
+import $file.deps, deps.{Deps, Docker, alpineVersion, buildCsVersion, libsodiumVersion}
 import $file.scalafixthings, scalafixthings.ScalafixModule
 
 import de.tobiasroeser.mill.vcs.version.VcsVersion
@@ -186,12 +186,95 @@ trait CliLaunchers extends SbtModule { self =>
       val libPath = os.Path(libRes.out.text().trim, os.pwd)
       os.copy.over(libPath, destDir / "csjniutils.lib")
     }
+    private def copyLibsodiumjniTo(cs: String, destDir: os.Path): Unit = {
+      val libsodiumjniVersion = Deps.libsodiumjni.dep.version
+      val (classifier, ext) = sys.props.get("os.arch") match {
+        case Some("x86_64" | "amd64") =>
+          if (Properties.isWin) ("x86_64-pc-win32", "lib")
+          else if (Properties.isLinux) ("x86_64-pc-linux", "a")
+          else if (Properties.isMac) ("x86_64-apple-darwin", "a")
+          else sys.error(s"Unsupported OS for x86_64 platform: ${sys.props("os.name")}")
+        case Some("aarch64") =>
+          if (Properties.isLinux) ("aarch64-pc-linux", "a")
+          else sys.error(s"Unsupported OS for aarch64 platform: ${sys.props("os.name")}")
+        case Some(arch) =>
+          sys.error(s"Unsupported architecture: $arch")
+        case None =>
+          sys.error("Cannot determine CPU architecture")
+      }
+      val libRes = os.proc(
+        cs,
+        "fetch",
+        "--intransitive",
+        s"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:$libsodiumjniVersion,classifier=$classifier,ext=$ext,type=$ext",
+        "-A",
+        ext
+      ).call()
+      val libPath = os.Path(libRes.out.text().trim, os.pwd)
+      val prefix =
+        if (Properties.isWin) ""
+        else "lib"
+      os.copy.over(libPath, destDir / s"${prefix}sodiumjni.$ext")
+    }
+    private def copyLibsodiumTo(cs: String, destDir: os.Path): Unit = {
+      val (osPart, suffix, relPath, ext) = sys.props.get("os.arch") match {
+        case Some("x86_64" | "amd64") =>
+          if (Properties.isWin)
+            ("win-64", "-h62dcd97_1", os.rel / "Library" / "lib" / "libsodium.lib", "lib")
+          else if (Properties.isLinux)
+            ("linux-64", "-h36c2ea0_1", os.rel / "lib" / "libsodium.a", "a")
+          else if (Properties.isMac) ("osx-64", "-hbcb3906_1", os.rel / "lib" / "libsodium.a", "a")
+          else sys.error(s"Unsupported OS for x86_64 platform: ${sys.props("os.name")}")
+        case Some("aarch64") =>
+          if (Properties.isLinux)
+            ("linux-aarch64", "-hb9de7d4_1", os.rel / "lib" / "libsodium.a", "a")
+          else sys.error(s"Unsupported OS for aarch64 platform: ${sys.props("os.name")}")
+        case Some(arch) =>
+          sys.error(s"Unsupported architecture: $arch")
+        case None =>
+          sys.error("Cannot determine CPU architecture")
+      }
+      val dirRes = os.proc(
+        cs,
+        "get",
+        "--archive",
+        s"https://anaconda.org/conda-forge/libsodium/$libsodiumVersion/download/$osPart/libsodium-$libsodiumVersion$suffix.tar.bz2"
+      ).call()
+      val dir = os.Path(dirRes.out.text().trim, os.pwd)
+      val prefix =
+        if (Properties.isWin) ""
+        else "lib"
+      os.copy.over(dir / relPath, destDir / s"${prefix}sodium.$ext")
+    }
+    private def copyAlpineLibsodiumTo(cs: String, destDir: os.Path): Unit = {
+      val arcPath = os.proc(
+        cs,
+        "get",
+        s"https://dl-cdn.alpinelinux.org/alpine/v$alpineVersion/main/x86_64/libsodium-static-$libsodiumVersion-r0.apk"
+      ).call().out.text().trim
+      val tmpDir = os.temp.dir(prefix = "libsodium-static")
+      try {
+        os.proc("tar", "-zxf", os.Path(arcPath, os.pwd))
+          .call(cwd = tmpDir, stdout = os.Inherit)
+        os.copy.over(tmpDir / "usr" / "lib" / "libsodium.a", destDir / "libsodium.a")
+      }
+      finally
+        os.remove.all(tmpDir)
+    }
     def staticLibDir = T {
       val dir = nativeImageDockerWorkingDir() / staticLibDirName
       os.makeDir.all(dir)
 
-      if (Properties.isWin)
+      if (Properties.isWin) {
+        copyLibsodiumTo(cs(), dir)
+        copyLibsodiumjniTo(cs(), dir)
         copyCsjniutilTo(cs(), dir)
+      }
+
+      if (launcherKind == "static") {
+        copyAlpineLibsodiumTo(cs(), dir)
+        copyLibsodiumjniTo(cs(), dir)
+      }
 
       PathRef(dir)
     }

@@ -6,13 +6,13 @@ import scala.cli.commands.ScalaCommand;
 import scala.cli.commands.pgp.ExternalCommand;
 
 @TargetClass(className = "scala.cli.commands.pgp.PgpCommands")
-final class PgpCommandsSubst {
+public final class PgpCommandsSubst {
   @Substitute
-  ScalaCommand<?>[] allScalaCommands() {
+  public ScalaCommand<?>[] allScalaCommands() {
     return new ScalaCommand<?>[0];
   }
   @Substitute
-  ExternalCommand[] allExternalCommands() {
+  public ExternalCommand[] allExternalCommands() {
     return new ExternalCommand[] {
       new PgpCreateExternal(),
       new PgpSignExternal(),
