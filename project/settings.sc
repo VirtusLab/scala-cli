@@ -140,7 +140,10 @@ def getGhToken(): String =
 
 trait CliLaunchers extends SbtModule { self =>
 
+  def launcherTypeResourcePath = os.rel / "scala" / "cli" / "internal" / "launcher-type.txt"
+
   trait CliNativeImage extends NativeImage {
+    def launcherKind: String
     def nativeImageCsCommand    = Seq(cs())
     def nativeImagePersist      = System.getenv("CI") != null
     def nativeImageGraalVmJvmId = deps.graalVmJvmId
@@ -151,12 +154,21 @@ trait CliLaunchers extends SbtModule { self =>
         else staticLibDir().path.toString
       Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
+        s"-H:IncludeResources=$launcherTypeResourcePath",
         "-H:-ParseRuntimeOptions",
         s"-H:CLibraryPath=$cLibPath"
       )
     }
-    def nativeImageName      = "scala-cli"
-    def nativeImageClassPath = self.nativeImageClassPath()
+    def nativeImageName = "scala-cli"
+    def nativeImageClassPath = T {
+      val launcherKindResourceDir = T.dest / "resources"
+      os.write(
+        launcherKindResourceDir / launcherTypeResourcePath,
+        launcherKind,
+        createFolders = true
+      )
+      PathRef(launcherKindResourceDir) +: self.nativeImageClassPath()
+    }
     def nativeImageMainClass = self.nativeImageMainClass()
 
     private def staticLibDirName = "native-libs"
@@ -185,9 +197,12 @@ trait CliLaunchers extends SbtModule { self =>
     }
   }
 
-  object `base-image` extends CliNativeImage
+  object `base-image` extends CliNativeImage {
+    def launcherKind = "default"
+  }
 
   object `linux-docker-image` extends CliNativeImage {
+    def launcherKind = `base-image`.launcherKind
     def nativeImageDockerParams = Some(
       NativeImage.DockerParams(
         imageName = "ubuntu:18.04",
@@ -219,6 +234,7 @@ trait CliLaunchers extends SbtModule { self =>
     )
 
   object `static-image` extends CliNativeImage {
+    def launcherKind = "static"
     def nativeImageDockerParams = T {
       val baseDockerParams = NativeImage.linuxStaticParams(
         Docker.muslBuilder,
@@ -240,6 +256,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   object `mostly-static-image` extends CliNativeImage {
+    def launcherKind = "mostly-static"
     def nativeImageDockerParams = T {
       val baseDockerParams = NativeImage.linuxMostlyStaticParams(
         "ubuntu:18.04", // TODO Pin that
