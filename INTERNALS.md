@@ -38,12 +38,12 @@ Run unit tests with
 
 Run integration tests with a JVM-based `scala-cli` with
 ```bash
-./mill integration.jvm.test
+./mill integration.test.jvm
 ```
 
 Run integration tests with a native-image-based `scala-cli` with
 ```bash
-./mill integration.native.test
+./mill integration.test.native
 ```
 
 ## General workflow in most `scala-cli` commands

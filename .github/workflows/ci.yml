@@ -46,7 +46,7 @@ jobs:
         ./mill -i unitTests
         ./mill -i bloop-rifle._.test
     - name: JVM integration tests
-      run: ./mill -i integration.jvm.test
+      run: ./mill -i integration.test.jvm
 
   native-tests:
     timeout-minutes: 120
@@ -115,7 +115,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
     - name: Native integration tests
-      run: ./mill -i integration.native-mostly-static.test
+      run: ./mill -i integration.test.nativeMostlyStatic
     - name: Docker integration tests
       run: ./mill integration.docker-slim.test
     - name: Login to GitHub Container Registry
@@ -154,7 +154,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
     - name: Native integration tests
-      run: ./mill -i integration.native-static.test
+      run: ./mill -i integration.test.nativeStatic
     - name: Docker integration tests
       run: ./mill integration.docker.test
     - name: Login to GitHub Container Registry
