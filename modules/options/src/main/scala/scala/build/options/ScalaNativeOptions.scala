@@ -20,9 +20,6 @@ final case class ScalaNativeOptions(
   compileDefaults: Option[Boolean] = None
 ) {
 
-  def nativeWorkDir(root: os.Path, projectName: String): os.Path =
-    root / Constants.workspaceDirName / projectName / "native"
-
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
 
   def numeralVersion = SNNumeralVersion.parse(finalVersion)

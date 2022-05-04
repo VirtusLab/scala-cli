@@ -611,7 +611,7 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
     Deps.jsoniterCore,
     Deps.jsoniterMacros,
     Deps.osLib,
-    Deps.signingCliShared
+    Deps.signingCliOptions
   )
   def scalaVersion = Scala.scala213
   def repositories = super.repositories ++ customRepositories
@@ -658,7 +658,11 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   def localRepoJar = `local-repo`.localRepoJar()
 
-  trait Tests extends super.Tests with ScalaCliScalafixModule
+  trait Tests extends super.Tests with ScalaCliScalafixModule {
+    def runClasspath = T {
+      super.runClasspath() ++ Seq(localRepoJar())
+    }
+  }
 }
 
 trait Cli3 extends Cli {

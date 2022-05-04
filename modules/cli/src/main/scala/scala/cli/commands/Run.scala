@@ -72,7 +72,7 @@ object Run extends ScalaCommand[RunOptions] {
         programArgs,
         logger,
         allowExecve = allowTerminate,
-        jvmRunner = build.options.addRunnerDependency.getOrElse(true)
+        jvmRunner = build.artifacts.hasJvmRunner
       ))
 
       val onExitProcess = process.onExit().thenApply { p1 =>
@@ -241,7 +241,6 @@ object Run extends ScalaCommand[RunOptions] {
         withNativeLauncher(
           build,
           mainClass,
-          build.options.scalaNativeOptions.nativeWorkDir(root, projectName),
           logger
         ) { launcher =>
           Runner.runNative(
@@ -255,7 +254,7 @@ object Run extends ScalaCommand[RunOptions] {
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
           build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-          build.fullClassPath.map(_.toFile),
+          build.fullClassPath.map(_.toIO),
           mainClass,
           args,
           logger,
@@ -294,11 +293,10 @@ object Run extends ScalaCommand[RunOptions] {
   def withNativeLauncher[T](
     build: Build.Successful,
     mainClass: String,
-    workDir: os.Path,
     logger: Logger
   )(f: os.Path => T): T = {
-    val dest = workDir / s"main${if (Properties.isWin) ".exe" else ""}"
-    Package.buildNative(build, mainClass, dest, workDir, logger)
+    val dest = build.inputs.nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+    Package.buildNative(build, mainClass, dest, logger)
     f(dest)
   }
 }

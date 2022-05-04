@@ -7,6 +7,7 @@ import scala.cli.signing.shared.PasswordOption
 final case class PublishOptions(
   organization: Option[Positioned[String]] = None,
   name: Option[Positioned[String]] = None,
+  moduleName: Option[Positioned[String]] = None,
   version: Option[Positioned[String]] = None,
   url: Option[Positioned[String]] = None,
   license: Option[Positioned[License]] = None,

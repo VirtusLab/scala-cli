@@ -115,6 +115,8 @@ object Deps {
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                = ivy"com.chuusai::shapeless:2.3.9"
+  def signingCliOptions =
+    ivy"io.github.alexarchambault.scala-cli.signing:cli-options_2.13:${Versions.signingCli}"
   def signingCliShared =
     ivy"io.github.alexarchambault.scala-cli.signing:shared_2.13:${Versions.signingCli}"
   def signingCli = ivy"io.github.alexarchambault.scala-cli.signing:cli_2.13:${Versions.signingCli}"

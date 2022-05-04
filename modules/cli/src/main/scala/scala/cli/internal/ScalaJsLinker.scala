@@ -132,12 +132,8 @@ object ScalaJsLinker {
       )
     }
 
-    val cmd = command ++ allArgs.flatMap(_.value)
-    val res = Runner.run(
-      "unused",
-      cmd,
-      logger
-    )
+    val cmd     = command ++ allArgs.flatMap(_.value)
+    val res     = Runner.run(cmd, logger)
     val retCode = res.waitFor()
 
     if (retCode == 0)

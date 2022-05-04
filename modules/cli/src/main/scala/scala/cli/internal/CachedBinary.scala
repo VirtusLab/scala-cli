@@ -1,17 +1,18 @@
-package scala.build.internal
+package scala.cli.internal
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.build.Build
+import scala.build.internal.Constants
 
-object NativeBuilderHelper {
+object CachedBinary {
 
-  case class SNCacheData(changed: Boolean, projectSha: String)
+  final case class CacheData(changed: Boolean, projectSha: String)
 
-  private def resolveProjectShaPath(nativeWorkDir: os.Path) = nativeWorkDir / ".project_sha"
-  private def resolveOutputShaPath(nativeWorkDir: os.Path)  = nativeWorkDir / ".output_sha"
+  private def resolveProjectShaPath(workDir: os.Path) = workDir / ".project_sha"
+  private def resolveOutputShaPath(workDir: os.Path)  = workDir / ".output_sha"
 
   private def fileSha(filePath: os.Path): String = {
     val md = MessageDigest.getInstance("SHA-1")
@@ -47,13 +48,13 @@ object NativeBuilderHelper {
 
   def updateProjectAndOutputSha(
     dest: os.Path,
-    nativeWorkDir: os.Path,
+    workDir: os.Path,
     currentProjectSha: String
   ): Unit = {
-    val projectShaPath = resolveProjectShaPath(nativeWorkDir)
+    val projectShaPath = resolveProjectShaPath(workDir)
     os.write.over(projectShaPath, currentProjectSha, createFolders = true)
 
-    val outputShaPath = resolveOutputShaPath(nativeWorkDir)
+    val outputShaPath = resolveOutputShaPath(workDir)
     val sha           = fileSha(dest)
     os.write.over(outputShaPath, sha)
   }
@@ -62,10 +63,10 @@ object NativeBuilderHelper {
     build: Build.Successful,
     config: List[String],
     dest: os.Path,
-    nativeWorkDir: os.Path
-  ): SNCacheData = {
-    val projectShaPath = resolveProjectShaPath(nativeWorkDir)
-    val outputShaPath  = resolveOutputShaPath(nativeWorkDir)
+    workDir: os.Path
+  ): CacheData = {
+    val projectShaPath = resolveProjectShaPath(workDir)
+    val outputShaPath  = resolveOutputShaPath(workDir)
 
     val currentProjectSha = projectSha(build, config)
     val currentOutputSha  = if (os.exists(dest)) Some(fileSha(dest)) else None
@@ -78,6 +79,6 @@ object NativeBuilderHelper {
       previousOutputSha != currentOutputSha ||
       !os.exists(dest)
 
-    SNCacheData(changed, currentProjectSha)
+    CacheData(changed, currentProjectSha)
   }
 }
