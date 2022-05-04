@@ -2,7 +2,7 @@
 # scala-cli
 
 [![Build status](https://github.com/VirtusLab/scala-cli/workflows/CI/badge.svg)](https://github.com/VirtusLab/scala-ci/actions?query=workflow%3ACI)
-[![Maven Central](https://img.shields.io/maven-central/v/org.virtuslab.scala-cli/cli_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/org.virtuslab.scala-cli/cli_2.12)
+[![Maven Central](https://img.shields.io/maven-central/v/org.virtuslab.scala-cli/cli_3.svg)](https://maven-badges.herokuapp.com/maven-central/org.virtuslab.scala-cli/cli_3)
 [![Discord](https://img.shields.io/discord/632277896739946517.svg?label=&logo=discord&logoColor=ffffff&color=404244&labelColor=6A7EC2)](https://discord.gg/KzQdYkZZza)
 
 Scala CLI is an experimental tool to run/compile/test Scala that aims at being a better `scala` command. It shares some similarities with build tools, but doesn't aim at supporting multi-module projects, nor to be extended via a task system.
