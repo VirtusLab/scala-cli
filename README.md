@@ -13,9 +13,9 @@ User-facing documentation can be found on our website: [scala-cli.virtuslab.org]
 
 ### Requirements
 
-Building Scala CLI requires a JVM 17 to work properly. 
+Building Scala CLI requires a JVM 17 to work properly.
 
-In theory, our build is able to download and install for its own needs JVM 17 on some OSes however it may not work in Intellij / Metals out of the box. 
+In theory, our build is able to download and install for its own needs JVM 17 on some OSes however it may not work in Intellij / Metals out of the box.
 
 The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need to be installed on your system.
 
@@ -127,9 +127,9 @@ that embeds JARs of the scala-cli modules, and downloads their dependencies
 from Maven Central upon first launch (using the coursier cache, just like
 a coursier bootstrap).
 
-### Website 
+### Website
 
-The Scala CLI website is built with [Docusaurus](https://v1.docusaurus.io/en/) and uses [Infima](https://infima.dev/docs/layout/spacing) for styling. 
+The Scala CLI website is built with [Docusaurus](https://v1.docusaurus.io/en/) and uses [Infima](https://infima.dev/docs/layout/spacing) for styling.
 
 #### Generate the website once
 
@@ -152,7 +152,7 @@ We have a built-in tool to validate `.md` files called [Sclicheck](/sclicheck/Re
 
 ```.github/scripts/check_docs.sh```
 
-You can also check single documents or directories using 
+You can also check single documents or directories using
 
 
 ```
@@ -181,4 +181,4 @@ Instructions on how to release - [Release Procedure](https://github.com/VirtusLa
 
 ## Debugging BSP server
 
-The easiest way to debug BSP sever is using `scala-cli-src` script with `--bsp-debug-port 5050` flag (the port should be unique to the workspace where BSP will be debugged). In such case BSP will be launched using local source and will run on JVM. It will also expects a debugger running in the listen mode using provided port (so the initialization of the connection can be debugged). In such case we recommend to have option to auto rerun debugging session off (so there is always a debugger instance ready to be used). 
+The easiest way to debug BSP sever is using `scala-cli-src` script with `--bsp-debug-port 5050` flag (the port should be unique to the workspace where BSP will be debugged). In such case BSP will be launched using local source and will run on JVM. It will also expects a debugger running in the listen mode using provided port (so the initialization of the connection can be debugged). In such case we recommend to have option to auto rerun debugging session off (so there is always a debugger instance ready to be used).
