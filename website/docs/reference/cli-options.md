@@ -953,10 +953,6 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--working-dir`
-
-Directory where temporary files for publishing should be written
-
 #### `--organization`
 
 Organization to publish artifacts under
@@ -997,6 +993,26 @@ Description to put in publishing metadata
 
 Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" or "alex|Alex|https://alex.info|alex@alex.me"
 
+#### `--publish-repository`
+
+Aliases: `-R`, `--publish-repo`
+
+Repository to publish to
+
+#### `--secret-key`
+
+Secret key to use to sign artifacts with BouncyCastle
+
+#### `--secret-key-password`
+
+Aliases: `--secret-key-pass`
+
+Password of secret key to use to sign artifacts with BouncyCastle
+
+#### `--working-dir`
+
+Directory where temporary files for publishing should be written
+
 #### `--scala-version-suffix`
 
 Scala version suffix to append to the module name, like "_2.13" or "_3"
@@ -1004,12 +1020,6 @@ Scala version suffix to append to the module name, like "_2.13" or "_3"
 #### `--scala-platform-suffix`
 
 Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
-
-#### `--publish-repository`
-
-Aliases: `-R`, `--publish-repo`
-
-Repository to publish to
 
 #### `--sources`
 
@@ -1026,16 +1036,6 @@ Whether to build and publish doc JARs
 Aliases: `-K`
 
 ID of the GPG key to use to sign artifacts
-
-#### `--secret-key`
-
-Secret key to use to sign artifacts with BouncyCastle
-
-#### `--secret-key-password`
-
-Aliases: `--secret-key-pass`
-
-Password of secret key to use to sign artifacts with BouncyCastle
 
 #### `--signer`
 

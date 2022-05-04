@@ -49,27 +49,33 @@ object Publish extends ScalaCommand[PublishOptions] {
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
-          organization = organization.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          name = ops.name.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          moduleName = moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          version = version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          url = url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          organization = sharedPublish.organization.map(_.trim).filter(_.nonEmpty).map(
+            Positioned.commandLine(_)
+          ),
+          name = sharedPublish.name.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          moduleName =
+            sharedPublish.moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          version =
+            sharedPublish.version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          url = sharedPublish.url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
           license = value {
-            license
+            sharedPublish.license
               .map(_.trim).filter(_.nonEmpty)
               .map(Positioned.commandLine(_))
               .map(License.parse(_))
               .sequence
           },
           versionControl = value {
-            vcs.map(_.trim).filter(_.nonEmpty)
+            sharedPublish.vcs
+              .map(_.trim).filter(_.nonEmpty)
               .map(Positioned.commandLine(_))
               .map(Vcs.parse(_))
               .sequence
           },
-          description = description.map(_.trim).filter(_.nonEmpty),
+          description = sharedPublish.description.map(_.trim).filter(_.nonEmpty),
           developers = value {
-            developer.filter(_.trim.nonEmpty)
+            sharedPublish.developer
+              .filter(_.trim.nonEmpty)
               .map(Positioned.commandLine(_))
               .map(Developer.parse(_))
               .sequence
@@ -77,13 +83,13 @@ object Publish extends ScalaCommand[PublishOptions] {
           },
           scalaVersionSuffix = scalaVersionSuffix.map(_.trim),
           scalaPlatformSuffix = scalaPlatformSuffix.map(_.trim),
-          repository = publishRepository.filter(_.trim.nonEmpty),
+          repository = sharedPublish.publishRepository.filter(_.trim.nonEmpty),
           sourceJar = sources,
           docJar = doc,
           gpgSignatureId = gpgKey.map(_.trim).filter(_.nonEmpty),
           gpgOptions = gpgOption,
-          secretKey = secretKey.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
-          secretKeyPassword = secretKeyPassword,
+          secretKey = sharedPublish.secretKey.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
+          secretKeyPassword = sharedPublish.secretKeyPassword,
           signer = value {
             signer
               .map(Positioned.commandLine(_))
@@ -91,7 +97,7 @@ object Publish extends ScalaCommand[PublishOptions] {
               .sequence
           },
           computeVersion = value {
-            computeVersion
+            sharedPublish.computeVersion
               .map(Positioned.commandLine(_))
               .map(ComputeVersion.parse(_))
               .sequence
