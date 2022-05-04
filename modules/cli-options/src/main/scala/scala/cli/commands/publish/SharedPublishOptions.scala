@@ -49,6 +49,16 @@ final case class SharedPublishOptions(
     publishRepository: Option[String] = None,
 
   @Group("Publishing")
+  @HelpMessage("User to use with publishing repository")
+  @ValueDescription("user")
+    user: Option[PasswordOption] = None,
+
+  @Group("Publishing")
+  @HelpMessage("Password to use with publishing repository")
+  @ValueDescription("value:…")
+    password: Option[PasswordOption] = None,
+
+  @Group("Publishing")
   @HelpMessage("Secret key to use to sign artifacts with BouncyCastle")
     secretKey: Option[PasswordOption] = None,
 

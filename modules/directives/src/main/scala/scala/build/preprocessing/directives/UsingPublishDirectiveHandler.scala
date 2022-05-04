@@ -53,7 +53,9 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     "gpgOptions",
     "gpg-options",
     "secretKey",
-    "secretKeyPassword"
+    "secretKeyPassword",
+    "user",
+    "password"
   ).map(prefix + _)
 
   override def getValueNumberBounds(key: String) = key match {
@@ -134,6 +136,10 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
         PublishOptions(secretKey = Some(value(parsePasswordOption(singleValue.value))))
       case "secretKeyPassword" =>
         PublishOptions(secretKeyPassword = Some(value(parsePasswordOption(singleValue.value))))
+      case "user" =>
+        PublishOptions(repoUser = Some(value(parsePasswordOption(singleValue.value))))
+      case "password" =>
+        PublishOptions(repoPassword = Some(value(parsePasswordOption(singleValue.value))))
       case _ =>
         value(Left(new UnexpectedDirectiveError(scopedDirective.directive.key)))
     }

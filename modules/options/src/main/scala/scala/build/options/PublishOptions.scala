@@ -24,6 +24,8 @@ final case class PublishOptions(
   signer: Option[Signer] = None,
   secretKey: Option[PasswordOption] = None,
   secretKeyPassword: Option[PasswordOption] = None,
+  repoUser: Option[PasswordOption] = None,
+  repoPassword: Option[PasswordOption] = None,
   computeVersion: Option[ComputeVersion] = None
 )
 

@@ -1003,6 +1003,14 @@ Aliases: `-R`, `--publish-repo`
 
 Repository to publish to
 
+#### `--user`
+
+User to use with publishing repository
+
+#### `--password`
+
+Password to use with publishing repository
+
 #### `--secret-key`
 
 Secret key to use to sign artifacts with BouncyCastle
