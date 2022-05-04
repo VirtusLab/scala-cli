@@ -6,7 +6,7 @@ import com.swoval.files.{PathWatcher, PathWatchers}
 import dependency.ScalaParameters
 
 import java.io.File
-import java.nio.file.{FileSystemException, Path}
+import java.nio.file.FileSystemException
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.annotation.tailrec
@@ -39,7 +39,7 @@ object Build {
   final case class Successful(
     inputs: Inputs,
     options: BuildOptions,
-    scalaParams: ScalaParameters,
+    scalaParams: Option[ScalaParameters],
     scope: Scope,
     sources: Sources,
     artifacts: Artifacts,
@@ -52,8 +52,7 @@ object Build {
     def success: Boolean               = true
     def successfulOpt: Some[this.type] = Some(this)
     def outputOpt: Some[os.Path]       = Some(output)
-    def fullClassPath: Seq[Path] =
-      Seq(output.toNIO) ++ sources.resourceDirs.map(_.toNIO) ++ artifacts.classPath.map(_.toNIO)
+    def fullClassPath: Seq[os.Path]    = Seq(output) ++ sources.resourceDirs ++ artifacts.classPath
     def foundMainClasses(): Seq[String] =
       MainClass.find(output)
     def retainedMainClass: Either[MainClassError, String] = {
@@ -77,14 +76,15 @@ object Build {
       }
     }
 
-    def crossKey: CrossKey =
-      CrossKey(
+    def crossKey: CrossKey = {
+      val optKey = scalaParams.map { params =>
         BuildOptions.CrossKey(
-          scalaParams.scalaVersion,
+          params.scalaVersion,
           options.platform.value
-        ),
-        scope
-      )
+        )
+      }
+      CrossKey(optKey, scope)
+    }
   }
 
   final case class Failed(
@@ -159,15 +159,16 @@ object Build {
 
     def doPostProcess(build: Build, inputs: Inputs, scope: Scope): Unit = build match {
       case build: Build.Successful =>
-        postProcess(
-          build.generatedSources,
-          inputs.generatedSrcRoot(scope),
-          build.output,
-          logger,
-          inputs.workspace,
-          updateSemanticDbs = true,
-          scalaVersion = build.project.scalaCompiler.scalaVersion
-        ).left.foreach(_.foreach(logger.message(_)))
+        for (sv <- build.project.scalaCompiler.map(_.scalaVersion))
+          postProcess(
+            build.generatedSources,
+            inputs.generatedSrcRoot(scope),
+            build.output,
+            logger,
+            inputs.workspace,
+            updateSemanticDbs = true,
+            scalaVersion = sv
+          ).left.foreach(_.foreach(logger.message(_)))
       case _ =>
     }
 
@@ -411,34 +412,37 @@ object Build {
     inputs: Inputs
   ): Either[BuildException, Option[ScalaNativeCompatibilityError]] =
     either {
-      val scalaVersion  = value(options.scalaParams).scalaVersion
-      val nativeVersion = options.scalaNativeOptions.numeralVersion
-      val isCompatible = nativeVersion match {
-        case Some(snNumeralVer) =>
-          if (snNumeralVer < SNNumeralVersion(0, 4, 1) && Properties.isWin)
-            false
-          else if (scalaVersion.startsWith("3.0"))
-            false
-          else if (scalaVersion.startsWith("3"))
-            snNumeralVer >= SNNumeralVersion(0, 4, 3)
-          else if (scalaVersion.startsWith("2.13"))
-            true
-          else if (scalaVersion.startsWith("2.12"))
-            inputs.sourceFiles().forall {
-              case _: Inputs.AnyScript => false
-              case _                   => true
-            }
-          else false
-        case None => false
-      }
-      if (isCompatible) None
-      else
-        Some(
-          new ScalaNativeCompatibilityError(
-            scalaVersion,
-            options.scalaNativeOptions.finalVersion
+      val scalaParamsOpt = value(options.scalaParams)
+      scalaParamsOpt.flatMap { scalaParams =>
+        val scalaVersion  = scalaParams.scalaVersion
+        val nativeVersion = options.scalaNativeOptions.numeralVersion
+        val isCompatible = nativeVersion match {
+          case Some(snNumeralVer) =>
+            if (snNumeralVer < SNNumeralVersion(0, 4, 1) && Properties.isWin)
+              false
+            else if (scalaVersion.startsWith("3.0"))
+              false
+            else if (scalaVersion.startsWith("3"))
+              snNumeralVer >= SNNumeralVersion(0, 4, 3)
+            else if (scalaVersion.startsWith("2.13"))
+              true
+            else if (scalaVersion.startsWith("2.12"))
+              inputs.sourceFiles().forall {
+                case _: Inputs.AnyScript => false
+                case _                   => true
+              }
+            else false
+          case None => false
+        }
+        if (isCompatible) None
+        else
+          Some(
+            new ScalaNativeCompatibilityError(
+              scalaVersion,
+              options.scalaNativeOptions.finalVersion
+            )
           )
-        )
+      }
     }
 
   def build(
@@ -647,7 +651,6 @@ object Build {
     logger: Logger
   ): Either[BuildException, Project] = either {
 
-    val params     = value(options.scalaParams)
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
@@ -655,85 +658,102 @@ object Build {
 
     val artifacts = value(options.artifacts(logger))
 
-    val pluginScalacOptions = artifacts.compilerPlugins.distinct.map {
-      case (_, _, path) =>
-        ScalacOpt(s"-Xplugin:$path")
-    }
-
     val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
-
-    val semanticDbScalacOptions =
-      if (generateSemanticDbs)
-        if (params.scalaVersion.startsWith("2."))
-          Seq(
-            "-Yrangepos",
-            "-P:semanticdb:failures:warning",
-            "-P:semanticdb:synthetics:on",
-            s"-P:semanticdb:sourceroot:${inputs.workspace}"
-          ).map(ScalacOpt(_))
-        else
-          Seq(
-            "-Xsemanticdb",
-            "-sourceroot",
-            inputs.workspace.toString
-          ).map(ScalacOpt(_))
-      else Nil
-
-    val semanticDbJavacOptions =
-      // FIXME Should this be in scalaOptions, now that we use it for javac stuff too?
-      if (generateSemanticDbs) {
-        // from https://github.com/scalameta/metals/blob/04405c0401121b372ea1971c361e05108fb36193/metals/src/main/scala/scala/meta/internal/metals/JavaInteractiveSemanticdb.scala#L137-L146
-        val compilerPackages = Seq(
-          "com.sun.tools.javac.api",
-          "com.sun.tools.javac.code",
-          "com.sun.tools.javac.model",
-          "com.sun.tools.javac.tree",
-          "com.sun.tools.javac.util"
-        )
-        val exports = compilerPackages.flatMap { pkg =>
-          Seq("-J--add-exports", s"-Jjdk.compiler/$pkg=ALL-UNNAMED")
-        }
-
-        Seq(
-          // does the path need to be escaped somehow?
-          s"-Xplugin:semanticdb -sourceroot:${inputs.workspace} -targetroot:javac-classes-directory"
-        ) ++ exports
-      }
-      else
-        Nil
-
-    val sourceRootScalacOptions =
-      if (params.scalaVersion.startsWith("2.")) Nil
-      else Seq("-sourceroot", inputs.workspace.toString).map(ScalacOpt(_))
-
-    val scalaJsScalacOptions =
-      if (options.platform.value == Platform.JS && !params.scalaVersion.startsWith("2."))
-        Seq(ScalacOpt("-scalajs"))
-      else Nil
 
     val releaseFlagVersion = releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
-    val scalacReleaseV = releaseFlagVersion
-      .map(v => List("-release", v).map(ScalacOpt(_)))
-      .getOrElse(Nil)
-    val javacReleaseV = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
+    val scalaCompilerParamsOpt = artifacts.scalaOpt match {
+      case Some(scalaArtifacts) =>
+        val params = value(options.scalaParams).getOrElse {
+          sys.error(
+            "Should not happen (inconsistency between Scala parameters in BuildOptions and ScalaArtifacts)"
+          )
+        }
 
-    val scalacOptions =
-      options.scalaOptions.scalacOptions.map(_.value) ++
-        pluginScalacOptions ++
-        semanticDbScalacOptions ++
-        sourceRootScalacOptions ++
-        scalaJsScalacOptions ++
-        scalacReleaseV
+        val pluginScalacOptions = scalaArtifacts.compilerPlugins.distinct.map {
+          case (_, _, path) =>
+            ScalacOpt(s"-Xplugin:$path")
+        }
 
-    val scalaCompilerParams = ScalaCompilerParams(
-      scalaVersion = params.scalaVersion,
-      scalaBinaryVersion = params.scalaBinaryVersion,
-      scalacOptions = scalacOptions.toSeq.map(_.value),
-      compilerClassPath = artifacts.compilerClassPath
-    )
+        val semanticDbScalacOptions =
+          if (generateSemanticDbs)
+            if (params.scalaVersion.startsWith("2."))
+              Seq(
+                "-Yrangepos",
+                "-P:semanticdb:failures:warning",
+                "-P:semanticdb:synthetics:on",
+                s"-P:semanticdb:sourceroot:${inputs.workspace}"
+              ).map(ScalacOpt(_))
+            else
+              Seq(
+                "-Xsemanticdb",
+                "-sourceroot",
+                inputs.workspace.toString
+              ).map(ScalacOpt(_))
+          else Nil
 
-    val javacOptions = javacReleaseV ++ semanticDbJavacOptions ++ options.javaOptions.javacOptions
+        val sourceRootScalacOptions =
+          if (params.scalaVersion.startsWith("2.")) Nil
+          else Seq("-sourceroot", inputs.workspace.toString).map(ScalacOpt(_))
+
+        val scalaJsScalacOptions =
+          if (options.platform.value == Platform.JS && !params.scalaVersion.startsWith("2."))
+            Seq(ScalacOpt("-scalajs"))
+          else Nil
+
+        val scalacReleaseV = releaseFlagVersion
+          .map(v => List("-release", v).map(ScalacOpt(_)))
+          .getOrElse(Nil)
+
+        val scalacOptions =
+          options.scalaOptions.scalacOptions.map(_.value) ++
+            pluginScalacOptions ++
+            semanticDbScalacOptions ++
+            sourceRootScalacOptions ++
+            scalaJsScalacOptions ++
+            scalacReleaseV
+
+        val compilerParams = ScalaCompilerParams(
+          scalaVersion = params.scalaVersion,
+          scalaBinaryVersion = params.scalaBinaryVersion,
+          scalacOptions = scalacOptions.toSeq.map(_.value),
+          compilerClassPath = scalaArtifacts.compilerClassPath
+        )
+        Some(compilerParams)
+
+      case None =>
+        None
+    }
+
+    val javacOptions = {
+
+      val semanticDbJavacOptions =
+        // FIXME Should this be in scalaOptions, now that we use it for javac stuff too?
+        if (generateSemanticDbs) {
+          // from https://github.com/scalameta/metals/blob/04405c0401121b372ea1971c361e05108fb36193/metals/src/main/scala/scala/meta/internal/metals/JavaInteractiveSemanticdb.scala#L137-L146
+          val compilerPackages = Seq(
+            "com.sun.tools.javac.api",
+            "com.sun.tools.javac.code",
+            "com.sun.tools.javac.model",
+            "com.sun.tools.javac.tree",
+            "com.sun.tools.javac.util"
+          )
+          val exports = compilerPackages.flatMap { pkg =>
+            Seq("-J--add-exports", s"-Jjdk.compiler/$pkg=ALL-UNNAMED")
+          }
+
+          Seq(
+            // does the path need to be escaped somehow?
+            s"-Xplugin:semanticdb -sourceroot:${inputs.workspace} -targetroot:javac-classes-directory"
+          ) ++ exports
+        }
+        else
+          Nil
+
+      val javacReleaseV = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
+
+      javacReleaseV ++ semanticDbJavacOptions ++ options.javaOptions.javacOptions
+    }
 
     // `test` scope should contains class path to main scope
     val mainClassesPath =
@@ -753,7 +773,7 @@ object Build {
       workspace = inputs.workspace,
       classesDir = classesDir0,
       scaladocDir = scaladocDir,
-      scalaCompiler = scalaCompilerParams,
+      scalaCompiler = scalaCompilerParamsOpt,
       scalaJsOptions =
         if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config(logger))
         else None,
@@ -781,45 +801,64 @@ object Build {
     compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     compiler: ScalaCompiler,
-    logger: Logger
-  ): Either[BuildException, (os.Path, ScalaParameters, Artifacts, Project, Boolean)] = either {
+    logger: Logger,
+    buildClient: BloopBuildClient
+  ): Either[BuildException, (os.Path, Option[ScalaParameters], Artifacts, Project, Boolean)] =
+    either {
 
-    val params = value(options.scalaParams)
+      val options0 =
+        if (sources.hasJava && !sources.hasScala)
+          options.copy(
+            scalaOptions = options.scalaOptions.copy(
+              scalaVersion = options.scalaOptions.scalaVersion.orElse {
+                Some(MaybeScalaVersion.none)
+              }
+            )
+          )
+        else
+          options
+      val params = value(options0.scalaParams)
 
-    val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
+      val scopeParams =
+        if (scope == Scope.Main) Nil
+        else Seq(scope.name)
 
-    val artifacts = value(options.artifacts(logger))
+      buildClient.setProjectParams(scopeParams ++ value(options0.projectParams))
 
-    value(validate(logger, options))
+      val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
 
-    val project = value {
-      buildProject(
-        inputs,
-        sources,
-        generatedSources,
-        options,
-        compilerJvmVersionOpt,
-        scope,
-        logger
-      )
-    }
+      val artifacts = value(options0.artifacts(logger))
 
-    val projectChanged = compiler.prepareProject(project, logger)
+      value(validate(logger, options0))
 
-    if (compiler.usesClassDir && projectChanged && os.isDir(classesDir0)) {
-      logger.debug(s"Clearing $classesDir0")
-      os.list(classesDir0).foreach { p =>
-        logger.debug(s"Removing $p")
-        try os.remove.all(p)
-        catch {
-          case ex: FileSystemException =>
-            logger.debug(s"Ignoring $ex while cleaning up $p")
+      val project = value {
+        buildProject(
+          inputs,
+          sources,
+          generatedSources,
+          options0,
+          compilerJvmVersionOpt,
+          scope,
+          logger
+        )
+      }
+
+      val projectChanged = compiler.prepareProject(project, logger)
+
+      if (compiler.usesClassDir && projectChanged && os.isDir(classesDir0)) {
+        logger.debug(s"Clearing $classesDir0")
+        os.list(classesDir0).foreach { p =>
+          logger.debug(s"Removing $p")
+          try os.remove.all(p)
+          catch {
+            case ex: FileSystemException =>
+              logger.debug(s"Ignoring $ex while cleaning up $p")
+          }
         }
       }
-    }
 
-    (classesDir0, params, artifacts, project, projectChanged)
-  }
+      (classesDir0, params, artifacts, project, projectChanged)
+    }
 
   def buildOnce(
     inputs: Inputs,
@@ -848,7 +887,8 @@ object Build {
         compiler.jvmVersion,
         scope,
         compiler,
-        logger
+        logger,
+        buildClient
       )
     }
 
@@ -1012,7 +1052,7 @@ object Build {
 
     val retCode = run(
       javaCommand,
-      build.fullClassPath.map(_.toFile),
+      build.fullClassPath.map(_.toIO),
       "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",
       Seq(printable(build.output), printable(jmhSourceDir), printable(jmhResourceDir), "default"),
       logger

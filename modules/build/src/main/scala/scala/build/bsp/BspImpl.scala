@@ -100,7 +100,8 @@ final class BspImpl(
         None,
         Scope.Main,
         currentBloopSession.remoteServer,
-        persistentLogger
+        persistentLogger,
+        localClient
       )
       res.left.map((_, Scope.Main))
     }
@@ -114,7 +115,8 @@ final class BspImpl(
         None,
         Scope.Test,
         currentBloopSession.remoteServer,
-        persistentLogger
+        persistentLogger,
+        localClient
       )
       res.left.map((_, Scope.Test))
     }
@@ -242,15 +244,16 @@ final class BspImpl(
 
         doCompile().thenCompose { res =>
           def doPostProcess(data: PreBuildData, scope: Scope) =
-            Build.postProcess(
-              data.generatedSources,
-              currentBloopSession.inputs.generatedSrcRoot(scope),
-              data.classesDir,
-              reloadableOptions.logger,
-              currentBloopSession.inputs.workspace,
-              updateSemanticDbs = true,
-              scalaVersion = data.project.scalaCompiler.scalaVersion
-            ).left.foreach(_.foreach(showGlobalWarningOnce))
+            for (sv <- data.project.scalaCompiler.map(_.scalaVersion))
+              Build.postProcess(
+                data.generatedSources,
+                currentBloopSession.inputs.generatedSrcRoot(scope),
+                data.classesDir,
+                reloadableOptions.logger,
+                currentBloopSession.inputs.workspace,
+                updateSemanticDbs = true,
+                scalaVersion = sv
+              ).left.foreach(_.foreach(showGlobalWarningOnce))
 
           if (res.getStatusCode == b.StatusCode.OK)
             CompletableFuture.supplyAsync(
@@ -536,7 +539,7 @@ object BspImpl {
     sources: Sources,
     buildOptions: BuildOptions,
     classesDir: os.Path,
-    scalaParams: ScalaParameters,
+    scalaParams: Option[ScalaParameters],
     artifacts: Artifacts,
     project: Project,
     generatedSources: Seq[GeneratedSource],

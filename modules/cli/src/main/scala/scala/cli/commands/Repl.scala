@@ -167,9 +167,14 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     val cache = options.internal.cache.getOrElse(FileCache())
     val replArtifacts = value {
+      val scalaParams = artifacts.scalaOpt
+        .getOrElse {
+          sys.error("Expected Scala artifacts to be fetched")
+        }
+        .params
       if (options.notForBloopOptions.replOptions.useAmmonite)
         ReplArtifacts.ammonite(
-          artifacts.params,
+          scalaParams,
           options.notForBloopOptions.replOptions.ammoniteVersion,
           artifacts.userDependencies,
           artifacts.extraClassPath,
@@ -180,7 +185,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         )
       else
         ReplArtifacts.default(
-          artifacts.params,
+          scalaParams,
           artifacts.userDependencies,
           artifacts.extraClassPath,
           logger,

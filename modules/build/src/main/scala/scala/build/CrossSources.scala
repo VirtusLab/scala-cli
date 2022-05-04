@@ -3,7 +3,13 @@ package scala.build
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.options.{BuildOptions, BuildRequirements, HasBuildRequirements, Scope}
+import scala.build.options.{
+  BuildOptions,
+  BuildRequirements,
+  HasBuildRequirements,
+  MaybeScalaVersion,
+  Scope
+}
 import scala.build.preprocessing.*
 
 final case class CrossSources(
@@ -24,7 +30,9 @@ final case class CrossSources(
 
     val sharedOptions0 = sharedOptions(baseOptions)
 
-    val retainedScalaVersion = value(sharedOptions0.scalaParams).scalaVersion
+    val retainedScalaVersion = value(sharedOptions0.scalaParams)
+      .map(p => MaybeScalaVersion(p.scalaVersion))
+      .getOrElse(MaybeScalaVersion.none)
 
     val buildOptionsWithScalaVersion = buildOptions
       .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)

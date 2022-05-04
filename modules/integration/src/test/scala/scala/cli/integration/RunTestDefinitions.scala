@@ -516,7 +516,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val exceptionLines =
         output.map(stripAnsi).dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
-      val sp  = " "
+
       val expectedLines =
         if (actualScalaVersion.startsWith("2.12."))
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
@@ -528,7 +528,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
              |""".stripMargin.linesIterator.toVector
-        else if (actualScalaVersion.startsWith("2.13."))
+        else if (actualScalaVersion.startsWith("3.") || actualScalaVersion.startsWith("2.13."))
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at Throws$$.main(Throws.scala:8)
              |${tab}at Throws.main(Throws.scala)
@@ -537,16 +537,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |${tab}at Throws$$.something(Throws.scala:3)
              |${tab}at Throws$$.main(Throws.scala:5)
              |$tab... 1 more
-             |""".stripMargin.linesIterator.toVector
-        else if (actualScalaVersion.startsWith("3."))
-          s"""Exception in thread main: java.lang.Exception: Caught exception during processing
-             |    at method main in Throws.scala:8$sp
-             |
-             |Caused by: Exception in thread main: java.lang.RuntimeException: nope
-             |    at method error in scala.sys.package$$:27$sp
-             |    at method something in Throws.scala:3$sp
-             |    at method main in Throws.scala:5$sp
-             |
              |""".stripMargin.linesIterator.toVector
         else
           sys.error(s"Unexpected Scala version: $actualScalaVersion")
@@ -649,9 +639,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       // format: off
       val cmd = Seq[os.Shellable](
-        TestUtil.cli, "run", extraOptions, ".",
-        "--java-prop=scala.cli.runner.Stacktrace.disable=true"
-      )
+        TestUtil.cli, "run", extraOptions, ".")
       // format: on
       val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
       val output = res.out.lines()

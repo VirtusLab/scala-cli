@@ -5,7 +5,7 @@ import dependency.AnyDependency
 import scala.build.Positioned
 
 final case class ScalaOptions(
-  scalaVersion: Option[String] = None,
+  scalaVersion: Option[MaybeScalaVersion] = None,
   scalaBinaryVersion: Option[String] = None,
   addScalaLibrary: Option[Boolean] = None,
   generateSemanticDbs: Option[Boolean] = None,
@@ -23,7 +23,7 @@ final case class ScalaOptions(
 
   def normalize: ScalaOptions = {
     var opt = this
-    for (sv <- opt.scalaVersion if opt.extraScalaVersions.contains(sv))
+    for (sv <- opt.scalaVersion.map(_.asString) if opt.extraScalaVersions.contains(sv))
       opt = opt.copy(
         extraScalaVersions = opt.extraScalaVersions - sv
       )

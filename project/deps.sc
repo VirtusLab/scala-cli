@@ -54,7 +54,7 @@ object Deps {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier      = "2.1.0-M5-18-gfebf9838c"
     def jsoniterScala = "2.13.18"
-    def scalaMeta     = "4.5.4"
+    def scalaMeta     = "4.5.5"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
     def signingCli    = "0.1.3"
@@ -92,7 +92,6 @@ object Deps {
   def organizeImports            = ivy"com.github.liancheng::organize-imports:0.5.0"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.8.1"
   def pprint                     = ivy"com.lihaoyi::pprint:0.7.3"
-  def prettyStacktraces          = ivy"org.virtuslab::pretty-stacktraces:0.0.1-M1"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
@@ -115,6 +114,8 @@ object Deps {
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                = ivy"com.chuusai::shapeless:2.3.9"
+  def signingCliOptions =
+    ivy"io.github.alexarchambault.scala-cli.signing:cli-options_2.13:${Versions.signingCli}"
   def signingCliShared =
     ivy"io.github.alexarchambault.scala-cli.signing:shared_2.13:${Versions.signingCli}"
   def signingCli = ivy"io.github.alexarchambault.scala-cli.signing:cli_2.13:${Versions.signingCli}"
@@ -123,13 +124,13 @@ object Deps {
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"me.vican.jorge:snailgun-core_2.13:0.4.0"
     else ivy"me.vican.jorge::snailgun-core:0.4.0"
-  def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
+  def svm             = ivy"org.graalvm.nativeimage:svm:22.0.0.2"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
   def usingDirectives = ivy"org.virtuslab:using_directives:0.0.8"
 }
 
-def graalVmVersion     = "22.0.0"
+def graalVmVersion     = "22.1.0"
 def graalVmJavaVersion = 17
 def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 

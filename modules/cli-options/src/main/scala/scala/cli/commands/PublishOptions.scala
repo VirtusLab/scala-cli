@@ -2,8 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.cli.internal.PasswordOptionParsers._
 import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.util.ArgParsers._
 
 // format: off
 final case class PublishOptions(
@@ -25,7 +25,10 @@ final case class PublishOptions(
   @HelpMessage("Organization to publish artifacts under")
     organization: Option[String] = None,
   @Group("Publishing")
-  @HelpMessage("Module name to publish artifacts as")
+  @HelpMessage("Name to publish artifacts as")
+    name: Option[String] = None,
+  @Group("Publishing")
+  @HelpMessage("Final name to publish artifacts as, including Scala version and platform suffixes if any")
     moduleName: Option[String] = None,
   @Group("Publishing")
   @HelpMessage("Version to publish artifacts as")

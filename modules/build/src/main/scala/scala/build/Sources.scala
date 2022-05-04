@@ -51,6 +51,13 @@ final case class Sources(
         GeneratedSource(generatedSrcRoot / path, reportingPath, topWrapperLen)
     }
   }
+
+  lazy val hasJava =
+    (paths.iterator.map(_._1.last) ++ inMemory.iterator.map(_.generatedRelPath.last))
+      .exists(_.endsWith(".java"))
+  lazy val hasScala =
+    (paths.iterator.map(_._1.last) ++ inMemory.iterator.map(_.generatedRelPath.last))
+      .exists(_.endsWith(".scala"))
 }
 
 object Sources {

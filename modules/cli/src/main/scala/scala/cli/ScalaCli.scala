@@ -92,14 +92,14 @@ object ScalaCli {
         }
 
         e match {
+          case _: UnsupportedClassVersionError if javaMajorVersion < 17 =>
+            warnRequiresJava17()
           case _: NoClassDefFoundError
               if isJava17ClassName(e.getMessage) &&
               CurrentParams.verbosity <= 1 &&
               javaMajorVersion < 16 =>
-            // Actually Java >= 16, but let's recommend a LTS version…
-            System.err.println(
-              s"Java >= 17 is required to run Scala CLI (found Java $javaMajorVersion)"
-            )
+            // Actually Java >= 16 here, but let's recommend a LTS version…
+            warnRequiresJava17()
           case _ =>
         }
 
@@ -107,6 +107,11 @@ object ScalaCli {
         else sys.exit(1)
     }
   }
+
+  private def warnRequiresJava17(): Unit =
+    System.err.println(
+      s"Java >= 17 is required to run Scala CLI (found Java $javaMajorVersion)"
+    )
 
   private def main0(args: Array[String]): Unit = {
     val remainingArgs = LauncherOptions.parser.stopAtFirstUnrecognized.parse(args.toVector) match {

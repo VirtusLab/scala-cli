@@ -35,7 +35,9 @@ final case class Mill(
       options.classPathOptions.extraDependencies.toSeq
         .forall(_.value.nameAttributes == NoAttributes)
 
-    val sv = options.scalaOptions.scalaVersion.getOrElse(Constants.defaultScalaVersion)
+    val sv = options.scalaOptions.scalaVersion
+      .flatMap(_.versionOpt) // FIXME If versionOpt is empty, the project is pure Java
+      .getOrElse(Constants.defaultScalaVersion)
 
     if (pureJava)
       MillProject()

@@ -12,23 +12,24 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
 
   def name        = "Publish"
   def description = "Set parameters for publishing"
-  def usage       = s"//> using $prefix(organization|moduleName|version) [value]"
+  def usage       = s"//> using $prefix(organization|name|version) [value]"
 
   override def usageMd =
     s"""`//> using ${prefix}organization `"value"
-       |`//> using ${prefix}moduleName `"value"
+       |`//> using ${prefix}name `"value"
        |`//> using ${prefix}version `"value"
        |""".stripMargin
 
   private def q = "\""
   override def examples = Seq(
     s"//> using ${prefix}organization ${q}io.github.myself$q",
-    s"//> using ${prefix}moduleName ${q}my-library$q",
+    s"//> using ${prefix}name ${q}my-library$q",
     s"//> using ${prefix}version ${q}0.1.1$q"
   )
   def keys = Seq(
     "organization",
     "name",
+    "moduleName",
     "version",
     "computeVersion",
     "compute-version",
@@ -77,8 +78,10 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     val publishOptions = strippedKey match {
       case "organization" =>
         PublishOptions(organization = Some(singleValue))
-      case "name" | "moduleName" =>
+      case "name" =>
         PublishOptions(name = Some(singleValue))
+      case "moduleName" | "module-name" =>
+        PublishOptions(moduleName = Some(singleValue))
       case "version" =>
         PublishOptions(version = Some(singleValue))
       case "computeVersion" | "compute-version" =>
