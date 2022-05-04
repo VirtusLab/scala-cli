@@ -30,7 +30,7 @@ import scala.build.{Build, BuildThreads, Builds, Logger, Os, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.util.SharedOptionsUtil._
-import scala.cli.errors.{FailedToSignFileError, MissingRepositoryError, UploadError}
+import scala.cli.errors.{FailedToSignFileError, MissingPublishOptionError, UploadError}
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 
@@ -161,11 +161,11 @@ object Publish extends ScalaCommand[PublishOptions] {
   }
 
   def defaultOrganization: Either[BuildException, String] =
-    Right("default")
+    Left(new MissingPublishOptionError("organization", "--organization", "publish.organization"))
   def defaultName: Either[BuildException, String] =
-    Right("default")
+    Left(new MissingPublishOptionError("name", "--name", "publish.name"))
   def defaultVersion: Either[BuildException, String] =
-    Right("0.1.0-SNAPSHOT")
+    Left(new MissingPublishOptionError("version", "--version", "publish.version"))
 
   private def maybePublish(
     builds: Builds,
@@ -463,7 +463,11 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val repo = builds.head.options.notForBloopOptions.publishOptions.repository match {
       case None =>
-        value(Left(new MissingRepositoryError))
+        value(Left(new MissingPublishOptionError(
+          "repository",
+          "--publish-repository",
+          "publish.repository"
+        )))
       case Some(repo) =>
         val url =
           if (repo.contains("://")) repo
