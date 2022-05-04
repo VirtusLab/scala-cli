@@ -446,9 +446,12 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
           expect(Files.isExecutable(launcher.toNIO))
           launcher
         }
+      val runnableLauncherSize = os.size(runnableLauncher)
 
       val output = maybeUseBash(runnableLauncher.toString)(cwd = root).out.text().trim
+      val maxRunnableLauncherSize = 1024 * 1024 * 12 // should be smaller than 12MB
       expect(output == message)
+      expect(runnableLauncherSize < maxRunnableLauncherSize)
     }
   }
 
