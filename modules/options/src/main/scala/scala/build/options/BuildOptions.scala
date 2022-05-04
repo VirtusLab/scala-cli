@@ -409,14 +409,15 @@ final case class BuildOptions(
     }
   }
 
-  def artifacts(logger: Logger): Either[BuildException, Artifacts] = either {
+  def artifacts(logger: Logger, scope: Scope): Either[BuildException, Artifacts] = either {
+    val isTests = scope == Scope.Test
     val scalaArtifactsParamsOpt = value(scalaParams) match {
       case Some(scalaParams0) =>
         val params = Artifacts.ScalaArtifactsParams(
           params = scalaParams0,
           compilerPlugins = value(compilerPlugins),
-          addJsTestBridge = addJsTestBridge,
-          addNativeTestInterface = addNativeTestInterface,
+          addJsTestBridge = addJsTestBridge.filter(_ => isTests),
+          addNativeTestInterface = addNativeTestInterface.filter(_ => isTests),
           scalaJsCliVersion =
             if (platform.value == Platform.JS) Some(scalaJsCliVersion) else None,
           scalaNativeCliVersion =
@@ -441,7 +442,7 @@ final case class BuildOptions(
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
       addStubs = internalDependencies.addStubsDependency,
       addJvmRunner = addRunnerDependency0,
-      addJvmTestRunner = addJvmTestRunner,
+      addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.addJmhDependencies,
       extraRepositories = finalRepositories,
       cache = finalCache,

@@ -650,7 +650,7 @@ object Build {
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
     val scaladocDir = classesDir(inputs.workspace, inputs.projectName, scope, suffix = "-doc")
 
-    val artifacts = value(options.artifacts(logger))
+    val artifacts = value(options.artifacts(logger, scope))
 
     val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
 
@@ -821,7 +821,7 @@ object Build {
 
       val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
 
-      val artifacts = value(options0.artifacts(logger))
+      val artifacts = value(options0.artifacts(logger, scope))
 
       value(validate(logger, options0))
 

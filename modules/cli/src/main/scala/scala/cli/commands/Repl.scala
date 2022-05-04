@@ -7,7 +7,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
-import scala.build.options.{BuildOptions, JavaOpt}
+import scala.build.options.{BuildOptions, JavaOpt, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -101,7 +101,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     val cross = options.compileCross.cross.getOrElse(false)
 
     if (inputs.isEmpty) {
-      val artifacts = initialBuildOptions.artifacts(logger).orExit(logger)
+      val artifacts = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
       doRunRepl(initialBuildOptions, artifacts, None, allowExit = !options.watch.watchMode)
       if (options.watch.watchMode) {
         // nothing to watch, just wait for Ctrl+C

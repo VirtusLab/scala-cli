@@ -9,7 +9,7 @@ import java.nio.file.Path
 
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
-import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions}
+import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 
@@ -140,7 +140,7 @@ final case class Mill(
 
   private def testFrameworkSettings(options: BuildOptions): MillProject = {
 
-    val testClassPath: Seq[Path] = options.artifacts(logger) match {
+    val testClassPath: Seq[Path] = options.artifacts(logger, Scope.Test) match {
       case Right(artifacts) => artifacts.classPath.map(_.toNIO)
       case Left(exception) =>
         logger.debug(exception.message)
