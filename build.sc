@@ -676,7 +676,7 @@ trait Cli3 extends Cli {
   }
 }
 
-trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTests
+trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
   def scalaVersion = sv
   def testLauncher: T[PathRef]
@@ -684,7 +684,7 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
 
   def sv = Scala.scala213
 
-  def prefix: String
+  private def prefix = "integration-"
 
   def tmpDirBase = T.persistent {
     PathRef(T.dest / "working-dir")
@@ -807,10 +807,6 @@ trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with Has
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.osLib
   )
-}
-
-trait CliIntegration extends CliIntegrationBase {
-  def prefix = "integration-"
 }
 
 trait NativeIntegration extends CliIntegration {
