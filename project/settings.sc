@@ -590,6 +590,10 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
         else
           json
       val updatedContent = updatedJson.render(indent = 2)
+        .linesIterator
+        .filter(_.trim.nonEmpty)
+        .map(_ + "\n")
+        .mkString
       if (updatedContent != content) {
         needsFormatting = file :: needsFormatting
         if (format)
