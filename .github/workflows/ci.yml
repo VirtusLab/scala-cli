@@ -26,7 +26,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - name: Copy launcher
@@ -61,7 +61,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
@@ -98,7 +98,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -137,7 +137,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -176,7 +176,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - name: Test documentation
@@ -197,7 +197,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - name: Check native-image config format
@@ -221,7 +221,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
         apps: scalafmt:3.0.0
@@ -236,7 +236,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
@@ -257,7 +257,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - name: Java Version
@@ -281,7 +281,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
@@ -302,7 +302,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - name: GPG setup
@@ -340,7 +340,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+    - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
@@ -365,7 +365,7 @@ jobs:
           fetch-depth: 0
           submodules: true
       - uses: coursier/cache-action@v6.3
-      - uses: VirtusLab/scala-cli-setup@267af2f1ed4911180b4bb25619ca4a586753cbd1
+      - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
