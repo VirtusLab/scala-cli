@@ -18,7 +18,6 @@ import scala.build.errors.{
   FetchingDependenciesError,
   RepositoryFormatError
 }
-import scala.build.internal.Constants
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Util.PositionedScalaDependencyOps
@@ -108,11 +107,8 @@ object Artifacts {
       val hasSnapshots = (jvmRunnerDependencies ++ jvmTestRunnerDependencies)
         .exists(_.version.endsWith("SNAPSHOT")) ||
         scalaArtifactsParamsOpt.flatMap(_.scalaNativeCliVersion).exists(_.endsWith("SNAPSHOT"))
-      val runnerNeedsSonatypeSnapshots = Constants.runnerNeedsSonatypeSnapshots(
-        scalaArtifactsParamsOpt.fold("")(_.params.scalaVersion)
-      )
       val stubsNeedSonatypeSnapshots = addStubs && stubsVersion.endsWith("SNAPSHOT")
-      if (hasSnapshots || runnerNeedsSonatypeSnapshots || stubsNeedSonatypeSnapshots)
+      if (hasSnapshots || stubsNeedSonatypeSnapshots)
         Seq(coursier.Repositories.sonatype("snapshots").root)
       else
         Nil

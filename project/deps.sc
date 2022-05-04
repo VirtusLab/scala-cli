@@ -92,7 +92,6 @@ object Deps {
   def organizeImports            = ivy"com.github.liancheng::organize-imports:0.5.0"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.8.1"
   def pprint                     = ivy"com.lihaoyi::pprint:0.7.3"
-  def prettyStacktraces          = ivy"org.virtuslab::pretty-stacktraces:0.0.1-M1"
   def scala3Compiler(sv: String) = ivy"org.scala-lang::scala3-compiler:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
