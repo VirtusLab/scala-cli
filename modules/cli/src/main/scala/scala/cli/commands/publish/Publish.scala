@@ -385,33 +385,27 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val ec = builds.head.options.finalCache.ec
 
-    val signerOpt = ConfigMonoid.sum(
-      builds.map(_.options.notForBloopOptions.publishOptions.signer)
+    val publishOptions = ConfigMonoid.sum(
+      builds.map(_.options.notForBloopOptions.publishOptions)
     )
+    val signerOpt = publishOptions.signer.orElse {
+      if (publishOptions.secretKey.isDefined) Some(PSigner.BouncyCastle)
+      else if (publishOptions.gpgSignatureId.isDefined) Some(PSigner.Gpg)
+      else None
+    }
     val signer: Signer = signerOpt match {
       case Some(PSigner.Gpg) =>
-        val gpgSignatureIdOpt = ConfigMonoid.sum(
-          builds.map(_.options.notForBloopOptions.publishOptions.gpgSignatureId)
-        )
-        gpgSignatureIdOpt match {
+        publishOptions.gpgSignatureId match {
           case Some(gpgSignatureId) =>
-            val gpgOptions =
-              builds.toList.flatMap(_.options.notForBloopOptions.publishOptions.gpgOptions)
             GpgSigner(
               GpgSigner.Key.Id(gpgSignatureId),
-              extraOptions = gpgOptions
+              extraOptions = publishOptions.gpgOptions
             )
           case None => NopSigner
         }
       case Some(PSigner.BouncyCastle) =>
-        val secretKeyOpt = ConfigMonoid.sum(
-          builds.map(_.options.notForBloopOptions.publishOptions.secretKey)
-        )
-        secretKeyOpt match {
+        publishOptions.secretKey match {
           case Some(secretKey) =>
-            val passwordOpt = ConfigMonoid.sum(
-              builds.map(_.options.notForBloopOptions.publishOptions.secretKeyPassword)
-            )
             val getLauncher: Supplier[NioPath] = { () =>
               val archiveCache = builds.headOption
                 .map(_.options.archiveCache)
@@ -422,7 +416,7 @@ object Publish extends ScalaCommand[PublishOptions] {
               }
             }
             (new BouncycastleSignerMaker).get(
-              passwordOpt.orNull,
+              publishOptions.secretKeyPassword.orNull,
               secretKey,
               getLauncher,
               logger
@@ -468,7 +462,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val finalFileSet = fileSet2.order(ec).unsafeRun()(ec)
 
-    val repo = builds.head.options.notForBloopOptions.publishOptions.repository match {
+    val repo = publishOptions.repository match {
       case None =>
         value(Left(new MissingPublishOptionError(
           "repository",
