@@ -57,7 +57,7 @@ object Deps {
     def scalaMeta     = "4.5.4"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
-    def signingCli    = "0.1.3"
+    def signingCli    = "0.1.6"
   }
   def ammonite = ivy"com.lihaoyi:::ammonite:2.5.3"
   def asm      = ivy"org.ow2.asm:asm:9.3"
