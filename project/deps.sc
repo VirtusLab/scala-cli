@@ -83,9 +83,11 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
   def jsoniterMacros =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
-  def libdaemonjvm               = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
-  def macroParadise              = ivy"org.scalamacros:::paradise:2.1.1"
-  def metaconfigTypesafe         = ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
+  def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
+  def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
+  def metaconfigTypesafe =
+    ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
+      .exclude(("org.scala-lang", "scala-compiler"))
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
@@ -122,8 +124,8 @@ object Deps {
   def slf4jNop   = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   // Force using of 2.13 - is there a better way?
   def snailgun(force213: Boolean = false) =
-    if (force213) ivy"me.vican.jorge:snailgun-core_2.13:0.4.0"
-    else ivy"me.vican.jorge::snailgun-core:0.4.0"
+    if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc1"
+    else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc1"
   def svm             = ivy"org.graalvm.nativeimage:svm:22.0.0.2"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
