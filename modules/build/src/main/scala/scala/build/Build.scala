@@ -209,12 +209,6 @@ object Build {
 
           val generatedSources = sources0.generateSources(inputs0.generatedSrcRoot(scope))
 
-          val scopeParams =
-            if (scope == Scope.Main) Nil
-            else Seq(scope.name)
-
-          buildClient.setProjectParams(scopeParams ++ value(options.projectParams))
-
           val res = build(
             inputs0,
             sources0,
