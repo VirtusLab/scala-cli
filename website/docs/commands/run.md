@@ -75,12 +75,12 @@ scala-cli run Hello.scala  --watch
 # Hello World
 # Watching sources, press Ctrl+C to exit.
 ```
-### Watch mode - revolver
+### Watch mode - restart
 
-`--revolver` mode runs your application in the background and automatically restart it upon any change:
+`--restart` mode runs your application in the background and automatically restart it upon any change:
 
 ```bash ignore
-scala-cli run Hello.scala --revolver
+scala-cli run Hello.scala --restart
 # Hello
 # Watching sources, press Ctrl+C to exit.
 # Compiling project (Scala 3.1.1, JVM)
