@@ -127,7 +127,7 @@ object Run extends ScalaCommand[RunOptions] {
               if (proc.isAlive) ProcUtil.forceKillProcess(proc, logger)
             val maybeProcess = maybeRun(s, allowTerminate = false)
               .orReport(logger)
-            if (options.watch.revolver)
+            if (options.watch.restart)
               processOpt = maybeProcess
             else
               for ((proc, onExit) <- maybeProcess)
