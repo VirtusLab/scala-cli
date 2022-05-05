@@ -11,7 +11,14 @@ import scala.build.errors.{
   InvalidBinaryScalaVersionError,
   ScalaNativeCompatibilityError
 }
-import scala.build.options.{BuildOptions, InternalOptions, JavaOpt, ScalacOpt, ShadowingSeq}
+import scala.build.options.{
+  BuildOptions,
+  InternalOptions,
+  JavaOpt,
+  MaybeScalaVersion,
+  ScalacOpt,
+  ShadowingSeq
+}
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil._
 import scala.build.tests.util.BloopServer
@@ -46,7 +53,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   def sv2 = "2.13.5"
   val defaultOptions = baseOptions.copy(
     scalaOptions = baseOptions.scalaOptions.copy(
-      scalaVersion = Some(sv2),
+      scalaVersion = Some(MaybeScalaVersion(sv2)),
       scalaBinaryVersion = None
     )
   )
@@ -54,7 +61,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   def sv3 = "3.0.0"
   val defaultScala3Options = defaultOptions.copy(
     scalaOptions = defaultOptions.scalaOptions.copy(
-      scalaVersion = Some(sv3),
+      scalaVersion = Some(MaybeScalaVersion(sv3)),
       scalaBinaryVersion = None
     )
   )
@@ -637,7 +644,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     )
     val buildOptions = baseOptions.copy(
       scalaOptions = baseOptions.scalaOptions.copy(
-        scalaVersion = Some(s"3.${Int.MaxValue}.3"),
+        scalaVersion = Some(MaybeScalaVersion(s"3.${Int.MaxValue}.3")),
         scalaBinaryVersion = None,
         supportedScalaVersionsUrl = None
       )
@@ -895,6 +902,26 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
         cp.find(n => n.startsWith("scala3-compiler_3-") && n.endsWith(".jar"))
       expect(scalaLibraryJarNameOpt.contains("scala3-library_3-3.1.0.jar"))
       expect(scalaCompilerJarNameOpt.contains("scala3-compiler_3-3.1.0.jar"))
+    }
+  }
+
+  test("Pure Java") {
+    val inputs = TestInputs(
+      os.rel / "Foo.java" ->
+        """package foo;
+          |
+          |public class Foo {
+          |  public static void main(String[] args) {
+          |    System.out.println("Hello");
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      expect(maybeBuild.exists(_.success))
+      val build = maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+      val cp    = build.fullClassPath
+      expect(cp.length == 1) // no scala-library, only the class directory
     }
   }
 }

@@ -1,6 +1,6 @@
 package scala.build.blooprifle
 
-import java.io.{ByteArrayOutputStream, InputStream, OutputStream}
+import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.file.Path
 import java.util.concurrent.ScheduledExecutorService
 
@@ -99,11 +99,7 @@ object BloopRifle {
       BspConnectionAddress.Tcp("127.0.0.1", Util.randomPort())
     }
 
-    val in = config.bspStdin.getOrElse {
-      new InputStream {
-        def read(): Int = -1
-      }
-    }
+    val inOpt = config.bspStdin
 
     val out = config.bspStdout.getOrElse(OutputStream.nullOutputStream())
     val err = config.bspStderr.getOrElse(OutputStream.nullOutputStream())
@@ -112,7 +108,7 @@ object BloopRifle {
       config.address,
       bspSocketOrPort,
       workingDir,
-      in,
+      inOpt,
       out,
       err,
       logger
@@ -136,19 +132,12 @@ object BloopRifle {
     logger: BloopRifleLogger
   ): Int = {
 
-    val in = config.bspStdin.getOrElse {
-      new InputStream {
-        def read(): Int = -1
-      }
-    }
-
     val out = config.bspStdout.getOrElse(OutputStream.nullOutputStream())
     val err = config.bspStderr.getOrElse(OutputStream.nullOutputStream())
 
     Operations.exit(
       config.address,
       workingDir,
-      in,
       out,
       err,
       logger
@@ -168,7 +157,6 @@ object BloopRifle {
       Operations.about(
         config.address,
         workdir,
-        InputStream.nullInputStream(),
         bufferedOStream,
         OutputStream.nullOutputStream(),
         logger,

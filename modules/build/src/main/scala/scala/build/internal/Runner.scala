@@ -23,12 +23,40 @@ import scala.util.Properties
 
 object Runner {
 
-  def run(
+  def maybeExec(
     commandName: String,
     command: Seq[String],
     logger: Logger,
     allowExecve: Boolean = false,
     cwd: Option[os.Path] = None
+  ): Process =
+    run0(
+      commandName,
+      command,
+      logger,
+      allowExecve = true,
+      cwd
+    )
+
+  def run(
+    command: Seq[String],
+    logger: Logger,
+    cwd: Option[os.Path] = None
+  ): Process =
+    run0(
+      "unused",
+      command,
+      logger,
+      allowExecve = false,
+      cwd
+    )
+
+  def run0(
+    commandName: String,
+    command: Seq[String],
+    logger: Logger,
+    allowExecve: Boolean,
+    cwd: Option[os.Path]
   ): Process = {
 
     import logger.{log, debug}
@@ -83,7 +111,10 @@ object Runner {
         ) ++
         args
 
-    run("java", command, logger, allowExecve, cwd = cwd)
+    if (allowExecve)
+      maybeExec("java", command, logger, cwd = cwd)
+    else
+      run(command, logger, cwd = cwd)
   }
 
   private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
-LAUNCHER="$(cd "$SCRIPT_DIR" && ./mill show cli.launcher | jq -r . | sed 's/ref:[a-z0-9]*://')"
+LAUNCHER="$(cd "$SCRIPT_DIR" && ./mill show cli.launcher </dev/null | jq -r . | sed 's/ref:[a-z0-9]*://')"
 exec "$LAUNCHER" "$@"

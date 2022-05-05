@@ -10,13 +10,13 @@ import scala.util.Properties
 
 object TestUtil {
 
-  val cliKind     = System.getenv("SCALA_CLI_KIND")
+  val cliKind     = sys.props("test.scala-cli.kind")
   val isNativeCli = cliKind.startsWith("native")
   val isCI = Option(System.getenv("ACTUAL_CI")) match {
     case None        => System.getenv("CI") != null
     case Some(value) => value.nonEmpty
   }
-  val cliPath = System.getenv("SCALA_CLI")
+  val cliPath = sys.props("test.scala-cli.path")
   val cli     = cliCommand(cliPath)
 
   def cliCommand(cliPath: String): Seq[String] =

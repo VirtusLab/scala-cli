@@ -5,7 +5,7 @@ final case class BuildRequirements(
   platform: Seq[BuildRequirements.PlatformRequirement] = Nil,
   scope: Option[BuildRequirements.ScopeRequirement] = None
 ) {
-  def withScalaVersion(sv: String): Either[String, BuildRequirements] = {
+  def withScalaVersion(sv: MaybeScalaVersion): Either[String, BuildRequirements] = {
     val dontPass = scalaVersion.filter(!_.valid(sv))
     if (dontPass.isEmpty)
       Right(copy(scalaVersion = Nil))
@@ -28,40 +28,43 @@ final case class BuildRequirements(
 object BuildRequirements {
 
   sealed trait VersionRequirement extends Product with Serializable {
-    def valid(version: String): Boolean
+    def valid(version: MaybeScalaVersion): Boolean
     def failedMessage: String
   }
 
   final case class VersionEquals(requiredVersion: String, loose: Boolean)
       extends VersionRequirement {
-    def looselyValid(version: String): Boolean =
-      version == requiredVersion ||
-      version.startsWith(requiredVersion + ".") ||
-      version.startsWith(requiredVersion + "-")
-    def strictlyValid(version: String): Boolean = {
-      val cmp = coursier.core.Version(requiredVersion).compare(coursier.core.Version(version))
-      cmp == 0
-    }
-    def valid(version: String): Boolean =
+    def looselyValid(version: MaybeScalaVersion): Boolean =
+      version.versionOpt.contains(requiredVersion) ||
+      version.versionOpt.exists(_.startsWith(requiredVersion + ".")) ||
+      version.versionOpt.exists(_.startsWith(requiredVersion + "-"))
+    def strictlyValid(version: MaybeScalaVersion): Boolean =
+      version.versionOpt.exists { version =>
+        val cmp = coursier.core.Version(requiredVersion).compare(coursier.core.Version(version))
+        cmp == 0
+      }
+    def valid(version: MaybeScalaVersion): Boolean =
       (loose && looselyValid(version)) || strictlyValid(version)
     def failedMessage: String = s"Expected version $requiredVersion"
   }
   final case class VersionLowerThan(maxVersion: String, orEqual: Boolean)
       extends VersionRequirement {
-    def valid(version: String): Boolean = {
-      val cmp = coursier.core.Version(version).compare(coursier.core.Version(maxVersion))
-      cmp < 0 || (orEqual && cmp == 0)
-    }
+    def valid(version: MaybeScalaVersion): Boolean =
+      version.versionOpt.exists { version =>
+        val cmp = coursier.core.Version(version).compare(coursier.core.Version(maxVersion))
+        cmp < 0 || (orEqual && cmp == 0)
+      }
     def failedMessage: String =
       if (orEqual) s"Expected version lower than or equal to $maxVersion"
       else s"Expected version lower than $maxVersion"
   }
   final case class VersionHigherThan(minVersion: String, orEqual: Boolean)
       extends VersionRequirement {
-    def valid(version: String): Boolean = {
-      val cmp = coursier.core.Version(minVersion).compare(coursier.core.Version(version))
-      cmp < 0 || (orEqual && cmp == 0)
-    }
+    def valid(version: MaybeScalaVersion): Boolean =
+      version.versionOpt.exists { version =>
+        val cmp = coursier.core.Version(minVersion).compare(coursier.core.Version(version))
+        cmp < 0 || (orEqual && cmp == 0)
+      }
     def failedMessage: String =
       if (orEqual) s"Expected version higher than or equal to $minVersion"
       else s"Expected version higher than $minVersion"

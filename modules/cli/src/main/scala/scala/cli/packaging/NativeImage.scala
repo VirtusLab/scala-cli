@@ -3,10 +3,11 @@ package scala.cli.packaging
 import java.io.{File, OutputStream}
 
 import scala.annotation.tailrec
-import scala.build.internal.{NativeBuilderHelper, Runner}
+import scala.build.internal.Runner
 import scala.build.{Build, Logger}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
+import scala.cli.internal.CachedBinary
 import scala.util.Properties
 
 object NativeImage {
@@ -218,7 +219,7 @@ object NativeImage {
 
     val javaHome = options.javaHome().value
 
-    val cacheData = NativeBuilderHelper.getCacheData(
+    val cacheData = CachedBinary.getCacheData(
       build,
       s"--java-home=${javaHome.javaHome.toString}" :: "--" :: extraOptions.toList,
       dest,
@@ -231,12 +232,11 @@ object NativeImage {
         val originalClasspath = build.fullClassPath :+ mainJar
         maybeWithManifestClassPath(
           createManifest = Properties.isWin,
-          classPath = originalClasspath.map(os.Path(_, os.pwd))
+          classPath = originalClasspath
         ) { processedClassPath =>
+          val needsProcessing = build.scalaParams.exists(_.scalaVersion.startsWith("3."))
           val (classPath, toClean, scala3extraOptions) =
-            if (!build.scalaParams.scalaBinaryVersion.startsWith("3"))
-              (processedClassPath, Seq[os.Path](), Seq[String]())
-            else {
+            if (needsProcessing) {
               val cpString         = processedClassPath.mkString(File.pathSeparator)
               val processed        = BytecodeProcessor.processClassPath(cpString, TempCache).toSeq
               val nativeConfigFile = os.temp(suffix = ".json")
@@ -258,6 +258,8 @@ object NativeImage {
 
               (cp, nativeConfigFile +: BytecodeProcessor.toClean(processed), options)
             }
+            else
+              (processedClassPath, Seq[os.Path](), Seq[String]())
 
           try {
             val args = extraOptions ++ scala3extraOptions ++ Seq(
@@ -279,10 +281,10 @@ object NativeImage {
                     case Some(vcvars) =>
                       runFromVcvarsBat(command, vcvars, nativeImageWorkDir, logger)
                     case None =>
-                      Runner.run("unused", command, logger).waitFor()
+                      Runner.run(command, logger).waitFor()
                   }
                 else
-                  Runner.run("unused", command, logger).waitFor()
+                  Runner.run(command, logger).waitFor()
               if (exitCode == 0) {
                 val actualDest =
                   if (Properties.isWin)
@@ -290,7 +292,7 @@ object NativeImage {
                     else dest / os.up / s"${dest.last}.exe"
                   else
                     dest
-                NativeBuilderHelper.updateProjectAndOutputSha(
+                CachedBinary.updateProjectAndOutputSha(
                   actualDest,
                   nativeImageWorkDir,
                   cacheData.projectSha

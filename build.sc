@@ -94,11 +94,12 @@ object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
     super.javacOptions() ++ Seq("-target", "8", "-source", "8")
   }
 }
-object integration extends Module {
+object integration extends CliIntegration {
+  object test extends Tests
   object docker extends CliIntegrationDocker {
     object test extends Tests {
       def sources = T.sources {
-        super.sources() ++ integration.jvm.sources()
+        super.sources() ++ integration.sources()
       }
       def tmpDirBase = T.persistent {
         PathRef(T.dest / "working-dir")
@@ -125,27 +126,6 @@ object integration extends Module {
         "CI"              -> "1",
         "ACTUAL_CI"       -> (if (System.getenv("CI") == null) "" else "1")
       )
-    }
-  }
-  object jvm extends JvmIntegration {
-    object test extends Tests
-  }
-  object native extends NativeIntegration with Bloop.Module {
-    def skipBloop = true
-    object test extends Tests with Bloop.Module {
-      def skipBloop = true
-    }
-  }
-  object `native-static` extends NativeIntegrationStatic with Bloop.Module {
-    def skipBloop = true
-    object test extends Tests with Bloop.Module {
-      def skipBloop = true
-    }
-  }
-  object `native-mostly-static` extends NativeIntegrationMostlyStatic with Bloop.Module {
-    def skipBloop = true
-    object test extends Tests with Bloop.Module {
-      def skipBloop = true
     }
   }
 }
@@ -349,11 +329,6 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
     val runnerMainClass = runner(Scala.defaultInternal)
       .mainClass()
       .getOrElse(sys.error("No main class defined for runner"))
-    val runnerNeedsSonatypeSnapshots =
-      if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT"))
-        """ !sv.startsWith("2.") """
-      else
-        "false"
     val detailedVersionValue =
       if (`local-repo`.developingOnStubModules) s"""Some("${vcsState()}")"""
       else "None"
@@ -387,8 +362,6 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |  def runnerModuleName = "${runner(Scala.defaultInternal).artifactName()}"
          |  def runnerVersion = "${runner(Scala.defaultInternal).publishVersion()}"
          |  def runnerMainClass = "$runnerMainClass"
-         |  def runnerNeedsSonatypeSnapshots(sv: String): Boolean =
-         |    $runnerNeedsSonatypeSnapshots
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
@@ -611,7 +584,7 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
     Deps.jsoniterCore,
     Deps.jsoniterMacros,
     Deps.osLib,
-    Deps.signingCliShared
+    Deps.signingCliOptions
   )
   def scalaVersion = Scala.scala213
   def repositories = super.repositories ++ customRepositories
@@ -658,7 +631,11 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   def localRepoJar = `local-repo`.localRepoJar()
 
-  trait Tests extends super.Tests with ScalaCliScalafixModule
+  trait Tests extends super.Tests with ScalaCliScalafixModule {
+    def runClasspath = T {
+      super.runClasspath() ++ Seq(localRepoJar())
+    }
+  }
 }
 
 trait Cli3 extends Cli {
@@ -679,15 +656,13 @@ trait Cli3 extends Cli {
   }
 }
 
-trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTests
+trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
   def scalaVersion = sv
-  def testLauncher: T[PathRef]
-  def cliKind: T[String]
 
   def sv = Scala.scala213
 
-  def prefix: String
+  private def prefix = "integration-"
 
   def tmpDirBase = T.persistent {
     PathRef(T.dest / "working-dir")
@@ -729,11 +704,9 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
       Deps.slf4jNop
     )
     def forkEnv = super.forkEnv() ++ Seq(
-      "SCALA_CLI"      -> testLauncher().path.toString,
-      "SCALA_CLI_KIND" -> cliKind(),
-      "SCALA_CLI_TMP"  -> tmpDirBase().path.toString,
-      "CI"             -> "1",
-      "ACTUAL_CI"      -> (if (System.getenv("CI") == null) "" else "1")
+      "SCALA_CLI_TMP" -> tmpDirBase().path.toString,
+      "CI"            -> "1",
+      "ACTUAL_CI"     -> (if (System.getenv("CI") == null) "" else "1")
     )
     private def updateRef(name: String, ref: PathRef): PathRef = {
       val rawPath = ref.path.toString.replace(
@@ -793,15 +766,57 @@ trait CliIntegrationBase extends SbtModule with ScalaCliPublishModule with HasTe
     }
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
-    def test(args: String*) = T.command {
-      val res            = super.test(args: _*)()
-      val dotScalaInRoot = os.pwd / workspaceDirName
-      assert(
-        !os.isDir(dotScalaInRoot),
-        s"Expected $workspaceDirName ($dotScalaInRoot) not to have been created"
-      )
-      res
+    private final class TestHelper(
+      launcherTask: T[PathRef],
+      cliKind: String
+    ) {
+      def doTest(args: String*) =
+        T.command {
+          val argsTask = T.task {
+            val launcher = launcherTask().path
+            val extraArgs = Seq(
+              s"-Dtest.scala-cli.path=$launcher",
+              s"-Dtest.scala-cli.kind=$cliKind"
+            )
+            args ++ extraArgs
+          }
+          testTask(argsTask, T.task(Seq.empty[String]))
+        }
+      def test(args: String*) =
+        T.command {
+          val res            = doTest(args: _*)()
+          val dotScalaInRoot = os.pwd / workspaceDirName
+          assert(
+            !os.isDir(dotScalaInRoot),
+            s"Expected $workspaceDirName ($dotScalaInRoot) not to have been created"
+          )
+          res
+        }
     }
+
+    def test(args: String*) =
+      jvm(args: _*)
+
+    def jvm(args: String*) =
+      new TestHelper(
+        cli.standaloneLauncher,
+        "jvm"
+      ).test(args: _*)
+    def native(args: String*) =
+      new TestHelper(
+        cli.nativeImage,
+        "native"
+      ).test(args: _*)
+    def nativeStatic(args: String*) =
+      new TestHelper(
+        cli.nativeImageStatic,
+        "native-static"
+      ).test(args: _*)
+    def nativeMostlyStatic(args: String*) =
+      new TestHelper(
+        cli.nativeImageMostlyStatic,
+        "native-mostly-static"
+      ).test(args: _*)
   }
 }
 
@@ -810,30 +825,6 @@ trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with Has
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.osLib
   )
-}
-
-trait CliIntegration extends CliIntegrationBase {
-  def prefix = "integration-"
-}
-
-trait NativeIntegration extends CliIntegration {
-  def testLauncher = cli.nativeImage()
-  def cliKind      = "native"
-}
-
-trait NativeIntegrationStatic extends CliIntegration {
-  def testLauncher = cli.nativeImageStatic()
-  def cliKind      = "native-static"
-}
-
-trait NativeIntegrationMostlyStatic extends CliIntegration {
-  def testLauncher = cli.nativeImageMostlyStatic()
-  def cliKind      = "native-mostly-static"
-}
-
-trait JvmIntegration extends CliIntegration {
-  def testLauncher = cli.standaloneLauncher()
-  def cliKind      = "jvm"
 }
 
 class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
@@ -847,21 +838,6 @@ class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
 
   }
   def mainClass = Some("scala.cli.runner.Runner")
-  def ivyDeps =
-    if (crossScalaVersion.startsWith("3.") && !crossScalaVersion.contains("-RC"))
-      Agg(Deps.prettyStacktraces)
-    else
-      Agg.empty[Dep]
-  def repositories = {
-    val base = super.repositories
-    val extra =
-      if (Deps.prettyStacktraces.dep.version.endsWith("SNAPSHOT"))
-        Seq(coursier.Repositories.sonatype("snapshots"))
-      else
-        Nil
-
-    base ++ extra
-  }
   def sources = T.sources {
     val scala3DirNames =
       if (crossScalaVersion.startsWith("3.")) {
@@ -1051,7 +1027,7 @@ def defaultNativeImage() =
 
 def nativeIntegrationTests() =
   T.command {
-    integration.native.test.test()()
+    integration.test.native()()
   }
 
 def copyDefaultLauncher(directory: String = "artifacts") =

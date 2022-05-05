@@ -48,14 +48,14 @@ object ReplArtifacts {
     val replArtifacts = Artifacts.artifacts(
       Positioned.none(allDeps),
       localRepoOpt.toSeq,
-      scalaParams,
+      Some(scalaParams),
       logger,
       cache.withMessage(s"Downloading Ammonite $ammoniteVersion")
     )
     val replSourceArtifacts = Artifacts.artifacts(
       Positioned.none(allDeps),
       localRepoOpt.toSeq,
-      scalaParams,
+      Some(scalaParams),
       logger,
       cache.withMessage(s"Downloading Ammonite $ammoniteVersion sources"),
       classifiersOpt = Some(Set("sources"))
@@ -87,7 +87,7 @@ object ReplArtifacts {
       Artifacts.artifacts(
         Positioned.none(allDeps),
         repositories,
-        scalaParams,
+        Some(scalaParams),
         logger,
         cache.withMessage(s"Downloading Scala compiler ${scalaParams.scalaVersion}")
       )

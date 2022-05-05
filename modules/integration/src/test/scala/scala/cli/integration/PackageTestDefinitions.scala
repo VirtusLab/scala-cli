@@ -77,7 +77,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         stdout = os.Inherit
       )
 
-      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val outputName = if (Properties.isWin) "simple.bat" else "simple"
       val launcher   = root / outputName
 
       expect(os.isFile(launcher))
@@ -109,7 +109,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         stdout = os.Inherit
       )
 
-      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val outputName = if (Properties.isWin) "hello.bat" else "hello"
       val launcher   = root / outputName
 
       val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
@@ -171,7 +171,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         stdout = os.Inherit
       )
 
-      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val outputName = if (Properties.isWin) "hello.bat" else "hello"
       val launcher   = root / outputName
 
       val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
@@ -324,7 +324,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         os.rel / fileName ->
           s"""|//> using jsHeader "$jsHeaderNewLine"
               |//> using jsMode "release"
-              |             
+              |
               |object Hello extends App {
               |  println("Hello")
               |}
@@ -480,7 +480,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         stdout = os.Inherit
       )
 
-      val outputName = if (Properties.isWin) "app.bat" else "app"
+      val outputName = if (Properties.isWin) "Main.bat" else "Main"
       val launcher   = root / outputName
 
       val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
