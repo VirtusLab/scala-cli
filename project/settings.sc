@@ -191,7 +191,13 @@ trait CliLaunchers extends SbtModule { self =>
     def nativeImageDockerParams = Some(
       NativeImage.DockerParams(
         imageName = "ubuntu:18.04",
-        prepareCommand = "apt-get update -q -y && apt-get install -q -y build-essential libz-dev",
+        prepareCommand =
+          """apt-get update -q -y &&\
+            |apt-get install -q -y build-essential libz-dev locales
+            |locale-gen en_US.UTF-8
+            |export LANG=en_US.UTF-8
+            |export LANGUAGE=en_US:en
+            |export LC_ALL=en_US.UTF-8""",
         csUrl =
           s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz",
         extraNativeImageArgs = Nil
@@ -199,15 +205,28 @@ trait CliLaunchers extends SbtModule { self =>
     )
   }
 
+  private def setupLocale(params: NativeImage.DockerParams): NativeImage.DockerParams =
+    params.copy(
+      prepareCommand = params.prepareCommand +
+        """
+          |set -v
+          |apt-get update
+          |apt-get install -q -y locales
+          |locale-gen en_US.UTF-8
+          |export LANG=en_US.UTF-8
+          |export LANGUAGE=en_US:en
+          |export LC_ALL=en_US.UTF-8""".stripMargin
+    )
+
   object `static-image` extends CliNativeImage {
     def nativeImageDockerParams = T {
-      buildHelperImage()
-      Some(
-        NativeImage.linuxStaticParams(
-          Docker.muslBuilder,
-          s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
-        )
+      val baseDockerParams = NativeImage.linuxStaticParams(
+        Docker.muslBuilder,
+        s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
       )
+      val dockerParams = setupLocale(baseDockerParams)
+      buildHelperImage()
+      Some(dockerParams)
     }
     def buildHelperImage = T {
       os.proc("docker", "build", "-t", Docker.customMuslBuilderImageName, ".")
@@ -221,12 +240,14 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   object `mostly-static-image` extends CliNativeImage {
-    def nativeImageDockerParams = Some(
-      NativeImage.linuxMostlyStaticParams(
+    def nativeImageDockerParams = T {
+      val baseDockerParams = NativeImage.linuxMostlyStaticParams(
         "ubuntu:18.04", // TODO Pin that
         s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
       )
-    )
+      val dockerParams = setupLocale(baseDockerParams)
+      Some(dockerParams)
+    }
   }
 
   def localRepoJar: T[PathRef]
