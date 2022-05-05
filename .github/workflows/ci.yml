@@ -301,6 +301,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+        ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
     - uses: coursier/cache-action@v6.3
     - uses: VirtusLab/scala-cli-setup@a75e898b6b8465492da8c3a4d260652e6150ceda
       with:
