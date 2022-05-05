@@ -79,7 +79,7 @@ object Doctor extends ScalaCommand[DoctorOptions] {
       .split(pathSeparator)
       .map(d => if (d == ".") pwd else d) // on unix a bare "." counts as the current dir
       .map(_ + "/scala-cli")
-      .filter(f => os.isFile(os.Path(f)))
+      .filter(f => os.isFile(os.Path(f, os.pwd)))
       .toSet
 
     if (scalaCliPaths.size > 1)
