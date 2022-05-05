@@ -46,9 +46,9 @@ object Export extends ScalaCommand[ExportOptions] {
   }
 
   // FIXME Auto-update those
-  def sbtBuildTool(extraSettings: Seq[String], sbtVersion: String, logger: Logger) =
+  def sbtBuildTool(extraSettings: Seq[String], sbtVersion: String, logger: Logger): Sbt =
     Sbt(sbtVersion, extraSettings, logger)
-  def millBuildTool(cache: FileCache[Task], logger: Logger) = {
+  def millBuildTool(cache: FileCache[Task], logger: Logger): Mill = {
     val launcherArtifacts = Seq(
       os.rel / "mill" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw",
       os.rel / "mill.bat" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw.bat"
@@ -87,7 +87,7 @@ object Export extends ScalaCommand[ExportOptions] {
     val shouldExportToSbt  = options.sbt.getOrElse(false)
     if (shouldExportToMill && shouldExportToSbt) {
       System.err.println(
-        s"Error: Cannot export to both mill and sbt. please pick one build tool to export."
+        s"Error: Cannot export to both mill and sbt. Please pick one build tool to export."
       )
       sys.exit(1)
     }
@@ -98,9 +98,8 @@ object Export extends ScalaCommand[ExportOptions] {
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions =
-      options.shared.buildOptions(enableJmh = false, None, ignoreErrors = false).copy(
-        mainClass = options.mainClass.mainClass.filter(_.nonEmpty)
-      )
+      options.shared.buildOptions(enableJmh = false, None)
+        .copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))
 
     val (sourcesMain, optionsMain0) =
       prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity, Scope.Main)
