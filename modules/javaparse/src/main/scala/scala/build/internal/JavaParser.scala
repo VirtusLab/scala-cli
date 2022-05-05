@@ -1,4 +1,4 @@
-package scala.build.preprocessing
+package scala.build.internal
 
 import dotty.tools.dotc.ast.{Trees, untpd}
 import dotty.tools.dotc.core.Contexts.{Context, ContextBase}

@@ -67,6 +67,7 @@ object `cli-options`  extends CliOptions
 object `build-macros` extends Cross[BuildMacros](Scala.mainVersions: _*)
 object options        extends Cross[Options](Scala.mainVersions: _*)
 object scalaparse     extends ScalaParse
+object javaparse      extends JavaParse
 object directives     extends Cross[Directives](Scala.mainVersions: _*)
 object core           extends Cross[Core](Scala.mainVersions: _*)
 object `build-module` extends Cross[Build](Scala.mainVersions: _*)
@@ -483,6 +484,11 @@ trait ScalaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
   def scalaVersion = Scala.scala213
 }
 
+trait JavaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
+  def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scala3Compiler(scalaVersion()))
+  def scalaVersion = Scala.scala3
+}
+
 trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
   def ivyDeps      = super.ivyDeps()
   def scalaVersion = Scala.scala3
@@ -518,6 +524,7 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
   def moduleDeps = Seq(
     `options`(),
     scalaparse,
+    javaparse,
     `directives`(),
     `scala-cli-bsp`,
     `test-runner`(),
@@ -542,8 +549,7 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
     Deps.swoval
-  ) ++ (if (scalaVersion().startsWith("3")) Agg(Deps.scala3Compiler(scalaVersion()))
-        else Agg(Deps.shapeless))
+  ) ++ (if (scalaVersion().startsWith("3")) Agg.empty else Agg(Deps.shapeless))
 
   object test extends Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(

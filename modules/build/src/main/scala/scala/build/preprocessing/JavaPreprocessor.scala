@@ -11,6 +11,8 @@ import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.ScalaPreprocessor._
 import scala.build.{Inputs, Logger}
 
+import scala.build.internal.JavaParser
+
 case object JavaPreprocessor extends Preprocessor {
   def preprocess(
     input: Inputs.SingleElement,
