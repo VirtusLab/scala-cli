@@ -148,7 +148,7 @@ object Docker {
 
   def testImage = "ubuntu:18.04"
   def alpineTestImage =
-    "alpine@sha256:234cb88d3020898631af0ccbbcca9a66ae7306ecd30c9720690858c1b007d2a0"
+    "alpine@sha256:4edbd2beb5f78b1014028f4fbb99f3237d9561100b6881aabbf5acce2c4f9454"
   def authProxyTestImage =
     "bahamat/authenticated-proxy@sha256:568c759ac687f93d606866fbb397f39fe1350187b95e648376b971e9d7596e75"
 }
