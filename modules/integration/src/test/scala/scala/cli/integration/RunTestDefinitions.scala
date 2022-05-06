@@ -1402,6 +1402,19 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("help js and native") {
+    val helpJsOption     = "--help-js"
+    val helpNativeOption = "--help-native"
+    val helpJs           = os.proc(TestUtil.cli, helpJsOption).call(check = false)
+    val helpNative       = os.proc(TestUtil.cli, helpNativeOption).call(check = false)
+
+    expect(helpJs.out.text().contains("Scala.js options"))
+    expect(!helpJs.out.text().contains("Scala Native options"))
+
+    expect(helpNative.out.text().contains("Scala Native options"))
+    expect(!helpNative.out.text().contains("Scala.js options"))
+  }
+
   test("version command") {
     // tests if the format is correct instead of comparing to a version passed via Constants
     // in order to catch errors in Mill configuration, too
