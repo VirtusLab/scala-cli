@@ -69,7 +69,7 @@ object ScalaCli {
       .takeWhile(_.isDigit)
       .toInt
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit =
     try main0(args)
     catch {
       case e: Throwable if !isCI =>
@@ -106,7 +106,6 @@ object ScalaCli {
         if (CurrentParams.verbosity >= 2) throw e
         else sys.exit(1)
     }
-  }
 
   private def warnRequiresJava17(): Unit =
     System.err.println(
