@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.internal.Constants
+import scala.build.internal.Constants.{ghName, ghOrg, version => scalaCliVersion}
 import scala.cli.CurrentParams
 import scala.cli.internal.ProcUtil
 
@@ -10,13 +10,13 @@ object Version extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
   def run(options: VersionOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.verbosity.verbosity
-    println(Constants.version)
+    println(scalaCliVersion)
   }
 
   lazy val newestScalaCliVersion = {
     val scalaCliVersionRegex = "tag/v(.*?)\"".r
 
-    val resp = ProcUtil.downloadFile("https://github.com/VirtusLab/scala-cli/releases/latest")
+    val resp = ProcUtil.downloadFile(s"https://github.com/$ghOrg/$ghName/releases/latest")
 
     scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))
   }.getOrElse(
@@ -35,7 +35,7 @@ object Version extends ScalaCommand[VersionOptions] {
         else
           "0.0.0"
     }
-    maybeCurrentVersion.getOrElse(Constants.version)
+    maybeCurrentVersion.getOrElse(scalaCliVersion)
 
   }
 

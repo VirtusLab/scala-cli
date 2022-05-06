@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import scala.build.Logger
+import scala.build.internal.Constants.{ghName, ghOrg}
 import scala.cli.CurrentParams
 import scala.cli.commands.Version.getCurrentVersion
 import scala.cli.internal.ProcUtil
@@ -12,7 +13,7 @@ import scala.util.{Failure, Properties, Success, Try}
 object Update extends ScalaCommand[UpdateOptions] {
 
   lazy val newestScalaCliVersion = {
-    val resp = ProcUtil.downloadFile("https://github.com/VirtusLab/scala-cli/releases/latest")
+    val resp = ProcUtil.downloadFile(s"https://github.com/$ghOrg/$ghName/releases/latest")
 
     val scalaCliVersionRegex = "tag/v(.*?)\"".r
     scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))

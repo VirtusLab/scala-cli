@@ -342,6 +342,8 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |object Constants {
          |  def version = "${publishVersion()}"
          |  def detailedVersion: Option[String] = $detailedVersionValue
+         |  def ghOrg = "$ghOrg"
+         |  def ghName = "$ghName"
          |
          |  def scalaJsVersion = "${Scala.scalaJs}"
          |  def scalajsEnvJsdomNodejsVersion = "${Deps.scalaJsEnvJsdomNodejs.dep.version}"
@@ -1127,7 +1129,7 @@ object ci extends Module {
 
     val branch       = "main"
     val targetBranch = s"update-standalone-launcher-$version"
-    val repo         = s"https://oauth2:${ghToken()}@github.com/VirtusLab/scala-cli.git"
+    val repo         = s"https://oauth2:${ghToken()}@github.com/$ghOrg/$ghName.git"
 
     // Cloning
     gitClone(repo, branch, targetDir)
