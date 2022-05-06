@@ -27,7 +27,6 @@ object Runner {
     commandName: String,
     command: Seq[String],
     logger: Logger,
-    allowExecve: Boolean = false,
     cwd: Option[os.Path] = None
   ): Process =
     run0(

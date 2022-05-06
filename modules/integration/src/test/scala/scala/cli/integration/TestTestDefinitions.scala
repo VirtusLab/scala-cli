@@ -7,11 +7,12 @@ import scala.annotation.tailrec
 abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
-  private val jvmOptions =
+  protected val jvmOptions =
     // seems munit requires this with Scala 3
     if (actualScalaVersion.startsWith("3.")) Seq("--jvm", "11")
     else Nil
-  private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions ++ jvmOptions
+  protected lazy val baseExtraOptions = TestUtil.extraOptions ++ jvmOptions
+  private lazy val extraOptions       = scalaVersionArgs ++ baseExtraOptions
 
   val successfulTestInputs = TestInputs(
     Seq(

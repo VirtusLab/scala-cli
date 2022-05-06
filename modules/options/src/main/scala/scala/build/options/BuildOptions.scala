@@ -238,6 +238,7 @@ final case class BuildOptions(
       else ""
     val cache                     = finalCache.withMessage(msg)
     val supportedScalaVersionsUrl = scalaOptions.scalaVersionsUrl
+    val ignoreErrors              = scalaOptions.ignoreSupportedScalaVersionsErrors.getOrElse(true)
 
     val task = {
       val art = Artifact(supportedScalaVersionsUrl).withChanging(true)
@@ -258,9 +259,13 @@ final case class BuildOptions(
     //  it uses stable scala versions from Deps.sc
     val supportedScalaVersions =
       launchersTask.attempt.unsafeRun()(cache.ec) match {
-        case Left(_) =>
-          // FIXME Log the exception
-          defaultStableScalaVersions
+        case Left(e) =>
+          if (ignoreErrors)
+            // FIXME Log the exception
+            defaultStableScalaVersions
+          else
+            // wrapped in an exception so that the current stack trace appears in the exception
+            throw new Exception(e)
         case Right(versions) =>
           versions
             .find(_.scalaCliVersion == scalaCliVersion)
@@ -409,14 +414,15 @@ final case class BuildOptions(
     }
   }
 
-  def artifacts(logger: Logger): Either[BuildException, Artifacts] = either {
+  def artifacts(logger: Logger, scope: Scope): Either[BuildException, Artifacts] = either {
+    val isTests = scope == Scope.Test
     val scalaArtifactsParamsOpt = value(scalaParams) match {
       case Some(scalaParams0) =>
         val params = Artifacts.ScalaArtifactsParams(
           params = scalaParams0,
           compilerPlugins = value(compilerPlugins),
-          addJsTestBridge = addJsTestBridge,
-          addNativeTestInterface = addNativeTestInterface,
+          addJsTestBridge = addJsTestBridge.filter(_ => isTests),
+          addNativeTestInterface = addNativeTestInterface.filter(_ => isTests),
           scalaJsCliVersion =
             if (platform.value == Platform.JS) Some(scalaJsCliVersion) else None,
           scalaNativeCliVersion =
@@ -441,7 +447,7 @@ final case class BuildOptions(
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
       addStubs = internalDependencies.addStubsDependency,
       addJvmRunner = addRunnerDependency0,
-      addJvmTestRunner = addJvmTestRunner,
+      addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.addJmhDependencies,
       extraRepositories = finalRepositories,
       cache = finalCache,
