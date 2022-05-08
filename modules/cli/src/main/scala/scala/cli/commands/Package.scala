@@ -132,7 +132,7 @@ object Package extends ScalaCommand[PackageOptions] {
     expectedModifyEpochSecondOpt: Option[Long]
   ): Either[BuildException, Option[Long]] = either {
 
-    val packageType: PackageType = {
+    val packageType: PackageType = value {
       val basePackageTypeOpt = build.options.notForBloopOptions.packageOptions.packageTypeOpt
       lazy val validPackageScalaJS =
         Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
@@ -140,32 +140,32 @@ object Package extends ScalaCommand[PackageOptions] {
         Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
 
       (forcedPackageTypeOpt -> build.options.platform.value) match {
-        case (Some(forcedPackageType), _) => forcedPackageType
+        case (Some(forcedPackageType), _) => Right(forcedPackageType)
         case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
           for (basePackageType <- basePackageTypeOpt)
-            throw new MalformedCliInputError(
+            Left(new MalformedCliInputError(
               s"Unsuported package type: $basePackageType for Docker."
-            )
-          PackageType.Docker
+            ))
+          Right(PackageType.Docker)
         case (_, Platform.JS) =>
           val validatedPackageType =
             for (basePackageType <- basePackageTypeOpt)
               yield
-                if (validPackageScalaJS.contains(basePackageType)) basePackageType
-                else throw new MalformedCliInputError(
+                if (validPackageScalaJS.contains(basePackageType)) Right(basePackageType)
+                else Left(new MalformedCliInputError(
                   s"Unsuported package type: $basePackageType for Scala.js."
-                )
-          validatedPackageType.getOrElse(PackageType.Js)
+                ))
+          validatedPackageType.getOrElse(Right(PackageType.Js))
         case (_, Platform.Native) =>
           val validatedPackageType =
             for (basePackageType <- basePackageTypeOpt)
               yield
-                if (validPackageScalaNative.contains(basePackageType)) basePackageType
-                else throw new MalformedCliInputError(
+                if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
+                else Left(MalformedCliInputError(
                   s"Unsuported package type: $basePackageType for Scala Native."
-                )
-          validatedPackageType.getOrElse(PackageType.Native)
-        case _ => basePackageTypeOpt.getOrElse(PackageType.Bootstrap)
+                ))
+          validatedPackageType.getOrElse(Right(PackageType.Native))
+        case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
       }
     }
 

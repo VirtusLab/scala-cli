@@ -2,6 +2,7 @@ package scala.build.tests
 
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
+import coursier.cache.ArtifactError
 import dependency.parser.DependencyParser
 
 import java.io.IOException
@@ -917,11 +918,38 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           |}
           |""".stripMargin
     )
-    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      expect(maybeBuild.exists(_.success))
-      val build = maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
-      val cp    = build.fullClassPath
-      expect(cp.length == 1) // no scala-library, only the class directory
+    val options = baseOptions.copy(
+      scalaOptions = baseOptions.scalaOptions.copy(
+        supportedScalaVersionsUrl =
+          Some("abcd://nope"), // should not be checked, as we're a pure Java project
+        ignoreSupportedScalaVersionsErrors = Some(false)
+      )
+    )
+
+    // Checking that this effectively throws if it tries to download the supported Scala version
+    // listing.
+    // The test right after checks that things _don't_ throw, meaning it doesn't try to download
+    // the listing (which would have thrown).
+    val gotExpectedError =
+      try {
+        options.scalaParams
+        false
+      }
+      catch {
+        case e if e.getCause.isInstanceOf[ArtifactError.DownloadError] =>
+          true
+      }
+    expect(gotExpectedError)
+
+    inputs.withBuild(options, buildThreads, bloopConfigOpt, buildTests = false) {
+      (_, _, maybeBuild) =>
+        expect(maybeBuild.exists(_.success))
+        val build = maybeBuild
+          .toOption
+          .flatMap(_.successfulOpt)
+          .getOrElse(sys.error("cannot happen"))
+        val cp = build.fullClassPath
+        expect(cp.length == 1) // no scala-library, only the class directory
     }
   }
 }

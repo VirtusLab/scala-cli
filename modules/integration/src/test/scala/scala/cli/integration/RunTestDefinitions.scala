@@ -6,6 +6,7 @@ import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
 
 import scala.cli.integration.util.DockerServer
+import scala.io.Codec
 import scala.util.Properties
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
@@ -1608,4 +1609,35 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     test("Js DOM") {
       jsDomTest()
     }
+
+  test("UTF-8") {
+    val message  = "Hello from TestÅÄÖåäö"
+    val fileName = "TestÅÄÖåäö.scala"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""object TestÅÄÖåäö {
+             |  def main(args: Array[String]): Unit = {
+             |    println("$message")
+             |  }
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "-Dtest.scala-cli.debug-charset-issue=true",
+        "run",
+        extraOptions,
+        fileName
+      )
+        .call(cwd = root)
+      if (res.out.text(Codec.default).trim != message) {
+        pprint.err.log(res.out.text(Codec.default).trim)
+        pprint.err.log(message)
+      }
+      expect(res.out.text(Codec.default).trim == message)
+    }
+  }
 }

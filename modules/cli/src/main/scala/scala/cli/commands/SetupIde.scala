@@ -44,7 +44,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     }
 
     val joinedBuildOpts = maybeSourceBuildOptions.toOption.map(options orElse _).getOrElse(options)
-    joinedBuildOpts.artifacts(logger)
+    joinedBuildOpts.artifacts(logger, Scope.Main)
   }
 
   def run(options: SetupIdeOptions, args: RemainingArgs): Unit = {

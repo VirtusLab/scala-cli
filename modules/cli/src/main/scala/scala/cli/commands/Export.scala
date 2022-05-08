@@ -46,9 +46,9 @@ object Export extends ScalaCommand[ExportOptions] {
   }
 
   // FIXME Auto-update those
-  def sbtBuildTool(extraSettings: Seq[String], sbtVersion: String, logger: Logger) =
+  def sbtBuildTool(extraSettings: Seq[String], sbtVersion: String, logger: Logger): Sbt =
     Sbt(sbtVersion, extraSettings, logger)
-  def millBuildTool(cache: FileCache[Task], logger: Logger) = {
+  def millBuildTool(cache: FileCache[Task], logger: Logger): Mill = {
     val launcherArtifacts = Seq(
       os.rel / "mill" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw",
       os.rel / "mill.bat" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw.bat"
@@ -72,12 +72,34 @@ object Export extends ScalaCommand[ExportOptions] {
   def run(options: ExportOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     val logger = options.shared.logger
+
+    val output = options.output.getOrElse("dest")
+    val dest   = os.Path(output, os.pwd)
+    if (os.exists(dest)) {
+      System.err.println(
+        s"""Error: $dest already exists.
+           |To change the destination output directory pass --output path or remove the destination directory first.""".stripMargin
+      )
+      sys.exit(1)
+    }
+
+    val shouldExportToMill = options.mill.getOrElse(false)
+    val shouldExportToSbt  = options.sbt.getOrElse(false)
+    if (shouldExportToMill && shouldExportToSbt) {
+      System.err.println(
+        s"Error: Cannot export to both mill and sbt. Please pick one build tool to export."
+      )
+      sys.exit(1)
+    }
+
+    val buildToolName = if (shouldExportToMill) "mill" else "sbt"
+    System.out.println(s"Exporting to a $buildToolName project...")
+
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions =
-      options.shared.buildOptions(enableJmh = false, None, ignoreErrors = false).copy(
-        mainClass = options.mainClass.mainClass.filter(_.nonEmpty)
-      )
+      options.shared.buildOptions(enableJmh = false, None)
+        .copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))
 
     val (sourcesMain, optionsMain0) =
       prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity, Scope.Main)
@@ -112,23 +134,15 @@ object Export extends ScalaCommand[ExportOptions] {
       sbtBuildTool(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
 
     val buildTool =
-      if (options.sbt.getOrElse(false))
-        sbtBuildTool0
-      else if (options.mill.getOrElse(false))
+      if (shouldExportToMill)
         millBuildTool(options.shared.coursierCache, logger)
-      else
+      else // shouldExportToSbt isn't checked, as it's treated as default
         sbtBuildTool0
 
     val project = buildTool.`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
 
-    val output = options.output.getOrElse("dest")
-    val dest   = os.Path(output, os.pwd)
-    if (os.exists(dest)) {
-      System.err.println(s"Error: $output already exists.")
-      sys.exit(1)
-    }
-
     os.makeDir.all(dest)
     project.writeTo(dest)
+    System.out.println(s"Exported to: $dest")
   }
 }

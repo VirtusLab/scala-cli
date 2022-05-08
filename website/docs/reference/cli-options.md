@@ -1392,7 +1392,9 @@ Aliases: `-w`
 
 Watch source files for changes
 
-#### `--revolver`
+#### `--restart`
+
+Aliases: `--revolver`
 
 Run your application in background and automatically restart if sources have been changed
 

@@ -14,7 +14,8 @@ final case class ScalaOptions(
   compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
   platform: Option[Positioned[Platform]] = None,
   extraPlatforms: Map[Platform, Positioned[Unit]] = Map.empty,
-  supportedScalaVersionsUrl: Option[String] = None
+  supportedScalaVersionsUrl: Option[String] = None,
+  ignoreSupportedScalaVersionsErrors: Option[Boolean] = None
 ) {
 
   lazy val scalaVersionsUrl = supportedScalaVersionsUrl.getOrElse(

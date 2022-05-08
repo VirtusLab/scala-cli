@@ -66,7 +66,8 @@ final case class TestInputs(
     options: BuildOptions,
     buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
     bloopConfigOpt: Option[BloopRifleConfig],
-    fromDirectory: Boolean = false
+    fromDirectory: Boolean = false,
+    buildTests: Boolean = true
   )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
     withCustomInputs(fromDirectory, None) { (root, inputs) =>
       val compilerMaker = bloopConfigOpt match {
@@ -83,7 +84,7 @@ final case class TestInputs(
           None,
           TestLogger(),
           crossBuilds = false,
-          buildTests = true,
+          buildTests = buildTests,
           partial = None
         )
       f(root, inputs, res.map(_.main))

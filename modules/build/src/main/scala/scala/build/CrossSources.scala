@@ -26,47 +26,76 @@ final case class CrossSources(
       .map(_.value)
       .foldLeft(baseOptions)(_ orElse _)
 
+  private def needsScalaVersion =
+    paths.exists(_.needsScalaVersion) ||
+    inMemory.exists(_.needsScalaVersion) ||
+    resourceDirs.exists(_.needsScalaVersion) ||
+    buildOptions.exists(_.needsScalaVersion)
+
   def scopedSources(baseOptions: BuildOptions): Either[BuildException, ScopedSources] = either {
 
     val sharedOptions0 = sharedOptions(baseOptions)
-
-    val retainedScalaVersion = value(sharedOptions0.scalaParams)
-      .map(p => MaybeScalaVersion(p.scalaVersion))
-      .getOrElse(MaybeScalaVersion.none)
-
-    val buildOptionsWithScalaVersion = buildOptions
-      .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-      .filter(_.requirements.isEmpty)
-      .map(_.value)
-      .foldLeft(sharedOptions0)(_ orElse _)
-
-    val platform = buildOptionsWithScalaVersion.platform
 
     // FIXME Not 100% sure the way we compute the intermediate and final BuildOptions
     // is consistent (we successively filter out / retain options to compute a scala
     // version and platform, which might not be the version and platform of the final
     // BuildOptions).
 
+    val crossSources0 =
+      if (needsScalaVersion) {
+
+        val retainedScalaVersion = value(sharedOptions0.scalaParams)
+          .map(p => MaybeScalaVersion(p.scalaVersion))
+          .getOrElse(MaybeScalaVersion.none)
+
+        val buildOptionsWithScalaVersion = buildOptions
+          .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
+          .filter(_.requirements.isEmpty)
+          .map(_.value)
+          .foldLeft(sharedOptions0)(_ orElse _)
+
+        val platform = buildOptionsWithScalaVersion.platform
+
+        copy(
+          paths = paths
+            .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
+            .flatMap(_.withPlatform(platform.value).toSeq),
+          inMemory = inMemory
+            .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
+            .flatMap(_.withPlatform(platform.value).toSeq),
+          resourceDirs = resourceDirs
+            .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
+            .flatMap(_.withPlatform(platform.value).toSeq),
+          buildOptions = buildOptions
+            .filter(!_.requirements.isEmpty)
+            .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
+            .flatMap(_.withPlatform(platform.value).toSeq)
+        )
+      }
+      else {
+
+        val platform = sharedOptions0.platform
+
+        copy(
+          paths = paths
+            .flatMap(_.withPlatform(platform.value).toSeq),
+          inMemory = inMemory
+            .flatMap(_.withPlatform(platform.value).toSeq),
+          resourceDirs = resourceDirs
+            .flatMap(_.withPlatform(platform.value).toSeq),
+          buildOptions = buildOptions
+            .filter(!_.requirements.isEmpty)
+            .flatMap(_.withPlatform(platform.value).toSeq)
+        )
+      }
+
     val defaultScope: Scope = Scope.Main
     ScopedSources(
-      paths
-        .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform.value).toSeq)
-        .map(_.scopedValue(defaultScope)),
-      inMemory
-        .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform.value).toSeq)
-        .map(_.scopedValue(defaultScope)),
+      crossSources0.paths.map(_.scopedValue(defaultScope)),
+      crossSources0.inMemory.map(_.scopedValue(defaultScope)),
       defaultMainClass,
-      resourceDirs
-        .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform.value).toSeq)
-        .map(_.scopedValue(defaultScope)),
-      buildOptions
-        .filter(!_.requirements.isEmpty)
-        .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
-        .flatMap(_.withPlatform(platform.value).toSeq)
-        .map(_.scopedValue(defaultScope))
+      crossSources0.resourceDirs.map(_.scopedValue(defaultScope)),
+      crossSources0.buildOptions.map(_.scopedValue(defaultScope))
     )
   }
 
