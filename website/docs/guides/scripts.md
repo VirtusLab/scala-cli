@@ -48,7 +48,7 @@ println(messages.hello)
 To specify a main class when running a script, use this command:
 
 ```bash
-scala-cli my-app --main-class main
+scala-cli my-app --main-class main_sc
 # Hello from Scala scripts
 ```
 
