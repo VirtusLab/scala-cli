@@ -3,9 +3,8 @@ title: Doc
 sidebar_position: 17
 ---
 
-Scala CLI can generate the API documentation of your Scala 2 and 3 projects. It provides similar features to `javadoc`.
- Scaladoc documentation is generated in directory with static site files:
-
+Scala CLI can generate the API documentation of your Scala 2, Scala 3, and Java projects. It provides features similar to `javadoc`.
+The API documentation is generated in a directory whose files make up a static website:
 
 ```scala title=Hello.scala
 package hello
@@ -30,10 +29,10 @@ scala-cli doc Hello.scala -o scala-doc
 Wrote Scaladoc to ./scala-doc
 -->
 
-Output directory `scala-doc` contains static site files with your documentation.
+The output directory `scala-doc` contains the static site files with your documentation.
 
-After opening generated static documentation (you have to open `scala-doc/index.html` in your browser), 
-you will see generated Scaladoc documentation. The following screen shows the definition `main` method:
+After opening the generated static documentation (you have to open `scala-doc/index.html` in your browser),
+you will see the generated scaladoc documentation. The following screen shows the definition of the `main` method:
 
 import ScalaDocMainMethod from '@site/static/img/scala-doc-main-method.png';
 
