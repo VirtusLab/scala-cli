@@ -14,27 +14,26 @@ import scala.io.Codec
 object JavaParser {
   private def parseOutline(byteContent: Array[Byte]): untpd.Tree = {
     given Context = ContextBase().initialCtx.fresh
-    val virtualFile = VirtualFile("placeholder.java", byteContent)
-    val sourceFile = SourceFile(virtualFile, Codec.UTF8)
+    val virtualFile   = VirtualFile("placeholder.java", byteContent)
+    val sourceFile    = SourceFile(virtualFile, Codec.UTF8)
     val outlineParser = OutlineJavaParser(sourceFile)
     outlineParser.parse()
   }
 
-  extension (mdef: untpd.DefTree) {
+  extension(mdef: untpd.DefTree) {
     def nonPackagePrivate: Boolean = mdef.mods.privateWithin.toTermName.toString != "<empty>"
-    def isPrivate: Boolean = mdef.mods.flags.is(Flags.Private)
-    def isProtected: Boolean = mdef.mods.flags.is(Flags.Protected)
+    def isPrivate: Boolean         = mdef.mods.flags.is(Flags.Private)
+    def isProtected: Boolean       = mdef.mods.flags.is(Flags.Protected)
   }
 
-  def parseRootPublicClassName(byteContent: Array[Byte]): Option[String] = {
+  def parseRootPublicClassName(byteContent: Array[Byte]): Option[String] =
     Option(parseOutline(byteContent))
       .flatMap {
         case pd: Trees.PackageDef[_] => Some(pd.stats)
-        case _ => None
+        case _                       => None
       }
       .flatMap(_.collectFirst {
         case mdef: ModuleDef if mdef.nonPackagePrivate && !mdef.isPrivate && !mdef.isProtected =>
           mdef.name.toString
       })
-  }
 }
