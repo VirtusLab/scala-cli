@@ -100,7 +100,7 @@ class UpdateTests extends munit.FunSuite {
     }
   }
 
-  if (!Properties.isWin)
+  if (!Properties.isWin && Constants.ghOrg == "VirtusLab" && Constants.ghName == "scala-cli")
     test("updating dummy scala-cli using update command") {
       runUpdate()
     }
