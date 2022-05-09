@@ -37,6 +37,7 @@ class ScalaCliCommands(
     Package,
     Publish,
     Run,
+    Search,
     SetupIde,
     Shebang,
     Test,
