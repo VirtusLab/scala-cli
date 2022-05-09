@@ -6,12 +6,11 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
+import scala.build.internal.JavaParser
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.ScalaPreprocessor._
 import scala.build.{Inputs, Logger}
-
-import scala.build.internal.JavaParser
 
 case object JavaPreprocessor extends Preprocessor {
   def preprocess(
