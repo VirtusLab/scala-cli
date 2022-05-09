@@ -485,7 +485,7 @@ trait ScalaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
 }
 
 trait JavaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
-  def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scala3Compiler(scalaVersion()))
+  def ivyDeps = super.ivyDeps() ++ Agg(Deps.scala3Compiler(scalaVersion()))
 
   // pin scala3-library suffix, so that 2.13 modules can have us as moduleDep fine
   def mandatoryIvyDeps = T {
@@ -495,7 +495,7 @@ trait JavaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompil
         dep.dep.module.name.value == "scala3-library" &&
         (dep.cross match {
           case _: CrossVersion.Binary => true
-          case _ => false
+          case _                      => false
         })
       if (isScala3Lib)
         dep.copy(
