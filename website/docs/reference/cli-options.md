@@ -88,6 +88,7 @@ Available in commands:
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -210,6 +211,7 @@ Available in commands:
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -253,6 +255,7 @@ Aliases: `-X`
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -294,6 +297,7 @@ Available in commands:
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
@@ -312,6 +316,32 @@ Available in commands:
 #### `--home-directory`
 
 Aliases: `--home`
+
+## Doc options
+
+Available in commands:
+- [`doc`](./commands.md#doc)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--output`
+
+Aliases: `-o`
+
+Set the destination path
+
+#### `--force`
+
+Aliases: `-f`
+
+Overwrite the destination directory, if it exists
+
+#### `--default-scaladoc-options`
+
+Aliases: `--default-scaladoc-opts`
+
+Use default scaladoc options
 
 ## Export options
 
@@ -374,6 +404,7 @@ Available in commands:
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doc`](./commands.md#doc)
 - [`doctor`](./commands.md#doctor)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -418,6 +449,7 @@ Print help message, including hidden options, and exit
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -531,6 +563,7 @@ Available in commands:
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -589,6 +622,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
@@ -1041,6 +1075,7 @@ Don't actually run the REPL, just fetch it
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -1134,6 +1169,7 @@ Whether to run the Scala.js CLI on the JVM or using a native executable
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -1193,6 +1229,7 @@ Use default compile options
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -1228,6 +1265,7 @@ Available in commands:
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -1347,6 +1385,7 @@ Available in commands:
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doc`](./commands.md#doc)
 - [`doctor`](./commands.md#doctor)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -1404,6 +1443,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)

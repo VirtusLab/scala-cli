@@ -26,6 +26,7 @@ class ScalaCliCommands(
     Clean,
     Compile,
     Directories,
+    Doc,
     Doctor,
     Export,
     Fmt,
