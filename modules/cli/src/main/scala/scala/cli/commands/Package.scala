@@ -25,7 +25,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
 import scala.cli.commands.util.PackageOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
-import scala.cli.errors.{ScalaJsLinkingError, ScaladocGenerationFailedError}
+import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
@@ -383,16 +383,6 @@ object Package extends ScalaCommand[PackageOptions] {
     mTimeDestPathOpt
   }
 
-  // from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-1039b442cbd23f605a61fdb9c3620b600aa4af6cab757932a719c54235d8e402R60
-  private def defaultScaladocArgs = Seq(
-    "-snippet-compiler:compile",
-    "-Ygenerate-inkuire",
-    "-external-mappings:" +
-      ".*scala.*::scaladoc3::https://scala-lang.org/api/3.x/," +
-      ".*java.*::javadoc::https://docs.oracle.com/javase/8/docs/api/",
-    "-author",
-    "-groups"
-  )
   def docJar(
     build: Build.Successful,
     logger: Logger,
@@ -411,81 +401,7 @@ object Package extends ScalaCommand[PackageOptions] {
 
     if (cacheData.changed) {
 
-      val contentDir = build.scalaParams match {
-        case Some(scalaParams) if scalaParams.scalaVersion.startsWith("2.") =>
-          build.project.scaladocDir
-        case Some(scalaParams) =>
-          val res = value {
-            Artifacts.fetch(
-              Positioned.none(Seq(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
-              build.options.finalRepositories,
-              Some(scalaParams),
-              logger,
-              build.options.finalCache,
-              None
-            )
-          }
-          val destDir = build.project.scaladocDir
-          os.makeDir.all(destDir)
-          val ext = if (Properties.isWin) ".exe" else ""
-          val baseArgs = Seq(
-            "-classpath",
-            build.fullClassPath.map(_.toString).mkString(File.pathSeparator),
-            "-d",
-            destDir.toString
-          )
-          val defaultArgs =
-            if (
-              build.options.notForBloopOptions.packageOptions.useDefaultScaladocOptions.getOrElse(
-                true
-              )
-            )
-              defaultScaladocArgs
-            else
-              Nil
-          val args = baseArgs ++
-            build.project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
-            extraArgs ++
-            defaultArgs ++
-            Seq(build.output.toString)
-          val retCode = Runner.runJvm(
-            (build.options.javaHomeLocation().value / "bin" / s"java$ext").toString,
-            Nil, // FIXME Allow to customize that?
-            res.files,
-            "dotty.tools.scaladoc.Main",
-            args,
-            logger,
-            cwd = Some(build.inputs.workspace)
-          ).waitFor()
-          if (retCode == 0)
-            destDir
-          else
-            value(Left(new ScaladocGenerationFailedError(retCode)))
-        case None =>
-          val destDir = build.project.scaladocDir
-          os.makeDir.all(destDir)
-          val ext = if (Properties.isWin) ".exe" else ""
-          val javaSources =
-            (build.sources.paths.map(_._1) ++ build.generatedSources.map(_.generated))
-              .filter(_.last.endsWith(".java"))
-          val command = Seq(
-            (build.options.javaHomeLocation().value / "bin" / s"javadoc$ext").toString,
-            "-d",
-            destDir.toString,
-            "-classpath",
-            build.project.classesDir.toString
-          ) ++
-            javaSources.map(_.toString)
-          val retCode = Runner.run(
-            command,
-            logger,
-            cwd = Some(build.inputs.workspace)
-          ).waitFor()
-          if (retCode == 0)
-            destDir
-          else
-            value(Left(new ScaladocGenerationFailedError(retCode)))
-      }
+      val contentDir = value(Doc.generateScaladocDirPath(build, logger, extraArgs))
 
       var outputStream: OutputStream = null
       try {
