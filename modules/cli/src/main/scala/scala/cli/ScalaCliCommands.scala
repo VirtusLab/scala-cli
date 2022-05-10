@@ -6,6 +6,7 @@ import caseapp.core.help.{Help, RuntimeCommandsHelp}
 import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
+import scala.cli.commands.bloop.BloopOutput
 import scala.cli.commands.github.{SecretCreate, SecretList}
 import scala.cli.commands.pgp.{PgpCommands, PgpCommandsSubst}
 
@@ -26,6 +27,7 @@ class ScalaCliCommands(
     new About(isSipScala = isSipScala),
     AddPath,
     BloopExit,
+    BloopOutput,
     BloopStart,
     Bsp,
     Clean,
