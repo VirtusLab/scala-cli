@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>scala-cli</id>
+    <version>@LAUNCHER_VERSION@</version>
+    <title>Scala CLI</title>
+    <authors>virtuslab-chocolatey</authors>
+    <owners>virtuslab-chocolatey</owners>
+    <tags>scala-cli</tags>
+    <summary>Scala CLI</summary>
+    <description>Scala CLI is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code (and more!)</description>
+    <packageSourceUrl>https://github.com/VirtusLab/scala-cli/tree/main/.github/scripts/choco</packageSourceUrl>
+    <projectSourceUrl>https://github.com/VirtusLab/scala-cli</projectSourceUrl>
+    <projectUrl>https://scala-cli.virtuslab.org/</projectUrl>
+    <bugTrackerUrl>https://github.com/VirtusLab/scala-cli/issues</bugTrackerUrl>
+    <copyright>© 2021-2022 VirtusLab Sp. z. o. o.</copyright>
+    <iconUrl>https://cdn.jsdelivr.net/gh/VirtusLab/scala-cli@e4c0eb72276ae77e689c61a83230ec16324791e8/.github/scripts/choco/logo.ico</iconUrl>
+    <licenseUrl>https://github.com/VirtusLab/scala-cli/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <releaseNotes>https://github.com/VirtusLab/scala-cli/releases</releaseNotes>    
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
