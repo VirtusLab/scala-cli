@@ -6,6 +6,7 @@ import sun.misc.{Signal, SignalHandler}
 import java.io.{ByteArrayOutputStream, File, PrintStream}
 import java.nio.charset.StandardCharsets
 
+import scala.build.blooprifle.FailedToStartServerException
 import scala.build.internal.Constants
 import scala.cli.internal.Argv0
 import scala.cli.launcher.{LauncherCli, LauncherOptions}
@@ -100,6 +101,12 @@ object ScalaCli {
               javaMajorVersion < 16 =>
             // Actually Java >= 16 here, but let's recommend a LTS version…
             warnRequiresJava17()
+          case _: FailedToStartServerException =>
+            System.err.println(
+              s"""Running
+                 |  $progName bloop output
+                 |might give more details.""".stripMargin
+            )
           case _ =>
         }
 
