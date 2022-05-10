@@ -35,4 +35,6 @@ class PersistentDiagnosticLogger(parent: Logger) extends Logger {
   def scalaNativeCliInternalLoggerOptions: List[String] = parent.scalaNativeCliInternalLoggerOptions
 
   def compilerOutputStream: PrintStream = parent.compilerOutputStream
+
+  def verbosity: Int = parent.verbosity
 }

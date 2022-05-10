@@ -15,7 +15,7 @@ import scala.collection.mutable
 import scala.scalanative.{build => sn}
 
 class CliLogger(
-  verbosity: Int,
+  val verbosity: Int,
   quiet: Boolean,
   progress: Option[Boolean],
   out: PrintStream

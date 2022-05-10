@@ -233,6 +233,28 @@ Accepts options:
 - [watch](./cli-options.md#watch-options)
 - [workspace](./cli-options.md#workspace-options)
 
+## `github secret create`
+
+Aliases:
+- `gh secret create`
+
+Accepts options:
+- [coursier](./cli-options.md#coursier-options)
+- [logging](./cli-options.md#logging-options)
+- [secret](./cli-options.md#secret-options)
+- [secret create](./cli-options.md#secret-create-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
+## `github secret list`
+
+Aliases:
+- `gh secret list`
+
+Accepts options:
+- [logging](./cli-options.md#logging-options)
+- [secret](./cli-options.md#secret-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ## `setup-ide`
 
 Generate a BSP file that you can import into your IDE
