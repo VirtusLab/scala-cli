@@ -88,6 +88,7 @@ jobs:
       run: ./mill -i nativeIntegrationTests
       env:
         COURSIER_JNI: force
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   native-mostly-static-tests:
     timeout-minutes: 120
@@ -116,6 +117,8 @@ jobs:
         retention-days: 2
     - name: Native integration tests
       run: ./mill -i integration.test.nativeMostlyStatic
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Docker integration tests
       run: ./mill integration.docker-slim.test
     - name: Login to GitHub Container Registry
@@ -155,6 +158,8 @@ jobs:
         retention-days: 2
     - name: Native integration tests
       run: ./mill -i integration.test.nativeStatic
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Docker integration tests
       run: ./mill integration.docker.test
     - name: Login to GitHub Container Registry

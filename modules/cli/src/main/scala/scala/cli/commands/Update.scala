@@ -8,6 +8,7 @@ import scala.build.Logger
 import scala.build.internal.Constants.{ghName, ghOrg, version => scalaCliVersion}
 import scala.cli.CurrentParams
 import scala.cli.internal.ProcUtil
+import scala.cli.signing.shared.Secret
 import scala.io.StdIn.readLine
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
@@ -27,11 +28,14 @@ object Update extends ScalaCommand[UpdateOptions] {
 
   private lazy val releaseListCodec: JsonValueCodec[List[Release]] = JsonCodecMaker.make
 
-  lazy val newestScalaCliVersion = {
+  def newestScalaCliVersion(tokenOpt: Option[Secret[String]]) = {
 
     // FIXME Do we need paging here?
-    val url  = s"https://api.github.com/repos/$ghOrg/$ghName/releases"
-    val resp = ProcUtil.download(url, "Accept" -> "application/vnd.github.v3+json")
+    val url = s"https://api.github.com/repos/$ghOrg/$ghName/releases"
+    val headers =
+      Seq("Accept" -> "application/vnd.github.v3+json") ++
+        tokenOpt.toSeq.map(tk => "Authorization" -> s"token ${tk.value}")
+    val resp = ProcUtil.download(url, headers: _*)
 
     val releases =
       try readFromArray(resp)(releaseListCodec)
@@ -104,15 +108,16 @@ object Update extends ScalaCommand[UpdateOptions] {
 
   private def update(options: UpdateOptions, currentVersion: String): Unit = {
 
-    val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion, currentVersion)
+    val newestScalaCliVersion0 = newestScalaCliVersion(options.ghToken.map(_.get()))
+    val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion0, currentVersion)
 
     if (!options.isInternalRun)
       if (isOutdated)
-        updateScalaCli(options, newestScalaCliVersion)
+        updateScalaCli(options, newestScalaCliVersion0)
       else println("Scala CLI is up-to-date")
     else if (isOutdated)
       println(
-        s"""Your Scala CLI $currentVersion is outdated, please update Scala CLI to $newestScalaCliVersion
+        s"""Your Scala CLI $currentVersion is outdated, please update Scala CLI to $newestScalaCliVersion0
            |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update Scala CLI.""".stripMargin
       )
   }

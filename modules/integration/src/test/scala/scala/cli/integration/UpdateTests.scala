@@ -75,6 +75,9 @@ class UpdateTests extends munit.FunSuite {
       ).out.text().trim
       expect(v1Install == firstVersion)
 
+      val tokenOptions =
+        if (System.getenv("UPDATE_GH_TOKEN") == null) Nil
+        else Seq("--gh-token", "env:UPDATE_GH_TOKEN")
       // update to newest version
       // format: off
       val cmdUpdate = Seq[os.Shellable](
@@ -82,7 +85,8 @@ class UpdateTests extends munit.FunSuite {
         "update",
         "--binary-name", dummyScalaCliBinName,
         "--bin-dir", binDirPath,
-        "--force"
+        "--force",
+        tokenOptions
       )
       // format: on
       os.proc(cmdUpdate).call(

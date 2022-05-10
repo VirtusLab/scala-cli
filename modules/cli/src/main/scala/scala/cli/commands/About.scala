@@ -17,7 +17,7 @@ class About(isSipScala: Boolean) extends ScalaCommand[AboutOptions] {
       if (isSipScala) "Scala command"
       else "Scala CLI"
     println(s"$appName version $version" + detailedVersionOpt.fold("")(" (" + _ + ")"))
-    val newestScalaCliVersion = Update.newestScalaCliVersion
+    val newestScalaCliVersion = Update.newestScalaCliVersion(options.ghToken.map(_.get()))
     val isOutdated = CommandUtils.isOutOfDateVersion(
       newestScalaCliVersion,
       Constants.version
