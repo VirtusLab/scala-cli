@@ -35,10 +35,14 @@ object Scala {
   def defaultUser = scala3
 }
 
+// Dependencies used in integration test fixtures
 object TestDeps {
   def pprint           = Deps.pprint
   def munit            = Deps.munit
   def scalaSnapshot213 = "2.13.8-bin-e814d78"
+
+  def archLinuxImage =
+    "archlinux@sha256:b15db21228c7cd5fd3ab364a97193ba38abfad0e8b9593c15b71850b74738153"
 }
 
 object InternalDeps {
@@ -134,6 +138,11 @@ object Deps {
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
   def usingDirectives = ivy"org.virtuslab:using_directives:0.0.8"
+  // Lives at https://github.com/scala-cli/no-crc32-zip-input-stream, see #865
+  // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
+  // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
+  // some bad GraalVM / zlib issues (see #828 and linked issues for more details).
+  def zipInputStream = ivy"io.github.alexarchambault.scala-cli.tmp:zip-input-stream:0.1.0"
 }
 
 object BuildDeps {

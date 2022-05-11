@@ -544,7 +544,8 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsTestAdapter,
     Deps.scalametaTrees,
-    Deps.swoval
+    Deps.swoval,
+    Deps.zipInputStream
   ) ++ (if (scalaVersion().startsWith("3")) Agg() else Agg(Deps.shapeless))
 
   object test extends Tests {
@@ -783,6 +784,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
            |  def workspaceDirName = "$workspaceDirName"
            |  def libsodiumVersion = "${deps.libsodiumVersion}"
+           |  def dockerArchLinuxImage = "${TestDeps.archLinuxImage}"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)

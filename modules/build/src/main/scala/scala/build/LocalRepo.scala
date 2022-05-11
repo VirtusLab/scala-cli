@@ -6,9 +6,9 @@ import java.io.{BufferedInputStream, Closeable}
 import java.nio.channels.{FileChannel, FileLock}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, StandardOpenOption}
-import java.util.zip.{ZipEntry, ZipInputStream}
 
 import scala.build.internal.Constants
+import scala.build.internal.zip.WrappedZipInputStream
 
 object LocalRepo {
 
@@ -23,12 +23,10 @@ object LocalRepo {
     finally if (is0.nonEmpty) is0.get.close()
   }
 
-  private def extractZip(zis: ZipInputStream, dest: os.Path): Unit = {
-    var ent: ZipEntry = null
-    while ({
-      ent = zis.getNextEntry()
-      ent != null
-    })
+  private def extractZip(zis: WrappedZipInputStream, dest: os.Path): Unit = {
+    val it = zis.entries()
+    while (it.hasNext) {
+      val ent = it.next()
       if (!ent.isDirectory) {
         val content = zis.readAllBytes()
         zis.closeEntry()
@@ -38,22 +36,20 @@ object LocalRepo {
           createFolders = true
         )
       }
+    }
   }
 
-  private def entryContent(zis: ZipInputStream, entryPath: String): Option[Array[Byte]] = {
-    var ent: ZipEntry = null
-    while ({
-      ent = zis.getNextEntry()
-      ent != null && (ent.isDirectory || ent.getName != entryPath)
-    }) {}
-    if (ent == null) None
-    else {
+  private def entryContent(zis: WrappedZipInputStream, entryPath: String): Option[Array[Byte]] = {
+    val it = zis.entries().dropWhile(ent => ent.isDirectory || ent.getName != entryPath)
+    if (it.hasNext) {
+      val ent = it.next()
       assert(ent.getName == entryPath)
 
       val content = zis.readAllBytes()
       zis.closeEntry()
       Some(content)
     }
+    else None
   }
 
   def localRepo(
@@ -67,7 +63,7 @@ object LocalRepo {
 
       val version =
         using(archiveUrl.openStream()) { is =>
-          using(new ZipInputStream(new BufferedInputStream(is))) { zis =>
+          using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
             val b = entryContent(zis, "version").getOrElse {
               sys.error(s"Malformed local repo JAR $archiveUrl (no version file)")
             }
@@ -82,7 +78,7 @@ object LocalRepo {
           val tmpRepoDir = repoDir / os.up / s".$version.tmp"
           os.remove.all(tmpRepoDir)
           using(archiveUrl.openStream()) { is =>
-            using(new ZipInputStream(new BufferedInputStream(is))) { zis =>
+            using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
               extractZip(zis, tmpRepoDir)
             }
           }
