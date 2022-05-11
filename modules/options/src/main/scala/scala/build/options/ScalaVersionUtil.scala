@@ -42,7 +42,7 @@ object ScalaVersionUtil {
           "https://scala-ci.typesafe.com/ui/api/v1/ui/nativeBrowser/scala-integration/org/scala-lang/scala-compiler"
         val artifact = Artifact(scala2NightlyRepo).withChanging(true)
         val res = cache.logger.use {
-          try cache.withTtl(1.hours).file(artifact).run.unsafeRun()(cache.ec)
+          try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)
           catch {
             case NonFatal(e) => throw new Exception(e)
           }
@@ -87,7 +87,7 @@ object ScalaVersionUtil {
       cache: FileCache[Task],
       latestSupportedStableVersions: Seq[String]
     ): Either[BuildException, String] = {
-      val res = cache.logger.use {
+      val res = cache.withTtl(0.seconds).logger.use {
         Versions(cache)
           .withModule(scala3Library)
           .result()
@@ -105,7 +105,7 @@ object ScalaVersionUtil {
       *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
       */
     def scala3(cache: FileCache[Task]): Either[BuildException, String] = {
-      val res = cache.logger.use {
+      val res = cache.withTtl(0.seconds).logger.use {
         Versions(cache)
           .withModule(scala3Library)
           .result()
@@ -136,7 +136,7 @@ object ScalaVersionUtil {
       cache: FileCache[Task],
       latestSupportedStableVersions: Seq[String]
     ): Either[BuildException, Unit] = {
-      val res = cache.logger.use {
+      val res = cache.withTtl(0.seconds).logger.use {
         Versions(cache)
           .withModule(scala2Library)
           .withRepositories(Seq(coursier.Repositories.scalaIntegration))
@@ -156,7 +156,7 @@ object ScalaVersionUtil {
       cache: FileCache[Task],
       latestSupportedStableVersions: Seq[String]
     ): Either[BuildException, Unit] = {
-      val res = cache.logger.use {
+      val res = cache.withTtl(0.seconds).logger.use {
         Versions(cache)
           .withModule(scala3Library)
           .result()
