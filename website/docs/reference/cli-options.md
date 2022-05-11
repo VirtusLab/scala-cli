@@ -85,6 +85,7 @@ Name of BSP
 
 Available in commands:
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
@@ -293,6 +294,7 @@ Add compiler plugin dependencies
 
 Available in commands:
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
@@ -400,6 +402,7 @@ Available in commands:
 - [`about`](./commands.md#about)
 - [`add-path`](./commands.md#add-path)
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
@@ -621,6 +624,7 @@ Port for BSP debugging
 
 Available in commands:
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
@@ -1418,6 +1422,7 @@ Available in commands:
 - [`about`](./commands.md#about)
 - [`add-path`](./commands.md#add-path)
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)

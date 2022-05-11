@@ -12,7 +12,7 @@ import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
 
-import scala.build.blooprifle.{BloopRifleConfig, BloopRifleLogger, BspConnection, BspConnectionAddress}
+import scala.build.blooprifle.{BloopRifleConfig, BloopRifleLogger, BspConnection, BspConnectionAddress, FailedToStartServerException}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
 import scala.util.{Failure, Properties, Success, Try}
@@ -159,11 +159,11 @@ object Operations {
         try {
           val completionOpt =
             if (!p.isAlive())
-              Some(Failure(new Exception("Server didn't start")))
+              Some(Failure(new FailedToStartServerException))
             else if (check(address, logger))
               Some(Success(()))
             else if (timeout.isFinite && System.currentTimeMillis() - start > timeout.toMillis)
-              Some(Failure(new Exception(s"Server didn't start after $timeout ms")))
+              Some(Failure(new FailedToStartServerException(Some(timeout))))
             else
               None
 

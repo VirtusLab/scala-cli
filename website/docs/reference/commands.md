@@ -379,6 +379,14 @@ Accepts options:
 - [logging](./cli-options.md#logging-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
+### `bloop output`
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
+- [directories](./cli-options.md#directories-options)
+- [logging](./cli-options.md#logging-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ### `bloop start`
 
 Accepts options:

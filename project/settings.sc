@@ -1,6 +1,6 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
-import $file.deps, deps.{Deps, Docker, alpineVersion, buildCsVersion, libsodiumVersion}
+import $file.deps, deps.{BuildDeps, Deps, Docker, alpineVersion, buildCsVersion, libsodiumVersion}
 import $file.scalafixthings, scalafixthings.ScalafixModule
 
 import de.tobiasroeser.mill.vcs.version.VcsVersion
@@ -769,9 +769,8 @@ trait FormatNativeImageConf extends JavaModule {
 
 import mill.scalalib.api.CompilationResult
 trait ScalaCliCompile extends ScalaModule {
-  def compileScalaCliVersion = "0.1.4"
   def compileScalaCliUrl = {
-    val ver = compileScalaCliVersion
+    val ver = BuildDeps.scalaCliVersion
     if (Properties.isLinux) Some(
       s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-pc-linux.gz"
     )
