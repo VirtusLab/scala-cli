@@ -1,36 +1,41 @@
-package scala.cli.commands
+package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
 import coursier.cache.ArchiveCache
-import coursier.core.Configuration
+import coursier.core.{Authentication, Configuration}
 import coursier.maven.MavenRepository
 import coursier.publish.checksum.logger.InteractiveChecksumLogger
 import coursier.publish.checksum.{ChecksumType, Checksums}
 import coursier.publish.fileset.{FileSet, Path}
 import coursier.publish.signing.logger.InteractiveSignerLogger
 import coursier.publish.signing.{GpgSigner, NopSigner, Signer}
+import coursier.publish.sonatype.SonatypeApi
 import coursier.publish.upload.logger.InteractiveUploadLogger
 import coursier.publish.upload.{FileUpload, HttpURLConnectionUpload}
-import coursier.publish.{Content, Pom}
+import coursier.publish.{Content, Hooks, Pom, PublishRepository}
 
 import java.io.OutputStreamWriter
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path => NioPath, Paths}
 import java.time.Instant
+import java.util.concurrent.Executors
 import java.util.function.Supplier
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
+import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
 import scala.build.options.{BuildOptions, ConfigMonoid, Scope}
 import scala.build.{Build, BuildThreads, Builds, Logger, Os, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
+import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.util.SharedOptionsUtil._
-import scala.cli.errors.{FailedToSignFileError, MissingRepositoryError, UploadError}
+import scala.cli.commands.{Package => PackageCmd, ScalaCommand, WatchUtil}
+import scala.cli.errors.{FailedToSignFileError, MissingPublishOptionError, UploadError}
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 
@@ -48,27 +53,33 @@ object Publish extends ScalaCommand[PublishOptions] {
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
-          organization = organization.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          name = ops.name.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          moduleName = moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          version = version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          url = url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          organization = sharedPublish.organization.map(_.trim).filter(_.nonEmpty).map(
+            Positioned.commandLine(_)
+          ),
+          name = sharedPublish.name.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          moduleName =
+            sharedPublish.moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          version =
+            sharedPublish.version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          url = sharedPublish.url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
           license = value {
-            license
+            sharedPublish.license
               .map(_.trim).filter(_.nonEmpty)
               .map(Positioned.commandLine(_))
               .map(License.parse(_))
               .sequence
           },
           versionControl = value {
-            vcs.map(_.trim).filter(_.nonEmpty)
+            sharedPublish.vcs
+              .map(_.trim).filter(_.nonEmpty)
               .map(Positioned.commandLine(_))
               .map(Vcs.parse(_))
               .sequence
           },
-          description = description.map(_.trim).filter(_.nonEmpty),
+          description = sharedPublish.description.map(_.trim).filter(_.nonEmpty),
           developers = value {
-            developer.filter(_.trim.nonEmpty)
+            sharedPublish.developer
+              .filter(_.trim.nonEmpty)
               .map(Positioned.commandLine(_))
               .map(Developer.parse(_))
               .sequence
@@ -76,13 +87,15 @@ object Publish extends ScalaCommand[PublishOptions] {
           },
           scalaVersionSuffix = scalaVersionSuffix.map(_.trim),
           scalaPlatformSuffix = scalaPlatformSuffix.map(_.trim),
-          repository = publishRepository.filter(_.trim.nonEmpty),
+          repository = sharedPublish.publishRepository.filter(_.trim.nonEmpty),
           sourceJar = sources,
           docJar = doc,
           gpgSignatureId = gpgKey.map(_.trim).filter(_.nonEmpty),
           gpgOptions = gpgOption,
-          secretKey = secretKey.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
-          secretKeyPassword = secretKeyPassword,
+          secretKey = sharedPublish.secretKey,
+          secretKeyPassword = sharedPublish.secretKeyPassword,
+          repoUser = sharedPublish.user,
+          repoPassword = sharedPublish.password,
           signer = value {
             signer
               .map(Positioned.commandLine(_))
@@ -90,7 +103,7 @@ object Publish extends ScalaCommand[PublishOptions] {
               .sequence
           },
           computeVersion = value {
-            computeVersion
+            sharedPublish.computeVersion
               .map(Positioned.commandLine(_))
               .map(ComputeVersion.parse(_))
               .sequence
@@ -161,11 +174,11 @@ object Publish extends ScalaCommand[PublishOptions] {
   }
 
   def defaultOrganization: Either[BuildException, String] =
-    Right("default")
+    Left(new MissingPublishOptionError("organization", "--organization", "publish.organization"))
   def defaultName: Either[BuildException, String] =
-    Right("default")
+    Left(new MissingPublishOptionError("name", "--name", "publish.name"))
   def defaultVersion: Either[BuildException, String] =
-    Right("0.1.0-SNAPSHOT")
+    Left(new MissingPublishOptionError("version", "--version", "publish.version"))
 
   private def maybePublish(
     builds: Builds,
@@ -211,7 +224,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     workingDir: os.Path,
     now: Instant,
     logger: Logger
-  ): Either[BuildException, FileSet] = either {
+  ): Either[BuildException, (FileSet, String)] = either {
 
     logger.debug(s"Preparing project ${build.project.projectName}")
 
@@ -302,7 +315,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val sourceJarOpt =
       if (publishOptions.sourceJar.getOrElse(true)) {
-        val content   = Package.sourceJar(build, now.toEpochMilli)
+        val content   = PackageCmd.sourceJar(build, now.toEpochMilli)
         val sourceJar = workingDir / org / s"$moduleName-$ver-sources.jar"
         os.write(sourceJar, content, createFolders = true)
         Some(sourceJar)
@@ -315,7 +328,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         docBuildOpt match {
           case None => None
           case Some(docBuild) =>
-            val docJarPath = value(Package.docJar(docBuild, logger, Nil))
+            val docJarPath = value(PackageCmd.docJar(docBuild, logger, Nil))
             val docJar     = workingDir / org / s"$moduleName-$ver-javadoc.jar"
             os.copy(docJarPath, docJar, createFolders = true)
             Some(docJar)
@@ -346,7 +359,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       .toSeq
 
     // TODO version listings, …
-    FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries)
+    (FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries), ver)
   }
 
   private def doPublish(
@@ -364,7 +377,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     }
 
     val now = Instant.now()
-    val fileSet0 = value {
+    val (fileSet0, versionOpt) = value {
       it
         // TODO Allow to add test JARs to the main build artifacts
         .filter(_._1.scope != Scope.Test)
@@ -373,38 +386,38 @@ object Publish extends ScalaCommand[PublishOptions] {
             buildFileSet(build, docBuildOpt, workingDir, now, logger)
         }
         .sequence0
-        .map(_.foldLeft(FileSet.empty)(_ ++ _))
+        .map { l =>
+          val fs          = l.map(_._1).foldLeft(FileSet.empty)(_ ++ _)
+          val versionOpt0 = l.headOption.map(_._2)
+          (fs, versionOpt0)
+        }
     }
 
     val ec = builds.head.options.finalCache.ec
+    lazy val es =
+      Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
 
-    val signerOpt = ConfigMonoid.sum(
-      builds.map(_.options.notForBloopOptions.publishOptions.signer)
+    val publishOptions = ConfigMonoid.sum(
+      builds.map(_.options.notForBloopOptions.publishOptions)
     )
+    val signerOpt = publishOptions.signer.orElse {
+      if (publishOptions.secretKey.isDefined) Some(PSigner.BouncyCastle)
+      else if (publishOptions.gpgSignatureId.isDefined) Some(PSigner.Gpg)
+      else None
+    }
     val signer: Signer = signerOpt match {
       case Some(PSigner.Gpg) =>
-        val gpgSignatureIdOpt = ConfigMonoid.sum(
-          builds.map(_.options.notForBloopOptions.publishOptions.gpgSignatureId)
-        )
-        gpgSignatureIdOpt match {
+        publishOptions.gpgSignatureId match {
           case Some(gpgSignatureId) =>
-            val gpgOptions =
-              builds.toList.flatMap(_.options.notForBloopOptions.publishOptions.gpgOptions)
             GpgSigner(
               GpgSigner.Key.Id(gpgSignatureId),
-              extraOptions = gpgOptions
+              extraOptions = publishOptions.gpgOptions
             )
           case None => NopSigner
         }
       case Some(PSigner.BouncyCastle) =>
-        val secretKeyOpt = ConfigMonoid.sum(
-          builds.map(_.options.notForBloopOptions.publishOptions.secretKey)
-        )
-        secretKeyOpt match {
+        publishOptions.secretKey match {
           case Some(secretKey) =>
-            val passwordOpt = ConfigMonoid.sum(
-              builds.map(_.options.notForBloopOptions.publishOptions.secretKeyPassword)
-            )
             val getLauncher: Supplier[NioPath] = { () =>
               val archiveCache = builds.headOption
                 .map(_.options.archiveCache)
@@ -415,8 +428,8 @@ object Publish extends ScalaCommand[PublishOptions] {
               }
             }
             (new BouncycastleSignerMaker).get(
-              passwordOpt.orNull,
-              secretKey.wrapped,
+              publishOptions.secretKeyPassword.orNull,
+              secretKey,
               getLauncher,
               logger
             )
@@ -461,33 +474,82 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val finalFileSet = fileSet2.order(ec).unsafeRun()(ec)
 
-    val repo = builds.head.options.notForBloopOptions.publishOptions.repository match {
-      case None =>
-        value(Left(new MissingRepositoryError))
-      case Some(repo) =>
-        val url =
-          if (repo.contains("://")) repo
-          else os.Path(repo, Os.pwd).toNIO.toUri.toASCIIString
-        MavenRepository(url)
+    lazy val authOpt = {
+      val userOpt     = publishOptions.repoUser
+      val passwordOpt = publishOptions.repoPassword.map(_.get())
+      passwordOpt.map { password =>
+        Authentication(userOpt.fold("")(_.get().value), password.value)
+      }
     }
 
+    def centralRepo(base: String) = {
+      val repo0 = {
+        val r = PublishRepository.Sonatype(MavenRepository(base))
+        authOpt.fold(r)(r.withAuthentication)
+      }
+      val backend = ScalaCliSttpBackend.httpURLConnection(logger)
+      val api     = SonatypeApi(backend, base + "/service/local", authOpt, logger.verbosity)
+      val hooks0 = Hooks.sonatype(
+        repo0,
+        api,
+        logger.compilerOutputStream, // meh
+        logger.verbosity,
+        batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
+        es
+      )
+      (repo0, hooks0)
+    }
+
+    val (repo, hooks) = publishOptions.repository match {
+      case None =>
+        value(Left(new MissingPublishOptionError(
+          "repository",
+          "--publish-repository",
+          "publish.repository"
+        )))
+      case Some("central" | "maven-central" | "mvn-central") =>
+        centralRepo("https://oss.sonatype.org")
+      case Some("central-s01" | "maven-central-s01" | "mvn-central-s01") =>
+        centralRepo("https://s01.oss.sonatype.org")
+      case Some(repoStr) =>
+        val repo0 = RepositoryParser.repositoryOpt(repoStr)
+          .collect {
+            case m: MavenRepository =>
+              m
+          }
+          .getOrElse {
+            val url =
+              if (repoStr.contains("://")) repoStr
+              else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
+            MavenRepository(url)
+          }
+        (PublishRepository.Simple(repo0), Hooks.dummy)
+    }
+
+    val isSnapshot0 = versionOpt.exists(_.endsWith("SNAPSHOT"))
+    val hooksData   = hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
+
+    val retainedRepo = hooks.repository(hooksData, repo, isSnapshot0)
+      .getOrElse(repo.repo(isSnapshot0))
+
     val upload =
-      if (repo.root.startsWith("http://") || repo.root.startsWith("https://"))
+      if (retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://"))
         HttpURLConnectionUpload.create()
       else
-        FileUpload(Paths.get(new URI(repo.root)))
+        FileUpload(Paths.get(new URI(retainedRepo.root)))
 
     val dummy        = false
     val isLocal      = true
     val uploadLogger = InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
 
     val errors =
-      upload.uploadFileSet(repo, finalFileSet, uploadLogger, Some(ec)).unsafeRun()(ec)
+      upload.uploadFileSet(retainedRepo, finalFileSet, uploadLogger, Some(ec)).unsafeRun()(ec)
 
     errors.toList match {
       case h :: t =>
         value(Left(new UploadError(::(h, t))))
       case Nil =>
+        hooks.afterUpload(hooksData).unsafeRun()(ec)
     }
   }
 }

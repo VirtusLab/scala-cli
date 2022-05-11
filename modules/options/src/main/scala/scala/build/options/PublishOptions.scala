@@ -22,8 +22,10 @@ final case class PublishOptions(
   gpgSignatureId: Option[String] = None,
   gpgOptions: List[String] = Nil,
   signer: Option[Signer] = None,
-  secretKey: Option[os.Path] = None,
+  secretKey: Option[PasswordOption] = None,
   secretKeyPassword: Option[PasswordOption] = None,
+  repoUser: Option[PasswordOption] = None,
+  repoPassword: Option[PasswordOption] = None,
   computeVersion: Option[ComputeVersion] = None
 )
 

@@ -9,6 +9,7 @@ import scala.cli.commands._
 import scala.cli.commands.bloop.BloopOutput
 import scala.cli.commands.github.{SecretCreate, SecretList}
 import scala.cli.commands.pgp.{PgpCommands, PgpCommandsSubst}
+import scala.cli.commands.publish.Publish
 
 class ScalaCliCommands(
   val progName: String,

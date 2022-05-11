@@ -10,7 +10,7 @@ import scala.cli.signing.shared.PasswordOption
 import scala.util.Properties
 
 final case class BouncycastleExternalSigner(
-  secretKey: os.Path,
+  secretKey: PasswordOption,
   passwordOpt: Option[PasswordOption],
   launcher: os.Path,
   logger: Logger
@@ -32,7 +32,16 @@ final case class BouncycastleExternalSigner(
     withFileContent(content) { path =>
       val passwordArgs = passwordOpt.toSeq.flatMap(p => Seq("--password", p.asString.value))
       val proc =
-        os.proc(launcher, "pgp", "sign", passwordArgs, "--secret-key", secretKey, "--stdout", path)
+        os.proc(
+          launcher,
+          "pgp",
+          "sign",
+          passwordArgs,
+          "--secret-key",
+          secretKey.asString.value,
+          "--stdout",
+          path
+        )
       logger.debug(s"Running command ${proc.command.flatMap(_.value)}")
       val res    = proc.call(stdin = os.Inherit, check = false)
       val output = res.out.text().trim
@@ -44,13 +53,13 @@ final case class BouncycastleExternalSigner(
 object BouncycastleExternalSigner {
 
   def apply(
-    secretKey: Path,
+    secretKey: PasswordOption,
     passwordOrNull: PasswordOption,
     launcher: Path,
     logger: Logger
   ): BouncycastleExternalSigner =
     BouncycastleExternalSigner(
-      os.Path(secretKey, os.pwd),
+      secretKey,
       Option(passwordOrNull),
       os.Path(launcher, os.pwd),
       logger
