@@ -5,6 +5,16 @@ sidebar_position: 1
 
 This is a summary of options that are available for each subcommand of the `scala-cli` command.
 
+## About options
+
+Available in commands:
+- [`about`](./commands.md#about)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--gh-token`
+
 ## Add path options
 
 Available in commands:
@@ -345,6 +355,16 @@ Overwrite the destination directory, if it exists
 Aliases: `--default-scaladoc-opts`
 
 Use default scaladoc options
+
+## Doctor options
+
+Available in commands:
+- [`doctor`](./commands.md#doctor)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--gh-token`
 
 ## Export options
 
@@ -1427,6 +1447,8 @@ Aliases: `-f`
 Force update scala-cli if is outdated
 
 #### `--is-internal-run`
+
+#### `--gh-token`
 
 ## Verbosity options
 

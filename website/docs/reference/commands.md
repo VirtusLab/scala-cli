@@ -8,6 +8,7 @@ sidebar_position: 3
 Print details about this application
 
 Accepts options:
+- [about](./cli-options.md#about-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
 ## `clean`
@@ -68,6 +69,7 @@ Accepts options:
 Print details about this application
 
 Accepts options:
+- [doctor](./cli-options.md#doctor-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
 ## `export`
