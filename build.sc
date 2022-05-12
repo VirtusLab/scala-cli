@@ -188,7 +188,8 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliScalafixModule
     with HasTests {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
   }
   def compileIvyDeps = T {
     if (scalaVersion().startsWith("3"))
@@ -275,7 +276,9 @@ trait ProtoBuildModule extends ScalaCliPublishModule with HasTests
 trait BuildLikeModule extends ScalaCliCrossSbtModule with ProtoBuildModule {
 
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil) ++
+      Seq("-deprecation")
   }
 
   def repositories = super.repositories ++ customRepositories
@@ -621,7 +624,8 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   def scalaVersion = T(myScalaVersion)
 
   def scalacOptions = T {
-    super.scalacOptions() ++ asyncScalacOptions(scalaVersion()) ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion()) ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
   }
   def javacOptions = T {
     super.javacOptions() ++ Seq("--release", "16")
@@ -907,7 +911,9 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with HasTests
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil) ++
+      Seq("-deprecation")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
