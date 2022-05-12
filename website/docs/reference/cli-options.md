@@ -1083,6 +1083,8 @@ Aliases: `-G`, `--gpg-opt`
 
 gpg command-line options
 
+#### `--ivy2-local-like`
+
 ## Repl options
 
 Available in commands:

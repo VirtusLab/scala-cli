@@ -17,6 +17,7 @@ final case class PublishOptions(
   scalaVersionSuffix: Option[String] = None,
   scalaPlatformSuffix: Option[String] = None,
   repository: Option[String] = None,
+  repositoryIsIvy2LocalLike: Option[Boolean] = None,
   sourceJar: Option[Boolean] = None,
   docJar: Option[Boolean] = None,
   gpgSignatureId: Option[String] = None,

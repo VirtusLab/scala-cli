@@ -18,7 +18,7 @@ import java.io.OutputStreamWriter
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path => NioPath, Paths}
-import java.time.Instant
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import java.util.function.Supplier
 
@@ -88,6 +88,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           scalaVersionSuffix = scalaVersionSuffix.map(_.trim),
           scalaPlatformSuffix = scalaPlatformSuffix.map(_.trim),
           repository = sharedPublish.publishRepository.filter(_.trim.nonEmpty),
+          repositoryIsIvy2LocalLike = ivy2LocalLike,
           sourceJar = sources,
           docJar = doc,
           gpgSignatureId = gpgKey.map(_.trim).filter(_.nonEmpty),
@@ -223,6 +224,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     docBuildOpt: Option[Build.Successful],
     workingDir: os.Path,
     now: Instant,
+    isIvy2LocalLike: Boolean,
     logger: Logger
   ): Either[BuildException, (FileSet, String)] = either {
 
@@ -307,42 +309,62 @@ object Publish extends ScalaCommand[PublishOptions] {
       else
         None
 
-    val pomContent = {
-
-      val dependencies = build.artifacts.userDependencies
-        .map(_.toCs(build.artifacts.scalaOpt.map(_.params)))
-        .sequence
-        .left.map(CompositeBuildException(_))
-        .orExit(logger)
-        .map { dep0 =>
-          val config =
-            if (build.scope == Scope.Main) None
-            else Some(Configuration(build.scope.name))
-          (dep0.module.organization, dep0.module.name, dep0.version, config)
-        }
-
-      Pom.create(
-        organization = coursier.Organization(org),
-        moduleName = coursier.ModuleName(moduleName),
-        version = ver,
-        packaging = None,
-        url = publishOptions.url.map(_.value),
-        name = Some(name), // ?
-        dependencies = dependencies,
-        description = publishOptions.description,
-        license = publishOptions.license.map(_.value).map { l =>
-          Pom.License(l.name, l.url)
-        },
-        scm = publishOptions.versionControl.map { vcs =>
-          Pom.Scm(vcs.url, vcs.connection, vcs.developerConnection)
-        },
-        developers = publishOptions.developers.map { dev =>
-          Pom.Developer(dev.id, dev.name, dev.url, dev.mail)
-        }
-      )
+    val dependencies = build.artifacts.userDependencies
+      .map(_.toCs(build.artifacts.scalaOpt.map(_.params)))
+      .sequence
+      .left.map(CompositeBuildException(_))
+      .orExit(logger)
+      .map { dep0 =>
+        val config =
+          if (build.scope == Scope.Main) None
+          else Some(Configuration(build.scope.name))
+        (dep0.module.organization, dep0.module.name, dep0.version, config)
+      }
+    val url = publishOptions.url.map(_.value)
+    val license = publishOptions.license.map(_.value).map { l =>
+      Pom.License(l.name, l.url)
     }
+    val scm = publishOptions.versionControl.map { vcs =>
+      Pom.Scm(vcs.url, vcs.connection, vcs.developerConnection)
+    }
+    val developers = publishOptions.developers.map { dev =>
+      Pom.Developer(dev.id, dev.name, dev.url, dev.mail)
+    }
+    val description = publishOptions.description.getOrElse(moduleName)
 
-    val fileSet = {
+    val pomContent = Pom.create(
+      organization = coursier.Organization(org),
+      moduleName = coursier.ModuleName(moduleName),
+      version = ver,
+      packaging = None,
+      url = url,
+      name = Some(moduleName), // ?
+      dependencies = dependencies,
+      description = Some(description),
+      license = license,
+      scm = scm,
+      developers = developers
+    )
+
+    def ivyContent = Ivy.create(
+      organization = coursier.Organization(org),
+      moduleName = coursier.ModuleName(moduleName),
+      version = ver,
+      packaging = None,
+      url = url,
+      name = Some(moduleName), // ?
+      dependencies = dependencies,
+      description = Some(description),
+      license = license,
+      scm = scm,
+      developers = developers,
+      time = LocalDateTime.ofInstant(now, ZoneOffset.UTC),
+      hasPom = true,
+      hasDoc = docJarOpt.isDefined,
+      hasSources = sourceJarOpt.isDefined
+    )
+
+    def mavenFileSet = {
 
       val basePath = Path(org.split('.').toSeq ++ Seq(moduleName, ver))
 
@@ -370,6 +392,40 @@ object Publish extends ScalaCommand[PublishOptions] {
       FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries)
     }
 
+    def ivy2LocalLikeFileSet = {
+
+      val basePath = Path(Seq(org, moduleName, ver))
+
+      val mainEntries = Seq(
+        (basePath / "poms" / s"$moduleName.pom") -> Content.InMemory(
+          now,
+          pomContent.getBytes(StandardCharsets.UTF_8)
+        ),
+        (basePath / "ivys" / "ivy.xml") -> Content.InMemory(
+          now,
+          ivyContent.getBytes(StandardCharsets.UTF_8)
+        ),
+        (basePath / "jars" / s"$moduleName.jar") -> Content.File(mainJar.toNIO)
+      )
+
+      val sourceJarEntries = sourceJarOpt
+        .map { sourceJar =>
+          (basePath / "srcs" / s"$moduleName-sources.jar") -> Content.File(sourceJar.toNIO)
+        }
+        .toSeq
+
+      val docJarEntries = docJarOpt
+        .map { docJar =>
+          (basePath / "docs" / s"$moduleName-javadoc.jar") -> Content.File(docJar.toNIO)
+        }
+        .toSeq
+
+      FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries)
+    }
+
+    val fileSet =
+      if (isIvy2LocalLike) ivy2LocalLikeFileSet else mavenFileSet
+
     (fileSet, ver)
   }
 
@@ -393,7 +449,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val ec = builds.head.options.finalCache.ec
 
-    val (repo, hooks) = {
+    val (repo, hooks, isIvy2LocalLike) = {
 
       lazy val es =
         Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
@@ -421,7 +477,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
           es
         )
-        (repo0, hooks0)
+        (repo0, hooks0, false)
       }
 
       publishOptions.repository match {
@@ -447,7 +503,11 @@ object Publish extends ScalaCommand[PublishOptions] {
                 else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
               MavenRepository(url)
             }
-          (PublishRepository.Simple(repo0), Hooks.dummy)
+          (
+            PublishRepository.Simple(repo0),
+            Hooks.dummy,
+            publishOptions.repositoryIsIvy2LocalLike.getOrElse(false)
+          )
       }
     }
 
@@ -458,7 +518,14 @@ object Publish extends ScalaCommand[PublishOptions] {
         .filter(_._1.scope != Scope.Test)
         .map {
           case (build, docBuildOpt) =>
-            buildFileSet(build, docBuildOpt, workingDir, now, logger)
+            buildFileSet(
+              build,
+              docBuildOpt,
+              workingDir,
+              now,
+              isIvy2LocalLike = isIvy2LocalLike,
+              logger
+            )
         }
         .sequence0
         .map { l =>
@@ -540,7 +607,9 @@ object Publish extends ScalaCommand[PublishOptions] {
     ).unsafeRun()(ec)
     val fileSet2 = fileSet1 ++ checksums
 
-    val finalFileSet = fileSet2.order(ec).unsafeRun()(ec)
+    val finalFileSet =
+      if (isIvy2LocalLike) fileSet2
+      else fileSet2.order(ec).unsafeRun()(ec)
 
     val isSnapshot0 = versionOpt.exists(_.endsWith("SNAPSHOT"))
     val hooksData   = hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
