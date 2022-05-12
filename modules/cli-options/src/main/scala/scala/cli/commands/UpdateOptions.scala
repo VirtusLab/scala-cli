@@ -2,6 +2,9 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.util.ArgParsers._
+
 // format: off
 @HelpMessage("Update scala-cli - it works only for installation script")
 final case class UpdateOptions(
@@ -20,6 +23,8 @@ final case class UpdateOptions(
     force: Boolean = false,
   @Hidden
     isInternalRun: Boolean = false,
+  @Hidden
+    ghToken: Option[PasswordOption] = None
 )
 // format: on
 

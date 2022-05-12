@@ -6,7 +6,10 @@ import caseapp.core.help.{Help, RuntimeCommandsHelp}
 import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
-import scala.cli.commands.pgp.PgpCommands
+import scala.cli.commands.bloop.BloopOutput
+import scala.cli.commands.github.{SecretCreate, SecretList}
+import scala.cli.commands.pgp.{PgpCommands, PgpCommandsSubst}
+import scala.cli.commands.publish.Publish
 
 class ScalaCliCommands(
   val progName: String,
@@ -15,17 +18,23 @@ class ScalaCliCommands(
 
   lazy val actualDefaultCommand = new Default(help)
 
-  private def pgpCommands = new PgpCommands
+  // for debugging purposes - allows to run the scala-cli-signing binary from the Scala CLI JVM launcher
+  private lazy val pgpUseBinaryCommands =
+    java.lang.Boolean.getBoolean("scala-cli.pgp.binary-commands")
+  private def pgpCommands       = new PgpCommands
+  private def pgpBinaryCommands = new PgpCommandsSubst
 
   private def allCommands = Seq[ScalaCommand[_]](
     new About(isSipScala = isSipScala),
     AddPath,
     BloopExit,
+    BloopOutput,
     BloopStart,
     Bsp,
     Clean,
     Compile,
     Directories,
+    Doc,
     Doctor,
     Export,
     Fmt,
@@ -37,16 +46,20 @@ class ScalaCliCommands(
     Package,
     Publish,
     Run,
+    SecretCreate,
+    SecretList,
     SetupIde,
     Shebang,
     Test,
     Update,
     Version
-  ) ++ pgpCommands.allScalaCommands
+  ) ++ (if (pgpUseBinaryCommands) Nil else pgpCommands.allScalaCommands.toSeq) ++
+    (if (pgpUseBinaryCommands) pgpBinaryCommands.allScalaCommands.toSeq else Nil)
 
   def commands =
     allCommands.filter(c => !isSipScala || c.inSipScala) ++
-      pgpCommands.allExternalCommands
+      (if (pgpUseBinaryCommands) Nil else pgpCommands.allExternalCommands.toSeq) ++
+      (if (pgpUseBinaryCommands) pgpBinaryCommands.allExternalCommands.toSeq else Nil)
 
   override def description =
     "Scala CLI is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."

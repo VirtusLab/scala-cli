@@ -6,14 +6,15 @@ import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
 
 import scala.cli.integration.util.DockerServer
+import scala.io.Codec
 import scala.util.Properties
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
-  private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
-  private val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
+  protected val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
 
   def simpleScriptTest(ignoreErrors: Boolean = false): Unit = {
     val fileName = "simple.sc"
@@ -1442,6 +1443,19 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("help js and native") {
+    val helpJsOption     = "--help-js"
+    val helpNativeOption = "--help-native"
+    val helpJs           = os.proc(TestUtil.cli, helpJsOption).call(check = false)
+    val helpNative       = os.proc(TestUtil.cli, helpNativeOption).call(check = false)
+
+    expect(helpJs.out.text().contains("Scala.js options"))
+    expect(!helpJs.out.text().contains("Scala Native options"))
+
+    expect(helpNative.out.text().contains("Scala Native options"))
+    expect(!helpNative.out.text().contains("Scala.js options"))
+  }
+
   test("version command") {
     // tests if the format is correct instead of comparing to a version passed via Constants
     // in order to catch errors in Mill configuration, too
@@ -1648,4 +1662,35 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     test("Js DOM") {
       jsDomTest()
     }
+
+  test("UTF-8") {
+    val message  = "Hello from TestÅÄÖåäö"
+    val fileName = "TestÅÄÖåäö.scala"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""object TestÅÄÖåäö {
+             |  def main(args: Array[String]): Unit = {
+             |    println("$message")
+             |  }
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "-Dtest.scala-cli.debug-charset-issue=true",
+        "run",
+        extraOptions,
+        fileName
+      )
+        .call(cwd = root)
+      if (res.out.text(Codec.default).trim != message) {
+        pprint.err.log(res.out.text(Codec.default).trim)
+        pprint.err.log(message)
+      }
+      expect(res.out.text(Codec.default).trim == message)
+    }
+  }
 }

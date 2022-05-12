@@ -19,7 +19,9 @@ object FetchExternalBinary {
     changing: Boolean,
     archiveCache: ArchiveCache[Task],
     logger: Logger,
-    launcherPrefix: String
+    launcherPrefix: String,
+    launcherPathOpt: Option[os.RelPath] = None,
+    makeExecutable: Boolean = true
   ): Either[BuildException, os.Path] = either {
 
     val artifact = Artifact(url).withChanging(changing)
@@ -36,16 +38,20 @@ object FetchExternalBinary {
     }
     logger.debug(s"$url is available locally at $f")
 
-    val launcher =
-      if (os.isDir(f)) {
-        val dirContent = os.list(f)
-        if (dirContent.length == 1) dirContent.head
-        else dirContent.filter(_.last.startsWith(launcherPrefix)).head
-      }
-      else
-        f
+    val launcher = launcherPathOpt match {
+      case Some(launcherPath) =>
+        f / launcherPath
+      case None =>
+        if (os.isDir(f)) {
+          val dirContent = os.list(f)
+          if (dirContent.length == 1) dirContent.head
+          else dirContent.filter(_.last.startsWith(launcherPrefix)).head
+        }
+        else
+          f
+    }
 
-    if (!Properties.isWin)
+    if (makeExecutable && !Properties.isWin)
       os.perms.set(launcher, "rwxr-xr-x")
 
     launcher
@@ -75,5 +81,21 @@ object FetchExternalBinary {
       case Left(err)    => sys.error(err)
       case Right(value) => value
     }
-
+// Warning: somehow also in settings.sc in the build
+  lazy val condaPlatform = {
+    val mambaOs =
+      if (Properties.isWin) "win"
+      else if (Properties.isMac) "osx"
+      else if (Properties.isLinux) "linux"
+      else sys.error(s"Unsupported mamba OS: ${sys.props("os.name")}")
+    val arch = sys.props("os.arch").toLowerCase(Locale.ROOT)
+    val mambaArch = arch match {
+      case "x86_64" | "amd64"  => "64"
+      case "arm64" | "aarch64" => "arm64"
+      case "ppc64le"           => "ppc64le"
+      case _ =>
+        sys.error(s"Unsupported mamba architecture: $arch")
+    }
+    s"$mambaOs-$mambaArch"
+  }
 }

@@ -1,15 +1,63 @@
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
+import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.1.0.202203080745-r`
 import $file.settings, settings.{PublishLocalNoFluff, workspaceDirName}
 
 import de.tobiasroeser.mill.vcs.version._
 import mill._, scalalib._
+import org.eclipse.jgit.api.Git
 
 import java.nio.charset.Charset
 
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
-def ghOrg  = "VirtusLab"
-def ghName = "scala-cli"
+lazy val (ghOrg, ghName) = {
+  def default = ("VirtusLab", "scala-cli")
+  val isCI    = System.getenv("CI") != null
+  if (isCI) {
+    val repos = {
+      var git: Git = null
+      try {
+        git = Git.open(os.pwd.toIO)
+        git.remoteList().call().asScala.toVector
+      }
+      finally
+        if (git != null)
+          git.close()
+    }
+    val reposByName = repos.flatMap(r =>
+      r.getURIs.asScala.headOption.map(_.toASCIIString).toSeq.map((r.getName, _))
+    )
+    val repoUrlOpt =
+      if (reposByName.length == 1)
+        reposByName.headOption.map(_._2)
+      else {
+        val m = reposByName.toMap
+        m.get("origin").orElse(m.get("upstream"))
+      }
+    repoUrlOpt match {
+      case Some(url) if url.startsWith("https://github.com/") =>
+        url.stripPrefix("https://github.com/").stripSuffix(".git").split("/", 2) match {
+          case Array(org, name) => (org, name)
+          case Array(_) =>
+            System.err.println(
+              s"Warning: git remote URL $url doesn't look like a GitHub URL, using default GitHub org and name"
+            )
+            default
+        }
+      case Some(url) =>
+        System.err.println(
+          s"Warning: git remote URL $url doesn't look like a GitHub URL, using default GitHub org and name"
+        )
+        default
+      case _ =>
+        System.err.println("Warning: no git remote found, using default GitHub org and name")
+        default
+    }
+  }
+  else
+    default
+}
 
 private def computePublishVersion(state: VcsState, simple: Boolean): String =
   if (state.commitsSinceLastTag > 0)

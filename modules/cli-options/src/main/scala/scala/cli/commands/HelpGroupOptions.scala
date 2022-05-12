@@ -1,11 +1,9 @@
 package scala.cli.commands
 
 import caseapp._
-import caseapp.core.help.Help
+import caseapp.core.help.{Help, HelpFormat}
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
-
-import scala.cli.ScalaCliHelp
 
 @HelpMessage("Print help message")
 case class HelpGroupOptions(
@@ -15,16 +13,16 @@ case class HelpGroupOptions(
   helpNative: Boolean = false
 ) {
 
-  private def printHelpWithGroup(help: Help[_], group: String): Nothing = {
-    println(help.help(ScalaCliHelp.helpFormat.withHiddenGroups(
-      ScalaCliHelp.helpFormat.hiddenGroups.map(_.filterNot(_ == group))
+  private def printHelpWithGroup(help: Help[_], helpFormat: HelpFormat, group: String): Nothing = {
+    println(help.help(helpFormat.withHiddenGroups(
+      helpFormat.hiddenGroups.map(_.filterNot(_ == group))
     )))
     sys.exit(0)
   }
 
-  def maybePrintGroupHelp(help: Help[_]): Unit = {
-    if (helpJs) printHelpWithGroup(help, "Scala.js")
-    else if (helpNative) printHelpWithGroup(help, "Scala Native")
+  def maybePrintGroupHelp(help: Help[_], helpFormat: HelpFormat): Unit = {
+    if (helpJs) printHelpWithGroup(help, helpFormat, "Scala.js")
+    else if (helpNative) printHelpWithGroup(help, helpFormat, "Scala Native")
   }
 }
 

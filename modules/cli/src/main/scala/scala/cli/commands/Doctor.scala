@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp.core.RemainingArgs
 
 import scala.build.internal.Constants
+import scala.cli.signing.shared.Secret
 
 // current version / latest version + potentially information that
 // scala-cli should be updated (and that should take SNAPSHOT version
@@ -27,7 +28,7 @@ object Doctor extends ScalaCommand[DoctorOptions] {
   override def group = "Doctor"
 
   def run(options: DoctorOptions, args: RemainingArgs): Unit = {
-    checkIsVersionOutdated()
+    checkIsVersionOutdated(options.ghToken.map(_.get()))
     checkBloopStatus()
     checkDuplicatesOnPath()
     checkNativeDependencies()
@@ -39,12 +40,13 @@ object Doctor extends ScalaCommand[DoctorOptions] {
     println("") // sometimes last line is cut off
   }
 
-  private def checkIsVersionOutdated(): Unit = {
-    val currentVersion = Constants.version
-    val isOutdated = CommandUtils.isOutOfDateVersion(Update.newestScalaCliVersion, currentVersion)
+  private def checkIsVersionOutdated(ghToken: Option[Secret[String]]): Unit = {
+    val currentVersion        = Constants.version
+    val newestScalaCliVersion = Update.newestScalaCliVersion(ghToken)
+    val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion, currentVersion)
     if (isOutdated)
       println(
-        s"Your scala-cli version is out of date. your version: $currentVersion. please update to: ${Update.newestScalaCliVersion}"
+        s"Your scala-cli version is out of date. your version: $currentVersion. please update to: $newestScalaCliVersion"
       )
     else
       println(s"Your scala-cli version ($currentVersion) is current.")
@@ -79,7 +81,7 @@ object Doctor extends ScalaCommand[DoctorOptions] {
       .split(pathSeparator)
       .map(d => if (d == ".") pwd else d) // on unix a bare "." counts as the current dir
       .map(_ + "/scala-cli")
-      .filter(f => os.isFile(os.Path(f)))
+      .filter(f => os.isFile(os.Path(f, os.pwd)))
       .toSet
 
     if (scalaCliPaths.size > 1)

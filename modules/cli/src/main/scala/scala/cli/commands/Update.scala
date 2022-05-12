@@ -1,24 +1,57 @@
 package scala.cli.commands
 
 import caseapp._
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
 import scala.build.Logger
+import scala.build.internal.Constants.{ghName, ghOrg, version => scalaCliVersion}
 import scala.cli.CurrentParams
-import scala.cli.commands.Version.getCurrentVersion
 import scala.cli.internal.ProcUtil
+import scala.cli.signing.shared.Secret
 import scala.io.StdIn.readLine
+import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
 object Update extends ScalaCommand[UpdateOptions] {
 
-  lazy val newestScalaCliVersion = {
-    val resp = ProcUtil.downloadFile("https://github.com/VirtusLab/scala-cli/releases/latest")
+  private final case class Release(
+    draft: Boolean,
+    prerelease: Boolean,
+    tag_name: String
+  ) {
+    lazy val version =
+      coursier.core.Version(tag_name.stripPrefix("v"))
+    def actualRelease: Boolean =
+      !draft && !prerelease
+  }
 
-    val scalaCliVersionRegex = "tag/v(.*?)\"".r
-    scalaCliVersionRegex.findFirstMatchIn(resp).map(_.group(1))
-  }.getOrElse(
-    sys.error("Can not resolve Scala CLI version to update")
-  )
+  private lazy val releaseListCodec: JsonValueCodec[List[Release]] = JsonCodecMaker.make
+
+  def newestScalaCliVersion(tokenOpt: Option[Secret[String]]) = {
+
+    // FIXME Do we need paging here?
+    val url = s"https://api.github.com/repos/$ghOrg/$ghName/releases"
+    val headers =
+      Seq("Accept" -> "application/vnd.github.v3+json") ++
+        tokenOpt.toSeq.map(tk => "Authorization" -> s"token ${tk.value}")
+    val resp = ProcUtil.download(url, headers: _*)
+
+    val releases =
+      try readFromArray(resp)(releaseListCodec)
+      catch {
+        case e: JsonReaderException =>
+          throw new Exception(s"Error reading $url", e)
+      }
+
+    releases
+      .filter(_.actualRelease)
+      .maxByOption(_.version)
+      .map(_.version.repr)
+      .getOrElse {
+        sys.error(s"No Scala CLI versions found in $url")
+      }
+  }
 
   def installDirPath(options: UpdateOptions): os.Path =
     options.binDir.map(os.Path(_, os.pwd)).getOrElse(
@@ -65,23 +98,26 @@ object Update extends ScalaCommand[UpdateOptions] {
     }
   }
 
-  lazy val updateInstructions: String =
-    s"""Your Scala CLI version is outdated. The newest version is $newestScalaCliVersion
-       |It is recommended that you update Scala CLI through the same tool or method you used for its initial installation for avoiding the creation of outdated duplicates.""".stripMargin
+  private def getCurrentVersion(scalaCliBinPath: os.Path): String = {
+    val res = os.proc(scalaCliBinPath, "version").call(cwd = os.pwd, check = false)
+    if (res.exitCode == 0)
+      res.out.text().trim
+    else
+      "0.0.0"
+  }
 
-  def update(options: UpdateOptions, maybeScalaCliBinPath: Option[os.Path]): Unit = {
+  private def update(options: UpdateOptions, currentVersion: String): Unit = {
 
-    val currentVersion = getCurrentVersion(maybeScalaCliBinPath)
-
-    val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion, currentVersion)
+    val newestScalaCliVersion0 = newestScalaCliVersion(options.ghToken.map(_.get()))
+    val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion0, currentVersion)
 
     if (!options.isInternalRun)
       if (isOutdated)
-        updateScalaCli(options, newestScalaCliVersion)
+        updateScalaCli(options, newestScalaCliVersion0)
       else println("Scala CLI is up-to-date")
     else if (isOutdated)
       println(
-        s"""Your Scala CLI $currentVersion is outdated, please update Scala CLI to $newestScalaCliVersion
+        s"""Your Scala CLI $currentVersion is outdated, please update Scala CLI to $newestScalaCliVersion0
            |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update Scala CLI.""".stripMargin
       )
   }
@@ -113,9 +149,9 @@ object Update extends ScalaCommand[UpdateOptions] {
         sys.exit(1)
       }
     }
-    else if (options.binaryName == "scala-cli") update(options, None)
+    else if (options.binaryName == "scala-cli") update(options, scalaCliVersion)
     else
-      update(options, Some(scalaCliBinPath))
+      update(options, getCurrentVersion(scalaCliBinPath))
   }
 
   def run(options: UpdateOptions, args: RemainingArgs): Unit = {
@@ -123,18 +159,17 @@ object Update extends ScalaCommand[UpdateOptions] {
     checkUpdate(options)
   }
 
-  def checkUpdateSafe(logger: Logger): Unit = {
-    Try {
+  def checkUpdateSafe(logger: Logger): Unit =
+    try {
       val classesDir =
-        this.getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toString
+        getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toString
       val binRepoDir = build.Directories.default().binRepoDir.toString()
       // log about update only if scala-cli was installed from installation script
       if (classesDir.contains(binRepoDir))
         checkUpdate(UpdateOptions(isInternalRun = true))
-    } match {
-      case Failure(ex) =>
-        logger.debug(s"Ignoring error during checking update: $ex")
-      case Success(_) => ()
     }
-  }
+    catch {
+      case NonFatal(ex) =>
+        logger.debug(s"Ignoring error during checking update: $ex")
+    }
 }

@@ -35,10 +35,14 @@ object Scala {
   def defaultUser = scala3
 }
 
+// Dependencies used in integration test fixtures
 object TestDeps {
   def pprint           = Deps.pprint
   def munit            = Deps.munit
   def scalaSnapshot213 = "2.13.8-bin-e814d78"
+
+  def archLinuxImage =
+    "archlinux@sha256:b15db21228c7cd5fd3ab364a97193ba38abfad0e8b9593c15b71850b74738153"
 }
 
 object InternalDeps {
@@ -52,21 +56,23 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier      = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.13.20"
-    def scalaMeta     = "4.5.5"
+    def coursier      = "2.1.0-M5-24-g678b31710"
+    def coursierCli   = "2.1.0-M5-18-gfebf9838c"
+    def jsoniterScala = "2.13.21"
+    def scalaMeta     = "4.5.6"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
-    def signingCli    = "0.1.3"
+    def signingCli    = "0.1.6"
   }
   def ammonite = ivy"com.lihaoyi:::ammonite:2.5.3"
   def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.4.20"
+  def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.0-sc-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.0.0"
   def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M13"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.7.0"
   // Force using of 2.13 - is there a better way?
+  def coursier         = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
   def coursierJvm      = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
   def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
   def coursierPublish  = ivy"io.get-coursier.publish:publish_2.13:0.1.2"
@@ -84,6 +90,7 @@ object Deps {
   def jsoniterMacros =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
   def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
+  def libsodiumjni  = ivy"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:0.0.2"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
     ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
@@ -126,19 +133,34 @@ object Deps {
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc1"
     else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc1"
+  def sttp            = ivy"com.softwaremill.sttp.client3::core:3.6.1"
   def svm             = ivy"org.graalvm.nativeimage:svm:22.0.0.2"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
   def usingDirectives = ivy"org.virtuslab:using_directives:0.0.8"
+  // Lives at https://github.com/scala-cli/no-crc32-zip-input-stream, see #865
+  // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
+  // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
+  // some bad GraalVM / zlib issues (see #828 and linked issues for more details).
+  def zipInputStream = ivy"io.github.alexarchambault.scala-cli.tmp:zip-input-stream:0.1.0"
+}
+
+object BuildDeps {
+  def scalaCliVersion = "0.1.4"
 }
 
 def graalVmVersion     = "22.1.0"
 def graalVmJavaVersion = 17
 def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
-def csDockerVersion = Deps.Versions.coursier
+def csDockerVersion = Deps.Versions.coursierCli
 
-def buildCsVersion = Deps.Versions.coursier
+def buildCsVersion = Deps.Versions.coursierCli
+
+// Native library used to encrypt GitHub secrets
+def libsodiumVersion = "1.0.18"
+// Using the libsodium static library from this Alpine version (in the static launcher)
+def alpineVersion = "3.15"
 
 object Docker {
   def customMuslBuilderImageName = "scala-cli-base-musl"
@@ -147,7 +169,7 @@ object Docker {
 
   def testImage = "ubuntu:18.04"
   def alpineTestImage =
-    "alpine@sha256:234cb88d3020898631af0ccbbcca9a66ae7306ecd30c9720690858c1b007d2a0"
+    "alpine@sha256:4edbd2beb5f78b1014028f4fbb99f3237d9561100b6881aabbf5acce2c4f9454"
   def authProxyTestImage =
     "bahamat/authenticated-proxy@sha256:568c759ac687f93d606866fbb397f39fe1350187b95e648376b971e9d7596e75"
 }

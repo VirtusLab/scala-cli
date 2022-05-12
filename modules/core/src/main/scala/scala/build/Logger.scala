@@ -33,6 +33,8 @@ trait Logger {
   def scalaNativeCliInternalLoggerOptions: List[String]
 
   def compilerOutputStream: PrintStream
+
+  def verbosity: Int
 }
 
 object Logger {
@@ -65,6 +67,8 @@ object Logger {
           override def write(b: Array[Byte], off: Int, len: Int): Unit = ()
         }
       )
+
+    def verbosity: Int = -1
   }
   def nop: Logger = new Nop
 }

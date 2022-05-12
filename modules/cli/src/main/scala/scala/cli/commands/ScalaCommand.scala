@@ -89,7 +89,7 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
 
   def maybePrintGroupHelp(options: T): Unit =
     for (shared <- sharedOptions(options))
-      shared.helpGroups.maybePrintGroupHelp(help)
+      shared.helpGroups.maybePrintGroupHelp(help, helpFormat)
 
   override def helpFormat =
     HelpFormat.default()

@@ -14,12 +14,12 @@ import scala.cli.signing.util.BouncycastleSigner
 class BouncycastleSignerMaker {
   def get(
     passwordOrNull: PasswordOption,
-    secretKey: Path,
+    secretKey: PasswordOption,
     launcher: Supplier[Path], // unused here, but used in the GraalVM substitution
     logger: Logger            // unused here, but used in the GraalVM substitution
   ): Signer =
     BouncycastleSigner(
-      os.Path(secretKey, os.pwd),
+      secretKey.getBytes(),
       Option(passwordOrNull).fold(Secret(""))(_.get())
     )
   def maybeInit(): Unit =

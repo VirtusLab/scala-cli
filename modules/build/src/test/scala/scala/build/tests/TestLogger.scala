@@ -55,4 +55,9 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
   def bloopCliInheritStderr = false
 
   def compilerOutputStream = System.err
+
+  def verbosity =
+    if (debug) 2
+    else if (info) 0
+    else -1
 }

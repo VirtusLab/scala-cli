@@ -8,6 +8,7 @@ sidebar_position: 3
 Print details about this application
 
 Accepts options:
+- [about](./cli-options.md#about-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
 ## `clean`
@@ -43,11 +44,32 @@ Accepts options:
 - [watch](./cli-options.md#watch-options)
 - [workspace](./cli-options.md#workspace-options)
 
+## `doc`
+
+Generate Scaladoc documentation
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
+- [dependency](./cli-options.md#dependency-options)
+- [directories](./cli-options.md#directories-options)
+- [doc](./cli-options.md#doc-options)
+- [help group](./cli-options.md#help-group-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [Scala.js](./cli-options.md#scalajs-options)
+- [Scala Native](./cli-options.md#scala-native-options)
+- [scalac](./cli-options.md#scalac-options)
+- [shared](./cli-options.md#shared-options)
+- [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
+
 ## `doctor`
 
 Print details about this application
 
 Accepts options:
+- [doctor](./cli-options.md#doctor-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
 ## `export`
@@ -213,6 +235,28 @@ Accepts options:
 - [watch](./cli-options.md#watch-options)
 - [workspace](./cli-options.md#workspace-options)
 
+## `github secret create`
+
+Aliases:
+- `gh secret create`
+
+Accepts options:
+- [coursier](./cli-options.md#coursier-options)
+- [logging](./cli-options.md#logging-options)
+- [secret](./cli-options.md#secret-options)
+- [secret create](./cli-options.md#secret-create-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
+## `github secret list`
+
+Aliases:
+- `gh secret list`
+
+Accepts options:
+- [logging](./cli-options.md#logging-options)
+- [secret](./cli-options.md#secret-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ## `setup-ide`
 
 Generate a BSP file that you can import into your IDE
@@ -333,6 +377,14 @@ Accepts options:
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
+- [directories](./cli-options.md#directories-options)
+- [logging](./cli-options.md#logging-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
+### `bloop output`
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 - [verbosity](./cli-options.md#verbosity-options)

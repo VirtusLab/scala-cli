@@ -5,6 +5,7 @@ final case class BuildRequirements(
   platform: Seq[BuildRequirements.PlatformRequirement] = Nil,
   scope: Option[BuildRequirements.ScopeRequirement] = None
 ) {
+  def needsScalaVersion: Boolean = scalaVersion.nonEmpty
   def withScalaVersion(sv: MaybeScalaVersion): Either[String, BuildRequirements] = {
     val dontPass = scalaVersion.filter(!_.valid(sv))
     if (dontPass.isEmpty)

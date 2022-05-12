@@ -5,6 +5,16 @@ sidebar_position: 1
 
 This is a summary of options that are available for each subcommand of the `scala-cli` command.
 
+## About options
+
+Available in commands:
+- [`about`](./commands.md#about)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--gh-token`
+
 ## Add path options
 
 Available in commands:
@@ -85,9 +95,11 @@ Name of BSP
 
 Available in commands:
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -210,6 +222,7 @@ Available in commands:
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -217,6 +230,7 @@ Available in commands:
 - [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
@@ -253,6 +267,7 @@ Aliases: `-X`
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -289,11 +304,13 @@ Add compiler plugin dependencies
 
 Available in commands:
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
@@ -312,6 +329,42 @@ Available in commands:
 #### `--home-directory`
 
 Aliases: `--home`
+
+## Doc options
+
+Available in commands:
+- [`doc`](./commands.md#doc)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--output`
+
+Aliases: `-o`
+
+Set the destination path
+
+#### `--force`
+
+Aliases: `-f`
+
+Overwrite the destination directory, if it exists
+
+#### `--default-scaladoc-options`
+
+Aliases: `--default-scaladoc-opts`
+
+Use default scaladoc options
+
+## Doctor options
+
+Available in commands:
+- [`doctor`](./commands.md#doctor)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--gh-token`
 
 ## Export options
 
@@ -369,17 +422,20 @@ Available in commands:
 - [`about`](./commands.md#about)
 - [`add-path`](./commands.md#add-path)
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doc`](./commands.md#doc)
 - [`doctor`](./commands.md#doctor)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`help`](./commands.md#help)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`install-home`](./commands.md#install-home)
+- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`pgp create`](./commands.md#pgp-create)
@@ -388,6 +444,7 @@ Available in commands:
 - [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
@@ -418,6 +475,7 @@ Print help message, including hidden options, and exit
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -531,6 +589,7 @@ Available in commands:
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -585,18 +644,22 @@ Port for BSP debugging
 
 Available in commands:
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
+- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
@@ -878,6 +941,10 @@ Available in commands:
 
 #### `--secret-dest`
 
+#### `--verbose`
+
+#### `--quiet`
+
 ## Pgp sign options
 
 Available in commands:
@@ -913,10 +980,6 @@ Available in commands:
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--working-dir`
-
-Directory where temporary files for publishing should be written
 
 #### `--organization`
 
@@ -958,6 +1021,34 @@ Description to put in publishing metadata
 
 Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" or "alex|Alex|https://alex.info|alex@alex.me"
 
+#### `--publish-repository`
+
+Aliases: `-R`, `--publish-repo`
+
+Repository to publish to
+
+#### `--user`
+
+User to use with publishing repository
+
+#### `--password`
+
+Password to use with publishing repository
+
+#### `--secret-key`
+
+Secret key to use to sign artifacts with BouncyCastle
+
+#### `--secret-key-password`
+
+Aliases: `--secret-key-pass`
+
+Password of secret key to use to sign artifacts with BouncyCastle
+
+#### `--working-dir`
+
+Directory where temporary files for publishing should be written
+
 #### `--scala-version-suffix`
 
 Scala version suffix to append to the module name, like "_2.13" or "_3"
@@ -965,12 +1056,6 @@ Scala version suffix to append to the module name, like "_2.13" or "_3"
 #### `--scala-platform-suffix`
 
 Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
-
-#### `--publish-repository`
-
-Aliases: `-R`, `--publish-repo`
-
-Repository to publish to
 
 #### `--sources`
 
@@ -987,16 +1072,6 @@ Whether to build and publish doc JARs
 Aliases: `-K`
 
 ID of the GPG key to use to sign artifacts
-
-#### `--secret-key`
-
-Secret key to use to sign artifacts with BouncyCastle
-
-#### `--secret-key-password`
-
-Aliases: `--secret-key-pass`
-
-Password of secret key to use to sign artifacts with BouncyCastle
 
 #### `--signer`
 
@@ -1041,6 +1116,7 @@ Don't actually run the REPL, just fetch it
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -1134,6 +1210,7 @@ Whether to run the Scala.js CLI on the JVM or using a native executable
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -1193,6 +1270,7 @@ Use default compile options
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -1213,6 +1291,39 @@ Aliases: `--scala-opt`, `-O`
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
 
+## Secret options
+
+Available in commands:
+- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--token`
+
+#### `--repository`
+
+Aliases: `--repo`
+
+## Secret create options
+
+Available in commands:
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--public-key`
+
+Aliases: `--pub-key`
+
+#### `--dummy`
+
+Aliases: `-n`
+
+#### `--print-request`
+
 ## Setup IDE options
 
 Available in commands:
@@ -1228,6 +1339,7 @@ Available in commands:
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
@@ -1336,27 +1448,33 @@ Force update scala-cli if is outdated
 
 #### `--is-internal-run`
 
+#### `--gh-token`
+
 ## Verbosity options
 
 Available in commands:
 - [`about`](./commands.md#about)
 - [`add-path`](./commands.md#add-path)
 - [`bloop exit`](./commands.md#bloop-exit)
+- [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`directories`](./commands.md#directories)
+- [`doc`](./commands.md#doc)
 - [`doctor`](./commands.md#doctor)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`install completions` / `install-completions`](./commands.md#install-completions)
 - [`install-home`](./commands.md#install-home)
+- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
+- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
@@ -1392,7 +1510,9 @@ Aliases: `-w`
 
 Watch source files for changes
 
-#### `--revolver`
+#### `--restart`
+
+Aliases: `--revolver`
 
 Run your application in background and automatically restart if sources have been changed
 
@@ -1402,6 +1522,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)

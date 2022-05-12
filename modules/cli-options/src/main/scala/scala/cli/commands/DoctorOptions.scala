@@ -2,11 +2,16 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.util.ArgParsers._
+
 // format: off
 @HelpMessage("Print details about this application")
 final case class DoctorOptions(
   @Recurse
-    verbosity: VerbosityOptions = VerbosityOptions()
+    verbosity: VerbosityOptions = VerbosityOptions(),
+  @Hidden
+    ghToken: Option[PasswordOption] = None
 )
 // format: on
 

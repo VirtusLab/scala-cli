@@ -81,7 +81,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
 
     // format: off
     val signingOptions = Seq(
-      "--secret-key", secretKey.toString,
+      "--secret-key", s"file:$secretKey",
       "--secret-key-password", "value:1234",
       "--signer", "bc"
     )

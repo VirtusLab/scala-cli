@@ -59,9 +59,9 @@ object BloopRifle {
         val bloopServerSupportsFileTruncating =
           isScalaCliBloop && {
             version.takeWhile(c => c.isDigit || c == '.').split('.') match {
-              case Array(IntValue(maj), IntValue(min), IntValue(patch)) =>
+              case Array(IntValue(maj), IntValue(min), IntValue(patch), _ @ _*) =>
                 import scala.math.Ordering.Implicits._
-                Seq(maj, min, patch) >= Seq(1, 14, 20)
+                Seq(maj, min, patch) >= Seq(1, 4, 20)
               case _ =>
                 false
             }
