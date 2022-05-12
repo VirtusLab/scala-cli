@@ -1019,6 +1019,10 @@ Aliases: `-G`, `--gpg-opt`
 
 gpg command-line options
 
+#### `--ivy2-home`
+
+Set Ivy 2 home directory
+
 #### `--ivy2-local-like`
 
 ## Publish params options

@@ -161,6 +161,10 @@ object Publish extends ScalaCommand[PublishOptions] {
         )
       }
 
+    val ivy2HomeOpt = options.sharedPublish.ivy2Home
+      .filter(_.trim.nonEmpty)
+      .map(os.Path(_, os.pwd))
+
     doRun(
       inputs,
       logger,
@@ -169,6 +173,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       docCompilerMaker,
       cross,
       workingDir,
+      ivy2HomeOpt,
       options.watch.watch
     )
   }
@@ -181,6 +186,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     docCompilerMaker: ScalaCompilerMaker,
     cross: Boolean,
     workingDir: => os.Path,
+    ivy2HomeOpt: Option[os.Path],
     watch: Boolean
   ): Unit = {
 
@@ -197,7 +203,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         res.orReport(logger).foreach { builds =>
-          maybePublish(builds, workingDir, logger, allowExit = false)
+          maybePublish(builds, workingDir, ivy2HomeOpt, logger, allowExit = false)
         }
       }
       try WatchUtil.waitForCtrlC()
@@ -215,7 +221,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           buildTests = false,
           partial = None
         ).orExit(logger)
-      maybePublish(builds, workingDir, logger, allowExit = true)
+      maybePublish(builds, workingDir, ivy2HomeOpt, logger, allowExit = true)
     }
   }
 
@@ -229,6 +235,7 @@ object Publish extends ScalaCommand[PublishOptions] {
   private def maybePublish(
     builds: Builds,
     workingDir: os.Path,
+    ivy2HomeOpt: Option[os.Path],
     logger: Logger,
     allowExit: Boolean
   ): Unit = {
@@ -250,7 +257,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       val docBuilds0 = builds.allDoc.collect {
         case s: Build.Successful => s
       }
-      val res = doPublish(builds0, docBuilds0, workingDir, logger)
+      val res = doPublish(builds0, docBuilds0, workingDir, ivy2HomeOpt, logger)
       if (allowExit)
         res.orExit(logger)
       else
@@ -478,6 +485,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     builds: Seq[Build.Successful],
     docBuilds: Seq[Build.Successful],
     workingDir: os.Path,
+    ivy2HomeOpt: Option[os.Path],
     logger: Logger
   ): Either[BuildException, Unit] = either {
 
@@ -525,6 +533,17 @@ object Publish extends ScalaCommand[PublishOptions] {
         (repo0, hooks0, false)
       }
 
+      def ivy2Local = {
+        val home = ivy2HomeOpt.getOrElse(os.home / ".ivy2")
+        val base = home / "local"
+        // not really a Maven repo…
+        (
+          PublishRepository.Simple(MavenRepository(base.toNIO.toUri.toASCIIString)),
+          Hooks.dummy,
+          true
+        )
+      }
+
       publishOptions.repository match {
         case None =>
           value(Left(new MissingPublishOptionError(
@@ -532,6 +551,8 @@ object Publish extends ScalaCommand[PublishOptions] {
             "--publish-repository",
             "publish.repository"
           )))
+        case Some("ivy2-local") =>
+          ivy2Local
         case Some("central" | "maven-central" | "mvn-central") =>
           centralRepo("https://oss.sonatype.org")
         case Some("central-s01" | "maven-central-s01" | "mvn-central-s01") =>

@@ -47,7 +47,12 @@ final case class SharedPublishOptions(
   @ValueDescription("argument")
   @ExtraName("G")
   @ExtraName("gpgOpt")
-    gpgOption: List[String] = Nil
+    gpgOption: List[String] = Nil,
+
+  @Group("Publishing")
+  @HelpMessage("Set Ivy 2 home directory")
+  @ValueDescription("path")
+    ivy2Home: Option[String] = None
 
 )
 // format: on
