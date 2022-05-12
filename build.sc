@@ -34,7 +34,8 @@ import _root_.scala.util.Properties
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli extends Cli3 {
+object cli extends Cli3 with Bloop.Module {
+  def skipBloop = true
   object test extends Tests {
     def moduleDeps = super.moduleDeps ++ Seq(
       `build-module`(myScalaVersion).test
