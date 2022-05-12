@@ -13,7 +13,6 @@ import scala.build.{Artifacts, Os, Positioned}
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.{CoursierOptions, LoggingOptions}
 import scala.concurrent.duration._
-import scala.util.Properties
 import scala.util.control.NonFatal
 
 object LauncherCli {

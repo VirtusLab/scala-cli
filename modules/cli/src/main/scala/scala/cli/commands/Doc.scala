@@ -4,6 +4,7 @@ import caseapp._
 import dependency._
 
 import java.io.File
+
 import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}

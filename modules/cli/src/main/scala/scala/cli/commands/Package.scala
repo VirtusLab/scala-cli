@@ -2,7 +2,6 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.launcher._
-import dependency._
 import packager.config._
 import packager.deb.DebianPackage
 import packager.docker.DockerPackage
@@ -11,7 +10,7 @@ import packager.mac.pkg.PkgPackage
 import packager.rpm.RedHatPackage
 import packager.windows.WindowsPackage
 
-import java.io.{ByteArrayOutputStream, File, OutputStream}
+import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
@@ -161,7 +160,7 @@ object Package extends ScalaCommand[PackageOptions] {
             for (basePackageType <- basePackageTypeOpt)
               yield
                 if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
-                else Left(MalformedCliInputError(
+                else Left(new MalformedCliInputError(
                   s"Unsuported package type: $basePackageType for Scala Native."
                 ))
           validatedPackageType.getOrElse(Right(PackageType.Native))

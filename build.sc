@@ -44,6 +44,7 @@ object cli extends Cli3 {
 
 // remove once we do not have blockers with Scala 3
 object cli2 extends Cli {
+  def myScalaVersion = Scala.scala213
   def sources = T.sources {
     super.sources() ++ cli.sources()
   }
@@ -619,7 +620,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
-  def myScalaVersion = Scala.defaultInternal
+  def myScalaVersion: String
 
   def scalaVersion = T(myScalaVersion)
 
@@ -668,7 +669,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 }
 
 trait Cli3 extends Cli {
-  override def myScalaVersion = Scala.scala3
+  def myScalaVersion = Scala.scala3
 
   override def nativeImageClassPath = T {
     val classpath = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)

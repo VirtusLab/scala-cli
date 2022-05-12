@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.internal.{Constants, FetchExternalBinary, OsLibc}
+import scala.build.internal.{Constants, FetchExternalBinary}
 import scala.cli.internal.{Constants => CliConstants}
 import scala.util.Properties
 import scala.util.control.NonFatal

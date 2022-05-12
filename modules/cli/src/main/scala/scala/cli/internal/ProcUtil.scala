@@ -1,6 +1,5 @@
 package scala.cli.internal
 
-import java.io.InputStream
 import java.net.{HttpURLConnection, URL, URLConnection}
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.{CancellationException, CompletableFuture, CompletionException}
