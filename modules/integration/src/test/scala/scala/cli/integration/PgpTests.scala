@@ -50,4 +50,36 @@ class PgpTests extends munit.FunSuite {
     }
   }
 
+  test("pgp pull") {
+    // random key that I pushed to the default ker server at some point
+    val res = os.proc(TestUtil.cli, "pgp", "pull", "0x914d298df8fa4d20")
+      .call()
+    val output = res.out.text().trim
+    val start  = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
+    val end    = "-----END PGP PUBLIC KEY BLOCK-----"
+    val expectedLines = Seq(
+      "xsBNBGKDqDYDCACw/2akQ1h6NHmtcEKQThq7OMdExyJ4WUKWdr+iV3BFx/AZICRd",
+      "t1QH/06YazNGeuLzc62Mamnr8kA0AakGJxPZ83rGXcdahBRd9Enga32pcEks6YPI",
+      "mnSk2Og334LRowks7+/8CEofK/w="
+    )
+    expect(output.startsWith(start))
+    expect(output.endsWith(end))
+    val outputLines = output.linesIterator.toSet
+    for (expectedLine <- expectedLines)
+      expect(outputLines.contains(expectedLine))
+  }
+
+  test("pgp push") {
+    pubKeyInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "pgp", "push", "key.pub").call(cwd = root)
+    }
+  }
+
+  if (!TestUtil.isNativeCli)
+    test("pgp push with binary") {
+      pubKeyInputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "pgp", "push", "key.pub", "--force-signing-binary").call(cwd = root)
+      }
+    }
+
 }

@@ -229,6 +229,7 @@ Available in commands:
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`pgp push`](./commands.md#pgp-push)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
@@ -445,6 +446,8 @@ Available in commands:
 - [`package`](./commands.md#package)
 - [`pgp create`](./commands.md#pgp-create)
 - [`pgp key-id`](./commands.md#pgp-key-id)
+- [`pgp pull`](./commands.md#pgp-pull)
+- [`pgp push`](./commands.md#pgp-push)
 - [`pgp sign`](./commands.md#pgp-sign)
 - [`pgp verify`](./commands.md#pgp-verify)
 - [`publish`](./commands.md#publish)
@@ -665,6 +668,8 @@ Available in commands:
 - [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`pgp pull`](./commands.md#pgp-pull)
+- [`pgp push`](./commands.md#pgp-push)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
@@ -965,6 +970,51 @@ Available in commands:
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
 #### `--fingerprint`
+
+## Pgp pull options
+
+Available in commands:
+- [`pgp pull`](./commands.md#pgp-pull)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--allow-empty`
+
+Whether to exit with code 0 if no key is passed
+
+## Pgp push options
+
+Available in commands:
+- [`pgp push`](./commands.md#pgp-push)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--force`
+
+Aliases: `-f`
+
+Try to push the key even if Scala CLI thinks it's not a public key
+
+#### `--allow-empty`
+
+Whether to exit with code 0 if no key is passed
+
+#### `--force-signing-binary`
+
+## Pgp push pull options
+
+Available in commands:
+- [`pgp pull`](./commands.md#pgp-pull)
+- [`pgp push`](./commands.md#pgp-push)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--key-server`
+
+Key server to push / pull keys from
 
 ## Pgp sign options
 
@@ -1526,6 +1576,8 @@ Available in commands:
 - [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
+- [`pgp pull`](./commands.md#pgp-pull)
+- [`pgp push`](./commands.md#pgp-push)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)

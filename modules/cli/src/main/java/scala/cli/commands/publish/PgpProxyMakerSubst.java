@@ -5,9 +5,9 @@ import com.oracle.svm.core.annotate.TargetClass;
 import scala.cli.commands.pgp.PgpProxy;
 
 @TargetClass(className = "scala.cli.commands.pgp.PgpProxyMaker")
-final class PgpProxyMakerSubst {
+public final class PgpProxyMakerSubst {
   @Substitute
-  PgpProxy get() {
+  public PgpProxy get() {
     return new PgpProxy();
   }
 }
