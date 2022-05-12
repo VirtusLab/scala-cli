@@ -490,6 +490,11 @@ Create PGP key pair
 Accepts options:
 - [pgp create](./cli-options.md#pgp-create-options)
 
+### `pgp key-id`
+
+Accepts options:
+- [pgp key id](./cli-options.md#pgp-key-id-options)
+
 ### `pgp sign`
 
 Sign files with PGP

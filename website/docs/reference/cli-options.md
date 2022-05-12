@@ -444,6 +444,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`pgp create`](./commands.md#pgp-create)
+- [`pgp key-id`](./commands.md#pgp-key-id)
 - [`pgp sign`](./commands.md#pgp-sign)
 - [`pgp verify`](./commands.md#pgp-verify)
 - [`publish`](./commands.md#publish)
@@ -954,6 +955,16 @@ Available in commands:
 #### `--verbose`
 
 #### `--quiet`
+
+## Pgp key id options
+
+Available in commands:
+- [`pgp key-id`](./commands.md#pgp-key-id)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--fingerprint`
 
 ## Pgp sign options
 
