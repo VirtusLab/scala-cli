@@ -153,7 +153,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     lazy val workingDir = options.sharedPublish.workingDir
       .filter(_.trim.nonEmpty)
-      .map(os.Path(_, Os.pwd))
+      .map(os.Path(_, os.pwd))
       .getOrElse {
         os.temp.dir(
           prefix = "scala-cli-publish-",
@@ -174,6 +174,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       cross,
       workingDir,
       ivy2HomeOpt,
+      publishLocal = false,
       options.watch.watch
     )
   }
@@ -187,6 +188,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     cross: Boolean,
     workingDir: => os.Path,
     ivy2HomeOpt: Option[os.Path],
+    publishLocal: Boolean,
     watch: Boolean
   ): Unit = {
 
@@ -203,7 +205,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         res.orReport(logger).foreach { builds =>
-          maybePublish(builds, workingDir, ivy2HomeOpt, logger, allowExit = false)
+          maybePublish(builds, workingDir, ivy2HomeOpt, publishLocal, logger, allowExit = false)
         }
       }
       try WatchUtil.waitForCtrlC()
@@ -221,7 +223,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           buildTests = false,
           partial = None
         ).orExit(logger)
-      maybePublish(builds, workingDir, ivy2HomeOpt, logger, allowExit = true)
+      maybePublish(builds, workingDir, ivy2HomeOpt, publishLocal, logger, allowExit = true)
     }
   }
 
@@ -236,6 +238,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     builds: Builds,
     workingDir: os.Path,
     ivy2HomeOpt: Option[os.Path],
+    publishLocal: Boolean,
     logger: Logger,
     allowExit: Boolean
   ): Unit = {
@@ -257,7 +260,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       val docBuilds0 = builds.allDoc.collect {
         case s: Build.Successful => s
       }
-      val res = doPublish(builds0, docBuilds0, workingDir, ivy2HomeOpt, logger)
+      val res = doPublish(builds0, docBuilds0, workingDir, ivy2HomeOpt, publishLocal, logger)
       if (allowExit)
         res.orExit(logger)
       else
@@ -486,6 +489,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     docBuilds: Seq[Build.Successful],
     workingDir: os.Path,
     ivy2HomeOpt: Option[os.Path],
+    publishLocal: Boolean,
     logger: Logger
   ): Either[BuildException, Unit] = either {
 
@@ -544,37 +548,40 @@ object Publish extends ScalaCommand[PublishOptions] {
         )
       }
 
-      publishOptions.repository match {
-        case None =>
-          value(Left(new MissingPublishOptionError(
-            "repository",
-            "--publish-repository",
-            "publish.repository"
-          )))
-        case Some("ivy2-local") =>
-          ivy2Local
-        case Some("central" | "maven-central" | "mvn-central") =>
-          centralRepo("https://oss.sonatype.org")
-        case Some("central-s01" | "maven-central-s01" | "mvn-central-s01") =>
-          centralRepo("https://s01.oss.sonatype.org")
-        case Some(repoStr) =>
-          val repo0 = RepositoryParser.repositoryOpt(repoStr)
-            .collect {
-              case m: MavenRepository =>
-                m
-            }
-            .getOrElse {
-              val url =
-                if (repoStr.contains("://")) repoStr
-                else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
-              MavenRepository(url)
-            }
-          (
-            PublishRepository.Simple(repo0),
-            Hooks.dummy,
-            publishOptions.repositoryIsIvy2LocalLike.getOrElse(false)
-          )
-      }
+      if (publishLocal)
+        ivy2Local
+      else
+        publishOptions.repository match {
+          case None =>
+            value(Left(new MissingPublishOptionError(
+              "repository",
+              "--publish-repository",
+              "publish.repository"
+            )))
+          case Some("ivy2-local") =>
+            ivy2Local
+          case Some("central" | "maven-central" | "mvn-central") =>
+            centralRepo("https://oss.sonatype.org")
+          case Some("central-s01" | "maven-central-s01" | "mvn-central-s01") =>
+            centralRepo("https://s01.oss.sonatype.org")
+          case Some(repoStr) =>
+            val repo0 = RepositoryParser.repositoryOpt(repoStr)
+              .collect {
+                case m: MavenRepository =>
+                  m
+              }
+              .getOrElse {
+                val url =
+                  if (repoStr.contains("://")) repoStr
+                  else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
+                MavenRepository(url)
+              }
+            (
+              PublishRepository.Simple(repo0),
+              Hooks.dummy,
+              publishOptions.repositoryIsIvy2LocalLike.getOrElse(false)
+            )
+        }
     }
 
     val now = Instant.now()

@@ -4,6 +4,68 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None) {
 
+  test("publish local") {
+    val testOrg     = "test-local-org.sth"
+    val testName    = "my-proj"
+    val testVersion = "1.5.6"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Project.scala" ->
+          s"""//> using publish.organization "$testOrg"
+             |//> using publish.name "$testName"
+             |//> using publish.version "$testVersion"
+             |
+             |//> using scala "2.13"
+             |//> using lib "com.lihaoyi::os-lib:0.8.1"
+             |
+             |object Project {
+             |  def message = "Hello"
+             |
+             |  def main(args: Array[String]): Unit =
+             |    println(message)
+             |}
+             |""".stripMargin
+      )
+    )
+
+    val expectedFiles = {
+      val modName = s"${testName}_2.13"
+      val base    = os.rel / testOrg / modName / testVersion
+      val baseFiles = Seq(
+        base / "jars" / s"$modName.jar",
+        base / "docs" / s"$modName-javadoc.jar",
+        base / "srcs" / s"$modName-sources.jar",
+        base / "poms" / s"$modName.pom",
+        base / "ivys" / "ivy.xml"
+      )
+      baseFiles
+        .flatMap { f =>
+          val md5  = f / os.up / s"${f.last}.md5"
+          val sha1 = f / os.up / s"${f.last}.sha1"
+          Seq(f, md5, sha1)
+        }
+        .toSet
+    }
+
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "publish", "local", "Project.scala", "--ivy2-home", os.rel / "ivy2")
+        .call(cwd = root)
+      val ivy2Local = root / "ivy2" / "local"
+      val foundFiles = os.walk(ivy2Local)
+        .filter(os.isFile(_))
+        .map(_.relativeTo(ivy2Local))
+        .toSet
+      val missingFiles    = expectedFiles -- foundFiles
+      val unexpectedFiles = foundFiles -- expectedFiles
+      if (missingFiles.nonEmpty)
+        pprint.err.log(missingFiles)
+      if (unexpectedFiles.nonEmpty)
+        pprint.err.log(unexpectedFiles)
+      expect(missingFiles.isEmpty)
+      expect(unexpectedFiles.isEmpty)
+    }
+  }
+
   test("Pure Java") {
     val testOrg     = "test-org.foo"
     val testName    = "foo"
