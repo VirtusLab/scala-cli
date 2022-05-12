@@ -981,6 +981,54 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
+#### `--working-dir`
+
+Directory where temporary files for publishing should be written
+
+#### `--scala-version-suffix`
+
+Scala version suffix to append to the module name, like "_2.13" or "_3"
+
+#### `--scala-platform-suffix`
+
+Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
+
+#### `--sources`
+
+Whether to build and publish source JARs
+
+#### `--doc`
+
+Aliases: `--scaladoc`, `--javadoc`
+
+Whether to build and publish doc JARs
+
+#### `--gpg-key`
+
+Aliases: `-K`
+
+ID of the GPG key to use to sign artifacts
+
+#### `--signer`
+
+Method to use to sign artifacts
+
+#### `--gpg-option`
+
+Aliases: `-G`, `--gpg-opt`
+
+gpg command-line options
+
+#### `--ivy2-local-like`
+
+## Publish params options
+
+Available in commands:
+- [`publish`](./commands.md#publish)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
 #### `--organization`
 
 Organization to publish artifacts under
@@ -1021,6 +1069,24 @@ Description to put in publishing metadata
 
 Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" or "alex|Alex|https://alex.info|alex@alex.me"
 
+#### `--secret-key`
+
+Secret key to use to sign artifacts with BouncyCastle
+
+#### `--secret-key-password`
+
+Aliases: `--secret-key-pass`
+
+Password of secret key to use to sign artifacts with BouncyCastle
+
+## Publish repository options
+
+Available in commands:
+- [`publish`](./commands.md#publish)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
 #### `--publish-repository`
 
 Aliases: `-R`, `--publish-repo`
@@ -1034,56 +1100,6 @@ User to use with publishing repository
 #### `--password`
 
 Password to use with publishing repository
-
-#### `--secret-key`
-
-Secret key to use to sign artifacts with BouncyCastle
-
-#### `--secret-key-password`
-
-Aliases: `--secret-key-pass`
-
-Password of secret key to use to sign artifacts with BouncyCastle
-
-#### `--working-dir`
-
-Directory where temporary files for publishing should be written
-
-#### `--scala-version-suffix`
-
-Scala version suffix to append to the module name, like "_2.13" or "_3"
-
-#### `--scala-platform-suffix`
-
-Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
-
-#### `--sources`
-
-Whether to build and publish source JARs
-
-#### `--doc`
-
-Aliases: `--scaladoc`, `--javadoc`
-
-Whether to build and publish doc JARs
-
-#### `--gpg-key`
-
-Aliases: `-K`
-
-ID of the GPG key to use to sign artifacts
-
-#### `--signer`
-
-Method to use to sign artifacts
-
-#### `--gpg-option`
-
-Aliases: `-G`, `--gpg-opt`
-
-gpg command-line options
-
-#### `--ivy2-local-like`
 
 ## Repl options
 

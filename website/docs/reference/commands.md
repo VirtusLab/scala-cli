@@ -197,6 +197,8 @@ Accepts options:
 - [logging](./cli-options.md#logging-options)
 - [main class](./cli-options.md#main-class-options)
 - [publish](./cli-options.md#publish-options)
+- [publish params](./cli-options.md#publish-params-options)
+- [publish repository](./cli-options.md#publish-repository-options)
 - [Scala.js](./cli-options.md#scalajs-options)
 - [Scala Native](./cli-options.md#scala-native-options)
 - [scalac](./cli-options.md#scalac-options)
