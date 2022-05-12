@@ -268,50 +268,21 @@ object Publish extends ScalaCommand[PublishOptions] {
         }
     }
 
-    val dependencies = build.artifacts.userDependencies
-      .map(_.toCs(build.artifacts.scalaOpt.map(_.params)))
-      .sequence
-      .left.map(CompositeBuildException(_))
-      .orExit(logger)
-      .map { dep0 =>
-        val config =
-          if (build.scope == Scope.Main) None
-          else Some(Configuration(build.scope.name))
-        (dep0.module.organization, dep0.module.name, dep0.version, config)
+    val mainJar = {
+      val mainClassOpt = build.options.mainClass.orElse {
+        build.retainedMainClass match {
+          case Left(_: NoMainClassFoundError) => None
+          case Left(err) =>
+            logger.debug(s"Error while looking for main class: $err")
+            None
+          case Right(cls) => Some(cls)
+        }
       }
-
-    val mainClassOpt = build.options.mainClass.orElse {
-      build.retainedMainClass match {
-        case Left(_: NoMainClassFoundError) => None
-        case Left(err) =>
-          logger.debug(s"Error while looking for main class: $err")
-          None
-        case Right(cls) => Some(cls)
-      }
+      val content = Library.libraryJar(build, mainClassOpt)
+      val dest    = workingDir / org / s"$moduleName-$ver.jar"
+      os.write(dest, content, createFolders = true)
+      dest
     }
-    val mainJarContent = Library.libraryJar(build, mainClassOpt)
-    val mainJar        = workingDir / org / s"$moduleName-$ver.jar"
-    os.write(mainJar, mainJarContent, createFolders = true)
-
-    val pomContent = Pom.create(
-      organization = coursier.Organization(org),
-      moduleName = coursier.ModuleName(moduleName),
-      version = ver,
-      packaging = None,
-      url = publishOptions.url.map(_.value),
-      name = Some(name), // ?
-      dependencies = dependencies,
-      description = publishOptions.description,
-      license = publishOptions.license.map(_.value).map { l =>
-        Pom.License(l.name, l.url)
-      },
-      scm = publishOptions.versionControl.map { vcs =>
-        Pom.Scm(vcs.url, vcs.connection, vcs.developerConnection)
-      },
-      developers = publishOptions.developers.map { dev =>
-        Pom.Developer(dev.id, dev.name, dev.url, dev.mail)
-      }
-    )
 
     val sourceJarOpt =
       if (publishOptions.sourceJar.getOrElse(true)) {
@@ -336,30 +307,70 @@ object Publish extends ScalaCommand[PublishOptions] {
       else
         None
 
-    val basePath = Path(org.split('.').toSeq ++ Seq(moduleName, ver))
+    val pomContent = {
 
-    val mainEntries = Seq(
-      (basePath / s"$moduleName-$ver.pom") -> Content.InMemory(
-        now,
-        pomContent.getBytes(StandardCharsets.UTF_8)
-      ),
-      (basePath / s"$moduleName-$ver.jar") -> Content.File(mainJar.toNIO)
-    )
+      val dependencies = build.artifacts.userDependencies
+        .map(_.toCs(build.artifacts.scalaOpt.map(_.params)))
+        .sequence
+        .left.map(CompositeBuildException(_))
+        .orExit(logger)
+        .map { dep0 =>
+          val config =
+            if (build.scope == Scope.Main) None
+            else Some(Configuration(build.scope.name))
+          (dep0.module.organization, dep0.module.name, dep0.version, config)
+        }
 
-    val sourceJarEntries = sourceJarOpt
-      .map { sourceJar =>
-        (basePath / s"$moduleName-$ver-sources.jar") -> Content.File(sourceJar.toNIO)
-      }
-      .toSeq
+      Pom.create(
+        organization = coursier.Organization(org),
+        moduleName = coursier.ModuleName(moduleName),
+        version = ver,
+        packaging = None,
+        url = publishOptions.url.map(_.value),
+        name = Some(name), // ?
+        dependencies = dependencies,
+        description = publishOptions.description,
+        license = publishOptions.license.map(_.value).map { l =>
+          Pom.License(l.name, l.url)
+        },
+        scm = publishOptions.versionControl.map { vcs =>
+          Pom.Scm(vcs.url, vcs.connection, vcs.developerConnection)
+        },
+        developers = publishOptions.developers.map { dev =>
+          Pom.Developer(dev.id, dev.name, dev.url, dev.mail)
+        }
+      )
+    }
 
-    val docJarEntries = docJarOpt
-      .map { docJar =>
-        (basePath / s"$moduleName-$ver-javadoc.jar") -> Content.File(docJar.toNIO)
-      }
-      .toSeq
+    val fileSet = {
 
-    // TODO version listings, …
-    (FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries), ver)
+      val basePath = Path(org.split('.').toSeq ++ Seq(moduleName, ver))
+
+      val mainEntries = Seq(
+        (basePath / s"$moduleName-$ver.pom") -> Content.InMemory(
+          now,
+          pomContent.getBytes(StandardCharsets.UTF_8)
+        ),
+        (basePath / s"$moduleName-$ver.jar") -> Content.File(mainJar.toNIO)
+      )
+
+      val sourceJarEntries = sourceJarOpt
+        .map { sourceJar =>
+          (basePath / s"$moduleName-$ver-sources.jar") -> Content.File(sourceJar.toNIO)
+        }
+        .toSeq
+
+      val docJarEntries = docJarOpt
+        .map { docJar =>
+          (basePath / s"$moduleName-$ver-javadoc.jar") -> Content.File(docJar.toNIO)
+        }
+        .toSeq
+
+      // TODO version listings, …
+      FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries)
+    }
+
+    (fileSet, ver)
   }
 
   private def doPublish(
@@ -374,6 +385,70 @@ object Publish extends ScalaCommand[PublishOptions] {
     val it = builds.iterator.zip {
       if (docBuilds.isEmpty) Iterator.continually(None)
       else docBuilds.iterator.map(Some(_))
+    }
+
+    val publishOptions = ConfigMonoid.sum(
+      builds.map(_.options.notForBloopOptions.publishOptions)
+    )
+
+    val ec = builds.head.options.finalCache.ec
+
+    val (repo, hooks) = {
+
+      lazy val es =
+        Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
+
+      lazy val authOpt = {
+        val userOpt     = publishOptions.repoUser
+        val passwordOpt = publishOptions.repoPassword.map(_.get())
+        passwordOpt.map { password =>
+          Authentication(userOpt.fold("")(_.get().value), password.value)
+        }
+      }
+
+      def centralRepo(base: String) = {
+        val repo0 = {
+          val r = PublishRepository.Sonatype(MavenRepository(base))
+          authOpt.fold(r)(r.withAuthentication)
+        }
+        val backend = ScalaCliSttpBackend.httpURLConnection(logger)
+        val api     = SonatypeApi(backend, base + "/service/local", authOpt, logger.verbosity)
+        val hooks0 = Hooks.sonatype(
+          repo0,
+          api,
+          logger.compilerOutputStream, // meh
+          logger.verbosity,
+          batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
+          es
+        )
+        (repo0, hooks0)
+      }
+
+      publishOptions.repository match {
+        case None =>
+          value(Left(new MissingPublishOptionError(
+            "repository",
+            "--publish-repository",
+            "publish.repository"
+          )))
+        case Some("central" | "maven-central" | "mvn-central") =>
+          centralRepo("https://oss.sonatype.org")
+        case Some("central-s01" | "maven-central-s01" | "mvn-central-s01") =>
+          centralRepo("https://s01.oss.sonatype.org")
+        case Some(repoStr) =>
+          val repo0 = RepositoryParser.repositoryOpt(repoStr)
+            .collect {
+              case m: MavenRepository =>
+                m
+            }
+            .getOrElse {
+              val url =
+                if (repoStr.contains("://")) repoStr
+                else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
+              MavenRepository(url)
+            }
+          (PublishRepository.Simple(repo0), Hooks.dummy)
+      }
     }
 
     val now = Instant.now()
@@ -393,13 +468,6 @@ object Publish extends ScalaCommand[PublishOptions] {
         }
     }
 
-    val ec = builds.head.options.finalCache.ec
-    lazy val es =
-      Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
-
-    val publishOptions = ConfigMonoid.sum(
-      builds.map(_.options.notForBloopOptions.publishOptions)
-    )
     val signerOpt = publishOptions.signer.orElse {
       if (publishOptions.secretKey.isDefined) Some(PSigner.BouncyCastle)
       else if (publishOptions.gpgSignatureId.isDefined) Some(PSigner.Gpg)
@@ -473,58 +541,6 @@ object Publish extends ScalaCommand[PublishOptions] {
     val fileSet2 = fileSet1 ++ checksums
 
     val finalFileSet = fileSet2.order(ec).unsafeRun()(ec)
-
-    lazy val authOpt = {
-      val userOpt     = publishOptions.repoUser
-      val passwordOpt = publishOptions.repoPassword.map(_.get())
-      passwordOpt.map { password =>
-        Authentication(userOpt.fold("")(_.get().value), password.value)
-      }
-    }
-
-    def centralRepo(base: String) = {
-      val repo0 = {
-        val r = PublishRepository.Sonatype(MavenRepository(base))
-        authOpt.fold(r)(r.withAuthentication)
-      }
-      val backend = ScalaCliSttpBackend.httpURLConnection(logger)
-      val api     = SonatypeApi(backend, base + "/service/local", authOpt, logger.verbosity)
-      val hooks0 = Hooks.sonatype(
-        repo0,
-        api,
-        logger.compilerOutputStream, // meh
-        logger.verbosity,
-        batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
-        es
-      )
-      (repo0, hooks0)
-    }
-
-    val (repo, hooks) = publishOptions.repository match {
-      case None =>
-        value(Left(new MissingPublishOptionError(
-          "repository",
-          "--publish-repository",
-          "publish.repository"
-        )))
-      case Some("central" | "maven-central" | "mvn-central") =>
-        centralRepo("https://oss.sonatype.org")
-      case Some("central-s01" | "maven-central-s01" | "mvn-central-s01") =>
-        centralRepo("https://s01.oss.sonatype.org")
-      case Some(repoStr) =>
-        val repo0 = RepositoryParser.repositoryOpt(repoStr)
-          .collect {
-            case m: MavenRepository =>
-              m
-          }
-          .getOrElse {
-            val url =
-              if (repoStr.contains("://")) repoStr
-              else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
-            MavenRepository(url)
-          }
-        (PublishRepository.Simple(repo0), Hooks.dummy)
-    }
 
     val isSnapshot0 = versionOpt.exists(_.endsWith("SNAPSHOT"))
     val hooksData   = hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
