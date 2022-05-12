@@ -24,17 +24,25 @@ import java.util.function.Supplier
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
+import scala.build._
+import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
 import scala.build.options.{BuildOptions, ConfigMonoid, Scope}
-import scala.build.{Build, BuildThreads, Builds, Logger, Os, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
+import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.util.SharedOptionsUtil._
-import scala.cli.commands.{Package => PackageCmd, ScalaCommand, WatchUtil}
+import scala.cli.commands.{
+  MainClassOptions,
+  Package => PackageCmd,
+  ScalaCommand,
+  SharedOptions,
+  WatchUtil
+}
 import scala.cli.errors.{FailedToSignFileError, MissingPublishOptionError, UploadError}
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
@@ -46,8 +54,14 @@ object Publish extends ScalaCommand[PublishOptions] {
   override def sharedOptions(options: PublishOptions) =
     Some(options.shared)
 
-  def mkBuildOptions(ops: PublishOptions): Either[BuildException, BuildOptions] = either {
-    import ops._
+  def mkBuildOptions(
+    shared: SharedOptions,
+    publishParams: PublishParamsOptions,
+    sharedPublish: SharedPublishOptions,
+    publishRepo: PublishRepositoryOptions,
+    mainClass: MainClassOptions,
+    ivy2LocalLike: Option[Boolean]
+  ): Either[BuildException, BuildOptions] = either {
     val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
@@ -116,13 +130,21 @@ object Publish extends ScalaCommand[PublishOptions] {
 
   def run(options: PublishOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
+
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
-    val logger              = options.shared.logger
-    val initialBuildOptions = mkBuildOptions(options).orExit(logger)
-    val threads             = BuildThreads.create()
+    val logger = options.shared.logger
+    val initialBuildOptions = mkBuildOptions(
+      options.shared,
+      options.publishParams,
+      options.sharedPublish,
+      options.publishRepo,
+      options.mainClass,
+      options.ivy2LocalLike
+    ).orExit(logger)
+    val threads = BuildThreads.create()
 
     val compilerMaker    = options.shared.compilerMaker(threads)
     val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true)
@@ -139,7 +161,30 @@ object Publish extends ScalaCommand[PublishOptions] {
         )
       }
 
-    if (options.watch.watch) {
+    doRun(
+      inputs,
+      logger,
+      initialBuildOptions,
+      compilerMaker,
+      docCompilerMaker,
+      cross,
+      workingDir,
+      options.watch.watch
+    )
+  }
+
+  def doRun(
+    inputs: Inputs,
+    logger: Logger,
+    initialBuildOptions: BuildOptions,
+    compilerMaker: ScalaCompilerMaker,
+    docCompilerMaker: ScalaCompilerMaker,
+    cross: Boolean,
+    workingDir: => os.Path,
+    watch: Boolean
+  ): Unit = {
+
+    if (watch) {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
