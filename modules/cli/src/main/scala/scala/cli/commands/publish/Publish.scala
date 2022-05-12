@@ -327,7 +327,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val mainJar = {
       val mainClassOpt = build.options.mainClass.orElse {
-        build.retainedMainClass match {
+        build.retainedMainClass(logger) match {
           case Left(_: NoMainClassFoundError) => None
           case Left(err) =>
             logger.debug(s"Error while looking for main class: $err")

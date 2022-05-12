@@ -96,7 +96,10 @@ final case class SharedOptions(
   helpGroups: HelpGroupOptions = HelpGroupOptions(),
 
   @Hidden
-    strictBloopJsonCheck: Option[Boolean] = None
+    strictBloopJsonCheck: Option[Boolean] = None,
+  @HelpMessage("Interactive mode")
+  @Name("-i")
+    interactive: Option[Boolean] = None
 )
   // format: on
 
