@@ -105,6 +105,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -201,6 +202,7 @@ Compile test scope
 Available in commands:
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
@@ -228,6 +230,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
@@ -273,6 +276,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -317,6 +321,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -442,6 +447,7 @@ Available in commands:
 - [`pgp sign`](./commands.md#pgp-sign)
 - [`pgp verify`](./commands.md#pgp-verify)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
@@ -481,6 +487,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -595,6 +602,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -657,6 +665,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
@@ -683,6 +692,7 @@ Available in commands:
 - [`export`](./commands.md#export)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
 
@@ -977,6 +987,60 @@ Available in commands:
 
 Available in commands:
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--working-dir`
+
+Directory where temporary files for publishing should be written
+
+#### `--scala-version-suffix`
+
+Scala version suffix to append to the module name, like "_2.13" or "_3"
+
+#### `--scala-platform-suffix`
+
+Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
+
+#### `--sources`
+
+Whether to build and publish source JARs
+
+#### `--doc`
+
+Aliases: `--scaladoc`, `--javadoc`
+
+Whether to build and publish doc JARs
+
+#### `--gpg-key`
+
+Aliases: `-K`
+
+ID of the GPG key to use to sign artifacts
+
+#### `--signer`
+
+Method to use to sign artifacts
+
+#### `--gpg-option`
+
+Aliases: `-G`, `--gpg-opt`
+
+gpg command-line options
+
+#### `--ivy2-home`
+
+Set Ivy 2 home directory
+
+#### `--ivy2-local-like`
+
+## Publish params options
+
+Available in commands:
+- [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1021,6 +1085,24 @@ Description to put in publishing metadata
 
 Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" or "alex|Alex|https://alex.info|alex@alex.me"
 
+#### `--secret-key`
+
+Secret key to use to sign artifacts with BouncyCastle
+
+#### `--secret-key-password`
+
+Aliases: `--secret-key-pass`
+
+Password of secret key to use to sign artifacts with BouncyCastle
+
+## Publish repository options
+
+Available in commands:
+- [`publish`](./commands.md#publish)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
 #### `--publish-repository`
 
 Aliases: `-R`, `--publish-repo`
@@ -1034,54 +1116,6 @@ User to use with publishing repository
 #### `--password`
 
 Password to use with publishing repository
-
-#### `--secret-key`
-
-Secret key to use to sign artifacts with BouncyCastle
-
-#### `--secret-key-password`
-
-Aliases: `--secret-key-pass`
-
-Password of secret key to use to sign artifacts with BouncyCastle
-
-#### `--working-dir`
-
-Directory where temporary files for publishing should be written
-
-#### `--scala-version-suffix`
-
-Scala version suffix to append to the module name, like "_2.13" or "_3"
-
-#### `--scala-platform-suffix`
-
-Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
-
-#### `--sources`
-
-Whether to build and publish source JARs
-
-#### `--doc`
-
-Aliases: `--scaladoc`, `--javadoc`
-
-Whether to build and publish doc JARs
-
-#### `--gpg-key`
-
-Aliases: `-K`
-
-ID of the GPG key to use to sign artifacts
-
-#### `--signer`
-
-Method to use to sign artifacts
-
-#### `--gpg-option`
-
-Aliases: `-G`, `--gpg-opt`
-
-gpg command-line options
 
 ## Repl options
 
@@ -1122,6 +1156,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -1216,6 +1251,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -1276,6 +1312,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -1345,6 +1382,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -1472,6 +1510,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
@@ -1496,6 +1535,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
@@ -1528,6 +1568,7 @@ Available in commands:
 - [`browse` / `metabrowse`](./commands.md#browse)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
