@@ -10,7 +10,7 @@ const Index = (props) => {
     image="gifs/education.gif"
     id="education"
     >
-    <p>Scala-cli is deigned in a way so you can focus on learning, not struggle with installation or build tool.</p>
+    <p>Scala-cli is designed in a way so you can focus on learning, not struggle with installation or build tool.</p>
   </UseCase>;
 };
 
