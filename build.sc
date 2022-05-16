@@ -705,17 +705,14 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
   def modulesPath = T {
     val name                = mainArtifactName().stripPrefix(prefix)
     val baseIntegrationPath = os.Path(millSourcePath.toString.stripSuffix(name))
-    val p = os.Path(
-      baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName)
-    )
-    PathRef(p)
+    baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName)
   }
   def sources = T.sources {
-    val mainPath = PathRef(modulesPath().path / "integration" / "src" / "main" / "scala")
+    val mainPath = PathRef(os.Path(modulesPath()) / "integration" / "src" / "main" / "scala")
     super.sources() ++ Seq(mainPath)
   }
   def resources = T.sources {
-    val mainPath = PathRef(modulesPath().path / "integration" / "src" / "main" / "resources")
+    val mainPath = PathRef(os.Path(modulesPath()) / "integration" / "src" / "main" / "resources")
     super.resources() ++ Seq(mainPath)
   }
 
