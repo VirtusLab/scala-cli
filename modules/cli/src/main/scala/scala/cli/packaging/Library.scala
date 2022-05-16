@@ -2,7 +2,6 @@ package scala.cli.packaging
 
 import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.file.attribute.FileTime
-import java.nio.file.{Files, Path}
 import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 

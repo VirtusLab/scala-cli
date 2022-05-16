@@ -9,14 +9,23 @@ set -eu
 
 SCALA_CLI_VERSION="0.1.5"
 
+GH_ORG="VirtusLab"
+GH_NAME="scala-cli"
+
+if [ "$SCALA_CLI_VERSION" == "nightly" ]; then
+  TAG="nightly"
+else
+  TAG="v$SCALA_CLI_VERSION"
+fi
+
 if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
-  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$SCALA_CLI_VERSION/scala-cli-x86_64-pc-linux.gz"
+  SCALA_CLI_URL="https://github.com/$GH_ORG/$GH_NAME/releases/download/$TAG/scala-cli-x86_64-pc-linux.gz"
   CACHE_BASE="$HOME/.cache/coursier/v1"
 elif [ "$(uname)" == "Darwin" ]; then
-  SCALA_CLI_URL="https://github.com/VirtusLab/scala-cli/releases/download/v$SCALA_CLI_VERSION/scala-cli-x86_64-apple-darwin.gz"
+  SCALA_CLI_URL="https://github.com/$GH_ORG/$GH_NAME/releases/download/$TAG/scala-cli-x86_64-apple-darwin.gz"
   CACHE_BASE="$HOME/Library/Caches/Coursier/v1"
 else
-   echo "This standalone scala-cli launcher is supported only in Linux and Darwin OS. If you are using Windows, please use the dedicated launcher scala-cli.bat"
+   echo "This standalone scala-cli launcher is supported only in Linux and macOS. If you are using Windows, please use the dedicated launcher scala-cli.bat"
    exit 1
 fi
 

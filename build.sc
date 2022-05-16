@@ -34,7 +34,8 @@ import _root_.scala.util.Properties
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli extends Cli3 {
+object cli extends Cli3 with Bloop.Module {
+  def skipBloop = true
   object test extends Tests {
     def moduleDeps = super.moduleDeps ++ Seq(
       `build-module`(myScalaVersion).test
@@ -44,6 +45,7 @@ object cli extends Cli3 {
 
 // remove once we do not have blockers with Scala 3
 object cli2 extends Cli {
+  def myScalaVersion = Scala.scala213
   def sources = T.sources {
     super.sources() ++ cli.sources()
   }
@@ -188,7 +190,8 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliScalafixModule
     with HasTests {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
   }
   def compileIvyDeps = T {
     if (scalaVersion().startsWith("3"))
@@ -275,7 +278,9 @@ trait ProtoBuildModule extends ScalaCliPublishModule with HasTests
 trait BuildLikeModule extends ScalaCliCrossSbtModule with ProtoBuildModule {
 
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil) ++
+      Seq("-deprecation")
   }
 
   def repositories = super.repositories ++ customRepositories
@@ -616,12 +621,13 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
-  def myScalaVersion = Scala.defaultInternal
+  def myScalaVersion: String
 
   def scalaVersion = T(myScalaVersion)
 
   def scalacOptions = T {
-    super.scalacOptions() ++ asyncScalacOptions(scalaVersion()) ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion()) ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
   }
   def javacOptions = T {
     super.javacOptions() ++ Seq("--release", "16")
@@ -664,7 +670,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 }
 
 trait Cli3 extends Cli {
-  override def myScalaVersion = Scala.scala3
+  def myScalaVersion = Scala.scala3
 
   override def nativeImageClassPath = T {
     val classpath = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
@@ -907,7 +913,9 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with HasTests
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil) ++
+      Seq("-deprecation")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,

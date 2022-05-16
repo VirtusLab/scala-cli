@@ -10,8 +10,8 @@ import scala.cli.CurrentParams
 import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
 import scala.io.StdIn.readLine
+import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.util.{Failure, Properties, Success, Try}
 
 object Update extends ScalaCommand[UpdateOptions] {
 

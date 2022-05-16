@@ -7,7 +7,6 @@ import scala.build.tests.TestLogger
 import scala.cli.commands.CoursierOptions
 import scala.cli.commands.util.CommonOps._
 import scala.cli.launcher.LauncherCli
-import scala.util.Properties
 
 class LauncherCliTest extends munit.FunSuite {
 
