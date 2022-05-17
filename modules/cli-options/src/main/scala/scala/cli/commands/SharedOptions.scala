@@ -98,7 +98,7 @@ final case class SharedOptions(
   @Hidden
     strictBloopJsonCheck: Option[Boolean] = None,
   @HelpMessage("Interactive mode")
-  @Name("-i")
+  @Name("i")
     interactive: Option[Boolean] = None
 )
   // format: on

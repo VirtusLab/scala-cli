@@ -9,7 +9,7 @@ case class Interactive(options: BuildOptions, logger: Logger) {
 
   private val isInteractive = options.internal.interactive.getOrElse(false)
 
-  def chooseOneOptionsFromList[E <: BuildException](
+  def chooseOne[E <: BuildException](
     msg: String,
     options: List[String],
     fallbackError: E
