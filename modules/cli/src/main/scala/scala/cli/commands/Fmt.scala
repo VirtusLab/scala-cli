@@ -119,7 +119,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       System.err.println(
         s"""|Scalafmt requires explicitly specified version.
             |To configure the scalafmt version add the following line into .scalafmt.conf:
-            |    version = ${Constants.defaultScalafmtVersion} """".stripMargin
+            |    version = ${Constants.defaultScalafmtVersion} """.stripMargin
       )
       sys.exit(1)
     }
