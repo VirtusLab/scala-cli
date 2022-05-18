@@ -1123,6 +1123,35 @@ object ci extends Module {
   def publishVersion() = T.command {
     println(cli.publishVersion())
   }
+  def updateScalaCliSetup() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir       = os.pwd / "target"
+    val mainDir         = targetDir / "scala-cli-setup"
+    val setupScriptPath = mainDir / "src" / "main.ts"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val branch       = "main"
+    val targetBranch = s"update-scala-cli-setup"
+    val repo         = "git@github.com:VirtusLab/scala-cli-setup.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(mainDir)
+
+    val setupScript          = os.read(setupScriptPath)
+    val scalaCliVersionRegex = "const scalaCLIVersion = '.*'".r
+    val updatedSetupScriptPath =
+      scalaCliVersionRegex.replaceFirstIn(setupScript, s"const scalaCLIVersion = '$version'")
+    os.write.over(setupScriptPath, updatedSetupScriptPath)
+
+    os.proc("git", "switch", "-c", targetBranch).call(cwd = mainDir)
+    commitChanges(s"Update scala-cli version to $version", targetBranch, mainDir)
+  }
   def updateStandaloneLauncher() = T.command {
     val version = cli.publishVersion()
 
