@@ -696,7 +696,8 @@ object Publish extends ScalaCommand[PublishOptions] {
               )
           case None => NopSigner
         }
-      case None => NopSigner
+      case Some(PSigner.Nop) => NopSigner
+      case None              => NopSigner
     }
     val signerLogger =
       new InteractiveSignerLogger(new OutputStreamWriter(System.err), verbosity = 1)
