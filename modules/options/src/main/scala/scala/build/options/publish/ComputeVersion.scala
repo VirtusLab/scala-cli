@@ -9,6 +9,7 @@ import scala.build.Positioned
 import scala.build.errors.{BuildException, MalformedInputError}
 import scala.io.Codec
 import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 sealed abstract class ComputeVersion extends Product with Serializable {
   def get(workspace: os.Path): Either[BuildException, String]
@@ -48,8 +49,7 @@ object ComputeVersion {
     }
     def get(workspace: os.Path): Either[BuildException, String] = {
       val repo0 = repo.resolveFrom(workspace)
-      if (os.exists(repo0 / ".git")) {
-        val git     = Git.open(repo0.toIO)
+      if (os.exists(repo0 / ".git")) Using.resource(Git.open(repo0.toIO)) { git =>
         val hasHead = git.getRepository.resolve(Constants.HEAD) != null
         if (hasHead) {
           val (lastTagOpt, lastStableTagOpt) = {
