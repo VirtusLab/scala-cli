@@ -30,7 +30,7 @@ object PackageOptionsUtil {
       else None
 
     def buildOptions: BuildOptions = {
-      val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
+      val baseOptions = shared.buildOptions()
       baseOptions.copy(
         mainClass = mainClass.mainClass.filter(_.nonEmpty),
         notForBloopOptions = baseOptions.notForBloopOptions.copy(

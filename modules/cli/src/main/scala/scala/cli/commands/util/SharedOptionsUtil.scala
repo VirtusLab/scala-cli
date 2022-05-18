@@ -79,8 +79,8 @@ object SharedOptionsUtil {
     }
 
     def buildOptions(
-      enableJmh: Boolean,
-      jmhVersion: Option[String],
+      enableJmh: Boolean = false,
+      jmhVersion: Option[String] = None,
       ignoreErrors: Boolean = false
     ): bo.BuildOptions = {
       val platformOpt =

@@ -62,7 +62,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     mainClass: MainClassOptions,
     ivy2LocalLike: Option[Boolean]
   ): Either[BuildException, BuildOptions] = either {
-    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
+    val baseOptions = shared.buildOptions()
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(

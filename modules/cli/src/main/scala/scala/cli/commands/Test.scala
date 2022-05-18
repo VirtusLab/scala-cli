@@ -23,7 +23,7 @@ object Test extends ScalaCommand[TestOptions] {
 
   private def buildOptions(opts: TestOptions): BuildOptions = {
     import opts._
-    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
+    val baseOptions = shared.buildOptions()
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =

@@ -73,7 +73,7 @@ object Compile extends ScalaCommand[CompileOptions] {
       }
     }
 
-    val buildOptions = options.shared.buildOptions(enableJmh = false, jmhVersion = None)
+    val buildOptions = options.shared.buildOptions()
     val threads      = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)

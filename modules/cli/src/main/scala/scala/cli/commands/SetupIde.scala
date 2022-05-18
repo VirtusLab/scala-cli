@@ -81,7 +81,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     }
 
   private def buildOptions(opts: SetupIdeOptions): BuildOptions =
-    opts.shared.buildOptions(enableJmh = false, jmhVersion = None)
+    opts.shared.buildOptions()
 
   private def writeBspConfiguration(
     options: SetupIdeOptions,

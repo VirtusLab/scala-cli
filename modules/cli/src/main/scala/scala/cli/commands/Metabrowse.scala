@@ -44,7 +44,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val logger = options.shared.logger
 
-    val baseOptions = options.shared.buildOptions(enableJmh = false, jmhVersion = None)
+    val baseOptions = options.shared.buildOptions()
     val initialBuildOptions = baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = Some(true)

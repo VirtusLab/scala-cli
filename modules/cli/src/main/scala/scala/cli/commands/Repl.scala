@@ -25,7 +25,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     import ops._
     def ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
 
-    val baseOptions = shared.buildOptions(enableJmh = false, jmhVersion = None)
+    val baseOptions = shared.buildOptions()
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
