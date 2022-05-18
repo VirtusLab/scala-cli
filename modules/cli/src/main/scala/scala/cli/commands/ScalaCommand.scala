@@ -8,6 +8,7 @@ import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 
+import scala.build.internal.Constants
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.{Properties, Try}
@@ -62,9 +63,16 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
           case "dependency" =>
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
               val cache = sharedOptions.coursierCache
+              val sv = sharedOptions.buildOptions()
+                .scalaParams
+                .toOption
+                .flatten
+                .map(_.scalaVersion)
+                .getOrElse(Constants.defaultScalaVersion)
               val (fromIndex, completions) = cache.logger.use {
                 coursier.complete.Complete(cache)
                   .withInput(prefix)
+                  .withScalaVersion(sv)
                   .complete()
                   .unsafeRun()(cache.ec)
               }
