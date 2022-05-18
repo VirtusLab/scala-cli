@@ -1,6 +1,6 @@
 ---
 title: Default File
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 The `default-file` sub-command provides sensible default content for files

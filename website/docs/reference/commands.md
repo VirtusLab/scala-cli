@@ -444,6 +444,15 @@ Accepts options:
 - [verbosity](./cli-options.md#verbosity-options)
 - [workspace](./cli-options.md#workspace-options)
 
+### `config`
+
+Accepts options:
+- [config](./cli-options.md#config-options)
+- [coursier](./cli-options.md#coursier-options)
+- [directories](./cli-options.md#directories-options)
+- [logging](./cli-options.md#logging-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ### `default-file`
 
 Accepts options:
