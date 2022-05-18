@@ -266,6 +266,32 @@ Available in commands:
 
 Aliases: `-X`
 
+## Default file options
+
+Available in commands:
+- [`default-file`](./commands.md#default-file)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--write`
+
+Write result to files rather than to stdout
+
+#### `--list`
+
+List available default files
+
+#### `--list-ids`
+
+List available default file ids
+
+#### `--force`
+
+Aliases: `-f`
+
+Force overwriting destination files
+
 ## Dependency options
 
 Available in commands:
@@ -433,6 +459,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`default-file`](./commands.md#default-file)
 - [`directories`](./commands.md#directories)
 - [`doc`](./commands.md#doc)
 - [`doctor`](./commands.md#doctor)
@@ -661,6 +688,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`default-file`](./commands.md#default-file)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -1568,6 +1596,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`default-file`](./commands.md#default-file)
 - [`directories`](./commands.md#directories)
 - [`doc`](./commands.md#doc)
 - [`doctor`](./commands.md#doctor)

@@ -444,6 +444,13 @@ Accepts options:
 - [verbosity](./cli-options.md#verbosity-options)
 - [workspace](./cli-options.md#workspace-options)
 
+### `default-file`
+
+Accepts options:
+- [default file](./cli-options.md#default-file-options)
+- [logging](./cli-options.md#logging-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ### `directories`
 
 Prints directories used by `scala-cli`

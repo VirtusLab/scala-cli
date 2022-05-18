@@ -141,6 +141,7 @@ def getGhToken(): String =
 trait CliLaunchers extends SbtModule { self =>
 
   def launcherTypeResourcePath = os.rel / "scala" / "cli" / "internal" / "launcher-type.txt"
+  def defaultFilesResourcePath = os.rel / "scala" / "cli" / "commands" / "publish"
 
   trait CliNativeImage extends NativeImage {
     def launcherKind: String
@@ -155,6 +156,7 @@ trait CliLaunchers extends SbtModule { self =>
       Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
         s"-H:IncludeResources=$launcherTypeResourcePath",
+        s"-H:IncludeResources=$defaultFilesResourcePath/.*",
         "-H:-ParseRuntimeOptions",
         s"-H:CLibraryPath=$cLibPath"
       )
