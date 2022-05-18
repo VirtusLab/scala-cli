@@ -730,10 +730,10 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
 trait FormatNativeImageConf extends JavaModule {
   def nativeImageConfDirs = T {
     resources()
-      .map(_.path)
+      .map(_.path / "META-INF" / "native-image")
       .filter(os.exists(_))
       .flatMap { path =>
-        os.walk(path / "META-INF" / "native-image")
+        os.walk(path)
           .filter(_.last.endsWith("-config.json"))
           .filter(os.isFile(_))
           .map(_ / os.up)
