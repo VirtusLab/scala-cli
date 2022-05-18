@@ -1,11 +1,10 @@
 package scala.build.interactive
 
-import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.io.StdIn.readLine
 
-case class Interactive(options: BuildOptions, logger: Logger) {
+case class Interactive(options: BuildOptions) {
 
   private val isInteractive = options.internal.interactive.getOrElse(false)
 
@@ -15,16 +14,13 @@ case class Interactive(options: BuildOptions, logger: Logger) {
     fallbackError: E
   ): Either[E, String] =
     if (isInteractive && coursier.paths.Util.useAnsiOutput()) {
-      logger.message(msg)
+      System.err.println(msg)
       options.zipWithIndex.foreach {
-        case (option, index) => logger.message(s"[$index] $option")
+        case (option, index) => System.err.println(s"[$index] $option")
       }
       val response      = readLine()
       val inputIndexOpt = parseIndexInput(response, options.length)
-      val chosedOption = for (inputIndex <- inputIndexOpt)
-        yield Right(options(inputIndex))
-
-      chosedOption.getOrElse(Left(fallbackError))
+      inputIndexOpt.map(options(_)).toRight(fallbackError)
     }
     else Left(fallbackError)
 
@@ -35,13 +31,13 @@ case class Interactive(options: BuildOptions, logger: Logger) {
         val isInRange = index <= range && index >= 0
         if (isInRange) Some(index)
         else {
-          logger.message(
+          System.err.println(
             s"The input index number is invalid, integer value from 0 to $range is expected."
           )
           None
         }
       case _ =>
-        logger.message(s"Unable to parse input: integer value from 0 to $range is expected.")
+        System.err.println(s"Unable to parse input: integer value from 0 to $range is expected.")
         None
     }
   }

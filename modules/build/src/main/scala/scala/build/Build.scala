@@ -69,7 +69,7 @@ object Build {
             ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
             Nil
           )
-          Interactive(options, logger).chooseOne(
+          Interactive(options).chooseOne(
             msg,
             foundMainClasses0.toList,
             fallbackError
