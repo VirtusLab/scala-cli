@@ -52,7 +52,11 @@ final case class SharedPublishOptions(
   @Group("Publishing")
   @HelpMessage("Set Ivy 2 home directory")
   @ValueDescription("path")
-    ivy2Home: Option[String] = None
+    ivy2Home: Option[String] = None,
+
+  @Group("Publishing")
+  @Hidden
+    forceSigningBinary: Boolean = false
 
 )
 // format: on

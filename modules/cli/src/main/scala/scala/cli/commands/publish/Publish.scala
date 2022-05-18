@@ -175,6 +175,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       workingDir,
       ivy2HomeOpt,
       publishLocal = false,
+      forceSigningBinary = options.sharedPublish.forceSigningBinary,
       options.watch.watch
     )
   }
@@ -189,6 +190,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     workingDir: => os.Path,
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
+    forceSigningBinary: Boolean,
     watch: Boolean
   ): Unit = {
 
@@ -205,7 +207,15 @@ object Publish extends ScalaCommand[PublishOptions] {
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         res.orReport(logger).foreach { builds =>
-          maybePublish(builds, workingDir, ivy2HomeOpt, publishLocal, logger, allowExit = false)
+          maybePublish(
+            builds,
+            workingDir,
+            ivy2HomeOpt,
+            publishLocal,
+            logger,
+            allowExit = false,
+            forceSigningBinary = forceSigningBinary
+          )
         }
       }
       try WatchUtil.waitForCtrlC()
@@ -223,7 +233,15 @@ object Publish extends ScalaCommand[PublishOptions] {
           buildTests = false,
           partial = None
         ).orExit(logger)
-      maybePublish(builds, workingDir, ivy2HomeOpt, publishLocal, logger, allowExit = true)
+      maybePublish(
+        builds,
+        workingDir,
+        ivy2HomeOpt,
+        publishLocal,
+        logger,
+        allowExit = true,
+        forceSigningBinary = forceSigningBinary
+      )
     }
   }
 
@@ -240,7 +258,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
     logger: Logger,
-    allowExit: Boolean
+    allowExit: Boolean,
+    forceSigningBinary: Boolean
   ): Unit = {
 
     val allOk = builds.all.forall {
@@ -260,7 +279,15 @@ object Publish extends ScalaCommand[PublishOptions] {
       val docBuilds0 = builds.allDoc.collect {
         case s: Build.Successful => s
       }
-      val res = doPublish(builds0, docBuilds0, workingDir, ivy2HomeOpt, publishLocal, logger)
+      val res = doPublish(
+        builds0,
+        docBuilds0,
+        workingDir,
+        ivy2HomeOpt,
+        publishLocal,
+        logger,
+        forceSigningBinary
+      )
       if (allowExit)
         res.orExit(logger)
       else
@@ -490,7 +517,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     workingDir: os.Path,
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
-    logger: Logger
+    logger: Logger,
+    forceSigningBinary: Boolean
   ): Either[BuildException, Unit] = either {
 
     assert(docBuilds.isEmpty || docBuilds.length == builds.length)
@@ -635,12 +663,20 @@ object Publish extends ScalaCommand[PublishOptions] {
                 case Right(value) => value.wrapped
               }
             }
-            (new BouncycastleSignerMaker).get(
-              publishOptions.secretKeyPassword.orNull,
-              secretKey,
-              getLauncher,
-              logger
-            )
+            if (forceSigningBinary)
+              (new scala.cli.internal.BouncycastleSignerMakerSubst).get(
+                publishOptions.secretKeyPassword.orNull,
+                secretKey,
+                getLauncher,
+                logger
+              )
+            else
+              (new BouncycastleSignerMaker).get(
+                publishOptions.secretKeyPassword.orNull,
+                secretKey,
+                getLauncher,
+                logger
+              )
           case None => NopSigner
         }
       case None => NopSigner
