@@ -176,6 +176,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       ivy2HomeOpt,
       publishLocal = false,
       forceSigningBinary = options.sharedPublish.forceSigningBinary,
+      parallelUpload = options.parallelUpload.getOrElse(true),
       options.watch.watch
     )
   }
@@ -191,6 +192,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
     forceSigningBinary: Boolean,
+    parallelUpload: Boolean,
     watch: Boolean
   ): Unit = {
 
@@ -214,7 +216,8 @@ object Publish extends ScalaCommand[PublishOptions] {
             publishLocal,
             logger,
             allowExit = false,
-            forceSigningBinary = forceSigningBinary
+            forceSigningBinary = forceSigningBinary,
+            parallelUpload = parallelUpload
           )
         }
       }
@@ -240,7 +243,8 @@ object Publish extends ScalaCommand[PublishOptions] {
         publishLocal,
         logger,
         allowExit = true,
-        forceSigningBinary = forceSigningBinary
+        forceSigningBinary = forceSigningBinary,
+        parallelUpload = parallelUpload
       )
     }
   }
@@ -259,7 +263,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     publishLocal: Boolean,
     logger: Logger,
     allowExit: Boolean,
-    forceSigningBinary: Boolean
+    forceSigningBinary: Boolean,
+    parallelUpload: Boolean
   ): Unit = {
 
     val allOk = builds.all.forall {
@@ -286,7 +291,8 @@ object Publish extends ScalaCommand[PublishOptions] {
         ivy2HomeOpt,
         publishLocal,
         logger,
-        forceSigningBinary
+        forceSigningBinary,
+        parallelUpload
       )
       if (allowExit)
         res.orExit(logger)
@@ -526,7 +532,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
     logger: Logger,
-    forceSigningBinary: Boolean
+    forceSigningBinary: Boolean,
+    parallelUpload: Boolean
   ): Either[BuildException, Unit] = either {
 
     assert(docBuilds.isEmpty || docBuilds.length == builds.length)
@@ -747,7 +754,12 @@ object Publish extends ScalaCommand[PublishOptions] {
     val uploadLogger = InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
 
     val errors =
-      upload.uploadFileSet(retainedRepo, finalFileSet, uploadLogger, Some(ec)).unsafeRun()(ec)
+      upload.uploadFileSet(
+        retainedRepo,
+        finalFileSet,
+        uploadLogger,
+        if (parallelUpload) Some(ec) else None
+      ).unsafeRun()(ec)
 
     errors.toList match {
       case h :: t =>
