@@ -175,7 +175,7 @@ object Doc extends ScalaCommand[DocOptions] {
           "-d",
           destDir.toString,
           "-classpath",
-          build.project.classesDir.toString
+          build.fullClassPath.map(_.toString).mkString(File.pathSeparator)
         ) ++
           javaSources.map(_.toString)
         val retCode = Runner.run(
