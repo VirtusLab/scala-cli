@@ -27,27 +27,31 @@ object Runner {
     commandName: String,
     command: Seq[String],
     logger: Logger,
-    cwd: Option[os.Path] = None
+    cwd: Option[os.Path] = None,
+    extraEnv: Map[String, String] = Map.empty
   ): Process =
     run0(
       commandName,
       command,
       logger,
       allowExecve = true,
-      cwd
+      cwd,
+      extraEnv
     )
 
   def run(
     command: Seq[String],
     logger: Logger,
-    cwd: Option[os.Path] = None
+    cwd: Option[os.Path] = None,
+    extraEnv: Map[String, String] = Map.empty
   ): Process =
     run0(
       "unused",
       command,
       logger,
       allowExecve = false,
-      cwd
+      cwd,
+      extraEnv
     )
 
   def run0(
@@ -55,7 +59,8 @@ object Runner {
     command: Seq[String],
     logger: Logger,
     allowExecve: Boolean,
-    cwd: Option[os.Path]
+    cwd: Option[os.Path],
+    extraEnv: Map[String, String]
   ): Process = {
 
     import logger.{log, debug}
@@ -75,13 +80,18 @@ object Runner {
       Execve.execve(
         findInPath(command.head).fold(command.head)(_.toString),
         commandName +: command.tail.toArray,
-        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
+        (sys.env ++ extraEnv).toArray.sorted.map { case (k, v) => s"$k=$v" }
       )
       sys.error("should not happen")
     }
     else {
       val b = new ProcessBuilder(command: _*)
         .inheritIO()
+      if (extraEnv.nonEmpty) {
+        val env = b.environment()
+        for ((k, v) <- extraEnv)
+          env.put(k, v)
+      }
       for (dir <- cwd)
         b.directory(dir.toIO)
       val process = b.start()
