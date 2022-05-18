@@ -43,7 +43,12 @@ import scala.cli.commands.{
   SharedOptions,
   WatchUtil
 }
-import scala.cli.errors.{FailedToSignFileError, MissingPublishOptionError, UploadError}
+import scala.cli.errors.{
+  FailedToSignFileError,
+  MalformedChecksumsError,
+  MissingPublishOptionError,
+  UploadError
+}
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 
@@ -122,6 +127,11 @@ object Publish extends ScalaCommand[PublishOptions] {
               .map(Positioned.commandLine(_))
               .map(ComputeVersion.parse(_))
               .sequence
+          },
+          checksums = {
+            val input = sharedPublish.checksum.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
+            if (input.isEmpty) None
+            else Some(input)
           }
         )
       )
@@ -725,8 +735,19 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val checksumLogger =
       new InteractiveChecksumLogger(new OutputStreamWriter(System.err), verbosity = 1)
+    val checksumTypes = publishOptions.checksums match {
+      case None              => Seq(ChecksumType.MD5, ChecksumType.SHA1)
+      case Some(Seq("none")) => Nil
+      case Some(inputs) =>
+        value {
+          inputs
+            .map(ChecksumType.parse)
+            .sequence
+            .left.map(errors => new MalformedChecksumsError(inputs, errors))
+        }
+    }
     val checksums = Checksums(
-      Seq(ChecksumType.MD5, ChecksumType.SHA1),
+      checksumTypes,
       fileSet1,
       now,
       ec,

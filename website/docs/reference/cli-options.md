@@ -1125,6 +1125,8 @@ Set Ivy 2 home directory
 
 #### `--force-signing-binary`
 
+#### `--checksum`
+
 #### `--ivy2-local-like`
 
 #### `--parallel-upload`
