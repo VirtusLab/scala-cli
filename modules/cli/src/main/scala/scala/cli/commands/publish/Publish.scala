@@ -14,7 +14,7 @@ import coursier.publish.upload.logger.InteractiveUploadLogger
 import coursier.publish.upload.{FileUpload, HttpURLConnectionUpload}
 import coursier.publish.{Content, Hooks, Pom, PublishRepository}
 
-import java.io.OutputStreamWriter
+import java.io.{File, OutputStreamWriter}
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path => NioPath, Paths}
@@ -308,7 +308,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     now: Instant,
     isIvy2LocalLike: Boolean,
     logger: Logger
-  ): Either[BuildException, (FileSet, String)] = either {
+  ): Either[BuildException, (FileSet, (coursier.core.Module, String))] = either {
 
     logger.debug(s"Preparing project ${build.project.projectName}")
 
@@ -351,6 +351,8 @@ object Publish extends ScalaCommand[PublishOptions] {
           }
         }
     }
+
+    logger.message(s"Publishing $org:$moduleName:$ver")
 
     val mainJar = {
       val mainClassOpt = build.options.mainClass.orElse {
@@ -508,7 +510,13 @@ object Publish extends ScalaCommand[PublishOptions] {
     val fileSet =
       if (isIvy2LocalLike) ivy2LocalLikeFileSet else mavenFileSet
 
-    (fileSet, ver)
+    val mod = coursier.core.Module(
+      coursier.core.Organization(org),
+      coursier.core.ModuleName(moduleName),
+      Map()
+    )
+
+    (fileSet, (mod, ver))
   }
 
   private def doPublish(
@@ -534,7 +542,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val ec = builds.head.options.finalCache.ec
 
-    val (repo, hooks, isIvy2LocalLike) = {
+    val (repo, targetRepoOpt, hooks, isIvy2LocalLike) = {
 
       lazy val es =
         Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
@@ -562,7 +570,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
           es
         )
-        (repo0, hooks0, false)
+        (repo0, Some("https://repo1.maven.org/maven2"), hooks0, false)
       }
 
       def ivy2Local = {
@@ -571,6 +579,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         // not really a Maven repo…
         (
           PublishRepository.Simple(MavenRepository(base.toNIO.toUri.toASCIIString)),
+          None,
           Hooks.dummy,
           true
         )
@@ -606,6 +615,7 @@ object Publish extends ScalaCommand[PublishOptions] {
               }
             (
               PublishRepository.Simple(repo0),
+              None,
               Hooks.dummy,
               publishOptions.repositoryIsIvy2LocalLike.getOrElse(false)
             )
@@ -613,7 +623,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     }
 
     val now = Instant.now()
-    val (fileSet0, versionOpt) = value {
+    val (fileSet0, modVersionOpt) = value {
       it
         // TODO Allow to add test JARs to the main build artifacts
         .filter(_._1.scope != Scope.Test)
@@ -630,9 +640,9 @@ object Publish extends ScalaCommand[PublishOptions] {
         }
         .sequence0
         .map { l =>
-          val fs          = l.map(_._1).foldLeft(FileSet.empty)(_ ++ _)
-          val versionOpt0 = l.headOption.map(_._2)
-          (fs, versionOpt0)
+          val fs             = l.map(_._1).foldLeft(FileSet.empty)(_ ++ _)
+          val modVersionOpt0 = l.headOption.map(_._2)
+          (fs, modVersionOpt0)
         }
     }
 
@@ -720,7 +730,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       if (isIvy2LocalLike) fileSet2
       else fileSet2.order(ec).unsafeRun()(ec)
 
-    val isSnapshot0 = versionOpt.exists(_.endsWith("SNAPSHOT"))
+    val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
     val hooksData   = hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
 
     val retainedRepo = hooks.repository(hooksData, repo, isSnapshot0)
@@ -744,6 +754,37 @@ object Publish extends ScalaCommand[PublishOptions] {
         value(Left(new UploadError(::(h, t))))
       case Nil =>
         hooks.afterUpload(hooksData).unsafeRun()(ec)
+        for ((mod, version) <- modVersionOpt) {
+          val checkRepo = repo.checkResultsRepo(isSnapshot0)
+          val relPath = {
+            val elems =
+              if (isIvy2LocalLike)
+                Seq(mod.organization.value, mod.name.value, version)
+              else
+                mod.organization.value.split('.').toSeq ++ Seq(mod.name.value, version)
+            elems.map("/" + _).mkString
+          }
+          val path = {
+            val url = checkRepo.root.stripSuffix("/") + relPath
+            if (url.startsWith("file:")) {
+              val path = os.Path(Paths.get(new URI(url)), os.pwd)
+              if (path.startsWith(os.pwd))
+                path.relativeTo(os.pwd).segments.map(_ + File.separator).mkString
+              else if (path.startsWith(os.home))
+                ("~" +: path.relativeTo(os.home).segments).map(_ + File.separator).mkString
+              else
+                path.toString
+            }
+            else url
+          }
+          println("\n \ud83d\udc40 Check results at")
+          println(s"  $path")
+          for (targetRepo <- targetRepoOpt if !isSnapshot0) {
+            val url = targetRepo.stripSuffix("/") + relPath
+            println("before they land at")
+            println(s"  $url")
+          }
+        }
     }
   }
 }
