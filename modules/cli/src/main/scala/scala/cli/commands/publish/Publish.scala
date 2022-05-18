@@ -630,6 +630,7 @@ object Publish extends ScalaCommand[PublishOptions] {
                   else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
                 MavenRepository(url)
               }
+              .withAuthentication(authOpt)
             (
               PublishRepository.Simple(repo0),
               None,
