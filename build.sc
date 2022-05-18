@@ -867,21 +867,17 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       launcherTask: T[PathRef],
       cliKind: String
     ) {
-      def doTest(args: String*) =
-        T.command {
-          val argsTask = T.task {
-            val launcher = launcherTask().path
-            val extraArgs = Seq(
-              s"-Dtest.scala-cli.path=$launcher",
-              s"-Dtest.scala-cli.kind=$cliKind"
-            )
-            args ++ extraArgs
-          }
-          testTask(argsTask, T.task(Seq.empty[String]))
+      def test(args: String*) = {
+        val argsTask = T.task {
+          val launcher = launcherTask().path
+          val extraArgs = Seq(
+            s"-Dtest.scala-cli.path=$launcher",
+            s"-Dtest.scala-cli.kind=$cliKind"
+          )
+          args ++ extraArgs
         }
-      def test(args: String*) =
         T.command {
-          val res            = doTest(args: _*)()
+          val res            = testTask(argsTask, T.task(Seq.empty[String]))()
           val dotScalaInRoot = os.pwd / workspaceDirName
           assert(
             !os.isDir(dotScalaInRoot),
@@ -889,6 +885,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
           )
           res
         }
+      }
     }
 
     def test(args: String*) =
