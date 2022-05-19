@@ -1446,6 +1446,12 @@ Generate SemanticDBs
 
 #### `--strict-bloop-json-check`
 
+#### `--interactive`
+
+Aliases: `-i`
+
+Interactive mode
+
 ## Test options
 
 Available in commands:
