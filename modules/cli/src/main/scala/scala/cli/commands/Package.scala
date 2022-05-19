@@ -18,6 +18,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.errors.{BuildException, MalformedCliInputError, ScalaNativeBuildError}
+import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
@@ -221,11 +222,14 @@ object Package extends ScalaCommand[PackageOptions] {
         os.exists(destPath) &&
         !expectedModifyEpochSecondOpt.contains(os.mtime(destPath))
       if (alreadyExists) {
-        val msg =
-          if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
-          else s"$printableDest was overwritten by another process"
-        System.err.println(s"Error: $msg. Pass -f or --force to force erasing it.")
-        sys.exit(1)
+        val fallbackAction = () => {
+          val errorMsg =
+            if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
+            else s"$printableDest was overwritten by another process"
+          System.err.println(s"Error: $errorMsg. Pass -f or --force to force erasing it.")
+          sys.exit(1)
+        }
+        InteractiveFileOps.erasingPath(build.options, printableDest, destPath, fallbackAction)
       }
     }
 

@@ -9,6 +9,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
+import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Runner
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -79,9 +80,12 @@ object Doc extends ScalaCommand[DocOptions] {
     def alreadyExistsCheck(): Unit = {
       val alreadyExists = !force && os.exists(destPath)
       if (alreadyExists) {
-        val msg = s"$printableDest already exists"
-        System.err.println(s"Error: $msg. Pass -f or --force to force erasing it.")
-        sys.exit(1)
+        val fallbackAction = () => {
+          val msg = s"$printableDest already exists"
+          System.err.println(s"Error: $msg. Pass -f or --force to force erasing it.")
+          sys.exit(1)
+        }
+        InteractiveFileOps.erasingPath(build.options, printableDest, destPath, fallbackAction)
       }
     }
 

@@ -7,8 +7,10 @@ import java.io.File
 import java.nio.charset.Charset
 import java.util.Arrays
 
+import scala.build.interactive.Interactive
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.VerbosityOptionsUtil._
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
@@ -43,12 +45,20 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         }
       }
       .getOrElse {
-        System.err.println(
-          "Cannot determine current shell, pass the shell you use with --shell, like"
+        val fallbackAction = () => {
+          System.err.println(
+            "Cannot determine current shell, pass the shell you use with --shell, like"
+          )
+          System.err.println(s"  $name install completions --shell zsh")
+          System.err.println(s"  $name install completions --shell bash")
+          sys.exit(1)
+        }
+        val msg = "Cannot determine current shell. Which would you like to use?"
+        Interactive(options.logging.verbosityOptions.buildOptions).chooseOne(
+          msg,
+          List("zsh", "bash"),
+          fallbackAction
         )
-        System.err.println(s"  $name install completions --shell zsh")
-        System.err.println(s"  $name install completions --shell bash")
-        sys.exit(1)
       }
 
     val (rcScript, defaultRcFile) = format match {

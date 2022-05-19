@@ -1509,12 +1509,6 @@ Generate SemanticDBs
 
 #### `--strict-bloop-json-check`
 
-#### `--interactive`
-
-Aliases: `-i`
-
-Interactive mode
-
 ## Test options
 
 Available in commands:
@@ -1599,6 +1593,12 @@ Available in commands:
 Aliases: `-v`
 
 Increase verbosity (can be specified multiple times)
+
+#### `--interactive`
+
+Aliases: `-i`
+
+Interactive mode
 
 ## Watch options
 
