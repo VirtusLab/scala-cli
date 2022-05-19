@@ -131,10 +131,13 @@ a coursier bootstrap).
 
 The Scala CLI website is built with [Docusaurus](https://v1.docusaurus.io/en/) and uses [Infima](https://infima.dev/docs/layout/spacing) for styling.
 
+Ensure you are using Node >= 14.
+
 #### Generate the website once
 
 ```bash
 cd website
+yarn
 yarn build
 npm run serve
 ```
@@ -143,6 +146,7 @@ npm run serve
 
 ```bash
 cd website
+yarn
 yarn run start
 ```
 
