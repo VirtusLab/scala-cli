@@ -411,3 +411,4 @@ jobs:
         env:
           SDKMAN_KEY: ${{ secrets.SDKMAN_KEY }}
           SDKMAN_TOKEN: ${{ secrets.SDKMAN_TOKEN }}
+      - run: ./mill -i ci.updateScalaCliSetup
