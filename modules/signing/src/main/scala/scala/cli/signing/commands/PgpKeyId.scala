@@ -50,9 +50,13 @@ object PgpKeyId extends Command[PgpKeyIdOptions] {
 
   def run(options: PgpKeyIdOptions, args: RemainingArgs): Unit =
     for (arg <- args.all) {
-      val path       = os.Path(arg, os.pwd)
+      val path = os.Path(arg, os.pwd)
+      if (options.verbosity >= 2)
+        System.err.println(s"Reading $path")
       val keyContent = os.read.bytes(path)
       val values     = get(keyContent, options.fingerprint)
+      if (options.verbosity >= 2)
+        System.err.println(s"Values: $values")
       for (value <- values)
         println(value)
     }
