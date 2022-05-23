@@ -483,12 +483,34 @@ Accepts options:
 - [verbosity](./cli-options.md#verbosity-options)
 - [workspace](./cli-options.md#workspace-options)
 
+### `pgp pull`
+
+Accepts options:
+- [logging](./cli-options.md#logging-options)
+- [pgp pull](./cli-options.md#pgp-pull-options)
+- [pgp push pull](./cli-options.md#pgp-push-pull-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
+### `pgp push`
+
+Accepts options:
+- [coursier](./cli-options.md#coursier-options)
+- [logging](./cli-options.md#logging-options)
+- [pgp push](./cli-options.md#pgp-push-options)
+- [pgp push pull](./cli-options.md#pgp-push-pull-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ### `pgp create`
 
 Create PGP key pair
 
 Accepts options:
 - [pgp create](./cli-options.md#pgp-create-options)
+
+### `pgp key-id`
+
+Accepts options:
+- [pgp key id](./cli-options.md#pgp-key-id-options)
 
 ### `pgp sign`
 

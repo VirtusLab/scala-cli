@@ -4,6 +4,9 @@ object PgpCommandNames {
   def pgpCreate = List(
     List("pgp", "create")
   )
+  def pgpKeyId = List(
+    List("pgp", "key-id")
+  )
   def pgpSign = List(
     List("pgp", "sign")
   )

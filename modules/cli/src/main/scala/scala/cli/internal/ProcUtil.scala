@@ -53,7 +53,7 @@ object ProcUtil {
     var conn: URLConnection = null
     val url0                = new URL(url)
     try {
-      val conn = url0.openConnection()
+      conn = url0.openConnection()
       for ((k, v) <- headers)
         conn.setRequestProperty(k, v)
       conn.getInputStream.readAllBytes()

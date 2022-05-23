@@ -15,6 +15,7 @@ public final class PgpCommandsSubst {
   public ExternalCommand[] allExternalCommands() {
     return new ExternalCommand[] {
       new PgpCreateExternal(),
+      new PgpKeyIdExternal(),
       new PgpSignExternal(),
       new PgpVerifyExternal()
     };
