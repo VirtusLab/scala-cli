@@ -16,7 +16,7 @@ import scala.build.errors._
 import scala.build.internal.Constants._
 import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
-import scala.build.internal.{OsLibc, StableScalaVersion}
+import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.util.control.NonFatal
@@ -230,7 +230,7 @@ final case class BuildOptions(
   private def defaultStableScalaVersions =
     Seq(defaultScala212Version, defaultScala213Version, defaultScalaVersion)
 
-  private def latestSupportedStableScalaVersion(): Seq[Version] = {
+  private def latestSupportedStableScalaVersion(scalaCliVersion: String): Seq[Version] = {
 
     val msg =
       if (internal.verbosityOrDefault > 0)
@@ -252,8 +252,7 @@ final case class BuildOptions(
       }
     }
 
-    val scalaCliVersion = version
-    val launchersTask   = cache.logger.using(task)
+    val launchersTask = cache.logger.using(task)
 
     //  If an error occurred while downloading stable versions,
     //  it uses stable scala versions from Deps.sc
@@ -324,9 +323,13 @@ final case class BuildOptions(
       internal.localRepository.toSeq
   }
 
-  lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {
+  lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] =
+    computeScalaParams(Constants.version)
 
-    lazy val maxSupportedStableScalaVersions = latestSupportedStableScalaVersion()
+  private[build] def computeScalaParams(scalaCliVersion: String)
+    : Either[BuildException, Option[ScalaParameters]] = either {
+
+    lazy val maxSupportedStableScalaVersions = latestSupportedStableScalaVersion(scalaCliVersion)
     lazy val latestSupportedStableVersions   = maxSupportedStableScalaVersions.map(_.repr)
 
     val svOpt: Option[String] = scalaOptions.scalaVersion match {

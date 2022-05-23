@@ -277,12 +277,24 @@ class BuildOptionsTests extends munit.FunSuite {
     Some("2.13.2") -> "2.13.2"
   )
 
-  val confFile = s"""[
-                    | {
-                    |  "scalaCliVersion": "$version",
-                    |  "supportedScalaVersions": ["3.0.1", "2.13.4", "2.12.13"]
-                    | }
-                    |]""".stripMargin
+  val testVersion     = "1.11.3"
+  val testPrevVersion = "1.11.1"
+  val testNextVersion = "1.11.5"
+  val confFile =
+    s"""[
+       | {
+       |  "scalaCliVersion": "$testPrevVersion",
+       |  "supportedScalaVersions": ["3.0.0", "2.13.3", "2.12.11"]
+       | },
+       | {
+       |  "scalaCliVersion": "$testVersion",
+       |  "supportedScalaVersions": ["3.0.1", "2.13.4", "2.12.13"]
+       | },
+       | {
+       |  "scalaCliVersion": "$testNextVersion",
+       |  "supportedScalaVersions": ["3.1.0", "2.13.8", "2.12.15]"]
+       | }
+       |]""".stripMargin
 
   for ((prefix, expectedScalaVersion) <- expectedScalaConfVersions)
     test(s"use expected scala version from conf file, prefix: ${prefix.getOrElse("empty")}") {
@@ -298,7 +310,7 @@ class BuildOptionsTests extends munit.FunSuite {
           )
         )
 
-        val scalaParams         = options.scalaParams.orThrow.getOrElse(???)
+        val scalaParams         = options.computeScalaParams(testVersion).orThrow.getOrElse(???)
         val expectedScalaParams = ScalaParameters(expectedScalaVersion)
 
         expect(scalaParams == expectedScalaParams)
