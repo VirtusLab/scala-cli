@@ -205,6 +205,8 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
       with:
         jvm: "temurin:17"
+    - name: Check Scala / Scala.js versions in doc
+      run: ./mill -i ci.checkScalaVersions
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability

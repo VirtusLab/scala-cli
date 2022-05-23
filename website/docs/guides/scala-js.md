@@ -171,4 +171,4 @@ The table below lists the last supported version of Scala.js in Scala CLI. If yo
 | 0.0.9                |   1.7.1            |
 | 0.1.0 - 0.1.2        |   1.8.0            |
 | 0.1.3                |   1.9.0            |
-| 0.1.4 - 0.1.6        |   1.10.0           |
+| 0.1.4 - current      |   1.10.0           |
