@@ -52,7 +52,7 @@ node hello.js
 Hello World from Scala.js
 -->
 
-### Module Split Style 
+### Module Split Style
 
 ### Smallest Modules
 
