@@ -28,60 +28,60 @@ trait BuildServerForwardStubs extends b.BuildServer {
   }
 
   override def buildShutdown(): CompletableFuture[Object] =
-    forwardTo.buildShutdown().handleAsync(fatalExceptionHandler("buildShutdown"))
+    forwardTo.buildShutdown().handle(fatalExceptionHandler("buildShutdown"))
 
   override def buildTargetCleanCache(
     params: b.CleanCacheParams
   ): CompletableFuture[b.CleanCacheResult] =
     forwardTo.buildTargetCleanCache(params)
-      .handleAsync(fatalExceptionHandler("buildTargetCleanCache", params))
+      .handle(fatalExceptionHandler("buildTargetCleanCache", params))
 
   override def buildTargetCompile(params: b.CompileParams): CompletableFuture[b.CompileResult] =
     forwardTo.buildTargetCompile(params)
-      .handleAsync(fatalExceptionHandler("buildTargetCompile", params))
+      .handle(fatalExceptionHandler("buildTargetCompile", params))
 
   override def buildTargetDependencySources(
     params: b.DependencySourcesParams
   ): CompletableFuture[b.DependencySourcesResult] =
     forwardTo.buildTargetDependencySources(params)
-      .handleAsync(fatalExceptionHandler("buildTargetDependencySources", params))
+      .handle(fatalExceptionHandler("buildTargetDependencySources", params))
 
   override def buildTargetInverseSources(
     params: b.InverseSourcesParams
   ): CompletableFuture[b.InverseSourcesResult] =
     forwardTo.buildTargetInverseSources(params)
-      .handleAsync(fatalExceptionHandler("buildTargetInverseSources", params))
+      .handle(fatalExceptionHandler("buildTargetInverseSources", params))
 
   override def buildTargetResources(
     params: b.ResourcesParams
   ): CompletableFuture[b.ResourcesResult] =
     forwardTo.buildTargetResources(params)
-      .handleAsync(fatalExceptionHandler("buildTargetResources", params))
+      .handle(fatalExceptionHandler("buildTargetResources", params))
 
   override def buildTargetRun(params: b.RunParams): CompletableFuture[b.RunResult] =
     forwardTo.buildTargetRun(params)
-      .handleAsync(fatalExceptionHandler("buildTargetRun", params))
+      .handle(fatalExceptionHandler("buildTargetRun", params))
 
   override def buildTargetSources(params: b.SourcesParams): CompletableFuture[b.SourcesResult] =
     forwardTo.buildTargetSources(params)
-      .handleAsync(fatalExceptionHandler("buildTargetSources", params))
+      .handle(fatalExceptionHandler("buildTargetSources", params))
 
   override def buildTargetTest(params: b.TestParams): CompletableFuture[b.TestResult] =
     forwardTo.buildTargetTest(params)
-      .handleAsync(fatalExceptionHandler("buildTargetTest", params))
+      .handle(fatalExceptionHandler("buildTargetTest", params))
 
   override def workspaceBuildTargets(): CompletableFuture[b.WorkspaceBuildTargetsResult] =
     forwardTo.workspaceBuildTargets()
-      .handleAsync(fatalExceptionHandler("workspaceBuildTargets"))
+      .handle(fatalExceptionHandler("workspaceBuildTargets"))
 
   override def workspaceReload(): CompletableFuture[Object] =
     CompletableFuture.completedFuture(new Object)
   // Bloop does not support workspaceReload and Intellij calls it at the start
   // forwardTo.workspaceReload()
-  //   .handleAsync(fatalExceptionHandler("workspaceReload"))
+  //   .handle(fatalExceptionHandler("workspaceReload"))
 
   override def buildTargetDependencyModules(params: DependencyModulesParams)
     : CompletableFuture[DependencyModulesResult] =
     forwardTo.buildTargetDependencyModules(params)
-      .handleAsync(fatalExceptionHandler("buildTargetDependencyModules", params))
+      .handle(fatalExceptionHandler("buildTargetDependencyModules", params))
 }

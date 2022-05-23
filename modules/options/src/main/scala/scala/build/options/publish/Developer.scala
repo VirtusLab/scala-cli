@@ -13,7 +13,7 @@ final case class Developer(
 object Developer {
 
   def parse(input: Positioned[String]): Either[BuildException, Developer] =
-    input.value.split("|", 4) match {
+    input.value.split("\\|", 4) match {
       case Array(id, name, url) =>
         Right(Developer(id, name, url))
       case Array(id, name, url, mail) =>

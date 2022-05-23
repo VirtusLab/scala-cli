@@ -66,7 +66,7 @@ object Bsp extends ScalaCommand[BspOptions] {
   }
 
   private def buildOptions(sharedOptions: SharedOptions): BuildOptions = {
-    val baseOptions = sharedOptions.buildOptions(enableJmh = false, jmhVersion = None)
+    val baseOptions = sharedOptions.buildOptions()
     baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = baseOptions.classPathOptions.fetchSources.orElse(Some(true))

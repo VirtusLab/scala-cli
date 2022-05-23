@@ -2,7 +2,13 @@ package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors.{BuildException, MalformedInputError, UnexpectedDirectiveError}
+import scala.build.Ops._
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  MalformedInputError,
+  UnexpectedDirectiveError
+}
 import scala.build.options.publish.{ComputeVersion, Developer, License, Vcs}
 import scala.build.options.{BuildOptions, PostBuildOptions, PublishOptions}
 import scala.cli.signing.shared.PasswordOption
@@ -117,11 +123,13 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
       case "description" =>
         PublishOptions(description = Some(singleValue.value))
       case "developer" =>
-        value {
-          Developer.parse(singleValue).map {
-            developer => PublishOptions(developers = Seq(developer))
-          }
+        val developers = value {
+          severalValues
+            .map(Developer.parse)
+            .sequence
+            .left.map(CompositeBuildException(_))
         }
+        PublishOptions(developers = developers)
       case "scalaVersionSuffix" | "scala-version-suffix" =>
         PublishOptions(scalaVersionSuffix = Some(singleValue.value))
       case "scalaPlatformSuffix" | "scala-platform-suffix" =>

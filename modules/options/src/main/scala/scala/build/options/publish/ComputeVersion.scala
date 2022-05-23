@@ -9,6 +9,7 @@ import scala.build.Positioned
 import scala.build.errors.{BuildException, MalformedInputError}
 import scala.io.Codec
 import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 sealed abstract class ComputeVersion extends Product with Serializable {
   def get(workspace: os.Path): Either[BuildException, String]
@@ -48,8 +49,7 @@ object ComputeVersion {
     }
     def get(workspace: os.Path): Either[BuildException, String] = {
       val repo0 = repo.resolveFrom(workspace)
-      if (os.exists(repo0 / ".git")) {
-        val git     = Git.open(repo0.toIO)
+      if (os.exists(repo0 / ".git")) Using.resource(Git.open(repo0.toIO)) { git =>
         val hasHead = git.getRepository.resolve(Constants.HEAD) != null
         if (hasHead) {
           val (lastTagOpt, lastStableTagOpt) = {
@@ -57,7 +57,13 @@ object ComputeVersion {
               .call()
               .asScala
               .iterator
-              .flatMap(tag => Option(tag.getPeeledObjectId).iterator.map(id => (id.name, tag)))
+              .flatMap { tag =>
+                Option(git.getRepository.getRefDatabase.peel(tag).getPeeledObjectId)
+                  .orElse(Option(tag.getObjectId))
+                  .orElse(Option(tag.getPeeledObjectId))
+                  .iterator
+                  .map(id => (id.name, tag))
+              }
               .toMap
             val tagsIt = git.log()
               .call()
@@ -91,7 +97,9 @@ object ComputeVersion {
             case (None, _) =>
               Right(defaultFirstVersion)
             case (Some((tag, name)), _)
-                if Option(tag.getPeeledObjectId).exists(_.name == headCommit.name) =>
+                if Option(git.getRepository.getRefDatabase.peel(tag).getPeeledObjectId)
+                  .exists(_.name == headCommit.name) ||
+                Option(tag.getObjectId).exists(_.name == headCommit.name) =>
               Right(name)
             case (Some((tag, _)), _) if dynVer =>
               val tagOrNull = git.describe()

@@ -5,6 +5,7 @@ import sttp.client3._
 import sttp.monad.MonadError
 
 import scala.build.Logger
+import scala.util.Try
 
 class ScalaCliSttpBackend(
   underlying: SttpBackend[Identity, Any],
@@ -14,11 +15,20 @@ class ScalaCliSttpBackend(
   override def send[T, R >: Any with Effect[Identity]](request: Request[T, R]): Response[T] = {
     logger.debug(s"HTTP ${request.method} ${request.uri}")
     if (logger.verbosity >= 3)
-      logger.debug(s"request body: '${request.body.show}'")
+      logger.debug(s"request: '${request.show()}'")
     val resp = underlying.send[T, R](request)
     logger.debug(s"HTTP ${request.method} ${request.uri}: HTTP ${resp.code} ${resp.statusText}")
-    if (logger.verbosity >= 3)
-      logger.debug(s"response body: '${resp.body.toString}'")
+    if (logger.verbosity >= 3) {
+      val logResp = request.response match {
+        case ResponseAsByteArray =>
+          resp.copy(
+            body = Try(new String(resp.body.asInstanceOf[Array[Byte]]))
+          )
+        case _ =>
+          resp
+      }
+      logger.debug(s"response: '${logResp.show()}'")
+    }
     resp
   }
   override def close(): Unit =

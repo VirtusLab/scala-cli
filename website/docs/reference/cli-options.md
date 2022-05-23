@@ -1034,6 +1034,8 @@ gpg command-line options
 
 Set Ivy 2 home directory
 
+#### `--force-signing-binary`
+
 #### `--ivy2-local-like`
 
 ## Publish params options

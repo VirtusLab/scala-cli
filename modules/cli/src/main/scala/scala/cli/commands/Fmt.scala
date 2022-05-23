@@ -89,7 +89,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
     }
 
     def buildOptions: BuildOptions =
-      shared.buildOptions(enableJmh = false, jmhVersion = None, ignoreErrors = false)
+      shared.buildOptions(ignoreErrors = false)
 
     def scalafmtCliOptions: List[String] =
       scalafmtArg ::: (if (check) List("--check") else Nil)
@@ -113,7 +113,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       }
     CurrentParams.workspaceOpt = Some(workspace)
     val (versionMaybe, confExists) = readVersionFromFile(workspace, logger)
-    val cache                      = options.shared.buildOptions(false, None).archiveCache
+    val cache                      = options.shared.buildOptions().archiveCache
 
     val version = versionMaybe.getOrElse {
       System.err.println(

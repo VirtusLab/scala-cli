@@ -12,10 +12,10 @@ import scala.cli.publish.BouncycastleExternalSigner$;
 import scala.cli.signing.shared.PasswordOption;
 
 @TargetClass(className = "scala.cli.publish.BouncycastleSignerMaker")
-final class BouncycastleSignerMakerSubst {
+public final class BouncycastleSignerMakerSubst {
 
   @Substitute
-  Signer get(PasswordOption passwordOrNull, PasswordOption secretKey, Supplier<Path> launcher, Logger logger) {
+  public Signer get(PasswordOption passwordOrNull, PasswordOption secretKey, Supplier<Path> launcher, Logger logger) {
     return BouncycastleExternalSigner$.MODULE$.apply(secretKey, passwordOrNull, launcher.get(), logger);
   }
 
