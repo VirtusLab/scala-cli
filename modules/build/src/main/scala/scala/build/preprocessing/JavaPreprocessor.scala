@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
+import scala.build.internal.JavaParser
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.ScalaPreprocessor._
@@ -44,17 +45,25 @@ case object JavaPreprocessor extends Preprocessor {
           ))
         })
       case v: Inputs.VirtualJavaFile =>
+        val relPath =
+          if (v.isStdin) {
+            val fileName = JavaParser.parseRootPublicClassName(v.content).map(
+              _ + ".java"
+            ).getOrElse("stdin.java")
+            os.sub / fileName
+          }
+          else v.subPath
         val content = new String(v.content, StandardCharsets.UTF_8)
         val s = PreprocessedSource.InMemory(
-          Left(v.source),
-          v.subPath,
-          content,
-          0,
-          None,
-          None,
-          Nil,
-          None,
-          v.scopePath
+          originalPath = Left(v.source),
+          relPath = relPath,
+          code = content,
+          ignoreLen = 0,
+          options = None,
+          requirements = None,
+          scopedRequirements = Nil,
+          mainClassOpt = None,
+          scopePath = v.scopePath
         )
         Some(Right(Seq(s)))
 
