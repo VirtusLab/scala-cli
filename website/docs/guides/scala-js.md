@@ -52,7 +52,7 @@ node hello.js
 Hello World from Scala.js
 -->
 
-### Module Split Style 
+### Module Split Style
 
 ### Smallest Modules
 
@@ -169,9 +169,6 @@ The table below lists the last supported version of Scala.js in Scala CLI. If yo
 | Scala CLI versions   |      Scala.js      |
 |----------------------|:------------------:|
 | 0.0.9                |   1.7.1            |
-| 0.1.0                |   1.8.0            |
-| 0.1.1                |   1.8.0            |
-| 0.1.2                |   1.8.0            |
+| 0.1.0 - 0.1.2        |   1.8.0            |
 | 0.1.3                |   1.9.0            |
-| 0.1.4                |   1.10.0            |
-| 0.1.5                |   1.10.0            |
+| 0.1.4 - 0.1.6        |   1.10.0           |
