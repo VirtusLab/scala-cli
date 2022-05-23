@@ -56,15 +56,15 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier      = "2.1.0-M5-24-g678b31710"
+    def coursier      = "2.1.0-M6"
     def coursierCli   = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.13.21"
-    def scalaMeta     = "4.5.6"
+    def jsoniterScala = "2.13.25"
+    def scalaMeta     = "4.5.7"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
     def signingCli    = "0.1.6"
   }
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.3"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4"
   def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.0-sc-1"
@@ -133,7 +133,7 @@ object Deps {
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc1"
     else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc1"
-  def sttp            = ivy"com.softwaremill.sttp.client3::core:3.6.1"
+  def sttp            = ivy"com.softwaremill.sttp.client3::core:3.6.2"
   def svm             = ivy"org.graalvm.nativeimage:svm:22.0.0.2"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"

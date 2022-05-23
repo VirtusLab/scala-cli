@@ -3,7 +3,6 @@ package scala.cli.commands
 import caseapp._
 
 import java.io.File
-import java.nio.file.Path
 
 import scala.build.internal.{Constants, FetchExternalBinary, Runner}
 import scala.build.{Build, BuildThreads, Logger}

@@ -146,7 +146,8 @@ object SharedOptionsUtil {
           cache = Some(coursierCache),
           localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
           verbosity = Some(logging.verbosity),
-          strictBloopJsonCheck = strictBloopJsonCheck
+          strictBloopJsonCheck = strictBloopJsonCheck,
+          interactive = interactive
         ),
         notForBloopOptions = bo.PostBuildOptions(
           scalaJsLinkerOptions = linkerOptions(js)

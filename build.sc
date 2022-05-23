@@ -34,7 +34,8 @@ import _root_.scala.util.Properties
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli extends Cli3 {
+object cli extends Cli3 with Bloop.Module {
+  def skipBloop = true
   object test extends Tests {
     def moduleDeps = super.moduleDeps ++ Seq(
       `build-module`(myScalaVersion).test
@@ -44,6 +45,7 @@ object cli extends Cli3 {
 
 // remove once we do not have blockers with Scala 3
 object cli2 extends Cli {
+  def myScalaVersion = Scala.scala213
   def sources = T.sources {
     super.sources() ++ cli.sources()
   }
@@ -189,7 +191,8 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliScalafixModule
     with HasTests {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
   }
   def compileIvyDeps = T {
     if (scalaVersion().startsWith("3"))
@@ -276,7 +279,9 @@ trait ProtoBuildModule extends ScalaCliPublishModule with HasTests
 trait BuildLikeModule extends ScalaCliCrossSbtModule with ProtoBuildModule {
 
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil) ++
+      Seq("-deprecation")
   }
 
   def repositories = super.repositories ++ customRepositories
@@ -646,12 +651,13 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
-  def myScalaVersion = Scala.defaultInternal
+  def myScalaVersion: String
 
   def scalaVersion = T(myScalaVersion)
 
   def scalacOptions = T {
-    super.scalacOptions() ++ asyncScalacOptions(scalaVersion()) ++ Seq("-Ywarn-unused")
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion()) ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
   }
   def javacOptions = T {
     super.javacOptions() ++ Seq("--release", "16")
@@ -694,7 +700,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 }
 
 trait Cli3 extends Cli {
-  override def myScalaVersion = Scala.scala3
+  def myScalaVersion = Scala.scala3
 
   override def nativeImageClassPath = T {
     val classpath = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
@@ -729,17 +735,14 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
   def modulesPath = T {
     val name                = mainArtifactName().stripPrefix(prefix)
     val baseIntegrationPath = os.Path(millSourcePath.toString.stripSuffix(name))
-    val p = os.Path(
-      baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName)
-    )
-    PathRef(p)
+    baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName)
   }
   def sources = T.sources {
-    val mainPath = PathRef(modulesPath().path / "integration" / "src" / "main" / "scala")
+    val mainPath = PathRef(os.Path(modulesPath()) / "integration" / "src" / "main" / "scala")
     super.sources() ++ Seq(mainPath)
   }
   def resources = T.sources {
-    val mainPath = PathRef(modulesPath().path / "integration" / "src" / "main" / "resources")
+    val mainPath = PathRef(os.Path(modulesPath()) / "integration" / "src" / "main" / "resources")
     super.resources() ++ Seq(mainPath)
   }
 
@@ -937,7 +940,9 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with HasTests
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil) ++
+      Seq("-deprecation")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
@@ -1147,6 +1152,35 @@ private def commitChanges(name: String, branch: String, repoDir: os.Path): Unit 
 object ci extends Module {
   def publishVersion() = T.command {
     println(cli.publishVersion())
+  }
+  def updateScalaCliSetup() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir       = os.pwd / "target"
+    val mainDir         = targetDir / "scala-cli-setup"
+    val setupScriptPath = mainDir / "src" / "main.ts"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val branch       = "main"
+    val targetBranch = s"update-scala-cli-setup"
+    val repo         = "git@github.com:VirtusLab/scala-cli-setup.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(mainDir)
+
+    val setupScript          = os.read(setupScriptPath)
+    val scalaCliVersionRegex = "const scalaCLIVersion = '.*'".r
+    val updatedSetupScriptPath =
+      scalaCliVersionRegex.replaceFirstIn(setupScript, s"const scalaCLIVersion = '$version'")
+    os.write.over(setupScriptPath, updatedSetupScriptPath)
+
+    os.proc("git", "switch", "-c", targetBranch).call(cwd = mainDir)
+    commitChanges(s"Update scala-cli version to $version", targetBranch, mainDir)
   }
   def updateStandaloneLauncher() = T.command {
     val version = cli.publishVersion()

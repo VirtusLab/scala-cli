@@ -662,8 +662,10 @@ trait HasMacroAnnotations extends ScalaModule {
   def scalacOptions = T {
     val sv = scalaVersion()
     val extra =
-      if (sv.startsWith("2.") && !sv.startsWith("2.13.")) Nil
-      else Seq("-Ymacro-annotations")
+      if (sv.startsWith("2."))
+        if (sv.startsWith("2.13.")) Seq("-Ymacro-annotations")
+        else Nil
+      else Nil
     super.scalacOptions() ++ extra
   }
   def scalacPluginIvyDeps = T {

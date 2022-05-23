@@ -45,7 +45,7 @@ class CachedBinaryTests extends munit.FunSuite {
     test(s"should build native app at first time ($additionalMessage)") {
 
       inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
-        (root, _, maybeBuild) =>
+        (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
@@ -62,7 +62,7 @@ class CachedBinaryTests extends munit.FunSuite {
 
     test(s"should not rebuild the second time ($additionalMessage)") {
       inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
-        (root, _, maybeBuild) =>
+        (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
@@ -88,7 +88,7 @@ class CachedBinaryTests extends munit.FunSuite {
 
     test(s"should build native if output file was deleted ($additionalMessage)") {
       inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
-        (root, _, maybeBuild) =>
+        (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
@@ -115,7 +115,7 @@ class CachedBinaryTests extends munit.FunSuite {
 
     test(s"should build native if output file was changed ($additionalMessage)") {
       inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
-        (root, _, maybeBuild) =>
+        (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()
@@ -168,7 +168,7 @@ class CachedBinaryTests extends munit.FunSuite {
 
     test(s"should build native if native config was changed ($additionalMessage)") {
       inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
-        (root, _, maybeBuild) =>
+        (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
           val config        = build.options.scalaNativeOptions.configCliOptions()

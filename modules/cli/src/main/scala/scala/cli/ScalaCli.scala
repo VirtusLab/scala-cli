@@ -107,6 +107,16 @@ object ScalaCli {
                  |  $progName bloop output
                  |might give more details.""".stripMargin
             )
+          case ex: java.util.zip.ZipException
+              if !Properties.isWin && ex.getMessage.contains("invalid entry CRC") =>
+            // Suggest workaround of https://github.com/VirtusLab/scala-cli/pull/865
+            // for https://github.com/VirtusLab/scala-cli/issues/828
+            System.err.println(
+              """Running
+                |  export SCALA_CLI_VENDORED_ZIS=true
+                |before running Scala CLI might fix the issue.
+                |""".stripMargin
+            )
           case _ =>
         }
 
