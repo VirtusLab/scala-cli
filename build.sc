@@ -18,6 +18,7 @@ import $file.project.settings, settings.{
   workspaceDirName
 }
 import $file.project.deps, deps.customRepositories
+import $file.project.website
 
 import java.io.File
 import java.nio.charset.Charset
@@ -1515,6 +1516,11 @@ object ci extends Module {
     os.copy(baseJavaHome, destJavaHome, createFolders = true)
     System.err.println(s"New Java home $destJavaHome")
     destJavaHome
+  }
+
+  def checkScalaVersions() = T.command {
+    website.checkMainScalaVersions(os.pwd / "website" / "docs" / "reference" / "scala-versions.md")
+    website.checkScalaJsVersions(os.pwd / "website" / "docs" / "guides" / "scala-js.md")
   }
 }
 
