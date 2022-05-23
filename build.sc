@@ -1157,7 +1157,7 @@ object ci extends Module {
   def updateScalaCliSetup() = T.command {
     val version = cli.publishVersion()
 
-    val targetDir       = os.pwd / "target"
+    val targetDir       = os.pwd / "target-scala-cli-setup"
     val mainDir         = targetDir / "scala-cli-setup"
     val setupScriptPath = mainDir / "src" / "main.ts"
 
