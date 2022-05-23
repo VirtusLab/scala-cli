@@ -8,7 +8,6 @@
   ```bash
   git shortlog -sn --no-merges {old-release-tag}...{new-release-tag}
   ```
-- [ ] Create a pull request with supported scala-versions for the new release to this repository: [Virtuslab/scala-cli-scala-versions ](https://github.com/Virtuslab/scala-cli-scala-versions)
 - [ ] ScalaCLI Setup
    - [ ] Merge pull request with updated ScalaCLI version in [scala-cli-setup](https://github.com/VirtusLab/scala-cli-setup) repository. Pull request should be opened automatically after release.
    - [ ] Make a release with the updated ScalaCLI version.

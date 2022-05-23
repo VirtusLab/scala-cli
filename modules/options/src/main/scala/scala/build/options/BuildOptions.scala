@@ -266,8 +266,13 @@ final case class BuildOptions(
             // wrapped in an exception so that the current stack trace appears in the exception
             throw new Exception(e)
         case Right(versions) =>
-          versions
-            .find(_.scalaCliVersion == scalaCliVersion)
+          versions.find(_.scalaCliVersion == scalaCliVersion)
+            .orElse {
+              val scalaCliVersion0 = Version(scalaCliVersion)
+              versions
+                .filter(_.scalaCliVersion0.compareTo(scalaCliVersion0) <= 0)
+                .maxByOption(_.scalaCliVersion0)
+            }
             .map(_.supportedScalaVersions)
             .getOrElse {
               // FIXME Log that: logger.debug(s"Couldn't find Scala CLI version $scalaCliVersion in $versions")
