@@ -3,6 +3,7 @@ package scala.cli.commands
 import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
+import scala.util.Try
 
 // format: off
 final case class VerbosityOptions(
@@ -23,9 +24,8 @@ object VerbosityOptions {
   implicit lazy val help: Help[VerbosityOptions]                      = Help.derive
   implicit val rwCounter: JsonValueCodec[Int @@ Counter] =
     new JsonValueCodec[Int @@ Counter] {
-      private val intCodec: JsonValueCodec[Int] = JsonCodecMaker.make
       def decodeValue(in: JsonReader, default: Int @@ Counter) =
-        Tag.of(intCodec.decodeValue(in, Tag.unwrap(default)))
+        Tag.of(Try(in.readInt()).getOrElse(Tag.unwrap(default)))
       def encodeValue(x: Int @@ Counter, out: JsonWriter): Unit =
         out.writeVal(Tag.unwrap(x))
       def nullValue: Int @@ Counter =
