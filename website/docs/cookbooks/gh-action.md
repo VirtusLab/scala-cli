@@ -19,7 +19,7 @@ For example, here's a simple `ls` application printing the files in a given dire
     case _       => os.pwd
 
   if (os.isDir(path)) println(os.list(path).mkString(","))
-  else System.err.println("Expected directory path as a input")
+  else System.err.println("Expected directory path as an input")
 ```
 
 and some tests for `ls` application:
@@ -33,15 +33,15 @@ class TestsLs extends munit.FunSuite {
     // prepare test directory
     val tempDir = os.temp.dir()
     // create files
-    val exptectedFiles = Seq("Ls", "Hello").map(tempDir / _)
-    exptectedFiles.foreach(os.write(_, "Hello"))
+    val expectedFiles = Seq("Ls", "Hello").map(tempDir / _)
+    expectedFiles.foreach(os.write(_, "Hello"))
 
     // check
     val scalaCLILauncher = if(Properties.isWin) "scala-cli.bat" else "scala-cli"
     val foundFiles =
       os.proc(scalaCLILauncher, "Ls.scala", "--", tempDir).call().out.text().trim
 
-    exptectedFiles.map(_.toString).foreach { file =>
+    expectedFiles.map(_.toString).foreach { file =>
       assert(foundFiles.contains(file))
     }
   }
@@ -69,9 +69,9 @@ jobs:
     - run: scala-cli test .
 ```
 
-## Test your scala code style
+## Check your Scala code format
 
-To test the code style of your application, you can use [Scalafmt](https://scalameta.org/scalafmt/). 
+To check the code style of your sources, you can use [Scalafmt](https://scalameta.org/scalafmt/). 
 
 Before running Scalafmt, you need to create a `.scalafmt.conf` configuration file:
 
@@ -80,7 +80,7 @@ version = 3.5.2
 runner.dialect = scala3
 ```
 
-and then test your code style in GitHub CI by adding new job `format`:
+and then check your code format in GitHub CI by adding new job `format`:
 ```yaml
   format:
     runs-on: "ubuntu-latest"
@@ -155,6 +155,6 @@ To upload generated native executable applications to artifacts you can use [upl
 
 When release CI pass, you should be able to download artifacts that contain native launchers of your applications.
 
-[Here](https://github.com/lwronski/ls-scala-cli-demo/actions/runs/2372222210) you can find examples of a CI that contains generated launcher based on this cookbook.
+[Here](https://github.com/lwronski/ls-scala-cli-demo/actions/runs/2376334882) you can find examples of a CI that contains generated launcher based on this cookbook.
 
 You can find the code of this cookbook [here](https://github.com/lwronski/ls-scala-cli-demo).
