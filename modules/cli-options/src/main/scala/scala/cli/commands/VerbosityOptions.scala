@@ -27,7 +27,7 @@ object VerbosityOptions {
       def decodeValue(in: JsonReader, default: Int @@ Counter) =
         Tag.of(intCodec.decodeValue(in, Tag.unwrap(default)))
       def encodeValue(x: Int @@ Counter, out: JsonWriter): Unit =
-        intCodec.encodeValue(Tag.unwrap(x), out)
+        out.writeVal(Tag.unwrap(x))
       def nullValue: Int @@ Counter =
         Tag.of(0)
     }
