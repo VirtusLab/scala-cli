@@ -308,7 +308,6 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
       .exclude(("com.google.collections", "google-collections"))
       // Coursier is not cross-compiled and pulls jsoniter-scala-macros in 2.13
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
-    Deps.jsoniterMacros, // pulls jsoniter macros manually
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.jgit,
@@ -318,6 +317,9 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.scalaJsEnvJsdomNodejs,
     Deps.scalaJsLogging,
     Deps.swoval
+  )
+  def compileIvyDeps = super.compileIvyDeps() ++ Seq(
+    Deps.jsoniterMacros
   )
 
   private def vcsState = T.persistent {
@@ -481,6 +483,9 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.bloopConfig,
     Deps.signingCliShared
   )
+  def compileIvyDeps = super.compileIvyDeps() ++ Seq(
+    Deps.jsoniterMacros
+  )
 
   object test extends Tests {
     // uncomment below to debug tests in attach mode on 5005 port
@@ -624,9 +629,11 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.jsoniterCore,
-    Deps.jsoniterMacros,
     Deps.osLib,
     Deps.signingCliOptions
+  )
+  def compileIvyDeps = super.compileIvyDeps() ++ Seq(
+    Deps.jsoniterMacros
   )
   def scalaVersion = Scala.scala213
   def repositories = super.repositories ++ customRepositories
@@ -755,14 +762,17 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
   trait Tests extends super.Tests with ScalaCliScalafixModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
-      Deps.coursier,
+      Deps.coursier
+        .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
       Deps.dockerClient,
       Deps.jsoniterCore,
-      Deps.jsoniterMacros,
       Deps.libsodiumjni,
       Deps.pprint,
       Deps.scalaAsync,
       Deps.slf4jNop
+    )
+    def compileIvyDeps = super.compileIvyDeps() ++ Seq(
+      Deps.jsoniterMacros
     )
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI_TMP" -> tmpDirBase().path.toString,
