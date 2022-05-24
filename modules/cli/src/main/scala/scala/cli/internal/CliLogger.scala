@@ -33,6 +33,8 @@ class CliLogger(
     }
   }
 
+  def error(message: String) =
+    out.println(message)
   def message(message: => String) =
     if (verbosity >= 0)
       out.println(message)

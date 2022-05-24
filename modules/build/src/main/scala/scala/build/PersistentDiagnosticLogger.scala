@@ -13,6 +13,7 @@ class PersistentDiagnosticLogger(parent: Logger) extends Logger {
 
   def diagnostics = diagBuilder.result()
 
+  def error(message: String): Unit = parent.error(message)
   // TODO Use macros for log and debug calls to have zero cost when verbosity <= 0
   def message(message: => String): Unit         = parent.message(message)
   def log(s: => String): Unit                   = parent.log(s)
