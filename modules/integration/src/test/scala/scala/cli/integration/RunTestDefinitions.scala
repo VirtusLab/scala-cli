@@ -16,7 +16,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   protected val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
 
-  def simpleScriptTest(ignoreErrors: Boolean = false): Unit = {
+  def simpleScriptTest(ignoreErrors: Boolean = false, extraArgs: Seq[String] = Nil): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
@@ -28,7 +28,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, fileName).call(cwd = root).out.text().trim
+      val output =
+        os.proc(TestUtil.cli, extraOptions, extraArgs, fileName).call(cwd = root).out.text().trim
       if (!ignoreErrors)
         expect(output == message)
     }
@@ -47,6 +48,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("simple script") {
     simpleScriptTest()
+  }
+
+  test("verbosity") {
+    simpleScriptTest(extraArgs = Seq("-v"))
   }
 
   def simpleJsTest(extraArgs: String*): Unit = {
