@@ -3,6 +3,8 @@ package scala.cli.commands
 import caseapp.core.RemainingArgs
 
 import scala.build.internal.Constants
+import scala.cli.ScalaCli
+import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
 
 // current version / latest version + potentially information that
@@ -59,30 +61,7 @@ object Doctor extends ScalaCommand[DoctorOptions] {
   // the semantics of PATH isn't just built into unix shells.  it is
   // part of the 'exec' series of system calls.
   private def checkDuplicatesOnPath(): Unit = {
-    import java.io.File.pathSeparator, java.io.File.pathSeparatorChar
-
-    var path = System.getenv("PATH")
-    val pwd  = os.pwd.toString
-
-    // on unix & macs, an empty PATH counts as ".", the working directory
-    if (path.length == 0)
-      path = pwd
-    else {
-      // scala 'split' doesn't handle leading or trailing pathSeparators
-      // correctly so expand them now.
-      if (path.head == pathSeparatorChar) path = pwd + path
-      if (path.last == pathSeparatorChar) path = path + pwd
-      // on unix and macs, an empty PATH item is like "." (current dir).
-      path = s"$pathSeparator$pathSeparator".r
-        .replaceAllIn(path, pathSeparator + pwd + pathSeparator)
-    }
-
-    val scalaCliPaths = path
-      .split(pathSeparator)
-      .map(d => if (d == ".") pwd else d) // on unix a bare "." counts as the current dir
-      .map(_ + "/scala-cli")
-      .filter(f => os.isFile(os.Path(f, os.pwd)))
-      .toSet
+    val scalaCliPaths = ProcUtil.findApplicationPathsOnPATH(ScalaCli.progName)
 
     if (scalaCliPaths.size > 1)
       println(
