@@ -222,7 +222,7 @@ object Package extends ScalaCommand[PackageOptions] {
         os.exists(destPath) &&
         !expectedModifyEpochSecondOpt.contains(os.mtime(destPath))
       if (alreadyExists)
-        InteractiveFileOps.erasingPath(build.options.Interactive, printableDest, destPath) { () =>
+        InteractiveFileOps.erasingPath(build.options.interactive, printableDest, destPath) { () =>
           val errorMsg =
             if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
             else s"$printableDest was overwritten by another process"

@@ -80,7 +80,7 @@ object Doc extends ScalaCommand[DocOptions] {
     def alreadyExistsCheck(): Unit = {
       val alreadyExists = !force && os.exists(destPath)
       if (alreadyExists)
-        InteractiveFileOps.erasingPath(build.options.Interactive, printableDest, destPath) { () =>
+        InteractiveFileOps.erasingPath(build.options.interactive, printableDest, destPath) { () =>
           val msg = s"$printableDest already exists"
           System.err.println(s"Error: $msg. Pass -f or --force to force erasing it.")
           sys.exit(1)

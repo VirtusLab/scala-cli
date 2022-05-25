@@ -59,14 +59,14 @@ object Update extends ScalaCommand[UpdateOptions] {
     )
 
   private def updateScalaCli(options: UpdateOptions, newVersion: String) = {
-    val Interactive = options.verbosity.Interactive
+    val interactive = options.verbosity.interactiveInstance
     if (!options.force) {
       val fallbackAction = () => {
         System.err.println(s"To update scala-cli to $newVersion pass -f or --force")
         sys.exit(1)
       }
       val msg = s"Do you want to update scala-cli to version $newVersion"
-      Interactive.confirmOperation(msg).getOrElse(fallbackAction())
+      interactive.confirmOperation(msg).getOrElse(fallbackAction())
     }
 
     val installationScript =

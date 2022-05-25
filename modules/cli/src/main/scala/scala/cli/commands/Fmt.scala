@@ -99,7 +99,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
   def run(options: FmtOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val Interactive = options.shared.logging.verbosityOptions.Interactive
+    val interactive = options.shared.logging.verbosityOptions.interactiveInstance
     val logger      = options.shared.logger
 
     // TODO If no input is given, just pass '.' to scalafmt?
@@ -128,7 +128,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
                     |Do you want to add Scalafmt version to .scalafmt.conf file?""".stripMargin
       val scalafmtConfPath = workspace / ".scalafmt"
       val entry = s"version = ${Constants.defaultScalafmtVersion}${System.lineSeparator()}"
-      InteractiveFileOps.addEntryToFile(Interactive, msg, scalafmtConfPath, entry) { () =>
+      InteractiveFileOps.addEntryToFile(interactive, msg, scalafmtConfPath, entry) { () =>
         System.err.println(errorMsg)
         sys.exit(1)
       }

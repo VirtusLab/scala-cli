@@ -63,15 +63,14 @@ object Build {
         if (foundMainClasses0.isEmpty) Left(new NoMainClassFoundError)
         else if (foundMainClasses0.length == 1) Right(foundMainClasses0.head)
         else
-          options.Interactive.chooseOne(
+          options.interactive.chooseOne(
             "Found several main classes. Which would you like to run?",
             foundMainClasses0.toList
-          ) match {
-            case Some(mainClass) => Right(mainClass)
-            case None => Left(new SeveralMainClassesFoundError(
-                ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
-                Nil
-              ))
+          ).toRight {
+            new SeveralMainClassesFoundError(
+              ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
+              Nil
+            )
           }
 
       defaultMainClassOpt match {

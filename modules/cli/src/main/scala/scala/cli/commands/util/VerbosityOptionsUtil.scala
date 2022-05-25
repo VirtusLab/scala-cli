@@ -1,12 +1,10 @@
 package scala.cli.commands
 package util
 
+import scala.build.interactive.Interactive._
+
 object VerbosityOptionsUtil {
   implicit class VerbosityOptionsOps(v: VerbosityOptions) {
-    import v._
-
-    val Interactive = if (interactive.getOrElse(false))
-      scala.build.interactive.Interactive.InteractiveAsk
-    else scala.build.interactive.Interactive.InteractiveNop
+    val interactiveInstance = if (v.interactive.getOrElse(false)) InteractiveAsk else InteractiveNop
   }
 }

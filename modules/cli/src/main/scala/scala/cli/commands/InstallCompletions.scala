@@ -20,7 +20,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   private lazy val home = os.Path(sys.props("user.home"), os.pwd)
   def run(options: InstallCompletionsOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.logging.verbosity
-    val Interactive = options.logging.verbosityOptions.Interactive
+    val interactive = options.logging.verbosityOptions.interactiveInstance
     lazy val completionsDir =
       options.output
         .map(os.Path(_, os.pwd))
@@ -53,7 +53,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
           sys.exit(1)
         }
         val msg = "Cannot determine current shell. Which would you like to use?"
-        Interactive.chooseOne(
+        interactive.chooseOne(
           msg,
           List("zsh", "bash")
         ).getOrElse(fallbackAction())

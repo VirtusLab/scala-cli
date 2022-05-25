@@ -1,6 +1,6 @@
 package scala.build.interactive
 
-case object InteractiveFileOps {
+object InteractiveFileOps {
 
   def erasingPath(
     interactive: Interactive,
