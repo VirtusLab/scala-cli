@@ -4,6 +4,8 @@ import java.io.File
 import java.nio.file.Paths
 
 import scala.build.Os
+import scala.cli.ScalaCli
+import scala.cli.internal.ProcUtil
 import scala.util.Try
 
 object CommandUtils {
@@ -26,12 +28,29 @@ object CommandUtils {
       sys.props.get("coursier.mainJar")
         .map(Paths.get(_).toAbsolutePath.toString)
         .orElse {
-          Try(
+          val scalaCliPathsOnPATH = ProcUtil.findApplicationPathsOnPATH(ScalaCli.progName)
+          /*
+            https://github.com/VirtusLab/scala-cli/issues/1048
+            scalaCLICanonicalPathFromPATH is a map consisting of canonical Scala CLI paths for each symlink find on PATH.
+            If the current launcher path is the same as the canonical Scala CLI path,
+              we use a related symlink that targets to current launcher path.
+           */
+          val scalaCLICanonicalPathsFromPATH =
+            scalaCliPathsOnPATH
+              .map(path => (os.followLink(os.Path(path, os.pwd)), path))
+              .collect {
+                case (Some(canonicalPath), symlinkPath) => (canonicalPath, symlinkPath)
+              }.toMap
+          val currentLauncherPathOpt = Try(
             // This is weird but on windows we get /D:\a\scala-cli...
             Paths.get(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
               .toAbsolutePath
               .toString
           ).toOption
+          currentLauncherPathOpt.map(currentLauncherPath =>
+            scalaCLICanonicalPathsFromPATH.get(os.Path(currentLauncherPath))
+              .getOrElse(currentLauncherPath)
+          )
         }
         .getOrElse(programName)
 
