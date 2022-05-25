@@ -65,7 +65,7 @@ object Update extends ScalaCommand[UpdateOptions] {
         System.err.println(s"To update scala-cli to $newVersion pass -f or --force")
         sys.exit(1)
       }
-      val msg = s"Do you want to update scala-cli to version $newVersion"
+      val msg = s"Do you want to update scala-cli to version $newVersion?"
       interactive.confirmOperation(msg).getOrElse(fallbackAction())
     }
 

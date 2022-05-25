@@ -128,7 +128,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
                     |Do you want to add Scalafmt version to .scalafmt.conf file?""".stripMargin
       val scalafmtConfPath = workspace / ".scalafmt"
       val entry = s"version = ${Constants.defaultScalafmtVersion}${System.lineSeparator()}"
-      InteractiveFileOps.addEntryToFile(interactive, msg, scalafmtConfPath, entry) { () =>
+      InteractiveFileOps.appendToFile(interactive, msg, scalafmtConfPath, entry) { () =>
         System.err.println(errorMsg)
         sys.exit(1)
       }

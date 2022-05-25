@@ -7,8 +7,8 @@ object InteractiveFileOps {
     printableDest: String,
     destPath: os.Path
   )(fallbackAction: () => Unit) = {
-    val msg = s"""|Destination path: $printableDest already exists.
-                  |Do you want to erasing $printableDest?""".stripMargin
+    val msg = s"""|$printableDest already exists.
+                  |Do you want to erase $printableDest?""".stripMargin
     val response = interactive.confirmOperation(msg)
     response match {
       case Some(true) => os.remove.all(destPath)
@@ -16,7 +16,7 @@ object InteractiveFileOps {
     }
   }
 
-  def addEntryToFile(
+  def appendToFile(
     interactive: Interactive,
     msg: String,
     filePath: os.Path,
