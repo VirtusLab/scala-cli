@@ -141,6 +141,7 @@ def getGhToken(): String =
 trait CliLaunchers extends SbtModule { self =>
 
   def launcherTypeResourcePath = os.rel / "scala" / "cli" / "internal" / "launcher-type.txt"
+  def defaultFilesResourcePath = os.rel / "scala" / "cli" / "commands" / "publish"
 
   trait CliNativeImage extends NativeImage {
     def launcherKind: String
@@ -155,6 +156,7 @@ trait CliLaunchers extends SbtModule { self =>
       Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
         s"-H:IncludeResources=$launcherTypeResourcePath",
+        s"-H:IncludeResources=$defaultFilesResourcePath/.*",
         "-H:-ParseRuntimeOptions",
         s"-H:CLibraryPath=$cLibPath"
       )
@@ -730,10 +732,10 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
 trait FormatNativeImageConf extends JavaModule {
   def nativeImageConfDirs = T {
     resources()
-      .map(_.path)
+      .map(_.path / "META-INF" / "native-image")
       .filter(os.exists(_))
       .flatMap { path =>
-        os.walk(path / "META-INF" / "native-image")
+        os.walk(path)
           .filter(_.last.endsWith("-config.json"))
           .filter(os.isFile(_))
           .map(_ / os.up)

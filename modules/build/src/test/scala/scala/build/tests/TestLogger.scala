@@ -18,6 +18,8 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
     }
   }
 
+  def error(message: String): Unit =
+    System.err.println(message)
   def message(message: => String): Unit =
     if (info)
       System.err.println(message)

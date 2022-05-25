@@ -26,6 +26,8 @@ class BuildProjectTests extends munit.FunSuite {
 
     var diagnostics: List[Diagnostic] = Nil
 
+    override def error(message: String): Unit = ???
+
     override def message(message: => String): Unit = ???
 
     override def log(s: => String): Unit = ???
