@@ -8,6 +8,7 @@ import scala.build.options.BuildOptions
 import scala.build.{CrossSources, Inputs, Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.VerbosityOptionsUtil._
 import scala.util.Properties
 import scala.util.control.NonFatal
 
@@ -98,7 +99,8 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
   def run(options: FmtOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
+    val Interactive = options.shared.logging.verbosityOptions.Interactive
+    val logger      = options.shared.logger
 
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, inputsOpt) =
@@ -122,15 +124,14 @@ object Fmt extends ScalaCommand[FmtOptions] {
         s"""|Scalafmt requires explicitly specified version.
             |To configure the scalafmt version add the following line into .scalafmt.conf:
             |    version = ${Constants.defaultScalafmtVersion} """.stripMargin
-      val fallbackError = () => {
-        System.err.println(errorMsg)
-        sys.exit(1)
-      }
       val msg = s"""|$errorMsg
                     |Do you want to add Scalafmt version to .scalafmt.conf file?""".stripMargin
       val scalafmtConfPath = workspace / ".scalafmt"
       val entry = s"version = ${Constants.defaultScalafmtVersion}${System.lineSeparator()}"
-      InteractiveFileOps.addEntryToFile(buildOptions, msg, scalafmtConfPath, entry, fallbackError)
+      InteractiveFileOps.addEntryToFile(Interactive, msg, scalafmtConfPath, entry) { () =>
+        System.err.println(errorMsg)
+        sys.exit(1)
+      }
       (Constants.defaultScalafmtVersion, true)
     }
 

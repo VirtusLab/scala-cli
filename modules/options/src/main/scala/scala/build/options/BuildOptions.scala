@@ -553,6 +553,10 @@ final case class BuildOptions(
     BuildOptions.monoid.orElse(this, other)
 
   def validate: Seq[Diagnostic] = BuildOptionsRule.validateAll(this)
+
+  val Interactive = if (internal.interactive.getOrElse(false))
+    scala.build.interactive.Interactive.InteractiveAsk
+  else scala.build.interactive.Interactive.InteractiveNop
 }
 
 object BuildOptions {

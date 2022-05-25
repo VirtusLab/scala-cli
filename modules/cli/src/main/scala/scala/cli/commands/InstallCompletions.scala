@@ -7,7 +7,6 @@ import java.io.File
 import java.nio.charset.Charset
 import java.util.Arrays
 
-import scala.build.interactive.Interactive
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.VerbosityOptionsUtil._
@@ -21,7 +20,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   private lazy val home = os.Path(sys.props("user.home"), os.pwd)
   def run(options: InstallCompletionsOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.logging.verbosity
-
+    val Interactive = options.logging.verbosityOptions.Interactive
     lazy val completionsDir =
       options.output
         .map(os.Path(_, os.pwd))
@@ -45,7 +44,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         }
       }
       .getOrElse {
-        val fallbackAction = () => {
+        lazy val fallbackAction = () => {
           System.err.println(
             "Cannot determine current shell, pass the shell you use with --shell, like"
           )
@@ -54,11 +53,10 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
           sys.exit(1)
         }
         val msg = "Cannot determine current shell. Which would you like to use?"
-        Interactive(options.logging.verbosityOptions.buildOptions).chooseOne(
+        Interactive.chooseOne(
           msg,
-          List("zsh", "bash"),
-          fallbackAction
-        )
+          List("zsh", "bash")
+        ).getOrElse(fallbackAction())
       }
 
     val (rcScript, defaultRcFile) = format match {

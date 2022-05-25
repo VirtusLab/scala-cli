@@ -14,7 +14,6 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
-import scala.build.interactive.Interactive
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
@@ -63,18 +62,17 @@ object Build {
       def foundMainClass =
         if (foundMainClasses0.isEmpty) Left(new NoMainClassFoundError)
         else if (foundMainClasses0.length == 1) Right(foundMainClasses0.head)
-        else {
-          val msg = "Found several main classes. Which would you like to run?"
-          val fallbackError = new SeveralMainClassesFoundError(
-            ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
-            Nil
-          )
-          Interactive(options).chooseOne(
-            msg,
-            foundMainClasses0.toList,
-            fallbackError
-          )
-        }
+        else
+          options.Interactive.chooseOne(
+            "Found several main classes. Which would you like to run?",
+            foundMainClasses0.toList
+          ) match {
+            case Some(mainClass) => Right(mainClass)
+            case None => Left(new SeveralMainClassesFoundError(
+                ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
+                Nil
+              ))
+          }
 
       defaultMainClassOpt match {
         case Some(cls) => Right(cls)

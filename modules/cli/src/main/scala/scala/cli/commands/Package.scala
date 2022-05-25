@@ -221,16 +221,14 @@ object Package extends ScalaCommand[PackageOptions] {
       val alreadyExists = !force &&
         os.exists(destPath) &&
         !expectedModifyEpochSecondOpt.contains(os.mtime(destPath))
-      if (alreadyExists) {
-        val fallbackAction = () => {
+      if (alreadyExists)
+        InteractiveFileOps.erasingPath(build.options.Interactive, printableDest, destPath) { () =>
           val errorMsg =
             if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
             else s"$printableDest was overwritten by another process"
           System.err.println(s"Error: $errorMsg. Pass -f or --force to force erasing it.")
           sys.exit(1)
         }
-        InteractiveFileOps.erasingPath(build.options, printableDest, destPath, fallbackAction)
-      }
     }
 
     alreadyExistsCheck()
