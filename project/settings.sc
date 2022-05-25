@@ -1,5 +1,7 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
+import $ivy.`io.github.alexarchambault.mill::mill-scala-cli::0.1.0`
+
 import $file.deps, deps.{BuildDeps, Deps, Docker, alpineVersion, buildCsVersion, libsodiumVersion}
 import $file.scalafixthings, scalafixthings.ScalafixModule
 
@@ -141,6 +143,7 @@ def getGhToken(): String =
 trait CliLaunchers extends SbtModule { self =>
 
   def launcherTypeResourcePath = os.rel / "scala" / "cli" / "internal" / "launcher-type.txt"
+  def defaultFilesResourcePath = os.rel / "scala" / "cli" / "commands" / "publish"
 
   trait CliNativeImage extends NativeImage {
     def launcherKind: String
@@ -155,6 +158,7 @@ trait CliLaunchers extends SbtModule { self =>
       Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
         s"-H:IncludeResources=$launcherTypeResourcePath",
+        s"-H:IncludeResources=$defaultFilesResourcePath/.*",
         "-H:-ParseRuntimeOptions",
         s"-H:CLibraryPath=$cLibPath"
       )
@@ -730,10 +734,10 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
 trait FormatNativeImageConf extends JavaModule {
   def nativeImageConfDirs = T {
     resources()
-      .map(_.path)
+      .map(_.path / "META-INF" / "native-image")
       .filter(os.exists(_))
       .flatMap { path =>
-        os.walk(path / "META-INF" / "native-image")
+        os.walk(path)
           .filter(_.last.endsWith("-config.json"))
           .filter(os.isFile(_))
           .map(_ / os.up)
@@ -769,129 +773,8 @@ trait FormatNativeImageConf extends JavaModule {
   }
 }
 
-import mill.scalalib.api.CompilationResult
-trait ScalaCliCompile extends ScalaModule {
-  def compileScalaCliUrl = {
-    val ver = BuildDeps.scalaCliVersion
-    if (Properties.isLinux) Some(
-      s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-pc-linux.gz"
-    )
-    else if (Properties.isWin) Some(
-      s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-pc-win32.zip"
-    )
-    else if (Properties.isMac) Some(
-      s"https://github.com/VirtusLab/scala-cli/releases/download/v$ver/scala-cli-x86_64-apple-darwin.gz"
-    )
-    else None
-  }
-  def compileScalaCliIsChanging = false
-  lazy val compileScalaCliImpl = compileScalaCliUrl.map { url =>
-    import coursier.cache.{ArchiveCache, FileCache}
-    import coursier.cache.loggers.{FallbackRefreshDisplay, ProgressBarRefreshDisplay, RefreshLogger}
-    import coursier.util.Artifact
-    val logger = RefreshLogger.create(
-      if (coursier.paths.Util.useAnsiOutput())
-        ProgressBarRefreshDisplay.create()
-      else
-        new FallbackRefreshDisplay
-    )
-    val cache = FileCache().withLogger(logger)
-    val archiveCache = ArchiveCache()
-      .withCache(cache)
-    val artifact = Artifact(url).withChanging(compileScalaCliIsChanging)
-    val file = archiveCache.get(artifact).unsafeRun()(cache.ec) match {
-      case Left(e) => throw new Exception(e)
-      case Right(f) =>
-        if (Properties.isWin)
-          os.list(os.Path(f, os.pwd)).filter(_.last.endsWith(".exe")).headOption match {
-            case None      => sys.error(s"No .exe found under $f")
-            case Some(exe) => exe
-          }
-        else {
-          f.setExecutable(true)
-          os.Path(f, os.pwd)
-        }
-    }
-    PathRef(file)
-  }
-  // disable using scala-cli to build scala-cli on unsupported architectures
-  lazy val isUnsupportedArch: Boolean = {
-    val supportedArch = Seq("x86_64", "amd64")
-    val osArch        = sys.props("os.arch").toLowerCase(Locale.ROOT)
-    val isSupported   = supportedArch.exists(osArch.contains(_))
-    !isSupported
-  }
-  def compileScalaCli =
-    compileScalaCliImpl
-  override def compile: T[CompilationResult] =
-    if (isCI || isUnsupportedArch) super.compile
-    else
-      compileScalaCli.map(_.path) match {
-        case None => super.compile
-        case Some(cli) =>
-          T.persistent {
-            val out = os.pwd / workspaceDirName / ".unused"
-
-            val sourceFiles = allSources()
-              .map(_.path)
-              .filter(os.exists(_))
-            val workspace = T.dest / "workspace"
-            os.makeDir.all(workspace)
-            val classFilesDir =
-              if (sourceFiles.isEmpty) out / "classes"
-              else {
-                def asOpt[T](opt: String, values: IterableOnce[T]): Seq[String] =
-                  values.toList.flatMap(v => Seq(opt, v.toString))
-
-                val proc = os.proc(
-                  cli,
-                  Seq("compile", "--classpath"),
-                  Seq("-S", scalaVersion()),
-                  asOpt("-O", scalacOptions()),
-                  asOpt("--jar", compileClasspath().map(_.path)),
-                  asOpt("-O", scalacPluginClasspath().map(p => s"-Xplugin:${p.path}")),
-                  Seq("--jvm", "zulu:17"),
-                  // "--strict-bloop-json-check=false", // don't check Bloop JSON files at each run
-                  workspace,
-                  sourceFiles
-                )
-
-                val compile = proc.call()
-                val out     = compile.out.trim
-
-                os.Path(out.split(File.pathSeparator).head)
-              }
-
-            CompilationResult(out / "unused.txt", PathRef(classFilesDir))
-          }
-      }
-
-  // Same as https://github.com/com-lihaoyi/mill/blob/084a6650c587629900560b92e3eeb3b836a6f04f/scalalib/src/Lib.scala#L165-L173
-  // but ignoring hidden directories too, and calling os.isFile only after checking the extension
-  private def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
-    def isHiddenFile(path: os.Path) = {
-      val isHidden = path.last.startsWith(".")
-      if (isHidden) {
-        val printable =
-          if (path.startsWith(os.pwd)) path.relativeTo(os.pwd).segments.mkString(File.separator)
-          else path.toString
-        System.err.println(
-          s"Warning: found unexpected hidden file $printable in sources, you may want to remove it."
-        )
-      }
-      isHidden
-    }
-    for {
-      root <- sources
-      if os.exists(root.path)
-      path <-
-        (if (os.isDir(root.path)) os.walk(root.path, skip = isHiddenFile(_)) else Seq(root.path))
-      if extensions.exists(path.ext == _) && os.isFile(path)
-    } yield path
-  }
-  override def allSourceFiles = T {
-    findSourceFiles(allSources(), Seq("scala", "java")).map(PathRef(_))
-  }
+trait ScalaCliCompile extends scala.cli.mill.ScalaCliCompile {
+  def scalaCliVersion = BuildDeps.scalaCliVersion
 }
 
 trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
