@@ -6,7 +6,7 @@ sidebar_position: 7
 The `test` command runs test suites in the test sources.
 Test sources are complied separately (after the 'main' sources), and may use different dependencies, compiler options, and other configurations.
 
-By default, all command line options apply to both the main and test sources, so [using directives](./guides/using-directives.md) (or [special imports](../guides/configuration#special-imports)) can be used to provide test-specific configurations.
+By default, all command line options apply to both the main and test sources, so [using directives](/docs/guides/using-directives.md) (or [special imports](../guides/configuration#special-imports)) can be used to provide test-specific configurations.
 
 ## Test sources
 

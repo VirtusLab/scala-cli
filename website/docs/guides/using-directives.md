@@ -106,10 +106,10 @@ The only exceptions are `using target` directives, which only apply to the given
 
 ## `using` directives in the Scala CLI
 
-Below is a list of the most important `using` directives that Scala CLI supports. The full list can be found in the [Reference section of this documentation](./reference/directives.md).
+Below is a list of the most important `using` directives that Scala CLI supports. The full list can be found in the [Reference section of this documentation](/docs/reference/directives.md).
 
 - `//> using scala "<scala-version>"` - defines version of Scala used
-- `//> using lib "org::name:version"` - defines dependency to a given library [more in dedicated guide](./guides/dependencies.md)
+- `//> using lib "org::name:version"` - defines dependency to a given library [more in dedicated guide](/docs/guides/dependencies.md)
 - `//> using lib "org:name:version"`  - defines dependency to a given **java** library, note the `:` instead of `::`
 - `//> using lib "org::name:version,url=url"` - defines dependency to a given library with a fallback to its jar url
 - `//> using resourceDir "<dir>"` - marks directory as source of resources. Resources accessible at runtime and packaged together with compiled code.
