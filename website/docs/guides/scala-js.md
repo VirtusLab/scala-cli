@@ -158,7 +158,7 @@ Scala.js options are supported by using directives in Scala CLI:
 
  A header that will be added at the top of generated .js files
 
-For more options, see our [`using` directive section](./reference/directives.md#scala-js-options).
+For more options, see our [`using` directive section](/docs/reference/directives.md#scala-js-options).
 
 ## Supported Scala.js Versions
 

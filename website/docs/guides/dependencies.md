@@ -18,7 +18,7 @@ scala-cli compile Hello.scala \
 ```
 
 Note that `--dependency` is only meant as a convenience.
-You should favor adding dependencies in the sources themselves via [using directives](./guides/configuration.md#special-imports).
+You should favor adding dependencies in the sources themselves via [using directives](/docs/guides/configuration.md#special-imports).
 <!-- TODO #344 
 However, `--dependency` CLI option takes precedence over `using` directives, so it can be used to override the `using` directive, such as when you want to work with a different dependency version. -->
 
