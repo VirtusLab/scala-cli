@@ -184,6 +184,11 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
       with:
         jvm: "temurin:17"
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16.x'
+    - name: Build documentation
+      run: .github/scripts/build-website.sh
     - name: Test documentation
       run: .github/scripts/check_docs.sh
     - name: Test gifs
