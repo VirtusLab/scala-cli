@@ -25,80 +25,96 @@ final case class SimpleScalaCompiler(
     !scaladoc
 
   private def runScalacLike(
-    project: Project,
     mainClass: String,
-    outputDir: os.Path,
+    javaHomeOpt: Option[os.Path],
+    javacOptions: Seq[String],
+    scalacOptions: Seq[String],
+    classPath: Seq[os.Path],
+    compilerClassPath: Seq[os.Path],
+    sources: Seq[String],
+    outputDir: Option[os.Path],
+    cwd: os.Path,
     logger: Logger
-  ): Boolean = {
+  ): Int = {
 
-    os.makeDir.all(outputDir)
+    outputDir.foreach(os.makeDir.all(_))
 
     // initially adapted from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-d13a7e6d602b8f84d9177e3138487872f0341d006accfe425886a561f029a9c3R120 and around
+    val outputDirArgs = outputDir.map(od => Seq("-d", od.toString())).getOrElse(Nil)
+    val classPathArgs =
+      if (classPath.nonEmpty)
+        Seq("-cp", classPath.map(_.toString).mkString(File.pathSeparator))
+      else Nil
 
-    val args =
-      project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
-        Seq(
-          "-d",
-          outputDir.toString,
-          "-cp",
-          project.classPath.map(_.toString).mkString(File.pathSeparator)
-        ) ++
-        project.sources.map(_.toString)
+    val args = scalacOptions ++ outputDirArgs ++ classPathArgs ++ sources
 
-    val javaCommand = project.javaHomeOpt.map(SimpleJavaCompiler.javaCommand(_)).getOrElse(defaultJavaCommand)
-
-    val javaOptions = defaultJavaOptions ++
-      project.javacOptions
-        .filter(_.startsWith("-J"))
-        .map(_.stripPrefix("-J"))
-
-    val res = Runner.runJvm(
-      javaCommand,
-      javaOptions,
-      project.scalaCompiler.map(_.compilerClassPath.map(_.toIO)).getOrElse(Nil),
-      mainClass,
-      args,
-      logger,
-      cwd = Some(project.workspace)
-    ).waitFor()
-
-    res == 0
-  }
-
-  def runRawScalacLike(scalaVersion: String, javaHomeOpt: Option[os.Path], javacOptions: Seq[String], scalacOptions: Seq[String], compilerClassPath: Seq[os.Path], logger: Logger): Int = {
-    // initially adapted from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-d13a7e6d602b8f84d9177e3138487872f0341d006accfe425886a561f029a9c3R120 and around
-
-    val args =
-      scalacOptions ++
-        Seq(
-          "-cp",
-          compilerClassPath.map(_.toString).mkString(File.pathSeparator)
-        )
-
-    val javaCommand = javaHomeOpt.map(SimpleJavaCompiler.javaCommand(_)).getOrElse(defaultJavaCommand)
+    val javaCommand =
+      javaHomeOpt.map(SimpleJavaCompiler.javaCommand(_)).getOrElse(defaultJavaCommand)
 
     val javaOptions = defaultJavaOptions ++
       javacOptions
         .filter(_.startsWith("-J"))
         .map(_.stripPrefix("-J"))
 
-    compilerMainClass(scalaVersion) match {
-      case Some(mainClass) =>
-        Runner.runJvm(
-          javaCommand,
-          javaOptions,
-          compilerClassPath.map(_.toIO),
-          mainClass,
-          args,
-          logger,
-          cwd = Some(os.pwd)
-        ).waitFor()
-      case None => 1
-    }
+    Runner.runJvm(
+      javaCommand,
+      javaOptions,
+      compilerClassPath.map(_.toIO),
+      mainClass,
+      args,
+      logger,
+      cwd = Some(cwd)
+    ).waitFor()
   }
 
+  private def runScalacLikeForProject(
+    project: Project,
+    mainClass: String,
+    outputDir: os.Path,
+    logger: Logger
+  ): Boolean = {
+    val res = runScalacLike(
+      mainClass = mainClass,
+      javaHomeOpt = project.javaHomeOpt,
+      javacOptions = project.javacOptions,
+      scalacOptions = project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil),
+      classPath = project.classPath,
+      compilerClassPath = project.scalaCompiler.map(_.compilerClassPath).getOrElse(Nil),
+      sources = project.sources.map(_.toString),
+      outputDir = Some(outputDir),
+      cwd = project.workspace,
+      logger = logger
+    )
+    res == 0
+  }
+
+  def runSimpleScalacLike(
+    scalaVersion: String,
+    javaHomeOpt: Option[os.Path],
+    javacOptions: Seq[String],
+    scalacOptions: Seq[String],
+    compilerClassPath: Seq[os.Path],
+    logger: Logger
+  ): Int =
+    compilerMainClass(scalaVersion) match {
+      case Some(mainClass) =>
+        runScalacLike(
+          mainClass = mainClass,
+          javaHomeOpt = javaHomeOpt,
+          javacOptions = javacOptions,
+          scalacOptions = scalacOptions,
+          classPath = Nil,
+          compilerClassPath = compilerClassPath,
+          sources = Nil,
+          outputDir = None,
+          cwd = os.pwd,
+          logger = logger
+        )
+      case _ => 1
+    }
+
   private def compilerMainClass(scalaVersion: String): Option[String] =
-    if(scalaVersion.startsWith("2."))
+    if (scalaVersion.startsWith("2."))
       Some {
         if (scaladoc) "scala.tools.nsc.ScalaDoc"
         else "scala.tools.nsc.Main"
@@ -121,7 +137,7 @@ final case class SimpleScalaCompiler(
               if (isScala2 && scaladoc) project.scaladocDir
               else project.classesDir
 
-            runScalacLike(project, mainClass, outputDir, logger)
+            runScalacLikeForProject(project, mainClass, outputDir, logger)
           }
 
         case None =>
