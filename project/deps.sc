@@ -56,7 +56,7 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier      = "2.1.0-M6"
+    def coursier      = "2.1.0-M6-26-gcec901e9a"
     def coursierCli   = "2.1.0-M5-18-gfebf9838c"
     def jsoniterScala = "2.13.26"
     def scalaMeta     = "4.5.8"
@@ -72,10 +72,11 @@ object Deps {
   def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M13"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.7.0"
   // Force using of 2.13 - is there a better way?
-  def coursier         = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
-  def coursierJvm      = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
-  def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
-  def coursierPublish  = ivy"io.get-coursier.publish:publish_2.13:0.1.2"
+  def coursier           = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
+  def coursierJvm        = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
+  def coursierLauncher   = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
+  def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
+  def coursierPublish    = ivy"io.get-coursier.publish:publish_2.13:0.1.2"
   // TODO - update to working version
   def dependency   = ivy"io.get-coursier::dependency:0.2.2"
   def dockerClient = ivy"com.spotify:docker-client:8.16.0"

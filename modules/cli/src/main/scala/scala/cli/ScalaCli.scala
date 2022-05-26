@@ -1,6 +1,6 @@
 package scala.cli
 
-import coursier.cache.CacheUrl
+import coursier.proxy.SetupProxy
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{ByteArrayOutputStream, File, PrintStream}
@@ -153,7 +153,7 @@ object ScalaCli {
 
     (new BouncycastleSignerMaker).maybeInit()
 
-    CacheUrl.setupProxyAuth()
+    SetupProxy.setup()
 
     // Getting killed by SIGPIPE quite often when on musl (in the "static" native
     // image), but also sometimes on glibc, or even on macOS, when we use domain

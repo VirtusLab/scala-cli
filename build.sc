@@ -702,6 +702,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.coursierLauncher,
+    Deps.coursierProxySetup,
     Deps.coursierPublish,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
