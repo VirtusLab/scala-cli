@@ -14,14 +14,14 @@ import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 
-object Test extends ScalaCommand[TestOptions] {
+object Test extends ScalaCommand[TestOptions] with ScalacLikeCommand[TestOptions] {
   override def group                               = "Main"
   override def sharedOptions(options: TestOptions) = Some(options.shared)
 
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET
 
-  private def buildOptions(opts: TestOptions): BuildOptions = {
+  override def buildOptions(opts: TestOptions): BuildOptions = {
     import opts._
     val baseOptions = shared.buildOptions()
     baseOptions.copy(
@@ -41,6 +41,7 @@ object Test extends ScalaCommand[TestOptions] {
 
   def run(options: TestOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
+    maybePrintScalacHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)

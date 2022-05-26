@@ -45,7 +45,7 @@ final case class SimpleScalaCompiler(
         ) ++
         project.sources.map(_.toString)
 
-    val javaCommand = SimpleJavaCompiler.javaCommand(project).getOrElse(defaultJavaCommand)
+    val javaCommand = project.javaHomeOpt.map(SimpleJavaCompiler.javaCommand(_)).getOrElse(defaultJavaCommand)
 
     val javaOptions = defaultJavaOptions ++
       project.javacOptions
@@ -65,6 +65,47 @@ final case class SimpleScalaCompiler(
     res == 0
   }
 
+  def runRawScalacLike(scalaVersion: String, javaHomeOpt: Option[os.Path], javacOptions: Seq[String], scalacOptions: Seq[String], compilerClassPath: Seq[os.Path], logger: Logger): Int = {
+    // initially adapted from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-d13a7e6d602b8f84d9177e3138487872f0341d006accfe425886a561f029a9c3R120 and around
+
+    val args =
+      scalacOptions ++
+        Seq(
+          "-cp",
+          compilerClassPath.map(_.toString).mkString(File.pathSeparator)
+        )
+
+    val javaCommand = javaHomeOpt.map(SimpleJavaCompiler.javaCommand(_)).getOrElse(defaultJavaCommand)
+
+    val javaOptions = defaultJavaOptions ++
+      javacOptions
+        .filter(_.startsWith("-J"))
+        .map(_.stripPrefix("-J"))
+
+    compilerMainClass(scalaVersion) match {
+      case Some(mainClass) =>
+        Runner.runJvm(
+          javaCommand,
+          javaOptions,
+          compilerClassPath.map(_.toIO),
+          mainClass,
+          args,
+          logger,
+          cwd = Some(os.pwd)
+        ).waitFor()
+      case None => 1
+    }
+  }
+
+  private def compilerMainClass(scalaVersion: String): Option[String] =
+    if(scalaVersion.startsWith("2."))
+      Some {
+        if (scaladoc) "scala.tools.nsc.ScalaDoc"
+        else "scala.tools.nsc.Main"
+      }
+    else if (scaladoc) None
+    else Some("dotty.tools.dotc.Main")
+
   def compile(
     project: Project,
     logger: Logger
@@ -74,16 +115,7 @@ final case class SimpleScalaCompiler(
       project.scalaCompiler match {
         case Some(compiler) =>
           val isScala2 = compiler.scalaVersion.startsWith("2.")
-          val mainClassOpt =
-            if (isScala2)
-              Some {
-                if (scaladoc) "scala.tools.nsc.ScalaDoc"
-                else "scala.tools.nsc.Main"
-              }
-            else if (scaladoc) None
-            else Some("dotty.tools.dotc.Main")
-
-          mainClassOpt.forall { mainClass =>
+          compilerMainClass(compiler.scalaVersion).forall { mainClass =>
 
             val outputDir =
               if (isScala2 && scaladoc) project.scaladocDir

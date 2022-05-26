@@ -19,7 +19,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.errors.{BuildException, MalformedCliInputError, ScalaNativeBuildError}
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
-import scala.build.options.{PackageType, Platform}
+import scala.build.options.{BuildOptions, PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
 import scala.cli.commands.util.PackageOptionsUtil._
@@ -29,12 +29,14 @@ import scala.cli.internal.{CachedBinary, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
 
-object Package extends ScalaCommand[PackageOptions] {
-  override def name                                   = "package"
-  override def group                                  = "Main"
-  override def sharedOptions(options: PackageOptions) = Some(options.shared)
+object Package extends ScalaCommand[PackageOptions] with ScalacLikeCommand[PackageOptions] {
+  override def name                                                          = "package"
+  override def group                                                         = "Main"
+  override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
+  override def buildOptions(po: PackageOptions): BuildOptions                = po.buildOptions
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
+    maybePrintScalacHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)

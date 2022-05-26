@@ -16,8 +16,9 @@ final case class SimpleJavaCompiler(
     logger: Logger
   ): Boolean =
     project.sources.isEmpty || {
-      val javacCommand = SimpleJavaCompiler.javaCommand(project, "javac")
-        .getOrElse(defaultJavaCommand)
+      val javacCommand =
+        project.javaHomeOpt.map(javaHome => SimpleJavaCompiler.javaCommand(javaHome, "javac"))
+          .getOrElse(defaultJavaCommand)
 
       val args = project.javacOptions ++
         Seq(
@@ -42,10 +43,9 @@ final case class SimpleJavaCompiler(
 
 object SimpleJavaCompiler {
 
-  def javaCommand(project: Project, command: String = "java"): Option[String] =
-    project.javaHomeOpt.map { javaHome =>
-      val ext  = if (Properties.isWin) ".exe" else ""
-      val path = javaHome / "bin" / s"$command$ext"
-      path.toString
-    }
+  def javaCommand(javaHome: os.Path, command: String = "java"): String = {
+    val ext  = if (Properties.isWin) ".exe" else ""
+    val path = javaHome / "bin" / s"$command$ext"
+    path.toString
+  }
 }

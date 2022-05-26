@@ -14,13 +14,14 @@ import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.internal.ProcUtil
 import scala.util.Properties
 
-object Run extends ScalaCommand[RunOptions] {
+object Run extends ScalaCommand[RunOptions] with ScalacLikeCommand[RunOptions] {
   override def group = "Main"
 
   override def sharedOptions(options: RunOptions) = Some(options.shared)
 
   def run(options: RunOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
+    maybePrintScalacHelp(options)
     run(
       options,
       args.remaining,
@@ -29,7 +30,7 @@ object Run extends ScalaCommand[RunOptions] {
     )
   }
 
-  def buildOptions(options: RunOptions): BuildOptions = {
+  override def buildOptions(options: RunOptions): BuildOptions = {
     import options._
     val baseOptions = shared.buildOptions(
       enableJmh = benchmarking.jmh.contains(true),
