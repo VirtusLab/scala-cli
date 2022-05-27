@@ -55,9 +55,7 @@ object ScalacOptions {
         formatter: Formatter[Name]
       ) =
         args match {
-          case h :: t
-              if scalacOptionsPrefixes.exists(h.startsWith) &&
-              !scalacOptionsPurePrefixes.contains(h) =>
+          case h :: t if scalacOptionsPrefixes.exists(h.startsWith) =>
             Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
           case _ => underlying.step(args, index, acc, formatter)
         }
