@@ -19,7 +19,7 @@ object Compile extends ScalaCommand[CompileOptions] with ScalacLikeCommand[Compi
 
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintScalacHelp(options)
+    maybePrintSimpleScalacOutput(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)

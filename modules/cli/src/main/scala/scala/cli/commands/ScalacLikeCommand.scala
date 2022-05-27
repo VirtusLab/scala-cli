@@ -6,17 +6,18 @@ import scala.cli.commands.util.SharedOptionsUtil._
 trait ScalacLikeCommand[T] { self: ScalaCommand[T] =>
   def buildOptions(t: T): BuildOptions
 
-  def maybePrintScalacHelp(options: T): Unit =
+  def maybePrintSimpleScalacOutput(options: T): Unit =
     for {
       shared <- sharedOptions(options)
       build         = buildOptions(options)
       scalacOptions = shared.scalac.scalacOption.toSeq
-      if scalacOptions.contains("-help")
+      if (scalacOptions intersect ScalacOptions.ScalacPrintOptions.toSeq).nonEmpty
       logger = shared.logger
       artifacts      <- build.artifacts(logger, Scope.Main).toOption
       scalaArtifacts <- artifacts.scalaOpt
       compilerClassPath   = scalaArtifacts.compilerClassPath
       scalaVersion        = scalaArtifacts.params.scalaVersion
+      compileClassPath    = artifacts.compileClassPath
       simpleScalaCompiler = SimpleScalaCompiler("java", Nil, scaladoc = false)
       javacOptions        = build.javaOptions.javacOptions
       javaHome            = build.javaHomeLocation().value
@@ -26,6 +27,7 @@ trait ScalacLikeCommand[T] { self: ScalaCommand[T] =>
         Option(javaHome),
         javacOptions,
         scalacOptions,
+        compileClassPath,
         compilerClassPath,
         logger
       )

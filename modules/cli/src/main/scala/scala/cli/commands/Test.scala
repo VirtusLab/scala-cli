@@ -41,7 +41,7 @@ object Test extends ScalaCommand[TestOptions] with ScalacLikeCommand[TestOptions
 
   def run(options: TestOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintScalacHelp(options)
+    maybePrintSimpleScalacOutput(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)

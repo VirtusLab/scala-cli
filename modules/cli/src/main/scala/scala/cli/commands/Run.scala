@@ -21,7 +21,7 @@ object Run extends ScalaCommand[RunOptions] with ScalacLikeCommand[RunOptions] {
 
   def run(options: RunOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintScalacHelp(options)
+    maybePrintSimpleScalacOutput(options)
     run(
       options,
       args.remaining,

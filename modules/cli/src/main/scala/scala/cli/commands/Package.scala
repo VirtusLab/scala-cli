@@ -36,7 +36,7 @@ object Package extends ScalaCommand[PackageOptions] with ScalacLikeCommand[Packa
   override def buildOptions(po: PackageOptions): BuildOptions                = po.buildOptions
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintScalacHelp(options)
+    maybePrintSimpleScalacOutput(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)

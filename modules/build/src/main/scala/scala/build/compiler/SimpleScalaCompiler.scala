@@ -93,6 +93,7 @@ final case class SimpleScalaCompiler(
     javaHomeOpt: Option[os.Path],
     javacOptions: Seq[String],
     scalacOptions: Seq[String],
+    fullClassPath: Seq[os.Path],
     compilerClassPath: Seq[os.Path],
     logger: Logger
   ): Int =
@@ -103,7 +104,7 @@ final case class SimpleScalaCompiler(
           javaHomeOpt = javaHomeOpt,
           javacOptions = javacOptions,
           scalacOptions = scalacOptions,
-          classPath = Nil,
+          classPath = fullClassPath,
           compilerClassPath = compilerClassPath,
           sources = Nil,
           outputDir = None,

@@ -17,7 +17,6 @@ final case class ScalacOptions(
     scalacOption: List[String] = Nil
 )
 // format: on
-
 object ScalacOptions {
 
   private val scalacOptionsArg = Arg("scalacOption")
@@ -33,6 +32,13 @@ object ScalacOptions {
     Set("-V", "-W", "-X", "-Y")
   private val scalacOptionsPrefixes =
     Set("-g", "-language", "-opt", "-P", "-target") ++ scalacOptionsPurePrefixes
+
+  /** This includes all the scalac options which disregard inputs and print a help and/or context
+    * message instead.
+    */
+  val ScalacPrintOptions: Set[String] =
+    scalacOptionsPurePrefixes ++ Set("-help", "-Xshow-phases", "-Vphases")
+
   private val scalacOptionsArgument: Argument[List[String]] =
     new Argument[List[String]] {
 
