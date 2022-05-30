@@ -15,8 +15,8 @@ import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 
 object Test extends ScalaCommand[TestOptions] with ScalacLikeCommand[TestOptions] {
-  override def group                               = "Main"
-  override def sharedOptions(options: TestOptions) = Some(options.shared)
+  override def group                                                      = "Main"
+  override def sharedOptions(options: TestOptions): Option[SharedOptions] = Some(options.shared)
 
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET
@@ -28,7 +28,7 @@ object Test extends ScalaCommand[TestOptions] with ScalacLikeCommand[TestOptions
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
       ),
       testOptions = baseOptions.testOptions.copy(
         frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty)

@@ -140,7 +140,7 @@ object Package extends ScalaCommand[PackageOptions] with ScalacLikeCommand[Packa
       lazy val validPackageScalaNative =
         Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
 
-      (forcedPackageTypeOpt -> build.options.platform.value) match {
+      forcedPackageTypeOpt -> build.options.platform.value match {
         case (Some(forcedPackageType), _) => Right(forcedPackageType)
         case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
           for (basePackageType <- basePackageTypeOpt)

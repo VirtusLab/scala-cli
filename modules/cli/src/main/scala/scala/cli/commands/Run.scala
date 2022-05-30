@@ -17,7 +17,7 @@ import scala.util.Properties
 object Run extends ScalaCommand[RunOptions] with ScalacLikeCommand[RunOptions] {
   override def group = "Main"
 
-  override def sharedOptions(options: RunOptions) = Some(options.shared)
+  override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
 
   def run(options: RunOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
@@ -41,7 +41,7 @@ object Run extends ScalaCommand[RunOptions] with ScalacLikeCommand[RunOptions] {
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
       )
     )
   }

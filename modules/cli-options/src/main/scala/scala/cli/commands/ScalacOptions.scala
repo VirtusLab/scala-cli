@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 import caseapp._
-import caseapp.core.Arg
+import caseapp.core.{Arg, Error}
 import caseapp.core.parser.{Argument, NilParser, StandardArgument}
 import caseapp.core.util.Formatter
 import com.github.plokhotnyuk.jsoniter_scala.core._
@@ -42,24 +42,24 @@ object ScalacOptions {
   private val scalacOptionsArgument: Argument[List[String]] =
     new Argument[List[String]] {
 
-      val underlying = StandardArgument[List[String]](scalacOptionsArg)
+      val underlying: StandardArgument[List[String]] = StandardArgument(scalacOptionsArg)
 
-      val arg = scalacOptionsArg
+      val arg: Arg = scalacOptionsArg
 
-      def withDefaultOrigin(origin: String) = this
-      def init                              = Some(Nil)
+      def withDefaultOrigin(origin: String): Argument[List[String]] = this
+      def init: Option[List[String]]                                = Some(Nil)
       def step(
         args: List[String],
         index: Int,
         acc: Option[List[String]],
         formatter: Formatter[Name]
-      ) =
+      ): Either[(Error, List[String]), Option[(Option[List[String]], List[String])]] =
         args match {
           case h :: t if scalacOptionsPrefixes.exists(h.startsWith) =>
             Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
           case _ => underlying.step(args, index, acc, formatter)
         }
-      def get(acc: Option[List[String]], formatter: Formatter[Name]) =
+      def get(acc: Option[List[String]], formatter: Formatter[Name]): Either[Error, List[String]] =
         Right(acc.getOrElse(Nil))
     }
 

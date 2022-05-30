@@ -10,11 +10,11 @@ import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 
 object Compile extends ScalaCommand[CompileOptions] with ScalacLikeCommand[CompileOptions] {
-  override def group                                               = "Main"
-  override def sharedOptions(options: CompileOptions)              = Some(options.shared)
+  override def group                                                         = "Main"
+  override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
   override def buildOptions(options: CompileOptions): BuildOptions = options.shared.buildOptions()
 
-  def outputPath(options: CompileOptions) =
+  def outputPath(options: CompileOptions): Option[os.Path] =
     options.output.filter(_.nonEmpty).map(p => os.Path(p, Os.pwd))
 
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
