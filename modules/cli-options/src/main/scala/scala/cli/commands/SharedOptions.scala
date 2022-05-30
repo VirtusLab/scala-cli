@@ -22,6 +22,8 @@ final case class SharedOptions(
   @Recurse
     scalac: ScalacOptions = ScalacOptions(),
   @Recurse
+    scalacExtra: ScalacExtraOptions = ScalacExtraOptions(),
+  @Recurse
     jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),

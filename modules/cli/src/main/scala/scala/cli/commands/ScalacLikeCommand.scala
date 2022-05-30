@@ -11,7 +11,11 @@ trait ScalacLikeCommand[T] { self: ScalaCommand[T] =>
       shared <- sharedOptions(options)
       build         = buildOptions(options)
       scalacOptions = shared.scalac.scalacOption.toSeq
-      if (scalacOptions intersect ScalacOptions.ScalacPrintOptions.toSeq).nonEmpty
+      updatedScalacOptions =
+        if (shared.scalacExtra.scalacHelp && !scalacOptions.contains("-help"))
+          scalacOptions.appended("-help")
+        else scalacOptions
+      if (updatedScalacOptions intersect ScalacOptions.ScalacPrintOptions.toSeq).nonEmpty
       logger = shared.logger
       artifacts      <- build.artifacts(logger, Scope.Main).toOption
       scalaArtifacts <- artifacts.scalaOpt
@@ -26,7 +30,7 @@ trait ScalacLikeCommand[T] { self: ScalaCommand[T] =>
         scalaVersion,
         Option(javaHome),
         javacOptions,
-        scalacOptions,
+        updatedScalacOptions,
         compileClassPath,
         compilerClassPath,
         logger
