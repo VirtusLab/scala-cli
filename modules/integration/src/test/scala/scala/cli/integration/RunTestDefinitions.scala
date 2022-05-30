@@ -1698,4 +1698,51 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(res.out.text(Codec.default).trim == message)
     }
   }
+
+  test("scalac help") {
+    emptyInputs.fromRoot { root =>
+      val res1 = os.proc(
+        TestUtil.cli,
+        extraOptions,
+        "--scalac-help"
+      )
+        .call(cwd = root, mergeErrIntoOut = true)
+      expect(res1.exitCode == 0)
+      expect(res1.out.text().contains("scalac <options> <source files>"))
+
+      val res2 = os.proc(
+        TestUtil.cli,
+        extraOptions,
+        "--scalac-option",
+        "-help"
+      )
+        .call(cwd = root, mergeErrIntoOut = true)
+      expect(res2.exitCode == 0)
+      expect(res1.out.text() == res2.out.text())
+    }
+  }
+
+  test("scalac print options") {
+    emptyInputs.fromRoot { root =>
+      val printOptionsForAllVersions = Seq("-X", "-Xshow-phases", "-Y")
+      val printOptionsSince213       = Seq("-V", "-Vphases", "-W")
+      val version213OrHigher =
+        actualScalaVersion.startsWith("2.13") || actualScalaVersion.startsWith("3")
+      val printOptionsToTest = printOptionsForAllVersions ++
+        (
+          if (version213OrHigher) printOptionsSince213
+          else Seq.empty
+        )
+      printOptionsToTest.foreach { printOption =>
+        val res = os.proc(
+          TestUtil.cli,
+          extraOptions,
+          printOption
+        )
+          .call(cwd = root, mergeErrIntoOut = true)
+        expect(res.exitCode == 0)
+        expect(res.out.text().nonEmpty)
+      }
+    }
+  }
 }
