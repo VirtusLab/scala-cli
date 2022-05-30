@@ -40,7 +40,8 @@ class BuildProjectTests extends munit.FunSuite {
       this.diagnostics = this.diagnostics ++ diagnostics
     }
 
-    override def log(ex: BuildException): Unit = {}
+    override def log(ex: BuildException): Unit   = {}
+    override def debug(ex: BuildException): Unit = {}
 
     override def exit(ex: BuildException): Nothing = ???
 

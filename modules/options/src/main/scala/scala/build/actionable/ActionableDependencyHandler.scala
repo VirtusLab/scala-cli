@@ -1,33 +1,35 @@
 package scala.build.actionable
 
 import coursier.Versions
-import coursier.cache.FileCache
 import coursier.core.{Module, ModuleName, Organization}
 import dependency._
 
+import scala.build.EitherCps.{either, value}
 import scala.build.Positioned
+import scala.build.actionable.errors.ActionableHandlerError
+import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.concurrent.duration.DurationInt
 
 case object ActionableDependencyHandler extends ActionableHandler[AnyDependency] {
 
-  val cache = FileCache()
-
-  override def extractValues(options: BuildOptions): Seq[Positioned[AnyDependency]] =
+  override def extractPositionedOptions(options: BuildOptions): Seq[Positioned[AnyDependency]] =
     options.classPathOptions.extraDependencies.toSeq
 
   override def createActionableDiagnostic(
-    value: Positioned[AnyDependency],
-    options: BuildOptions
-  ): ActionableDiagnostic = {
+    option: Positioned[AnyDependency],
+    buildOptions: BuildOptions
+  ): Either[BuildException, Option[ActionableDiagnostic]] = either {
 
-    val dependency         = value.value
-    val scalaParams        = options.scalaParams.getOrElse(sys.error("sys.err")).get
-    val scalaBinaryVersion = scalaParams.scalaBinaryVersion
+    val baseDependency = option.value
+    val currentVersion = baseDependency.version
+    val scalaParams    = value(buildOptions.scalaParams)
+    val dependency     = scalaParams.map(baseDependency.applyParams(_)).getOrElse(baseDependency)
 
     val organization = Organization(dependency.organization)
-    val moduleName   = ModuleName(s"${dependency.name}_$scalaBinaryVersion")
+    val moduleName   = ModuleName(s"${dependency.name}")
     val csModule     = Module(organization, moduleName, Map.empty)
+    val cache        = buildOptions.finalCache
 
     val res = cache.withTtl(0.seconds).logger.use {
       Versions(cache)
@@ -36,15 +38,17 @@ case object ActionableDependencyHandler extends ActionableHandler[AnyDependency]
         .unsafeRun()(cache.ec)
     }
 
-    val dependencyLatestVersion = res.versions.latest(coursier.core.Latest.Release).get
-    val msg  = s"${dependency.render} is outdated, please update to $dependencyLatestVersion"
-    val from = dependency.render
-    val to   = s"${dependency.module.render}:$dependencyLatestVersion"
-    ActionableDiagnostic(
-      msg,
-      from,
-      to,
-      positions = value.positions
-    )
+    val dependencyLatestVersion = value(res.versions.latest(coursier.core.Latest.Release).toRight(
+      new ActionableHandlerError(s"Not found dependency versions for ${baseDependency.render}")
+    ))
+
+    if (dependencyLatestVersion != currentVersion) {
+      val msg  = s"${baseDependency.render} is outdated, update to $dependencyLatestVersion"
+      val from = baseDependency.render
+      val to   = s"${baseDependency.module.render}:$dependencyLatestVersion"
+      Some(ActionableDiagnostic(msg, from, to, option.positions))
+    }
+    else
+      None
   }
 }

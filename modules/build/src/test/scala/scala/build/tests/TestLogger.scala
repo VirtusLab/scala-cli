@@ -37,6 +37,8 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
 
   def log(ex: BuildException): Unit =
     System.err.println(ex.getMessage)
+  def debug(ex: BuildException): Unit =
+    debug(ex.getMessage)
   def exit(ex: BuildException): Nothing =
     throw new Exception(ex)
 
