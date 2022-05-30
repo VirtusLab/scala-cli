@@ -3,9 +3,21 @@ import scala.build.compiler.SimpleScalaCompiler
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.commands.util.SharedOptionsUtil._
 
+/** Trait to mixin for commands which are intended to mimic `scalac` behaviour, allowing for
+  * printing scalac help & other options, even without passing input sources. Meant as an extension
+  * of [[scala.cli.commands.ScalaCommand]]
+  *
+  * @tparam T
+  *   command options type
+  */
 trait ScalacLikeCommand[T] { self: ScalaCommand[T] =>
   def buildOptions(t: T): BuildOptions
 
+  /** Print `scalac` output if passed options imply no inputs are necessary and raw `scalac` output
+    * is required instead. (i.e. `--scalac-option -help`)
+    * @param options
+    *   command options
+    */
   def maybePrintSimpleScalacOutput(options: T): Unit =
     for {
       shared <- sharedOptions(options)

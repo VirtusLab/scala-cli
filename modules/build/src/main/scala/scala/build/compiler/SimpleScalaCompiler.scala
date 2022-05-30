@@ -5,6 +5,15 @@ import java.io.File
 import scala.build.internal.Runner
 import scala.build.{Logger, Positioned, Project}
 
+/** A simple Scala compiler designed to handle scaladocs, Java projects & get `scalac` outputs.
+  *
+  * @param defaultJavaCommand
+  *   the default `java` command to be used
+  * @param defaultJavaOptions
+  *   the default jvm options to be used with the `java` command
+  * @param scaladoc
+  *   a flag for setting whether this compiler will handle scaladocs
+  */
 final case class SimpleScalaCompiler(
   defaultJavaCommand: String,
   defaultJavaOptions: Seq[String],
@@ -24,6 +33,31 @@ final case class SimpleScalaCompiler(
   override def usesClassDir: Boolean =
     !scaladoc
 
+  /** Run a synthetic (created in runtime) `scalac` as a JVM process with the specified parameters
+    *
+    * @param mainClass
+    *   the main class of the synthetic Scala compiler
+    * @param javaHomeOpt
+    *   Java home path (optional)
+    * @param javacOptions
+    *   options to be passed for the Java compiler
+    * @param scalacOptions
+    *   options to be passed for the Scala compiler
+    * @param classPath
+    *   class path to be passed to `scalac`
+    * @param compilerClassPath
+    *   class path for the Scala compiler itself
+    * @param sources
+    *   sources to be passed when running `scalac` (optional)
+    * @param outputDir
+    *   output directory for the compiler (optional)
+    * @param cwd
+    *   working directory for running the compiler
+    * @param logger
+    *   logger
+    * @return
+    *   compiler process exit code
+    */
   private def runScalacLike(
     mainClass: String,
     javaHomeOpt: Option[os.Path],
@@ -67,6 +101,20 @@ final case class SimpleScalaCompiler(
     ).waitFor()
   }
 
+  /** Run a synthetic (created in runtime) `scalac` as a JVM process for a given
+    * [[scala.build.Project]]
+    *
+    * @param project
+    *   project to be compiled
+    * @param mainClass
+    *   the main class of the synthetic Scala compiler
+    * @param outputDir
+    *   the scala compiler output directory
+    * @param logger
+    *   logger
+    * @return
+    *   true if the process returned no errors, false otherwise
+    */
   private def runScalacLikeForProject(
     project: Project,
     mainClass: String,
@@ -88,6 +136,26 @@ final case class SimpleScalaCompiler(
     res == 0
   }
 
+  /** Run a synthetic (created in runtime) `scalac` as a JVM process with minimal parameters. (i.e.
+    * to print `scalac` help)
+    *
+    * @param scalaVersion
+    *   Scala version for which `scalac` is to be created
+    * @param javaHomeOpt
+    *   Java home path (optional)
+    * @param javacOptions
+    *   options to be passed for the Java compiler
+    * @param scalacOptions
+    *   options to be passed for the Scala compiler
+    * @param fullClassPath
+    *   classpath to be passed to the compiler (optional)
+    * @param compilerClassPath
+    *   classpath of the compiler itself
+    * @param logger
+    *   logger
+    * @return
+    *   compiler process exit code
+    */
   def runSimpleScalacLike(
     scalaVersion: String,
     javaHomeOpt: Option[os.Path],

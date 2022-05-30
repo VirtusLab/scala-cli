@@ -6,6 +6,13 @@ import scala.build.internal.Runner
 import scala.build.{Logger, Project}
 import scala.util.Properties
 
+/** A simple Java compiler to handle pure Java projects.
+  *
+  * @param defaultJavaCommand
+  *   the default `java` command to be used
+  * @param defaultJavaOptions
+  *   the default jvm options to be used with the `java` command
+  */
 final case class SimpleJavaCompiler(
   defaultJavaCommand: String,
   defaultJavaOptions: Seq[String]
