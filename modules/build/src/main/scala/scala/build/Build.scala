@@ -12,6 +12,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.actionable.ActionablePreprocessor
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
@@ -900,6 +901,8 @@ object Build {
           }
         }
       }
+
+      if (scope == Scope.Main) ActionablePreprocessor.process(options, logger)
 
       (classesDir0, params, artifacts, project, projectChanged)
     }
