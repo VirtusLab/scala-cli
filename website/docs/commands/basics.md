@@ -174,12 +174,23 @@ scala-cli hello.zip
 
 ## Piping
 
-You can also pipe Scala code to `scala-cli` for execution:
-
-```bash
-echo 'println("Hello")' | scala-cli -
-# Hello
-```
+You can also pipe code to `scala-cli` for execution:
+- scripts
+  ```bash
+  echo 'println("Hello")' | scala-cli _.sc
+  # Hello
+  ```
+- Scala code
+  ```bash
+  echo '@main def hello() = println("Hello")' | scala-cli _.scala
+  # Hello
+  ```
+- Java code
+  ```bash
+  echo 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }' | scala-cli _.java
+  # Hello
+  ```
+More details in the [Piping guide](../guides/piping.md).
 
 ## Scala CLI version
 
