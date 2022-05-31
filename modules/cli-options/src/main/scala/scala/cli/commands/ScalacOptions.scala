@@ -17,6 +17,7 @@ final case class ScalacOptions(
     scalacOption: List[String] = Nil
 )
 // format: on
+
 object ScalacOptions {
 
   private val scalacOptionsArg = Arg("scalacOption")

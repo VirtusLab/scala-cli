@@ -14,14 +14,14 @@ import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 
-object Test extends ScalaCommand[TestOptions] with ScalacLikeCommand[TestOptions] {
+object Test extends ScalaCommand[TestOptions] {
   override def group                                                      = "Main"
   override def sharedOptions(options: TestOptions): Option[SharedOptions] = Some(options.shared)
 
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET
 
-  override def buildOptions(opts: TestOptions): BuildOptions = {
+  def buildOptions(opts: TestOptions): BuildOptions = {
     import opts._
     val baseOptions = shared.buildOptions()
     baseOptions.copy(
@@ -41,8 +41,11 @@ object Test extends ScalaCommand[TestOptions] with ScalacLikeCommand[TestOptions
 
   def run(options: TestOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintSimpleScalacOutput(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
+
+    val initialBuildOptions = buildOptions(options)
+    maybePrintSimpleScalacOutput(options, initialBuildOptions)
+
     val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val logger = options.shared.logger
@@ -56,8 +59,7 @@ object Test extends ScalaCommand[TestOptions] with ScalacLikeCommand[TestOptions
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
 
-    val initialBuildOptions = buildOptions(options)
-    val threads             = BuildThreads.create()
+    val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)
 

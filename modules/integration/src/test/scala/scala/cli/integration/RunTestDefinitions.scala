@@ -1708,7 +1708,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "--scalac-help"
       )
         .call(cwd = root, mergeErrIntoOut = true)
-      expect(res1.exitCode == 0)
       expect(res1.out.text().contains("scalac <options> <source files>"))
 
       val res2 = os.proc(
@@ -1718,7 +1717,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "-help"
       )
         .call(cwd = root, mergeErrIntoOut = true)
-      expect(res2.exitCode == 0)
       expect(res1.out.text() == res2.out.text())
     }
   }
@@ -1741,7 +1739,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           printOption
         )
           .call(cwd = root, mergeErrIntoOut = true)
-        expect(res.exitCode == 0)
         expect(res.out.text().nonEmpty)
       }
     }

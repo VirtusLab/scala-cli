@@ -14,14 +14,13 @@ import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.internal.ProcUtil
 import scala.util.Properties
 
-object Run extends ScalaCommand[RunOptions] with ScalacLikeCommand[RunOptions] {
+object Run extends ScalaCommand[RunOptions] {
   override def group = "Main"
 
   override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
 
   def run(options: RunOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintSimpleScalacOutput(options)
     run(
       options,
       args.remaining,
@@ -30,7 +29,7 @@ object Run extends ScalaCommand[RunOptions] with ScalacLikeCommand[RunOptions] {
     )
   }
 
-  override def buildOptions(options: RunOptions): BuildOptions = {
+  def buildOptions(options: RunOptions): BuildOptions = {
     import options._
     val baseOptions = shared.buildOptions(
       enableJmh = benchmarking.jmh.contains(true),
@@ -53,12 +52,13 @@ object Run extends ScalaCommand[RunOptions] with ScalacLikeCommand[RunOptions] {
     defaultInputs: () => Option[Inputs]
   ): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
+    val initialBuildOptions = buildOptions(options)
+    maybePrintSimpleScalacOutput(options, initialBuildOptions)
+
     val inputs = options.shared.inputsOrExit(inputArgs, defaultInputs = defaultInputs)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-
-    val initialBuildOptions = buildOptions(options)
-    val logger              = options.shared.logger
-    val threads             = BuildThreads.create()
+    val logger  = options.shared.logger
+    val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)
 

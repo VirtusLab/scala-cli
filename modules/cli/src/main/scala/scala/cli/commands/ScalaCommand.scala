@@ -8,7 +8,9 @@ import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 
+import scala.build.compiler.SimpleScalaCompiler
 import scala.build.internal.Constants
+import scala.build.options.{BuildOptions, Scope}
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.{Properties, Try}
@@ -98,6 +100,42 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
   def maybePrintGroupHelp(options: T): Unit =
     for (shared <- sharedOptions(options))
       shared.helpGroups.maybePrintGroupHelp(help, helpFormat)
+
+  /** Print `scalac` output if passed options imply no inputs are necessary and raw `scalac` output
+    * is required instead. (i.e. `--scalac-option -help`)
+    * @param options
+    *   command options
+    */
+  def maybePrintSimpleScalacOutput(options: T, buildOptions: BuildOptions): Unit =
+    for {
+      shared <- sharedOptions(options)
+      scalacOptions = shared.scalac.scalacOption.toSeq
+      updatedScalacOptions =
+        if (shared.scalacHelp && !scalacOptions.contains("-help"))
+          scalacOptions.appended("-help")
+        else scalacOptions
+      if updatedScalacOptions.exists(ScalacOptions.ScalacPrintOptions)
+      logger = shared.logger
+      artifacts      <- buildOptions.artifacts(logger, Scope.Main).toOption
+      scalaArtifacts <- artifacts.scalaOpt
+      compilerClassPath   = scalaArtifacts.compilerClassPath
+      scalaVersion        = scalaArtifacts.params.scalaVersion
+      compileClassPath    = artifacts.compileClassPath
+      simpleScalaCompiler = SimpleScalaCompiler("java", Nil, scaladoc = false)
+      javacOptions        = buildOptions.javaOptions.javacOptions
+      javaHome            = buildOptions.javaHomeLocation().value
+    } {
+      val exitCode = simpleScalaCompiler.runSimpleScalacLike(
+        scalaVersion,
+        Option(javaHome),
+        javacOptions,
+        updatedScalacOptions,
+        compileClassPath,
+        compilerClassPath,
+        logger
+      )
+      sys.exit(exitCode)
+    }
 
   override def helpFormat =
     HelpFormat.default()

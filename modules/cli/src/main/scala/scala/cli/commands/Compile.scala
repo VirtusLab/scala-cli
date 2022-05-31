@@ -4,22 +4,21 @@ import caseapp._
 
 import java.io.File
 
-import scala.build.options.{BuildOptions, Scope}
+import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 
-object Compile extends ScalaCommand[CompileOptions] with ScalacLikeCommand[CompileOptions] {
+object Compile extends ScalaCommand[CompileOptions] {
   override def group                                                         = "Main"
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
-  override def buildOptions(options: CompileOptions): BuildOptions = options.shared.buildOptions()
 
   def outputPath(options: CompileOptions): Option[os.Path] =
     options.output.filter(_.nonEmpty).map(p => os.Path(p, Os.pwd))
 
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintSimpleScalacOutput(options)
+    maybePrintSimpleScalacOutput(options, options.shared.buildOptions())
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
