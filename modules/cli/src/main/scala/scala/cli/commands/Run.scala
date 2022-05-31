@@ -66,8 +66,6 @@ object Run extends ScalaCommand[RunOptions] {
       allowTerminate: Boolean
     ): Either[BuildException, (Process, CompletableFuture[_])] = either {
       val process = value(maybeRunOnce(
-        inputs.workspace,
-        inputs.projectName,
         build,
         programArgs,
         logger,
@@ -165,8 +163,6 @@ object Run extends ScalaCommand[RunOptions] {
   }
 
   private def maybeRunOnce(
-    root: os.Path,
-    projectName: String,
     build: Build.Successful,
     args: Seq[String],
     logger: Logger,
@@ -189,8 +185,6 @@ object Run extends ScalaCommand[RunOptions] {
       if (jvmRunner) (Constants.runnerMainClass, mainClass +: verbosity +: args)
       else (mainClass, args)
     val res = runOnce(
-      root,
-      projectName,
       build,
       finalMainClass,
       finalArgs,
@@ -201,8 +195,6 @@ object Run extends ScalaCommand[RunOptions] {
   }
 
   private def runOnce(
-    root: os.Path,
-    projectName: String,
     build: Build.Successful,
     mainClass: String,
     args: Seq[String],
