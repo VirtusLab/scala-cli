@@ -146,9 +146,6 @@ object packager extends ScalaModule with Bloop.Module {
 
 object `generate-reference-doc` extends SbtModule with ScalaCliScalafixModule {
   def scalaVersion = Scala.defaultInternal
-  def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Ywarn-unused")
-  }
   def moduleDeps = Seq(
     cli
   )
