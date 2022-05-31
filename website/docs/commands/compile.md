@@ -157,6 +157,93 @@ scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
 
 `-O` accepts both options with the prefixes shown above, and those without such a prefix.
 
+## Scala compiler help
+
+You can also view the Scala compiler help for a particular Scala version with `--scalac-help`, which is an alias for `-O -help`.
+```bash
+scala-cli -S 2.13.8 --scalac-help
+# Usage: scalac <options> <source files>
+# 
+# Standard options:
+#   -Dproperty=value             Pass -Dproperty=value directly to the runtime system.
+#   -J<flag>                     Pass <flag> directly to the runtime system.
+#   -P:<plugin>:<opt>            Pass an option to a plugin
+#   -V                           Print a synopsis of verbose options. [false]
+#   -W                           Print a synopsis of warning options. [false]
+#   -Werror                      Fail the compilation if there are any warnings. [false]
+#   -X                           Print a synopsis of advanced options. [false]
+#   -Y                           Print a synopsis of private options. [false]
+#   -bootclasspath <path>        Override location of bootstrap class files.
+#   -classpath <path>            Specify where to find user class files.
+#   -d <directory|jar>           destination for generated classfiles.
+#   -dependencyfile <file>       Set dependency tracking file.
+#   -deprecation                 Emit warning and location for usages of deprecated APIs. See also -Wconf. [false]
+#   -encoding <encoding>         Specify character encoding used by source files.
+#   -explaintypes                Explain type errors in more detail. [false]
+#   -extdirs <path>              Override location of installed extensions.
+#   -feature                     Emit warning and location for usages of features that should be imported explicitly. See also -Wconf. [false]
+#   -g:<level>                   Set level of generated debugging info. (none,source,line,[vars],notailcalls)
+#   -help                        Print a synopsis of standard options [false]
+#   -javabootclasspath <path>    Override java boot classpath.
+#   -javaextdirs <path>          Override java extdirs classpath.
+#   -language:<features>         Enable or disable language features
+#   -no-specialization           Ignore @specialize annotations. [false]
+#   -nobootcp                    Do not use the boot classpath for the scala jars. [false]
+#   -nowarn                      Generate no warnings. [false]
+#   -opt:<optimizations>         Enable optimizations, `help` for details.
+#   -opt-inline-from:<patterns>  Patterns for classfile names from which to allow inlining, `help` for details.
+#   -opt-warnings:<warnings>     Enable optimizer warnings, `help` for details.
+#   -print                       Print program with Scala-specific features removed. [false]
+#   -release <release>           Compile for a specific version of the Java platform. Supported targets: 6, 7, 8, 9
+#   -rootdir <path>              The absolute path of the project root directory, usually the git/scm checkout. Used by -Wconf.
+#   -sourcepath <path>           Specify location(s) of source files.
+#   -target:<target>             Target platform for object files. ([8],9,10,11,12,13,14,15,16,17,18)
+#   -toolcp <path>               Add to the runner classpath.
+#   -unchecked                   Enable additional warnings where generated code depends on assumptions. See also -Wconf. [false]
+#   -uniqid                      Uniquely tag all identifiers in debugging output. [false]
+#   -usejavacp                   Utilize the java.class.path in classpath resolution. [false]
+#   -usemanifestcp               Utilize the manifest in classpath resolution. [false]
+#   -verbose                     Output messages about what the compiler is doing. [false]
+#   -version                     Print product version and exit. [false]
+#   @<file>                      A text file containing compiler arguments (options and source files) [false]
+#
+# Deprecated settings:
+#   -optimize                    Enables optimizations. [false]
+#                                deprecated: Since 2.12, enables -opt:l:inline -opt-inline-from:**. See -opt:help.
+```
+
+Other scalac print help options (like `-X`, `-Xshow-phases`, `-Vphases`, etc.) are supported as well.
+```bash
+scala-cli -S 2.12.15 -Xshow-phases
+#
+#    phase name  id  description
+#    ----------  --  -----------
+#        parser   1  parse source into ASTs, perform simple desugaring
+#         namer   2  resolve names, attach symbols to named trees
+#packageobjects   3  load package objects
+#         typer   4  the meat and potatoes: type the trees
+#        patmat   5  translate match expressions
+#superaccessors   6  add super accessors in traits and nested classes
+#    extmethods   7  add extension methods for inline classes
+#       pickler   8  serialize symbol tables
+#     refchecks   9  reference/override checking, translate nested objects
+#       uncurry  10  uncurry, translate function values to anonymous classes
+#        fields  11  synthesize accessors and fields, add bitmaps for lazy vals
+#     tailcalls  12  replace tail calls by jumps
+#    specialize  13  @specialized-driven class and method specialization
+# explicitouter  14  this refs to outer pointers
+#       erasure  15  erase types, add interfaces for traits
+#   posterasure  16  clean up erased inline classes
+#    lambdalift  17  move nested functions to top level
+#  constructors  18  move field definitions into constructors
+#       flatten  19  eliminate inner classes
+#         mixin  20  mixin composition
+#       cleanup  21  platform-specific cleanups, generate reflective calls
+#    delambdafy  22  remove lambdas
+#           jvm  23  generate JVM bytecode
+#      terminal  24  the last phase during a compilation run
+```
+
 ## Scala compiler plugins
 Use `--compiler-plugin` to add compiler plugin dependencies:
 
