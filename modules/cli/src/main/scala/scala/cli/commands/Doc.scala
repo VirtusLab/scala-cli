@@ -87,15 +87,12 @@ object Doc extends ScalaCommand[DocOptions] {
 
     alreadyExistsCheck()
 
-    val outputPath = {
-      val docJarPath = value(generateScaladocDirPath(build, logger, extraArgs))
-      alreadyExistsCheck()
-      if (force) os.copy.over(docJarPath, destPath)
-      else os.copy(docJarPath, destPath)
-      destPath
-    }
+    val docJarPath = value(generateScaladocDirPath(build, logger, extraArgs))
+    alreadyExistsCheck()
+    if (force) os.copy.over(docJarPath, destPath)
+    else os.copy(docJarPath, destPath)
 
-    val printableOutput = CommandUtils.printablePath(outputPath)
+    val printableOutput = CommandUtils.printablePath(destPath)
 
     logger.message(s"Wrote Scaladoc to $printableOutput")
   }
