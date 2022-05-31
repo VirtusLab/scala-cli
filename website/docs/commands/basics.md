@@ -182,12 +182,12 @@ You can also pipe code to `scala-cli` for execution:
   ```
 - Scala code
   ```bash
-  echo "@main def hello() = println(\"Hello\")" | scala-cli _.scala
+  echo '@main def hello() = println("Hello")' | scala-cli _.scala
   # Hello
   ```
 - Java code
   ```bash
-  echo "class Hello { public static void main(String args[]) { System.out.println(\"Hello\"); } }" | scala-cli _.java
+  echo 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }' | scala-cli _.java
   # Hello
   ```
 More details in the [Piping guide](../guides/piping.md).
