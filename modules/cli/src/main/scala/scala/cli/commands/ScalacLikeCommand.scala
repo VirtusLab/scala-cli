@@ -24,7 +24,7 @@ trait ScalacLikeCommand[T] { self: ScalaCommand[T] =>
       build         = buildOptions(options)
       scalacOptions = shared.scalac.scalacOption.toSeq
       updatedScalacOptions =
-        if (shared.scalacExtra.scalacHelp && !scalacOptions.contains("-help"))
+        if (shared.scalacHelp && !scalacOptions.contains("-help"))
           scalacOptions.appended("-help")
         else scalacOptions
       if (updatedScalacOptions intersect ScalacOptions.ScalacPrintOptions.toSeq).nonEmpty
