@@ -116,6 +116,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           secretKeyPassword = publishParams.secretKeyPassword,
           repoUser = publishRepo.user,
           repoPassword = publishRepo.password,
+          repoRealm = publishRepo.realm,
           signer = value {
             sharedPublish.signer
               .map(Positioned.commandLine(_))
@@ -565,10 +566,12 @@ object Publish extends ScalaCommand[PublishOptions] {
         Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
 
       lazy val authOpt = {
-        val userOpt     = publishOptions.repoUser
         val passwordOpt = publishOptions.repoPassword.map(_.get())
         passwordOpt.map { password =>
-          Authentication(userOpt.fold("")(_.get().value), password.value)
+          val userOpt  = publishOptions.repoUser
+          val realmOpt = publishOptions.repoRealm
+          val auth     = Authentication(userOpt.fold("")(_.get().value), password.value)
+          realmOpt.fold(auth)(auth.withRealm)
         }
       }
 

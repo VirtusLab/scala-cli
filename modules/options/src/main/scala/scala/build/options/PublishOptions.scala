@@ -27,6 +27,7 @@ final case class PublishOptions(
   secretKeyPassword: Option[PasswordOption] = None,
   repoUser: Option[PasswordOption] = None,
   repoPassword: Option[PasswordOption] = None,
+  repoRealm: Option[String] = None,
   computeVersion: Option[ComputeVersion] = None,
   checksums: Option[Seq[String]] = None
 )

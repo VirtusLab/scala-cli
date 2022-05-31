@@ -1212,6 +1212,10 @@ User to use with publishing repository
 
 Password to use with publishing repository
 
+#### `--realm`
+
+Realm to use when passing credentials to publishing repository
+
 ## Repl options
 
 Available in commands:
