@@ -20,10 +20,11 @@ import scala.util.Properties
 
 object SharedCompilationServerOptionsUtil {
 
-  implicit class SharedCompilationServerOptionsOps(v: SharedCompilationServerOptions) {
+  implicit class SharedCompilationServerOptionsOps(private val v: SharedCompilationServerOptions)
+      extends AnyVal {
     import v._
 
-    private def pidOrRandom: Either[Int, Int] = cached((this, "pid")) {
+    private def pidOrRandom: Either[Int, Int] = cached((v, "pid")) {
       Option((new Pid).get()).map(_.intValue()).map(Right(_)).getOrElse {
         val r = new Random
         Left(r.nextInt())
@@ -110,7 +111,7 @@ object SharedCompilationServerOptionsUtil {
     def bloopStartupTimeoutDuration: Option[FiniteDuration] =
       parseDuration("connection server startup timeout", bloopStartupTimeout)
 
-    def retainedBloopVersion: BloopRifleConfig.BloopVersionConstraint = cached(this) {
+    def retainedBloopVersion: BloopRifleConfig.BloopVersionConstraint = cached(v) {
       bloopVersion
         .map(_.trim)
         .filter(_.nonEmpty)
