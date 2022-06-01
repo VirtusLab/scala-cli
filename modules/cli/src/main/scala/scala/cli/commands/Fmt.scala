@@ -2,11 +2,13 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.{Constants, CustomCodeWrapper, FetchExternalBinary, Runner}
 import scala.build.options.BuildOptions
 import scala.build.{CrossSources, Inputs, Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.VerbosityOptionsUtil._
 import scala.util.Properties
 import scala.util.control.NonFatal
 
@@ -97,7 +99,8 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
   def run(options: FmtOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
+    val interactive = options.shared.logging.verbosityOptions.interactiveInstance
+    val logger      = options.shared.logger
 
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, inputsOpt) =
@@ -112,16 +115,24 @@ object Fmt extends ScalaCommand[FmtOptions] {
         (s, i.workspace, Some(i))
       }
     CurrentParams.workspaceOpt = Some(workspace)
-    val (versionMaybe, confExists) = readVersionFromFile(workspace, logger)
-    val cache                      = options.shared.buildOptions().archiveCache
+    val (versionMaybe, confExists0) = readVersionFromFile(workspace, logger)
+    val cache                       = options.shared.buildOptions().archiveCache
+    val buildOptions                = options.buildOptions
 
-    val version = versionMaybe.getOrElse {
-      System.err.println(
+    val (version, confExists) = versionMaybe.map((_, confExists0)).getOrElse {
+      val errorMsg =
         s"""|Scalafmt requires explicitly specified version.
             |To configure the scalafmt version add the following line into .scalafmt.conf:
             |    version = ${Constants.defaultScalafmtVersion} """.stripMargin
-      )
-      sys.exit(1)
+      val msg = s"""|$errorMsg
+                    |Do you want to add Scalafmt version to .scalafmt.conf file?""".stripMargin
+      val scalafmtConfPath = workspace / ".scalafmt"
+      val entry = s"version = ${Constants.defaultScalafmtVersion}${System.lineSeparator()}"
+      InteractiveFileOps.appendToFile(interactive, msg, scalafmtConfPath, entry) { () =>
+        System.err.println(errorMsg)
+        sys.exit(1)
+      }
+      (Constants.defaultScalafmtVersion, true)
     }
 
     if (sourceFiles.isEmpty)
@@ -133,11 +144,11 @@ object Fmt extends ScalaCommand[FmtOptions] {
           CrossSources.forInputs(
             inputs,
             Sources.defaultPreprocessors(
-              options.buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+              buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
             ),
             logger
           ).orExit(logger)
-        val sharedOptions = crossSources.sharedOptions(options.buildOptions)
+        val sharedOptions = crossSources.sharedOptions(buildOptions)
         sharedOptions
           .scalaParams
           .orExit(logger)

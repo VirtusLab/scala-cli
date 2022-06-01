@@ -9,7 +9,10 @@ final case class VerbosityOptions(
   @Group("Logging")
   @HelpMessage("Increase verbosity (can be specified multiple times)")
   @Name("v")
-    verbose: Int @@ Counter = Tag.of(0)
+    verbose: Int @@ Counter = Tag.of(0),
+  @HelpMessage("Interactive mode")
+  @Name("i")
+    interactive: Option[Boolean] = None
 ) {
   // format: on
 

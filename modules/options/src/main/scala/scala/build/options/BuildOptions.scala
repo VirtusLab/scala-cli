@@ -13,6 +13,7 @@ import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors._
+import scala.build.interactive.Interactive._
 import scala.build.internal.Constants._
 import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
@@ -553,6 +554,8 @@ final case class BuildOptions(
     BuildOptions.monoid.orElse(this, other)
 
   def validate: Seq[Diagnostic] = BuildOptionsRule.validateAll(this)
+
+  val interactive = if (internal.interactive.getOrElse(false)) InteractiveAsk else InteractiveNop
 }
 
 object BuildOptions {

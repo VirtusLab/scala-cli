@@ -9,6 +9,7 @@ import java.util.Arrays
 
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.VerbosityOptionsUtil._
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
@@ -19,7 +20,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   private lazy val home = os.Path(sys.props("user.home"), os.pwd)
   def run(options: InstallCompletionsOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.logging.verbosity
-
+    val interactive = options.logging.verbosityOptions.interactiveInstance
     lazy val completionsDir =
       options.output
         .map(os.Path(_, os.pwd))
@@ -43,12 +44,15 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         }
       }
       .getOrElse {
-        System.err.println(
-          "Cannot determine current shell, pass the shell you use with --shell, like"
-        )
-        System.err.println(s"  $name install completions --shell zsh")
-        System.err.println(s"  $name install completions --shell bash")
-        sys.exit(1)
+        val msg = "Cannot determine current shell. Which would you like to use?"
+        interactive.chooseOne(msg, List("zsh", "bash")).getOrElse {
+          System.err.println(
+            "Cannot determine current shell, pass the shell you use with --shell, like"
+          )
+          System.err.println(s"  $name install completions --shell zsh")
+          System.err.println(s"  $name install completions --shell bash")
+          sys.exit(1)
+        }
       }
 
     val (rcScript, defaultRcFile) = format match {

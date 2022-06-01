@@ -7,9 +7,9 @@ import com.github.plokhotnyuk.jsoniter_scala.macros._
 import scala.build.Logger
 import scala.build.internal.Constants.{ghName, ghOrg, version => scalaCliVersion}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.VerbosityOptionsUtil._
 import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
-import scala.io.StdIn.readLine
 import scala.util.Properties
 import scala.util.control.NonFatal
 
@@ -59,19 +59,15 @@ object Update extends ScalaCommand[UpdateOptions] {
     )
 
   private def updateScalaCli(options: UpdateOptions, newVersion: String) = {
-    if (!options.force)
-      if (coursier.paths.Util.useAnsiOutput()) {
-        println(s"Do you want to update scala-cli to version $newVersion [Y/n]")
-        val response = readLine()
-        if (response.toLowerCase != "y") {
-          System.err.println("Abort")
-          sys.exit(1)
-        }
-      }
-      else {
+    val interactive = options.verbosity.interactiveInstance
+    if (!options.force) {
+      val fallbackAction = () => {
         System.err.println(s"To update scala-cli to $newVersion pass -f or --force")
         sys.exit(1)
       }
+      val msg = s"Do you want to update scala-cli to version $newVersion?"
+      interactive.confirmOperation(msg).getOrElse(fallbackAction())
+    }
 
     val installationScript =
       ProcUtil.downloadFile("https://virtuslab.github.io/scala-cli-packages/scala-setup.sh")
