@@ -13,7 +13,7 @@ object Interactive {
 
   case object InteractiveAsk extends Interactive {
 
-    sealed abstract class Action[V] extends Product with Serializable {
+    private sealed abstract class Action[V] extends Product with Serializable {
       def msg: String
       def action: Option[V]
       final def run: Option[V] =
@@ -22,7 +22,7 @@ object Interactive {
         else None
     }
 
-    case class ConfirmOperation(msg: String) extends Action[Boolean] {
+    private case class ConfirmOperation(msg: String) extends Action[Boolean] {
       override def action: Option[Boolean] = {
         System.err.println(s"$msg [Y/n]")
         val response = readLine()
@@ -35,7 +35,7 @@ object Interactive {
       }
     }
 
-    case class ChooseOne(msg: String, options: List[String])
+    private case class ChooseOne(msg: String, options: List[String])
         extends Action[String] {
       override def action: Option[String] = {
         System.err.println(msg)

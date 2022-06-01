@@ -44,7 +44,8 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         }
       }
       .getOrElse {
-        lazy val fallbackAction = () => {
+        val msg = "Cannot determine current shell. Which would you like to use?"
+        interactive.chooseOne(msg, List("zsh", "bash")).getOrElse {
           System.err.println(
             "Cannot determine current shell, pass the shell you use with --shell, like"
           )
@@ -52,11 +53,6 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
           System.err.println(s"  $name install completions --shell bash")
           sys.exit(1)
         }
-        val msg = "Cannot determine current shell. Which would you like to use?"
-        interactive.chooseOne(
-          msg,
-          List("zsh", "bash")
-        ).getOrElse(fallbackAction())
       }
 
     val (rcScript, defaultRcFile) = format match {
