@@ -109,10 +109,9 @@ object integration extends CliIntegration {
         PathRef(T.dest / "working-dir")
       }
       def forkEnv = super.forkEnv() ++ Seq(
-        "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
-        "SCALA_CLI_IMAGE" -> "scala-cli",
-        "CI"              -> "1",
-        "ACTUAL_CI"       -> (if (System.getenv("CI") == null) "" else "1")
+        "SCALA_CLI_TMP"                -> tmpDirBase().path.toString,
+        "SCALA_CLI_IMAGE"              -> "scala-cli",
+        "SCALA_CLI_PRINT_STACK_TRACES" -> "1"
       )
     }
   }
@@ -125,10 +124,9 @@ object integration extends CliIntegration {
         PathRef(T.dest / "working-dir")
       }
       def forkEnv = super.forkEnv() ++ Seq(
-        "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
-        "SCALA_CLI_IMAGE" -> "scala-cli-slim",
-        "CI"              -> "1",
-        "ACTUAL_CI"       -> (if (System.getenv("CI") == null) "" else "1")
+        "SCALA_CLI_TMP"                -> tmpDirBase().path.toString,
+        "SCALA_CLI_IMAGE"              -> "scala-cli-slim",
+        "SCALA_CLI_PRINT_STACK_TRACES" -> "1"
       )
     }
   }
@@ -766,9 +764,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.jsoniterMacros
     )
     def forkEnv = super.forkEnv() ++ Seq(
-      "SCALA_CLI_TMP" -> tmpDirBase().path.toString,
-      "CI"            -> "1",
-      "ACTUAL_CI"     -> (if (System.getenv("CI") == null) "" else "1")
+      "SCALA_CLI_TMP"                -> tmpDirBase().path.toString,
+      "SCALA_CLI_PRINT_STACK_TRACES" -> "1"
     )
     private def updateRef(name: String, ref: PathRef): PathRef = {
       val rawPath = ref.path.toString.replace(

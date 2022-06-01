@@ -12,12 +12,9 @@ object TestUtil {
 
   val cliKind     = sys.props("test.scala-cli.kind")
   val isNativeCli = cliKind.startsWith("native")
-  val isCI = Option(System.getenv("ACTUAL_CI")) match {
-    case None        => System.getenv("CI") != null
-    case Some(value) => value.nonEmpty
-  }
-  val cliPath = sys.props("test.scala-cli.path")
-  val cli     = cliCommand(cliPath)
+  val isCI        = System.getenv("CI") != null
+  val cliPath     = sys.props("test.scala-cli.path")
+  val cli         = cliCommand(cliPath)
 
   def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)
