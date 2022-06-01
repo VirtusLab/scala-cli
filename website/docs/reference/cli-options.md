@@ -1121,7 +1121,11 @@ Set Ivy 2 home directory
 
 #### `--force-signing-binary`
 
+#### `--checksum`
+
 #### `--ivy2-local-like`
+
+#### `--parallel-upload`
 
 ## Publish params options
 
@@ -1203,6 +1207,10 @@ User to use with publishing repository
 #### `--password`
 
 Password to use with publishing repository
+
+#### `--realm`
+
+Realm to use when passing credentials to publishing repository
 
 ## Repl options
 

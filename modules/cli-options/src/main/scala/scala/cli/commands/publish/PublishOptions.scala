@@ -23,7 +23,11 @@ final case class PublishOptions(
 
   @Group("Publishing")
   @Hidden
-    ivy2LocalLike: Option[Boolean] = None
+    ivy2LocalLike: Option[Boolean] = None,
+
+  @Group("Publishing")
+  @Hidden
+    parallelUpload: Option[Boolean] = None
 )
 // format: on
 

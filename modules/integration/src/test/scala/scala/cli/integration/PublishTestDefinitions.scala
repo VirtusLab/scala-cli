@@ -12,8 +12,8 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
 
   protected def extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
-  test("simple") {
-    val inputs = TestInputs(
+  private object TestCase {
+    val testInputs = TestInputs(
       Seq(
         os.rel / "project" / "foo" / "Hello.scala" ->
           """//> using publish.organization "org.virtuslab.scalacli.test"
@@ -39,17 +39,19 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
             |""".stripMargin
       )
     )
-
     val scalaSuffix =
       if (actualScalaVersion.startsWith("3.")) "_3"
       else "_" + actualScalaVersion.split('.').take(2).mkString(".")
     val expectedArtifactsDir =
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple$scalaSuffix" / "0.2.0-SNAPSHOT"
+  }
+
+  test("simple") {
     val baseExpectedArtifacts = Seq(
-      s"simple$scalaSuffix-0.2.0-SNAPSHOT.pom",
-      s"simple$scalaSuffix-0.2.0-SNAPSHOT.jar",
-      s"simple$scalaSuffix-0.2.0-SNAPSHOT-javadoc.jar",
-      s"simple$scalaSuffix-0.2.0-SNAPSHOT-sources.jar"
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom",
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.jar",
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-javadoc.jar",
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-sources.jar"
     )
     val expectedArtifacts = baseExpectedArtifacts
       .flatMap { n =>
@@ -87,7 +89,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     )
     // format: on
 
-    inputs.fromRoot { root =>
+    TestCase.testInputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
         "publish",
@@ -105,10 +107,10 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       val files = os.walk(root / "test-repo")
         .filter(os.isFile(_))
         .map(_.relativeTo(root / "test-repo"))
-      val notInDir = files.filter(!_.startsWith(expectedArtifactsDir))
+      val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
       expect(notInDir.isEmpty)
 
-      val files0 = files.map(_.relativeTo(expectedArtifactsDir)).toSet
+      val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
 
       expect((files0 -- expectedArtifacts).isEmpty)
       expect((expectedArtifacts -- files0).isEmpty)
@@ -116,7 +118,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
 
       val repoArgs =
         Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
-      val dep    = s"org.virtuslab.scalacli.test:simple$scalaSuffix:0.2.0-SNAPSHOT"
+      val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
       val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
       val output = res.out.text().trim
       expect(output == "Hello")
@@ -138,9 +140,53 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         "verify",
         "--key",
         publicKey,
-        signatures.map(os.rel / "test-repo" / expectedArtifactsDir / _)
+        signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
       )
         .call(cwd = root)
+    }
+  }
+
+  test("custom checksums") {
+    val baseExpectedArtifacts = Seq(
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom",
+      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.jar"
+    )
+    val expectedArtifacts = baseExpectedArtifacts
+      .flatMap { n =>
+        Seq("", ".sha1").map(n + _)
+      }
+      .map(os.rel / _)
+      .toSet
+
+    TestCase.testInputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "publish",
+        extraOptions,
+        "--sources=false",
+        "--doc=false",
+        "--checksum",
+        "sha-1",
+        "project",
+        "-R",
+        "test-repo"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val files = os.walk(root / "test-repo")
+        .filter(os.isFile(_))
+        .map(_.relativeTo(root / "test-repo"))
+      val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
+      expect(notInDir.isEmpty)
+
+      val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
+
+      expect((files0 -- expectedArtifacts).isEmpty)
+      expect((expectedArtifacts -- files0).isEmpty)
+      expect(files0 == expectedArtifacts) // just in case…
     }
   }
 }

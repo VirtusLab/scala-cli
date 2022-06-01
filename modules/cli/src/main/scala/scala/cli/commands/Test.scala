@@ -84,8 +84,6 @@ object Test extends ScalaCommand[TestOptions] {
             System.err.println()
           }
           val retCodeOrError = testOnce(
-            inputs.workspace,
-            inputs.projectName,
             s,
             options.requireTests,
             args.unparsed,
@@ -155,8 +153,6 @@ object Test extends ScalaCommand[TestOptions] {
   }
 
   private def testOnce(
-    root: os.Path,
-    projectName: String,
     build: Build.Successful,
     requireTests: Boolean,
     args: Seq[String],

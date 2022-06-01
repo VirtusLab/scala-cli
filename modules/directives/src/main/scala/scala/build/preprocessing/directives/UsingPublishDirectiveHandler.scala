@@ -61,7 +61,8 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     "secretKey",
     "secretKeyPassword",
     "user",
-    "password"
+    "password",
+    "realm"
   ).map(prefix + _)
 
   override def getValueNumberBounds(key: String) = key match {
@@ -148,6 +149,8 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
         PublishOptions(repoUser = Some(value(parsePasswordOption(singleValue.value))))
       case "password" =>
         PublishOptions(repoPassword = Some(value(parsePasswordOption(singleValue.value))))
+      case "realm" =>
+        PublishOptions(repoRealm = Some(singleValue.value))
       case _ =>
         value(Left(new UnexpectedDirectiveError(scopedDirective.directive.key)))
     }

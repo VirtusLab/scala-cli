@@ -23,7 +23,12 @@ final case class PublishRepositoryOptions(
   @Group("Publishing")
   @HelpMessage("Password to use with publishing repository")
   @ValueDescription("value:…")
-    password: Option[PasswordOption] = None
+    password: Option[PasswordOption] = None,
+
+  @Group("Publishing")
+  @HelpMessage("Realm to use when passing credentials to publishing repository")
+  @ValueDescription("realm")
+    realm: Option[String] = None
 
 )
 // format: on

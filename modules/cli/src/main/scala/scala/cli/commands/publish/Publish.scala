@@ -43,7 +43,12 @@ import scala.cli.commands.{
   SharedOptions,
   WatchUtil
 }
-import scala.cli.errors.{FailedToSignFileError, MissingPublishOptionError, UploadError}
+import scala.cli.errors.{
+  FailedToSignFileError,
+  MalformedChecksumsError,
+  MissingPublishOptionError,
+  UploadError
+}
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 
@@ -111,6 +116,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           secretKeyPassword = publishParams.secretKeyPassword,
           repoUser = publishRepo.user,
           repoPassword = publishRepo.password,
+          repoRealm = publishRepo.realm,
           signer = value {
             sharedPublish.signer
               .map(Positioned.commandLine(_))
@@ -122,6 +128,11 @@ object Publish extends ScalaCommand[PublishOptions] {
               .map(Positioned.commandLine(_))
               .map(ComputeVersion.parse(_))
               .sequence
+          },
+          checksums = {
+            val input = sharedPublish.checksum.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
+            if (input.isEmpty) None
+            else Some(input)
           }
         )
       )
@@ -176,6 +187,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       ivy2HomeOpt,
       publishLocal = false,
       forceSigningBinary = options.sharedPublish.forceSigningBinary,
+      parallelUpload = options.parallelUpload.getOrElse(true),
       options.watch.watch
     )
   }
@@ -191,6 +203,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
     forceSigningBinary: Boolean,
+    parallelUpload: Boolean,
     watch: Boolean
   ): Unit = {
 
@@ -214,7 +227,8 @@ object Publish extends ScalaCommand[PublishOptions] {
             publishLocal,
             logger,
             allowExit = false,
-            forceSigningBinary = forceSigningBinary
+            forceSigningBinary = forceSigningBinary,
+            parallelUpload = parallelUpload
           )
         }
       }
@@ -240,7 +254,8 @@ object Publish extends ScalaCommand[PublishOptions] {
         publishLocal,
         logger,
         allowExit = true,
-        forceSigningBinary = forceSigningBinary
+        forceSigningBinary = forceSigningBinary,
+        parallelUpload = parallelUpload
       )
     }
   }
@@ -259,7 +274,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     publishLocal: Boolean,
     logger: Logger,
     allowExit: Boolean,
-    forceSigningBinary: Boolean
+    forceSigningBinary: Boolean,
+    parallelUpload: Boolean
   ): Unit = {
 
     val allOk = builds.all.forall {
@@ -286,7 +302,8 @@ object Publish extends ScalaCommand[PublishOptions] {
         ivy2HomeOpt,
         publishLocal,
         logger,
-        forceSigningBinary
+        forceSigningBinary,
+        parallelUpload
       )
       if (allowExit)
         res.orExit(logger)
@@ -526,7 +543,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
     logger: Logger,
-    forceSigningBinary: Boolean
+    forceSigningBinary: Boolean,
+    parallelUpload: Boolean
   ): Either[BuildException, Unit] = either {
 
     assert(docBuilds.isEmpty || docBuilds.length == builds.length)
@@ -548,10 +566,12 @@ object Publish extends ScalaCommand[PublishOptions] {
         Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
 
       lazy val authOpt = {
-        val userOpt     = publishOptions.repoUser
         val passwordOpt = publishOptions.repoPassword.map(_.get())
         passwordOpt.map { password =>
-          Authentication(userOpt.fold("")(_.get().value), password.value)
+          val userOpt  = publishOptions.repoUser
+          val realmOpt = publishOptions.repoRealm
+          val auth     = Authentication(userOpt.fold("")(_.get().value), password.value)
+          realmOpt.fold(auth)(auth.withRealm)
         }
       }
 
@@ -613,6 +633,7 @@ object Publish extends ScalaCommand[PublishOptions] {
                   else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
                 MavenRepository(url)
               }
+              .withAuthentication(authOpt)
             (
               PublishRepository.Simple(repo0),
               None,
@@ -689,7 +710,8 @@ object Publish extends ScalaCommand[PublishOptions] {
               )
           case None => NopSigner
         }
-      case None => NopSigner
+      case Some(PSigner.Nop) => NopSigner
+      case None              => NopSigner
     }
     val signerLogger =
       new InteractiveSignerLogger(new OutputStreamWriter(System.err), verbosity = 1)
@@ -717,8 +739,19 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val checksumLogger =
       new InteractiveChecksumLogger(new OutputStreamWriter(System.err), verbosity = 1)
+    val checksumTypes = publishOptions.checksums match {
+      case None              => Seq(ChecksumType.MD5, ChecksumType.SHA1)
+      case Some(Seq("none")) => Nil
+      case Some(inputs) =>
+        value {
+          inputs
+            .map(ChecksumType.parse)
+            .sequence
+            .left.map(errors => new MalformedChecksumsError(inputs, errors))
+        }
+    }
     val checksums = Checksums(
-      Seq(ChecksumType.MD5, ChecksumType.SHA1),
+      checksumTypes,
       fileSet1,
       now,
       ec,
@@ -747,7 +780,12 @@ object Publish extends ScalaCommand[PublishOptions] {
     val uploadLogger = InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
 
     val errors =
-      upload.uploadFileSet(retainedRepo, finalFileSet, uploadLogger, Some(ec)).unsafeRun()(ec)
+      upload.uploadFileSet(
+        retainedRepo,
+        finalFileSet,
+        uploadLogger,
+        if (parallelUpload) Some(ec) else None
+      ).unsafeRun()(ec)
 
     errors.toList match {
       case h :: t =>

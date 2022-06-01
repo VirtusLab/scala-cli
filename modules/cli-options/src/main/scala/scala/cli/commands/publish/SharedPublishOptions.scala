@@ -56,8 +56,11 @@ final case class SharedPublishOptions(
 
   @Group("Publishing")
   @Hidden
-    forceSigningBinary: Boolean = false
+    forceSigningBinary: Boolean = false,
 
+  @Group("Publishing")
+  @Hidden
+    checksum: List[String] = Nil
 )
 // format: on
 
