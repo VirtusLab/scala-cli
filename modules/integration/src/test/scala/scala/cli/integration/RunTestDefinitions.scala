@@ -1586,7 +1586,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           s"-D$scheme.proxyHost=$host",
           s"-D$scheme.proxyPort=$port",
           s"-D$scheme.proxyUser=$user",
-          s"-D$scheme.proxyPassword=$password"
+          s"-D$scheme.proxyPassword=$password",
+          s"-D$scheme.proxyProtocol=http"
         )
       }
     val proxyArgs      = authProperties("localhost", 9083, "jack", "insecure")
