@@ -42,6 +42,10 @@ final case class SharedOptions(
   @Name("scalaBin")
   @Name("B")
     scalaBinaryVersion: Option[String] = None,
+  
+  @Group("Scala")
+  @HelpMessage("Show help for scalac. This is an alias for --scalac-option -help")
+  scalacHelp: Boolean = false,
 
   @Group("Java")
   @HelpMessage("Add extra JARs in the class path")

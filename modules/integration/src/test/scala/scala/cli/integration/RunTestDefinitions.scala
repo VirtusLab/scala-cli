@@ -12,9 +12,10 @@ import scala.util.Properties
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
 
-  protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
-  protected val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
+  protected val ciOpt: Seq[String] =
+    Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
 
   def simpleScriptTest(ignoreErrors: Boolean = false, extraArgs: Seq[String] = Nil): Unit = {
     val fileName = "simple.sc"
@@ -1696,6 +1697,50 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         pprint.err.log(message)
       }
       expect(res.out.text(Codec.default).trim == message)
+    }
+  }
+
+  test("scalac help") {
+    emptyInputs.fromRoot { root =>
+      val res1 = os.proc(
+        TestUtil.cli,
+        extraOptions,
+        "--scalac-help"
+      )
+        .call(cwd = root, mergeErrIntoOut = true)
+      expect(res1.out.text().contains("scalac <options> <source files>"))
+
+      val res2 = os.proc(
+        TestUtil.cli,
+        extraOptions,
+        "--scalac-option",
+        "-help"
+      )
+        .call(cwd = root, mergeErrIntoOut = true)
+      expect(res1.out.text() == res2.out.text())
+    }
+  }
+
+  test("scalac print options") {
+    emptyInputs.fromRoot { root =>
+      val printOptionsForAllVersions = Seq("-X", "-Xshow-phases", "-Y")
+      val printOptionsSince213       = Seq("-V", "-Vphases", "-W")
+      val version213OrHigher =
+        actualScalaVersion.startsWith("2.13") || actualScalaVersion.startsWith("3")
+      val printOptionsToTest = printOptionsForAllVersions ++
+        (
+          if (version213OrHigher) printOptionsSince213
+          else Seq.empty
+        )
+      printOptionsToTest.foreach { printOption =>
+        val res = os.proc(
+          TestUtil.cli,
+          extraOptions,
+          printOption
+        )
+          .call(cwd = root, mergeErrIntoOut = true)
+        expect(res.out.text().nonEmpty)
+      }
     }
   }
 }

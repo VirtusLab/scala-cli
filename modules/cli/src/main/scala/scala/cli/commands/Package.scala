@@ -30,11 +30,12 @@ import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] {
-  override def name                                   = "package"
-  override def group                                  = "Main"
-  override def sharedOptions(options: PackageOptions) = Some(options.shared)
+  override def name                                                          = "package"
+  override def group                                                         = "Main"
+  override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
+    maybePrintSimpleScalacOutput(options, options.buildOptions)
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
@@ -138,7 +139,7 @@ object Package extends ScalaCommand[PackageOptions] {
       lazy val validPackageScalaNative =
         Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
 
-      (forcedPackageTypeOpt -> build.options.platform.value) match {
+      forcedPackageTypeOpt -> build.options.platform.value match {
         case (Some(forcedPackageType), _) => Right(forcedPackageType)
         case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
           for (basePackageType <- basePackageTypeOpt)

@@ -17,7 +17,7 @@ import scala.util.Properties
 object Run extends ScalaCommand[RunOptions] {
   override def group = "Main"
 
-  override def sharedOptions(options: RunOptions) = Some(options.shared)
+  override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
 
   def run(options: RunOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
@@ -40,7 +40,7 @@ object Run extends ScalaCommand[RunOptions] {
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
       )
     )
   }
@@ -52,12 +52,13 @@ object Run extends ScalaCommand[RunOptions] {
     defaultInputs: () => Option[Inputs]
   ): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
+    val initialBuildOptions = buildOptions(options)
+    maybePrintSimpleScalacOutput(options, initialBuildOptions)
+
     val inputs = options.shared.inputsOrExit(inputArgs, defaultInputs = defaultInputs)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-
-    val initialBuildOptions = buildOptions(options)
-    val logger              = options.shared.logger
-    val threads             = BuildThreads.create()
+    val logger  = options.shared.logger
+    val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)
 

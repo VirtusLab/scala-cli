@@ -4,7 +4,6 @@ import caseapp._
 
 // format: off
 final case class CrossOptions(
-  @ExtraName("X")
     cross: Option[Boolean] = None
 )
 // format: on

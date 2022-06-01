@@ -213,8 +213,6 @@ Available in commands:
 
 #### `--cross`
 
-Aliases: `-X`
-
 Cross-compile sources
 
 ## Coursier options
@@ -263,8 +261,6 @@ Available in commands:
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
 #### `--cross`
-
-Aliases: `-X`
 
 ## Default file options
 
@@ -1494,6 +1490,10 @@ Set the Scala version
 Aliases: `--scala-binary`, `--scala-bin`, `-B`
 
 Set the Scala binary version
+
+#### `--scalac-help`
+
+Show help for scalac. This is an alias for --scalac-option -help
 
 #### `--extra-jars`
 

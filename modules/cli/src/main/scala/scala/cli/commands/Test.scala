@@ -15,20 +15,20 @@ import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 
 object Test extends ScalaCommand[TestOptions] {
-  override def group                               = "Main"
-  override def sharedOptions(options: TestOptions) = Some(options.shared)
+  override def group                                                      = "Main"
+  override def sharedOptions(options: TestOptions): Option[SharedOptions] = Some(options.shared)
 
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET
 
-  private def buildOptions(opts: TestOptions): BuildOptions = {
+  def buildOptions(opts: TestOptions): BuildOptions = {
     import opts._
     val baseOptions = shared.buildOptions()
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
       ),
       testOptions = baseOptions.testOptions.copy(
         frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty)
@@ -42,6 +42,10 @@ object Test extends ScalaCommand[TestOptions] {
   def run(options: TestOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
+
+    val initialBuildOptions = buildOptions(options)
+    maybePrintSimpleScalacOutput(options, initialBuildOptions)
+
     val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val logger = options.shared.logger
@@ -55,8 +59,7 @@ object Test extends ScalaCommand[TestOptions] {
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
 
-    val initialBuildOptions = buildOptions(options)
-    val threads             = BuildThreads.create()
+    val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)
 
