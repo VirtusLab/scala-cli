@@ -550,7 +550,7 @@ class Scala3Graal(val crossScalaVersion: String) extends BuildLikeModule {
   }
 }
 
-trait Scala3GraalProcessor extends ScalaModule {
+trait Scala3GraalProcessor extends ScalaModule with ScalaCliPublishModule {
   def moduleDeps     = Seq(`scala3-graal`(Scala.scala3))
   def scalaVersion   = Scala.scala3
   def finalMainClass = "scala.cli.graal.CoursierCacheProcessor"
