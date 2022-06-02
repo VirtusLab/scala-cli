@@ -152,7 +152,9 @@ object Build {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
-          options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+          options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
+          options.archiveCache,
+          options.internal.javaClassNameVersionOpt
         ),
         logger
       )

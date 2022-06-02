@@ -1,6 +1,8 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
+import coursier.cache.{ArchiveCache, Cache}
+import coursier.util.{Artifact, Task}
 import dependency._
 
 import scala.build.Ops._
@@ -17,6 +19,18 @@ class SourcesTests extends munit.FunSuite {
   def scalaVersion       = "2.13.5"
   def scalaParams        = ScalaParameters(scalaVersion)
   def scalaBinaryVersion = scalaParams.scalaBinaryVersion
+
+  val preprocessors = Sources.defaultPreprocessors(
+    CustomCodeWrapper,
+    ArchiveCache().withCache(
+      new Cache[Task] {
+        def fetch                    = _ => sys.error("shouldn't be used")
+        def file(artifact: Artifact) = sys.error("shouldn't be used")
+        def ec                       = sys.error("shouldn't be used")
+      }
+    ),
+    None
+  )
 
   test("dependencies in .scala - $ivy") {
     val testInputs = TestInputs(
@@ -40,7 +54,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -76,7 +90,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -109,7 +123,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -140,7 +154,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -171,7 +185,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -205,7 +219,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -241,7 +255,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -269,7 +283,7 @@ class SourcesTests extends munit.FunSuite {
     testInputs.withInputs { (_, inputs) =>
       val crossSources = CrossSources.forInputs(
         inputs,
-        Sources.defaultPreprocessors(CustomCodeWrapper),
+        preprocessors,
         TestLogger()
       )
       expect(crossSources.isLeft)
@@ -296,7 +310,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -361,7 +375,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -393,7 +407,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -428,7 +442,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -454,7 +468,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -491,7 +505,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
@@ -530,7 +544,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         )
       crossSources match {
@@ -550,7 +564,7 @@ class SourcesTests extends munit.FunSuite {
       val crossSources =
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          preprocessors,
           TestLogger()
         )
       crossSources match {

@@ -1,5 +1,8 @@
 package scala.build
 
+import coursier.cache.ArchiveCache
+import coursier.util.Task
+
 import scala.build.internal.CodeWrapper
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.preprocessing.*
@@ -69,10 +72,26 @@ object Sources {
     topWrapperLen: Int
   )
 
-  def defaultPreprocessors(codeWrapper: CodeWrapper): Seq[Preprocessor] =
+  /** The default preprocessor list.
+    *
+    * @param codeWrapper
+    *   used by the Scala script preprocessor to "wrap" user code
+    * @param archiveCache
+    *   used from native launchers by the Java preprocessor, to download a java-class-name binary,
+    *   used to infer the class name of unnamed Java sources (like stdin)
+    * @param javaClassNameVersionOpt
+    *   if using a java-class-name binary, the version we should download. If empty, the default
+    *   version is downloaded.
+    * @return
+    */
+  def defaultPreprocessors(
+    codeWrapper: CodeWrapper,
+    archiveCache: ArchiveCache[Task],
+    javaClassNameVersionOpt: Option[String]
+  ): Seq[Preprocessor] =
     Seq(
       ScriptPreprocessor(codeWrapper),
-      JavaPreprocessor,
+      JavaPreprocessor(archiveCache, javaClassNameVersionOpt),
       ScalaPreprocessor,
       DataPreprocessor
     )

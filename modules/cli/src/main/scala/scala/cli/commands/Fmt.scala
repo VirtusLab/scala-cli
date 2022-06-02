@@ -144,7 +144,9 @@ object Fmt extends ScalaCommand[FmtOptions] {
           CrossSources.forInputs(
             inputs,
             Sources.defaultPreprocessors(
-              buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+              buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
+              buildOptions.archiveCache,
+              buildOptions.internal.javaClassNameVersionOpt
             ),
             logger
           ).orExit(logger)

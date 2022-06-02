@@ -71,7 +71,6 @@ object `cli-options`  extends CliOptions
 object `build-macros` extends Cross[BuildMacros](Scala.mainVersions: _*)
 object options        extends Cross[Options](Scala.mainVersions: _*)
 object scalaparse     extends ScalaParse
-object javaparse      extends JavaParse
 object directives     extends Cross[Directives](Scala.mainVersions: _*)
 object core           extends Cross[Core](Scala.mainVersions: _*)
 object `build-module` extends Cross[Build](Scala.mainVersions: _*)
@@ -400,6 +399,7 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
          |
          |  def scalaCliSigningVersion = "${Deps.signingCli.dep.version}"
+         |  def javaClassNameVersion = "${Deps.javaClassName.dep.version}"
          |
          |  def libsodiumVersion = "${deps.libsodiumVersion}"
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.version}"
@@ -498,34 +498,6 @@ trait ScalaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
   def scalaVersion = Scala.scala213
 }
 
-trait JavaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
-  def ivyDeps = super.ivyDeps() ++ Agg(Deps.scala3Compiler(scalaVersion()))
-
-  // pin scala3-library suffix, so that 2.13 modules can have us as moduleDep fine
-  def mandatoryIvyDeps = T {
-    super.mandatoryIvyDeps().map { dep =>
-      val isScala3Lib =
-        dep.dep.module.organization.value == "org.scala-lang" &&
-        dep.dep.module.name.value == "scala3-library" &&
-        (dep.cross match {
-          case _: CrossVersion.Binary => true
-          case _                      => false
-        })
-      if (isScala3Lib)
-        dep.copy(
-          dep = dep.dep.withModule(
-            dep.dep.module.withName(
-              coursier.ModuleName(dep.dep.module.name.value + "_3")
-            )
-          ),
-          cross = CrossVersion.empty(dep.cross.platformed)
-        )
-      else dep
-    }
-  }
-  def scalaVersion = Scala.scala3
-}
-
 trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
   def ivyDeps      = super.ivyDeps()
   def scalaVersion = Scala.scala3
@@ -561,7 +533,6 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
   def moduleDeps = Seq(
     options(),
     scalaparse,
-    javaparse,
     directives(),
     `scala-cli-bsp`,
     `test-runner`(),
@@ -578,6 +549,7 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.collectionCompat,
+    Deps.javaClassName,
     Deps.jsoniterCore,
     Deps.nativeTestRunner,
     Deps.osLib,

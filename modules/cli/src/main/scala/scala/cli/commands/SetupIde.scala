@@ -33,7 +33,11 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       val crossSources = value {
         CrossSources.forInputs(
           inputs,
-          Sources.defaultPreprocessors(CustomCodeWrapper),
+          Sources.defaultPreprocessors(
+            CustomCodeWrapper,
+            options.archiveCache,
+            options.internal.javaClassNameVersionOpt
+          ),
           logger
         )
       }
