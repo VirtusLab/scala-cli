@@ -414,8 +414,8 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
 
 class Directives(val crossScalaVersion: String) extends BuildLikeModule {
   def moduleDeps = Seq(
-    `options`(),
-    `core`()
+    options(),
+    core()
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -470,7 +470,7 @@ class Directives(val crossScalaVersion: String) extends BuildLikeModule {
 
 class Options(val crossScalaVersion: String) extends BuildLikeModule {
   def moduleDeps = Seq(
-    `core`(),
+    core(),
     `build-macros`()
   )
   def scalacOptions = T {
@@ -559,10 +559,10 @@ trait Scala3GraalProcessor extends ScalaModule with ScalaCliPublishModule {
 class Build(val crossScalaVersion: String) extends BuildLikeModule {
   def millSourcePath = super.millSourcePath / os.up / "build"
   def moduleDeps = Seq(
-    `options`(),
+    options(),
     scalaparse,
     javaparse,
-    `directives`(),
+    directives(),
     `scala-cli-bsp`,
     `test-runner`(),
     `tasty-lib`()
