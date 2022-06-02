@@ -185,10 +185,6 @@ object Inputs {
       ScopePath(Left(source), subPath)
   }
 
-  sealed abstract class VirtualSourceFile extends Virtual {
-    def isStdin: Boolean = source == "<stdin>"
-  }
-
   sealed trait SingleFile extends OnDisk with SingleElement
   sealed trait SourceFile extends SingleFile {
     def subPath: os.SubPath
@@ -214,9 +210,9 @@ object Inputs {
   final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
       extends Virtual with AnyScalaFile with AnyScript
   final case class VirtualScalaFile(content: Array[Byte], source: String)
-      extends VirtualSourceFile with AnyScalaFile
+      extends Virtual with AnyScalaFile { def isStdin: Boolean = source == "<stdin>" }
   final case class VirtualJavaFile(content: Array[Byte], source: String)
-      extends VirtualSourceFile with Compiled
+      extends Virtual with Compiled
   final case class VirtualData(content: Array[Byte], source: String)
       extends Virtual
 
@@ -340,8 +336,6 @@ object Inputs {
       val isStdin = (arg == "-.scala" || arg == "_" || arg == "_.scala") &&
         stdinOpt0.nonEmpty
       if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>")))
-      else if ((arg == "-.java" || arg == "_.java") && stdinOpt0.nonEmpty)
-        Right(Seq(VirtualJavaFile(stdinOpt0.get, "<stdin>")))
       else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
         Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
       else if (arg.endsWith(".zip") && os.exists(os.Path(arg, cwd))) {

@@ -824,7 +824,7 @@ trait ScalaCliCrossSbtModule extends CrossSbtModule {
     val sv         = scalaVersion()
     val isScala213 = sv.startsWith("2.13.")
     val extraOptions =
-      if (isScala213) Seq("-Xsource:3", "-Ytasty-reader")
+      if (isScala213) Seq("-Xsource:3")
       else Nil
     super.scalacOptions() ++ extraOptions
   }
