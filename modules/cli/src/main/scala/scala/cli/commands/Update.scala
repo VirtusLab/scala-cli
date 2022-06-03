@@ -156,16 +156,20 @@ object Update extends ScalaCommand[UpdateOptions] {
   }
 
   def checkUpdateSafe(logger: Logger): Unit =
-    try {
-      val classesDir =
-        getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toString
-      val binRepoDir = build.Directories.default().binRepoDir.toString()
+    try
       // log about update only if scala-cli was installed from installation script
-      if (classesDir.contains(binRepoDir))
+      if (isScalaCLIInstalledByInstallationScript())
         checkUpdate(UpdateOptions(isInternalRun = true))
-    }
     catch {
       case NonFatal(ex) =>
         logger.debug(s"Ignoring error during checking update: $ex")
     }
+
+  def isScalaCLIInstalledByInstallationScript(): Boolean = {
+    val classesDir =
+      getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toString
+    val binRepoDir = build.Directories.default().binRepoDir.toString()
+
+    classesDir.contains(binRepoDir)
+  }
 }
