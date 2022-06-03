@@ -213,7 +213,7 @@ object ConfigDb {
     if (os.exists(path))
       apply(os.read.bytes(path), Some(path.toString))
     else
-      Right(new ConfigDb(Map()))
+      Right(empty)
 
   /** Creates a ConfigDb from Scala CLI directories
     *
@@ -224,4 +224,7 @@ object ConfigDb {
     */
   def open(directories: Directories): Either[BuildException, ConfigDb] =
     open(dbPath(directories))
+
+  def empty: ConfigDb =
+    new ConfigDb(Map())
 }

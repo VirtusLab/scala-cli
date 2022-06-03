@@ -2,7 +2,13 @@ package scala.cli.commands.publish
 
 import caseapp._
 
-import scala.cli.commands.{CompileCrossOptions, MainClassOptions, SharedOptions, SharedWatchOptions}
+import scala.cli.commands.{
+  CompileCrossOptions,
+  MainClassOptions,
+  SharedDirectoriesOptions,
+  SharedOptions,
+  SharedWatchOptions
+}
 
 // format: off
 final case class PublishOptions(
