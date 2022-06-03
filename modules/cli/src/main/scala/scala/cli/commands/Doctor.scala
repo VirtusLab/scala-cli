@@ -69,11 +69,11 @@ object Doctor extends ScalaCommand[DoctorOptions] {
       )
     else if (Update.isScalaCLIInstalledByInstallationScript())
       println(
-        s"scala-cli could update itself since it is correctly installed in only one location: $scalaCliPaths."
+        s"scala-cli could update itself since it is correctly installed in only one location: ${scalaCliPaths.mkString}."
       )
     else
       println(
-        s"scala-cli could update by your package manager since it is correctly installed in only one location: $scalaCliPaths."
+        s"scala-cli can be updated by your package manager since it is correctly installed in only one location: ${scalaCliPaths.mkString}."
       )
 
   }
