@@ -67,10 +67,15 @@ object Doctor extends ScalaCommand[DoctorOptions] {
       println(
         s"scala-cli would not be able to update itself since it is installed in multiple directories: ${scalaCliPaths.mkString(", ")}."
       )
-    else
+    else if (Update.isScalaCLIInstalledByInstallationScript())
       println(
         s"scala-cli could update itself since it is correctly installed in only one location: $scalaCliPaths."
       )
+    else
+      println(
+        s"scala-cli could update by your package manager since it is correctly installed in only one location: $scalaCliPaths."
+      )
+
   }
 
   private def checkNativeDependencies(): Unit = {
