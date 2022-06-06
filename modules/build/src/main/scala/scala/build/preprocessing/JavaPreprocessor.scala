@@ -1,18 +1,35 @@
 package scala.build.preprocessing
 
 import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
+import coursier.cache.ArchiveCache
+import coursier.util.Task
 
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.internal.JavaParser
+import scala.build.internal.JavaParserProxyMaker
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.ScalaPreprocessor._
 import scala.build.{Inputs, Logger}
 
-case object JavaPreprocessor extends Preprocessor {
+/** Java source preprocessor.
+  *
+  * Doesn't modify Java sources. This only extracts using directives from them, and for unnamed
+  * sources (like stdin), tries to infer a class name from the sources themselves.
+  *
+  * @param archiveCache
+  *   when using a java-class-name external binary to infer a class name (see [[JavaParserProxy]]),
+  *   a cache to download that binary with
+  * @param javaClassNameVersionOpt
+  *   when using a java-class-name external binary to infer a class name (see [[JavaParserProxy]]),
+  *   this forces the java-class-name version to download
+  */
+final case class JavaPreprocessor(
+  archiveCache: ArchiveCache[Task],
+  javaClassNameVersionOpt: Option[String]
+) extends Preprocessor {
   def preprocess(
     input: Inputs.SingleElement,
     logger: Logger
@@ -45,27 +62,39 @@ case object JavaPreprocessor extends Preprocessor {
           ))
         })
       case v: Inputs.VirtualJavaFile =>
-        val relPath =
-          if (v.isStdin) {
-            val fileName = JavaParser.parseRootPublicClassName(v.content).map(
-              _ + ".java"
-            ).getOrElse("stdin.java")
-            os.sub / fileName
-          }
-          else v.subPath
-        val content = new String(v.content, StandardCharsets.UTF_8)
-        val s = PreprocessedSource.InMemory(
-          originalPath = Left(v.source),
-          relPath = relPath,
-          code = content,
-          ignoreLen = 0,
-          options = None,
-          requirements = None,
-          scopedRequirements = Nil,
-          mainClassOpt = None,
-          scopePath = v.scopePath
-        )
-        Some(Right(Seq(s)))
+        val res = either {
+          val relPath =
+            if (v.isStdin) {
+              val classNameOpt = value {
+                (new JavaParserProxyMaker)
+                  .get(
+                    archiveCache,
+                    javaClassNameVersionOpt,
+                    logger
+                  )
+                  .className(v.content)
+              }
+              val fileName = classNameOpt
+                .map(_ + ".java")
+                .getOrElse("stdin.java")
+              os.sub / fileName
+            }
+            else v.subPath
+          val content = new String(v.content, StandardCharsets.UTF_8)
+          val s = PreprocessedSource.InMemory(
+            originalPath = Left(v.source),
+            relPath = relPath,
+            code = content,
+            ignoreLen = 0,
+            options = None,
+            requirements = None,
+            scopedRequirements = Nil,
+            mainClassOpt = None,
+            scopePath = v.scopePath
+          )
+          Seq(s)
+        }
+        Some(res)
 
       case _ => None
     }

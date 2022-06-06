@@ -29,7 +29,9 @@ object Export extends ScalaCommand[ExportOptions] {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
-          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
+          buildOptions.archiveCache,
+          buildOptions.internal.javaClassNameVersionOpt
         ),
         logger
       )

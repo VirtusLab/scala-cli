@@ -77,7 +77,7 @@ It is also possible to set `scala-cli` command-line options in the shebang line,
 #!/usr/bin/env -S scala-cli shebang --scala-version 2.13
 ```
 
-### Aguments
+### Arguments
 
 You may also pass arguments to your script, and they are referenced with the special `args` variable:
 
