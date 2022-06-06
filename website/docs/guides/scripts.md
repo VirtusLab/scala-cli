@@ -55,6 +55,10 @@ import constants.messages
 println(messages.hello)
 ```
 
+Please note: when referring to code from another script, the actual relative path from the project root is used for the
+package path. In the example above, as `messages.sc` is located in the `my-app/constants/` directory, to use the `hello`
+function you have to call `constants.messages.hello`.
+
 To specify a main class when running a script, use this command:
 
 <ChainedSnippets>
