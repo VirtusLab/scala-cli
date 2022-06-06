@@ -267,7 +267,7 @@ object Inputs {
           case elem: SourceFile => (elem.path / os.up, true, WorkspaceOrigin.SourcePaths)
           case _: Virtual =>
             val dir = homeWorkspace(validElems, directories)
-            (dir, true, WorkspaceOrigin.HomeDir)
+            (dir, false, WorkspaceOrigin.HomeDir)
           case r: ResourceDirectory =>
             // Makes us put .scala-build in a resource directory :/
             (r.path, true, WorkspaceOrigin.ResourcePaths)
