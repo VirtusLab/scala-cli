@@ -23,5 +23,6 @@ object Directories extends ScalaCommand[DirectoriesOptions] {
     println("Virtual projects: " + directories.virtualProjectsDir)
     println("BSP sockets: " + directories.bspSocketDir)
     println("Bloop daemon directory: " + directories.bloopDaemonDir)
+    println("Secrets directory: " + directories.secretsDir)
   }
 }

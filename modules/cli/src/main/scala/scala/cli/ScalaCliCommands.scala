@@ -7,6 +7,7 @@ import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
 import scala.cli.commands.bloop.BloopOutput
+import scala.cli.commands.config.Config
 import scala.cli.commands.default.DefaultFile
 import scala.cli.commands.github.{SecretCreate, SecretList}
 import scala.cli.commands.pgp.{PgpCommands, PgpCommandsSubst, PgpPull, PgpPush}
@@ -34,6 +35,7 @@ class ScalaCliCommands(
     Bsp,
     Clean,
     Compile,
+    Config,
     DefaultFile,
     Directories,
     Doc,
