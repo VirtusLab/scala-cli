@@ -1744,4 +1744,55 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
   }
+
+  test("pick .scala main class over in-context scripts") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          """object Hello extends App {
+            |  println(s"Hello ${scripts.Script.world}")
+            |}
+            |""".stripMargin,
+        os.rel / "scripts" / "Script.sc" ->
+          """
+            |def world: String = "world"
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        "."
+      )
+        .call(cwd = root)
+      expect(res.out.text().trim == "Hello world")
+    }
+  }
+
+  test("Return relevant error if multiple .scala main classes are present") {
+    val (scalaFile1, scalaFile2, scriptName) = ("A", "B", "C")
+    val inputs = TestInputs(
+      Seq(
+        os.rel / s"$scalaFile1.scala"          -> s"object $scalaFile1 extends App { println() }",
+        os.rel / s"$scalaFile2.scala"          -> s"object $scalaFile2 extends App { println() }",
+        os.rel / "scripts" / s"$scriptName.sc" -> "println()"
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        "."
+      )
+        .call(cwd = root, mergeErrIntoOut = true, check = false)
+      expect(res.exitCode == 1)
+      val output = res.out.text().trim
+      expect(output.contains(scalaFile1))
+      expect(output.contains(scalaFile2))
+      expect(output.contains(s"${scriptName}_sc"))
+    }
+  }
 }
