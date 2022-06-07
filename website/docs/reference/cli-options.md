@@ -1210,13 +1210,13 @@ Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" o
 
 #### `--secret-key`
 
-Secret key to use to sign artifacts with BouncyCastle
+Secret key to use to sign artifacts with Bouncy Castle
 
 #### `--secret-key-password`
 
 Aliases: `--secret-key-pass`
 
-Password of secret key to use to sign artifacts with BouncyCastle
+Password of secret key to use to sign artifacts with Bouncy Castle
 
 ## Publish repository options
 
