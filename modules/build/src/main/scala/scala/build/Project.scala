@@ -46,7 +46,7 @@ final case class Project(
     }
     val scalaConfigOpt = scalaCompiler.map { scalaCompiler0 =>
       bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler0.scalaVersion).copy(
-        options = scalaCompiler0.scalacOptions.toList,
+        options = updateScalacOptions(scalaCompiler0.scalacOptions.toList),
         jars = scalaCompiler0.compilerClassPath.map(_.toNIO).toList
       )
     }
@@ -71,6 +71,21 @@ final case class Project(
 
   def bloopFile: BloopConfig.File =
     BloopConfig.File(BloopConfig.File.LatestVersion, bloopProject)
+
+  private def updateScalacOptions(scalacOptions: List[String]): List[String] = {
+    val keysWhichAcceptRelativePath = Seq(
+      "-coverage-out:"
+    )
+    def maybeConvertRelativePathToAbsolute(scalacOption: String): String =
+      keysWhichAcceptRelativePath.find(scalacOption.startsWith) match {
+        case Some(scalacKey) =>
+          val maybeRelativePath = scalacOption.stripPrefix(scalacKey)
+          val absolutePath      = os.Path(maybeRelativePath, Os.pwd)
+          s"$scalacKey$absolutePath"
+        case None => scalacOption
+      }
+    scalacOptions.map(maybeConvertRelativePathToAbsolute(_))
+  }
 
   private def maybeUpdateInputs(logger: Logger): Boolean = {
     val dest = directory / ".bloop" / s"$projectName.inputs.txt"
