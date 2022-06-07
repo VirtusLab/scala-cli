@@ -290,8 +290,13 @@ object Publish extends ScalaCommand[PublishOptions] {
     Left(new MissingPublishOptionError("organization", "--organization", "publish.organization"))
   def defaultName: Either[BuildException, String] =
     Left(new MissingPublishOptionError("name", "--name", "publish.name"))
+  def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
+    if (mayDefaultToGitTag) Some(ComputeVersion.GitTag(os.rel, dynVer = false))
+    else None
+  def defaultVersionError =
+    new MissingPublishOptionError("version", "--version", "publish.version")
   def defaultVersion: Either[BuildException, String] =
-    Left(new MissingPublishOptionError("version", "--version", "publish.version"))
+    Left(defaultVersionError)
 
   private def maybePublish(
     builds: Builds,
@@ -389,8 +394,18 @@ object Publish extends ScalaCommand[PublishOptions] {
     val ver = publishOptions.version match {
       case Some(ver0) => ver0.value
       case None =>
+        val isCi = System.getenv("CI") != null
+        val computeVer = publishOptions.computeVersion.orElse {
+          def isGitRepo = GitRepo.gitRepoOpt(build.inputs.workspace).isDefined
+          val default   = defaultComputeVersion(!isCi && isGitRepo)
+          if (default.isDefined)
+            logger.message(
+              s"Using directive ${defaultVersionError.directiveName} not set, assuming git:tag as publish.computeVersion"
+            )
+          default
+        }
         value {
-          publishOptions.computeVersion match {
+          computeVer match {
             case Some(cv) => cv.get(build.inputs.workspace)
             case None     => defaultVersion
           }
