@@ -27,24 +27,37 @@ class ConfigTests extends munit.FunSuite {
     val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)
     val password   = "1234"
     TestInputs(Nil).fromRoot { root =>
-      val before = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password")
-        .call(cwd = root)
-      expect(before.out.text().trim.isEmpty)
+
+      def emptyCheck(): Unit = {
+        val value = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password")
+          .call(cwd = root)
+        expect(value.out.text().trim.isEmpty)
+      }
+
+      def unset(): Unit =
+        os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password", "--unset")
+          .call(cwd = root)
+
+      def read(): String = {
+        val res = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password")
+          .call(cwd = root)
+        res.out.text().trim
+      }
+      def readDecoded(): String = {
+        val res = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password", "--password")
+          .call(cwd = root)
+        res.out.text().trim
+      }
+
+      emptyCheck()
 
       os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password", s"value:$password")
         .call(cwd = root)
-      val res = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password")
-        .call(cwd = root)
-      expect(res.out.text().trim == s"value:$password")
-      val res0 = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password", "--password")
-        .call(cwd = root)
-      expect(res0.out.text().trim == password)
+      expect(read() == s"value:$password")
+      expect(readDecoded() == password)
+      unset()
+      emptyCheck()
 
-      os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password", "--unset")
-        .call(cwd = root)
-      val after = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password")
-        .call(cwd = root)
-      expect(after.out.text().trim.isEmpty)
     }
   }
 
