@@ -8,8 +8,8 @@ IDE support is currently under development, primarily because changes needs to b
 :::
 
 
-Scala CLI currently integrates with a build server using the [BSP protocol](https://build-server-protocol.github.io/).
-At this moment Scala CLI is not automatically detected, so we need to use [Build Server Discovery](https://build-server-protocol.github.io/docs/server-discovery.html) from BSP protocol to generate a connection details file (`.bsp/scala-cli.json`).
+Scala CLI currently integrates a build server using the [BSP protocol](https://build-server-protocol.github.io/).
+At this moment Scala CLI is not automatically detected by IDEs, so we need to use [Build Server Discovery](https://build-server-protocol.github.io/docs/server-discovery.html) from BSP protocol to generate a connection details file (`.bsp/scala-cli.json`).
 
 :::note
 If none of these commands were run:

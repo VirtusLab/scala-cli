@@ -375,7 +375,7 @@ Accepts options:
 
 ## `update`
 
-Update scala-cli - it works only for installation script
+Update scala-cli - only works when installed by the installation script
 
 Accepts options:
 - [update](./cli-options.md#update-options)

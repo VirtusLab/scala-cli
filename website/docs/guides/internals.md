@@ -24,7 +24,7 @@ Once it’s connected to Bloop, Scala CLI writes a Bloop project file under a `.
 It then initiates a [BSP](https://github.com/build-server-protocol/build-server-protocol) connection with Bloop.
 Even though the request to open a BSP connection is initiated on the TCP port above, BSP communication itself happens on a domain socket (Linux/macOS) or named pipe (Windows).
 
-That BSP connection then allows Scala CLI to ask Bloop to compile sources, and get diagnostics (warnings/errors) and the compiled byte code.
+That BSP connection then allows Scala CLI to ask Bloop to compile sources, and get diagnostics (warnings / errors) and the compiled byte code.
 
 ### `.scala` directory
 

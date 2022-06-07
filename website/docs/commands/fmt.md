@@ -3,7 +3,7 @@ title: Format
 sidebar_position: 15
 ---
 
-Scala-cli supports formatting your code using [Scalafmt](https://scalameta.org/scalafmt/):
+Scala CLI supports formatting your code using [Scalafmt](https://scalameta.org/scalafmt/):
 
 ```bash
 scala-cli fmt
@@ -20,7 +20,7 @@ scala-cli fmt --check
 
 ### Dialects 
 
-Scala-cli also supports dialects that are passed to the formatter.
+Scala CLI also supports dialects that are passed to the formatter.
 This value is only used if there is no `.scalafmt.conf` file.
 However, if it exists, then all configuration should be placed there.
 For a list of all possible values, consult the [official Scala Dialects documentation](https://scalameta.org/scalafmt/docs/configuration.html#scala-dialects):
@@ -31,9 +31,9 @@ scala-cli fmt --dialect scala212
 
 ### Scalafmt version
 
-At this time, `scala-cli` read a `scalafmt` version from `.scalafmt.conf` files. If the version is missing, `scala-cli` throws an error, that user should declare explicitly the Scalafmt version. From Scalafmt `3.5.0` it is a mandatory parameter.
+At this time, Scala CLI reads a `scalafmt` version from `.scalafmt.conf` files. If the version is missing, Scala CLI throws an error, stating that users should declare an explicit Scalafmt version. Since Scalafmt `3.5.0`, this parameter is mandatory.
 
-To configure the Scalafmt version add the following config into `.scalafmt.conf`. For example, to set version `3.5.0` you should add the following line:
+To configure the Scalafmt version, add the following to `.scalafmt.conf`. For example, to set the version to `3.5.0`, add the following line:
 
 ```
 version = "3.5.0"

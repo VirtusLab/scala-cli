@@ -17,12 +17,12 @@ using foo "bar", "baz"
 
 will be interpreted as assigning `bar` and `baz` to the key `foo`.
 
-As shown, `using` directives can be defined using the special keyword `using`. However, this may not be compatible with exisiting tools outside of Scala CLI. Therefore, they can be used in comments using special syntax:
+As shown, `using` directives can be defined using the special keyword `using`. However, this may break existing tools outside of Scala CLI. Therefore, `using` directives can be put in comments with a special syntax:
 
 ```scala
 //> using scala "2"
 
-/*> using options "-Xfatal-warnings"*/
+/*> using options "-Xfatal-warnings" */
 ```
 
 :::info
