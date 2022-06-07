@@ -43,9 +43,9 @@ class ConfigTests extends munit.FunSuite {
           .call(cwd = root)
         res.out.text().trim
       }
-      def readDecoded(): String = {
+      def readDecoded(env: Map[String, String] = null): String = {
         val res = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password", "--password")
-          .call(cwd = root)
+          .call(cwd = root, env = env)
         res.out.text().trim
       }
 
@@ -58,6 +58,26 @@ class ConfigTests extends munit.FunSuite {
       unset()
       emptyCheck()
 
+      os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password", "env:MY_PASSWORD")
+        .call(cwd = root)
+      expect(read() == "env:MY_PASSWORD")
+      expect(readDecoded(env = Map("MY_PASSWORD" -> password)) == password)
+      unset()
+      emptyCheck()
+
+      os.proc(
+        TestUtil.cli,
+        "config",
+        dirOptions,
+        "sonatype.password",
+        "env:MY_PASSWORD",
+        "--password-value"
+      )
+        .call(cwd = root, env = Map("MY_PASSWORD" -> password))
+      expect(read() == s"value:$password")
+      expect(readDecoded() == password)
+      unset()
+      emptyCheck()
     }
   }
 

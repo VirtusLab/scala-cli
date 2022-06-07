@@ -91,7 +91,21 @@ object Config extends ScalaCommand[ConfigOptions] {
                   }
                 }
               else {
-                db.setFromString(entry, values).orExit(logger)
+                val finalValues =
+                  if (options.passwordValue && entry.isPasswordOption)
+                    values.map { input =>
+                      PasswordOption.parse(input) match {
+                        case Left(err) =>
+                          System.err.println(err)
+                          sys.exit(1)
+                        case Right(passwordOption) =>
+                          PasswordOption.Value(passwordOption.get()).asString.value
+                      }
+                    }
+                  else
+                    values
+
+                db.setFromString(entry, finalValues).orExit(logger)
                 db.save(directories)
               }
           }

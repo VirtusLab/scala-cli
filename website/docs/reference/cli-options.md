@@ -235,6 +235,10 @@ Create PGP key in config
 
 If the entry is a password, print the password value rather than how to get the password
 
+#### `--password-value`
+
+If the entry is a password, save the password value rather than how to get the password
+
 #### `--unset`
 
 Remove an entry from config

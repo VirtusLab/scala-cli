@@ -24,6 +24,9 @@ final case class ConfigOptions(
   @HelpMessage("If the entry is a password, print the password value rather than how to get the password")
     password: Boolean = false,
   @Group("Config")
+  @HelpMessage("If the entry is a password, save the password value rather than how to get the password")
+    passwordValue: Boolean = false,
+  @Group("Config")
   @HelpMessage("Remove an entry from config")
     unset: Boolean = false
 )
