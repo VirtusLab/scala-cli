@@ -59,19 +59,34 @@ object Build {
       lazy val foundMainClasses0 = foundMainClasses()
       val defaultMainClassOpt = sources.defaultMainClass
         .filter(name => foundMainClasses0.contains(name))
-      def foundMainClass =
-        if (foundMainClasses0.isEmpty) Left(new NoMainClassFoundError)
-        else if (foundMainClasses0.length == 1) Right(foundMainClasses0.head)
-        else
-          options.interactive.chooseOne(
+      def foundMainClass = {
+        def interactiveFallback = options.interactive
+          .chooseOne(
             "Found several main classes. Which would you like to run?",
             foundMainClasses0.toList
-          ).toRight {
+          )
+          .toRight {
             new SeveralMainClassesFoundError(
               ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
               Nil
             )
           }
+        foundMainClasses0 match {
+          case Seq()          => Left(new NoMainClassFoundError)
+          case Seq(mainClass) => Right(mainClass)
+          case _ if sources.inMemory.nonEmpty =>
+            val scriptOriginalPaths =
+              sources.inMemory.flatMap(im => im.originalPath.map(_._1).toOption)
+                .filter(_.toString.endsWith(".sc"))
+            val scriptInferredMainClasses =
+              scriptOriginalPaths.map(_.toString().replace(".", "_").replace(File.separator, "."))
+            val filteredMainClasses =
+              foundMainClasses0.filter(mc => !scriptInferredMainClasses.contains(mc))
+            if (filteredMainClasses.length == 1) Right(filteredMainClasses.head)
+            else interactiveFallback
+          case _ => interactiveFallback
+        }
+      }
 
       defaultMainClassOpt match {
         case Some(cls) => Right(cls)
