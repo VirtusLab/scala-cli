@@ -183,8 +183,12 @@ final case class BuildOptions(
     javaOptions.javaHomeOpt
       .orElse {
         if (javaOptions.jvmIdOpt.isEmpty)
-          sys.props.get("java.home").map(p =>
-            Positioned(Position.Custom("java.home prop"), os.Path(p, Os.pwd))
+          Option(System.getenv("JAVA_HOME")).map(p =>
+            Positioned(Position.Custom("JAVA_HOME env"), os.Path(p, Os.pwd))
+          ).orElse(
+            sys.props.get("java.home").map(p =>
+              Positioned(Position.Custom("java.home prop"), os.Path(p, Os.pwd))
+            )
           )
         else None
       }
