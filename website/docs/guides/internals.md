@@ -24,16 +24,16 @@ BSP communication happens on a domain socket too, different than the one above.
 
 That BSP connection then allows Scala CLI to ask Bloop to compile sources, and get diagnostics (warnings / errors) and the compiled byte code.
 
-### `.scala` directory
+### `.scala-build` directory
 
-In the directory where you run your `scala-cli` commands, Scala CLI creates a subdirectory named `.scala`, where it writes:
+In the directory where you run your `scala-cli` commands, Scala CLI creates a subdirectory named `.scala-build`, where it writes:
 - [Bloop project files](#bloop)
 - [generated sources](#preprocessing)
 - byte code and TASTy files that result from compiling the user sources
 
-The typical content of the `.scala` directory looks like this:
+The typical content of the `.scala-build` directory looks like this:
 ```text
-.scala
+.scala-build
 ├── .bloop
 │   ├── project_940fb43dce
 │   │   ├── bloop-internal-classes
@@ -61,7 +61,7 @@ The typical content of the `.scala` directory looks like this:
             └── test.scala
 ```
 
-In particular, `.scala/.bloop` contains Bloop project files and Bloop's own working directories, and `.scala/project_*` contains byte code, TASTy files, and generated sources.
+In particular, `.scala-build/.bloop` contains Bloop project files and Bloop's own working directories, and `.scala-build/project_*` contains byte code, TASTy files, and generated sources.
 
 ## Preprocessing
 

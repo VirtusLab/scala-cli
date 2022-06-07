@@ -224,7 +224,7 @@ files.test.scala
 
 </ChainedSnippets>
 
-Seeing that output, you may wonder, why do we have an additional `.scala` file under the `.scala` dir? The way this works is that under the hood, Scala CLI sometimes needs to preprocess source code files — such as scripts. So these preprocessed files are created under the `.scala` directory, and then compiled from there.
+Seeing that output, you may wonder, why do we have an additional `.scala` file under the `.scala-build` dir? The way this works is that under the hood, Scala CLI sometimes needs to preprocess source code files — such as scripts. So these preprocessed files are created under the `.scala-build` directory, and then compiled from there.
 
 ## Packaging
 

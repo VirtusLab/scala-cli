@@ -120,7 +120,7 @@ In our experience, `scala-cli .` is the most used command; it compiles and runs 
 :::note
 Scala CLI process all files within the specified directories and all of its subdirectories.
 
-Scala CLI ignores all subdirectories that start with `.` like `.scala` or `.vscode`.
+Scala CLI ignores all subdirectories that start with `.` like `.scala-build` or `.vscode`.
 Such directories needs to be explicitly provided as inputs.
 :::
 

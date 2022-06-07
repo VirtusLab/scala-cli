@@ -9,6 +9,6 @@ sidebar_position: 5
   - for Bloop
 
 - default: depends on the first passed element:
-  - directory: `./.scala` in it
-  - `.scala` / `.sc` / `.java`: `./.scala` in its directory
+  - directory: `./.scala-build` in it
+  - `.scala` / `.sc` / `.java`: `./.scala-build` in its directory
   - URL / pipe / proc subst: in home dir
