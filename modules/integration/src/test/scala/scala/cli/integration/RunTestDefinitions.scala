@@ -775,6 +775,58 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         expect(output == expectedOutput)
       }
     }
+    test("pick .scala main class over in-context scripts, including piped ones") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "Hello.scala" ->
+            """object Hello extends App {
+              |  println(s"${stdin.hello} ${scripts.Script.world}")
+              |}
+              |""".stripMargin,
+          os.rel / "scripts" / "Script.sc" -> """def world: String = "world""""
+        )
+      )
+      val pipedInput = """def hello: String = "Hello""""
+      inputs.fromRoot { root =>
+        val res = os.proc(
+          TestUtil.cli,
+          "run",
+          extraOptions,
+          ".",
+          "_.sc"
+        )
+          .call(cwd = root, stdin = pipedInput)
+        expect(res.out.text().trim == "Hello world")
+      }
+    }
+    test("pick piped .scala main class over in-context scripts") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "Hello.scala" ->
+            """object Hello {
+              |  def hello: String = "Hello"
+              |}
+              |""".stripMargin,
+          os.rel / "scripts" / "Script.sc" -> """def world: String = "world""""
+        )
+      )
+      val pipedInput =
+        """object Main extends App {
+          |  println(s"${Hello.hello} ${scripts.Script.world}")
+          |}
+          |""".stripMargin
+      inputs.fromRoot { root =>
+        val res = os.proc(
+          TestUtil.cli,
+          "run",
+          extraOptions,
+          ".",
+          "_.scala"
+        )
+          .call(cwd = root, stdin = pipedInput)
+        expect(res.out.text().trim == "Hello world")
+      }
+    }
   }
 
   def fd(): Unit = {
@@ -1753,10 +1805,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             |  println(s"Hello ${scripts.Script.world}")
             |}
             |""".stripMargin,
-        os.rel / "scripts" / "Script.sc" ->
-          """
-            |def world: String = "world"
-            |""".stripMargin
+        os.rel / "scripts" / "Script.sc" -> """def world: String = "world"""".stripMargin
       )
     )
     inputs.fromRoot { root =>

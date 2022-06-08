@@ -76,10 +76,15 @@ object Build {
           case Seq(mainClass) => Right(mainClass)
           case _ if sources.inMemory.nonEmpty =>
             val scriptOriginalPaths =
-              sources.inMemory.flatMap(im => im.originalPath.map(_._1).toOption)
-                .filter(_.toString.endsWith(".sc"))
+              sources.inMemory.map(im => im.originalPath.map(_._1))
+                .flatMap {
+                  case Right(originalRelPath) if originalRelPath.toString.endsWith(".sc") =>
+                    Some(originalRelPath.toString)
+                  case Left(v @ "stdin") => Some(s"$v.sc")
+                  case _                 => None
+                }
             val scriptInferredMainClasses =
-              scriptOriginalPaths.map(_.toString().replace(".", "_").replace(File.separator, "."))
+              scriptOriginalPaths.map(_.replace(".", "_").replace(File.separator, "."))
             val filteredMainClasses =
               foundMainClasses0.filter(mc => !scriptInferredMainClasses.contains(mc))
             if (filteredMainClasses.length == 1) Right(filteredMainClasses.head)
