@@ -121,7 +121,7 @@ Protocol to use to open a BSP connection with Bloop
 
 #### `--bloop-bsp-socket`
 
-Socket file to use to open a BSP connection with Bloop (on Windows, a pipe name like "`\\.\pipe\…`")
+Socket file to use to open a BSP connection with Bloop
 
 #### `--bloop-host`
 

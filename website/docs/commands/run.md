@@ -60,7 +60,9 @@ scala-cli Hello.scala hi.sc --main-class hi_sc
 scala-cli Hello.scala --jvm adopt:14
 ```
 
-JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms), and are based on the [index](https://github.com/shyiko/jabba/blob/master/index.json) of the [jabba](https://github.com/shyiko/jabba) command-line tool.
+JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms), and are read from the [coursier JVM index](https://github.com/coursier/jvm-index).
+(New JVM versions are automatically checked daily, and updates for those are - manually - merged
+swiftly.)
 
 ## Watch mode
 
@@ -103,7 +105,7 @@ See our dedicated [Scala.js guide](../guides/scala-js.md) for more information.
 ## Scala Native
 
 Scala Native applications can be compiled and run with the `--native` option.
-Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](/install#scala-native) for this to work, and that Scala Native only supports Linux and macOS at this time and can only use Scala 2.13 and 2.12 for now:
+Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](/install#scala-native) for this to work:
 
 ```bash
 scala-cli Hello.scala --native -S 2.13.6

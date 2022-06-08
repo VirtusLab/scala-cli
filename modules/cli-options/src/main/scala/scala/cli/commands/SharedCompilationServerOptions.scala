@@ -13,7 +13,7 @@ final case class SharedCompilationServerOptions(
   @Hidden
     bloopBspProtocol: Option[String] = None,
   @Group("Compilation server")
-  @HelpMessage("Socket file to use to open a BSP connection with Bloop (on Windows, a pipe name like \"`\\\\.\\pipe\\…`\")")
+  @HelpMessage("Socket file to use to open a BSP connection with Bloop")
   @ValueDescription("path")
   @Hidden
     bloopBspSocket: Option[String] = None,

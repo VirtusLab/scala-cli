@@ -3,11 +3,6 @@ title: IDE support
 sidebar_position: 10
 ---
 
-:::warning
-IDE support is currently under development, primarily because changes needs to be made in both Metals and IntelliJ.
-:::
-
-
 Scala CLI currently integrates a build server using the [BSP protocol](https://build-server-protocol.github.io/).
 At this moment Scala CLI is not automatically detected by IDEs, so we need to use [Build Server Discovery](https://build-server-protocol.github.io/docs/server-discovery.html) from BSP protocol to generate a connection details file (`.bsp/scala-cli.json`).
 

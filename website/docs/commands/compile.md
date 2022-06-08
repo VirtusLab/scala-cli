@@ -125,11 +125,11 @@ Most [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-opt
 
 ```bash
 scala-cli compile Hello.scala -Xlint:infer-any
-# Compiling project_b729aa2200-cef76d561e (1 Scala source)
+# Compiling project (1 Scala source)
 # [warn] ./Hello.scala:2:11: a type was inferred to be `Any`; this may indicate a programming error.
 # [warn]   val l = List("a", true, 2, new Object)
 # [warn]           ^
-# Compiled 'project_b729aa2200-cef76d561e'
+# Compiled project
 ```
 
 All `scala-cli` options that start with:
