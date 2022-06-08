@@ -91,3 +91,19 @@ Hello
 ```
 
 </ChainedSnippets>
+
+You can even refer to code from piped scripts, when needed. A piped script can be referred to by its wrapper
+name `stdin`, as in the example below.
+
+<ChainedSnippets>
+
+```bash
+echo '@main def main() = println(stdin.message)' > PrintMessage.scala
+echo 'def message: String = "Hello"' | scala-cli PrintMessage.scala _.sc
+```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
