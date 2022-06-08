@@ -120,7 +120,7 @@ In our experience, `scala-cli .` is the most used command; it compiles and runs 
 :::note
 Scala CLI process all files within the specified directories and all of its subdirectories.
 
-Scala CLI ignores all subdirectories that start with `.` like `.scala` or `.vscode`.
+Scala CLI ignores all subdirectories that start with `.` like `.scala-build` or `.vscode`.
 Such directories needs to be explicitly provided as inputs.
 :::
 
@@ -161,7 +161,7 @@ object Hello extends App {
 }
 ```
 ```bash ignore
-unzip -l hello.zip 
+unzip -l hello.zip
 # Archive:  hello.zip
 #   Length      Date    Time    Name
 # ---------  ---------- -----   ----
@@ -201,7 +201,7 @@ Running another Scala CLI version might be slower because it uses JVM-based Scal
 
 To run another Scala CLI version, specify it with `--cli-version` before any other argument:
 
-```bash 
+```bash
 scala-cli --cli-version 0.1.3-51-g4d314eee-SNAPSHOT about
 # Scala CLI version 0.1.3-51-g4d314eee-SNAPSHOT
 ```
@@ -212,7 +212,7 @@ Scala CLI version 0.1.3-51-g4d314eee-SNAPSHOT
 
 To use the latest Scala CLI nightly build, pass `nightly` to `--cli-version` parameter:
 
-```bash 
+```bash
 scala-cli --cli-version nightly about
 # Scala CLI version 0.1.3-8-g431cc15f-SNAPSHOT
 ```

@@ -74,8 +74,8 @@ class MyTests extends munit.FunSuite {
 
 ```bash
 scala-cli test MyTests.scala
-# Compiling project_8686a5fa42 (1 Scala source)
-# Compiled 'project_8686a5fa42'
+# Compiling project (1 Scala source)
+# Compiled project
 # MyTests:
 #   + foo 0.143s
 ```
@@ -90,7 +90,7 @@ foo
 You can pass test arguments to your test framework by passing them after `--`:
 
 ```scala title=MyTests.scala
-import $ivy.`org.scalatest::scalatest::3.2.9`
+//> using lib "org.scalatest::scalatest::3.2.9"
 
 import org.scalatest._
 import org.scalatest.flatspec._
@@ -105,8 +105,8 @@ class Tests extends AnyFlatSpec with should.Matchers {
 
 ```bash
 scala-cli test MyTests.scala -- -oD
-# Compiling project_8686a5fa42-4bae49baeb (1 Scala source)
-# Compiled 'project_8686a5fa42-4bae49baeb'
+# Compiling project (1 Scala source)
+# Compiled project
 # Tests:
 # A thing
 # - should thing (22 milliseconds)

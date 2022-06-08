@@ -39,19 +39,6 @@ The reference documentation lists [all of the available options](../reference/cl
 
 Configuration information can also be put in `.scala` and `.sc` files using special imports, and the `using` directive.
 
-### Special imports
-
-Dependencies can be added right from `.scala` and `.sc` files, using the same
-syntax as Ammonite and Metals worksheets:
-
-```scala
-import $dep.`com.lihaoyi::upickle:1.4.0`
-import $ivy.`com.lihaoyi::pprint:0.6.6`
-import ujson._
-```
-
-Both `import $ivy` and `import $dep` are accepted, and are equivalent.
-
 ### Using directives
 
 Scala CLI can be configured inside `.scala` files.
@@ -66,3 +53,18 @@ This is achieved by specifying `using` directives inside comments at the top of 
 ```
 
 The reference documentation lists [all available using directives](../reference/directives.md#using-directives).
+
+### Special imports
+
+Dependencies can be added right from `.scala` and `.sc` files, using the same
+syntax as Ammonite and Metals worksheets:
+
+```scala
+import $dep.`com.lihaoyi::upickle:1.4.0`
+import $ivy.`com.lihaoyi::pprint:0.6.6`
+import ujson._
+```
+
+Both `import $ivy` and `import $dep` are accepted, and are equivalent. Note that this syntax
+might be deprecated - and then removed - in the future. It's recommended to add dependencies
+with [`using` directives](#using-directives).

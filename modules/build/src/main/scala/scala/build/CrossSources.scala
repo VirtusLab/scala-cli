@@ -146,7 +146,7 @@ object CrossSources {
           .flatMap(_.valueFor(path).toSeq)
           .foldLeft(BuildRequirements())(_ orElse _)
 
-      // Scala-cli treats all `.test.scala` files tests as well as
+      // Scala CLI treats all `.test.scala` files tests as well as
       // files from witin `test` subdirectory from provided input directories
       // If file has `using target <scope>` directive this take precendeces.
       if (

@@ -12,30 +12,28 @@ This page describes what happens under the hood when you run a Scala CLI command
 Scala CLI uses Bloop to compile code.
 That way, it doesn't interface directly with `scalac`, and newly released Scala versions work out of the box: there's no need to update Scala CLI itself.
 
-The way this works is that Scala CLI connects to Bloop on the local machine at the default Bloop port, `8212`.
-If no Bloop instance is found on this port, Scala CLI fetches Bloop (via Coursier), and starts it.
-
-:::note
-Right now, Scala CLI connects to Bloop via an open TCP port on your local machine, but this may change in the future for security reasons (see [`scalacenter/bloop#1562`](https://github.com/scalacenter/bloop/pull/1562)).
-:::
+Scala CLI connects to Bloop on the local machine using a domain socket. That domain socket
+lives under the "Bloop daemon directory", that is OS-dependent, and whose path is printed
+by `scala-cli directories`.
+If no Bloop instance is running, Scala CLI fetches Bloop if necessary (via Coursier), and starts it.
 
 Once it’s connected to Bloop, Scala CLI writes a Bloop project file under a `.scala/.bloop` directory. This file describes the current Scala CLI project, including its Scala version, dependencies, compiler plugins and options, etc.
 
 It then initiates a [BSP](https://github.com/build-server-protocol/build-server-protocol) connection with Bloop.
-Even though the request to open a BSP connection is initiated on the TCP port above, BSP communication itself happens on a domain socket (Linux/macOS) or named pipe (Windows).
+BSP communication happens on a domain socket too, different than the one above.
 
-That BSP connection then allows Scala CLI to ask Bloop to compile sources, and get diagnostics (warnings/errors) and the compiled byte code.
+That BSP connection then allows Scala CLI to ask Bloop to compile sources, and get diagnostics (warnings / errors) and the compiled byte code.
 
-### `.scala` directory
+### `.scala-build` directory
 
-In the directory where you run your `scala-cli` commands, Scala CLI creates a subdirectory named `.scala`, where it writes:
+In the directory where you run your `scala-cli` commands, Scala CLI creates a subdirectory named `.scala-build`, where it writes:
 - [Bloop project files](#bloop)
 - [generated sources](#preprocessing)
 - byte code and TASTy files that result from compiling the user sources
 
-The typical content of the `.scala` directory looks like this:
+The typical content of the `.scala-build` directory looks like this:
 ```text
-.scala
+.scala-build
 ├── .bloop
 │   ├── project_940fb43dce
 │   │   ├── bloop-internal-classes
@@ -63,7 +61,7 @@ The typical content of the `.scala` directory looks like this:
             └── test.scala
 ```
 
-In particular, `.scala/.bloop` contains Bloop project files and Bloop's own working directories, and `.scala/project_*` contains byte code, TASTy files, and generated sources.
+In particular, `.scala-build/.bloop` contains Bloop project files and Bloop's own working directories, and `.scala-build/project_*` contains byte code, TASTy files, and generated sources.
 
 ## Preprocessing
 
