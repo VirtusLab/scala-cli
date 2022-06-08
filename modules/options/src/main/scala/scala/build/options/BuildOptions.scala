@@ -34,6 +34,7 @@ final case class BuildOptions(
   scriptOptions: ScriptOptions = ScriptOptions(),
   internal: InternalOptions = InternalOptions(),
   mainClass: Option[String] = None,
+  mainClassLs: Option[Boolean] = None,
   testOptions: TestOptions = TestOptions(),
   notForBloopOptions: PostBuildOptions = PostBuildOptions()
 ) {

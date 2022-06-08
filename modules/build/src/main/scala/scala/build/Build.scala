@@ -93,9 +93,13 @@ object Build {
         }
       }
 
-      defaultMainClassOpt match {
-        case Some(cls) => Right(cls)
-        case None      => foundMainClass
+      options.mainClassLs -> defaultMainClassOpt match {
+        case (Some(true), _) if foundMainClasses0.nonEmpty =>
+          println(foundMainClasses0.mkString(" "))
+          sys.exit(0)
+        case (Some(true), _) => Left(new NoMainClassFoundError)
+        case (_, Some(cls))  => Right(cls)
+        case _               => foundMainClass
       }
     }
 

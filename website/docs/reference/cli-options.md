@@ -767,6 +767,12 @@ Aliases: `-M`
 
 Specify which main class to run
 
+#### `--main-class-ls`
+
+Aliases: `--main-class-list`, `--list-main-class`, `--list-main-classes`
+
+List main classes available in the current context
+
 ## Metabrowse options
 
 Available in commands:

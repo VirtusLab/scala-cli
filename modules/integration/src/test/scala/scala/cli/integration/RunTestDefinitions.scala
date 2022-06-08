@@ -1820,7 +1820,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("Return relevant error if multiple .scala main classes are present") {
+  test("return relevant error if multiple .scala main classes are present") {
     val (scalaFile1, scalaFile2, scriptName) = ("A", "B", "C")
     val inputs = TestInputs(
       Seq(
@@ -1842,6 +1842,50 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains(scalaFile1))
       expect(output.contains(scalaFile2))
       expect(output.contains(s"${scriptName}_sc"))
+    }
+  }
+
+  test(
+    "return relevant error when main classes list is requested, but no main classes are present"
+  ) {
+    val inputs = TestInputs(Seq(os.rel / "A.scala" -> "object A { println() }"))
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        ".",
+        "--main-class-ls"
+      )
+        .call(cwd = root, mergeErrIntoOut = true, check = false)
+      expect(res.exitCode == 1)
+      expect(res.out.text().trim.contains("No main class found"))
+    }
+  }
+
+  test("correctly list main classes") {
+    val (scalaFile1, scalaFile2, scriptName) = ("A", "B", "C")
+    val scriptsDir                           = "scripts"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
+        os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
+        os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        ".",
+        "--list-main-classes"
+      )
+        .call(cwd = root)
+      val output = res.out.text().trim
+      expect(output.contains(scalaFile1))
+      expect(output.contains(scalaFile2))
+      expect(output.contains(s"$scriptsDir.${scriptName}_sc"))
     }
   }
 }

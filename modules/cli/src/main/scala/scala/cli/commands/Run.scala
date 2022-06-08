@@ -37,6 +37,7 @@ object Run extends ScalaCommand[RunOptions] {
     )
     baseOptions.copy(
       mainClass = mainClass.mainClass,
+      mainClassLs = mainClass.mainClassLs,
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++

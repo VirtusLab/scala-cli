@@ -72,6 +72,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     val baseOptions = shared.buildOptions()
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
+      mainClassLs = mainClass.mainClassLs,
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
           organization = publishParams.organization.map(_.trim).filter(_.nonEmpty).map(
