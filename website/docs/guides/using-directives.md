@@ -169,7 +169,7 @@ In such cases we suggest to use triple `/` for single line comments, or use `//`
 ```scala compile
 /// using lib "in::single-line-comments:123"
 /*
-// using lib "in::multiline-line-comments:123" 
+// using lib "in::multiline-line-comments:123"
 */
 ```
 

@@ -20,7 +20,7 @@ Note that most Scala CLI commands automatically compile your code, if necessary.
 The `compile` command is useful if you'd like to check that your code compiles,
 or know of compilation warnings, without running it or packaging it.
 
-The most common `compile` options are shown below. 
+The most common `compile` options are shown below.
 For a full list of options, run `scala-cli compile --help`, or check the options linked in the
 [reference documentation](../reference/commands.md#compile).
 
@@ -28,7 +28,7 @@ For a full list of options, run `scala-cli compile --help`, or check the options
 
 `--test` makes `scala-cli` compile main and test scopes:
 ```bash ignore
-scala-cli compile --test Hello.scala 
+scala-cli compile --test Hello.scala
 ```
 
 ## Watch mode
@@ -68,13 +68,13 @@ scala-cli compile --scala 3 Hello.scala
 
 The nightly builds of Scala compiler are unstable ones which are published on a nightly basis.
 
-To use the latest Scala 2 and Scala 3 nightly builds, pass `2.nightly` and `3.nightly`, respectively. 
+To use the latest Scala 2 and Scala 3 nightly builds, pass `2.nightly` and `3.nightly`, respectively.
 You can also request the last `2.12.nightly` and `2.13.nightly` versions. `2.13.nightly` is the same as `2.nightly`.
 Moreover, passing the `3.{sub binary number}.nightly` format, such as `3.0.nightly` or `3.1.nightly` is accepted, too.
 
 Scala CLI takes care of fetching the nightly builds of Scala 2 and Scala 3 from different repositories, without you having to pass their addresses as input after the `--repo` flag.
 
-For compiling with the latest Scala 2 nightly build: 
+For compiling with the latest Scala 2 nightly build:
 ```bash
 scala-cli Hello.scala -S 2.nightly
 ```
@@ -84,7 +84,7 @@ scala-cli Hello.scala -S 3.nightly
 ```
 For compiling with an specific nightly build, you have the full version for:
 ```bash
-scala-cli Hello.scala -S 2.13.9-bin-4505094 
+scala-cli Hello.scala -S 2.13.9-bin-4505094
 ```
 
 For adding this inside scala files with [using directives](../guides/using-directives.md), use:
@@ -163,7 +163,7 @@ You can also view the Scala compiler help for a particular Scala version with `-
 ```bash
 scala-cli -S 2.13.8 --scalac-help
 # Usage: scalac <options> <source files>
-# 
+#
 # Standard options:
 #   -Dproperty=value             Pass -Dproperty=value directly to the runtime system.
 #   -J<flag>                     Pass <flag> directly to the runtime system.

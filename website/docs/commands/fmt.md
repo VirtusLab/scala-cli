@@ -18,7 +18,7 @@ You can check formatting correctness using a `--check` flag:
 scala-cli fmt --check
 ```
 
-### Dialects 
+### Dialects
 
 Scala CLI also supports dialects that are passed to the formatter.
 This value is only used if there is no `.scalafmt.conf` file.
