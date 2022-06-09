@@ -59,39 +59,39 @@ object Build {
       lazy val foundMainClasses0 = foundMainClasses()
       val defaultMainClassOpt = sources.defaultMainClass
         .filter(name => foundMainClasses0.contains(name))
-      def foundMainClass = {
-        def interactiveFallback = options.interactive
-          .chooseOne(
-            "Found several main classes. Which would you like to run?",
-            foundMainClasses0.toList
-          )
-          .toRight {
-            new SeveralMainClassesFoundError(
-              ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
-              Nil
-            )
-          }
+      def foundMainClass =
         foundMainClasses0 match {
           case Seq()          => Left(new NoMainClassFoundError)
           case Seq(mainClass) => Right(mainClass)
-          case _ if sources.inMemory.nonEmpty =>
-            val scriptOriginalPaths =
+          case _ =>
+            val scriptInferredMainClasses =
               sources.inMemory.map(im => im.originalPath.map(_._1))
                 .flatMap {
                   case Right(originalRelPath) if originalRelPath.toString.endsWith(".sc") =>
-                    Some(originalRelPath.toString)
-                  case Left(v @ "stdin") => Some(s"$v.sc")
-                  case _                 => None
+                    Some {
+                      originalRelPath
+                        .toString
+                        .replace(".", "_")
+                        .replace(File.separator, ".")
+                    }
+                  case Left(stdin @ "stdin") => Some(s"${stdin}_sc")
+                  case _                     => None
                 }
-            val scriptInferredMainClasses =
-              scriptOriginalPaths.map(_.replace(".", "_").replace(File.separator, "."))
             val filteredMainClasses =
-              foundMainClasses0.filter(mc => !scriptInferredMainClasses.contains(mc))
+              foundMainClasses0.filter(!scriptInferredMainClasses.contains(_))
             if (filteredMainClasses.length == 1) Right(filteredMainClasses.head)
-            else interactiveFallback
-          case _ => interactiveFallback
+            else options.interactive
+              .chooseOne(
+                "Found several main classes. Which would you like to run?",
+                foundMainClasses0.toList
+              )
+              .toRight {
+                new SeveralMainClassesFoundError(
+                  ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
+                  Nil
+                )
+              }
         }
-      }
 
       options.mainClassLs -> defaultMainClassOpt match {
         case (Some(true), _) if foundMainClasses0.nonEmpty =>
