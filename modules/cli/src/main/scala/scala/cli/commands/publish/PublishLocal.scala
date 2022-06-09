@@ -6,6 +6,7 @@ import scala.build.BuildThreads
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.config.ConfigDb
 
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {
 
@@ -67,7 +68,8 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       publishLocal = true,
       forceSigningBinary = options.sharedPublish.forceSigningBinary,
       parallelUpload = true,
-      options.watch.watch
+      options.watch.watch,
+      () => ConfigDb.empty // shouldn't be used, no need of repo credentials here
     )
   }
 }

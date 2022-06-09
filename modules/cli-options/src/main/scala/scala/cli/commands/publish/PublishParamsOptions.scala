@@ -42,11 +42,11 @@ final case class PublishParamsOptions(
     developer: List[String] = Nil,
 
   @Group("Publishing")
-  @HelpMessage("Secret key to use to sign artifacts with BouncyCastle")
+  @HelpMessage("Secret key to use to sign artifacts with Bouncy Castle")
     secretKey: Option[PasswordOption] = None,
 
   @Group("Publishing")
-  @HelpMessage("Password of secret key to use to sign artifacts with BouncyCastle")
+  @HelpMessage("Password of secret key to use to sign artifacts with Bouncy Castle")
   @ValueDescription("value:…")
   @ExtraName("secretKeyPass")
     secretKeyPassword: Option[PasswordOption] = None

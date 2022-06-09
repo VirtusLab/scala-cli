@@ -1,6 +1,6 @@
 ---
 title: IDE Setup
-sidebar_position: 15
+sidebar_position: 14
 ---
 
 Whether it's VS Code or IntelliJ, Scala CLI can help you setup your IDE of choice by generating the files that are necessary for it, providing you with full-blown IDE support.

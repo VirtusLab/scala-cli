@@ -14,6 +14,8 @@ These commands allow to
 - sign files with `pgp sign`
 - verify signatures with `pgp verify`
 
+Note that these capabilities rely on the [Bouncy Castle library](https://www.bouncycastle.org).
+
 ## Create key pairs
 
 ```text

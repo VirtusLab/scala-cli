@@ -5,6 +5,7 @@ import sun.misc.{Signal, SignalHandler}
 
 import java.io.{ByteArrayOutputStream, File, PrintStream}
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 
 import scala.build.blooprifle.FailedToStartServerException
 import scala.build.internal.Constants
@@ -57,6 +58,12 @@ object ScalaCli {
   }
 
   private def isCI = System.getenv("CI") != null
+  private def printStackTraces = Option(System.getenv("SCALA_CLI_PRINT_STACK_TRACES"))
+    .map(_.toLowerCase(Locale.ROOT))
+    .exists {
+      case "true" | "1" => true
+      case _            => false
+    }
 
   private def ignoreSigpipe(): Unit =
     Signal.handle(new Signal("PIPE"), SignalHandler.SIG_IGN)
@@ -73,7 +80,7 @@ object ScalaCli {
   def main(args: Array[String]): Unit =
     try main0(args)
     catch {
-      case e: Throwable if !isCI =>
+      case e: Throwable if !isCI && !printStackTraces =>
         val workspace = CurrentParams.workspaceOpt.getOrElse(os.pwd)
         val dir       = workspace / Constants.workspaceDirName / "stacktraces"
         os.makeDir.all(dir)

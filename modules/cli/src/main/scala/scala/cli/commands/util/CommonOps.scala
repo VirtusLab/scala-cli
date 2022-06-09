@@ -10,20 +10,21 @@ import scala.cli.internal.CliLogger
 import scala.concurrent.duration.Duration
 
 object CommonOps {
-  implicit class SharedWorkspaceOptionsOps(v: SharedWorkspaceOptions) {
+  implicit class SharedWorkspaceOptionsOps(private val v: SharedWorkspaceOptions) extends AnyVal {
     def forcedWorkspaceOpt: Option[os.Path] =
       v.workspace
         .filter(_.trim.nonEmpty)
         .map(os.Path(_, Os.pwd))
   }
 
-  implicit class LoggingOptionsOps(v: LoggingOptions) {
-    def logger: Logger = cached(this)(new CliLogger(v.verbosity, v.quiet, v.progress, System.err))
+  implicit class LoggingOptionsOps(private val v: LoggingOptions) extends AnyVal {
+    def logger: Logger = cached(v)(new CliLogger(v.verbosity, v.quiet, v.progress, System.err))
   }
 
-  implicit class SharedDirectoriesOptionsOps(v: SharedDirectoriesOptions) {
+  implicit class SharedDirectoriesOptionsOps(private val v: SharedDirectoriesOptions)
+      extends AnyVal {
 
-    def directories: scala.build.Directories = cached(this) {
+    def directories: scala.build.Directories = cached(v) {
       v.homeDirectory.filter(_.trim.nonEmpty) match {
         case None =>
           scala.build.Directories.default()
@@ -34,7 +35,7 @@ object CommonOps {
     }
   }
 
-  implicit class CoursierOptionsOps(v: CoursierOptions) {
+  implicit class CoursierOptionsOps(private val v: CoursierOptions) extends AnyVal {
     import v._
 
     private def validateChecksums =
@@ -53,7 +54,8 @@ object CommonOps {
     }
   }
 
-  implicit class SharedPgpPushPullOptionsOps(private val options: SharedPgpPushPullOptions) {
+  implicit class SharedPgpPushPullOptionsOps(private val options: SharedPgpPushPullOptions)
+      extends AnyVal {
     def keyServerUriOptOrExit(logger: Logger): Option[Uri] =
       options.keyServer
         .filter(_.trim.nonEmpty)
