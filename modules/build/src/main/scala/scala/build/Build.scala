@@ -49,18 +49,16 @@ object Build {
     generatedSources: Seq[GeneratedSource],
     isPartial: Boolean
   ) extends Build {
-    def success: Boolean               = true
-    def successfulOpt: Some[this.type] = Some(this)
-    def outputOpt: Some[os.Path]       = Some(output)
-    def fullClassPath: Seq[os.Path]    = Seq(output) ++ sources.resourceDirs ++ artifacts.classPath
-    def foundMainClasses(): Seq[String] =
-      MainClass.find(output)
-    def retainedMainClass(logger: Logger): Either[MainClassError, String] = {
-      lazy val foundMainClasses0 = foundMainClasses()
+    def success: Boolean                = true
+    def successfulOpt: Some[this.type]  = Some(this)
+    def outputOpt: Some[os.Path]        = Some(output)
+    def fullClassPath: Seq[os.Path]     = Seq(output) ++ sources.resourceDirs ++ artifacts.classPath
+    def foundMainClasses(): Seq[String] = MainClass.find(output)
+    def retainedMainClass(mainClasses: Seq[String]): Either[MainClassError, String] = {
       val defaultMainClassOpt = sources.defaultMainClass
-        .filter(name => foundMainClasses0.contains(name))
+        .filter(name => mainClasses.contains(name))
       def foundMainClass =
-        foundMainClasses0 match {
+        mainClasses match {
           case Seq()          => Left(new NoMainClassFoundError)
           case Seq(mainClass) => Right(mainClass)
           case _ =>
@@ -78,28 +76,24 @@ object Build {
                   case _                     => None
                 }
             val filteredMainClasses =
-              foundMainClasses0.filter(!scriptInferredMainClasses.contains(_))
+              mainClasses.filter(!scriptInferredMainClasses.contains(_))
             if (filteredMainClasses.length == 1) Right(filteredMainClasses.head)
             else options.interactive
               .chooseOne(
                 "Found several main classes. Which would you like to run?",
-                foundMainClasses0.toList
+                mainClasses.toList
               )
               .toRight {
                 new SeveralMainClassesFoundError(
-                  ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
+                  ::(mainClasses.head, mainClasses.tail.toList),
                   Nil
                 )
               }
         }
 
-      options.mainClassLs -> defaultMainClassOpt match {
-        case (Some(true), _) if foundMainClasses0.nonEmpty =>
-          println(foundMainClasses0.mkString(" "))
-          sys.exit(0)
-        case (Some(true), _) => Left(new NoMainClassFoundError)
-        case (_, Some(cls))  => Right(cls)
-        case _               => foundMainClass
+      defaultMainClassOpt match {
+        case Some(cls) => Right(cls)
+        case None      => foundMainClass
       }
     }
 

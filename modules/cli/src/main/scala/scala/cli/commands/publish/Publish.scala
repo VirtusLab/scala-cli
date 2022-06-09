@@ -72,7 +72,6 @@ object Publish extends ScalaCommand[PublishOptions] {
     val baseOptions = shared.buildOptions()
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
-      mainClassLs = mainClass.mainClassLs,
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
           organization = publishParams.organization.map(_.trim).filter(_.nonEmpty).map(
@@ -385,7 +384,8 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val mainJar = {
       val mainClassOpt = build.options.mainClass.orElse {
-        build.retainedMainClass(logger) match {
+        val potentialMainClasses = build.foundMainClasses()
+        build.retainedMainClass(potentialMainClasses) match {
           case Left(_: NoMainClassFoundError) => None
           case Left(err) =>
             logger.debug(s"Error while looking for main class: $err")

@@ -10,6 +10,7 @@ import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform}
 import scala.build.{Build, BuildThreads, Inputs, Logger, Positioned}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.internal.ProcUtil
 import scala.util.Properties
@@ -37,7 +38,6 @@ object Run extends ScalaCommand[RunOptions] {
     )
     baseOptions.copy(
       mainClass = mainClass.mainClass,
-      mainClassLs = mainClass.mainClassLs,
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
@@ -67,12 +67,15 @@ object Run extends ScalaCommand[RunOptions] {
       build: Build.Successful,
       allowTerminate: Boolean
     ): Either[BuildException, (Process, CompletableFuture[_])] = either {
+      val potentialMainClasses = build.foundMainClasses()
+      value(options.mainClass.maybePrintMainClasses(potentialMainClasses))
       val process = value(maybeRunOnce(
         build,
         programArgs,
         logger,
         allowExecve = allowTerminate,
-        jvmRunner = build.artifacts.hasJvmRunner
+        jvmRunner = build.artifacts.hasJvmRunner,
+        potentialMainClasses
       ))
 
       val onExitProcess = process.onExit().thenApply { p1 =>
@@ -169,7 +172,8 @@ object Run extends ScalaCommand[RunOptions] {
     args: Seq[String],
     logger: Logger,
     allowExecve: Boolean,
-    jvmRunner: Boolean
+    jvmRunner: Boolean,
+    potentialMainClasses: Seq[String]
   ): Either[BuildException, Process] = either {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
@@ -179,7 +183,7 @@ object Run extends ScalaCommand[RunOptions] {
       }
     val mainClass = mainClassOpt match {
       case Some(cls) => cls
-      case None      => value(build.retainedMainClass(logger))
+      case None      => value(build.retainedMainClass(potentialMainClasses))
     }
     val verbosity = build.options.internal.verbosity.getOrElse(0).toString
 

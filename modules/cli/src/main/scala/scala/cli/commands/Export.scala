@@ -101,10 +101,7 @@ object Export extends ScalaCommand[ExportOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions =
       options.shared.buildOptions()
-        .copy(
-          mainClass = options.mainClass.mainClass.filter(_.nonEmpty),
-          mainClassLs = options.mainClass.mainClassLs
-        )
+        .copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))
 
     val (sourcesMain, optionsMain0) =
       prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity, Scope.Main)
