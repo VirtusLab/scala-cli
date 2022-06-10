@@ -1821,7 +1821,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("return relevant error if multiple .scala main classes are present") {
-    val (scalaFile1, scalaFile2, scriptName) = ("A", "B", "C")
+    val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val inputs = TestInputs(
       Seq(
         os.rel / s"$scalaFile1.scala"          -> s"object $scalaFile1 extends App { println() }",
@@ -1848,7 +1848,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test(
     "return relevant error when main classes list is requested, but no main classes are present"
   ) {
-    val inputs = TestInputs(Seq(os.rel / "A.scala" -> "object A { println() }"))
+    val inputs = TestInputs(Seq(os.rel / "Main.scala" -> "object Main { println() }"))
     inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
@@ -1864,7 +1864,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("correctly list main classes") {
-    val (scalaFile1, scalaFile2, scriptName) = ("A", "B", "C")
+    val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"
     val inputs = TestInputs(
       Seq(
