@@ -4,7 +4,7 @@ import mill._, scalalib._
 import scala.util.Properties
 
 object Scala {
-  def scala212     = "2.12.15"
+  def scala212     = "2.12.16"
   def scala213     = "2.13.8"
   def scala3       = "3.1.2"
   val allScala2    = Seq(scala213, scala212)
@@ -59,12 +59,12 @@ object Deps {
     def coursier      = "2.1.0-M6-26-gcec901e9a"
     def coursierCli   = "2.1.0-M5-18-gfebf9838c"
     def jsoniterScala = "2.13.26"
-    def scalaMeta     = "4.5.8"
+    def scalaMeta     = "4.5.9"
     def scalaNative   = "0.4.4"
     def scalaPackager = "0.1.26"
     def signingCli    = "0.1.6"
   }
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4-8-30448e49"
   def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.0-sc-1"
