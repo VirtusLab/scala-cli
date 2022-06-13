@@ -391,4 +391,27 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       )
     }
   }
+
+  if (actualScalaVersion.startsWith("3"))
+    test("generate scoverage.coverage file") {
+      val fileName = "Hello.scala"
+      val inputs = TestInputs(
+        Seq(
+          os.rel / fileName -> // scala version should updated to 3.3 after release
+            s"""//> using scala "3.2.0-RC1-bin-20220604-13ce496-NIGHTLY"
+               |//> using options "-coverage-out:."
+               | 
+               |@main def main = ()
+               |""".stripMargin
+        )
+      )
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "compile", extraOptions, fileName)
+          .call(cwd = root)
+          .out.text().trim
+
+        val expectedCoverageFilePath = root / "scoverage.coverage"
+        expect(os.exists(expectedCoverageFilePath))
+      }
+    }
 }
