@@ -169,14 +169,16 @@ object ScalaVersionUtil {
           new NoValidScalaVersionFoundError(res.versions.available, latestSupportedStableVersions)
         )
     }
-
   }
 
   def validateNonStable(
     scalaVersionStringArg: String,
-    versionPool: Seq[String],
+    cache: FileCache[Task],
     latestSupportedStableVersions: Seq[String]
-  ): Either[ScalaVersionError, String] =
+  ): Either[ScalaVersionError, String] = {
+    val versionPool =
+      ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache)
+
     if (versionPool.contains(scalaVersionStringArg))
       if (isSupportedVersion(scalaVersionStringArg))
         Right(scalaVersionStringArg)
@@ -190,13 +192,17 @@ object ScalaVersionUtil {
         scalaVersionStringArg,
         latestSupportedStableVersions
       ))
+  }
 
   def validateStable(
     scalaVersionStringArg: String,
-    versionPool: Seq[String],
+    cache: FileCache[Task],
     latestSupportedStableVersions: Seq[String],
     maxSupportedStableScalaVersions: Seq[Version]
   ): Either[ScalaVersionError, String] = {
+    val versionPool =
+      ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache)
+        .filter(ScalaVersionUtil.isStable)
     val prefix =
       if (Util.isFullScalaVersion(scalaVersionStringArg)) scalaVersionStringArg
       else if (scalaVersionStringArg.endsWith(".")) scalaVersionStringArg
