@@ -830,7 +830,7 @@ trait ScalaCliModule extends ScalaModule {
     val extraOptions =
       if (isScala213) Seq("-Xsource:3", "-Ytasty-reader")
       else Nil
-    super.scalacOptions() ++ extraOptions
+    super.scalacOptions() ++ Seq("-feature") ++ extraOptions
   }
 }
 

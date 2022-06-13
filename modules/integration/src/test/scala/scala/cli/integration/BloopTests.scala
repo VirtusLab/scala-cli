@@ -31,7 +31,7 @@ class BloopTests extends munit.FunSuite {
       BloopUtil.killBloop()
 
       val bloop = BloopUtil.bloop(currentBloopVersion, bloopDaemonDir)
-      bloop("about").call(cwd = root, stdout = os.Inherit)
+      bloop(Seq("about")).call(cwd = root, stdout = os.Inherit)
 
       val output = os.proc(TestUtil.cli, "run", ".")
         .call(cwd = root, stderr = os.Pipe, mergeErrIntoOut = true)
@@ -42,7 +42,7 @@ class BloopTests extends munit.FunSuite {
       else
         output.contains("No need to restart Bloop")
 
-      val versionLine = bloop("about").call(cwd = root).out.lines()(0)
+      val versionLine = bloop(Seq("about")).call(cwd = root).out.lines()(0)
       expect(versionLine == "bloop v" + Constants.bloopVersion)
     }
   }

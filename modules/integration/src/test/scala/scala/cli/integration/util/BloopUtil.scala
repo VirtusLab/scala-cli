@@ -49,28 +49,27 @@ object BloopUtil {
     currentBloopVersion: String,
     bloopDaemonDir: os.Path,
     jvm: Option[String] = None
-  ) =
-    new Object {
+  ): Seq[String] => os.proc = {
 
-      private lazy val daemonArgs =
-        if (Properties.isWin)
-          Seq("--nailgun-server", "127.0.0.1", "--nailgun-port", "8212")
-        else
-          Seq("--daemon-dir", bloopDaemonDir.toString)
+    lazy val daemonArgs =
+      if (Properties.isWin)
+        Seq("--nailgun-server", "127.0.0.1", "--nailgun-port", "8212")
+      else
+        Seq("--daemon-dir", bloopDaemonDir.toString)
 
-      private lazy val jvmArgs = jvm.toList.flatMap(name => Seq("--jvm", name))
+    lazy val jvmArgs = jvm.toList.flatMap(name => Seq("--jvm", name))
 
-      def apply(args: String*): os.proc =
-        os.proc(
-          TestUtil.cs,
-          "launch",
-          jvmArgs,
-          s"${bloopOrg(currentBloopVersion)}:bloopgun_2.12:$currentBloopVersion",
-          "--",
-          daemonArgs,
-          args
-        )
-    }
+    args =>
+      os.proc(
+        TestUtil.cs,
+        "launch",
+        jvmArgs,
+        s"${bloopOrg(currentBloopVersion)}:bloopgun_2.12:$currentBloopVersion",
+        "--",
+        daemonArgs,
+        args
+      )
+  }
   def killBloop() = {
     val javaProcesses = os.proc("jps", "-l").call().out.text().linesIterator
     val bloopPidReg   = "(\\d+).*bloop[.]Bloop".r
