@@ -70,7 +70,7 @@ object Build {
                       originalRelPath
                         .toString
                         .replace(".", "_")
-                        .replace(File.separator, ".")
+                        .replace("/", ".")
                     }
                   case Left(stdin @ "stdin") => Some(s"${stdin}_sc")
                   case _                     => None
