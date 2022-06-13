@@ -183,7 +183,7 @@ object Run extends ScalaCommand[RunOptions] {
       }
     val mainClass = mainClassOpt match {
       case Some(cls) => cls
-      case None      => value(build.retainedMainClass(potentialMainClasses))
+      case None      => value(build.retainedMainClass(potentialMainClasses, logger))
     }
     val verbosity = build.options.internal.verbosity.getOrElse(0).toString
 

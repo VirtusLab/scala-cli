@@ -54,7 +54,10 @@ object Build {
     def outputOpt: Some[os.Path]        = Some(output)
     def fullClassPath: Seq[os.Path]     = Seq(output) ++ sources.resourceDirs ++ artifacts.classPath
     def foundMainClasses(): Seq[String] = MainClass.find(output)
-    def retainedMainClass(mainClasses: Seq[String]): Either[MainClassError, String] = {
+    def retainedMainClass(
+      mainClasses: Seq[String],
+      logger: Logger
+    ): Either[MainClassError, String] = {
       val defaultMainClassOpt = sources.defaultMainClass
         .filter(name => mainClasses.contains(name))
       def foundMainClass =
@@ -77,7 +80,23 @@ object Build {
                 }
             val filteredMainClasses =
               mainClasses.filter(!scriptInferredMainClasses.contains(_))
-            if (filteredMainClasses.length == 1) Right(filteredMainClasses.head)
+            if (filteredMainClasses.length == 1) {
+              val pickedMainClass = filteredMainClasses.head
+              if (scriptInferredMainClasses.nonEmpty) {
+                val firstScript   = scriptInferredMainClasses.head
+                val scriptsString = scriptInferredMainClasses.mkString(", ")
+                logger.message(
+                  s"Running $pickedMainClass. Also detected script main classes: $scriptsString"
+                )
+                logger.message(
+                  s"You can run any one of them by passing option --main-class, i.e. --main-class $firstScript"
+                )
+                logger.message(
+                  "All available main classes can always be listed by passing option --list-main-classes"
+                )
+              }
+              Right(pickedMainClass)
+            }
             else options.interactive
               .chooseOne(
                 "Found several main classes. Which would you like to run?",
