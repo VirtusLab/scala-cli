@@ -274,9 +274,26 @@ final case class BuildOptions(
         case Right(versions) =>
           versions.find(_.scalaCliVersion == scalaCliVersion)
             .orElse {
-              val scalaCliVersion0 = Version(scalaCliVersion)
+              val retainedCliVersion =
+                if (scalaCliVersion.endsWith("-SNAPSHOT"))
+                  if (scalaCliVersion.contains("-g"))
+                    // version like 0.1.7-30-g51330f19d-SNAPSHOT
+                    scalaCliVersion.takeWhile(_ != '-').split('.') match {
+                      case Array(maj, min, patch) if patch.nonEmpty && patch.forall(_.isDigit) =>
+                        val patch0 = patch.toInt + 1
+                        s"$maj.$min.$patch0"
+                      case _ =>
+                        // shouldn't happen
+                        scalaCliVersion
+                    }
+                  else
+                    // version like 0.1.8-SNAPSHOT
+                    scalaCliVersion.takeWhile(_ != '-')
+                else
+                  scalaCliVersion
+              val retainedCliVersion0 = Version(retainedCliVersion)
               versions
-                .filter(_.scalaCliVersion0.compareTo(scalaCliVersion0) <= 0)
+                .filter(_.scalaCliVersion0.compareTo(retainedCliVersion0) <= 0)
                 .maxByOption(_.scalaCliVersion0)
             }
             .map(_.supportedScalaVersions)
