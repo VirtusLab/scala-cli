@@ -13,6 +13,7 @@ import $file.project.settings, settings.{
   ScalaCliCrossSbtModule,
   ScalaCliScalafixModule,
   ScalaCliCompile,
+  ScalaCliTests,
   localRepoResourcePath,
   platformExecutableJarExtension,
   workspaceDirName
@@ -38,7 +39,7 @@ implicit def millModuleBasePath: define.BasePath =
 
 object cli extends Cli3 with Bloop.Module {
   def skipBloop = true
-  object test extends Tests {
+  object test extends Tests with ScalaCliTests {
     def moduleDeps = super.moduleDeps ++ Seq(
       `build-module`(myScalaVersion).test
     )
@@ -54,7 +55,7 @@ object cli2 extends Cli {
   def resources = T.sources {
     super.resources() ++ cli.resources()
   }
-  object test extends Tests {
+  object test extends Tests with ScalaCliTests {
     def sources = T.sources {
       super.sources() ++ cli.test.sources()
     }
@@ -99,9 +100,9 @@ object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
   }
 }
 object integration extends CliIntegration {
-  object test extends Tests
+  object test extends Tests with ScalaCliTests
   object docker extends CliIntegrationDocker {
-    object test extends Tests {
+    object test extends Tests with ScalaCliTests {
       def sources = T.sources {
         super.sources() ++ integration.sources()
       }
@@ -116,7 +117,7 @@ object integration extends CliIntegration {
     }
   }
   object `docker-slim` extends CliIntegrationDocker {
-    object test extends Tests {
+    object test extends Tests with ScalaCliTests {
       def sources = T.sources {
         integration.docker.test.sources()
       }
@@ -199,7 +200,7 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
       )
   }
 
-  object test extends Tests {
+  object test extends Tests with ScalaCliTests {
 
     // Is there a better way to add task dependency to test?
     def test(args: String*) = T.command {
@@ -433,7 +434,7 @@ class Directives(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.usingDirectives
   )
 
-  object test extends Tests {
+  object test extends Tests with ScalaCliTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.pprint
     )
@@ -483,7 +484,7 @@ class Options(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.jsoniterMacros
   )
 
-  object test extends Tests {
+  object test extends Tests with ScalaCliTests {
     // uncomment below to debug tests in attach mode on 5005 port
     // def forkArgs = T {
     //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
@@ -559,7 +560,7 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
     Deps.zipInputStream
   ) ++ (if (scalaVersion().startsWith("3")) Agg() else Agg(Deps.shapeless))
 
-  object test extends Tests {
+  object test extends Tests with ScalaCliTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.pprint,
       Deps.slf4jNop
@@ -982,7 +983,7 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
   }
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
-  object test extends Tests with ScalaCliScalafixModule
+  object test extends Tests with ScalaCliTests with ScalaCliScalafixModule
 }
 
 class TastyLib(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
