@@ -49,29 +49,66 @@ object Build {
     generatedSources: Seq[GeneratedSource],
     isPartial: Boolean
   ) extends Build {
-    def success: Boolean               = true
-    def successfulOpt: Some[this.type] = Some(this)
-    def outputOpt: Some[os.Path]       = Some(output)
-    def fullClassPath: Seq[os.Path]    = Seq(output) ++ sources.resourceDirs ++ artifacts.classPath
-    def foundMainClasses(): Seq[String] =
-      MainClass.find(output)
-    def retainedMainClass(logger: Logger): Either[MainClassError, String] = {
-      lazy val foundMainClasses0 = foundMainClasses()
+    def success: Boolean                = true
+    def successfulOpt: Some[this.type]  = Some(this)
+    def outputOpt: Some[os.Path]        = Some(output)
+    def fullClassPath: Seq[os.Path]     = Seq(output) ++ sources.resourceDirs ++ artifacts.classPath
+    def foundMainClasses(): Seq[String] = MainClass.find(output)
+    def retainedMainClass(
+      mainClasses: Seq[String],
+      logger: Logger
+    ): Either[MainClassError, String] = {
       val defaultMainClassOpt = sources.defaultMainClass
-        .filter(name => foundMainClasses0.contains(name))
+        .filter(name => mainClasses.contains(name))
       def foundMainClass =
-        if (foundMainClasses0.isEmpty) Left(new NoMainClassFoundError)
-        else if (foundMainClasses0.length == 1) Right(foundMainClasses0.head)
-        else
-          options.interactive.chooseOne(
-            "Found several main classes. Which would you like to run?",
-            foundMainClasses0.toList
-          ).toRight {
-            new SeveralMainClassesFoundError(
-              ::(foundMainClasses0.head, foundMainClasses0.tail.toList),
-              Nil
-            )
-          }
+        mainClasses match {
+          case Seq()          => Left(new NoMainClassFoundError)
+          case Seq(mainClass) => Right(mainClass)
+          case _ =>
+            val scriptInferredMainClasses =
+              sources.inMemory.map(im => im.originalPath.map(_._1))
+                .flatMap {
+                  case Right(originalRelPath) if originalRelPath.toString.endsWith(".sc") =>
+                    Some {
+                      originalRelPath
+                        .toString
+                        .replace(".", "_")
+                        .replace("/", ".")
+                    }
+                  case Left(stdin @ "stdin") => Some(s"${stdin}_sc")
+                  case _                     => None
+                }
+            val filteredMainClasses =
+              mainClasses.filter(!scriptInferredMainClasses.contains(_))
+            if (filteredMainClasses.length == 1) {
+              val pickedMainClass = filteredMainClasses.head
+              if (scriptInferredMainClasses.nonEmpty) {
+                val firstScript   = scriptInferredMainClasses.head
+                val scriptsString = scriptInferredMainClasses.mkString(", ")
+                logger.message(
+                  s"Running $pickedMainClass. Also detected script main classes: $scriptsString"
+                )
+                logger.message(
+                  s"You can run any one of them by passing option --main-class, i.e. --main-class $firstScript"
+                )
+                logger.message(
+                  "All available main classes can always be listed by passing option --list-main-classes"
+                )
+              }
+              Right(pickedMainClass)
+            }
+            else options.interactive
+              .chooseOne(
+                "Found several main classes. Which would you like to run?",
+                mainClasses.toList
+              )
+              .toRight {
+                new SeveralMainClassesFoundError(
+                  ::(mainClasses.head, mainClasses.tail.toList),
+                  Nil
+                )
+              }
+        }
 
       defaultMainClassOpt match {
         case Some(cls) => Right(cls)

@@ -775,6 +775,58 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         expect(output == expectedOutput)
       }
     }
+    test("pick .scala main class over in-context scripts, including piped ones") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "Hello.scala" ->
+            """object Hello extends App {
+              |  println(s"${stdin.hello} ${scripts.Script.world}")
+              |}
+              |""".stripMargin,
+          os.rel / "scripts" / "Script.sc" -> """def world: String = "world""""
+        )
+      )
+      val pipedInput = """def hello: String = "Hello""""
+      inputs.fromRoot { root =>
+        val res = os.proc(
+          TestUtil.cli,
+          "run",
+          extraOptions,
+          ".",
+          "_.sc"
+        )
+          .call(cwd = root, stdin = pipedInput)
+        expect(res.out.text().trim == "Hello world")
+      }
+    }
+    test("pick piped .scala main class over in-context scripts") {
+      val inputs = TestInputs(
+        Seq(
+          os.rel / "Hello.scala" ->
+            """object Hello {
+              |  def hello: String = "Hello"
+              |}
+              |""".stripMargin,
+          os.rel / "scripts" / "Script.sc" -> """def world: String = "world""""
+        )
+      )
+      val pipedInput =
+        """object Main extends App {
+          |  println(s"${Hello.hello} ${scripts.Script.world}")
+          |}
+          |""".stripMargin
+      inputs.fromRoot { root =>
+        val res = os.proc(
+          TestUtil.cli,
+          "run",
+          extraOptions,
+          ".",
+          "_.scala"
+        )
+          .call(cwd = root, stdin = pipedInput)
+        expect(res.out.text().trim == "Hello world")
+      }
+    }
   }
 
   def fd(): Unit = {
@@ -1742,6 +1794,98 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           .call(cwd = root, mergeErrIntoOut = true)
         expect(res.out.text().nonEmpty)
       }
+    }
+  }
+
+  test("pick .scala main class over in-context scripts") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          """object Hello extends App {
+            |  println(s"Hello ${scripts.Script.world}")
+            |}
+            |""".stripMargin,
+        os.rel / "scripts" / "Script.sc" -> """def world: String = "world"""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        "."
+      )
+        .call(cwd = root)
+      expect(res.out.text().trim == "Hello world")
+    }
+  }
+
+  test("return relevant error if multiple .scala main classes are present") {
+    val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
+    val inputs = TestInputs(
+      Seq(
+        os.rel / s"$scalaFile1.scala"          -> s"object $scalaFile1 extends App { println() }",
+        os.rel / s"$scalaFile2.scala"          -> s"object $scalaFile2 extends App { println() }",
+        os.rel / "scripts" / s"$scriptName.sc" -> "println()"
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        "."
+      )
+        .call(cwd = root, mergeErrIntoOut = true, check = false)
+      expect(res.exitCode == 1)
+      val output = res.out.text().trim
+      expect(output.contains(scalaFile1))
+      expect(output.contains(scalaFile2))
+      expect(output.contains(s"${scriptName}_sc"))
+    }
+  }
+
+  test(
+    "return relevant error when main classes list is requested, but no main classes are present"
+  ) {
+    val inputs = TestInputs(Seq(os.rel / "Main.scala" -> "object Main { println() }"))
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        ".",
+        "--main-class-ls"
+      )
+        .call(cwd = root, mergeErrIntoOut = true, check = false)
+      expect(res.exitCode == 1)
+      expect(res.out.text().trim.contains("No main class found"))
+    }
+  }
+
+  test("correctly list main classes") {
+    val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
+    val scriptsDir                           = "scripts"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
+        os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
+        os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        ".",
+        "--list-main-classes"
+      )
+        .call(cwd = root)
+      val output = res.out.text().trim
+      expect(output.contains(scalaFile1))
+      expect(output.contains(scalaFile2))
+      expect(output.contains(s"$scriptsDir.${scriptName}_sc"))
     }
   }
 }

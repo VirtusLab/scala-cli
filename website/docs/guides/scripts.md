@@ -59,6 +59,21 @@ Please note: when referring to code from another script, the actual relative pat
 package path. In the example above, as `messages.sc` is located in the `my-app/constants/` directory, to use the `hello`
 function you have to call `constants.messages.hello`.
 
+When referring to code from a piped script, just use its wrapper name: `stdin`.
+
+<ChainedSnippets>
+
+```bash
+echo '@main def main() = println(stdin.message)' > PrintMessage.scala
+echo 'def message: String = "Hello"' | scala-cli PrintMessage.scala _.sc
+```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
+
 To specify a main class when running a script, use this command:
 
 <ChainedSnippets>
@@ -74,7 +89,25 @@ Hello from Scala scripts
 </ChainedSnippets>
 
 Both of the previous scripts (`hello.sc` and `main.sc`) automatically get a main class, so this is required to
-disambiguate them.
+disambiguate them. If a main class coming from a regular `.scala` file is present in your app's context, that will be
+run by default if the `--main-class` param is not explicitly specified.
+
+When in doubt, you can always list the main classes present in your app by passing `--list-main-classes`.
+
+<ChainedSnippets>
+
+```bash
+echo '@main def main1() = println("main1")' > main1.scala
+echo '@main def main2() = println("main2")' > main2.scala
+echo 'println("on-disk script")' > script.sc
+echo 'println("piped script")' | scala-cli --list-main-classes _.sc main1.scala main2.scala script.sc
+```
+
+```text
+stdin_sc script_sc main2 main1
+```
+
+</ChainedSnippets>
 
 ### Self executable Scala Script
 
