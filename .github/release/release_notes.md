@@ -38,17 +38,21 @@ Changed in [#1095](https://github.com/VirtusLab/scala-cli/pull/1095) by @Gedocha
 
 ## Important bugfixes
 
-### Enable downloading Scala versions outside the Coursier cache
+### Accept latest Scala versions despite stale Scala version listings in cache
 
-Scala CLI is now able to download the newest Scala versions, even if they're not yet available in the Coursier cache. In
-case of a cache miss, it force-retries and fetches the version, if at all possible.
+Scala CLI uses version listings from Maven Central to check if a Scala version is valid. When new Scala versions are
+released, users could sometimes have stale version listings in their Coursier cache for a short period of time (the
+Coursier cache TTL, which is 24 hours by default). This prevented these users to use new Scala versions during that
+time.
+To work around that, Scala CLI now tries to re-download version listings when they don't have the requested Scala
+version.
 This addresses [#1090](https://github.com/VirtusLab/scala-cli/issues/1090)
 
 Fixed in [#1096](https://github.com/VirtusLab/scala-cli/pull/1096) by @lwronski
 
 ### Bloop now uses `JAVA_HOME` by default
 
-Bloop should now pick up on the JDK available in `JAVA_HOME`. It was formerly necessary to pass `--bloop-jvm system`
+Bloop should now pick up the JDK available in `JAVA_HOME`. It was formerly necessary to pass `--bloop-jvm system`
 explicitly. This addresses [#1102](https://github.com/VirtusLab/scala-cli/issues/1102)
 
 Fixed in [#1084](https://github.com/VirtusLab/scala-cli/pull/1084) by @lwronski
@@ -79,7 +83,6 @@ Fixed in [#1080](https://github.com/VirtusLab/scala-cli/pull/1080) by @lwronski
 ### Build and internal changes
 
 * Update scala-cli.sh launcher for 0.1.7 by @github-actions in [#1076](https://github.com/VirtusLab/scala-cli/pull/1076)
-* Add config command by @alexarchambault in [#1056](https://github.com/VirtusLab/scala-cli/pull/1056)
 * Tweaking by @alexarchambault in [#1087](https://github.com/VirtusLab/scala-cli/pull/1087)
 
 **Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.7...v0.1.8
