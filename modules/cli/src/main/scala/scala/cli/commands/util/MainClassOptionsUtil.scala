@@ -5,11 +5,15 @@ import scala.cli.commands.MainClassOptions
 
 object MainClassOptionsUtil {
   implicit class MainClassOptionsOps(v: MainClassOptions) {
-    def maybePrintMainClasses(mainClasses: Seq[String]): Either[MainClassError, Unit] =
+    def maybePrintMainClasses(
+      mainClasses: Seq[String],
+      shouldExit: Boolean = true
+    ): Either[MainClassError, Unit] =
       v.mainClassLs match {
         case Some(true) if mainClasses.nonEmpty =>
           println(mainClasses.mkString(" "))
-          sys.exit(0)
+          if (shouldExit) sys.exit(0)
+          else Right(())
         case Some(true) => Left(new NoMainClassFoundError)
         case _          => Right(())
       }

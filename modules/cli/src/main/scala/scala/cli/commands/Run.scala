@@ -66,34 +66,43 @@ object Run extends ScalaCommand[RunOptions] {
     def maybeRun(
       build: Build.Successful,
       allowTerminate: Boolean
-    ): Either[BuildException, (Process, CompletableFuture[_])] = either {
+    ): Either[BuildException, Option[(Process, CompletableFuture[_])]] = either {
       val potentialMainClasses = build.foundMainClasses()
-      value(options.mainClass.maybePrintMainClasses(potentialMainClasses))
-      val process = value(maybeRunOnce(
-        build,
-        programArgs,
-        logger,
-        allowExecve = allowTerminate,
-        jvmRunner = build.artifacts.hasJvmRunner,
-        potentialMainClasses
-      ))
+      if (options.mainClass.mainClassLs.contains(true))
+        value {
+          options.mainClass
+            .maybePrintMainClasses(potentialMainClasses, shouldExit = allowTerminate)
+            .map(_ => None)
+        }
+      else {
+        val process = value {
+          maybeRunOnce(
+            build,
+            programArgs,
+            logger,
+            allowExecve = allowTerminate,
+            jvmRunner = build.artifacts.hasJvmRunner,
+            potentialMainClasses
+          )
+        }
 
-      val onExitProcess = process.onExit().thenApply { p1 =>
-        val retCode = p1.exitValue()
-        if (retCode != 0)
-          if (allowTerminate)
-            sys.exit(retCode)
-          else {
-            val red      = Console.RED
-            val lightRed = "\u001b[91m"
-            val reset    = Console.RESET
-            System.err.println(
-              s"${red}Program exited with return code $lightRed$retCode$red.$reset"
-            )
-          }
+        val onExitProcess = process.onExit().thenApply { p1 =>
+          val retCode = p1.exitValue()
+          if (retCode != 0)
+            if (allowTerminate)
+              sys.exit(retCode)
+            else {
+              val red      = Console.RED
+              val lightRed = "\u001b[91m"
+              val reset    = Console.RESET
+              System.err.println(
+                s"${red}Program exited with return code $lightRed$retCode$red.$reset"
+              )
+            }
+        }
+
+        Some((process, onExitProcess))
       }
-
-      (process, onExitProcess)
     }
 
     val cross = options.compileCross.cross.getOrElse(false)
@@ -130,6 +139,7 @@ object Run extends ScalaCommand[RunOptions] {
               if (proc.isAlive) ProcUtil.forceKillProcess(proc, logger)
             val maybeProcess = maybeRun(s, allowTerminate = false)
               .orReport(logger)
+              .flatten
             if (options.watch.restart)
               processOpt = maybeProcess
             else
@@ -158,7 +168,7 @@ object Run extends ScalaCommand[RunOptions] {
       builds.main match {
         case s: Build.Successful =>
           val (process, onExit) = maybeRun(s, allowTerminate = true)
-            .orExit(logger)
+            .orExit(logger).getOrElse(sys.exit(1))
           ProcUtil.waitForProcess(process, onExit)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
