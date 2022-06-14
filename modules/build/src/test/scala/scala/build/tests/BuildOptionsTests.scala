@@ -1,6 +1,7 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.{assert => expect}
+import coursier.cache.FileCache
 import dependency.ScalaParameters
 
 import scala.build.Ops._
@@ -23,6 +24,7 @@ import scala.build.{Build, BuildThreads, LocalRepo}
 import scala.build.Directories
 import scala.build.options.ScalacOpt
 import scala.build.Positioned
+import scala.concurrent.duration.DurationInt
 
 class BuildOptionsTests extends munit.FunSuite {
 
@@ -258,6 +260,9 @@ class BuildOptionsTests extends munit.FunSuite {
       val options = BuildOptions(
         scalaOptions = ScalaOptions(
           scalaVersion = prefix.map(MaybeScalaVersion(_))
+        ),
+        internal = InternalOptions(
+          cache = Some(FileCache().withTtl(0.seconds))
         )
       )
       val scalaParams = options.scalaParams.orThrow.getOrElse(???)
