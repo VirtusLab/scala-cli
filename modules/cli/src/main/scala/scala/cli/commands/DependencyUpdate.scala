@@ -2,7 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.actionable.{ActionableDependencyHandler, ActionableDiagnostic}
+import scala.build.actionable.ActionableDependencyHandler
+import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.Scope
 import scala.build.{CrossSources, Logger, Position, Sources}
@@ -25,7 +26,9 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
-          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper)
+          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
+          buildOptions.archiveCache,
+          buildOptions.internal.javaClassNameVersionOpt
         ),
         logger
       ).orExit(logger)
@@ -50,19 +53,44 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   }
 
   private def updateDependencies(
-    actionableUpdateDiagnostic: Seq[ActionableDiagnostic],
+    actionableUpdateDiagnostic: Seq[ActionableDependencyUpdateDiagnostic],
     logger: Logger
   ): Unit = {
-    actionableUpdateDiagnostic.map { diagnostic =>
-      diagnostic.positions.collect {
-        case Position.File(Right(path), _, _) => path
-      }.map { file =>
-        logger.message(s"Updating dependency    ${diagnostic.from}")
-        val content           = os.read(file)
-        val appliedDiagnostic = content.replace(diagnostic.from, diagnostic.to)
-        os.write.over(file, appliedDiagnostic)
-        logger.message(s"Updated dependency to: ${diagnostic.to}")
-      }
+    for {
+      diagnostic                                  <- actionableUpdateDiagnostic
+      Position.File(Right(filePath), startPos, _) <- diagnostic.positions
+    } {
+      val lineIndex = startPos._1
+      val appliedDiagnostic = os.read.lines(filePath).zipWithIndex.map {
+        case (line, index) if index == lineIndex =>
+          val updatedDependency = updateDependency(line, startPos, diagnostic)
+          updatedDependency
+        case (line, _) => line
+      }.mkString(System.lineSeparator())
+      os.write.over(filePath, appliedDiagnostic)
+      logger.message(s"Updated dependency to: ${diagnostic.to}")
+    }
+  }
+
+  private def updateDependency(
+    line: String,
+    pos: (Int, Int),
+    diagnostic: ActionableDependencyUpdateDiagnostic
+  ) = {
+    val depColumnIndex = pos._2
+    val head           = line.take(depColumnIndex)
+    val tail           = line.drop(depColumnIndex)
+    if (tail.startsWith("$ivy.`")) {
+      val last = tail.stripPrefix("$ivy.`").dropWhile(_ != '`')
+      s"$head$$ivy.`${diagnostic.to}$last"
+    }
+    else if (tail.startsWith("$dep.`")) {
+      val last = tail.stripPrefix("$dep.`").dropWhile(_ != '`')
+      s"$head$$dep.`${diagnostic.to}$last"
+    }
+    else {
+      val last = line.drop(depColumnIndex).dropWhile(_ != '\"')
+      s"$head${diagnostic.to}$last"
     }
   }
 
