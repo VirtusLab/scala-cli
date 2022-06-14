@@ -20,6 +20,7 @@ import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 final case class BuildOptions(
@@ -183,8 +184,12 @@ final case class BuildOptions(
     javaOptions.javaHomeOpt
       .orElse {
         if (javaOptions.jvmIdOpt.isEmpty)
-          sys.props.get("java.home").map(p =>
-            Positioned(Position.Custom("java.home prop"), os.Path(p, Os.pwd))
+          Option(System.getenv("JAVA_HOME")).map(p =>
+            Positioned(Position.Custom("JAVA_HOME env"), os.Path(p, Os.pwd))
+          ).orElse(
+            sys.props.get("java.home").map(p =>
+              Positioned(Position.Custom("java.home prop"), os.Path(p, Os.pwd))
+            )
           )
         else None
       }
@@ -269,9 +274,26 @@ final case class BuildOptions(
         case Right(versions) =>
           versions.find(_.scalaCliVersion == scalaCliVersion)
             .orElse {
-              val scalaCliVersion0 = Version(scalaCliVersion)
+              val retainedCliVersion =
+                if (scalaCliVersion.endsWith("-SNAPSHOT"))
+                  if (scalaCliVersion.contains("-g"))
+                    // version like 0.1.7-30-g51330f19d-SNAPSHOT
+                    scalaCliVersion.takeWhile(_ != '-').split('.') match {
+                      case Array(maj, min, patch) if patch.nonEmpty && patch.forall(_.isDigit) =>
+                        val patch0 = patch.toInt + 1
+                        s"$maj.$min.$patch0"
+                      case _ =>
+                        // shouldn't happen
+                        scalaCliVersion
+                    }
+                  else
+                    // version like 0.1.8-SNAPSHOT
+                    scalaCliVersion.takeWhile(_ != '-')
+                else
+                  scalaCliVersion
+              val retainedCliVersion0 = Version(retainedCliVersion)
               versions
-                .filter(_.scalaCliVersion0.compareTo(scalaCliVersion0) <= 0)
+                .filter(_.scalaCliVersion0.compareTo(retainedCliVersion0) <= 0)
                 .maxByOption(_.scalaCliVersion0)
             }
             .map(_.supportedScalaVersions)
@@ -330,10 +352,19 @@ final case class BuildOptions(
   }
 
   lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] =
-    computeScalaParams(Constants.version)
+    if (System.getenv("CI") == null)
+      computeScalaParams(Constants.version, finalCache).orElse(
+        // when the passed scala version is missed in the cache, we always force a cache refresh
+        // https://github.com/VirtusLab/scala-cli/issues/1090
+        computeScalaParams(Constants.version, finalCache.withTtl(0.seconds))
+      )
+    else
+      computeScalaParams(Constants.version, finalCache.withTtl(0.seconds))
 
-  private[build] def computeScalaParams(scalaCliVersion: String)
-    : Either[BuildException, Option[ScalaParameters]] = either {
+  private[build] def computeScalaParams(
+    scalaCliVersion: String,
+    cache: FileCache[Task] = finalCache
+  ): Either[BuildException, Option[ScalaParameters]] = either {
 
     lazy val maxSupportedStableScalaVersions = latestSupportedStableScalaVersion(scalaCliVersion)
     lazy val latestSupportedStableVersions   = maxSupportedStableScalaVersions.map(_.repr)
@@ -345,46 +376,41 @@ final case class BuildOptions(
         val sv = value {
           svInput match {
             case "3.nightly" =>
-              ScalaVersionUtil.GetNightly.scala3(finalCache)
+              ScalaVersionUtil.GetNightly.scala3(cache)
             case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
               ScalaVersionUtil.GetNightly.scala3X(
                 threeSubBinaryNum,
-                finalCache,
+                cache,
                 latestSupportedStableVersions
               )
             case "2.nightly" | "2.13.nightly" =>
-              ScalaVersionUtil.GetNightly.scala2("2.13", finalCache)
+              ScalaVersionUtil.GetNightly.scala2("2.13", cache)
             case "2.12.nightly" =>
-              ScalaVersionUtil.GetNightly.scala2("2.12", finalCache)
+              ScalaVersionUtil.GetNightly.scala2("2.12", cache)
             case versionString if ScalaVersionUtil.isScala3Nightly(versionString) =>
               ScalaVersionUtil.CheckNightly.scala3(
                 versionString,
-                finalCache,
+                cache,
                 latestSupportedStableVersions
               )
                 .map(_ => versionString)
             case versionString if ScalaVersionUtil.isScala2Nightly(versionString) =>
               ScalaVersionUtil.CheckNightly.scala2(
                 versionString,
-                finalCache,
+                cache,
                 latestSupportedStableVersions
               )
                 .map(_ => versionString)
             case versionString if versionString.exists(_.isLetter) =>
-              val allVersions =
-                ScalaVersionUtil.allMatchingVersions(Some(versionString), finalCache)
               ScalaVersionUtil.validateNonStable(
                 versionString,
-                allVersions,
+                cache,
                 latestSupportedStableVersions
               )
             case versionString =>
-              val allStableVersions =
-                ScalaVersionUtil.allMatchingVersions(Some(versionString), finalCache)
-                  .filter(ScalaVersionUtil.isStable)
               ScalaVersionUtil.validateStable(
                 versionString,
-                allStableVersions,
+                cache,
                 latestSupportedStableVersions,
                 maxSupportedStableScalaVersions
               )

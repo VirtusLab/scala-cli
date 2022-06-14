@@ -3,13 +3,8 @@ title: IDE support
 sidebar_position: 10
 ---
 
-:::warning
-IDE support is currently under development, primarily because changes needs to be made in both Metals and IntelliJ.
-:::
-
-
-Scala CLI currently integrates with a build server using the [BSP protocol](https://build-server-protocol.github.io/).
-At this moment Scala CLI is not automatically detected, so we need to use [Build Server Discovery](https://build-server-protocol.github.io/docs/server-discovery.html) from BSP protocol to generate a connection details file (`.bsp/scala-cli.json`).
+Scala CLI currently integrates a build server using the [BSP protocol](https://build-server-protocol.github.io/).
+At this moment Scala CLI is not automatically detected by IDEs, so we need to use [Build Server Discovery](https://build-server-protocol.github.io/docs/server-discovery.html) from BSP protocol to generate a connection details file (`.bsp/scala-cli.json`).
 
 :::note
 If none of these commands were run:
@@ -17,7 +12,7 @@ If none of these commands were run:
 - `compile`
 - `run`
 - `test`
-- `setup-ide` 
+- `setup-ide`
 
 or a previously-generated connection detail file was deleted, your IDE will *not* use Scala CLI to configure your workspace.
 
@@ -46,15 +41,15 @@ In an ideal world we would replace the rest of this guide with something along t
 
 Once Metals picks up the project structure that’s created by Scala CLI, basic features like navigation, diagnostics, and code completion should work.
 Reloading the workspace on project structure changes is currently experimental and should work for most scenarios, we are working on improving its stability.
-For some cases it may still be necessary to restart the build server manually. 
+For some cases it may still be necessary to restart the build server manually.
 (Closing & reopening the project should also be sufficient.)
 
 ## IntelliJ
 
 Here are a few notes related to IntelliJ support:
 - IntelliJ currently does not automatically pick up changes in the project structure, so any change in dependencies, compiler options, etc., need to be manually reloaded.
-- Similarly to Metals, reloading the workspace on project structure changes is currently experimental and should work for most scenarios. 
-  We are working on improving its stability. For some cases it may still be necessary to restart the build server manually. 
+- Similarly to Metals, reloading the workspace on project structure changes is currently experimental and should work for most scenarios.
+  We are working on improving its stability. For some cases it may still be necessary to restart the build server manually.
   (Closing & reopening the project should also be sufficient.)
 
 ## Directories vs single files when working with an IDE

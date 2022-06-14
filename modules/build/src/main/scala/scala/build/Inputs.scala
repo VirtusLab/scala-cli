@@ -186,7 +186,7 @@ object Inputs {
   }
 
   sealed abstract class VirtualSourceFile extends Virtual {
-    def isStdin: Boolean = source == "<stdin>"
+    def isStdin: Boolean = source.contains("<stdin>")
   }
 
   sealed trait SingleFile extends OnDisk with SingleElement
@@ -233,7 +233,7 @@ object Inputs {
         }
         Iterator(prefix, elem.path.toString, "\n").map(bytes)
       case v: Inputs.Virtual =>
-        Iterator(bytes("virtual:"), v.content, bytes("\n"))
+        Iterator(bytes("virtual:"), v.content, bytes(v.source), bytes("\n"))
     }
     val md = MessageDigest.getInstance("SHA-1")
     it.foreach(md.update)
@@ -339,9 +339,9 @@ object Inputs {
       lazy val stdinOpt0 = stdinOpt
       val isStdin = (arg == "-.scala" || arg == "_" || arg == "_.scala") &&
         stdinOpt0.nonEmpty
-      if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>")))
+      if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>-scala-file")))
       else if ((arg == "-.java" || arg == "_.java") && stdinOpt0.nonEmpty)
-        Right(Seq(VirtualJavaFile(stdinOpt0.get, "<stdin>")))
+        Right(Seq(VirtualJavaFile(stdinOpt0.get, "<stdin>-java-file")))
       else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
         Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
       else if (arg.endsWith(".zip") && os.exists(os.Path(arg, cwd))) {

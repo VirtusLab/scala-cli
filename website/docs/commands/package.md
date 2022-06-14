@@ -1,6 +1,6 @@
 ---
 title: Package
-sidebar_position: 8
+sidebar_position: 17
 ---
 
 The `package` command can package your Scala code in various formats, such as:
@@ -132,7 +132,7 @@ docker run hello-docker
 Hello from Docker
 -->
 
-You can also create Docker images for the Scala.js and Scala Native environments.
+You can also create Docker images for Scala.js and Scala Native applications.
 This command shows how to create a Docker image (`--docker`) for a Scala.js (`--js`) application:
 
 ```bash
@@ -185,7 +185,7 @@ Hello
 -->
 
 
-Note that the Scala CLI doesn't offer to link the resulting JavaScript with linkers, such as Webpack (yet).
+Note that Scala CLI doesn't offer to link the resulting JavaScript with linkers, such as Webpack (yet).
 
 ## Native image
 
@@ -321,7 +321,7 @@ scala-cli package --rpm --output 'path.rpm' Hello.scala
 
 ### macOS (PKG)
 
-PKG is the software package format for macOS.
+PKG is a software package format for macOS.
 To build a PKG you will need to have [`pkgbuild`](https://www.unix.com/man-page/osx/1/pkgbuild/) installed.
 
 Example:
@@ -341,13 +341,13 @@ Example:
 
 ### Windows
 
-MSI is the software package format for Windows distributions.
-To build a Windows installer, you will need to have [`WIX Toolset`](https://wixtoolset.org/) installed.
+MSI is a software package format for Windows.
+To build an MSI installer, you will need to have [`WIX Toolset`](https://wixtoolset.org/) installed.
 
 Example:
 
 ```cmd
-scala-cli package --msi --output 'path.msi` Hello.scala
+scala-cli package --msi --output path.msi Hello.scala
 ```
 
 #### Mandatory arguments

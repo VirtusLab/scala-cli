@@ -6,10 +6,7 @@ import munit.Assertions.assertEquals
 
 object TestUtil {
 
-  val isCI = Option(System.getenv("ACTUAL_CI")) match {
-    case None        => System.getenv("CI") != null
-    case Some(value) => value.nonEmpty
-  }
+  val isCI = System.getenv("CI") != null
 
   implicit class TestBuildOps(private val build: Build) extends AnyVal {
     private def successfulBuild: Build.Successful =

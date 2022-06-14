@@ -211,7 +211,7 @@ object SharedOptionsUtil {
       else
         SimpleScalaCompilerMaker("java", Nil)
 
-    def coursierCache = cached(this)(coursier.coursierCache(logging.logger.coursierLogger("")))
+    def coursierCache = cached(v)(coursier.coursierCache(logging.logger.coursierLogger("")))
 
     def inputsOrExit(
       args: RemainingArgs,

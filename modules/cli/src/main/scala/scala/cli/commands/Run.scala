@@ -10,6 +10,7 @@ import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform}
 import scala.build.{Build, BuildThreads, Inputs, Logger, Positioned}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.internal.ProcUtil
 import scala.util.Properties
@@ -65,31 +66,43 @@ object Run extends ScalaCommand[RunOptions] {
     def maybeRun(
       build: Build.Successful,
       allowTerminate: Boolean
-    ): Either[BuildException, (Process, CompletableFuture[_])] = either {
-      val process = value(maybeRunOnce(
-        build,
-        programArgs,
-        logger,
-        allowExecve = allowTerminate,
-        jvmRunner = build.artifacts.hasJvmRunner
-      ))
+    ): Either[BuildException, Option[(Process, CompletableFuture[_])]] = either {
+      val potentialMainClasses = build.foundMainClasses()
+      if (options.mainClass.mainClassLs.contains(true))
+        value {
+          options.mainClass
+            .maybePrintMainClasses(potentialMainClasses, shouldExit = allowTerminate)
+            .map(_ => None)
+        }
+      else {
+        val process = value {
+          maybeRunOnce(
+            build,
+            programArgs,
+            logger,
+            allowExecve = allowTerminate,
+            jvmRunner = build.artifacts.hasJvmRunner,
+            potentialMainClasses
+          )
+        }
 
-      val onExitProcess = process.onExit().thenApply { p1 =>
-        val retCode = p1.exitValue()
-        if (retCode != 0)
-          if (allowTerminate)
-            sys.exit(retCode)
-          else {
-            val red      = Console.RED
-            val lightRed = "\u001b[91m"
-            val reset    = Console.RESET
-            System.err.println(
-              s"${red}Program exited with return code $lightRed$retCode$red.$reset"
-            )
-          }
+        val onExitProcess = process.onExit().thenApply { p1 =>
+          val retCode = p1.exitValue()
+          if (retCode != 0)
+            if (allowTerminate)
+              sys.exit(retCode)
+            else {
+              val red      = Console.RED
+              val lightRed = "\u001b[91m"
+              val reset    = Console.RESET
+              System.err.println(
+                s"${red}Program exited with return code $lightRed$retCode$red.$reset"
+              )
+            }
+        }
+
+        Some((process, onExitProcess))
       }
-
-      (process, onExitProcess)
     }
 
     val cross = options.compileCross.cross.getOrElse(false)
@@ -126,6 +139,7 @@ object Run extends ScalaCommand[RunOptions] {
               if (proc.isAlive) ProcUtil.forceKillProcess(proc, logger)
             val maybeProcess = maybeRun(s, allowTerminate = false)
               .orReport(logger)
+              .flatten
             if (options.watch.restart)
               processOpt = maybeProcess
             else
@@ -154,7 +168,7 @@ object Run extends ScalaCommand[RunOptions] {
       builds.main match {
         case s: Build.Successful =>
           val (process, onExit) = maybeRun(s, allowTerminate = true)
-            .orExit(logger)
+            .orExit(logger).getOrElse(sys.exit(1))
           ProcUtil.waitForProcess(process, onExit)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
@@ -168,7 +182,8 @@ object Run extends ScalaCommand[RunOptions] {
     args: Seq[String],
     logger: Logger,
     allowExecve: Boolean,
-    jvmRunner: Boolean
+    jvmRunner: Boolean,
+    potentialMainClasses: Seq[String]
   ): Either[BuildException, Process] = either {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
@@ -178,7 +193,7 @@ object Run extends ScalaCommand[RunOptions] {
       }
     val mainClass = mainClassOpt match {
       case Some(cls) => cls
-      case None      => value(build.retainedMainClass(logger))
+      case None      => value(build.retainedMainClass(potentialMainClasses, logger))
     }
     val verbosity = build.options.internal.verbosity.getOrElse(0).toString
 

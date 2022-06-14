@@ -215,7 +215,7 @@ class NativePackagerTests extends munit.FunSuite {
           "--output", s"$appName.msi",
           "--product-name", "scala-cli",
           "--license-path", licencePath,
-          "--maintainer", "Scala-cli",
+          "--maintainer", "Scala-CLI",
           "--launcher-app", appName,
           "--suppress-validation"
         )

@@ -7,7 +7,7 @@ import {ChainedSnippets, GiflikeVideo} from "../src/components/MarkdownComponent
 
 :::info
 This article requires knowledge of the Scala language (how to define a class or method) as well as Scala tooling (the REPL, and basics of dependency management and unit tests).
-::: 
+:::
 
 In this article we show how to use Scala CLI to create a basic script, followed by small project with features like dependencies, tests, and IDE support. We aim to provide you with a knowledge of how to create and develop your first projects using Scala CLI.
 
@@ -37,7 +37,7 @@ In that example we actually just created a Scala Script. To demonstrate this mor
 
 ```scala title=hello.sc
 def helloMessage(names: Seq[String]) = names match
-  case Nil => 
+  case Nil =>
     "Hello!"
   case names =>
     names.mkString("Hello: ", ", ", "!")
@@ -122,8 +122,8 @@ Now we can write our logic in a file named `files.scala`:
 //> using lib "com.lihaoyi::os-lib:0.7.8"
 
 def filesByExtension(
-  extension: String, 
-  dir: os.Path = os.pwd): Seq[os.Path] = 
+  extension: String,
+  dir: os.Path = os.pwd): Seq[os.Path] =
     os.walk(dir).filter { f =>
       f.last.endsWith(s".$extension") && os.isFile(f)
     }
@@ -193,10 +193,10 @@ or directly within Metals:
 With our code ready and tested, now it's time to turn it into a command-line tool that counts files by their extension. For this we can write a simple script. A great feature of Scala CLI is that scripts and Scala sources can be mixed:
 
 ```scala title=countByExtension.sc
-val (ext, directory) = args.toSeq match 
+val (ext, directory) = args.toSeq match
   case Seq(ext) => (ext, os.pwd)
   case Seq(ext, directory) => (ext, os.Path(directory))
-  case other => 
+  case other =>
     println(s"Expected: `extension [directory]` but get: `${other.mkString(" ")}`")
     sys.exit(1)
 
@@ -224,7 +224,7 @@ files.test.scala
 
 </ChainedSnippets>
 
-Seeing that output, you may wonder, why do we have an additional `.scala` file under the `.scala` dir? The way this works is that under the hood, Scala CLI sometimes needs to preprocess source code files — such as scripts. So these preprocessed files are created under the `.scala` directory, and then compiled from there.
+Seeing that output, you may wonder, why do we have an additional `.scala` file under the `.scala-build` dir? The way this works is that under the hood, Scala CLI sometimes needs to preprocess source code files — such as scripts. So these preprocessed files are created under the `.scala-build` directory, and then compiled from there.
 
 ## Packaging
 
@@ -239,7 +239,7 @@ scala-cli package . -o countByExtension
 The default binary name is `app`, so in this example we provide the `-o` flag to make the binary name `countByExtension`. Now we can run our project like this:
 
 ```bash
-./countByExtension scala   
+./countByExtension scala
 ```
 
 This time it only took 350 milliseconds, so this is a big improvement. When you create a binary file (a runnable jar) like this, it's self-contained, and can be shipped to your colleagues or deployed.
@@ -249,6 +249,6 @@ We can reduce the startup time even further using [Scala Native](./guides/scala-
 
 ## Summary
 
-With this guide we've only scratched the surface of what Scala CLI can do. For many more details, we've prepared a set of [cookbooks](./cookbooks/intro.md) that showcase solutions to common problems, as well as a detailed set of [guides](./guides/intro.md) for our [commands](./commands/basics.md). 
+With this guide we've only scratched the surface of what Scala CLI can do. For many more details, we've prepared a set of [cookbooks](./cookbooks/intro.md) that showcase solutions to common problems, as well as a detailed set of [guides](./guides/intro.md) for our [commands](./commands/basics.md).
 
 We also have a dedicated [room on Scala discord](https://discord.gg/KzQdYkZZza) where you can ask for help or discuss anything that's related to Scala CLI. For more in-depth discussions, we're using [Github discussions in our repo](https://github.com/VirtusLab/scala-cli/discussions); this is the best place to suggest a new feature or any improvements.

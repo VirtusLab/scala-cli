@@ -109,10 +109,9 @@ object integration extends CliIntegration {
         PathRef(T.dest / "working-dir")
       }
       def forkEnv = super.forkEnv() ++ Seq(
-        "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
-        "SCALA_CLI_IMAGE" -> "scala-cli",
-        "CI"              -> "1",
-        "ACTUAL_CI"       -> (if (System.getenv("CI") == null) "" else "1")
+        "SCALA_CLI_TMP"                -> tmpDirBase().path.toString,
+        "SCALA_CLI_IMAGE"              -> "scala-cli",
+        "SCALA_CLI_PRINT_STACK_TRACES" -> "1"
       )
     }
   }
@@ -125,10 +124,9 @@ object integration extends CliIntegration {
         PathRef(T.dest / "working-dir")
       }
       def forkEnv = super.forkEnv() ++ Seq(
-        "SCALA_CLI_TMP"   -> tmpDirBase().path.toString,
-        "SCALA_CLI_IMAGE" -> "scala-cli-slim",
-        "CI"              -> "1",
-        "ACTUAL_CI"       -> (if (System.getenv("CI") == null) "" else "1")
+        "SCALA_CLI_TMP"                -> tmpDirBase().path.toString,
+        "SCALA_CLI_IMAGE"              -> "scala-cli-slim",
+        "SCALA_CLI_PRINT_STACK_TRACES" -> "1"
       )
     }
   }
@@ -632,15 +630,27 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   def defaultFilesResources = T.persistent {
     val dir = T.dest / "resources"
-    val resources = Seq(
-      "https://raw.githubusercontent.com/scala-cli/default-workflow/main/.github/workflows/ci.yml" -> (os.sub / "workflows" / "default.yml"),
-      "https://raw.githubusercontent.com/scala-cli/default-workflow/main/.gitignore" -> (os.sub / "gitignore")
+    def transformWorkflow(content: Array[Byte]): Array[Byte] =
+      new String(content, "UTF-8")
+        .replaceAll(" ./scala-cli", " scala-cli")
+        .getBytes("UTF-8")
+    val resources = Seq[(String, os.SubPath, Array[Byte] => Array[Byte])](
+      (
+        "https://raw.githubusercontent.com/scala-cli/default-workflow/main/.github/workflows/ci.yml",
+        os.sub / "workflows" / "default.yml",
+        transformWorkflow _
+      ),
+      (
+        "https://raw.githubusercontent.com/scala-cli/default-workflow/main/.gitignore",
+        os.sub / "gitignore",
+        identity
+      )
     )
-    for ((srcUrl, destRelPath) <- resources) {
+    for ((srcUrl, destRelPath, transform) <- resources) {
       val dest = dir / defaultFilesResourcePath / destRelPath
       if (!os.isFile(dest)) {
         val content = Using.resource(new URL(srcUrl).openStream())(_.readAllBytes())
-        os.write(dest, content, createFolders = true)
+        os.write(dest, transform(content), createFolders = true)
       }
     }
     PathRef(dir)
@@ -766,9 +776,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.jsoniterMacros
     )
     def forkEnv = super.forkEnv() ++ Seq(
-      "SCALA_CLI_TMP" -> tmpDirBase().path.toString,
-      "CI"            -> "1",
-      "ACTUAL_CI"     -> (if (System.getenv("CI") == null) "" else "1")
+      "SCALA_CLI_TMP"                -> tmpDirBase().path.toString,
+      "SCALA_CLI_PRINT_STACK_TRACES" -> "1"
     )
     private def updateRef(name: String, ref: PathRef): PathRef = {
       val rawPath = ref.path.toString.replace(

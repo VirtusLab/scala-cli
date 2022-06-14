@@ -1,6 +1,6 @@
 ---
 title: REPL
-sidebar_position: 9
+sidebar_position: 8
 ---
 
 The `repl` command starts a Scala REPL, which lets you interactively run your code and inspect its results:

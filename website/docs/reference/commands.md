@@ -375,7 +375,7 @@ Accepts options:
 
 ## `update`
 
-Update scala-cli - it works only for installation script
+Update scala-cli - only works when installed by the installation script
 
 Accepts options:
 - [update](./cli-options.md#update-options)
@@ -443,6 +443,15 @@ Accepts options:
 - [shared](./cli-options.md#shared-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [workspace](./cli-options.md#workspace-options)
+
+### `config`
+
+Accepts options:
+- [config](./cli-options.md#config-options)
+- [coursier](./cli-options.md#coursier-options)
+- [directories](./cli-options.md#directories-options)
+- [logging](./cli-options.md#logging-options)
+- [verbosity](./cli-options.md#verbosity-options)
 
 ### `default-file`
 

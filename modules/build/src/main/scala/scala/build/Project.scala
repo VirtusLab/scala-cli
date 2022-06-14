@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.Arrays
 
-import scala.build.options.Scope
+import scala.build.options.{ScalacOpt, Scope, ShadowingSeq}
 
 final case class Project(
   workspace: os.Path,
@@ -46,7 +46,7 @@ final case class Project(
     }
     val scalaConfigOpt = scalaCompiler.map { scalaCompiler0 =>
       bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler0.scalaVersion).copy(
-        options = scalaCompiler0.scalacOptions.toList,
+        options = updateScalacOptions(scalaCompiler0.scalacOptions).map(_.value),
         jars = scalaCompiler0.compilerClassPath.map(_.toNIO).toList
       )
     }
@@ -71,6 +71,21 @@ final case class Project(
 
   def bloopFile: BloopConfig.File =
     BloopConfig.File(BloopConfig.File.LatestVersion, bloopProject)
+
+  private def updateScalacOptions(scalacOptions: Seq[String]): List[ScalacOpt] =
+    ShadowingSeq.from(scalacOptions.map(ScalacOpt(_))).values.map { l =>
+      // only look at the head, the tail is only values passed to it
+      l.headOption match {
+        case Some(opt) if opt.value.startsWith("-coverage-out:") =>
+          // actual -coverage-out: option
+          val maybeRelativePath = opt.value.stripPrefix("-coverage-out:")
+          val absolutePath      = os.Path(maybeRelativePath, Os.pwd)
+          ScalacOpt(s"-coverage-out:$absolutePath") +: l.tail
+        case _ =>
+          // not a -coverage-out: option
+          l
+      }
+    }.flatten.toList
 
   private def maybeUpdateInputs(logger: Logger): Boolean = {
     val dest = directory / ".bloop" / s"$projectName.inputs.txt"

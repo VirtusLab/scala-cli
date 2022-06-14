@@ -6,7 +6,7 @@ import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers._
 
 // format: off
-@HelpMessage("Update scala-cli - it works only for installation script")
+@HelpMessage("Update scala-cli - only works when installed by the installation script")
 final case class UpdateOptions(
   @Recurse
     verbosity: VerbosityOptions = VerbosityOptions(),

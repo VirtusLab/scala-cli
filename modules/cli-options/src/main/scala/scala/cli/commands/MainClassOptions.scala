@@ -8,7 +8,14 @@ final case class MainClassOptions(
   @HelpMessage("Specify which main class to run")
   @ValueDescription("main-class")
   @Name("M")
-    mainClass: Option[String] = None
+    mainClass: Option[String] = None,
+  
+  @Group("Entrypoint")
+  @HelpMessage("List main classes available in the current context")
+  @Name("mainClassList")
+  @Name("listMainClass")
+  @Name("listMainClasses")
+    mainClassLs: Option[Boolean] = None
 )
 // format: on
 

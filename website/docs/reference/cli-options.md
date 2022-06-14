@@ -121,7 +121,7 @@ Protocol to use to open a BSP connection with Bloop
 
 #### `--bloop-bsp-socket`
 
-Socket file to use to open a BSP connection with Bloop (on Windows, a pipe name like "`\\.\pipe\…`")
+Socket file to use to open a BSP connection with Bloop
 
 #### `--bloop-host`
 
@@ -215,6 +215,34 @@ Available in commands:
 
 Cross-compile sources
 
+## Config options
+
+Available in commands:
+- [`config`](./commands.md#config)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--dump`
+
+Dump config DB as JSON
+
+#### `--create-pgp-key`
+
+Create PGP key in config
+
+#### `--password`
+
+If the entry is a password, print the password value rather than how to get the password
+
+#### `--password-value`
+
+If the entry is a password, save the password value rather than how to get the password
+
+#### `--unset`
+
+Remove an entry from config
+
 ## Coursier options
 
 Available in commands:
@@ -222,6 +250,7 @@ Available in commands:
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`config`](./commands.md#config)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -336,6 +365,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`config`](./commands.md#config)
 - [`directories`](./commands.md#directories)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -455,6 +485,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`config`](./commands.md#config)
 - [`default-file`](./commands.md#default-file)
 - [`directories`](./commands.md#directories)
 - [`doc`](./commands.md#doc)
@@ -684,6 +715,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`config`](./commands.md#config)
 - [`default-file`](./commands.md#default-file)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -734,6 +766,12 @@ Available in commands:
 Aliases: `-M`
 
 Specify which main class to run
+
+#### `--main-class-ls`
+
+Aliases: `--main-class-list`, `--list-main-class`, `--list-main-classes`
+
+List main classes available in the current context
 
 ## Metabrowse options
 
@@ -1178,13 +1216,13 @@ Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" o
 
 #### `--secret-key`
 
-Secret key to use to sign artifacts with BouncyCastle
+Secret key to use to sign artifacts with Bouncy Castle
 
 #### `--secret-key-password`
 
 Aliases: `--secret-key-pass`
 
-Password of secret key to use to sign artifacts with BouncyCastle
+Password of secret key to use to sign artifacts with Bouncy Castle
 
 ## Publish repository options
 
@@ -1598,6 +1636,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`config`](./commands.md#config)
 - [`default-file`](./commands.md#default-file)
 - [`directories`](./commands.md#directories)
 - [`doc`](./commands.md#doc)

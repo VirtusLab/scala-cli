@@ -34,6 +34,7 @@ import scala.build.options.{BuildOptions, ConfigMonoid, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.commands.{
@@ -43,6 +44,7 @@ import scala.cli.commands.{
   SharedOptions,
   WatchUtil
 }
+import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.{
   FailedToSignFileError,
   MalformedChecksumsError,
@@ -162,6 +164,9 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val cross = options.compileCross.cross.getOrElse(false)
 
+    lazy val configDb = ConfigDb.open(options.shared.directories.directories)
+      .orExit(logger)
+
     lazy val workingDir = options.sharedPublish.workingDir
       .filter(_.trim.nonEmpty)
       .map(os.Path(_, os.pwd))
@@ -188,7 +193,8 @@ object Publish extends ScalaCommand[PublishOptions] {
       publishLocal = false,
       forceSigningBinary = options.sharedPublish.forceSigningBinary,
       parallelUpload = options.parallelUpload.getOrElse(true),
-      options.watch.watch
+      options.watch.watch,
+      () => configDb
     )
   }
 
@@ -204,7 +210,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     publishLocal: Boolean,
     forceSigningBinary: Boolean,
     parallelUpload: Boolean,
-    watch: Boolean
+    watch: Boolean,
+    configDb: () => ConfigDb
   ): Unit = {
 
     if (watch) {
@@ -228,7 +235,8 @@ object Publish extends ScalaCommand[PublishOptions] {
             logger,
             allowExit = false,
             forceSigningBinary = forceSigningBinary,
-            parallelUpload = parallelUpload
+            parallelUpload = parallelUpload,
+            configDb
           )
         }
       }
@@ -255,7 +263,8 @@ object Publish extends ScalaCommand[PublishOptions] {
         logger,
         allowExit = true,
         forceSigningBinary = forceSigningBinary,
-        parallelUpload = parallelUpload
+        parallelUpload = parallelUpload,
+        configDb
       )
     }
   }
@@ -275,7 +284,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     logger: Logger,
     allowExit: Boolean,
     forceSigningBinary: Boolean,
-    parallelUpload: Boolean
+    parallelUpload: Boolean,
+    configDb: () => ConfigDb
   ): Unit = {
 
     val allOk = builds.all.forall {
@@ -303,7 +313,8 @@ object Publish extends ScalaCommand[PublishOptions] {
         publishLocal,
         logger,
         forceSigningBinary,
-        parallelUpload
+        parallelUpload,
+        configDb
       )
       if (allowExit)
         res.orExit(logger)
@@ -373,7 +384,8 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val mainJar = {
       val mainClassOpt = build.options.mainClass.orElse {
-        build.retainedMainClass(logger) match {
+        val potentialMainClasses = build.foundMainClasses()
+        build.retainedMainClass(potentialMainClasses, logger) match {
           case Left(_: NoMainClassFoundError) => None
           case Left(err) =>
             logger.debug(s"Error while looking for main class: $err")
@@ -544,7 +556,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     publishLocal: Boolean,
     logger: Logger,
     forceSigningBinary: Boolean,
-    parallelUpload: Boolean
+    parallelUpload: Boolean,
+    configDb: () => ConfigDb
   ): Either[BuildException, Unit] = either {
 
     assert(docBuilds.isEmpty || docBuilds.length == builds.length)
@@ -565,23 +578,45 @@ object Publish extends ScalaCommand[PublishOptions] {
       lazy val es =
         Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
 
-      lazy val authOpt = {
-        val passwordOpt = publishOptions.repoPassword.map(_.get())
-        passwordOpt.map { password =>
-          val userOpt  = publishOptions.repoUser
-          val realmOpt = publishOptions.repoRealm
-          val auth     = Authentication(userOpt.fold("")(_.get().value), password.value)
-          realmOpt.fold(auth)(auth.withRealm)
+      def authOpt(repo: String): Either[BuildException, Option[Authentication]] = either {
+        val hostOpt = {
+          val uri = new URI(repo)
+          if (uri.getScheme == "https") Some(uri.getHost)
+          else None
+        }
+        val isSonatype =
+          hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
+        val passwordOpt = publishOptions.repoPassword match {
+          case None if isSonatype =>
+            value(configDb().get(Keys.sonatypePassword))
+          case other => other
+        }
+        passwordOpt.map(_.get()) match {
+          case None => None
+          case Some(password) =>
+            val userOpt = publishOptions.repoUser match {
+              case None if isSonatype =>
+                value(configDb().get(Keys.sonatypeUser))
+              case other => other
+            }
+            val realmOpt = publishOptions.repoRealm match {
+              case None if isSonatype =>
+                Some("Sonatype Nexus Repository Manager")
+              case other => other
+            }
+            val auth = Authentication(userOpt.fold("")(_.get().value), password.value)
+            Some(realmOpt.fold(auth)(auth.withRealm))
         }
       }
 
-      def centralRepo(base: String) = {
+      def centralRepo(base: String) = either {
+        val authOpt0 = value(authOpt(base))
         val repo0 = {
           val r = PublishRepository.Sonatype(MavenRepository(base))
-          authOpt.fold(r)(r.withAuthentication)
+          authOpt0.fold(r)(r.withAuthentication)
         }
         val backend = ScalaCliSttpBackend.httpURLConnection(logger)
-        val api     = SonatypeApi(backend, base + "/service/local", authOpt, logger.verbosity)
+        val api     = SonatypeApi(backend, base + "/service/local", authOpt0, logger.verbosity)
         val hooks0 = Hooks.sonatype(
           repo0,
           api,
@@ -618,22 +653,25 @@ object Publish extends ScalaCommand[PublishOptions] {
           case Some("ivy2-local") =>
             ivy2Local
           case Some("central" | "maven-central" | "mvn-central") =>
-            centralRepo("https://oss.sonatype.org")
+            value(centralRepo("https://oss.sonatype.org"))
           case Some("central-s01" | "maven-central-s01" | "mvn-central-s01") =>
-            centralRepo("https://s01.oss.sonatype.org")
+            value(centralRepo("https://s01.oss.sonatype.org"))
           case Some(repoStr) =>
-            val repo0 = RepositoryParser.repositoryOpt(repoStr)
-              .collect {
-                case m: MavenRepository =>
-                  m
-              }
-              .getOrElse {
-                val url =
-                  if (repoStr.contains("://")) repoStr
-                  else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
-                MavenRepository(url)
-              }
-              .withAuthentication(authOpt)
+            val repo0 = {
+              val r = RepositoryParser.repositoryOpt(repoStr)
+                .collect {
+                  case m: MavenRepository =>
+                    m
+                }
+                .getOrElse {
+                  val url =
+                    if (repoStr.contains("://")) repoStr
+                    else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
+                  MavenRepository(url)
+                }
+              r.withAuthentication(value(authOpt(r.root)))
+            }
+
             (
               PublishRepository.Simple(repo0),
               None,

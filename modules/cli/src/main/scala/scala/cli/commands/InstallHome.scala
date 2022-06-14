@@ -13,7 +13,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
 
   private def logEqual(version: String) = {
     System.err.println(
-      s"Scala-cli $version is already installed and up-to-date."
+      s"Scala CLI $version is already installed and up-to-date."
     )
     sys.exit(0)
   }

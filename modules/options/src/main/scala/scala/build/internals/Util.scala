@@ -52,9 +52,6 @@ object Util {
         dep0 = dep0.withPublication(dep0.publication.withExt(coursier.core.Extension(ext)))
       for (_ <- dep.userParams.get("intransitive"))
         dep0 = dep0.withTransitive(false)
-      // FIXME
-      // for (tpeOpt <- dep.userParams.get("type"); tpe <- tpeOpt)
-      //   dep0 = dep0.withType(tpe)
       dep0
     }
   }

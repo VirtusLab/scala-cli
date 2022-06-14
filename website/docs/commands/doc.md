@@ -1,6 +1,6 @@
 ---
 title: Doc
-sidebar_position: 17
+sidebar_position: 18
 ---
 
 Scala CLI can generate the API documentation of your Scala 2, Scala 3, and Java projects. It provides features similar to `javadoc`.
@@ -20,8 +20,8 @@ object Hello {
 }
 ```
 
-```bash 
-scala-cli doc Hello.scala -o scala-doc 
+```bash
+scala-cli doc Hello.scala -o scala-doc
 # Wrote Scaladoc to ./scala-doc
 ```
 

@@ -9,7 +9,7 @@ import scala.cli.commands.PackageOptions
 import scala.cli.commands.util.SharedOptionsUtil._
 
 object PackageOptionsUtil {
-  implicit class PackageOptionsOps(v: PackageOptions) {
+  implicit class PackageOptionsOps(private val v: PackageOptions) extends AnyVal {
     import v._
 
     def packageTypeOpt: Option[PackageType] =

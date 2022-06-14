@@ -212,7 +212,9 @@ object Package extends ScalaCommand[PackageOptions] {
           .map(_.stripSuffix("_sc"))
           .map(_ + extension)
       }
-      .orElse(build.retainedMainClass(logger).map(_.stripSuffix("_sc") + extension).toOption)
+      .orElse(build.retainedMainClass(build.foundMainClasses(), logger).map(
+        _.stripSuffix("_sc") + extension
+      ).toOption)
       .orElse(build.sources.paths.collectFirst(_._1.baseName + extension))
       .getOrElse(defaultName)
     val destPath      = os.Path(dest, Os.pwd)
@@ -237,7 +239,7 @@ object Package extends ScalaCommand[PackageOptions] {
     def mainClass: Either[BuildException, String] =
       build.options.mainClass match {
         case Some(cls) => Right(cls)
-        case None      => build.retainedMainClass(logger)
+        case None      => build.retainedMainClass(build.foundMainClasses(), logger)
       }
 
     val packageOptions = build.options.notForBloopOptions.packageOptions
