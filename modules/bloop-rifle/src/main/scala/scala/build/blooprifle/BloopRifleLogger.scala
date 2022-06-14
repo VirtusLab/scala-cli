@@ -6,7 +6,8 @@ import java.io.OutputStream
 
 trait BloopRifleLogger { self =>
   def info(msg: => String): Unit
-  def debug(msg: => String): Unit
+  def debug(msg: => String, ex: Throwable): Unit
+  final def debug(msg: => String): Unit = debug(msg, null)
   def error(msg: => String, ex: Throwable): Unit
   def runnable(name: String)(r: Runnable): Runnable = { () =>
     try r.run()
@@ -36,7 +37,7 @@ object BloopRifleLogger {
   def nop: BloopRifleLogger =
     new BloopRifleLogger {
       def info(msg: => String)                 = {}
-      def debug(msg: => String)                = {}
+      def debug(msg: => String, ex: Throwable) = {}
       def error(msg: => String, ex: Throwable) = {}
       def bloopBspStdout                       = None
       def bloopBspStderr                       = None
