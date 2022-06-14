@@ -352,11 +352,14 @@ final case class BuildOptions(
   }
 
   lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] =
-    computeScalaParams(Constants.version, finalCache).orElse(
-      // when the passed scala version is missed in the cache, we always force a cache refresh
-      // https://github.com/VirtusLab/scala-cli/issues/1090
+    if (System.getenv("CI") == null)
+      computeScalaParams(Constants.version, finalCache).orElse(
+        // when the passed scala version is missed in the cache, we always force a cache refresh
+        // https://github.com/VirtusLab/scala-cli/issues/1090
+        computeScalaParams(Constants.version, finalCache.withTtl(0.seconds))
+      )
+    else
       computeScalaParams(Constants.version, finalCache.withTtl(0.seconds))
-    )
 
   private[build] def computeScalaParams(
     scalaCliVersion: String,
