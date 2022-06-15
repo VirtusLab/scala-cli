@@ -9,7 +9,13 @@ import scala.build.errors.{
   MalformedInputError,
   UnexpectedDirectiveError
 }
-import scala.build.options.publish.{ComputeVersion, Developer, License, Vcs}
+import scala.build.options.publish.{
+  ComputeVersion,
+  Developer,
+  License,
+  MaybeConfigPasswordOption,
+  Vcs
+}
 import scala.build.options.{BuildOptions, PostBuildOptions, PublishOptions}
 import scala.cli.signing.shared.PasswordOption
 
@@ -142,9 +148,17 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
       case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
         PublishOptions(gpgOptions = severalValues.map(_.value).toList)
       case "secretKey" =>
-        PublishOptions(secretKey = Some(value(parsePasswordOption(singleValue.value))))
+        PublishOptions(secretKey =
+          Some(
+            MaybeConfigPasswordOption.ActualOption(value(parsePasswordOption(singleValue.value)))
+          )
+        )
       case "secretKeyPassword" =>
-        PublishOptions(secretKeyPassword = Some(value(parsePasswordOption(singleValue.value))))
+        PublishOptions(secretKeyPassword =
+          Some(
+            MaybeConfigPasswordOption.ActualOption(value(parsePasswordOption(singleValue.value)))
+          )
+        )
       case "user" =>
         PublishOptions(repoUser = Some(value(parsePasswordOption(singleValue.value))))
       case "password" =>

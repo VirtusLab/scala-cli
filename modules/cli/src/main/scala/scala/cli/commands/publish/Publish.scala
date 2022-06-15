@@ -53,6 +53,7 @@ import scala.cli.errors.{
 }
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
+import scala.cli.util.MaybeConfigPasswordOptionHelpers._
 
 object Publish extends ScalaCommand[PublishOptions] {
 
@@ -754,7 +755,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         }
       case Some(PSigner.BouncyCastle) =>
         publishOptions.secretKey match {
-          case Some(secretKey) =>
+          case Some(secretKey0) =>
             val getLauncher: Supplier[NioPath] = { () =>
               val archiveCache = builds.headOption
                 .map(_.options.archiveCache)
@@ -764,16 +765,17 @@ object Publish extends ScalaCommand[PublishOptions] {
                 case Right(value) => value.wrapped
               }
             }
+            val secretKey = secretKey0.get(configDb()).orExit(logger)
             if (forceSigningBinary)
               (new scala.cli.internal.BouncycastleSignerMakerSubst).get(
-                publishOptions.secretKeyPassword.orNull,
+                publishOptions.secretKeyPassword.orNull.get(configDb()).orExit(logger),
                 secretKey,
                 getLauncher,
                 logger
               )
             else
               (new BouncycastleSignerMaker).get(
-                publishOptions.secretKeyPassword.orNull,
+                publishOptions.secretKeyPassword.orNull.get(configDb()).orExit(logger),
                 secretKey,
                 getLauncher,
                 logger
