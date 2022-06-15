@@ -290,8 +290,8 @@ object SharedOptionsUtil {
         logger = logger,
         coursierCache,
         workspace.forcedWorkspaceOpt,
-        defaultForbiddenDirectories,
-        forbid,
+        input.defaultForbiddenDirectories,
+        input.forbid,
         scriptSnippetList = v.snippet.scriptSnippet,
         scalaSnippetList = v.snippet.scalaSnippet,
         javaSnippetList = v.snippet.javaSnippet
