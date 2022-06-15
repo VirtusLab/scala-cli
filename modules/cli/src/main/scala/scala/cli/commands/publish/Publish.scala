@@ -141,8 +141,17 @@ object Publish extends ScalaCommand[PublishOptions] {
     )
   }
 
+  def maybePrintLicensesAndExit(params: PublishParamsOptions): Unit =
+    if (params.license.contains("list")) {
+      for (l <- scala.build.internal.Licenses.list)
+        println(s"${l.id}: ${l.name} (${l.url})")
+      sys.exit(0)
+    }
+
   def run(options: PublishOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
+
+    maybePrintLicensesAndExit(options.publishParams)
 
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)

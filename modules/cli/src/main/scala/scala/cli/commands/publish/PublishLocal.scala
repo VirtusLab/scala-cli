@@ -22,6 +22,8 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
   def run(options: PublishLocalOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
 
+    Publish.maybePrintLicensesAndExit(options.publishParams)
+
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
