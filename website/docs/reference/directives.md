@@ -179,7 +179,7 @@ Set the default Scala version
 
 `//> using scala "2"`
 
-`//> using scala "2.13.6", "2.12.15"`
+`//> using scala "2.13.6", "2.12.16"`
 
 ### Scala.js options
 

@@ -214,7 +214,7 @@ scala-cli -S 2.13.8 --scalac-help
 
 Other scalac print help options (like `-X`, `-Xshow-phases`, `-Vphases`, etc.) are supported as well.
 ```bash
-scala-cli -S 2.12.15 -Xshow-phases
+scala-cli -S 2.12.16 -Xshow-phases
 #
 #    phase name  id  description
 #    ----------  --  -----------

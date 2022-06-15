@@ -16,7 +16,7 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
     "//> using scala \"3.0.2\"",
     "//> using scala \"2.13\"",
     "//> using scala \"2\"",
-    "//> using scala \"2.13.6\", \"2.12.15\""
+    "//> using scala \"2.13.6\", \"2.12.16\""
   )
 
   def keys = Seq("scala")
