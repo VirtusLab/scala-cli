@@ -1,4 +1,4 @@
-# v0.1.8
+# [v0.1.8](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.8)
 
 ## `--list-main-classes` option for the `run` command
 
