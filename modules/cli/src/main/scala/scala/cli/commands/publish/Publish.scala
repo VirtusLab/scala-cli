@@ -210,7 +210,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       ivy2HomeOpt,
       publishLocal = false,
       forceSigningBinary = options.sharedPublish.forceSigningBinary,
-      parallelUpload = options.parallelUpload.getOrElse(true),
+      parallelUpload = options.parallelUpload,
       options.watch.watch,
       () => configDb
     )
@@ -227,7 +227,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
     forceSigningBinary: Boolean,
-    parallelUpload: Boolean,
+    parallelUpload: Option[Boolean],
     watch: Boolean,
     configDb: () => ConfigDb
   ): Unit = {
@@ -307,7 +307,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     logger: Logger,
     allowExit: Boolean,
     forceSigningBinary: Boolean,
-    parallelUpload: Boolean,
+    parallelUpload: Option[Boolean],
     configDb: () => ConfigDb
   ): Unit = {
 
@@ -585,7 +585,10 @@ object Publish extends ScalaCommand[PublishOptions] {
     repo: PublishRepository,
     targetRepoOpt: Option[String],
     hooks: Hooks,
-    isIvy2LocalLike: Boolean
+    isIvy2LocalLike: Boolean,
+    defaultParallelUpload: Boolean,
+    supportsSig: Boolean,
+    acceptsChecksums: Boolean
   )
 
   private def doPublish(
@@ -596,7 +599,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     publishLocal: Boolean,
     logger: Logger,
     forceSigningBinary: Boolean,
-    parallelUpload: Boolean,
+    parallelUpload: Option[Boolean],
     configDb: () => ConfigDb
   ): Either[BuildException, Unit] = either {
 
@@ -665,7 +668,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
           es
         )
-        RepoParams(repo0, Some("https://repo1.maven.org/maven2"), hooks0, false)
+        RepoParams(repo0, Some("https://repo1.maven.org/maven2"), hooks0, false, true, true, true)
       }
 
       def ivy2Local = {
@@ -676,6 +679,9 @@ object Publish extends ScalaCommand[PublishOptions] {
           PublishRepository.Simple(MavenRepository(base.toNIO.toUri.toASCIIString)),
           None,
           Hooks.dummy,
+          true,
+          true,
+          true,
           true
         )
       }
@@ -716,7 +722,10 @@ object Publish extends ScalaCommand[PublishOptions] {
               PublishRepository.Simple(repo0),
               None,
               Hooks.dummy,
-              publishOptions.repositoryIsIvy2LocalLike.getOrElse(false)
+              publishOptions.repositoryIsIvy2LocalLike.getOrElse(false),
+              true,
+              true,
+              true
             )
         }
     }
@@ -746,8 +755,10 @@ object Publish extends ScalaCommand[PublishOptions] {
     }
 
     val signerOpt = publishOptions.signer.orElse {
-      if (publishOptions.secretKey.isDefined) Some(PSigner.BouncyCastle)
-      else if (publishOptions.gpgSignatureId.isDefined) Some(PSigner.Gpg)
+      if (repoParams.supportsSig)
+        if (publishOptions.secretKey.isDefined) Some(PSigner.BouncyCastle)
+        else if (publishOptions.gpgSignatureId.isDefined) Some(PSigner.Gpg)
+        else None
       else None
     }
     val signer: Signer = signerOpt match {
@@ -819,7 +830,9 @@ object Publish extends ScalaCommand[PublishOptions] {
     val checksumLogger =
       new InteractiveChecksumLogger(new OutputStreamWriter(System.err), verbosity = 1)
     val checksumTypes = publishOptions.checksums match {
-      case None              => Seq(ChecksumType.MD5, ChecksumType.SHA1)
+      case None =>
+        if (repoParams.acceptsChecksums) Seq(ChecksumType.MD5, ChecksumType.SHA1)
+        else Nil
       case Some(Seq("none")) => Nil
       case Some(inputs) =>
         value {
@@ -863,7 +876,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         retainedRepo,
         finalFileSet,
         uploadLogger,
-        if (parallelUpload) Some(ec) else None
+        if (parallelUpload.getOrElse(repoParams.defaultParallelUpload)) Some(ec) else None
       ).unsafeRun()(ec)
 
     errors.toList match {

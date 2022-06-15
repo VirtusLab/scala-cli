@@ -70,7 +70,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       ivy2HomeOpt,
       publishLocal = true,
       forceSigningBinary = options.sharedPublish.forceSigningBinary,
-      parallelUpload = true,
+      parallelUpload = Some(true),
       options.watch.watch,
       () => ConfigDb.empty // shouldn't be used, no need of repo credentials here
     )
