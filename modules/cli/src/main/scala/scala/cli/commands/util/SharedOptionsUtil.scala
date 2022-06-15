@@ -2,7 +2,8 @@ package scala.cli.commands
 package util
 
 import caseapp.RemainingArgs
-import coursier.util.Artifact
+import coursier.cache.FileCache
+import coursier.util.{Artifact, Task}
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
@@ -24,6 +25,69 @@ import scala.util.Properties
 import scala.util.control.NonFatal
 
 object SharedOptionsUtil {
+
+  private def downloadInputs(cache: FileCache[Task]): String => Either[String, Array[Byte]] = {
+    url =>
+      val artifact = Artifact(url).withChanging(true)
+      val res = cache.logger.use {
+        try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)
+        catch {
+          case NonFatal(e) => throw new Exception(e)
+        }
+      }
+      res
+        .left.map(_.describe)
+        .map(f => os.read.bytes(os.Path(f, Os.pwd)))
+  }
+
+  /** [[Inputs]] builder, handy when you don't have a [[SharedOptions]] instance at hand */
+  def inputs(
+    args: Seq[String],
+    defaultInputs: () => Option[Inputs],
+    resourceDirs: Seq[String],
+    directories: scala.build.Directories,
+    logger: scala.build.Logger,
+    cache: FileCache[Task],
+    forcedWorkspaceOpt: Option[os.Path],
+    defaultForbiddenDirectories: Boolean,
+    forbid: List[String],
+    scriptSnippetList: List[String],
+    scalaSnippetList: List[String],
+    javaSnippetList: List[String]
+  ): Either[BuildException, Inputs] = {
+    val resourceInputs = resourceDirs
+      .map(os.Path(_, Os.pwd))
+      .map { path =>
+        if (!os.exists(path))
+          logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
+        path
+      }
+      .map(Inputs.ResourceDirectory(_))
+    val maybeInputs = Inputs(
+      args,
+      Os.pwd,
+      directories,
+      defaultInputs = defaultInputs,
+      download = downloadInputs(cache),
+      stdinOpt = readStdin(logger = logger),
+      scriptSnippetList = scriptSnippetList,
+      scalaSnippetList = scalaSnippetList,
+      javaSnippetList = javaSnippetList,
+      acceptFds = !Properties.isWin,
+      forcedWorkspace = forcedWorkspaceOpt
+    )
+    maybeInputs.map { inputs =>
+      val forbiddenDirs =
+        (if (defaultForbiddenDirectories) myDefaultForbiddenDirectories else Nil) ++
+          forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
+
+      inputs
+        .add(resourceInputs)
+        .checkAttributes(directories)
+        .avoid(forbiddenDirs, directories)
+    }
+  }
+
   implicit class SharedOptionsOps(v: SharedOptions) {
     import v._
 
@@ -214,61 +278,30 @@ object SharedOptionsUtil {
 
     def coursierCache = cached(v)(coursier.coursierCache(logging.logger.coursierLogger("")))
 
-    private def downloadInputs: String => Either[String, Array[Byte]] = { url =>
-      val artifact = Artifact(url).withChanging(true)
-      val res = coursierCache.logger.use {
-        try coursierCache.withTtl(0.seconds).file(artifact).run.unsafeRun()(coursierCache.ec)
-        catch {
-          case NonFatal(e) => throw new Exception(e)
-        }
-      }
-      res
-        .left.map(_.describe)
-        .map(f => os.read.bytes(os.Path(f, Os.pwd)))
-    }
-
     def inputs(
       args: Seq[String],
       defaultInputs: () => Option[Inputs] = () => Inputs.default()
-    ): Either[BuildException, Inputs] = {
-      val resourceInputs = resourceDirs
-        .map(os.Path(_, Os.pwd))
-        .map { path =>
-          if (!os.exists(path))
-            logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
-          path
-        }
-        .map(Inputs.ResourceDirectory(_))
-      val maybeInputs = Inputs(
+    ): Either[BuildException, Inputs] =
+      SharedOptionsUtil.inputs(
         args,
-        Os.pwd,
+        defaultInputs,
+        resourceDirs,
         directories.directories,
-        defaultInputs = defaultInputs,
-        download = downloadInputs,
-        stdinOpt = readStdin(logger = logger),
+        logger = logger,
+        coursierCache,
+        workspace.forcedWorkspaceOpt,
+        defaultForbiddenDirectories,
+        forbid,
         scriptSnippetList = v.snippet.scriptSnippet,
         scalaSnippetList = v.snippet.scalaSnippet,
-        javaSnippetList = v.snippet.javaSnippet,
-        acceptFds = !Properties.isWin,
-        forcedWorkspace = workspace.forcedWorkspaceOpt
+        javaSnippetList = v.snippet.javaSnippet
       )
-      maybeInputs.map { inputs =>
-        val forbiddenDirs =
-          (if (defaultForbiddenDirectories) myDefaultForbiddenDirectories else Nil) ++
-            forbid.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
-
-        inputs
-          .add(resourceInputs)
-          .checkAttributes(directories.directories)
-          .avoid(forbiddenDirs, directories.directories)
-      }
-    }
 
     def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Inputs.Element]]] =
       Inputs.validateArgs(
         args,
         Os.pwd,
-        downloadInputs,
+        downloadInputs(coursierCache),
         readStdin(logger = logger),
         !Properties.isWin
       )
