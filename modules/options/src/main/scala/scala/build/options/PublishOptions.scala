@@ -18,6 +18,9 @@ final case class PublishOptions(
   local: PublishContextualOptions = PublishContextualOptions(),
   ci: PublishContextualOptions = PublishContextualOptions()
 ) {
+  def retained(isCi: Boolean): PublishContextualOptions =
+    if (isCi) ci
+    else local
   def contextual(isCi: Boolean): PublishContextualOptions =
     if (isCi) PublishContextualOptions.monoid.orElse(ci, local)
     else local

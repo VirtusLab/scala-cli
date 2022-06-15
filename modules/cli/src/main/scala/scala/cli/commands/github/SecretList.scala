@@ -21,7 +21,7 @@ object SecretList extends ScalaCommand[ListSecretsOptions] {
     List("gh", "secret", "list")
   )
 
-  private def list(
+  def list(
     repoOrg: String,
     repoName: String,
     token: Secret[String],

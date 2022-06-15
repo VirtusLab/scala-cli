@@ -268,6 +268,20 @@ Accepts options:
 - [watch](./cli-options.md#watch-options)
 - [workspace](./cli-options.md#workspace-options)
 
+## `publish setup`
+
+Accepts options:
+- [coursier](./cli-options.md#coursier-options)
+- [directories](./cli-options.md#directories-options)
+- [input](./cli-options.md#input-options)
+- [logging](./cli-options.md#logging-options)
+- [pgp push pull](./cli-options.md#pgp-push-pull-options)
+- [publish params](./cli-options.md#publish-params-options)
+- [publish repository](./cli-options.md#publish-repository-options)
+- [publish setup](./cli-options.md#publish-setup-options)
+- [verbosity](./cli-options.md#verbosity-options)
+- [workspace](./cli-options.md#workspace-options)
+
 ## `run`
 
 Compile and run Scala code.

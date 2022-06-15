@@ -5,7 +5,23 @@ import scala.build.errors.BuildException
 final class MissingPublishOptionError(
   val name: String,
   val optionName: String,
-  val directiveName: String
+  val directiveName: String,
+  val configKeys: Seq[String] = Nil,
+  val extraMessage: String = ""
 ) extends BuildException(
-      s"Missing $name for publishing, specify one with $optionName or with a 'using $directiveName' directive"
+      {
+        val directivePart =
+          if (directiveName.isEmpty)
+            s" or with a 'using $directiveName' directive"
+          else
+            ""
+        val configPart =
+          if (configKeys.isEmpty) ""
+          else
+            s" or by setting ${configKeys.mkString(", ")} in the Scala CLI configuration"
+        s"Missing $name for publishing, specify one with $optionName" +
+          directivePart +
+          configPart +
+          extraMessage
+      }
     )

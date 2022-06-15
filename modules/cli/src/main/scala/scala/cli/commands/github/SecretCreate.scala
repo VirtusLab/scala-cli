@@ -38,7 +38,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
         )
     }
 
-  private def publicKey(
+  def publicKey(
     repoOrg: String,
     repoName: String,
     token: Secret[String],
@@ -71,7 +71,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     readFromString(publicKeyRespBody)(GitHubApi.publicKeyCodec)
   }
 
-  private def createOrUpdate(
+  def createOrUpdate(
     repoOrg: String,
     repoName: String,
     token: Secret[String],
@@ -118,10 +118,10 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
       r.code.code match {
         case 201 =>
-          logger.message(s"$secretName created")
+          logger.message(s"  created $secretName")
           true
         case 204 =>
-          logger.message(s"$secretName updated")
+          logger.message(s"  updated $secretName")
           false
         case code =>
           value(Left(new GitHubApiError(
