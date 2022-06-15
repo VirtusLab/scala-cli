@@ -39,7 +39,7 @@ final case class SharedPublishOptions(
 
   @Group("Publishing")
   @HelpMessage("Method to use to sign artifacts")
-  @ValueDescription("gpg|bc")
+  @ValueDescription("gpg|bc|none")
     signer: Option[String] = None,
 
   @Group("Publishing")
