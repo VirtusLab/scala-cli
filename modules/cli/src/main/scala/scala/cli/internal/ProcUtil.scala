@@ -58,7 +58,8 @@ object ProcUtil {
         conn.setRequestProperty(k, v)
       conn.getInputStream.readAllBytes()
     }
-    finally if (conn != null)
+    finally
+      if (conn != null)
         closeConn(conn)
   }
 

@@ -30,7 +30,7 @@ The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need
 #### Run unit tests
 
 ```bash
-./mill 'build-module[_].test'
+./mill 'build-module.test'
 ```
 
 #### Run integration tests with the JVM launcher

@@ -98,17 +98,18 @@ object Build {
               }
               Right(pickedMainClass)
             }
-            else options.interactive
-              .chooseOne(
-                "Found several main classes. Which would you like to run?",
-                mainClasses.toList
-              )
-              .toRight {
-                new SeveralMainClassesFoundError(
-                  ::(mainClasses.head, mainClasses.tail.toList),
-                  Nil
+            else
+              options.interactive
+                .chooseOne(
+                  "Found several main classes. Which would you like to run?",
+                  mainClasses.toList
                 )
-              }
+                .toRight {
+                  new SeveralMainClassesFoundError(
+                    ::(mainClasses.head, mainClasses.tail.toList),
+                    Nil
+                  )
+                }
         }
 
       defaultMainClassOpt match {
