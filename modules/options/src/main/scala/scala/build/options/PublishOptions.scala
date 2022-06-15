@@ -15,8 +15,13 @@ final case class PublishOptions(
   developers: Seq[Developer] = Nil,
   scalaVersionSuffix: Option[String] = None,
   scalaPlatformSuffix: Option[String] = None,
-  contextual: PublishContextualOptions = PublishContextualOptions()
-)
+  local: PublishContextualOptions = PublishContextualOptions(),
+  ci: PublishContextualOptions = PublishContextualOptions()
+) {
+  def contextual(isCi: Boolean): PublishContextualOptions =
+    if (isCi) PublishContextualOptions.monoid.orElse(ci, local)
+    else local
+}
 
 object PublishOptions {
   implicit val monoid: ConfigMonoid[PublishOptions] = ConfigMonoid.derive

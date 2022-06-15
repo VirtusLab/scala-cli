@@ -14,40 +14,45 @@ import scala.cli.signing.shared.PasswordOption
 
 case object UsingPublishContextualDirectiveHandler extends UsingDirectiveHandler {
 
-  private def prefix = "publish."
+  private def prefix   = "publish."
+  private def ciPrefix = "ci."
 
   def name        = "Publish (contextual)"
   def description = "Set contextual parameters for publishing"
-  def usage       = s"//> using $prefix[ci.](computeVersion|repository|secretKey|…) [value]"
+  def usage       = s"//> using $prefix[$ciPrefix](computeVersion|repository|secretKey|…) [value]"
 
   override def usageMd =
     s"""`//> using ${prefix}computeVersion `"value"
-       |`//> using ${prefix}ci.repository `"value"
+       |`//> using $prefix${ciPrefix}repository `"value"
        |`//> using ${prefix}secretKey `"value"
        |""".stripMargin
 
   private def q = "\""
   override def examples = Seq(
     s"//> using ${prefix}computeVersion ${q}git:tag$q",
-    s"//> using ${prefix}ci.repository ${q}central-s01$q",
+    s"//> using $prefix${ciPrefix}repository ${q}central-s01$q",
     s"//> using ${prefix}secretKey ${q}env:PUBLISH_SECRET_KEY$q"
   )
-  def keys = Seq(
-    "computeVersion",
-    "compute-version",
-    "repository",
-    "gpgKey",
-    "gpg-key",
-    "gpgOption",
-    "gpg-option",
-    "gpgOptions",
-    "gpg-options",
-    "secretKey",
-    "secretKeyPassword",
-    "user",
-    "password",
-    "realm"
-  ).map(prefix + _)
+  def keys = {
+    val names = Seq(
+      "computeVersion",
+      "compute-version",
+      "repository",
+      "gpgKey",
+      "gpg-key",
+      "gpgOption",
+      "gpg-option",
+      "gpgOptions",
+      "gpg-options",
+      "secretKey",
+      "secretKeyPassword",
+      "user",
+      "password",
+      "realm"
+    )
+    names.map(prefix + _) ++
+      names.map(prefix + ciPrefix + _)
+  }
 
   override def getValueNumberBounds(key: String) = key match {
     case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
@@ -65,9 +70,12 @@ case object UsingPublishContextualDirectiveHandler extends UsingDirectiveHandler
     val severalValues = groupedScopedValuesContainer.scopedStringValues.map(_.positioned)
     val singleValue   = severalValues.head
 
-    val strippedKey =
-      if (scopedDirective.directive.key.startsWith(prefix))
-        scopedDirective.directive.key.stripPrefix(prefix)
+    val (strippedKey, isCi) =
+      if (scopedDirective.directive.key.startsWith(prefix)) {
+        val key = scopedDirective.directive.key.stripPrefix(prefix)
+        if (key.startsWith(ciPrefix)) (key.stripPrefix(ciPrefix), true)
+        else (key, false)
+      }
       else
         value(Left(new UnexpectedDirectiveError(scopedDirective.directive.key)))
 
@@ -111,7 +119,9 @@ case object UsingPublishContextualDirectiveHandler extends UsingDirectiveHandler
         value(Left(new UnexpectedDirectiveError(scopedDirective.directive.key)))
     }
 
-    val publishOptions = PublishOptions(contextual = publishContextualOptions)
+    val publishOptions =
+      if (isCi) PublishOptions(ci = publishContextualOptions)
+      else PublishOptions(local = publishContextualOptions)
 
     val options = BuildOptions(
       notForBloopOptions = PostBuildOptions(

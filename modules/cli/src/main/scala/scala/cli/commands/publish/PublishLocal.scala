@@ -72,6 +72,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       forceSigningBinary = options.sharedPublish.forceSigningBinary,
       parallelUpload = Some(true),
       options.watch.watch,
+      isCi = options.publishParams.isCi,
       () => ConfigDb.empty // shouldn't be used, no need of repo credentials here
     )
   }

@@ -1224,6 +1224,10 @@ Aliases: `--secret-key-pass`
 
 Password of secret key to use to sign artifacts with Bouncy Castle
 
+#### `--ci`
+
+Use or setup publish parameters meant to be used on continuous integration
+
 ## Publish repository options
 
 Available in commands:

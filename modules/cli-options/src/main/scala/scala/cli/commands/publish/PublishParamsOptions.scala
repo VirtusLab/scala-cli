@@ -51,10 +51,18 @@ final case class PublishParamsOptions(
   @HelpMessage("Password of secret key to use to sign artifacts with Bouncy Castle")
   @ValueDescription("value:…")
   @ExtraName("secretKeyPass")
-    secretKeyPassword: Option[MaybeConfigPasswordOption] = None
+    secretKeyPassword: Option[MaybeConfigPasswordOption] = None,
 
-)
-// format: on
+  @Group("Publishing")
+  @HelpMessage("Use or setup publish parameters meant to be used on continuous integration")
+    ci: Option[Boolean] = None
+
+) {
+  // format: on
+
+  def isCi: Boolean =
+    ci.getOrElse(System.getenv("CI") != null)
+}
 
 object PublishParamsOptions {
   lazy val parser: Parser[PublishParamsOptions]                           = Parser.derive
