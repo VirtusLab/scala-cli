@@ -148,10 +148,18 @@ object Publish extends ScalaCommand[PublishOptions] {
       sys.exit(0)
     }
 
+  def maybePrintChecksumsAndExit(options: SharedPublishOptions): Unit =
+    if (options.checksum.contains("list")) {
+      for (t <- ChecksumType.all)
+        println(t.name)
+      sys.exit(0)
+    }
+
   def run(options: PublishOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
 
     maybePrintLicensesAndExit(options.publishParams)
+    maybePrintChecksumsAndExit(options.sharedPublish)
 
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
