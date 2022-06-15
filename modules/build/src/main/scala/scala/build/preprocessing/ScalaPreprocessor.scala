@@ -57,6 +57,7 @@ case object ScalaPreprocessor extends Preprocessor {
     UsingResourcesDirectiveHandler,
     UsingCompilerPluginDirectiveHandler,
     UsingMainClassDirectiveHandler,
+    UsingPublishContextualDirectiveHandler,
     UsingPublishDirectiveHandler
   )
 

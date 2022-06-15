@@ -3,21 +3,9 @@ package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.Ops._
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  MalformedInputError,
-  UnexpectedDirectiveError
-}
-import scala.build.options.publish.{
-  ComputeVersion,
-  Developer,
-  License,
-  MaybeConfigPasswordOption,
-  Vcs
-}
+import scala.build.errors.{BuildException, CompositeBuildException, UnexpectedDirectiveError}
+import scala.build.options.publish.{Developer, License, Vcs}
 import scala.build.options.{BuildOptions, PostBuildOptions, PublishOptions}
-import scala.cli.signing.shared.PasswordOption
 
 case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
 
@@ -44,8 +32,6 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     "name",
     "moduleName",
     "version",
-    "computeVersion",
-    "compute-version",
     "url",
     "license",
     "versionControl",
@@ -56,24 +42,10 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     "scalaVersionSuffix",
     "scala-version-suffix",
     "scalaPlatformSuffix",
-    "scala-platform-suffix",
-    "repository",
-    "gpgKey",
-    "gpg-key",
-    "gpgOption",
-    "gpg-option",
-    "gpgOptions",
-    "gpg-options",
-    "secretKey",
-    "secretKeyPassword",
-    "user",
-    "password",
-    "realm"
+    "scala-platform-suffix"
   ).map(prefix + _)
 
   override def getValueNumberBounds(key: String) = key match {
-    case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
-      UsingDirectiveValueNumberBounds(1, Int.MaxValue)
     case _ => UsingDirectiveValueNumberBounds(1, 1)
   }
 
@@ -102,17 +74,6 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
         PublishOptions(moduleName = Some(singleValue))
       case "version" =>
         PublishOptions(version = Some(singleValue))
-      case "computeVersion" | "compute-version" =>
-        value {
-          ComputeVersion.parse(singleValue).map {
-            computeVersion =>
-              PublishOptions(
-                computeVersion = Some(
-                  computeVersion
-                )
-              )
-          }
-        }
       case "url" =>
         PublishOptions(url = Some(singleValue))
       case "license" =>
@@ -141,30 +102,6 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
         PublishOptions(scalaVersionSuffix = Some(singleValue.value))
       case "scalaPlatformSuffix" | "scala-platform-suffix" =>
         PublishOptions(scalaPlatformSuffix = Some(singleValue.value))
-      case "repository" =>
-        PublishOptions(repository = Some(singleValue.value))
-      case "gpgKey" | "gpg-key" =>
-        PublishOptions(gpgSignatureId = Some(singleValue.value))
-      case "gpgOptions" | "gpg-options" | "gpgOption" | "gpg-option" =>
-        PublishOptions(gpgOptions = severalValues.map(_.value).toList)
-      case "secretKey" =>
-        PublishOptions(secretKey =
-          Some(
-            MaybeConfigPasswordOption.ActualOption(value(parsePasswordOption(singleValue.value)))
-          )
-        )
-      case "secretKeyPassword" =>
-        PublishOptions(secretKeyPassword =
-          Some(
-            MaybeConfigPasswordOption.ActualOption(value(parsePasswordOption(singleValue.value)))
-          )
-        )
-      case "user" =>
-        PublishOptions(repoUser = Some(value(parsePasswordOption(singleValue.value))))
-      case "password" =>
-        PublishOptions(repoPassword = Some(value(parsePasswordOption(singleValue.value))))
-      case "realm" =>
-        PublishOptions(repoRealm = Some(singleValue.value))
       case _ =>
         value(Left(new UnexpectedDirectiveError(scopedDirective.directive.key)))
     }
@@ -177,10 +114,4 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
 
     ProcessedDirective(Some(options), Seq.empty)
   }
-
-  private def parsePasswordOption(input: String): Either[BuildException, PasswordOption] =
-    PasswordOption.parse(input)
-      .left.map(_ =>
-        new MalformedInputError("secret", input, "file:_path_|value:_value_|env:_env_var_name_")
-      )
 }
