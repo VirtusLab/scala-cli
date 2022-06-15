@@ -25,7 +25,7 @@ fi
 
 statusFile="$(pwd)/out/sclicheck/.status"
 scala-cli sclicheck/sclicheck.scala -- --status-file "$statusFile" "${toCheck[@]}" || (
-  echo "Checking documentation failed. To run tests locally run `.github/scripts/check_docs.sh <failing_file>`"
+  echo "Checking documentation failed. To run tests locally run '.github/scripts/check_docs.sh <failing_file>'"
   echo "You can find more about automatic documentaiton testing in sclicheck/Readme.md file."
   exit 1
 )
