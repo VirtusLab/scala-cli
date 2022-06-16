@@ -43,6 +43,7 @@ final case class Artifacts(
           (a.url, f)
       }
       .toVector
+      .distinct
   lazy val sourceArtifacts: Seq[(String, os.Path)] =
     detailedArtifacts
       .iterator
@@ -51,6 +52,7 @@ final case class Artifacts(
           (a.url, f)
       }
       .toVector
+      .distinct
   lazy val classPath: Seq[os.Path] =
     artifacts.map(_._2) ++ extraClassPath
   lazy val compileClassPath: Seq[os.Path] =

@@ -3,6 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
+import java.util.regex.Pattern
 
 import scala.cli.integration.util.BloopUtil
 
@@ -414,4 +415,41 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         expect(os.exists(expectedCoverageFilePath))
       }
     }
+
+  if (actualScalaVersion.startsWith("2."))
+    test("no duplicates in class path") {
+      noDuplicatesInClassPathTest()
+    }
+  def noDuplicatesInClassPathTest(): Unit = {
+    val sparkVersion = "3.3.0"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""//> using lib "org.apache.spark::spark-sql:$sparkVersion"
+             |object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("Hello")
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res =
+        os.proc(
+          TestUtil.cli,
+          "compile",
+          "--class-path",
+          extraOptions,
+          "."
+        ).call(cwd = root)
+      val classPath          = res.out.text().trim.split(File.pathSeparator)
+      val classPathFileNames = classPath.map(_.split(Pattern.quote(File.separator)).last)
+      expect(classPathFileNames.exists(_.startsWith("spark-core_")))
+      // usually a duplicate is there if we don't call .distrinct when necessary here or there
+      expect(classPathFileNames.exists(_.startsWith("snappy-java")))
+      val duplicates =
+        classPath.groupBy(identity).view.mapValues(_.length).filter(_._2 > 1).toVector
+      expect(duplicates.isEmpty)
+    }
+  }
 }
