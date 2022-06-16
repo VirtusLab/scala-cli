@@ -220,35 +220,15 @@ trait CliLaunchers extends SbtModule { self =>
         else "lib"
       os.copy.over(libPath, destDir / s"${prefix}sodiumjni.$ext")
     }
-    private def copyLibsodiumTo(cs: String, destDir: os.Path): Unit = {
-      val (osPart, suffix, relPath, ext) = sys.props.get("os.arch") match {
-        case Some("x86_64" | "amd64") =>
-          if (Properties.isWin)
-            ("win-64", "-h62dcd97_1", os.rel / "Library" / "lib" / "libsodium.lib", "lib")
-          else if (Properties.isLinux)
-            ("linux-64", "-h36c2ea0_1", os.rel / "lib" / "libsodium.a", "a")
-          else if (Properties.isMac) ("osx-64", "-hbcb3906_1", os.rel / "lib" / "libsodium.a", "a")
-          else sys.error(s"Unsupported OS for x86_64 platform: ${sys.props("os.name")}")
-        case Some("aarch64") =>
-          if (Properties.isLinux)
-            ("linux-aarch64", "-hb9de7d4_1", os.rel / "lib" / "libsodium.a", "a")
-          else sys.error(s"Unsupported OS for aarch64 platform: ${sys.props("os.name")}")
-        case Some(arch) =>
-          sys.error(s"Unsupported architecture: $arch")
-        case None =>
-          sys.error("Cannot determine CPU architecture")
-      }
+    private def copyLibsodiumStaticTo(cs: String, destDir: os.Path): Unit = {
       val dirRes = os.proc(
         cs,
         "get",
         "--archive",
-        s"https://anaconda.org/conda-forge/libsodium/$libsodiumVersion/download/$osPart/libsodium-$libsodiumVersion$suffix.tar.bz2"
+        "https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-stable-msvc.zip"
       ).call()
       val dir = os.Path(dirRes.out.text().trim, os.pwd)
-      val prefix =
-        if (Properties.isWin) ""
-        else "lib"
-      os.copy.over(dir / relPath, destDir / s"${prefix}sodium.$ext")
+      os.copy.over(dir / "libsodium" / "x64" / "Release" / "v143" / "static" / "libsodium.lib", destDir / "sodium.lib")
     }
     private def copyAlpineLibsodiumTo(cs: String, destDir: os.Path): Unit = {
       val arcPath = os.proc(
@@ -270,7 +250,7 @@ trait CliLaunchers extends SbtModule { self =>
       os.makeDir.all(dir)
 
       if (Properties.isWin) {
-        copyLibsodiumTo(cs(), dir)
+        copyLibsodiumStaticTo(cs(), dir)
         copyLibsodiumjniTo(cs(), dir)
         copyCsjniutilTo(cs(), dir)
       }

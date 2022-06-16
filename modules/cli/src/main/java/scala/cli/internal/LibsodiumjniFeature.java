@@ -18,7 +18,7 @@ public class LibsodiumjniFeature implements Feature {
         NativeLibrarySupport.singleton().preregisterUninitializedBuiltinLibrary("sodiumjni");
         PlatformNativeLibrarySupport.singleton().addBuiltinPkgNativePrefix("libsodiumjni_");
         NativeLibraries nativeLibraries = ((FeatureImpl.BeforeAnalysisAccessImpl) access).getNativeLibraries();
+        nativeLibraries.addStaticNonJniLibrary("sodium");
         nativeLibraries.addStaticJniLibrary("sodiumjni");
-        nativeLibraries.addDynamicNonJniLibrary("sodium");
     }
 }
