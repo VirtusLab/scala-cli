@@ -1,0 +1,1 @@
+- VirtusLab/scala-cli

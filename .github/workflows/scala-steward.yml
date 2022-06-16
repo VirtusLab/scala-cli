@@ -1,0 +1,22 @@
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+name: Run Scala Steward
+
+jobs:
+  scala-steward:
+    runs-on: ubuntu-latest
+    name: Run Scala Steward
+    steps:
+      # Needed or else it won't find your repos file
+      - uses: actions/checkout@v2
+
+      - name: Run Scala Steward
+        uses: scala-steward-org/scala-steward-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          author-email: actions@github.com
+          author-name: Scala Steward Action
+          repos-file: .github/steward-repos.md
