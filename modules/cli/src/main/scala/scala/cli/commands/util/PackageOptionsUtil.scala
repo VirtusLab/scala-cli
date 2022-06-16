@@ -92,6 +92,9 @@ object PackageOptionsUtil {
         internal = baseOptions.internal.copy(
           // computing the provided modules sub-graph needs the final Resolution instance
           keepResolution = provided.nonEmpty
+        ),
+        internalDependencies = baseOptions.internalDependencies.copy(
+          addRunnerDependencyOpt = Some(false)
         )
       )
     }

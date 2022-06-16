@@ -493,13 +493,20 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
 
       var zf: ZipFile = null
-      try {
-        zf = new ZipFile(launcher.toIO)
-        expect(zf.getEntry("hello/Hello.class") != null)
-        expect(zf.getEntry("scala/Function.class") == null) // no scala-library
-        expect(zf.getEntry("scala/Tuple.class") == null)    // no scala3-library
-      }
-      finally if (zf != null) zf.close()
+      val entries =
+        try {
+          zf = new ZipFile(launcher.toIO)
+          expect(zf.getEntry("hello/Hello.class") != null)
+          expect(zf.getEntry("scala/Function.class") == null) // no scala-library
+          expect(zf.getEntry("scala/Tuple.class") == null)    // no scala3-library
+
+          zf.entries().asScala.map(_.getName).toVector.sorted
+        }
+        finally if (zf != null) zf.close()
+
+      val noMetaEntries = entries.filter(!_.startsWith("META-INF/"))
+      expect(noMetaEntries.nonEmpty)
+      expect(noMetaEntries.forall(_.startsWith("hello/")))
 
       val scalaLibCp =
         os.proc(TestUtil.cs, "fetch", "--classpath", s"$providedModule:$actualScalaVersion")
