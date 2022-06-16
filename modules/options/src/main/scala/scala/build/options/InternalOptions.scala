@@ -11,7 +11,14 @@ final case class InternalOptions(
   // FIXME Should be removed, not a real option (not meant to be set from using directives)
   strictBloopJsonCheck: Option[Boolean] = None,
   interactive: Option[Boolean] = None,
-  javaClassNameVersionOpt: Option[String] = None
+  javaClassNameVersionOpt: Option[String] = None,
+  /** Whether to keep the coursier.Resolution instance in [[scala.build.Artifacts]]
+    *
+    * Resolutions can be quite heavy in memory (I don't recall the exact numbers, but 10s of MB if
+    * not more is not unseen when Spark modules are involves for example), so we only keep them when
+    * really needed.
+    */
+  keepResolution: Boolean = false
 ) {
   def verbosityOrDefault = verbosity.getOrElse(0)
   def strictBloopJsonCheckOrDefault =

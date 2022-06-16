@@ -30,13 +30,33 @@ object Util {
         }
     }
 
+  implicit class ModuleOps(private val mod: dependency.Module) extends AnyVal {
+    def toCs: coursier.Module =
+      coursier.Module(
+        coursier.Organization(mod.organization),
+        coursier.ModuleName(mod.name),
+        mod.attributes
+      )
+  }
+  implicit class ScalaModuleOps(private val mod: dependency.AnyModule) extends AnyVal {
+    def toCs(params: dependency.ScalaParameters): coursier.Module =
+      mod.applyParams(params).toCs
+    def toCs(paramsOpt: Option[dependency.ScalaParameters])
+      : Either[NoScalaVersionProvidedError, coursier.Module] =
+      paramsOpt match {
+        case Some(params) => Right(toCs(params))
+        case None =>
+          val isJavaMod = mod.nameAttributes == NoAttributes
+          if (isJavaMod)
+            Right(mod.asInstanceOf[dependency.Module].toCs)
+          else
+            Left(new NoScalaVersionProvidedError(Left(mod)))
+      }
+  }
+
   implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
     def toCs: coursier.Dependency = {
-      val mod = coursier.Module(
-        coursier.Organization(dep.organization),
-        coursier.ModuleName(dep.name),
-        dep.attributes
-      )
+      val mod  = dep.module.toCs
       var dep0 = coursier.Dependency(mod, dep.version)
       if (dep.exclude.nonEmpty)
         dep0 = dep0.withExclusions {
@@ -69,7 +89,7 @@ object Util {
           if (isJavaDep)
             Right(dep.asInstanceOf[dependency.Dependency].toCs)
           else
-            Left(new NoScalaVersionProvidedError(dep))
+            Left(new NoScalaVersionProvidedError(Right(dep)))
       }
   }
   implicit class PositionedScalaDependencyOps(
@@ -79,7 +99,7 @@ object Util {
       : Either[NoScalaVersionProvidedError, Positioned[coursier.Dependency]] = {
       val res = posDep.map(_.toCs(paramsOpt))
       res.value
-        .left.map(_ => new NoScalaVersionProvidedError(posDep.value, posDep.positions))
+        .left.map(_ => new NoScalaVersionProvidedError(Right(posDep.value), posDep.positions))
         .map(Positioned(res.positions, _))
     }
   }

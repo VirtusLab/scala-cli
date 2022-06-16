@@ -485,6 +485,7 @@ final case class BuildOptions(
       addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.addJmhDependencies,
       extraRepositories = finalRepositories,
+      keepResolution = internal.keepResolution,
       cache = finalCache,
       logger = logger
     )

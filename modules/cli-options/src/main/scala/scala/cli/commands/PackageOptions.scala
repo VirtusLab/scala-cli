@@ -63,6 +63,12 @@ final case class PackageOptions(
     docker: Boolean = false,
 
   @Group("Package")
+  @Hidden
+  @HelpMessage("Exclude modules *and their transitive dependencies* from the JAR to be packaged")
+  @ValueDescription("org:name")
+    provided: List[String] = Nil,
+
+  @Group("Package")
   @HelpMessage("Use default scaladoc options")
   @ExtraName("defaultScaladocOpts")
     defaultScaladocOptions: Option[Boolean] = None,

@@ -100,8 +100,11 @@ Set parameters for packaging
 
 `using packaging.packageType `"package type"
 
+
 #### Examples
 `using packaging.packageType "assembly"`
+
+`using packaging.provided "org.apache.spark::spark-sql"`
 
 ### Platform
 

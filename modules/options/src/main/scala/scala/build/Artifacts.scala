@@ -4,7 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.{Classifier, Module}
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Dependency as CsDependency, Fetch, core as csCore, util as csUtil}
+import coursier.{Dependency as CsDependency, Fetch, Resolution, core as csCore, util as csUtil}
 import dependency.*
 
 import java.net.URL
@@ -32,7 +32,8 @@ final case class Artifacts(
   extraCompileOnlyJars: Seq[os.Path],
   extraSourceJars: Seq[os.Path],
   scalaOpt: Option[ScalaArtifacts],
-  hasJvmRunner: Boolean
+  hasJvmRunner: Boolean,
+  resolution: Option[Resolution]
 ) {
   lazy val artifacts: Seq[(String, os.Path)] =
     detailedArtifacts
@@ -83,6 +84,7 @@ object Artifacts {
     addJvmTestRunner: Boolean,
     addJmhDependencies: Option[String],
     extraRepositories: Seq[String],
+    keepResolution: Boolean,
     cache: FileCache[Task],
     logger: Logger
   ): Either[BuildException, Artifacts] = either {
@@ -336,7 +338,8 @@ object Artifacts {
       extraCompileOnlyJars,
       extraSourceJars,
       scalaOpt,
-      addJvmRunner0
+      addJvmRunner0,
+      if (keepResolution) Some(fetchRes.resolution) else None
     )
   }
 
