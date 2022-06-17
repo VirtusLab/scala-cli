@@ -99,7 +99,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
   def run(options: FmtOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val interactive = options.shared.logging.verbosityOptions.interactiveInstance
+    val interactive = options.shared.logging.verbosityOptions.interactiveInstance()
     val logger      = options.shared.logger
 
     // TODO If no input is given, just pass '.' to scalafmt?
