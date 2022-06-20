@@ -4,18 +4,18 @@ import caseapp.core.RemainingArgs
 
 import scala.build.BuildThreads
 import scala.cli.CurrentParams
-import scala.cli.commands.ScalaCommand
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.{ScalaCommand, SharedOptions}
 import scala.cli.config.ConfigDb
 
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {
 
-  override def group      = "Main"
-  override def inSipScala = false
-  override def sharedOptions(options: PublishLocalOptions) =
+  override def group: String       = "Main"
+  override def inSipScala: Boolean = false
+  override def sharedOptions(options: PublishLocalOptions): Option[SharedOptions] =
     Some(options.shared)
 
-  override def names = List(
+  override def names: List[List[String]] = List(
     List("publish", "local")
   )
 

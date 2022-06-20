@@ -58,9 +58,9 @@ import scala.cli.util.MaybeConfigPasswordOptionHelpers._
 
 object Publish extends ScalaCommand[PublishOptions] {
 
-  override def group      = "Main"
-  override def inSipScala = false
-  override def sharedOptions(options: PublishOptions) =
+  override def group: String       = "Main"
+  override def inSipScala: Boolean = false
+  override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 
   def mkBuildOptions(
@@ -86,14 +86,14 @@ object Publish extends ScalaCommand[PublishOptions] {
       repoRealm = publishRepo.realm,
       signer = value {
         sharedPublish.signer
-          .map(Positioned.commandLine(_))
-          .map(PSigner.parse(_))
+          .map(Positioned.commandLine)
+          .map(PSigner.parse)
           .sequence
       },
       computeVersion = value {
         publishParams.computeVersion
-          .map(Positioned.commandLine(_))
-          .map(ComputeVersion.parse(_))
+          .map(Positioned.commandLine)
+          .map(ComputeVersion.parse)
           .sequence
       },
       checksums = {
@@ -106,35 +106,34 @@ object Publish extends ScalaCommand[PublishOptions] {
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
-          organization = publishParams.organization.map(_.trim).filter(_.nonEmpty).map(
-            Positioned.commandLine(_)
-          ),
-          name = publishParams.name.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          organization =
+            publishParams.organization.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
+          name = publishParams.name.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           moduleName =
-            publishParams.moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+            publishParams.moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           version =
-            publishParams.version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          url = publishParams.url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+            publishParams.version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
+          url = publishParams.url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           license = value {
             publishParams.license
               .map(_.trim).filter(_.nonEmpty)
-              .map(Positioned.commandLine(_))
-              .map(License.parse(_))
+              .map(Positioned.commandLine)
+              .map(License.parse)
               .sequence
           },
           versionControl = value {
             publishParams.vcs
               .map(_.trim).filter(_.nonEmpty)
-              .map(Positioned.commandLine(_))
-              .map(Vcs.parse(_))
+              .map(Positioned.commandLine)
+              .map(Vcs.parse)
               .sequence
           },
           description = publishParams.description.map(_.trim).filter(_.nonEmpty),
           developers = value {
             publishParams.developer
               .filter(_.trim.nonEmpty)
-              .map(Positioned.commandLine(_))
-              .map(Developer.parse(_))
+              .map(Positioned.commandLine)
+              .map(Developer.parse)
               .sequence
               .left.map(CompositeBuildException(_))
           },
@@ -556,7 +555,6 @@ object Publish extends ScalaCommand[PublishOptions] {
       scm = scm,
       developers = developers,
       time = LocalDateTime.ofInstant(now, ZoneOffset.UTC),
-      hasPom = true,
       hasDoc = docJarOpt.isDefined,
       hasSources = sourceJarOpt.isDefined
     )
