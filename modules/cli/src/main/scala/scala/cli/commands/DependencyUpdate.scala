@@ -2,8 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
-import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
+import scala.build.actionable.ActionablePreprocessor
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.Scope
 import scala.build.{CrossSources, Logger, Position, Sources}
@@ -34,42 +34,67 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
       ).orExit(logger)
 
     val scopedSources = crossSources.scopedSources(buildOptions).orExit(logger)
-    val sources       = scopedSources.sources(Scope.Main, crossSources.sharedOptions(buildOptions))
 
-    if (verbosity >= 3)
-      pprint.err.log(sources)
+    def generateActionableUpdateDiagnostic(scope: Scope)
+      : Seq[ActionableDependencyUpdateDiagnostic] = {
+      val sources = scopedSources.sources(scope, crossSources.sharedOptions(buildOptions))
 
-    val options0 = buildOptions.orElse(sources.buildOptions)
+      if (verbosity >= 3)
+        pprint.err.log(sources)
 
-    val dependencies = ActionableDependencyHandler.extractPositionedOptions(options0)
-    val (errors, actionableUpdateDiagnostics) = dependencies.map(
-      ActionableDependencyHandler.createActionableDiagnostic(_, options0)
-    ).partitionMap(identity)
+      val options = buildOptions.orElse(sources.buildOptions)
+      val actionableDiagnostics =
+        ActionablePreprocessor.generateActionableDiagnostics(options).orExit(logger)
 
-    errors.foreach(logger.debug(_))
+      actionableDiagnostics.collect {
+        case ad: ActionableDependencyUpdateDiagnostic => ad
+      }
+    }
+
+    val actionableMainUpdateDiagnostics = generateActionableUpdateDiagnostic(Scope.Main)
+    val actionableTestUpdateDiagnostics = generateActionableUpdateDiagnostic(Scope.Test)
+    val actionableUpdateDiagnostics =
+      (actionableMainUpdateDiagnostics ++ actionableTestUpdateDiagnostics).distinct
 
     if (options.all)
-      updateDependencies(actionableUpdateDiagnostics.flatten, logger)
+      updateDependencies(actionableUpdateDiagnostics, logger)
   }
 
   private def updateDependencies(
-    actionableUpdateDiagnostic: Seq[ActionableDependencyUpdateDiagnostic],
+    actionableUpdateDiagnostics: Seq[ActionableDependencyUpdateDiagnostic],
     logger: Logger
   ): Unit = {
-    for {
-      diagnostic                                  <- actionableUpdateDiagnostic
-      Position.File(Right(filePath), startPos, _) <- diagnostic.positions
-    } {
-      val lineIndex = startPos._1
-      val appliedDiagnostic = os.read.lines(filePath).zipWithIndex.map {
-        case (line, index) if index == lineIndex =>
-          val updatedDependency = updateDependency(line, startPos, diagnostic)
-          updatedDependency
-        case (line, _) => line
-      }.mkString(System.lineSeparator())
-      os.write.over(filePath, appliedDiagnostic)
-      logger.message(s"Updated dependency to: ${diagnostic.to}")
+    actionableUpdateDiagnostics.foreach { diagnostic =>
+      diagnostic.positions
+        .collect { case file: Position.File => file }
+        .foreach {
+          case Position.File(Right(filePath), startPos, _) =>
+            val lineIndex = startPos._1
+            val appliedDiagnostic = splitFileContentByLine(filePath).map {
+              case (line, index) if index == lineIndex + 1 =>
+                updateDependency(line, startPos, diagnostic)
+              case (line, _) => line
+            }.mkString
+            os.write.over(filePath, appliedDiagnostic)
+            logger.message(s"Updated dependency to: ${diagnostic.to}")
+          case Position.File(Left(file), _, _) =>
+            logger.message(
+              s"scala-cli can't update dependency to:${diagnostic.to} in virtual file: $file"
+            )
+        }
     }
+  }
+
+  private def splitFileContentByLine(file: os.Path) = {
+    val content       = os.read(file)
+    val startIndicies = Position.Raw.lineStartIndices(content).toList
+
+    def lsplit(pos: List[Int], s: String): List[String] =
+      pos match {
+        case x :: rest => s.substring(0, x) :: lsplit(rest.map(_ - x), s.substring(x))
+        case Nil       => List(s)
+      }
+    lsplit(startIndicies, content).zipWithIndex
   }
 
   private def updateDependency(
@@ -78,8 +103,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     diagnostic: ActionableDependencyUpdateDiagnostic
   ) = {
     val depColumnIndex = pos._2
-    val head           = line.take(depColumnIndex)
-    val tail           = line.drop(depColumnIndex)
+    val (head, tail)   = line.splitAt(depColumnIndex)
     if (tail.startsWith("$ivy.`")) {
       val last = tail.stripPrefix("$ivy.`").dropWhile(_ != '`')
       s"$head$$ivy.`${diagnostic.to}$last"

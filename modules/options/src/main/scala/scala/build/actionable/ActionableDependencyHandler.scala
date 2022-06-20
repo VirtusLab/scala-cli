@@ -12,9 +12,10 @@ import scala.build.internal.Util._
 import scala.build.options.BuildOptions
 import scala.concurrent.duration.DurationInt
 
-case object ActionableDependencyHandler extends ActionableHandler[AnyDependency] {
+case object ActionableDependencyHandler extends ActionableHandler {
+  type V = Positioned[AnyDependency]
 
-  override def extractPositionedOptions(options: BuildOptions): Seq[Positioned[AnyDependency]] =
+  override def extractOptions(options: BuildOptions): Seq[Positioned[AnyDependency]] =
     options.classPathOptions.extraDependencies.toSeq
 
   override def createActionableDiagnostic(

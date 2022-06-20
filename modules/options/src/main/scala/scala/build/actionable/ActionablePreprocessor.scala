@@ -1,6 +1,6 @@
 package scala.build.actionable
-
-import scala.build.Logger
+import scala.build.Ops._
+import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.BuildOptions
 
 case object ActionablePreprocessor {
@@ -9,19 +9,19 @@ case object ActionablePreprocessor {
   )
 
   def generateActionableDiagnostics(
-    options: BuildOptions,
-    logger: Logger
-  ): Seq[ActionableDiagnostic] =
-    actionableHandlers.flatMap { handler =>
-      val values = handler.extractPositionedOptions(options)
-      val (errors, actionableDiagnostic) =
-        values.map(v => handler.createActionableDiagnostic(v, options)).partitionMap(identity)
-      errors.map(logger.debug(_))
-      actionableDiagnostic.flatten
-    }
+    options: BuildOptions
+  ): Either[BuildException, Seq[ActionableDiagnostic]] =
+    actionableHandlers
+      .map { handler =>
+        handler
+          .extractOptions(options)
+          .map(v => handler.createActionableDiagnostic(v, options))
+          .sequence
+          .left.map(CompositeBuildException(_))
+          .map(_.flatten)
+      }
+      .sequence
+      .left.map(CompositeBuildException(_))
+      .map(_.flatten)
 
-  def process(options: BuildOptions, logger: Logger): Unit = {
-    val actionableDiagnostics = generateActionableDiagnostics(options, logger)
-    actionableDiagnostics.foreach(ad => logger.log(Seq(ad.toDiagnostic)))
-  }
 }

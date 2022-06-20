@@ -44,7 +44,7 @@ object Position {
 
     // from https://github.com/com-lihaoyi/Ammonite/blob/76673f7f3eb9d9ae054482635f57a31527d248de/amm/interp/src/main/scala/ammonite/interp/script/PositionOffsetConversion.scala#L7-L69
 
-    private def lineStartIndices(content: String): Array[Int] = {
+    def lineStartIndices(content: String): Array[Int] = {
 
       val content0 = content.toCharArray
 

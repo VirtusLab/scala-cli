@@ -1,18 +1,19 @@
 package scala.build.actionable
-import scala.build.Positioned
+
 import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 
-trait ActionableHandler[V] {
+trait ActionableHandler {
+  type V
 
   /** Extract options on the basis of which actionable diagnostics will be generated
     *
     * @param options
-    *   the Build Options to extract positioned options
+    *   the Build Options to extract options
     * @return
-    *   the list of positioned options
+    *   the list of options on the basis of which actionable diagnostics will be generated
     */
-  def extractPositionedOptions(options: BuildOptions): Seq[Positioned[V]]
+  def extractOptions(options: BuildOptions): Seq[V]
 
   /** The option on the basis of which the Actionable Diagnostic is generated
     *
@@ -23,7 +24,7 @@ trait ActionableHandler[V] {
     *   Cache" See [[ActionableDependencyHandler]]
     */
   def createActionableDiagnostic(
-    option: Positioned[V],
+    option: V,
     buildOptions: BuildOptions
   ): Either[BuildException, Option[ActionableDiagnostic]]
 }
