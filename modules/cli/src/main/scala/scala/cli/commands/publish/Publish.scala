@@ -35,6 +35,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
+import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.commands.{
@@ -224,7 +225,8 @@ object Publish extends ScalaCommand[PublishOptions] {
       parallelUpload = options.parallelUpload,
       options.watch.watch,
       isCi = options.publishParams.isCi,
-      () => configDb
+      () => configDb,
+      options.mainClass
     )
   }
 
@@ -242,7 +244,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     parallelUpload: Option[Boolean],
     watch: Boolean,
     isCi: Boolean,
-    configDb: () => ConfigDb
+    configDb: () => ConfigDb,
+    mainClassOptions: MainClassOptions
   ): Unit = {
 
     if (watch) {
@@ -268,7 +271,8 @@ object Publish extends ScalaCommand[PublishOptions] {
             forceSigningBinary = forceSigningBinary,
             parallelUpload = parallelUpload,
             isCi = isCi,
-            configDb
+            configDb,
+            mainClassOptions
           )
         }
       }
@@ -297,7 +301,8 @@ object Publish extends ScalaCommand[PublishOptions] {
         forceSigningBinary = forceSigningBinary,
         parallelUpload = parallelUpload,
         isCi = isCi,
-        configDb
+        configDb,
+        mainClassOptions
       )
     }
   }
@@ -345,7 +350,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     forceSigningBinary: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
-    configDb: () => ConfigDb
+    configDb: () => ConfigDb,
+    mainClassOptions: MainClassOptions
   ): Unit = {
 
     val allOk = builds.all.forall {
@@ -365,18 +371,23 @@ object Publish extends ScalaCommand[PublishOptions] {
       val docBuilds0 = builds.allDoc.collect {
         case s: Build.Successful => s
       }
-      val res = doPublish(
-        builds0,
-        docBuilds0,
-        workingDir,
-        ivy2HomeOpt,
-        publishLocal,
-        logger,
-        forceSigningBinary,
-        parallelUpload,
-        isCi,
-        configDb
-      )
+      val res: Either[BuildException, Unit] =
+        builds.main match {
+          case s: Build.Successful if mainClassOptions.mainClassLs.contains(true) =>
+            mainClassOptions.maybePrintMainClasses(s.foundMainClasses(), shouldExit = allowExit)
+          case _ => doPublish(
+              builds0,
+              docBuilds0,
+              workingDir,
+              ivy2HomeOpt,
+              publishLocal,
+              logger,
+              forceSigningBinary,
+              parallelUpload,
+              isCi,
+              configDb
+            )
+        }
       if (allowExit)
         res.orExit(logger)
       else
