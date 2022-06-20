@@ -228,7 +228,10 @@ trait CliLaunchers extends SbtModule { self =>
         "https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-stable-msvc.zip"
       ).call()
       val dir = os.Path(dirRes.out.text().trim, os.pwd)
-      os.copy.over(dir / "libsodium" / "x64" / "Release" / "v143" / "static" / "libsodium.lib", destDir / "sodium.lib")
+      os.copy.over(
+        dir / "libsodium" / "x64" / "Release" / "v143" / "static" / "libsodium.lib",
+        destDir / "sodium.lib"
+      )
     }
     private def copyAlpineLibsodiumTo(cs: String, destDir: os.Path): Unit = {
       val arcPath = os.proc(
