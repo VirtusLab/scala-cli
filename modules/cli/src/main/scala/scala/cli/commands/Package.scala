@@ -23,6 +23,7 @@ import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
+import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.PackageOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.errors.ScalaJsLinkingError
@@ -68,13 +69,15 @@ object Package extends ScalaCommand[PackageOptions] {
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
             val mtimeDestPath = doPackage(
-              logger,
-              options.output.filter(_.nonEmpty),
-              options.force,
-              options.forcedPackageTypeOpt,
-              s,
-              args.unparsed,
-              expectedModifyEpochSecondOpt
+              logger = logger,
+              outputOpt = options.output.filter(_.nonEmpty),
+              force = options.force,
+              forcedPackageTypeOpt = options.forcedPackageTypeOpt,
+              build = s,
+              extraArgs = args.unparsed,
+              expectedModifyEpochSecondOpt = expectedModifyEpochSecondOpt,
+              allowTerminate = !options.watch.watchMode,
+              mainClassOptions = options.mainClass
             )
               .orReport(logger)
             for (valueOpt <- mtimeDestPath)
@@ -104,13 +107,15 @@ object Package extends ScalaCommand[PackageOptions] {
       builds.main match {
         case s: Build.Successful =>
           val res0 = doPackage(
-            logger,
-            options.output.filter(_.nonEmpty),
-            options.force,
-            options.forcedPackageTypeOpt,
-            s,
-            args.unparsed,
-            None
+            logger = logger,
+            outputOpt = options.output.filter(_.nonEmpty),
+            force = options.force,
+            forcedPackageTypeOpt = options.forcedPackageTypeOpt,
+            build = s,
+            extraArgs = args.unparsed,
+            expectedModifyEpochSecondOpt = None,
+            allowTerminate = !options.watch.watchMode,
+            mainClassOptions = options.mainClass
           )
           res0.orExit(logger)
         case _: Build.Failed =>
@@ -130,261 +135,272 @@ object Package extends ScalaCommand[PackageOptions] {
     forcedPackageTypeOpt: Option[PackageType],
     build: Build.Successful,
     extraArgs: Seq[String],
-    expectedModifyEpochSecondOpt: Option[Long]
+    expectedModifyEpochSecondOpt: Option[Long],
+    allowTerminate: Boolean,
+    mainClassOptions: MainClassOptions
   ): Either[BuildException, Option[Long]] = either {
+    if (mainClassOptions.mainClassLs.contains(true))
+      value {
+        mainClassOptions
+          .maybePrintMainClasses(build.foundMainClasses(), shouldExit = allowTerminate)
+          .map(_ => None)
+      }
+    else {
+      val packageType: PackageType = value {
+        val basePackageTypeOpt = build.options.notForBloopOptions.packageOptions.packageTypeOpt
+        lazy val validPackageScalaJS =
+          Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
+        lazy val validPackageScalaNative =
+          Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
 
-    val packageType: PackageType = value {
-      val basePackageTypeOpt = build.options.notForBloopOptions.packageOptions.packageTypeOpt
-      lazy val validPackageScalaJS =
-        Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
-      lazy val validPackageScalaNative =
-        Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
-
-      forcedPackageTypeOpt -> build.options.platform.value match {
-        case (Some(forcedPackageType), _) => Right(forcedPackageType)
-        case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
-          for (basePackageType <- basePackageTypeOpt)
-            Left(new MalformedCliInputError(
-              s"Unsuported package type: $basePackageType for Docker."
-            ))
-          Right(PackageType.Docker)
-        case (_, Platform.JS) =>
-          val validatedPackageType =
+        forcedPackageTypeOpt -> build.options.platform.value match {
+          case (Some(forcedPackageType), _) => Right(forcedPackageType)
+          case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
             for (basePackageType <- basePackageTypeOpt)
-              yield
-                if (validPackageScalaJS.contains(basePackageType)) Right(basePackageType)
-                else Left(new MalformedCliInputError(
-                  s"Unsuported package type: $basePackageType for Scala.js."
-                ))
-          validatedPackageType.getOrElse(Right(PackageType.Js))
-        case (_, Platform.Native) =>
-          val validatedPackageType =
-            for (basePackageType <- basePackageTypeOpt)
-              yield
-                if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
-                else Left(new MalformedCliInputError(
-                  s"Unsuported package type: $basePackageType for Scala Native."
-                ))
-          validatedPackageType.getOrElse(Right(PackageType.Native))
-        case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
-      }
-    }
-
-    // TODO When possible, call alreadyExistsCheck() before compiling stuff
-
-    def extension = packageType match {
-      case PackageType.LibraryJar                             => ".jar"
-      case PackageType.SourceJar                              => ".jar"
-      case PackageType.DocJar                                 => ".jar"
-      case PackageType.Assembly                               => ".jar"
-      case PackageType.Js                                     => ".js"
-      case PackageType.Debian                                 => ".deb"
-      case PackageType.Dmg                                    => ".dmg"
-      case PackageType.Pkg                                    => ".pkg"
-      case PackageType.Rpm                                    => ".rpm"
-      case PackageType.Msi                                    => ".msi"
-      case PackageType.Native if Properties.isWin             => ".exe"
-      case PackageType.GraalVMNativeImage if Properties.isWin => ".exe"
-      case _ if Properties.isWin                              => ".bat"
-      case _                                                  => ""
-    }
-    def defaultName = packageType match {
-      case PackageType.LibraryJar                             => "library.jar"
-      case PackageType.SourceJar                              => "source.jar"
-      case PackageType.DocJar                                 => "scaladoc.jar"
-      case PackageType.Assembly                               => "app.jar"
-      case PackageType.Js                                     => "app.js"
-      case PackageType.Debian                                 => "app.deb"
-      case PackageType.Dmg                                    => "app.dmg"
-      case PackageType.Pkg                                    => "app.pkg"
-      case PackageType.Rpm                                    => "app.rpm"
-      case PackageType.Msi                                    => "app.msi"
-      case PackageType.Native if Properties.isWin             => "app.exe"
-      case PackageType.GraalVMNativeImage if Properties.isWin => "app.exe"
-      case _ if Properties.isWin                              => "app.bat"
-      case _                                                  => "app"
-    }
-
-    val dest = outputOpt
-      .orElse {
-        build.sources.defaultMainClass
-          .map(n => n.drop(n.lastIndexOf('.') + 1))
-          .map(_.stripSuffix("_sc"))
-          .map(_ + extension)
-      }
-      .orElse(build.retainedMainClass(build.foundMainClasses(), logger).map(
-        _.stripSuffix("_sc") + extension
-      ).toOption)
-      .orElse(build.sources.paths.collectFirst(_._1.baseName + extension))
-      .getOrElse(defaultName)
-    val destPath      = os.Path(dest, Os.pwd)
-    val printableDest = CommandUtils.printablePath(destPath)
-
-    def alreadyExistsCheck(): Unit = {
-      val alreadyExists = !force &&
-        os.exists(destPath) &&
-        !expectedModifyEpochSecondOpt.contains(os.mtime(destPath))
-      if (alreadyExists)
-        InteractiveFileOps.erasingPath(build.options.interactive, printableDest, destPath) { () =>
-          val errorMsg =
-            if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
-            else s"$printableDest was overwritten by another process"
-          System.err.println(s"Error: $errorMsg. Pass -f or --force to force erasing it.")
-          sys.exit(1)
+              Left(new MalformedCliInputError(
+                s"Unsuported package type: $basePackageType for Docker."
+              ))
+            Right(PackageType.Docker)
+          case (_, Platform.JS) =>
+            val validatedPackageType =
+              for (basePackageType <- basePackageTypeOpt)
+                yield
+                  if (validPackageScalaJS.contains(basePackageType)) Right(basePackageType)
+                  else Left(new MalformedCliInputError(
+                    s"Unsuported package type: $basePackageType for Scala.js."
+                  ))
+            validatedPackageType.getOrElse(Right(PackageType.Js))
+          case (_, Platform.Native) =>
+            val validatedPackageType =
+              for (basePackageType <- basePackageTypeOpt)
+                yield
+                  if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
+                  else Left(new MalformedCliInputError(
+                    s"Unsuported package type: $basePackageType for Scala Native."
+                  ))
+            validatedPackageType.getOrElse(Right(PackageType.Native))
+          case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
         }
-    }
-
-    alreadyExistsCheck()
-
-    def mainClass: Either[BuildException, String] =
-      build.options.mainClass match {
-        case Some(cls) => Right(cls)
-        case None      => build.retainedMainClass(build.foundMainClasses(), logger)
       }
 
-    val packageOptions = build.options.notForBloopOptions.packageOptions
+      // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
-    val outputPath = packageType match {
-      case PackageType.Bootstrap =>
-        bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
-        destPath
-      case PackageType.LibraryJar =>
-        val content = Library.libraryJar(build)
-        alreadyExistsCheck()
-        if (force) os.write.over(destPath, content)
-        else os.write(destPath, content)
-        destPath
-      case PackageType.SourceJar =>
-        val now     = System.currentTimeMillis()
-        val content = sourceJar(build, now)
-        alreadyExistsCheck()
-        if (force) os.write.over(destPath, content)
-        else os.write(destPath, content)
-        destPath
-      case PackageType.DocJar =>
-        val docJarPath = value(docJar(build, logger, extraArgs))
-        alreadyExistsCheck()
-        if (force) os.copy.over(docJarPath, destPath)
-        else os.copy(docJarPath, destPath)
-        destPath
-      case PackageType.Assembly =>
-        assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
-        destPath
+      def extension = packageType match {
+        case PackageType.LibraryJar                             => ".jar"
+        case PackageType.SourceJar                              => ".jar"
+        case PackageType.DocJar                                 => ".jar"
+        case PackageType.Assembly                               => ".jar"
+        case PackageType.Js                                     => ".js"
+        case PackageType.Debian                                 => ".deb"
+        case PackageType.Dmg                                    => ".dmg"
+        case PackageType.Pkg                                    => ".pkg"
+        case PackageType.Rpm                                    => ".rpm"
+        case PackageType.Msi                                    => ".msi"
+        case PackageType.Native if Properties.isWin             => ".exe"
+        case PackageType.GraalVMNativeImage if Properties.isWin => ".exe"
+        case _ if Properties.isWin                              => ".bat"
+        case _                                                  => ""
+      }
 
-      case PackageType.Js =>
-        value(buildJs(build, destPath, value(mainClass), logger))
+      def defaultName = packageType match {
+        case PackageType.LibraryJar                             => "library.jar"
+        case PackageType.SourceJar                              => "source.jar"
+        case PackageType.DocJar                                 => "scaladoc.jar"
+        case PackageType.Assembly                               => "app.jar"
+        case PackageType.Js                                     => "app.js"
+        case PackageType.Debian                                 => "app.deb"
+        case PackageType.Dmg                                    => "app.dmg"
+        case PackageType.Pkg                                    => "app.pkg"
+        case PackageType.Rpm                                    => "app.rpm"
+        case PackageType.Msi                                    => "app.msi"
+        case PackageType.Native if Properties.isWin             => "app.exe"
+        case PackageType.GraalVMNativeImage if Properties.isWin => "app.exe"
+        case _ if Properties.isWin                              => "app.bat"
+        case _                                                  => "app"
+      }
 
-      case PackageType.Native =>
-        buildNative(build, value(mainClass), destPath, logger)
-        destPath
-
-      case PackageType.GraalVMNativeImage =>
-        NativeImage.buildNativeImage(
-          build,
-          value(mainClass),
-          destPath,
-          build.inputs.nativeImageWorkDir,
-          extraArgs,
-          logger
-        )
-        destPath
-
-      case nativePackagerType: PackageType.NativePackagerType =>
-        val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
-        bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck())
-        val sharedSettings = SharedSettings(
-          sourceAppPath = bootstrapPath,
-          version = packageOptions.packageVersion,
-          force = force,
-          outputPath = destPath,
-          logoPath = packageOptions.logoPath,
-          launcherApp = packageOptions.launcherApp
-        )
-
-        lazy val debianSettings = DebianSettings(
-          shared = sharedSettings,
-          maintainer = packageOptions.maintainer.mandatory("--maintainer", "debian"),
-          description = packageOptions.description.mandatory("--description", "debian"),
-          debianConflicts = packageOptions.debianOptions.conflicts,
-          debianDependencies = packageOptions.debianOptions.dependencies,
-          architecture = packageOptions.debianOptions.architecture.mandatory(
-            "--deb-architecture",
-            "debian"
-          )
-        )
-
-        lazy val macOSSettings = MacOSSettings(
-          shared = sharedSettings,
-          identifier =
-            packageOptions.macOSidentifier.mandatory("--identifier-parameter", "macOs")
-        )
-
-        lazy val redHatSettings = RedHatSettings(
-          shared = sharedSettings,
-          description = packageOptions.description.mandatory("--description", "redHat"),
-          license =
-            packageOptions.redHatOptions.license.mandatory("--license", "redHat"),
-          release =
-            packageOptions.redHatOptions.release.mandatory("--release", "redHat"),
-          rpmArchitecture = packageOptions.redHatOptions.architecture.mandatory(
-            "--rpm-architecture",
-            "redHat"
-          )
-        )
-
-        lazy val windowsSettings = WindowsSettings(
-          shared = sharedSettings,
-          maintainer = packageOptions.maintainer.mandatory("--maintainer", "windows"),
-          licencePath = packageOptions.windowsOptions.licensePath.mandatory(
-            "--licence-path",
-            "windows"
-          ),
-          productName = packageOptions.windowsOptions.productName.mandatory(
-            "--product-name",
-            "windows"
-          ),
-          exitDialog = packageOptions.windowsOptions.exitDialog,
-          suppressValidation =
-            packageOptions.windowsOptions.suppressValidation.getOrElse(false),
-          extraConfigs = packageOptions.windowsOptions.extraConfig,
-          is64Bits = packageOptions.windowsOptions.is64Bits.getOrElse(true),
-          installerVersion = packageOptions.windowsOptions.installerVersion
-        )
-
-        nativePackagerType match {
-          case PackageType.Debian =>
-            DebianPackage(debianSettings).build()
-          case PackageType.Dmg =>
-            DmgPackage(macOSSettings).build()
-          case PackageType.Pkg =>
-            PkgPackage(macOSSettings).build()
-          case PackageType.Rpm =>
-            RedHatPackage(redHatSettings).build()
-          case PackageType.Msi =>
-            WindowsPackage(windowsSettings).build()
+      val dest = outputOpt
+        .orElse {
+          build.sources.defaultMainClass
+            .map(n => n.drop(n.lastIndexOf('.') + 1))
+            .map(_.stripSuffix("_sc"))
+            .map(_ + extension)
         }
-        destPath
-      case PackageType.Docker =>
-        docker(build, value(mainClass), logger)
-        destPath
-    }
+        .orElse(build.retainedMainClass(build.foundMainClasses(), logger).map(
+          _.stripSuffix("_sc") + extension
+        ).toOption)
+        .orElse(build.sources.paths.collectFirst(_._1.baseName + extension))
+        .getOrElse(defaultName)
+      val destPath      = os.Path(dest, Os.pwd)
+      val printableDest = CommandUtils.printablePath(destPath)
 
-    val printableOutput = CommandUtils.printablePath(outputPath)
-
-    if (packageType.runnable.nonEmpty)
-      logger.message {
-        if (packageType.runnable.contains(true))
-          s"Wrote $outputPath, run it with" + System.lineSeparator() +
-            "  " + printableOutput
-        else if (packageType == PackageType.Js)
-          s"Wrote $outputPath, run it with" + System.lineSeparator() +
-            "  node " + printableOutput
-        else
-          s"Wrote $outputPath"
+      def alreadyExistsCheck(): Unit = {
+        val alreadyExists = !force &&
+          os.exists(destPath) &&
+          !expectedModifyEpochSecondOpt.contains(os.mtime(destPath))
+        if (alreadyExists)
+          InteractiveFileOps.erasingPath(build.options.interactive, printableDest, destPath) { () =>
+            val errorMsg =
+              if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
+              else s"$printableDest was overwritten by another process"
+            System.err.println(s"Error: $errorMsg. Pass -f or --force to force erasing it.")
+            sys.exit(1)
+          }
       }
 
-    val mTimeDestPathOpt = if (packageType.runnable.isEmpty) None else Some(os.mtime(destPath))
-    mTimeDestPathOpt
+      alreadyExistsCheck()
+
+      def mainClass: Either[BuildException, String] =
+        build.options.mainClass match {
+          case Some(cls) => Right(cls)
+          case None      => build.retainedMainClass(build.foundMainClasses(), logger)
+        }
+
+      val packageOptions = build.options.notForBloopOptions.packageOptions
+
+      val outputPath = packageType match {
+        case PackageType.Bootstrap =>
+          bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
+          destPath
+        case PackageType.LibraryJar =>
+          val content = Library.libraryJar(build)
+          alreadyExistsCheck()
+          if (force) os.write.over(destPath, content)
+          else os.write(destPath, content)
+          destPath
+        case PackageType.SourceJar =>
+          val now     = System.currentTimeMillis()
+          val content = sourceJar(build, now)
+          alreadyExistsCheck()
+          if (force) os.write.over(destPath, content)
+          else os.write(destPath, content)
+          destPath
+        case PackageType.DocJar =>
+          val docJarPath = value(docJar(build, logger, extraArgs))
+          alreadyExistsCheck()
+          if (force) os.copy.over(docJarPath, destPath)
+          else os.copy(docJarPath, destPath)
+          destPath
+        case PackageType.Assembly =>
+          assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
+          destPath
+
+        case PackageType.Js =>
+          value(buildJs(build, destPath, value(mainClass), logger))
+
+        case PackageType.Native =>
+          buildNative(build, value(mainClass), destPath, logger)
+          destPath
+
+        case PackageType.GraalVMNativeImage =>
+          NativeImage.buildNativeImage(
+            build,
+            value(mainClass),
+            destPath,
+            build.inputs.nativeImageWorkDir,
+            extraArgs,
+            logger
+          )
+          destPath
+
+        case nativePackagerType: PackageType.NativePackagerType =>
+          val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
+          bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck())
+          val sharedSettings = SharedSettings(
+            sourceAppPath = bootstrapPath,
+            version = packageOptions.packageVersion,
+            force = force,
+            outputPath = destPath,
+            logoPath = packageOptions.logoPath,
+            launcherApp = packageOptions.launcherApp
+          )
+
+          lazy val debianSettings = DebianSettings(
+            shared = sharedSettings,
+            maintainer = packageOptions.maintainer.mandatory("--maintainer", "debian"),
+            description = packageOptions.description.mandatory("--description", "debian"),
+            debianConflicts = packageOptions.debianOptions.conflicts,
+            debianDependencies = packageOptions.debianOptions.dependencies,
+            architecture = packageOptions.debianOptions.architecture.mandatory(
+              "--deb-architecture",
+              "debian"
+            )
+          )
+
+          lazy val macOSSettings = MacOSSettings(
+            shared = sharedSettings,
+            identifier =
+              packageOptions.macOSidentifier.mandatory("--identifier-parameter", "macOs")
+          )
+
+          lazy val redHatSettings = RedHatSettings(
+            shared = sharedSettings,
+            description = packageOptions.description.mandatory("--description", "redHat"),
+            license =
+              packageOptions.redHatOptions.license.mandatory("--license", "redHat"),
+            release =
+              packageOptions.redHatOptions.release.mandatory("--release", "redHat"),
+            rpmArchitecture = packageOptions.redHatOptions.architecture.mandatory(
+              "--rpm-architecture",
+              "redHat"
+            )
+          )
+
+          lazy val windowsSettings = WindowsSettings(
+            shared = sharedSettings,
+            maintainer = packageOptions.maintainer.mandatory("--maintainer", "windows"),
+            licencePath = packageOptions.windowsOptions.licensePath.mandatory(
+              "--licence-path",
+              "windows"
+            ),
+            productName = packageOptions.windowsOptions.productName.mandatory(
+              "--product-name",
+              "windows"
+            ),
+            exitDialog = packageOptions.windowsOptions.exitDialog,
+            suppressValidation =
+              packageOptions.windowsOptions.suppressValidation.getOrElse(false),
+            extraConfigs = packageOptions.windowsOptions.extraConfig,
+            is64Bits = packageOptions.windowsOptions.is64Bits.getOrElse(true),
+            installerVersion = packageOptions.windowsOptions.installerVersion
+          )
+
+          nativePackagerType match {
+            case PackageType.Debian =>
+              DebianPackage(debianSettings).build()
+            case PackageType.Dmg =>
+              DmgPackage(macOSSettings).build()
+            case PackageType.Pkg =>
+              PkgPackage(macOSSettings).build()
+            case PackageType.Rpm =>
+              RedHatPackage(redHatSettings).build()
+            case PackageType.Msi =>
+              WindowsPackage(windowsSettings).build()
+          }
+          destPath
+        case PackageType.Docker =>
+          docker(build, value(mainClass), logger)
+          destPath
+      }
+
+      val printableOutput = CommandUtils.printablePath(outputPath)
+
+      if (packageType.runnable.nonEmpty)
+        logger.message {
+          if (packageType.runnable.contains(true))
+            s"Wrote $outputPath, run it with" + System.lineSeparator() +
+              "  " + printableOutput
+          else if (packageType == PackageType.Js)
+            s"Wrote $outputPath, run it with" + System.lineSeparator() +
+              "  node " + printableOutput
+          else
+            s"Wrote $outputPath"
+        }
+
+      val mTimeDestPathOpt = if (packageType.runnable.isEmpty) None else Some(os.mtime(destPath))
+      mTimeDestPathOpt
+    }
+    // end of doPackage
   }
 
   def docJar(

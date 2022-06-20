@@ -621,4 +621,29 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == message)
     }
   }
+
+  test("correctly list main classes") {
+    val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
+    val scriptsDir                           = "scripts"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
+        os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
+        os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "package",
+        extraOptions,
+        ".",
+        "--list-main-classes"
+      )
+        .call(cwd = root)
+      val output      = res.out.text().trim
+      val mainClasses = output.split(" ").toSet
+      expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
+    }
+  }
 }
