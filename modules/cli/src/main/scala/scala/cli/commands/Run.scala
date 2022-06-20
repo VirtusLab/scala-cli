@@ -168,7 +168,8 @@ object Run extends ScalaCommand[RunOptions] {
       builds.main match {
         case s: Build.Successful =>
           val (process, onExit) = maybeRun(s, allowTerminate = true)
-            .orExit(logger).getOrElse(sys.exit(1))
+            .orExit(logger)
+            .getOrElse(sys.error("Can't happen"))
           ProcUtil.waitForProcess(process, onExit)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
