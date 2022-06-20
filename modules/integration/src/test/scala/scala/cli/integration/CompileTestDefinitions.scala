@@ -278,12 +278,12 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   ) =
     inputs.fromRoot { root =>
       val bloop = BloopUtil.bloop(Constants.bloopVersion, bloopDaemonDir, jvm = Some(bloopJvm))
-      bloop("exit").call(
+      bloop(Seq("exit")).call(
         cwd = root,
         check = false,
         stdout = os.Inherit
       )
-      bloop("about").call(
+      bloop(Seq("about")).call(
         cwd = root,
         check = false,
         stdout = os.Inherit

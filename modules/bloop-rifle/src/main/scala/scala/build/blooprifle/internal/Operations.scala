@@ -7,14 +7,16 @@ import snailgun.{Client, TcpClient}
 import java.io.{File, InputStream, OutputStream}
 import java.net.{ConnectException, InetSocketAddress, Socket, StandardProtocolFamily, UnixDomainSocketAddress}
 import java.nio.channels.SocketChannel
+import java.nio.charset.Charset
 import java.nio.file.attribute.PosixFilePermissions
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService, ScheduledFuture}
 
 import scala.build.blooprifle.{BloopRifleConfig, BloopRifleLogger, BspConnection, BspConnectionAddress, FailedToStartServerException}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
+import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
 object Operations {
@@ -73,6 +75,27 @@ object Operations {
     }
   }
 
+  private lazy val canCallEnvSh = {
+
+    def findInPath(app: String): Option[Path] = {
+      def pathEntries =
+        Option(System.getenv("PATH"))
+          .iterator
+          .flatMap(_.split(File.pathSeparator).iterator)
+      def matches = for {
+        dir <- pathEntries
+        path = Paths.get(dir).resolve(app)
+        if Files.isExecutable(path)
+      } yield path
+      matches.take(1).toList.headOption
+    }
+
+    val env = Paths.get("/usr/bin/env")
+    val envExists = Files.exists(env)
+
+    envExists && findInPath("sh").nonEmpty
+  }
+
   /** Starts a new bloop server.
     *
     * @param host
@@ -114,7 +137,7 @@ object Operations {
         s"-Dbloop.truncate-output-file-periodically=${writeOutputTo.toAbsolutePath}"
       }
 
-    val command =
+    val baseCommand =
       Seq(javaPath) ++
         extraJavaOpts ++
         javaOpts ++
@@ -124,30 +147,85 @@ object Operations {
           mainClass
         ) ++
         addressArgs
-    val b = new ProcessBuilder(command: _*)
+
+    val (b, cleanUp) = writeOutputToOpt match {
+      case Some(writeOutputTo) if !Properties.isWin && canCallEnvSh =>
+
+        // Using a shell script, rather than relying on ProcessBuilder#redirectErrorStream(true).
+        // The shell script seems to handle better the redirection of stdout and stderr to a single file
+        // (opening a single file descriptor under-the-hood, and using dup2 I assume).
+        // If using a shell script ends up being a problem, we could try to mimic what it does ourselves
+        // (likely from JNI, or JNA + GraalVM API, using open / dup2 / fork / exec / …)
+
+        val script = {
+          def escape(arg: String): String =
+            "'" + arg.replace("'", "\\'") + "'"
+          val redirectOutput = (logger.bloopCliInheritStdout, logger.bloopCliInheritStderr) match {
+            case (true, true) => ""
+            case (true, false) => s" 2> ${escape(writeOutputTo.toString)}"
+            case (false, true) => s" > ${escape(writeOutputTo.toString)}"
+            case (false, false) => s" > ${escape(writeOutputTo.toString)} 2>&1"
+          }
+          s"exec ${baseCommand.map(escape).mkString(" ")} < /dev/null" +
+            redirectOutput +
+            System.lineSeparator()
+        }
+
+        val f = Files.createTempFile("start-bloop", ".sh")
+        f.toFile.deleteOnExit()
+        Files.write(f, script.getBytes(Charset.defaultCharset()))
+
+        val b = new ProcessBuilder("/usr/bin/env", "sh", f.toString)
+          .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+          .redirectError(ProcessBuilder.Redirect.INHERIT)
+
+        val cleanUp = () =>
+          try Files.delete(f)
+          catch {
+            case NonFatal(e) =>
+              logger.debug(s"Error while deleting temp file $f", e)
+          }
+
+        (b, cleanUp)
+
+      case Some(writeOutputTo) =>
+
+        // FIXME If !Properties.isWin (so we have !canCallEnvSh), we're on a Unix,
+        // so we could do what sh does ourselves with system calls (see comment above),
+        // if ever that's needed.
+
+        val b = new ProcessBuilder(baseCommand: _*)
+
+        if (logger.bloopCliInheritStdout)
+          b.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+        else
+          b.redirectOutput(writeOutputTo.toFile)
+
+        if (logger.bloopCliInheritStderr)
+          b.redirectError(ProcessBuilder.Redirect.INHERIT)
+        else
+          b.redirectError(writeOutputTo.toFile)
+
+        (b, () => ())
+
+      case None =>
+        val b = new ProcessBuilder(baseCommand: _*)
+
+        b.redirectOutput {
+          if (logger.bloopCliInheritStdout) ProcessBuilder.Redirect.INHERIT
+          else ProcessBuilder.Redirect.DISCARD
+        }
+
+        b.redirectError {
+          if (logger.bloopCliInheritStderr) ProcessBuilder.Redirect.INHERIT
+          else ProcessBuilder.Redirect.DISCARD
+        }
+
+        (b, () => ())
+    }
+
     b.directory(workingDir)
     b.redirectInput(ProcessBuilder.Redirect.PIPE)
-
-    if (logger.bloopCliInheritStdout)
-      b.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-    else
-      writeOutputToOpt match {
-        case Some(writeOutputTo) =>
-          b.redirectOutput(writeOutputTo.toFile)
-        case None =>
-          b.redirectOutput(ProcessBuilder.Redirect.DISCARD)
-      }
-
-    if (logger.bloopCliInheritStderr)
-      b.redirectError(ProcessBuilder.Redirect.INHERIT)
-    else
-      writeOutputToOpt match {
-        case Some(writeOutputTo) =>
-          b.redirectError(writeOutputTo.toFile)
-        case None =>
-          b.redirectError(ProcessBuilder.Redirect.DISCARD)
-      }
-
     val p = b.start()
     p.getOutputStream.close()
 
@@ -170,6 +248,7 @@ object Operations {
           for (completion <- completionOpt) {
             promise.tryComplete(completion)
             f.cancel(false)
+            cleanUp()
           }
         }
         catch {
@@ -177,6 +256,7 @@ object Operations {
             if (timeout.isFinite && System.currentTimeMillis() - start > timeout.toMillis) {
               promise.tryFailure(t)
               f.cancel(false)
+              cleanUp()
             }
             throw t
         }

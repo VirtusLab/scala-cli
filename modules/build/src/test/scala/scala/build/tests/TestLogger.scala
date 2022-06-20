@@ -44,7 +44,25 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
     RefreshLogger.create(new FallbackRefreshDisplay)
 
   def bloopRifleLogger: BloopRifleLogger =
-    BloopRifleLogger.nop
+    if (debug)
+      new BloopRifleLogger {
+        def bloopBspStderr: Option[java.io.OutputStream] = Some(System.err)
+        def bloopBspStdout: Option[java.io.OutputStream] = Some(System.out)
+        def bloopCliInheritStderr: Boolean               = true
+        def bloopCliInheritStdout: Boolean               = true
+        def debug(msg: => String, ex: Throwable): Unit = {
+          System.err.println(msg)
+          if (ex != null) ex.printStackTrace(System.err)
+        }
+        def error(msg: => String, ex: Throwable): Unit = {
+          System.err.println(msg)
+          if (ex != null) ex.printStackTrace(System.err)
+        }
+        def info(msg: => String): Unit =
+          System.err.println(msg)
+      }
+    else
+      BloopRifleLogger.nop
   def scalaJsLogger: ScalaJsLogger =
     NullLogger
   def scalaNativeTestLogger: sn.Logger =

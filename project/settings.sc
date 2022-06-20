@@ -815,7 +815,11 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
   }
 }
 
-trait ScalaCliCrossSbtModule extends CrossSbtModule {
+trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
+
+trait ScalaCliTests extends TestModule with ScalaCliModule
+
+trait ScalaCliModule extends ScalaModule {
   def javacOptions = super.javacOptions() ++ Seq(
     "--release",
     "16"
@@ -826,7 +830,7 @@ trait ScalaCliCrossSbtModule extends CrossSbtModule {
     val extraOptions =
       if (isScala213) Seq("-Xsource:3", "-Ytasty-reader")
       else Nil
-    super.scalacOptions() ++ extraOptions
+    super.scalacOptions() ++ Seq("-feature") ++ extraOptions
   }
 }
 
