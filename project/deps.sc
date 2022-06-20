@@ -92,7 +92,7 @@ object Deps {
   def jsoniterMacros =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
   def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
-  def libsodiumjni  = ivy"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:0.0.2"
+  def libsodiumjni  = ivy"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:0.0.3"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
     ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
