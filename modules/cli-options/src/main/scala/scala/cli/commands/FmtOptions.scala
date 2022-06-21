@@ -9,8 +9,17 @@ final case class FmtOptions(
     shared: SharedOptions = SharedOptions(),
 
   @Group("Format")
-  @HelpMessage("Check that sources are well formatted")
+  @HelpMessage("Check if sources are well formatted")
     check: Boolean = false,
+
+  @Group("Format")
+  @HelpMessage("Use project filters defined in the configuration (turned on by default)")
+    respectProjectFilters: Boolean = true,
+
+  @Group("Format")
+  @HelpMessage("Show help for scalafmt. This is an alias for --scalafmt-arg -help")
+  @Name("fmtHelp")
+    scalafmtHelp: Boolean = false,
 
   @Group("Format")
   @Hidden
@@ -30,7 +39,6 @@ final case class FmtOptions(
 
   @Group("Format")
   @Name("F")
-  @Hidden
     scalafmtArg: List[String] = Nil,
 
   @Group("Format")

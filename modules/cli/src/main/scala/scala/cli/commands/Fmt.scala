@@ -94,7 +94,13 @@ object Fmt extends ScalaCommand[FmtOptions] {
       shared.buildOptions(ignoreErrors = false)
 
     def scalafmtCliOptions: List[String] =
-      scalafmtArg ::: (if (check) List("--check") else Nil)
+      scalafmtArg :::
+        (if (check && !scalafmtArg.contains("--check")) List("--check") else Nil) :::
+        (if (scalafmtHelp && !scalafmtArg.exists(Set("-h", "-help", "--help"))) List("--help")
+         else Nil) :::
+        (if (respectProjectFilters && !scalafmtArg.contains("--respect-project-filters"))
+           List("--respect-project-filters")
+         else Nil)
   }
 
   def run(options: FmtOptions, args: RemainingArgs): Unit = {
