@@ -581,6 +581,13 @@ object Publish extends ScalaCommand[PublishOptions] {
     (fileSet, (mod, ver))
   }
 
+  private final case class RepoParams(
+    repo: PublishRepository,
+    targetRepoOpt: Option[String],
+    hooks: Hooks,
+    isIvy2LocalLike: Boolean
+  )
+
   private def doPublish(
     builds: Seq[Build.Successful],
     docBuilds: Seq[Build.Successful],
@@ -606,7 +613,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val ec = builds.head.options.finalCache.ec
 
-    val (repo, targetRepoOpt, hooks, isIvy2LocalLike) = {
+    val repoParams = {
 
       lazy val es =
         Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
@@ -658,14 +665,14 @@ object Publish extends ScalaCommand[PublishOptions] {
           batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
           es
         )
-        (repo0, Some("https://repo1.maven.org/maven2"), hooks0, false)
+        RepoParams(repo0, Some("https://repo1.maven.org/maven2"), hooks0, false)
       }
 
       def ivy2Local = {
         val home = ivy2HomeOpt.getOrElse(os.home / ".ivy2")
         val base = home / "local"
         // not really a Maven repo…
-        (
+        RepoParams(
           PublishRepository.Simple(MavenRepository(base.toNIO.toUri.toASCIIString)),
           None,
           Hooks.dummy,
@@ -705,7 +712,7 @@ object Publish extends ScalaCommand[PublishOptions] {
               r.withAuthentication(value(authOpt(r.root)))
             }
 
-            (
+            RepoParams(
               PublishRepository.Simple(repo0),
               None,
               Hooks.dummy,
@@ -726,7 +733,7 @@ object Publish extends ScalaCommand[PublishOptions] {
               docBuildOpt,
               workingDir,
               now,
-              isIvy2LocalLike = isIvy2LocalLike,
+              isIvy2LocalLike = repoParams.isIvy2LocalLike,
               logger
             )
         }
@@ -832,14 +839,14 @@ object Publish extends ScalaCommand[PublishOptions] {
     val fileSet2 = fileSet1 ++ checksums
 
     val finalFileSet =
-      if (isIvy2LocalLike) fileSet2
+      if (repoParams.isIvy2LocalLike) fileSet2
       else fileSet2.order(ec).unsafeRun()(ec)
 
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
-    val hooksData   = hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
+    val hooksData   = repoParams.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
 
-    val retainedRepo = hooks.repository(hooksData, repo, isSnapshot0)
-      .getOrElse(repo.repo(isSnapshot0))
+    val retainedRepo = repoParams.hooks.repository(hooksData, repoParams.repo, isSnapshot0)
+      .getOrElse(repoParams.repo.repo(isSnapshot0))
 
     val upload =
       if (retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://"))
@@ -863,12 +870,12 @@ object Publish extends ScalaCommand[PublishOptions] {
       case h :: t =>
         value(Left(new UploadError(::(h, t))))
       case Nil =>
-        hooks.afterUpload(hooksData).unsafeRun()(ec)
+        repoParams.hooks.afterUpload(hooksData).unsafeRun()(ec)
         for ((mod, version) <- modVersionOpt) {
-          val checkRepo = repo.checkResultsRepo(isSnapshot0)
+          val checkRepo = repoParams.repo.checkResultsRepo(isSnapshot0)
           val relPath = {
             val elems =
-              if (isIvy2LocalLike)
+              if (repoParams.isIvy2LocalLike)
                 Seq(mod.organization.value, mod.name.value, version)
               else
                 mod.organization.value.split('.').toSeq ++ Seq(mod.name.value, version)
@@ -889,7 +896,7 @@ object Publish extends ScalaCommand[PublishOptions] {
           }
           println("\n \ud83d\udc40 Check results at")
           println(s"  $path")
-          for (targetRepo <- targetRepoOpt if !isSnapshot0) {
+          for (targetRepo <- repoParams.targetRepoOpt if !isSnapshot0) {
             val url = targetRepo.stripSuffix("/") + relPath
             println("before they land at")
             println(s"  $url")
