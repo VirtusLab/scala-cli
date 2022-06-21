@@ -671,6 +671,31 @@ object Publish extends ScalaCommand[PublishOptions] {
         RepoParams(repo0, Some("https://repo1.maven.org/maven2"), hooks0, false, true, true, true)
       }
 
+      def gitHubRepoFor(org: String, name: String) =
+        RepoParams(
+          PublishRepository.Simple(MavenRepository(s"https://maven.pkg.github.com/$org/$name")),
+          None,
+          Hooks.dummy,
+          false,
+          false,
+          false,
+          false
+        )
+
+      def gitHubRepo = either {
+        val orgNameFromVcsOpt = publishOptions.versionControl
+          .map(_.url)
+          .flatMap(url => GitRepo.maybeGhOrgName(url))
+
+        val (org, name) = orgNameFromVcsOpt match {
+          case Some(orgName) => orgName
+          case None =>
+            value(GitRepo.ghRepoOrgName(builds.head.inputs.workspace, logger))
+        }
+
+        gitHubRepoFor(org, name)
+      }
+
       def ivy2Local = {
         val home = ivy2HomeOpt.getOrElse(os.home / ".ivy2")
         val base = home / "local"
@@ -702,6 +727,14 @@ object Publish extends ScalaCommand[PublishOptions] {
             value(centralRepo("https://oss.sonatype.org"))
           case Some("central-s01" | "maven-central-s01" | "mvn-central-s01") =>
             value(centralRepo("https://s01.oss.sonatype.org"))
+          case Some("github") =>
+            value(gitHubRepo)
+          case Some(repoStr) if repoStr.startsWith("github:") && repoStr.count(_ == '/') == 1 =>
+            val (org, name) = repoStr.stripPrefix("github:").split('/') match {
+              case Array(org0, name0) => (org0, name0)
+              case other              => sys.error(s"Cannot happen ('$repoStr' -> ${other.toSeq})")
+            }
+            gitHubRepoFor(org, name)
           case Some(repoStr) =>
             val repo0 = {
               val r = RepositoryParser.repositoryOpt(repoStr)
