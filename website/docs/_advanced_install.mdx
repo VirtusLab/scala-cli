@@ -291,6 +291,184 @@ sdk install scalacli
 
 </div></div>
 
+<SectionAbout title="Uninstall scala CLI">
+    <div className="margin--lg"/>
+    <Tabs
+        groupId="uninstall-specific"
+        defaultValue={currentOs()}
+        values={[
+        {label: 'Windows', value: 'windows'},
+        {label: 'MacOs', value: 'mac'},
+        {label: 'Linux', value: 'linux'},
+        ]}>
+     <TabItem value="windows"></TabItem>
+     <TabItem value="mac"></TabItem>
+     <TabItem value="linux"></TabItem>
+    </Tabs>
+</SectionAbout>
+
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
+Pick the uninstallation method:
+
+<Tabs
+groupId="uninstall-specific"
+defaultValue={currentOs()}
+values={[
+{label: 'Windows', value: 'windows'},
+{label: 'MacOs', value: 'mac'},
+{label: 'Linux', value: 'linux'},
+]}
+>
+<TabItem value="linux">
+
+<Tabs
+groupId="linux"
+defaultValue="installation-script-u"
+values={[
+{label: 'Installation script', value: 'installation-script-u' },
+{label: 'Manual', value: 'manual-u'},
+{label: 'Apt', value: 'apt-u'},
+{label: 'Deb', value: 'deb-u'},
+{label: 'Yum', value: 'yum-u'},
+{label: 'Rpm', value: 'rpm-u'},
+{label: 'Alpine', value: 'alpine-u'},
+]}
+>
+<TabItem value="installation-script-u">
+
+If Scala CLI was installed via installation script you can uninstall it with:
+
+```bash
+scala-cli uninstall
+```
+</TabItem>
+
+<TabItem value="manual-u">
+
+If Scala CLI was installed manually you can uninstall it with:
+
+```bash
+rm /usr/local/bin/scala-cli
+```
+</TabItem>
+
+<TabItem value="apt-u">
+
+If Scala CLI was installed via [apt](https://wiki.debian.org/Apt) you can uninstall it with:
+
+```bash
+sudo apt purge scala-cli
+```
+</TabItem>
+<TabItem value="deb-u">
+
+If Scala CLI was installed via [dpkg](https://en.wikipedia.org/wiki/Dpkg) you can uninstall it with:
+
+```bash
+sudo dpkg --remove scala-cli
+```
+</TabItem>
+<TabItem value="yum-u">
+
+If Scala CLI was installed via [yum](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/5/html/deployment_guide/c1-yum) you can uninstall it with:
+
+```bash
+yum remove scala-cli
+```
+</TabItem>
+<TabItem value="rpm-u">
+
+If Scala CLI was installed via [rpm](https://rpm.org/) you can uninstall it with:
+
+``` bash
+rpm -e scala-cli
+```
+</TabItem>
+<TabItem value="alpine-u">
+
+For Alpine Linux you can uninstall scala-cli with:
+
+```bash
+rm /usr/bin/scala-cli
+```
+
+</TabItem>
+
+</Tabs>
+
+</TabItem>
+<TabItem value="windows">
+
+<Tabs
+groupId="windows"
+defaultValue="manual-u"
+values={[
+{label: 'Manual', value: 'manual-u'},
+{label: 'Installer', value: 'installer-u'},
+]}
+>
+
+<TabItem value="manual-u">
+
+If Scala CLI was installed manually you can uninstall it with:
+
+```bash
+rmdir "%USERPROFILE%/scala-cli"
+```
+</TabItem>
+<TabItem value="installer-u">
+
+If Scala CLI was installed via installer you can uninstall it in Cotrol Panel.
+
+</TabItem>
+</Tabs>
+
+</TabItem>
+<TabItem value="mac">
+
+<Tabs
+groupId="mac"
+defaultValue="installation-script-u"
+values={[
+{label: 'Installation script', value: 'installation-script-u' },
+{label: 'Manual', value: 'manual-u'},
+{label: 'Brew', value: 'brew-u'},
+]}
+>
+<TabItem value="installation-script-u">
+
+If Scala CLI was installed via installation script you can uninstall it with:
+
+```bash
+scala-cli uninstall
+```
+</TabItem>
+
+<TabItem value="manual-u">
+
+If Scala CLI was installed manually you can uninstall it with:
+
+```bash
+rm /usr/local/bin/scala-cli
+```
+
+</TabItem>
+<TabItem value="brew-u">
+
+If Scala CLI was installed via [homebrew](https://brew.sh) you can uninstall it with:
+
+```bash
+brew uninstall scala-cli
+```
+</TabItem>
+</Tabs>
+
+</TabItem>
+</Tabs>
+
+</div></div>
+
 
 <SectionAbout title="Standalone launcher">
     <div className="margin--lg"/>
