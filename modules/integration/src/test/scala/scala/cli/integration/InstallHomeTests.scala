@@ -65,14 +65,17 @@ class InstallHomeTests extends munit.FunSuite {
   private def uninstallScalaCli(
     root: os.Path,
     binDirPath: os.Path,
-    force: Boolean
+    force: Boolean,
+    skipCache: Boolean
   ) = {
     // format: off
     val cmdUninstall = Seq[os.Shellable](
       TestUtil.cli, "uninstall",
       "--binary-name", dummyScalaCliBinName,
       "--bin-dir", binDirPath
-    ) ++ (if(force) Seq[os.Shellable]("--force") else Seq.empty)
+    ) 
+    ++ (if(force) Seq[os.Shellable]("--force") else Seq.empty)
+    ++ (if(skipCache) Seq[os.Shellable]("--skip-cache") else Seq.empty)
     // format: on
     os.proc(cmdUninstall).call(cwd = root)
   }
@@ -115,7 +118,7 @@ class InstallHomeTests extends munit.FunSuite {
       ).out.text().trim
       expect(v1Downgrade == firstVersion)
 
-      uninstallScalaCli(root, binDirPath, true)
+      uninstallScalaCli(root, binDirPath, true, true)
       expect(!os.exists(binDirPath))
     }
   }

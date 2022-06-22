@@ -11,6 +11,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
     val destBinPath = binDirPath / options.binaryName
+    val cacheDir = scala.build.Directories.default().cacheDir
 
     if (!options.force) {
       println("Do you want to uninstall scala-cli [Y/n]")
@@ -22,6 +23,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     }
     if (os.exists(destBinPath)) {
       BloopExit.run(options.bloopExit, args)
+      if (!options.skipCache) os.remove.all(cacheDir)
       os.remove.all(binDirPath)
       println("Uninstalled sucessfully")
     } else if (!Update.isScalaCLIInstalledByInstallationScript()) {
@@ -30,6 +32,6 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     } else {
       System.err.println(s"Could't find $destBinPath.")
       sys.exit(1)
-    } 
+    }
   }
 }

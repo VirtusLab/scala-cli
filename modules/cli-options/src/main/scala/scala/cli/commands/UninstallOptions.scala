@@ -15,6 +15,9 @@ final case class UninstallOptions(
   @HelpMessage("Force scala-cli uninstall")
     force: Boolean = false,
   @Hidden
+  @HelpMessage("Don't clear scala-cli cache")
+    skipCache: Boolean = false,
+  @Hidden
   @HelpMessage("Binary name")
     binaryName: String = "scala-cli",
   @Hidden
