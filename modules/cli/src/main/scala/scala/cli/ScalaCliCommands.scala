@@ -58,6 +58,7 @@ class ScalaCliCommands(
     SetupIde,
     Shebang,
     Test,
+    Uninstall,
     Update,
     Version
   ) ++ (if (pgpUseBinaryCommands) Nil else pgpCommands.allScalaCommands.toSeq) ++

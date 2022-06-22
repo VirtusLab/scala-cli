@@ -61,6 +61,22 @@ class InstallHomeTests extends munit.FunSuite {
     )
   }
 
+
+  private def uninstallScalaCli(
+    root: os.Path,
+    binDirPath: os.Path,
+    force: Boolean
+  ) = {
+    // format: off
+    val cmdUninstall = Seq[os.Shellable](
+      TestUtil.cli, "uninstall",
+      "--binary-name", dummyScalaCliBinName,
+      "--bin-dir", binDirPath
+    ) ++ (if(force) Seq[os.Shellable]("--force") else Seq.empty)
+    // format: on
+    os.proc(cmdUninstall).call(cwd = root)
+  }
+
   def runInstallHome(): Unit = {
 
     testInputs.fromRoot { root =>
@@ -98,11 +114,14 @@ class InstallHomeTests extends munit.FunSuite {
         stdin = os.Inherit
       ).out.text().trim
       expect(v1Downgrade == firstVersion)
+
+      uninstallScalaCli(root, binDirPath, true)
+      expect(!os.exists(binDirPath))
     }
   }
 
-  if (!Properties.isWin && TestUtil.isCI)
-    test("updating and downgrading dummy scala-cli using install-home command") {
+  if (!Properties.isWin)
+    test("updating and downgrading dummy scala-cli using install-home command, uninstalling scala-cli using uninstall command") {
       runInstallHome()
     }
 
