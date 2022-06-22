@@ -61,7 +61,6 @@ class InstallHomeTests extends munit.FunSuite {
     )
   }
 
-
   private def uninstallScalaCli(
     root: os.Path,
     binDirPath: os.Path,
@@ -124,7 +123,9 @@ class InstallHomeTests extends munit.FunSuite {
   }
 
   if (!Properties.isWin)
-    test("updating and downgrading dummy scala-cli using install-home command, uninstalling scala-cli using uninstall command") {
+    test(
+      "updating and downgrading dummy scala-cli using install-home command, uninstalling scala-cli using uninstall command"
+    ) {
       runInstallHome()
     }
 

@@ -42,8 +42,8 @@ object Directories {
     }
     lazy val secretsDir: os.Path =
       os.Path(projDirs.dataLocalDir, Os.pwd) / "secrets"
-    
-    lazy val cacheDir: os.Path = 
+
+    lazy val cacheDir: os.Path =
       os.Path(projDirs.cacheDir, os.pwd)
   }
 
@@ -64,7 +64,7 @@ object Directories {
       dir / "data-local" / "bloop"
     lazy val secretsDir: os.Path =
       dir / "data-local" / "secrets"
-    lazy val cacheDir: os.Path = 
+    lazy val cacheDir: os.Path =
       dir / "cache"
   }
 

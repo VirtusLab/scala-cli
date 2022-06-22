@@ -111,6 +111,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -265,6 +266,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -380,6 +382,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -512,6 +515,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 - [`update`](./commands.md#update)
 - [`version`](./commands.md#version)
 
@@ -734,6 +738,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1603,6 +1608,32 @@ Name of the test framework's runner class to use while running tests
 
 Fail if no test suites were run
 
+## Uninstall options
+
+Available in commands:
+- [`uninstall`](./commands.md#uninstall)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--force`
+
+Aliases: `-f`
+
+Force scala-cli uninstall
+
+#### `--skip-cache`
+
+Don't clear scala-cli cache
+
+#### `--binary-name`
+
+Binary name
+
+#### `--bin-dir`
+
+Binary directory
+
 ## Update options
 
 Available in commands:
@@ -1662,6 +1693,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 - [`update`](./commands.md#update)
 - [`version`](./commands.md#version)
 

@@ -27,6 +27,6 @@ final case class UninstallOptions(
 }
 
 object UninstallOptions {
-  implicit lazy val parser: Parser[UninstallOptions]  = Parser.derive
-  implicit lazy val help: Help[UninstallOptions]      = Help.derive
+  implicit lazy val parser: Parser[UninstallOptions] = Parser.derive
+  implicit lazy val help: Help[UninstallOptions]     = Help.derive
 }
