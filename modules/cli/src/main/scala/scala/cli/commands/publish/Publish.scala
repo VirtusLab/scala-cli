@@ -287,10 +287,31 @@ object Publish extends ScalaCommand[PublishOptions] {
     }
   }
 
-  def defaultOrganization: Either[BuildException, String] =
-    Left(new MissingPublishOptionError("organization", "--organization", "publish.organization"))
-  def defaultName: Either[BuildException, String] =
-    Left(new MissingPublishOptionError("name", "--name", "publish.name"))
+  private def defaultOrganization(
+    ghOrgOpt: Option[String],
+    logger: Logger
+  ): Either[BuildException, String] =
+    ghOrgOpt match {
+      case Some(org) =>
+        val mavenOrg = s"io.github.$org"
+        logger.message(
+          s"Using directive publish.organization not set, computed $mavenOrg from GitHub organization $org as default organization"
+        )
+        Right(mavenOrg)
+      case None =>
+        Left(new MissingPublishOptionError(
+          "organization",
+          "--organization",
+          "publish.organization"
+        ))
+    }
+  private def defaultName(workspace: os.Path, logger: Logger): String = {
+    val name = workspace.last
+    logger.message(
+      s"Using directive publish.name not set, using workspace file name $name as default name"
+    )
+    name
+  }
   def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
     if (mayDefaultToGitTag) Some(ComputeVersion.GitTag(os.rel, dynVer = false))
     else None
@@ -365,9 +386,11 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val publishOptions = build.options.notForBloopOptions.publishOptions
 
+    lazy val orgNameOpt = GitRepo.maybeGhRepoOrgName(build.inputs.workspace, logger)
+
     val org = publishOptions.organization match {
       case Some(org0) => org0.value
-      case None       => value(defaultOrganization)
+      case None       => value(defaultOrganization(orgNameOpt.map(_._1), logger))
     }
 
     val moduleName = publishOptions.moduleName match {
@@ -375,7 +398,7 @@ object Publish extends ScalaCommand[PublishOptions] {
       case None =>
         val name = publishOptions.name match {
           case Some(name0) => name0.value
-          case None        => value(defaultName)
+          case None        => defaultName(build.inputs.workspace, logger)
         }
         build.artifacts.scalaOpt.map(_.params) match {
           case Some(scalaParams) =>
