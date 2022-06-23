@@ -42,28 +42,28 @@ case object ScalaPreprocessor extends Preprocessor {
   )
 
   val usingDirectiveHandlers: Seq[UsingDirectiveHandler] = Seq(
+    UsingCompilerPluginDirectiveHandler,
+    UsingCustomJarDirectiveHandler,
     UsingDependencyDirectiveHandler,
-    UsingScalaVersionDirectiveHandler,
-    UsingRepositoryDirectiveHandler,
-    UsingPlatformDirectiveHandler,
-    UsingOptionDirectiveHandler,
+    UsingJavaHomeDirectiveHandler,
     UsingJavaOptionsDirectiveHandler,
     UsingJavaPropsDirectiveHandler,
+    UsingMainClassDirectiveHandler,
+    UsingOptionDirectiveHandler,
+    UsingPlatformDirectiveHandler,
+    UsingPublishContextualDirectiveHandler,
+    UsingPublishDirectiveHandler,
+    UsingRepositoryDirectiveHandler,
+    UsingResourcesDirectiveHandler,
     UsingScalaJsOptionsDirectiveHandler,
     UsingScalaNativeOptionsDirectiveHandler,
-    UsingJavaHomeDirectiveHandler,
-    UsingTestFrameworkDirectiveHandler,
-    UsingCustomJarDirectiveHandler,
-    UsingResourcesDirectiveHandler,
-    UsingCompilerPluginDirectiveHandler,
-    UsingMainClassDirectiveHandler,
-    UsingPublishContextualDirectiveHandler,
-    UsingPublishDirectiveHandler
+    UsingScalaVersionDirectiveHandler,
+    UsingTestFrameworkDirectiveHandler
   )
 
   val requireDirectiveHandlers: Seq[RequireDirectiveHandler] = Seq(
-    RequireScalaVersionDirectiveHandler,
     RequirePlatformsDirectiveHandler,
+    RequireScalaVersionDirectiveHandler,
     RequireScopeDirectiveHandler
   )
 
