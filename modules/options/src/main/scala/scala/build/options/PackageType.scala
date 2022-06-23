@@ -34,4 +34,24 @@ object PackageType {
   case object Pkg    extends NativePackagerType
   case object Rpm    extends NativePackagerType
   case object Msi    extends NativePackagerType
+
+  val mapping = Seq(
+    "assembly"  -> Assembly,
+    "bootstrap" -> Bootstrap,
+    "library"   -> LibraryJar,
+    "source"    -> SourceJar,
+    "doc"       -> DocJar,
+    "js"        -> Js,
+    "native"    -> Native,
+    "docker"    -> Docker,
+    "graalvm"   -> GraalVMNativeImage,
+    "deb"       -> Debian,
+    "dmg"       -> Dmg,
+    "pkg"       -> Pkg,
+    "rpm"       -> Rpm,
+    "msi"       -> Msi
+  )
+  private lazy val map = mapping.toMap
+  def parse(input: String): Option[PackageType] =
+    map.get(input)
 }

@@ -94,6 +94,15 @@ Specify default main class
 #### Examples
 `//> using main-class "helloWorld"`
 
+### Packaging
+
+Set parameters for packaging
+
+`using packaging.packageType `"package type"
+
+#### Examples
+`using packaging.packageType "assembly"`
+
 ### Platform
 
 Set the default platform to Scala.js or Scala Native
