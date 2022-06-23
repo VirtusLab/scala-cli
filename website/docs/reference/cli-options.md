@@ -32,6 +32,7 @@ Aliases: `-q`
 ## Benchmarking options
 
 Available in commands:
+- [`cache export`](./commands.md#cache-export)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
 
@@ -91,6 +92,32 @@ Aliases: `--name`
 
 Name of BSP
 
+## Cache export options
+
+Available in commands:
+- [`cache export`](./commands.md#cache-export)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--output`
+
+Aliases: `-o`
+
+Set the destination path
+
+## Cache import options
+
+Available in commands:
+- [`cache import`](./commands.md#cache-import)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--cache-path`
+
+Aliases: `-c`, `--cache`
+
 ## Compilation server options
 
 Available in commands:
@@ -98,6 +125,7 @@ Available in commands:
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -200,6 +228,7 @@ Compile test scope
 ## Compile cross options
 
 Available in commands:
+- [`cache export`](./commands.md#cache-export)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
@@ -249,6 +278,7 @@ Available in commands:
 - [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
 - [`doc`](./commands.md#doc)
@@ -321,6 +351,7 @@ Force overwriting destination files
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -363,6 +394,7 @@ Available in commands:
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
@@ -483,6 +515,8 @@ Available in commands:
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
+- [`cache import`](./commands.md#cache-import)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
@@ -538,6 +572,7 @@ Print help message, including hidden options, and exit
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -630,6 +665,7 @@ Binary directory
 ## Java options
 
 Available in commands:
+- [`cache export`](./commands.md#cache-export)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
@@ -653,6 +689,7 @@ Set Java properties
 Available in commands:
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -713,6 +750,8 @@ Available in commands:
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
+- [`cache import`](./commands.md#cache-import)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
@@ -751,6 +790,7 @@ Use progress bars
 ## Main class options
 
 Available in commands:
+- [`cache export`](./commands.md#cache-export)
 - [`export`](./commands.md#export)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
@@ -1282,6 +1322,7 @@ Don't actually run the REPL, just fetch it
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -1377,6 +1418,7 @@ Whether to run the Scala.js CLI on the JVM or using a native executable
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -1438,6 +1480,7 @@ Use default compile options
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -1508,6 +1551,7 @@ Available in commands:
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -1634,6 +1678,8 @@ Available in commands:
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
+- [`cache import`](./commands.md#cache-import)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
@@ -1679,6 +1725,7 @@ Interactive mode
 ## Watch options
 
 Available in commands:
+- [`cache export`](./commands.md#cache-export)
 - [`compile`](./commands.md#compile)
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
@@ -1707,6 +1754,7 @@ Run your application in background and automatically restart if sources have bee
 
 Available in commands:
 - [`bsp`](./commands.md#bsp)
+- [`cache export`](./commands.md#cache-export)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`doc`](./commands.md#doc)
