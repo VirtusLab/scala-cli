@@ -19,7 +19,7 @@ object PackageOptionsUtil {
       forcedPackageTypeOpt.orElse {
         if (v.library) Some(PackageType.LibraryJar)
         else if (source) Some(PackageType.SourceJar)
-        else if (assembly) Some(PackageType.Assembly)
+        else if (assembly) Some(PackageType.Assembly(addPreamble = preamble))
         else if (deb) Some(PackageType.Debian)
         else if (dmg) Some(PackageType.Dmg)
         else if (pkg) Some(PackageType.Pkg)

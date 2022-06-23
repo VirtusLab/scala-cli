@@ -39,6 +39,9 @@ final case class PackageOptions(
   @HelpMessage("Generate an assembly JAR")
     assembly: Boolean = false,
   @Group("Package")
+  @HelpMessage("For assembly JAR, whether to add a bash / bat preamble")
+    preamble: Boolean = true,
+  @Group("Package")
   @HelpMessage("Package standalone JARs")
     standalone: Option[Boolean] = None,
   @Recurse

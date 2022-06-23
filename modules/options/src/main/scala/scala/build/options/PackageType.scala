@@ -16,8 +16,8 @@ object PackageType {
     override def sourceBased = true
   }
   case object DocJar extends PackageType
-  case object Assembly extends PackageType {
-    override def runnable = Some(true)
+  final case class Assembly(addPreamble: Boolean) extends PackageType {
+    override def runnable = Some(addPreamble)
   }
   case object Js extends PackageType
   case object Native extends PackageType {
@@ -36,20 +36,21 @@ object PackageType {
   case object Msi    extends NativePackagerType
 
   val mapping = Seq(
-    "assembly"  -> Assembly,
-    "bootstrap" -> Bootstrap,
-    "library"   -> LibraryJar,
-    "source"    -> SourceJar,
-    "doc"       -> DocJar,
-    "js"        -> Js,
-    "native"    -> Native,
-    "docker"    -> Docker,
-    "graalvm"   -> GraalVMNativeImage,
-    "deb"       -> Debian,
-    "dmg"       -> Dmg,
-    "pkg"       -> Pkg,
-    "rpm"       -> Rpm,
-    "msi"       -> Msi
+    "assembly"     -> Assembly(true),
+    "raw-assembly" -> Assembly(false),
+    "bootstrap"    -> Bootstrap,
+    "library"      -> LibraryJar,
+    "source"       -> SourceJar,
+    "doc"          -> DocJar,
+    "js"           -> Js,
+    "native"       -> Native,
+    "docker"       -> Docker,
+    "graalvm"      -> GraalVMNativeImage,
+    "deb"          -> Debian,
+    "dmg"          -> Dmg,
+    "pkg"          -> Pkg,
+    "rpm"          -> Rpm,
+    "msi"          -> Msi
   )
   private lazy val map = mapping.toMap
   def parse(input: String): Option[PackageType] =
