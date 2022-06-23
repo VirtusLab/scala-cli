@@ -46,7 +46,8 @@ class MetaCheck extends munit.FunSuite {
       )
     )
     testInputs.fromRoot { root =>
-      val res          = os.proc(TestUtil.cli, ".").call(cwd = root)
+      // --ttl 0s so that we are sure we use the latest supported Scala versions listing
+      val res          = os.proc(TestUtil.cli, ".", "--ttl", "0s").call(cwd = root)
       val scalaVersion = res.out.text().trim
       expect(scalaVersion == Constants.scala3)
     }
