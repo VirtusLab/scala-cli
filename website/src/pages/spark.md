@@ -63,3 +63,13 @@ scala-cli run --spark SparkJob.scala # same example as above
 Note that this requires either
 - `spark-submit` to be in available in `PATH`
 - `SPARK_HOME` to be set in the environment
+
+## Running Spark jobs in a standalone way
+
+The `run` sub-command can not only run Spark jobs, but it can also work without a Spark
+distribution. For that to work, it downloads Spark JARs, and calls the main class of
+`spark-submit` itself via these JARs:
+
+```bash
+scala-cli run --spark-standalone SparkJob.scala # same example as above
+```
