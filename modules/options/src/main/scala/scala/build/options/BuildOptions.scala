@@ -17,10 +17,11 @@ import scala.build.interactive.Interactive.*
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
-import scala.build.internal.{Constants, StableScalaVersion}
+import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.concurrent.duration.*
+import scala.util.Properties
 
 final case class BuildOptions(
   scalaOptions: ScalaOptions = ScalaOptions(),
@@ -173,7 +174,7 @@ final case class BuildOptions(
   lazy val archiveCache: ArchiveCache[Task] = ArchiveCache().withCache(finalCache)
 
   private lazy val javaCommand0: Positioned[JavaHomeInfo] =
-    javaOptions.javaHome(archiveCache, finalCache, internal.verbosityOrDefault)
+    javaHomeLocation().map(JavaHomeInfo(_))
 
   def javaHomeLocationOpt(): Option[Positioned[os.Path]] =
     javaOptions.javaHomeLocationOpt(archiveCache, finalCache, internal.verbosityOrDefault)
@@ -543,6 +544,15 @@ object BuildOptions {
     javaCommand: String,
     version: Int
   )
+
+  object JavaHomeInfo {
+    def apply(javaHome: os.Path): JavaHomeInfo = {
+      val ext         = if (Properties.isWin) ".exe" else ""
+      val javaCmd     = (javaHome / "bin" / s"java$ext").toString
+      val javaVersion = OsLibc.javaVersion(javaCmd)
+      JavaHomeInfo(javaHome, javaCmd, javaVersion)
+    }
+  }
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive
