@@ -336,8 +336,8 @@ object Artifacts {
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) =>
         (d, p, a, os.Path(f, Os.pwd))
       },
-      extraClassPath ++ extraStubsJars,
-      extraCompileOnlyJars,
+      extraClassPath,
+      extraCompileOnlyJars ++ extraStubsJars,
       extraSourceJars,
       scalaOpt,
       addJvmRunner0,
