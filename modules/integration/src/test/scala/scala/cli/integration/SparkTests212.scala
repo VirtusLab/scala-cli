@@ -154,6 +154,18 @@ class SparkTests212 extends SparkTestDefinitions {
       expect(output.contains(expectedOutput))
     }
 
+  def simpleRunStandaloneSparkJobTest(spark: Spark): Unit =
+    simpleJobInputs(spark).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", extraOptions, "--spark-standalone", "--jvm", "8", ".")
+        .call(cwd = root)
+
+      val expectedOutput = "Result: 55"
+
+      val output = res.out.trim().linesIterator.toVector
+
+      expect(output.contains(expectedOutput))
+    }
+
   test("package spark 2.4") {
     simplePackageSparkJobTest(spark24)
   }
@@ -172,6 +184,14 @@ class SparkTests212 extends SparkTestDefinitions {
 
   test("run spark 3.0 via PATH") {
     simpleRunSparkJobTest(spark30, usePath = true)
+  }
+
+  test("run spark 2.4 standalone") {
+    simpleRunStandaloneSparkJobTest(spark24)
+  }
+
+  test("run spark 3.0 standalone") {
+    simpleRunStandaloneSparkJobTest(spark30)
   }
 
 }

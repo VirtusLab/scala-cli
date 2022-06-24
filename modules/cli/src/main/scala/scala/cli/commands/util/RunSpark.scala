@@ -73,4 +73,74 @@ object RunSpark {
     }
   }
 
+  def runStandalone(
+    build: Build.Successful,
+    mainClass: String,
+    args: Seq[String],
+    logger: Logger,
+    allowExecve: Boolean,
+    showCommand: Boolean,
+    scratchDirOpt: Option[os.Path]
+  ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
+
+    // FIXME Get Spark.sparkModules via provided settings?
+    val providedModules = Spark.sparkModules
+    val sparkClassPath  = value(PackageCmd.providedFiles(build, providedModules, logger))
+
+    scratchDirOpt.foreach(os.makeDir.all(_))
+    val library = os.temp(
+      Library.libraryJar(build),
+      dir = scratchDirOpt.orNull,
+      deleteOnExit = scratchDirOpt.isEmpty,
+      prefix = "spark-job",
+      suffix = ".jar"
+    )
+
+    val finalMainClass = "org.apache.spark.deploy.SparkSubmit"
+    val depCp          = build.dependencyClassPath.filterNot(sparkClassPath.toSet)
+    val javaHomeInfo   = build.options.javaHome().value
+    val javaOpts       = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+    val jarsArgs =
+      if (depCp.isEmpty) Nil
+      else Seq("--jars", depCp.mkString(","))
+    val finalArgs =
+      Seq("--class", mainClass) ++
+        jarsArgs ++
+        javaOpts.flatMap(opt => Seq("--driver-java-options", opt)) ++
+        Seq(library.toString) ++
+        args
+    val envUpdates = javaHomeInfo.envUpdates(sys.env)
+    if (showCommand) {
+      val command = Runner.jvmCommand(
+        javaHomeInfo.javaCommand,
+        javaOpts,
+        sparkClassPath,
+        finalMainClass,
+        finalArgs,
+        extraEnv = envUpdates,
+        useManifest = build.options.notForBloopOptions.runWithManifest,
+        scratchDirOpt = scratchDirOpt
+      )
+      Left(command)
+    }
+    else {
+      val proc = Runner.runJvm(
+        javaHomeInfo.javaCommand,
+        javaOpts,
+        sparkClassPath,
+        finalMainClass,
+        finalArgs,
+        logger,
+        allowExecve = allowExecve,
+        extraEnv = envUpdates,
+        useManifest = build.options.notForBloopOptions.runWithManifest,
+        scratchDirOpt = scratchDirOpt
+      )
+      Right((
+        proc,
+        if (scratchDirOpt.isEmpty) Some(() => os.remove(library, checkExists = true))
+        else None
+      ))
+    }
+  }
 }

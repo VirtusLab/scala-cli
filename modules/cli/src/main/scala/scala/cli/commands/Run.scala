@@ -25,7 +25,9 @@ object Run extends ScalaCommand[RunOptions] {
   override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
 
   private def runMode(options: RunOptions): RunMode =
-    if (options.sparkSubmit.getOrElse(false))
+    if (options.standaloneSpark.getOrElse(false) && !options.sparkSubmit.contains(false))
+      RunMode.StandaloneSparkSubmit
+    else if (options.sparkSubmit.getOrElse(false))
       RunMode.SparkSubmit
     else
       RunMode.Default
@@ -59,24 +61,24 @@ object Run extends ScalaCommand[RunOptions] {
             sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine),
         jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse {
           runMode(options) match {
-            case RunMode.SparkSubmit => Some("8")
-            case RunMode.Default     => None
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit => Some("8")
+            case RunMode.Default                                     => None
           }
         }
       ),
       internalDependencies = baseOptions.internalDependencies.copy(
         addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt.orElse {
           runMode(options) match {
-            case RunMode.SparkSubmit => Some(false)
-            case RunMode.Default     => None
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit => Some(false)
+            case RunMode.Default                                     => None
           }
         }
       ),
       internal = baseOptions.internal.copy(
         keepResolution = baseOptions.internal.keepResolution || {
           runMode(options) match {
-            case RunMode.SparkSubmit => true
-            case RunMode.Default     => false
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit => true
+            case RunMode.Default                                     => false
           }
         }
       ),
@@ -400,6 +402,18 @@ object Run extends ScalaCommand[RunOptions] {
           case RunMode.SparkSubmit =>
             value {
               RunSpark.run(
+                build,
+                mainClass,
+                args,
+                logger,
+                allowExecve,
+                showCommand,
+                scratchDirOpt
+              )
+            }
+          case RunMode.StandaloneSparkSubmit =>
+            value {
+              RunSpark.runStandalone(
                 build,
                 mainClass,
                 args,

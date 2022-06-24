@@ -1476,6 +1476,12 @@ Aliases: `--spark`
 
 Run as a Spark job, using the spark-submit command
 
+#### `--standalone-spark`
+
+Aliases: `--spark-standalone`
+
+Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI
+
 #### `--command`
 
 Print the command that would have been run (one argument per line), rather than running it
