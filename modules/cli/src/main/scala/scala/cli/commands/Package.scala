@@ -759,11 +759,19 @@ object Package extends ScalaCommand[PackageOptions] {
     config: ScalaJsLinkerConfig,
     fullOpt: Boolean,
     noOpt: Boolean,
-    logger: Logger
+    logger: Logger,
+    scratchDirOpt: Option[os.Path] = None
   ): Either[BuildException, os.Path] =
     Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
-      val classPath  = mainJar +: build.artifacts.classPath
-      val linkingDir = os.temp.dir(prefix = "scala-cli-js-linking")
+      val classPath = mainJar +: build.artifacts.classPath
+      val delete    = scratchDirOpt.isEmpty
+      scratchDirOpt.foreach(os.makeDir.all(_))
+      val linkingDir =
+        os.temp.dir(
+          dir = scratchDirOpt.orNull,
+          prefix = "scala-cli-js-linking",
+          deleteOnExit = delete
+        )
       either {
         value {
           ScalaJsLinker.link(
@@ -814,7 +822,8 @@ object Package extends ScalaCommand[PackageOptions] {
               os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
               logger.message(s"Emitted js source maps to: $sourceMapDest")
             }
-            os.remove.all(linkingDir)
+            if (delete)
+              os.remove.all(linkingDir)
             dest
           }
         else {

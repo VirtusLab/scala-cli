@@ -11,12 +11,20 @@ object Library {
 
   def withLibraryJar[T](
     build: Build.Successful,
-    fileName: String = "library"
+    fileName: String = "library",
+    scratchDirOpt: Option[os.Path] = None
   )(f: os.Path => T): T = {
     val mainJarContent = libraryJar(build)
-    val mainJar = os.temp(mainJarContent, prefix = fileName.stripSuffix(".jar"), suffix = ".jar")
+    scratchDirOpt.foreach(os.makeDir.all(_))
+    val mainJar = os.temp(
+      mainJarContent,
+      dir = scratchDirOpt.orNull,
+      prefix = fileName.stripSuffix(".jar"),
+      suffix = ".jar",
+      deleteOnExit = scratchDirOpt.isEmpty
+    )
     try f(mainJar)
-    finally os.remove(mainJar)
+    finally if (scratchDirOpt.isEmpty) os.remove(mainJar)
   }
 
   def libraryJar(

@@ -20,6 +20,11 @@ object Run extends ScalaCommand[RunOptions] {
 
   override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
 
+  private def scratchDirOpt(options: RunOptions): Option[os.Path] =
+    options.scratchDir
+      .filter(_.trim.nonEmpty)
+      .map(os.Path(_, os.pwd))
+
   def run(options: RunOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
     run(
@@ -65,7 +70,9 @@ object Run extends ScalaCommand[RunOptions] {
 
     def maybeRun(
       build: Build.Successful,
-      allowTerminate: Boolean
+      allowTerminate: Boolean,
+      showCommand: Boolean,
+      scratchDirOpt: Option[os.Path]
     ): Either[BuildException, Option[(Process, CompletableFuture[_])]] = either {
       val potentialMainClasses = build.foundMainClasses()
       if (options.mainClass.mainClassLs.contains(true))
@@ -75,33 +82,43 @@ object Run extends ScalaCommand[RunOptions] {
             .map(_ => None)
         }
       else {
-        val process = value {
+        val processOrCommand = value {
           maybeRunOnce(
             build,
             programArgs,
             logger,
             allowExecve = allowTerminate,
             jvmRunner = build.artifacts.hasJvmRunner,
-            potentialMainClasses
+            potentialMainClasses,
+            showCommand,
+            scratchDirOpt
           )
         }
 
-        val onExitProcess = process.onExit().thenApply { p1 =>
-          val retCode = p1.exitValue()
-          if (retCode != 0)
-            if (allowTerminate)
-              sys.exit(retCode)
-            else {
-              val red      = Console.RED
-              val lightRed = "\u001b[91m"
-              val reset    = Console.RESET
-              System.err.println(
-                s"${red}Program exited with return code $lightRed$retCode$red.$reset"
-              )
+        processOrCommand match {
+          case Right(process) =>
+            val onExitProcess = process.onExit().thenApply { p1 =>
+              val retCode = p1.exitValue()
+              if (retCode != 0)
+                if (allowTerminate)
+                  sys.exit(retCode)
+                else {
+                  val red      = Console.RED
+                  val lightRed = "\u001b[91m"
+                  val reset    = Console.RESET
+                  System.err.println(
+                    s"${red}Program exited with return code $lightRed$retCode$red.$reset"
+                  )
+                }
             }
-        }
 
-        Some((process, onExitProcess))
+            Some((process, onExitProcess))
+
+          case Left(command) =>
+            for (arg <- command)
+              println(arg)
+            None
+        }
       }
     }
 
@@ -137,7 +154,12 @@ object Run extends ScalaCommand[RunOptions] {
           case s: Build.Successful =>
             for ((proc, _) <- processOpt) // If the process doesn't exit, send SIGKILL
               if (proc.isAlive) ProcUtil.forceKillProcess(proc, logger)
-            val maybeProcess = maybeRun(s, allowTerminate = false)
+            val maybeProcess = maybeRun(
+              s,
+              allowTerminate = false,
+              showCommand = options.command,
+              scratchDirOpt = scratchDirOpt(options)
+            )
               .orReport(logger)
               .flatten
             if (options.watch.restart)
@@ -167,10 +189,15 @@ object Run extends ScalaCommand[RunOptions] {
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
-          val (process, onExit) = maybeRun(s, allowTerminate = true)
+          val res = maybeRun(
+            s,
+            allowTerminate = true,
+            showCommand = options.command,
+            scratchDirOpt = scratchDirOpt(options)
+          )
             .orExit(logger)
-            .getOrElse(sys.error("Can't happen"))
-          ProcUtil.waitForProcess(process, onExit)
+          for ((process, onExit) <- res)
+            ProcUtil.waitForProcess(process, onExit)
         case _: Build.Failed =>
           System.err.println("Compilation failed")
           sys.exit(1)
@@ -184,8 +211,10 @@ object Run extends ScalaCommand[RunOptions] {
     logger: Logger,
     allowExecve: Boolean,
     jvmRunner: Boolean,
-    potentialMainClasses: Seq[String]
-  ): Either[BuildException, Process] = either {
+    potentialMainClasses: Seq[String],
+    showCommand: Boolean,
+    scratchDirOpt: Option[os.Path]
+  ): Either[BuildException, Either[Seq[String], Process]] = either {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
       .orElse {
@@ -206,7 +235,9 @@ object Run extends ScalaCommand[RunOptions] {
       finalMainClass,
       finalArgs,
       logger,
-      allowExecve
+      allowExecve,
+      showCommand,
+      scratchDirOpt
     )
     value(res)
   }
@@ -216,16 +247,27 @@ object Run extends ScalaCommand[RunOptions] {
     mainClass: String,
     args: Seq[String],
     logger: Logger,
-    allowExecve: Boolean
-  ): Either[BuildException, Process] = either {
+    allowExecve: Boolean,
+    showCommand: Boolean,
+    scratchDirOpt: Option[os.Path]
+  ): Either[BuildException, Either[Seq[String], Process]] = either {
 
-    val process = build.options.platform.value match {
+    build.options.platform.value match {
       case Platform.JS =>
         val esModule =
           build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
 
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-        val jsDest       = os.temp(prefix = "main", suffix = if (esModule) ".mjs" else ".js")
+        val jsDest = {
+          val delete = scratchDirOpt.isEmpty
+          scratchDirOpt.foreach(os.makeDir.all(_))
+          os.temp(
+            dir = scratchDirOpt.orNull,
+            prefix = "main",
+            suffix = if (esModule) ".mjs" else ".js",
+            deleteOnExit = delete
+          )
+        }
         val res =
           Package.linkJs(
             build,
@@ -235,19 +277,25 @@ object Run extends ScalaCommand[RunOptions] {
             linkerConfig,
             build.options.scalaJsOptions.fullOpt,
             build.options.scalaJsOptions.noOpt.getOrElse(false),
-            logger
+            logger,
+            scratchDirOpt
           ).map { outputPath =>
-            val process = Runner.runJs(
-              outputPath.toIO,
-              args,
-              logger,
-              allowExecve = allowExecve,
-              jsDom = build.options.scalaJsOptions.dom.getOrElse(false),
-              sourceMap = build.options.scalaJsOptions.emitSourceMaps,
-              esModule = esModule
-            )
-            process.onExit().thenApply(_ => if (os.exists(jsDest)) os.remove(jsDest))
-            process
+            val jsDom = build.options.scalaJsOptions.dom.getOrElse(false)
+            if (showCommand)
+              Left(Runner.jsCommand(outputPath.toIO, args, jsDom = jsDom))
+            else {
+              val process = Runner.runJs(
+                outputPath.toIO,
+                args,
+                logger,
+                allowExecve = allowExecve,
+                jsDom = jsDom,
+                sourceMap = build.options.scalaJsOptions.emitSourceMaps,
+                esModule = esModule
+              )
+              process.onExit().thenApply(_ => if (os.exists(jsDest)) os.remove(jsDest))
+              Right(process)
+            }
           }
         value(res)
       case Platform.Native =>
@@ -256,26 +304,42 @@ object Run extends ScalaCommand[RunOptions] {
           mainClass,
           logger
         ) { launcher =>
-          Runner.runNative(
-            launcher.toIO,
+          if (showCommand)
+            Left(launcher.toString +: args)
+          else {
+            val proc = Runner.runNative(
+              launcher.toIO,
+              args,
+              logger,
+              allowExecve = allowExecve
+            )
+            Right(proc)
+          }
+        }
+      case Platform.JVM =>
+        if (showCommand) {
+          val command = Runner.jvmCommand(
+            build.options.javaHome().value.javaCommand,
+            build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
+            build.fullClassPath.map(_.toIO),
+            mainClass,
+            args
+          )
+          Left(command)
+        }
+        else {
+          val proc = Runner.runJvm(
+            build.options.javaHome().value.javaCommand,
+            build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
+            build.fullClassPath.map(_.toIO),
+            mainClass,
             args,
             logger,
             allowExecve = allowExecve
           )
+          Right(proc)
         }
-      case Platform.JVM =>
-        Runner.runJvm(
-          build.options.javaHome().value.javaCommand,
-          build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-          build.fullClassPath.map(_.toIO),
-          mainClass,
-          args,
-          logger,
-          allowExecve = allowExecve
-        )
     }
-
-    process
   }
 
   def withLinkedJs[T](

@@ -55,6 +55,26 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     simpleScriptTest(extraArgs = Seq("-v"))
   }
 
+  test("print command") {
+    val fileName = "simple.sc"
+    val message  = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""val msg = "$message"
+             |println(msg)
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output =
+        os.proc(TestUtil.cli, extraOptions, fileName, "--command").call(cwd = root).out.text().trim
+      val command      = output.linesIterator.toVector
+      val actualOutput = os.proc(command).call(cwd = root).out.text().trim
+      expect(actualOutput == message)
+    }
+  }
+
   def simpleJsTest(extraArgs: String*): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -81,6 +101,36 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
   test("simple script JS in release mode") {
     simpleJsTest("--js-mode", "release")
+  }
+
+  test("simple script JS command") {
+    val fileName = "simple.sc"
+    val message  = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""import scala.scalajs.js
+             |val console = js.Dynamic.global.console
+             |val msg = "$message"
+             |console.log(msg)
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(
+        TestUtil.cli,
+        extraOptions,
+        fileName,
+        "--js",
+        "--command",
+        "--scratch-dir",
+        root / "stuff"
+      )
+        .call(cwd = root).out.text().trim
+      val command      = output.linesIterator.toVector
+      val actualOutput = os.proc(command).call(cwd = root).out.text().trim
+      expect(actualOutput.linesIterator.toSeq.last == message)
+    }
   }
 
   test("esmodule import JS") {
@@ -158,6 +208,32 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("simple script native") {
     simpleNativeTests()
+  }
+
+  test("simple script native command") {
+    val fileName = "simple.sc"
+    val message  = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""import scala.scalanative.libc._
+             |import scala.scalanative.unsafe._
+             |
+             |Zone { implicit z =>
+             |  stdio.printf(toCString("$message$platformNl"))
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output =
+        os.proc(TestUtil.cli, extraOptions, fileName, "--native", "--command")
+          .call(cwd = root)
+          .out.text().trim
+      val command      = output.linesIterator.toVector.filter(!_.startsWith("["))
+      val actualOutput = os.proc(command).call(cwd = root).out.text().trim
+      expect(actualOutput == message)
+    }
   }
 
   if (actualScalaVersion.startsWith("3.1"))
