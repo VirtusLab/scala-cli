@@ -23,4 +23,10 @@ object Spark {
 
   def sparkModules: Seq[AnyModule] =
     names.map(name => mod"org.apache.spark::spark-$name")
+
+  def hadoopModules: Seq[AnyModule] =
+    Seq(
+      // TODO Add more for Hadoop 2, maybe for 3 too
+      mod"org.apache.hadoop:hadoop-client-api"
+    )
 }

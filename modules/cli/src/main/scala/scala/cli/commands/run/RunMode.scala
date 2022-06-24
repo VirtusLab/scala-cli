@@ -6,4 +6,5 @@ object RunMode {
   case object Default               extends RunMode
   case object SparkSubmit           extends RunMode
   case object StandaloneSparkSubmit extends RunMode
+  case object HadoopJar             extends RunMode
 }

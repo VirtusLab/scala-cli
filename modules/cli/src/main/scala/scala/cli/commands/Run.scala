@@ -31,6 +31,8 @@ object Run extends ScalaCommand[RunOptions] {
       RunMode.StandaloneSparkSubmit
     else if (options.sparkSubmit.getOrElse(false))
       RunMode.SparkSubmit
+    else if (options.hadoopJar)
+      RunMode.HadoopJar
     else
       RunMode.Default
 
@@ -63,24 +65,26 @@ object Run extends ScalaCommand[RunOptions] {
             sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine),
         jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse {
           runMode(options) match {
-            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit => Some("8")
-            case RunMode.Default                                     => None
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar =>
+              Some("8")
+            case RunMode.Default => None
           }
         }
       ),
       internalDependencies = baseOptions.internalDependencies.copy(
         addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt.orElse {
           runMode(options) match {
-            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit => Some(false)
-            case RunMode.Default                                     => None
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar =>
+              Some(false)
+            case RunMode.Default => None
           }
         }
       ),
       internal = baseOptions.internal.copy(
         keepResolution = baseOptions.internal.keepResolution || {
           runMode(options) match {
-            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit => true
-            case RunMode.Default                                     => false
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar => true
+            case RunMode.Default                                                         => false
           }
         }
       ),
@@ -509,6 +513,53 @@ object Run extends ScalaCommand[RunOptions] {
               Right((
                 proc,
                 if (scratchDirOpt.isEmpty) Some(() => os.remove(library, checkExists = true))
+                else None
+              ))
+            }
+          case RunMode.HadoopJar =>
+            // FIXME Get Spark.hadoopModules via provided settings?
+            val providedModules = Spark.hadoopModules
+            scratchDirOpt.foreach(os.makeDir.all(_))
+            val assembly = os.temp(
+              dir = scratchDirOpt.orNull,
+              prefix = "hadoop-job",
+              suffix = ".jar",
+              deleteOnExit = scratchDirOpt.isEmpty
+            )
+            value {
+              PackageCmd.assembly(
+                build,
+                assembly,
+                // "hadoop jar" doesn't accept a main class as second argument if the jar as first argument has a main class in its manifest…
+                None,
+                providedModules,
+                withPreamble = false,
+                () => (),
+                logger
+              )
+            }
+
+            val javaOpts = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+            val extraEnv =
+              if (javaOpts.isEmpty) Map[String, String]()
+              else
+                Map(
+                  "HADOOP_CLIENT_OPTS" -> javaOpts.mkString(" ") // no escaping…
+                )
+            val hadoopJarCommand = Seq("hadoop", "jar")
+            val finalCommand =
+              hadoopJarCommand ++ Seq(assembly.toString, mainClass) ++ args
+            if (showCommand)
+              Left(Runner.envCommand(extraEnv) ++ finalCommand)
+            else {
+              val proc =
+                if (allowExecve)
+                  Runner.maybeExec("hadoop", finalCommand, logger, extraEnv = extraEnv)
+                else
+                  Runner.run(finalCommand, logger, extraEnv = extraEnv)
+              Right((
+                proc,
+                if (scratchDirOpt.isEmpty) Some(() => os.remove(assembly, checkExists = true))
                 else None
               ))
             }
