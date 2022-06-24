@@ -21,6 +21,7 @@ import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
+import scala.util.Properties
 import scala.util.control.NonFatal
 import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
 
@@ -174,10 +175,8 @@ final case class BuildOptions(
 
   lazy val archiveCache = ArchiveCache().withCache(finalCache)
 
-  private lazy val javaCommand0: Positioned[JavaHomeInfo] = javaHomeLocation().map { javaHome =>
-    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
-    JavaHomeInfo(javaHome, javaCmd, javaVersion)
-  }
+  private lazy val javaCommand0: Positioned[JavaHomeInfo] =
+    javaHomeLocation().map(JavaHomeInfo(_))
 
   private def jvmIndexOs = javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)
 
@@ -608,6 +607,15 @@ object BuildOptions {
     javaCommand: String,
     version: Int
   )
+
+  object JavaHomeInfo {
+    def apply(javaHome: os.Path): JavaHomeInfo = {
+      val ext         = if (Properties.isWin) ".exe" else ""
+      val javaCmd     = (javaHome / "bin" / s"java$ext").toString
+      val javaVersion = OsLibc.javaVersion(javaCmd)
+      JavaHomeInfo(javaHome, javaCmd, javaVersion)
+    }
+  }
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive
