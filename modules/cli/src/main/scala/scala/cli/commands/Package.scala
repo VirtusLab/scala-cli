@@ -760,7 +760,7 @@ object Package extends ScalaCommand[PackageOptions] {
     providedFiles
   }
 
-  private def assembly(
+  def assembly(
     build: Build.Successful,
     destPath: os.Path,
     mainClassOpt: Option[String],

@@ -34,6 +34,10 @@ final case class RunOptions(
   @ExtraName("sparkStandalone")
     standaloneSpark: Option[Boolean] = None,
   @Group("Run")
+  @HelpMessage("Run as a Hadoop job, using the \"hadoop jar\" command")
+  @ExtraName("hadoop")
+    hadoopJar: Boolean = false,
+  @Group("Run")
   @HelpMessage("Print the command that would have been run (one argument per line), rather than running it")
     command: Boolean = false,
   @Group("Run")

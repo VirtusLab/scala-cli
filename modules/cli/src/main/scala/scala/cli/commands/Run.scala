@@ -17,7 +17,7 @@ import scala.cli.internal.ProcUtil
 import scala.util.Properties
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.RunSpark
+import scala.cli.commands.util.{RunHadoop, RunSpark}
 
 object Run extends ScalaCommand[RunOptions] {
   override def group = "Main"
@@ -29,6 +29,8 @@ object Run extends ScalaCommand[RunOptions] {
       RunMode.StandaloneSparkSubmit
     else if (options.sparkSubmit.getOrElse(false))
       RunMode.SparkSubmit
+    else if (options.hadoopJar)
+      RunMode.HadoopJar
     else
       RunMode.Default
 
@@ -61,24 +63,26 @@ object Run extends ScalaCommand[RunOptions] {
             sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine),
         jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse {
           runMode(options) match {
-            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit => Some("8")
-            case RunMode.Default                                     => None
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar =>
+              Some("8")
+            case RunMode.Default => None
           }
         }
       ),
       internalDependencies = baseOptions.internalDependencies.copy(
         addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt.orElse {
           runMode(options) match {
-            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit => Some(false)
-            case RunMode.Default                                     => None
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar =>
+              Some(false)
+            case RunMode.Default => None
           }
         }
       ),
       internal = baseOptions.internal.copy(
         keepResolution = baseOptions.internal.keepResolution || {
           runMode(options) match {
-            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit => true
-            case RunMode.Default                                     => false
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar => true
+            case RunMode.Default                                                         => false
           }
         }
       ),
@@ -414,6 +418,18 @@ object Run extends ScalaCommand[RunOptions] {
           case RunMode.StandaloneSparkSubmit =>
             value {
               RunSpark.runStandalone(
+                build,
+                mainClass,
+                args,
+                logger,
+                allowExecve,
+                showCommand,
+                scratchDirOpt
+              )
+            }
+          case RunMode.HadoopJar =>
+            value {
+              RunHadoop.run(
                 build,
                 mainClass,
                 args,
