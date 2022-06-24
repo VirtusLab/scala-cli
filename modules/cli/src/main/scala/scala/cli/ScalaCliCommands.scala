@@ -33,6 +33,8 @@ class ScalaCliCommands(
     BloopOutput,
     BloopStart,
     Bsp,
+    CacheExport,
+    CacheImport,
     Clean,
     Compile,
     Config,

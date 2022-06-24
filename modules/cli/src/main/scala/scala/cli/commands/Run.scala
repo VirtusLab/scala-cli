@@ -50,7 +50,8 @@ object Run extends ScalaCommand[RunOptions] {
     options: RunOptions,
     inputArgs: Seq[String],
     programArgs: Seq[String],
-    defaultInputs: () => Option[Inputs]
+    defaultInputs: () => Option[Inputs],
+    allowTerminate: Boolean = true
   ): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     val initialBuildOptions = buildOptions(options)
@@ -167,7 +168,7 @@ object Run extends ScalaCommand[RunOptions] {
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
-          val (process, onExit) = maybeRun(s, allowTerminate = true)
+          val (process, onExit) = maybeRun(s, allowTerminate = allowTerminate)
             .orExit(logger).getOrElse(sys.exit(1))
           ProcUtil.waitForProcess(process, onExit)
         case _: Build.Failed =>
