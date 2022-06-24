@@ -2,8 +2,10 @@ package scala.cli.commands.publish
 
 import caseapp._
 
+import scala.build.options.publish.MaybeConfigPasswordOption
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers._
+import scala.cli.util.ArgParsers._
 
 // format: off
 final case class PublishParamsOptions(
@@ -43,16 +45,24 @@ final case class PublishParamsOptions(
 
   @Group("Publishing")
   @HelpMessage("Secret key to use to sign artifacts with Bouncy Castle")
-    secretKey: Option[PasswordOption] = None,
+    secretKey: Option[MaybeConfigPasswordOption] = None,
 
   @Group("Publishing")
   @HelpMessage("Password of secret key to use to sign artifacts with Bouncy Castle")
   @ValueDescription("value:…")
   @ExtraName("secretKeyPass")
-    secretKeyPassword: Option[PasswordOption] = None
+    secretKeyPassword: Option[MaybeConfigPasswordOption] = None,
 
-)
-// format: on
+  @Group("Publishing")
+  @HelpMessage("Use or setup publish parameters meant to be used on continuous integration")
+    ci: Option[Boolean] = None
+
+) {
+  // format: on
+
+  def isCi: Boolean =
+    ci.getOrElse(System.getenv("CI") != null)
+}
 
 object PublishParamsOptions {
   lazy val parser: Parser[PublishParamsOptions]                           = Parser.derive

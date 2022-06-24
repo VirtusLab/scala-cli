@@ -1,8 +1,7 @@
 package scala.build.options
 
 import scala.build.Positioned
-import scala.build.options.publish.{ComputeVersion, Developer, License, Signer, Vcs}
-import scala.cli.signing.shared.PasswordOption
+import scala.build.options.publish.{Developer, License, Vcs}
 
 final case class PublishOptions(
   organization: Option[Positioned[String]] = None,
@@ -16,21 +15,13 @@ final case class PublishOptions(
   developers: Seq[Developer] = Nil,
   scalaVersionSuffix: Option[String] = None,
   scalaPlatformSuffix: Option[String] = None,
-  repository: Option[String] = None,
-  repositoryIsIvy2LocalLike: Option[Boolean] = None,
-  sourceJar: Option[Boolean] = None,
-  docJar: Option[Boolean] = None,
-  gpgSignatureId: Option[String] = None,
-  gpgOptions: List[String] = Nil,
-  signer: Option[Signer] = None,
-  secretKey: Option[PasswordOption] = None,
-  secretKeyPassword: Option[PasswordOption] = None,
-  repoUser: Option[PasswordOption] = None,
-  repoPassword: Option[PasswordOption] = None,
-  repoRealm: Option[String] = None,
-  computeVersion: Option[ComputeVersion] = None,
-  checksums: Option[Seq[String]] = None
-)
+  local: PublishContextualOptions = PublishContextualOptions(),
+  ci: PublishContextualOptions = PublishContextualOptions()
+) {
+  def contextual(isCi: Boolean): PublishContextualOptions =
+    if (isCi) PublishContextualOptions.monoid.orElse(ci, local)
+    else local
+}
 
 object PublishOptions {
   implicit val monoid: ConfigMonoid[PublishOptions] = ConfigMonoid.derive

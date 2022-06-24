@@ -39,29 +39,39 @@ object LibSodiumJni {
   private def libsodiumVersion    = Constants.libsodiumVersion
   private def libsodiumjniVersion = Constants.libsodiumjniVersion
 
-  private def archiveUrlAndPath() = {
-    val condaPlatform = FetchExternalBinary.condaPlatform
-    val suffix = condaPlatform match {
-      case "linux-64"      => "-h36c2ea0_1"
-      case "linux-aarch64" => "-hb9de7d4_1"
-      case "osx-64"        => "-hbcb3906_1"
-      case "osx-arm64"     => "-h27ca646_1"
-      case "win-64"        => "-h62dcd97_1"
-      case other           => sys.error(s"Unrecognized conda platform $other")
+  private def archiveUrlAndPath() =
+    if (Properties.isLinux && launcherKindOpt.contains("static"))
+      // Should actually be unused, as we statically link libsodium from the static launcher
+      // Keeping it just-in-case. This could be useful from a musl-based JVM.
+      (
+        s"https://dl-cdn.alpinelinux.org/alpine/v3.15/main/x86_64/libsodium-$libsodiumVersion-r0.apk",
+        os.rel / "usr" / "lib" / "libsodium.so.23.3.0" // FIXME Could this change?
+      )
+    else {
+      val condaPlatform = FetchExternalBinary.condaPlatform
+      // FIXME These suffixes seem to be hashes, and seem to change at every version…
+      // We'd need a way to find them automatically.
+      val suffix = condaPlatform match {
+        case "linux-64"      => "-h36c2ea0_1"
+        case "linux-aarch64" => "-hb9de7d4_1"
+        case "osx-64"        => "-hbcb3906_1"
+        case "osx-arm64"     => "-h27ca646_1"
+        case "win-64"        => "-h62dcd97_1"
+        case other           => sys.error(s"Unrecognized conda platform $other")
+      }
+      val relPath = condaPlatform match {
+        case "linux-64"      => os.rel / "lib" / "libsodium.so"
+        case "linux-aarch64" => os.rel / "lib" / "libsodium.so"
+        case "osx-64"        => os.rel / "lib" / "libsodium.dylib"
+        case "osx-arm64"     => os.rel / "lib" / "libsodium.dylib"
+        case "win-64"        => os.rel / "Library" / "bin" / "libsodium.dll"
+        case other           => sys.error(s"Unrecognized conda platform $other")
+      }
+      (
+        s"https://anaconda.org/conda-forge/libsodium/$libsodiumVersion/download/$condaPlatform/libsodium-$libsodiumVersion$suffix.tar.bz2",
+        relPath
+      )
     }
-    val relPath = condaPlatform match {
-      case "linux-64"      => os.rel / "lib" / "libsodium.so"
-      case "linux-aarch64" => os.rel / "lib" / "libsodium.so"
-      case "osx-64"        => os.rel / "lib" / "libsodium.dylib"
-      case "osx-arm64"     => os.rel / "lib" / "libsodium.dylib"
-      case "win-64"        => os.rel / "Library" / "bin" / "libsodium.dll"
-      case other           => sys.error(s"Unrecognized conda platform $other")
-    }
-    (
-      s"https://anaconda.org/conda-forge/libsodium/$libsodiumVersion/download/$condaPlatform/libsodium-$libsodiumVersion$suffix.tar.bz2",
-      relPath
-    )
-  }
 
   private def jniLibArtifact(cache: Cache[Task]) = {
 

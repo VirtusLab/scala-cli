@@ -22,6 +22,9 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
   def run(options: PublishLocalOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
 
+    Publish.maybePrintLicensesAndExit(options.publishParams)
+    Publish.maybePrintChecksumsAndExit(options.sharedPublish)
+
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
@@ -67,8 +70,9 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       ivy2HomeOpt,
       publishLocal = true,
       forceSigningBinary = options.sharedPublish.forceSigningBinary,
-      parallelUpload = true,
+      parallelUpload = Some(true),
       options.watch.watch,
+      isCi = options.publishParams.isCi,
       () => ConfigDb.empty // shouldn't be used, no need of repo credentials here
     )
   }

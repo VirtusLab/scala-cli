@@ -14,7 +14,7 @@ object Signer {
     input.value match {
       case "gpg"                 => Right(Signer.Gpg)
       case "bc" | "bouncycastle" => Right(Signer.BouncyCastle)
-      case "nop"                 => Right(Signer.Nop)
+      case "nop" | "none"        => Right(Signer.Nop)
       case _ => Left(new MalformedInputError("signer", input.value, "gpg|bc", input.positions))
     }
 }

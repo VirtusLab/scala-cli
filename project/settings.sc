@@ -155,7 +155,7 @@ trait CliLaunchers extends SbtModule { self =>
       val cLibPath =
         if (usesDocker) s"/data/$staticLibDirName"
         else staticLibDir().path.toString
-      Seq(
+      super.nativeImageOptions() ++ Seq(
         s"-H:IncludeResources=$localRepoResourcePath",
         s"-H:IncludeResources=$launcherTypeResourcePath",
         s"-H:IncludeResources=$defaultFilesResourcePath/.*",
@@ -264,6 +264,20 @@ trait CliLaunchers extends SbtModule { self =>
       }
       finally
         os.remove.all(tmpDir)
+
+      // The static libsodium has a symbol that conflicts with one from a native-image-injected
+      // library ('initialize'). It seems libsodium is making some effort to namespace its symbols,
+      // (jedisct1/libsodium#839) so I'm not sure why this one ends up here.
+      // It seems to be an internal thing, so we use objcopy to rename it and work around the conflict
+      // (see https://stackoverflow.com/questions/678254/what-should-i-do-if-two-libraries-provide-a-function-with-the-same-name-generati/678375#678375).
+      val proc = os.proc(
+        "objcopy",
+        "--redefine-sym",
+        "initialize=__sodium_thing_initialize",
+        destDir / "libsodium.a"
+      )
+      System.err.println(s"Calling ${proc.command.flatMap(_.value).mkString(" ")}")
+      proc.call(stdin = os.Inherit, stdout = os.Inherit)
     }
     def staticLibDir = T {
       val dir = nativeImageDockerWorkingDir() / staticLibDirName
@@ -322,6 +336,11 @@ trait CliLaunchers extends SbtModule { self =>
 
   object `static-image` extends CliNativeImage {
     def launcherKind = "static"
+    def nativeImageOptions = T {
+      super.nativeImageOptions() ++ Seq(
+        "-J-Dscala-cli.static-launcher=true"
+      )
+    }
     def nativeImageDockerParams = T {
       val baseDockerParams = NativeImage.linuxStaticParams(
         Docker.muslBuilder,

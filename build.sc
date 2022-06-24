@@ -290,7 +290,9 @@ trait BuildLikeModule extends ScalaCliCrossSbtModule with ProtoBuildModule {
 
 class Core(val crossScalaVersion: String) extends BuildLikeModule {
   def moduleDeps = Seq(
-    `bloop-rifle`(),
+    `bloop-rifle`()
+  )
+  def compileModuleDeps = Seq(
     `build-macros`()
   )
   def scalacOptions = T {
@@ -414,7 +416,8 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
 class Directives(val crossScalaVersion: String) extends BuildLikeModule {
   def moduleDeps = Seq(
     options(),
-    core()
+    core(),
+    `build-macros`()
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -469,7 +472,9 @@ class Directives(val crossScalaVersion: String) extends BuildLikeModule {
 
 class Options(val crossScalaVersion: String) extends BuildLikeModule {
   def moduleDeps = Seq(
-    core(),
+    core()
+  )
+  def compileModuleDeps = Seq(
     `build-macros`()
   )
   def scalacOptions = T {
@@ -604,7 +609,11 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
   def compileIvyDeps = super.compileIvyDeps() ++ Seq(
     Deps.jsoniterMacros
   )
-  def scalaVersion = Scala.scala213
+  private def scalaVer = Scala.scala213
+  def compileModuleDeps = Seq(
+    options(scalaVer)
+  )
+  def scalaVersion = scalaVer
   def repositories = super.repositories ++ customRepositories
 }
 
@@ -957,7 +966,7 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     Deps.bsp4j,
     Deps.collectionCompat,
     Deps.libdaemonjvm,
-    Deps.snailgun(force213 = scalaVersion().startsWith("3."))
+    Deps.snailgun(force213 = !scalaVersion().startsWith("2.12."))
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.svm

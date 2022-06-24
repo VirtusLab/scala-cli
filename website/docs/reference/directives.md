@@ -121,6 +121,22 @@ Set parameters for publishing
 
 `//> using publish.version "0.1.1"`
 
+### Publish (contextual)
+
+Set contextual parameters for publishing
+
+`//> using publish.computeVersion `"value"
+`//> using publish.ci.repository `"value"
+`//> using publish.secretKey `"value"
+
+
+#### Examples
+`//> using publish.computeVersion "git:tag"`
+
+`//> using publish.ci.repository "central-s01"`
+
+`//> using publish.secretKey "env:PUBLISH_SECRET_KEY"`
+
 ### Repository
 
 Add a repository for dependency resolution
