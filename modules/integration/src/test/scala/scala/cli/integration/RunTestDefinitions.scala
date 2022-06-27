@@ -1822,11 +1822,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("return relevant error if multiple .scala main classes are present") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
+    val scriptsDir                           = "scritps"
     val inputs = TestInputs(
       Seq(
-        os.rel / s"$scalaFile1.scala"          -> s"object $scalaFile1 extends App { println() }",
-        os.rel / s"$scalaFile2.scala"          -> s"object $scalaFile2 extends App { println() }",
-        os.rel / "scripts" / s"$scriptName.sc" -> "println()"
+        os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
+        os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
+        os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
       )
     )
     inputs.fromRoot { root =>
@@ -1838,10 +1839,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
         .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 1)
-      val output = res.out.text().trim
-      expect(output.contains(scalaFile1))
-      expect(output.contains(scalaFile2))
-      expect(output.contains(s"${scriptName}_sc"))
+      val output          = res.out.text().trim
+      val Some(errorLine) = output.linesIterator.find(_.contains("Found several main classes"))
+      val mainClasses     = errorLine.split(":").last.trim.split(", ").toSet
+      expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
     }
   }
 
@@ -1882,10 +1883,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "--list-main-classes"
       )
         .call(cwd = root)
-      val output = res.out.text().trim
-      expect(output.contains(scalaFile1))
-      expect(output.contains(scalaFile2))
-      expect(output.contains(s"$scriptsDir.${scriptName}_sc"))
+      val output      = res.out.text().trim
+      val mainClasses = output.split(" ").toSet
+      expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
     }
   }
 }
