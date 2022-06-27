@@ -16,6 +16,12 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     val destBinPath = binDirPath / options.binaryName
     val cacheDir    = scala.build.Directories.default().cacheDir
 
+    if (!Update.isScalaCLIInstalledByInstallationScript() && (options.binDir == None || (options.binDir != None && !options.force))) {
+      System.err.println(
+        "Scala CLI was not installed by the installation script, please use your package manager to uninstall scala-cli."
+      )
+      sys.exit(1)
+    }
     if (!options.force) {
       val fallbackAction = () => {
         System.err.println(s"To uninstall scala-cli pass -f or --force")
@@ -33,14 +39,8 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
       if (!options.skipCache) os.remove.all(cacheDir)
       println("Uninstalled sucessfully")
     }
-    else if (!Update.isScalaCLIInstalledByInstallationScript()) {
-      System.err.println(
-        "Scala CLI was not installed by the installation script, please use your package manager to uninstall scala-cli."
-      )
-      sys.exit(1)
-    }
     else {
-      System.err.println(s"Could't find $destBinPath.")
+      System.err.println(s"Could't find scala-cli binary at $destBinPath.")
       sys.exit(1)
     }
   }
