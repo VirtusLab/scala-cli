@@ -456,7 +456,17 @@ Available in commands:
 
 #### `--check`
 
-Check that sources are well formatted
+Check if sources are well formatted
+
+#### `--respect-project-filters`
+
+Use project filters defined in the configuration (turned on by default)
+
+#### `--scalafmt-help`
+
+Aliases: `--fmt-help`
+
+Show help for scalafmt. This is an alias for --scalafmt-arg -help
 
 #### `--os-arch-suffix`
 
