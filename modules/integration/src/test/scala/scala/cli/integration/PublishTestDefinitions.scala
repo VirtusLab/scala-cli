@@ -189,4 +189,40 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       expect(files0 == expectedArtifacts) // just in case…
     }
   }
+
+  test("correctly list main classes") {
+    val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
+    val scriptsDir                           = "scripts"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
+        os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
+        os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "publish",
+        extraOptions,
+        ".",
+        "--list-main-classes"
+      )
+        .call(cwd = root)
+      val output = res.out.text().trim
+      val resLocal = os.proc(
+        TestUtil.cli,
+        "publish",
+        "local",
+        extraOptions,
+        ".",
+        "--list-main-classes"
+      )
+        .call(cwd = root)
+      val outputLocal = resLocal.out.text().trim
+      expect(output == outputLocal)
+      val mainClasses = output.linesIterator.toSeq.last.split(" ").toSet
+      expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
+    }
+  }
 }

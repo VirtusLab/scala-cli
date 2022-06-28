@@ -35,6 +35,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
+import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.commands.{
@@ -57,9 +58,9 @@ import scala.cli.util.MaybeConfigPasswordOptionHelpers._
 
 object Publish extends ScalaCommand[PublishOptions] {
 
-  override def group      = "Main"
-  override def inSipScala = false
-  override def sharedOptions(options: PublishOptions) =
+  override def group: String       = "Main"
+  override def inSipScala: Boolean = false
+  override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 
   def mkBuildOptions(
@@ -85,14 +86,14 @@ object Publish extends ScalaCommand[PublishOptions] {
       repoRealm = publishRepo.realm,
       signer = value {
         sharedPublish.signer
-          .map(Positioned.commandLine(_))
-          .map(PSigner.parse(_))
+          .map(Positioned.commandLine)
+          .map(PSigner.parse)
           .sequence
       },
       computeVersion = value {
         publishParams.computeVersion
-          .map(Positioned.commandLine(_))
-          .map(ComputeVersion.parse(_))
+          .map(Positioned.commandLine)
+          .map(ComputeVersion.parse)
           .sequence
       },
       checksums = {
@@ -105,35 +106,34 @@ object Publish extends ScalaCommand[PublishOptions] {
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         publishOptions = baseOptions.notForBloopOptions.publishOptions.copy(
-          organization = publishParams.organization.map(_.trim).filter(_.nonEmpty).map(
-            Positioned.commandLine(_)
-          ),
-          name = publishParams.name.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+          organization =
+            publishParams.organization.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
+          name = publishParams.name.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           moduleName =
-            publishParams.moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+            publishParams.moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           version =
-            publishParams.version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
-          url = publishParams.url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine(_)),
+            publishParams.version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
+          url = publishParams.url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           license = value {
             publishParams.license
               .map(_.trim).filter(_.nonEmpty)
-              .map(Positioned.commandLine(_))
-              .map(License.parse(_))
+              .map(Positioned.commandLine)
+              .map(License.parse)
               .sequence
           },
           versionControl = value {
             publishParams.vcs
               .map(_.trim).filter(_.nonEmpty)
-              .map(Positioned.commandLine(_))
-              .map(Vcs.parse(_))
+              .map(Positioned.commandLine)
+              .map(Vcs.parse)
               .sequence
           },
           description = publishParams.description.map(_.trim).filter(_.nonEmpty),
           developers = value {
             publishParams.developer
               .filter(_.trim.nonEmpty)
-              .map(Positioned.commandLine(_))
-              .map(Developer.parse(_))
+              .map(Positioned.commandLine)
+              .map(Developer.parse)
               .sequence
               .left.map(CompositeBuildException(_))
           },
@@ -224,7 +224,8 @@ object Publish extends ScalaCommand[PublishOptions] {
       parallelUpload = options.parallelUpload,
       options.watch.watch,
       isCi = options.publishParams.isCi,
-      () => configDb
+      () => configDb,
+      options.mainClass
     )
   }
 
@@ -242,7 +243,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     parallelUpload: Option[Boolean],
     watch: Boolean,
     isCi: Boolean,
-    configDb: () => ConfigDb
+    configDb: () => ConfigDb,
+    mainClassOptions: MainClassOptions
   ): Unit = {
 
     if (watch) {
@@ -268,7 +270,8 @@ object Publish extends ScalaCommand[PublishOptions] {
             forceSigningBinary = forceSigningBinary,
             parallelUpload = parallelUpload,
             isCi = isCi,
-            configDb
+            configDb,
+            mainClassOptions
           )
         }
       }
@@ -297,7 +300,8 @@ object Publish extends ScalaCommand[PublishOptions] {
         forceSigningBinary = forceSigningBinary,
         parallelUpload = parallelUpload,
         isCi = isCi,
-        configDb
+        configDb,
+        mainClassOptions
       )
     }
   }
@@ -345,7 +349,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     forceSigningBinary: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
-    configDb: () => ConfigDb
+    configDb: () => ConfigDb,
+    mainClassOptions: MainClassOptions
   ): Unit = {
 
     val allOk = builds.all.forall {
@@ -365,18 +370,23 @@ object Publish extends ScalaCommand[PublishOptions] {
       val docBuilds0 = builds.allDoc.collect {
         case s: Build.Successful => s
       }
-      val res = doPublish(
-        builds0,
-        docBuilds0,
-        workingDir,
-        ivy2HomeOpt,
-        publishLocal,
-        logger,
-        forceSigningBinary,
-        parallelUpload,
-        isCi,
-        configDb
-      )
+      val res: Either[BuildException, Unit] =
+        builds.main match {
+          case s: Build.Successful if mainClassOptions.mainClassLs.contains(true) =>
+            mainClassOptions.maybePrintMainClasses(s.foundMainClasses(), shouldExit = allowExit)
+          case _ => doPublish(
+              builds0,
+              docBuilds0,
+              workingDir,
+              ivy2HomeOpt,
+              publishLocal,
+              logger,
+              forceSigningBinary,
+              parallelUpload,
+              isCi,
+              configDb
+            )
+        }
       if (allowExit)
         res.orExit(logger)
       else
@@ -545,7 +555,6 @@ object Publish extends ScalaCommand[PublishOptions] {
       scm = scm,
       developers = developers,
       time = LocalDateTime.ofInstant(now, ZoneOffset.UTC),
-      hasPom = true,
       hasDoc = docJarOpt.isDefined,
       hasSources = sourceJarOpt.isDefined
     )

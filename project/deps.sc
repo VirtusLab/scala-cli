@@ -49,7 +49,7 @@ object InternalDeps {
   object Versions {
     def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
-    def scalaJsCli    = "1.1.1-sc4.1"
+    def scalaJsCli    = "1.1.1-sc5"
   }
 }
 
@@ -58,9 +58,9 @@ object Deps {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier      = "2.1.0-M6-28-gbad85693f"
     def coursierCli   = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.13.32"
+    def jsoniterScala = "2.13.33"
     def scalaMeta     = "4.5.9"
-    def scalaNative   = "0.4.4"
+    def scalaNative   = "0.4.5"
     def scalaPackager = "0.1.26"
     def signingCli    = "0.1.6"
   }
