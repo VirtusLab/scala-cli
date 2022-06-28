@@ -4,18 +4,17 @@ import caseapp._
 
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.{Constants, CustomCodeWrapper, FetchExternalBinary, Runner}
-import scala.build.options.BuildOptions
 import scala.build.{CrossSources, Inputs, Logger, Sources}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.FmtOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.commands.util.VerbosityOptionsUtil._
-import scala.util.Properties
 import scala.util.control.NonFatal
 
 object Fmt extends ScalaCommand[FmtOptions] {
-  override def group                              = "Main"
-  override def sharedOptions(options: FmtOptions) = Some(options.shared)
-  override def names = List(
+  override def group: String                                             = "Main"
+  override def sharedOptions(options: FmtOptions): Option[SharedOptions] = Some(options.shared)
+  override def names: List[List[String]] = List(
     List("fmt"),
     List("format"),
     List("scalafmt")
@@ -43,7 +42,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
   def readVersionFromFile(workspace: os.Path, logger: Logger): (Option[String], Boolean) = {
     case class ScalafmtVersionConfig(version: String = "")
     object ScalafmtVersionConfig {
-      lazy val default = ScalafmtVersionConfig()
+      lazy val default: ScalafmtVersionConfig = ScalafmtVersionConfig()
       implicit lazy val surface: metaconfig.generic.Surface[ScalafmtVersionConfig] =
         metaconfig.generic.deriveSurface[ScalafmtVersionConfig]
       implicit lazy val decoder: metaconfig.ConfDecoder[ScalafmtVersionConfig] =
@@ -75,32 +74,6 @@ object Fmt extends ScalaCommand[FmtOptions] {
       case conf if conf.version.trim.nonEmpty => conf.version
     }
     (versionMaybe, pathMaybe.isDefined)
-  }
-
-  private implicit class FmtOptionsOps(v: FmtOptions) {
-    import v._
-    def binaryUrl(version: String): (String, Boolean) = {
-      val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
-        .getOrElse(FetchExternalBinary.platformSuffix())
-      val tag0           = scalafmtTag.getOrElse("v" + version)
-      val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse("alexarchambault/scalafmt-native-image")
-      val extension0     = if (Properties.isWin) ".zip" else ".gz"
-      val url =
-        s"https://github.com/$gitHubOrgName0/releases/download/$tag0/scalafmt-$osArchSuffix0$extension0"
-      (url, !tag0.startsWith("v"))
-    }
-
-    def buildOptions: BuildOptions =
-      shared.buildOptions(ignoreErrors = false)
-
-    def scalafmtCliOptions: List[String] =
-      scalafmtArg :::
-        (if (check && !scalafmtArg.contains("--check")) List("--check") else Nil) :::
-        (if (scalafmtHelp && !scalafmtArg.exists(Set("-h", "-help", "--help"))) List("--help")
-         else Nil) :::
-        (if (respectProjectFilters && !scalafmtArg.contains("--respect-project-filters"))
-           List("--respect-project-filters")
-         else Nil)
   }
 
   def run(options: FmtOptions, args: RemainingArgs): Unit = {

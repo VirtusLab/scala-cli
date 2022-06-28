@@ -4,14 +4,14 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class FmtTests extends munit.FunSuite {
 
-  val simpleInputsUnformattedContent =
+  val simpleInputsUnformattedContent: String =
     """package foo
       |
       |    object Foo       extends       java.lang.Object  {
       |                     def           get()             = 2
       | }
       |""".stripMargin
-  val simpleInputs = TestInputs(
+  val simpleInputs: TestInputs = TestInputs(
     Seq(
       os.rel / ".scalafmt.conf" ->
         s"""|version = "${Constants.defaultScalafmtVersion}"
@@ -20,7 +20,7 @@ class FmtTests extends munit.FunSuite {
       os.rel / "Foo.scala" -> simpleInputsUnformattedContent
     )
   )
-  val expectedSimpleInputsFormattedContent = noCrLf {
+  val expectedSimpleInputsFormattedContent: String = noCrLf {
     """package foo
       |
       |object Foo extends java.lang.Object {
