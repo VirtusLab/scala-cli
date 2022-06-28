@@ -56,7 +56,7 @@ scala-cli fmt -F --version
 ```
 
 ```text
-scalafmt 3.5.2
+scalafmt 3.5.8
 ```
 
 </ChainedSnippets>
@@ -71,7 +71,7 @@ scala-cli fmt --scalafmt-help
 ```
 
 ```text
-scalafmt 3.5.2
+scalafmt 3.5.8
 Usage: scalafmt [options] [<file>...]
 
   -h, --help               prints this usage text
@@ -89,7 +89,7 @@ would be ignored. In order to prevent that from happening, the `--respect-projec
 default.
 
 ```text title=.scalafmt.conf
-version = 3.5.2
+version = 3.5.8
 runner.dialect = scala3
 project {
   includePaths = [

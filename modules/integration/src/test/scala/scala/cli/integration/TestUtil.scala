@@ -105,7 +105,7 @@ object TestUtil {
 
   def retryOnCi[T](maxAttempts: Int = 3, waitDuration: FiniteDuration = 5.seconds)(
     run: => T
-  ) = retry((if (isCI) maxAttempts else 1), waitDuration)(run)
+  ) = retry(if (isCI) maxAttempts else 1, waitDuration)(run)
 
   // Same as os.RelPath.toString, but for the use of File.separator instead of "/"
   def relPathStr(relPath: os.RelPath): String =

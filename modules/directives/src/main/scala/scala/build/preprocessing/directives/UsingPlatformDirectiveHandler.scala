@@ -78,7 +78,7 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
             scalaOptions = mergedBuildOption.scalaOptions.copy(
               extraPlatforms =
                 mergedBuildOption.scalaOptions.extraPlatforms ++ platforms.tail.map(p =>
-                  (p.value -> Positioned(p.positions, ()))
+                  p.value -> Positioned(p.positions, ())
                 ).toMap
             )
           )
