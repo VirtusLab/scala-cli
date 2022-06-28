@@ -62,7 +62,7 @@ object Deps {
     def scalaMeta     = "4.5.9"
     def scalaNative   = "0.4.5"
     def scalaPackager = "0.1.26"
-    def signingCli    = "0.1.6"
+    def signingCli    = "0.1.7"
   }
   def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4-11-4f5bf2aa"
   def asm      = ivy"org.ow2.asm:asm:9.3"
@@ -148,7 +148,7 @@ object Deps {
 }
 
 object BuildDeps {
-  def scalaCliVersion = "0.1.6"
+  def scalaCliVersion = "0.1.7"
 }
 
 def graalVmVersion     = "22.1.0"
