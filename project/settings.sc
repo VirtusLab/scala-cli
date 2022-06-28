@@ -108,7 +108,7 @@ def cs: T[String] = T.persistent {
   if (os.isFile(dest))
     dest.toString
   else
-    (downloadOpt().getOrElse(fromPath("cs")): String)
+    downloadOpt().getOrElse(fromPath("cs")): String
 }
 
 def platformExtension: String =
