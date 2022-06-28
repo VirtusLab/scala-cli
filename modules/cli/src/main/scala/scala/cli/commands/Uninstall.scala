@@ -4,21 +4,21 @@ import caseapp._
 
 import scala.cli.CurrentParams
 import scala.cli.commands.util.VerbosityOptionsUtil._
+import scala.cli.commands.util.SharedOptionsUtil._
 
 object Uninstall extends ScalaCommand[UninstallOptions] {
   def run(options: UninstallOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.bloopExit.logging.verbosityOptions.verbosity
     val interactive =
       options.bloopExit.logging.verbosityOptions.interactiveInstance(forceEnable = true)
+    val logger = options.shared.logger
 
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
     val destBinPath = binDirPath / options.binaryName
     val cacheDir    = scala.build.Directories.default().cacheDir
 
-    if (
-      !Update.isScalaCLIInstalledByInstallationScript() && (options.binDir == None || (options.binDir != None && !options.force))
-    ) {
+    if (!Update.isScalaCLIInstalledByInstallationScript() && (options.binDir.isEmpty || !options.force)) {
       System.err.println(
         "Scala CLI was not installed by the installation script, please use your package manager to uninstall scala-cli."
       )
@@ -34,12 +34,15 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     }
     if (os.exists(destBinPath)) {
       // exit bloop server
+      logger.debug("Stopping Bloop server...")
       BloopExit.run(options.bloopExit, args)
       // remove scala-cli launcher
+      logger.debug("Removing scala-cli binary...")
       os.remove.all(binDirPath)
       // remove scala-cli caches
+      logger.debug("Removing scala-cli cache directory...")
       if (!options.skipCache) os.remove.all(cacheDir)
-      println("Uninstalled sucessfully")
+      logger.message("Uninstalled sucessfully.")
     }
     else {
       System.err.println(s"Could't find scala-cli binary at $destBinPath.")

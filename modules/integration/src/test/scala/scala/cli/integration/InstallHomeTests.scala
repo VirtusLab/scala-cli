@@ -72,11 +72,11 @@ class InstallHomeTests extends munit.FunSuite {
       TestUtil.cli, "uninstall",
       "--binary-name", dummyScalaCliBinName,
       "--bin-dir", binDirPath
-    ) 
-    ++ (if(force) Seq[os.Shellable]("--force") else Seq.empty)
-    ++ (if(skipCache) Seq[os.Shellable]("--skip-cache") else Seq.empty)
+    )
     // format: on
-    os.proc(cmdUninstall).call(cwd = root)
+    val forceOpts = if (force) Seq("--force") else Seq.empty
+    val skipCacheOpts = if (skipCache) Seq("--skip-cache") else Seq.empty
+    os.proc(cmdUninstall, forceOpts, skipCacheOpts).call(cwd = root)
   }
 
   def runInstallHome(): Unit = {
