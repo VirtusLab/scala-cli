@@ -162,6 +162,28 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     )
   )
 
+  val successfulESModuleTestInputs = TestInputs(
+    Seq(os.rel / "MyTests.scala" ->
+      """//> using lib "org.scalameta::munit::0.7.29"
+        |//> using jsModuleKind "esmodule"
+        |import scala.scalajs.js
+        |import scala.scalajs.js.annotation._
+        |
+        |@js.native
+        |@JSImport("console", JSImport.Namespace)
+        |object console extends js.Object {
+        |  def log(msg: js.Any): Unit = js.native
+        |}
+        |
+        |class MyTests extends munit.FunSuite {
+        |  test("foo") {
+        |    assert(2 + 2 == 4)
+        |    console.log("Hello from " + "tests")
+        |  }
+        |}
+        |""".stripMargin)
+  )
+
   test("successful test") {
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
@@ -180,6 +202,15 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("successful test JS") {
     successfulTestInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
+        .call(cwd = root)
+        .out.text()
+      expect(output.contains("Hello from tests"))
+    }
+  }
+
+  test("successful test esmodule import JS") {
+    successfulESModuleTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
         .call(cwd = root)
         .out.text()
