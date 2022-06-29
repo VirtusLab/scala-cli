@@ -165,6 +165,8 @@ object Test extends ScalaCommand[TestOptions] {
     build.options.platform.value match {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
+        val esModule =
+          build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
         value {
           Run.withLinkedJs(
             build,
@@ -173,7 +175,8 @@ object Test extends ScalaCommand[TestOptions] {
             linkerConfig,
             build.options.scalaJsOptions.fullOpt,
             build.options.scalaJsOptions.noOpt.getOrElse(false),
-            logger
+            logger,
+            esModule
           ) { js =>
             Runner.testJs(
               build.fullClassPath.map(_.toNIO),
@@ -182,9 +185,10 @@ object Test extends ScalaCommand[TestOptions] {
               args,
               testFrameworkOpt,
               logger,
-              build.options.scalaJsOptions.dom.getOrElse(false)
+              build.options.scalaJsOptions.dom.getOrElse(false),
+              esModule
             )
-          }.flatMap(e => e)
+          }.flatten
         }
       case Platform.Native =>
         value {
