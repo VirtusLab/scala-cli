@@ -8,8 +8,6 @@ import java.nio.file.Path
 @HelpMessage("Unistall scala-cli - only works when installed by the installation script")
 final case class UninstallOptions(
   @Recurse
-    shared: SharedOptions = SharedOptions(),
-  @Recurse
     bloopExit: BloopExitOptions = BloopExitOptions(),
   @Group("Uninstall")
   @Name("f")

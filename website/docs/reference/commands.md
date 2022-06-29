@@ -380,18 +380,10 @@ Unistall scala-cli - only works when installed by the installation script
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
 - [coursier](./cli-options.md#coursier-options)
-- [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
-- [help group](./cli-options.md#help-group-options)
-- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
-- [Scala.js](./cli-options.md#scalajs-options)
-- [Scala Native](./cli-options.md#scala-native-options)
-- [scalac](./cli-options.md#scalac-options)
-- [shared](./cli-options.md#shared-options)
 - [uninstall](./cli-options.md#uninstall-options)
 - [verbosity](./cli-options.md#verbosity-options)
-- [workspace](./cli-options.md#workspace-options)
 
 ## `update`
 

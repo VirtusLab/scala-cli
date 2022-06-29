@@ -3,7 +3,7 @@ package scala.cli.commands
 import caseapp._
 
 import scala.cli.CurrentParams
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.VerbosityOptionsUtil._
 
 object Uninstall extends ScalaCommand[UninstallOptions] {
@@ -11,7 +11,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     CurrentParams.verbosity = options.bloopExit.logging.verbosityOptions.verbosity
     val interactive =
       options.bloopExit.logging.verbosityOptions.interactiveInstance(forceEnable = true)
-    val logger = options.shared.logger
+    val logger = options.bloopExit.logging.logger
 
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
