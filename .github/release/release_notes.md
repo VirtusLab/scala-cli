@@ -1,3 +1,86 @@
+# [v0.1.9](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.9)
+
+## `--list-main-classes` for `publish` & `package`
+
+`publish` and `package` sub-commands now support the `--list-main-classes` option, which allows to list all the available main classes. Previously it was only available in the `run` command.
+
+Added in https://github.com/VirtusLab/scala-cli/pull/1118 by @Gedochao
+
+## Important fixes & enhancements
+
+### `fmt` options improvement
+
+Added missing documentation on how to pass native `scalafmt` options in the `fmt` sub-command with the `-F` option.
+```
+$ scala-cli fmt -F --version
+scalafmt 3.5.2
+```
+
+Additionally, a couple of `scalafmt`'s native options received aliases in Scala CLI: 
+
+`--respect-project-filters` is an alias for `-F --respect-project-filters`. Because of the way sources are passed by Scala CLI to `scalafmt` under the hood, we now turn it on by default to respect any `project.excludePaths` settings in the user's `.scalafmt.conf`.  
+It can be disabled by passing `--respect-project-filters=false` to revert to previous behaviour. 
+This addresses https://github.com/VirtusLab/scala-cli/issues/1121
+
+`--scalafmt-help` is an alias for `-F --help`. It shows the `--help` output from `scalafmt`, which might prove as helpful reference when in need of using native `scalafmt` options with `-F`.
+
+Added in https://github.com/VirtusLab/scala-cli/pull/1135 by @Gedochao
+
+### Include `libsodium.dll` on Windows
+
+Static linking of libsodium in Windows launcher has been fixed. 
+This addresses https://github.com/VirtusLab/scala-cli/issues/1114
+
+Added in https://github.com/VirtusLab/scala-cli/pull/1115 by @alexarchambault
+
+### Force interactive mode for `update` command
+
+Interactive mode for `update` sub-command is now enabled by default. 
+
+Added in https://github.com/VirtusLab/scala-cli/pull/1100 by @lwronski
+
+## In progress
+
+### Publishing-related features 
+
+* Publish tweaks + documentation by @alexarchambault in  https://github.com/VirtusLab/scala-cli/pull/1107
+
+### Better BSP support for Scala scripts
+
+* Add scala-sc language to BSP supported languages by @alexarchambault in https://github.com/VirtusLab/scala-cli/pull/1140
+
+## Other changes
+
+### Documentation PRs
+
+* Update scala 2.12 to 2.12.16 in docs by @lwronski in https://github.com/VirtusLab/scala-cli/pull/1108
+* Back port of documentation changes to main by @github-actions in https://github.com/VirtusLab/scala-cli/pull/1111
+* Tweak release procedure by @Gedochao in https://github.com/VirtusLab/scala-cli/pull/1112
+
+### Build and internal changes
+
+* Add choco configuration files by @lwronski in https://github.com/VirtusLab/scala-cli/pull/998
+* Tweaking by @alexarchambault in https://github.com/VirtusLab/scala-cli/pull/1105
+* Add scala-cli-setup deploy key to ssh-agent by @lwronski in https://github.com/VirtusLab/scala-cli/pull/1117
+
+### Updates
+
+* Update scala-cli.sh launcher for 0.1.8 by @github-actions in https://github.com/VirtusLab/scala-cli/pull/1106
+* Update case-app to 2.1.0-M14 by @alexarchambault in https://github.com/VirtusLab/scala-cli/pull/1120
+* Update Scala to 3.1.3 by @alexarchambault in https://github.com/VirtusLab/scala-cli/pull/1124
+* Update jsoniter-scala-core_2.13 to 2.13.32 by @scala-steward in https://github.com/VirtusLab/scala-cli/pull/1125
+* Update coursier-jvm_2.13, ... to 2.1.0-M6-28-gbad85693f by @scala-steward in https://github.com/VirtusLab/scala-cli/pull/1126
+* Update libsodiumjni to 0.0.3 by @scala-steward in https://github.com/VirtusLab/scala-cli/pull/1127
+* Update org.eclipse.jgit to 6.2.0.202206071550-r by @scala-steward in https://github.com/VirtusLab/scala-cli/pull/1128
+* Update Scala.js to 1.10.1 by @scala-steward in https://github.com/VirtusLab/scala-cli/pull/1130
+* Update Scala Native to 0.4.5 by @alexarchambault in https://github.com/VirtusLab/scala-cli/pull/1133
+* Update scala-js-cli to 1.1.1-sc5 by @alexarchambault in https://github.com/VirtusLab/scala-cli/pull/1134
+* Update jsoniter-scala-core_2.13 to 2.13.33 by @scala-steward in https://github.com/VirtusLab/scala-cli/pull/1136
+* Update `scalafmt`  to 3.5.8 by @Gedochao in https://github.com/VirtusLab/scala-cli/pull/1137
+* Update cli-options_2.13, cli_2.13, ... to 0.1.7 by @scala-steward in https://github.com/VirtusLab/scala-cli/pull/1138
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.8...v0.1.9
+
 # [v0.1.8](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.8)
 
 ## `--list-main-classes` option for the `run` command
