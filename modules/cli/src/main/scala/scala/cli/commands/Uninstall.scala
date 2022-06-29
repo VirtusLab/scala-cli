@@ -3,8 +3,8 @@ package scala.cli.commands
 import caseapp._
 
 import scala.cli.CurrentParams
-import scala.cli.commands.util.VerbosityOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.VerbosityOptionsUtil._
 
 object Uninstall extends ScalaCommand[UninstallOptions] {
   def run(options: UninstallOptions, args: RemainingArgs): Unit = {
@@ -18,7 +18,9 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     val destBinPath = binDirPath / options.binaryName
     val cacheDir    = scala.build.Directories.default().cacheDir
 
-    if (!Update.isScalaCLIInstalledByInstallationScript() && (options.binDir.isEmpty || !options.force)) {
+    if (
+      !Update.isScalaCLIInstalledByInstallationScript() && (options.binDir.isEmpty || !options.force)
+    ) {
       System.err.println(
         "Scala CLI was not installed by the installation script, please use your package manager to uninstall scala-cli."
       )

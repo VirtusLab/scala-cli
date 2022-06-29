@@ -336,6 +336,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -555,6 +556,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -670,6 +672,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1304,6 +1307,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1399,6 +1403,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1460,6 +1465,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1530,6 +1536,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1757,6 +1764,7 @@ Available in commands:
 - [`setup-ide`](./commands.md#setup-ide)
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
+- [`uninstall`](./commands.md#uninstall)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->

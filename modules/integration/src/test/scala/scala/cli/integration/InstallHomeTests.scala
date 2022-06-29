@@ -74,7 +74,7 @@ class InstallHomeTests extends munit.FunSuite {
       "--bin-dir", binDirPath
     )
     // format: on
-    val forceOpts = if (force) Seq("--force") else Seq.empty
+    val forceOpts     = if (force) Seq("--force") else Seq.empty
     val skipCacheOpts = if (skipCache) Seq("--skip-cache") else Seq.empty
     os.proc(cmdUninstall, forceOpts, skipCacheOpts).call(cwd = root)
   }
