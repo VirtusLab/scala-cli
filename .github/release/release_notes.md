@@ -1,42 +1,53 @@
 # [v0.1.9](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.9)
 
-## Force interactive mode for `update` command
-
-Interactive mode for `update` sub-command is now enabled by default. 
-
-Added in https://github.com/VirtusLab/scala-cli/pull/1100 by @lwronski
-
 ## `--list-main-classes` for `publish` & `package`
 
-`publish` and `package` sub-commands handle `--list-main-classes` option, which lists all the available main classes.
+`publish` and `package` sub-commands now support the `--list-main-classes` option, which allows to list all the available main classes. Previously it was only available in the `run` command.
 
-Added in https://github.com/VirtusLab/scala-cli/pull/1118  by @Gedochao
+Added in https://github.com/VirtusLab/scala-cli/pull/1118 by @Gedochao
 
-## Fixes
+## Important fixes & enhancements
 
 ### `fmt` options improvement
 
-It is now possible to pass native `scalafmt` options in `fmt` sub-command with the `-F`. 
+Added missing documentation on how to pass native `scalafmt` options in the `fmt` sub-command with the `-F` option.
 ```
 $ scala-cli fmt -F --version
 scalafmt 3.5.2
 ```
 
-`--respect-project-filters` is turned on by default in Scala CLI. This addresses https://github.com/VirtusLab/scala-cli/issues/1121
+Additionally, a couple of `scalafmt`'s native options received aliases in Scala CLI: 
+
+`--respect-project-filters` is an alias for `-F --respect-project-filters`. Because of the way sources are passed by Scala CLI to `scalafmt` under the hood, we now turn it on by default to respect any `project.excludePaths` settings in the user's `.scalafmt.conf`.  
+It can be disabled by passing `--respect-project-filters=false` to revert to previous behaviour. 
+This addresses https://github.com/VirtusLab/scala-cli/issues/1121
+
+`--scalafmt-help` is an alias for `-F --help`. It shows the `--help` output from `scalafmt`, which might prove as helpful reference when in need of using native `scalafmt` options with `-F`.
 
 Added in https://github.com/VirtusLab/scala-cli/pull/1135 by @Gedochao
 
-### libsodium.dll is not missing on windows
+### Include `libsodium.dll` on Windows
 
-Static linking of libsodium in Windows launcher has been fixed. This addresses https://github.com/VirtusLab/scala-cli/issues/1114
+Static linking of libsodium in Windows launcher has been fixed. 
+This addresses https://github.com/VirtusLab/scala-cli/issues/1114
 
 Added in https://github.com/VirtusLab/scala-cli/pull/1115 by @alexarchambault
 
+### Force interactive mode for `update` command
+
+Interactive mode for `update` sub-command is now enabled by default. 
+
+Added in https://github.com/VirtusLab/scala-cli/pull/1100 by @lwronski
+
 ## In progress
 
-### Publishing-related features
+### Publishing-related features 
 
-* Publish tweaks + documentation by @alexarchambault in  https://github.com/VirtusLab/scala-cli/pull/1107 
+* Publish tweaks + documentation by @alexarchambault in  https://github.com/VirtusLab/scala-cli/pull/1107
+
+### Better BSP support for Scala scripts
+
+* Add scala-sc language to BSP supported languages by @alexarchambault in https://github.com/VirtusLab/scala-cli/pull/1140
 
 ## Other changes
 
@@ -66,6 +77,7 @@ Added in https://github.com/VirtusLab/scala-cli/pull/1115 by @alexarchambault
 * Update scala-js-cli to 1.1.1-sc5 by @alexarchambault in https://github.com/VirtusLab/scala-cli/pull/1134
 * Update jsoniter-scala-core_2.13 to 2.13.33 by @scala-steward in https://github.com/VirtusLab/scala-cli/pull/1136
 * Update `scalafmt`  to 3.5.8 by @Gedochao in https://github.com/VirtusLab/scala-cli/pull/1137
+* Update cli-options_2.13, cli_2.13, ... to 0.1.7 by @scala-steward in https://github.com/VirtusLab/scala-cli/pull/1138
 
 **Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.8...v0.1.9
 
