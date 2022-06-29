@@ -1043,6 +1043,10 @@ Available in commands:
 
 #### `--fingerprint`
 
+#### `--verbose`
+
+Aliases: `-v`
+
 ## Pgp pull options
 
 Available in commands:
