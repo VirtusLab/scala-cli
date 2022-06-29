@@ -126,7 +126,12 @@ class BspServer(
   protected def forwardTo
     : b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & ScalaDebugServer = bloopServer
 
-  private val supportedLanguages: ju.List[String] = List("scala", "java").asJava
+  private val supportedLanguages: ju.List[String] = List(
+    "scala",
+    "java",
+    // This makes Metals requests "wrapped sources" stuff, that makes it handle .sc files better.
+    "scala-sc"
+  ).asJava
 
   private def capabilities: b.BuildServerCapabilities = {
     val capabilities = new b.BuildServerCapabilities
