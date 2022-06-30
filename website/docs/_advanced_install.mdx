@@ -291,6 +291,136 @@ sdk install scalacli
 
 </div></div>
 
+
+<SectionAbout title="Standalone launcher">
+    <div className="margin--lg"/>
+    <Tabs
+        defaultValue={currentOs() == 'windows' ? 'windows' : 'macOS/Linux'}
+        groupId="specific-standalone-launcher"
+        values={[
+        {label: 'macOS/Linux', value: 'macOS/Linux'},
+        {label: 'Windows', value: 'windows'},
+        ]}>
+     <TabItem value="macOS/Linux"></TabItem>
+     <TabItem value="windows"></TabItem>
+    </Tabs>
+</SectionAbout>
+
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
+Script to automatically download and cache standalone `scala-cli` launcher.
+
+<Tabs groupId="specific-standalone-launcher"
+      defaultValue="macOS/Linux"
+      values={[
+        {label: 'macOS/Linux', value: 'macOS/Linux'},
+        {label: 'Windows', value: 'windows'}
+        ]}>
+<TabItem value="macOS/Linux">
+
+<DownloadButton desc= 'Scala CLI launcher for macOS/Linux' href='https://github.com/VirtusLab/scala-cli/blob/main/scala-cli.sh' width = '250px' ></DownloadButton>
+
+</TabItem>
+<TabItem value="windows">
+
+<DownloadButton desc= 'Scala CLI launcher for Windows' href='https://github.com/VirtusLab/scala-cli/blob/main/scala-cli.bat' width = '250px' ></DownloadButton>
+
+</TabItem>
+</Tabs>
+</div></div>
+
+
+<SectionAbout title="Shell completions">
+    <div className="margin--lg"/>
+    <Tabs
+        defaultValue={currentOs() == 'mac' ? 'zsh' : 'bash'}
+        groupId="shell-specific"
+        values={[
+        {label: 'Bash', value: 'bash'},
+        {label: 'zsh', value: 'zsh'},
+        ]}>
+     <TabItem value="bash"></TabItem>
+     <TabItem value="zsh"></TabItem>
+    </Tabs>
+</SectionAbout>
+
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
+
+Try the completions with
+
+<Tabs groupId="shell-specific"
+      defaultValue="bash"
+      values={[
+        {label: 'Bash', value: 'bash'},
+        {label: 'zsh', value: 'zsh'},
+        ]}>
+<TabItem value="bash">
+
+```
+eval "$(scala-cli install completions --env --shell bash)"
+scala-cli --<TAB>
+```
+
+</TabItem>
+<TabItem value="zsh">
+
+```
+eval "$(scala-cli install completions --env --shell zsh)"
+scala-cli --<TAB>
+```
+
+</TabItem>
+</Tabs>
+
+Install them on your system with
+```bash
+scala-cli install completions
+```
+
+If any of the `scala-cli install completions` command complained that your shell cannot be determined, specify it
+with `--shell`
+<Tabs groupId="shell-specific"
+      values={[
+        {label: 'Bash', value: 'bash'},
+        {label: 'zsh', value: 'zsh'},
+        ]}>
+<TabItem value="bash">
+
+```bash
+scala-cli install completions --shell bash
+```
+
+</TabItem>
+<TabItem value="zsh">
+
+```bash
+scala-cli install completions --shell zsh
+```
+
+</TabItem>
+</Tabs>
+</div></div>
+
+<div id="scala-js"/>
+<SectionAbout title="Scala.js"/>
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
+To run Scala.js applications [Node.js](https://nodejs.org/) needs to be installed. Scala CLI at this moment does not manage Node.js however it may change in the future.
+
+</div></div>
+
+<div id="scala-native"/>
+<SectionAbout title="Scala Native"/>
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
+[Clang](https://llvm.org/docs/GettingStarted.html#requirements) is required to compile and run Scala Native applications. Using some functionalities known from JDK (like using `java.util.zip` package) require additional packages to be installed.
+
+Scala Native page contains detailed [installation guide](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies).
+
+</div></div>
+
+
 <SectionAbout title="Uninstall scala CLI">
     <div className="margin--lg"/>
     <Tabs
@@ -466,134 +596,5 @@ brew uninstall scala-cli
 
 </TabItem>
 </Tabs>
-
-</div></div>
-
-
-<SectionAbout title="Standalone launcher">
-    <div className="margin--lg"/>
-    <Tabs
-        defaultValue={currentOs() == 'windows' ? 'windows' : 'macOS/Linux'}
-        groupId="specific-standalone-launcher"
-        values={[
-        {label: 'macOS/Linux', value: 'macOS/Linux'},
-        {label: 'Windows', value: 'windows'},
-        ]}>
-     <TabItem value="macOS/Linux"></TabItem>
-     <TabItem value="windows"></TabItem>
-    </Tabs>
-</SectionAbout>
-
-<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
-
-Script to automatically download and cache standalone `scala-cli` launcher.
-
-<Tabs groupId="specific-standalone-launcher"
-      defaultValue="macOS/Linux"
-      values={[
-        {label: 'macOS/Linux', value: 'macOS/Linux'},
-        {label: 'Windows', value: 'windows'}
-        ]}>
-<TabItem value="macOS/Linux">
-
-<DownloadButton desc= 'Scala CLI launcher for macOS/Linux' href='https://github.com/VirtusLab/scala-cli/blob/main/scala-cli.sh' width = '250px' ></DownloadButton>
-
-</TabItem>
-<TabItem value="windows">
-
-<DownloadButton desc= 'Scala CLI launcher for Windows' href='https://github.com/VirtusLab/scala-cli/blob/main/scala-cli.bat' width = '250px' ></DownloadButton>
-
-</TabItem>
-</Tabs>
-</div></div>
-
-
-<SectionAbout title="Shell completions">
-    <div className="margin--lg"/>
-    <Tabs
-        defaultValue={currentOs() == 'mac' ? 'zsh' : 'bash'}
-        groupId="shell-specific"
-        values={[
-        {label: 'Bash', value: 'bash'},
-        {label: 'zsh', value: 'zsh'},
-        ]}>
-     <TabItem value="bash"></TabItem>
-     <TabItem value="zsh"></TabItem>
-    </Tabs>
-</SectionAbout>
-
-<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
-
-
-Try the completions with
-
-<Tabs groupId="shell-specific"
-      defaultValue="bash"
-      values={[
-        {label: 'Bash', value: 'bash'},
-        {label: 'zsh', value: 'zsh'},
-        ]}>
-<TabItem value="bash">
-
-```
-eval "$(scala-cli install completions --env --shell bash)"
-scala-cli --<TAB>
-```
-
-</TabItem>
-<TabItem value="zsh">
-
-```
-eval "$(scala-cli install completions --env --shell zsh)"
-scala-cli --<TAB>
-```
-
-</TabItem>
-</Tabs>
-
-Install them on your system with
-```bash
-scala-cli install completions
-```
-
-If any of the `scala-cli install completions` command complained that your shell cannot be determined, specify it
-with `--shell`
-<Tabs groupId="shell-specific"
-      values={[
-        {label: 'Bash', value: 'bash'},
-        {label: 'zsh', value: 'zsh'},
-        ]}>
-<TabItem value="bash">
-
-```bash
-scala-cli install completions --shell bash
-```
-
-</TabItem>
-<TabItem value="zsh">
-
-```bash
-scala-cli install completions --shell zsh
-```
-
-</TabItem>
-</Tabs>
-</div></div>
-
-<div id="scala-js"/>
-<SectionAbout title="Scala.js"/>
-<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
-
-To run Scala.js applications [Node.js](https://nodejs.org/) needs to be installed. Scala CLI at this moment does not manage Node.js however it may change in the future.
-
-</div></div>
-
-<div id="scala-native"/>
-<SectionAbout title="Scala Native"/>
-<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
-
-[Clang](https://llvm.org/docs/GettingStarted.html#requirements) is required to compile and run Scala Native applications. Using some functionalities known from JDK (like using `java.util.zip` package) require additional packages to be installed.
-
-Scala Native page contains detailed [installation guide](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies).
 
 </div></div>
