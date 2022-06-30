@@ -373,6 +373,18 @@ Accepts options:
 - [watch](./cli-options.md#watch-options)
 - [workspace](./cli-options.md#workspace-options)
 
+## `uninstall`
+
+Unistall scala-cli - only works when installed by the installation script
+
+Accepts options:
+- [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
+- [directories](./cli-options.md#directories-options)
+- [logging](./cli-options.md#logging-options)
+- [uninstall](./cli-options.md#uninstall-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ## `update`
 
 Update scala-cli - only works when installed by the installation script

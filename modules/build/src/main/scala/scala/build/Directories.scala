@@ -14,6 +14,7 @@ trait Directories {
   def bloopDaemonDir: os.Path
   def bloopWorkingDir: os.Path
   def secretsDir: os.Path
+  def cacheDir: os.Path
 }
 
 object Directories {
@@ -41,6 +42,9 @@ object Directories {
     }
     lazy val secretsDir: os.Path =
       os.Path(projDirs.dataLocalDir, Os.pwd) / "secrets"
+
+    lazy val cacheDir: os.Path =
+      os.Path(projDirs.cacheDir, os.pwd)
   }
 
   final case class SubDir(dir: os.Path) extends Directories {
@@ -60,6 +64,8 @@ object Directories {
       dir / "data-local" / "bloop"
     lazy val secretsDir: os.Path =
       dir / "data-local" / "secrets"
+    lazy val cacheDir: os.Path =
+      dir / "cache"
   }
 
   def default(): Directories = {
