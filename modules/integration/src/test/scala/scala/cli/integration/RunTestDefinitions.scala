@@ -83,6 +83,34 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     simpleJsTest("--js-mode", "release")
   }
 
+  test("esmodule import JS") {
+    val fileName = "simple.sc"
+    val message  = "Hello"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""//> using jsModuleKind "es"
+             |import scala.scalajs.js
+             |import scala.scalajs.js.annotation._
+             |
+             |@js.native
+             |@JSImport("console", JSImport.Namespace)
+             |object console extends js.Object {
+             |  def log(msg: js.Any): Unit = js.native
+             |}
+             |
+             |val msg = "$message"
+             |console.log(msg)
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js")
+        .call(cwd = root).out.text().trim()
+      expect(output == message)
+    }
+  }
+
   test("simple script JS via config file") {
     val message = "Hello"
     val inputs = TestInputs(

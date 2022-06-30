@@ -221,8 +221,11 @@ object Run extends ScalaCommand[RunOptions] {
 
     val process = build.options.platform.value match {
       case Platform.JS =>
+        val esModule =
+          build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
+
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-        val jsDest       = os.temp(prefix = "main", suffix = ".js")
+        val jsDest       = os.temp(prefix = "main", suffix = if (esModule) ".mjs" else ".js")
         val res =
           Package.linkJs(
             build,
@@ -240,7 +243,8 @@ object Run extends ScalaCommand[RunOptions] {
               logger,
               allowExecve = allowExecve,
               jsDom = build.options.scalaJsOptions.dom.getOrElse(false),
-              sourceMap = build.options.scalaJsOptions.emitSourceMaps
+              sourceMap = build.options.scalaJsOptions.emitSourceMaps,
+              esModule = esModule
             )
             process.onExit().thenApply(_ => if (os.exists(jsDest)) os.remove(jsDest))
             process
@@ -281,9 +285,10 @@ object Run extends ScalaCommand[RunOptions] {
     config: ScalaJsLinkerConfig,
     fullOpt: Boolean,
     noOpt: Boolean,
-    logger: Logger
+    logger: Logger,
+    esModule: Boolean
   )(f: os.Path => T): Either[BuildException, T] = {
-    val dest = os.temp(prefix = "main", suffix = ".js")
+    val dest = os.temp(prefix = "main", suffix = if (esModule) ".mjs" else ".js")
     try Package.linkJs(
         build,
         dest,

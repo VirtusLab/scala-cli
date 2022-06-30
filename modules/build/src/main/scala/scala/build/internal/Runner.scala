@@ -161,7 +161,8 @@ object Runner {
     logger: Logger,
     allowExecve: Boolean = false,
     jsDom: Boolean = false,
-    sourceMap: Boolean = false
+    sourceMap: Boolean = false,
+    esModule: Boolean = false
   ): Process = {
 
     import logger.{log, debug}
@@ -201,7 +202,10 @@ object Runner {
       sys.error("should not happen")
     }
     else {
-      val inputs = Seq(Input.Script(entrypoint.toPath))
+      val inputs = Seq(
+        if (esModule) Input.ESModule(entrypoint.toPath)
+        else Input.Script(entrypoint.toPath)
+      )
 
       val config    = RunConfig().withLogger(logger.scalaJsLogger)
       val processJs = envJs.start(inputs, config)
@@ -309,7 +313,8 @@ object Runner {
     args: Seq[String],
     testFrameworkOpt: Option[String],
     logger: Logger,
-    jsDom: Boolean
+    jsDom: Boolean,
+    esModule: Boolean
   ): Either[TestError, Int] = either {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
@@ -330,8 +335,11 @@ object Runner {
           .withEnv(Map.empty)
           .withSourceMap(NodeJSEnv.SourceMap.Disable)
       )
-    val adapterConfig        = TestAdapter.Config().withLogger(logger.scalaJsLogger)
-    val inputs               = Seq(Input.Script(entrypoint.toPath))
+    val adapterConfig = TestAdapter.Config().withLogger(logger.scalaJsLogger)
+    val inputs = Seq(
+      if (esModule) Input.ESModule(entrypoint.toPath)
+      else Input.Script(entrypoint.toPath)
+    )
     var adapter: TestAdapter = null
 
     logger.debug(s"JS tests class path: $classPath")
