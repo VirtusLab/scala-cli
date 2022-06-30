@@ -21,14 +21,14 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     if (
       !Update.isScalaCLIInstalledByInstallationScript() && (options.binDir.isEmpty || !options.force)
     ) {
-      System.err.println(
+      logger.error(
         "Scala CLI was not installed by the installation script, please use your package manager to uninstall scala-cli."
       )
       sys.exit(1)
     }
     if (!options.force) {
       val fallbackAction = () => {
-        System.err.println(s"To uninstall scala-cli pass -f or --force")
+        logger.error(s"To uninstall scala-cli pass -f or --force")
         sys.exit(1)
       }
       val msg = s"Do you want to uninstall scala-cli?"
@@ -47,7 +47,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
       logger.message("Uninstalled sucessfully.")
     }
     else {
-      System.err.println(s"Could't find scala-cli binary at $destBinPath.")
+      logger.error(s"Could't find scala-cli binary at $destBinPath.")
       sys.exit(1)
     }
   }
