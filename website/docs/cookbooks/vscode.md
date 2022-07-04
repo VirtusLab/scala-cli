@@ -1,11 +1,11 @@
 ---
-title: Setup Scala CLI project in VSCode
+title: Setup a Scala CLI project in VSCode
 sidebar_position: 7
 ---
 
 Scala CLI can generate the files that are necessary for providing IDE support in Visual Studio Code.
 
-For example, here is a simple project in scala-cli which contains only one main and test class.
+For example, here is a simple project in scala-cli which contains only one main and one test class.
 
 ```scala title=HelloWorld.scala
 @main
@@ -23,13 +23,14 @@ class MyTests extends munit.FunSuite {
 }
 ```
 
-The following command generates configurations files for VSCode support:
+The following command generates configuration files for VSCode support:
 
 ```bash
 scala-cli setup-ide .
 ```
 
-There is also another way. The first time you run the `run`|`compile`|`test` commands, the configuration files for the VSCode will be also generated.
+There is also another way. The first time you run the `run`|`compile`|`test` commands, the configuration files for the
+VSCode will be also generated.
 
 ```bash
 scala-cli run .
@@ -42,7 +43,8 @@ and then, we launch Visual Studio Code
 code .
 ```
 
-After starting metals, you will see `run/debug` buttons in `HelloWorld.scala` and `test/debug` in `MyTests.test.scala` (assuming the following directory layout).
+After starting metals, you will see the `run/debug` buttons in `HelloWorld.scala` and `test/debug` in `MyTests.test.scala` (
+assuming the following directory layout).
 
 ![layout](/img/source_layout.png)
 

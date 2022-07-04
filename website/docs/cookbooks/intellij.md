@@ -100,7 +100,7 @@ Also, please do note, that the project structure comes directly from Scala CLI a
 it from IntelliJ. Instead, being a CLI tool, we have a terminal-first policy, and so, if you want to update the project
 structure to include an extra directory, just run the proper command to update the `.bsp` directory.
 
-```bash
+```bash ignore
 scala-cli setup-ide . ../extra-directory
 ```
 

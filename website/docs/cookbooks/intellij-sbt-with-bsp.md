@@ -81,7 +81,7 @@ Now, let's say that at some point you decide you need to occasionally run some s
 those scripts with Scala CLI and decide it'd be convenient to keep them in the same repository. 
 
 <ChainedSnippets>
-```bash
+```bash ignore
 tree scripts
 ```
 
