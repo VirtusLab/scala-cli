@@ -99,9 +99,8 @@ html[data-theme="dark"] {
 }
 
 .header-vl-link{
-    &>span {
-        content:  url("/static/img/vl_logo_small.png");
-        max-height: 48px;
-        margin-top: -9px;
-    }
+    content:  url("/static/img/vl_logo_small.png");
+    max-height: 50px;
+    margin-top: -7px;
+    margin-right: -15px;
 }
