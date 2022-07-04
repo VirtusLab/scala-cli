@@ -63,7 +63,7 @@ share their classpath. This in turn means that things will break.
 The only way to solve this is for each to have its own `BSP` configuration, really.
 And so:
 
-```bash
+```bash ignore
 scala-cli setup-ide app1
 scala-cli setup-ide app2
 scala-cli setup-ide scripts
