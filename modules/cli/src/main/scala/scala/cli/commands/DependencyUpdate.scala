@@ -1,9 +1,10 @@
 package scala.cli.commands
 
 import caseapp._
+import os.Path
 
+import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
-import scala.build.actionable.ActionablePreprocessor
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.Scope
 import scala.build.{CrossSources, Logger, Position, Sources}
@@ -67,57 +68,54 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     actionableUpdateDiagnostics: Seq[ActionableDependencyUpdateDiagnostic],
     logger: Logger
   ): Unit = {
-    actionableUpdateDiagnostics.foreach { diagnostic =>
-      diagnostic.positions
-        .collect { case file: Position.File => file }
-        .foreach {
-          case Position.File(Right(filePath), startPos, _) =>
-            val lineIndex = startPos._1
-            val appliedDiagnostic = splitFileContentByLine(filePath).map {
-              case (line, index) if index == lineIndex + 1 =>
-                updateDependency(line, startPos, diagnostic)
-              case (line, _) => line
-            }.mkString
-            os.write.over(filePath, appliedDiagnostic)
-            logger.message(s"Updated dependency to: ${diagnostic.to}")
-          case Position.File(Left(file), _, _) =>
-            logger.message(
-              s"scala-cli can't update dependency to:${diagnostic.to} in virtual file: $file"
-            )
+    val groupedByFileDiagnostics =
+      actionableUpdateDiagnostics.flatMap {
+        diagnostic =>
+          diagnostic.positions.collect {
+            case file: Position.File =>
+              file.path -> (file, diagnostic)
+          }
+      }.groupMap(_._1)(_._2)
+
+    groupedByFileDiagnostics.foreach {
+      case (Right(file), diagnostics) =>
+        val sortedByLine       = diagnostics.sortBy(_._1.startPos._1).reverse
+        val appliedDiagnostics = updateDependencies(file, sortedByLine)
+        os.write.over(file, appliedDiagnostics)
+        diagnostics.foreach(diagnostic =>
+          logger.message(s"Updated dependency to: ${diagnostic._2.to}")
+        )
+      case (Left(file), diagnostics) =>
+        diagnostics.foreach {
+          diagnostic =>
+            logger.message(s"Warning: Scala CLI can't update ${diagnostic._2.to} in $file")
         }
     }
   }
 
-  private def splitFileContentByLine(file: os.Path) = {
-    val content       = os.read(file)
-    val startIndicies = Position.Raw.lineStartIndices(content).toList
+  private def updateDependencies(
+    file: Path,
+    diagnostics: Seq[(Position.File, ActionableDependencyUpdateDiagnostic)]
+  ): String = {
+    val fileContent   = os.read(file)
+    val startIndicies = Position.Raw.lineStartIndices(fileContent)
 
-    def lsplit(pos: List[Int], s: String): List[String] =
-      pos match {
-        case x :: rest => s.substring(0, x) :: lsplit(rest.map(_ - x), s.substring(x))
-        case Nil       => List(s)
-      }
-    lsplit(startIndicies, content).zipWithIndex
-  }
+    diagnostics.foldLeft(fileContent) {
+      case (fileContent, (file, diagnostic)) =>
+        val (line, column) = (file.startPos._1, file.startPos._2)
+        val startIndex = {
+          val index = startIndicies(line) + column
+          val skipIvySyntax =
+            fileContent.slice(index, index + 6) match {
+              case "$ivy.`" | "$dep.`" => 6
+              case _                   => 0
+            }
+          index + skipIvySyntax
+        }
+        val endIndex = startIndex + diagnostic.oldDependency.render.length()
 
-  private def updateDependency(
-    line: String,
-    pos: (Int, Int),
-    diagnostic: ActionableDependencyUpdateDiagnostic
-  ) = {
-    val depColumnIndex = pos._2
-    val (head, tail)   = line.splitAt(depColumnIndex)
-    if (tail.startsWith("$ivy.`")) {
-      val last = tail.stripPrefix("$ivy.`").dropWhile(_ != '`')
-      s"$head$$ivy.`${diagnostic.to}$last"
-    }
-    else if (tail.startsWith("$dep.`")) {
-      val last = tail.stripPrefix("$dep.`").dropWhile(_ != '`')
-      s"$head$$dep.`${diagnostic.to}$last"
-    }
-    else {
-      val last = line.drop(depColumnIndex).dropWhile(_ != '\"')
-      s"$head${diagnostic.to}$last"
+        val newDependency = diagnostic.to
+        s"${fileContent.slice(0, startIndex)}$newDependency${fileContent.drop(endIndex)}"
     }
   }
 

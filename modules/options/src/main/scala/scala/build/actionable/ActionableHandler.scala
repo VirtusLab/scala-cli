@@ -5,12 +5,12 @@ import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.BuildOptions
 
 trait ActionableHandler {
-  /** 
-    * Type of option used to generate actionable diagnostic
+
+  /** Type of option used to generate actionable diagnostic
     */
   type V
-  /** 
-    * Returned type of actionable diagnostics
+
+  /** Returned type of actionable diagnostics
     */
   type A
 
