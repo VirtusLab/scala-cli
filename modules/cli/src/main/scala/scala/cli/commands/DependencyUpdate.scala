@@ -58,6 +58,14 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
 
     if (options.all)
       updateDependencies(actionableUpdateDiagnostics, logger)
+    else {
+      println("Updates")
+      actionableUpdateDiagnostics.foreach(update =>
+        println(s"   * ${update.oldDependency.render} -> ${update.newVersion}")
+      )
+      println("""|To update all dependencies run: 
+                 |    scala-cli dependency-update --all""".stripMargin)
+    }
   }
 
   private def updateDependencies(
