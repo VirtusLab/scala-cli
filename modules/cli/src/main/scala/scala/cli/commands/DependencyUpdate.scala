@@ -103,16 +103,8 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     diagnostics.foldLeft(fileContent) {
       case (fileContent, (file, diagnostic)) =>
         val (line, column) = (file.startPos._1, file.startPos._2)
-        val startIndex = {
-          val index = startIndicies(line) + column
-          val skipIvySyntax =
-            fileContent.slice(index, index + 6) match {
-              case "$ivy.`" | "$dep.`" => 6
-              case _                   => 0
-            }
-          index + skipIvySyntax
-        }
-        val endIndex = startIndex + diagnostic.oldDependency.render.length()
+        val startIndex     = startIndicies(line) + column
+        val endIndex       = startIndex + diagnostic.oldDependency.render.length()
 
         val newDependency = diagnostic.to
         s"${fileContent.slice(0, startIndex)}$newDependency${fileContent.drop(endIndex)}"

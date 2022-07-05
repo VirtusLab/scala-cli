@@ -247,8 +247,8 @@ case object ScalaPreprocessor extends Preprocessor {
       val toFilePos = Position.Raw.filePos(path, content)
       val deps = value {
         dependencyTrees
-          .map { t =>
-            val pos      = toFilePos(Position.Raw(t.start, t.end))
+          .map { t => // add 6 to start position to skip ivy syntax ($ivy.`) and dep ($dep.`)
+            val pos      = toFilePos(Position.Raw(t.start + 6, t.end))
             val strDep   = t.prefix.drop(1).mkString(".")
             val maybeDep = parseDependency(strDep, pos)
             maybeDep.map(dep => Positioned(Seq(pos), dep))
