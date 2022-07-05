@@ -133,8 +133,8 @@ object Deps {
   def slf4jNop   = ivy"org.slf4j:slf4j-nop:1.8.0-beta4"
   // Force using of 2.13 - is there a better way?
   def snailgun(force213: Boolean = false) =
-    if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc1"
-    else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc1"
+    if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc2"
+    else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2"
   def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.6.2"
   def svm             = ivy"org.graalvm.nativeimage:svm:22.0.0.2"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
