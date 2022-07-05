@@ -14,15 +14,15 @@ import scala.concurrent.duration.DurationInt
 
 case object ActionableDependencyHandler extends ActionableHandler {
   type V = Positioned[AnyDependency]
+  type A = ActionableDependencyUpdateDiagnostic
 
   override def extractOptions(options: BuildOptions): Seq[Positioned[AnyDependency]] =
     options.classPathOptions.extraDependencies.toSeq
 
-  override def createActionableDiagnostic(
+  override def actionableDiagnostic(
     option: Positioned[AnyDependency],
     buildOptions: BuildOptions
   ): Either[BuildException, Option[ActionableDependencyUpdateDiagnostic]] = either {
-
     val dependency     = option.value
     val currentVersion = dependency.version
     val latestVersion  = value(findLatestVersion(buildOptions, dependency))

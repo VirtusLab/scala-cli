@@ -1,10 +1,18 @@
 package scala.build.actionable
 
-import scala.build.errors.BuildException
+import scala.build.Ops._
+import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.BuildOptions
 
 trait ActionableHandler {
+  /** 
+    * Type of option used to generate actionable diagnostic
+    */
   type V
+  /** 
+    * Returned type of actionable diagnostics
+    */
+  type A
 
   /** Extract options on the basis of which actionable diagnostics will be generated
     *
@@ -23,8 +31,17 @@ trait ActionableHandler {
     *   used to extract additional parameter from buildOptions, such as "ScalaParams" or "Coursier
     *   Cache" See [[ActionableDependencyHandler]]
     */
-  def createActionableDiagnostic(
+  def actionableDiagnostic(
     option: V,
     buildOptions: BuildOptions
-  ): Either[BuildException, Option[ActionableDiagnostic]]
+  ): Either[BuildException, Option[A]]
+
+  final def createActionableDiagnostics(
+    buildOptions: BuildOptions
+  ): Either[BuildException, Seq[A]] =
+    extractOptions(buildOptions)
+      .map(v => actionableDiagnostic(v, buildOptions))
+      .sequence
+      .left.map(CompositeBuildException(_))
+      .map(_.flatten)
 }
