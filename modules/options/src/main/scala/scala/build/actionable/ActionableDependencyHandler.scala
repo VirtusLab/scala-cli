@@ -50,11 +50,11 @@ case object ActionableDependencyHandler extends ActionableHandler {
         .unsafeRun()(cache.ec)
     }
 
-    val latestVersion = value(res.versions.latest(coursier.core.Latest.Release).toRight(
-      new ActionableHandlerError(s"Not found dependency versions for ${dependency.render}")
-    ))
-
-    latestVersion
+    value {
+      res.versions.latest(coursier.core.Latest.Release).toRight {
+        new ActionableHandlerError(s"No latest version found for ${dependency.render}")
+      }
+    }
   }
 
 }

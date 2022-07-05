@@ -4,8 +4,8 @@ import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.BuildOptions
 
-case object ActionablePreprocessor {
-  val actionableHandlers = Seq(
+object ActionablePreprocessor {
+  val actionableHandlers = Seq[ActionableHandler](
     ActionableDependencyHandler
   )
 

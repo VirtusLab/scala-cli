@@ -12,7 +12,7 @@ trait ActionableHandler {
 
   /** Returned type of actionable diagnostics
     */
-  type A
+  type A <: ActionableDiagnostic
 
   /** Extract options on the basis of which actionable diagnostics will be generated
     *
