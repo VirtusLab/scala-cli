@@ -11,6 +11,7 @@ import scala.build.errors.BuildException
 import scala.cli.commands.pgp.PgpProxyMaker
 import scala.cli.errors.PgpError
 import scala.cli.signing.shared.Secret
+import scala.util.Properties
 
 object ThrowawayPgpSecret {
 
@@ -34,7 +35,7 @@ object ThrowawayPgpSecret {
     cache: Cache[Task]
   ): Either[BuildException, (Secret[String], Secret[Array[Byte]])] = either {
 
-    val dir    = os.temp.dir(perms = "rwx------")
+    val dir    = os.temp.dir(perms = if (Properties.isWin) null else "rwx------")
     val pubKey = dir / "pub"
     val secKey = dir / "sec"
     val retCode = value {
