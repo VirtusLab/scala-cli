@@ -30,7 +30,7 @@ final case class Inputs(
   def singleFiles(): Seq[Inputs.SingleFile] =
     elements.flatMap {
       case f: Inputs.SingleFile        => Seq(f)
-      case d: Inputs.Directory         => singleFilesFromDirectory(d)
+      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d)
       case _: Inputs.ResourceDirectory => Nil
       case _: Inputs.Virtual           => Nil
     }
@@ -51,7 +51,7 @@ final case class Inputs(
   def flattened(): Seq[Inputs.SingleElement] =
     elements.flatMap {
       case f: Inputs.SingleFile        => Seq(f)
-      case d: Inputs.Directory         => singleFilesFromDirectory(d)
+      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d)
       case _: Inputs.ResourceDirectory => Nil
       case v: Inputs.Virtual           => Seq(v)
     }
@@ -73,7 +73,7 @@ final case class Inputs(
 
   def add(extraElements: Seq[Inputs.Element]): Inputs =
     if (elements.isEmpty) this
-    else copy(elements = elements ++ extraElements)
+    else copy(elements = (elements ++ extraElements).distinct)
 
   def generatedSrcRoot(scope: Scope): os.Path =
     workspace / Constants.workspaceDirName / projectName / "src_generated" / scope.name
@@ -109,7 +109,7 @@ final case class Inputs(
       case elem: Inputs.OnDisk =>
         val content = elem match {
           case dirInput: Inputs.Directory =>
-            Seq("dir:") ++ singleFilesFromDirectory(dirInput)
+            Seq("dir:") ++ Inputs.singleFilesFromDirectory(dirInput)
               .map(file => s"${file.path}:" + os.read(file.path))
           case resDirInput: Inputs.ResourceDirectory =>
             // Resource changes for SN require relinking, so they should also be hashed
@@ -127,22 +127,6 @@ final case class Inputs(
     val digest        = md.digest()
     val calculatedSum = new BigInteger(1, digest)
     String.format(s"%040x", calculatedSum)
-  }
-
-  private def singleFilesFromDirectory(d: Inputs.Directory): Seq[Inputs.SingleFile] = {
-    import Ordering.Implicits.seqOrdering
-    os.walk.stream(d.path, skip = _.last.startsWith("."))
-      .filter(os.isFile(_))
-      .collect {
-        case p if p.last.endsWith(".java") =>
-          Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".scala") =>
-          Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".sc") =>
-          Inputs.Script(d.path, p.subRelativeTo(d.path))
-      }
-      .toVector
-      .sortBy(_.subPath.segments)
   }
 
   def nativeWorkDir: os.Path =
@@ -221,6 +205,22 @@ object Inputs {
       extends VirtualSourceFile with Compiled
   final case class VirtualData(content: Array[Byte], source: String)
       extends Virtual
+
+  def singleFilesFromDirectory(d: Inputs.Directory): Seq[Inputs.SingleFile] = {
+    import Ordering.Implicits.seqOrdering
+    os.walk.stream(d.path, skip = _.last.startsWith("."))
+      .filter(os.isFile(_))
+      .collect {
+        case p if p.last.endsWith(".java") =>
+          Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
+        case p if p.last.endsWith(".scala") =>
+          Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
+        case p if p.last.endsWith(".sc") =>
+          Inputs.Script(d.path, p.subRelativeTo(d.path))
+      }
+      .toVector
+      .sortBy(_.subPath.segments)
+  }
 
   private def inputsHash(elements: Seq[Element]): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)

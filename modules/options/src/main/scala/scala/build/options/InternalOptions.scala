@@ -3,6 +3,8 @@ package scala.build.options
 import coursier.cache.FileCache
 import coursier.util.Task
 
+import scala.build.Positioned
+
 final case class InternalOptions(
   keepDiagnostics: Boolean = false,
   cache: Option[FileCache[Task]] = None,
@@ -18,7 +20,8 @@ final case class InternalOptions(
     * not more is not unseen when Spark modules are involves for example), so we only keep them when
     * really needed.
     */
-  keepResolution: Boolean = false
+  keepResolution: Boolean = false,
+  extraSourceFiles: Seq[Positioned[os.Path]] = Nil
 ) {
   def verbosityOrDefault = verbosity.getOrElse(0)
   def strictBloopJsonCheckOrDefault =

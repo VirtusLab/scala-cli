@@ -163,6 +163,32 @@ world
 
 </ChainedSnippets>
 
+### Define source files in using directives
+
+You can also add source files with the using directive `//> using file` in Scala scripts:
+
+```scala title=main.sc
+//> using file "Utils.scala" 
+
+println(Utils.message)
+```
+```scala title=Utils.scala
+object Utils {
+  val message = "Hello World"
+}
+```
+
+`scala-cli` takes into account and compiles `Utils.scala`.
+
+```bash
+scala-cli main.sc
+# Hello World
+```
+
+<!-- Expected:
+Hello World
+-->
+
 ### Difference with Ammonite scripts
 
 [Ammonite](http://ammonite.io) is a popular REPL for Scala that can also compile and run `.sc` files.

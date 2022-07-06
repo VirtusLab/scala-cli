@@ -57,7 +57,8 @@ final class BspImpl(
     val bspServer        = currentBloopSession.bspServer
     val inputs           = currentBloopSession.inputs
 
-    val crossSources = value {
+    // allInputs contains elements from using directives
+    val (crossSources, allInputs) = value {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
@@ -86,8 +87,8 @@ final class BspImpl(
     val options0Main = sourcesMain.buildOptions
     val options0Test = sourcesTest.buildOptions.orElse(options0Main)
 
-    val generatedSourcesMain = sourcesMain.generateSources(inputs.generatedSrcRoot(Scope.Main))
-    val generatedSourcesTest = sourcesTest.generateSources(inputs.generatedSrcRoot(Scope.Test))
+    val generatedSourcesMain = sourcesMain.generateSources(allInputs.generatedSrcRoot(Scope.Main))
+    val generatedSourcesTest = sourcesTest.generateSources(allInputs.generatedSrcRoot(Scope.Test))
 
     bspServer.setExtraDependencySources(options0Main.classPathOptions.extraSourceJars)
     bspServer.setGeneratedSources(Scope.Main, generatedSourcesMain)
@@ -95,7 +96,7 @@ final class BspImpl(
 
     val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
       val res = Build.prepareBuild(
-        inputs,
+        allInputs,
         sourcesMain,
         generatedSourcesMain,
         options0Main,
@@ -110,7 +111,7 @@ final class BspImpl(
 
     val (classesDir0Test, scalaParamsTest, artifactsTest, projectTest, buildChangedTest) = value {
       val res = Build.prepareBuild(
-        inputs,
+        allInputs,
         sourcesTest,
         generatedSourcesTest,
         options0Test,

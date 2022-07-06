@@ -5,6 +5,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Build, BuildThreads, Directories, Inputs}
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
+import scala.build.internal.Util
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
 import scala.util.Try

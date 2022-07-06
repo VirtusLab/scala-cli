@@ -51,7 +51,7 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -87,7 +87,7 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -120,7 +120,7 @@ class SourcesTests extends munit.FunSuite {
     )
     val expectedDeps = Nil
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -151,7 +151,7 @@ class SourcesTests extends munit.FunSuite {
     )
     val expectedDeps = Nil
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -182,7 +182,7 @@ class SourcesTests extends munit.FunSuite {
     )
     val testInputs = TestInputs(files, Seq("."))
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -216,7 +216,7 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -252,7 +252,7 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -307,7 +307,7 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -372,7 +372,7 @@ class SourcesTests extends munit.FunSuite {
     )
 
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -404,7 +404,7 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -439,7 +439,7 @@ class SourcesTests extends munit.FunSuite {
       dep"org3:::name3:3.3"
     )
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -465,7 +465,7 @@ class SourcesTests extends munit.FunSuite {
           |""".stripMargin
     )
     testInputs.withInputs { (root, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,
@@ -502,7 +502,7 @@ class SourcesTests extends munit.FunSuite {
           |""".stripMargin
     )
     testInputs.withInputs { (_, inputs) =>
-      val crossSources =
+      val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
           preprocessors,

@@ -1657,6 +1657,35 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("add to class path sources from using directive") {
+    val fileName       = "Hello.scala"
+    val (hello, world) = ("Hello", "World")
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          """|//> using file "Utils.scala", "helper"
+             |
+             |object Hello extends App {
+             |   println(s"${Utils.hello}${helper.Helper.world}")
+             |}""".stripMargin,
+        os.rel / "Utils.scala" ->
+          s"""|object Utils {
+              |  val hello = "$hello"
+              |}""".stripMargin,
+        os.rel / "helper" / "Helper.scala" ->
+          s"""|package helper
+              |object Helper {
+              |  val world = "$world"
+              |}""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "Hello.scala")
+        .call(cwd = root)
+      expect(res.out.text().trim() == s"$hello$world")
+    }
+  }
+
   test("-X.. options passed to the child app") {
     val inputs = TestInputs(
       Seq(

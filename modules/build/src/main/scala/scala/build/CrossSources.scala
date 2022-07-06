@@ -2,7 +2,8 @@ package scala.build
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.Positioned
+import scala.build.errors.{BuildException, CompositeBuildException, MalformedDirectiveError}
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -115,14 +116,17 @@ object CrossSources {
       }
     }
 
+  /** @return
+    *   a CrossSources and Inputs which contains element processed from using directives
+    */
   def forInputs(
     inputs: Inputs,
     preprocessors: Seq[Preprocessor],
     logger: Logger
-  ): Either[BuildException, CrossSources] = either {
+  ): Either[BuildException, (CrossSources, Inputs)] = either {
 
-    val preprocessedSources = value {
-      inputs.flattened()
+    def preprocessSources(elems: Seq[Inputs.SingleElement]) =
+      elems
         .map { elem =>
           preprocessors
             .iterator
@@ -135,7 +139,20 @@ object CrossSources {
         .sequence
         .left.map(CompositeBuildException(_))
         .map(_.flatten)
-    }
+
+    val preprocessedInputFromArgs = value(preprocessSources(inputs.flattened()))
+
+    val sourcesFromDirectives =
+      preprocessedInputFromArgs
+        .flatMap(_.options)
+        .flatMap(_.internal.extraSourceFiles)
+        .distinct
+    val inputsElemFromDirectives          = value(resolveInputsFromSources(sourcesFromDirectives))
+    val preprocessedSourcesFromDirectives = value(preprocessSources(inputsElemFromDirectives))
+    val allInputs                         = inputs.add(inputsElemFromDirectives)
+
+    val preprocessedSources =
+      (preprocessedInputFromArgs ++ preprocessedSourcesFromDirectives).distinct
 
     val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
     val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)
@@ -151,7 +168,7 @@ object CrossSources {
       // If file has `using target <scope>` directive this take precendeces.
       if (
         fromDirectives.scope.isEmpty &&
-        (path.path.last.endsWith(".test.scala") || withinTestSubDirectory(path, inputs))
+        (path.path.last.endsWith(".test.scala") || withinTestSubDirectory(path, allInputs))
       )
         fromDirectives.copy(scope = Some(BuildRequirements.ScopeRequirement(Scope.Test)))
       else fromDirectives
@@ -170,7 +187,7 @@ object CrossSources {
     }
 
     val defaultMainClassOpt = for {
-      mainClassPath      <- inputs.defaultMainClassElement.map(s => ScopePath.fromPath(s.path).path)
+      mainClassPath <- allInputs.defaultMainClassElement.map(s => ScopePath.fromPath(s.path).path)
       processedMainClass <- preprocessedSources.find(_.scopePath.path == mainClassPath)
       mainClass          <- processedMainClass.mainClassOpt
     } yield mainClass
@@ -180,7 +197,7 @@ object CrossSources {
         val baseReqs0 = baseReqs(d.scopePath)
         HasBuildRequirements(
           d.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-          (d.path, d.path.relativeTo(inputs.workspace))
+          (d.path, d.path.relativeTo(allInputs.workspace))
         )
     }
     val inMemory = preprocessedSources.collect {
@@ -192,13 +209,34 @@ object CrossSources {
         )
     }
 
-    val resourceDirs = inputs.elements.collect {
+    val resourceDirs = allInputs.elements.collect {
       case r: Inputs.ResourceDirectory =>
         HasBuildRequirements(BuildRequirements(), r.path)
     } ++ preprocessedSources.flatMap(_.options).flatMap(_.classPathOptions.resourcesDir).map(
       HasBuildRequirements(BuildRequirements(), _)
     )
 
-    CrossSources(paths, inMemory, defaultMainClassOpt, resourceDirs, buildOptions)
+    (CrossSources(paths, inMemory, defaultMainClassOpt, resourceDirs, buildOptions), allInputs)
   }
+
+  private def resolveInputsFromSources(sources: Seq[Positioned[os.Path]]) =
+    sources.map { source =>
+      val sourcePath   = source.value
+      lazy val dir     = sourcePath / os.up
+      lazy val subPath = sourcePath.subRelativeTo(dir)
+      if (os.isDir(sourcePath)) Right(Inputs.singleFilesFromDirectory(Inputs.Directory(sourcePath)))
+      else if (sourcePath.ext == "scala") Right(Seq(Inputs.ScalaFile(dir, subPath)))
+      else if (sourcePath.ext == "sc") Right(Seq(Inputs.Script(dir, subPath)))
+      else if (sourcePath.ext == "java") Right(Seq(Inputs.JavaFile(dir, subPath)))
+      else {
+        val msg =
+          if (os.exists(sourcePath))
+            s"$sourcePath: unrecognized source type (expected .scala, .sc, .java extension or directory) in using directive."
+          else s"$sourcePath: not found path defined in using directive."
+        Left(new MalformedDirectiveError(msg, source.positions))
+      }
+    }.sequence
+      .left.map(CompositeBuildException(_))
+      .map(_.flatten)
+
 }

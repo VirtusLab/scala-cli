@@ -1066,6 +1066,58 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   }
 
+  test("workspace/reload when updated source element in using directive") {
+    val utilsFileName = "Utils.scala"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""|//> using file "Utils.scala"
+              |
+              |object Hello extends App {
+              |   println("Hello World")
+              |}""".stripMargin,
+        os.rel / utilsFileName ->
+          s"""|object Utils {
+              |  val hello = "Hello World"
+              |}""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq("Hello.scala")) { (root, _, remoteServer) =>
+      async {
+        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        val target = {
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+          expect(targets.length == 2)
+          extractMainTargets(targets)
+        }
+
+        val targetUri = TestUtil.normalizeUri(target.getUri)
+        checkTargetUri(root, targetUri)
+
+        val targets = List(target).asJava
+
+        val compileResp = await {
+          remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala
+        }
+        expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+        // after reload compilation should fails, Utils.scala file contains invalid scala code
+        val updatedUtilsFile =
+          s"""|object Utils {
+              |  val hello = "Hello World
+              |}""".stripMargin
+        os.write.over(root / utilsFileName, updatedUtilsFile)
+
+        val buildTargetsResp0 = await(remoteServer.workspaceBuildTargets().asScala)
+        val targets0          = buildTargetsResp0.getTargets.asScala.map(_.getId).toSeq
+
+        val resp0 =
+          await(remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala)
+        expect(resp0.getStatusCode == b.StatusCode.ERROR)
+      }
+    }
+  }
+
   private def extractWorkspaceReloadResponse(workspaceReloadResult: AnyRef): Option[ResponseError] =
     workspaceReloadResult match {
       case gsonMap: LinkedTreeMap[_, _] if !gsonMap.isEmpty =>

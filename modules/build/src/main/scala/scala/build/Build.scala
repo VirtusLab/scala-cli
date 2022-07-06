@@ -186,8 +186,8 @@ object Build {
     buildTests: Boolean,
     partial: Option[Boolean]
   ): Either[BuildException, Builds] = either {
-
-    val crossSources = value {
+    // allInputs contains elements from using directives
+    val (crossSources, allInputs) = value {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
@@ -237,7 +237,7 @@ object Build {
       val testOptions = testSources.buildOptions
 
       val inputs0 = updateInputs(
-        inputs,
+        allInputs,
         mainOptions, // update hash in inputs with options coming from the CLI or cross-building, not from the sources
         Some(testOptions)
       )
@@ -579,9 +579,11 @@ object Build {
       logger
     ))
 
+    var res: Either[BuildException, Builds] = null
+
     def run(): Unit = {
       try {
-        val res = build(
+        res = build(
           inputs,
           options,
           logger,
@@ -605,8 +607,16 @@ object Build {
 
     val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), compiler.shutdown())
 
-    def doWatch(): Unit =
-      for (elem <- inputs.elements) {
+    def doWatch(): Unit = {
+      val elements: Seq[Inputs.Element] =
+        if (res == null) inputs.elements
+        else
+          res.map { builds =>
+            val mainElems = builds.main.inputs.elements
+            val testElems = builds.get(Scope.Test).map(_.inputs.elements).getOrElse(Nil)
+            (mainElems ++ testElems).distinct
+          }.getOrElse(inputs.elements)
+      for (elem <- elements) {
         val depth = elem match {
           case _: Inputs.SingleFile => -1
           case _                    => Int.MaxValue
@@ -637,6 +647,7 @@ object Build {
           }
         }
       }
+    }
 
     try doWatch()
     catch {

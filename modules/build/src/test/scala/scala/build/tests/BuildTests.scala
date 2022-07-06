@@ -987,4 +987,46 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
         expect(coreCp.length == 1) // only classes directory, no stubs jar
     }
   }
+
+  test("declared sources in using directive should be included to count project hash") {
+    val helloFile = "Hello.scala"
+    val inputs =
+      TestInputs(
+        os.rel / helloFile ->
+          """|//> using file "Utils.scala"
+             |
+             |object Hello extends App {
+             |   println(Utils.hello)
+             |}""".stripMargin,
+        os.rel / "Utils.scala" ->
+          s"""|object Utils {
+              |  val hello = "Hello"
+              |}""".stripMargin,
+        os.rel / "Helper.scala" ->
+          s"""|object Helper {
+              |  val hello = "Hello"
+              |}""".stripMargin
+      )
+    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (root, _, maybeBuild) =>
+      expect(maybeBuild.exists(_.success))
+      val build = maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+
+      // updating sources in using directive should change project name
+      val updatedHelloScala =
+        """|//> using file "Helper.scala"
+           |
+           |object Hello extends App {
+           |   println(Helper.hello)
+           |}""".stripMargin
+      os.write.over(root / helloFile, updatedHelloScala)
+
+      inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) { (_, _, maybeUpdatedBuild) =>
+        expect(maybeUpdatedBuild.exists(_.success))
+        val updatedBuild =
+          maybeUpdatedBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+        // project name should be change after updating source in using directive
+        expect(build.inputs.projectName != updatedBuild.inputs.projectName)
+      }
+    }
+  }
 }

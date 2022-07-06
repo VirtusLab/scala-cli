@@ -25,7 +25,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     logger.log("Preparing build")
 
-    val crossSources = value {
+    val (crossSources, _) = value {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
