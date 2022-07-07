@@ -53,9 +53,8 @@ object Package extends ScalaCommand[PackageOptions] {
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
     val logger              = options.shared.logger
-    val initialBuildOptions = options.finalBuildOptions.orExit(logger)
+    val initialBuildOptions = buildOptions(options)
     val threads             = BuildThreads.create()
-
     val compilerMaker       = options.compilerMaker(threads)
     val docCompilerMakerOpt = options.docCompilerMakerOpt
 
@@ -136,6 +135,16 @@ object Package extends ScalaCommand[PackageOptions] {
     }
   }
 
+  def buildOptions(options: PackageOptions) = {
+    val finalBuildOptions = options.finalBuildOptions.orExit(options.shared.logger)
+    val buildOptions = finalBuildOptions.copy(javaOptions =
+      finalBuildOptions.javaOptions.copy(javacOptions =
+        finalBuildOptions.javaOptions.javacOptions ++ options.java.allJavaOpts
+      )
+    )
+    buildOptions
+  }
+
   private def doPackage(
     logger: Logger,
     outputOpt: Option[String],
@@ -166,7 +175,7 @@ object Package extends ScalaCommand[PackageOptions] {
           case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
             for (basePackageType <- basePackageTypeOpt)
               Left(new MalformedCliInputError(
-                s"Unsuported package type: $basePackageType for Docker."
+                s"Unsupported package type: $basePackageType for Docker."
               ))
             Right(PackageType.Docker)
           case (_, Platform.JS) =>
@@ -175,7 +184,7 @@ object Package extends ScalaCommand[PackageOptions] {
                 yield
                   if (validPackageScalaJS.contains(basePackageType)) Right(basePackageType)
                   else Left(new MalformedCliInputError(
-                    s"Unsuported package type: $basePackageType for Scala.js."
+                    s"Unsupported package type: $basePackageType for Scala.js."
                   ))
             validatedPackageType.getOrElse(Right(PackageType.Js))
           case (_, Platform.Native) =>
@@ -184,7 +193,7 @@ object Package extends ScalaCommand[PackageOptions] {
                 yield
                   if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
                   else Left(new MalformedCliInputError(
-                    s"Unsuported package type: $basePackageType for Scala Native."
+                    s"Unsupported package type: $basePackageType for Scala Native."
                   ))
             validatedPackageType.getOrElse(Right(PackageType.Native))
           case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
@@ -652,6 +661,7 @@ object Package extends ScalaCommand[PackageOptions] {
     val preamble = Preamble()
       .withOsKind(Properties.isWin)
       .callsItself(Properties.isWin)
+      .withJavaOpts(build.options.javaOptions.javacOptions)
     val params = Parameters.Bootstrap(Seq(loaderContent), mainClass)
       .withDeterministic(true)
       .withPreamble(preamble)

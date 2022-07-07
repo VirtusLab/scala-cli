@@ -176,6 +176,7 @@ Accepts options:
 - [dependency](./cli-options.md#dependency-options)
 - [directories](./cli-options.md#directories-options)
 - [help group](./cli-options.md#help-group-options)
+- [java](./cli-options.md#java-options)
 - [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [main class](./cli-options.md#main-class-options)

@@ -766,4 +766,74 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
     }
   }
+
+  test("pass java options") {
+    val fileName           = "Hello.scala"
+    val destFile           = if (Properties.isWin) "hello.bat" else "hello"
+    val (fooProp, barProp) = ("abc", "xyz")
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println(s"$${sys.props("foo")}$${sys.props("bar")}")
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        fileName,
+        "-o",
+        destFile,
+        "--java-prop",
+        s"foo=$fooProp",
+        "--java-opt",
+        s"-Dbar=$barProp",
+        "-f"
+      ).call(cwd = root)
+      val output = os.proc(root / destFile).call(cwd = root).out.text().trim
+      expect(output == s"$fooProp$barProp")
+    }
+  }
+
+  def javaOptionsDockerTest(): Unit = {
+    val fileName           = "Hello.scala"
+    val imageName          = "hello"
+    val (fooProp, barProp) = ("abc", "xyz")
+    val inputs = TestInputs(
+      Seq(
+        os.rel / fileName ->
+          s"""object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println(s"$${sys.props("foo")}$${sys.props("bar")}")
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        fileName,
+        "--docker",
+        "--docker-image-repository",
+        imageName,
+        "--java-prop",
+        s"foo=$fooProp",
+        "--java-opt",
+        s"-Dbar=$barProp",
+        "-f"
+      ).call(cwd = root)
+      val output = os.proc("docker", "run", imageName).call(cwd = root).out.text().trim
+      expect(output == s"$fooProp$barProp")
+    }
+  }
+
+  if (Properties.isLinux)
+    test("pass java options to docker") {
+      javaOptionsDockerTest()
+    }
 }
