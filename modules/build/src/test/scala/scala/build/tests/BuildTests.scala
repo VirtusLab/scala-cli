@@ -628,7 +628,12 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
-      assert(maybeBuild.swap.toOption.get.isInstanceOf[ScalaNativeCompatibilityError])
+      assert(
+        maybeBuild.swap.toOption.exists {
+          case _: ScalaNativeCompatibilityError => true
+          case _                                => false
+        }
+      )
     }
   }
 
