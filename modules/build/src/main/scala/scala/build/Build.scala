@@ -458,15 +458,10 @@ object Build {
               false
             else if (scalaVersion.startsWith("3.0"))
               false
-            else if (scalaVersion.startsWith("3"))
+            else if (scalaVersion.startsWith("3") || scalaVersion.startsWith("2.12"))
               snNumeralVer >= SNNumeralVersion(0, 4, 3)
             else if (scalaVersion.startsWith("2.13"))
               true
-            else if (scalaVersion.startsWith("2.12"))
-              inputs.sourceFiles().forall {
-                case _: Inputs.AnyScript => false
-                case _                   => true
-              }
             else false
           case None => false
         }
