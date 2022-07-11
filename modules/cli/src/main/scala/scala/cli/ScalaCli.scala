@@ -18,10 +18,12 @@ object ScalaCli {
 
   val progName = (new Argv0).get("scala-cli")
 
-  private var isSipScala =
-    progName == "scala" ||
-    progName.endsWith("/scala") ||
-    progName.endsWith(File.separator + "scala")
+  private def checkName(name: String) =
+    progName == name ||
+    progName.endsWith(s"/$name") ||
+    progName.endsWith(File.separator + name)
+
+  private var isSipScala = checkName("scala") || checkName("scala-cli-sip")
 
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")

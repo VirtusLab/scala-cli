@@ -6,7 +6,7 @@ import scala.util.Properties
 
 class SipScalaTests extends munit.FunSuite {
 
-  def noDirectoriesCommandTest(): Unit =
+  def noDirectoriesCommandTest(binaryName: String): Unit =
     TestInputs(Nil).fromRoot { root =>
       val cliPath = os.Path(TestUtil.cliPath, os.pwd)
 
@@ -14,25 +14,29 @@ class SipScalaTests extends munit.FunSuite {
       os.proc(cliPath, "compile", "--help").call(cwd = root)
       os.proc(cliPath, "run", "--help").call(cwd = root)
 
-      os.copy(cliPath, root / "scala")
-      os.perms.set(root / "scala", "rwxr-xr-x")
+      os.copy(cliPath, root / binaryName)
+      os.perms.set(root / binaryName, "rwxr-xr-x")
 
-      os.proc(root / "scala", "compile", "--help").call(cwd = root)
-      os.proc(root / "scala", "run", "--help").call(cwd = root)
+      os.proc(root / binaryName, "compile", "--help").call(cwd = root)
+      os.proc(root / binaryName, "run", "--help").call(cwd = root)
 
-      val res = os.proc(root / "scala", "directories").call(
+      val res = os.proc(root / binaryName, "directories").call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
       )
       expect(res.exitCode == 1)
       val output = res.out.text()
-      expect(output.contains("directories: not found"))
+      expect(output.contains(s"directories: not found"))
+
     }
 
-  if (TestUtil.isNativeCli && !Properties.isWin)
+  if (TestUtil.isNativeCli && !Properties.isWin) {
     test("no directories command when run as scala") {
-      noDirectoriesCommandTest()
+      noDirectoriesCommandTest("scala")
     }
-
+    test("no directories command when run as scala-cli-sip") {
+      noDirectoriesCommandTest("scala-cli-sip")
+    }
+  }
 }
