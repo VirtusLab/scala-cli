@@ -862,6 +862,10 @@ Generate a scaladoc JAR rather than an executable JAR
 
 Generate an assembly JAR
 
+#### `--preamble`
+
+For assembly JAR, whether to add a bash / bat preamble
+
 #### `--standalone`
 
 Package standalone JARs
@@ -889,6 +893,10 @@ Build pkg package, available only on macOS
 #### `--docker`
 
 Build Docker image
+
+#### `--provided`
+
+Exclude modules *and their transitive dependencies* from the JAR to be packaged
 
 #### `--default-scaladoc-options`
 

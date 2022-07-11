@@ -4,7 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.{Classifier, Module}
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Dependency as CsDependency, Fetch, core as csCore, util as csUtil}
+import coursier.{Dependency as CsDependency, Fetch, Resolution, core as csCore, util as csUtil}
 import dependency.*
 
 import java.net.URL
@@ -32,7 +32,8 @@ final case class Artifacts(
   extraCompileOnlyJars: Seq[os.Path],
   extraSourceJars: Seq[os.Path],
   scalaOpt: Option[ScalaArtifacts],
-  hasJvmRunner: Boolean
+  hasJvmRunner: Boolean,
+  resolution: Option[Resolution]
 ) {
   lazy val artifacts: Seq[(String, os.Path)] =
     detailedArtifacts
@@ -42,6 +43,7 @@ final case class Artifacts(
           (a.url, f)
       }
       .toVector
+      .distinct
   lazy val sourceArtifacts: Seq[(String, os.Path)] =
     detailedArtifacts
       .iterator
@@ -50,6 +52,7 @@ final case class Artifacts(
           (a.url, f)
       }
       .toVector
+      .distinct
   lazy val classPath: Seq[os.Path] =
     artifacts.map(_._2) ++ extraClassPath
   lazy val compileClassPath: Seq[os.Path] =
@@ -83,6 +86,7 @@ object Artifacts {
     addJvmTestRunner: Boolean,
     addJmhDependencies: Option[String],
     extraRepositories: Seq[String],
+    keepResolution: Boolean,
     cache: FileCache[Task],
     logger: Logger
   ): Either[BuildException, Artifacts] = either {
@@ -332,11 +336,12 @@ object Artifacts {
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) =>
         (d, p, a, os.Path(f, Os.pwd))
       },
-      extraClassPath ++ extraStubsJars,
-      extraCompileOnlyJars,
+      extraClassPath,
+      extraCompileOnlyJars ++ extraStubsJars,
       extraSourceJars,
       scalaOpt,
-      addJvmRunner0
+      addJvmRunner0,
+      if (keepResolution) Some(fetchRes.resolution) else None
     )
   }
 

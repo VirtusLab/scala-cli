@@ -39,6 +39,9 @@ final case class PackageOptions(
   @HelpMessage("Generate an assembly JAR")
     assembly: Boolean = false,
   @Group("Package")
+  @HelpMessage("For assembly JAR, whether to add a bash / bat preamble")
+    preamble: Boolean = true,
+  @Group("Package")
   @HelpMessage("Package standalone JARs")
     standalone: Option[Boolean] = None,
   @Recurse
@@ -61,6 +64,12 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Build Docker image")
     docker: Boolean = false,
+
+  @Group("Package")
+  @Hidden
+  @HelpMessage("Exclude modules *and their transitive dependencies* from the JAR to be packaged")
+  @ValueDescription("org:name")
+    provided: List[String] = Nil,
 
   @Group("Package")
   @HelpMessage("Use default scaladoc options")

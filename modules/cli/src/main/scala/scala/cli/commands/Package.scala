@@ -16,9 +16,16 @@ import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Ops._
 import scala.build._
-import scala.build.errors.{BuildException, MalformedCliInputError, ScalaNativeBuildError}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  MalformedCliInputError,
+  ScalaNativeBuildError
+}
 import scala.build.interactive.InteractiveFileOps
+import scala.build.internal.Util._
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
@@ -37,15 +44,15 @@ object Package extends ScalaCommand[PackageOptions] {
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintSimpleScalacOutput(options, options.buildOptions)
+    maybePrintSimpleScalacOutput(options, options.baseBuildOptions)
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputsOrExit(args.remaining)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
-    val initialBuildOptions = options.buildOptions
     val logger              = options.shared.logger
+    val initialBuildOptions = options.finalBuildOptions.orExit(logger)
     val threads             = BuildThreads.create()
 
     val compilerMaker       = options.compilerMaker(threads)
@@ -189,7 +196,7 @@ object Package extends ScalaCommand[PackageOptions] {
         case PackageType.LibraryJar                             => ".jar"
         case PackageType.SourceJar                              => ".jar"
         case PackageType.DocJar                                 => ".jar"
-        case PackageType.Assembly                               => ".jar"
+        case _: PackageType.Assembly                            => ".jar"
         case PackageType.Js                                     => ".js"
         case PackageType.Debian                                 => ".deb"
         case PackageType.Dmg                                    => ".dmg"
@@ -206,7 +213,7 @@ object Package extends ScalaCommand[PackageOptions] {
         case PackageType.LibraryJar                             => "library.jar"
         case PackageType.SourceJar                              => "source.jar"
         case PackageType.DocJar                                 => "scaladoc.jar"
-        case PackageType.Assembly                               => "app.jar"
+        case _: PackageType.Assembly                            => "app.jar"
         case PackageType.Js                                     => "app.js"
         case PackageType.Debian                                 => "app.deb"
         case PackageType.Dmg                                    => "app.dmg"
@@ -281,8 +288,17 @@ object Package extends ScalaCommand[PackageOptions] {
           if (force) os.copy.over(docJarPath, destPath)
           else os.copy(docJarPath, destPath)
           destPath
-        case PackageType.Assembly =>
-          assembly(build, destPath, value(mainClass), () => alreadyExistsCheck())
+        case a: PackageType.Assembly =>
+          value {
+            assembly(
+              build,
+              destPath,
+              value(mainClass),
+              withPreamble = a.addPreamble,
+              () => alreadyExistsCheck(),
+              logger
+            )
+          }
           destPath
 
         case PackageType.Js =>
@@ -624,12 +640,66 @@ object Package extends ScalaCommand[PackageOptions] {
     ProcUtil.maybeUpdatePreamble(destPath)
   }
 
+  /** Returns the dependency sub-graph of the provided modules, that is, all their JARs and their
+    * transitive dependencies' JARs.
+    *
+    * Note that this is not exactly the same as resolving those modules on their own (with their
+    * versions): other dependencies in the whole dependency sub-graph may bump versions in the
+    * provided dependencies sub-graph here.
+    *
+    * Here, among the JARs of the whole dependency graph, we pick the ones that were pulled by the
+    * provided modules, and might have been bumped by other modules. This is strictly a subset of
+    * the whole dependency graph.
+    */
+  private def providedFiles(
+    build: Build.Successful,
+    provided: Seq[dependency.AnyModule],
+    logger: Logger
+  ): Either[BuildException, Seq[os.Path]] = either {
+
+    logger.debug(s"${provided.length} provided dependencies")
+    val res = build.artifacts.resolution.getOrElse {
+      sys.error("Internal error: expected resolution to have been kept")
+    }
+    val modules = value {
+      provided
+        .map(_.toCs(build.scalaParams))
+        .sequence
+        .left.map(CompositeBuildException(_))
+    }
+    val modulesSet = modules.toSet
+    val providedDeps = res
+      .dependencyArtifacts
+      .map(_._1)
+      .filter(dep => modulesSet.contains(dep.module))
+    val providedRes = res.subset(providedDeps)
+    val fileMap = build.artifacts.detailedArtifacts
+      .map {
+        case (_, _, artifact, path) =>
+          artifact -> path
+      }
+      .toMap
+    val providedFiles = coursier.Artifacts.artifacts(providedRes, Set.empty, None, None, true)
+      .map(_._3)
+      .map { a =>
+        fileMap.getOrElse(a, sys.error(s"should not happen (missing: $a)"))
+      }
+    logger.debug {
+      val it = Iterator(s"${providedFiles.size} provided JAR(s)") ++
+        providedFiles.toVector.map(_.toString).sorted.iterator.map(f => s"  $f")
+      it.mkString(System.lineSeparator())
+    }
+    providedFiles
+  }
+
   private def assembly(
     build: Build.Successful,
     destPath: os.Path,
     mainClass: String,
-    alreadyExistsCheck: () => Unit
-  ): Unit = {
+    withPreamble: Boolean,
+    alreadyExistsCheck: () => Unit,
+    logger: Logger
+  ): Either[BuildException, Unit] = either {
     val byteCodeZipEntries = os.walk(build.output)
       .filter(os.isFile(_))
       .map { path =>
@@ -642,14 +712,29 @@ object Package extends ScalaCommand[PackageOptions] {
         (ent, content)
       }
 
-    val preamble = Preamble()
-      .withOsKind(Properties.isWin)
-      .callsItself(Properties.isWin)
+    val provided = build.options.notForBloopOptions.packageOptions.provided
+    val allFiles = build.artifacts.artifacts.map(_._2)
+    val files =
+      if (provided.isEmpty) allFiles
+      else {
+        val providedFilesSet = value(providedFiles(build, provided, logger)).toSet
+        allFiles.filterNot(providedFilesSet.contains)
+      }
+
+    val preambleOpt =
+      if (withPreamble)
+        Some {
+          Preamble()
+            .withOsKind(Properties.isWin)
+            .callsItself(Properties.isWin)
+        }
+      else
+        None
     val params = Parameters.Assembly()
       .withExtraZipEntries(byteCodeZipEntries)
-      .withFiles(build.artifacts.artifacts.map(_._2.toIO))
+      .withFiles(files.map(_.toIO))
       .withMainClass(mainClass)
-      .withPreamble(preamble)
+      .withPreambleOpt(preambleOpt)
     alreadyExistsCheck()
     AssemblyGenerator.generate(params, destPath.toNIO)
     ProcUtil.maybeUpdatePreamble(destPath)

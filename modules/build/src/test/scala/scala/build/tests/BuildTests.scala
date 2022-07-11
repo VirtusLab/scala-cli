@@ -628,7 +628,12 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       assert(maybeBuild.isLeft)
-      assert(maybeBuild.swap.toOption.get.isInstanceOf[ScalaNativeCompatibilityError])
+      assert(
+        maybeBuild.swap.toOption.exists {
+          case _: ScalaNativeCompatibilityError => true
+          case _                                => false
+        }
+      )
     }
   }
 
@@ -950,6 +955,36 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           .getOrElse(sys.error("cannot happen"))
         val cp = build.fullClassPath
         expect(cp.length == 1) // no scala-library, only the class directory
+    }
+  }
+
+  test("No stubs JAR at runtime") {
+    val inputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        """package foo
+          |
+          |object Foo {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin
+    )
+
+    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt, buildTests = false) {
+      (_, _, maybeBuild) =>
+        expect(maybeBuild.exists(_.success))
+        val build = maybeBuild
+          .toOption
+          .flatMap(_.successfulOpt)
+          .getOrElse(sys.error("cannot happen"))
+        val cp = build.fullClassPath
+        val coreCp = cp.filter { f =>
+          val name = f.last
+          !name.startsWith("scala-library") &&
+          !name.startsWith("scala3-library") &&
+          !name.startsWith("runner")
+        }
+        expect(coreCp.length == 1) // only classes directory, no stubs jar
     }
   }
 }

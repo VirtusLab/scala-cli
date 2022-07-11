@@ -17,7 +17,8 @@ final case class PackageOptions(
   redHatOptions: RedHatOptions = RedHatOptions(),
   dockerOptions: DockerOptions = DockerOptions(),
   nativeImageOptions: NativeImageOptions = NativeImageOptions(),
-  useDefaultScaladocOptions: Option[Boolean] = None
+  useDefaultScaladocOptions: Option[Boolean] = None,
+  provided: Seq[dependency.AnyModule] = Nil
 ) {
 
   def packageVersion: String =

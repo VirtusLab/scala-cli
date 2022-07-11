@@ -16,11 +16,14 @@ final case class ReplArtifacts(
   replJavaOpts: Seq[String],
   addSourceJars: Boolean
 ) {
-  lazy val replClassPath: Seq[os.Path] =
-    if (addSourceJars)
-      extraClassPath ++ extraSourceJars ++ replArtifacts.map(_._2)
-    else
-      extraClassPath ++ replArtifacts.map(_._2)
+  lazy val replClassPath: Seq[os.Path] = {
+    val cp =
+      if (addSourceJars)
+        extraClassPath ++ extraSourceJars ++ replArtifacts.map(_._2)
+      else
+        extraClassPath ++ replArtifacts.map(_._2)
+    cp.distinct
+  }
 }
 
 object ReplArtifacts {

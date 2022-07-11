@@ -2,21 +2,24 @@ package scala.cli.commands
 package util
 
 import scala.build.BuildThreads
+import scala.build.EitherCps.{either, value}
+import scala.build.Ops._
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
+import scala.build.errors.{BuildException, CompositeBuildException, ModuleFormatError}
 import scala.build.options._
 import scala.build.options.packaging._
 import scala.cli.commands.PackageOptions
 import scala.cli.commands.util.SharedOptionsUtil._
 
 object PackageOptionsUtil {
-  implicit class PackageOptionsOps(private val v: PackageOptions) extends AnyVal {
+  implicit class PackageOptionsOps(private val v: PackageOptions) {
     import v._
 
     def packageTypeOpt: Option[PackageType] =
       forcedPackageTypeOpt.orElse {
         if (v.library) Some(PackageType.LibraryJar)
         else if (source) Some(PackageType.SourceJar)
-        else if (assembly) Some(PackageType.Assembly)
+        else if (assembly) Some(PackageType.Assembly(addPreamble = preamble))
         else if (deb) Some(PackageType.Debian)
         else if (dmg) Some(PackageType.Dmg)
         else if (pkg) Some(PackageType.Pkg)
@@ -29,7 +32,16 @@ object PackageOptionsUtil {
       if (doc) Some(PackageType.DocJar)
       else None
 
-    def buildOptions: BuildOptions = {
+    def providedModules: Either[BuildException, Seq[dependency.AnyModule]] =
+      provided
+        .map { str =>
+          dependency.parser.ModuleParser.parse(str)
+            .left.map(err => new ModuleFormatError(str, err))
+        }
+        .sequence
+        .left.map(CompositeBuildException(_))
+
+    def baseBuildOptions: BuildOptions = {
       val baseOptions = shared.buildOptions()
       baseOptions.copy(
         mainClass = mainClass.mainClass.filter(_.nonEmpty),
@@ -75,6 +87,24 @@ object PackageOptionsUtil {
               graalvmVersion = packager.graalvmVersion.map(_.trim).filter(_.nonEmpty)
             ),
             useDefaultScaladocOptions = defaultScaladocOptions
+          )
+        ),
+        internal = baseOptions.internal.copy(
+          // computing the provided modules sub-graph needs the final Resolution instance
+          keepResolution = provided.nonEmpty
+        ),
+        internalDependencies = baseOptions.internalDependencies.copy(
+          addRunnerDependencyOpt = Some(false)
+        )
+      )
+    }
+
+    def finalBuildOptions: Either[BuildException, BuildOptions] = either {
+      val baseOptions = baseBuildOptions
+      baseOptions.copy(
+        notForBloopOptions = baseOptions.notForBloopOptions.copy(
+          packageOptions = baseOptions.notForBloopOptions.packageOptions.copy(
+            provided = value(providedModules)
           )
         )
       )

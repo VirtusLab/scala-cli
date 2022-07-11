@@ -2,9 +2,11 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.InputStream
+import java.io.{File, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.util.Arrays
+import java.util.regex.Pattern
 import java.util.zip.ZipFile
 
 import scala.jdk.CollectionConverters._
@@ -452,6 +454,124 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val maxRunnableLauncherSize = 1024 * 1024 * 12 // should be smaller than 12MB
       expect(output == message)
       expect(runnableLauncherSize < maxRunnableLauncherSize)
+    }
+  }
+
+  test("assembly no preamble") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""package hello
+             |
+             |object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("Hello from " + "assembly")
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        extraOptions,
+        "--assembly",
+        "-o",
+        "hello",
+        "--preamble=false",
+        "."
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val launcher = root / "hello"
+      expect(os.isFile(launcher))
+
+      val preambleStart = "#".getBytes(StandardCharsets.UTF_8)
+      val contentStart  = os.read.bytes(launcher).take(preambleStart.length)
+      expect(!Arrays.equals(contentStart, preambleStart))
+
+      val output = os.proc("java", "-cp", launcher, "hello.Hello")
+        .call(cwd = root).out.text().trim
+      expect(output == "Hello from assembly")
+    }
+  }
+
+  test("assembly provided") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""package hello
+             |
+             |object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("Hello from Scala " + scala.util.Properties.versionNumberString)
+             |}
+             |""".stripMargin
+      )
+    )
+    val providedModule =
+      if (actualScalaVersion.startsWith("2.")) "org.scala-lang:scala-library"
+      else "org.scala-lang:scala3-library_3"
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        extraOptions,
+        "--assembly",
+        "-o",
+        "hello",
+        "--provided",
+        providedModule,
+        "."
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val launcher = root / "hello"
+      expect(os.isFile(launcher))
+
+      var zf: ZipFile = null
+      val entries =
+        try {
+          zf = new ZipFile(launcher.toIO)
+          expect(zf.getEntry("hello/Hello.class") != null)
+          expect(zf.getEntry("scala/Function.class") == null) // no scala-library
+          expect(zf.getEntry("scala/Tuple.class") == null)    // no scala3-library
+
+          zf.entries().asScala.map(_.getName).toVector.sorted
+        }
+        finally if (zf != null) zf.close()
+
+      val noMetaEntries = entries.filter(!_.startsWith("META-INF/"))
+      expect(noMetaEntries.nonEmpty)
+      expect(noMetaEntries.forall(_.startsWith("hello/")))
+
+      val scalaLibCp =
+        os.proc(TestUtil.cs, "fetch", "--classpath", s"$providedModule:$actualScalaVersion")
+          .call(cwd = root).out.text().trim
+      val output =
+        os.proc("java", "-cp", s"$launcher${File.pathSeparator}$scalaLibCp", "hello.Hello")
+          .call(cwd = root).out.text().trim
+      val expectedScalaVerInOutput =
+        if (actualScalaVersion.startsWith("2.")) actualScalaVersion
+        else {
+          val scalaLibJarName = scalaLibCp.split(File.pathSeparator)
+            .map(_.split(Pattern.quote(File.separator)).last)
+            .filter(_.startsWith("scala-library-"))
+            .headOption
+            .getOrElse {
+              sys.error(s"scala-library not found in provided class path $scalaLibCp")
+            }
+          scalaLibJarName
+            .stripPrefix("scala-library-")
+            .stripSuffix(".jar")
+        }
+      expect(output == "Hello from Scala " + expectedScalaVerInOutput)
     }
   }
 
