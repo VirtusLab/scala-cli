@@ -64,7 +64,7 @@ final case class JavaPreprocessor(
       case v: Inputs.VirtualJavaFile =>
         val res = either {
           val relPath =
-            if (v.isStdin) {
+            if (v.isStdin || v.isSnippet) {
               val classNameOpt = value {
                 (new JavaParserProxyMaker)
                   .get(
@@ -76,7 +76,7 @@ final case class JavaPreprocessor(
               }
               val fileName = classNameOpt
                 .map(_ + ".java")
-                .getOrElse("stdin.java")
+                .getOrElse(if (v.isStdin) "stdin.java" else "java-snippet.java")
               os.sub / fileName
             }
             else v.subPath

@@ -45,7 +45,10 @@ final case class SharedOptions(
   
   @Group("Scala")
   @HelpMessage("Show help for scalac. This is an alias for --scalac-option -help")
-  scalacHelp: Boolean = false,
+    scalacHelp: Boolean = false,
+
+  @Recurse
+    snippet: SnippetOptions = SnippetOptions(),
 
   @Group("Java")
   @HelpMessage("Add extra JARs in the class path")

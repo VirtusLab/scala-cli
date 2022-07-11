@@ -75,8 +75,9 @@ object Build {
                         .replace(".", "_")
                         .replace("/", ".")
                     }
-                  case Left(stdin @ "stdin") => Some(s"${stdin}_sc")
-                  case _                     => None
+                  case Left(virtual) if virtual == "stdin" || virtual == "snippet" =>
+                    Some(s"${virtual}_sc")
+                  case _ => None
                 }
             val filteredMainClasses =
               mainClasses.filter(!scriptInferredMainClasses.contains(_))
