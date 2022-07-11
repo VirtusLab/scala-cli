@@ -14,10 +14,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: coursier/cache-action@v6
-    - uses: actions/setup-java@v3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
       with:
-        distribution: 'temurin'
-        java-version: '17'
+        jvm: "temurin:17"
 
     - name: Submit dependency graph
       run: 
