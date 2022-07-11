@@ -19,5 +19,5 @@ jobs:
         jvm: "temurin:17"
 
     - name: Submit dependency graph
-      run: 
+      run:
         ./mill --import ivy:io.chris-kipp::mill-github-dependency-graph::0.0.11 io.kipp.mill.github.dependency.graph.Graph/submit
