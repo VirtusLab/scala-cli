@@ -1,0 +1,22 @@
+name: github-dependency-graph
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  dependency-update:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: coursier/cache-action@v6
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+
+    - name: Submit dependency graph
+      run:
+        ./mill --import ivy:io.chris-kipp::mill-github-dependency-graph::0.0.11 io.kipp.mill.github.dependency.graph.Graph/submit
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
