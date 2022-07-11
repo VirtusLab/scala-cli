@@ -526,6 +526,7 @@ Available in commands:
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 - [`uninstall`](./commands.md#uninstall)
+- [`uninstall completions` / `uninstall-completions`](./commands.md#uninstall-completions)
 - [`update`](./commands.md#update)
 - [`version`](./commands.md#version)
 
@@ -749,6 +750,7 @@ Available in commands:
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 - [`uninstall`](./commands.md#uninstall)
+- [`uninstall completions` / `uninstall-completions`](./commands.md#uninstall-completions)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1648,6 +1650,27 @@ Binary name
 
 Binary directory
 
+## Uninstall completions options
+
+Available in commands:
+- [`uninstall`](./commands.md#uninstall)
+- [`uninstall completions` / `uninstall-completions`](./commands.md#uninstall-completions)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--rc-file`
+
+Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell
+
+#### `--banner`
+
+Custom banner in comment placed in rc file
+
+#### `--name`
+
+Custom completions name
+
 ## Update options
 
 Available in commands:
@@ -1708,6 +1731,7 @@ Available in commands:
 - [`shebang`](./commands.md#shebang)
 - [`test`](./commands.md#test)
 - [`uninstall`](./commands.md#uninstall)
+- [`uninstall completions` / `uninstall-completions`](./commands.md#uninstall-completions)
 - [`update`](./commands.md#update)
 - [`version`](./commands.md#version)
 
