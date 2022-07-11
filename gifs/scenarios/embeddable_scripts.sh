@@ -18,7 +18,7 @@ else
   # Put your stuff here
     cat <<EOF | updateFile count_lines.sc
 #!/usr/bin/env scala-cli
-using scala 3.0.2
+//> using scala "3.0.2"
 import scala.io.StdIn.readLine
 import LazyList.continually
 

@@ -11,7 +11,7 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
   echo "println(1)" | scala-cli -S 2.13.6 -
-  echo "// using lib com.softwaremill.sttp.client3::core:3.3.18 " | scala-cli -S 2.13.6  -
+  echo "//> using lib \"com.softwaremill.sttp.client3::core:3.3.18\" " | scala-cli -S 2.13.6  -
   # or do other preparation (e.g. create code)
 else
   . $SCRIPT_DIR/../demo-magic.sh
@@ -20,7 +20,7 @@ else
 
   # Put your stuff here
   cat <<EOF | updateFile Post.scala
-// using lib com.softwaremill.sttp.client3::core:3.3.18
+//> using lib "com.softwaremill.sttp.client3::core:3.3.18"
 import sttp.client3._
 
 // https://sttp.softwaremill.com/en/latest/quickstart.html

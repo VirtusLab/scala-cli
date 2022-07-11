@@ -11,6 +11,9 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
     echo "println(1)" | scala-cli -
+    echo "
+version = 3.5.8
+runner.dialect = scala3" > .scalafmt.conf
     scala-cli fmt .
   # or do other preparation (e.g. create code)
 else

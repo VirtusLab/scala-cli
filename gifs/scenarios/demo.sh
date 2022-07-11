@@ -12,7 +12,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
   echo "println(1)" | scala-cli -
   cat <<EOF > demo.test.scala | 
-// using lib "org.scalameta::munit:0.7.29"
+//> using lib "org.scalameta::munit:0.7.29"
 EOF
   scala-cli test demo.test.scala
   # or do other preparation (e.g. create code)
@@ -56,7 +56,7 @@ EOF
   clearConsole
 
   cat <<EOF | updateFile demo.test.scala
-// using lib "org.scalameta::munit:0.7.29"
+//> using lib "org.scalameta::munit:0.7.29"
 
 class demoTest extends munit.FunSuite {
   test("test nice args") {
