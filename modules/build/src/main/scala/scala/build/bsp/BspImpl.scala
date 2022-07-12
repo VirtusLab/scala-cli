@@ -13,7 +13,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build._
 import scala.build.bloop.{BloopServer, ScalaDebugServer}
 import scala.build.compiler.BloopCompiler
-import scala.build.errors.{BuildException, Diagnostic}
+import scala.build.errors.{BuildException, Diagnostic, ParsingInputsException}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -23,7 +23,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
 
 final class BspImpl(
-  argsToInputs: Seq[String] => Either[String, Inputs],
+  argsToInputs: Seq[String] => Either[BuildException, Inputs],
   bspReloadableOptionsReference: BspReloadableOptions.Reference,
   threads: BspThreads,
   in: InputStream,
@@ -459,13 +459,13 @@ final class BspImpl(
     val ideInputsJsonPath =
       currentBloopSession.inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
     if (os.isFile(ideInputsJsonPath)) {
-      val maybeResponse = either[String] {
+      val maybeResponse = either[BuildException] {
         val ideInputs = value {
           try Right(readFromArray(os.read.bytes(ideInputsJsonPath))(IdeInputs.codec))
           catch {
             case e: JsonReaderException =>
               logger.debug(s"Caught $e while decoding $ideInputsJsonPath")
-              Left(e.getMessage)
+              Left(new ParsingInputsException(e.getMessage, e))
           }
         }
         val newInputs      = value(argsToInputs(ideInputs.args))

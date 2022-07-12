@@ -7,6 +7,7 @@ import java.security.MessageDigest
 
 import scala.annotation.tailrec
 import scala.build.Inputs.WorkspaceOrigin
+import scala.build.errors.{BuildException, InputsException}
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope
@@ -414,7 +415,7 @@ object Inputs {
     javaSnippetOpt: Option[String],
     acceptFds: Boolean,
     forcedWorkspace: Option[os.Path]
-  ): Either[String, Inputs] = {
+  ): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(args, cwd, download, stdinOpt, acceptFds)
     val validatedExpressions: Seq[Either[String, Seq[Element]]] =
@@ -432,7 +433,7 @@ object Inputs {
       Right(forValidatedElems(validElems, baseProjectName, directories, forcedWorkspace))
     }
     else
-      Left(invalid.mkString(System.lineSeparator()))
+      Left(new InputsException(invalid.mkString(System.lineSeparator())))
   }
 
   def apply(
@@ -448,13 +449,13 @@ object Inputs {
     javaSnippetOpt: Option[String] = None,
     acceptFds: Boolean = false,
     forcedWorkspace: Option[os.Path] = None
-  ): Either[String, Inputs] =
+  ): Either[BuildException, Inputs] =
     if (
       args.isEmpty && scriptSnippetOpt.isEmpty && scalaSnippetOpt.isEmpty && javaSnippetOpt.isEmpty
     )
-      defaultInputs().toRight(
+      defaultInputs().toRight(new InputsException(
         "No inputs provided (expected files with .scala or .sc extensions, and / or directories)."
-      )
+      ))
     else
       forNonEmptyArgs(
         args,

@@ -11,8 +11,9 @@ import java.io.{File, InputStream}
 import scala.build._
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
+import scala.build.errors.BuildException
 import scala.build.internal.CsLoggerUtil._
-import scala.build.internal.{Constants, FetchExternalBinary, OsLibc}
+import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.{options => bo}
 import scala.cli.commands.ScalaJsOptions
@@ -229,9 +230,9 @@ object SharedOptionsUtil {
     ): Inputs =
       inputsOrExit(inputs(args, defaultInputs))
 
-    def inputsOrExit(maybeInputs: Either[String, Inputs]): Inputs = maybeInputs match {
-      case Left(message) =>
-        System.err.println(message)
+    def inputsOrExit(maybeInputs: Either[BuildException, Inputs]): Inputs = maybeInputs match {
+      case Left(exception) =>
+        Util.printException(exception)
         sys.exit(1)
       case Right(i) => i
     }
@@ -252,7 +253,7 @@ object SharedOptionsUtil {
     def inputs(
       args: Seq[String],
       defaultInputs: () => Option[Inputs]
-    ): Either[String, Inputs] = {
+    ): Either[BuildException, Inputs] = {
       val resourceInputs = resourceDirs
         .map(os.Path(_, Os.pwd))
         .map { path =>

@@ -44,7 +44,7 @@ final case class TestInputs(
         forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir))
       )
       res match {
-        case Left(err)     => sys.error(err)
+        case Left(err)     => throw new Exception(err)
         case Right(inputs) => f(tmpDir, inputs)
       }
     }

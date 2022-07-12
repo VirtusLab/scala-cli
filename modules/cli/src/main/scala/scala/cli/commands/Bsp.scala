@@ -3,7 +3,9 @@ package scala.cli.commands
 import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 
+import scala.build.EitherCps.{either, value}
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
+import scala.build.errors.BuildException
 import scala.build.options.BuildOptions
 import scala.build.{Build, Inputs}
 import scala.cli.CurrentParams
@@ -25,16 +27,17 @@ object Bsp extends ScalaCommand[BspOptions] {
         readFromArray(content)(SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
 
-    val argsToInputs: Seq[String] => Either[String, Inputs] =
-      argsSeq => {
-        val sharedOptions = getSharedOptions()
-        sharedOptions.inputs(argsSeq, () => Inputs.default())
-          .map { i =>
-            if (sharedOptions.logging.verbosity >= 3)
-              pprint.err.log(i)
-            Build.updateInputs(i, buildOptions(sharedOptions))
-          }
-      }
+    val argsToInputs: Seq[String] => Either[BuildException, Inputs] =
+      argsSeq =>
+        either {
+          val sharedOptions = getSharedOptions()
+          val initialInputs = value(sharedOptions.inputs(argsSeq, () => Inputs.default()))
+
+          if (sharedOptions.logging.verbosity >= 3)
+            pprint.err.log(initialInputs)
+
+          Build.updateInputs(initialInputs, buildOptions(sharedOptions))
+        }
 
     val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
       val sharedOptions = getSharedOptions()
@@ -46,7 +49,8 @@ object Bsp extends ScalaCommand[BspOptions] {
       )
     }
 
-    val inputs = getSharedOptions().inputsOrExit(argsToInputs(args.all))
+    val logger = getSharedOptions().logging.logger
+    val inputs = argsToInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(
