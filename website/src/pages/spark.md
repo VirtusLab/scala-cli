@@ -51,3 +51,15 @@ Result: 55
 ```
 
 </ChainedSnippets>
+
+## Running Spark jobs
+
+The `run` sub-command can run Spark jobs, when passed `--spark`:
+
+```bash
+scala-cli run --spark SparkJob.scala # same example as above
+```
+
+Note that this requires either
+- `spark-submit` to be in available in `PATH`
+- `SPARK_HOME` to be set in the environment

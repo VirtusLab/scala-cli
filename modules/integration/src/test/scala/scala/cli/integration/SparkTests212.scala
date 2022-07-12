@@ -3,7 +3,9 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
+import java.util.Locale
 
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 object SparkTests212 {
@@ -72,31 +74,32 @@ class SparkTests212 extends SparkTestDefinitions {
     spark24.cleanUp()
   }
 
-  def simplePackageSparkJobTest(spark: Spark): Unit = {
-    val master = "local[4]"
-    val inputs = TestInputs(
-      os.rel / "SparkJob.scala" ->
-        s"""//> using lib "org.apache.spark::spark-sql:${spark.sparkVersion}"
-           |//> using scala "${spark.scalaVersion}"
-           |
-           |import org.apache.spark._
-           |import org.apache.spark.sql._
-           |
-           |object SparkJob {
-           |  def main(args: Array[String]): Unit = {
-           |    val spark = SparkSession.builder()
-           |      .appName("Test job")
-           |      .getOrCreate()
-           |    import spark.implicits._
-           |    def sc    = spark.sparkContext
-           |    val accum = sc.longAccumulator
-           |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
-           |    println("Result: " + accum.value)
-           |  }
-           |}
-           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
+  private def defaultMaster = "local[4]"
+  private def simpleJobInputs(spark: Spark) = TestInputs(
+    os.rel / "SparkJob.scala" ->
+      s"""//> using lib "org.apache.spark::spark-sql:${spark.sparkVersion}"
+         |//> using scala "${spark.scalaVersion}"
+         |
+         |import org.apache.spark._
+         |import org.apache.spark.sql._
+         |
+         |object SparkJob {
+         |  def main(args: Array[String]): Unit = {
+         |    val spark = SparkSession.builder()
+         |      .appName("Test job")
+         |      .getOrCreate()
+         |    import spark.implicits._
+         |    def sc    = spark.sparkContext
+         |    val accum = sc.longAccumulator
+         |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
+         |    println("Result: " + accum.value)
+         |  }
+         |}
+         |""".stripMargin
+  )
+
+  def simplePackageSparkJobTest(spark: Spark): Unit =
+    simpleJobInputs(spark).fromRoot { root =>
       val dest = os.rel / "SparkJob.jar"
       os.proc(TestUtil.cli, "package", extraOptions, "--spark", "--jvm", "8", ".", "-o", dest)
         .call(cwd = root)
@@ -106,7 +109,12 @@ class SparkTests212 extends SparkTestDefinitions {
 
       val ext = if (Properties.isWin) ".cmd" else ""
       val res =
-        os.proc(spark.sparkHome / "bin" / s"spark-submit$ext", "--master", master, dest).call(
+        os.proc(
+          spark.sparkHome / "bin" / s"spark-submit$ext",
+          "--master",
+          defaultMaster,
+          dest
+        ).call(
           cwd = root,
           env = Map(
             "JAVA_HOME" -> java8Home.toString,
@@ -118,14 +126,52 @@ class SparkTests212 extends SparkTestDefinitions {
 
       expect(res.out.trim() == expectedOutput)
     }
+
+  private def addToPath(dir: os.Path): Map[String, String] = {
+    // On Windows, trying to preserve the case of the PATH entry
+    def default = "PATH" -> Option(System.getenv("PATH")).getOrElse("")
+    val (key, currentValue) =
+      if (Properties.isWin)
+        System.getenv().asScala.find(_._1.toLowerCase(Locale.ROOT) == "path").getOrElse(default)
+      else
+        default
+
+    Map(key -> s"$dir${File.pathSeparator}$currentValue")
   }
 
-  test("spark 2.4") {
+  def simpleRunSparkJobTest(spark: Spark, usePath: Boolean = false): Unit =
+    simpleJobInputs(spark).fromRoot { root =>
+      val env =
+        if (usePath) addToPath(spark.sparkHome / "bin")
+        else Map("SPARK_HOME" -> spark.sparkHome.toString)
+      val res = os.proc(TestUtil.cli, "run", extraOptions, "--spark", "--jvm", "8", ".")
+        .call(cwd = root, env = env)
+
+      val expectedOutput = "Result: 55"
+
+      val output = res.out.trim().linesIterator.toVector
+
+      expect(output.contains(expectedOutput))
+    }
+
+  test("package spark 2.4") {
     simplePackageSparkJobTest(spark24)
   }
 
-  test("spark 3.0") {
+  test("package spark 3.0") {
     simplePackageSparkJobTest(spark30)
+  }
+
+  test("run spark 2.4") {
+    simpleRunSparkJobTest(spark24)
+  }
+
+  test("run spark 3.0") {
+    simpleRunSparkJobTest(spark30)
+  }
+
+  test("run spark 3.0 via PATH") {
+    simpleRunSparkJobTest(spark30, usePath = true)
   }
 
 }

@@ -6,6 +6,7 @@ import coursier.core.Version
 import coursier.util.{Artifact, Task}
 import dependency.*
 
+import java.io.File
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -543,7 +544,29 @@ object BuildOptions {
     javaHome: os.Path,
     javaCommand: String,
     version: Int
-  )
+  ) {
+    def envUpdates(currentEnv: Map[String, String]): Map[String, String] = {
+      // On Windows, AFAIK, env vars are "case-insensitive but case-preserving".
+      // If PATH was defined as "Path", we need to update "Path", not "PATH".
+      // Same for JAVA_HOME.
+      def keyFor(name: String) =
+        if (Properties.isWin)
+          currentEnv.keys.find(_.equalsIgnoreCase(name)).getOrElse(name)
+        else
+          name
+      val javaHomeKey = keyFor("JAVA_HOME")
+      val pathKey     = keyFor("PATH")
+      val updatedPath = {
+        val valueOpt = currentEnv.get(pathKey)
+        val entry    = (javaHome / "bin").toString
+        valueOpt.fold(entry)(entry + File.pathSeparator + _)
+      }
+      Map(
+        javaHomeKey -> javaHome.toString,
+        pathKey     -> updatedPath
+      )
+    }
+  }
 
   object JavaHomeInfo {
     def apply(javaHome: os.Path): JavaHomeInfo = {
