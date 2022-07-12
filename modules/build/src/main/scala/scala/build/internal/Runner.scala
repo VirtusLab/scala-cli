@@ -99,16 +99,20 @@ object Runner {
     }
   }
 
-  def runJvm(
+  private def envCommand(env: Map[String, String]): Seq[String] =
+    env.toVector.sortBy(_._1).map {
+      case (k, v) =>
+        s"$k=$v"
+    }
+
+  def jvmCommand(
     javaCommand: String,
     javaArgs: Seq[String],
     classPath: Seq[File],
     mainClass: String,
     args: Seq[String],
-    logger: Logger,
-    allowExecve: Boolean = false,
-    cwd: Option[os.Path] = None
-  ): Process = {
+    extraEnv: Map[String, String] = Map.empty
+  ): Seq[String] = {
 
     val command =
       Seq(javaCommand) ++
@@ -120,10 +124,27 @@ object Runner {
         ) ++
         args
 
+    envCommand(extraEnv) ++ command
+  }
+
+  def runJvm(
+    javaCommand: String,
+    javaArgs: Seq[String],
+    classPath: Seq[File],
+    mainClass: String,
+    args: Seq[String],
+    logger: Logger,
+    allowExecve: Boolean = false,
+    cwd: Option[os.Path] = None,
+    extraEnv: Map[String, String] = Map.empty
+  ): Process = {
+
+    val command = jvmCommand(javaCommand, javaArgs, classPath, mainClass, args, Map.empty)
+
     if (allowExecve)
-      maybeExec("java", command, logger, cwd = cwd)
+      maybeExec("java", command, logger, cwd = cwd, extraEnv = extraEnv)
     else
-      run(command, logger, cwd = cwd)
+      run(command, logger, cwd = cwd, extraEnv = extraEnv)
   }
 
   private def endsWithCaseInsensitive(s: String, suffix: String): Boolean =
@@ -155,6 +176,23 @@ object Runner {
     }
   }
 
+  def jsCommand(
+    entrypoint: File,
+    args: Seq[String],
+    jsDom: Boolean = false
+  ): Seq[String] = {
+
+    val nodePath = findInPath("node").fold("node")(_.toString)
+    val command  = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
+
+    if (jsDom)
+      // FIXME We'd need to replicate what JSDOMNodeJSEnv does under-the-hood to get the command in that case.
+      // --command is mostly for debugging purposes, so I'm not sure it matters much here…
+      sys.error("Cannot get command when JSDOM is enabled.")
+    else
+      "node" +: command.tail
+  }
+
   def runJs(
     entrypoint: File,
     args: Seq[String],
@@ -168,31 +206,17 @@ object Runner {
     import logger.{log, debug}
 
     val nodePath = findInPath("node").fold("node")(_.toString)
-    val command  = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
-
-    log(
-      s"Running ${command.mkString(" ")}",
-      "  Running" + System.lineSeparator() +
-        command.iterator.map(_ + System.lineSeparator()).mkString
-    )
-
-    lazy val envJs =
-      if (jsDom)
-        new JSDOMNodeJSEnv(
-          JSDOMNodeJSEnv.Config()
-            .withExecutable(nodePath)
-            .withArgs(Nil)
-            .withEnv(Map.empty)
-        )
-      else new NodeJSEnv(
-        NodeJSEnv.Config()
-          .withExecutable(nodePath)
-          .withArgs(Nil)
-          .withEnv(Map.empty)
-          .withSourceMap(sourceMap)
-      )
 
     if (!jsDom && allowExecve && Execve.available()) {
+
+      val command = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
+
+      log(
+        s"Running ${command.mkString(" ")}",
+        "  Running" + System.lineSeparator() +
+          command.iterator.map(_ + System.lineSeparator()).mkString
+      )
+
       debug("execve available")
       Execve.execve(
         command.head,
@@ -202,6 +226,23 @@ object Runner {
       sys.error("should not happen")
     }
     else {
+
+      val envJs =
+        if (jsDom)
+          new JSDOMNodeJSEnv(
+            JSDOMNodeJSEnv.Config()
+              .withExecutable(nodePath)
+              .withArgs(Nil)
+              .withEnv(Map.empty)
+          )
+        else new NodeJSEnv(
+          NodeJSEnv.Config()
+            .withExecutable(nodePath)
+            .withArgs(Nil)
+            .withEnv(Map.empty)
+            .withSourceMap(sourceMap)
+        )
+
       val inputs = Seq(
         if (esModule) Input.ESModule(entrypoint.toPath)
         else Input.Script(entrypoint.toPath)

@@ -1309,6 +1309,23 @@ Aliases: `-a`
 
 Don't actually run the REPL, just fetch it
 
+## Run options
+
+Available in commands:
+- [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--command`
+
+Print the command that would have been run (one argument per line), rather than running it
+
+#### `--scratch-dir`
+
+Temporary / working directory where to write generated launchers
+
 ## Scala.js options
 
 Available in commands:

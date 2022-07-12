@@ -23,8 +23,14 @@ final case class RunOptions(
   @Recurse
     compileCross: CompileCrossOptions = CompileCrossOptions(),
   @Recurse
-    mainClass: MainClassOptions = MainClassOptions()
-) 
+    mainClass: MainClassOptions = MainClassOptions(),
+  @Group("Run")
+  @HelpMessage("Print the command that would have been run (one argument per line), rather than running it")
+    command: Boolean = false,
+  @Group("Run")
+  @HelpMessage("Temporary / working directory where to write generated launchers")
+    scratchDir: Option[String] = None
+)
 // format: on
 
 object RunOptions {
