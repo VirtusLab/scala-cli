@@ -35,6 +35,12 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
       interactive.confirmOperation(msg).getOrElse(fallbackAction())
     }
     if (os.exists(destBinPath)) {
+      // uninstall completions
+      logger.debug("Uninstalling completions...")
+      UninstallCompletions.run(
+        UninstallCompletionsOptions(options.sharedUninstallCompletions, options.bloopExit.logging),
+        args
+      )
       // exit bloop server
       logger.debug("Stopping Bloop server...")
       BloopExit.run(options.bloopExit, args)
@@ -44,7 +50,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
       // remove scala-cli caches
       logger.debug("Removing scala-cli cache directory...")
       if (!options.skipCache) os.remove.all(cacheDir)
-      logger.message("Uninstalled sucessfully.")
+      logger.message("Uninstalled successfully.")
     }
     else {
       logger.error(s"Could't find scala-cli binary at $destBinPath.")

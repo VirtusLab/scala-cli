@@ -377,7 +377,7 @@ Accepts options:
 
 ## `uninstall`
 
-Unistall scala-cli - only works when installed by the installation script
+Uninstall scala-cli - only works when installed by the installation script
 
 Accepts options:
 - [compilation server](./cli-options.md#compilation-server-options)
@@ -385,6 +385,19 @@ Accepts options:
 - [directories](./cli-options.md#directories-options)
 - [logging](./cli-options.md#logging-options)
 - [uninstall](./cli-options.md#uninstall-options)
+- [uninstall completions](./cli-options.md#uninstall-completions-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
+## `uninstall completions`
+
+Aliases:
+- `uninstall-completions`
+
+Uninstalls completions from your shell
+
+Accepts options:
+- [logging](./cli-options.md#logging-options)
+- [uninstall completions](./cli-options.md#uninstall-completions-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
 ## `update`

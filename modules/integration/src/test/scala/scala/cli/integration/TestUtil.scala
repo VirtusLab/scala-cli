@@ -117,4 +117,9 @@ object TestUtil {
     else
       os.proc("kill", pid).call()
 
+  def pwd =
+    if (Properties.isWin)
+      os.Path(os.pwd.toIO.getCanonicalFile)
+    else
+      os.pwd
 }

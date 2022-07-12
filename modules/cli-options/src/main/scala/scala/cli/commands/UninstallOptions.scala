@@ -5,10 +5,12 @@ import caseapp._
 import java.nio.file.Path
 
 // format: off
-@HelpMessage("Unistall scala-cli - only works when installed by the installation script")
+@HelpMessage("Uninstall scala-cli - only works when installed by the installation script")
 final case class UninstallOptions(
   @Recurse
     bloopExit: BloopExitOptions = BloopExitOptions(),
+  @Recurse
+    sharedUninstallCompletions: SharedUninstallCompletionsOptions = SharedUninstallCompletionsOptions(),
   @Group("Uninstall")
   @Name("f")
   @HelpMessage("Force scala-cli uninstall")
