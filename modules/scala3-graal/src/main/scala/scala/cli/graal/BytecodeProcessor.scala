@@ -16,14 +16,15 @@ object BytecodeProcessor {
     case _                             => Nil
   }
 
-  def processPathingJar(pathingJar: String, cache: JarCache): Seq[ClassPathEntry] = {
-    val originalJar = os.Path(pathingJar, os.pwd)
-    val jarFile     = new JarFile(originalJar.toIO)
+  def processPathingJar(pathingJar: os.Path, cache: JarCache): Seq[ClassPathEntry] = {
+    val jarFile = new JarFile(pathingJar.toIO)
     try {
       val cp = jarFile.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH)
       if (cp != null && cp.nonEmpty) {
         // paths in pathing jars are spectated by spaces
-        val entries     = cp.split(" +").toSeq
+        val entries = cp.split(" +").toSeq.map { rawEntry =>
+          os.Path(rawEntry, os.pwd)
+        }
         val processedCp = processClassPathEntries(entries, cache)
         val dest        = os.temp(suffix = ".jar")
         val outStream   = Files.newOutputStream(dest.toNIO, StandardOpenOption.CREATE)
@@ -34,7 +35,7 @@ object BytecodeProcessor {
           val outjar = new JarOutputStream(outStream, manifest)
           outjar.close()
           dest.toNIO.toString()
-          Seq(PathingJar(Processed(dest, originalJar, TempCache), processedCp))
+          Seq(PathingJar(Processed(dest, pathingJar, TempCache), processedCp))
         }
         finally outStream.close()
       }
@@ -46,14 +47,14 @@ object BytecodeProcessor {
   def processClassPath(classPath: String, cache: JarCache = TempCache): Seq[ClassPathEntry] =
     classPath.split(File.pathSeparator) match {
       case Array(maybePathingJar) if maybePathingJar.endsWith(".jar") =>
-        processPathingJar(maybePathingJar, cache)
+        processPathingJar(os.Path(maybePathingJar, os.pwd), cache)
       case cp =>
-        processClassPathEntries(cp.toSeq, cache)
+        val cp0 = cp.toSeq.map(os.Path(_, os.pwd))
+        processClassPathEntries(cp0, cache)
     }
 
-  def processClassPathEntries(entries: Seq[String], cache: JarCache): Seq[ClassPathEntry] = {
-    val cp = entries.map { str =>
-      val path = os.Path(str, os.pwd)
+  def processClassPathEntries(entries: Seq[os.Path], cache: JarCache): Seq[ClassPathEntry] = {
+    val cp = entries.map { path =>
       cache.cache(path) { dest =>
         if (path.ext == "jar" && os.isFile(path)) processJar(path, dest, cache)
         else if (os.isDir(path)) processDir(path, dest, cache)

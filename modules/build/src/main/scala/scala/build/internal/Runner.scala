@@ -108,7 +108,7 @@ object Runner {
   def jvmCommand(
     javaCommand: String,
     javaArgs: Seq[String],
-    classPath: Seq[File],
+    classPath: Seq[os.Path],
     mainClass: String,
     args: Seq[String],
     extraEnv: Map[String, String] = Map.empty
@@ -119,7 +119,7 @@ object Runner {
         javaArgs ++
         Seq(
           "-cp",
-          classPath.iterator.map(_.getAbsolutePath).mkString(File.pathSeparator),
+          classPath.iterator.map(_.toString).mkString(File.pathSeparator),
           mainClass
         ) ++
         args
@@ -130,7 +130,7 @@ object Runner {
   def runJvm(
     javaCommand: String,
     javaArgs: Seq[String],
-    classPath: Seq[File],
+    classPath: Seq[os.Path],
     mainClass: String,
     args: Seq[String],
     logger: Logger,

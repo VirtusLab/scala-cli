@@ -321,7 +321,7 @@ object Run extends ScalaCommand[RunOptions] {
           val command = Runner.jvmCommand(
             build.options.javaHome().value.javaCommand,
             build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            build.fullClassPath.map(_.toIO),
+            build.fullClassPath,
             mainClass,
             args
           )
@@ -331,7 +331,7 @@ object Run extends ScalaCommand[RunOptions] {
           val proc = Runner.runJvm(
             build.options.javaHome().value.javaCommand,
             build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            build.fullClassPath.map(_.toIO),
+            build.fullClassPath,
             mainClass,
             args,
             logger,

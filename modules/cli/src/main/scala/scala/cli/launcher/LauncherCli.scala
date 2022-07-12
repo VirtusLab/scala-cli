@@ -44,10 +44,10 @@ object LauncherCli {
           sys.exit(1)
       }
 
-    val scalaCli =
-      fetchedScalaCli.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) =>
-        f.toPath.toFile
-      }
+    val scalaCli = fetchedScalaCli.fullDetailedArtifacts.collect {
+      case (_, _, _, Some(f)) =>
+        os.Path(f, os.pwd)
+    }
 
     val buildOptions = BuildOptions(
       javaOptions = JavaOptions(

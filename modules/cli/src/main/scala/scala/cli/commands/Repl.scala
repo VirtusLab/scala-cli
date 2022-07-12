@@ -230,7 +230,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       Runner.runJvm(
         options.javaHome().value.javaCommand,
         replArtifacts.replJavaOpts ++ options.javaOptions.javaOpts.toSeq.map(_.value.value),
-        classDir.map(_.toIO).toSeq ++ replArtifacts.replClassPath.map(_.toIO),
+        classDir.toSeq ++ replArtifacts.replClassPath,
         replArtifacts.replMainClass,
         if (Properties.isWin)
           replArgs.map { a =>

@@ -155,7 +155,7 @@ object Doc extends ScalaCommand[DocOptions] {
         val retCode = Runner.runJvm(
           (build.options.javaHomeLocation().value / "bin" / s"java$ext").toString,
           Nil, // FIXME Allow to customize that?
-          res.files,
+          res.files.map(os.Path(_, os.pwd)),
           "dotty.tools.scaladoc.Main",
           args,
           logger,
