@@ -25,6 +25,11 @@ final case class RunOptions(
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),
   @Group("Run")
+  @Hidden
+  @HelpMessage("Run as a Spark job, using the spark-submit command")
+  @ExtraName("spark")
+    sparkSubmit: Option[Boolean] = None,
+  @Group("Run")
   @HelpMessage("Print the command that would have been run (one argument per line), rather than running it")
     command: Boolean = false,
   @Group("Run")
