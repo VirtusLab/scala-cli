@@ -20,6 +20,7 @@ object PackageOptionsUtil {
         if (v.library) Some(PackageType.LibraryJar)
         else if (source) Some(PackageType.SourceJar)
         else if (assembly) Some(PackageType.Assembly(addPreamble = preamble))
+        else if (spark) Some(PackageType.Spark)
         else if (deb) Some(PackageType.Debian)
         else if (dmg) Some(PackageType.Dmg)
         else if (pkg) Some(PackageType.Pkg)
@@ -90,8 +91,9 @@ object PackageOptionsUtil {
           )
         ),
         internal = baseOptions.internal.copy(
-          // computing the provided modules sub-graph needs the final Resolution instance
-          keepResolution = provided.nonEmpty
+          // computing the provided modules sub-graph need the final Resolution instance
+          // Spark packaging adds provided modules, so it needs it too
+          keepResolution = provided.nonEmpty || packageTypeOpt.contains(PackageType.Spark)
         ),
         internalDependencies = baseOptions.internalDependencies.copy(
           addRunnerDependencyOpt = Some(false)

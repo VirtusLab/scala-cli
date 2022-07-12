@@ -30,6 +30,7 @@ import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
+import scala.cli.commands.packaging.Spark
 import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.PackageOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -197,6 +198,7 @@ object Package extends ScalaCommand[PackageOptions] {
         case PackageType.SourceJar                              => ".jar"
         case PackageType.DocJar                                 => ".jar"
         case _: PackageType.Assembly                            => ".jar"
+        case PackageType.Spark                                  => ".jar"
         case PackageType.Js                                     => ".js"
         case PackageType.Debian                                 => ".deb"
         case PackageType.Dmg                                    => ".dmg"
@@ -214,6 +216,7 @@ object Package extends ScalaCommand[PackageOptions] {
         case PackageType.SourceJar                              => "source.jar"
         case PackageType.DocJar                                 => "scaladoc.jar"
         case _: PackageType.Assembly                            => "app.jar"
+        case PackageType.Spark                                  => "job.jar"
         case PackageType.Js                                     => "app.js"
         case PackageType.Debian                                 => "app.deb"
         case PackageType.Dmg                                    => "app.dmg"
@@ -294,7 +297,25 @@ object Package extends ScalaCommand[PackageOptions] {
               build,
               destPath,
               value(mainClass),
+              Nil,
               withPreamble = a.addPreamble,
+              () => alreadyExistsCheck(),
+              logger
+            )
+          }
+          destPath
+        case PackageType.Spark =>
+          value {
+            assembly(
+              build,
+              destPath,
+              value(mainClass),
+              // The Spark modules are assumed to be already on the class path,
+              // along with all their transitive dependencies (originating from
+              // the Spark distribution), so we don't include any of them in the
+              // assembly.
+              Spark.sparkModules,
+              withPreamble = false,
               () => alreadyExistsCheck(),
               logger
             )
@@ -696,6 +717,7 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful,
     destPath: os.Path,
     mainClass: String,
+    extraProvided: Seq[dependency.AnyModule],
     withPreamble: Boolean,
     alreadyExistsCheck: () => Unit,
     logger: Logger
@@ -712,7 +734,7 @@ object Package extends ScalaCommand[PackageOptions] {
         (ent, content)
       }
 
-    val provided = build.options.notForBloopOptions.packageOptions.provided
+    val provided = build.options.notForBloopOptions.packageOptions.provided ++ extraProvided
     val allFiles = build.artifacts.artifacts.map(_._2)
     val files =
       if (provided.isEmpty) allFiles
