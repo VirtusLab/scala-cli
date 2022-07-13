@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  dependency-update:
+  submit-dependency-graph:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -14,9 +14,4 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
       with:
         jvm: "temurin:17"
-
-    - name: Submit dependency graph
-      run:
-        ./mill --import ivy:io.chris-kipp::mill-github-dependency-graph::0.0.13 io.kipp.mill.github.dependency.graph.Graph/submit
-      env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - uses: ckipp01/mill-dependency-submission@v1
