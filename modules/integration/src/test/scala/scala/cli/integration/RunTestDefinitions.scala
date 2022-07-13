@@ -75,6 +75,44 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("manifest") {
+    val message = "Hello"
+    val converters =
+      if (actualScalaVersion.startsWith("2.12.")) "scala.collection.JavaConverters._"
+      else "scala.jdk.CollectionConverters._"
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Simple.scala" ->
+          s"""import java.io.File
+             |import java.util.zip.ZipFile
+             |import $converters
+             |
+             |object Simple {
+             |  private def manifestClassPathCheck(): Unit = {
+             |    val cp = sys.props("java.class.path")
+             |    assert(!cp.contains(File.pathSeparator), s"Expected single entry in class path, got $$cp")
+             |    val zf = new ZipFile(new File(cp))
+             |    val entries = zf.entries.asScala.map(_.getName).toVector
+             |    zf.close()
+             |    assert(entries == Seq("META-INF/MANIFEST.MF"), s"Expected only META-INF/MANIFEST.MF entry, got $$entries")
+             |  }
+             |  def main(args: Array[String]): Unit = {
+             |    manifestClassPathCheck()
+             |    val msg = "$message"
+             |    println(msg)
+             |  }
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "--use-manifest", ".")
+        .call(cwd = root)
+        .out.text().trim
+      expect(output == message)
+    }
+  }
+
   def simpleJsTest(extraArgs: String*): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"

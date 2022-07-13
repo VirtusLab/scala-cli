@@ -21,8 +21,15 @@ object BytecodeProcessor {
     try {
       val cp = jarFile.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH)
       if (cp != null && cp.nonEmpty) {
-        // paths in pathing jars are spectated by spaces
+        // paths in pathing jars are separated by spaces
         val entries = cp.split(" +").toSeq.map { rawEntry =>
+          // In manifest JARs, class path entries are supposed to be encoded as URL paths.
+          // This especially matters on Windows, where we end up with paths like "/C:/…".
+          // Theoretically, we should decode those paths with
+          //   os.Path(java.nio.file.Paths.get(new java.net.URI("file://" + rawEntry)), os.pwd)
+          // but native-image doesn't follow this, and decodes them with just Paths.get(…).
+          // As the JARs we are handed are supposed to be passed to native-image, we follow
+          // the native-image convention here.
           os.Path(rawEntry, os.pwd)
         }
         val processedCp = processClassPathEntries(entries, cache)

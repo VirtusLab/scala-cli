@@ -47,6 +47,9 @@ object Run extends ScalaCommand[RunOptions] {
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
             sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
+      ),
+      notForBloopOptions = baseOptions.notForBloopOptions.copy(
+        runWithManifest = options.useManifest
       )
     )
   }
@@ -323,7 +326,8 @@ object Run extends ScalaCommand[RunOptions] {
             build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
             build.fullClassPath,
             mainClass,
-            args
+            args,
+            useManifest = build.options.notForBloopOptions.runWithManifest
           )
           Left(command)
         }
@@ -335,7 +339,8 @@ object Run extends ScalaCommand[RunOptions] {
             mainClass,
             args,
             logger,
-            allowExecve = allowExecve
+            allowExecve = allowExecve,
+            useManifest = build.options.notForBloopOptions.runWithManifest
           )
           Right(proc)
         }

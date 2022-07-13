@@ -1,9 +1,9 @@
 package scala.cli.packaging
 
-import java.io.{File, OutputStream}
+import java.io.File
 
 import scala.annotation.tailrec
-import scala.build.internal.Runner
+import scala.build.internal.{ManifestJar, Runner}
 import scala.build.{Build, Logger}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
@@ -33,48 +33,6 @@ object NativeImage {
     }
 
     nativeImage
-  }
-
-  private def maybeWithManifestClassPath[T](
-    createManifest: Boolean,
-    classPath: Seq[os.Path]
-  )(
-    f: Seq[os.Path] => T
-  ): T = {
-    var toDeleteOpt = Option.empty[os.Path]
-
-    try {
-      val finalCp =
-        if (createManifest) {
-          import java.util.jar._
-          val manifest   = new Manifest
-          val attributes = manifest.getMainAttributes
-          attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
-          attributes.put(Attributes.Name.CLASS_PATH, classPath.map(_.toString).mkString(" "))
-          val jarFile = os.temp(prefix = "classpathJar", suffix = ".jar")
-          toDeleteOpt = Some(jarFile)
-          var os0: OutputStream    = null
-          var jos: JarOutputStream = null
-          try {
-            os0 = os.write.outputStream(jarFile)
-            jos = new JarOutputStream(os0, manifest)
-          }
-          finally {
-            if (jos != null)
-              jos.close()
-            if (os0 != null)
-              os0.close()
-          }
-          Seq(jarFile)
-        }
-        else
-          classPath
-
-      f(finalCp)
-    }
-    finally
-      for (toDelete <- toDeleteOpt)
-        os.remove(toDelete)
   }
 
   private def vcVersions = Seq("2022", "2019", "2017")
@@ -230,9 +188,11 @@ object NativeImage {
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
         val originalClassPath = mainJar +: build.dependencyClassPath
-        maybeWithManifestClassPath(
+        ManifestJar.maybeWithManifestClassPath(
           createManifest = Properties.isWin,
-          classPath = originalClassPath
+          classPath = originalClassPath,
+          // seems native-image doesn't correctly parse paths in manifests - this is especially a problem on Windows
+          wrongSimplePathsInManifest = true
         ) { processedClassPath =>
           val needsProcessing = build.scalaParams.exists(_.scalaVersion.startsWith("3."))
           val (classPath, toClean, scala3extraOptions) =

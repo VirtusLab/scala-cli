@@ -6,7 +6,8 @@ final case class PostBuildOptions(
   packageOptions: PackageOptions = PackageOptions(),
   replOptions: ReplOptions = ReplOptions(),
   publishOptions: PublishOptions = PublishOptions(),
-  scalaJsLinkerOptions: ScalaJsLinkerOptions = ScalaJsLinkerOptions()
+  scalaJsLinkerOptions: ScalaJsLinkerOptions = ScalaJsLinkerOptions(),
+  runWithManifest: Option[Boolean] = None
 )
 
 object PostBuildOptions {

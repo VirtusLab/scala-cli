@@ -111,20 +111,40 @@ object Runner {
     classPath: Seq[os.Path],
     mainClass: String,
     args: Seq[String],
-    extraEnv: Map[String, String] = Map.empty
+    extraEnv: Map[String, String] = Map.empty,
+    useManifest: Option[Boolean] = None,
+    scratchDirOpt: Option[os.Path] = None
   ): Seq[String] = {
 
-    val command =
-      Seq(javaCommand) ++
+    def command(cp: Seq[os.Path]) =
+      envCommand(extraEnv) ++
+        Seq(javaCommand) ++
         javaArgs ++
         Seq(
           "-cp",
-          classPath.iterator.map(_.toString).mkString(File.pathSeparator),
+          cp.iterator.map(_.toString).mkString(File.pathSeparator),
           mainClass
         ) ++
         args
 
-    envCommand(extraEnv) ++ command
+    val initialCommand = command(classPath)
+
+    val useManifest0 = useManifest.getOrElse {
+      Properties.isWin && {
+        val commandLen = initialCommand.map(_.length).sum + (initialCommand.length - 1)
+        // On Windows, total command lengths have this limit. Note that the same kind
+        // of limit applies the environment, so that we can't sneak in info via env vars to
+        // overcome the command length limit.
+        // See https://devblogs.microsoft.com/oldnewthing/20031210-00/?p=41553
+        commandLen >= 32767
+      }
+    }
+
+    if (useManifest0) {
+      val manifestJar = ManifestJar.create(classPath, scratchDirOpt = scratchDirOpt)
+      command(Seq(manifestJar))
+    }
+    else initialCommand
   }
 
   def runJvm(
@@ -136,10 +156,21 @@ object Runner {
     logger: Logger,
     allowExecve: Boolean = false,
     cwd: Option[os.Path] = None,
-    extraEnv: Map[String, String] = Map.empty
+    extraEnv: Map[String, String] = Map.empty,
+    useManifest: Option[Boolean] = None,
+    scratchDirOpt: Option[os.Path] = None
   ): Process = {
 
-    val command = jvmCommand(javaCommand, javaArgs, classPath, mainClass, args, Map.empty)
+    val command = jvmCommand(
+      javaCommand,
+      javaArgs,
+      classPath,
+      mainClass,
+      args,
+      Map.empty,
+      useManifest,
+      scratchDirOpt
+    )
 
     if (allowExecve)
       maybeExec("java", command, logger, cwd = cwd, extraEnv = extraEnv)
