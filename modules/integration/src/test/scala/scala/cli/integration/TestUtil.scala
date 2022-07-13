@@ -122,4 +122,10 @@ object TestUtil {
       os.Path(os.pwd.toIO.getCanonicalFile)
     else
       os.pwd
+
+  /** @return
+    *   2 quotation marks (") when run for Windows, or a single one otherwise. This is necessary to
+    *   escape the quotation marks passed in args for the Windows command line.
+    */
+  def argQuotationMark: String = if (Properties.isWin) "\"\"" else "\""
 }

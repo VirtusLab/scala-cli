@@ -2004,22 +2004,24 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("correctly run a script snippet") {
     emptyInputs.fromRoot { root =>
-      val msg =
-        "123456" // FIXME: change this to a a non-numeric string when Windows encoding is handled properly
-      val res = os.proc(TestUtil.cli, "-e", s"println($msg)", extraOptions).call(cwd = root)
+      val msg       = "Hello world"
+      val quotation = TestUtil.argQuotationMark
+      val res =
+        os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", extraOptions)
+          .call(cwd = root)
       expect(res.out.text().trim == msg)
     }
   }
 
   test("correctly run a scala snippet") {
     emptyInputs.fromRoot { root =>
-      val msg =
-        "123456" // FIXME: change this to a a non-numeric string when Windows encoding is handled properly
+      val msg       = "Hello world"
+      val quotation = TestUtil.argQuotationMark
       val res =
         os.proc(
           TestUtil.cli,
           "--scala-snippet",
-          s"object Hello extends App { println($msg) }",
+          s"object Hello extends App { println($quotation$msg$quotation) }",
           extraOptions
         )
           .call(cwd = root)
@@ -2029,12 +2031,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("correctly run a java snippet") {
     emptyInputs.fromRoot { root =>
-      val msg =
-        "123456" // FIXME: change this to a a non-numeric string when Windows encoding is handled properly
+      val quotation = TestUtil.argQuotationMark
+      val msg       = "Hello world"
       val res = os.proc(
         TestUtil.cli,
         "--java-snippet",
-        s"public class Main { public static void main(String[] args) { System.out.println($msg); } }",
+        s"public class Main { public static void main(String[] args) { System.out.println($quotation$msg$quotation); } }",
         extraOptions
       )
         .call(cwd = root)
