@@ -618,7 +618,8 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       is = zf.getInputStream(ent)
       is.readAllBytes()
     }
-    finally if (is != null)
+    finally
+      if (is != null)
         is.close()
   }
 

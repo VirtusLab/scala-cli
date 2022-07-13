@@ -777,6 +777,58 @@ trait FormatNativeImageConf extends JavaModule {
 
 trait ScalaCliCompile extends scala.cli.mill.ScalaCliCompile {
   def scalaCliVersion = BuildDeps.scalaCliVersion
+
+  def scalacOptions = T {
+    val sv         = scalaVersion()
+    val isScala213 = sv.startsWith("2.13.")
+    val extraOptions =
+      if (isScala213) Seq("-Xsource:3", "-Ytasty-reader")
+      else Nil
+    super.scalacOptions() ++ extraOptions
+  }
+
+  def mandatoryIvyDeps = T {
+    super.mandatoryIvyDeps().map { dep =>
+      val isScala3Lib =
+        dep.dep.module.organization.value == "org.scala-lang" &&
+        dep.dep.module.name.value == "scala3-library" &&
+        (dep.cross match {
+          case _: CrossVersion.Binary => true
+          case _                      => false
+        })
+      if (isScala3Lib)
+        dep.copy(
+          dep = dep.dep.withModule(
+            dep.dep.module.withName(
+              coursier.ModuleName(dep.dep.module.name.value + "_3")
+            )
+          ),
+          cross = CrossVersion.empty(dep.cross.platformed)
+        )
+      else dep
+    }
+  }
+  def transitiveIvyDeps = T {
+    super.transitiveIvyDeps().map { dep =>
+      val isScala3Lib =
+        dep.dep.module.organization.value == "org.scala-lang" &&
+        dep.dep.module.name.value == "scala3-library" &&
+        (dep.cross match {
+          case _: CrossVersion.Binary => true
+          case _                      => false
+        })
+      if (isScala3Lib)
+        dep.copy(
+          dep = dep.dep.withModule(
+            dep.dep.module.withName(
+              coursier.ModuleName(dep.dep.module.name.value + "_3")
+            )
+          ),
+          cross = CrossVersion.empty(dep.cross.platformed)
+        )
+      else dep
+    }
+  }
 }
 
 trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
@@ -818,6 +870,7 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
 }
 
 trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
+trait ScalaCliSbtModule      extends SbtModule with ScalaCliModule
 
 trait ScalaCliTests extends TestModule with ScalaCliModule
 
@@ -832,7 +885,7 @@ trait ScalaCliModule extends ScalaModule {
     val extraOptions =
       if (isScala213) Seq("-Xsource:3", "-Ytasty-reader")
       else Nil
-    super.scalacOptions() ++ Seq("-feature") ++ extraOptions
+    super.scalacOptions() ++ Seq("-feature", "-deprecation") ++ extraOptions
   }
 }
 

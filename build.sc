@@ -11,6 +11,7 @@ import $file.project.settings, settings.{
   LocalRepo,
   PublishLocalNoFluff,
   ScalaCliCrossSbtModule,
+  ScalaCliSbtModule,
   ScalaCliScalafixModule,
   ScalaCliCompile,
   ScalaCliTests,
@@ -37,44 +38,15 @@ import _root_.scala.util.{Properties, Using}
 implicit def millModuleBasePath: define.BasePath =
   define.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli extends Cli3 with Bloop.Module {
-  def skipBloop = true
-  object test extends Tests with ScalaCliTests {
-    def moduleDeps = super.moduleDeps ++ Seq(
-      `build-module`(myScalaVersion).test
-    )
-  }
-}
-
-// remove once we do not have blockers with Scala 3
-object cli2 extends Cli {
-  def myScalaVersion = Scala.scala213
-  def sources = T.sources {
-    super.sources() ++ cli.sources()
-  }
-  def resources = T.sources {
-    super.resources() ++ cli.resources()
-  }
-  object test extends Tests with ScalaCliTests {
-    def sources = T.sources {
-      super.sources() ++ cli.test.sources()
-    }
-    def resources = T.sources {
-      super.resources() ++ cli.test.resources()
-    }
-    def moduleDeps = super.moduleDeps ++ Seq(
-      `build-module`(myScalaVersion).test
-    )
-  }
-}
+object cli extends Cli
 
 object `cli-options`  extends CliOptions
-object `build-macros` extends Cross[BuildMacros](Scala.mainVersions: _*)
-object options        extends Cross[Options](Scala.mainVersions: _*)
+object `build-macros` extends BuildMacros
+object options        extends Options
 object scalaparse     extends ScalaParse
-object directives     extends Cross[Directives](Scala.mainVersions: _*)
-object core           extends Cross[Core](Scala.mainVersions: _*)
-object `build-module` extends Cross[Build](Scala.mainVersions: _*)
+object directives     extends Directives
+object core           extends Core
+object `build-module` extends Build
 object runner         extends Cross[Runner](Scala.all: _*)
 object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
 object `bloop-rifle`  extends Cross[BloopRifle](Scala.all: _*)
@@ -183,10 +155,11 @@ object dummy extends Module {
   }
 }
 
-class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait BuildMacros extends ScalaCliSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
     with HasTests {
+  def scalaVersion = Scala.defaultInternal
   def scalacOptions = T {
     super.scalacOptions() ++
       (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
@@ -214,55 +187,53 @@ class BuildMacros(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     }
 
     def testNegativeCompilation() = T.command {
-      if (crossScalaVersion.startsWith("3.")) {
-        val base = os.pwd / "modules" / "build-macros" / "src"
-        val negativeTests = Seq(
-          "MismatchedLeft.scala" -> Seq(
-            "Found\\: +EE1".r,
-            "Found\\: +EE2".r,
-            "Required\\: +E2".r
-          )
+      val base = os.pwd / "modules" / "build-macros" / "src"
+      val negativeTests = Seq(
+        "MismatchedLeft.scala" -> Seq(
+          "Found\\: +EE1".r,
+          "Found\\: +EE2".r,
+          "Required\\: +E2".r
         )
+      )
 
-        val cpsSource = base / "main" / "scala-3.1" / "scala" / "build" / "EitherCps.scala"
-        assert(os.exists(cpsSource))
+      val cpsSource = base / "main" / "scala-3.1" / "scala" / "build" / "EitherCps.scala"
+      assert(os.exists(cpsSource))
 
-        val cli = compileScalaCli.get.path // we need scala-cli
-        def compile(extraSources: os.Path*) =
-          os.proc(cli, "compile", "-S", crossScalaVersion, cpsSource, extraSources).call(
-            check =
-              false,
-            mergeErrIntoOut = true
-          )
-        assert(0 == compile().exitCode)
+      val cli = compileScalaCli.get.path // we need scala-cli
+      val sv  = scalaVersion()
+      def compile(extraSources: os.Path*) =
+        os.proc(cli, "compile", "-S", sv, cpsSource, extraSources).call(
+          check =
+            false,
+          mergeErrIntoOut = true
+        )
+      assert(0 == compile().exitCode)
 
-        val notPassed = negativeTests.filter { case (testName, expectedErrors) =>
-          val testFile = base / "negative-tests" / testName
-          val res      = compile(testFile)
-          println(s"Compiling $testName:")
-          println(res.out.text)
-          val name = testFile.last
-          if (res.exitCode != 0) {
-            println(s"Test case $name failed to compile as expected")
-            val lines = res.out.lines
-            println(lines)
-            expectedErrors.forall { expected =>
-              if (lines.exists(expected.findFirstIn(_).nonEmpty)) false
-              else {
-                println(s"ERROR: regex `$expected` not found in compilation output for $testName")
-                true
-              }
+      val notPassed = negativeTests.filter { case (testName, expectedErrors) =>
+        val testFile = base / "negative-tests" / testName
+        val res      = compile(testFile)
+        println(s"Compiling $testName:")
+        println(res.out.text)
+        val name = testFile.last
+        if (res.exitCode != 0) {
+          println(s"Test case $name failed to compile as expected")
+          val lines = res.out.lines
+          println(lines)
+          expectedErrors.forall { expected =>
+            if (lines.exists(expected.findFirstIn(_).nonEmpty)) false
+            else {
+              println(s"ERROR: regex `$expected` not found in compilation output for $testName")
+              true
             }
           }
-          else {
-            println(s"[ERROR] $name compiled successfully but it should not!")
-            true
-          }
-
         }
-        assert(notPassed.isEmpty)
+        else {
+          println(s"[ERROR] $name compiled successfully but it should not!")
+          true
+        }
+
       }
-      ()
+      assert(notPassed.isEmpty)
     }
   }
 }
@@ -273,27 +244,19 @@ def asyncScalacOptions(scalaVersion: String) =
 trait ProtoBuildModule extends ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule
 
-trait BuildLikeModule extends ScalaCliCrossSbtModule with ProtoBuildModule {
+private def prefer3(sv: String): String =
+  if (sv == Scala.scala213) Scala.scala3
+  else sv
 
-  def scalacOptions = T {
-    super.scalacOptions() ++
-      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil) ++
-      Seq("-deprecation")
-  }
-
-  def repositories = super.repositories ++ customRepositories
-
-  def localRepoJar = T {
-    `local-repo`.localRepoJar()
-  }
-}
-
-class Core(val crossScalaVersion: String) extends BuildLikeModule {
+trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
+    with ScalaCliScalafixModule {
+  private def scalaVer = Scala.defaultInternal
+  def scalaVersion     = scalaVer
   def moduleDeps = Seq(
-    `bloop-rifle`()
+    `bloop-rifle`(scalaVer)
   )
   def compileModuleDeps = Seq(
-    `build-macros`()
+    `build-macros`
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -413,11 +376,13 @@ class Core(val crossScalaVersion: String) extends BuildLikeModule {
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 }
 
-class Directives(val crossScalaVersion: String) extends BuildLikeModule {
+trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
+    with ScalaCliScalafixModule {
+  def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
-    options(),
-    core(),
-    `build-macros`()
+    options,
+    core,
+    `build-macros`
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -442,7 +407,7 @@ class Directives(val crossScalaVersion: String) extends BuildLikeModule {
       Deps.pprint
     )
     def runClasspath = T {
-      super.runClasspath() ++ Seq(localRepoJar())
+      super.runClasspath() ++ Seq(`local-repo`.localRepoJar())
     }
 
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
@@ -470,12 +435,14 @@ class Directives(val crossScalaVersion: String) extends BuildLikeModule {
   }
 }
 
-class Options(val crossScalaVersion: String) extends BuildLikeModule {
+trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
+    with ScalaCliScalafixModule {
+  def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
-    core()
+    core
   )
   def compileModuleDeps = Seq(
-    `build-macros`()
+    `build-macros`
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -507,7 +474,8 @@ trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with ScalaCliCo
   def scalaVersion = Scala.scala3
 }
 
-class Scala3Graal(val crossScalaVersion: String) extends BuildLikeModule {
+class Scala3Graal(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule with ScalaCliScalafixModule {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.osLib
@@ -524,6 +492,10 @@ class Scala3Graal(val crossScalaVersion: String) extends BuildLikeModule {
     )
     super.resources() ++ Seq(mill.PathRef(extraResourceDir))
   }
+  def scalacOptions = T {
+    super.scalacOptions() ++
+      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
+  }
 }
 
 trait Scala3GraalProcessor extends ScalaModule with ScalaCliPublishModule {
@@ -532,15 +504,18 @@ trait Scala3GraalProcessor extends ScalaModule with ScalaCliPublishModule {
   def finalMainClass = "scala.cli.graal.CoursierCacheProcessor"
 }
 
-class Build(val crossScalaVersion: String) extends BuildLikeModule {
-  def millSourcePath = super.millSourcePath / os.up / "build"
+trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
+    with ScalaCliScalafixModule {
+  private def scalaVer = Scala.defaultInternal
+  def scalaVersion     = scalaVer
+  def millSourcePath   = super.millSourcePath / os.up / "build"
   def moduleDeps = Seq(
-    options(),
+    options,
     scalaparse,
-    directives(),
+    directives,
     `scala-cli-bsp`,
-    `test-runner`(),
-    `tasty-lib`()
+    `test-runner`(scalaVer),
+    `tasty-lib`(scalaVer)
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -571,7 +546,7 @@ class Build(val crossScalaVersion: String) extends BuildLikeModule {
       Deps.slf4jNop
     )
     def runClasspath = T {
-      super.runClasspath() ++ Seq(localRepoJar())
+      super.runClasspath() ++ Seq(`local-repo`.localRepoJar())
     }
 
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
@@ -611,7 +586,7 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
   )
   private def scalaVer = Scala.scala213
   def compileModuleDeps = Seq(
-    options(scalaVer)
+    options
   )
   def scalaVersion = scalaVer
   def repositories = super.repositories ++ customRepositories
@@ -669,7 +644,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     super.resources() ++ Seq(defaultFilesResources())
   }
 
-  def myScalaVersion: String
+  private def myScalaVersion: String = Scala.defaultInternal
 
   def scalaVersion = T(myScalaVersion)
 
@@ -681,7 +656,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     super.javacOptions() ++ Seq("--release", "16")
   }
   def moduleDeps = Seq(
-    `build-module`(myScalaVersion),
+    `build-module`,
     `cli-options`,
     `test-runner`(myScalaVersion),
     `scala3-graal`(myScalaVersion)
@@ -709,18 +684,6 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   )
   def mainClass = Some("scala.cli.ScalaCli")
 
-  def localRepoJar = `local-repo`.localRepoJar()
-
-  trait Tests extends super.Tests with ScalaCliScalafixModule {
-    def runClasspath = T {
-      super.runClasspath() ++ Seq(localRepoJar())
-    }
-  }
-}
-
-trait Cli3 extends Cli {
-  def myScalaVersion = Scala.scala3
-
   override def nativeImageClassPath = T {
     val classpath = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
     val cache     = T.dest / "native-cp"
@@ -733,6 +696,17 @@ trait Cli3 extends Cli {
     )
     val cp = res.out.text.trim
     cp.split(File.pathSeparator).toSeq.map(p => mill.PathRef(os.Path(p)))
+  }
+
+  def localRepoJar = `local-repo`.localRepoJar()
+
+  object test extends Tests with ScalaCliTests with ScalaCliScalafixModule {
+    def moduleDeps = super.moduleDeps ++ Seq(
+      `build-module`.test
+    )
+    def runClasspath = T {
+      super.runClasspath() ++ Seq(localRepoJar())
+    }
   }
 }
 
@@ -1097,7 +1071,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 }
 
 def unitTests() = T.command {
-  `build-module`(Scala.defaultInternal).test.test()()
+  `build-module`.test.test()()
   cli.test.test()()
 }
 
