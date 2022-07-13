@@ -148,7 +148,7 @@ object Deps {
 }
 
 object BuildDeps {
-  def scalaCliVersion = "0.1.7"
+  def scalaCliVersion = "0.1.9"
 }
 
 def graalVmVersion     = "22.1.0"
