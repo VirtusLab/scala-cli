@@ -186,7 +186,8 @@ object Inputs {
   }
 
   sealed abstract class VirtualSourceFile extends Virtual {
-    def isStdin: Boolean = source.contains("<stdin>")
+    def isStdin: Boolean   = source.contains("<stdin>")
+    def isSnippet: Boolean = source.contains("<snippet>")
   }
 
   sealed trait SingleFile extends OnDisk with SingleElement
@@ -325,6 +326,32 @@ object Inputs {
     }
   }
 
+  def validateSnippets(
+    scriptSnippetOpt: Option[String] = None,
+    scalaSnippetOpt: Option[String] = None,
+    javaSnippetOpt: Option[String] = None
+  ): Seq[Either[String, Seq[Element]]] = {
+    def validateSnippet(
+      maybeExpression: Option[String],
+      f: Array[Byte] => Element
+    ): Option[Either[String, Seq[Element]]] =
+      maybeExpression.filter(_.nonEmpty).map(expression =>
+        Right(Seq(f(expression.getBytes(StandardCharsets.UTF_8))))
+      )
+
+    Seq(
+      validateSnippet(
+        scriptSnippetOpt,
+        content => VirtualScript(content, "snippet", os.sub / "snippet.sc")
+      ),
+      validateSnippet(
+        scalaSnippetOpt,
+        content => VirtualScalaFile(content, "<snippet>-scala-file")
+      ),
+      validateSnippet(javaSnippetOpt, content => VirtualJavaFile(content, "<snippet>-java-file"))
+    ).flatten
+  }
+
   def validateArgs(
     args: Seq[String],
     cwd: os.Path,
@@ -382,16 +409,22 @@ object Inputs {
     baseProjectName: String,
     download: String => Either[String, Array[Byte]],
     stdinOpt: => Option[Array[Byte]],
+    scriptSnippetOpt: Option[String],
+    scalaSnippetOpt: Option[String],
+    javaSnippetOpt: Option[String],
     acceptFds: Boolean,
     forcedWorkspace: Option[os.Path]
   ): Either[String, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(args, cwd, download, stdinOpt, acceptFds)
-    val invalid = validatedArgs.collect {
+    val validatedExpressions: Seq[Either[String, Seq[Element]]] =
+      validateSnippets(scriptSnippetOpt, scalaSnippetOpt, javaSnippetOpt)
+    val validatedArgsAndExprs = validatedArgs ++ validatedExpressions
+    val invalid = validatedArgsAndExprs.collect {
       case Left(msg) => msg
     }
     if (invalid.isEmpty) {
-      val validElems = validatedArgs.collect {
+      val validElems = validatedArgsAndExprs.collect {
         case Right(elem) => elem
       }.flatten
       assert(validElems.nonEmpty)
@@ -410,10 +443,15 @@ object Inputs {
     defaultInputs: () => Option[Inputs] = () => None,
     download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
     stdinOpt: => Option[Array[Byte]] = None,
+    scriptSnippetOpt: Option[String] = None,
+    scalaSnippetOpt: Option[String] = None,
+    javaSnippetOpt: Option[String] = None,
     acceptFds: Boolean = false,
     forcedWorkspace: Option[os.Path] = None
   ): Either[String, Inputs] =
-    if (args.isEmpty)
+    if (
+      args.isEmpty && scriptSnippetOpt.isEmpty && scalaSnippetOpt.isEmpty && javaSnippetOpt.isEmpty
+    )
       defaultInputs().toRight(
         "No inputs provided (expected files with .scala or .sc extensions, and / or directories)."
       )
@@ -425,6 +463,9 @@ object Inputs {
         baseProjectName,
         download,
         stdinOpt,
+        scriptSnippetOpt,
+        scalaSnippetOpt,
+        javaSnippetOpt,
         acceptFds,
         forcedWorkspace
       )

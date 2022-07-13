@@ -268,6 +268,9 @@ object SharedOptionsUtil {
         defaultInputs = defaultInputs,
         download = downloadInputs,
         stdinOpt = readStdin(logger = logger),
+        scriptSnippetOpt = v.snippet.scriptSnippet,
+        scalaSnippetOpt = v.snippet.scalaSnippet,
+        javaSnippetOpt = v.snippet.javaSnippet,
         acceptFds = !Properties.isWin,
         forcedWorkspace = workspace.forcedWorkspaceOpt
       )

@@ -1637,6 +1637,45 @@ Generate SemanticDBs
 
 #### `--strict-bloop-json-check`
 
+## Snippet options
+
+Available in commands:
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`doc`](./commands.md#doc)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--script-snippet`
+
+Aliases: `-e`, `--execute-script`, `--execute-scala-script`, `--execute-sc`
+
+Allows to execute a passed string as a Scala script
+
+#### `--scala-snippet`
+
+Aliases: `--execute-scala`
+
+Allows to execute a passed string as Scala code
+
+#### `--java-snippet`
+
+Aliases: `--execute-java`
+
+Allows to execute a passed string as Java code
+
 ## Test options
 
 Available in commands:
