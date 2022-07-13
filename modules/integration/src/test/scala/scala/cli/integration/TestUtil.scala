@@ -1,5 +1,7 @@
 package scala.cli.integration
 
+import os.{CommandResult, Path}
+
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
@@ -10,11 +12,11 @@ import scala.util.Properties
 
 object TestUtil {
 
-  val cliKind     = sys.props("test.scala-cli.kind")
-  val isNativeCli = cliKind.startsWith("native")
-  val isCI        = System.getenv("CI") != null
-  val cliPath     = sys.props("test.scala-cli.path")
-  val cli         = cliCommand(cliPath)
+  val cliKind: String      = sys.props("test.scala-cli.kind")
+  val isNativeCli: Boolean = cliKind.startsWith("native")
+  val isCI: Boolean        = System.getenv("CI") != null
+  val cliPath: String      = sys.props("test.scala-cli.path")
+  val cli: Seq[String]     = cliCommand(cliPath)
 
   def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)
@@ -23,7 +25,7 @@ object TestUtil {
       Seq("java", "-Xmx512m", "-Xms128m", "-jar", cliPath)
 
   // format: off
-  val extraOptions = List(
+  val extraOptions: List[String] = List(
     "--bloop-startup-timeout", "2min",
     "--bloop-bsp-timeout", "1min"
   )
@@ -58,7 +60,7 @@ object TestUtil {
       .map(_.getAbsolutePath)
   }
 
-  def cs = Constants.cs
+  def cs: String = Constants.cs
 
   def threadPool(prefix: String, size: Int): ExecutorService =
     Executors.newFixedThreadPool(size, daemonThreadFactory(prefix))
@@ -68,9 +70,9 @@ object TestUtil {
 
   private def daemonThreadFactory(prefix: String): ThreadFactory =
     new ThreadFactory {
-      val counter        = new AtomicInteger
-      def threadNumber() = counter.incrementAndGet()
-      def newThread(r: Runnable) =
+      val counter             = new AtomicInteger
+      def threadNumber(): Int = counter.incrementAndGet()
+      def newThread(r: Runnable): Thread =
         new Thread(r, s"$prefix-thread-${threadNumber()}") {
           setDaemon(true)
           setPriority(Thread.NORM_PRIORITY)
@@ -105,19 +107,19 @@ object TestUtil {
 
   def retryOnCi[T](maxAttempts: Int = 3, waitDuration: FiniteDuration = 5.seconds)(
     run: => T
-  ) = retry(if (isCI) maxAttempts else 1, waitDuration)(run)
+  ): T = retry(if (isCI) maxAttempts else 1, waitDuration)(run)
 
   // Same as os.RelPath.toString, but for the use of File.separator instead of "/"
   def relPathStr(relPath: os.RelPath): String =
     (Seq.fill(relPath.ups)("..") ++ relPath.segments).mkString(File.separator)
 
-  def kill(pid: Int) =
+  def kill(pid: Int): CommandResult =
     if (Properties.isWin)
       os.proc("taskkill", "/F", "/PID", pid).call()
     else
       os.proc("kill", pid).call()
 
-  def pwd =
+  def pwd: Path =
     if (Properties.isWin)
       os.Path(os.pwd.toIO.getCanonicalFile)
     else
