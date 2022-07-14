@@ -25,6 +25,7 @@ trait Logger {
   ): Unit = log(Seq(Diagnostic(message, severity, positions)))
 
   def log(ex: BuildException): Unit
+  def debug(ex: BuildException): Unit
   def exit(ex: BuildException): Nothing
 
   def coursierLogger(printBefore: String): coursier.cache.CacheLogger
@@ -48,6 +49,7 @@ object Logger {
 
     def log(diagnostics: Seq[Diagnostic]): Unit = ()
     def log(ex: BuildException): Unit           = ()
+    def debug(ex: BuildException): Unit         = ()
     def exit(ex: BuildException): Nothing =
       throw new Exception(ex)
 

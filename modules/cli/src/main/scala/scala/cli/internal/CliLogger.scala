@@ -119,6 +119,9 @@ class CliLogger(
     if (verbosity >= 0)
       printEx(ex, new mutable.HashMap)
 
+  def debug(ex: BuildException): Unit =
+    if (verbosity >= 2)
+      printEx(ex, new mutable.HashMap)
   def exit(ex: BuildException): Nothing =
     if (verbosity < 0)
       sys.exit(1)

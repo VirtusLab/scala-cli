@@ -26,6 +26,7 @@ class PersistentDiagnosticLogger(parent: Logger) extends Logger {
   }
 
   def log(ex: BuildException): Unit     = parent.log(ex)
+  def debug(ex: BuildException): Unit   = parent.debug(ex)
   def exit(ex: BuildException): Nothing = parent.exit(ex)
 
   def coursierLogger(printBefore: String): coursier.cache.CacheLogger =

@@ -99,6 +99,7 @@ Available in commands:
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -252,6 +253,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -324,6 +326,7 @@ Force overwriting destination files
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -358,6 +361,18 @@ Aliases: `-P`, `--plugin`
 
 Add compiler plugin dependencies
 
+## Dependency update options
+
+Available in commands:
+- [`dependency-update`](./commands.md#dependency-update)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--all`
+
+Update all dependency
+
 ## Directories options
 
 Available in commands:
@@ -368,6 +383,7 @@ Available in commands:
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`directories`](./commands.md#directories)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
@@ -500,6 +516,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
 - [`default-file`](./commands.md#default-file)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`directories`](./commands.md#directories)
 - [`doc`](./commands.md#doc)
 - [`doctor`](./commands.md#doctor)
@@ -554,6 +571,7 @@ Print help message, including hidden options, and exit
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -670,6 +688,7 @@ Available in commands:
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -733,6 +752,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
 - [`default-file`](./commands.md#default-file)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -1338,6 +1358,7 @@ Temporary / working directory where to write generated launchers
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -1433,6 +1454,7 @@ Whether to run the Scala.js CLI on the JVM or using a native executable
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -1494,6 +1516,7 @@ Use default compile options
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -1564,6 +1587,7 @@ Available in commands:
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -1643,6 +1667,7 @@ Generate SemanticDBs
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
@@ -1779,6 +1804,7 @@ Available in commands:
 - [`compile`](./commands.md#compile)
 - [`config`](./commands.md#config)
 - [`default-file`](./commands.md#default-file)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`directories`](./commands.md#directories)
 - [`doc`](./commands.md#doc)
 - [`doctor`](./commands.md#doctor)
@@ -1852,6 +1878,7 @@ Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`clean`](./commands.md#clean)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
