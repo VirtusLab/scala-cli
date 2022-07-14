@@ -5,6 +5,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Build, BuildThreads, Directories, Inputs}
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
+import scala.build.internal.Util
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
 import scala.util.Try
@@ -44,7 +45,7 @@ final case class TestInputs(
         forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir))
       )
       res match {
-        case Left(err)     => sys.error(err)
+        case Left(err)     => throw new Exception(err)
         case Right(inputs) => f(tmpDir, inputs)
       }
     }

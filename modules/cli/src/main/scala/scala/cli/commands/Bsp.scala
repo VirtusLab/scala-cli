@@ -3,9 +3,12 @@ package scala.cli.commands
 import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core._
 
+import scala.build.EitherCps.{either, value}
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
+import scala.build.errors.BuildException
+import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
-import scala.build.{Build, Inputs}
+import scala.build.{Build, CrossSources, Inputs, PersistentDiagnosticLogger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -25,16 +28,32 @@ object Bsp extends ScalaCommand[BspOptions] {
         readFromArray(content)(SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
 
-    val argsToInputs: Seq[String] => Either[String, Inputs] =
-      argsSeq => {
-        val sharedOptions = getSharedOptions()
-        sharedOptions.inputs(argsSeq, () => Inputs.default())
-          .map { i =>
-            if (sharedOptions.logging.verbosity >= 3)
-              pprint.err.log(i)
-            Build.updateInputs(i, buildOptions(sharedOptions))
-          }
-      }
+    val argsToInputs: Seq[String] => Either[BuildException, Inputs] =
+      argsSeq =>
+        either {
+          val sharedOptions = getSharedOptions()
+          val initialInputs = value(sharedOptions.inputs(argsSeq, () => Inputs.default()))
+
+          if (sharedOptions.logging.verbosity >= 3)
+            pprint.err.log(initialInputs)
+
+          val buildOptions0    = buildOptions(sharedOptions)
+          val logger           = sharedOptions.logging.logger
+          val persistentLogger = new PersistentDiagnosticLogger(logger)
+
+          val allInputs =
+            CrossSources.forInputs(
+              initialInputs,
+              Sources.defaultPreprocessors(
+                buildOptions0.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
+                buildOptions0.archiveCache,
+                buildOptions0.internal.javaClassNameVersionOpt
+              ),
+              persistentLogger
+            ).map(_._2).getOrElse(initialInputs)
+
+          Build.updateInputs(allInputs, buildOptions(sharedOptions))
+        }
 
     val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
       val sharedOptions = getSharedOptions()
@@ -46,7 +65,8 @@ object Bsp extends ScalaCommand[BspOptions] {
       )
     }
 
-    val inputs = getSharedOptions().inputsOrExit(argsToInputs(args.all))
+    val logger = getSharedOptions().logging.logger
+    val inputs = argsToInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(

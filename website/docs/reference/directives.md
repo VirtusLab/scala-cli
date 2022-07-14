@@ -38,6 +38,17 @@ Manually add JAR(s) to the class path
 #### Examples
 `//> using jar "/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"`
 
+### Custom sources
+
+Manually add sources to the Scala CLI project
+
+//> using file hello.sc
+
+//> using files Utils.scala, Helper.scala …
+
+#### Examples
+`//> using file "utils.scala"`
+
 ### Dependency
 
 Add dependencies

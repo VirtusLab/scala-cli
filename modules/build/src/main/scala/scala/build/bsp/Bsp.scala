@@ -3,6 +3,7 @@ package scala.build.bsp
 import java.io.{InputStream, OutputStream}
 
 import scala.build.Inputs
+import scala.build.errors.BuildException
 import scala.concurrent.Future
 
 trait Bsp {
@@ -12,7 +13,7 @@ trait Bsp {
 
 object Bsp {
   def create(
-    argsToInputs: Seq[String] => Either[String, Inputs],
+    argsToInputs: Seq[String] => Either[BuildException, Inputs],
     bspReloadableOptionsReference: BspReloadableOptions.Reference,
     threads: BspThreads,
     in: InputStream,

@@ -119,7 +119,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
     else {
 
       def scalaVerOpt = inputsOpt.flatMap { inputs =>
-        val crossSources =
+        val (crossSources, _) =
           CrossSources.forInputs(
             inputs,
             Sources.defaultPreprocessors(

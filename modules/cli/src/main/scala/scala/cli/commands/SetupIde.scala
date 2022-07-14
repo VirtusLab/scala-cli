@@ -30,7 +30,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     // ignoring errors related to sources themselves
     val maybeSourceBuildOptions = either {
-      val crossSources = value {
+      val (crossSources, _) = value {
         CrossSources.forInputs(
           inputs,
           Sources.defaultPreprocessors(

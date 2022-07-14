@@ -64,6 +64,41 @@ JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvm
 (New JVM versions are automatically checked daily, and updates for those are - manually - merged
 swiftly.)
 
+## Define source files in using directives
+
+You can also add source files with the using directive `//> using file`:
+
+```scala title=Main.scala
+//> using file "Utils.scala" 
+
+object Main extends App {
+   println(Utils.message)
+}
+```
+```scala title=Utils.scala
+object Utils {
+  val message = "Hello World"
+}
+```
+
+`scala-cli` takes into account and compiles `Utils.scala`.
+
+```bash
+scala-cli Main.scala
+# Hello World
+```
+
+<!-- Expected:
+Hello World
+-->
+
+It is also possible to pass multiple paths to source files in a single using directive:
+ ```
+ //> using files "Utils.scala" "Helper.scala"
+ ```
+
+ Note that the `//> using file` using directive only supports `.java`, `.scala`, `.sc` files or a directory. 
+
 ## Watch mode
 
 `--watch` makes `scala-cli` watch your code for changes, and re-runs it upon any change:
