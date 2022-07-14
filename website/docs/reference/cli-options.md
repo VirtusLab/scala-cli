@@ -1667,6 +1667,7 @@ Generate SemanticDBs
 Available in commands:
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
 - [`doc`](./commands.md#doc)
 - [`export`](./commands.md#export)
 - [`fmt` / `format` / `scalafmt`](./commands.md#fmt)

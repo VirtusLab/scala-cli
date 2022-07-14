@@ -23,7 +23,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     val logger       = options.shared.logger
     val buildOptions = options.shared.buildOptions()
 
-    val crossSources =
+    val (crossSources, _) =
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(

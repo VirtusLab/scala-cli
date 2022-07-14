@@ -62,6 +62,7 @@ Accepts options:
 - [Scala Native](./cli-options.md#scala-native-options)
 - [scalac](./cli-options.md#scalac-options)
 - [shared](./cli-options.md#shared-options)
+- [snippet](./cli-options.md#snippet-options)
 - [verbosity](./cli-options.md#verbosity-options)
 - [workspace](./cli-options.md#workspace-options)
 
