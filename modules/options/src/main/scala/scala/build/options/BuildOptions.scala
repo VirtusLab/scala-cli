@@ -3,7 +3,6 @@ package scala.build.options
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.Version
-import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.{Artifact, Task}
 import dependency.*
 
@@ -11,19 +10,17 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import scala.build.EitherCps.{either, value}
+import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
 import scala.build.errors.*
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.*
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
-import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
+import scala.build.internal.{Constants, StableScalaVersion}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
-import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
-import scala.util.control.NonFatal
-import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
 
 final case class BuildOptions(
   scalaOptions: ScalaOptions = ScalaOptions(),
@@ -175,64 +172,14 @@ final case class BuildOptions(
 
   lazy val archiveCache: ArchiveCache[Task] = ArchiveCache().withCache(finalCache)
 
-  private lazy val javaCommand0: Positioned[JavaHomeInfo] = javaHomeLocation().map { javaHome =>
-    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
-    JavaHomeInfo(javaHome, javaCmd, javaVersion)
-  }
-
-  private def jvmIndexOs = javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)
+  private lazy val javaCommand0: Positioned[JavaHomeInfo] =
+    javaOptions.javaHome(archiveCache, finalCache, internal.verbosityOrDefault)
 
   def javaHomeLocationOpt(): Option[Positioned[os.Path]] =
-    javaOptions.javaHomeOpt
-      .orElse {
-        if (javaOptions.jvmIdOpt.isEmpty)
-          Option(System.getenv("JAVA_HOME")).map(p =>
-            Positioned(Position.Custom("JAVA_HOME env"), os.Path(p, Os.pwd))
-          ).orElse(
-            sys.props.get("java.home").map(p =>
-              Positioned(Position.Custom("java.home prop"), os.Path(p, Os.pwd))
-            )
-          )
-        else None
-      }
-      .orElse {
-        javaOptions.jvmIdOpt.map { jvmId =>
-          implicit val ec: ExecutionContextExecutorService = finalCache.ec
-          finalCache.logger.use {
-            val enforceLiberica =
-              jvmIndexOs == "linux-musl" && jvmId.forall(c => c.isDigit || c == '.' || c == '-')
-            val jvmId0 =
-              if (enforceLiberica)
-                s"liberica:$jvmId" // FIXME Workaround, until this is automatically handled by coursier-jvm
-              else
-                jvmId
-            val javaHomeManager0 = javaHomeManager
-              .withMessage(s"Downloading JVM $jvmId0")
-            val path =
-              try javaHomeManager0.get(jvmId0).unsafeRun()
-              catch {
-                case NonFatal(e) => throw new Exception(e)
-              }
-            Positioned(Position.CommandLine("--jvm"), os.Path(path))
-          }
-        }
-      }
+    javaOptions.javaHomeLocationOpt(archiveCache, finalCache, internal.verbosityOrDefault)
 
   def javaHomeLocation(): Positioned[os.Path] =
-    javaHomeLocationOpt().getOrElse {
-      val jvmId = OsLibc.defaultJvm(jvmIndexOs)
-      val javaHomeManager0 = javaHomeManager
-        .withMessage(s"Downloading JVM $jvmId")
-      implicit val ec: ExecutionContextExecutorService = finalCache.ec
-      finalCache.logger.use {
-        val path =
-          try javaHomeManager0.get(jvmId).unsafeRun()
-          catch {
-            case NonFatal(e) => throw new Exception(e)
-          }
-        Positioned(Position.Custom("OsLibc.defaultJvm"), os.Path(path))
-      }
-    }
+    javaOptions.javaHomeLocation(archiveCache, finalCache, internal.verbosityOrDefault)
 
   // used when downloading fails
   private def defaultStableScalaVersions =
@@ -313,26 +260,8 @@ final case class BuildOptions(
 
   def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
 
-  lazy val javaHomeManager: JavaHome = {
-    val indexUrl = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
-    val indexTask = {
-      val msg   = if (internal.verbosityOrDefault > 0) "Downloading JVM index" else ""
-      val cache = finalCache.withMessage(msg)
-      cache.logger.using {
-        JvmIndex.load(cache, indexUrl)
-      }
-    }
-    val jvmCache = JvmCache()
-      .withIndex(indexTask)
-      .withArchiveCache(
-        archiveCache.withCache(
-          finalCache.withMessage("Downloading JVM")
-        )
-      )
-      .withOs(jvmIndexOs)
-      .withArchitecture(javaOptions.jvmIndexArch.getOrElse(JvmIndex.defaultArchitecture()))
-    JavaHome().withCache(jvmCache)
-  }
+  lazy val javaHomeManager =
+    javaOptions.javaHomeManager(archiveCache, finalCache, internal.verbosityOrDefault)
 
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
 

@@ -3,11 +3,14 @@ package scala.cli.commands.pgp
 import caseapp._
 
 import scala.cli.commands.{CoursierOptions, LoggingOptions}
+import scala.cli.commands.SharedJvmOptions
 
 // format: off
 final case class PgpExternalOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Hidden

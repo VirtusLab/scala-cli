@@ -20,7 +20,8 @@ class PgpProxyJvm extends PgpProxy {
     quiet: Boolean,
     password: String,
     cache: Cache[Task],
-    logger: Logger
+    logger: Logger,
+    javaCommand: () => String
   ): Either[BuildException, Int] = {
 
     PgpCreate.tryRun(
@@ -40,7 +41,8 @@ class PgpProxyJvm extends PgpProxy {
     key: String,
     keyPrintablePath: String,
     cache: Cache[Task],
-    logger: Logger
+    logger: Logger,
+    javaCommand: () => String
   ): Either[BuildException, String] =
     PgpKeyId.get(key.getBytes(StandardCharsets.UTF_8), fingerprint = false)
       .headOption

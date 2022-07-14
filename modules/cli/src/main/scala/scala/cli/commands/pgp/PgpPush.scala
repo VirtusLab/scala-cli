@@ -1,11 +1,12 @@
 package scala.cli.commands.pgp
 
 import caseapp.core.RemainingArgs
+import coursier.cache.ArchiveCache
 
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
 import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.ScalaCliSttpBackend
+import scala.cli.commands.util.{JvmUtils, ScalaCliSttpBackend}
 import scala.cli.internal.PgpProxyMakerSubst
 
 object PgpPush extends ScalaCommand[PgpPushOptions] {
@@ -42,14 +43,21 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
       }
       val keyContent = os.read(path)
 
+      val javaCommand = () =>
+        JvmUtils.javaOptions(options.jvm).javaHome(
+          ArchiveCache().withCache(coursierCache),
+          coursierCache,
+          logger.verbosity
+        ).value.javaCommand
+
       val keyId =
         if (options.forceSigningBinary)
           (new PgpProxyMaker).get()
-            .keyId(keyContent, key, coursierCache, logger)
+            .keyId(keyContent, key, coursierCache, logger, javaCommand)
             .orExit(logger)
         else
           (new PgpProxyMakerSubst).get()
-            .keyId(keyContent, key, coursierCache, logger)
+            .keyId(keyContent, key, coursierCache, logger, javaCommand)
             .orExit(logger)
 
       if (keyId.isEmpty)

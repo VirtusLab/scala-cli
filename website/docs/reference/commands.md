@@ -274,6 +274,7 @@ Accepts options:
 - [coursier](./cli-options.md#coursier-options)
 - [directories](./cli-options.md#directories-options)
 - [input](./cli-options.md#input-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [pgp push pull](./cli-options.md#pgp-push-pull-options)
 - [publish params](./cli-options.md#publish-params-options)
@@ -551,6 +552,7 @@ Accepts options:
 - [config](./cli-options.md#config-options)
 - [coursier](./cli-options.md#coursier-options)
 - [directories](./cli-options.md#directories-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
@@ -614,6 +616,7 @@ Accepts options:
 
 Accepts options:
 - [coursier](./cli-options.md#coursier-options)
+- [jvm](./cli-options.md#jvm-options)
 - [logging](./cli-options.md#logging-options)
 - [pgp push](./cli-options.md#pgp-push-options)
 - [pgp push pull](./cli-options.md#pgp-push-pull-options)

@@ -8,6 +8,7 @@ import scala.cli.commands.{
   LoggingOptions,
   SharedDirectoriesOptions,
   SharedInputOptions,
+  SharedJvmOptions,
   SharedWorkspaceOptions
 }
 import scala.cli.signing.shared.PasswordOption
@@ -31,6 +32,8 @@ final case class PublishSetupOptions(
     publishRepo: PublishRepositoryOptions = PublishRepositoryOptions(),
   @Recurse
     sharedPgp: SharedPgpPushPullOptions = SharedPgpPushPullOptions(),
+  @Recurse
+    sharedJvm: SharedJvmOptions = SharedJvmOptions(),
 
   @Group("Publishing")
   @HelpMessage("Public key to use to verify artifacts (to be uploaded to a key server)")

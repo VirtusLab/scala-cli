@@ -3,7 +3,6 @@ package scala.cli.publish
 import coursier.publish.signing.Signer
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
-import java.nio.file.Path
 import java.security.Security
 import java.util.function.Supplier
 
@@ -15,8 +14,8 @@ class BouncycastleSignerMaker {
   def get(
     passwordOrNull: PasswordOption,
     secretKey: PasswordOption,
-    launcher: Supplier[Path], // unused here, but used in the GraalVM substitution
-    logger: Logger            // unused here, but used in the GraalVM substitution
+    command: Supplier[Array[String]], // unused here, but used in the GraalVM substitution
+    logger: Logger                    // unused here, but used in the GraalVM substitution
   ): Signer =
     BouncycastleSigner(
       secretKey.getBytes(),

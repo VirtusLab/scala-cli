@@ -28,7 +28,8 @@ import scala.build.{Inputs, Logger}
   */
 final case class JavaPreprocessor(
   archiveCache: ArchiveCache[Task],
-  javaClassNameVersionOpt: Option[String]
+  javaClassNameVersionOpt: Option[String],
+  javaCommand: () => String
 ) extends Preprocessor {
   def preprocess(
     input: Inputs.SingleElement,
@@ -72,7 +73,8 @@ final case class JavaPreprocessor(
                   .get(
                     archiveCache,
                     javaClassNameVersionOpt,
-                    logger
+                    logger,
+                    () => javaCommand()
                   )
                   .className(v.content)
               }

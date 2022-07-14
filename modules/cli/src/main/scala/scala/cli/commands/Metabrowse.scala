@@ -1,10 +1,11 @@
 package scala.cli.commands
 
 import caseapp._
+import dependency._
 
 import java.io.File
 
-import scala.build.internal.{Constants, FetchExternalBinary, Runner}
+import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -97,25 +98,34 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     sourceJar: os.Path
   ): Unit = {
 
-    val launcher = options.metabrowseLauncher
+    val command = options.metabrowseLauncher
       .filter(_.nonEmpty)
-      .map(os.Path(_, os.pwd))
+      .map(Seq(_))
       .getOrElse {
         val sv = successfulBuild.scalaParams
           .map(_.scalaVersion)
           .getOrElse(Constants.defaultScalaVersion)
         val (url, changing) =
           metabrowseBinaryUrl(sv, options)
-        FetchExternalBinary.fetch(
+        val params = ExternalBinaryParams(
           url,
           changing,
+          "metabrowse",
+          Seq(
+            dep"org.scalameta:metabrowse-server_2.13:${options.metabrowseTag.map(_.stripPrefix("v")).getOrElse("2.4.4")}"
+          ),
+          "metabrowse.server.cli.MetabrowseServerCli"
+        )
+        val res = FetchExternalBinary.fetch(
+          params,
           successfulBuild.options.archiveCache,
           logger,
-          "metabrowse"
+          () => successfulBuild.options.javaHome().value.javaCommand
         )
+        res.orExit(logger).command
       }
 
-    logger.debug(s"Using metabrowse launcher $launcher")
+    logger.debug(s"Using metabrowse command $command")
 
     val extraJars =
       if (options.addRtJar.getOrElse(true)) {
@@ -174,8 +184,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
     val message = WatchUtil.waitMessage("Metabrowse server running at http://{HOST}:{PORT}")
 
-    val command = Seq(
-      launcher.toString,
+    val command0 = command ++ Seq(
       "--class-path",
       classPath.map(_.toString).mkString(File.pathSeparator),
       "--source-path",
@@ -190,7 +199,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       message
     )
 
-    Runner.maybeExec("metabrowse", command, logger)
+    Runner.maybeExec("metabrowse", command0, logger)
   }
 
 }

@@ -117,7 +117,7 @@ object LibSodiumJni {
     if (!allStaticallyLinked) {
       val (archiveUrl, pathInArchive) = archiveUrlAndPath()
       val sodiumLib = value {
-        FetchExternalBinary.fetch(
+        FetchExternalBinary.fetchLauncher(
           archiveUrl,
           changing = false,
           archiveCache,

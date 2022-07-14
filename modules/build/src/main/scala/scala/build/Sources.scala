@@ -87,11 +87,12 @@ object Sources {
   def defaultPreprocessors(
     codeWrapper: CodeWrapper,
     archiveCache: ArchiveCache[Task],
-    javaClassNameVersionOpt: Option[String]
+    javaClassNameVersionOpt: Option[String],
+    javaCommand: () => String
   ): Seq[Preprocessor] =
     Seq(
       ScriptPreprocessor(codeWrapper),
-      JavaPreprocessor(archiveCache, javaClassNameVersionOpt),
+      JavaPreprocessor(archiveCache, javaClassNameVersionOpt, javaCommand),
       ScalaPreprocessor,
       DataPreprocessor
     )

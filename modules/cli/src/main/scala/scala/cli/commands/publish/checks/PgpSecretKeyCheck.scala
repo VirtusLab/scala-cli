@@ -1,6 +1,6 @@
 package scala.cli.commands.publish.checks
 
-import coursier.cache.Cache
+import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
 import sttp.client3._
 import sttp.model.Uri
@@ -15,6 +15,7 @@ import scala.build.options.{PublishOptions => BPublishOptions}
 import scala.cli.commands.config.ThrowawayPgpSecret
 import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
+import scala.cli.commands.util.JvmUtils
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
 import scala.cli.signing.shared.PasswordOption
@@ -22,7 +23,7 @@ import scala.cli.util.MaybeConfigPasswordOptionHelpers._
 
 final case class PgpSecretKeyCheck(
   options: PublishSetupOptions,
-  coursierCache: Cache[Task],
+  coursierCache: FileCache[Task],
   configDb: () => ConfigDb,
   logger: Logger,
   backend: SttpBackend[Identity, Any]
@@ -47,6 +48,14 @@ final case class PgpSecretKeyCheck(
       new String(input.map(_.toChar))
     else
       Base64.getEncoder().encodeToString(input)
+
+  def javaCommand: () => String =
+    () =>
+      JvmUtils.javaOptions(options.sharedJvm).javaHome(
+        ArchiveCache().withCache(coursierCache),
+        coursierCache,
+        logger.verbosity
+      ).value.javaCommand
 
   def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] =
     either {
@@ -92,7 +101,13 @@ final case class PgpSecretKeyCheck(
                       )
                   }
                   val (pgpPublic, pgpSecret0) = value {
-                    ThrowawayPgpSecret.pgpSecret(mail, password, logger, coursierCache)
+                    ThrowawayPgpSecret.pgpSecret(
+                      mail,
+                      password,
+                      logger,
+                      coursierCache,
+                      javaCommand
+                    )
                   }
                   val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
                   (
@@ -126,7 +141,8 @@ final case class PgpSecretKeyCheck(
                 pubKey.value,
                 "[generated key]",
                 coursierCache,
-                logger
+                logger,
+                javaCommand
               )
             }
             val keyServers = value {
