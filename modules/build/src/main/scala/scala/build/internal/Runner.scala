@@ -19,7 +19,7 @@ import scala.build.errors.{
   TooManyFrameworksFoundByBridgeError
 }
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
-import scala.util.Properties
+import scala.util.{Failure, Properties, Success}
 
 object Runner {
 
@@ -281,6 +281,12 @@ object Runner {
 
       val config    = RunConfig().withLogger(logger.scalaJsLogger)
       val processJs = envJs.start(inputs, config)
+
+      processJs.future.value.foreach {
+        case Failure(t) =>
+          throw new Exception(t)
+        case Success(_) =>
+      }
 
       val processField =
         processJs.getClass.getDeclaredField("org$scalajs$jsenv$ExternalJSRun$$process")
