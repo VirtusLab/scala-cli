@@ -32,3 +32,39 @@ Lastly, you can also add simple JAR files as dependencies with `--jar`:
 ```bash
 scala-cli compile Hello.scala --jar /path/to/library.jar
 ```
+
+## Update dependencies
+
+To check if dependencies in using directives are up to date use `dependency-update` command:
+
+```scala title=Hello.scala
+//> using lib "com.lihaoyi::os-lib:0.7.8"
+//> using lib "com.lihaoyi::utest:0.7.10"
+import $ivy.`com.lihaoyi::geny:0.6.5`
+import $dep.`com.lihaoyi::pprint:0.6.6`
+
+object Hello extends App {
+  println("Hello World")
+}
+```
+
+```bash
+scala-cli dependency-update Hello.scala
+# Updates
+#    * com.lihaoyi::os-lib:0.7.8 -> 0.8.1
+#    * com.lihaoyi::utest:0.7.10 -> 0.8.0
+#    * com.lihaoyi::geny:0.6.5 -> 0.7.1
+#    * com.lihaoyi::pprint:0.6.6 -> 0.7.3
+# To update all dependencies run: 
+#     scala-cli dependency-update --all
+```
+
+Passing `--all` to the `dependency-update` sub-command updates all dependencies in your sources.
+
+```bash
+scala-cli dependency-update Hello.scala --all
+# Updated dependency to: com.lihaoyi::os-lib:0.8.1
+# Updated dependency to: com.lihaoyi::utest:0.8.0
+# Updated dependency to: com.lihaoyi::geny:0.7.1
+# Updated dependency to: com.lihaoyi::pprint:0.7.3
+```
