@@ -5,7 +5,7 @@ import dependency._
 import scala.build.Position
 import scala.build.errors.{Diagnostic, Severity}
 
-sealed abstract class ActionableDiagnostic {
+abstract class ActionableDiagnostic {
 
   /** Provide the message of actionable diagnostic
     */
