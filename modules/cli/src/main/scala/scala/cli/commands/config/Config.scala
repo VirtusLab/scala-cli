@@ -1,11 +1,13 @@
 package scala.cli.commands.config
 
 import caseapp.core.RemainingArgs
+import coursier.cache.ArchiveCache
 
 import java.util.Base64
 
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.JvmUtils
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.signing.shared.PasswordOption
 
@@ -48,8 +50,18 @@ object Config extends ScalaCommand[ConfigOptions] {
 
             val password = ThrowawayPgpSecret.pgpPassPhrase()
             val (pgpPublic, pgpSecret0) =
-              ThrowawayPgpSecret.pgpSecret(mail, password, logger, coursierCache)
-                .orExit(logger)
+              ThrowawayPgpSecret.pgpSecret(
+                mail,
+                password,
+                logger,
+                coursierCache,
+                () =>
+                  JvmUtils.javaOptions(options.jvm).javaHome(
+                    ArchiveCache().withCache(coursierCache),
+                    coursierCache,
+                    logger.verbosity
+                  ).value.javaCommand
+              ).orExit(logger)
             val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
 
             db.set(secKeyEntry, PasswordOption.Value(pgpSecretBase64))

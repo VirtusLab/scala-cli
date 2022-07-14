@@ -74,7 +74,8 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         Sources.defaultPreprocessors(
           cliBuildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           cliBuildOptions.archiveCache,
-          cliBuildOptions.internal.javaClassNameVersionOpt
+          cliBuildOptions.internal.javaClassNameVersionOpt,
+          () => cliBuildOptions.javaHome().value.javaCommand
         ),
         logger
       ).orExit(logger)

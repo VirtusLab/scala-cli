@@ -36,7 +36,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
           Sources.defaultPreprocessors(
             CustomCodeWrapper,
             options.archiveCache,
-            options.internal.javaClassNameVersionOpt
+            options.internal.javaClassNameVersionOpt,
+            () => options.javaHome().value.javaCommand
           ),
           logger
         )

@@ -1,8 +1,9 @@
 package scala.cli.commands
 
 import caseapp._
+import dependency._
 
-import scala.build.internal.{Constants, FetchExternalBinary, Runner}
+import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.{Inputs, Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.FmtOptionsUtil._
@@ -70,18 +71,31 @@ object Fmt extends ScalaCommand[FmtOptions] {
         path
       }
 
-      val fmtLauncher = options.scalafmtLauncher.filter(_.nonEmpty) match {
+      val fmtCommand = options.scalafmtLauncher.filter(_.nonEmpty) match {
         case Some(launcher) =>
-          os.Path(launcher, os.pwd)
+          Seq(launcher)
         case None =>
           val (url, changing) = options.binaryUrl(version)
-          FetchExternalBinary.fetch(url, changing, cache, logger, "scalafmt")
+          val params = ExternalBinaryParams(
+            url,
+            changing,
+            "scalafmt",
+            Seq(dep"${Constants.scalafmtOrganization}:${Constants.scalafmtName}:$version"),
+            "org.scalafmt.cli.Cli"
+          )
+          FetchExternalBinary.fetch(
+            params,
+            cache,
+            logger,
+            () => buildOptions.javaHome().value.javaCommand
+          )
             .orExit(logger)
+            .command
       }
 
-      logger.debug(s"Using scalafmt launcher $fmtLauncher")
+      logger.debug(s"Launching scalafmt with command $fmtCommand")
 
-      val command = Seq(fmtLauncher.toString) ++
+      val command = fmtCommand ++
         sourceFiles.map(_.toString) ++
         options.scalafmtCliOptions ++
         Seq("--config", scalaFmtConfPath.toString)

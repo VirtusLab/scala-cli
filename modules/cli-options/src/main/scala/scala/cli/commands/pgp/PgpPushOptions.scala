@@ -2,7 +2,7 @@ package scala.cli.commands.pgp
 
 import caseapp._
 
-import scala.cli.commands.{CoursierOptions, LoggingOptions}
+import scala.cli.commands.{CoursierOptions, LoggingOptions, SharedJvmOptions}
 
 // format: off
 final case class PgpPushOptions(
@@ -12,6 +12,9 @@ final case class PgpPushOptions(
     shared: SharedPgpPushPullOptions = SharedPgpPushPullOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
+  @Recurse
+    jvm: SharedJvmOptions = SharedJvmOptions(),
+
   @Group("PGP")
   @HelpMessage("Try to push the key even if Scala CLI thinks it's not a public key")
   @ExtraName("f")

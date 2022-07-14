@@ -66,7 +66,8 @@ final class BspImpl(
         Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           buildOptions.archiveCache,
-          buildOptions.internal.javaClassNameVersionOpt
+          buildOptions.internal.javaClassNameVersionOpt,
+          () => buildOptions.javaHome().value.javaCommand
         ),
         persistentLogger
       ).left.map((_, Scope.Main))
