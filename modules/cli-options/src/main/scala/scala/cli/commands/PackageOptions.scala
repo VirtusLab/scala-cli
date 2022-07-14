@@ -11,6 +11,8 @@ final case class PackageOptions(
   @Recurse
     watch: SharedWatchOptions = SharedWatchOptions(),
   @Recurse
+    java: SharedJavaOptions = SharedJavaOptions(),
+  @Recurse
     compileCross: CompileCrossOptions = CompileCrossOptions(),
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),

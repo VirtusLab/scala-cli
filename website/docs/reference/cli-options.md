@@ -645,6 +645,7 @@ Binary directory
 ## Java options
 
 Available in commands:
+- [`package`](./commands.md#package)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`shebang`](./commands.md#shebang)
