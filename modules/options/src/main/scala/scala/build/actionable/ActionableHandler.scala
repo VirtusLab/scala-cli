@@ -4,26 +4,22 @@ import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.BuildOptions
 
-trait ActionableHandler {
+trait ActionableHandler[A <: ActionableDiagnostic] {
 
-  /** Type of option used to generate actionable diagnostic
+  /** Type of setting used to generate actionable diagnostic
     */
-  type V
+  type Setting
 
-  /** Returned type of actionable diagnostics
-    */
-  type A <: ActionableDiagnostic
-
-  /** Extract options on the basis of which actionable diagnostics will be generated
+  /** Extract settings on the basis of which actionable diagnostics will be generated
     *
     * @param options
-    *   the Build Options to extract options
+    *   the Build Options to extract settings
     * @return
-    *   the list of options on the basis of which actionable diagnostics will be generated
+    *   the list of settings on the basis of which actionable diagnostics will be generated
     */
-  def extractOptions(options: BuildOptions): Seq[V]
+  def extractSettings(options: BuildOptions): Seq[Setting]
 
-  /** The option on the basis of which the Actionable Diagnostic is generated
+  /** The setting on the basis of which the Actionable Diagnostic is generated
     *
     * @param option
     *   this option is used to generate an actionable diagnostic
@@ -32,14 +28,14 @@ trait ActionableHandler {
     *   Cache" See [[ActionableDependencyHandler]]
     */
   def actionableDiagnostic(
-    option: V,
+    setting: Setting,
     buildOptions: BuildOptions
   ): Either[BuildException, Option[A]]
 
   final def createActionableDiagnostics(
     buildOptions: BuildOptions
   ): Either[BuildException, Seq[A]] =
-    extractOptions(buildOptions)
+    extractSettings(buildOptions)
       .map(v => actionableDiagnostic(v, buildOptions))
       .sequence
       .left.map(CompositeBuildException(_))

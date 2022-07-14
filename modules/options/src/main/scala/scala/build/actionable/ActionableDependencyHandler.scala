@@ -12,24 +12,24 @@ import scala.build.internal.Util._
 import scala.build.options.BuildOptions
 import scala.concurrent.duration.DurationInt
 
-case object ActionableDependencyHandler extends ActionableHandler {
-  type V = Positioned[AnyDependency]
-  type A = ActionableDependencyUpdateDiagnostic
+case object ActionableDependencyHandler
+    extends ActionableHandler[ActionableDependencyUpdateDiagnostic] {
+  type Setting = Positioned[AnyDependency]
 
-  override def extractOptions(options: BuildOptions): Seq[Positioned[AnyDependency]] =
+  override def extractSettings(options: BuildOptions): Seq[Positioned[AnyDependency]] =
     options.classPathOptions.extraDependencies.toSeq
 
   override def actionableDiagnostic(
-    option: Positioned[AnyDependency],
+    setting: Positioned[AnyDependency],
     buildOptions: BuildOptions
   ): Either[BuildException, Option[ActionableDependencyUpdateDiagnostic]] = either {
-    val dependency     = option.value
+    val dependency     = setting.value
     val currentVersion = dependency.version
     val latestVersion  = value(findLatestVersion(buildOptions, dependency))
 
     if (latestVersion != currentVersion) {
       val msg = s"${dependency.render} is outdated, update to $latestVersion"
-      Some(ActionableDependencyUpdateDiagnostic(msg, option.positions, dependency, latestVersion))
+      Some(ActionableDependencyUpdateDiagnostic(msg, setting.positions, dependency, latestVersion))
     }
     else
       None
