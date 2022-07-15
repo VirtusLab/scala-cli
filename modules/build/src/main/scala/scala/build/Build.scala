@@ -66,39 +66,7 @@ object Build {
           case Seq()          => Left(new NoMainClassFoundError)
           case Seq(mainClass) => Right(mainClass)
           case _ =>
-            val scriptInferredMainClasses =
-              sources.inMemory.map(im => im.originalPath.map(_._1))
-                .flatMap {
-                  case Right(originalRelPath) if originalRelPath.toString.endsWith(".sc") =>
-                    Some {
-                      originalRelPath
-                        .toString
-                        .replace(".", "_")
-                        .replace("/", ".")
-                    }
-                  case Left(VirtualScriptNameRegex(name)) => Some(s"${name}_sc")
-                  case _                                  => None
-                }
-            val filteredMainClasses =
-              mainClasses.filter(!scriptInferredMainClasses.contains(_))
-            if (filteredMainClasses.length == 1) {
-              val pickedMainClass = filteredMainClasses.head
-              if (scriptInferredMainClasses.nonEmpty) {
-                val firstScript   = scriptInferredMainClasses.head
-                val scriptsString = scriptInferredMainClasses.mkString(", ")
-                logger.message(
-                  s"Running $pickedMainClass. Also detected script main classes: $scriptsString"
-                )
-                logger.message(
-                  s"You can run any one of them by passing option --main-class, i.e. --main-class $firstScript"
-                )
-                logger.message(
-                  "All available main classes can always be listed by passing option --list-main-classes"
-                )
-              }
-              Right(pickedMainClass)
-            }
-            else
+            inferredMainClass(mainClasses, logger).left.flatMap { mainClasses =>
               options.interactive
                 .chooseOne(
                   "Found several main classes. Which would you like to run?",
@@ -110,12 +78,52 @@ object Build {
                     Nil
                   )
                 }
+            }
         }
 
       defaultMainClassOpt match {
         case Some(cls) => Right(cls)
         case None      => foundMainClass
       }
+    }
+    private def inferredMainClass(
+      mainClasses: Seq[String],
+      logger: Logger
+    ): Either[Seq[String], String] = {
+      val scriptInferredMainClasses =
+        sources.inMemory.map(im => im.originalPath.map(_._1))
+          .flatMap {
+            case Right(originalRelPath) if originalRelPath.toString.endsWith(".sc") =>
+              Some {
+                originalRelPath
+                  .toString
+                  .replace(".", "_")
+                  .replace("/", ".")
+              }
+            case Left(VirtualScriptNameRegex(name)) => Some(s"${name}_sc")
+            case _                                  => None
+          }
+      val filteredMainClasses =
+        mainClasses.filter(!scriptInferredMainClasses.contains(_))
+      if (filteredMainClasses.length == 1) {
+        val pickedMainClass = filteredMainClasses.head
+        if (scriptInferredMainClasses.nonEmpty) {
+          val firstScript   = scriptInferredMainClasses.head
+          val scriptsString = scriptInferredMainClasses.mkString(", ")
+          logger.message(
+            s"Running $pickedMainClass. Also detected script main classes: $scriptsString"
+          )
+          logger.message(
+            s"You can run any one of them by passing option --main-class, i.e. --main-class $firstScript"
+          )
+          logger.message(
+            "All available main classes can always be listed by passing option --list-main-classes"
+          )
+        }
+        Right(pickedMainClass)
+      }
+      else
+        Left(mainClasses)
     }
 
     def crossKey: CrossKey = {
