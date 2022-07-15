@@ -21,6 +21,21 @@ Hello
 
 </ChainedSnippets>
 
+You can also divide your code into multiple snippets when passing it this way. Each snippet is then treated as a
+separate input by Scala CLI.
+
+<ChainedSnippets>
+
+```bash
+scala-cli --scala-snippet '@main def main() = println(Messages.hello)' --scala-snippet 'object Messages { def hello = "Hello" }'
+```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
+
 ## Examples
 
 - scripts
@@ -174,6 +189,23 @@ Hello
 
 </ChainedSnippets>
 
+When referring to code coming from multiple script snippets, you use their wrapper names according to the order they
+were passed (starting from 0 for the first script snippet): `snippet${snippetNumber}`. The `snippetNumber` is omitted
+for the first script snippet (0). In other words, the first passed snippet is just `snippet`, the second is `snippet1`,
+then `snippet2` and so on, as in the example:
+
+<ChainedSnippets>
+
+```bash
+scala-cli --scala-snippet '@main def main() = println(s"${snippet.hello} ${snippet1.world}${snippet2.exclamation}")' --script-snippet 'def hello: String = "Hello"' --script-snippet 'def world: String = "world"' --script-snippet 'def exclamation: String = "!"'
+```
+
+```text
+Hello world!
+```
+
+</ChainedSnippets>
+
 This is similar to how you refer to code from piped scripts through their wrapper name (`stdin`), more on which can be
 found in [the scripts guide](scripts.md).
 
@@ -188,15 +220,15 @@ cat ondisk.sc
 ```
 
 ```scala title=ondisk.sc
-println(s"${stdin.hello} ${snippet.world}")
+println(s"${stdin.hello} ${snippet.world}${snippet1.exclamation}")
 ```
 
 ```bash ignore
-echo 'def hello = "Hello"' | scala-cli _.sc ondisk.sc -e 'def world = "world"' --main-class ondisk_sc
+echo 'def hello = "Hello"' | scala-cli _.sc ondisk.sc -e 'def world = "world"' -e 'def exclamation = "!" --main-class ondisk_sc
 ```
 
 ```text
-Hello world
+Hello world!
 ```
 
 </ChainedSnippets>

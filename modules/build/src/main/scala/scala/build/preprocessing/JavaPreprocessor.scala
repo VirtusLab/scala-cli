@@ -76,7 +76,7 @@ final case class JavaPreprocessor(
               }
               val fileName = classNameOpt
                 .map(_ + ".java")
-                .getOrElse(if (v.isStdin) "stdin.java" else "java-snippet.java")
+                .getOrElse(v.generatedSourceFileName)
               os.sub / fileName
             }
             else v.subPath

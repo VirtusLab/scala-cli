@@ -11,6 +11,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
+import scala.build.Inputs.VirtualScript.VirtualScriptNameRegex
 import scala.build.Ops.*
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
@@ -75,9 +76,8 @@ object Build {
                         .replace(".", "_")
                         .replace("/", ".")
                     }
-                  case Left(virtual) if virtual == "stdin" || virtual == "snippet" =>
-                    Some(s"${virtual}_sc")
-                  case _ => None
+                  case Left(VirtualScriptNameRegex(name)) => Some(s"${name}_sc")
+                  case _                                  => None
                 }
             val filteredMainClasses =
               mainClasses.filter(!scriptInferredMainClasses.contains(_))

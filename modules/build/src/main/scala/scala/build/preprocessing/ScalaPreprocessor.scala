@@ -114,9 +114,8 @@ case object ScalaPreprocessor extends Preprocessor {
       case v: Inputs.VirtualScalaFile =>
         val res = either {
           val relPath = v match {
-            case v if v.isStdin   => os.sub / "stdin.scala"
-            case v if v.isSnippet => os.sub / "scala-snippet.scala"
-            case v                => v.subPath
+            case v if !v.isStdin && !v.isSnippet => v.subPath
+            case v                               => os.sub / v.generatedSourceFileName
           }
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
