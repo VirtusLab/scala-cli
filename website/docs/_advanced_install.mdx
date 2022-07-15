@@ -164,6 +164,7 @@ values={[
 {label: 'Manual', value: 'manual'},
 {label: 'Installer', value: 'installer'},
 {label: 'SDKMAN', value: 'sdkman'},
+{label: 'Chocolatey', value: 'choco'},
 ]}
 >
 
@@ -214,6 +215,18 @@ Scala CLI can be installed via [SDKMAN](https://sdkman.io) with
 ```bash
 sdk install scalacli
 ```
+</TabItem>
+<TabItem value="choco">
+
+To install Scala CLI via [Chocolatey](https://chocolatey.org), run the following command from the command line or from PowerShell:
+
+```bash
+choco install scala-cli
+```
+:::note
+Third-party Chocolatey packages may not provide the latest version.
+:::
+
 </TabItem>
 </Tabs>
 
@@ -536,6 +549,7 @@ defaultValue="manual-u"
 values={[
 {label: 'Manual', value: 'manual-u'},
 {label: 'Installer', value: 'installer-u'},
+{label: 'Chocolatey', value: 'choco'},
 ]}
 >
 
@@ -550,6 +564,15 @@ rmdir "%USERPROFILE%/scala-cli"
 <TabItem value="installer-u">
 
 If Scala CLI was installed via the installer, you can uninstall it in the Control Panel.
+
+</TabItem>
+<TabItem value="choco">
+
+To uninstall Scala CLI via [Chocolatey](https://chocolatey.org), run the following command from the command line or from PowerShell:
+
+```bash
+choco uninstall scala-cli
+```
 
 </TabItem>
 </Tabs>
