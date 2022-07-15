@@ -16,7 +16,10 @@ object PackageType {
     override def sourceBased = true
   }
   case object DocJar extends PackageType
-  final case class Assembly(addPreamble: Boolean) extends PackageType {
+  final case class Assembly(
+    addPreamble: Boolean,
+    mainClassInManifest: Option[Boolean]
+  ) extends PackageType {
     override def runnable = Some(addPreamble)
   }
   case object Spark extends PackageType {
@@ -39,8 +42,8 @@ object PackageType {
   case object Msi    extends NativePackagerType
 
   val mapping = Seq(
-    "assembly"     -> Assembly(true),
-    "raw-assembly" -> Assembly(false),
+    "assembly"     -> Assembly(true, None),
+    "raw-assembly" -> Assembly(false, Some(false)),
     "bootstrap"    -> Bootstrap,
     "library"      -> LibraryJar,
     "source"       -> SourceJar,

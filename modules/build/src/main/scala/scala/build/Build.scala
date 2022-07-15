@@ -125,6 +125,21 @@ object Build {
       else
         Left(mainClasses)
     }
+    def retainedMainClassOpt(
+      mainClasses: Seq[String],
+      logger: Logger
+    ): Option[String] = {
+      val defaultMainClassOpt = sources.defaultMainClass
+        .filter(name => mainClasses.contains(name))
+      def foundMainClass =
+        mainClasses match {
+          case Seq()          => None
+          case Seq(mainClass) => Some(mainClass)
+          case _              => inferredMainClass(mainClasses, logger).toOption
+        }
+
+      defaultMainClassOpt.orElse(foundMainClass)
+    }
 
     def crossKey: CrossKey = {
       val optKey = scalaParams.map { params =>

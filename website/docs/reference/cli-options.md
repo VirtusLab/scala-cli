@@ -889,6 +889,10 @@ Generate an assembly JAR
 
 For assembly JAR, whether to add a bash / bat preamble
 
+#### `--main-class-in-manifest`
+
+For assembly JAR, whether to specify a main class in the JAR manifest
+
 #### `--spark`
 
 Generate an assembly JAR for Spark (assembly that doesn't contain Spark, nor any of its dependencies)

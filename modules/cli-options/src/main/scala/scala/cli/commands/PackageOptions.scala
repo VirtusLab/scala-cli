@@ -45,6 +45,10 @@ final case class PackageOptions(
     preamble: Boolean = true,
   @Group("Package")
   @Hidden
+  @HelpMessage("For assembly JAR, whether to specify a main class in the JAR manifest")
+    mainClassInManifest: Option[Boolean] = None,
+  @Group("Package")
+  @Hidden
   @HelpMessage("Generate an assembly JAR for Spark (assembly that doesn't contain Spark, nor any of its dependencies)")
     spark: Boolean = false,
   @Group("Package")

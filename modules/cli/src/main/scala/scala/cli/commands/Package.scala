@@ -22,6 +22,7 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   MalformedCliInputError,
+  NoMainClassFoundError,
   ScalaNativeBuildError
 }
 import scala.build.interactive.InteractiveFileOps
@@ -276,6 +277,11 @@ object Package extends ScalaCommand[PackageOptions] {
           case None      => build.retainedMainClass(build.foundMainClasses(), logger)
         }
 
+      def mainClassOpt: Option[String] =
+        build.options.mainClass.orElse {
+          build.retainedMainClassOpt(build.foundMainClasses(), logger)
+        }
+
       val packageOptions = build.options.notForBloopOptions.packageOptions
 
       val outputPath = packageType match {
@@ -306,7 +312,24 @@ object Package extends ScalaCommand[PackageOptions] {
             assembly(
               build,
               destPath,
-              value(mainClass),
+              a.mainClassInManifest match {
+                case None =>
+                  if (a.addPreamble) {
+                    val clsName = value {
+                      mainClass.left.map {
+                        case e: NoMainClassFoundError =>
+                          // This one has a slightly better error message, suggesting --preamble=false
+                          new NoMainClassFoundForAssemblyError(e)
+                        case e => e
+                      }
+                    }
+                    Some(clsName)
+                  }
+                  else
+                    mainClassOpt
+                case Some(false) => None
+                case Some(true)  => Some(value(mainClass))
+              },
               Nil,
               withPreamble = a.addPreamble,
               () => alreadyExistsCheck(),
@@ -319,7 +342,7 @@ object Package extends ScalaCommand[PackageOptions] {
             assembly(
               build,
               destPath,
-              value(mainClass),
+              mainClassOpt,
               // The Spark modules are assumed to be already on the class path,
               // along with all their transitive dependencies (originating from
               // the Spark distribution), so we don't include any of them in the
@@ -727,7 +750,7 @@ object Package extends ScalaCommand[PackageOptions] {
   private def assembly(
     build: Build.Successful,
     destPath: os.Path,
-    mainClass: String,
+    mainClassOpt: Option[String],
     extraProvided: Seq[dependency.AnyModule],
     withPreamble: Boolean,
     alreadyExistsCheck: () => Unit,
@@ -766,12 +789,17 @@ object Package extends ScalaCommand[PackageOptions] {
     val params = Parameters.Assembly()
       .withExtraZipEntries(byteCodeZipEntries)
       .withFiles(files.map(_.toIO))
-      .withMainClass(mainClass)
+      .withMainClass(mainClassOpt)
       .withPreambleOpt(preambleOpt)
     alreadyExistsCheck()
     AssemblyGenerator.generate(params, destPath.toNIO)
     ProcUtil.maybeUpdatePreamble(destPath)
   }
+
+  final class NoMainClassFoundForAssemblyError(cause: NoMainClassFoundError) extends BuildException(
+        "No main class found for assembly. Either pass one with --main-class, or make the assembly non-runnable with --preamble=false",
+        cause = cause
+      )
 
   def withSourceJar[T](
     build: Build.Successful,
