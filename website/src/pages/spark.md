@@ -4,7 +4,7 @@ import {ChainedSnippets, GiflikeVideo} from "../../src/components/MarkdownCompon
 
 ## Packaging
 
-The `package` sub-commands offers to package Scala CLI projects as JARs ready to be passed
+The `package` sub-command offers to package Scala CLI projects as JARs ready to be passed
 to `spark-submit`, and optimized for it.
 
 <ChainedSnippets>
