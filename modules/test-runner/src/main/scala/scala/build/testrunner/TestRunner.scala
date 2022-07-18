@@ -11,7 +11,8 @@ object TestRunner {
 
   def commonTestFrameworks = Seq(
     "munit.Framework",
-    "utest.runner.Framework"
+    "utest.runner.Framework",
+    "org.scalacheck.ScalaCheckFramework"
   )
 
   def classPath(loader: ClassLoader): Seq[Path] = {

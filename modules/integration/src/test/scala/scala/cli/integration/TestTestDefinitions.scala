@@ -103,6 +103,25 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     )
   )
 
+  val successfulScalaCheckFromCatsNativeInputs = TestInputs(
+    Seq(
+      os.rel / "MyTests.scala" ->
+        """//> using scala "2.13.8"
+          |//> using platform "native"
+          |//> using lib "org.typelevel::cats-kernel-laws::2.8.0"
+          |
+          |import org.scalacheck._
+          |import Prop.forAll
+          |    
+          |class TestSpec extends Properties("spec") {
+          |  property("startsWith") = forAll { (a: String, b: String) =>
+          |    (a+b).startsWith(a)
+          |  }
+          |  println("Hello from " + "tests")
+          |}""".stripMargin
+    )
+  )
+
   val successfulJunitInputs = TestInputs(
     Seq(
       os.rel / "MyTests.scala" ->
@@ -297,6 +316,15 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         .out.text()
       expect(output.contains("Hello from tests"))
     }
+
+  test("scalacheck from cats") {
+    successfulScalaCheckFromCatsNativeInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
+        .call(cwd = root)
+        .out.text()
+      expect(output.contains("Hello from tests"))
+    }
+  }
 
   if (actualScalaVersion.startsWith("2."))
     test("utest native") {
