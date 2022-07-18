@@ -1128,14 +1128,20 @@ private def setupGithubRepo(repoDir: os.Path) = {
   os.proc("git", "config", "user.email", gitEmail).call(cwd = repoDir)
 }
 
-private def commitChanges(name: String, branch: String, repoDir: os.Path): Unit = {
+private def commitChanges(
+  name: String,
+  branch: String,
+  repoDir: os.Path,
+  force: Boolean = false
+): Unit = {
   if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit"))
     println("Nothing Changes")
   else {
     os.proc("git", "add", "-A").call(cwd = repoDir)
     os.proc("git", "commit", "-am", name).call(cwd = repoDir)
     println(s"Trying to push on $branch branch")
-    os.proc("git", "push", "origin", branch).call(cwd = repoDir)
+    val pushExtraOptions = if (force) Seq("--force") else Seq.empty
+    os.proc("git", "push", "origin", branch, pushExtraOptions).call(cwd = repoDir)
     println(s"Push successfully on $branch branch")
   }
 }
@@ -1172,7 +1178,7 @@ object ci extends Module {
     os.write.over(setupScriptPath, updatedSetupScriptPath)
 
     os.proc("git", "switch", "-c", targetBranch).call(cwd = mainDir)
-    commitChanges(s"Update scala-cli version to $version", targetBranch, mainDir)
+    commitChanges(s"Update scala-cli version to $version", targetBranch, mainDir, force = true)
   }
   def updateStandaloneLauncher() = T.command {
     val version = cli.publishVersion()
