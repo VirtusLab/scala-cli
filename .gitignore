@@ -6,3 +6,5 @@ out/
 
 .bsp
 .scala-build
+
+*.semanticdb
