@@ -274,9 +274,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("Scala Native C Files are correctly handled as a regular Input") {
-    val projectDir = "native-interop"
+    val projectDir      = "native-interop"
     val interopFileName = "bindings.c"
-    val interopMsg = "Hello C!"
+    val interopMsg      = "Hello C!"
     val inputs = TestInputs(
       Seq(
         os.rel / projectDir / "main.scala" ->
@@ -296,11 +296,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
               |  }
               |}
               |""".stripMargin,
-        os.rel / projectDir / interopFileName -> 
+        os.rel / projectDir / interopFileName ->
           s"""|#include <stdio.h>
               |
               |void scalanative_print() {
-              |    printf("${interopMsg}\\n");
+              |    printf("$interopMsg\\n");
               |}
               |""".stripMargin
       )

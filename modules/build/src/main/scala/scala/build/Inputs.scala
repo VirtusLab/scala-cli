@@ -203,7 +203,7 @@ object Inputs {
   }
   final case class CFile(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile with Compiled {
-    lazy val path = base / subPath    
+    lazy val path = base / subPath
   }
   final case class Directory(path: os.Path)         extends OnDisk with Compiled
   final case class ResourceDirectory(path: os.Path) extends OnDisk

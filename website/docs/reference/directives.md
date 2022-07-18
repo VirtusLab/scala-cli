@@ -202,6 +202,8 @@ Add Scala Native options
 
 `//> using nativeClangPP` _value_
 
+`//> using nativeNoEmbed` _true|false_
+
 #### Examples
 `//> using nativeVersion "0.4.0"`
 

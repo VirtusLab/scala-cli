@@ -486,7 +486,7 @@ object Build {
               else if (scalaVersion.startsWith("2.12"))
                 if (
                   inputs.sourceFiles().forall {
-                    case _: Inputs.AnyScript => false
+                    case _: Inputs.AnyScript => snNumeralVer >= SNNumeralVersion(0, 4, 3)
                     case _                   => true
                   }
                 ) Right(snNumeralVer)

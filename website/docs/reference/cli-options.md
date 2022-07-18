@@ -1511,6 +1511,10 @@ List of compile options
 
 Use default compile options
 
+#### `--no-embed`
+
+Do not embed resources into the Scala Native binary (java style Resources will not be able to be used)
+
 ## Scalac options
 
 Available in commands:

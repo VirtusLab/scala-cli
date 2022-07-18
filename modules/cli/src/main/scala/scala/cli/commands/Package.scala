@@ -924,5 +924,6 @@ object Package extends ScalaCommand[PackageOptions] {
         else
           throw new ScalaNativeBuildError
       }
-  }}
+    }
+  }
 }
