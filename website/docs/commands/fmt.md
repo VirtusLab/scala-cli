@@ -20,30 +20,44 @@ You can check formatting correctness using a `--check` flag:
 scala-cli fmt --check
 ```
 
-### Dialects
+### Scalafmt version and dialect
 
-Scala CLI also supports dialects that are passed to the formatter.
-This value is only used if there is no `.scalafmt.conf` file.
-However, if it exists, then all configuration should be placed there.
-For a list of all possible values, consult
-the [official Scala Dialects documentation](https://scalameta.org/scalafmt/docs/configuration.html#scala-dialects):
+Scala CLI `fmt` command supports passing the `scalafmt` **version** and **dialect** directly from the command line, using respectively the `--scalafmt-dialect` and `--scalafmt-version` options:
+```
+scala-cli fmt --scalafmt-dialect scala3 --scalafmt-version 3.5.8
+```
+You can skip passing either of those, which will make Scala CLI to infer a default value:
+- If a `.scalafmt.conf` file is present in the workspace and it has the field defined, the value will be read from there, unless explicitly specified with Scala CLI options.
+- Otherwise, the default `scalafmt` **version** will be the latest one used by your Scala CLI version (so it is subject to change when updating Scala CLI). The default **dialect** will be inferred based on Scala version (defined explicitly by `-S` option, or default version if option would not be passed).
+
+#### Example 1
+
+``` text title=.scalafmt.conf
+version = "3.5.8"
+runner.dialect = scala212
+```
 
 ```bash
-scala-cli fmt --dialect scala212
+scala-cli fmt --scalafmt-dialect scala213
 ```
 
-### Scalafmt version
+For above setup `fmt` will use:
+- `version="3.5.8"` from the file
+- `dialect=scala213`, because passed `--scalafmt-dialect` option overrides dialect found in the file
 
-At this time, Scala CLI reads a `scalafmt` version from `.scalafmt.conf` files. If the version is missing, Scala CLI
-throws an error, stating that users should declare an explicit Scalafmt version. Since Scalafmt `3.5.0`, this parameter
-is mandatory.
+#### Example 2
 
-To configure the Scalafmt version, add the following to `.scalafmt.conf`. For example, to set the version to `3.5.0`,
-add the following line:
-
+``` text title=.scalafmt.conf
+version = "2.7.5"
 ```
-version = "3.5.0"
+
+```bash
+scala-cli fmt --scalafmt-version 3.5.8
 ```
+
+For above setup `fmt` will use:
+- `version="3.5.8"`, because passed `--scalafmt-version` option overrides version from the file
+- `dialect=scala3`, because dialect is neither passed as an option nor is it present in the configuration file, so it is inferred based on the Scala version; the Scala version wasn't explicitly specified in the command either, so it falls back to the default Scala version - the latest one, thus the resulting dialect is `scala3`. 
 
 ### Scalafmt options
 
@@ -89,7 +103,7 @@ would be ignored. In order to prevent that from happening, the `--respect-projec
 default.
 
 ```text title=.scalafmt.conf
-version = 3.5.8
+version = "3.5.8"
 runner.dialect = scala3
 project {
   includePaths = [
@@ -134,3 +148,22 @@ scala-cli fmt . --check --respect-project-filters=false
 ```
 
 </ChainedSnippets>
+
+### How `.scalafmt.conf` file is generated
+
+The Scala CLI `fmt` command runs `scalafmt` under the hood, which *normally* requires `.scalafmt.conf` configuration file with explicitly specified **version** and **dialect** fields. The way it is handled by Scala CLI is as follows:
+
+At the beginning `fmt` looks for existing `.scalafmt.conf` file inside **current workspace** directory and if it doesn't find it - inside **git root** directory. There are 3 possible cases:
+
+1. Configuration file with the specified version and dialect is found.
+2. Configuration file is found, but it doesn't have specified version or dialect.
+3. Configuration file is not found.
+
+- In the **first** case `fmt` uses the found `.scalafmt.conf` file to run `scalafmt`.
+- In the **second** case `fmt` creates a `.scalafmt.conf` file inside the `.scala-build` directory. Content of the previously found file is copied into the newly created file, missing parameters are [inferred](/docs/commands/fmt#scalafmt-version-and-dialect) and written into the same file. Created file is used to run `scalafmt`. 
+- In the **third** case `fmt` creates a `.scalafmt.conf` file inside the `.scala-build` directory, writes [inferred](/docs/commands/fmt#scalafmt-version-and-dialect) version and dialect into it and uses it to run `scalafmt`.
+
+If the `--save-scalafmt-conf` option is passed, then `fmt` command behaves as follows:
+- In the **first** case `fmt` uses the found `.scalafmt.conf` file to run `scalafmt`.
+- In the **second** case `fmt` [infers](/docs/commands/fmt#scalafmt-version-and-dialect) missing parameters, writes them directly into the previously found file and then uses this file to run `scalafmt`.
+- In the **third** case `fmt` creates a `.scalafmt.conf` file in the current workspace directory, writes [inferred](/docs/commands/fmt#scalafmt-version-and-dialect) version and dialect into it and uses it to run `scalafmt`.
