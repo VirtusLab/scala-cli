@@ -3,13 +3,13 @@ package scala.build
 import scala.collection.Map
 import scala.jdk.CollectionConverters._
 
-/* Maps resources from their original path, to destination path,
+/* Maps c file resources from their original path to the destination path,
  * also caching that mapping.
  *
  * Remembering the mapping this way allows for the resource to be removed
  * if the original file is renamed/deleted.
  */
-object ResourceMapper {
+object NativeResourceMapper {
 
   private def readMappingIfExists(mappingFile: os.Path): Option[Map[os.Path, os.Path]] =
     if (os.exists(mappingFile)) {
@@ -52,7 +52,7 @@ object ResourceMapper {
 
     val removedFiles = oldMapping.values.toSet -- newMapping.values.toSet
     removedFiles.foreach { outputPath =>
-      // Delete only if in outpath, to not cause any harm
+      // Delete only if in outpath, to avoid causing any harm
       if (isInDirectory(build.output, outputPath))
         os.remove(outputPath)
     }

@@ -888,7 +888,7 @@ object Package extends ScalaCommand[PackageOptions] {
       )
 
     if (cacheData.changed) {
-      ResourceMapper.copyCFilesToScalaNativeDir(build, nativeWorkDir)
+      NativeResourceMapper.copyCFilesToScalaNativeDir(build, nativeWorkDir)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
         val classpath = build.artifacts.classPath.map(_.toString) :+ mainJar.toString
