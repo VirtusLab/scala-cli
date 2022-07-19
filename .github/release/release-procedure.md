@@ -20,3 +20,4 @@
     - [ ] Update v0.1 tag to the newest tag.
 - [ ] Unmark release as `pre-release`.
 - [ ] Announce new release on twitter and reddit if release contains noteworthy changes.
+- [ ] Create a ticket for the next release using the `Plan a release` template and assign it to the person responsible.
