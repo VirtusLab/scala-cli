@@ -38,6 +38,8 @@ import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
+import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Package extends ScalaCommand[PackageOptions] {
   override def name                                                          = "package"
@@ -60,6 +62,9 @@ object Package extends ScalaCommand[PackageOptions] {
     val docCompilerMakerOpt = options.docCompilerMakerOpt
 
     val cross = options.compileCross.cross.getOrElse(false)
+    val configDb = ConfigDb.open(options.shared.directories.directories)
+      .orExit(logger)
+    val actionableDiagnostics = configDb.get(Keys.actionableDiagnostics).getOrElse(None)
 
     if (options.watch.watchMode) {
       var expectedModifyEpochSecondOpt = Option.empty[Long]
@@ -72,6 +77,7 @@ object Package extends ScalaCommand[PackageOptions] {
         crossBuilds = cross,
         buildTests = false,
         partial = None,
+        actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
@@ -109,7 +115,8 @@ object Package extends ScalaCommand[PackageOptions] {
           logger,
           crossBuilds = cross,
           buildTests = false,
-          partial = None
+          partial = None,
+          actionableDiagnostics = actionableDiagnostics
         )
           .orExit(logger)
       builds.main match {

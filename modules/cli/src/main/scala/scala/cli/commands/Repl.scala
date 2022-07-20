@@ -12,6 +12,8 @@ import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.Properties
+import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Repl extends ScalaCommand[ReplOptions] {
   override def group = "Main"
@@ -99,6 +101,9 @@ object Repl extends ScalaCommand[ReplOptions] {
     }
 
     val cross = options.compileCross.cross.getOrElse(false)
+    val configDb = ConfigDb.open(options.shared.directories.directories)
+      .orExit(logger)
+    val actionableDiagnostics = configDb.get(Keys.actionableDiagnostics).getOrElse(None)
 
     if (inputs.isEmpty) {
       val artifacts = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
@@ -119,6 +124,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         crossBuilds = cross,
         buildTests = false,
         partial = None,
+        actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
@@ -142,7 +148,8 @@ object Repl extends ScalaCommand[ReplOptions] {
           logger,
           crossBuilds = cross,
           buildTests = false,
-          partial = None
+          partial = None,
+          actionableDiagnostics = actionableDiagnostics
         )
           .orExit(logger)
       builds.main match {

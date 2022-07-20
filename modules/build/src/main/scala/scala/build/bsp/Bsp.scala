@@ -17,13 +17,15 @@ object Bsp {
     bspReloadableOptionsReference: BspReloadableOptions.Reference,
     threads: BspThreads,
     in: InputStream,
-    out: OutputStream
+    out: OutputStream,
+    actionableDiagnostics: Option[Boolean]
   ): Bsp =
     new BspImpl(
       argsToInputs,
       bspReloadableOptionsReference,
       threads,
       in,
-      out
+      out,
+      actionableDiagnostics
     )
 }

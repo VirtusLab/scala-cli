@@ -247,6 +247,8 @@ object Publish extends ScalaCommand[PublishOptions] {
     mainClassOptions: MainClassOptions
   ): Unit = {
 
+    val actionableDiagnostics = configDb().get(Keys.actionableDiagnostics).getOrElse(None)
+
     if (watch) {
       val watcher = Build.watch(
         inputs,
@@ -257,6 +259,7 @@ object Publish extends ScalaCommand[PublishOptions] {
         crossBuilds = cross,
         buildTests = false,
         partial = None,
+        actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         res.orReport(logger).foreach { builds =>
@@ -288,7 +291,8 @@ object Publish extends ScalaCommand[PublishOptions] {
           logger,
           crossBuilds = cross,
           buildTests = false,
-          partial = None
+          partial = None,
+          actionableDiagnostics = actionableDiagnostics
         ).orExit(logger)
       maybePublish(
         builds,

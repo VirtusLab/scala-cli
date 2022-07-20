@@ -8,6 +8,8 @@ import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Compile extends ScalaCommand[CompileOptions] {
   override def group                                                         = "Main"
@@ -78,6 +80,9 @@ object Compile extends ScalaCommand[CompileOptions] {
     val threads      = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)
+    val configDb = ConfigDb.open(options.shared.directories.directories)
+      .orExit(logger)
+    val actionableDiagnostics = configDb.get(Keys.actionableDiagnostics).getOrElse(None)
 
     if (options.watch.watchMode) {
       val watcher = Build.watch(
@@ -89,6 +94,7 @@ object Compile extends ScalaCommand[CompileOptions] {
         crossBuilds = cross,
         buildTests = options.test,
         partial = None,
+        actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
@@ -106,7 +112,8 @@ object Compile extends ScalaCommand[CompileOptions] {
         logger,
         crossBuilds = cross,
         buildTests = options.test,
-        partial = None
+        partial = None,
+        actionableDiagnostics = actionableDiagnostics
       )
       val builds = res.orExit(logger)
       postBuild(builds, allowExit = true)

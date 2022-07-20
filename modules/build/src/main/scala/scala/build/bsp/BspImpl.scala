@@ -21,13 +21,15 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
+import scala.build.actionable.ActionablePreprocessor
 
 final class BspImpl(
   argsToInputs: Seq[String] => Either[BuildException, Inputs],
   bspReloadableOptionsReference: BspReloadableOptions.Reference,
   threads: BspThreads,
   in: InputStream,
-  out: OutputStream
+  out: OutputStream,
+  actionableDiagnostics: Option[Boolean]
 ) extends Bsp {
 
   import BspImpl.{PreBuildData, PreBuildProject, buildTargetIdToEvent, responseError}
@@ -149,7 +151,16 @@ final class BspImpl(
       buildChangedTest
     )
 
+    if (actionableDiagnostics.getOrElse(false))
+      logActionableDiagnostics(options0Test.orElse(options0Main), persistentLogger)
+
     PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
+  }
+
+  private def logActionableDiagnostics(projectOptions: BuildOptions, logger: Logger): Unit = {
+    val actionableDiagnostics =
+      ActionablePreprocessor.generateDiagnostics(projectOptions).getOrElse(Nil)
+    logger.log(actionableDiagnostics)
   }
 
   private def buildE(

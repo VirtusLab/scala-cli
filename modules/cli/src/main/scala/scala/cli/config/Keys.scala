@@ -15,7 +15,10 @@ object Keys {
   val sonatypeUser     = new Key.PasswordEntry(Seq("sonatype"), "user")
   val sonatypePassword = new Key.PasswordEntry(Seq("sonatype"), "password")
 
+  val actionableDiagnostics = new Key.BooleanEntry(Seq.empty, "actionable")
+
   def all = Seq[Key[_]](
+    actionableDiagnostics,
     userName,
     userEmail,
     userUrl,

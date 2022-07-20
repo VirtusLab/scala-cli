@@ -10,6 +10,8 @@ import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.packaging.Library
 import scala.util.Properties
+import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
   override def hidden     = true
@@ -56,6 +58,9 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)
+    val configDb = ConfigDb.open(options.shared.directories.directories)
+      .orExit(logger)
+    val actionableDiagnostics = configDb.get(Keys.actionableDiagnostics).getOrElse(None)
 
     val builds =
       Build.build(
@@ -66,7 +71,8 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         logger,
         crossBuilds = false,
         buildTests = false,
-        partial = None
+        partial = None,
+        actionableDiagnostics = actionableDiagnostics
       )
         .orExit(logger)
 

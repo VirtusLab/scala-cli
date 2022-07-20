@@ -22,6 +22,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
+import scala.build.actionable.ActionablePreprocessor
 
 trait Build {
   def inputs: Inputs
@@ -184,7 +185,8 @@ object Build {
     docCompilerOpt: Option[ScalaCompiler],
     crossBuilds: Boolean,
     buildTests: Boolean,
-    partial: Option[Boolean]
+    partial: Option[Boolean],
+    actionableDiagnostics: Option[Boolean]
   ): Either[BuildException, Builds] = either {
     // allInputs contains elements from using directives
     val (crossSources, allInputs) = value {
@@ -263,7 +265,8 @@ object Build {
             buildClient,
             actualCompiler,
             buildTests,
-            partial
+            partial,
+            actionableDiagnostics
           )
 
           value(res)
@@ -366,7 +369,17 @@ object Build {
     for (testBuild <- builds.get(Scope.Test))
       copyResourceToClassesDir(testBuild)
 
+    if (actionableDiagnostics.getOrElse(false))
+      logActionableDiagnostics(builds, logger)
+
     builds
+  }
+
+  private def logActionableDiagnostics(builds: Builds, logger: Logger): Unit = {
+    val projectOptions = builds.get(Scope.Test).getOrElse(builds.main).options
+    val actionableDiagnostics =
+      ActionablePreprocessor.generateDiagnostics(projectOptions).getOrElse(Nil)
+    logger.log(actionableDiagnostics)
   }
 
   private def copyResourceToClassesDir(build: Build): Unit = build match {
@@ -399,7 +412,8 @@ object Build {
     buildClient: BloopBuildClient,
     compiler: ScalaCompiler,
     buildTests: Boolean,
-    partial: Option[Boolean]
+    partial: Option[Boolean],
+    actionableDiagnostics: Option[Boolean]
   ): Either[BuildException, Build] = either {
 
     val build0 = value {
@@ -427,7 +441,8 @@ object Build {
               successful.options.javaHome().value.javaCommand,
               buildClient,
               compiler,
-              buildTests
+              buildTests,
+              actionableDiagnostics = actionableDiagnostics
             )
             res.flatMap {
               case Some(b) => Right(b)
@@ -486,7 +501,8 @@ object Build {
     logger: Logger,
     crossBuilds: Boolean,
     buildTests: Boolean,
-    partial: Option[Boolean]
+    partial: Option[Boolean],
+    actionableDiagnostics: Option[Boolean]
   ): Either[BuildException, Builds] = {
     val buildClient = BloopBuildClient.create(
       logger,
@@ -511,7 +527,8 @@ object Build {
             docCompilerOpt = None,
             crossBuilds = crossBuilds,
             buildTests = buildTests,
-            partial = partial
+            partial = partial,
+            actionableDiagnostics = actionableDiagnostics
           )
         case Some(docCompilerMaker) =>
           docCompilerMaker.withCompiler(
@@ -529,7 +546,8 @@ object Build {
               docCompilerOpt = Some(docCompiler),
               crossBuilds = crossBuilds,
               buildTests = buildTests,
-              partial = partial
+              partial = partial,
+              actionableDiagnostics = actionableDiagnostics
             )
           }
       }
@@ -557,6 +575,7 @@ object Build {
     crossBuilds: Boolean,
     buildTests: Boolean,
     partial: Option[Boolean],
+    actionableDiagnostics: Option[Boolean],
     postAction: () => Unit = () => ()
   )(action: Either[BuildException, Builds] => Unit): Watcher = {
 
@@ -592,7 +611,8 @@ object Build {
           docCompilerOpt,
           crossBuilds = crossBuilds,
           buildTests = buildTests,
-          partial = partial
+          partial = partial,
+          actionableDiagnostics = actionableDiagnostics
         )
         action(res)
       }
@@ -1086,7 +1106,8 @@ object Build {
     javaCommand: String,
     buildClient: BloopBuildClient,
     compiler: ScalaCompiler,
-    buildTests: Boolean
+    buildTests: Boolean,
+    actionableDiagnostics: Option[Boolean]
   ): Either[BuildException, Option[Build]] = either {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir   = inputs.workspace / Constants.workspaceDirName / jmhProjectName
@@ -1135,7 +1156,8 @@ object Build {
           None,
           crossBuilds = false,
           buildTests = buildTests,
-          partial = None
+          partial = None,
+          actionableDiagnostics = actionableDiagnostics
         )
       }
       Some(jmhBuilds.main)
