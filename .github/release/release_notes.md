@@ -1,3 +1,159 @@
+# [v0.1.10](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.10)
+
+## Initial support for importing other sources via `using` directives
+
+It is now possible to add sources to a Scala CLI project from a source file, with `using file` directives:
+```scala
+//> using file "Other.scala"
+//> using file "extra/"
+```
+
+Note that several sources can be specified in a single directive
+```scala
+//> using file "Other.scala" "extra/"
+```
+
+Added in [#1157](https://github.com/VirtusLab/scala-cli/pull/1157) by @lwronski.
+
+## Add `dependency update` sub-command
+
+Scala CLI can now update dependencies in user projects, using the `dependency-update` sub-command, like
+```text
+scala-cli dependency-update --all .
+```
+When updates are available, this sub-command asks whether to update each of those, right where these dependencies are defined.
+
+Added in [#1055](https://github.com/VirtusLab/scala-cli/pull/1055) by @lwronski.
+
+## Running snippets passed as arguments
+
+Scala CLI can now run Scala or Java code passed on the command-line, via `-e` / `--script-snippet` / `--scala-snippet` / `--java-snippet`:
+```text
+$ scala-cli -e 'println("Hello")'
+Hello
+
+$ scala-cli --script-snippet 'println("Hello")'
+Hello
+
+$ scala-cli --scala-snippet '@main def run() = println("Hello")' 
+Hello
+
+$ scala-cli --java-snippet 'public class Main { public static void main(String[] args) { System.out.println("Hello"); } }'
+Hello
+```
+
+These options are meant to be substitutes to the `-e` option of the `scala` script that ships in scalac archives.
+
+Added in [#1166](https://github.com/VirtusLab/scala-cli/pull/1166) by @Gedochao.
+
+## Uninstall instructions and `uninstall` sub-command
+
+Uninstalling Scala CLI is now documented in the main installation page, right after the installation instructions. In particular, when installed via the [installation script](https://github.com/VirtusLab/scala-cli-packages/blob/main/scala-setup.sh), Scala CLI can be uninstalled via a newly added `uninstall` sub-command.
+
+Added in [#1122](https://github.com/VirtusLab/scala-cli/pull/1122) and #1152 by @wleczny.
+
+## Important fixes & enhancements
+
+### ES modules
+
+Scala CLI now supports the ES Scala.js module kind, that can be enabled via a `//> using jsModuleKind "esmodule"` directive, allowing to import other ES modules in particular.
+
+Added in [#1142](https://github.com/VirtusLab/scala-cli/pull/1142) by @hugo-vrijswijk.
+
+### Putting Java options in assemblies, launchers, and docker images, in `package` sub-command
+
+Passing `--java-opt` and `--java-prop` options to the `package` sub-command is now allowed. The passed options are
+hard-coded in the generated assemblies or launchers, and in docker images.
+
+Added in [#1167](https://github.com/VirtusLab/scala-cli/pull/1167) by @wleczny.
+
+### `--command` and `--scratch-dir` options in `run` sub-command
+
+The `run` sub-command can now print the command it would have run, rather than running it. This can be useful for debugging purposes, or if users want to manually tweak commands right before they are run. Pass `--command` to run to enable it. This prints one argument per line, for easier automated processing:
+```text
+$ scala-cli run --command -e 'println("Hello")' --runner=false
+~/Library/Caches/Coursier/arc/https/github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.2%252B8/OpenJDK17U-jdk_x64_mac_hotspot_17.0.2_8.tar.gz/jdk-17.0.2+8/Contents/Home/bin/java
+-cp
+~/Library/Caches/ScalaCli/virtual-projects/ee/project-3c6fdea1/.scala-build/project_ed4bea6d06_ed4bea6d06/classes/main:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.3/scala3-library_3-3.1.3.jar:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar
+snippet_sc
+```
+
+When `run` relies on temporary files (when Scala.js is used for example), one can pass a temporary directory via `--scratch-dir`, so that temporary files are kept even when `scala-cli` doesn't run anymore:
+```text
+$ scala-cli run --command -e 'println("Hello")' --js --runner=false --scratch-dir ./tmp
+node
+./tmp/main1690571004533525773.js
+```
+
+Added in [#1163](https://github.com/VirtusLab/scala-cli/pull/1163) by by @alexarchambault.
+
+### Don't put Scala CLI internal modules in packages
+
+Scala CLI doesn't put anymore its stubs module and its "runner" module in generated packages, in the `package` sub-command.
+
+Fixed in [#1161](https://github.com/VirtusLab/scala-cli/pull/1161) by @alexarchambault.
+
+### Don't write preambles in generated assemblies in the `package` sub-command
+
+Passing `--preamble=false` to `scala-cli package --assembly` makes it generate assemblies without a shell preamble. As a consequence, these assemblies cannot be made executable, but these look more like "standard" JARs, which is required in some contexts.
+
+Fixed in [#1161](https://github.com/VirtusLab/scala-cli/pull/1161) by @alexarchambault.
+
+### Don't put some dependencies in generated assemblies in the `package` sub-command
+
+Some dependencies, alongside all their transitive dependencies, can be excluded from the generated assemblies. Pass `--provided org:name` to `scala-cli package --assembly` to remove a dependency, like
+```text
+$ scala-cli package SparkJob.scala --assembly --provided org.apache.spark::spark-sql
+```
+
+Note that unlike "provided" dependencies in sbt, and compile-time dependencies in Mill, all transitive dependencies are excluded from the assembly. In the Spark example above, for example, as `spark-sql` depends on `scala-library` (the Scala standard library), the latter gets excluded from the assembly too (which works fine in the context of Spark jobs).
+
+Fixed in [#1161](https://github.com/VirtusLab/scala-cli/pull/1161) by @alexarchambault.
+
+## In progress
+
+### Experimental Spark capabilities
+
+The `package` sub-command now accepts a `--spark` option, to generate assemblies for Spark jobs, ready to be passed to `spark-submit`. This option is hidden (not printed in `scala-cli package --help`, only in `--help-full`), and should be considered experimental.
+
+See [this document](https://github.com/VirtusLab/scala-cli/blob/410f54c01ac5d9cb046461dce07beb5aa008231e/website/src/pages/spark.md) for more details about these experimental Spark features.
+
+Added in [#1086](https://github.com/VirtusLab/scala-cli/pull/1086) by @alexarchambault.
+
+## Other changes
+
+### Documentation
+* Add cookbooks for working with Scala CLI in IDEA IntelliJ by @Gedochao in [#1149](https://github.com/VirtusLab/scala-cli/pull/1149)
+* Fix VL branding by @lwronski in [#1151](https://github.com/VirtusLab/scala-cli/pull/1151)
+* Back port of documentation changes to main by @github-actions in [#1154](https://github.com/VirtusLab/scala-cli/pull/1154)
+* Update using directive syntax in scenarios by @lwronski in [#1159](https://github.com/VirtusLab/scala-cli/pull/1159)
+* Back port of documentation changes to main by @github-actions in [#1165](https://github.com/VirtusLab/scala-cli/pull/1165)
+* Add docs depedency-update by @lwronski in [#1178](https://github.com/VirtusLab/scala-cli/pull/1178)
+* Add docs how to install scala-cli via choco by @lwronski in [#1179](https://github.com/VirtusLab/scala-cli/pull/1179)
+
+### Build and internal changes
+* Update scala-cli.sh launcher for 0.1.9 by @github-actions in [#1144](https://github.com/VirtusLab/scala-cli/pull/1144)
+* Update release procedure by @wleczny in [#1156](https://github.com/VirtusLab/scala-cli/pull/1156)
+* chore(ci): add in mill-github-dependency-graph by @ckipp01 in [#1164](https://github.com/VirtusLab/scala-cli/pull/1164)
+* chore(ci): bump version of mill-github-dependency-graph by @ckipp01 in [#1171](https://github.com/VirtusLab/scala-cli/pull/1171)
+* Use Scala CLI 0.1.9 in build by @alexarchambault in [#1173](https://github.com/VirtusLab/scala-cli/pull/1173)
+* Stop compiling most stuff with Scala 2 by @alexarchambault in [#1113](https://github.com/VirtusLab/scala-cli/pull/1113)
+* Turn the sip mode also for `scala-cli-sip` binary by @romanowski in [#1168](https://github.com/VirtusLab/scala-cli/pull/1168)
+* chore(ci): use mill-dependency-submission action by @ckipp01 in [#1174](https://github.com/VirtusLab/scala-cli/pull/1174)
+* Fix snippet tests for Windows by @Gedochao in [#1172](https://github.com/VirtusLab/scala-cli/pull/1172)
+
+### Updates
+* Update mill-main to 0.10.5 by @scala-steward in [#1148](https://github.com/VirtusLab/scala-cli/pull/1148)
+* Update snailgun-core, snailgun-core_2.13 to 0.4.1-sc2 by @scala-steward in [#1155](https://github.com/VirtusLab/scala-cli/pull/1155)
+* Update jsoniter-scala-core_2.13 to 2.13.35 by @scala-steward in [#1169](https://github.com/VirtusLab/scala-cli/pull/1169)
+* Update scala-collection-compat to 2.8.0 by @scala-steward in [#1170](https://github.com/VirtusLab/scala-cli/pull/1170)
+* Update jsoniter-scala-core_2.13 to 2.13.36 by @scala-steward in [#1175](https://github.com/VirtusLab/scala-cli/pull/1175)
+
+## New Contributors
+* @hugo-vrijswijk made their first contribution in [#1142](https://github.com/VirtusLab/scala-cli/pull/1142)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.9...v0.1.10
+
 # [v0.1.9](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.9)
 
 ## `--list-main-classes` for `publish` & `package`
