@@ -1,3 +1,10 @@
+---
+title: Release notes
+sidebar_position: 99
+---
+
+# Release notes
+
 # [v0.1.10](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.10)
 
 ## Initial support for importing other sources via `using` directives
@@ -325,3 +332,7 @@ Fixed in [#1080](https://github.com/VirtusLab/scala-cli/pull/1080) by @lwronski
 * Tweaking by @alexarchambault in [#1087](https://github.com/VirtusLab/scala-cli/pull/1087)
 
 **Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.7...v0.1.8
+
+## Older versions
+
+The release notes for all the past versions of Scala CLI can be viewed on [our releases page on GitHub](https://github.com/VirtusLab/scala-cli/releases).
