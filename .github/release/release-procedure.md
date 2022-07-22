@@ -7,8 +7,10 @@
     - [ ] Fill in the remaining sections, as in previous releases (features worth mentioning, notable changes, etc).
     - [ ] Don't publish, save as draft instead
 - [ ] Add the release notes on top
-  of [the release notes doc](https://github.com/VirtusLab/scala-cli/blob/main/.github/release/release_notes.md) and
+  of [the release notes doc](https://github.com/VirtusLab/scala-cli/blob/main/website/docs/release_notes.md) and
   create a PR.
+    - [ ] Make sure the notes render correctly on [the website](https://scala-cli.virtuslab.org/docs/release_notes) - that
+      includes swapping out GitHub-idiomatic @mentions of users, links to PRs, issues, etc.
     - [ ] Copy any fixes over to the draft after getting the PR reviewed and merged.
 - [ ] Mark the release draft as `pre-release` and then `Publish Release`
 - [ ] Wait for a green release CI build with all the updated versions.
