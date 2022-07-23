@@ -46,6 +46,18 @@ Run JMH benchmarks
 
 Set JMH version
 
+## Bloop options
+
+Available in commands:
+- [`bloop`](./commands.md#bloop)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--working-directory`
+
+Aliases: `--working-dir`, `--dir`
+
 ## Bloop start options
 
 Available in commands:
@@ -94,6 +106,7 @@ Name of BSP
 ## Compilation server options
 
 Available in commands:
+- [`bloop`](./commands.md#bloop)
 - [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
@@ -248,6 +261,7 @@ Remove an entry from config
 ## Coursier options
 
 Available in commands:
+- [`bloop`](./commands.md#bloop)
 - [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
@@ -377,6 +391,7 @@ Update all dependency
 ## Directories options
 
 Available in commands:
+- [`bloop`](./commands.md#bloop)
 - [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
@@ -524,6 +539,7 @@ Pass scalafmt version before running it. This overrides whatever value is config
 Available in commands:
 - [`about`](./commands.md#about)
 - [`add-path`](./commands.md#add-path)
+- [`bloop`](./commands.md#bloop)
 - [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
@@ -729,6 +745,7 @@ Set Java properties
 ## Jvm options
 
 Available in commands:
+- [`bloop`](./commands.md#bloop)
 - [`bloop start`](./commands.md#bloop-start)
 - [`bsp`](./commands.md#bsp)
 - [`compile`](./commands.md#compile)
@@ -788,6 +805,7 @@ Port for BSP debugging
 ## Logging options
 
 Available in commands:
+- [`bloop`](./commands.md#bloop)
 - [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)
@@ -1888,6 +1906,7 @@ Force update scala-cli if is outdated
 Available in commands:
 - [`about`](./commands.md#about)
 - [`add-path`](./commands.md#add-path)
+- [`bloop`](./commands.md#bloop)
 - [`bloop exit`](./commands.md#bloop-exit)
 - [`bloop output`](./commands.md#bloop-output)
 - [`bloop start`](./commands.md#bloop-start)

@@ -220,7 +220,7 @@ object SharedOptionsUtil {
       )
     }
 
-    private def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
+    def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
       implicit val ec = options.finalCache.ec
       val javaHomeManager = options.javaHomeManager
         .withMessage(s"Downloading JVM $jvmId")

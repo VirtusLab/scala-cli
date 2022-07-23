@@ -115,4 +115,33 @@ class BloopTests extends ScalaCliSuite {
       assert(!bloopRunning())
     }
   }
+
+  test("bloop projects and bloop compile works") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          """object Hello {
+            |  def main(args: Array[String]): Unit =
+            |    println("Hello")
+            |}
+            |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+
+      os.proc(TestUtil.cli, "compile", ".")
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val projRes = os.proc(TestUtil.cli, "bloop", "projects")
+        .call(cwd = root / Constants.workspaceDirName)
+
+      val projList = projRes.out.trim().linesIterator.toVector
+
+      expect(projList.length == 1)
+      val proj = projList.head
+
+      os.proc(TestUtil.cli, "bloop", "compile", proj)
+        .call(cwd = root / Constants.workspaceDirName)
+    }
+  }
 }
