@@ -19,10 +19,10 @@ object Compile extends ScalaCommand[CompileOptions] {
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
     maybePrintSimpleScalacOutput(options, options.shared.buildOptions())
-    CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args.all)
-    CurrentParams.workspaceOpt = Some(inputs.workspace)
     val logger = options.shared.logger
+    CurrentParams.verbosity = options.shared.logging.verbosity
+    val inputs = options.shared.inputs(args.all).orExit(logger)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
     SetupIde.runSafe(
       options.shared,
       inputs,

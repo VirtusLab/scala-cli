@@ -48,13 +48,14 @@ object Package extends ScalaCommand[PackageOptions] {
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
     maybePrintSimpleScalacOutput(options, options.baseBuildOptions)
+
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args.remaining)
+    val logger = options.shared.logger
+    val inputs = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
-    val logger              = options.shared.logger
     val initialBuildOptions = buildOptions(options)
     val threads             = BuildThreads.create()
     val compilerMaker       = options.compilerMaker(threads)

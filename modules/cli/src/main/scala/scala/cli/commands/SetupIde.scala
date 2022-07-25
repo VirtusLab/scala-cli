@@ -53,7 +53,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
   def run(options: SetupIdeOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args.all)
+    val logger = options.shared.logging.logger
+    val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val bspPath = writeBspConfiguration(
@@ -61,7 +62,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       inputs,
       previousCommandName = None,
       args = args.all
-    ).orExit(options.shared.logging.logger)
+    ).orExit(logger)
 
     bspPath.foreach(path => println(s"Wrote configuration file for ide in: $path"))
   }

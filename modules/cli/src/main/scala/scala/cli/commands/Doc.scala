@@ -21,11 +21,11 @@ object Doc extends ScalaCommand[DocOptions] {
   override def sharedOptions(options: DocOptions) = Some(options.shared)
   def run(options: DocOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args.remaining)
+    val logger = options.shared.logger
+    val inputs = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = options.shared.buildOptions(enableJmh = false, jmhVersion = None)
-    val logger              = options.shared.logger
     val threads             = BuildThreads.create()
 
     val maker               = options.shared.compilerMaker(threads)

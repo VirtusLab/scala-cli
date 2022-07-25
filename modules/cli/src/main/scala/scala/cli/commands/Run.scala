@@ -61,9 +61,9 @@ object Run extends ScalaCommand[RunOptions] {
     val initialBuildOptions = buildOptions(options)
     maybePrintSimpleScalacOutput(options, initialBuildOptions)
 
-    val inputs = options.shared.inputsOrExit(inputArgs, defaultInputs = defaultInputs)
+    val logger = options.shared.logger
+    val inputs = options.shared.inputs(inputArgs, defaultInputs = defaultInputs).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-    val logger  = options.shared.logger
     val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)

@@ -214,24 +214,6 @@ object SharedOptionsUtil {
 
     def coursierCache = cached(v)(coursier.coursierCache(logging.logger.coursierLogger("")))
 
-    def inputsOrExit(
-      args: Seq[String]
-    ): Inputs =
-      inputsOrExit(args, () => Inputs.default())
-
-    def inputsOrExit(
-      args: Seq[String],
-      defaultInputs: () => Option[Inputs]
-    ): Inputs =
-      inputsOrExit(inputs(args, defaultInputs))
-
-    def inputsOrExit(maybeInputs: Either[BuildException, Inputs]): Inputs = maybeInputs match {
-      case Left(exception) =>
-        Util.printException(exception)
-        sys.exit(1)
-      case Right(i) => i
-    }
-
     private def downloadInputs: String => Either[String, Array[Byte]] = { url =>
       val artifact = Artifact(url).withChanging(true)
       val res = coursierCache.logger.use {
@@ -247,7 +229,7 @@ object SharedOptionsUtil {
 
     def inputs(
       args: Seq[String],
-      defaultInputs: () => Option[Inputs]
+      defaultInputs: () => Option[Inputs] = () => Inputs.default()
     ): Either[BuildException, Inputs] = {
       val resourceInputs = resourceDirs
         .map(os.Path(_, Os.pwd))
