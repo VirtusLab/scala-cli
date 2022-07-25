@@ -26,7 +26,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
     Publish.maybePrintChecksumsAndExit(options.sharedPublish)
 
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args)
+    val inputs = options.shared.inputsOrExit(args.all)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val logger = options.shared.logger

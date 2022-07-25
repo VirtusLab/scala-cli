@@ -39,7 +39,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
   def run(options: MetabrowseOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args)
+    val inputs = options.shared.inputsOrExit(args.all)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val logger = options.shared.logger

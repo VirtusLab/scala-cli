@@ -86,7 +86,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       if (args.all.isEmpty)
         (Seq(os.pwd), os.pwd, None)
       else {
-        val i = options.shared.inputsOrExit(args)
+        val i = options.shared.inputsOrExit(args.all)
         val s = i.sourceFiles().collect {
           case sc: Inputs.Script    => sc.path
           case sc: Inputs.ScalaFile => sc.path

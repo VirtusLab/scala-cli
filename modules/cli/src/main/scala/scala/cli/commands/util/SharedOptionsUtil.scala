@@ -215,11 +215,6 @@ object SharedOptionsUtil {
     def coursierCache = cached(v)(coursier.coursierCache(logging.logger.coursierLogger("")))
 
     def inputsOrExit(
-      args: RemainingArgs,
-      defaultInputs: () => Option[Inputs] = () => Inputs.default()
-    ): Inputs = inputsOrExit(args.all, defaultInputs)
-
-    def inputsOrExit(
       args: Seq[String]
     ): Inputs =
       inputsOrExit(args, () => Inputs.default())

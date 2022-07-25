@@ -53,7 +53,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
   def run(options: SetupIdeOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args)
+    val inputs = options.shared.inputsOrExit(args.all)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val bspPath = writeBspConfiguration(

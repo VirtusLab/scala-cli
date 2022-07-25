@@ -20,7 +20,7 @@ object Compile extends ScalaCommand[CompileOptions] {
     maybePrintGroupHelp(options)
     maybePrintSimpleScalacOutput(options, options.shared.buildOptions())
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputsOrExit(args)
+    val inputs = options.shared.inputsOrExit(args.all)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val logger = options.shared.logger
     SetupIde.runSafe(

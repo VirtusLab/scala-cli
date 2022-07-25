@@ -51,7 +51,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd)
     }
-    val inputs      = options.shared.inputsOrExit(args, defaultInputs = () => Some(default))
+    val inputs      = options.shared.inputsOrExit(args.all, defaultInputs = () => Some(default))
     val programArgs = args.unparsed
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
