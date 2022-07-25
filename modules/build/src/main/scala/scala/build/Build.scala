@@ -50,11 +50,12 @@ object Build {
     generatedSources: Seq[GeneratedSource],
     isPartial: Boolean
   ) extends Build {
-    def success: Boolean                = true
-    def successfulOpt: Some[this.type]  = Some(this)
-    def outputOpt: Some[os.Path]        = Some(output)
-    def fullClassPath: Seq[os.Path]     = Seq(output) ++ sources.resourceDirs ++ artifacts.classPath
-    def foundMainClasses(): Seq[String] = MainClass.find(output)
+    def success: Boolean                  = true
+    def successfulOpt: Some[this.type]    = Some(this)
+    def outputOpt: Some[os.Path]          = Some(output)
+    def dependencyClassPath: Seq[os.Path] = sources.resourceDirs ++ artifacts.classPath
+    def fullClassPath: Seq[os.Path]       = Seq(output) ++ dependencyClassPath
+    def foundMainClasses(): Seq[String]   = MainClass.find(output)
     def retainedMainClass(
       mainClasses: Seq[String],
       logger: Logger

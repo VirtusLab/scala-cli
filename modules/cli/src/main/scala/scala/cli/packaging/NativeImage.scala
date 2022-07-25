@@ -229,10 +229,10 @@ object NativeImage {
     if (cacheData.changed)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
-        val originalClasspath = build.fullClassPath :+ mainJar
+        val originalClassPath = mainJar +: build.dependencyClassPath
         maybeWithManifestClassPath(
           createManifest = Properties.isWin,
-          classPath = originalClasspath
+          classPath = originalClassPath
         ) { processedClassPath =>
           val needsProcessing = build.scalaParams.exists(_.scalaVersion.startsWith("3."))
           val (classPath, toClean, scala3extraOptions) =
