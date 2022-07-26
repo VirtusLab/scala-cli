@@ -7,6 +7,10 @@ import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 The `publish` sub-command allows to publish Scala CLI projects to Maven repositories.
 
+We recommend running [the `publish setup` sub-command](./publish-setup.md) once prior to
+running `publish`, in order to set missing `using` directives for publishing, but this is not
+mandatory.
+
 ## Required settings
 
 `scala-cli publish` and `scala-cli publish local` might complain about missing settings.
@@ -189,6 +193,12 @@ Use `central` as repository to push artifacts to Maven Central via `oss.sonatype
 To push to it via `s01.oss.sonatype.org` (the default for newly created repositories),
 use `central-s01`.
 
+When using `central` or `central-s01` as repository, artifacts are pushed
+either to `https://oss.sonatype.org/content/repositories/snapshots` (versions
+ending in `SNAPSHOT`) or to `https://oss.sonatype.org/staging/deploy/maven2`
+(in that case, Sonatype API endpoints are called to "close" and "release"
+artifacts, which later syncs them to `https://repo1.maven.org/maven2`).
+
 ### GitHub Packages
 
 Use `github` (GitHub organization and name computed from the git remotes)
@@ -214,6 +224,9 @@ Pass a URL (beginning with `http://` or `https://`) to push to custom
 HTTP servers. Pushing to such repositories relies on HTTP PUT requests
 (just like for the pre-defined repositories above).
 
+You can also pass a path to a local directory, absolute (recommended)
+or relative (beware of name clashes with pre-defined repositories above).
+
 ### Authentication
 
 Specify publish repository authentication either on the command-line or via
@@ -222,7 +235,7 @@ and the [CI overrides](#ci-overrides).
 
 ## Publishing
 
-Once all the necessary settings are set, publish a Scala CLI with a command
+Once all the necessary settings are set, publish a Scala CLI project with a command
 such as this one (`.` is for the Scala CLI project in the current directory):
 
 <ChainedSnippets>
