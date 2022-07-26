@@ -1,0 +1,5 @@
+jobs:
+  ci:
+    runs-on: [self-hosted, macOS]
+    steps:
+      - run: sw_vers
