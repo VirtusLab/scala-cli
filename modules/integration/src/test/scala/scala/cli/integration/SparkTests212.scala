@@ -8,34 +8,69 @@ import scala.util.Properties
 
 object SparkTests212 {
 
-  private final case class Spark(sparkVersion: String, scalaVersion: String) {
-    def sparkHome(): os.Path = {
-      val url =
-        s"https://archive.apache.org/dist/spark/spark-$sparkVersion/spark-$sparkVersion-bin-hadoop2.7.tgz"
-      val dirName = url.drop(url.lastIndexOf('/') + 1).stripSuffix(".tgz")
+  private def lightweightSparkDistribVersionOpt = Option("0.0.4")
+
+  private final class Spark(val sparkVersion: String, val scalaVersion: String) {
+    private def sbv         = scalaVersion.split('.').take(2).mkString(".")
+    private var toDeleteOpt = Option.empty[os.Path]
+    lazy val sparkHome: os.Path = {
+      val url = lightweightSparkDistribVersionOpt match {
+        case Some(lightweightSparkDistribVersion) =>
+          s"https://github.com/scala-cli/lightweight-spark-distrib/releases/download/v$lightweightSparkDistribVersion/spark-$sparkVersion-bin-hadoop2.7-scala$sbv.tgz"
+        case None =>
+          // original URL (too heavyweight, often fails / times out…)
+          s"https://archive.apache.org/dist/spark/spark-$sparkVersion/spark-$sparkVersion-bin-hadoop2.7.tgz"
+      }
       val baseDir =
         os.Path(os.proc(TestUtil.cs, "get", "--archive", url).call().out.text().trim, os.pwd)
-      baseDir / dirName
+      val home = os.list(baseDir) match {
+        case Seq(dir) if os.isDir(dir) => dir
+        case _                         => baseDir
+      }
+      if (lightweightSparkDistribVersionOpt.nonEmpty) {
+        val copy = os.temp.dir(prefix = home.last) / "home"
+        toDeleteOpt = Some(copy)
+        System.err.println(s"Copying $home over to $copy")
+        os.copy(home, copy)
+        val fetchJarsScript0 = copy / "fetch-jars.sh"
+        val cmd: Seq[os.Shellable] =
+          if (Properties.isWin) Seq("""C:\Program Files\Git\bin\bash.EXE""", fetchJarsScript0)
+          else Seq(fetchJarsScript0)
+
+        System.err.println(s"Running $cmd")
+        os.proc(cmd).call(stdin = os.Inherit, stdout = os.Inherit)
+        System.err.println(s"Spark home $copy ready")
+        copy
+      }
+      else
+        home
     }
+    def cleanUp(): Unit =
+      toDeleteOpt.foreach(os.remove.all(_))
   }
-
-  private val spark30 = Spark(
-    "3.0.3",
-    // The spark distribution actually ships with Scala 2.12.10, but we run into #1092 if we use it here
-    "2.12.15"
-  )
-
-  private val spark24 = Spark(
-    "2.4.2",
-    // The spark distribution actually ships with Scala 2.12.8, but we run into #1092 if we use it here
-    "2.12.15"
-  )
 
 }
 
 class SparkTests212 extends SparkTestDefinitions {
 
   import SparkTests212._
+
+  private val spark30 = new Spark(
+    "3.0.3",
+    // The spark distribution actually ships with Scala 2.12.10, but we run into #1092 if we use it here
+    "2.12.15"
+  )
+
+  private val spark24 = new Spark(
+    "2.4.2",
+    // The spark distribution actually ships with Scala 2.12.8, but we run into #1092 if we use it here
+    "2.12.15"
+  )
+
+  override def afterAll(): Unit = {
+    spark30.cleanUp()
+    spark24.cleanUp()
+  }
 
   def simplePackageSparkJobTest(spark: Spark): Unit = {
     val master = "local[4]"
@@ -73,7 +108,7 @@ class SparkTests212 extends SparkTestDefinitions {
 
       val ext = if (Properties.isWin) ".cmd" else ""
       val res =
-        os.proc(spark.sparkHome() / "bin" / s"spark-submit$ext", "--master", master, dest).call(
+        os.proc(spark.sparkHome / "bin" / s"spark-submit$ext", "--master", master, dest).call(
           cwd = root,
           env = Map(
             "JAVA_HOME" -> java8Home.toString,
