@@ -10,7 +10,7 @@ import java.util.regex.Pattern
 import java.util.zip.ZipFile
 
 import scala.jdk.CollectionConverters._
-import scala.util.Properties
+import scala.util.{Properties, Using}
 
 abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     extends munit.FunSuite with TestScalaVersionArgs {
@@ -496,6 +496,50 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val output = os.proc("java", "-cp", launcher, "hello.Hello")
         .call(cwd = root).out.text().trim
       expect(output == "Hello from assembly")
+    }
+  }
+
+  test("assembly no preamble nor main class") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""package hello
+             |
+             |object Hello {
+             |  def message: String =
+             |    "Hello from " + "assembly"
+             |}
+             |""".stripMargin
+      )
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "package",
+        extraOptions,
+        "--assembly",
+        "-o",
+        "hello.jar",
+        "--preamble=false",
+        "."
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val launcher = root / "hello.jar"
+      expect(os.isFile(launcher))
+
+      Using.resource(new ZipFile(launcher.toIO)) { zf =>
+        val entries = zf.entries()
+          .asScala
+          .iterator
+          .map(_.getName)
+          .filter(_.startsWith("hello/"))
+          .toVector
+        expect(entries.contains("hello/Hello.class"))
+      }
     }
   }
 
