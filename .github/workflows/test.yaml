@@ -1,3 +1,6 @@
+on:
+  pull_request:
+
 jobs:
   ci:
     runs-on: [self-hosted, macOS]
