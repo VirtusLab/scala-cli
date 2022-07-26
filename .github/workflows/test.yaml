@@ -3,6 +3,6 @@ on:
 
 jobs:
   ci:
-    runs-on: [self-hosted, macOS]
+    runs-on: [macOS]
     steps:
       - run: sw_vers
