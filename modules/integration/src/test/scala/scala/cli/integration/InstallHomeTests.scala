@@ -4,7 +4,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-class InstallHomeTests extends munit.FunSuite {
+class InstallHomeTests extends ScalaCliSuite {
+
+  override def group = ScalaCliSuite.TestGroup.First
 
   val firstVersion            = "0.0.1"
   val secondVersion           = "0.0.2"

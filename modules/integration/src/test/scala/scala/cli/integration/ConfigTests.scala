@@ -2,7 +2,9 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class ConfigTests extends munit.FunSuite {
+class ConfigTests extends ScalaCliSuite {
+
+  override def group = ScalaCliSuite.TestGroup.First
 
   test("simple") {
     val homeDir    = os.rel / "home"

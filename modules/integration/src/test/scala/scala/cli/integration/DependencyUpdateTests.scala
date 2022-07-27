@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class DependencyUpdateTests extends munit.FunSuite {
+class DependencyUpdateTests extends ScalaCliSuite {
 
   test("dependency update test") {
     val fileName = "Hello.scala"

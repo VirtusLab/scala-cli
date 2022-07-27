@@ -8,7 +8,7 @@ import java.util.zip.ZipFile
 import scala.jdk.CollectionConverters._
 
 abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
-    extends munit.FunSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs {
 
   protected def extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 

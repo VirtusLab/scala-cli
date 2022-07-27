@@ -8,7 +8,7 @@ import java.util.regex.Pattern
 import scala.cli.integration.util.BloopUtil
 
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
-    extends munit.FunSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs {
 
   protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 

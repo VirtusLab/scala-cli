@@ -5,7 +5,7 @@ import coursier.cache.shaded.dirs.ProjectDirectories
 
 import scala.util.Properties
 
-class InstallAndUninstallCompletionsTests extends munit.FunSuite {
+class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
   val zshRcFile  = ".zshrc"
   val bashRcFile = ".bashrc"
   val rcContent = s"""

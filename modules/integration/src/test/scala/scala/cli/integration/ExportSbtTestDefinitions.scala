@@ -7,7 +7,7 @@ import java.nio.charset.Charset
 import scala.util.Properties
 
 abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
-    extends munit.FunSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs {
 
   protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 

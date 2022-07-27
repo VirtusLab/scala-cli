@@ -4,7 +4,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-class TestNativeImageOnScala3 extends munit.FunSuite {
+class TestNativeImageOnScala3 extends ScalaCliSuite {
+
+  override def group = ScalaCliSuite.TestGroup.First
 
   def runTest(args: String*)(expectedLines: String*)(code: String): Unit = {
     val dest =

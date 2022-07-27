@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 abstract class DocTestDefinitions(val scalaVersionOpt: Option[String])
-    extends munit.FunSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs {
 
   protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 

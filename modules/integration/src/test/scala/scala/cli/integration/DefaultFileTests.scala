@@ -2,7 +2,9 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class DefaultFileTests extends munit.FunSuite {
+class DefaultFileTests extends ScalaCliSuite {
+
+  override def group = ScalaCliSuite.TestGroup.First
 
   test("Print .gitignore") {
     val res = os.proc(TestUtil.cli, "default-file", ".gitignore")

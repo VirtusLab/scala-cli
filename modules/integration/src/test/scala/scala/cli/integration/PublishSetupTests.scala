@@ -10,7 +10,7 @@ import org.eclipse.jgit.transport.URIish
 
 import scala.jdk.CollectionConverters._
 
-class PublishSetupTests extends munit.FunSuite {
+class PublishSetupTests extends ScalaCliSuite {
 
   private def ghUserName = "foo"
   private def projName   = "project-name"

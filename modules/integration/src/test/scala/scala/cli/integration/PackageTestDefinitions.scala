@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Properties, Using}
 
 abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
-    extends munit.FunSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs {
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 

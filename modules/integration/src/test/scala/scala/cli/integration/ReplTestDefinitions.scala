@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
-    extends munit.FunSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs {
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
