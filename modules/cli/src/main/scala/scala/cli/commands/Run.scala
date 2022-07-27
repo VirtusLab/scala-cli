@@ -137,7 +137,7 @@ object Run extends ScalaCommand[RunOptions] {
 
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
-    val actionableDiagnostics = configDb.get(Keys.actionableDiagnostics).getOrElse(None)
+    val actionableDiagnostics = configDb.get(Keys.actions).getOrElse(None)
 
     if (options.watch.watchMode) {
       var processOpt = Option.empty[(Process, CompletableFuture[_])]

@@ -36,7 +36,7 @@ object Doc extends ScalaCommand[DocOptions] {
 
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
-    val actionableDiagnostics = configDb.get(Keys.actionableDiagnostics).getOrElse(None)
+    val actionableDiagnostics = configDb.get(Keys.actions).getOrElse(None)
 
     val builds =
       Build.build(

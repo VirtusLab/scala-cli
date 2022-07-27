@@ -34,7 +34,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
       (_, _, maybeBuild) =>
         val build = maybeBuild.orThrow
         val updateDiagnostics =
-          ActionablePreprocessor.generateActionableDiagnostic(build.options).orThrow
+          ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
 
         val osLibDiagnosticOpt = updateDiagnostics.collectFirst {
           case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic
@@ -62,7 +62,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
       (_, _, maybeBuild) =>
         val build = maybeBuild.orThrow
         val updateDiagnostics =
-          ActionablePreprocessor.generateActionableDiagnostic(build.options).orThrow
+          ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
 
         val osLibDiagnosticOpt = updateDiagnostics.collectFirst {
           case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic
@@ -91,7 +91,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
       (_, _, maybeBuild) =>
         val build = maybeBuild.orThrow
         val updateDiagnostics =
-          ActionablePreprocessor.generateActionableDiagnostic(build.options).orThrow
+          ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
 
         val osLibDiagnosticOpt = updateDiagnostics.collectFirst {
           case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic

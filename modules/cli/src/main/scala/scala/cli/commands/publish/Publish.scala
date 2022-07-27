@@ -247,7 +247,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     mainClassOptions: MainClassOptions
   ): Unit = {
 
-    val actionableDiagnostics = configDb().get(Keys.actionableDiagnostics).getOrElse(None)
+    val actionableDiagnostics = configDb().get(Keys.actions).getOrElse(None)
 
     if (watch) {
       val watcher = Build.watch(

@@ -10,7 +10,7 @@ object ActionablePreprocessor {
     ActionableDependencyHandler
   )
 
-  def generateActionableDiagnostic(
+  def generateActionableDiagnostics(
     options: BuildOptions
   ): Either[BuildException, Seq[ActionableDiagnostic]] =
     actionableHandlers
@@ -22,7 +22,7 @@ object ActionablePreprocessor {
   def generateDiagnostics(
     options: BuildOptions
   ): Either[BuildException, Seq[Diagnostic]] =
-    generateActionableDiagnostic(options)
+    generateActionableDiagnostics(options)
       .map(_.map(_.toDiagnostic))
 
 }

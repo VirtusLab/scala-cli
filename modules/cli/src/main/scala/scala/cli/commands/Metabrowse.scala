@@ -60,7 +60,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val compilerMaker = options.shared.compilerMaker(threads)
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
-    val actionableDiagnostics = configDb.get(Keys.actionableDiagnostics).getOrElse(None)
+    val actionableDiagnostics = configDb.get(Keys.actions).getOrElse(None)
 
     val builds =
       Build.build(

@@ -82,7 +82,7 @@ object Compile extends ScalaCommand[CompileOptions] {
     val compilerMaker = options.shared.compilerMaker(threads)
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
-    val actionableDiagnostics = configDb.get(Keys.actionableDiagnostics).getOrElse(None)
+    val actionableDiagnostics = configDb.get(Keys.actions).getOrElse(None)
 
     if (options.watch.watchMode) {
       val watcher = Build.watch(
