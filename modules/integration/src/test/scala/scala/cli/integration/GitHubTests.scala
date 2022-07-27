@@ -53,7 +53,7 @@ class GitHubTests extends munit.FunSuite {
   // that launcher is mainly meant to be used on CIs or from docker, missing
   // that feature shouldn't be a big deal there
   if (TestUtil.cliKind != "native-static")
-    test("create secret") {
+    test("create secret".ignore) {
       createSecretTest()
     }
 

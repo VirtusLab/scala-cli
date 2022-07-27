@@ -47,20 +47,6 @@ class NativePackagerTests extends munit.FunSuite {
 
         val pkgAppPath = root / pkgAppFile
         expect(os.isFile(pkgAppPath))
-
-        if (TestUtil.isCI) {
-          os.proc("installer", "-pkg", pkgAppFile, "-target", "CurrentUserHomeDirectory").call(
-            cwd = root,
-            stdin = os.Inherit,
-            stdout = os.Inherit
-          )
-
-          val home = sys.props("user.home")
-          val output = os.proc(s"$home/Applications/$appName.app/Contents/MacOS/$appName")
-            .call(cwd = os.root)
-            .out.text().trim
-          expect(output == message)
-        }
       }
     }
 
