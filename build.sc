@@ -698,7 +698,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
       mainArgs = Seq(cache.toNIO.toString, classpath),
       workingDir = os.pwd
     )
-    val cp = res.out.text.trim
+    val cp = res.out.text().trim
     cp.split(File.pathSeparator).toSeq.map(p => mill.PathRef(os.Path(p)))
   }
 

@@ -55,7 +55,7 @@ class TestNativeImageOnScala3 extends ScalaCliSuite {
         |enum Ala:
         |  case A
         |  case B
-        |@main def add1(i: String) = 
+        |@main def add1(i: String) =
         | println(A(i).b)
         | println(Ala.valueOf("A"))
         |""".stripMargin
