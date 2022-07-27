@@ -136,7 +136,7 @@ object Deps {
     if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc2"
     else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2"
   def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.7.1"
-  def svm             = ivy"org.graalvm.nativeimage:svm:22.0.0.2"
+  def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
   def usingDirectives = ivy"org.virtuslab:using_directives:0.0.8"
@@ -151,7 +151,7 @@ object BuildDeps {
   def scalaCliVersion = "0.1.9"
 }
 
-def graalVmVersion     = "22.1.0"
+def graalVmVersion     = "22.2.0"
 def graalVmJavaVersion = 17
 def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
