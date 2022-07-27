@@ -72,7 +72,11 @@ object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
   }
 }
 object integration extends CliIntegration {
-  object test extends Tests with ScalaCliTests
+  object test extends Tests with ScalaCliTests {
+    def ivyDeps = super.ivyDeps() ++ Seq(
+      Deps.jgit
+    )
+  }
   object docker extends CliIntegrationDocker {
     object test extends Tests with ScalaCliTests {
       def sources = T.sources {
@@ -754,7 +758,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.libsodiumjni,
       Deps.pprint,
       Deps.scalaAsync,
-      Deps.slf4jNop
+      Deps.slf4jNop,
+      Deps.usingDirectives
     )
     def compileIvyDeps = super.compileIvyDeps() ++ Seq(
       Deps.jsoniterMacros

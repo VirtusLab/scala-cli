@@ -95,10 +95,8 @@ final case class SharedOptions(
   @Hidden
     addStubs: Option[Boolean] = None,
 
-  @Hidden
-    defaultForbiddenDirectories: Boolean = true,
-  @Hidden
-    forbid: List[String] = Nil,
+  @Recurse
+    input: SharedInputOptions = SharedInputOptions(),
   @Recurse
   helpGroups: HelpGroupOptions = HelpGroupOptions(),
 

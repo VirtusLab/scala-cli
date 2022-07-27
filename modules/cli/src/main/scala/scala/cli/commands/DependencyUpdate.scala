@@ -19,8 +19,8 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     val verbosity = options.shared.logging.verbosity
     CurrentParams.verbosity = verbosity
 
-    val inputs       = options.shared.inputsOrExit(args)
     val logger       = options.shared.logger
+    val inputs       = options.shared.inputs(args.all).orExit(logger)
     val buildOptions = options.shared.buildOptions()
 
     val (crossSources, _) =

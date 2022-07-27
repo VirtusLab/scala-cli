@@ -11,7 +11,7 @@ import scala.cli.commands.config.Config
 import scala.cli.commands.default.DefaultFile
 import scala.cli.commands.github.{SecretCreate, SecretList}
 import scala.cli.commands.pgp.{PgpCommands, PgpCommandsSubst, PgpPull, PgpPush}
-import scala.cli.commands.publish.{Publish, PublishLocal}
+import scala.cli.commands.publish.{Publish, PublishLocal, PublishSetup}
 
 class ScalaCliCommands(
   val progName: String,
@@ -53,6 +53,7 @@ class ScalaCliCommands(
     PgpPush,
     Publish,
     PublishLocal,
+    PublishSetup,
     Run,
     SecretCreate,
     SecretList,

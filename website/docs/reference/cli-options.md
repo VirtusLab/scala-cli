@@ -262,6 +262,7 @@ Available in commands:
 - [`pgp push`](./commands.md#pgp-push)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
+- [`publish setup`](./commands.md#publish-setup)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
@@ -393,6 +394,7 @@ Available in commands:
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
+- [`publish setup`](./commands.md#publish-setup)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)
@@ -536,6 +538,7 @@ Available in commands:
 - [`pgp verify`](./commands.md#pgp-verify)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
+- [`publish setup`](./commands.md#publish-setup)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
@@ -595,6 +598,33 @@ Show options for ScalaJS
 #### `--help-native`
 
 Show options for ScalaNative
+
+## Input options
+
+Available in commands:
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
+- [`doc`](./commands.md#doc)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
+- [`publish setup`](./commands.md#publish-setup)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--default-forbidden-directories`
+
+#### `--forbid`
 
 ## Install completions options
 
@@ -764,6 +794,7 @@ Available in commands:
 - [`pgp push`](./commands.md#pgp-push)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
+- [`publish setup`](./commands.md#publish-setup)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
@@ -1128,6 +1159,7 @@ Whether to exit with code 0 if no key is passed
 Available in commands:
 - [`pgp pull`](./commands.md#pgp-pull)
 - [`pgp push`](./commands.md#pgp-push)
+- [`publish setup`](./commands.md#publish-setup)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1228,6 +1260,7 @@ Set Ivy 2 home directory
 Available in commands:
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
+- [`publish setup`](./commands.md#publish-setup)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1290,6 +1323,7 @@ Use or setup publish parameters meant to be used on continuous integration
 
 Available in commands:
 - [`publish`](./commands.md#publish)
+- [`publish setup`](./commands.md#publish-setup)
 
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
@@ -1311,6 +1345,46 @@ Password to use with publishing repository
 #### `--realm`
 
 Realm to use when passing credentials to publishing repository
+
+## Publish setup options
+
+Available in commands:
+- [`publish setup`](./commands.md#publish-setup)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--public-key`
+
+Public key to use to verify artifacts (to be uploaded to a key server)
+
+#### `--check`
+
+Check if some options for publishing are missing, and exit with non-zero return code if that's the case
+
+#### `--token`
+
+GitHub token to use to upload secrets to GitHub - password encoded
+
+#### `--random-secret-key`
+
+Generate a random key pair for publishing, with a secret key protected by a random password
+
+#### `--random-secret-key-mail`
+
+When generating a random key pair, the mail to associate to it
+
+#### `--checks`
+
+The option groups to check - can be "all", or a comma-separated list of "core", "signing", "repo", "extra"
+
+#### `--check-workflow`
+
+Whether to check if a GitHub workflow already exists (one for publishing is written if none is found)
+
+#### `--dummy`
+
+Dummy mode - don't upload any secret to GitHub
 
 ## Repl options
 
@@ -1660,10 +1734,6 @@ Generate SemanticDBs
 
 #### `--add-stubs`
 
-#### `--default-forbidden-directories`
-
-#### `--forbid`
-
 #### `--strict-bloop-json-check`
 
 ## Snippet options
@@ -1823,6 +1893,7 @@ Available in commands:
 - [`pgp push`](./commands.md#pgp-push)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
+- [`publish setup`](./commands.md#publish-setup)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
@@ -1890,6 +1961,7 @@ Available in commands:
 - [`package`](./commands.md#package)
 - [`publish`](./commands.md#publish)
 - [`publish local`](./commands.md#publish-local)
+- [`publish setup`](./commands.md#publish-setup)
 - [`console` / `repl`](./commands.md#console)
 - [`run`](./commands.md#run)
 - [`setup-ide`](./commands.md#setup-ide)

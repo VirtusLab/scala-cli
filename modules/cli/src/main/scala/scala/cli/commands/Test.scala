@@ -46,9 +46,9 @@ object Test extends ScalaCommand[TestOptions] {
     val initialBuildOptions = buildOptions(options)
     maybePrintSimpleScalacOutput(options, initialBuildOptions)
 
-    val inputs = options.shared.inputsOrExit(args.remaining)
-    CurrentParams.workspaceOpt = Some(inputs.workspace)
     val logger = options.shared.logger
+    val inputs = options.shared.inputs(args.remaining).orExit(logger)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
     SetupIde.runSafe(
       options.shared,
       inputs,

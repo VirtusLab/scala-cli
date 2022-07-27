@@ -98,7 +98,7 @@ object Export extends ScalaCommand[ExportOptions] {
     val buildToolName = if (shouldExportToMill) "mill" else "sbt"
     System.out.println(s"Exporting to a $buildToolName project...")
 
-    val inputs = options.shared.inputsOrExit(args)
+    val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions =
       options.shared.buildOptions()

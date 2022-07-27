@@ -60,6 +60,8 @@ final case class PublishParamsOptions(
 ) {
   // format: on
 
+  def setupCi: Boolean =
+    ci.getOrElse(false)
   def isCi: Boolean =
     ci.getOrElse(System.getenv("CI") != null)
 }

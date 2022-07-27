@@ -51,12 +51,12 @@ object Repl extends ScalaCommand[ReplOptions] {
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd)
     }
-    val inputs      = options.shared.inputsOrExit(args, defaultInputs = () => Some(default))
+    val logger = options.shared.logger
+    val inputs = options.shared.inputs(args.all, defaultInputs = () => Some(default)).orExit(logger)
     val programArgs = args.unparsed
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = buildOptions(options)
-    val logger              = options.shared.logger
     val threads             = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)

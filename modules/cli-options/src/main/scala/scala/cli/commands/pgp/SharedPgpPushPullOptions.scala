@@ -9,7 +9,7 @@ final case class SharedPgpPushPullOptions(
   @Group("PGP")
   @HelpMessage("Key server to push / pull keys from")
   @ValueDescription("URL")
-    keyServer: Option[String] = None
+    keyServer: List[String] = Nil
 )
 // format: on
 

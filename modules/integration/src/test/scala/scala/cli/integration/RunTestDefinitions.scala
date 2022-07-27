@@ -1828,7 +1828,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     Properties.isLinux || (Properties.isMac && !TestUtil.isCI)
   if (runAuthProxyTest)
     test("auth proxy") {
-      authProxyTest()
+      TestUtil.retry() {
+        authProxyTest()
+      }
     }
 
   def jsDomTest(): Unit = {

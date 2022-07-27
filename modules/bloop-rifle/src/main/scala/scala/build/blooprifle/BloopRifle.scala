@@ -6,7 +6,6 @@ import java.util.concurrent.ScheduledExecutorService
 
 import scala.build.blooprifle.internal.{Operations, Util}
 import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
 
 object BloopRifle {
 
@@ -104,7 +103,7 @@ object BloopRifle {
     val out = config.bspStdout.getOrElse(OutputStream.nullOutputStream())
     val err = config.bspStderr.getOrElse(OutputStream.nullOutputStream())
 
-    val conn = Operations.bsp(
+    Operations.bsp(
       config.address,
       bspSocketOrPort,
       workingDir,
@@ -113,17 +112,6 @@ object BloopRifle {
       err,
       logger
     )
-
-    new BspConnection {
-      def address = conn.address
-      def openSocket(
-        period: FiniteDuration,
-        timeout: FiniteDuration
-      ) = conn.openSocket(period, timeout)
-      def closed = conn.closed
-      def stop(): Unit =
-        conn.stop()
-    }
   }
 
   def exit(
