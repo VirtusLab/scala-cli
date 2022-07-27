@@ -75,7 +75,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-linux-tests:
+  native-linux-tests-1:
     needs: generate-linux-launcher
     timeout-minutes: 120
     runs-on: "ubuntu-latest"
@@ -97,6 +97,55 @@ jobs:
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 1
+
+  native-linux-tests-2:
+    needs: generate-linux-launcher
+    timeout-minutes: 120
+    runs-on: "ubuntu-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v3
+      with:
+        name: linux-launchers
+        path: artifacts/
+    - name: Native integration tests
+      run: ./mill -i nativeIntegrationTests
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 2
+
+  native-linux-tests-3:
+    needs: generate-linux-launcher
+    timeout-minutes: 120
+    runs-on: "ubuntu-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v3
+      with:
+        name: linux-launchers
+        path: artifacts/
+    - name: Native integration tests
+      run: ./mill -i nativeIntegrationTests
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 3
 
   generate-macos-launcher:
     timeout-minutes: 120
@@ -125,7 +174,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-macos-tests:
+  native-macos-tests-1:
     needs: generate-macos-launcher
     timeout-minutes: 120
     runs-on: "macos-latest"
@@ -147,6 +196,55 @@ jobs:
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 1
+
+  native-macos-tests-2:
+    needs: generate-macos-launcher
+    timeout-minutes: 120
+    runs-on: "macos-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v3
+      with:
+        name: macos-launchers
+        path: artifacts/
+    - name: Native integration tests
+      run: ./mill -i nativeIntegrationTests
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 2
+
+  native-macos-tests-3:
+    needs: generate-macos-launcher
+    timeout-minutes: 120
+    runs-on: "macos-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v3
+      with:
+        name: macos-launchers
+        path: artifacts/
+    - name: Native integration tests
+      run: ./mill -i nativeIntegrationTests
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 3
 
   generate-windows-launcher:
     timeout-minutes: 120
@@ -180,7 +278,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-windows-tests:
+  native-windows-tests-1:
     needs: generate-windows-launcher
     timeout-minutes: 120
     runs-on: "windows-latest"
@@ -206,6 +304,63 @@ jobs:
         COURSIER_JNI: force
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 1
+
+  native-windows-tests-2:
+    needs: generate-windows-launcher
+    timeout-minutes: 120
+    runs-on: "windows-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - name: Get latest coursier launcher
+      run: .github/scripts/get-latest-cs.sh
+      shell: bash
+    - uses: actions/download-artifact@v3
+      with:
+        name: windows-launchers
+        path: artifacts/
+    - name: Native integration tests
+      run: ./mill -i nativeIntegrationTests
+      env:
+        COURSIER_JNI: force
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 2
+
+  native-windows-tests-3:
+    needs: generate-windows-launcher
+    timeout-minutes: 120
+    runs-on: "windows-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - name: Get latest coursier launcher
+      run: .github/scripts/get-latest-cs.sh
+      shell: bash
+    - uses: actions/download-artifact@v3
+      with:
+        name: windows-launchers
+        path: artifacts/
+    - name: Native integration tests
+      run: ./mill -i nativeIntegrationTests
+      env:
+        COURSIER_JNI: force
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 3
 
   generate-mostly-static-launcher:
     timeout-minutes: 120
@@ -231,7 +386,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-mostly-static-tests:
+  native-mostly-static-tests-1:
     needs: generate-mostly-static-launcher
     timeout-minutes: 120
     runs-on: ubuntu-latest
@@ -255,6 +410,7 @@ jobs:
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 1
     - name: Docker integration tests
       run: ./mill integration.docker-slim.test
     - name: Login to GitHub Container Registry
@@ -266,6 +422,54 @@ jobs:
     - name: Push slim scala-cli image to github container registry
       if: startsWith(github.ref, 'refs/tags/v')
       run: .github/scripts/publish-slim-docker-images.sh
+
+  native-mostly-static-tests-2:
+    needs: generate-mostly-static-launcher
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v3
+      with:
+        name: mostly-static-launchers
+        path: artifacts/
+    - name: Native integration tests
+      run: ./mill -i integration.test.nativeMostlyStatic
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 2
+
+  native-mostly-static-tests-3:
+    needs: generate-mostly-static-launcher
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v3
+      with:
+        name: mostly-static-launchers
+        path: artifacts/
+    - name: Native integration tests
+      run: ./mill -i integration.test.nativeMostlyStatic
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 3
 
   generate-static-launcher:
     timeout-minutes: 120
@@ -291,7 +495,7 @@ jobs:
         if-no-files-found: error
         retention-days: 2
 
-  native-static-tests:
+  native-static-tests-1:
     needs: generate-static-launcher
     timeout-minutes: 120
     runs-on: ubuntu-latest
@@ -315,6 +519,7 @@ jobs:
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 1
     - name: Docker integration tests
       run: ./mill integration.docker.test
     - name: Login to GitHub Container Registry
@@ -326,6 +531,58 @@ jobs:
     - name: Push scala-cli to github container registry
       if: startsWith(github.ref, 'refs/tags/v')
       run: .github/scripts/publish-docker-images.sh
+
+  native-static-tests-2:
+    needs: generate-static-launcher
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v3
+      with:
+        name: static-launchers
+        path: artifacts/
+    - name: Build docker image
+      run: .github/scripts/generate-docker-image.sh
+    - name: Native integration tests
+      run: ./mill -i integration.test.nativeStatic
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 2
+
+  native-static-tests-3:
+    needs: generate-static-launcher
+    timeout-minutes: 120
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v3
+      with:
+        name: static-launchers
+        path: artifacts/
+    - name: Build docker image
+      run: .github/scripts/generate-docker-image.sh
+    - name: Native integration tests
+      run: ./mill -i integration.test.nativeStatic
+      env:
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 3
 
   docs-tests:
     # for now, lets run those tests only on ubuntu
@@ -499,7 +756,27 @@ jobs:
 
   launchers:
     timeout-minutes: 20
-    needs: [jvm-tests, native-linux-tests, native-macos-tests, native-windows-tests, native-mostly-static-tests, native-static-tests, vc-redist, format, checks, reference-doc]
+    needs:
+      - jvm-tests
+      - native-linux-tests-1
+      - native-linux-tests-2
+      - native-linux-tests-3
+      - native-macos-tests-1
+      - native-macos-tests-2
+      - native-macos-tests-3
+      - native-windows-tests-1
+      - native-windows-tests-2
+      - native-windows-tests-3
+      - native-mostly-static-tests-1
+      - native-mostly-static-tests-2
+      - native-mostly-static-tests-3
+      - native-static-tests-1
+      - native-static-tests-2
+      - native-static-tests-3
+      - vc-redist
+      - format
+      - checks
+      - reference-doc
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
