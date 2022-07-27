@@ -223,7 +223,7 @@ object Test extends ScalaCommand[TestOptions] {
         Runner.runJvm(
           build.options.javaHome().value.javaCommand,
           build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-          classPath.map(_.toIO),
+          classPath,
           Constants.testRunnerMainClass,
           extraArgs,
           logger,

@@ -29,7 +29,11 @@ final case class RunOptions(
     command: Boolean = false,
   @Group("Run")
   @HelpMessage("Temporary / working directory where to write generated launchers")
-    scratchDir: Option[String] = None
+    scratchDir: Option[String] = None,
+  @Group("Run")
+  @Hidden
+  @HelpMessage("Run Java commands using a manifest-based class path (shortens command length)")
+    useManifest: Option[Boolean] = None
 )
 // format: on
 

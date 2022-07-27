@@ -941,7 +941,7 @@ object Package extends ScalaCommand[PackageOptions] {
           Runner.runJvm(
             build.options.javaHome().value.javaCommand,
             build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            scalaNativeCli.map(_.toIO),
+            scalaNativeCli,
             "scala.scalanative.cli.ScalaNativeLd",
             args,
             logger

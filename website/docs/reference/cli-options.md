@@ -1431,6 +1431,10 @@ Print the command that would have been run (one argument per line), rather than 
 
 Temporary / working directory where to write generated launchers
 
+#### `--use-manifest`
+
+Run Java commands using a manifest-based class path (shortens command length)
+
 ## Scala.js options
 
 Available in commands:

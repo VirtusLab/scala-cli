@@ -93,7 +93,7 @@ final case class SimpleScalaCompiler(
     Runner.runJvm(
       javaCommand,
       javaOptions,
-      compilerClassPath.map(_.toIO),
+      compilerClassPath,
       mainClass,
       args,
       logger,
