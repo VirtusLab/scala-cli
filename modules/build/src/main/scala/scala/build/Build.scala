@@ -369,17 +369,12 @@ object Build {
     for (testBuild <- builds.get(Scope.Test))
       copyResourceToClassesDir(testBuild)
 
-    if (actionableDiagnostics.getOrElse(false))
-      logActionableDiagnostics(builds, logger)
+    if (actionableDiagnostics.getOrElse(false)) {
+      val projectOptions = builds.get(Scope.Test).getOrElse(builds.main).options
+      projectOptions.logActionableDiagnostics(logger)
+    }
 
     builds
-  }
-
-  private def logActionableDiagnostics(builds: Builds, logger: Logger): Unit = {
-    val projectOptions = builds.get(Scope.Test).getOrElse(builds.main).options
-    val actionableDiagnostics =
-      ActionablePreprocessor.generateDiagnostics(projectOptions).getOrElse(Nil)
-    logger.log(actionableDiagnostics)
   }
 
   private def copyResourceToClassesDir(build: Build): Unit = build match {

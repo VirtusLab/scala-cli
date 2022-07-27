@@ -151,16 +151,12 @@ final class BspImpl(
       buildChangedTest
     )
 
-    if (actionableDiagnostics.getOrElse(false))
-      logActionableDiagnostics(options0Test.orElse(options0Main), persistentLogger)
+    if (actionableDiagnostics.getOrElse(false)) {
+      val projectOptions = options0Test.orElse(options0Main)
+      projectOptions.logActionableDiagnostics(logger)
+    }
 
     PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
-  }
-
-  private def logActionableDiagnostics(projectOptions: BuildOptions, logger: Logger): Unit = {
-    val actionableDiagnostics =
-      ActionablePreprocessor.generateDiagnostics(projectOptions).getOrElse(Nil)
-    logger.log(actionableDiagnostics)
   }
 
   private def buildE(

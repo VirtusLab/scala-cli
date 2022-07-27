@@ -22,6 +22,7 @@ import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
+import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
 
 final case class BuildOptions(
   scalaOptions: ScalaOptions = ScalaOptions(),
@@ -581,6 +582,16 @@ final case class BuildOptions(
     BuildOptions.monoid.orElse(this, other)
 
   def validate: Seq[Diagnostic] = BuildOptionsRule.validateAll(this)
+
+  def logActionableDiagnostics(logger: Logger): Unit = {
+    val actionableDiagnostics = ActionablePreprocessor.generateDiagnostics(this)
+    actionableDiagnostics match {
+      case Left(e) =>
+        logger.debug(e)
+      case Right(diagnostics) =>
+        logger.log(diagnostics)
+    }
+  }
 
   val interactive = if (internal.interactive.getOrElse(false)) InteractiveAsk else InteractiveNop
 }
