@@ -109,13 +109,18 @@ Specify default main class
 
 Set parameters for packaging
 
-`using packaging.packageType `"package type"
+`//> using packaging.packageType `"package type"
+
+`//> using packaging.output `"destination path"
+
 
 
 #### Examples
-`using packaging.packageType "assembly"`
+`//> using packaging.packageType "assembly"`
 
-`using packaging.provided "org.apache.spark::spark-sql"`
+`//> using packaging.output "foo"`
+
+`//> using packaging.provided "org.apache.spark::spark-sql"`
 
 ### Platform
 

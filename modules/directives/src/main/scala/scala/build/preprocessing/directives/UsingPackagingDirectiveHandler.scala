@@ -18,20 +18,26 @@ case object UsingPackagingDirectiveHandler extends UsingDirectiveHandler {
   def description = "Set parameters for packaging"
   def usage =
     """using packaging.packageType [package type]
+      |using packaging.output [destination path]
       |using packaging.provided [module]
       |""".stripMargin
 
   override def usageMd =
-    """`using packaging.packageType `"package type"
+    """`//> using packaging.packageType `"package type"
+      |
+      |`//> using packaging.output `"destination path"
+      |
       |""".stripMargin
 
   override def examples = Seq(
-    "using packaging.packageType \"assembly\"",
-    "using packaging.provided \"org.apache.spark::spark-sql\""
+    "//> using packaging.packageType \"assembly\"",
+    "//> using packaging.output \"foo\"",
+    "//> using packaging.provided \"org.apache.spark::spark-sql\""
   )
 
   def keys = Seq(
     "packageType",
+    "output",
     "provided"
   ).map("packaging." + _)
 
@@ -72,6 +78,10 @@ case object UsingPackagingDirectiveHandler extends UsingDirectiveHandler {
               )
             ))
         }
+      case "packaging.output" =>
+        val value0 = value(getValue)
+        val path   = os.Path(value0.value, os.pwd)
+        PackageOptions(output = Option(path.toString))
       case "packaging.provided" =>
         val values0 = value(getValues)
         val modules = value {
