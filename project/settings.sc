@@ -299,11 +299,11 @@ trait CliLaunchers extends SbtModule { self =>
         prepareCommand =
           maybePassNativeImageJpmsOption +
             """apt-get update -q -y &&\
-            |apt-get install -q -y build-essential libz-dev locales
-            |locale-gen en_US.UTF-8
-            |export LANG=en_US.UTF-8
-            |export LANGUAGE=en_US:en
-            |export LC_ALL=en_US.UTF-8""",
+              |apt-get install -q -y build-essential libz-dev locales
+              |locale-gen en_US.UTF-8
+              |export LANG=en_US.UTF-8
+              |export LANGUAGE=en_US:en
+              |export LC_ALL=en_US.UTF-8""".stripMargin,
         csUrl =
           s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz",
         extraNativeImageArgs = Nil
@@ -313,8 +313,8 @@ trait CliLaunchers extends SbtModule { self =>
 
   private def setupLocaleAndOptions(params: NativeImage.DockerParams): NativeImage.DockerParams =
     params.copy(
-      prepareCommand = params.prepareCommand +
-        maybePassNativeImageJpmsOption +
+      prepareCommand = maybePassNativeImageJpmsOption +
+        params.prepareCommand +
         """
           |set -v
           |apt-get update
