@@ -13,13 +13,9 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  jvm-tests:
+  unit-tests:
     timeout-minutes: 120
-    runs-on: ${{ matrix.OS }}
-    strategy:
-      fail-fast: false
-      matrix:
-        OS: ["ubuntu-latest"]
+    runs-on: "ubuntu-latest"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -45,8 +41,57 @@ jobs:
       run: |
         ./mill -i unitTests
         ./mill -i bloop-rifle._.test
+
+  jvm-tests-1:
+    timeout-minutes: 120
+    runs-on: "ubuntu-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
     - name: JVM integration tests
       run: ./mill -i integration.test.jvm
+      env:
+        SCALA_CLI_IT_GROUP: 1
+
+  jvm-tests-2:
+    timeout-minutes: 120
+    runs-on: "ubuntu-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - name: JVM integration tests
+      run: ./mill -i integration.test.jvm
+      env:
+        SCALA_CLI_IT_GROUP: 2
+
+  jvm-tests-3:
+    timeout-minutes: 120
+    runs-on: "ubuntu-latest"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: coursier/cache-action@v6.3
+    - uses: VirtusLab/scala-cli-setup@07b6783a2d71fbf9e834faa234cd51626d76cba5
+      with:
+        jvm: "temurin:17"
+    - name: JVM integration tests
+      run: ./mill -i integration.test.jvm
+      env:
+        SCALA_CLI_IT_GROUP: 3
 
   generate-linux-launcher:
     timeout-minutes: 120
@@ -717,7 +762,7 @@ jobs:
         retention-days: 2
 
   publish:
-    needs: [jvm-tests, format, checks, reference-doc]
+    needs: [unit-tests, jvm-tests-1, jvm-tests-2, jvm-tests-3, format, checks, reference-doc]
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     runs-on: ubuntu-latest
     steps:
@@ -757,7 +802,10 @@ jobs:
   launchers:
     timeout-minutes: 20
     needs:
-      - jvm-tests
+      - unit-tests
+      - jvm-tests-1
+      - jvm-tests-2
+      - jvm-tests-3
       - native-linux-tests-1
       - native-linux-tests-2
       - native-linux-tests-3
