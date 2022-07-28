@@ -30,7 +30,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
            |}
            |""".stripMargin
     )
-    testInputs.withBuild(baseOptions, buildThreads, None) {
+    testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>
         val build = maybeBuild.orThrow
         val updateDiagnostics =
@@ -58,7 +58,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
            |}
            |""".stripMargin
     )
-    testInputs.withBuild(baseOptions, buildThreads, None) {
+    testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>
         val build = maybeBuild.orThrow
         val updateDiagnostics =
@@ -87,7 +87,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
            |}
            |""".stripMargin
     )
-    testInputs.withBuild(baseOptions, buildThreads, None) {
+    testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>
         val build = maybeBuild.orThrow
         val updateDiagnostics =

@@ -14,6 +14,8 @@ import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.internal.ProcUtil
 import scala.util.Properties
+import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Run extends ScalaCommand[RunOptions] {
   override def group = "Main"
@@ -136,6 +138,10 @@ object Run extends ScalaCommand[RunOptions] {
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
 
+    val configDb = ConfigDb.open(options.shared.directories.directories)
+      .orExit(logger)
+    val actionableDiagnostics = configDb.get(Keys.actions).getOrElse(None)
+
     if (options.watch.watchMode) {
       var processOpt = Option.empty[(Process, CompletableFuture[_])]
       val watcher = Build.watch(
@@ -147,6 +153,7 @@ object Run extends ScalaCommand[RunOptions] {
         crossBuilds = cross,
         buildTests = false,
         partial = None,
+        actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for ((process, onExitProcess) <- processOpt) {
@@ -187,7 +194,8 @@ object Run extends ScalaCommand[RunOptions] {
           logger,
           crossBuilds = cross,
           buildTests = false,
-          partial = None
+          partial = None,
+          actionableDiagnostics = actionableDiagnostics
         )
           .orExit(logger)
       builds.main match {

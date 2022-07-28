@@ -64,7 +64,8 @@ object Key {
         cause
       )
 
-  private val stringCodec: JsonValueCodec[String] = JsonCodecMaker.make
+  private val stringCodec: JsonValueCodec[String]   = JsonCodecMaker.make
+  private val booleanCodec: JsonValueCodec[Boolean] = JsonCodecMaker.make
 
   final class StringEntry(
     val prefix: Seq[String],
@@ -84,6 +85,27 @@ object Key {
       values match {
         case Seq(value) => Right(value)
         case _          => Left(new MalformedValue(this, values, Left("value")))
+      }
+  }
+
+  final class BooleanEntry(
+    val prefix: Seq[String],
+    val name: String
+  ) extends Key[Boolean] {
+    def parse(json: Array[Byte]): Either[EntryError, Boolean] =
+      try Right(readFromArray(json)(booleanCodec))
+      catch {
+        case e: JsonReaderException =>
+          Left(new JsonReaderError(e))
+      }
+    def write(value: Boolean): Array[Byte] =
+      writeToArray(value)(booleanCodec)
+    def asString(value: Boolean): Seq[String] =
+      Seq(value.toString())
+    def fromString(values: Seq[String]): Either[MalformedValue, Boolean] =
+      values match {
+        case Seq(value) if value.toBooleanOption.isDefined => Right(value.toBoolean)
+        case _ => Left(new MalformedValue(this, values, Left("value")))
       }
   }
 

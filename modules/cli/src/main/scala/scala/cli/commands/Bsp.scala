@@ -14,6 +14,8 @@ import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Bsp extends ScalaCommand[BspOptions] {
   override def hidden = true
@@ -68,13 +70,18 @@ object Bsp extends ScalaCommand[BspOptions] {
     val logger = getSharedOptions().logging.logger
     val inputs = argsToInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
+    val configDb = ConfigDb.open(options.shared.directories.directories)
+      .orExit(logger)
+    val actionableDiagnostics = configDb.get(Keys.actions).getOrElse(None)
+
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(
         argsToInputs,
         bspReloadableOptionsReference,
         threads,
         System.in,
-        System.out
+        System.out,
+        actionableDiagnostics
       )
 
       try {

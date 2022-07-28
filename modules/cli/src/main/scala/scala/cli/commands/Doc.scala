@@ -15,6 +15,8 @@ import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.errors.ScaladocGenerationFailedError
 import scala.util.Properties
+import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Doc extends ScalaCommand[DocOptions] {
   override def group                              = "Main"
@@ -32,6 +34,10 @@ object Doc extends ScalaCommand[DocOptions] {
     val compilerMaker       = ScalaCompilerMaker.IgnoreScala2(maker)
     val docCompilerMakerOpt = Some(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
 
+    val configDb = ConfigDb.open(options.shared.directories.directories)
+      .orExit(logger)
+    val actionableDiagnostics = configDb.get(Keys.actions).getOrElse(None)
+
     val builds =
       Build.build(
         inputs,
@@ -41,7 +47,8 @@ object Doc extends ScalaCommand[DocOptions] {
         logger,
         crossBuilds = false,
         buildTests = false,
-        partial = None
+        partial = None,
+        actionableDiagnostics = actionableDiagnostics
       )
         .orExit(logger)
     builds.main match {

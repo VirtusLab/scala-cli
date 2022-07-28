@@ -13,6 +13,8 @@ import scala.build.testrunner.AsmTestRunner
 import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Test extends ScalaCommand[TestOptions] {
   override def group                                                      = "Main"
@@ -64,6 +66,9 @@ object Test extends ScalaCommand[TestOptions] {
     val compilerMaker = options.shared.compilerMaker(threads)
 
     val cross = options.compileCross.cross.getOrElse(false)
+    val configDb = ConfigDb.open(options.shared.directories.directories)
+      .orExit(logger)
+    val actionableDiagnostics = configDb.get(Keys.actions).getOrElse(None)
 
     def maybeTest(builds: Builds, allowExit: Boolean): Unit = {
       val optionsKeys = builds.map.keys.toVector.map(_.optionsKey).distinct
@@ -127,6 +132,7 @@ object Test extends ScalaCommand[TestOptions] {
         crossBuilds = cross,
         buildTests = true,
         partial = None,
+        actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
@@ -145,7 +151,8 @@ object Test extends ScalaCommand[TestOptions] {
           logger,
           crossBuilds = cross,
           buildTests = true,
-          partial = None
+          partial = None,
+          actionableDiagnostics = actionableDiagnostics
         )
           .orExit(logger)
       maybeTest(builds, allowExit = true)
