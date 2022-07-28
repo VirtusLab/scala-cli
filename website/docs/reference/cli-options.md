@@ -483,6 +483,10 @@ Check if sources are well formatted
 
 Use project filters defined in the configuration (turned on by default)
 
+#### `--save-scalafmt-conf`
+
+Saves .scalafmt.conf file if it was created or overwritten
+
 #### `--scalafmt-help`
 
 Aliases: `--fmt-help`
@@ -503,7 +507,17 @@ Show help for scalafmt. This is an alias for --scalafmt-arg -help
 
 Aliases: `-F`
 
-#### `--dialect`
+#### `--scalafmt-dialect`
+
+Aliases: `--dialect`
+
+Pass a global dialect for scalafmt. This overrides whatever value is configured in the .scalafmt.conf file.
+
+#### `--scalafmt-version`
+
+Aliases: `--fmt-version`
+
+Pass scalafmt version before running it. This overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Help options
 

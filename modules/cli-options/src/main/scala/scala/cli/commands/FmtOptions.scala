@@ -17,6 +17,10 @@ final case class FmtOptions(
     respectProjectFilters: Boolean = true,
 
   @Group("Format")
+  @HelpMessage("Saves .scalafmt.conf file if it was created or overwritten")
+    saveScalafmtConf: Boolean = false,
+
+  @Group("Format")
   @HelpMessage("Show help for scalafmt. This is an alias for --scalafmt-arg -help")
   @Name("fmtHelp")
     scalafmtHelp: Boolean = false,
@@ -42,7 +46,13 @@ final case class FmtOptions(
     scalafmtArg: List[String] = Nil,
 
   @Group("Format")
-    dialect: Option[String] = None
+  @HelpMessage("Pass a global dialect for scalafmt. This overrides whatever value is configured in the .scalafmt.conf file.")
+  @Name("dialect")
+    scalafmtDialect: Option[String] = None,
+  @Group("Format")
+  @HelpMessage("Pass scalafmt version before running it. This overrides whatever value is configured in the .scalafmt.conf file.")
+  @Name("fmtVersion")
+    scalafmtVersion: Option[String] = None
 )
 // format: on
 object FmtOptions {
