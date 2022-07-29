@@ -401,15 +401,46 @@ object Operations {
     out: OutputStream,
     err: OutputStream,
     logger: BloopRifleLogger
+  ): Int =
+    run(
+      "ng-stop",
+      Array.empty,
+      workingDir,
+      address,
+      None,
+      out,
+      err,
+      logger
+    )
+
+  def run(
+    command: String,
+    args: Array[String],
+    workingDir: Path,
+    address: BloopRifleConfig.Address,
+    inOpt: Option[InputStream],
+    out: OutputStream,
+    err: OutputStream,
+    logger: BloopRifleLogger,
+    assumeInTty: Boolean = false,
+    assumeOutTty: Boolean = false,
+    assumeErrTty: Boolean = false
   ): Int = {
 
     val stop0          = new AtomicBoolean
     val nailgunClient0 = nailgunClient(address)
-    val streams        = Streams(None, out, err)
+    val streams = Streams(
+      inOpt,
+      out,
+      err,
+      inIsATty = if (assumeInTty) 1 else 0,
+      outIsATty = if (assumeOutTty) 1 else 0,
+      errIsATty = if (assumeErrTty) 1 else 0
+    )
 
     nailgunClient0.run(
-      "ng-stop",
-      Array.empty,
+      command,
+      args,
       workingDir,
       sys.env.toMap,
       streams,

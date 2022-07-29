@@ -484,6 +484,17 @@ Accepts options:
 - [add path](./cli-options.md#add-path-options)
 - [verbosity](./cli-options.md#verbosity-options)
 
+### `bloop`
+
+Accepts options:
+- [bloop](./cli-options.md#bloop-options)
+- [compilation server](./cli-options.md#compilation-server-options)
+- [coursier](./cli-options.md#coursier-options)
+- [directories](./cli-options.md#directories-options)
+- [jvm](./cli-options.md#jvm-options)
+- [logging](./cli-options.md#logging-options)
+- [verbosity](./cli-options.md#verbosity-options)
+
 ### `bloop exit`
 
 Accepts options:
