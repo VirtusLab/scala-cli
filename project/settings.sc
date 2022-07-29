@@ -87,7 +87,7 @@ def cs: T[String] = T.persistent {
         try task.unsafeRun()(cache.ec)
         catch {
           case t: Throwable =>
-            throw new Exception(t)
+            throw new Exception(s"Error getting and extracting $url", t)
         }
       val f = maybeFile.fold(ex => throw new Exception(ex), os.Path(_, os.pwd))
       val exec =
