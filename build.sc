@@ -698,7 +698,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
       mainArgs = Seq(cache.toNIO.toString, classpath),
       workingDir = os.pwd
     )
-    val cp = res.out.text.trim
+    val cp = res.out.text().trim
     cp.split(File.pathSeparator).toSeq.map(p => mill.PathRef(os.Path(p)))
   }
 
@@ -859,6 +859,49 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     def test(args: String*) =
       jvm(args: _*)
 
+    def forcedLauncher = T.persistent {
+      val ext      = if (Properties.isWin) ".exe" else ""
+      val launcher = T.dest / s"scala-cli$ext"
+      if (!os.exists(launcher)) {
+        val dir = Option(System.getenv("SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY")).getOrElse {
+          sys.error("SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY not set")
+        }
+        val content = importedLauncher(dir)
+        os.write(
+          launcher,
+          content,
+          createFolders = true,
+          perms = if (Properties.isWin) null else "rwxr-xr-x"
+        )
+      }
+      PathRef(launcher)
+    }
+
+    def forcedStaticLauncher = T.persistent {
+      val launcher = T.dest / "scala-cli"
+      if (!os.exists(launcher)) {
+        val dir = Option(System.getenv("SCALA_CLI_IT_FORCED_STATIC_LAUNCHER_DIRECTORY")).getOrElse {
+          sys.error("SCALA_CLI_IT_FORCED_STATIC_LAUNCHER_DIRECTORY not set")
+        }
+        val content = importedLauncher(dir)
+        os.write(launcher, content, createFolders = true)
+      }
+      PathRef(launcher)
+    }
+
+    def forcedMostlyStaticLauncher = T.persistent {
+      val launcher = T.dest / "scala-cli"
+      if (!os.exists(launcher)) {
+        val dir =
+          Option(System.getenv("SCALA_CLI_IT_FORCED_MOSTLY_STATIC_LAUNCHER_DIRECTORY")).getOrElse {
+            sys.error("SCALA_CLI_IT_FORCED_MOSTLY_STATIC_LAUNCHER_DIRECTORY not set")
+          }
+        val content = importedLauncher(dir)
+        os.write(launcher, content, createFolders = true)
+      }
+      PathRef(launcher)
+    }
+
     def jvm(args: String*) =
       new TestHelper(
         cli.standaloneLauncher,
@@ -866,17 +909,22 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       ).test(args: _*)
     def native(args: String*) =
       new TestHelper(
-        cli.nativeImage,
+        if (System.getenv("SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY") == null) cli.nativeImage
+        else forcedLauncher,
         "native"
       ).test(args: _*)
     def nativeStatic(args: String*) =
       new TestHelper(
-        cli.nativeImageStatic,
+        if (System.getenv("SCALA_CLI_IT_FORCED_STATIC_LAUNCHER_DIRECTORY") == null)
+          cli.nativeImageStatic
+        else forcedStaticLauncher,
         "native-static"
       ).test(args: _*)
     def nativeMostlyStatic(args: String*) =
       new TestHelper(
-        cli.nativeImageMostlyStatic,
+        if (System.getenv("SCALA_CLI_IT_FORCED_MOSTLY_STATIC_LAUNCHER_DIRECTORY") == null)
+          cli.nativeImageMostlyStatic
+        else forcedMostlyStaticLauncher,
         "native-mostly-static"
       ).test(args: _*)
   }
@@ -1037,6 +1085,34 @@ def writeShortPackageVersionTo(dest: os.Path) = T.command {
   val rawVersion = cli.publishVersion()
   val version    = rawVersion.takeWhile(c => c != '-' && c != '+')
   os.write.over(dest, version)
+}
+
+def importedLauncher(directory: String = "artifacts"): Array[Byte] = {
+  val ext  = if (Properties.isWin) ".zip" else ".gz"
+  val from = os.Path(directory, os.pwd) / s"scala-cli-${Upload.platformSuffix}$ext"
+  System.err.println(s"Importing launcher from $from")
+  if (!os.exists(from))
+    sys.error(s"$from not found")
+
+  if (Properties.isWin) {
+    import java.util.zip.ZipFile
+    Using.resource(new ZipFile(from.toIO)) { zf =>
+      val ent = zf.getEntry("scala-cli.exe")
+      Using.resource(zf.getInputStream(ent)) { is =>
+        is.readAllBytes()
+      }
+    }
+  }
+  else {
+    import java.io.ByteArrayInputStream
+    import java.util.zip.GZIPInputStream
+
+    val compressed = os.read.bytes(from)
+    val bais       = new ByteArrayInputStream(compressed)
+    Using.resource(new GZIPInputStream(bais)) { gzis =>
+      gzis.readAllBytes()
+    }
+  }
 }
 
 def copyLauncher(directory: String = "artifacts") = T.command {

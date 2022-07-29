@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class PgpTests extends munit.FunSuite {
+class PgpTests extends ScalaCliSuite {
 
   private val pubKeyInputs = TestInputs(
     Seq(

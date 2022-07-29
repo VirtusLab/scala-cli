@@ -8,7 +8,7 @@ import java.util.regex.Pattern
 import scala.cli.integration.util.BloopUtil
 
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
-    extends munit.FunSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs {
 
   protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
@@ -401,7 +401,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           os.rel / fileName -> // scala version should updated to 3.3 after release
             s"""//> using scala "3.2.0-RC1-bin-20220604-13ce496-NIGHTLY"
                |//> using options "-coverage-out:."
-               | 
+               |
                |@main def main = ()
                |""".stripMargin
         )

@@ -2,7 +2,10 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class MetaCheck extends munit.FunSuite {
+class MetaCheck extends ScalaCliSuite {
+
+  override def group = ScalaCliSuite.TestGroup.First
+
   /*
    * We don't run tests with --scala 3.… any more, and only rely on those
    * with no --scala option.

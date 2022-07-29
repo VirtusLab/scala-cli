@@ -4,7 +4,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-class NativePackagerTests extends munit.FunSuite {
+class NativePackagerTests extends ScalaCliSuite {
+
+  override def group = ScalaCliSuite.TestGroup.First
 
   val helloWorldFileName = "HelloWorldScalaCli.scala"
   val message            = "Hello, world!"

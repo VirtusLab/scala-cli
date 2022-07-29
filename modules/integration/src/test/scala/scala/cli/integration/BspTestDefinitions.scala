@@ -23,7 +23,7 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
 abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
-    extends munit.FunSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs {
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 

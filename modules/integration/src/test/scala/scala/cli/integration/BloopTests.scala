@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.util.BloopUtil
 
-class BloopTests extends munit.FunSuite {
+class BloopTests extends ScalaCliSuite {
 
   def runScalaCli(args: String*) = os.proc(TestUtil.cli, args)
 

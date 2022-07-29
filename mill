@@ -196,4 +196,9 @@ init_mill_cs_opts
 # see https://www.graalvm.org/release-notes/22_2/#native-image
 export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 
+# clear the Mill Ammonite cache, that sometimes has spurious cached data…
+if [ -n "${CI+set}" ]; then
+  rm -rf "$HOME/.mill/ammonite/cache"
+fi
+
 exec "$cs" launch "$MILL_APP_NAME:$MILL_VERSION" "${mill_cs_opts[@]}" -- "$@"

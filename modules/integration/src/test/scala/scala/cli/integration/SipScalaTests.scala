@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-class SipScalaTests extends munit.FunSuite {
+class SipScalaTests extends ScalaCliSuite {
 
   def noDirectoriesCommandTest(binaryName: String): Unit =
     TestInputs(Nil).fromRoot { root =>

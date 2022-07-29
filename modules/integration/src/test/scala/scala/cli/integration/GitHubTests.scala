@@ -13,7 +13,9 @@ import java.util.{Base64, Locale}
 
 import scala.util.Properties
 
-class GitHubTests extends munit.FunSuite {
+class GitHubTests extends ScalaCliSuite {
+
+  override def group = ScalaCliSuite.TestGroup.First
 
   def createSecretTest(): Unit = {
     GitHubTests.initSodium()

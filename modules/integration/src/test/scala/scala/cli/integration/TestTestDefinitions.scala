@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.annotation.tailrec
 
 abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
-    extends munit.FunSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite with TestScalaVersionArgs {
 
   protected val jvmOptions =
     // seems munit requires this with Scala 3

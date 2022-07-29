@@ -2,7 +2,9 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class CleanTests extends munit.FunSuite {
+class CleanTests extends ScalaCliSuite {
+
+  override def group = ScalaCliSuite.TestGroup.First
 
   test("simple") {
     val inputs = TestInputs(
