@@ -48,7 +48,8 @@ final class BspImpl(
 
   private def prepareBuild(
     currentBloopSession: BloopSession,
-    reloadableOptions: BspReloadableOptions
+    reloadableOptions: BspReloadableOptions,
+    maybeRecoverOnError: Scope => BuildException => Option[BuildException] = _ => e => Some(e)
   ): Either[(BuildException, Scope), PreBuildProject] = either[(BuildException, Scope)] {
     val logger       = reloadableOptions.logger
     val buildOptions = reloadableOptions.buildOptions
@@ -68,7 +69,8 @@ final class BspImpl(
           buildOptions.archiveCache,
           buildOptions.internal.javaClassNameVersionOpt
         ),
-        persistentLogger
+        persistentLogger,
+        maybeRecoverOnError(Scope.Main)
       ).left.map((_, Scope.Main))
     }
 
@@ -106,7 +108,8 @@ final class BspImpl(
         Scope.Main,
         currentBloopSession.remoteServer,
         persistentLogger,
-        localClient
+        localClient,
+        maybeRecoverOnError(Scope.Main)
       )
       res.left.map((_, Scope.Main))
     }
@@ -121,7 +124,8 @@ final class BspImpl(
         Scope.Test,
         currentBloopSession.remoteServer,
         persistentLogger,
-        localClient
+        localClient,
+        maybeRecoverOnError(Scope.Test)
       )
       res.left.map((_, Scope.Test))
     }
@@ -383,11 +387,20 @@ final class BspImpl(
     actualLocalClient.newInputs(initialInputs)
     currentBloopSession.resetDiagnostics(actualLocalClient)
 
-    prepareBuild(currentBloopSession, reloadableOptions) match {
-      case Left((ex, scope)) =>
-        actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), ex)
-        logger.log(ex)
-      case Right(_) =>
+    val recoverOnError: Scope => BuildException => Option[BuildException] = scope =>
+      e => {
+        actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), e)
+        logger.log(e)
+        None
+      }
+
+    prepareBuild(
+      currentBloopSession,
+      reloadableOptions,
+      maybeRecoverOnError = recoverOnError
+    ) match {
+      case Left((ex, scope)) => recoverOnError(scope)(ex)
+      case Right(_)          =>
     }
 
     logger.log {

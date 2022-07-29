@@ -16,9 +16,9 @@ import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future, Promise}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
@@ -419,17 +419,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         }
         expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
-        val diagnosticsParams = {
-          val params = localClient.latestDiagnostics().getOrElse {
-            sys.error("No diagnostics found")
-          }
-          expect(params.getBuildTarget.getUri == targetUri)
-          expect(
-            TestUtil.normalizeUri(params.getTextDocument.getUri) ==
-              TestUtil.normalizeUri((root / "Test.scala").toNIO.toUri.toASCIIString)
-          )
-          params
-        }
+        val diagnosticsParams: b.PublishDiagnosticsParams =
+          extractDiagnosticsParams(root / "Test.scala", localClient)
+        expect(diagnosticsParams.getBuildTarget.getUri == targetUri)
 
         val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
         expect(diagnostics.length == 1)
@@ -1116,6 +1108,137 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         expect(resp0.getStatusCode == b.StatusCode.ERROR)
       }
     }
+  }
+
+  test("bloop projects are initialised properly for an invalid directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "InvalidUsingDirective.scala" ->
+          s"""//> using scala 3.1.2
+             |
+             |object InvalidUsingDirective extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".")) {
+      (root, localClient, remoteServer) =>
+        async {
+          checkIfBloopProjectIsInitialised(
+            root,
+            await(remoteServer.workspaceBuildTargets().asScala)
+          )
+          val diagnosticsParams =
+            extractDiagnosticsParams(root / "InvalidUsingDirective.scala", localClient)
+          val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
+          expect(diagnostics.length == 1)
+          checkDiagnostic(
+            diagnostic = diagnostics.head,
+            expectedMessage =
+              "Expected new line after the using directive, in the line; but found number literal: .2",
+            expectedSeverity = b.DiagnosticSeverity.ERROR,
+            expectedStartLine = 0,
+            expectedStartCharacter = 19,
+            expectedEndLine = 0,
+            expectedEndCharacter = 19
+          )
+        }
+    }
+  }
+
+  test("bloop projects are initialised properly for a directive for an unfetchable dependency") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "InvalidUsingDirective.scala" ->
+          s"""//> using lib "no::lib:123"
+             |
+             |object InvalidUsingDirective extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".")) {
+      (root, localClient, remoteServer) =>
+        async {
+          checkIfBloopProjectIsInitialised(
+            root,
+            await(remoteServer.workspaceBuildTargets().asScala)
+          )
+          val diagnosticsParams =
+            extractDiagnosticsParams(root / "InvalidUsingDirective.scala", localClient)
+          val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
+          expect(diagnostics.length == 1)
+          checkDiagnostic(
+            diagnostic = diagnostics.head,
+            expectedMessage = "Error downloading no:lib",
+            expectedSeverity = b.DiagnosticSeverity.ERROR,
+            expectedStartLine = 0,
+            expectedStartCharacter = 15,
+            expectedEndLine = 0,
+            expectedEndCharacter = 15,
+            strictlyCheckMessage = false
+          )
+        }
+    }
+  }
+  private def checkIfBloopProjectIsInitialised(
+    root: os.Path,
+    buildTargetsResp: b.WorkspaceBuildTargetsResult
+  ): Unit = {
+    val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+    expect(targets.length == 2)
+
+    val bloopProjectNames = targets.map { target =>
+      val targetUri = TestUtil.normalizeUri(target.getUri)
+      checkTargetUri(root, targetUri)
+      new URI(targetUri).getQuery.stripPrefix("id=")
+    }
+
+    val bloopDir = root / Constants.workspaceDirName / ".bloop"
+    expect(os.isDir(bloopDir))
+
+    bloopProjectNames.foreach { bloopProjectName =>
+      val bloopProjectJsonPath = bloopDir / s"$bloopProjectName.json"
+      expect(os.isFile(bloopProjectJsonPath))
+    }
+  }
+
+  private def extractDiagnosticsParams(
+    relevantFilePath: os.Path,
+    localClient: TestBspClient
+  ): b.PublishDiagnosticsParams = {
+    val params = localClient.latestDiagnostics().getOrElse {
+      sys.error("No diagnostics found")
+    }
+    expect {
+      TestUtil.normalizeUri(params.getTextDocument.getUri) == TestUtil.normalizeUri(
+        relevantFilePath.toNIO.toUri.toASCIIString
+      )
+    }
+    params
+  }
+
+  private def checkDiagnostic(
+    diagnostic: b.Diagnostic,
+    expectedMessage: String,
+    expectedSeverity: b.DiagnosticSeverity,
+    expectedStartLine: Int,
+    expectedStartCharacter: Int,
+    expectedEndLine: Int,
+    expectedEndCharacter: Int,
+    strictlyCheckMessage: Boolean = true
+  ): Unit = {
+    expect(diagnostic.getSeverity == expectedSeverity)
+    expect(diagnostic.getRange.getStart.getLine == expectedStartLine)
+    expect(diagnostic.getRange.getStart.getCharacter == expectedStartCharacter)
+    expect(diagnostic.getRange.getEnd.getLine == expectedEndLine)
+    expect(diagnostic.getRange.getEnd.getCharacter == expectedEndCharacter)
+    if (strictlyCheckMessage)
+      expect(diagnostic.getMessage == expectedMessage)
+    else
+      expect(diagnostic.getMessage.contains(expectedMessage))
   }
 
   private def extractWorkspaceReloadResponse(workspaceReloadResult: AnyRef): Option[ResponseError] =

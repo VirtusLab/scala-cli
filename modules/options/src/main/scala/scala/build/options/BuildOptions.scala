@@ -450,7 +450,11 @@ final case class BuildOptions(
     }
   }
 
-  def artifacts(logger: Logger, scope: Scope): Either[BuildException, Artifacts] = either {
+  def artifacts(
+    logger: Logger,
+    scope: Scope,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+  ): Either[BuildException, Artifacts] = either {
     val isTests = scope == Scope.Test
     val scalaArtifactsParamsOpt = value(scalaParams) match {
       case Some(scalaParams0) =>
@@ -488,7 +492,8 @@ final case class BuildOptions(
       extraRepositories = finalRepositories,
       keepResolution = internal.keepResolution,
       cache = finalCache,
-      logger = logger
+      logger = logger,
+      maybeRecoverOnError = maybeRecoverOnError
     )
     value(maybeArtifacts)
   }

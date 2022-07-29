@@ -71,42 +71,46 @@ case object ScalaPreprocessor extends Preprocessor {
 
   def preprocess(
     input: Inputs.SingleElement,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: Inputs.ScalaFile =>
         val res = either {
           val content   = value(PreprocessingUtil.maybeRead(f.path))
           val scopePath = ScopePath.fromPath(f.path)
-          val source = value(process(content, Right(f.path), scopePath / os.up, logger)) match {
-            case None =>
-              PreprocessedSource.OnDisk(f.path, None, None, Nil, None)
-            case Some(ProcessingOutput(
-                  requirements,
+          val source =
+            value(
+              process(content, Right(f.path), scopePath / os.up, logger, maybeRecoverOnError)
+            ) match {
+              case None =>
+                PreprocessedSource.OnDisk(f.path, None, None, Nil, None)
+              case Some(ProcessingOutput(
+                    requirements,
+                    scopedRequirements,
+                    options,
+                    Some(updatedCode)
+                  )) =>
+                PreprocessedSource.InMemory(
+                  Right((f.subPath, f.path)),
+                  f.subPath,
+                  updatedCode,
+                  0,
+                  Some(options),
+                  Some(requirements),
                   scopedRequirements,
-                  options,
-                  Some(updatedCode)
-                )) =>
-              PreprocessedSource.InMemory(
-                Right((f.subPath, f.path)),
-                f.subPath,
-                updatedCode,
-                0,
-                Some(options),
-                Some(requirements),
-                scopedRequirements,
-                None,
-                scopePath
-              )
-            case Some(ProcessingOutput(requirements, scopedRequirements, options, None)) =>
-              PreprocessedSource.OnDisk(
-                f.path,
-                Some(options),
-                Some(requirements),
-                scopedRequirements,
-                None
-              )
-          }
+                  None,
+                  scopePath
+                )
+              case Some(ProcessingOutput(requirements, scopedRequirements, options, None)) =>
+                PreprocessedSource.OnDisk(
+                  f.path,
+                  Some(options),
+                  Some(requirements),
+                  scopedRequirements,
+                  None
+                )
+            }
           Seq(source)
         }
         Some(res)
@@ -120,7 +124,7 @@ case object ScalaPreprocessor extends Preprocessor {
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
             value(
-              process(content, Left(v.source), v.scopePath / os.up, logger)
+              process(content, Left(v.source), v.scopePath / os.up, logger, maybeRecoverOnError)
             ).map {
               case ProcessingOutput(reqs, scopedReqs, opts, updatedContent) =>
                 (reqs, scopedReqs, opts, updatedContent)
@@ -148,11 +152,12 @@ case object ScalaPreprocessor extends Preprocessor {
     content: String,
     path: Either[String, os.Path],
     scopeRoot: ScopePath,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val afterStrictUsing: StrictDirectivesProcessingOutput =
-      value(processStrictUsing(content0, path, scopeRoot, logger))
+      value(processStrictUsing(content0, path, scopeRoot, logger, maybeRecoverOnError))
 
     val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
       processSpecialImports(
@@ -268,11 +273,19 @@ case object ScalaPreprocessor extends Preprocessor {
     content: String,
     path: Either[String, os.Path],
     cwd: ScopePath,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
     val contentChars = content.toCharArray
     val ExtractedDirectives(codeOffset, directives0) =
-      value(ExtractedDirectives.from(contentChars, path, logger, UsingDirectiveKind.values(), cwd))
+      value(ExtractedDirectives.from(
+        contentChars,
+        path,
+        logger,
+        UsingDirectiveKind.values(),
+        cwd,
+        maybeRecoverOnError
+      ))
 
     val updatedOptions = value {
       DirectivesProcessor.process(

@@ -6,9 +6,9 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Dependency as CsDependency, Fetch, Resolution, core as csCore, util as csUtil}
 import dependency.*
+import os.Path
 
 import java.net.URL
-
 import scala.build.CoursierUtils.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
@@ -16,6 +16,7 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   FetchingDependenciesError,
+  NoScalaVersionProvidedError,
   RepositoryFormatError
 }
 import scala.build.internal.Constants.*
@@ -88,7 +89,8 @@ object Artifacts {
     extraRepositories: Seq[String],
     keepResolution: Boolean,
     cache: FileCache[Task],
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, Artifacts] = either {
 
     val addJvmRunner0 = addJvmRunner.getOrElse(true)
@@ -149,7 +151,10 @@ object Artifacts {
               ).map(_.map { case (url, path) => (posDep0.value, url, path) })
             }
             .sequence
-            .left.map(CompositeBuildException(_))
+            .left.flatMap {
+              CompositeBuildException(_)
+                .maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError)
+            }
             .map(_.flatten)
         }
 
@@ -160,7 +165,7 @@ object Artifacts {
             Some(scalaArtifactsParams.params),
             logger,
             cache.withMessage(compilerDependenciesMessage)
-          )
+          ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
         }
 
         def fetchedArtifactToPath(fetched: Fetch.Result): Seq[os.Path] =
@@ -290,7 +295,8 @@ object Artifacts {
         scalaArtifactsParamsOpt.map(_.params),
         logger,
         cache.withMessage(updatedDependenciesMessage),
-        classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty))
+        classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty)),
+        maybeRecoverOnError
       )
     }
 
@@ -375,12 +381,19 @@ object Artifacts {
     paramsOpt: Option[ScalaParameters],
     logger: Logger,
     cache: FileCache[Task],
-    classifiersOpt: Option[Set[String]]
+    classifiersOpt: Option[Set[String]],
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, Fetch.Result] = either {
     val coursierDependenciesWithFallbacks = value {
       dependencies.value
         .map(Positioned(dependencies.positions, _))
         .map(dep => dep.toCs(paramsOpt).map(csDep => (dep.value, csDep.value)))
+        .map(_.left.map(maybeRecoverOnError))
+        .flatMap {
+          case Left(Some(e: NoScalaVersionProvidedError)) => Some(Left(e))
+          case Left(_)                                    => None
+          case Right(dep)                                 => Some(Right(dep))
+        }
         .sequence
         .left.map(CompositeBuildException(_))
         .map(_.map {
@@ -407,7 +420,7 @@ object Artifacts {
         cache,
         classifiersOpt,
         fallbacks
-      )
+      ).left.flatMap(_.maybeRecoverWithDefault(Fetch.Result(), maybeRecoverOnError))
     }
   }
 
@@ -479,5 +492,4 @@ object Artifacts {
       res.left.map(ex => new FetchingDependenciesError(ex, dependencies.positions))
     }
   }
-
 }

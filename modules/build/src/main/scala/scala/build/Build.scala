@@ -731,7 +731,8 @@ object Build {
     options: BuildOptions,
     compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, Project] = either {
 
     val allSources = sources.paths.map(_._1) ++ generatedSources.map(_.generated)
@@ -739,7 +740,7 @@ object Build {
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
     val scaladocDir = classesDir(inputs.workspace, inputs.projectName, scope, suffix = "-doc")
 
-    val artifacts = value(options.artifacts(logger, scope))
+    val artifacts = value(options.artifacts(logger, scope, maybeRecoverOnError))
 
     val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
 
@@ -885,7 +886,8 @@ object Build {
     scope: Scope,
     compiler: ScalaCompiler,
     logger: Logger,
-    buildClient: BloopBuildClient
+    buildClient: BloopBuildClient,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, (os.Path, Option[ScalaParameters], Artifacts, Project, Boolean)] =
     either {
 
@@ -910,7 +912,7 @@ object Build {
 
       val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
 
-      val artifacts = value(options0.artifacts(logger, scope))
+      val artifacts = value(options0.artifacts(logger, scope, maybeRecoverOnError))
 
       value(validate(logger, options0))
 
@@ -922,7 +924,8 @@ object Build {
           options0,
           compilerJvmVersionOpt,
           scope,
-          logger
+          logger,
+          maybeRecoverOnError
         )
       }
 

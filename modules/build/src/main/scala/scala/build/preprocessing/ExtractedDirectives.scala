@@ -22,6 +22,8 @@ case class ExtractedDirectives(
 
 object ExtractedDirectives {
 
+  def empty: ExtractedDirectives = ExtractedDirectives(0, Seq.empty)
+
   val changeToSpecialCommentMsg =
     "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...' or '/*> ... */'"
 
@@ -30,7 +32,8 @@ object ExtractedDirectives {
     path: Either[String, os.Path],
     logger: Logger,
     supportedDirectives: Array[UsingDirectiveKind],
-    cwd: ScopePath
+    cwd: ScopePath,
+    maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, ExtractedDirectives] = {
     val errors = new mutable.ListBuffer[Diagnostic]
     val reporter = CustomDirectivesReporter.create(path) { diag =>
@@ -47,7 +50,13 @@ object ExtractedDirectives {
       new UsingDirectivesProcessor(context)
     }
     val all = processor.extract(contentChars, true, true).asScala
-    if (errors.isEmpty) {
+    val malformedDirectiveErrors =
+      errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions)).toSeq
+    val maybeCompositeMalformedDirectiveError =
+      if (malformedDirectiveErrors.nonEmpty)
+        maybeRecoverOnError(CompositeBuildException(malformedDirectiveErrors))
+      else None
+    if (malformedDirectiveErrors.isEmpty || maybeCompositeMalformedDirectiveError.isEmpty) {
 
       def byKind(kind: UsingDirectiveKind) = all.find(_.getKind == kind).get
 
@@ -121,15 +130,20 @@ object ExtractedDirectives {
           path,
           cwd
         )))
-        Left(new DirectiveErrors(
+        val directiveErrors = new DirectiveErrors(
           ::(s"Directive '${usedDirectives.getKind}' is not supported in the given context'", Nil),
           values.flatMap(_.positioned.positions)
-        ))
+        )
+        maybeRecoverOnError(directiveErrors) match {
+          case Some(e) => Left(e)
+          case None    => Right(ExtractedDirectives.empty)
+        }
       }
     }
-    else {
-      val errors0 = errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions))
-      Left(CompositeBuildException(errors0.toSeq))
-    }
+    else
+      maybeCompositeMalformedDirectiveError match {
+        case Some(e) => Left(e)
+        case None    => Right(ExtractedDirectives.empty)
+      }
   }
 }
