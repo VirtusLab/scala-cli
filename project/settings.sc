@@ -285,18 +285,25 @@ trait CliLaunchers extends SbtModule { self =>
     def launcherKind = "default"
   }
 
+  private def maybePassNativeImageJpmsOption =
+    Option(System.getenv("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM"))
+      .fold("") { value =>
+        "export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=" + value + System.lineSeparator()
+      }
+
   object `linux-docker-image` extends CliNativeImage {
     def launcherKind = `base-image`.launcherKind
     def nativeImageDockerParams = Some(
       NativeImage.DockerParams(
         imageName = "ubuntu:18.04",
         prepareCommand =
-          """apt-get update -q -y &&\
-            |apt-get install -q -y build-essential libz-dev locales
-            |locale-gen en_US.UTF-8
-            |export LANG=en_US.UTF-8
-            |export LANGUAGE=en_US:en
-            |export LC_ALL=en_US.UTF-8""",
+          maybePassNativeImageJpmsOption +
+            """apt-get update -q -y &&\
+              |apt-get install -q -y build-essential libz-dev locales
+              |locale-gen en_US.UTF-8
+              |export LANG=en_US.UTF-8
+              |export LANGUAGE=en_US:en
+              |export LC_ALL=en_US.UTF-8""".stripMargin,
         csUrl =
           s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz",
         extraNativeImageArgs = Nil
@@ -304,9 +311,10 @@ trait CliLaunchers extends SbtModule { self =>
     )
   }
 
-  private def setupLocale(params: NativeImage.DockerParams): NativeImage.DockerParams =
+  private def setupLocaleAndOptions(params: NativeImage.DockerParams): NativeImage.DockerParams =
     params.copy(
-      prepareCommand = params.prepareCommand +
+      prepareCommand = maybePassNativeImageJpmsOption +
+        params.prepareCommand +
         """
           |set -v
           |apt-get update
@@ -329,7 +337,7 @@ trait CliLaunchers extends SbtModule { self =>
         Docker.muslBuilder,
         s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
       )
-      val dockerParams = setupLocale(baseDockerParams)
+      val dockerParams = setupLocaleAndOptions(baseDockerParams)
       buildHelperImage()
       Some(dockerParams)
     }
@@ -351,7 +359,7 @@ trait CliLaunchers extends SbtModule { self =>
         "ubuntu:18.04", // TODO Pin that
         s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
       )
-      val dockerParams = setupLocale(baseDockerParams)
+      val dockerParams = setupLocaleAndOptions(baseDockerParams)
       Some(dockerParams)
     }
   }

@@ -192,4 +192,8 @@ eval "$(cs java --env --jvm temurin:17 || cs java --env --jvm openjdk:1.17.0)"
 init_mill_jvm_opts
 init_mill_cs_opts
 
+# temporary, until we pass JPMS options to native-image,
+# see https://www.graalvm.org/release-notes/22_2/#native-image
+export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
+
 exec "$cs" launch "$MILL_APP_NAME:$MILL_VERSION" "${mill_cs_opts[@]}" -- "$@"
