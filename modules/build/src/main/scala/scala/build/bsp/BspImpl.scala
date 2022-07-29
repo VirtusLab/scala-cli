@@ -1,6 +1,6 @@
 package scala.build.bsp
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonReaderException, readFromArray}
 import dependency.ScalaParameters
 import org.eclipse.lsp4j.jsonrpc
@@ -8,9 +8,8 @@ import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.io.{InputStream, OutputStream}
 import java.util.concurrent.{CompletableFuture, Executor}
-
+import scala.build.*
 import scala.build.EitherCps.{either, value}
-import scala.build._
 import scala.build.bloop.{BloopServer, ScalaDebugServer}
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{BuildException, Diagnostic, ParsingInputsException}
@@ -19,7 +18,7 @@ import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success}
 import scala.build.actionable.ActionablePreprocessor
 
@@ -241,7 +240,7 @@ final class BspImpl(
   private val shownGlobalMessages =
     new java.util.concurrent.ConcurrentHashMap[String, Unit]()
 
-  private def showGlobalWarningOnce(msg: String) =
+  private def showGlobalWarningOnce(msg: String): Unit =
     shownGlobalMessages.computeIfAbsent(
       msg,
       _ => {
@@ -299,7 +298,7 @@ final class BspImpl(
         params.diagnostics.foreach(actualLocalClient.reportDiagnosticForFiles(targetId))
 
         doCompile().thenCompose { res =>
-          def doPostProcess(data: PreBuildData, scope: Scope) =
+          def doPostProcess(data: PreBuildData, scope: Scope): Unit =
             for (sv <- data.project.scalaCompiler.map(_.scalaVersion))
               Build.postProcess(
                 data.generatedSources,

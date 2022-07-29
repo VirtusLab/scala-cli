@@ -4,7 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.{Classifier, Module}
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Dependency as CsDependency, Fetch, Resolution, core as csCore, util as csUtil}
+import coursier.{Fetch, Resolution, Dependency as CsDependency, core as csCore, util as csUtil}
 import dependency.*
 import os.Path
 
@@ -22,6 +22,7 @@ import scala.build.errors.{
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Util.PositionedScalaDependencyOps
+import scala.collection.mutable
 
 final case class Artifacts(
   javacPluginDependencies: Seq[(AnyDependency, String, os.Path)],
@@ -267,7 +268,7 @@ object Artifacts {
     val updatedDependencies = dependencies ++ internalDependencies
 
     val updatedDependenciesMessage = {
-      val b           = new StringBuilder("Downloading ")
+      val b           = new mutable.StringBuilder("Downloading ")
       val depLen      = dependencies.length
       val extraDepLen = updatedDependencies.length - depLen
       depLen match {
