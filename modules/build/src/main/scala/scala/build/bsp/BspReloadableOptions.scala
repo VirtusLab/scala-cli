@@ -4,6 +4,17 @@ import scala.build.Logger
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.options.BuildOptions
 
+/** The options and configurations that may be picked up on a bsp workspace/reload request.
+  *
+  * @param buildOptions
+  *   passed options for building sources
+  * @param bloopRifleConfig
+  *   configuration for bloop-rifle
+  * @param logger
+  *   logger
+  * @param verbosity
+  *   the verbosity of logs
+  */
 case class BspReloadableOptions(
   buildOptions: BuildOptions,
   bloopRifleConfig: BloopRifleConfig,
