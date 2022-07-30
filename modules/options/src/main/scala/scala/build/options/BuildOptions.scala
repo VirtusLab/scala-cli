@@ -7,6 +7,7 @@ import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.{Artifact, Task}
 import dependency._
 
+import java.io.File
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -21,6 +22,7 @@ import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.concurrent.duration._
+import scala.util.Properties
 import scala.util.control.NonFatal
 import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
 
@@ -174,10 +176,8 @@ final case class BuildOptions(
 
   lazy val archiveCache = ArchiveCache().withCache(finalCache)
 
-  private lazy val javaCommand0: Positioned[JavaHomeInfo] = javaHomeLocation().map { javaHome =>
-    val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
-    JavaHomeInfo(javaHome, javaCmd, javaVersion)
-  }
+  private lazy val javaCommand0: Positioned[JavaHomeInfo] =
+    javaHomeLocation().map(JavaHomeInfo(_))
 
   private def jvmIndexOs = javaOptions.jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)
 
@@ -607,7 +607,38 @@ object BuildOptions {
     javaHome: os.Path,
     javaCommand: String,
     version: Int
-  )
+  ) {
+    def envUpdates(currentEnv: Map[String, String]): Map[String, String] = {
+      // On Windows, AFAIK, env vars are "case-insensitive but case-preserving".
+      // If PATH was defined as "Path", we need to update "Path", not "PATH".
+      // Same for JAVA_HOME.
+      def keyFor(name: String) =
+        if (Properties.isWin)
+          currentEnv.keys.find(_.equalsIgnoreCase(name)).getOrElse(name)
+        else
+          name
+      val javaHomeKey = keyFor("JAVA_HOME")
+      val pathKey     = keyFor("PATH")
+      val updatedPath = {
+        val valueOpt = currentEnv.get(pathKey)
+        val entry    = (javaHome / "bin").toString
+        valueOpt.fold(entry)(entry + File.pathSeparator + _)
+      }
+      Map(
+        javaHomeKey -> javaHome.toString,
+        pathKey     -> updatedPath
+      )
+    }
+  }
+
+  object JavaHomeInfo {
+    def apply(javaHome: os.Path): JavaHomeInfo = {
+      val ext         = if (Properties.isWin) ".exe" else ""
+      val javaCmd     = (javaHome / "bin" / s"java$ext").toString
+      val javaVersion = OsLibc.javaVersion(javaCmd)
+      JavaHomeInfo(javaHome, javaCmd, javaVersion)
+    }
+  }
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive

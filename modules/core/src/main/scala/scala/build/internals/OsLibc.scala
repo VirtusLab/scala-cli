@@ -82,6 +82,18 @@ object OsLibc {
       s"${JavaHome.systemId}|$defaultJvm0"
   }
 
+  def javaVersion(javaCmd: String): Int = {
+    val javaVersionOutput = os.proc(javaCmd, "-version").call(
+      cwd = os.pwd,
+      stdout = os.Pipe,
+      stderr = os.Pipe,
+      mergeErrIntoOut = true
+    ).out.text().trim()
+    parseJavaVersion(javaVersionOutput).getOrElse {
+      throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
+    }
+  }
+
   def javaHomeVersion(javaHome: os.Path): (Int, String) = {
     val ext     = if (Properties.isWin) ".exe" else ""
     val javaCmd = (javaHome / "bin" / s"java$ext").toString

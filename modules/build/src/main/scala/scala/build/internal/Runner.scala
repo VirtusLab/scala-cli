@@ -99,7 +99,7 @@ object Runner {
     }
   }
 
-  private def envCommand(env: Map[String, String]): Seq[String] =
+  def envCommand(env: Map[String, String]): Seq[String] =
     env.toVector.sortBy(_._1).map {
       case (k, v) =>
         s"$k=$v"
