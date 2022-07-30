@@ -77,9 +77,8 @@ object Deps {
   def coursierLauncher   = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
   def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
   def coursierPublish    = ivy"io.get-coursier.publish:publish_2.13:0.1.2"
-  // TODO - update to working version
-  def dependency   = ivy"io.get-coursier::dependency:0.2.2"
-  def dockerClient = ivy"com.spotify:docker-client:8.16.0"
+  def dependency         = ivy"io.get-coursier::dependency:0.2.2"
+  def dockerClient       = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.15.4+22-9c7fb771-SNAPSHOT"
   def guava         = ivy"com.google.guava:guava:31.1-jre"

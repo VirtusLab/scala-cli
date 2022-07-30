@@ -32,7 +32,8 @@ object Export extends ScalaCommand[ExportOptions] {
         Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           buildOptions.archiveCache,
-          buildOptions.internal.javaClassNameVersionOpt
+          buildOptions.internal.javaClassNameVersionOpt,
+          () => buildOptions.javaHome().value.javaCommand
         ),
         logger
       )

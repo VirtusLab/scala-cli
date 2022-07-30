@@ -29,7 +29,8 @@ class SourcesTests extends munit.FunSuite {
         def ec                       = sys.error("shouldn't be used")
       }
     ),
-    None
+    None,
+    () => sys.error("shouldn't be used")
   )
 
   test("dependencies in .scala - $ivy") {

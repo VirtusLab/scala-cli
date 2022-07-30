@@ -137,6 +137,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   native-linux-tests-2:
     needs: generate-linux-launcher
@@ -160,6 +161,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 2
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   native-linux-tests-3:
     needs: generate-linux-launcher
@@ -183,6 +185,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 3
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   generate-macos-launcher:
     timeout-minutes: 120
@@ -232,6 +235,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   native-macos-tests-2:
     needs: generate-macos-launcher
@@ -255,6 +259,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 2
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   native-macos-tests-3:
     needs: generate-macos-launcher
@@ -278,6 +283,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 3
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   generate-windows-launcher:
     timeout-minutes: 120
@@ -336,6 +342,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   native-windows-tests-2:
     needs: generate-windows-launcher
@@ -363,6 +370,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 2
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   native-windows-tests-3:
     needs: generate-windows-launcher
@@ -390,6 +398,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 3
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   generate-mostly-static-launcher:
     timeout-minutes: 120
@@ -438,6 +447,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Docker integration tests
       run: ./mill integration.docker-slim.test
     - name: Login to GitHub Container Registry
@@ -472,6 +482,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 2
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   native-mostly-static-tests-3:
     needs: generate-mostly-static-launcher
@@ -495,6 +506,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 3
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   generate-static-launcher:
     timeout-minutes: 120
@@ -543,6 +555,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Docker integration tests
       run: ./mill integration.docker.test
     - name: Login to GitHub Container Registry
@@ -579,6 +592,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 2
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   native-static-tests-3:
     needs: generate-static-launcher
@@ -604,6 +618,7 @@ jobs:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 3
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
 
   docs-tests:
     # for now, lets run those tests only on ubuntu

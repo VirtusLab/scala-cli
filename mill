@@ -148,7 +148,11 @@ coursier_version="2.1.0-M2"
 
 # https://stackoverflow.com/questions/3466166/how-to-check-if-running-in-cygwin-mac-or-linux/17072017#17072017
 if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
-  cs_url="https://github.com/coursier/coursier/releases/download/v$coursier_version/cs-x86_64-pc-linux.gz"
+  if [ "$(uname -m)" == "aarch64" ]; then
+    cs_url="https://github.com/coursier/coursier/releases/download/v$coursier_version/cs-aarch64-pc-linux.gz"
+  else
+    cs_url="https://github.com/coursier/coursier/releases/download/v$coursier_version/cs-x86_64-pc-linux.gz"
+  fi
   cache_base="$HOME/.cache/coursier/v1"
 elif [ "$(uname)" == "Darwin" ]; then
   cs_url="https://github.com/coursier/coursier/releases/download/v$coursier_version/cs-x86_64-apple-darwin.gz"
@@ -186,7 +190,7 @@ elif [[ "$cache_dest" == *.zip ]]; then
   fi
 fi
 
-eval "$(cs java --env --jvm temurin:17 || cs java --env --jvm openjdk:1.17.0)"
+eval "$("$cs" java --env --jvm temurin:17 || "$cs" java --env --jvm openjdk:1.17.0)"
 
 
 init_mill_jvm_opts

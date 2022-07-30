@@ -355,6 +355,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def millVersion = "${InternalDeps.Versions.mill}"
          |  def lefouMillwRef = "${InternalDeps.Versions.lefouMillwRef}"
          |
+         |  def scalafmtOrganization = "${Deps.scalafmtCli.dep.module.organization.value}"
+         |  def scalafmtName = "${Deps.scalafmtCli.dep.module.name.value}"
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
@@ -366,7 +368,11 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
          |
+         |  def scalaCliSigningOrganization = "${Deps.signingCli.dep.module.organization.value}"
+         |  def scalaCliSigningName = "${Deps.signingCli.dep.module.name.value}"
          |  def scalaCliSigningVersion = "${Deps.signingCli.dep.version}"
+         |  def javaClassNameOrganization = "${Deps.javaClassName.dep.module.organization.value}"
+         |  def javaClassNameName = "${Deps.javaClassName.dep.module.name.value}"
          |  def javaClassNameVersion = "${Deps.javaClassName.dep.version}"
          |
          |  def libsodiumVersion = "${deps.libsodiumVersion}"
