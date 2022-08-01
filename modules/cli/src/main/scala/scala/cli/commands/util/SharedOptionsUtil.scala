@@ -20,6 +20,7 @@ import scala.build.{options => bo}
 import scala.cli.commands.ScalaJsOptions
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
+import scala.cli.config.{ConfigDb, Keys}
 import scala.concurrent.duration._
 import scala.util.Properties
 import scala.util.control.NonFatal
@@ -212,13 +213,22 @@ object SharedOptionsUtil {
           localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
           verbosity = Some(logging.verbosity),
           strictBloopJsonCheck = strictBloopJsonCheck,
-          interactive = logging.verbosityOptions.interactive
+          interactive = Some(interactiveMode)
         ),
         notForBloopOptions = bo.PostBuildOptions(
           scalaJsLinkerOptions = linkerOptions(js)
         )
       )
     }
+
+    def interactiveMode: Boolean = logging.verbosityOptions.interactive
+      .orElse(configDb.get(Keys.interactive).getOrElse(None))
+      .getOrElse(false)
+
+    def configDb: ConfigDb =
+      ConfigDb.open(v) match
+        case Left(ex)        => logger.exit(ex)
+        case Right(configDb) => configDb
 
     def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
       implicit val ec = options.finalCache.ec

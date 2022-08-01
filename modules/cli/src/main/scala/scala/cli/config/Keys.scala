@@ -17,7 +17,10 @@ object Keys {
 
   val actions = new Key.BooleanEntry(Seq.empty, "actions")
 
+  val interactive = new Key.BooleanEntry(Seq.empty, "interactive")
+
   def all = Seq[Key[_]](
+    interactive,
     actions,
     userName,
     userEmail,
