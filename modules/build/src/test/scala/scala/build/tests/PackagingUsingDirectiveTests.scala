@@ -34,4 +34,21 @@ class PackagingUsingDirectiveTests extends munit.FunSuite {
     }
   }
 
+  test("output") {
+    val output = "foo"
+    val inputs = TestInputs(
+      os.rel / "Bar.scala" ->
+        s"""//> using packaging.output "$output"
+           |def hello() = println("hello")
+           |""".stripMargin
+    )
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val maybePackageOutput  = maybeBuild.options.notForBloopOptions.packageOptions.output
+      val packageOutputString = maybePackageOutput.getOrElse("None")
+      val index               = packageOutputString.lastIndexOf('/')
+      val packageName         = packageOutputString.drop(index + 1)
+      expect(packageName == output)
+    }
+  }
+
 }

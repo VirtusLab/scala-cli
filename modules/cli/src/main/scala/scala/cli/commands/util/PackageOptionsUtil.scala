@@ -58,6 +58,7 @@ object PackageOptionsUtil {
             launcherApp = packager.launcherApp,
             maintainer = packager.maintainer,
             description = packager.description,
+            output = output,
             packageTypeOpt = packageTypeOpt,
             logoPath = packager.logoPath.map(os.Path(_, os.pwd)),
             macOSidentifier = packager.identifier,

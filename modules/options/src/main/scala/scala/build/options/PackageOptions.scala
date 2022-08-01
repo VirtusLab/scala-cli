@@ -9,6 +9,7 @@ final case class PackageOptions(
   launcherApp: Option[String] = None,
   maintainer: Option[String] = None,
   description: Option[String] = None,
+  output: Option[String] = None,
   packageTypeOpt: Option[PackageType] = None,
   logoPath: Option[os.Path] = None,
   macOSidentifier: Option[String] = None,

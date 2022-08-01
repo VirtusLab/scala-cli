@@ -248,7 +248,8 @@ object Package extends ScalaCommand[PackageOptions] {
         case _                                                  => "app"
       }
 
-      val dest = outputOpt
+      val packageOutput = build.options.notForBloopOptions.packageOptions.output
+      val dest = outputOpt.orElse(packageOutput)
         .orElse {
           build.sources.defaultMainClass
             .map(n => n.drop(n.lastIndexOf('.') + 1))
