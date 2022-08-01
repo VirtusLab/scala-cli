@@ -1,26 +1,27 @@
 package scala.build.options
 
-import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.Version
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.{Artifact, Task}
-import dependency._
+import dependency.*
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-
 import scala.build.EitherCps.{either, value}
-import scala.build.errors._
-import scala.build.interactive.Interactive._
-import scala.build.internal.Constants._
-import scala.build.internal.CsLoggerUtil._
+import scala.build.errors.*
+import scala.build.interactive.Interactive
+import scala.build.interactive.Interactive.*
+import scala.build.internal.Constants.*
+import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
-import scala.concurrent.duration._
+import scala.concurrent.ExecutionContextExecutorService
+import scala.concurrent.duration.*
 import scala.util.control.NonFatal
 import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
 
@@ -58,7 +59,7 @@ final case class BuildOptions(
     }
   }
 
-  lazy val scalaVersionIsExotic = scalaParams.toOption.flatten.exists { scalaParameters =>
+  lazy val scalaVersionIsExotic: Boolean = scalaParams.toOption.flatten.exists { scalaParameters =>
     scalaParameters.scalaVersion.startsWith("2") && scalaParameters.scalaVersion.exists(_.isLetter)
   }
 
@@ -125,9 +126,9 @@ final case class BuildOptions(
     if (platform.value == Platform.Native) scalaNativeOptions.compilerPlugins
     else Nil
   def compilerPlugins: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
-    value(maybeJsCompilerPlugins).map(Positioned.none(_)) ++
-      maybeNativeCompilerPlugins.map(Positioned.none(_)) ++
-      value(semanticDbPlugins).map(Positioned.none(_)) ++
+    value(maybeJsCompilerPlugins).map(Positioned.none) ++
+      maybeNativeCompilerPlugins.map(Positioned.none) ++
+      value(semanticDbPlugins).map(Positioned.none) ++
       scalaOptions.compilerPlugins
   }
 
@@ -196,7 +197,7 @@ final case class BuildOptions(
       }
       .orElse {
         javaOptions.jvmIdOpt.map { jvmId =>
-          implicit val ec = finalCache.ec
+          implicit val ec: ExecutionContextExecutorService = finalCache.ec
           finalCache.logger.use {
             val enforceLiberica =
               jvmIndexOs == "linux-musl" && jvmId.forall(c => c.isDigit || c == '.' || c == '-')
@@ -222,7 +223,7 @@ final case class BuildOptions(
       val jvmId = OsLibc.defaultJvm(jvmIndexOs)
       val javaHomeManager0 = javaHomeManager
         .withMessage(s"Downloading JVM $jvmId")
-      implicit val ec = finalCache.ec
+      implicit val ec: ExecutionContextExecutorService = finalCache.ec
       finalCache.logger.use {
         val path =
           try javaHomeManager0.get(jvmId).unsafeRun()
@@ -312,7 +313,7 @@ final case class BuildOptions(
 
   def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
 
-  lazy val javaHomeManager = {
+  lazy val javaHomeManager: JavaHome = {
     val indexUrl = javaOptions.jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
     val indexTask = {
       val msg   = if (internal.verbosityOrDefault > 0) "Downloading JVM index" else ""
@@ -450,7 +451,11 @@ final case class BuildOptions(
     }
   }
 
-  def artifacts(logger: Logger, scope: Scope): Either[BuildException, Artifacts] = either {
+  def artifacts(
+    logger: Logger,
+    scope: Scope,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+  ): Either[BuildException, Artifacts] = either {
     val isTests = scope == Scope.Test
     val scalaArtifactsParamsOpt = value(scalaParams) match {
       case Some(scalaParams0) =>
@@ -488,7 +493,8 @@ final case class BuildOptions(
       extraRepositories = finalRepositories,
       keepResolution = internal.keepResolution,
       cache = finalCache,
-      logger = logger
+      logger = logger,
+      maybeRecoverOnError = maybeRecoverOnError
     )
     value(maybeArtifacts)
   }
@@ -562,7 +568,7 @@ final case class BuildOptions(
       normalize,
       s => {
         val bytes = s.getBytes(StandardCharsets.UTF_8)
-        if (bytes.length > 0) {
+        if (bytes.nonEmpty) {
           hasAnyOverride = true
           md.update(bytes)
         }
@@ -593,7 +599,8 @@ final case class BuildOptions(
     }
   }
 
-  val interactive = if (internal.interactive.getOrElse(false)) InteractiveAsk else InteractiveNop
+  val interactive: Interactive =
+    if (internal.interactive.getOrElse(false)) InteractiveAsk else InteractiveNop
 }
 
 object BuildOptions {

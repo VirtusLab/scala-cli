@@ -32,7 +32,8 @@ final case class JavaPreprocessor(
 ) extends Preprocessor {
   def preprocess(
     input: Inputs.SingleElement,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case j: Inputs.JavaFile => Some(either {
@@ -44,7 +45,8 @@ final case class JavaPreprocessor(
               Right(j.path),
               logger,
               Array(UsingDirectiveKind.PlainComment, UsingDirectiveKind.SpecialComment),
-              scopePath
+              scopePath,
+              maybeRecoverOnError
             ))
           val updatedOptions = value(DirectivesProcessor.process(
             directives0,

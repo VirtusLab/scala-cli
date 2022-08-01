@@ -62,7 +62,8 @@ class DirectiveParsingTest extends munit.FunSuite {
       Right(path),
       persistentLogger,
       UsingDirectiveKind.values(),
-      ScopePath.fromPath(path)
+      ScopePath.fromPath(path),
+      maybeRecoverOnError = e => Some(e)
     )
 
     def checkDiag(checks: Seq[Check]) = {
