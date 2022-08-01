@@ -1,10 +1,10 @@
 package scala.cli.integration
 
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -16,9 +16,9 @@ import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future, Promise}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
@@ -27,7 +27,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
-  import BspTestDefinitions._
+  import BspTestDefinitions.*
 
   def initParams(root: os.Path): b.InitializeBuildParams =
     new b.InitializeBuildParams(
@@ -83,7 +83,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     f: (
       os.Path,
       TestBspClient,
-      b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
+      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer
     ) => Future[T]
   ): T = {
 
@@ -92,7 +92,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
       val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptions, args)
         .spawn(cwd = root)
-      var remoteServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer = null
+      var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer = null
 
       try {
         val (localClient, remoteServer0, _) =
@@ -419,39 +419,29 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         }
         expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
-        val diagnosticsParams = {
-          val params = localClient.latestDiagnostics().getOrElse {
-            sys.error("No diagnostics found")
-          }
-          expect(params.getBuildTarget.getUri == targetUri)
-          expect(
-            TestUtil.normalizeUri(params.getTextDocument.getUri) ==
-              TestUtil.normalizeUri((root / "Test.scala").toNIO.toUri.toASCIIString)
-          )
-          params
-        }
+        val diagnosticsParams: b.PublishDiagnosticsParams =
+          extractDiagnosticsParams(root / "Test.scala", localClient)
+        expect(diagnosticsParams.getBuildTarget.getUri == targetUri)
 
         val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
         expect(diagnostics.length == 1)
 
-        val diag = diagnostics.head
-
-        expect(diag.getSeverity == b.DiagnosticSeverity.ERROR)
-        expect(diag.getRange.getStart.getLine == 2)
-        expect(diag.getRange.getStart.getCharacter == 2)
-        expect(diag.getRange.getEnd.getLine == 2)
-        if (actualScalaVersion.startsWith("2.")) {
-          expect(diag.getMessage == "not found: value zz")
-          expect(diag.getRange.getEnd.getCharacter == 4)
-        }
-        else if (actualScalaVersion == "3.0.0") {
-          expect(diag.getMessage == "Not found: zz")
-          expect(diag.getRange.getEnd.getCharacter == 2)
-        }
-        else {
-          expect(diag.getMessage == "Not found: zz")
-          expect(diag.getRange.getEnd.getCharacter == 4)
-        }
+        val (expectedMessage, expectedEndCharacter) =
+          if (actualScalaVersion.startsWith("2."))
+            "not found: value zz" -> 4
+          else if (actualScalaVersion == "3.0.0")
+            "Not found: zz" -> 2
+          else
+            "Not found: zz" -> 4
+        checkDiagnostic(
+          diagnostic = diagnostics.head,
+          expectedMessage = expectedMessage,
+          expectedSeverity = b.DiagnosticSeverity.ERROR,
+          expectedStartLine = 2,
+          expectedStartCharacter = 2,
+          expectedEndLine = 2,
+          expectedEndCharacter = expectedEndCharacter
+        )
       }
     }
   }
@@ -502,24 +492,22 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
         expect(diagnostics.length == 1)
 
-        val diag = diagnostics.head
-
-        expect(diag.getSeverity == b.DiagnosticSeverity.ERROR)
-        expect(diag.getRange.getStart.getLine == 1)
-        expect(diag.getRange.getStart.getCharacter == 0)
-        expect(diag.getRange.getEnd.getLine == 1)
-        if (actualScalaVersion.startsWith("2.")) {
-          expect(diag.getMessage == "not found: value zz")
-          expect(diag.getRange.getEnd.getCharacter == 2)
-        }
-        else if (actualScalaVersion == "3.0.0") {
-          expect(diag.getMessage == "Not found: zz")
-          expect(diag.getRange.getEnd.getCharacter == 0)
-        }
-        else {
-          expect(diag.getMessage == "Not found: zz")
-          expect(diag.getRange.getEnd.getCharacter == 2)
-        }
+        val (expectedMessage, expectedEndCharacter) =
+          if (actualScalaVersion.startsWith("2."))
+            "not found: value zz" -> 2
+          else if (actualScalaVersion == "3.0.0")
+            "Not found: zz" -> 0
+          else
+            "Not found: zz" -> 2
+        checkDiagnostic(
+          diagnostic = diagnostics.head,
+          expectedMessage = expectedMessage,
+          expectedSeverity = b.DiagnosticSeverity.ERROR,
+          expectedStartLine = 1,
+          expectedStartCharacter = 0,
+          expectedEndLine = 1,
+          expectedEndCharacter = expectedEndCharacter
+        )
       }
     }
   }
@@ -543,15 +531,15 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           fail("No diagnostics found")
         }
 
-        val diag = diagnosticsParams.getDiagnostics.asScala.toSeq.head
-
-        expect(
-          diag.getSeverity == b.DiagnosticSeverity.ERROR,
-          diag.getRange.getStart.getLine == 0,
-          diag.getRange.getStart.getCharacter == 20,
-          diag.getRange.getEnd.getLine == 0,
-          diag.getRange.getEnd.getCharacter == 20,
-          diag.getMessage.contains("Unrecognized directive: resource with values: ./resources")
+        checkDiagnostic(
+          diagnostic = diagnosticsParams.getDiagnostics.asScala.toSeq.head,
+          expectedMessage = "Unrecognized directive: resource with values: ./resources",
+          expectedSeverity = b.DiagnosticSeverity.ERROR,
+          expectedStartLine = 0,
+          expectedStartCharacter = 20,
+          expectedEndLine = 0,
+          expectedEndCharacter = 20,
+          strictlyCheckMessage = false
         )
       }
     }
@@ -571,30 +559,30 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
 
-    withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
+    withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
       async {
         await(remoteServer.workspaceBuildTargets().asScala)
-
-        val diagnosticsParams = localClient.latestDiagnostics().getOrElse {
-          sys.error("No diagnostics found")
-        }
+        val diagnosticsParams = extractDiagnosticsParams(root / "Test.scala", localClient)
 
         val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
         expect(diagnostics.length == 1)
 
-        val diag = diagnostics.head
-
-        expect(diag.getSeverity == b.DiagnosticSeverity.ERROR)
-        expect(diag.getRange.getStart.getLine == 0)
-        expect(diag.getRange.getStart.getCharacter == 15)
-        expect(diag.getRange.getEnd.getLine == 0)
-        expect(diag.getRange.getEnd.getCharacter == 15)
         val sbv =
           if (actualScalaVersion.startsWith("2.12.")) "2.12"
           else if (actualScalaVersion.startsWith("2.13.")) "2.13"
           else if (actualScalaVersion.startsWith("3.")) "3"
           else ???
-        expect(diag.getMessage.contains(s"Error downloading com.lihaoyi:pprint_$sbv:0.0.0.0.0.1"))
+        val expectedMessage = s"Error downloading com.lihaoyi:pprint_$sbv:0.0.0.0.0.1"
+        checkDiagnostic(
+          diagnostic = diagnostics.head,
+          expectedMessage = expectedMessage,
+          expectedSeverity = b.DiagnosticSeverity.ERROR,
+          expectedStartLine = 0,
+          expectedStartCharacter = 15,
+          expectedEndLine = 0,
+          expectedEndCharacter = 15,
+          strictlyCheckMessage = false
+        )
       }
     }
   }
@@ -1118,9 +1106,140 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("bloop projects are initialised properly for an invalid directive") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "InvalidUsingDirective.scala" ->
+          s"""//> using scala 3.1.2
+             |
+             |object InvalidUsingDirective extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".")) {
+      (root, localClient, remoteServer) =>
+        async {
+          checkIfBloopProjectIsInitialised(
+            root,
+            await(remoteServer.workspaceBuildTargets().asScala)
+          )
+          val diagnosticsParams =
+            extractDiagnosticsParams(root / "InvalidUsingDirective.scala", localClient)
+          val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
+          expect(diagnostics.length == 1)
+          checkDiagnostic(
+            diagnostic = diagnostics.head,
+            expectedMessage =
+              "Expected new line after the using directive, in the line; but found number literal: .2",
+            expectedSeverity = b.DiagnosticSeverity.ERROR,
+            expectedStartLine = 0,
+            expectedStartCharacter = 19,
+            expectedEndLine = 0,
+            expectedEndCharacter = 19
+          )
+        }
+    }
+  }
+
+  test("bloop projects are initialised properly for a directive for an unfetchable dependency") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "InvalidUsingDirective.scala" ->
+          s"""//> using lib "no::lib:123"
+             |
+             |object InvalidUsingDirective extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".")) {
+      (root, localClient, remoteServer) =>
+        async {
+          checkIfBloopProjectIsInitialised(
+            root,
+            await(remoteServer.workspaceBuildTargets().asScala)
+          )
+          val diagnosticsParams =
+            extractDiagnosticsParams(root / "InvalidUsingDirective.scala", localClient)
+          val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
+          expect(diagnostics.length == 1)
+          checkDiagnostic(
+            diagnostic = diagnostics.head,
+            expectedMessage = "Error downloading no:lib",
+            expectedSeverity = b.DiagnosticSeverity.ERROR,
+            expectedStartLine = 0,
+            expectedStartCharacter = 15,
+            expectedEndLine = 0,
+            expectedEndCharacter = 15,
+            strictlyCheckMessage = false
+          )
+        }
+    }
+  }
+  private def checkIfBloopProjectIsInitialised(
+    root: os.Path,
+    buildTargetsResp: b.WorkspaceBuildTargetsResult
+  ): Unit = {
+    val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+    expect(targets.length == 2)
+
+    val bloopProjectNames = targets.map { target =>
+      val targetUri = TestUtil.normalizeUri(target.getUri)
+      checkTargetUri(root, targetUri)
+      new URI(targetUri).getQuery.stripPrefix("id=")
+    }
+
+    val bloopDir = root / Constants.workspaceDirName / ".bloop"
+    expect(os.isDir(bloopDir))
+
+    bloopProjectNames.foreach { bloopProjectName =>
+      val bloopProjectJsonPath = bloopDir / s"$bloopProjectName.json"
+      expect(os.isFile(bloopProjectJsonPath))
+    }
+  }
+
+  private def extractDiagnosticsParams(
+    relevantFilePath: os.Path,
+    localClient: TestBspClient
+  ): b.PublishDiagnosticsParams = {
+    val params = localClient.latestDiagnostics().getOrElse {
+      sys.error("No diagnostics found")
+    }
+    expect {
+      TestUtil.normalizeUri(params.getTextDocument.getUri) == TestUtil.normalizeUri(
+        relevantFilePath.toNIO.toUri.toASCIIString
+      )
+    }
+    params
+  }
+
+  private def checkDiagnostic(
+    diagnostic: b.Diagnostic,
+    expectedMessage: String,
+    expectedSeverity: b.DiagnosticSeverity,
+    expectedStartLine: Int,
+    expectedStartCharacter: Int,
+    expectedEndLine: Int,
+    expectedEndCharacter: Int,
+    strictlyCheckMessage: Boolean = true
+  ): Unit = {
+    expect(diagnostic.getSeverity == expectedSeverity)
+    expect(diagnostic.getRange.getStart.getLine == expectedStartLine)
+    expect(diagnostic.getRange.getStart.getCharacter == expectedStartCharacter)
+    expect(diagnostic.getRange.getEnd.getLine == expectedEndLine)
+    expect(diagnostic.getRange.getEnd.getCharacter == expectedEndCharacter)
+    if (strictlyCheckMessage)
+      expect(diagnostic.getMessage == expectedMessage)
+    else
+      expect(diagnostic.getMessage.contains(expectedMessage))
+  }
+
   private def extractWorkspaceReloadResponse(workspaceReloadResult: AnyRef): Option[ResponseError] =
     workspaceReloadResult match {
-      case gsonMap: LinkedTreeMap[_, _] if !gsonMap.isEmpty =>
+      case gsonMap: LinkedTreeMap[?, ?] if !gsonMap.isEmpty =>
         val gson = new Gson()
         Some(gson.fromJson(gson.toJson(gsonMap), classOf[ResponseError]))
       case _ => None

@@ -122,15 +122,17 @@ object CrossSources {
   def forInputs(
     inputs: Inputs,
     preprocessors: Seq[Preprocessor],
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, (CrossSources, Inputs)] = either {
 
-    def preprocessSources(elems: Seq[Inputs.SingleElement]) =
+    def preprocessSources(elems: Seq[Inputs.SingleElement])
+      : Either[BuildException, Seq[PreprocessedSource]] =
       elems
         .map { elem =>
           preprocessors
             .iterator
-            .flatMap(p => p.preprocess(elem, logger).iterator)
+            .flatMap(p => p.preprocess(elem, logger, maybeRecoverOnError).iterator)
             .take(1)
             .toList
             .headOption

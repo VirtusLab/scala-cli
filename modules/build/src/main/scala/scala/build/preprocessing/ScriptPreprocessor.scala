@@ -12,7 +12,8 @@ import scala.build.{Inputs, Logger}
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {
   def preprocess(
     input: Inputs.SingleElement,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case script: Inputs.Script =>
@@ -25,7 +26,8 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               codeWrapper,
               script.subPath,
               ScopePath.fromPath(script.path),
-              logger
+              logger,
+              maybeRecoverOnError
             )
           }
           preprocessed
@@ -43,7 +45,8 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               codeWrapper,
               script.wrapperPath,
               script.scopePath,
-              logger
+              logger,
+              maybeRecoverOnError
             )
           }
           preprocessed
@@ -63,7 +66,8 @@ object ScriptPreprocessor {
     codeWrapper: CodeWrapper,
     subPath: os.SubPath,
     scopePath: ScopePath,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
 
     val (contentIgnoredSheBangLines, _) = SheBang.ignoreSheBangLines(content)
@@ -75,7 +79,8 @@ object ScriptPreprocessor {
         contentIgnoredSheBangLines,
         reportingPath,
         scopePath / os.up,
-        logger
+        logger,
+        maybeRecoverOnError
       ))
         .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
 

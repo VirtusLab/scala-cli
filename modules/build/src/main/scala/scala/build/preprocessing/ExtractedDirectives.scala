@@ -9,11 +9,11 @@ import com.virtuslab.using_directives.custom.model.{
 import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
 import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 
-import scala.build.errors._
+import scala.build.errors.*
 import scala.build.preprocessing.directives.{DirectiveUtil, ScopedDirective, StrictDirective}
 import scala.build.{Logger, Position}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 case class ExtractedDirectives(
   offset: Int,
@@ -21,6 +21,8 @@ case class ExtractedDirectives(
 )
 
 object ExtractedDirectives {
+
+  def empty: ExtractedDirectives = ExtractedDirectives(0, Seq.empty)
 
   val changeToSpecialCommentMsg =
     "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...' or '/*> ... */'"
@@ -30,7 +32,8 @@ object ExtractedDirectives {
     path: Either[String, os.Path],
     logger: Logger,
     supportedDirectives: Array[UsingDirectiveKind],
-    cwd: ScopePath
+    cwd: ScopePath,
+    maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, ExtractedDirectives] = {
     val errors = new mutable.ListBuffer[Diagnostic]
     val reporter = CustomDirectivesReporter.create(path) { diag =>
@@ -47,14 +50,20 @@ object ExtractedDirectives {
       new UsingDirectivesProcessor(context)
     }
     val all = processor.extract(contentChars, true, true).asScala
-    if (errors.isEmpty) {
+    val malformedDirectiveErrors =
+      errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions)).toSeq
+    val maybeCompositeMalformedDirectiveError =
+      if (malformedDirectiveErrors.nonEmpty)
+        maybeRecoverOnError(CompositeBuildException(malformedDirectiveErrors))
+      else None
+    if (malformedDirectiveErrors.isEmpty || maybeCompositeMalformedDirectiveError.isEmpty) {
 
       def byKind(kind: UsingDirectiveKind) = all.find(_.getKind == kind).get
 
       def getDirectives(directives: UsingDirectives) =
-        directives.getAst() match {
+        directives.getAst match {
           case ud: UsingDefs =>
-            ud.getUsingDefs().asScala.toSeq
+            ud.getUsingDefs.asScala.toSeq
           case _ =>
             Nil
         }
@@ -65,16 +74,16 @@ object ExtractedDirectives {
 
       def reportWarning(msg: String, values: Seq[UsingDef], before: Boolean = true): Unit =
         values.foreach { v =>
-          val astPos = v.getPosition()
+          val astPos = v.getPosition
           val (start, end) =
-            if (before) (0, astPos.getColumn())
-            else (astPos.getColumn(), astPos.getColumn() + v.getSyntax.getKeyword.size)
-          val position = Position.File(path, (astPos.getLine(), start), (astPos.getLine(), end))
+            if (before) (0, astPos.getColumn)
+            else (astPos.getColumn, astPos.getColumn + v.getSyntax.getKeyword.length)
+          val position = Position.File(path, (astPos.getLine, start), (astPos.getLine, end))
           logger.diagnostic(msg, positions = Seq(position))
         }
 
       val usedDirectives =
-        if (!codeDirectives.getFlattenedMap().isEmpty()) {
+        if (!codeDirectives.getFlattenedMap.isEmpty) {
           val msg =
             "This using directive is ignored. File contains directives outside comments and those have higher precedence."
           reportWarning(
@@ -83,7 +92,7 @@ object ExtractedDirectives {
           )
           codeDirectives
         }
-        else if (!specialCommentDirectives.getFlattenedMap().isEmpty()) {
+        else if (!specialCommentDirectives.getFlattenedMap.isEmpty) {
           val msg =
             s"This using directive is ignored. $changeToSpecialCommentMsg"
           reportWarning(msg, getDirectives(plainCommentDirectives))
@@ -97,7 +106,7 @@ object ExtractedDirectives {
       // All using directives should use just `using` keyword, no @using or require
       reportWarning(
         "Deprecated using directive syntax, please use keyword `using`.",
-        getDirectives(usedDirectives).filter(_.getSyntax() != UsingDirectiveSyntax.Using),
+        getDirectives(usedDirectives).filter(_.getSyntax != UsingDirectiveSyntax.Using),
         before = false
       )
 
@@ -109,9 +118,9 @@ object ExtractedDirectives {
         }
 
       val offset =
-        if (usedDirectives.getKind() != UsingDirectiveKind.Code) 0
-        else usedDirectives.getCodeOffset()
-      if (supportedDirectives.contains(usedDirectives.getKind()))
+        if (usedDirectives.getKind != UsingDirectiveKind.Code) 0
+        else usedDirectives.getCodeOffset
+      if (supportedDirectives.contains(usedDirectives.getKind))
         Right(ExtractedDirectives(offset, strictDirectives))
       else {
         val directiveVales =
@@ -121,15 +130,20 @@ object ExtractedDirectives {
           path,
           cwd
         )))
-        Left(new DirectiveErrors(
+        val directiveErrors = new DirectiveErrors(
           ::(s"Directive '${usedDirectives.getKind}' is not supported in the given context'", Nil),
           values.flatMap(_.positioned.positions)
-        ))
+        )
+        maybeRecoverOnError(directiveErrors) match {
+          case Some(e) => Left(e)
+          case None    => Right(ExtractedDirectives.empty)
+        }
       }
     }
-    else {
-      val errors0 = errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions))
-      Left(CompositeBuildException(errors0.toSeq))
-    }
+    else
+      maybeCompositeMalformedDirectiveError match {
+        case Some(e) => Left(e)
+        case None    => Right(ExtractedDirectives.empty)
+      }
   }
 }

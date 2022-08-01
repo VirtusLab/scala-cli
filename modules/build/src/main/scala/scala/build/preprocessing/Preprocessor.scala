@@ -6,6 +6,7 @@ import scala.build.{Inputs, Logger}
 trait Preprocessor {
   def preprocess(
     input: Inputs.SingleElement,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Option[Either[BuildException, Seq[PreprocessedSource]]]
 }
