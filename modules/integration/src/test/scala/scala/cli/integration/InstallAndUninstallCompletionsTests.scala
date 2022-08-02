@@ -12,10 +12,8 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
                      |dummy line
                      |dummy line""".stripMargin
   val testInputs = TestInputs(
-    Seq(
-      os.rel / zshRcFile  -> rcContent,
-      os.rel / bashRcFile -> rcContent
-    )
+    os.rel / zshRcFile  -> rcContent,
+    os.rel / bashRcFile -> rcContent
   )
 
   def runInstallAndUninstallCompletions(): Unit = {

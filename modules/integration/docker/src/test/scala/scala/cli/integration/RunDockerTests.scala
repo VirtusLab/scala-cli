@@ -15,12 +15,10 @@ class RunDockerTests extends munit.FunSuite {
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""val msg = "$message"
-             |println(msg)
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""val msg = "$message"
+           |println(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val termOpt   = if (System.console() == null) Nil else Seq("-t")

@@ -12,15 +12,13 @@ class BloopTests extends ScalaCliSuite {
     BloopUtil.bloopDaemonDir(runScalaCli("directories").call().out.text())
 
   val dummyInputs = TestInputs(
-    Seq(
-      os.rel / "Test.scala" ->
-        """//> using scala "2.13"
-          |object Test {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello " + "from test")
-          |}
-          |""".stripMargin
-    )
+    os.rel / "Test.scala" ->
+      """//> using scala "2.13"
+        |object Test {
+        |  def main(args: Array[String]): Unit =
+        |    println("Hello " + "from test")
+        |}
+        |""".stripMargin
   )
 
   def testScalaTermination(
@@ -57,7 +55,7 @@ class BloopTests extends ScalaCliSuite {
   }
 
   test("invalid bloop options passed via cli cause bloop start failure") {
-    TestInputs(Seq()).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       runScalaCli("bloop", "exit").call(cwd = root)
       val res = runScalaCli("bloop", "start", "--bloop-java-opt", "-zzefhjzl").call(
         cwd = root,
@@ -72,12 +70,10 @@ class BloopTests extends ScalaCliSuite {
 
   test("invalid bloop options passed via global bloop config json file cause bloop start failure") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "bloop.json" ->
-          """|{
-             | "javaOptions" : ["-Xmx1k"]
-             | }""".stripMargin
-      )
+      os.rel / "bloop.json" ->
+        """|{
+           | "javaOptions" : ["-Xmx1k"]
+           | }""".stripMargin
     )
 
     inputs.fromRoot { root =>
@@ -101,7 +97,7 @@ class BloopTests extends ScalaCliSuite {
       javaProcesses.contains("bloop.Bloop")
     }
 
-    val inputs = TestInputs(Seq.empty)
+    val inputs = TestInputs.empty
     inputs.fromRoot { _ =>
       BloopUtil.killBloop()
       TestUtil.retry()(assert(!bloopRunning()))
@@ -118,14 +114,12 @@ class BloopTests extends ScalaCliSuite {
 
   test("bloop projects and bloop compile works") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          """object Hello {
-            |  def main(args: Array[String]): Unit =
-            |    println("Hello")
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
 

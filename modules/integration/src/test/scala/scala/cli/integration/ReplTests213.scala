@@ -13,7 +13,7 @@ class ReplTests213 extends ReplTestDefinitions(
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   test("ammonite with extra JAR") {
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       val ammArgs = Seq(
         "-c",
         """import shapeless._; println("Here's an HList: " + (2 :: true :: "a" :: HNil))"""

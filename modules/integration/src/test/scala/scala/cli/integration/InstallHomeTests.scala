@@ -14,18 +14,16 @@ class InstallHomeTests extends ScalaCliSuite {
   val dummyScalaCliSecondName = "DummyScalaCli-2.scala"
   val dummyScalaCliBinName    = "scala-cli-dummy-test"
   val testInputs = TestInputs(
-    Seq(
-      os.rel / dummyScalaCliFirstName ->
-        s"""
-           |object DummyScalaCli extends App {
-           |  println(\"$firstVersion\")
-           |}""".stripMargin,
-      os.rel / dummyScalaCliSecondName ->
-        s"""
-           |object DummyScalaCli extends App {
-           |  println(\"$secondVersion\")
-           |}""".stripMargin
-    )
+    os.rel / dummyScalaCliFirstName ->
+      s"""
+         |object DummyScalaCli extends App {
+         |  println(\"$firstVersion\")
+         |}""".stripMargin,
+    os.rel / dummyScalaCliSecondName ->
+      s"""
+         |object DummyScalaCli extends App {
+         |  println(\"$secondVersion\")
+         |}""".stripMargin
   )
 
   private def packageDummyScalaCli(root: os.Path, dummyScalaCliFileName: String, output: String) = {

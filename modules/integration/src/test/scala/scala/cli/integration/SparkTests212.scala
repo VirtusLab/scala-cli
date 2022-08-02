@@ -75,28 +75,26 @@ class SparkTests212 extends SparkTestDefinitions {
   def simplePackageSparkJobTest(spark: Spark): Unit = {
     val master = "local[4]"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "SparkJob.scala" ->
-          s"""//> using lib "org.apache.spark::spark-sql:${spark.sparkVersion}"
-             |//> using scala "${spark.scalaVersion}"
-             |
-             |import org.apache.spark._
-             |import org.apache.spark.sql._
-             |
-             |object SparkJob {
-             |  def main(args: Array[String]): Unit = {
-             |    val spark = SparkSession.builder()
-             |      .appName("Test job")
-             |      .getOrCreate()
-             |    import spark.implicits._
-             |    def sc    = spark.sparkContext
-             |    val accum = sc.longAccumulator
-             |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
-             |    println("Result: " + accum.value)
-             |  }
-             |}
-             |""".stripMargin
-      )
+      os.rel / "SparkJob.scala" ->
+        s"""//> using lib "org.apache.spark::spark-sql:${spark.sparkVersion}"
+           |//> using scala "${spark.scalaVersion}"
+           |
+           |import org.apache.spark._
+           |import org.apache.spark.sql._
+           |
+           |object SparkJob {
+           |  def main(args: Array[String]): Unit = {
+           |    val spark = SparkSession.builder()
+           |      .appName("Test job")
+           |      .getOrCreate()
+           |    import spark.implicits._
+           |    def sc    = spark.sparkContext
+           |    val accum = sc.longAccumulator
+           |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
+           |    println("Result: " + accum.value)
+           |  }
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val dest = os.rel / "SparkJob.jar"

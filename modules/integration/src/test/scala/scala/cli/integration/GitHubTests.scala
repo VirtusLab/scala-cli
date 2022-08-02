@@ -23,7 +23,7 @@ class GitHubTests extends ScalaCliSuite {
     val keyId   = "the-key-id"
     val keyPair = Sodium.keyPair()
     val value   = "1234"
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       val pubKey = GitHubTests.PublicKey(keyId, Base64.getEncoder.encodeToString(keyPair.getPubKey))
       os.write(root / "pub-key.json", writeToArray(pubKey))
 

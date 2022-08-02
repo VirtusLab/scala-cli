@@ -8,14 +8,12 @@ class CleanTests extends ScalaCliSuite {
 
   test("simple") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          """object Hello {
-            |  def main(args: Array[String]): Unit =
-            |    println("Hello")
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin
     )
 
     inputs.fromRoot { root =>

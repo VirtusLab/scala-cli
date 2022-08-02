@@ -10,13 +10,11 @@ class UpdateTests extends ScalaCliSuite {
   val dummyScalaCliFirstName = "DummyScalaCli-1.scala"
   val dummyScalaCliBinName   = "scala-cli-dummy-test"
   val testInputs = TestInputs(
-    Seq(
-      os.rel / dummyScalaCliFirstName ->
-        s"""
-           |object DummyScalaCli extends App {
-           |  println(\"$firstVersion\")
-           |}""".stripMargin
-    )
+    os.rel / dummyScalaCliFirstName ->
+      s"""
+         |object DummyScalaCli extends App {
+         |  println(\"$firstVersion\")
+         |}""".stripMargin
   )
 
   private def packageDummyScalaCli(root: os.Path, dummyScalaCliFileName: String, output: String) = {

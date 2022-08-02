@@ -9,11 +9,9 @@ class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
   def archLinuxTest(): Unit = {
     val message = "Hello from Scala CLI on Arch Linux"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "hello.sc" ->
-          s"""println("$message")
-             |""".stripMargin
-      )
+      os.rel / "hello.sc" ->
+        s"""println("$message")
+           |""".stripMargin
     )
     val extraOptsStr = extraOptions.mkString(" ") /* meh escaping */
     inputs.fromRoot { root =>

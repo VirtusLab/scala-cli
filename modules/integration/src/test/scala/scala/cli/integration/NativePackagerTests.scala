@@ -12,16 +12,14 @@ class NativePackagerTests extends ScalaCliSuite {
   val message            = "Hello, world!"
   val licencePath        = "DummyLICENSE"
   val testInputs = TestInputs(
-    Seq(
-      os.rel / helloWorldFileName ->
-        s"""
-           |object HelloWorld {
-           |  def main(args: Array[String]): Unit = {
-           |    println("$message")
-           |  }
-           |}""".stripMargin,
-      os.rel / licencePath -> "LICENSE"
-    )
+    os.rel / helloWorldFileName ->
+      s"""
+         |object HelloWorld {
+         |  def main(args: Array[String]): Unit = {
+         |    println("$message")
+         |  }
+         |}""".stripMargin,
+    os.rel / licencePath -> "LICENSE"
   )
 
   private val ciOpt = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)

@@ -16,11 +16,7 @@ class DependencyUpdateTests extends ScalaCliSuite {
           |object Hello extends App {
           |  println("$message")
           |}""".stripMargin
-    val inputs = TestInputs(
-      Seq(
-        os.rel / fileName -> fileContent
-      )
-    )
+    val inputs = TestInputs(os.rel / fileName -> fileContent)
     inputs.fromRoot { root =>
       // update dependencies
       val p = os.proc(TestUtil.cli, "dependency-update", "--all", fileName)

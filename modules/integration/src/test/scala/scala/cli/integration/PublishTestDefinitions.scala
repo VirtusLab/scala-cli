@@ -14,30 +14,28 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
 
   private object TestCase {
     val testInputs = TestInputs(
-      Seq(
-        os.rel / "project" / "foo" / "Hello.scala" ->
-          """//> using publish.organization "org.virtuslab.scalacli.test"
-            |//> using publish.name "simple"
-            |//> using publish.version "0.2.0-SNAPSHOT"
-            |//> using publish.url "https://github.com/VirtusLab/scala-cli"
-            |//> using publish.license "Apache 2.0:http://opensource.org/licenses/Apache-2.0"
-            |//> using publish.developer "someone|Someone||https://github.com/someone"
-            |
-            |package foo
-            |
-            |object Hello {
-            |  def main(args: Array[String]): Unit =
-            |    println(Messages.hello)
-            |}
-            |""".stripMargin,
-        os.rel / "project" / "foo" / "Messages.scala" ->
-          """package foo
-            |
-            |object Messages {
-            |  def hello = "Hello"
-            |}
-            |""".stripMargin
-      )
+      os.rel / "project" / "foo" / "Hello.scala" ->
+        """//> using publish.organization "org.virtuslab.scalacli.test"
+          |//> using publish.name "simple"
+          |//> using publish.version "0.2.0-SNAPSHOT"
+          |//> using publish.url "https://github.com/VirtusLab/scala-cli"
+          |//> using publish.license "Apache 2.0:http://opensource.org/licenses/Apache-2.0"
+          |//> using publish.developer "someone|Someone||https://github.com/someone"
+          |
+          |package foo
+          |
+          |object Hello {
+          |  def main(args: Array[String]): Unit =
+          |    println(Messages.hello)
+          |}
+          |""".stripMargin,
+      os.rel / "project" / "foo" / "Messages.scala" ->
+        """package foo
+          |
+          |object Messages {
+          |  def hello = "Hello"
+          |}
+          |""".stripMargin
     )
     val scalaSuffix =
       if (actualScalaVersion.startsWith("3.")) "_3"
@@ -194,11 +192,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"
     val inputs = TestInputs(
-      Seq(
-        os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
-        os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
-        os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
-      )
+      os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
+      os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
+      os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
     )
     inputs.fromRoot { root =>
       val res = os.proc(

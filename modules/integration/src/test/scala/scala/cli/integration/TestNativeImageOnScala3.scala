@@ -13,7 +13,7 @@ class TestNativeImageOnScala3 extends ScalaCliSuite {
       if (Properties.isWin) "testApp.exe"
       else "testApp"
 
-    val inputs = TestInputs(Seq(os.rel / "Hello.scala" -> code))
+    val inputs = TestInputs(os.rel / "Hello.scala" -> code)
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,

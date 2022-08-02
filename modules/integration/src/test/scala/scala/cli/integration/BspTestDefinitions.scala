@@ -153,12 +153,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("setup-ide") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "simple.sc" ->
-          s"""val msg = "Hello"
-             |println(msg)
-             |""".stripMargin
-      )
+      os.rel / "simple.sc" ->
+        s"""val msg = "Hello"
+           |println(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "setup-ide", ".", extraOptions).call(cwd = root, stdout = os.Inherit)
@@ -171,12 +169,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   for (command <- Seq("setup-ide", "compile", "run"))
     test(command + " should result in generated bsp file") {
       val inputs = TestInputs(
-        Seq(
-          os.rel / "simple.sc" ->
-            s"""val msg = "Hello"
-               |println(msg)
-               |""".stripMargin
-        )
+        os.rel / "simple.sc" ->
+          s"""val msg = "Hello"
+             |println(msg)
+             |""".stripMargin
       )
       inputs.fromRoot { root =>
         os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
@@ -197,18 +193,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
 
   val importPprintOnlyProject: TestInputs = TestInputs(
-    Seq(
-      os.rel / "simple.sc" -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`"
-    )
+    os.rel / "simple.sc" -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`"
   )
 
   test("setup-ide should have only absolute paths even if relative ones were specified") {
     val path = os.rel / "directory" / "simple.sc"
-    val inputs = TestInputs(
-      Seq(
-        path -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`"
-      )
-    )
+    val inputs =
+      TestInputs(path -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`")
     inputs.fromRoot { root =>
       val relativeCliCommand = TestUtil.cliCommand(
         TestUtil.relPathStr(os.Path(TestUtil.cliPath).relativeTo(root))
@@ -269,12 +260,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("simple") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "simple.sc" ->
-          s"""val msg = "Hello"
-             |println(msg)
-             |""".stripMargin
-      )
+      os.rel / "simple.sc" ->
+        s"""val msg = "Hello"
+           |println(msg)
+           |""".stripMargin
     )
 
     withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
@@ -389,15 +378,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("diagnostics") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Test.scala" ->
-          s"""object Test {
-             |  val msg = "Hello"
-             |  zz
-             |  println(msg)
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Test.scala" ->
+        s"""object Test {
+           |  val msg = "Hello"
+           |  zz
+           |  println(msg)
+           |}
+           |""".stripMargin
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
@@ -448,13 +435,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("diagnostics in script") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "test.sc" ->
-          s"""val msg = "Hello"
-             |zz
-             |println(msg)
-             |""".stripMargin
-      )
+      os.rel / "test.sc" ->
+        s"""val msg = "Hello"
+           |zz
+           |println(msg)
+           |""".stripMargin
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
@@ -514,13 +499,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("invalid diagnostics at startup") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "A.scala" ->
-          s"""//> using resource "./resources"
-             |
-             |object A {}
-             |""".stripMargin
-      )
+      os.rel / "A.scala" ->
+        s"""//> using resource "./resources"
+           |
+           |object A {}
+           |""".stripMargin
     )
 
     withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
@@ -547,16 +530,14 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("directive diagnostics") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Test.scala" ->
-          s"""//> using lib "com.lihaoyi::pprint:0.0.0.0.0.1"
-             |
-             |object Test {
-             |  val msg = "Hello"
-             |  println(msg)
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Test.scala" ->
+        s"""//> using lib "com.lihaoyi::pprint:0.0.0.0.0.1"
+           |
+           |object Test {
+           |  val msg = "Hello"
+           |  println(msg)
+           |}
+           |""".stripMargin
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
@@ -589,12 +570,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("workspace update") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "simple.sc" ->
-          s"""val msg = "Hello"
-             |println(msg)
-             |""".stripMargin
-      )
+      os.rel / "simple.sc" ->
+        s"""val msg = "Hello"
+           |println(msg)
+           |""".stripMargin
     )
     val extraArgs =
       if (Properties.isWin) Seq("-v", "-v", "-v")
@@ -701,14 +680,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("workspace update - new file") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Test.scala" ->
-          s"""object Test {
-             |  val msg = "Hello"
-             |  println(msg)
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Test.scala" ->
+        s"""object Test {
+           |  val msg = "Hello"
+           |  println(msg)
+           |}
+           |""".stripMargin
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
@@ -797,26 +774,24 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("test workspace update after adding file to main scope") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Messages.scala" ->
-          """//> using lib "com.lihaoyi::os-lib:0.7.8"
-            |object Messages {
-            |  def msg = "Hello"
-            |}
-            |""".stripMargin,
-        os.rel / "MyTests.test.scala" ->
-          """//> using lib "com.lihaoyi::utest::0.7.10"
-            |import utest._
-            |
-            |object MyTests extends TestSuite {
-            |  val tests = Tests {
-            |    test("foo") {
-            |      assert(Messages.msg == "Hello")
-            |    }
-            |  }
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Messages.scala" ->
+        """//> using lib "com.lihaoyi::os-lib:0.7.8"
+          |object Messages {
+          |  def msg = "Hello"
+          |}
+          |""".stripMargin,
+      os.rel / "MyTests.test.scala" ->
+        """//> using lib "com.lihaoyi::utest::0.7.10"
+          |import utest._
+          |
+          |object MyTests extends TestSuite {
+          |  val tests = Tests {
+          |    test("foo") {
+          |      assert(Messages.msg == "Hello")
+          |    }
+          |  }
+          |}
+          |""".stripMargin
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
@@ -890,11 +865,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("using directive") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "test.sc" ->
-          s"""// using scala "3.0"
-             |println(123)""".stripMargin
-      )
+      os.rel / "test.sc" ->
+        s"""// using scala "3.0"
+           |println(123)""".stripMargin
     )
     withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
       async {
@@ -921,14 +894,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("workspace/reload --dependency option") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "ReloadTest.scala" ->
-          s"""import os.pwd
-             |object ReloadTest {
-             |  println(pwd)
-             |}
-             |""".stripMargin
-      )
+      os.rel / "ReloadTest.scala" ->
+        s"""import os.pwd
+           |object ReloadTest {
+           |  println(pwd)
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "setup-ide", ".", extraOptions)
@@ -975,14 +946,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val dir1 = "dir1"
     val dir2 = "dir2"
     val inputs = TestInputs(
-      Seq(
-        os.rel / dir1 / "ReloadTest.scala" ->
-          s"""object ReloadTest {
-             |  val container = MissingCaseClass(value = "Hello")
-             |  println(container.value)
-             |}
-             |""".stripMargin
-      )
+      os.rel / dir1 / "ReloadTest.scala" ->
+        s"""object ReloadTest {
+           |  val container = MissingCaseClass(value = "Hello")
+           |  println(container.value)
+           |}
+           |""".stripMargin
     )
     val extraInputs = inputs.add(
       os.rel / dir2 / "MissingCaseClass.scala" -> "case class MissingCaseClass(value: String)"
@@ -1027,13 +996,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("workspace/reload error response when no inputs json present") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "ReloadTest.scala" ->
-          s"""object ReloadTest {
-             |  println("Hello")
-             |}
-             |""".stripMargin
-      )
+      os.rel / "ReloadTest.scala" ->
+        s"""object ReloadTest {
+           |  println("Hello")
+           |}
+           |""".stripMargin
     )
     withBsp(inputs, Seq(".")) {
       (_, _, remoteServer) =>
@@ -1057,18 +1024,16 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   test("workspace/reload when updated source element in using directive") {
     val utilsFileName = "Utils.scala"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          s"""|//> using file "Utils.scala"
-              |
-              |object Hello extends App {
-              |   println("Hello World")
-              |}""".stripMargin,
-        os.rel / utilsFileName ->
-          s"""|object Utils {
-              |  val hello = "Hello World"
-              |}""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        s"""|//> using file "Utils.scala"
+            |
+            |object Hello extends App {
+            |   println("Hello World")
+            |}""".stripMargin,
+      os.rel / utilsFileName ->
+        s"""|object Utils {
+            |  val hello = "Hello World"
+            |}""".stripMargin
     )
     withBsp(inputs, Seq("Hello.scala")) { (root, _, remoteServer) =>
       async {
@@ -1108,15 +1073,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("bloop projects are initialised properly for an invalid directive") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "InvalidUsingDirective.scala" ->
-          s"""//> using scala 3.1.2
-             |
-             |object InvalidUsingDirective extends App {
-             |  println("Hello")
-             |}
-             |""".stripMargin
-      )
+      os.rel / "InvalidUsingDirective.scala" ->
+        s"""//> using scala 3.1.2
+           |
+           |object InvalidUsingDirective extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin
     )
     withBsp(inputs, Seq(".")) {
       (root, localClient, remoteServer) =>
@@ -1145,15 +1108,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("bloop projects are initialised properly for a directive for an unfetchable dependency") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "InvalidUsingDirective.scala" ->
-          s"""//> using lib "no::lib:123"
-             |
-             |object InvalidUsingDirective extends App {
-             |  println("Hello")
-             |}
-             |""".stripMargin
-      )
+      os.rel / "InvalidUsingDirective.scala" ->
+        s"""//> using lib "no::lib:123"
+           |
+           |object InvalidUsingDirective extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin
     )
     withBsp(inputs, Seq(".")) {
       (root, localClient, remoteServer) =>

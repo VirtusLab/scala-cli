@@ -14,7 +14,7 @@ class DefaultFileTests extends ScalaCliSuite {
   }
 
   test("Write .gitignore") {
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       os.proc(TestUtil.cli, "default-file", ".gitignore", "--write")
         .call(cwd = root, stdout = os.Inherit)
       val dest = root / ".gitignore"
