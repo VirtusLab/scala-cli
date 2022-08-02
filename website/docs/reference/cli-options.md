@@ -522,6 +522,12 @@ Show help for scalafmt. This is an alias for --scalafmt-arg -help
 
 Aliases: `-F`
 
+#### `--scalafmt-conf`
+
+Aliases: `--scalafmt-config`
+
+Custom path to the scalafmt configuration file.
+
 #### `--scalafmt-dialect`
 
 Aliases: `--dialect`

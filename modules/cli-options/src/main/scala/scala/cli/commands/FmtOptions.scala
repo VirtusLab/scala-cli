@@ -46,6 +46,10 @@ final case class FmtOptions(
     scalafmtArg: List[String] = Nil,
 
   @Group("Format")
+  @HelpMessage("Custom path to the scalafmt configuration file.")
+  @Name("scalafmtConfig")
+    scalafmtConf: Option[String] = None,
+  @Group("Format")
   @HelpMessage("Pass a global dialect for scalafmt. This overrides whatever value is configured in the .scalafmt.conf file.")
   @Name("dialect")
     scalafmtDialect: Option[String] = None,

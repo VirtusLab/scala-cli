@@ -153,7 +153,7 @@ scala-cli fmt . --check --respect-project-filters=false
 
 The Scala CLI `fmt` command runs `scalafmt` under the hood, which *normally* requires `.scalafmt.conf` configuration file with explicitly specified **version** and **dialect** fields. The way it is handled by Scala CLI is as follows:
 
-At the beginning `fmt` looks for existing `.scalafmt.conf` file inside **current workspace** directory and if it doesn't find it - inside **git root** directory. There are 3 possible cases:
+At the beginning `fmt` looks for the configuration inside the file specified in the `--scalafmt-conf` option. If the option is not passed or the file doesn't exist, `fmt` looks for the existing configuration file inside **current workspace** directory. If the file is still not found, `fmt` looks for it inside **git root** directory. There are 3 possible cases:
 
 1. Configuration file with the specified version and dialect is found.
 2. Configuration file is found, but it doesn't have specified version or dialect.

@@ -35,6 +35,7 @@ object FmtUtil {
     */
   def readVersionAndDialectFromFile(
     workspace: os.Path,
+    customConfPath: Option[String],
     logger: Logger
   ): (Option[String], Option[String], Option[os.Path]) = {
     case class RunnerMetaconfig(dialect: String = "")
@@ -58,17 +59,25 @@ object FmtUtil {
     }
 
     val confName = ".scalafmt.conf"
-    val pathMaybe = {
-      logger.debug(s"Checking for $confName in cwd.")
-      val confInCwd = workspace / confName
-      if (os.exists(confInCwd)) Some(confInCwd)
-      else {
-        logger.debug(s"Checking for $confName in git root.")
-        val gitRootMaybe       = getGitRoot(workspace, logger)
-        val confInGitRootMaybe = gitRootMaybe.map(os.Path(_) / confName)
-        confInGitRootMaybe.find(os.exists(_))
+    val pathMaybe =
+      customConfPath.flatMap { p =>
+        val confPath = os.Path(p, os.pwd)
+        logger.debug(s"Checking for $confPath.")
+        if (os.exists(confPath)) Some(confPath)
+        else
+          logger.message(s"WARNING: provided file doesn't exist $confPath")
+          None
+      }.orElse {
+        logger.debug(s"Checking for $confName in cwd.")
+        val confInCwd = workspace / confName
+        if (os.exists(confInCwd)) Some(confInCwd)
+        else {
+          logger.debug(s"Checking for $confName in git root.")
+          val gitRootMaybe       = getGitRoot(workspace, logger)
+          val confInGitRootMaybe = gitRootMaybe.map(os.Path(_) / confName)
+          confInGitRootMaybe.find(os.exists(_))
+        }
       }
-    }
 
     val confContentMaybe = pathMaybe.flatMap { path =>
       val either = metaconfig.Hocon.parseInput[ScalafmtMetaconfig](
