@@ -6,14 +6,14 @@ import scala.util.Properties
 
 class TestNativeImageOnScala3 extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   def runTest(args: String*)(expectedLines: String*)(code: String): Unit = {
     val dest =
       if (Properties.isWin) "testApp.exe"
       else "testApp"
 
-    val inputs = TestInputs(Seq(os.rel / "Hello.scala" -> code))
+    val inputs = TestInputs(os.rel / "Hello.scala" -> code)
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,

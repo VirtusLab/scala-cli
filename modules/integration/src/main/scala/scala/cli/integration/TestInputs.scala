@@ -9,11 +9,9 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.cli.integration.TestInputs.compress
 import scala.util.control.NonFatal
 
-final case class TestInputs(
-  files: Seq[(os.RelPath, String)]
-) {
-  def add(extraFiles: (os.RelPath, String)*): TestInputs =
-    copy(files = files ++ extraFiles)
+final case class TestInputs(files: (os.RelPath, String)*) {
+  def add(extraFiles: (os.RelPath, String)*): TestInputs = TestInputs((files ++ extraFiles)*)
+
   private def writeIn(dir: os.Path): Unit =
     for ((relPath, content) <- files) {
       val path = dir / relPath
@@ -38,6 +36,7 @@ final case class TestInputs(
 }
 
 object TestInputs {
+  def empty: TestInputs = TestInputs()
 
   def compress(zipFilepath: os.Path, files: Seq[(os.RelPath, String)]) = {
     val zip = new ZipOutputStream(new FileOutputStream(zipFilepath.toString()))

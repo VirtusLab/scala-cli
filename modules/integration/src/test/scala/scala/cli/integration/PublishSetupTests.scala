@@ -36,11 +36,9 @@ class PublishSetupTests extends ScalaCliSuite {
 
   private val projDir = os.rel / projName
   private val testInputs = TestInputs(
-    Seq(
-      os.rel / projDir / "Foo.scala" ->
-        """object Foo
-          |""".stripMargin
-    )
+    os.rel / projDir / "Foo.scala" ->
+      """object Foo
+        |""".stripMargin
   )
   private val homeDir    = os.rel / "home"
   private val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)

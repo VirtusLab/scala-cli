@@ -5,7 +5,7 @@ package scala.cli.integration.util
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.messages.{ContainerConfig, HostConfig, PortBinding}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 final case class DockerServer(
@@ -39,7 +39,7 @@ object DockerServer {
     val containerConfig = ContainerConfig.builder()
       .hostConfig(hostConfig)
       .image(image)
-      .exposedPorts(portBindings.keys.toSeq: _*)
+      .exposedPorts(portBindings.keys.toSeq*)
       .build()
 
     var idOpt = Option.empty[String]

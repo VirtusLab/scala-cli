@@ -7,7 +7,7 @@ import scala.util.Properties
 class SipScalaTests extends ScalaCliSuite {
 
   def noDirectoriesCommandTest(binaryName: String): Unit =
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       val cliPath = os.Path(TestUtil.cliPath, os.pwd)
 
       os.proc(cliPath, "directories").call(cwd = root)

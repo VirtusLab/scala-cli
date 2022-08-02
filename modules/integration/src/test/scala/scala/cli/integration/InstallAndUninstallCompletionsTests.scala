@@ -6,16 +6,14 @@ import coursier.cache.shaded.dirs.ProjectDirectories
 import scala.util.Properties
 
 class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
-  val zshRcFile  = ".zshrc"
-  val bashRcFile = ".bashrc"
-  val rcContent = s"""
-                     |dummy line
-                     |dummy line""".stripMargin
-  val testInputs = TestInputs(
-    Seq(
-      os.rel / zshRcFile  -> rcContent,
-      os.rel / bashRcFile -> rcContent
-    )
+  val zshRcFile: String  = ".zshrc"
+  val bashRcFile: String = ".bashrc"
+  val rcContent: String = s"""
+                             |dummy line
+                             |dummy line""".stripMargin
+  val testInputs: TestInputs = TestInputs(
+    os.rel / zshRcFile  -> rcContent,
+    os.rel / bashRcFile -> rcContent
   )
 
   def runInstallAndUninstallCompletions(): Unit = {
@@ -44,7 +42,7 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
       runInstallAndUninstallCompletions()
     }
 
-  lazy val bashRcScript = {
+  lazy val bashRcScript: String = {
     val progName = "scala-cli"
     val ifs      = "\\n"
     val script =
@@ -58,7 +56,7 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
     addTags(script)
   }
 
-  lazy val zshRcScript = {
+  lazy val zshRcScript: String = {
     val projDirs = ProjectDirectories.from(null, null, "ScalaCli")
     val dir      = os.Path(projDirs.dataLocalDir, TestUtil.pwd) / "completions" / "zsh"
     val script = Seq(

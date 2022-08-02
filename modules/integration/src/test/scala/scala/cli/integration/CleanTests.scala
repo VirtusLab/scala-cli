@@ -4,18 +4,16 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class CleanTests extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   test("simple") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          """object Hello {
-            |  def main(args: Array[String]): Unit =
-            |    println("Hello")
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin
     )
 
     inputs.fromRoot { root =>

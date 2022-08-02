@@ -39,30 +39,28 @@ object ExportTestProjects {
            |}
            |""".stripMargin
     TestInputs(
-      Seq(
-        os.rel / "Hello.scala" -> mainFile,
-        os.rel / "Zio.test.scala" ->
-          """|//> using lib "dev.zio::zio::1.0.8"
-             |//> using lib "dev.zio::zio-test-sbt::1.0.8"
-             |
-             |import zio._
-             |import zio.test._
-             |import zio.test.Assertion.equalTo
-             |
-             |object HelloWorldSpec extends DefaultRunnableSpec {
-             |  def spec = suite("associativity")(
-             |    testM("associativity") {
-             |      check(Gen.anyInt, Gen.anyInt, Gen.anyInt) { (x, y, z) =>
-             |        assert((x + y) + z)(equalTo(x + (y + z)))
-             |      }
-             |    }
-             |  )
-             |}
-             |""".stripMargin,
-        os.rel / "input" / "input" ->
-          """|1
-             |2""".stripMargin
-      )
+      os.rel / "Hello.scala" -> mainFile,
+      os.rel / "Zio.test.scala" ->
+        """|//> using lib "dev.zio::zio::1.0.8"
+           |//> using lib "dev.zio::zio-test-sbt::1.0.8"
+           |
+           |import zio._
+           |import zio.test._
+           |import zio.test.Assertion.equalTo
+           |
+           |object HelloWorldSpec extends DefaultRunnableSpec {
+           |  def spec = suite("associativity")(
+           |    testM("associativity") {
+           |      check(Gen.anyInt, Gen.anyInt, Gen.anyInt) { (x, y, z) =>
+           |        assert((x + y) + z)(equalTo(x + (y + z)))
+           |      }
+           |    }
+           |  )
+           |}
+           |""".stripMargin,
+      os.rel / "input" / "input" ->
+        """|1
+           |2""".stripMargin
     )
   }
 
@@ -93,11 +91,7 @@ object ExportTestProjects {
            |  }
            |}
            |""".stripMargin
-    TestInputs(
-      Seq(
-        os.rel / "Test.scala" -> testFile
-      )
-    )
+    TestInputs(os.rel / "Test.scala" -> testFile)
   }
 
   def nativeTest(scalaVersion: String): TestInputs = {
@@ -133,11 +127,7 @@ object ExportTestProjects {
            |  }
            |}
            |""".stripMargin
-    TestInputs(
-      Seq(
-        os.rel / "Test.scala" -> testFile
-      )
-    )
+    TestInputs(os.rel / "Test.scala" -> testFile)
   }
 
   def repositoryScala3Test(scalaVersion: String): TestInputs = {
@@ -151,11 +141,7 @@ object ExportTestProjects {
          |    val message = "Hello from " + "exported Scala CLI project"
          |    println(message)
          |""".stripMargin
-    TestInputs(
-      Seq(
-        os.rel / "Test.scala" -> testFile
-      )
-    )
+    TestInputs(os.rel / "Test.scala" -> testFile)
   }
 
   def mainClassScala3Test(scalaVersion: String): TestInputs = {
@@ -174,10 +160,8 @@ object ExportTestProjects {
          |    println(message)
          |""".stripMargin
     TestInputs(
-      Seq(
-        os.rel / "Test.scala"  -> testFile,
-        os.rel / "Other.scala" -> otherTestFile
-      )
+      os.rel / "Test.scala"  -> testFile,
+      os.rel / "Other.scala" -> otherTestFile
     )
   }
 
@@ -204,11 +188,7 @@ object ExportTestProjects {
          |  }
          |}
          |""".stripMargin
-    TestInputs(
-      Seq(
-        os.rel / "Test.scala" -> testFile
-      )
-    )
+    TestInputs(os.rel / "Test.scala" -> testFile)
   }
 
   def pureJavaTest: TestInputs = {
@@ -230,11 +210,7 @@ object ExportTestProjects {
          |  }
          |}
          |""".stripMargin
-    TestInputs(
-      Seq(
-        os.rel / "ScalaCliJavaTest.java" -> testFile
-      )
-    )
+    TestInputs(os.rel / "ScalaCliJavaTest.java" -> testFile)
   }
 
   def testFrameworkTest(scalaVersion: String): TestInputs = {
@@ -254,11 +230,7 @@ object ExportTestProjects {
          |  }
          |}
          |""".stripMargin
-    TestInputs(
-      Seq(
-        os.rel / "MyTests.scala" -> testFile
-      )
-    )
+    TestInputs(os.rel / "MyTests.scala" -> testFile)
   }
 
   def customJarTest(scalaVersion: String): TestInputs = {
@@ -293,10 +265,6 @@ object ExportTestProjects {
          |  }
          |}
          |""".stripMargin
-    TestInputs(
-      Seq(
-        os.rel / "Test.scala" -> testFile
-      )
-    )
+    TestInputs(os.rel / "Test.scala" -> testFile)
   }
 }

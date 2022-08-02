@@ -9,23 +9,21 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
     val testName    = "my-proj"
     val testVersion = "1.5.6"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Project.scala" ->
-          s"""//> using publish.organization "$testOrg"
-             |//> using publish.name "$testName"
-             |//> using publish.version "$testVersion"
-             |
-             |//> using scala "2.13"
-             |//> using lib "com.lihaoyi::os-lib:0.8.1"
-             |
-             |object Project {
-             |  def message = "Hello"
-             |
-             |  def main(args: Array[String]): Unit =
-             |    println(message)
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Project.scala" ->
+        s"""//> using publish.organization "$testOrg"
+           |//> using publish.name "$testName"
+           |//> using publish.version "$testVersion"
+           |
+           |//> using scala "2.13"
+           |//> using lib "com.lihaoyi::os-lib:0.8.1"
+           |
+           |object Project {
+           |  def message = "Hello"
+           |
+           |  def main(args: Array[String]): Unit =
+           |    println(message)
+           |}
+           |""".stripMargin
     )
 
     val expectedFiles = {
@@ -71,40 +69,38 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
     val testName    = "foo"
     val testVersion = "0.3.1"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Foo.java" ->
-          s"""//> using publish.organization "$testOrg"
-             |//> using publish.name "$testName"
-             |//> using publish.version "$testVersion"
-             |
-             |package foo;
-             |
-             |public class Foo {
-             |  private static boolean checkClass(String clsName) {
-             |    try {
-             |      Thread.currentThread().getContextClassLoader().loadClass(clsName);
-             |      return true;
-             |    } catch (ClassNotFoundException ex) {
-             |      return false;
-             |    }
-             |  }
-             |
-             |  public static void main(String[] args) {
-             |    boolean hasJuList = checkClass("java.util.List");
-             |    boolean hasScalaArray = checkClass("scala.Array");
-             |    if (!hasJuList) {
-             |      System.out.println("Error: java.util.List not found");
-             |      System.exit(1);
-             |    }
-             |    if (hasScalaArray) {
-             |      System.out.println("Error: unexpectedly found scala.Array");
-             |      System.exit(1);
-             |    }
-             |    System.out.println("Hello from " + "foo");
-             |  }
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Foo.java" ->
+        s"""//> using publish.organization "$testOrg"
+           |//> using publish.name "$testName"
+           |//> using publish.version "$testVersion"
+           |
+           |package foo;
+           |
+           |public class Foo {
+           |  private static boolean checkClass(String clsName) {
+           |    try {
+           |      Thread.currentThread().getContextClassLoader().loadClass(clsName);
+           |      return true;
+           |    } catch (ClassNotFoundException ex) {
+           |      return false;
+           |    }
+           |  }
+           |
+           |  public static void main(String[] args) {
+           |    boolean hasJuList = checkClass("java.util.List");
+           |    boolean hasScalaArray = checkClass("scala.Array");
+           |    if (!hasJuList) {
+           |      System.out.println("Error: java.util.List not found");
+           |      System.exit(1);
+           |    }
+           |    if (hasScalaArray) {
+           |      System.out.println("Error: unexpectedly found scala.Array");
+           |      System.exit(1);
+           |    }
+           |    System.out.println("Hello from " + "foo");
+           |  }
+           |}
+           |""".stripMargin
     )
 
     val repoRelPath = os.rel / "test-repo"

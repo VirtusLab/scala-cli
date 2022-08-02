@@ -8,30 +8,28 @@ class TestTestsDefault extends TestTestDefinitions(scalaVersionOpt = None) {
 
   test("Pure Java with Scala tests") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Messages.java" ->
-          """package messages;
-            |
-            |public final class Messages {
-            |  public final static String HELLO = "Hello";
-            |}
-            |""".stripMargin,
-        os.rel / "test" / "MessagesTests.scala" ->
-          """//> using scala "2.13"
-            |//> using lib "com.lihaoyi::utest::0.7.10"
-            |package messages
-            |package tests
-            |import utest._
-            |
-            |object MessagesTests extends TestSuite {
-            |  val tests = Tests {
-            |    test("hello") {
-            |      assert(Messages.HELLO == "Hello")
-            |    }
-            |  }
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Messages.java" ->
+        """package messages;
+          |
+          |public final class Messages {
+          |  public final static String HELLO = "Hello";
+          |}
+          |""".stripMargin,
+      os.rel / "test" / "MessagesTests.scala" ->
+        """//> using scala "2.13"
+          |//> using lib "com.lihaoyi::utest::0.7.10"
+          |package messages
+          |package tests
+          |import utest._
+          |
+          |object MessagesTests extends TestSuite {
+          |  val tests = Tests {
+          |    test("hello") {
+          |      assert(Messages.HELLO == "Hello")
+          |    }
+          |  }
+          |}
+          |""".stripMargin
     )
 
     inputs.fromRoot { root =>

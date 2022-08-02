@@ -9,16 +9,16 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
-  protected def versionNumberString = actualScalaVersion
+  protected def versionNumberString: String = actualScalaVersion
 
   test("default dry run") {
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       os.proc(TestUtil.cli, "repl", extraOptions, "--repl-dry-run").call(cwd = root)
     }
   }
 
   test("repl custom repositories work") {
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       os.proc(
         TestUtil.cli,
         "repl",
@@ -32,7 +32,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("ammonite") {
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       val ammArgs = Seq(
         "-c",
         """println("Hello" + " from Scala " + scala.util.Properties.versionNumberString)"""

@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class DefaultFileTests extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   test("Print .gitignore") {
     val res = os.proc(TestUtil.cli, "default-file", ".gitignore")
@@ -14,7 +14,7 @@ class DefaultFileTests extends ScalaCliSuite {
   }
 
   test("Write .gitignore") {
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       os.proc(TestUtil.cli, "default-file", ".gitignore", "--write")
         .call(cwd = root, stdout = os.Inherit)
       val dest = root / ".gitignore"

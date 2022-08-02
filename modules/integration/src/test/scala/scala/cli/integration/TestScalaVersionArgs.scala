@@ -9,11 +9,11 @@ trait TestScalaVersionArgs extends ScalaCliSuite {
 
   def scalaVersionOpt: Option[String]
 
-  lazy val scalaVersionArgs = scalaVersionOpt match {
+  lazy val scalaVersionArgs: Seq[String] = scalaVersionOpt match {
     case None     => Nil
     case Some(sv) => Seq("--scala", sv)
   }
 
-  lazy val actualScalaVersion = scalaVersionOpt.getOrElse(Constants.defaultScala)
+  lazy val actualScalaVersion: String = scalaVersionOpt.getOrElse(Constants.defaultScala)
 
 }

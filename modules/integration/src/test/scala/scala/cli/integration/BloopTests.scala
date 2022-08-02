@@ -1,26 +1,25 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import os.proc
 
 import scala.cli.integration.util.BloopUtil
 
 class BloopTests extends ScalaCliSuite {
 
-  def runScalaCli(args: String*) = os.proc(TestUtil.cli, args)
+  def runScalaCli(args: String*): proc = os.proc(TestUtil.cli, args)
 
   private lazy val bloopDaemonDir =
     BloopUtil.bloopDaemonDir(runScalaCli("directories").call().out.text())
 
-  val dummyInputs = TestInputs(
-    Seq(
-      os.rel / "Test.scala" ->
-        """//> using scala "2.13"
-          |object Test {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello " + "from test")
-          |}
-          |""".stripMargin
-    )
+  val dummyInputs: TestInputs = TestInputs(
+    os.rel / "Test.scala" ->
+      """//> using scala "2.13"
+        |object Test {
+        |  def main(args: Array[String]): Unit =
+        |    println("Hello " + "from test")
+        |}
+        |""".stripMargin
   )
 
   def testScalaTermination(
@@ -57,7 +56,7 @@ class BloopTests extends ScalaCliSuite {
   }
 
   test("invalid bloop options passed via cli cause bloop start failure") {
-    TestInputs(Seq()).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       runScalaCli("bloop", "exit").call(cwd = root)
       val res = runScalaCli("bloop", "start", "--bloop-java-opt", "-zzefhjzl").call(
         cwd = root,
@@ -72,12 +71,10 @@ class BloopTests extends ScalaCliSuite {
 
   test("invalid bloop options passed via global bloop config json file cause bloop start failure") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "bloop.json" ->
-          """|{
-             | "javaOptions" : ["-Xmx1k"]
-             | }""".stripMargin
-      )
+      os.rel / "bloop.json" ->
+        """|{
+           | "javaOptions" : ["-Xmx1k"]
+           | }""".stripMargin
     )
 
     inputs.fromRoot { root =>
@@ -101,7 +98,7 @@ class BloopTests extends ScalaCliSuite {
       javaProcesses.contains("bloop.Bloop")
     }
 
-    val inputs = TestInputs(Seq.empty)
+    val inputs = TestInputs.empty
     inputs.fromRoot { _ =>
       BloopUtil.killBloop()
       TestUtil.retry()(assert(!bloopRunning()))
@@ -118,14 +115,12 @@ class BloopTests extends ScalaCliSuite {
 
   test("bloop projects and bloop compile works") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          """object Hello {
-            |  def main(args: Array[String]): Unit =
-            |    println("Hello")
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        """object Hello {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello")
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
 

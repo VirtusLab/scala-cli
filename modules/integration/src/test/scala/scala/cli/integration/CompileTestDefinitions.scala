@@ -10,59 +10,55 @@ import scala.cli.integration.util.BloopUtil
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
 
-  protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
     os.proc(TestUtil.cli, "directories").call().out.text()
   }
 
-  val simpleInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.test.scala" ->
-        """//> using lib "com.lihaoyi::utest::0.7.10"
-          |import utest._
-          |
-          |object MyTests extends TestSuite {
-          |  val tests = Tests {
-          |    test("foo") {
-          |      assert(2 + 2 == 4)
-          |      println("Hello from " + "tests")
-          |    }
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val simpleInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.test.scala" ->
+      """//> using lib "com.lihaoyi::utest::0.7.10"
+        |import utest._
+        |
+        |object MyTests extends TestSuite {
+        |  val tests = Tests {
+        |    test("foo") {
+        |      assert(2 + 2 == 4)
+        |      println("Hello from " + "tests")
+        |    }
+        |  }
+        |}
+        |""".stripMargin
   )
 
-  val mainAndTestInputs = TestInputs(
-    Seq(
-      os.rel / "Main.scala" ->
-        """//> using lib "com.lihaoyi::utest:0.7.10"
-          |
-          |object Main {
-          |  val err = utest.compileError("pprint.log(2)")
-          |  def message = "Hello from " + "tests"
-          |  def main(args: Array[String]): Unit = {
-          |    println(message)
-          |    println(err)
-          |  }
-          |}
-          |""".stripMargin,
-      os.rel / "Tests.scala" ->
-        """//> using lib "com.lihaoyi::pprint:0.6.6"
-          |//> using target.scope "test"
-          |
-          |import utest._
-          |
-          |object Tests extends TestSuite {
-          |  val tests = Tests {
-          |    test("message") {
-          |      assert(Main.message.startsWith("Hello"))
-          |    }
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val mainAndTestInputs: TestInputs = TestInputs(
+    os.rel / "Main.scala" ->
+      """//> using lib "com.lihaoyi::utest:0.7.10"
+        |
+        |object Main {
+        |  val err = utest.compileError("pprint.log(2)")
+        |  def message = "Hello from " + "tests"
+        |  def main(args: Array[String]): Unit = {
+        |    println(message)
+        |    println(err)
+        |  }
+        |}
+        |""".stripMargin,
+    os.rel / "Tests.scala" ->
+      """//> using lib "com.lihaoyi::pprint:0.6.6"
+        |//> using target.scope "test"
+        |
+        |import utest._
+        |
+        |object Tests extends TestSuite {
+        |  val tests = Tests {
+        |    test("message") {
+        |      assert(Main.message.startsWith("Hello"))
+        |    }
+        |  }
+        |}
+        |""".stripMargin
   )
 
   test("no arg") {
@@ -73,14 +69,12 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("exit code") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Main.scala" ->
-          """object Main {
-            |  def main(args: Array[String]): Unit =
-            |    println(nope)
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit =
+          |    println(nope)
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "compile", extraOptions, ".")
@@ -134,30 +128,28 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("test scope error") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Main.scala" ->
-          """object Main {
-            |  def message = "Hello from " + "tests"
-            |  def main(args: Array[String]): Unit =
-            |    println(message)
-            |}
-            |""".stripMargin,
-        os.rel / "Tests.scala" ->
-          """//> using lib "com.lihaoyi::utest:0.7.10"
-            |//> using target.scope "test"
-            |
-            |import utest._
-            |
-            |object Tests extends TestSuite {
-            |  val tests = Tests {
-            |    test("message") {
-            |      pprint.log(Main.message)
-            |      assert(Main.message.startsWith("Hello"))
-            |    }
-            |  }
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def message = "Hello from " + "tests"
+          |  def main(args: Array[String]): Unit =
+          |    println(message)
+          |}
+          |""".stripMargin,
+      os.rel / "Tests.scala" ->
+        """//> using lib "com.lihaoyi::utest:0.7.10"
+          |//> using target.scope "test"
+          |
+          |import utest._
+          |
+          |object Tests extends TestSuite {
+          |  val tests = Tests {
+          |    test("message") {
+          |      pprint.log(Main.message)
+          |      assert(Main.message.startsWith("Hello"))
+          |    }
+          |  }
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".")
@@ -174,17 +166,15 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("code in test error") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Main.scala" ->
-          """object Main {
-            |  def message = "Hello from " + "tests"
-            |  def main(args: Array[String]): Unit = {
-            |    zz // zz value
-            |    println(message)
-            |  }
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def message = "Hello from " + "tests"
+          |  def main(args: Array[String]): Unit = {
+          |    zz // zz value
+          |    println(message)
+          |  }
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "compile", extraOptions, ".")
@@ -211,27 +201,25 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   val jvmT = new munit.Tag("jvm-resolution")
 
-  val scalaJvm8Project = TestInputs(
-    Seq(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isPresent}")
-  )
-  val scalaJvm11Project = TestInputs(
-    Seq(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isEmpty}")
-  )
-  val javaJvm8Project =
-    TestInputs(Seq(os.rel / "Main.java" -> """|public class Main{
-                                              |  public static void main(String[] args) {
-                                              |      java.util.Optional.of(1).isPresent();
-                                              |  }
-                                              |}""".stripMargin))
+  val scalaJvm8Project: TestInputs =
+    TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isPresent}")
+  val scalaJvm11Project: TestInputs =
+    TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isEmpty}")
+  val javaJvm8Project: TestInputs =
+    TestInputs(os.rel / "Main.java" -> """|public class Main{
+                                          |  public static void main(String[] args) {
+                                          |      java.util.Optional.of(1).isPresent();
+                                          |  }
+                                          |}""".stripMargin)
 
-  val javaJvm11Project =
-    TestInputs(Seq(os.rel / "Main.java" -> """|public class Main{
-                                              |  public static void main(String[] args) {
-                                              |      java.util.Optional.of(1).isEmpty();
-                                              |  }
-                                              |}""".stripMargin))
+  val javaJvm11Project: TestInputs =
+    TestInputs(os.rel / "Main.java" -> """|public class Main{
+                                          |  public static void main(String[] args) {
+                                          |      java.util.Optional.of(1).isEmpty();
+                                          |  }
+                                          |}""".stripMargin)
 
-  val inputs = Map(
+  val inputs: Map[(String, Int), TestInputs] = Map(
     ("scala", 8)  -> scalaJvm8Project,
     ("scala", 11) -> scalaJvm11Project,
     ("java", 8)   -> javaJvm8Project,
@@ -276,7 +264,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     targetJvm: String,
     shouldSucceed: Boolean,
     inputs: TestInputs
-  ) =
+  ): Unit =
     inputs.fromRoot { root =>
       val bloop = BloopUtil.bloop(Constants.bloopVersion, bloopDaemonDir, jvm = Some(bloopJvm))
       bloop(Seq("exit")).call(
@@ -301,33 +289,29 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   if (actualScalaVersion.startsWith("2.12"))
     test("JVM options only for JVM platform") {
-      val inputs = TestInputs(
-        Seq(os.rel / "Main.scala" -> "//> using `java-opt` \"-Xss1g\"")
-      )
+      val inputs = TestInputs(os.rel / "Main.scala" -> "//> using `java-opt` \"-Xss1g\"")
       inputs.fromRoot { root =>
         val res = os.proc(TestUtil.cli, "compile", extraOptions, "--native", ".").call(
           cwd = root,
           stderr = os.Pipe
         )
         val stderr = res.err.text()
-        expect(s"\\[.*warn.*\\].*Conflicting options.*".r.findFirstMatchIn(stderr).isDefined)
+        expect(s"\\[.*warn.*].*Conflicting options.*".r.findFirstMatchIn(stderr).isDefined)
 
       }
     }
 
   test("Manual javac SemanticDB") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "foo" / "Test.java" ->
-          """package foo;
-            |
-            |public class Test {
-            |  public static void main(String[] args) {
-            |    System.err.println("Hello");
-            |  }
-            |}
-            |""".stripMargin
-      )
+      os.rel / "foo" / "Test.java" ->
+        """package foo;
+          |
+          |public class Test {
+          |  public static void main(String[] args) {
+          |    System.err.println("Hello");
+          |  }
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       val compilerPackages = Seq(
@@ -365,17 +349,15 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("Javac SemanticDB") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "foo" / "Test.java" ->
-          """package foo;
-            |
-            |public class Test {
-            |  public static void main(String[] args) {
-            |    System.err.println("Hello");
-            |  }
-            |}
-            |""".stripMargin
-      )
+      os.rel / "foo" / "Test.java" ->
+        """package foo;
+          |
+          |public class Test {
+          |  public static void main(String[] args) {
+          |    System.err.println("Hello");
+          |  }
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "compile", extraOptions, "--semantic-db", ".")
@@ -397,14 +379,12 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     test("generate scoverage.coverage file") {
       val fileName = "Hello.scala"
       val inputs = TestInputs(
-        Seq(
-          os.rel / fileName -> // scala version should updated to 3.3 after release
-            s"""//> using scala "3.2.0-RC1-bin-20220604-13ce496-NIGHTLY"
-               |//> using options "-coverage-out:."
-               |
-               |@main def main = ()
-               |""".stripMargin
-        )
+        os.rel / fileName -> // scala version should updated to 3.3 after release
+          s"""//> using scala "3.2.0-RC1-bin-20220604-13ce496-NIGHTLY"
+             |//> using options "-coverage-out:."
+             |
+             |@main def main = ()
+             |""".stripMargin
       )
       inputs.fromRoot { root =>
         os.proc(TestUtil.cli, "compile", extraOptions, fileName)
@@ -423,15 +403,13 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   def noDuplicatesInClassPathTest(): Unit = {
     val sparkVersion = "3.3.0"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          s"""//> using lib "org.apache.spark::spark-sql:$sparkVersion"
-             |object Hello {
-             |  def main(args: Array[String]): Unit =
-             |    println("Hello")
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        s"""//> using lib "org.apache.spark::spark-sql:$sparkVersion"
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println("Hello")
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res =

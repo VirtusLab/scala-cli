@@ -4,13 +4,13 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class ConfigTests extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   test("simple") {
     val homeDir    = os.rel / "home"
     val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)
     val name       = "Alex"
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       val before = os.proc(TestUtil.cli, "config", dirOptions, "user.name").call(cwd = root)
       expect(before.out.text().trim.isEmpty)
 
@@ -28,7 +28,7 @@ class ConfigTests extends ScalaCliSuite {
     val homeDir    = os.rel / "home"
     val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)
     val password   = "1234"
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
 
       def emptyCheck(): Unit = {
         val value = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password")

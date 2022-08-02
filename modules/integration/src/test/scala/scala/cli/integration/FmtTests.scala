@@ -4,11 +4,11 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class FmtTests extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   val confFileName = ".scalafmt.conf"
 
-  val emptyInputs: TestInputs = TestInputs(Seq(os.rel / ".placeholder" -> ""))
+  val emptyInputs: TestInputs = TestInputs(os.rel / ".placeholder" -> "")
 
   val simpleInputsUnformattedContent: String =
     """package foo
@@ -18,13 +18,11 @@ class FmtTests extends ScalaCliSuite {
       | }
       |""".stripMargin
   val simpleInputs: TestInputs = TestInputs(
-    Seq(
-      os.rel / confFileName ->
-        s"""|version = "${Constants.defaultScalafmtVersion}"
-            |runner.dialect = scala213
-            |""".stripMargin,
-      os.rel / "Foo.scala" -> simpleInputsUnformattedContent
-    )
+    os.rel / confFileName ->
+      s"""|version = "${Constants.defaultScalafmtVersion}"
+          |runner.dialect = scala213
+          |""".stripMargin,
+    os.rel / "Foo.scala" -> simpleInputsUnformattedContent
   )
   val expectedSimpleInputsFormattedContent: String = noCrLf {
     """package foo
@@ -36,30 +34,24 @@ class FmtTests extends ScalaCliSuite {
   }
 
   val simpleInputsWithFilter: TestInputs = TestInputs(
-    Seq(
-      os.rel / confFileName ->
-        s"""|version = "${Constants.defaultScalafmtVersion}"
-            |runner.dialect = scala213
-            |project.excludePaths = [ "glob:**/should/not/format/**.scala" ]
-            |""".stripMargin,
-      os.rel / "Foo.scala"                 -> expectedSimpleInputsFormattedContent,
-      os.rel / "scripts" / "SomeScript.sc" -> "println()\n",
-      os.rel / "should" / "not" / "format" / "ShouldNotFormat.scala" -> simpleInputsUnformattedContent
-    )
+    os.rel / confFileName ->
+      s"""|version = "${Constants.defaultScalafmtVersion}"
+          |runner.dialect = scala213
+          |project.excludePaths = [ "glob:**/should/not/format/**.scala" ]
+          |""".stripMargin,
+    os.rel / "Foo.scala"                 -> expectedSimpleInputsFormattedContent,
+    os.rel / "scripts" / "SomeScript.sc" -> "println()\n",
+    os.rel / "should" / "not" / "format" / "ShouldNotFormat.scala" -> simpleInputsUnformattedContent
   )
 
   val simpleInputsWithDialectOnly: TestInputs = TestInputs(
-    Seq(
-      os.rel / confFileName -> "runner.dialect = scala213".stripMargin,
-      os.rel / "Foo.scala"  -> simpleInputsUnformattedContent
-    )
+    os.rel / confFileName -> "runner.dialect = scala213".stripMargin,
+    os.rel / "Foo.scala"  -> simpleInputsUnformattedContent
   )
 
   val simpleInputsWithVersionOnly: TestInputs = TestInputs(
-    Seq(
-      os.rel / confFileName -> "version = \"3.5.5\"".stripMargin,
-      os.rel / "Foo.scala"  -> simpleInputsUnformattedContent
-    )
+    os.rel / confFileName -> "version = \"3.5.5\"".stripMargin,
+    os.rel / "Foo.scala"  -> simpleInputsUnformattedContent
   )
 
   private def noCrLf(input: String): String =

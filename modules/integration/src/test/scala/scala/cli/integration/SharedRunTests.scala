@@ -4,22 +4,18 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class SharedRunTests extends ScalaCliSuite {
 
-  val printScalaVersionInputs = TestInputs(
-    Seq(
-      os.rel / "print.sc" ->
-        s"""println(scala.util.Properties.versionNumberString)
-           |""".stripMargin
-    )
+  val printScalaVersionInputs: TestInputs = TestInputs(
+    os.rel / "print.sc" ->
+      s"""println(scala.util.Properties.versionNumberString)
+         |""".stripMargin
   )
-  val printScalaVersionInputs3 = TestInputs(
-    Seq(
-      os.rel / "print.sc" ->
-        s"""def printStuff(): Unit =
-           |  val toPrint = scala.util.Properties.versionNumberString
-           |  println(toPrint)
-           |printStuff()
-           |""".stripMargin
-    )
+  val printScalaVersionInputs3: TestInputs = TestInputs(
+    os.rel / "print.sc" ->
+      s"""def printStuff(): Unit =
+         |  val toPrint = scala.util.Properties.versionNumberString
+         |  println(toPrint)
+         |printStuff()
+         |""".stripMargin
   )
   test("Scala version 2.12") {
     printScalaVersionInputs.fromRoot { root =>
@@ -58,12 +54,10 @@ class SharedRunTests extends ScalaCliSuite {
   test("Scala version in config file") {
     val confSv = "2.13.1"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "test.sc" ->
-          s"""//> using scala "$confSv"
-             |println(scala.util.Properties.versionNumberString)
-             |""".stripMargin
-      )
+      os.rel / "test.sc" ->
+        s"""//> using scala "$confSv"
+           |println(scala.util.Properties.versionNumberString)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output =

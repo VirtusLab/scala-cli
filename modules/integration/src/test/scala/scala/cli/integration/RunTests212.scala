@@ -9,11 +9,7 @@ class RunTests212 extends RunTestDefinitions(
   // format: on
 
   test("Descriptive error message for unsupported native/script configurations") {
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "a.sc" -> "println(1)"
-      )
-    )
+    val inputs        = TestInputs(os.rel / "a.sc" -> "println(1)")
     val nativeVersion = "0.4.2"
     inputs.fromRoot { root =>
       val output = os.proc(

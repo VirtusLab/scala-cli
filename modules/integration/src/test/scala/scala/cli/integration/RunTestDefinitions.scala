@@ -21,12 +21,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""val msg = "$message"
-             |println(msg)
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""val msg = "$message"
+           |println(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output =
@@ -59,12 +57,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""val msg = "$message"
-             |println(msg)
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""val msg = "$message"
+           |println(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output =
@@ -81,29 +77,27 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       if (actualScalaVersion.startsWith("2.12.")) "scala.collection.JavaConverters._"
       else "scala.jdk.CollectionConverters._"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Simple.scala" ->
-          s"""import java.io.File
-             |import java.util.zip.ZipFile
-             |import $converters
-             |
-             |object Simple {
-             |  private def manifestClassPathCheck(): Unit = {
-             |    val cp = sys.props("java.class.path")
-             |    assert(!cp.contains(File.pathSeparator), s"Expected single entry in class path, got $$cp")
-             |    val zf = new ZipFile(new File(cp))
-             |    val entries = zf.entries.asScala.map(_.getName).toVector
-             |    zf.close()
-             |    assert(entries == Seq("META-INF/MANIFEST.MF"), s"Expected only META-INF/MANIFEST.MF entry, got $$entries")
-             |  }
-             |  def main(args: Array[String]): Unit = {
-             |    manifestClassPathCheck()
-             |    val msg = "$message"
-             |    println(msg)
-             |  }
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Simple.scala" ->
+        s"""import java.io.File
+           |import java.util.zip.ZipFile
+           |import $converters
+           |
+           |object Simple {
+           |  private def manifestClassPathCheck(): Unit = {
+           |    val cp = sys.props("java.class.path")
+           |    assert(!cp.contains(File.pathSeparator), s"Expected single entry in class path, got $$cp")
+           |    val zf = new ZipFile(new File(cp))
+           |    val entries = zf.entries.asScala.map(_.getName).toVector
+           |    zf.close()
+           |    assert(entries == Seq("META-INF/MANIFEST.MF"), s"Expected only META-INF/MANIFEST.MF entry, got $$entries")
+           |  }
+           |  def main(args: Array[String]): Unit = {
+           |    manifestClassPathCheck()
+           |    val msg = "$message"
+           |    println(msg)
+           |  }
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "--use-manifest", ".")
@@ -117,14 +111,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""import scala.scalajs.js
-             |val console = js.Dynamic.global.console
-             |val msg = "$message"
-             |console.log(msg)
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |val msg = "$message"
+           |console.log(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
@@ -145,14 +137,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""import scala.scalajs.js
-             |val console = js.Dynamic.global.console
-             |val msg = "$message"
-             |console.log(msg)
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |val msg = "$message"
+           |console.log(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(
@@ -175,22 +165,20 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""//> using jsModuleKind "es"
-             |import scala.scalajs.js
-             |import scala.scalajs.js.annotation._
-             |
-             |@js.native
-             |@JSImport("console", JSImport.Namespace)
-             |object console extends js.Object {
-             |  def log(msg: js.Any): Unit = js.native
-             |}
-             |
-             |val msg = "$message"
-             |console.log(msg)
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""//> using jsModuleKind "es"
+           |import scala.scalajs.js
+           |import scala.scalajs.js.annotation._
+           |
+           |@js.native
+           |@JSImport("console", JSImport.Namespace)
+           |object console extends js.Object {
+           |  def log(msg: js.Any): Unit = js.native
+           |}
+           |
+           |val msg = "$message"
+           |console.log(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js")
@@ -202,15 +190,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("simple script JS via config file") {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "simple.sc" ->
-          s"""//> using platform "scala-js"
-             |import scala.scalajs.js
-             |val console = js.Dynamic.global.console
-             |val msg = "$message"
-             |console.log(msg)
-             |""".stripMargin
-      )
+      os.rel / "simple.sc" ->
+        s"""//> using platform "scala-js"
+           |import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |val msg = "$message"
+           |console.log(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.text().trim
@@ -224,16 +210,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""import scala.scalanative.libc._
-             |import scala.scalanative.unsafe._
-             |
-             |Zone { implicit z =>
-             |  stdio.printf(toCString("$message$platformNl"))
-             |}
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""import scala.scalanative.libc._
+           |import scala.scalanative.unsafe._
+           |
+           |Zone { implicit z =>
+           |  stdio.printf(toCString("$message$platformNl"))
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output =
@@ -252,16 +236,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""import scala.scalanative.libc._
-             |import scala.scalanative.unsafe._
-             |
-             |Zone { implicit z =>
-             |  stdio.printf(toCString("$message$platformNl"))
-             |}
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""import scala.scalanative.libc._
+           |import scala.scalanative.unsafe._
+           |
+           |Zone { implicit z =>
+           |  stdio.printf(toCString("$message$platformNl"))
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output =
@@ -279,18 +261,16 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val message  = "using Scala 3 Native"
       val fileName = "scala3native.scala"
       val inputs = TestInputs(
-        Seq(
-          os.rel / fileName ->
-            s"""import scala.scalanative.libc._
-               |import scala.scalanative.unsafe._
-               |
-               |@main def main() =
-               |  val message = "$message"
-               |  Zone { implicit z =>
-               |    stdio.printf(toCString(message))
-               |  }
-               |""".stripMargin
-        )
+        os.rel / fileName ->
+          s"""import scala.scalanative.libc._
+             |import scala.scalanative.unsafe._
+             |
+             |@main def main() =
+             |  val message = "$message"
+             |  Zone { implicit z =>
+             |    stdio.printf(toCString(message))
+             |  }
+             |""".stripMargin
       )
       inputs.fromRoot { root =>
         val output =
@@ -304,14 +284,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("Multiple scripts") {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "messages.sc" ->
-          s"""def msg = "$message"
-             |""".stripMargin,
-        os.rel / "print.sc" ->
-          s"""println(messages.msg)
-             |""".stripMargin
-      )
+      os.rel / "messages.sc" ->
+        s"""def msg = "$message"
+           |""".stripMargin,
+      os.rel / "print.sc" ->
+        s"""println(messages.msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc").call(cwd =
@@ -324,11 +302,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("main.sc is not a special case") {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "main.sc" ->
-          s"""println("$message")
-             |""".stripMargin
-      )
+      os.rel / "main.sc" ->
+        s"""println("$message")
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
@@ -341,14 +317,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("use method from main.sc file") {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "message.sc" ->
-          s"""println(main.msg)
-             |""".stripMargin,
-        os.rel / "main.sc" ->
-          s"""def msg = "$message"
-             |""".stripMargin
-      )
+      os.rel / "message.sc" ->
+        s"""println(main.msg)
+           |""".stripMargin,
+      os.rel / "main.sc" ->
+        s"""def msg = "$message"
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc").call(cwd =
@@ -361,16 +335,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("Multiple scripts JS") {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "messages.sc" ->
-          s"""def msg = "$message"
-             |""".stripMargin,
-        os.rel / "print.sc" ->
-          s"""import scala.scalajs.js
-             |val console = js.Dynamic.global.console
-             |console.log(messages.msg)
-             |""".stripMargin
-      )
+      os.rel / "messages.sc" ->
+        s"""def msg = "$message"
+           |""".stripMargin,
+      os.rel / "print.sc" ->
+        s"""import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |console.log(messages.msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--js").call(cwd =
@@ -383,19 +355,17 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   def multipleScriptsNative(): Unit = {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "messages.sc" ->
-          s"""def msg = "$message"
-             |""".stripMargin,
-        os.rel / "print.sc" ->
-          s"""import scala.scalanative.libc._
-             |import scala.scalanative.unsafe._
-             |
-             |Zone { implicit z =>
-             |  stdio.printf(toCString(messages.msg + "$platformNl"))
-             |}
-             |""".stripMargin
-      )
+      os.rel / "messages.sc" ->
+        s"""def msg = "$message"
+           |""".stripMargin,
+      os.rel / "print.sc" ->
+        s"""import scala.scalanative.libc._
+           |import scala.scalanative.unsafe._
+           |
+           |Zone { implicit z =>
+           |  stdio.printf(toCString(messages.msg + "$platformNl"))
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output =
@@ -413,14 +383,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("Directory") {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "dir" / "messages.sc" ->
-          s"""def msg = "$message"
-             |""".stripMargin,
-        os.rel / "dir" / "print.sc" ->
-          s"""println(messages.msg)
-             |""".stripMargin
-      )
+      os.rel / "dir" / "messages.sc" ->
+        s"""def msg = "$message"
+           |""".stripMargin,
+      os.rel / "dir" / "print.sc" ->
+        s"""println(messages.msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", "print_sc").call(cwd =
@@ -432,11 +400,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("No default input when no explicit command is passed") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "dir" / "print.sc" ->
-          s"""println("Foo")
-             |""".stripMargin
-      )
+      os.rel / "dir" / "print.sc" ->
+        s"""println("Foo")
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, extraOptions, "--main-class", "print")
@@ -449,15 +415,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("Pass arguments") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Test.scala" ->
-          s"""object Test {
-             |  def main(args: Array[String]): Unit = {
-             |    println(args(0))
-             |  }
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Test.scala" ->
+        s"""object Test {
+           |  def main(args: Array[String]): Unit = {
+           |    println(args(0))
+           |  }
+           |}
+           |""".stripMargin
     )
     val message = "Hello"
     inputs.fromRoot { root =>
@@ -470,14 +434,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def passArgumentsScala3(): Unit = {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Test.scala" ->
-          s"""object Test:
-             |  def main(args: Array[String]): Unit =
-             |    val message = args(0)
-             |    println(message)
-             |""".stripMargin
-      )
+      os.rel / "Test.scala" ->
+        s"""object Test:
+           |  def main(args: Array[String]): Unit =
+           |    val message = args(0)
+           |    println(message)
+           |""".stripMargin
     )
     val message = "Hello"
     inputs.fromRoot { root =>
@@ -496,16 +458,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("Directory JS") {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "dir" / "messages.sc" ->
-          s"""def msg = "$message"
-             |""".stripMargin,
-        os.rel / "dir" / "print.sc" ->
-          s"""import scala.scalajs.js
-             |val console = js.Dynamic.global.console
-             |console.log(messages.msg)
-             |""".stripMargin
-      )
+      os.rel / "dir" / "messages.sc" ->
+        s"""def msg = "$message"
+           |""".stripMargin,
+      os.rel / "dir" / "print.sc" ->
+        s"""import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |console.log(messages.msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "dir", "--js", "--main-class", "print_sc")
@@ -518,19 +478,17 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   def directoryNative(): Unit = {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "dir" / "messages.sc" ->
-          s"""def msg = "$message"
-             |""".stripMargin,
-        os.rel / "dir" / "print.sc" ->
-          s"""import scala.scalanative.libc._
-             |import scala.scalanative.unsafe._
-             |
-             |Zone { implicit z =>
-             |  stdio.printf(toCString(messages.msg + "$platformNl"))
-             |}
-             |""".stripMargin
-      )
+      os.rel / "dir" / "messages.sc" ->
+        s"""def msg = "$message"
+           |""".stripMargin,
+      os.rel / "dir" / "print.sc" ->
+        s"""import scala.scalanative.libc._
+           |import scala.scalanative.unsafe._
+           |
+           |Zone { implicit z =>
+           |  stdio.printf(toCString(messages.msg + "$platformNl"))
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output =
@@ -552,11 +510,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val expectedClassName = fileName.stripSuffix(".sc") + "$"
     val scriptPath        = os.rel / "something" / fileName
     val inputs = TestInputs(
-      Seq(
-        scriptPath ->
-          s"""println(getClass.getName)
-             |""".stripMargin
-      )
+      scriptPath ->
+        s"""println(getClass.getName)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, scriptPath.toString)
@@ -572,22 +528,20 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val expectedClassName = fileName.stripSuffix(".sc") + "$"
     val scriptPath        = os.rel / "something" / fileName
     val inputs = TestInputs(
-      Seq(
-        os.rel / "dir" / "Messages.scala" ->
-          s"""object Messages {
-             |  def msg = "Hello"
-             |}
-             |""".stripMargin,
-        os.rel / "dir" / "Print.scala" ->
-          s"""object Print {
-             |  def main(args: Array[String]): Unit =
-             |    println(Messages.msg)
-             |}
-             |""".stripMargin,
-        scriptPath ->
-          s"""println(getClass.getName)
-             |""".stripMargin
-      )
+      os.rel / "dir" / "Messages.scala" ->
+        s"""object Messages {
+           |  def msg = "Hello"
+           |}
+           |""".stripMargin,
+      os.rel / "dir" / "Print.scala" ->
+        s"""object Print {
+           |  def main(args: Array[String]): Unit =
+           |    println(Messages.msg)
+           |}
+           |""".stripMargin,
+      scriptPath ->
+        s"""println(getClass.getName)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "dir", scriptPath.toString)
@@ -604,20 +558,18 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("stack traces") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Throws.scala" ->
-          s"""object Throws {
-             |  def something(): String =
-             |    sys.error("nope")
-             |  def main(args: Array[String]): Unit =
-             |    try something()
-             |    catch {
-             |      case e: Exception =>
-             |        throw new Exception("Caught exception during processing", e)
-             |    }
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Throws.scala" ->
+        s"""object Throws {
+           |  def something(): String =
+           |    sys.error("nope")
+           |  def main(args: Array[String]): Unit =
+           |    try something()
+           |    catch {
+           |      case e: Exception =>
+           |        throw new Exception("Caught exception during processing", e)
+           |    }
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       // format: off
@@ -666,17 +618,15 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def stackTraceInScriptScala2(): Unit = {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "throws.sc" ->
-          s"""def something(): String =
-             |  sys.error("nope")
-             |try something()
-             |catch {
-             |  case e: Exception =>
-             |    throw new Exception("Caught exception during processing", e)
-             |}
-             |""".stripMargin
-      )
+      os.rel / "throws.sc" ->
+        s"""def something(): String =
+           |  sys.error("nope")
+           |try something()
+           |catch {
+           |  case e: Exception =>
+           |    throw new Exception("Caught exception during processing", e)
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       // format: off
@@ -738,19 +688,17 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def scriptStackTraceScala3(): Unit = {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "throws.sc" ->
-          s"""def something(): String =
-             |  val message = "nope"
-             |  sys.error(message)
-             |
-             |try something()
-             |catch {
-             |  case e: Exception =>
-             |    throw new Exception("Caught exception during processing", e)
-             |}
-             |""".stripMargin
-      )
+      os.rel / "throws.sc" ->
+        s"""def something(): String =
+           |  val message = "nope"
+           |  sys.error(message)
+           |
+           |try something()
+           |catch {
+           |  case e: Exception =>
+           |    throw new Exception("Caught exception during processing", e)
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       // format: off
@@ -792,7 +740,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       scriptStackTraceScala3()
     }
 
-  val emptyInputs: TestInputs = TestInputs(Seq(os.rel / ".placeholder" -> ""))
+  val emptyInputs: TestInputs = TestInputs(os.rel / ".placeholder" -> "")
 
   def piping(): Unit = {
     emptyInputs.fromRoot { root =>
@@ -835,8 +783,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |  val data = SomeData(value = "$expectedOutput")
            |  println(data.value)
            |}""".stripMargin
-      val inputs =
-        TestInputs(Seq(os.rel / "SomeData.scala" -> "case class SomeData(value: String)"))
+      val inputs = TestInputs(os.rel / "SomeData.scala" -> "case class SomeData(value: String)")
       inputs.fromRoot { root =>
         val output = os.proc(TestUtil.cli, ".", "_.scala", extraOptions)
           .call(cwd = root, stdin = pipedInput)
@@ -898,7 +845,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         s"public class JavaSnippet { public static String exclamation = \"$exclamation\"; }"
       val pipedInput = s"def hello = \"$hello\""
       val inputs =
-        TestInputs(Seq(os.rel / "Main.scala" ->
+        TestInputs(os.rel / "Main.scala" ->
           s"""object Main extends App {
              |  val hello = stdin.hello
              |  val comma = ScalaSnippetData(value = "$comma").value
@@ -906,7 +853,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
              |  val exclamation = JavaSnippet.exclamation
              |  println(hello + comma + world + exclamation)
              |}
-             |""".stripMargin))
+             |""".stripMargin)
       inputs.fromRoot { root =>
         val output =
           os.proc(
@@ -928,14 +875,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
     test("pick .scala main class over in-context scripts, including piped ones") {
       val inputs = TestInputs(
-        Seq(
-          os.rel / "Hello.scala" ->
-            """object Hello extends App {
-              |  println(s"${stdin.hello} ${scripts.Script.world}")
-              |}
-              |""".stripMargin,
-          os.rel / "scripts" / "Script.sc" -> """def world: String = "world""""
-        )
+        os.rel / "Hello.scala" ->
+          """object Hello extends App {
+            |  println(s"${stdin.hello} ${scripts.Script.world}")
+            |}
+            |""".stripMargin,
+        os.rel / "scripts" / "Script.sc" -> """def world: String = "world""""
       )
       val pipedInput = """def hello: String = "Hello""""
       inputs.fromRoot { root =>
@@ -952,14 +897,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
     test("pick piped .scala main class over in-context scripts") {
       val inputs = TestInputs(
-        Seq(
-          os.rel / "Hello.scala" ->
-            """object Hello {
-              |  def hello: String = "Hello"
-              |}
-              |""".stripMargin,
-          os.rel / "scripts" / "Script.sc" -> """def world: String = "world""""
-        )
+        os.rel / "Hello.scala" ->
+          """object Hello {
+            |  def hello: String = "Hello"
+            |}
+            |""".stripMargin,
+        os.rel / "scripts" / "Script.sc" -> """def world: String = "world""""
       )
       val pipedInput =
         """object Main extends App {
@@ -1049,18 +992,16 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("Zip with multiple Scala files") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          s"""object Hello extends App {
-             |  println(Messages.hello)
-             |}
-             |""".stripMargin,
-        os.rel / "Messages.scala" ->
-          s"""object Messages {
-             |  def hello: String = "Hello"
-             |}
-             |""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        s"""object Hello extends App {
+           |  println(Messages.hello)
+           |}
+           |""".stripMargin,
+      os.rel / "Messages.scala" ->
+        s"""object Messages {
+           |  def hello: String = "Hello"
+           |}
+           |""".stripMargin
     )
     inputs.asZip { (root, zipPath) =>
       val message = "Hello"
@@ -1073,21 +1014,19 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("Zip with Scala containing resource directive") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          s"""//> using resourceDir "./"
-             |import scala.io.Source
-             |
-             |object Hello extends App {
-             |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
-             |    println(inputs.mkString(","))
-             |}
-             |""".stripMargin,
-        os.rel / "input" ->
-          s"""1
-             |2
-             |""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        s"""//> using resourceDir "./"
+           |import scala.io.Source
+           |
+           |object Hello extends App {
+           |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+           |    println(inputs.mkString(","))
+           |}
+           |""".stripMargin,
+      os.rel / "input" ->
+        s"""1
+           |2
+           |""".stripMargin
     )
     inputs.asZip { (root, zipPath) =>
       val message = "1,2"
@@ -1101,19 +1040,17 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("Zip with Scala Script containing resource directive") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "hello.sc" ->
-          s"""//> using resourceDir "./"
-             |import scala.io.Source
-             |
-             |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
-             |println(inputs.mkString(","))
-             |""".stripMargin,
-        os.rel / "input" ->
-          s"""1
-             |2
-             |""".stripMargin
-      )
+      os.rel / "hello.sc" ->
+        s"""//> using resourceDir "./"
+           |import scala.io.Source
+           |
+           |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+           |println(inputs.mkString(","))
+           |""".stripMargin,
+      os.rel / "input" ->
+        s"""1
+           |2
+           |""".stripMargin
     )
     inputs.asZip { (root, zipPath) =>
       val message = "1,2"
@@ -1137,20 +1074,18 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     expect(os.isFile(os.Path(shapelessJar, os.pwd)))
 
     val inputs = TestInputs(
-      Seq(
-        os.rel / "test.sc" ->
-          """val shapelessFound =
-            |  try Thread.currentThread().getContextClassLoader.loadClass("shapeless.HList") != null
-            |  catch { case _: ClassNotFoundException => false }
-            |println(if (shapelessFound) "Hello with " + "shapeless" else "Hello from " + "test")
-            |""".stripMargin,
-        os.rel / "Other.scala" ->
-          """object Other {
-            |  import shapeless._
-            |  val l = 2 :: "a" :: HNil
-            |}
-            |""".stripMargin
-      )
+      os.rel / "test.sc" ->
+        """val shapelessFound =
+          |  try Thread.currentThread().getContextClassLoader.loadClass("shapeless.HList") != null
+          |  catch { case _: ClassNotFoundException => false }
+          |println(if (shapelessFound) "Hello with " + "shapeless" else "Hello from " + "test")
+          |""".stripMargin,
+      os.rel / "Other.scala" ->
+        """object Other {
+          |  import shapeless._
+          |  val l = 2 :: "a" :: HNil
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       val baseOutput = os.proc(TestUtil.cli, extraOptions, ".", "--extra-jar", shapelessJar)
@@ -1172,17 +1107,15 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def commandLineScalacXOption(): Unit = {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Test.scala" ->
-          """object Test {
-            |  def main(args: Array[String]): Unit = {
-            |    val msg = "Hello"
-            |    val foo = List("Not printed", 2, true, new Object)
-            |    println(msg)
-            |  }
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Test.scala" ->
+        """object Test {
+          |  def main(args: Array[String]): Unit = {
+          |    val msg = "Hello"
+          |    val foo = List("Not printed", 2, true, new Object)
+          |    println(msg)
+          |  }
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       def run(warnAny: Boolean) = {
@@ -1222,16 +1155,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def commandLineScalacYOption(): Unit = {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Delambdafy.scala" ->
-          """object Delambdafy {
-            |  def main(args: Array[String]): Unit = {
-            |    val l = List(0, 1, 2)
-            |    println(l.map(_ + 1).mkString)
-            |  }
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Delambdafy.scala" ->
+        """object Delambdafy {
+          |  def main(args: Array[String]): Unit = {
+          |    val l = List(0, 1, 2)
+          |    println(l.map(_ + 1).mkString)
+          |  }
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       // FIXME We don't really use the run command here, in spite of being in RunTests…
@@ -1274,12 +1205,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val fileName = "simple.sc"
       val message  = "Hello"
       val inputs = TestInputs(
-        Seq(
-          os.rel / fileName ->
-            s"""val msg = "$message"
-               |println(msg)
-               |""".stripMargin
-        )
+        os.rel / fileName ->
+          s"""val msg = "$message"
+             |println(msg)
+             |""".stripMargin
       )
       inputs.fromRoot { root =>
         val baseImage =
@@ -1316,13 +1245,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("Java options in config file") {
     val message = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "simple.sc" ->
-          s"""//> using javaOpt "-Dtest.message=$message"
-             |val msg = sys.props("test.message")
-             |println(msg)
-             |""".stripMargin
-      )
+      os.rel / "simple.sc" ->
+        s"""//> using javaOpt "-Dtest.message=$message"
+           |val msg = sys.props("test.message")
+           |println(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.text().trim
@@ -1332,13 +1259,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("Main class in config file") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "simple.scala" ->
-          s"""//> using `main-class` "hello"
-             |object hello extends App { println("hello") }
-             |object world extends App { println("world") }
-             |""".stripMargin
-      )
+      os.rel / "simple.scala" ->
+        s"""//> using `main-class` "hello"
+           |object hello extends App { println("hello") }
+           |object world extends App { println("world") }
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.text().trim
@@ -1350,14 +1275,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""val msg = "$message"
-             |println(msg)
-             |""".stripMargin,
-        os.rel / "Dockerfile" ->
-          os.read(os.Path(Constants.mostlyStaticDockerfile, os.pwd))
-      )
+      os.rel / fileName ->
+        s"""val msg = "$message"
+           |println(msg)
+           |""".stripMargin,
+      os.rel / "Dockerfile" ->
+        os.read(os.Path(Constants.mostlyStaticDockerfile, os.pwd))
     )
     inputs.fromRoot { root =>
       os.copy(os.Path(TestUtil.cli.head), root / "scala-cli")
@@ -1399,16 +1322,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
 
   private def simpleDirInputs = TestInputs(
-    Seq(
-      os.rel / "dir" / "Hello.scala" ->
-        """object Hello {
-          |  def main(args: Array[String]): Unit = {
-          |    val p = java.nio.file.Paths.get(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
-          |    println(p)
-          |  }
-          |}
-          |""".stripMargin
-    )
+    os.rel / "dir" / "Hello.scala" ->
+      """object Hello {
+        |  def main(args: Array[String]): Unit = {
+        |    val p = java.nio.file.Paths.get(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+        |    println(p)
+        |  }
+        |}
+        |""".stripMargin
   )
   private def nonWritableTest(): Unit = {
     simpleDirInputs.fromRoot { root =>
@@ -1455,20 +1376,18 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   private def resourcesInputs(directive: String = "") = {
     val resourceContent = "Hello from resources"
     TestInputs(
-      Seq(
-        os.rel / "src" / "proj" / "resources" / "test" / "data" -> resourceContent,
-        os.rel / "src" / "proj" / "Test.scala" ->
-          s"""$directive
-             |object Test {
-             |  def main(args: Array[String]): Unit = {
-             |    val cl = Thread.currentThread().getContextClassLoader
-             |    val is = cl.getResourceAsStream("test/data")
-             |    val content = scala.io.Source.fromInputStream(is)(scala.io.Codec.UTF8).mkString
-             |    assert(content == "$resourceContent")
-             |  }
-             |}
-             |""".stripMargin
-      )
+      os.rel / "src" / "proj" / "resources" / "test" / "data" -> resourceContent,
+      os.rel / "src" / "proj" / "Test.scala" ->
+        s"""$directive
+           |object Test {
+           |  def main(args: Array[String]): Unit = {
+           |    val cl = Thread.currentThread().getContextClassLoader
+           |    val is = cl.getResourceAsStream("test/data")
+           |    val content = scala.io.Source.fromInputStream(is)(scala.io.Codec.UTF8).mkString
+           |    assert(content == "$resourceContent")
+           |  }
+           |}
+           |""".stripMargin
     )
   }
   test("resources") {
@@ -1486,15 +1405,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def argsAsIsTest(): Unit = {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "MyScript.scala" ->
-          """#!/usr/bin/env -S scala-cli shebang
-            |object MyScript {
-            |  def main(args: Array[String]): Unit =
-            |    println("Hello" + args.map(" " + _).mkString)
-            |}
-            |""".stripMargin
-      )
+      os.rel / "MyScript.scala" ->
+        """#!/usr/bin/env -S scala-cli shebang
+          |object MyScript {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello" + args.map(" " + _).mkString)
+          |}
+          |""".stripMargin
     )
     val launcherPath = TestUtil.cli match {
       case Seq(cli) => os.Path(cli, os.pwd)
@@ -1519,34 +1436,32 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("test scope") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Main.scala" ->
-          """//> using lib "com.lihaoyi::utest:0.7.10"
-            |
-            |object Main {
-            |  val err = utest.compileError("pprint.log(2)")
-            |  def message = "Hello from " + "tests"
-            |  def main(args: Array[String]): Unit = {
-            |    println(message)
-            |    println(err)
-            |  }
-            |}
-            |""".stripMargin,
-        os.rel / "Tests.scala" ->
-          """//> using lib "com.lihaoyi::pprint:0.6.6"
-            |//> using target.scope "test"
-            |
-            |import utest._
-            |
-            |object Tests extends TestSuite {
-            |  val tests = Tests {
-            |    test("message") {
-            |      assert(Main.message.startsWith("Hello"))
-            |    }
-            |  }
-            |}
-            |""".stripMargin
-      )
+      os.rel / "Main.scala" ->
+        """//> using lib "com.lihaoyi::utest:0.7.10"
+          |
+          |object Main {
+          |  val err = utest.compileError("pprint.log(2)")
+          |  def message = "Hello from " + "tests"
+          |  def main(args: Array[String]): Unit = {
+          |    println(message)
+          |    println(err)
+          |  }
+          |}
+          |""".stripMargin,
+      os.rel / "Tests.scala" ->
+        """//> using lib "com.lihaoyi::pprint:0.6.6"
+          |//> using target.scope "test"
+          |
+          |import utest._
+          |
+          |object Tests extends TestSuite {
+          |  val tests = Tests {
+          |    test("message") {
+          |      assert(Main.message.startsWith("Hello"))
+          |    }
+          |  }
+          |}
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root)
@@ -1556,10 +1471,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
   test("interconnection between scripts") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "f.sc"     -> "def f(x: String) = println(x + x + x)",
-        os.rel / "main0.sc" -> "f.f(args(0))"
-      )
+      os.rel / "f.sc"     -> "def f(x: String) = println(x + x + x)",
+      os.rel / "main0.sc" -> "f.f(args(0))"
     )
     inputs.fromRoot { root =>
       val p =
@@ -1569,11 +1482,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
   test("CLI args passed to script") {
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "f.sc" -> "println(args(0))"
-      )
-    )
+    val inputs = TestInputs(os.rel / "f.sc" -> "println(args(0))")
     inputs.fromRoot { root =>
       val p = os.proc(TestUtil.cli, "f.sc", "--", "16").call(cwd = root)
       expect(p.out.text().trim == "16")
@@ -1583,11 +1492,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   if (!Properties.isWin) {
     test("CLI args passed to shebang script") {
       val inputs = TestInputs(
-        Seq(
-          os.rel / "f.sc" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-                                 |//> using scala "$actualScalaVersion"
-                                 |println(args.toList)""".stripMargin
-        )
+        os.rel / "f.sc" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
+                               |//> using scala "$actualScalaVersion"
+                               |println(args.toList)""".stripMargin
       )
       inputs.fromRoot { root =>
         os.perms.set(root / "f.sc", os.PermSet.fromString("rwx------"))
@@ -1597,15 +1504,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
     test("CLI args passed to shebang in Scala file") {
       val inputs = TestInputs(
-        Seq(
-          os.rel / "f.scala" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
-                                    |object Hello {
-                                    |    def main(args: Array[String]) = {
-                                    |        println(args.toList)
-                                    |    }
-                                    |}
-                                    |""".stripMargin
-        )
+        os.rel / "f.scala" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
+                                  |object Hello {
+                                  |    def main(args: Array[String]) = {
+                                  |        println(args.toList)
+                                  |    }
+                                  |}
+                                  |""".stripMargin
       )
       inputs.fromRoot { root =>
         os.perms.set(root / "f.scala", os.PermSet.fromString("rwx------"))
@@ -1616,11 +1521,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("Runs with JVM 8") {
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "run.scala" -> """object Main extends App { println("hello")}"""
-      )
-    )
+    val inputs =
+      TestInputs(os.rel / "run.scala" -> """object Main extends App { println("hello")}""")
     inputs.fromRoot { root =>
       val p = os.proc(TestUtil.cli, "run.scala", "--jvm", "8").call(cwd = root)
       expect(p.out.text().trim == "hello")
@@ -1629,14 +1531,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("workspace dir") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          """|//> using lib "com.lihaoyi::os-lib:0.7.8"
-             |
-             |object Hello extends App {
-             |  println(os.pwd)
-             |}""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        """|//> using lib "com.lihaoyi::os-lib:0.7.8"
+           |
+           |object Hello extends App {
+           |  println(os.pwd)
+           |}""".stripMargin
     )
     inputs.fromRoot { root =>
       val p = os.proc(TestUtil.cli, "Hello.scala").call(cwd = root)
@@ -1681,11 +1581,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("-D.. options passed to the child app") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" -> """object ClassHello extends App {
-                                    |  print(System.getProperty("foo"))
-                                    |}""".stripMargin
-      )
+      os.rel / "Hello.scala" -> """object ClassHello extends App {
+                                  |  print(System.getProperty("foo"))
+                                  |}""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Dfoo=bar").call(
@@ -1699,23 +1597,21 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName       = "Hello.scala"
     val (hello, world) = ("Hello", "World")
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          """|//> using file "Utils.scala", "helper"
-             |
-             |object Hello extends App {
-             |   println(s"${Utils.hello}${helper.Helper.world}")
-             |}""".stripMargin,
-        os.rel / "Utils.scala" ->
-          s"""|object Utils {
-              |  val hello = "$hello"
-              |}""".stripMargin,
-        os.rel / "helper" / "Helper.scala" ->
-          s"""|package helper
-              |object Helper {
-              |  val world = "$world"
-              |}""".stripMargin
-      )
+      os.rel / fileName ->
+        """|//> using file "Utils.scala", "helper"
+           |
+           |object Hello extends App {
+           |   println(s"${Utils.hello}${helper.Helper.world}")
+           |}""".stripMargin,
+      os.rel / "Utils.scala" ->
+        s"""|object Utils {
+            |  val hello = "$hello"
+            |}""".stripMargin,
+      os.rel / "helper" / "Helper.scala" ->
+        s"""|package helper
+            |object Helper {
+            |  val world = "$world"
+            |}""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "Hello.scala")
@@ -1725,11 +1621,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("-X.. options passed to the child app") {
-    val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" -> "object Hello extends App {}"
-      )
-    )
+    val inputs = TestInputs(os.rel / "Hello.scala" -> "object Hello extends App {}")
     inputs.fromRoot { root =>
       // Binaries generated with Graal's native-image are run under SubstrateVM
       // that cuts some -X.. java options, so they're not passed
@@ -1748,12 +1640,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""val msg = "$message"
-             |println(msg)
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""val msg = "$message"
+           |println(msg)
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val baseImage = Constants.dockerTestImage
@@ -1810,7 +1700,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
               |}
               |""".stripMargin
         )
-      }
+      }*
     )
     def authProperties(host: String, port: Int, user: String, password: String): Seq[String] =
       Seq("http", "https").flatMap { scheme =>
@@ -1873,18 +1763,16 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def jsDomTest(): Unit = {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "JsDom.scala" ->
-          s"""|//> using lib "org.scala-js::scalajs-dom::2.1.0"
-              |
-              |import org.scalajs.dom.document
-              |
-              |object JsDom extends App {
-              |  val pSize = document.querySelectorAll("p")
-              |  println("Hello from js dom")
-              |}
-              |""".stripMargin
-      )
+      os.rel / "JsDom.scala" ->
+        s"""|//> using lib "org.scala-js::scalajs-dom::2.1.0"
+            |
+            |import org.scalajs.dom.document
+            |
+            |object JsDom extends App {
+            |  val pSize = document.querySelectorAll("p")
+            |  println("Hello from js dom")
+            |}
+            |""".stripMargin
     )
     inputs.fromRoot { root =>
       // install jsdom library
@@ -1908,15 +1796,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val message  = "Hello from TestÅÄÖåäö"
     val fileName = "TestÅÄÖåäö.scala"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""object TestÅÄÖåäö {
-             |  def main(args: Array[String]): Unit = {
-             |    println("$message")
-             |  }
-             |}
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""object TestÅÄÖåäö {
+           |  def main(args: Array[String]): Unit = {
+           |    println("$message")
+           |  }
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(
@@ -1981,14 +1867,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("pick .scala main class over in-context scripts") {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "Hello.scala" ->
-          """object Hello extends App {
-            |  println(s"Hello ${scripts.Script.world}")
-            |}
-            |""".stripMargin,
-        os.rel / "scripts" / "Script.sc" -> """def world: String = "world"""".stripMargin
-      )
+      os.rel / "Hello.scala" ->
+        """object Hello extends App {
+          |  println(s"Hello ${scripts.Script.world}")
+          |}
+          |""".stripMargin,
+      os.rel / "scripts" / "Script.sc" -> """def world: String = "world"""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(
@@ -2006,11 +1890,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scritps"
     val inputs = TestInputs(
-      Seq(
-        os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
-        os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
-        os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
-      )
+      os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
+      os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
+      os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
     )
     inputs.fromRoot { root =>
       val res = os.proc(
@@ -2031,7 +1913,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test(
     "return relevant error when main classes list is requested, but no main classes are present"
   ) {
-    val inputs = TestInputs(Seq(os.rel / "Main.scala" -> "object Main { println() }"))
+    val inputs = TestInputs(os.rel / "Main.scala" -> "object Main { println() }")
     inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
@@ -2050,11 +1932,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"
     val inputs = TestInputs(
-      Seq(
-        os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
-        os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
-        os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
-      )
+      os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
+      os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
+      os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
     )
     inputs.fromRoot { root =>
       val res = os.proc(

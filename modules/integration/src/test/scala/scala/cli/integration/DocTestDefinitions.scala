@@ -5,24 +5,22 @@ import com.eed3si9n.expecty.Expecty.expect
 abstract class DocTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
 
-  protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   test("generate static scala doc") {
     val dest = os.rel / "doc-static"
     val inputs = TestInputs(
-      Seq(
-        os.rel / "lib" / "Messages.scala" ->
-          """package lib
-            |
-            |object Messages {
-            |  def msg = "Hello"
-            |}
-            |""".stripMargin,
-        os.rel / "simple.sc" ->
-          """val msg = lib.Messages.msg
-            |println(msg)
-            |""".stripMargin
-      )
+      os.rel / "lib" / "Messages.scala" ->
+        """package lib
+          |
+          |object Messages {
+          |  def msg = "Hello"
+          |}
+          |""".stripMargin,
+      os.rel / "simple.sc" ->
+        """val msg = lib.Messages.msg
+          |println(msg)
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "doc", extraOptions, ".", "-o", dest).call(

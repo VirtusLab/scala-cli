@@ -7,182 +7,164 @@ import scala.annotation.tailrec
 abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
 
-  protected val jvmOptions =
+  protected val jvmOptions: Seq[String] =
     // seems munit requires this with Scala 3
     if (actualScalaVersion.startsWith("3.")) Seq("--jvm", "11")
     else Nil
-  protected lazy val baseExtraOptions = TestUtil.extraOptions ++ jvmOptions
-  private lazy val extraOptions       = scalaVersionArgs ++ baseExtraOptions
+  protected lazy val baseExtraOptions: Seq[String] = TestUtil.extraOptions ++ jvmOptions
+  private lazy val extraOptions: Seq[String]       = scalaVersionArgs ++ baseExtraOptions
 
-  val successfulTestInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.scala" ->
-        """//> using lib "org.scalameta::munit::0.7.29"
-          |
-          |class MyTests extends munit.FunSuite {
-          |  test("foo") {
-          |    assert(2 + 2 == 4)
-          |    println("Hello from " + "tests")
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val successfulTestInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
+      """//> using lib "org.scalameta::munit::0.7.29"
+        |
+        |class MyTests extends munit.FunSuite {
+        |  test("foo") {
+        |    assert(2 + 2 == 4)
+        |    println("Hello from " + "tests")
+        |  }
+        |}
+        |""".stripMargin
   )
 
-  val failingTestInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.scala" ->
-        """//> using lib "org.scalameta::munit::0.7.29"
-          |
-          |class MyTests extends munit.FunSuite {
-          |  test("foo") {
-          |    assert(2 + 2 == 5, "Hello from " + "tests")
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val failingTestInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
+      """//> using lib "org.scalameta::munit::0.7.29"
+        |
+        |class MyTests extends munit.FunSuite {
+        |  test("foo") {
+        |    assert(2 + 2 == 5, "Hello from " + "tests")
+        |  }
+        |}
+        |""".stripMargin
   )
 
-  val successfulUtestInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.scala" ->
-        """//> using lib "com.lihaoyi::utest::0.7.10"
-          |import utest._
-          |
-          |object MyTests extends TestSuite {
-          |  val tests = Tests {
-          |    test("foo") {
-          |      assert(2 + 2 == 4)
-          |      println("Hello from " + "tests")
-          |    }
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val successfulUtestInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
+      """//> using lib "com.lihaoyi::utest::0.7.10"
+        |import utest._
+        |
+        |object MyTests extends TestSuite {
+        |  val tests = Tests {
+        |    test("foo") {
+        |      assert(2 + 2 == 4)
+        |      println("Hello from " + "tests")
+        |    }
+        |  }
+        |}
+        |""".stripMargin
   )
 
-  val successfulUtestJsInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.scala" ->
-        """//> using lib "com.lihaoyi::utest::0.7.10"
-          |import utest._
-          |import scala.scalajs.js
-          |
-          |object MyTests extends TestSuite {
-          |  val tests = Tests {
-          |    test("foo") {
-          |      assert(2 + 2 == 4)
-          |      val console = js.Dynamic.global.console
-          |      console.log("Hello from " + "tests")
-          |    }
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val successfulUtestJsInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
+      """//> using lib "com.lihaoyi::utest::0.7.10"
+        |import utest._
+        |import scala.scalajs.js
+        |
+        |object MyTests extends TestSuite {
+        |  val tests = Tests {
+        |    test("foo") {
+        |      assert(2 + 2 == 4)
+        |      val console = js.Dynamic.global.console
+        |      console.log("Hello from " + "tests")
+        |    }
+        |  }
+        |}
+        |""".stripMargin
   )
 
-  val successfulUtestNativeInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.scala" ->
-        """//> using lib "com.lihaoyi::utest::0.7.10"
-          |import utest._
-          |import scala.scalanative.libc._
-          |import scala.scalanative.unsafe._
-          |
-          |object MyTests extends TestSuite {
-          |  val tests = Tests {
-          |    test("foo") {
-          |      assert(2 + 2 == 4)
-          |      Zone { implicit z =>
-          |        stdio.printf(toCString("Hello from " + "tests\n"))
-          |      }
-          |    }
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val successfulUtestNativeInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
+      """//> using lib "com.lihaoyi::utest::0.7.10"
+        |import utest._
+        |import scala.scalanative.libc._
+        |import scala.scalanative.unsafe._
+        |
+        |object MyTests extends TestSuite {
+        |  val tests = Tests {
+        |    test("foo") {
+        |      assert(2 + 2 == 4)
+        |      Zone { implicit z =>
+        |        stdio.printf(toCString("Hello from " + "tests\n"))
+        |      }
+        |    }
+        |  }
+        |}
+        |""".stripMargin
   )
 
-  val successfulScalaCheckFromCatsNativeInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.scala" ->
-        """//> using scala "2.13.8"
-          |//> using platform "native"
-          |//> using lib "org.typelevel::cats-kernel-laws::2.8.0"
-          |
-          |import org.scalacheck._
-          |import Prop.forAll
-          |    
-          |class TestSpec extends Properties("spec") {
-          |  property("startsWith") = forAll { (a: String, b: String) =>
-          |    (a+b).startsWith(a)
-          |  }
-          |  println("Hello from " + "tests")
-          |}""".stripMargin
-    )
+  val successfulScalaCheckFromCatsNativeInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
+      """//> using scala "2.13.8"
+        |//> using platform "native"
+        |//> using lib "org.typelevel::cats-kernel-laws::2.8.0"
+        |
+        |import org.scalacheck._
+        |import Prop.forAll
+        |
+        |class TestSpec extends Properties("spec") {
+        |  property("startsWith") = forAll { (a: String, b: String) =>
+        |    (a+b).startsWith(a)
+        |  }
+        |  println("Hello from " + "tests")
+        |}""".stripMargin
   )
 
-  val successfulJunitInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.scala" ->
-        """//> using lib "com.novocode:junit-interface:0.11"
-          |import org.junit.Test
-          |
-          |class MyTests {
-          |
-          |  @Test
-          |  def foo(): Unit = {
-          |    assert(2 + 2 == 4)
-          |    println("Hello from " + "tests")
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val successfulJunitInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
+      """//> using lib "com.novocode:junit-interface:0.11"
+        |import org.junit.Test
+        |
+        |class MyTests {
+        |
+        |  @Test
+        |  def foo(): Unit = {
+        |    assert(2 + 2 == 4)
+        |    println("Hello from " + "tests")
+        |  }
+        |}
+        |""".stripMargin
   )
 
-  val severalTestsInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.scala" ->
-        """//> using lib "org.scalameta::munit::0.7.29"
-          |
-          |class MyTests extends munit.FunSuite {
-          |  test("foo") {
-          |    assert(2 + 2 == 4)
-          |    println("Hello from " + "tests1")
-          |  }
-          |}
-          |""".stripMargin,
-      os.rel / "OtherTests.scala" ->
-        """//> using lib "org.scalameta::munit::0.7.29"
-          |
-          |class OtherTests extends munit.FunSuite {
-          |  test("bar") {
-          |    assert(1 + 1 == 2)
-          |    println("Hello from " + "tests2")
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val severalTestsInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
+      """//> using lib "org.scalameta::munit::0.7.29"
+        |
+        |class MyTests extends munit.FunSuite {
+        |  test("foo") {
+        |    assert(2 + 2 == 4)
+        |    println("Hello from " + "tests1")
+        |  }
+        |}
+        |""".stripMargin,
+    os.rel / "OtherTests.scala" ->
+      """//> using lib "org.scalameta::munit::0.7.29"
+        |
+        |class OtherTests extends munit.FunSuite {
+        |  test("bar") {
+        |    assert(1 + 1 == 2)
+        |    println("Hello from " + "tests2")
+        |  }
+        |}
+        |""".stripMargin
   )
 
-  val successfulWeaverInputs = TestInputs(
-    Seq(
-      os.rel / "MyTests.scala" ->
-        """//> using libs "com.disneystreaming::weaver-cats:0.7.6", "com.eed3si9n.expecty::expecty:0.15.4+5-f1d8927e-SNAPSHOT"
-          |import weaver._
-          |import cats.effect.IO
-          |
-          |object MyTests extends SimpleIOSuite {
-          |  test("bar") {
-          |    IO.println("Hello from " + "tests").map(_ => expect(1 + 1 == 2))
-          |  }
-          |}
-          |""".stripMargin
-    )
+  val successfulWeaverInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
+      """//> using libs "com.disneystreaming::weaver-cats:0.7.6", "com.eed3si9n.expecty::expecty:0.15.4+5-f1d8927e-SNAPSHOT"
+        |import weaver._
+        |import cats.effect.IO
+        |
+        |object MyTests extends SimpleIOSuite {
+        |  test("bar") {
+        |    IO.println("Hello from " + "tests").map(_ => expect(1 + 1 == 2))
+        |  }
+        |}
+        |""".stripMargin
   )
 
-  val successfulESModuleTestInputs = TestInputs(
-    Seq(os.rel / "MyTests.scala" ->
+  val successfulESModuleTestInputs: TestInputs = TestInputs(
+    os.rel / "MyTests.scala" ->
       """//> using lib "org.scalameta::munit::0.7.29"
         |//> using jsModuleKind "esmodule"
         |import scala.scalajs.js
@@ -200,7 +182,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |    console.log("Hello from " + "tests")
         |  }
         |}
-        |""".stripMargin)
+        |""".stripMargin
   )
 
   test("successful test") {
@@ -361,7 +343,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  val platforms = {
+  val platforms: Seq[(String, Seq[String])] = {
     val maybeJs = Seq("JS" -> Seq("--js"))
     val maybeNative =
       if (actualScalaVersion.startsWith("2."))
@@ -374,20 +356,18 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   for ((platformName, platformArgs) <- platforms)
     test(s"test framework arguments $platformName") {
       val inputs = TestInputs(
-        Seq(
-          os.rel / "MyTests.scala" ->
-            """//> using lib "org.scalatest::scalatest::3.2.9"
-              |import org.scalatest._
-              |import org.scalatest.flatspec._
-              |import org.scalatest.matchers._
-              |
-              |class Tests extends AnyFlatSpec with should.Matchers {
-              |  "A thing" should "thing" in {
-              |    assert(2 + 2 == 4)
-              |  }
-              |}
-              |""".stripMargin
-        )
+        os.rel / "MyTests.scala" ->
+          """//> using lib "org.scalatest::scalatest::3.2.9"
+            |import org.scalatest._
+            |import org.scalatest.flatspec._
+            |import org.scalatest.matchers._
+            |
+            |class Tests extends AnyFlatSpec with should.Matchers {
+            |  "A thing" should "thing" in {
+            |    assert(2 + 2 == 4)
+            |  }
+            |}
+            |""".stripMargin
       )
       inputs.fromRoot { root =>
         val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
@@ -418,31 +398,29 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   for ((platformName, platformArgs) <- platforms)
     test(s"custom test framework $platformName") {
       val inputs = TestInputs(
-        Seq(
-          os.rel / "MyTests.scala" ->
-            """//> using lib "com.lihaoyi::utest::0.7.10"
-              |
-              |package mytests
-              |import utest._
-              |
-              |object MyTests extends TestSuite {
-              |  val tests = Tests {
-              |    test("foo") {
-              |      assert(2 + 2 == 4)
-              |      println("Hello from " + "tests")
-              |    }
-              |  }
-              |}
-              |""".stripMargin,
-          os.rel / "CustomFramework.scala" ->
-            """package custom
-              |
-              |class CustomFramework extends utest.runner.Framework {
-              |  override def setup(): Unit =
-              |    println("Hello from CustomFramework")
-              |}
-              |""".stripMargin
-        )
+        os.rel / "MyTests.scala" ->
+          """//> using lib "com.lihaoyi::utest::0.7.10"
+            |
+            |package mytests
+            |import utest._
+            |
+            |object MyTests extends TestSuite {
+            |  val tests = Tests {
+            |    test("foo") {
+            |      assert(2 + 2 == 4)
+            |      println("Hello from " + "tests")
+            |    }
+            |  }
+            |}
+            |""".stripMargin,
+        os.rel / "CustomFramework.scala" ->
+          """package custom
+            |
+            |class CustomFramework extends utest.runner.Framework {
+            |  override def setup(): Unit =
+            |    println("Hello from CustomFramework")
+            |}
+            |""".stripMargin
       )
       inputs.fromRoot { root =>
         val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
@@ -467,13 +445,11 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   for ((platformName, platformArgs) <- platforms)
     test(s"Fail if no tests were run $platformName") {
       val inputs = TestInputs(
-        Seq(
-          os.rel / "MyTests.scala" ->
-            """//> using lib "org.scalameta::munit::0.7.29"
-              |
-              |object MyTests
-              |""".stripMargin
-        )
+        os.rel / "MyTests.scala" ->
+          """//> using lib "org.scalameta::munit::0.7.29"
+            |
+            |object MyTests
+            |""".stripMargin
       )
 
       inputs.fromRoot { root =>
@@ -508,36 +484,34 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
     val inputs = {
       var inputs0 = TestInputs(
-        Seq(
-          os.rel / "MyTests.scala" ->
-            s"""//> using lib "org.scalameta::munit::0.7.29"
-               |//> using platform $platforms
-               |
-               |class MyTests extends munit.FunSuite {
-               |  test("shared") {
-               |    println("Hello from " + "shared")
-               |  }
-               |}
-               |""".stripMargin,
-          os.rel / "MyJvmTests.scala" ->
-            """//> using target.platform "jvm"
-              |
-              |class MyJvmTests extends munit.FunSuite {
-              |  test("jvm") {
-              |    println("Hello from " + "jvm")
-              |  }
-              |}
-              |""".stripMargin,
-          os.rel / "MyJsTests.scala" ->
-            """//> using target.platform "js"
-              |
-              |class MyJsTests extends munit.FunSuite {
-              |  test("js") {
-              |    println("Hello from " + "js")
-              |  }
-              |}
-              |""".stripMargin
-        )
+        os.rel / "MyTests.scala" ->
+          s"""//> using lib "org.scalameta::munit::0.7.29"
+             |//> using platform $platforms
+             |
+             |class MyTests extends munit.FunSuite {
+             |  test("shared") {
+             |    println("Hello from " + "shared")
+             |  }
+             |}
+             |""".stripMargin,
+        os.rel / "MyJvmTests.scala" ->
+          """//> using target.platform "jvm"
+            |
+            |class MyJvmTests extends munit.FunSuite {
+            |  test("jvm") {
+            |    println("Hello from " + "jvm")
+            |  }
+            |}
+            |""".stripMargin,
+        os.rel / "MyJsTests.scala" ->
+          """//> using target.platform "js"
+            |
+            |class MyJsTests extends munit.FunSuite {
+            |  test("js") {
+            |    println("Hello from " + "js")
+            |  }
+            |}
+            |""".stripMargin
       )
       if (supportsNative)
         inputs0 = inputs0.add(
@@ -567,25 +541,23 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   def jsDomTest(): Unit = {
     val inputs = TestInputs(
-      Seq(
-        os.rel / "JsDom.scala" ->
-          s"""//> using lib "com.lihaoyi::utest::0.7.10"
-             |//> using lib "org.scala-js::scalajs-dom::2.1.0"
-             |
-             |import utest._
-             |
-             |import org.scalajs.dom.document
-             |
-             |object MyTests extends TestSuite {
-             |  val tests = Tests {
-             |    test("Hello World") {
-             |      assert(document.querySelectorAll("p").size == 0)
-             |      println("Hello from tests")
-             |    }
-             |  }
-             |}
-             |""".stripMargin
-      )
+      os.rel / "JsDom.scala" ->
+        s"""//> using lib "com.lihaoyi::utest::0.7.10"
+           |//> using lib "org.scala-js::scalajs-dom::2.1.0"
+           |
+           |import utest._
+           |
+           |import org.scalajs.dom.document
+           |
+           |object MyTests extends TestSuite {
+           |  val tests = Tests {
+           |    test("Hello World") {
+           |      assert(document.querySelectorAll("p").size == 0)
+           |      println("Hello from tests")
+           |    }
+           |  }
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       // install jsdom library

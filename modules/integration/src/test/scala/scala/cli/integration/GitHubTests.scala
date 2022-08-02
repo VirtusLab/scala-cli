@@ -1,7 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import coursier.cache.ArchiveCache
 import coursier.util.Artifact
@@ -15,7 +15,7 @@ import scala.util.Properties
 
 class GitHubTests extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   def createSecretTest(): Unit = {
     GitHubTests.initSodium()
@@ -23,7 +23,7 @@ class GitHubTests extends ScalaCliSuite {
     val keyId   = "the-key-id"
     val keyPair = Sodium.keyPair()
     val value   = "1234"
-    TestInputs(Nil).fromRoot { root =>
+    TestInputs.empty.fromRoot { root =>
       val pubKey = GitHubTests.PublicKey(keyId, Base64.getEncoder.encodeToString(keyPair.getPubKey))
       os.write(root / "pub-key.json", writeToArray(pubKey))
 
@@ -85,7 +85,7 @@ object GitHubTests {
   private def libsodiumVersion = Constants.libsodiumVersion
 
   // Warning: somehow also in settings.sc in the build, and in FetchExternalBinary
-  lazy val condaPlatform = {
+  lazy val condaPlatform: String = {
     val mambaOs =
       if (Properties.isWin) "win"
       else if (Properties.isMac) "osx"
