@@ -54,6 +54,16 @@ class FmtTests extends ScalaCliSuite {
     os.rel / "Foo.scala"  -> simpleInputsUnformattedContent
   )
 
+  val simpleInputsWithCustomConfLocation: TestInputs = TestInputs(
+    Seq(
+      os.rel / "custom.conf" ->
+        s"""|version = "3.5.5"
+            |runner.dialect = scala213
+            |""".stripMargin,
+      os.rel / "Foo.scala" -> simpleInputsUnformattedContent
+    )
+  )
+
   private def noCrLf(input: String): String =
     input.replaceAll("\r\n", "\n")
 
@@ -135,6 +145,19 @@ class FmtTests extends ScalaCliSuite {
       val versionInConf  = confLines(0).stripPrefix("version = ").trim
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(versionInConf == "\"3.5.5\"")
+      expect(updatedContent == expectedSimpleInputsFormattedContent)
+    }
+  }
+
+  test("--scalafmt-conf") {
+    simpleInputsWithCustomConfLocation.fromRoot { root =>
+      os.proc(TestUtil.cli, "fmt", ".", "--scalafmt-conf", "custom.conf").call(cwd = root)
+      val confLines      = os.read.lines(root / Constants.workspaceDirName / confFileName)
+      val versionInConf  = confLines(0).stripPrefix("version = ").trim
+      val dialectInConf  = confLines(1).stripPrefix("runner.dialect = ").trim
+      val updatedContent = noCrLf(os.read(root / "Foo.scala"))
+      expect(versionInConf == "\"3.5.5\"")
+      expect(dialectInConf == "scala213")
       expect(updatedContent == expectedSimpleInputsFormattedContent)
     }
   }
