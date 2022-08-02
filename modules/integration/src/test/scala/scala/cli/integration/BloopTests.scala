@@ -1,17 +1,18 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import os.proc
 
 import scala.cli.integration.util.BloopUtil
 
 class BloopTests extends ScalaCliSuite {
 
-  def runScalaCli(args: String*) = os.proc(TestUtil.cli, args)
+  def runScalaCli(args: String*): proc = os.proc(TestUtil.cli, args)
 
   private lazy val bloopDaemonDir =
     BloopUtil.bloopDaemonDir(runScalaCli("directories").call().out.text())
 
-  val dummyInputs = TestInputs(
+  val dummyInputs: TestInputs = TestInputs(
     os.rel / "Test.scala" ->
       """//> using scala "2.13"
         |object Test {

@@ -28,7 +28,7 @@ class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
       val cmd = Seq[os.Shellable](
         "docker", "run", "--rm", termOpt,
         "-e", "SCALA_CLI_VENDORED_ZIS=true",
-        "-v", s"${root}:/data",
+        "-v", s"$root:/data",
         "-w", "/data",
         ciOpt,
         Constants.dockerArchLinuxImage,

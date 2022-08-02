@@ -6,14 +6,14 @@ import scala.util.Properties
 
 class InstallHomeTests extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   val firstVersion            = "0.0.1"
   val secondVersion           = "0.0.2"
   val dummyScalaCliFirstName  = "DummyScalaCli-1.scala"
   val dummyScalaCliSecondName = "DummyScalaCli-2.scala"
   val dummyScalaCliBinName    = "scala-cli-dummy-test"
-  val testInputs = TestInputs(
+  val testInputs: TestInputs = TestInputs(
     os.rel / dummyScalaCliFirstName ->
       s"""
          |object DummyScalaCli extends App {
@@ -117,7 +117,7 @@ class InstallHomeTests extends ScalaCliSuite {
       ).out.text().trim
       expect(v1Downgrade == firstVersion)
 
-      uninstallScalaCli(root, binDirPath, true, true)
+      uninstallScalaCli(root, binDirPath, force = true, skipCache = true)
       expect(!os.exists(binDirPath))
     }
   }

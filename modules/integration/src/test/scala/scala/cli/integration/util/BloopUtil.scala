@@ -31,7 +31,7 @@ object BloopUtil {
   private def bloopOrg(currentBloopVersion: String): String =
     currentBloopVersion.split("[-.]") match {
       case Array(majStr, minStr, patchStr, _*) =>
-        import scala.math.Ordering.Implicits._
+        import scala.math.Ordering.Implicits.*
         val maj   = majStr.toInt
         val min   = minStr.toInt
         val patch = patchStr.toInt
@@ -70,7 +70,7 @@ object BloopUtil {
         args
       )
   }
-  def killBloop() = {
+  def killBloop(): Unit = {
     val javaProcesses = os.proc("jps", "-l").call().out.text().linesIterator
     val bloopPidReg   = "(\\d+).*bloop[.]Bloop".r
     val bloopPids = javaProcesses.flatMap { l =>
@@ -79,6 +79,6 @@ object BloopUtil {
         case _                => None
       }
     }.toList
-    bloopPids.foreach(TestUtil.kill _)
+    bloopPids.foreach(TestUtil.kill)
   }
 }

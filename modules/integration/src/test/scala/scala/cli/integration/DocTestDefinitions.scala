@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 abstract class DocTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
 
-  protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   test("generate static scala doc") {
     val dest = os.rel / "doc-static"

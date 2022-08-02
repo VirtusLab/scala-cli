@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class ConfigTests extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   test("simple") {
     val homeDir    = os.rel / "home"

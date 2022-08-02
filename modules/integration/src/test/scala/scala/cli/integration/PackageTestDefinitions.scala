@@ -5,11 +5,11 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.{File, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.util.Arrays
+import java.util
 import java.util.regex.Pattern
 import java.util.zip.ZipFile
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
 abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
@@ -18,11 +18,11 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   def maybeUseBash(cmd: os.Shellable*)(cwd: os.Path = null): os.CommandResult = {
-    val res = os.proc(cmd: _*).call(cwd = cwd, check = false)
+    val res = os.proc(cmd*).call(cwd = cwd, check = false)
     if (Properties.isLinux && res.exitCode == 127)
       // /bin/sh seems to have issues with '%' signs in PATH, that coursier can leave
       // in the JVM path entry (https://unix.stackexchange.com/questions/126955/percent-in-path-environment-variable)
-      os.proc(("/bin/bash": os.Shellable) +: cmd: _*).call(cwd = cwd)
+      os.proc((("/bin/bash": os.Shellable) +: cmd)*).call(cwd = cwd)
     else {
       expect(res.exitCode == 0)
       res
@@ -465,7 +465,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
       val preambleStart = "#".getBytes(StandardCharsets.UTF_8)
       val contentStart  = os.read.bytes(launcher).take(preambleStart.length)
-      expect(!Arrays.equals(contentStart, preambleStart))
+      expect(!util.Arrays.equals(contentStart, preambleStart))
 
       val output = os.proc("java", "-cp", launcher, "hello.Hello")
         .call(cwd = root).out.text().trim
@@ -575,9 +575,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         if (actualScalaVersion.startsWith("2.")) actualScalaVersion
         else {
           val scalaLibJarName = scalaLibCp.split(File.pathSeparator)
-            .map(_.split(Pattern.quote(File.separator)).last)
-            .filter(_.startsWith("scala-library-"))
-            .headOption
+            .map(_.split(Pattern.quote(File.separator)).last).find(_.startsWith("scala-library-"))
             .getOrElse {
               sys.error(s"scala-library not found in provided class path $scalaLibCp")
             }

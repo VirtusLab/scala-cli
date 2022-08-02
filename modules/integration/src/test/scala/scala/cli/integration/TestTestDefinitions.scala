@@ -7,14 +7,14 @@ import scala.annotation.tailrec
 abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
 
-  protected val jvmOptions =
+  protected val jvmOptions: Seq[String] =
     // seems munit requires this with Scala 3
     if (actualScalaVersion.startsWith("3.")) Seq("--jvm", "11")
     else Nil
-  protected lazy val baseExtraOptions = TestUtil.extraOptions ++ jvmOptions
-  private lazy val extraOptions       = scalaVersionArgs ++ baseExtraOptions
+  protected lazy val baseExtraOptions: Seq[String] = TestUtil.extraOptions ++ jvmOptions
+  private lazy val extraOptions: Seq[String]       = scalaVersionArgs ++ baseExtraOptions
 
-  val successfulTestInputs = TestInputs(
+  val successfulTestInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using lib "org.scalameta::munit::0.7.29"
         |
@@ -27,7 +27,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
-  val failingTestInputs = TestInputs(
+  val failingTestInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using lib "org.scalameta::munit::0.7.29"
         |
@@ -39,7 +39,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
-  val successfulUtestInputs = TestInputs(
+  val successfulUtestInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using lib "com.lihaoyi::utest::0.7.10"
         |import utest._
@@ -55,7 +55,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
-  val successfulUtestJsInputs = TestInputs(
+  val successfulUtestJsInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using lib "com.lihaoyi::utest::0.7.10"
         |import utest._
@@ -73,7 +73,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
-  val successfulUtestNativeInputs = TestInputs(
+  val successfulUtestNativeInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using lib "com.lihaoyi::utest::0.7.10"
         |import utest._
@@ -93,7 +93,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
-  val successfulScalaCheckFromCatsNativeInputs = TestInputs(
+  val successfulScalaCheckFromCatsNativeInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using scala "2.13.8"
         |//> using platform "native"
@@ -110,7 +110,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |}""".stripMargin
   )
 
-  val successfulJunitInputs = TestInputs(
+  val successfulJunitInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using lib "com.novocode:junit-interface:0.11"
         |import org.junit.Test
@@ -126,7 +126,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
-  val severalTestsInputs = TestInputs(
+  val severalTestsInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using lib "org.scalameta::munit::0.7.29"
         |
@@ -149,7 +149,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
-  val successfulWeaverInputs = TestInputs(
+  val successfulWeaverInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using libs "com.disneystreaming::weaver-cats:0.7.6", "com.eed3si9n.expecty::expecty:0.15.4+5-f1d8927e-SNAPSHOT"
         |import weaver._
@@ -163,7 +163,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
-  val successfulESModuleTestInputs = TestInputs(
+  val successfulESModuleTestInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
       """//> using lib "org.scalameta::munit::0.7.29"
         |//> using jsModuleKind "esmodule"
@@ -343,7 +343,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  val platforms = {
+  val platforms: Seq[(String, Seq[String])] = {
     val maybeJs = Seq("JS" -> Seq("--js"))
     val maybeNative =
       if (actualScalaVersion.startsWith("2."))

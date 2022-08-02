@@ -53,7 +53,7 @@ object SparkTests212 {
 
 class SparkTests212 extends SparkTestDefinitions {
 
-  import SparkTests212._
+  import SparkTests212.*
 
   private val spark30 = new Spark(
     "3.0.3",

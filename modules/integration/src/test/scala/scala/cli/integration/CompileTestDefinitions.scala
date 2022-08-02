@@ -10,13 +10,13 @@ import scala.cli.integration.util.BloopUtil
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
 
-  protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
     os.proc(TestUtil.cli, "directories").call().out.text()
   }
 
-  val simpleInputs = TestInputs(
+  val simpleInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
       """//> using lib "com.lihaoyi::utest::0.7.10"
         |import utest._
@@ -32,7 +32,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
-  val mainAndTestInputs = TestInputs(
+  val mainAndTestInputs: TestInputs = TestInputs(
     os.rel / "Main.scala" ->
       """//> using lib "com.lihaoyi::utest:0.7.10"
         |
@@ -201,25 +201,25 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   val jvmT = new munit.Tag("jvm-resolution")
 
-  val scalaJvm8Project =
+  val scalaJvm8Project: TestInputs =
     TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isPresent}")
-  val scalaJvm11Project =
+  val scalaJvm11Project: TestInputs =
     TestInputs(os.rel / "Main.scala" -> s"object Main{java.util.Optional.of(1).isEmpty}")
-  val javaJvm8Project =
+  val javaJvm8Project: TestInputs =
     TestInputs(os.rel / "Main.java" -> """|public class Main{
                                           |  public static void main(String[] args) {
                                           |      java.util.Optional.of(1).isPresent();
                                           |  }
                                           |}""".stripMargin)
 
-  val javaJvm11Project =
+  val javaJvm11Project: TestInputs =
     TestInputs(os.rel / "Main.java" -> """|public class Main{
                                           |  public static void main(String[] args) {
                                           |      java.util.Optional.of(1).isEmpty();
                                           |  }
                                           |}""".stripMargin)
 
-  val inputs = Map(
+  val inputs: Map[(String, Int), TestInputs] = Map(
     ("scala", 8)  -> scalaJvm8Project,
     ("scala", 11) -> scalaJvm11Project,
     ("java", 8)   -> javaJvm8Project,
@@ -264,7 +264,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     targetJvm: String,
     shouldSucceed: Boolean,
     inputs: TestInputs
-  ) =
+  ): Unit =
     inputs.fromRoot { root =>
       val bloop = BloopUtil.bloop(Constants.bloopVersion, bloopDaemonDir, jvm = Some(bloopJvm))
       bloop(Seq("exit")).call(
@@ -296,7 +296,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           stderr = os.Pipe
         )
         val stderr = res.err.text()
-        expect(s"\\[.*warn.*\\].*Conflicting options.*".r.findFirstMatchIn(stderr).isDefined)
+        expect(s"\\[.*warn.*].*Conflicting options.*".r.findFirstMatchIn(stderr).isDefined)
 
       }
     }

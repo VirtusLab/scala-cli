@@ -1,19 +1,20 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import os.RelPath
 
 import java.nio.file.Paths
 import java.util.zip.ZipFile
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
 
-  protected def extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected def extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private object TestCase {
-    val testInputs = TestInputs(
+    val testInputs: TestInputs = TestInputs(
       os.rel / "project" / "foo" / "Hello.scala" ->
         """//> using publish.organization "org.virtuslab.scalacli.test"
           |//> using publish.name "simple"
@@ -37,10 +38,10 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
           |}
           |""".stripMargin
     )
-    val scalaSuffix =
+    val scalaSuffix: String =
       if (actualScalaVersion.startsWith("3.")) "_3"
       else "_" + actualScalaVersion.split('.').take(2).mkString(".")
-    val expectedArtifactsDir =
+    val expectedArtifactsDir: RelPath =
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple$scalaSuffix" / "0.2.0-SNAPSHOT"
   }
 

@@ -9,7 +9,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
-  protected def versionNumberString = actualScalaVersion
+  protected def versionNumberString: String = actualScalaVersion
 
   test("default dry run") {
     TestInputs.empty.fromRoot { root =>

@@ -6,7 +6,7 @@ class CompileTests212 extends CompileTestDefinitions(
 ) {
 // format: on
 
-  val pluginInputs = TestInputs(
+  val pluginInputs: TestInputs = TestInputs(
     os.rel / "Plugin.scala" ->
       // Copied from (https://github.com/typelevel/kind-projector/blob/00bf25cef1b7d01d61a3555cccb6cf38fe30e117/src/test/scala/polylambda.scala)
       """object Plugin {

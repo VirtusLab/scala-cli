@@ -78,7 +78,7 @@ object TestBspClient {
     in: InputStream,
     out: OutputStream,
     es: ExecutorService
-  ): (TestBspClient, b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer, Future[Unit]) = {
+  ): (TestBspClient, b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer, Future[Unit]) = {
 
     val localClient = new TestBspClient
 

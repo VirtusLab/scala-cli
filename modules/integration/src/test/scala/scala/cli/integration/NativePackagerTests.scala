@@ -6,12 +6,12 @@ import scala.util.Properties
 
 class NativePackagerTests extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   val helloWorldFileName = "HelloWorldScalaCli.scala"
   val message            = "Hello, world!"
   val licencePath        = "DummyLICENSE"
-  val testInputs = TestInputs(
+  val testInputs: TestInputs = TestInputs(
     os.rel / helloWorldFileName ->
       s"""
          |object HelloWorld {
@@ -344,7 +344,7 @@ class NativePackagerTests extends ScalaCliSuite {
       finally os.proc("docker", "rmi", "-f", expectedImage).call(cwd = os.root)
     }
 
-  def hasDocker =
+  def hasDocker: Boolean =
     Properties.isLinux ||
     // no docker command or no Linux from it on Github actions macOS / Windows runners
     ((Properties.isMac || Properties.isWin) && !TestUtil.isCI)

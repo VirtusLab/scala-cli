@@ -9,7 +9,7 @@ class UpdateTests extends ScalaCliSuite {
   val firstVersion           = "0.0.1"
   val dummyScalaCliFirstName = "DummyScalaCli-1.scala"
   val dummyScalaCliBinName   = "scala-cli-dummy-test"
-  val testInputs = TestInputs(
+  val testInputs: TestInputs = TestInputs(
     os.rel / dummyScalaCliFirstName ->
       s"""
          |object DummyScalaCli extends App {

@@ -6,7 +6,7 @@ import scala.util.Properties
 
 class TestNativeImageOnScala3 extends ScalaCliSuite {
 
-  override def group = ScalaCliSuite.TestGroup.First
+  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   def runTest(args: String*)(expectedLines: String*)(code: String): Unit = {
     val dest =

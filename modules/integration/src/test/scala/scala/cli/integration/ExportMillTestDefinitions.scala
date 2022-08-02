@@ -9,7 +9,7 @@ import scala.util.Properties
 abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
 
-  protected lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   protected def runExportTests: Boolean =
     Properties.isLinux
