@@ -528,6 +528,12 @@ Aliases: `--scalafmt-config`
 
 Custom path to the scalafmt configuration file.
 
+#### `--scalafmt-conf-str`
+
+Aliases: `--scalafmt-config-str`, `--scalafmt-conf-snippet`
+
+Pass configuration as a string.
+
 #### `--scalafmt-dialect`
 
 Aliases: `--dialect`

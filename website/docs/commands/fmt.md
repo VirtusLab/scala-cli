@@ -30,6 +30,8 @@ You can skip passing either of those, which will make Scala CLI to infer a defau
 - If a `.scalafmt.conf` file is present in the workspace and it has the field defined, the value will be read from there, unless explicitly specified with Scala CLI options.
 - Otherwise, the default `scalafmt` **version** will be the latest one used by your Scala CLI version (so it is subject to change when updating Scala CLI). The default **dialect** will be inferred based on Scala version (defined explicitly by `-S` option, or default version if option would not be passed).
 
+It is possible to pass the configuration as a string directly from the command line, using `--scalafmt-conf-str` option. If the configuration is passed this way, Scala CLI will behave exactly the same as if it would find the specified configuration in a `.scalafmt.conf` file in the workspace.
+
 #### Example 1
 
 ``` text title=.scalafmt.conf
@@ -167,3 +169,7 @@ If the `--save-scalafmt-conf` option is passed, then `fmt` command behaves as fo
 - In the **first** case `fmt` uses the found `.scalafmt.conf` file to run `scalafmt`.
 - In the **second** case `fmt` [infers](/docs/commands/fmt#scalafmt-version-and-dialect) missing parameters, writes them directly into the previously found file and then uses this file to run `scalafmt`.
 - In the **third** case `fmt` creates a `.scalafmt.conf` file in the current workspace directory, writes [inferred](/docs/commands/fmt#scalafmt-version-and-dialect) version and dialect into it and uses it to run `scalafmt`.
+
+:::note
+If the configuration is passed in the `--scalafmt-conf-str` option, Scala CLI will behave exactly the same as if it would find the specified configuration in a `.scalafmt.conf` file in the workspace.
+:::
