@@ -230,6 +230,7 @@ object CrossSources {
       else if (sourcePath.ext == "scala") Right(Seq(Inputs.ScalaFile(dir, subPath)))
       else if (sourcePath.ext == "sc") Right(Seq(Inputs.Script(dir, subPath)))
       else if (sourcePath.ext == "java") Right(Seq(Inputs.JavaFile(dir, subPath)))
+      else if (sourcePath.ext == "md") Right(Seq(Inputs.MarkdownFile(dir, subPath)))
       else {
         val msg =
           if (os.exists(sourcePath))
