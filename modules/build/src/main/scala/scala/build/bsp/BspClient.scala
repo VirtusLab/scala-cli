@@ -7,6 +7,8 @@ import java.net.URI
 import java.nio.file.Paths
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
+import ch.epfl.scala.bsp4j.Location
+
 import scala.build.Position.File
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.postprocessing.LineConversion
@@ -187,12 +189,17 @@ class BspClient(
   )(diag: Diagnostic): Seq[os.Path] =
     diag.positions.flatMap {
       case File(Right(path), (startLine, startC), (endL, endC)) =>
-        val id = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
-        val bDiag = {
-          val startPos = new b.Position(startLine, startC)
-          val endPos   = new b.Position(endL, endC)
-          val range    = new b.Range(startPos, endPos)
+        val id       = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+        val startPos = new b.Position(startLine, startC)
+        val endPos   = new b.Position(endL, endC)
+        val range    = new b.Range(startPos, endPos)
+        val bDiag =
           new b.Diagnostic(range, diag.message)
+
+        diag.relatedInformation.foreach { relatedInformation =>
+          val location = new Location(path.toNIO.toUri.toASCIIString, range)
+          val related  = new b.DiagnosticRelatedInformation(location, relatedInformation.message)
+          bDiag.setRelatedInformation(related)
         }
         bDiag.setSeverity(diag.severity.toBsp4j)
         bDiag.setSource("scala-cli")

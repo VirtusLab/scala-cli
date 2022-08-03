@@ -4,8 +4,10 @@ import dependency._
 
 import scala.build.Position
 import scala.build.errors.{Diagnostic, Severity}
+import scala.build.errors.Diagnostic.RelatedInformation
 
-abstract class ActionableDiagnostic {
+
+abstract class ActionableDiagnostic extends Diagnostic {
 
   /** Provide the message of actionable diagnostic
     */
@@ -13,26 +15,26 @@ abstract class ActionableDiagnostic {
 
   /** Provide the new content which will be replaced by actionable diagnostic
     */
-  def to: String
+  def suggestion: String
+
   def positions: Seq[Position]
 
-  final def toDiagnostic: Diagnostic = Diagnostic(
-    message = s"""|$message
-                  |       To: $to""".stripMargin,
-    severity = Severity.Hint,
-    positions = positions
-  )
+  override def severity = Severity.Hint
+
+  override def relatedInformation: Option[RelatedInformation] = Some(RelatedInformation(suggestion))
 }
 
 object ActionableDiagnostic {
 
   case class ActionableDependencyUpdateDiagnostic(
-    message: String,
+    msg: String,
     positions: Seq[Position],
     oldDependency: AnyDependency,
     newVersion: String
   ) extends ActionableDiagnostic {
-    override def to: String = oldDependency.copy(version = newVersion).render
+    override def message: String = s"""|$msg
+                                       |     ${oldDependency.render} -> $suggestion""".stripMargin
+    override def suggestion: String = oldDependency.copy(version = newVersion).render
   }
 
 }

@@ -1141,9 +1141,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
   test("bsp should report actionable diagnostic when enabled") {
+    val fileName = "Hello.scala"
     val inputs = TestInputs(
       Seq(
-        os.rel / "Hello.scala" ->
+        os.rel / fileName ->
           s"""//> using lib "com.lihaoyi::os-lib:0.7.8"
              |
              |object Hello extends App {
@@ -1153,7 +1154,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     withBsp(inputs, Seq(".", "--actions")) {
-      (_, localClient, remoteServer) =>
+      (root, localClient, remoteServer) =>
         async {
           // prepare build
           val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
@@ -1180,6 +1181,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expectedSource = Some("scala-cli"),
             strictlyCheckMessage = false
           )
+
+          val relatedInformation = updateActionableDiagnostic.getRelatedInformation()
+          expect(relatedInformation.getMessage.contains("com.lihaoyi::os-lib:"))
+          expect(relatedInformation.getLocation().getUri() == (root /fileName).toNIO.toUri.toASCIIString)
         }
     }
   }
