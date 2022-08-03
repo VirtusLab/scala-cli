@@ -185,7 +185,7 @@ final class BspImpl(
 
     if (actionableDiagnostics.getOrElse(false)) {
       val projectOptions = options0Test.orElse(options0Main)
-      projectOptions.logActionableDiagnostics(logger)
+      projectOptions.logActionableDiagnostics(persistentLogger)
     }
 
     PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
