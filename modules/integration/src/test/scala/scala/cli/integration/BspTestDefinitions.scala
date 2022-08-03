@@ -538,7 +538,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           expectedStartLine = 0,
           expectedStartCharacter = 20,
           expectedEndLine = 0,
-          expectedEndCharacter = 20,
+          expectedEndCharacter = 31,
           strictlyCheckMessage = false
         )
       }
@@ -580,7 +580,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           expectedStartLine = 0,
           expectedStartCharacter = 15,
           expectedEndLine = 0,
-          expectedEndCharacter = 15,
+          expectedEndCharacter = 46,
           strictlyCheckMessage = false
         )
       }
@@ -1173,7 +1173,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expectedStartLine = 0,
             expectedStartCharacter = 15,
             expectedEndLine = 0,
-            expectedEndCharacter = 15,
+            expectedEndCharacter = 26,
             strictlyCheckMessage = false
           )
         }
