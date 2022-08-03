@@ -16,7 +16,7 @@ RUN echo 'def a = 123' > a.scala
 RUN scala-cli compile a.scala || echo "Problems with bloop"
 
 # Update path to point to newer version
-RUN curl -fLo scala-cli.deb https://github.com/VirtusLab/scala-cli/releases/download/v0.1.9/scala-cli-x86_64-pc-linux.deb
+RUN curl -fLo scala-cli.deb https://github.com/VirtusLab/scala-cli/releases/download/v0.1.11/scala-cli-x86_64-pc-linux.deb
 RUN dpkg -i scala-cli.deb
 
 COPY *.sh /data/
