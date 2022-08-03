@@ -194,11 +194,7 @@ class BspClient(
           val range    = new b.Range(startPos, endPos)
           new b.Diagnostic(range, diag.message)
         }
-        val severity = diag.severity match {
-          case Severity.Error   => b.DiagnosticSeverity.ERROR
-          case Severity.Warning => b.DiagnosticSeverity.WARNING
-        }
-        bDiag.setSeverity(severity)
+        bDiag.setSeverity(diag.severity.toBsp4j)
         val params = new b.PublishDiagnosticsParams(
           id,
           targetId,

@@ -19,7 +19,7 @@ abstract class ActionableDiagnostic {
   final def toDiagnostic: Diagnostic = Diagnostic(
     message = s"""|$message
                   |       To: $to""".stripMargin,
-    severity = Severity.Warning,
+    severity = Severity.Hint,
     positions = positions
   )
 }

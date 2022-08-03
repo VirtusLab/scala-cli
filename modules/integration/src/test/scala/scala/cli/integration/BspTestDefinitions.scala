@@ -1153,7 +1153,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       )
     )
     withBsp(inputs, Seq(".", "--actions")) {
-      (root, localClient, remoteServer) =>
+      (_, localClient, remoteServer) =>
         async {
           // prepare build
           val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
@@ -1172,7 +1172,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           checkDiagnostic(
             diagnostic = updateActionableDiagnostic,
             expectedMessage = "com.lihaoyi::os-lib:0.7.8 is outdated",
-            expectedSeverity = b.DiagnosticSeverity.WARNING,
+            expectedSeverity = b.DiagnosticSeverity.HINT,
             expectedStartLine = 0,
             expectedStartCharacter = 15,
             expectedEndLine = 0,

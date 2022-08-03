@@ -58,7 +58,7 @@ class CliLogger(
   ) =
     if (positions.isEmpty)
       out.println(
-        s"${ConsoleBloopBuildClient.diagnosticPrefix(Severity.Error == severity)} $message"
+        s"${ConsoleBloopBuildClient.diagnosticPrefix(severity)} $message"
       )
     else {
       val positions0 = positions.distinct
@@ -75,10 +75,7 @@ class CliLogger(
         val endPos   = new b.Position(f.endPos._1, f.endPos._2)
         val range    = new b.Range(startPos, endPos)
         val diag     = new b.Diagnostic(range, message)
-        diag.setSeverity(severity match {
-          case Severity.Error   => b.DiagnosticSeverity.ERROR
-          case Severity.Warning => b.DiagnosticSeverity.WARNING
-        })
+        diag.setSeverity(severity.toBsp4j)
 
         for (file <- f.path) {
           val lines = contentCache.getOrElseUpdate(file, os.read(file).linesIterator.toVector)
