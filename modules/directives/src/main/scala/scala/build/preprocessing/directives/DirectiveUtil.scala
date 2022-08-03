@@ -49,9 +49,10 @@ object DirectiveUtil {
     path: Either[String, os.Path],
     skipQuotes: Boolean = false
   ): Position.File = {
-    val line   = v.getRelatedASTNode.getPosition.getLine
-    val column = v.getRelatedASTNode.getPosition.getColumn + (if (skipQuotes) 1 else 0)
-    Position.File(path, (line, column), (line, column))
+    val line       = v.getRelatedASTNode.getPosition.getLine
+    val column     = v.getRelatedASTNode.getPosition.getColumn + (if (skipQuotes) 1 else 0)
+    val endLinePos = column + v.toString.length
+    Position.File(path, (line, column), (line, endLinePos))
   }
 
   def scope(v: Value[_], cwd: ScopePath): Option[ScopePath] =

@@ -6,6 +6,7 @@ trait Diagnostic {
   def message: String
   def severity: Severity
   def positions: Seq[Position]
+  def hint: Option[String] = None
 }
 
 object Diagnostic {
@@ -17,12 +18,14 @@ object Diagnostic {
   private case class ADiagnostic(
     message: String,
     severity: Severity,
-    positions: Seq[Position]
+    positions: Seq[Position],
+    override val hint: Option[String]
   ) extends Diagnostic
 
   def apply(
     message: String,
     severity: Severity,
-    positions: Seq[Position] = Nil
-  ): Diagnostic = ADiagnostic(message, severity, positions)
+    positions: Seq[Position] = Nil,
+    hint: Option[String] = None
+  ): Diagnostic = ADiagnostic(message, severity, positions, hint)
 }
