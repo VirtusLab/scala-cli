@@ -26,7 +26,9 @@ object CachedBinary {
   private def projectSha(build: Build.Successful, config: List[String]) = {
     val md      = MessageDigest.getInstance("SHA-1")
     val charset = StandardCharsets.UTF_8
-    md.update(build.inputs.sourceHash().getBytes(charset))
+    md.update(
+      build.inputs.sourceHash(build.options.classPathOptions.resourcesDir).getBytes(charset)
+    )
     md.update(0: Byte)
     md.update("<config>".getBytes(charset))
     for (elem <- config) {

@@ -103,7 +103,7 @@ final case class Inputs(
     if (canWrite) this
     else inHomeDir(directories)
   }
-  def sourceHash(): String = {
+  def sourceHash(resourceDirs: Seq[os.Path] = Seq.empty): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
     val it = elements.iterator.flatMap {
       case elem: Inputs.OnDisk =>
@@ -122,8 +122,15 @@ final case class Inputs(
       case v: Inputs.Virtual =>
         Iterator(v.content, bytes("\n"))
     }
+    val resourceDirsIt = (resourceDirs.flatMap { dir =>
+      os.walk(dir)
+        .filter(os.isFile(_))
+        .map(filePath => s"$filePath:" + os.read(filePath))
+    }.iterator ++ Iterator("\n")).map(bytes)
+
     val md = MessageDigest.getInstance("SHA-1")
     it.foreach(md.update)
+    resourceDirsIt.foreach(md.update)
     val digest        = md.digest()
     val calculatedSum = new BigInteger(1, digest)
     String.format(s"%040x", calculatedSum)
@@ -198,6 +205,10 @@ object Inputs {
       extends OnDisk with SourceFile with Compiled {
     lazy val path: os.Path = base / subPath
   }
+  final case class CFile(base: os.Path, subPath: os.SubPath)
+      extends OnDisk with SourceFile with Compiled {
+    lazy val path = base / subPath
+  }
   final case class Directory(path: os.Path)         extends OnDisk with Compiled
   final case class ResourceDirectory(path: os.Path) extends OnDisk
 
@@ -228,6 +239,8 @@ object Inputs {
           Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".sc") =>
           Inputs.Script(d.path, p.subRelativeTo(d.path))
+        case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
+          Inputs.CFile(d.path, p.subRelativeTo(d.path))
       }
       .toVector
       .sortBy(_.subPath.segments)
@@ -242,6 +255,7 @@ object Inputs {
           case _: Inputs.ResourceDirectory => "resource-dir:"
           case _: Inputs.JavaFile          => "java:"
           case _: Inputs.ScalaFile         => "scala:"
+          case _: Inputs.CFile             => "c:"
           case _: Inputs.Script            => "sc:"
         }
         Iterator(prefix, elem.path.toString, "\n").map(bytes)
@@ -407,6 +421,7 @@ object Inputs {
       else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
       else if (arg.endsWith(".scala")) Right(Seq(ScalaFile(dir, subPath)))
       else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
+      else if (arg.endsWith(".c") || arg.endsWith(".h")) Right(Seq(CFile(dir, subPath)))
       else if (os.isDir(path)) Right(Seq(Directory(path)))
       else if (acceptFds && arg.startsWith("/dev/fd/")) {
         val content = os.read.bytes(os.Path(arg, cwd))
