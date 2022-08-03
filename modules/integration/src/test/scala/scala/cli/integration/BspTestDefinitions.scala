@@ -1177,6 +1177,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expectedStartCharacter = 15,
             expectedEndLine = 0,
             expectedEndCharacter = 40,
+            expectedSource = Some("scala-cli"),
             strictlyCheckMessage = false
           )
         }
@@ -1227,6 +1228,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     expectedStartCharacter: Int,
     expectedEndLine: Int,
     expectedEndCharacter: Int,
+    expectedSource: Option[String] = None,
     strictlyCheckMessage: Boolean = true
   ): Unit = {
     expect(diagnostic.getSeverity == expectedSeverity)
@@ -1238,6 +1240,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       expect(diagnostic.getMessage == expectedMessage)
     else
       expect(diagnostic.getMessage.contains(expectedMessage))
+    for(es <- expectedSource)
+      expect(diagnostic.getSource == es)
   }
 
   private def extractWorkspaceReloadResponse(workspaceReloadResult: AnyRef): Option[ResponseError] =

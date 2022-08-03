@@ -76,6 +76,7 @@ class CliLogger(
         val range    = new b.Range(startPos, endPos)
         val diag     = new b.Diagnostic(range, message)
         diag.setSeverity(severity.toBsp4j)
+        diag.setSource("scala-cli")
 
         for (file <- f.path) {
           val lines = contentCache.getOrElseUpdate(file, os.read(file).linesIterator.toVector)

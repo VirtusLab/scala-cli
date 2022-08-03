@@ -195,6 +195,7 @@ class BspClient(
           new b.Diagnostic(range, diag.message)
         }
         bDiag.setSeverity(diag.severity.toBsp4j)
+        bDiag.setSource("scala-cli")
         val params = new b.PublishDiagnosticsParams(
           id,
           targetId,
