@@ -477,9 +477,9 @@ class SourcesTests extends munit.FunSuite {
 
       expect(
         javaOpts(0).value.value == "-Dfoo1",
-        javaOpts(0).positions == Seq(Position.File(Right(root / "something.sc"), (0, 20), (0, 20))),
+        javaOpts(0).positions == Seq(Position.File(Right(root / "something.sc"), (0, 20), (0, 24))),
         javaOpts(1).value.value == "-Dfoo2=bar2",
-        javaOpts(1).positions == Seq(Position.File(Right(root / "something.sc"), (1, 20), (1, 20)))
+        javaOpts(1).positions == Seq(Position.File(Right(root / "something.sc"), (1, 20), (1, 29)))
       )
     }
   }
