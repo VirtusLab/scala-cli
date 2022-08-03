@@ -1,7 +1,7 @@
 package scala.build.tests
 
 import scala.build.Inputs
-import scala.build.preprocessing.{ScalaPreprocessor, ScriptPreprocessor}
+import scala.build.preprocessing.{ScalaPreprocessor, ScriptPreprocessor, MarkdownPreprocessor}
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.internal.CustomCodeWrapper
@@ -26,6 +26,18 @@ class PreprocessingTests extends munit.FunSuite {
 
     val res             = ScriptPreprocessor(CustomCodeWrapper).preprocess(scalaScript, logger)
     val expectedMessage = s"File not found: ${scalaScript.path}"
+
+    assert(res.nonEmpty)
+    assert(res.get.isLeft)
+    expect(res.get.swap.toOption.get.message == expectedMessage)
+  }
+
+  test("Report error if markdown does not exist") {
+    val logger      = TestLogger()
+    val markdownFile = Inputs.MarkdownFile(os.temp.dir(), os.SubPath("NotExists.md"))
+
+    val res             = MarkdownPreprocessor.preprocess(markdownFile, logger)
+    val expectedMessage = s"File not found: ${markdownFile.path}"
 
     assert(res.nonEmpty)
     assert(res.get.isLeft)
