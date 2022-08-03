@@ -66,7 +66,8 @@ object Package extends ScalaCommand[PackageOptions] {
     val cross = options.compileCross.cross.getOrElse(false)
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
-    val actionableDiagnostics = configDb.get(Keys.actions).getOrElse(None)
+    val actionableDiagnostics = 
+      options.shared.logging.verbosityOptions.actions.orElse(configDb.get(Keys.actions).getOrElse(None))
 
     if (options.watch.watchMode) {
       var expectedModifyEpochSecondOpt = Option.empty[Long]

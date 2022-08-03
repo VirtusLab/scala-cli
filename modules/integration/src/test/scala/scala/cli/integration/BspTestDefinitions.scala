@@ -1140,6 +1140,48 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         }
     }
   }
+  test("bsp should report actionable diagnostic when enabled") {
+    val inputs = TestInputs(
+      Seq(
+        os.rel / "Hello.scala" ->
+          s"""//> using lib "com.lihaoyi::os-lib:0.7.8"
+             |
+             |object Hello extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+    )
+    withBsp(inputs, Seq(".", "--actions")) {
+      (root, localClient, remoteServer) =>
+        async {
+          // prepare build
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          // build code
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
+          await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+
+          val visibleDiagnostics =
+            localClient.diagnostics().takeWhile(!_.getReset).flatMap(_.getDiagnostics.asScala)
+
+          expect(visibleDiagnostics.nonEmpty)
+          expect(visibleDiagnostics.length == 1)
+
+          val updateActionableDiagnostic = visibleDiagnostics.head
+          
+          checkDiagnostic(
+            diagnostic = updateActionableDiagnostic,
+            expectedMessage = "com.lihaoyi::os-lib:0.7.8 is outdated",
+            expectedSeverity = b.DiagnosticSeverity.WARNING,
+            expectedStartLine = 0,
+            expectedStartCharacter = 15,
+            expectedEndLine = 0,
+            expectedEndCharacter = 40,
+            strictlyCheckMessage = false
+          )
+        }
+    }
+  }
   private def checkIfBloopProjectIsInitialised(
     root: os.Path,
     buildTargetsResp: b.WorkspaceBuildTargetsResult
