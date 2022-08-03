@@ -13,14 +13,15 @@ abstract class ActionableDiagnostic {
 
   /** Provide the new content which will be replaced by actionable diagnostic
     */
-  def to: String
+  def hint: String
+
   def positions: Seq[Position]
 
   final def toDiagnostic: Diagnostic = Diagnostic(
-    message = s"""|$message
-                  |       To: $to""".stripMargin,
-    severity = Severity.Warning,
-    positions = positions
+    message = message,
+    severity = Severity.Hint,
+    positions = positions,
+    hint = Some(hint)
   )
 }
 
@@ -32,7 +33,7 @@ object ActionableDiagnostic {
     oldDependency: AnyDependency,
     newVersion: String
   ) extends ActionableDiagnostic {
-    override def to: String = oldDependency.copy(version = newVersion).render
+    override def hint: String = oldDependency.copy(version = newVersion).render
   }
 
 }

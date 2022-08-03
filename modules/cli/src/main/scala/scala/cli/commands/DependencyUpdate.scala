@@ -83,12 +83,12 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         val appliedDiagnostics = updateDependencies(file, sortedByLine)
         os.write.over(file, appliedDiagnostics)
         diagnostics.foreach(diagnostic =>
-          logger.message(s"Updated dependency to: ${diagnostic._2.to}")
+          logger.message(s"Updated dependency to: ${diagnostic._2.hint}")
         )
       case (Left(file), diagnostics) =>
         diagnostics.foreach {
           diagnostic =>
-            logger.message(s"Warning: Scala CLI can't update ${diagnostic._2.to} in $file")
+            logger.message(s"Warning: Scala CLI can't update ${diagnostic._2.hint} in $file")
         }
     }
   }
@@ -106,7 +106,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         val startIndex     = startIndicies(line) + column
         val endIndex       = startIndex + diagnostic.oldDependency.render.length()
 
-        val newDependency = diagnostic.to
+        val newDependency = diagnostic.hint
         s"${fileContent.slice(0, startIndex)}$newDependency${fileContent.drop(endIndex)}"
     }
   }

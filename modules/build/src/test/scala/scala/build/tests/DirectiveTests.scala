@@ -16,7 +16,7 @@ class DirectiveTests extends munit.FunSuite {
   def bloopConfigOpt = Some(BloopServer.bloopConfig)
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories = Directories.under(extraRepoTmpDir)
+  val directories     = Directories.under(extraRepoTmpDir)
 
   override def afterAll(): Unit = {
     TestInputs.tryRemoveAll(extraRepoTmpDir)
@@ -38,8 +38,8 @@ class DirectiveTests extends munit.FunSuite {
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
-        val build       = maybeBuild.orThrow
-        val dep         = build.options.classPathOptions.extraDependencies.toSeq.headOption
+        val build = maybeBuild.orThrow
+        val dep   = build.options.classPathOptions.extraDependencies.toSeq.headOption
         assert(dep.nonEmpty)
 
         val position = dep.get.positions.headOption
@@ -47,11 +47,11 @@ class DirectiveTests extends munit.FunSuite {
 
         val (startPos, endPos) = position.get match {
           case Position.File(_, startPos, endPos) => (startPos, endPos)
-          case _ => sys.error("cannot happen")
+          case _                                  => sys.error("cannot happen")
         }
 
-        expect(startPos == (0,15))
-        expect(endPos == (0,40))
+        expect(startPos == (0, 15))
+        expect(endPos == (0, 40))
     }
   }
 

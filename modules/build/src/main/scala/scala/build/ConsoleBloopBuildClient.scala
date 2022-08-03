@@ -85,7 +85,7 @@ class ConsoleBloopBuildClient(
         .getOrElse((Right(path), diag))
       if (keepDiagnostics)
         diagnostics0 += updatedPath -> updatedDiag
-      ConsoleBloopBuildClient.printFileDiagnostic(logger, updatedPath, updatedDiag)
+      ConsoleBloopBuildClient.printFileDiagnostic(logger, updatedPath, updatedDiag, None)
     }
   }
 
@@ -151,19 +151,27 @@ object ConsoleBloopBuildClient {
   private val red    = Console.RED
   private val yellow = Console.YELLOW
 
-  def diagnosticPrefix(isError: Boolean): String =
-    if (isError) s"[${red}error$reset] "
-    else s"[${yellow}warn$reset] "
+  def diagnosticPrefix(severity: bsp4j.DiagnosticSeverity): String =
+    severity match {
+      case bsp4j.DiagnosticSeverity.ERROR   => s"[${red}error$reset] "
+      case bsp4j.DiagnosticSeverity.WARNING => s"[${yellow}warn$reset] "
+      case bsp4j.DiagnosticSeverity.HINT    => s"[${yellow}hint$reset] "
+    }
+
+  def diagnosticPrefix(severity: Severity): String = diagnosticPrefix(severity.toBsp4j)
 
   def printFileDiagnostic(
     logger: Logger,
     path: Either[String, os.Path],
-    diag: bsp4j.Diagnostic
+    diag: bsp4j.Diagnostic,
+    hint: Option[String]
   ): Unit = {
-    val isWarningOrError = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
-      diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING
-    if (isWarningOrError) {
-      val prefix = diagnosticPrefix(diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR)
+    val isHint = diag.getSeverity == bsp4j.DiagnosticSeverity.HINT
+    val isWarningOrErrorOrHint = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
+      diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING ||
+      isHint
+    if (isWarningOrErrorOrHint) {
+      val prefix = diagnosticPrefix(diag.getSeverity)
 
       val line  = (diag.getRange.getStart.getLine + 1).toString + ":"
       val col   = (diag.getRange.getStart.getCharacter + 1).toString + ":"
@@ -199,9 +207,14 @@ object ConsoleBloopBuildClient {
       if (canPrintUnderline) {
         val len =
           math.max(1, diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter)
-        logger.message(
-          prefix + " " * diag.getRange.getStart.getCharacter + "^" * len
-        )
+        if (isHint)
+          logger.message(
+            prefix + " " * (diag.getRange.getStart.getCharacter - 4) + hint.get
+          )
+        else
+          logger.message(
+            prefix + " " * diag.getRange.getStart.getCharacter + "^" * len
+          )
       }
     }
   }
@@ -215,7 +228,7 @@ object ConsoleBloopBuildClient {
     val isWarningOrError = true
     if (isWarningOrError) {
       val msgIt  = message.linesIterator
-      val prefix = diagnosticPrefix(severity == Severity.Error)
+      val prefix = diagnosticPrefix(severity)
       logger.message(prefix + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       msgIt.foreach(line => logger.message(prefix + line))
 
