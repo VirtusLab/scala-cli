@@ -3,7 +3,6 @@ package scala.build.errors
 import scala.build.Position
 import scala.build.errors.Diagnostic.RelatedInformation
 
-
 trait Diagnostic {
   def message: String
   def severity: Severity

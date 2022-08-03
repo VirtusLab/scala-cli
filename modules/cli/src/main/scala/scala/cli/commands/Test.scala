@@ -68,8 +68,10 @@ object Test extends ScalaCommand[TestOptions] {
     val cross = options.compileCross.cross.getOrElse(false)
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
-    val actionableDiagnostics = 
-      options.shared.logging.verbosityOptions.actions.orElse(configDb.get(Keys.actions).getOrElse(None))
+    val actionableDiagnostics =
+      options.shared.logging.verbosityOptions.actions.orElse(
+        configDb.get(Keys.actions).getOrElse(None)
+      )
 
     def maybeTest(builds: Builds, allowExit: Boolean): Unit = {
       val optionsKeys = builds.map.keys.toVector.map(_.optionsKey).distinct

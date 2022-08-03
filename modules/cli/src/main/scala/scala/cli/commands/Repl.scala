@@ -103,8 +103,10 @@ object Repl extends ScalaCommand[ReplOptions] {
     val cross = options.compileCross.cross.getOrElse(false)
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
-    val actionableDiagnostics = 
-      options.shared.logging.verbosityOptions.actions.orElse(configDb.get(Keys.actions).getOrElse(None))
+    val actionableDiagnostics =
+      options.shared.logging.verbosityOptions.actions.orElse(
+        configDb.get(Keys.actions).getOrElse(None)
+      )
 
     if (inputs.isEmpty) {
       val artifacts = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)

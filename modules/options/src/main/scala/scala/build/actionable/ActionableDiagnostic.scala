@@ -6,7 +6,6 @@ import scala.build.Position
 import scala.build.errors.{Diagnostic, Severity}
 import scala.build.errors.Diagnostic.RelatedInformation
 
-
 abstract class ActionableDiagnostic extends Diagnostic {
 
   /** Provide the message of actionable diagnostic

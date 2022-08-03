@@ -1143,15 +1143,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   test("bsp should report actionable diagnostic when enabled") {
     val fileName = "Hello.scala"
     val inputs = TestInputs(
-      Seq(
-        os.rel / fileName ->
-          s"""//> using lib "com.lihaoyi::os-lib:0.7.8"
-             |
-             |object Hello extends App {
-             |  println("Hello")
-             |}
-             |""".stripMargin
-      )
+      os.rel / fileName ->
+        s"""//> using lib "com.lihaoyi::os-lib:0.7.8"
+           |
+           |object Hello extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin
     )
     withBsp(inputs, Seq(".", "--actions")) {
       (root, localClient, remoteServer) =>
@@ -1169,7 +1167,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           expect(visibleDiagnostics.length == 1)
 
           val updateActionableDiagnostic = visibleDiagnostics.head
-          
+
           checkDiagnostic(
             diagnostic = updateActionableDiagnostic,
             expectedMessage = "com.lihaoyi::os-lib:0.7.8 is outdated",
@@ -1184,7 +1182,9 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
           val relatedInformation = updateActionableDiagnostic.getRelatedInformation()
           expect(relatedInformation.getMessage.contains("com.lihaoyi::os-lib:"))
-          expect(relatedInformation.getLocation().getUri() == (root /fileName).toNIO.toUri.toASCIIString)
+          expect(
+            relatedInformation.getLocation().getUri() == (root / fileName).toNIO.toUri.toASCIIString
+          )
         }
     }
   }
@@ -1245,7 +1245,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       expect(diagnostic.getMessage == expectedMessage)
     else
       expect(diagnostic.getMessage.contains(expectedMessage))
-    for(es <- expectedSource)
+    for (es <- expectedSource)
       expect(diagnostic.getSource == es)
   }
 

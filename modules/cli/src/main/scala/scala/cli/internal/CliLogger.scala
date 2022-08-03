@@ -84,7 +84,7 @@ class CliLogger(
 
         for {
           filePath <- f.path
-          info  <- relatedInformation
+          info     <- relatedInformation
         } {
           val location = new Location(filePath.toNIO.toUri.toASCIIString, range)
           val related  = new b.DiagnosticRelatedInformation(location, info.message)
