@@ -163,11 +163,12 @@ object ConsoleBloopBuildClient {
   def printFileDiagnostic(
     logger: Logger,
     path: Either[String, os.Path],
-    diag: bsp4j.Diagnostic
+    diag: bsp4j.Diagnostic,
   ): Unit = {
-    val isWarningOrError = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
-      diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING
-    if (isWarningOrError) {
+    val isWarningOrErrorOrHint = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
+      diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING ||
+      diag.getSeverity == bsp4j.DiagnosticSeverity.HINT
+    if (isWarningOrErrorOrHint) {
       val prefix = diagnosticPrefix(diag.getSeverity)
 
       val line  = (diag.getRange.getStart.getLine + 1).toString + ":"
