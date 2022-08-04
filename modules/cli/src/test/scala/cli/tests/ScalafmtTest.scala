@@ -3,6 +3,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.tests.{TestInputs, TestLogger}
 import scala.cli.commands.util.FmtUtil
+import scala.cli.commands.FmtOptions
 
 class ScalafmtTests extends munit.FunSuite {
 
@@ -16,7 +17,7 @@ class ScalafmtTests extends munit.FunSuite {
       os.write(confFilePath, confFile)
 
       val readVersionAndDialect =
-        FmtUtil.readVersionAndDialectFromFile(workspace = dirPath, TestLogger())
+        FmtUtil.readVersionAndDialect(workspace = dirPath, FmtOptions(), TestLogger())
       expect(readVersionAndDialect == (Some("3.1.2"), Some("scala213"), Some(confFilePath)))
     }
   }
@@ -24,7 +25,7 @@ class ScalafmtTests extends munit.FunSuite {
   test("readVersionFromFile with missing .scalafmt.conf file") {
     TestInputs.withTmpDir("temp-dir") { dirPath =>
       val readVersionAndDialect =
-        FmtUtil.readVersionAndDialectFromFile(workspace = dirPath, TestLogger())
+        FmtUtil.readVersionAndDialect(workspace = dirPath, FmtOptions(), TestLogger())
       expect(readVersionAndDialect == (None, None, None))
     }
   }

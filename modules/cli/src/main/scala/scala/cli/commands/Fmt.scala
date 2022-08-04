@@ -37,7 +37,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
         (s, i.workspace, Some(i))
       }
     CurrentParams.workspaceOpt = Some(workspace)
-    val (versionMaybe, dialectMaybe, pathMaybe) = readVersionAndDialectFromFile(workspace, logger)
+    val (versionMaybe, dialectMaybe, pathMaybe) = readVersionAndDialect(workspace, options, logger)
     val cache                                   = options.shared.buildOptions().archiveCache
     val buildOptions                            = options.buildOptions
 
