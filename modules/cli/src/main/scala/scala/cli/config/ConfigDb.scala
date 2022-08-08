@@ -5,8 +5,7 @@ import com.github.plokhotnyuk.jsoniter_scala.macros._
 import coursier.parse.RawJson
 
 import java.nio.file.attribute.PosixFilePermission
-
-import scala.build.Directories
+import scala.build.{Directories, Logger}
 import scala.build.errors.BuildException
 import scala.cli.commands.SharedOptions
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
@@ -43,6 +42,19 @@ final class ConfigDb private (
           }
           .map(Some(_))
     }
+
+  /** Gets an entry.
+    *
+    * If the value cannot be decoded or the key isn't in the DB, None is returned.
+    *
+    * Otherwise, the value is returned wrapped in Some.
+    */
+  def getOrNone[T](key: Key[T], logger: Logger): Option[T] = get[T](key) match {
+    case Right(maybeValue) => maybeValue
+    case Left(ex) =>
+      logger.debug(ex)
+      None
+  }
 
   /** Sets an entry in memory */
   def set[T](key: Key[T], value: T): this.type = {

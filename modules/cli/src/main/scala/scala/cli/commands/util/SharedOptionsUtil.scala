@@ -13,6 +13,8 @@ import scala.build._
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
+import scala.build.interactive.Interactive
+import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
@@ -25,7 +27,7 @@ import scala.concurrent.duration._
 import scala.util.Properties
 import scala.util.control.NonFatal
 
-object SharedOptionsUtil {
+object SharedOptionsUtil extends CommandHelpers {
 
   private def downloadInputs(cache: FileCache[Task]): String => Either[String, Array[Byte]] = {
     url =>
@@ -213,7 +215,7 @@ object SharedOptionsUtil {
           localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
           verbosity = Some(logging.verbosity),
           strictBloopJsonCheck = strictBloopJsonCheck,
-          interactive = Some(interactiveMode)
+          interactive = Some(() => interactive)
         ),
         notForBloopOptions = bo.PostBuildOptions(
           scalaJsLinkerOptions = linkerOptions(js)
@@ -221,14 +223,48 @@ object SharedOptionsUtil {
       )
     }
 
-    def interactiveMode: Boolean = logging.verbosityOptions.interactive
-      .orElse(configDb.get(Keys.interactive).getOrElse(None))
-      .getOrElse(false)
+    def globalInteractiveWasSuggested: Option[Boolean] =
+      configDb.getOrNone(Keys.globalInteractiveWasSuggested, logger)
 
-    def configDb: ConfigDb =
-      ConfigDb.open(v) match
-        case Left(ex)        => logger.exit(ex)
-        case Right(configDb) => configDb
+    def interactive: Interactive =
+      (
+        logging.verbosityOptions.interactive,
+        configDb.getOrNone(Keys.interactive, logger),
+        globalInteractiveWasSuggested
+      ) match {
+        case (Some(true), _, Some(true)) => InteractiveAsk
+        case (_, Some(true), _)          => InteractiveAsk
+        case (Some(true), _, _) =>
+          val answers @ List(yesAnswer, _) = List("Yes", "No")
+          InteractiveAsk.chooseOne(
+            """You have run the current scala-cli command with the --interactive mode turned on.
+              |Would you like to leave it on permanently?""".stripMargin,
+            answers
+          ) match {
+            case Some(answer) if answer == yesAnswer =>
+              configDb
+                .set(Keys.interactive, true)
+                .set(Keys.globalInteractiveWasSuggested, true)
+                .save(v.directories.directories)
+              logger.message(
+                "--interactive is now set permanently. All future scala-cli commands will run with the flag set to true."
+              )
+              logger.message(
+                "If you want to turn this setting off at any point, just run `scala-cli config interactive false`."
+              )
+            case _ =>
+              configDb
+                .set(Keys.globalInteractiveWasSuggested, true)
+                .save(v.directories.directories)
+              logger.message(
+                "If you want to turn this setting permanently on at any point, just run `scala-cli config interactive true`."
+              )
+          }
+          InteractiveAsk
+        case _ => InteractiveNop
+      }
+
+    def configDb: ConfigDb = ConfigDb.open(v).orExit(logger)
 
     def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
       implicit val ec = options.finalCache.ec

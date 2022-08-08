@@ -19,8 +19,12 @@ object Keys {
 
   val interactive = new Key.BooleanEntry(Seq.empty, "interactive")
 
-  def all = Seq[Key[_]](
+  // setting indicating if the global interactive mode was suggested
+  val globalInteractiveWasSuggested = new Key.BooleanEntry(Seq.empty, "interactive-was-suggested")
+
+  def all: Seq[Key[_]] = Seq[Key[_]](
     interactive,
+    globalInteractiveWasSuggested,
     actions,
     userName,
     userEmail,
