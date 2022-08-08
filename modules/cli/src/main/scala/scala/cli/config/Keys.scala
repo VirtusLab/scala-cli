@@ -17,7 +17,14 @@ object Keys {
 
   val actions = new Key.BooleanEntry(Seq.empty, "actions")
 
-  def all = Seq[Key[_]](
+  val interactive = new Key.BooleanEntry(Seq.empty, "interactive")
+
+  // setting indicating if the global interactive mode was suggested
+  val globalInteractiveWasSuggested = new Key.BooleanEntry(Seq.empty, "interactive-was-suggested")
+
+  def all: Seq[Key[_]] = Seq[Key[_]](
+    interactive,
+    globalInteractiveWasSuggested,
     actions,
     userName,
     userEmail,
@@ -30,6 +37,6 @@ object Keys {
     sonatypePassword
   )
 
-  lazy val map = all.map(e => e.fullName -> e).toMap
+  lazy val map: Map[String, Key[_]] = all.map(e => e.fullName -> e).toMap
 
 }

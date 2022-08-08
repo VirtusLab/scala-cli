@@ -1,13 +1,14 @@
 package scala.cli.config
 
-import com.github.plokhotnyuk.jsoniter_scala.core.{Key => _, _}
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.{Key as _, *}
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.parse.RawJson
 
 import java.nio.file.attribute.PosixFilePermission
-
-import scala.build.Directories
+import scala.build.{Directories, Logger}
 import scala.build.errors.BuildException
+import scala.cli.commands.SharedOptions
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.collection.immutable.ListMap
 import scala.util.Properties
 
@@ -41,6 +42,19 @@ final class ConfigDb private (
           }
           .map(Some(_))
     }
+
+  /** Gets an entry.
+    *
+    * If the value cannot be decoded or the key isn't in the DB, None is returned.
+    *
+    * Otherwise, the value is returned wrapped in Some.
+    */
+  def getOrNone[T](key: Key[T], logger: Logger): Option[T] = get[T](key) match {
+    case Right(maybeValue) => maybeValue
+    case Left(ex) =>
+      logger.debug(ex)
+      None
+  }
 
   /** Sets an entry in memory */
   def set[T](key: Key[T], value: T): this.type = {
@@ -224,6 +238,16 @@ object ConfigDb {
     */
   def open(directories: Directories): Either[BuildException, ConfigDb] =
     open(dbPath(directories))
+
+  /** Creates a ConfigDb from Scala CLI [[scala.cli.commands.SharedOptions]]
+    *
+    * @param sharedOptions:
+    *   a Scala CLI shared options instance
+    * @return
+    *   either an error on failure, or a ConfigDb instance on success
+    */
+  def open(sharedOptions: SharedOptions): Either[BuildException, ConfigDb] =
+    open(sharedOptions.directories.directories)
 
   def empty: ConfigDb =
     new ConfigDb(Map())

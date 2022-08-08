@@ -170,10 +170,10 @@ final case class BuildOptions(
     else None
   }
 
-  lazy val finalCache = internal.cache.getOrElse(FileCache())
+  lazy val finalCache: FileCache[Task] = internal.cache.getOrElse(FileCache())
   // This might download a JVM if --jvm … is passed or no system JVM is installed
 
-  lazy val archiveCache = ArchiveCache().withCache(finalCache)
+  lazy val archiveCache: ArchiveCache[Task] = ArchiveCache().withCache(finalCache)
 
   private lazy val javaCommand0: Positioned[JavaHomeInfo] = javaHomeLocation().map { javaHome =>
     val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHome)
@@ -599,8 +599,7 @@ final case class BuildOptions(
     }
   }
 
-  val interactive: Interactive =
-    if (internal.interactive.getOrElse(false)) InteractiveAsk else InteractiveNop
+  lazy val interactive: Interactive = internal.interactive.getOrElse(() => InteractiveNop)()
 }
 
 object BuildOptions {
