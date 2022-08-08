@@ -8,22 +8,22 @@ import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import java.io.{File, InputStream}
-
-import scala.build._
+import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
-import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
-import scala.build.{options => bo}
+import scala.build.options as bo
 import scala.cli.commands.ScalaJsOptions
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
-import scala.concurrent.duration._
+import scala.concurrent.ExecutionContextExecutorService
+import scala.concurrent.duration.*
 import scala.util.Properties
 import scala.util.control.NonFatal
 
@@ -65,7 +65,7 @@ object SharedOptionsUtil extends CommandHelpers {
           logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
         path
       }
-      .map(Inputs.ResourceDirectory(_))
+      .map(Inputs.ResourceDirectory)
     val maybeInputs = Inputs(
       args,
       Os.pwd,
@@ -94,7 +94,7 @@ object SharedOptionsUtil extends CommandHelpers {
   implicit class SharedOptionsOps(v: SharedOptions) {
     import v._
 
-    def logger = logging.logger
+    def logger: Logger = logging.logger
 
     private def scalaJsOptions(opts: ScalaJsOptions): options.ScalaJsOptions = {
       import opts._
@@ -168,11 +168,11 @@ object SharedOptionsUtil extends CommandHelpers {
             scalac.scalacOption
               .filter(_.nonEmpty)
               .map(ScalacOpt(_))
-              .map(Positioned.commandLine(_))
+              .map(Positioned.commandLine)
           ),
           compilerPlugins =
             SharedOptionsUtil.parseDependencies(
-              dependencies.compilerPlugin.map(Positioned.none(_)),
+              dependencies.compilerPlugin.map(Positioned.none),
               ignoreErrors
             ),
           platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
@@ -205,7 +205,7 @@ object SharedOptionsUtil extends CommandHelpers {
           extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
           extraDependencies = ShadowingSeq.from(
             SharedOptionsUtil.parseDependencies(
-              dependencies.dependency.map(Positioned.none(_)),
+              dependencies.dependency.map(Positioned.none),
               ignoreErrors
             )
           )
@@ -267,7 +267,7 @@ object SharedOptionsUtil extends CommandHelpers {
     def configDb: ConfigDb = ConfigDb.open(v).orExit(logger)
 
     def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
-      implicit val ec = options.finalCache.ec
+      implicit val ec: ExecutionContextExecutorService = options.finalCache.ec
       val javaHomeManager = options.javaHomeManager
         .withMessage(s"Downloading JVM $jvmId")
       val logger = javaHomeManager.cache
@@ -352,7 +352,7 @@ object SharedOptionsUtil extends CommandHelpers {
         !Properties.isWin
       )
 
-    def strictBloopJsonCheckOrDefault =
+    def strictBloopJsonCheckOrDefault: Boolean =
       strictBloopJsonCheck.getOrElse(bo.InternalOptions.defaultStrictBloopJsonCheck)
   }
 

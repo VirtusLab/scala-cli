@@ -37,6 +37,6 @@ object Keys {
     sonatypePassword
   )
 
-  lazy val map = all.map(e => e.fullName -> e).toMap
+  lazy val map: Map[String, Key[_]] = all.map(e => e.fullName -> e).toMap
 
 }

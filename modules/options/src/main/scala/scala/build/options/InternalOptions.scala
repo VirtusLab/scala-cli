@@ -25,8 +25,8 @@ final case class InternalOptions(
   keepResolution: Boolean = false,
   extraSourceFiles: Seq[Positioned[os.Path]] = Nil
 ) {
-  def verbosityOrDefault = verbosity.getOrElse(0)
-  def strictBloopJsonCheckOrDefault =
+  def verbosityOrDefault: Int = verbosity.getOrElse(0)
+  def strictBloopJsonCheckOrDefault: Boolean =
     strictBloopJsonCheck.getOrElse(InternalOptions.defaultStrictBloopJsonCheck)
 }
 
