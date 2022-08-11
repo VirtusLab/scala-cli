@@ -3,7 +3,7 @@ title: Basics
 sidebar_position: 3
 ---
 
-Scala CLI is a command line tool that executes a given command on the inputs it’s provided with a given [configuration](../guides/configuration.md) to produce a result.
+Scala CLI is a command line tool that executes a given command on the inputs it’s provided with, using a given [configuration](../guides/configuration.md) to produce a result.
 
 The most important commands are:
 
@@ -22,10 +22,10 @@ The `scala-cli` CLI commands accept input in a number of ways, most notably:
 
 - as source files
 - as one or several directories that contain source files
-- as URLs, pointing to sources
+- as URLs pointing to sources
 - by processing source code via piping or process substitution
 
-Note that all of these input formats can used alongside each other.
+Note that all of these input formats can be used alongside each other.
 
 ## Source files
 
@@ -35,7 +35,7 @@ Scala CLI accepts the following types of source code:
 - `.sc` files, containing Scala scripts (see more in [Scripts guide](../guides/scripts.md))
 - `.java` files, containing Java code
 
-This example shows the simplest input format.
+The following example shows the simplest input format.
 First, create a source file:
 
 ```scala title=Hello.scala
@@ -86,7 +86,7 @@ compilation will fail. `scala-cli` compiles only the files it’s given.
 :::
 
 While this is *very* convenient for projects with just a few files, passing many files this way can be cumbersome and error-prone.
-For larger projects, directories can help.
+In the case of larger projects, passing whole directories can help.
 
 
 ## Directories
@@ -108,7 +108,7 @@ object Hello {
 }
 ```
 
-For this case, run all the source code files in `my-app` by supplying the directory name:
+In this case, you can run all the source code files in `my-app` by supplying the directory name:
 
 ```bash
 scala-cli my-app
@@ -152,7 +152,7 @@ scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540
 
 ### Zip archive
 
-`scala-cli` accepts input via `zip` archive path
+`scala-cli` accepts inputs via a `zip` archive path.
 It unpacks the archive and runs it:
 
 ```scala titleHello.scala
@@ -194,7 +194,7 @@ More details in the [Piping guide](../guides/piping.md).
 
 ## Scala CLI version
 
-`scala-cli` can also run another Scala CLI version, which can be helpful to test unreleased yet Scala CLI functionality.
+`scala-cli` can also run another Scala CLI version, which can be helpful to test unreleased Scala CLI functionalities.
 :::warning
 Running another Scala CLI version might be slower because it uses JVM-based Scala CLI launcher.
 :::

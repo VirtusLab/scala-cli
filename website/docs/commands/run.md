@@ -81,7 +81,7 @@ object Utils {
 }
 ```
 
-`scala-cli` takes into account and compiles `Utils.scala`.
+`scala-cli` takes it into account and compiles `Utils.scala`.
 
 ```bash
 scala-cli Main.scala
@@ -114,7 +114,7 @@ scala-cli run Hello.scala  --watch
 ```
 ### Watch mode - restart
 
-`--restart` mode runs your application in the background and automatically restart it upon any change:
+`--restart` mode runs your application in the background and automatically restarts it upon any change:
 
 ```bash ignore
 scala-cli run Hello.scala --restart

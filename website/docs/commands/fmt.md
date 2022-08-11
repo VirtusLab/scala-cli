@@ -22,15 +22,15 @@ scala-cli fmt --check
 
 ### Scalafmt version and dialect
 
-Scala CLI `fmt` command supports passing the `scalafmt` **version** and **dialect** directly from the command line, using respectively the `--scalafmt-dialect` and `--scalafmt-version` options:
+Scala CLI `fmt` command supports passing the `scalafmt` **version** and **dialect** directly from the command line, using the `--scalafmt-dialect` and `--scalafmt-version` options respectively:
 ```
 scala-cli fmt --scalafmt-dialect scala3 --scalafmt-version 3.5.8
 ```
-You can skip passing either of those, which will make Scala CLI to infer a default value:
+You can skip passing either of those, which will make Scala CLI infer a default value:
 - If a `.scalafmt.conf` file is present in the workspace and it has the field defined, the value will be read from there, unless explicitly specified with Scala CLI options.
-- Otherwise, the default `scalafmt` **version** will be the latest one used by your Scala CLI version (so it is subject to change when updating Scala CLI). The default **dialect** will be inferred based on Scala version (defined explicitly by `-S` option, or default version if option would not be passed).
+- Otherwise, the default `scalafmt` **version** will be the latest one used by your Scala CLI version (so it is subject to change when updating Scala CLI). The default **dialect** will be inferred based on the Scala version (defined explicitly by `-S` option, or default version if the option is not passed).
 
-It is possible to pass the configuration as a string directly from the command line, using `--scalafmt-conf-str` option. If the configuration is passed this way, Scala CLI will behave exactly the same as if it would find the specified configuration in a `.scalafmt.conf` file in the workspace.
+It is possible to pass the configuration as a string directly from the command line, using `--scalafmt-conf-str` option. If the configuration is passed this way, Scala CLI will behave exactly the same as if it found the specified configuration in the `.scalafmt.conf` file in the workspace.
 
 #### Example 1
 
@@ -43,7 +43,7 @@ runner.dialect = scala212
 scala-cli fmt --scalafmt-dialect scala213
 ```
 
-For above setup `fmt` will use:
+For the setup above, `fmt` will use:
 - `version="3.5.8"` from the file
 - `dialect=scala213`, because passed `--scalafmt-dialect` option overrides dialect found in the file
 
@@ -57,7 +57,7 @@ version = "2.7.5"
 scala-cli fmt --scalafmt-version 3.5.8
 ```
 
-For above setup `fmt` will use:
+For the setup above, `fmt` will use:
 - `version="3.5.8"`, because passed `--scalafmt-version` option overrides version from the file
 - `dialect=scala3`, because dialect is neither passed as an option nor is it present in the configuration file, so it is inferred based on the Scala version; the Scala version wasn't explicitly specified in the command either, so it falls back to the default Scala version - the latest one, thus the resulting dialect is `scala3`. 
 
@@ -171,5 +171,5 @@ If the `--save-scalafmt-conf` option is passed, then `fmt` command behaves as fo
 - In the **third** case `fmt` creates a `.scalafmt.conf` file in the current workspace directory, writes [inferred](/docs/commands/fmt#scalafmt-version-and-dialect) version and dialect into it and uses it to run `scalafmt`.
 
 :::note
-If the configuration is passed in the `--scalafmt-conf-str` option, Scala CLI will behave exactly the same as if it would find the specified configuration in a `.scalafmt.conf` file in the workspace.
+If the configuration is passed in the `--scalafmt-conf-str` option, Scala CLI will behave exactly the same as if it found the specified configuration in a `.scalafmt.conf` file in the workspace.
 :::
