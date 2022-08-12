@@ -17,8 +17,8 @@ scala-cli compile Hello.scala
 ```
 
 Note that most Scala CLI commands automatically compile your code, if necessary.
-The `compile` command is useful if you'd like to check that your code compiles,
-or know of compilation warnings, without running it or packaging it.
+The `compile` command is useful if you want to check that your code compiles
+(or to see the compilation warnings, if any occur) without running it or packaging it.
 
 The most common `compile` options are shown below.
 For a full list of options, run `scala-cli compile --help`, or check the options linked in the
@@ -87,7 +87,7 @@ For compiling with an specific nightly build, you have the full version for:
 scala-cli Hello.scala -S 2.13.9-bin-4505094
 ```
 
-For adding this inside scala files with [using directives](../guides/using-directives.md), use:
+For setting this inside scala files, use [`using` directives](../guides/using-directives.md):
 
 ```scala
 //> using scala "2.nightly"

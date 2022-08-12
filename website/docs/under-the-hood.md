@@ -20,11 +20,11 @@ Native Image lets us build `scala-cli` as a native image for each platform, and 
 
 ### Caching and incrementality
 
-Since most of the tasks require compilation or dependency resolution under the hood, Scala CLI heavily use caches and incrementality under the hood to provide output as quickly as possible.
+Since most of the tasks require compilation or dependency resolution under the hood, Scala CLI heavily uses caches and incrementality under the hood to provide output as quickly as possible.
 
 But note that incremental compilation and caching are not perfect.
-In some cases, when we're having a compilation problem and we don't think it's a problem with our code - we suspect it may be the stale state of our project - it can help to clean the project state.
-For this reason we have the [clean](./commands/clean.md) command, which invalidates local caches and forces the next compilation to be a total rebuild from a clean slate.
+In some cases, when there's a compilation problem and you don't think it's a problem with the code, it may be the stale state of the project - cleaning the project state might help.
+For this reason Scala CLI has the [clean](./commands/clean.md) command, which invalidates local caches and forces the next compilation to be a total rebuild from a clean slate.
 
 We provide a more in-depth overview about how caching works in the [Scala CLI internals guide](./guides/internals.md).
 

@@ -72,7 +72,7 @@ Hello Jenny, Jake!
 
 </ChainedSnippets>
 
-You may wonder what kind of Scala version was used under the hood. The answer is the latest stable version which was tested in Scala CLI. If we want to specify the Scala version we can use `-S` or `--scala` option. More about setting Scala version in a dedicated [cookbook](./cookbooks/scala-versions.md).
+You may wonder what kind of Scala version was used under the hood. The answer is the latest stable version which was tested in Scala CLI. If you want to specify the Scala version you can use `-S` or `--scala` option. More about setting Scala version in the dedicated [cookbook](./cookbooks/scala-versions.md).
 
 Scala CLI offers many more features dedicated for scripting, as described in the [dedicated guide](./guides/scripts.md).
 
@@ -81,7 +81,7 @@ Scala CLI offers many more features dedicated for scripting, as described in the
 Now let's build something more serious. For this example, it's best to start with some prototyping inside the REPL. We can start a REPL session by running `scala-cli repl`. (If desired, you can also set the Scala version with `-S` or `--scala`.)
 
 :::note
-Scala CLI reuses most of its options across all its comments.
+Scala CLI reuses most of its options across all of its commands.
 :::
 
 One of the main strengths of Scala is its ecosystem. Scala CLI is designed in a way to expose the Scala ecosystem to all usages of Scala, and running the REPL is no exception.
@@ -197,14 +197,14 @@ val (ext, directory) = args.toSeq match
   case Seq(ext) => (ext, os.pwd)
   case Seq(ext, directory) => (ext, os.Path(directory))
   case other =>
-    println(s"Expected: `extension [directory]` but get: `${other.mkString(" ")}`")
+    println(s"Expected: `extension [directory]` but got: `${other.mkString(" ")}`")
     sys.exit(1)
 
 val files = filesByExtension(ext, directory)
 files.map(_.relativeTo(directory)).foreach(println)
 ```
 
-As you probably noticed, we are using `os-lib` in our script without any `using` directive; how is that possible? The way this works is that configuration details provided by `using` directives are global, and apply to all files. Since `files.scala` and `countByExtension.sc` are compiled together, the `using` directives in `files.scala` are used when compiling both files. (Note that defining a library dependency in more than one file is an anti-pattern.)
+As you probably noticed, we are using `os-lib` in our script without any `using` directive, How is that possible? The way it works is that configuration details provided by `using` directives are global, and apply to all files. Since `files.scala` and `countByExtension.sc` are compiled together, the `using` directives in `files.scala` are used when compiling both files. (Note that defining a library dependency in more than one file is an anti-pattern.)
 
 <!-- TODO add piece about scala-cli warnings in such case -->
 
@@ -218,7 +218,7 @@ scala-cli . -- scala
 
 ```
 files.scala
-.scala/project_940fb43dce/src_generated/main/countByExtension.scala
+.scala-build/project_940fb43dce/src_generated/main/countByExtension.scala
 files.test.scala
 ```
 
@@ -228,7 +228,7 @@ Seeing that output, you may wonder, why do we have an additional `.scala` file u
 
 ## Packaging
 
-We could stop here and call `scala-cli` on our set of sources every time. Scala CLI uses caches aggressively, so rollup runs are reasonably fast — less than 1,500 milliseconds on my machine — but sometimes this isn't fast enough, or shipping sources and compiling them may be not convenient.
+We could stop here and call `scala-cli` on our set of sources every time. Scala CLI uses caches aggressively, so rollup runs are reasonably fast — less than 1,500 milliseconds on tested machine — but sometimes this isn't fast enough, or shipping sources and compiling them may be not convenient.
 
 For these use cases, Scala CLI offers means to package your project. For example, we can run this command to generate a thin, executable jar file, with the compiled code inside:
 
@@ -236,7 +236,7 @@ For these use cases, Scala CLI offers means to package your project. For example
 scala-cli package . -o countByExtension
 ```
 
-The default binary name is `app`, so in this example we provide the `-o` flag to make the binary name `countByExtension`. Now we can run our project like this:
+The default binary name is `app`, so in this example we provide the `-o` flag to make the name of the binary `countByExtension`. Now we can run our project like this:
 
 ```bash
 ./countByExtension scala

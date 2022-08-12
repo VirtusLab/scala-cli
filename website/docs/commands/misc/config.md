@@ -5,7 +5,7 @@ sidebar_position: 1
 
 import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
-The `config` sub-command allows to get and set various configuration values, used by
+The `config` sub-command makes it possible to get and set various configuration values, used by
 other Scala CLI sub-commands.
 
 Examples of use:

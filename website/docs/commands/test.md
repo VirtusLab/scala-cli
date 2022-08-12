@@ -60,7 +60,7 @@ Some of the most popular test frameworks in Scala are:
 - [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.9`
 - [JUnit 4](https://junit.org/junit4), which can be used via a [dedicated interface](https://github.com/sbt/junit-interface): `com.github.sbt:junit-interface:0.13.2`
 
-This example shows how to run an munit-based test suite:
+The following example shows how to run an munit-based test suite:
 
 ```scala title=MyTests.scala
 //> using lib "org.scalameta::munit::0.7.27"

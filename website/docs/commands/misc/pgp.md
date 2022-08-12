@@ -7,7 +7,7 @@ The `pgp` sub-commands are low-level commands, exposing the PGP capabilities of
 Scala CLI. These capabilities are used in the `publish` and `publish setup` commands
 in particular.
 
-These commands allow to
+These commands make it possible to
 - create PGP keys with `pgp create`
 - get a key fingerprint with `pgp key-id`
 - push them to / pull them from key servers with `pgp push` / `pgp pull`
