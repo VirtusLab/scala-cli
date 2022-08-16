@@ -17,6 +17,7 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
   override def examples = Seq(
     "//> using jar \"/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar\""
   )
+  override def isRestricted = true
 
   def keys = Seq("jar", "jars")
   def handleValues(

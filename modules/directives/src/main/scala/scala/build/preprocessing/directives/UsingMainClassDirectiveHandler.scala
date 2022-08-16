@@ -22,6 +22,8 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("main-class", "mainClass")
 
+  override def isRestricted = true
+
   override def getValueNumberBounds(key: String) = UsingDirectiveValueNumberBounds(1, 1)
 
   def handleValues(

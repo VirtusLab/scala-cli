@@ -27,6 +27,8 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     s"//> using ${prefix}name ${q}my-library$q",
     s"//> using ${prefix}version ${q}0.1.1$q"
   )
+  override def isRestricted = false
+
   def keys = Seq(
     "organization",
     "name",

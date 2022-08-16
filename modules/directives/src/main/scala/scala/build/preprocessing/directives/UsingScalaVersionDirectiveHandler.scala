@@ -21,6 +21,8 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("scala")
 
+  override def isRestricted = true
+
   def handleValues(
     scopedDirective: ScopedDirective,
     logger: Logger

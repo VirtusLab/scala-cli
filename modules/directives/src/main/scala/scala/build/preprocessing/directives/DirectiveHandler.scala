@@ -24,6 +24,9 @@ trait DirectiveHandler[T] {
   def usageMd: String       = s"`$usage`"
   def examples: Seq[String] = Nil
 
+  /** Is this directive an advanved feature, that will not be accessible when running scala-cli as `scala` */
+  def isRestricted: Boolean
+
   def keys: Seq[String]
 
   def handleValues(

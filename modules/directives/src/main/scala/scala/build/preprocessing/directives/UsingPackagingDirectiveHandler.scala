@@ -35,6 +35,8 @@ case object UsingPackagingDirectiveHandler extends UsingDirectiveHandler {
     "//> using packaging.provided \"org.apache.spark::spark-sql\""
   )
 
+  override def isRestricted = false
+
   def keys = Seq(
     "packageType",
     "output",

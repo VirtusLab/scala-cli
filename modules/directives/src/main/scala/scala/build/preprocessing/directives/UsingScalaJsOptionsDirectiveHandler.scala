@@ -45,6 +45,8 @@ case object UsingScalaJsOptionsDirectiveHandler extends UsingDirectiveHandler {
     "//> using jsModuleKind \"common\""
   )
 
+  override def isRestricted = true
+
   override def keys: Seq[String] =
     Seq(
       "jsVersion",
