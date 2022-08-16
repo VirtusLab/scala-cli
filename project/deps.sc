@@ -67,7 +67,7 @@ object Deps {
   def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4-13-1ebd00a6"
   def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.0-sc-1"
+  def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.2-sc-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.0.0"
   def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M14"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.8.1"
