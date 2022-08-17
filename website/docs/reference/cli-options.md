@@ -1973,6 +1973,26 @@ Interactive mode
 
 Enable actionable diagnostics
 
+## Version options
+
+Available in commands:
+- [`version`](./commands.md#version)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--cli-version`
+
+Aliases: `--cli`
+
+Show only plain scala-cli version
+
+#### `--scala-version`
+
+Aliases: `--scala`
+
+Show only plain scala version
+
 ## Watch options
 
 Available in commands:

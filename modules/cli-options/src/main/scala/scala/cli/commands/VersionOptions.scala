@@ -6,7 +6,13 @@ import caseapp._
 @HelpMessage("Print `scala-cli` version")
 final case class VersionOptions(
   @Recurse
-    verbosity: VerbosityOptions = VerbosityOptions()
+    verbosity: VerbosityOptions = VerbosityOptions(),
+  @HelpMessage("Show only plain scala-cli version")
+  @Name("cli")
+    cliVersion: Boolean = false,
+  @HelpMessage("Show only plain scala version") 
+  @Name("scala")
+    scalaVersion: Boolean = false
 )
 // format: on
 

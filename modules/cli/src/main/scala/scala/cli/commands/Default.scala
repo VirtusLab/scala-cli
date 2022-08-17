@@ -7,7 +7,8 @@ import scala.build.internal.Constants
 import scala.cli.{CurrentParams, ScalaCliHelp}
 
 class Default(
-  actualHelp: => RuntimeCommandsHelp
+  actualHelp: => RuntimeCommandsHelp,
+  isSipScala: Boolean
 ) extends ScalaCommand[DefaultOptions] {
 
   private def defaultHelp: String     = actualHelp.help(ScalaCliHelp.helpFormat)
@@ -30,7 +31,7 @@ class Default(
   def run(options: DefaultOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.runOptions.shared.logging.verbosity
     if (options.version)
-      println(Constants.version)
+      println(Version.versionInfo(isSipScala))
     else if (anyArgs)
       Run.run(
         options.runOptions,
