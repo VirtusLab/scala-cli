@@ -61,7 +61,7 @@ object Deps {
     def jsoniterScala = "2.15.0"
     def scalaMeta     = "4.5.12"
     def scalaNative   = "0.4.5"
-    def scalaPackager = "0.1.26"
+    def scalaPackager = "0.1.27"
     def signingCli    = "0.1.8"
   }
   def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4-14-dc4c47bc"
