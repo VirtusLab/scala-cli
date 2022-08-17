@@ -1,5 +1,7 @@
 package scala.cli.integration.util
 
+import coursier.core.Version
+
 import scala.cli.integration.TestUtil
 import scala.util.Properties
 
@@ -51,24 +53,44 @@ object BloopUtil {
     jvm: Option[String] = None
   ): Seq[String] => os.proc = {
 
-    lazy val daemonArgs =
-      if (Properties.isWin)
-        Seq("--nailgun-server", "127.0.0.1", "--nailgun-port", "8212")
-      else
-        Seq("--daemon-dir", bloopDaemonDir.toString)
+    val bloopOrg0 = bloopOrg(currentBloopVersion)
 
-    lazy val jvmArgs = jvm.toList.flatMap(name => Seq("--jvm", name))
+    // no more bloopgun for the Bloop fork from version 1.5.3-sc-1
+    val useScalaCliBloopCommand =
+      bloopOrg0 != "ch.epfl.scala" && Version(currentBloopVersion) >= Version("1.5.3-sc-1")
 
-    args =>
-      os.proc(
-        TestUtil.cs,
-        "launch",
-        jvmArgs,
-        s"${bloopOrg(currentBloopVersion)}:bloopgun_2.12:$currentBloopVersion",
-        "--",
-        daemonArgs,
-        args
-      )
+    if (useScalaCliBloopCommand) {
+      val jvmArgs = jvm.toList.flatMap(name => Seq("--bloop-java-opt", name))
+      args =>
+        os.proc(
+          TestUtil.cli,
+          "bloop",
+          jvmArgs,
+          "--bloop-version",
+          currentBloopVersion.toString,
+          "--bloop-daemon-dir",
+          bloopDaemonDir,
+          args
+        )
+    }
+    else {
+      val daemonArgs =
+        if (Properties.isWin)
+          Seq("--nailgun-server", "127.0.0.1", "--nailgun-port", "8212")
+        else
+          Seq("--daemon-dir", bloopDaemonDir.toString)
+      val jvmArgs = jvm.toList.flatMap(name => Seq("--jvm", name))
+      args =>
+        os.proc(
+          TestUtil.cs,
+          "launch",
+          jvmArgs,
+          s"$bloopOrg0:bloopgun_2.12:$currentBloopVersion",
+          "--",
+          daemonArgs,
+          args
+        )
+    }
   }
   def killBloop(): Unit = {
     val javaProcesses = os.proc("jps", "-l").call().out.text().linesIterator
