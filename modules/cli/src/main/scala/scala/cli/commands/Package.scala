@@ -611,7 +611,8 @@ object Package extends ScalaCommand[PackageOptions] {
       registry = packageOptions.dockerOptions.imageRegistry,
       repository = repository,
       tag = Some(tag),
-      exec = exec
+      exec = exec,
+      dockerExecutable = None
     )
 
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
