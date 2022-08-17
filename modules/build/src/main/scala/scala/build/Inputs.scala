@@ -21,7 +21,8 @@ final case class Inputs(
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean,
-  workspaceOrigin: Option[WorkspaceOrigin]
+  workspaceOrigin: Option[WorkspaceOrigin],
+  withRestrictedFeatures: Boolean
 ) {
 
   def isEmpty: Boolean =
@@ -266,7 +267,8 @@ object Inputs {
     validElems: Seq[Element],
     baseProjectName: String,
     directories: Directories,
-    forcedWorkspace: Option[os.Path]
+    forcedWorkspace: Option[os.Path],
+    withRestrictedFeatures: Boolean
   ): Inputs = {
 
     assert(validElems.nonEmpty)
@@ -310,7 +312,8 @@ object Inputs {
       workspace,
       baseProjectName,
       mayAppendHash = needsHash,
-      workspaceOrigin = Some(workspaceOrigin0)
+      workspaceOrigin = Some(workspaceOrigin0),
+      withRestrictedFeatures
     )
   }
 
@@ -432,7 +435,8 @@ object Inputs {
     scalaSnippetList: List[String],
     javaSnippetList: List[String],
     acceptFds: Boolean,
-    forcedWorkspace: Option[os.Path]
+    forcedWorkspace: Option[os.Path],
+    withRestrictedFeatures: Boolean
   ): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(args, cwd, download, stdinOpt, acceptFds)
@@ -448,7 +452,13 @@ object Inputs {
       }.flatten
       assert(validElems.nonEmpty)
 
-      Right(forValidatedElems(validElems, baseProjectName, directories, forcedWorkspace))
+      Right(forValidatedElems(
+        validElems,
+        baseProjectName,
+        directories,
+        forcedWorkspace,
+        withRestrictedFeatures
+      ))
     }
     else
       Left(new InputsException(invalid.mkString(System.lineSeparator())))
@@ -466,7 +476,8 @@ object Inputs {
     scalaSnippetList: List[String] = List.empty,
     javaSnippetList: List[String] = List.empty,
     acceptFds: Boolean = false,
-    forcedWorkspace: Option[os.Path] = None
+    forcedWorkspace: Option[os.Path] = None,
+    withRestrictedFeatures: Boolean
   ): Either[BuildException, Inputs] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty
@@ -486,7 +497,8 @@ object Inputs {
         scalaSnippetList,
         javaSnippetList,
         acceptFds,
-        forcedWorkspace
+        forcedWorkspace,
+        withRestrictedFeatures
       )
 
   def default(): Option[Inputs] =
@@ -499,6 +511,9 @@ object Inputs {
       workspace = workspace,
       baseProjectName = "project",
       mayAppendHash = true,
-      workspaceOrigin = None
+      workspaceOrigin = None,
+      withRestrictedFeatures = false
     )
+
+  def empty(projectName: String) = Inputs(Nil, None, os.pwd, projectName, false, None, false)
 }

@@ -83,7 +83,7 @@ class BuildProjectTests extends munit.FunSuite {
       )
     )
 
-    val inputs  = Inputs(Nil, None, os.pwd, "project", false, None)
+    val inputs  = Inputs.empty("project")
     val sources = Sources(Nil, Nil, None, Nil, options)
     val logger  = new LoggerMock()
     val res = Build.buildProject(
@@ -163,19 +163,18 @@ class BuildProjectTests extends munit.FunSuite {
   }
 
   test("workspace for bsp") {
-    val workspacePath = os.pwd
     val options = BuildOptions(
       internal = InternalOptions(localRepository =
         LocalRepo.localRepo(scala.build.Directories.default().localRepoDir)
       )
     )
-    val inputs  = Inputs(Nil, None, workspacePath, "project", false, None)
+    val inputs  = Inputs.empty("project")
     val sources = Sources(Nil, Nil, None, Nil, options)
     val logger  = new LoggerMock()
 
     val project =
       Build.buildProject(inputs, sources, Nil, options, None, Scope.Main, logger).orThrow
 
-    expect(project.workspace == workspacePath)
+    expect(project.workspace == inputs.workspace)
   }
 }

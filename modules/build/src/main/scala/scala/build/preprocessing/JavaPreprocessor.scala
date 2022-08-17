@@ -34,7 +34,8 @@ final case class JavaPreprocessor(
   def preprocess(
     input: Inputs.SingleElement,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    withRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case j: Inputs.JavaFile => Some(either {
@@ -54,7 +55,8 @@ final case class JavaPreprocessor(
             usingDirectiveHandlers,
             Right(j.path),
             scopePath,
-            logger
+            logger,
+            withRestrictedFeatures
           ))
           Seq(PreprocessedSource.OnDisk(
             j.path,

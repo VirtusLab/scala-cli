@@ -26,6 +26,7 @@ import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
 import scala.util.Properties
 import scala.util.control.NonFatal
+import scala.cli.ScalaCli
 
 object SharedOptionsUtil extends CommandHelpers {
 
@@ -77,7 +78,8 @@ object SharedOptionsUtil extends CommandHelpers {
       scalaSnippetList = scalaSnippetList,
       javaSnippetList = javaSnippetList,
       acceptFds = !Properties.isWin,
-      forcedWorkspace = forcedWorkspaceOpt
+      forcedWorkspace = forcedWorkspaceOpt,
+      withRestrictedFeatures = ScalaCli.withRestrictedFeatures
     )
     maybeInputs.map { inputs =>
       val forbiddenDirs =

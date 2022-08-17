@@ -9,6 +9,8 @@ import scala.build.preprocessing.directives.{
   ScopedDirective,
   StrictDirective
 }
+import scala.build.errors.DirectiveErrors
+import scala.build.preprocessing.directives.DirectiveUtil
 
 object DirectivesProcessor {
 
@@ -23,18 +25,27 @@ object DirectivesProcessor {
     handlers: Seq[DirectiveHandler[T]],
     path: Either[String, os.Path],
     cwd: ScopePath,
-    logger: Logger
+    logger: Logger,
+    withRestrictedFeatures: Boolean
   ): Either[BuildException, DirectivesProcessorOutput[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
 
-//    val values = directives.map {
-//      case (k, v) =>
-//        k.getPath.asScala.mkString(".") -> v
-//    }
+    def handleValues(handler: DirectiveHandler[T])(
+      scopedDirective: ScopedDirective,
+      logger: Logger
+    ) =
+      if (withRestrictedFeatures && !handler.isRestricted)
+        val msg =
+          "This directive is not supported with 'scala' command. Please run it with `scala-cli` command or with `--power` flag."
+        Left(DirectiveErrors(
+          ::(msg, Nil),
+          DirectiveUtil.positions(scopedDirective.directive.values, path)
+        ))
+      else handler.handleValues(scopedDirective, logger)
 
     val handlersMap = handlers
       .flatMap { handler =>
-        handler.keys.map(k => k -> handler.handleValues _)
+        handler.keys.map(k => k -> handleValues(handler))
       }
       .toMap
 
