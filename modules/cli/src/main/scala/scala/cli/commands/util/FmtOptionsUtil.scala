@@ -5,15 +5,22 @@ import scala.cli.commands.FmtOptions
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.Properties
 
+import coursier.core.Version
+
 object FmtOptionsUtil {
   implicit class FmtOptionsOps(v: FmtOptions) {
     import v._
     def binaryUrl(version: String): (String, Boolean) = {
       val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
         .getOrElse(FetchExternalBinary.platformSuffix())
-      val tag0           = scalafmtTag.getOrElse("v" + version)
-      val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse("alexarchambault/scalafmt-native-image")
-      val extension0     = if (Properties.isWin) ".zip" else ".gz"
+      val tag0 = scalafmtTag.getOrElse("v" + version)
+      val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse {
+        if (Version(version) < Version("3.5.9"))
+          "scala-cli/scalafmt-native-image"
+        else // from version 3.5.9 scalafmt-native-image repository was moved to VirtusLab organisation
+          "virtuslab/scalafmt-native-image"
+      }
+      val extension0 = if (Properties.isWin) ".zip" else ".gz"
       val url =
         s"https://github.com/$gitHubOrgName0/releases/download/$tag0/scalafmt-$osArchSuffix0$extension0"
       (url, !tag0.startsWith("v"))

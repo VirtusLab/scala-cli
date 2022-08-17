@@ -624,6 +624,7 @@ jobs:
     - name: Test documentation
       run: .github/scripts/check_docs.sh
     - name: Test gifs
+      if: false # temporary disable test gits, it should be enabled after release 0.1.12
       run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
     - name: Build binary
       run: ./mill copyTo cli.launcher ./scala-cli

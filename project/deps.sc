@@ -56,20 +56,20 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier      = "2.1.0-M6-49-gff26f8e39"
+    def coursier      = "2.1.0-M6-53-gb4f448130"
     def coursierCli   = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.14.2"
+    def jsoniterScala = "2.15.0"
     def scalaMeta     = "4.5.12"
     def scalaNative   = "0.4.5"
     def scalaPackager = "0.1.26"
-    def signingCli    = "0.1.7"
+    def signingCli    = "0.1.8"
   }
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4-13-1ebd00a6"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4-14-dc4c47bc"
   def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.3-sc-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.0.0"
-  def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M14"
+  def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M15"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.8.1"
   // Force using of 2.13 - is there a better way?
   def coursier           = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
@@ -95,7 +95,7 @@ object Deps {
   def libsodiumjni  = ivy"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:0.0.3"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
-    ivy"com.geirsson::metaconfig-typesafe-config:0.10.0"
+    ivy"com.geirsson::metaconfig-typesafe-config:0.11.1"
       .exclude(("org.scala-lang", "scala-compiler"))
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
@@ -106,7 +106,7 @@ object Deps {
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.5.8"
+  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.5.9"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"
@@ -135,7 +135,7 @@ object Deps {
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc2"
     else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2"
-  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.7.2"
+  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.7.4"
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
