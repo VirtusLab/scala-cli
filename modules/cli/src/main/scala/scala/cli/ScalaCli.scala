@@ -16,12 +16,20 @@ import scala.util.Properties
 
 object ScalaCli {
 
+  if (Properties.isWin && isGraalvmNativeImage)
+    // have to be initialized before running (new Argv0).get because Argv0SubstWindows uses csjniutils library
+    // The DLL loaded by LoadWindowsLibrary is statically linke/d in
+    // the Scala CLI native image, no need to manually load it.
+    coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
+
   val progName = (new Argv0).get("scala-cli")
 
-  private def checkName(name: String) =
-    progName == name ||
-    progName.endsWith(s"/$name") ||
-    progName.endsWith(File.separator + name)
+  private def checkName(name: String) = {
+    val baseProgName = if (Properties.isWin) progName.stripSuffix(".exe") else progName
+    baseProgName == name ||
+    baseProgName.endsWith(s"/$name") ||
+    baseProgName.endsWith(File.separator + name)
+  }
 
   private var isSipScala = checkName("scala") || checkName("scala-cli-sip")
 
@@ -170,11 +178,6 @@ object ScalaCli {
     // just make some read / write calls return -1).
     if (!Properties.isWin && isGraalvmNativeImage)
       ignoreSigpipe()
-
-    if (Properties.isWin && isGraalvmNativeImage)
-      // The DLL loaded by LoadWindowsLibrary is statically linked in
-      // the Scala CLI native image, no need to manually load it.
-      coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
 
     if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
       // Enable ANSI output in Windows terminal
