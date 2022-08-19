@@ -49,7 +49,8 @@ object Bsp extends ScalaCommand[BspOptions] {
               Sources.defaultPreprocessors(
                 buildOptions0.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
                 buildOptions0.archiveCache,
-                buildOptions0.internal.javaClassNameVersionOpt
+                buildOptions0.internal.javaClassNameVersionOpt,
+                () => buildOptions0.javaHome().value.javaCommand
               ),
               persistentLogger
             ).map(_._2).getOrElse(initialInputs)

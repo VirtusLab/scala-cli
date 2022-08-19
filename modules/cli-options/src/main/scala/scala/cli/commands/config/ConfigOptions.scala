@@ -2,7 +2,12 @@ package scala.cli.commands.config
 
 import caseapp._
 
-import scala.cli.commands.{CoursierOptions, LoggingOptions, SharedDirectoriesOptions}
+import scala.cli.commands.{
+  CoursierOptions,
+  LoggingOptions,
+  SharedDirectoriesOptions,
+  SharedJvmOptions
+}
 
 // format: off
 final case class ConfigOptions(
@@ -12,6 +17,8 @@ final case class ConfigOptions(
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
+  @Recurse
+    jvm: SharedJvmOptions = SharedJvmOptions(),
 
   @Group("Config")
   @HelpMessage("Dump config DB as JSON")

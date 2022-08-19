@@ -29,7 +29,8 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           buildOptions.archiveCache,
-          buildOptions.internal.javaClassNameVersionOpt
+          buildOptions.internal.javaClassNameVersionOpt,
+          () => buildOptions.javaHome().value.javaCommand
         ),
         logger
       ).orExit(logger)

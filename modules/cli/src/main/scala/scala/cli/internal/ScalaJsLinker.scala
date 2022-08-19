@@ -3,19 +3,22 @@ package scala.cli.internal
 import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
+import dependency._
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
 import java.io.File
 
-import scala.build.CoursierUtils._
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, ScalaJsLinkingError}
-import scala.build.internal.{FetchExternalBinary, Runner, ScalaJsLinkerConfig}
+import scala.build.internal.{ExternalBinaryParams, FetchExternalBinary, Runner, ScalaJsLinkerConfig}
+import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.build.options.scalajs.ScalaJsLinkerOptions
 import scala.build.{Logger, Positioned}
 import scala.util.Properties
 
 object ScalaJsLinker {
+
+  private def linkerMainClass = "org.scalajs.cli.Scalajsld"
 
   private def linkerCommand(
     options: ScalaJsLinkerOptions,
@@ -31,33 +34,33 @@ object ScalaJsLinker {
         Seq(path.toString)
       case None =>
         val scalaJsCliVersion = options.finalScalaJsCliVersion
+        val scalaJsCliDep = {
+          val mod =
+            if (scalaJsCliVersion.contains("-sc"))
+              mod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+            else
+              mod"org.scala-js:scalajs-cli_2.13"
+          dependency.Dependency(mod, scalaJsCliVersion)
+        }
+
+        val forcedVersions = Seq(
+          mod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
+        )
+
+        val extraRepos =
+          if (scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT"))
+            Seq(Repositories.sonatype("snapshots").root)
+          else
+            Nil
 
         options.finalUseJvm match {
           case Right(()) =>
-            val scalaJsCliDep = {
-              val mod =
-                if (scalaJsCliVersion.contains("-sc"))
-                  cmod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
-                else cmod"org.scala-js:scalajs-cli_2.13"
-              coursier.Dependency(mod, scalaJsCliVersion)
-            }
-
-            val forcedVersions = Seq(
-              cmod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
-            )
-
-            val extraRepos =
-              if (scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT"))
-                Seq(Repositories.sonatype("snapshots").root)
-              else
-                Nil
-
             val linkerClassPath = value {
               scala.build.Artifacts.fetch0(
-                Positioned.none(Seq(scalaJsCliDep)),
+                Positioned.none(Seq(scalaJsCliDep.toCs)),
                 extraRepos,
                 None,
-                forcedVersions,
+                forcedVersions.map { case (m, v) => (m.toCs, v) },
                 logger,
                 cache,
                 None
@@ -69,7 +72,7 @@ object ScalaJsLinker {
               options.javaArgs,
               "-cp",
               linkerClassPath.map(_.getAbsolutePath).mkString(File.pathSeparator),
-              "org.scalajs.cli.Scalajsld"
+              linkerMainClass
             )
 
             command.flatMap(_.value)
@@ -80,10 +83,19 @@ object ScalaJsLinker {
             val tag       = if (useLatest) "launchers" else s"v$scalaJsCliVersion"
             val url =
               s"https://github.com/scala-cli/scala-js-cli-native-image/releases/download/$tag/scala-js-ld-$scalaJsVersion-$osArch$ext"
-            val launcher = value {
-              FetchExternalBinary.fetch(url, useLatest, archiveCache, logger, "scala-js-ld")
+            val params = ExternalBinaryParams(
+              url,
+              useLatest,
+              "scala-js-ld",
+              Seq(scalaJsCliDep),
+              linkerMainClass,
+              forcedVersions = forcedVersions,
+              extraRepos = extraRepos
+            )
+            val binary = value {
+              FetchExternalBinary.fetch(params, archiveCache, logger, () => javaCommand)
             }
-            Seq(launcher.toString)
+            binary.command
         }
     }
   }

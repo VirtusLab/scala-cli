@@ -17,7 +17,8 @@ class PgpProxy {
     quiet: Boolean,
     password: String,
     cache: Cache[Task],
-    logger: Logger
+    logger: Logger,
+    javaCommand: () => String
   ): Either[BuildException, Int] = {
     val quietOptions = Nil
     (new PgpCreateExternal).tryRun(
@@ -37,7 +38,8 @@ class PgpProxy {
       ) ++ quietOptions,
       Map("SCALA_CLI_RANDOM_KEY_PASSWORD" -> password),
       logger,
-      allowExecve = false
+      allowExecve = false,
+      javaCommand
     )
   }
 
@@ -45,7 +47,8 @@ class PgpProxy {
     key: String,
     keyPrintablePath: String,
     cache: Cache[Task],
-    logger: Logger
+    logger: Logger,
+    javaCommand: () => String
   ): Either[BuildException, String] = {
     val keyPath =
       if (Properties.isWin)
@@ -59,7 +62,8 @@ class PgpProxy {
           None,
           Seq(keyPath.toString),
           Map(),
-          logger
+          logger,
+          javaCommand
         ).map(_.trim)
       }
       finally os.remove(keyPath)

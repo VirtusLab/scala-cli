@@ -17,7 +17,7 @@ import coursier.publish.{Content, Hooks, Pom, PublishRepository}
 import java.io.{File, OutputStreamWriter}
 import java.net.URI
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Path => NioPath, Paths}
+import java.nio.file.Paths
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import java.util.function.Supplier
@@ -862,13 +862,18 @@ object Publish extends ScalaCommand[PublishOptions] {
       case Some(PSigner.BouncyCastle) =>
         publishOptions.contextual(isCi).secretKey match {
           case Some(secretKey0) =>
-            val getLauncher: Supplier[NioPath] = { () =>
+            val getLauncher: Supplier[Array[String]] = { () =>
               val archiveCache = builds.headOption
                 .map(_.options.archiveCache)
                 .getOrElse(ArchiveCache())
-              PgpExternalCommand.launcher(archiveCache, None, logger) match {
-                case Left(e)      => throw new Exception(e)
-                case Right(value) => value.wrapped
+              PgpExternalCommand.launcher(
+                archiveCache,
+                None,
+                logger,
+                () => builds.head.options.javaHome().value.javaCommand
+              ) match {
+                case Left(e)       => throw new Exception(e)
+                case Right(binary) => binary.command.toArray
               }
             }
             val secretKey = secretKey0.get(configDb()).orExit(logger)

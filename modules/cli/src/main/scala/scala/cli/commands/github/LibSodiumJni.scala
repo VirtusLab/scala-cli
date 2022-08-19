@@ -6,6 +6,7 @@ import coursier.util.Task
 
 import java.io.InputStream
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
@@ -116,8 +117,8 @@ object LibSodiumJni {
 
     if (!allStaticallyLinked) {
       val (archiveUrl, pathInArchive) = archiveUrlAndPath()
-      val sodiumLib = value {
-        FetchExternalBinary.fetch(
+      val sodiumLibOpt = value {
+        FetchExternalBinary.fetchLauncher(
           archiveUrl,
           changing = false,
           archiveCache,
@@ -130,11 +131,28 @@ object LibSodiumJni {
 
       val f = jniLibArtifact(cache)
 
-      System.load(sodiumLib.toString)
+      sodiumLibOpt match {
+        case Some(sodiumLib) =>
+          System.load(sodiumLib.toString)
+        case None =>
+          val allow = Option(System.getenv("SCALA_CLI_SODIUM_JNI_ALLOW"))
+            .map(_.toLowerCase(Locale.ROOT))
+            .forall {
+              case "false" | "0" => false
+              case _             => true
+            }
+          if (allow)
+            System.loadLibrary("sodium")
+          else
+            value(Left(new LibSodiumNotFound(archiveUrl)))
+      }
+
       libsodiumjni.internal.LoadLibrary.initialize(f.toString)
     }
 
     libsodiumjni.Sodium.init()
   }
+
+  final class LibSodiumNotFound(url: String) extends BuildException(s"libsodium: $url not found")
 
 }

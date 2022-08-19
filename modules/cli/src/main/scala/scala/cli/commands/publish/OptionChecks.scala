@@ -1,6 +1,6 @@
 package scala.cli.commands.publish
 
-import coursier.cache.Cache
+import coursier.cache.FileCache
 import coursier.util.Task
 import sttp.client3._
 
@@ -14,7 +14,7 @@ object OptionChecks {
     options: PublishSetupOptions,
     configDb: => ConfigDb,
     workspace: os.Path,
-    coursierCache: Cache[Task],
+    coursierCache: FileCache[Task],
     logger: Logger,
     backend: SttpBackend[Identity, Any]
   ): Seq[OptionCheck] =

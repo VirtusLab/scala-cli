@@ -1,20 +1,64 @@
 package scala.build.internal
 
-import coursier.cache.{ArchiveCache, CacheLogger}
+import coursier.cache.{ArchiveCache, ArtifactError, CacheLogger}
 import coursier.error.FetchError
+import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
 
 import java.util.Locale
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors.{BuildException, FetchingDependenciesError}
+import scala.build.errors.{BuildException, FetchingDependenciesError, RepositoryFormatError}
 import scala.build.internal.OsLibc
+import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.util.Properties
 
 object FetchExternalBinary {
 
   def fetch(
+    params: ExternalBinaryParams,
+    archiveCache: ArchiveCache[Task],
+    logger: Logger,
+    javaCommand: () => String
+  ): Either[BuildException, ExternalBinary] = either {
+
+    val binaryOpt = value {
+      fetchLauncher(
+        params.binaryUrl,
+        params.changing,
+        archiveCache,
+        logger,
+        params.launcherPrefix
+      )
+    }
+
+    binaryOpt match {
+      case Some(binary) =>
+        ExternalBinary.Native(binary)
+      case None =>
+        val extraRepositories0 = value {
+          RepositoryParser.repositories(params.extraRepos)
+            .either
+            .left.map(errors => new RepositoryFormatError(errors))
+        }
+
+        val classPath = coursier.Fetch()
+          .withCache(archiveCache.cache)
+          .addDependencies(params.dependencies.map(_.toCs)*)
+          .mapResolutionParams { params0 =>
+            params0.addForceVersion(
+              params.forcedVersions.map { case (m, v) => m.toCs -> v }*
+            )
+          }
+          .addRepositories(extraRepositories0*)
+          .run()(archiveCache.cache.ec)
+          .map(os.Path(_, os.pwd))
+        ExternalBinary.ClassPath(javaCommand(), classPath, params.mainClass)
+    }
+  }
+
+  def fetchLauncher(
     url: String,
     changing: Boolean,
     archiveCache: ArchiveCache[Task],
@@ -22,7 +66,7 @@ object FetchExternalBinary {
     launcherPrefix: String,
     launcherPathOpt: Option[os.RelPath] = None,
     makeExecutable: Boolean = true
-  ): Either[BuildException, os.Path] = either {
+  ): Either[BuildException, Option[os.Path]] = either {
 
     val artifact = Artifact(url).withChanging(changing)
     val res = archiveCache.cache.loggerOpt.getOrElse(CacheLogger.nop).use {
@@ -30,31 +74,37 @@ object FetchExternalBinary {
       archiveCache.get(artifact)
         .unsafeRun()(archiveCache.cache.ec)
     }
-    val f = res match {
+    val fileOpt = res match {
+      case Left(nf: ArtifactError.NotFound) =>
+        logger.debug(s"$url not found ($nf)") // FIXME Log the whole stack trace of nf
+        None
       case Left(err) =>
         val err0 = new FetchError.DownloadingArtifacts(Seq((artifact, err)))
         value(Left(new FetchingDependenciesError(err0, Nil)))
-      case Right(f) => os.Path(f, os.pwd)
-    }
-    logger.debug(s"$url is available locally at $f")
-
-    val launcher = launcherPathOpt match {
-      case Some(launcherPath) =>
-        f / launcherPath
-      case None =>
-        if (os.isDir(f)) {
-          val dirContent = os.list(f)
-          if (dirContent.length == 1) dirContent.head
-          else dirContent.filter(_.last.startsWith(launcherPrefix)).head
-        }
-        else
-          f
+      case Right(f) => Some(os.Path(f, os.pwd))
     }
 
-    if (makeExecutable && !Properties.isWin)
-      os.perms.set(launcher, "rwxr-xr-x")
+    fileOpt.map { f =>
+      logger.debug(s"$url is available locally at $f")
 
-    launcher
+      val launcher = launcherPathOpt match {
+        case Some(launcherPath) =>
+          f / launcherPath
+        case None =>
+          if (os.isDir(f)) {
+            val dirContent = os.list(f)
+            if (dirContent.length == 1) dirContent.head
+            else dirContent.filter(_.last.startsWith(launcherPrefix)).head
+          }
+          else
+            f
+      }
+
+      if (makeExecutable && !Properties.isWin)
+        os.perms.set(launcher, "rwxr-xr-x")
+
+      launcher
+    }
   }
 
   def maybePlatformSuffix(supportsMusl: Boolean = true): Either[String, String] = {

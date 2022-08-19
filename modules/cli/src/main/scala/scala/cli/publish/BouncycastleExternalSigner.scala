@@ -3,8 +3,6 @@ package scala.cli.publish
 import coursier.publish.Content
 import coursier.publish.signing.Signer
 
-import java.nio.file.Path
-
 import scala.build.Logger
 import scala.cli.signing.shared.PasswordOption
 import scala.util.Properties
@@ -12,7 +10,7 @@ import scala.util.Properties
 final case class BouncycastleExternalSigner(
   secretKey: PasswordOption,
   passwordOpt: Option[PasswordOption],
-  launcher: os.Path,
+  command: Seq[String],
   logger: Logger
 ) extends Signer {
 
@@ -33,7 +31,7 @@ final case class BouncycastleExternalSigner(
       val passwordArgs = passwordOpt.toSeq.flatMap(p => Seq("--password", p.asString.value))
       val proc =
         os.proc(
-          launcher,
+          command,
           "pgp",
           "sign",
           passwordArgs,
@@ -55,13 +53,13 @@ object BouncycastleExternalSigner {
   def apply(
     secretKey: PasswordOption,
     passwordOrNull: PasswordOption,
-    launcher: Path,
+    command: Array[String],
     logger: Logger
   ): BouncycastleExternalSigner =
     BouncycastleExternalSigner(
       secretKey,
       Option(passwordOrNull),
-      os.Path(launcher, os.pwd),
+      command.toSeq,
       logger
     )
 
