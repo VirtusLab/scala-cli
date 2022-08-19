@@ -12,7 +12,9 @@ final case class VerbosityOptions(
     verbose: Int @@ Counter = Tag.of(0),
   @HelpMessage("Interactive mode")
   @Name("i")
-    interactive: Option[Boolean] = None
+    interactive: Option[Boolean] = None,
+  @HelpMessage("Enable actionable diagnostics")
+    actions: Option[Boolean] = None
 ) {
   // format: on
 

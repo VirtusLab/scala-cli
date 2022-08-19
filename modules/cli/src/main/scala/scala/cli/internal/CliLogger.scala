@@ -1,6 +1,7 @@
 package scala.cli.internal
 
 import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j.Location
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
 import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, ScalaConsoleLogger}
@@ -9,6 +10,7 @@ import java.io.PrintStream
 
 import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
+import scala.build.errors.Diagnostic.RelatedInformation
 import scala.build.internal.CustomProgressBarRefreshDisplay
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
 import scala.collection.mutable
@@ -28,7 +30,8 @@ class CliLogger(
         d.positions,
         d.severity,
         d.message,
-        hashMap
+        hashMap,
+        d.relatedInformation
       )
     }
   }
@@ -54,11 +57,12 @@ class CliLogger(
     positions: Seq[Position],
     severity: Severity,
     message: String,
-    contentCache: mutable.Map[os.Path, Seq[String]]
+    contentCache: mutable.Map[os.Path, Seq[String]],
+    relatedInformation: Option[RelatedInformation]
   ) =
     if (positions.isEmpty)
       out.println(
-        s"${ConsoleBloopBuildClient.diagnosticPrefix(Severity.Error == severity)} $message"
+        s"${ConsoleBloopBuildClient.diagnosticPrefix(severity)} $message"
       )
     else {
       val positions0 = positions.distinct
@@ -75,10 +79,17 @@ class CliLogger(
         val endPos   = new b.Position(f.endPos._1, f.endPos._2)
         val range    = new b.Range(startPos, endPos)
         val diag     = new b.Diagnostic(range, message)
-        diag.setSeverity(severity match {
-          case Severity.Error   => b.DiagnosticSeverity.ERROR
-          case Severity.Warning => b.DiagnosticSeverity.WARNING
-        })
+        diag.setSeverity(severity.toBsp4j)
+        diag.setSource("scala-cli")
+
+        for {
+          filePath <- f.path
+          info     <- relatedInformation
+        } {
+          val location = new Location(filePath.toNIO.toUri.toASCIIString, range)
+          val related  = new b.DiagnosticRelatedInformation(location, info.message)
+          diag.setRelatedInformation(related)
+        }
 
         for (file <- f.path) {
           val lines = contentCache.getOrElseUpdate(file, os.read(file).linesIterator.toVector)
@@ -112,7 +123,7 @@ class CliLogger(
         for (ex <- c.exceptions)
           printEx(ex, contentCache)
       case _ =>
-        printDiagnostic(ex.positions, Severity.Error, ex.getMessage(), contentCache)
+        printDiagnostic(ex.positions, Severity.Error, ex.getMessage(), contentCache, None)
     }
 
   def log(ex: BuildException): Unit =

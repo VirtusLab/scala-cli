@@ -1969,6 +1969,10 @@ Aliases: `-i`
 
 Interactive mode
 
+#### `--actions`
+
+Enable actionable diagnostics
+
 ## Watch options
 
 Available in commands:

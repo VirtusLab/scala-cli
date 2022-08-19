@@ -521,7 +521,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           expectedStartLine = 0,
           expectedStartCharacter = 20,
           expectedEndLine = 0,
-          expectedEndCharacter = 20,
+          expectedEndCharacter = 31,
           strictlyCheckMessage = false
         )
       }
@@ -561,7 +561,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           expectedStartLine = 0,
           expectedStartCharacter = 15,
           expectedEndLine = 0,
-          expectedEndCharacter = 15,
+          expectedEndCharacter = 46,
           strictlyCheckMessage = false
         )
       }
@@ -1134,8 +1134,56 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expectedStartLine = 0,
             expectedStartCharacter = 15,
             expectedEndLine = 0,
-            expectedEndCharacter = 15,
+            expectedEndCharacter = 26,
             strictlyCheckMessage = false
+          )
+        }
+    }
+  }
+  test("bsp should report actionable diagnostic when enabled") {
+    val fileName = "Hello.scala"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""//> using lib "com.lihaoyi::os-lib:0.7.8"
+           |
+           |object Hello extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin
+    )
+    withBsp(inputs, Seq(".", "--actions")) {
+      (root, localClient, remoteServer) =>
+        async {
+          // prepare build
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          // build code
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
+          await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+
+          val visibleDiagnostics =
+            localClient.diagnostics().takeWhile(!_.getReset).flatMap(_.getDiagnostics.asScala)
+
+          expect(visibleDiagnostics.nonEmpty)
+          expect(visibleDiagnostics.length == 1)
+
+          val updateActionableDiagnostic = visibleDiagnostics.head
+
+          checkDiagnostic(
+            diagnostic = updateActionableDiagnostic,
+            expectedMessage = "com.lihaoyi::os-lib:0.7.8 is outdated",
+            expectedSeverity = b.DiagnosticSeverity.HINT,
+            expectedStartLine = 0,
+            expectedStartCharacter = 15,
+            expectedEndLine = 0,
+            expectedEndCharacter = 40,
+            expectedSource = Some("scala-cli"),
+            strictlyCheckMessage = false
+          )
+
+          val relatedInformation = updateActionableDiagnostic.getRelatedInformation()
+          expect(relatedInformation.getMessage.contains("com.lihaoyi::os-lib:"))
+          expect(
+            relatedInformation.getLocation().getUri() == (root / fileName).toNIO.toUri.toASCIIString
           )
         }
     }
@@ -1185,6 +1233,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     expectedStartCharacter: Int,
     expectedEndLine: Int,
     expectedEndCharacter: Int,
+    expectedSource: Option[String] = None,
     strictlyCheckMessage: Boolean = true
   ): Unit = {
     expect(diagnostic.getSeverity == expectedSeverity)
@@ -1196,6 +1245,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       expect(diagnostic.getMessage == expectedMessage)
     else
       expect(diagnostic.getMessage.contains(expectedMessage))
+    for (es <- expectedSource)
+      expect(diagnostic.getSource == es)
   }
 
   private def extractWorkspaceReloadResponse(workspaceReloadResult: AnyRef): Option[ResponseError] =

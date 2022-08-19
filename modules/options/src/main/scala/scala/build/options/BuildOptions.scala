@@ -590,7 +590,7 @@ final case class BuildOptions(
   def validate: Seq[Diagnostic] = BuildOptionsRule.validateAll(this)
 
   def logActionableDiagnostics(logger: Logger): Unit = {
-    val actionableDiagnostics = ActionablePreprocessor.generateDiagnostics(this)
+    val actionableDiagnostics = ActionablePreprocessor.generateActionableDiagnostics(this)
     actionableDiagnostics match {
       case Left(e) =>
         logger.debug(e)
