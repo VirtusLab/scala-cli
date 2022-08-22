@@ -5,6 +5,134 @@ sidebar_position: 99
 
 # Release notes
 
+## [v0.1.12](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.12)
+
+### Add `--spark`, `--spark-standalone` and `--hadoop` options for the `run` sub-command
+The `run` sub-command can now run Spark jobs when the `--spark` option is passed.
+```text
+$ scala-cli run --spark SparkJob.scala
+```
+Similarly, it's possible to run Hadoop jobs by passing the `--hadoop` option.
+```text
+scala-cli run --hadoop HadoopJob.java
+```
+It's also possible to run Spark jobs without a Spark distribution by passing the `--spark-standalone` option.
+```text
+$ scala-cli run --spark-standalone SparkJob.scala
+```
+
+Added in [#1129](https://github.com/VirtusLab/scala-cli/pull/1129) by [alexarchambault](https://github.com/alexarchambault)
+
+### Add the default Scala version to the output of the `version` sub-command
+The `version` sub-command now includes both the Scala CLI version and the default Scala version.
+```text
+$ scala-cli --version
+Scala CLI version 0.1.12
+Default Scala version: 3.1.3
+$ scala-cli -version
+Scala CLI version 0.1.12
+Default Scala version: 3.1.3
+$ scala-cli version
+Scala CLI version 0.1.12
+Default Scala version: 3.1.3
+```
+You can also pass the `--cli-version` option to only get the Scala CLI version or the `--scala-version` option
+to only get the default Scala version.
+```text
+$ scala-cli version --cli-version
+0.1.12
+$ scala-cli version --scala-version
+3.1.3
+```
+This is potentially a breaking change if your automation relies on the output of the `version` sub-command.
+
+Added in [#1262](https://github.com/VirtusLab/scala-cli/pull/1262) by [lwronski](https://github.com/lwronski)
+
+### Enable passing the `scalafmt` configuration with `--scalafmt-conf` and `--scalafmt-conf-str`
+It is now possible to pass a custom location of the `scalafmt` configuration with the `--scalafmt-conf` option for the
+`fmt` sub-command.
+```text
+$ scala-cli fmt --scalafmt-conf path/to/the/conf/.scalafmt.conf
+```
+You can also pass the configuration straight from the terminal with `--scalafmt-conf-str`.
+```text
+$ scala-cli fmt --scalafmt-conf-str  "version=3.5.5                                   
+runner.dialect=scala213"
+```
+Added in [#1227](https://github.com/VirtusLab/scala-cli/pull/1227) by [wleczny](https://github.com/wleczny)
+
+### Enable turning the `--interactive` mode on permanently
+It is now possible to set the `--interactive` mode on by default, so that passing it explicitly isn't necessary.
+
+The next time when you run a command with the `--interactive` option set to on, Scala CLI will suggest to turn it on
+permanently. 
+
+This is recommended for environments where `scala-cli` is used by a human user only (and not by any automation).
+
+```text
+$ scala-cli . --interactive
+You have run the current scala-cli command with the --interactive mode turned on.
+Would you like to leave it on permanently?
+[0] Yes
+[1] No
+0
+--interactive is now set permanently. All future scala-cli commands will run with the flag set to true.
+If you want to turn this setting off at any point, just run `scala-cli config interactive false`.
+Found several main classes. Which would you like to run?
+[0] ScalaMainClass2
+[1] ScalaMainClass1
+[2] scripts.ScalaScript_sc
+```
+
+You can also configure it manually with the `config` sub-command, by setting the `interactive` property to `true`.
+```text
+$ scala-cli config interactive true
+```
+Added in [#1238](https://github.com/VirtusLab/scala-cli/pull/1238) by [Gedochao](https://github.com/Gedochao)
+
+## Other changes
+
+### Work in progress
+* Actionable diagnostics by [lwronski](https://github.com/lwronski) in [#1229](https://github.com/VirtusLab/scala-cli/pull/1229)
+
+#### [SIP-46](https://github.com/scala/improvement-proposals/pull/46)-related
+* Restrict directives based on the command used by [romanowski](https://github.com/romanowski) in [#1259](https://github.com/VirtusLab/scala-cli/pull/1259)
+
+#### Documentation
+* NIT Improve some website docs by [BlackAnubis7](https://github.com/BlackAnubis7) in [#1243](https://github.com/VirtusLab/scala-cli/pull/1243)
+
+#### Build and internal changes
+* Add 0.1.11 release notes to release_notes.md by [BlackAnubis7](https://github.com/BlackAnubis7) in [#1228](https://github.com/VirtusLab/scala-cli/pull/1228)
+* Temporary disable test gif by [lwronski](https://github.com/lwronski) in [#1261](https://github.com/VirtusLab/scala-cli/pull/1261)
+* aarch64 fixes by [alexarchambault](https://github.com/alexarchambault) in [#1180](https://github.com/VirtusLab/scala-cli/pull/1180)
+
+#### Updates
+* Update mill launcher by [alexarchambault](https://github.com/alexarchambault) in [#1269](https://github.com/VirtusLab/scala-cli/pull/1269)
+* Update scala-cli.sh launcher for 0.1.11 by [github-actions](https://github.com/features/actions) in [#1230](https://github.com/VirtusLab/scala-cli/pull/1230)
+* Update jsoniter-scala-core_2.13 to 2.13.39 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1239](https://github.com/VirtusLab/scala-cli/pull/1239)
+* Update trees_2.13 to 4.5.12 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1242](https://github.com/VirtusLab/scala-cli/pull/1242)
+* Update jsoniter-scala-core_2.13 to 2.14.2 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1241](https://github.com/VirtusLab/scala-cli/pull/1241)
+* Update org name to VirtusLab for downloading scalafmt-native-image by [lwronski](https://github.com/lwronski) in [#1253](https://github.com/VirtusLab/scala-cli/pull/1253)
+* Update core_2.13 to 3.7.4 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1247](https://github.com/VirtusLab/scala-cli/pull/1247)
+* Update case-app_2.13 to 2.1.0-M15 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1245](https://github.com/VirtusLab/scala-cli/pull/1245)
+* Update jsoniter-scala-core_2.13 to 2.15.0 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1246](https://github.com/VirtusLab/scala-cli/pull/1246)
+* Update cli-options_2.13, cli_2.13, ... to 0.1.8 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1248](https://github.com/VirtusLab/scala-cli/pull/1248)
+* Update metaconfig-typesafe-config to 0.11.1 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1254](https://github.com/VirtusLab/scala-cli/pull/1254)
+* Update ammonite to 2.5.4-14-dc4c47bc by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1255](https://github.com/VirtusLab/scala-cli/pull/1255)
+* Update coursier-jvm_2.13, ... to 2.1.0-M6-53-gb4f448130 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1256](https://github.com/VirtusLab/scala-cli/pull/1256)
+* Update scala-packager-cli_2.13, ... to 0.1.27 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1258](https://github.com/VirtusLab/scala-cli/pull/1258)
+* Update bloop-config_2.13 to 1.5.3-sc-1 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1257](https://github.com/VirtusLab/scala-cli/pull/1257)
+* Update ammonite to 2.5.4-15-f4a8969b by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1264](https://github.com/VirtusLab/scala-cli/pull/1264)
+* Update trees_2.13 to 4.5.13 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1265](https://github.com/VirtusLab/scala-cli/pull/1265)
+* Update slf4j-nop to 2.0.0 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1273](https://github.com/VirtusLab/scala-cli/pull/1273)
+* Update cli-options_2.13, cli_2.13, ... to 0.1.9 by [scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1272](https://github.com/VirtusLab/scala-cli/pull/1272)
+* Bump VirtusLab/scala-cli-setup from 0.1.5 to 0.1.11 by [dependabot](https://docs.github.com/en/code-security/dependabot) in [#1274](https://github.com/VirtusLab/scala-cli/pull/1274)
+
+### New Contributors
+* [BlackAnubis7](https://github.com/BlackAnubis7) made their first contribution in [#1228](https://github.com/VirtusLab/scala-cli/pull/1228)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.11...v0.1.12
+
 ## [v0.1.11](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.11)
 
 ### Make `.scalafmt.conf` optional when running the `fmt` command
