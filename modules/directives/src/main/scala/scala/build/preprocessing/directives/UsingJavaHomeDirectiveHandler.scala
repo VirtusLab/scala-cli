@@ -15,7 +15,7 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
   override def examples = Seq(
     "//> using java-home \"/Users/Me/jdks/11\""
   )
-  override def isRestricted = true
+  override def isRestricted = false
 
   override def getValueNumberBounds(key: String): UsingDirectiveValueNumberBounds =
     UsingDirectiveValueNumberBounds(1, 1)

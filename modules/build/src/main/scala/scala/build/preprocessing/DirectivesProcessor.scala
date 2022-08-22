@@ -34,7 +34,7 @@ object DirectivesProcessor {
       scopedDirective: ScopedDirective,
       logger: Logger
     ) =
-      if (withRestrictedFeatures && !handler.isRestricted)
+      if (withRestrictedFeatures && handler.isRestricted)
         val msg =
           "This directive is not supported with 'scala' command. Please run it with `scala-cli` command or with `--power` flag."
         Left(DirectiveErrors(

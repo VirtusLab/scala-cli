@@ -18,7 +18,7 @@ case object UsingDependencyDirectiveHandler extends UsingDirectiveHandler {
     "//> using lib \"org.scalameta::munit:0.7.29\"",
     "//> using lib \"tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar\""
   )
-  override def isRestricted = true
+  override def isRestricted = false
 
   private def parseDependency(depStr: String): Either[BuildException, AnyDependency] =
     DependencyParser.parse(depStr)

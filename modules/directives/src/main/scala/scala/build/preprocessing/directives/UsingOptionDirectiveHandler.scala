@@ -15,7 +15,7 @@ case object UsingOptionDirectiveHandler extends UsingDirectiveHandler {
     "//> using option \"-Xasync\"",
     "//> using options \"-Xasync\", \"-Xfatal-warnings\""
   )
-  override def isRestricted = true
+  override def isRestricted = false
 
   def keys = Seq("option", "options")
   def handleValues(

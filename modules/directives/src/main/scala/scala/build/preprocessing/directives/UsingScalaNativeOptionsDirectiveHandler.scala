@@ -31,7 +31,7 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
     "//> using nativeVersion \"0.4.0\""
   )
 
-  override def isRestricted = true
+  override def isRestricted = false
 
   def keys: Seq[String] =
     Seq(

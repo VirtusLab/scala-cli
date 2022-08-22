@@ -17,7 +17,7 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     "//> using resourceDir \"./resources\""
   )
 
-  override def isRestricted = true
+  override def isRestricted = false
 
   def keys = Seq("resourceDir", "resourceDirs")
   def handleValues(

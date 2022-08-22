@@ -15,7 +15,7 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
   )
 
   def keys                  = Seq("repository", "repositories")
-  override def isRestricted = true
+  override def isRestricted = false
   def handleValues(
     scopedDirective: ScopedDirective,
     logger: Logger

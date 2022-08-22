@@ -21,7 +21,7 @@ case object UsingSourceDirectiveHandler extends UsingDirectiveHandler {
   )
 
   def keys                  = Seq("file", "files")
-  override def isRestricted = true
+  override def isRestricted = false
   def handleValues(
     scopedDirective: ScopedDirective,
     logger: Logger

@@ -22,7 +22,7 @@ case object UsingMainClassDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("main-class", "mainClass")
 
-  override def isRestricted = true
+  override def isRestricted = false
 
   override def getValueNumberBounds(key: String) = UsingDirectiveValueNumberBounds(1, 1)
 
