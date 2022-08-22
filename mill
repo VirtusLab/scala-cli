@@ -97,12 +97,6 @@ unset OLD_MILL
 unset MILL_VERSION_TAG
 unset MILL_REPO_URL
 
-if [ "x$1" == "x-i" -o "x$1" == "x--interactive" ]; then
-  MILL_APP_NAME="mill-interactive"
-else
-  MILL_APP_NAME="mill"
-fi
-
 mill_cs_opts=()
 
 # Adapted from Mill 0.10.0-M5 assembly
@@ -120,6 +114,7 @@ init_mill_jvm_opts() {
         "-X"*) mill_cs_opts=("${mill_cs_opts[@]}" "--java-opt" "$line")
       esac
     done <"$mill_jvm_opts_file"
+    mill_cs_opts=("${mill_cs_opts[@]}" "--java-opt" "-Dmill.jvm_opts_applied=true")
   fi
 }
 
@@ -144,7 +139,7 @@ init_mill_cs_opts() {
 
 # Adapted from
 
-coursier_version="2.1.0-M2"
+coursier_version="2.1.0-M6-53-gb4f448130"
 
 # https://stackoverflow.com/questions/3466166/how-to-check-if-running-in-cygwin-mac-or-linux/17072017#17072017
 if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
@@ -205,4 +200,4 @@ if [ -n "${CI+set}" ]; then
   rm -rf "$HOME/.mill/ammonite/cache"
 fi
 
-exec "$cs" launch "$MILL_APP_NAME:$MILL_VERSION" "${mill_cs_opts[@]}" -- "$@"
+exec "$cs" launch "mill:$MILL_VERSION" "${mill_cs_opts[@]}" -- "$@"
