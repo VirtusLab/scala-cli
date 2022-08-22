@@ -31,7 +31,8 @@ object ScalaCli {
     baseProgName.endsWith(File.separator + name)
   }
 
-  private var isSipScala = checkName("scala") || checkName("scala-cli-sip")
+  private var isSipScala     = checkName("scala") || checkName("scala-cli-sip")
+  def withRestrictedFeatures = isSipScala
 
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")

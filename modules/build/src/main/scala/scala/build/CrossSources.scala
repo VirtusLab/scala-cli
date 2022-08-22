@@ -132,7 +132,14 @@ object CrossSources {
         .map { elem =>
           preprocessors
             .iterator
-            .flatMap(p => p.preprocess(elem, logger, maybeRecoverOnError).iterator)
+            .flatMap(p =>
+              p.preprocess(
+                elem,
+                logger,
+                maybeRecoverOnError,
+                inputs.withRestrictedFeatures
+              ).iterator
+            )
             .take(1)
             .toList
             .headOption

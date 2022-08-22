@@ -18,6 +18,7 @@ case object UsingPlatformDirectiveHandler extends UsingDirectiveHandler {
     "//> using platform \"scala-js\"",
     "//> using platform \"jvm\", \"scala-native\""
   )
+  override def isRestricted = false
 
   private def split(input: String): (String, Option[String]) = {
     val idx = input.indexOf(':')

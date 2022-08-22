@@ -42,7 +42,8 @@ final case class TestInputs(
         inputArgs0,
         tmpDir,
         Directories.under(tmpDir / ".data"),
-        forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir))
+        forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
+        withRestrictedFeatures = false
       )
       res match {
         case Left(err)     => throw new Exception(err)

@@ -16,6 +16,7 @@ case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
   override def examples = Seq(
     "//> using plugin \"org.typelevel:::kind-projector:0.13.2\""
   )
+  override def isRestricted = false
 
   private def parseDependency(depStr: String): Either[BuildException, AnyDependency] =
     DependencyParser.parse(depStr)

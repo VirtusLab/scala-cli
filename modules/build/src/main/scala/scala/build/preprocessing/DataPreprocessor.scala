@@ -9,7 +9,8 @@ case object DataPreprocessor extends Preprocessor {
   def preprocess(
     input: Inputs.SingleElement,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    withRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case file: Inputs.VirtualData =>

@@ -14,6 +14,7 @@ case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   override def examples = Seq(
     "//> using javaOpt \"-Xmx2g\", \"-Dsomething=a\""
   )
+  override def isRestricted = false
 
   def keys = Seq("javaOpt", "javaOptions", "java-opt", "java-options")
   def handleValues(

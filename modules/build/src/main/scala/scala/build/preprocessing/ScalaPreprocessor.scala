@@ -71,7 +71,8 @@ case object ScalaPreprocessor extends Preprocessor {
   def preprocess(
     input: Inputs.SingleElement,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    withRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: Inputs.ScalaFile =>
@@ -80,7 +81,14 @@ case object ScalaPreprocessor extends Preprocessor {
           val scopePath = ScopePath.fromPath(f.path)
           val source =
             value(
-              process(content, Right(f.path), scopePath / os.up, logger, maybeRecoverOnError)
+              process(
+                content,
+                Right(f.path),
+                scopePath / os.up,
+                logger,
+                maybeRecoverOnError,
+                withRestrictedFeatures
+              )
             ) match {
               case None =>
                 PreprocessedSource.OnDisk(f.path, None, None, Nil, None)
@@ -123,7 +131,14 @@ case object ScalaPreprocessor extends Preprocessor {
           val content = new String(v.content, StandardCharsets.UTF_8)
           val (requirements, scopedRequirements, options, updatedContentOpt) =
             value(
-              process(content, Left(v.source), v.scopePath / os.up, logger, maybeRecoverOnError)
+              process(
+                content,
+                Left(v.source),
+                v.scopePath / os.up,
+                logger,
+                maybeRecoverOnError,
+                withRestrictedFeatures
+              )
             ).map {
               case ProcessingOutput(reqs, scopedReqs, opts, updatedContent) =>
                 (reqs, scopedReqs, opts, updatedContent)
@@ -152,11 +167,19 @@ case object ScalaPreprocessor extends Preprocessor {
     path: Either[String, os.Path],
     scopeRoot: ScopePath,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException]
+    maybeRecoverOnError: BuildException => Option[BuildException],
+    withRestrictedFeatures: Boolean
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val afterStrictUsing: StrictDirectivesProcessingOutput =
-      value(processStrictUsing(content0, path, scopeRoot, logger, maybeRecoverOnError))
+      value(processStrictUsing(
+        content0,
+        path,
+        scopeRoot,
+        logger,
+        maybeRecoverOnError,
+        withRestrictedFeatures
+      ))
 
     val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
       processSpecialImports(
@@ -273,7 +296,8 @@ case object ScalaPreprocessor extends Preprocessor {
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    withRestrictedFeatures: Boolean
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
     val contentChars = content.toCharArray
     val ExtractedDirectives(codeOffset, directives0) =
@@ -292,7 +316,8 @@ case object ScalaPreprocessor extends Preprocessor {
         usingDirectiveHandlers,
         path,
         cwd,
-        logger
+        logger,
+        withRestrictedFeatures
       )
     }
 
@@ -304,7 +329,8 @@ case object ScalaPreprocessor extends Preprocessor {
         requireDirectiveHandlers,
         path,
         cwd,
-        logger
+        logger,
+        withRestrictedFeatures
       )
     }
 
