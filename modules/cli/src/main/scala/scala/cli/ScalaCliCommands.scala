@@ -18,7 +18,7 @@ class ScalaCliCommands(
   isSipScala: Boolean
 ) extends CommandsEntryPoint {
 
-  lazy val actualDefaultCommand = new Default(help)
+  lazy val actualDefaultCommand = new Default(help, isSipScala)
 
   // for debugging purposes - allows to run the scala-cli-signing binary from the Scala CLI JVM launcher
   private lazy val pgpUseBinaryCommands =
@@ -64,7 +64,7 @@ class ScalaCliCommands(
     Uninstall,
     UninstallCompletions,
     Update,
-    Version
+    new Version(isSipScala = isSipScala)
   ) ++ (if (pgpUseBinaryCommands) Nil else pgpCommands.allScalaCommands.toSeq) ++
     (if (pgpUseBinaryCommands) pgpBinaryCommands.allScalaCommands.toSeq else Nil)
 

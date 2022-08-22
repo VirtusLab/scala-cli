@@ -476,6 +476,7 @@ Print `scala-cli` version
 
 Accepts options:
 - [verbosity](./cli-options.md#verbosity-options)
+- [version](./cli-options.md#version-options)
 
 ## Hidden commands
 

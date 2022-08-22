@@ -39,4 +39,35 @@ class SipScalaTests extends ScalaCliSuite {
       noDirectoriesCommandTest("scala-cli-sip")
     }
   }
+
+  def runVersionCommand(binaryName: String) =
+    TestInputs.empty.fromRoot { root =>
+      val cliPath    = os.Path(TestUtil.cliPath, os.pwd)
+      val ext        = if (Properties.isWin) ".exe" else ""
+      val newCliPath = root / s"$binaryName$ext"
+      os.copy(cliPath, newCliPath)
+
+      for { versionOption <- Seq("version", "-version", "--version") } {
+        val version = os.proc(newCliPath, versionOption).call(check = false)
+        assert(
+          version.exitCode == 0,
+          clues(version, version.out.text(), version.err.text(), version.exitCode)
+        )
+        val expectedLauncherVersion =
+          if (binaryName == "scala") "Scala code runner version:"
+          else "Scala CLI version:"
+        expect(version.out.text().contains(expectedLauncherVersion))
+        expect(version.out.text().contains(s"Scala version (default): ${Constants.defaultScala}"))
+      }
+    }
+
+  if (TestUtil.isNativeCli) {
+    test("version command print detailed info run as scala") {
+      runVersionCommand("scala")
+    }
+
+    test("version command print detailed info run as scala-cli") {
+      runVersionCommand("scala-cli")
+    }
+  }
 }

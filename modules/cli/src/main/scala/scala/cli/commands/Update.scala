@@ -95,7 +95,7 @@ object Update extends ScalaCommand[UpdateOptions] {
   }
 
   private def getCurrentVersion(scalaCliBinPath: os.Path): String = {
-    val res = os.proc(scalaCliBinPath, "version").call(cwd = os.pwd, check = false)
+    val res = os.proc(scalaCliBinPath, "version", "--cli-version").call(cwd = os.pwd, check = false)
     if (res.exitCode == 0)
       res.out.text().trim
     else
