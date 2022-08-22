@@ -10,17 +10,29 @@ import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform}
 import scala.build.{Build, BuildThreads, Inputs, Logger, Positioned}
 import scala.cli.CurrentParams
+import scala.cli.commands.run.RunMode
 import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.internal.ProcUtil
 import scala.util.Properties
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
+import scala.cli.commands.util.{RunHadoop, RunSpark}
 
 object Run extends ScalaCommand[RunOptions] {
   override def group = "Main"
 
   override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
+
+  private def runMode(options: RunOptions): RunMode =
+    if (options.standaloneSpark.getOrElse(false) && !options.sparkSubmit.contains(false))
+      RunMode.StandaloneSparkSubmit
+    else if (options.sparkSubmit.getOrElse(false))
+      RunMode.SparkSubmit
+    else if (options.hadoopJar)
+      RunMode.HadoopJar
+    else
+      RunMode.Default
 
   private def scratchDirOpt(options: RunOptions): Option[os.Path] =
     options.scratchDir
@@ -48,7 +60,31 @@ object Run extends ScalaCommand[RunOptions] {
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine),
+        jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse {
+          runMode(options) match {
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar =>
+              Some("8")
+            case RunMode.Default => None
+          }
+        }
+      ),
+      internalDependencies = baseOptions.internalDependencies.copy(
+        addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt.orElse {
+          runMode(options) match {
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar =>
+              Some(false)
+            case RunMode.Default => None
+          }
+        }
+      ),
+      internal = baseOptions.internal.copy(
+        keepResolution = baseOptions.internal.keepResolution || {
+          runMode(options) match {
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar => true
+            case RunMode.Default                                                         => false
+          }
+        }
       ),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         runWithManifest = options.useManifest
@@ -76,6 +112,7 @@ object Run extends ScalaCommand[RunOptions] {
     def maybeRun(
       build: Build.Successful,
       allowTerminate: Boolean,
+      runMode: RunMode,
       showCommand: Boolean,
       scratchDirOpt: Option[os.Path]
     ): Either[BuildException, Option[(Process, CompletableFuture[_])]] = either {
@@ -95,15 +132,17 @@ object Run extends ScalaCommand[RunOptions] {
             allowExecve = allowTerminate,
             jvmRunner = build.artifacts.hasJvmRunner,
             potentialMainClasses,
+            runMode,
             showCommand,
             scratchDirOpt
           )
         }
 
         processOrCommand match {
-          case Right(process) =>
+          case Right((process, onExitOpt)) =>
             val onExitProcess = process.onExit().thenApply { p1 =>
               val retCode = p1.exitValue()
+              onExitOpt.foreach(_())
               if (retCode != 0)
                 if (allowTerminate)
                   sys.exit(retCode)
@@ -170,6 +209,7 @@ object Run extends ScalaCommand[RunOptions] {
             val maybeProcess = maybeRun(
               s,
               allowTerminate = false,
+              runMode = runMode(options),
               showCommand = options.command,
               scratchDirOpt = scratchDirOpt(options)
             )
@@ -206,6 +246,7 @@ object Run extends ScalaCommand[RunOptions] {
           val res = maybeRun(
             s,
             allowTerminate = true,
+            runMode = runMode(options),
             showCommand = options.command,
             scratchDirOpt = scratchDirOpt(options)
           )
@@ -226,9 +267,10 @@ object Run extends ScalaCommand[RunOptions] {
     allowExecve: Boolean,
     jvmRunner: Boolean,
     potentialMainClasses: Seq[String],
+    runMode: RunMode,
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path]
-  ): Either[BuildException, Either[Seq[String], Process]] = either {
+  ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
       .orElse {
@@ -250,6 +292,7 @@ object Run extends ScalaCommand[RunOptions] {
       finalArgs,
       logger,
       allowExecve,
+      runMode,
       showCommand,
       scratchDirOpt
     )
@@ -262,9 +305,10 @@ object Run extends ScalaCommand[RunOptions] {
     args: Seq[String],
     logger: Logger,
     allowExecve: Boolean,
+    runMode: RunMode,
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path]
-  ): Either[BuildException, Either[Seq[String], Process]] = either {
+  ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     build.options.platform.value match {
       case Platform.JS =>
@@ -308,7 +352,7 @@ object Run extends ScalaCommand[RunOptions] {
                 esModule = esModule
               )
               process.onExit().thenApply(_ => if (os.exists(jsDest)) os.remove(jsDest))
-              Right(process)
+              Right((process, None))
             }
           }
         value(res)
@@ -327,33 +371,74 @@ object Run extends ScalaCommand[RunOptions] {
               logger,
               allowExecve = allowExecve
             )
-            Right(proc)
+            Right((proc, None))
           }
         }
       case Platform.JVM =>
-        if (showCommand) {
-          val command = Runner.jvmCommand(
-            build.options.javaHome().value.javaCommand,
-            build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            build.fullClassPath,
-            mainClass,
-            args,
-            useManifest = build.options.notForBloopOptions.runWithManifest
-          )
-          Left(command)
-        }
-        else {
-          val proc = Runner.runJvm(
-            build.options.javaHome().value.javaCommand,
-            build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            build.fullClassPath,
-            mainClass,
-            args,
-            logger,
-            allowExecve = allowExecve,
-            useManifest = build.options.notForBloopOptions.runWithManifest
-          )
-          Right(proc)
+        runMode match {
+          case RunMode.Default =>
+            if (showCommand) {
+              val command = Runner.jvmCommand(
+                build.options.javaHome().value.javaCommand,
+                build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
+                build.fullClassPath,
+                mainClass,
+                args,
+                useManifest = build.options.notForBloopOptions.runWithManifest,
+                scratchDirOpt = scratchDirOpt
+              )
+              Left(command)
+            }
+            else {
+              val proc = Runner.runJvm(
+                build.options.javaHome().value.javaCommand,
+                build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
+                build.fullClassPath,
+                mainClass,
+                args,
+                logger,
+                allowExecve = allowExecve,
+                useManifest = build.options.notForBloopOptions.runWithManifest,
+                scratchDirOpt = scratchDirOpt
+              )
+              Right((proc, None))
+            }
+          case RunMode.SparkSubmit =>
+            value {
+              RunSpark.run(
+                build,
+                mainClass,
+                args,
+                logger,
+                allowExecve,
+                showCommand,
+                scratchDirOpt
+              )
+            }
+          case RunMode.StandaloneSparkSubmit =>
+            value {
+              RunSpark.runStandalone(
+                build,
+                mainClass,
+                args,
+                logger,
+                allowExecve,
+                showCommand,
+                scratchDirOpt
+              )
+            }
+          case RunMode.HadoopJar =>
+            value {
+              RunHadoop.run(
+                build,
+                mainClass,
+                args,
+                logger,
+                allowExecve,
+                showCommand,
+                scratchDirOpt
+              )
+            }
         }
     }
   }

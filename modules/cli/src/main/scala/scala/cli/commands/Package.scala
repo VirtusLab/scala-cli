@@ -719,7 +719,7 @@ object Package extends ScalaCommand[PackageOptions] {
     * provided modules, and might have been bumped by other modules. This is strictly a subset of
     * the whole dependency graph.
     */
-  private def providedFiles(
+  def providedFiles(
     build: Build.Successful,
     provided: Seq[dependency.AnyModule],
     logger: Logger
@@ -760,7 +760,7 @@ object Package extends ScalaCommand[PackageOptions] {
     providedFiles
   }
 
-  private def assembly(
+  def assembly(
     build: Build.Successful,
     destPath: os.Path,
     mainClassOpt: Option[String],

@@ -25,6 +25,19 @@ final case class RunOptions(
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),
   @Group("Run")
+  @Hidden
+  @HelpMessage("Run as a Spark job, using the spark-submit command")
+  @ExtraName("spark")
+    sparkSubmit: Option[Boolean] = None,
+  @Group("Run")
+  @HelpMessage("Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI")
+  @ExtraName("sparkStandalone")
+    standaloneSpark: Option[Boolean] = None,
+  @Group("Run")
+  @HelpMessage("Run as a Hadoop job, using the \"hadoop jar\" command")
+  @ExtraName("hadoop")
+    hadoopJar: Boolean = false,
+  @Group("Run")
   @HelpMessage("Print the command that would have been run (one argument per line), rather than running it")
     command: Boolean = false,
   @Group("Run")
