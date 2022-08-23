@@ -199,7 +199,7 @@ class BspClient(
         diag.relatedInformation.foreach { relatedInformation =>
           val location = new Location(path.toNIO.toUri.toASCIIString, range)
           val related  = new b.DiagnosticRelatedInformation(location, relatedInformation.message)
-          bDiag.setRelatedInformation(related)
+          bDiag.setRelatedInformation(List(related).asJava)
         }
         bDiag.setSeverity(diag.severity.toBsp4j)
         bDiag.setSource("scala-cli")

@@ -1180,7 +1180,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             strictlyCheckMessage = false
           )
 
-          val relatedInformation = updateActionableDiagnostic.getRelatedInformation()
+          val relatedInformation = updateActionableDiagnostic.getRelatedInformation().asScala.head
           expect(relatedInformation.getMessage.contains("com.lihaoyi::os-lib:"))
           expect(
             relatedInformation.getLocation().getUri() == (root / fileName).toNIO.toUri.toASCIIString

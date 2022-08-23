@@ -1,10 +1,10 @@
 package scala.build
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.SourcesItem
 
 import java.util.concurrent.CompletableFuture
-
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 package object bsp {
 
@@ -44,7 +44,10 @@ package object bsp {
 
   implicit class SourcesResultExt(private val res: b.SourcesResult) extends AnyVal {
     def duplicate(): b.SourcesResult =
-      new b.SourcesResult(res.getItems().asScala.toList.map(_.duplicate()).asJava)
+      new b.SourcesResult(
+        res.getItems().asScala.toList
+          .map((item: SourcesItem) => item.duplicate()).asJava
+      )
   }
 
   implicit class BuildTargetCapabilitiesExt(
@@ -102,7 +105,9 @@ package object bsp {
     def duplicate(): b.Diagnostic = {
       val diag0 = new b.Diagnostic(diag.getRange.duplicate(), diag.getMessage)
       diag0.setCode(diag.getCode)
-      diag0.setRelatedInformation(Option(diag.getRelatedInformation).map(_.duplicate()).orNull)
+      diag0.setRelatedInformation(
+        Option(diag.getRelatedInformation).map(_.asScala.map(_.duplicate()).asJava).orNull
+      )
       diag0.setSeverity(diag.getSeverity)
       diag0.setSource(diag.getSource)
       diag0

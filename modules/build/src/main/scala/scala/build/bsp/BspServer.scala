@@ -9,7 +9,6 @@ import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util as ju
 
 import scala.build.Logger
-import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
 import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
@@ -17,13 +16,12 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Random
 
 class BspServer(
-  bloopServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & ScalaDebugServer,
+  bloopServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger,
   presetIntelliJ: Boolean = false
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
     with ScalaScriptBuildServer
-    with ScalaDebugServerForwardStubs
     with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs
     with HasGeneratedSourcesImpl {
 
@@ -108,7 +106,12 @@ class BspServer(
       logger.debug(s"invalid target in Test request: $target")
     params
   }
-
+  private def check(params: b.DebugSessionParams): params.type = {
+    val invalidTargets = params.getTargets.asScala.filter(!validTarget(_))
+    for (target <- invalidTargets)
+      logger.debug(s"invalid target in Test request: $target")
+    params
+  }
   private def mapGeneratedSources(res: b.SourcesResult): Unit = {
     val gen = generatedSources.values.toVector
     for {
@@ -123,8 +126,7 @@ class BspServer(
     }
   }
 
-  protected def forwardTo
-    : b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & ScalaDebugServer = bloopServer
+  protected def forwardTo: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer = bloopServer
 
   private val supportedLanguages: ju.List[String] = List(
     "scala",
@@ -214,6 +216,10 @@ class BspServer(
 
   override def buildTargetTest(params: b.TestParams): CompletableFuture[b.TestResult] =
     super.buildTargetTest(check(params))
+
+  override def debugSessionStart(params: b.DebugSessionParams)
+    : CompletableFuture[b.DebugSessionAddress] =
+    super.debugSessionStart(check(params))
 
   override def workspaceBuildTargets(): CompletableFuture[b.WorkspaceBuildTargetsResult] =
     super.workspaceBuildTargets().thenApply { res =>
