@@ -46,8 +46,8 @@ This is achieved by specifying `using` directives inside comments at the top of 
 
 ```scala
 //> using scala "2.13"
-//> using scala-js
-//> using options -Xasync
+//> using platform "scala-js"
+//> using options "-Xasync"
 
 // package and import statements follow here ...
 ```
