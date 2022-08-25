@@ -11,6 +11,8 @@ final case class SharedReplOptions(
     watch: SharedWatchOptions = SharedWatchOptions(),
   @Recurse
     compileCross: CrossOptions = CrossOptions(),
+  @Recurse
+    sharedPython: SharedPythonOptions = SharedPythonOptions(),
   
   @Group("Repl")
   @HelpMessage("[restricted] Use Ammonite (instead of the default Scala REPL)")

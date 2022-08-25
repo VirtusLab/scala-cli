@@ -44,10 +44,12 @@ object ReplArtifacts {
     extraSourceJars: Seq[os.Path],
     logger: Logger,
     cache: FileCache[Task],
-    directories: Directories
+    directories: Directories,
+    addScalapy: Option[String]
   ): Either[BuildException, ReplArtifacts] = either {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
-    val allDeps      = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion")
+    val scalapyDeps  = addScalapy.map(ver => dep"me.shadaj::scalapy-core::$ver").toSeq
+    val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion") ++ scalapyDeps
     val replArtifacts = Artifacts.artifacts(
       Positioned.none(allDeps),
       localRepoOpt.toSeq,
@@ -79,13 +81,15 @@ object ReplArtifacts {
     extraClassPath: Seq[os.Path],
     logger: Logger,
     cache: FileCache[Task],
-    repositories: Seq[String]
+    repositories: Seq[String],
+    addScalapy: Option[String]
   ): Either[BuildException, ReplArtifacts] = either {
     val isScala2 = scalaParams.scalaVersion.startsWith("2.")
     val replDep =
       if (isScala2) dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}"
       else dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}"
-    val allDeps = dependencies ++ Seq(replDep)
+    val scalapyDeps = addScalapy.map(ver => dep"me.shadaj::scalapy-core::$ver").toSeq
+    val allDeps     = dependencies ++ Seq(replDep) ++ scalapyDeps
     val replArtifacts =
       Artifacts.artifacts(
         Positioned.none(allDeps),

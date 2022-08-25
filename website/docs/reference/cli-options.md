@@ -930,7 +930,7 @@ Dummy mode - don't upload any secret to GitHub
 
 Available in commands:
 
-[`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
+[`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
