@@ -6,6 +6,9 @@ import coursier.cache.FileCache
 import coursier.error.{FetchError, ResolutionError}
 import dependency.*
 
+import java.math.BigInteger
+import java.security.SecureRandom
+
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.{BuildException, CantDownloadAmmoniteError, FetchingDependenciesError}
@@ -339,9 +342,35 @@ object Repl extends ScalaCommand[ReplOptions] {
         }
         else
           (Nil, "")
-      val predef = Seq(pythonPredef, sparkPredef).map(_.trim).filter(_.nonEmpty).mkString(
-        System.lineSeparator()
-      )
+      val pysparkPredef =
+        if (setupPython && addAmmoniteSpark)
+          """py.module("pyspark.context").SparkContext._ensure_initialized()
+            |val gw = py.module("pyspark.context").SparkContext._gateway
+            |py.module("pyspark.context").SparkContext(
+            |  jsc = gw.jvm.JavaSparkContext(gw.jvm.org.apache.spark.SparkContext.getOrCreate()),
+            |  conf = py.module("pyspark.conf").SparkConf(_jconf = gw.jvm.org.apache.spark.SparkContext.getOrCreate().getConf())
+            |)
+            |py.module("pyspark.sql").SparkSession._create_shell_session()
+            |me.shadaj.scalapy.interpreter.CPythonInterpreter.execManyLines {
+            |  new String(
+            |    java.nio.file.Files.readAllBytes(
+            |      java.nio.file.Paths.get(
+            |        py.module("inspect")
+            |          .getfile(py.module("pyspark.context").SparkContext)
+            |          .as[String]
+            |      )
+            |        .getParent
+            |        .resolve("python/pyspark/shell.py")
+            |    )
+            |  )
+            |}
+            |""".stripMargin
+        else
+          ""
+      val predef =
+        Seq(pythonPredef, sparkPredef, pysparkPredef).map(_.trim).filter(_.nonEmpty).mkString(
+          System.lineSeparator()
+        )
       val predefArgs =
         if (predef.trim.isEmpty) Nil
         else Seq("--predef-code", predef)
@@ -370,6 +399,28 @@ object Repl extends ScalaCommand[ReplOptions] {
           " These will not be accessible from the REPL."
       )
 
+    lazy val py4jGatewaySecret: String = {
+      val random = new SecureRandom
+      val secret = Array.ofDim[Byte](256 / 8)
+      random.nextBytes(secret)
+      new BigInteger(1, secret).toString(16)
+    }
+    lazy val py4jGatewayRandomPort: Int = {
+      val server = new java.net.ServerSocket(0)
+      try server.getLocalPort
+      finally server.close()
+    }
+    def py4jEnvVars: Map[String, String] =
+      Map(
+        "PYSPARK_GATEWAY_SECRET" -> py4jGatewaySecret,
+        "PYSPARK_GATEWAY_PORT"   -> py4jGatewayRandomPort.toString
+      )
+    def py4jProps: Map[String, String] =
+      Map(
+        "with-py4j.secret" -> py4jGatewaySecret,
+        "with-py4j.port"   -> py4jGatewayRandomPort.toString
+      )
+
     def actualBuild: Build.Successful =
       buildOpt.getOrElse {
         val ws      = os.temp.dir()
@@ -395,11 +446,17 @@ object Repl extends ScalaCommand[ReplOptions] {
       replArtifacts: ReplArtifacts,
       replArgs: Seq[String],
       extraEnv: Map[String, String] = Map.empty,
-      extraProps: Map[String, String] = Map.empty
+      extraProps: Map[String, String] = Map.empty,
+      withPy4j: Boolean = false
     ): Unit =
       if (dryRun)
         logger.message("Dry run, not running REPL.")
       else {
+        val (actualMainClass, extraFirstArgs) =
+          if (withPy4j)
+            ("withpy4j.WithPy4j", Seq(replArtifacts.replMainClass))
+          else
+            (replArtifacts.replMainClass, Nil)
         val retCode = Runner.runJvm(
           options.javaHome().value.javaCommand,
           scalapyJavaOpts ++
@@ -407,8 +464,8 @@ object Repl extends ScalaCommand[ReplOptions] {
             options.javaOptions.javaOpts.toSeq.map(_.value.value) ++
             extraProps.toVector.sorted.map { case (k, v) => s"-D$k=$v" },
           classDir.toSeq ++ replArtifacts.replClassPath,
-          replArtifacts.replMainClass,
-          maybeAdaptForWindows(replArgs),
+          actualMainClass,
+          maybeAdaptForWindows(extraFirstArgs ++ replArgs),
           logger,
           allowExecve = allowExit,
           extraEnv = extraEnv
@@ -430,11 +487,17 @@ object Repl extends ScalaCommand[ReplOptions] {
             Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
           else None
       )
-    def ammoniteArtifacts(): Either[BuildException, ReplArtifacts] =
+    def withPy4jArtifacts(): Either[BuildException, Seq[(String, os.Path)]] =
+      ReplArtifacts.withPy4j(
+        logger,
+        cache,
+        options.finalRepositories
+      )
+    def ammoniteArtifacts(withPy4j: Boolean = false): Either[BuildException, ReplArtifacts] =
       ReplArtifacts.ammonite(
         scalaParams,
         options.notForBloopOptions.replOptions.ammoniteVersion,
-        artifacts.userDependencies,
+        artifacts.userDependencies ++ Seq(dep"io.github.alexarchambault.py4j:with-py4j:0.1.1"),
         artifacts.extraClassPath,
         artifacts.extraSourceJars,
         logger,
@@ -463,11 +526,14 @@ object Repl extends ScalaCommand[ReplOptions] {
             case _: RunMode.SparkSubmit =>
               ???
             case _: RunMode.StandaloneSparkSubmit =>
-              val replArtifacts = value(ammoniteArtifacts())
+              val replArtifacts = value(ammoniteArtifacts(withPy4j = setupPython))
               val replArgs      = ammoniteAdditionalArgs(addAmmoniteSpark = true) ++ programArgs
               maybeRunRepl(
                 replArtifacts,
-                replArgs
+                replArgs,
+                extraEnv = py4jEnvVars,
+                extraProps = py4jProps,
+                withPy4j = setupPython
               )
           }
       }
@@ -493,7 +559,12 @@ object Repl extends ScalaCommand[ReplOptions] {
                   allowExit,
                   dryRun,
                   None,
-                  extraJavaOpts = scalapyJavaOpts
+                  extraJavaOpts = scalapyJavaOpts ++ py4jProps.toVector.sorted.map { case (k, v) =>
+                    s"-D$k=$v"
+                  },
+                  extraEnv = py4jEnvVars,
+                  extraJars = value(withPy4jArtifacts()).map(_._2),
+                  withPy4j = setupPython
                 )
               case _: RunMode.StandaloneSparkSubmit =>
                 RunSpark.runStandalone(
@@ -505,7 +576,12 @@ object Repl extends ScalaCommand[ReplOptions] {
                   allowExit,
                   dryRun,
                   None,
-                  extraJavaOpts = scalapyJavaOpts
+                  extraJavaOpts = scalapyJavaOpts ++ py4jProps.toVector.sorted.map { case (k, v) =>
+                    s"-D$k=$v"
+                  },
+                  extraEnv = py4jEnvVars,
+                  extraJars = value(withPy4jArtifacts()).map(_._2),
+                  withPy4j = setupPython
                 )
             }
           }

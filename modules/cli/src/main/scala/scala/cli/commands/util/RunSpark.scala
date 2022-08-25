@@ -21,14 +21,17 @@ object RunSpark {
     allowExecve: Boolean,
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path],
-    extraJavaOpts: Seq[String] = Nil
+    extraJavaOpts: Seq[String] = Nil,
+    extraEnv: Map[String, String] = Map.empty,
+    withPy4j: Boolean = false,
+    extraJars: Seq[os.Path] = Nil
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     // FIXME Get Spark.sparkModules via provided settings?
     val providedModules = Spark.sparkModules
     val providedFiles =
       value(PackageCmd.providedFiles(build, providedModules, logger)).toSet
-    val depCp        = build.dependencyClassPath.filterNot(providedFiles)
+    val depCp        = build.dependencyClassPath.filterNot(providedFiles) ++ extraJars
     val javaHomeInfo = build.options.javaHome().value
     val javaOpts     = extraJavaOpts ++ build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
     val ext          = if (Properties.isWin) ".cmd" else ""
@@ -52,14 +55,21 @@ object RunSpark {
       suffix = ".jar"
     )
 
+    val (actualMainClass, extraFirstArgs) =
+      if (withPy4j)
+        ("withpy4j.WithPy4j", Seq(mainClass))
+      else
+        (mainClass, Nil)
+
     val finalCommand =
-      Seq(submitCommand, "--class", mainClass) ++
+      Seq(submitCommand, "--class", actualMainClass) ++
         jarsArgs ++
         javaOpts.flatMap(opt => Seq("--driver-java-options", opt)) ++
         submitArgs ++
         Seq(library.toString) ++
+        extraFirstArgs ++
         args
-    val envUpdates = javaHomeInfo.envUpdates(sys.env)
+    val envUpdates = javaHomeInfo.envUpdates(sys.env) ++ extraEnv
     if (showCommand)
       Left(Runner.envCommand(envUpdates) ++ finalCommand)
     else {
@@ -85,7 +95,10 @@ object RunSpark {
     allowExecve: Boolean,
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path],
-    extraJavaOpts: Seq[String] = Nil
+    extraJavaOpts: Seq[String] = Nil,
+    extraEnv: Map[String, String] = Map.empty,
+    withPy4j: Boolean = false,
+    extraJars: Seq[os.Path] = Nil
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     // FIXME Get Spark.sparkModules via provided settings?
@@ -101,26 +114,33 @@ object RunSpark {
       suffix = ".jar"
     )
 
+    val (actualMainClass, extraFirstArgs) =
+      if (withPy4j)
+        ("withpy4j.WithPy4j", Seq(mainClass))
+      else
+        (mainClass, Nil)
+
     val finalMainClass = "org.apache.spark.deploy.SparkSubmit"
-    val depCp          = build.dependencyClassPath.filterNot(sparkClassPath.toSet)
+    val depCp          = build.dependencyClassPath.filterNot(sparkClassPath.toSet) ++ extraJars
     val javaHomeInfo   = build.options.javaHome().value
     val javaOpts = extraJavaOpts ++ build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
     val jarsArgs =
       if (depCp.isEmpty) Nil
       else Seq("--jars", depCp.mkString(","))
     val finalArgs =
-      Seq("--class", mainClass) ++
+      Seq("--class", actualMainClass) ++
         jarsArgs ++
         javaOpts.flatMap(opt => Seq("--driver-java-options", opt)) ++
         submitArgs ++
         Seq(library.toString) ++
+        extraFirstArgs ++
         args
-    val envUpdates = javaHomeInfo.envUpdates(sys.env)
+    val envUpdates = javaHomeInfo.envUpdates(sys.env) ++ extraEnv
     if (showCommand) {
       val command = Runner.jvmCommand(
         javaHomeInfo.javaCommand,
         javaOpts,
-        library +: build.dependencyClassPath,
+        library +: (build.dependencyClassPath ++ extraJars),
         finalMainClass,
         finalArgs,
         extraEnv = envUpdates,
@@ -133,7 +153,7 @@ object RunSpark {
       val proc = Runner.runJvm(
         javaHomeInfo.javaCommand,
         javaOpts,
-        library +: build.dependencyClassPath,
+        library +: (build.dependencyClassPath ++ extraJars),
         finalMainClass,
         finalArgs,
         logger,
