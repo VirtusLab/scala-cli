@@ -113,4 +113,17 @@ object ReplArtifacts {
       addSourceJars = false
     )
   }
+
+  def withPy4j(
+    logger: Logger,
+    cache: FileCache[Task],
+    repositories: Seq[Repository]
+  ): Either[BuildException, Seq[(String, os.Path)]] =
+    Artifacts.artifacts(
+      Positioned.none(Seq(dep"io.github.alexarchambault.py4j:with-py4j:0.1.1")),
+      repositories,
+      None,
+      logger,
+      cache.withMessage(s"Downloading with-py4j library")
+    )
 }
