@@ -44,6 +44,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   override def test(name: String)(body: => Any)(implicit loc: munit.Location): Unit =
     super.test(name) { warmupTest; body }(loc)
+  override def test(name: munit.TestOptions)(body: => Any)(implicit loc: munit.Location): Unit =
+    super.test(name) { warmupTest; body }(loc)
 
   test("simple script") {
     simpleScriptTest()
