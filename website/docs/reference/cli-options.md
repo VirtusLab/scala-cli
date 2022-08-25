@@ -1021,6 +1021,13 @@ Aliases: `--spark`
 [Internal]
 [experimental] Run as a Spark job, using the spark-submit command
 
+### `--submit-argument`
+
+Aliases: `--submit-arg`
+
+[Internal]
+[experimental] spark-submit arguments
+
 ### `--standalone-spark`
 
 Aliases: `--spark-standalone`

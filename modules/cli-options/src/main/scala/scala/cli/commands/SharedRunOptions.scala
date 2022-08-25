@@ -25,6 +25,11 @@ final case class SharedRunOptions(
   @ExtraName("spark")
     sparkSubmit: Option[Boolean] = None,
   @Group("Run")
+  @Hidden
+  @HelpMessage("[experimental] spark-submit arguments")
+  @ExtraName("submitArg")
+    submitArgument: List[String] = Nil,
+  @Group("Run")
   @HelpMessage("[experimental] Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI")
   @ExtraName("sparkStandalone")
     standaloneSpark: Option[Boolean] = None,

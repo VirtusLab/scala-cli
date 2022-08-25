@@ -143,4 +143,50 @@ abstract class SparkTestDefinitions(val scalaVersionOpt: Option[String]) extends
     simpleRunStandaloneSparkJobTest(actualScalaVersion, "3.3.0", needsWinUtils = true)
   }
 
+  test("run spark spark-submit args") {
+    val jobName = "the test spark job"
+    val inputs = TestInputs(
+      os.rel / "SparkJob.scala" ->
+        s"""//> using lib "org.apache.spark::spark-sql:3.3.0"
+           |
+           |import org.apache.spark._
+           |import org.apache.spark.sql._
+           |
+           |object SparkJob {
+           |  def main(args: Array[String]): Unit = {
+           |    val spark = SparkSession.builder().getOrCreate()
+           |    val name = spark.conf.get("spark.app.name")
+           |    assert(name == "$jobName")
+           |    import spark.implicits._
+           |    def sc    = spark.sparkContext
+           |    val accum = sc.longAccumulator
+           |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
+           |    println("Result: " + accum.value)
+           |  }
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val extraEnv = maybeHadoopHomeForWinutils(root / "hadoop-home")
+      val res = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        "--spark-standalone",
+        ".",
+        "--submit-arg",
+        "--name",
+        "--submit-arg",
+        jobName
+      )
+        .call(cwd = root, env = extraEnv)
+
+      val expectedOutput = "Result: 55"
+
+      val output = res.out.trim().linesIterator.toVector
+
+      expect(output.contains(expectedOutput))
+    }
+  }
+
 }

@@ -32,9 +32,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       options.sharedRun.standaloneSpark.getOrElse(false) &&
       !options.sharedRun.sparkSubmit.contains(false)
     )
-      RunMode.StandaloneSparkSubmit
+      RunMode.StandaloneSparkSubmit(options.sharedRun.submitArgument)
     else if (options.sharedRun.sparkSubmit.getOrElse(false))
-      RunMode.SparkSubmit
+      RunMode.SparkSubmit(options.sharedRun.submitArgument)
     else if (options.sharedRun.hadoopJar)
       RunMode.HadoopJar
     else
@@ -472,24 +472,26 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               )
               Right((proc, None))
             }
-          case RunMode.SparkSubmit =>
+          case mode: RunMode.SparkSubmit =>
             value {
               RunSpark.run(
                 build,
                 mainClass,
                 args,
+                mode.submitArgs,
                 logger,
                 allowExecve,
                 showCommand,
                 scratchDirOpt
               )
             }
-          case RunMode.StandaloneSparkSubmit =>
+          case mode: RunMode.StandaloneSparkSubmit =>
             value {
               RunSpark.runStandalone(
                 build,
                 mainClass,
                 args,
+                mode.submitArgs,
                 logger,
                 allowExecve,
                 showCommand,
