@@ -893,6 +893,8 @@ object Package extends ScalaCommand[PackageOptions] {
             if (build.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
               val sourceMapDest =
                 build.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
+              val updatedMainJs = ScalaJsLinker.updateSourceMappingURL(dest)
+              os.write.over(dest, updatedMainJs)
               os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
               logger.message(s"Emitted js source maps to: $sourceMapDest")
             }
