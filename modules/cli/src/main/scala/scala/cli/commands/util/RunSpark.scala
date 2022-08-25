@@ -20,7 +20,8 @@ object RunSpark {
     logger: Logger,
     allowExecve: Boolean,
     showCommand: Boolean,
-    scratchDirOpt: Option[os.Path]
+    scratchDirOpt: Option[os.Path],
+    extraJavaOpts: Seq[String] = Nil
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     // FIXME Get Spark.sparkModules via provided settings?
@@ -29,7 +30,7 @@ object RunSpark {
       value(PackageCmd.providedFiles(build, providedModules, logger)).toSet
     val depCp        = build.dependencyClassPath.filterNot(providedFiles)
     val javaHomeInfo = build.options.javaHome().value
-    val javaOpts     = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+    val javaOpts     = extraJavaOpts ++ build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
     val ext          = if (Properties.isWin) ".cmd" else ""
     val submitCommand: String =
       Option(System.getenv("SPARK_HOME"))
@@ -83,7 +84,8 @@ object RunSpark {
     logger: Logger,
     allowExecve: Boolean,
     showCommand: Boolean,
-    scratchDirOpt: Option[os.Path]
+    scratchDirOpt: Option[os.Path],
+    extraJavaOpts: Seq[String] = Nil
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     // FIXME Get Spark.sparkModules via provided settings?
@@ -102,7 +104,7 @@ object RunSpark {
     val finalMainClass = "org.apache.spark.deploy.SparkSubmit"
     val depCp          = build.dependencyClassPath.filterNot(sparkClassPath.toSet)
     val javaHomeInfo   = build.options.javaHome().value
-    val javaOpts       = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+    val javaOpts = extraJavaOpts ++ build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
     val jarsArgs =
       if (depCp.isEmpty) Nil
       else Seq("--jars", depCp.mkString(","))

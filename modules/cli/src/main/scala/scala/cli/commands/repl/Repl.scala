@@ -506,7 +506,8 @@ object Repl extends ScalaCommand[ReplOptions] {
                   logger,
                   allowExit,
                   dryRun,
-                  None
+                  None,
+                  extraJavaOpts = scalapyJavaOpts
                 )
               case _: RunMode.StandaloneSparkSubmit =>
                 RunSpark.runStandalone(
@@ -517,7 +518,8 @@ object Repl extends ScalaCommand[ReplOptions] {
                   logger,
                   allowExit,
                   dryRun,
-                  None
+                  None,
+                  extraJavaOpts = scalapyJavaOpts
                 )
             }
           }
