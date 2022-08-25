@@ -300,7 +300,8 @@ object Runner {
     launcher: File,
     args: Seq[String],
     logger: Logger,
-    allowExecve: Boolean = false
+    allowExecve: Boolean = false,
+    extraEnv: Map[String, String] = Map.empty
   ): Process = {
 
     import logger.{log, debug}
@@ -318,15 +319,17 @@ object Runner {
       Execve.execve(
         command.head,
         launcher.getName +: command.tail.toArray,
-        sys.env.toArray.sorted.map { case (k, v) => s"$k=$v" }
+        (sys.env ++ extraEnv).toArray.sorted.map { case (k, v) => s"$k=$v" }
       )
       sys.error("should not happen")
     }
     else {
-      val process = new ProcessBuilder(command: _*)
+      val builder = new ProcessBuilder(command: _*)
         .inheritIO()
-        .start()
-      process
+      val env = builder.environment()
+      for ((k, v) <- extraEnv)
+        env.put(k, v)
+      builder.start()
     }
   }
 

@@ -1,12 +1,14 @@
 package scala.cli.commands
 
+import ai.kien.python.Python
 import caseapp.*
 
+import java.io.File
 import java.util.concurrent.CompletableFuture
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
-import scala.build.options.{BuildOptions, JavaOpt, Platform}
+import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
 import scala.build.*
 import scala.cli.CurrentParams
 import scala.cli.commands.run.RunMode
@@ -16,7 +18,7 @@ import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
-import scala.util.Properties
+import scala.util.{Properties, Try}
 
 object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   override def group = "Main"
@@ -90,7 +92,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         }
       ),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
-        runWithManifest = options.sharedRun.useManifest
+        runWithManifest = options.sharedRun.useManifest,
+        python = options.sharedRun.sharedPython.python,
+        pythonSetup = options.sharedRun.sharedPython.pythonSetup
       )
     )
   }
@@ -360,30 +364,86 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           }
         value(res)
       case Platform.Native =>
-        withNativeLauncher(
+        val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
+        val pythonLibraryPaths =
+          if (setupPython)
+            value {
+              val python       = Python()
+              val pathsOrError = python.nativeLibraryPaths
+              logger.debug(s"Python native library paths: $pathsOrError")
+              pathsOrError.orPythonDetectionError
+            }
+          else
+            Nil
+        // seems conda doesn't add the lib directory to LD_LIBRARY_PATH (see conda/conda#308),
+        // which prevents apps from finding libpython for example, so we update it manually here
+        val extraEnv =
+          if (pythonLibraryPaths.isEmpty) Map.empty
+          else {
+            val prependTo =
+              if (Properties.isWin) "PATH"
+              else if (Properties.isMac) "DYLD_LIBRARY_PATH"
+              else "LD_LIBRARY_PATH"
+            val currentOpt = Option(System.getenv(prependTo))
+            val currentEntries = currentOpt
+              .map(_.split(File.pathSeparator).toSet)
+              .getOrElse(Set.empty)
+            val additionalEntries = pythonLibraryPaths.filter(!currentEntries.contains(_))
+            if (additionalEntries.isEmpty)
+              Map.empty
+            else {
+              val newValue =
+                (additionalEntries.iterator ++ currentOpt.iterator).mkString(File.pathSeparator)
+              Map(prependTo -> newValue)
+            }
+          }
+        val maybeResult = withNativeLauncher(
           build,
           mainClass,
           logger
         ) { launcher =>
           if (showCommand)
-            Left(launcher.toString +: args)
+            Left(
+              extraEnv.toVector.sorted.map { case (k, v) => s"$k=$v" } ++
+                Seq(launcher.toString) ++
+                args
+            )
           else {
             val proc = Runner.runNative(
               launcher.toIO,
               args,
               logger,
-              allowExecve = allowExecve
+              allowExecve = allowExecve,
+              extraEnv = extraEnv
             )
             Right((proc, None))
           }
         }
+        value(maybeResult)
       case Platform.JVM =>
         runMode match {
           case RunMode.Default =>
+            val baseJavaProps = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+            val setupPython   = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
+            val pythonJavaProps =
+              if (setupPython) {
+                val scalapyProps = value {
+                  val python       = Python()
+                  val propsOrError = python.scalapyProperties
+                  logger.debug(s"Python Java properties: $propsOrError")
+                  propsOrError.orPythonDetectionError
+                }
+                scalapyProps.toVector.sorted.map {
+                  case (k, v) => s"-D$k=$v"
+                }
+              }
+              else
+                Nil
+            val allJavaOpts = pythonJavaProps ++ baseJavaProps
             if (showCommand) {
               val command = Runner.jvmCommand(
                 build.options.javaHome().value.javaCommand,
-                build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
+                allJavaOpts,
                 build.fullClassPath,
                 mainClass,
                 args,
@@ -395,7 +455,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             else {
               val proc = Runner.runJvm(
                 build.options.javaHome().value.javaCommand,
-                build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
+                allJavaOpts,
                 build.fullClassPath,
                 mainClass,
                 args,
@@ -476,9 +536,19 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     build: Build.Successful,
     mainClass: String,
     logger: Logger
-  )(f: os.Path => T): T = {
+  )(f: os.Path => T): Either[BuildException, T] = {
     val dest = build.inputs.nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
-    Package.buildNative(build, mainClass, dest, logger)
-    f(dest)
+    Package.buildNative(build, mainClass, dest, logger).map { _ =>
+      f(dest)
+    }
   }
+
+  final class PythonDetectionError(cause: Throwable) extends BuildException(
+        s"Error detecting Python environment: ${cause.getMessage}",
+        cause = cause
+      )
+
+  extension [T](t: Try[T])
+    def orPythonDetectionError: Either[PythonDetectionError, T] =
+      t.toEither.left.map(new PythonDetectionError(_))
 }

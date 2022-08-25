@@ -325,6 +325,10 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
     - uses: VirtusLab/scala-cli-setup@a173ac6b0b5252a6cf506cfafdd304066bf09da8
       with:
         jvm: "temurin:17"
@@ -353,6 +357,10 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
     - uses: VirtusLab/scala-cli-setup@a173ac6b0b5252a6cf506cfafdd304066bf09da8
       with:
         jvm: "temurin:17"
@@ -381,6 +389,10 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
     - uses: VirtusLab/scala-cli-setup@a173ac6b0b5252a6cf506cfafdd304066bf09da8
       with:
         jvm: "temurin:17"

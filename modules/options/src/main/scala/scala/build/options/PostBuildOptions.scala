@@ -7,8 +7,14 @@ final case class PostBuildOptions(
   replOptions: ReplOptions = ReplOptions(),
   publishOptions: PublishOptions = PublishOptions(),
   scalaJsLinkerOptions: ScalaJsLinkerOptions = ScalaJsLinkerOptions(),
-  runWithManifest: Option[Boolean] = None
-)
+  runWithManifest: Option[Boolean] = None,
+  pythonSetup: Option[Boolean] = None,
+  python: Option[Boolean] = None
+) {
+
+  def doSetupPython: Option[Boolean] =
+    pythonSetup.orElse(python)
+}
 
 object PostBuildOptions {
   /* Using HasHashData.nop here (PostBuildOptions values are not used during compilation) */

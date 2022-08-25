@@ -17,6 +17,8 @@ final case class SharedRunOptions(
     compileCross: CompileCrossOptions = CompileCrossOptions(),
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),
+  @Recurse
+    sharedPython: SharedPythonOptions = SharedPythonOptions(),
   @Group("Run")
   @Hidden
   @HelpMessage("Run as a Spark job, using the spark-submit command")
