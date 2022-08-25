@@ -889,6 +889,34 @@ Aliases: `--main-class-list`, `--list-main-class`, `--list-main-classes`
 
 List main classes available in the current context
 
+## Markdown options
+
+Available in commands:
+- [`bsp`](./commands.md#bsp)
+- [`compile`](./commands.md#compile)
+- [`dependency-update`](./commands.md#dependency-update)
+- [`doc`](./commands.md#doc)
+- [`export`](./commands.md#export)
+- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
+- [`browse` / `metabrowse`](./commands.md#browse)
+- [`package`](./commands.md#package)
+- [`publish`](./commands.md#publish)
+- [`publish local`](./commands.md#publish-local)
+- [`console` / `repl`](./commands.md#console)
+- [`run`](./commands.md#run)
+- [`setup-ide`](./commands.md#setup-ide)
+- [`shebang`](./commands.md#shebang)
+- [`test`](./commands.md#test)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--enable-markdown`
+
+Aliases: `--md`, `--markdown`
+
+Enable markdown support (experimental)
+
 ## Metabrowse options
 
 Available in commands:

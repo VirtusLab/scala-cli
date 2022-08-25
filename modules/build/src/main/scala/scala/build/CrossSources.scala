@@ -156,7 +156,8 @@ object CrossSources {
         .flatMap(_.options)
         .flatMap(_.internal.extraSourceFiles)
         .distinct
-    val inputsElemFromDirectives          = value(resolveInputsFromSources(sourcesFromDirectives))
+    val inputsElemFromDirectives =
+      value(resolveInputsFromSources(sourcesFromDirectives, inputs.enableMarkdown))
     val preprocessedSourcesFromDirectives = value(preprocessSources(inputsElemFromDirectives))
     val allInputs                         = inputs.add(inputsElemFromDirectives)
 
@@ -228,15 +229,17 @@ object CrossSources {
     (CrossSources(paths, inMemory, defaultMainClassOpt, resourceDirs, buildOptions), allInputs)
   }
 
-  private def resolveInputsFromSources(sources: Seq[Positioned[os.Path]]) =
+  private def resolveInputsFromSources(sources: Seq[Positioned[os.Path]], enableMarkdown: Boolean) =
     sources.map { source =>
       val sourcePath   = source.value
       lazy val dir     = sourcePath / os.up
       lazy val subPath = sourcePath.subRelativeTo(dir)
-      if (os.isDir(sourcePath)) Right(Inputs.singleFilesFromDirectory(Inputs.Directory(sourcePath)))
+      if (os.isDir(sourcePath))
+        Right(Inputs.singleFilesFromDirectory(Inputs.Directory(sourcePath), enableMarkdown))
       else if (sourcePath.ext == "scala") Right(Seq(Inputs.ScalaFile(dir, subPath)))
       else if (sourcePath.ext == "sc") Right(Seq(Inputs.Script(dir, subPath)))
       else if (sourcePath.ext == "java") Right(Seq(Inputs.JavaFile(dir, subPath)))
+      else if (sourcePath.ext == "md") Right(Seq(Inputs.MarkdownFile(dir, subPath)))
       else {
         val msg =
           if (os.exists(sourcePath))

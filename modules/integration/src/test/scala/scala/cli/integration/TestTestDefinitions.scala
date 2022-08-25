@@ -185,6 +185,45 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
+  val successfulMarkdownTestInputs: TestInputs = TestInputs(
+    os.rel / "Test.md" ->
+      """# Example Markdown File
+        |This is an example for how Scala test code can be run from a Markdown file.
+        |
+        |## Example Snippet
+        |```scala test
+        |//> using lib "org.scalameta::munit:0.7.29"
+        |
+        |class Test extends munit.FunSuite {
+        |  test("foo") {
+        |    assert(2 + 2 == 4)
+        |    println("Hello from tests")
+        |  }
+        |}
+        |```
+        |
+        |""".stripMargin
+  )
+
+  val failingMarkdownTestInputs: TestInputs = TestInputs(
+    os.rel / "Test.md" ->
+      """# Example Markdown File
+        |This is an example for how Scala test code can be run from a Markdown file.
+        |
+        |## Example Snippet
+        |```scala test
+        |//> using lib "org.scalameta::munit:0.7.29"
+        |
+        |class Test extends munit.FunSuite {
+        |  test("foo") {
+        |    assert(2 + 2 == 5, "Hello from tests")
+        |  }
+        |}
+        |```
+        |
+        |""".stripMargin
+  )
+
   test("successful test") {
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
@@ -576,4 +615,22 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     test("Js DOM") {
       jsDomTest()
     }
+
+  test("successful test Markdown with munit") {
+    successfulMarkdownTestInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test", extraOptions, "Test.md")
+        .call(cwd = root)
+        .out.text()
+      expect(output.contains("Hello from tests"))
+    }
+  }
+
+  test("failing test Markdown with munit") {
+    failingMarkdownTestInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test", extraOptions, "Test.md")
+        .call(cwd = root, check = false)
+        .out.text()
+      expect(output.contains("Hello from tests"))
+    }
+  }
 }

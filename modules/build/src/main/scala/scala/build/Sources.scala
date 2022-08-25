@@ -92,6 +92,7 @@ object Sources {
   ): Seq[Preprocessor] =
     Seq(
       ScriptPreprocessor(codeWrapper),
+      MarkdownPreprocessor,
       JavaPreprocessor(archiveCache, javaClassNameVersionOpt, javaCommand),
       ScalaPreprocessor,
       DataPreprocessor
