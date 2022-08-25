@@ -51,7 +51,7 @@ object Repl extends ScalaCommand[ReplOptions] {
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     def default = Inputs.default().getOrElse {
-      Inputs.empty(Os.pwd)
+      Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
     }
     val logger = options.shared.logger
     val inputs = options.shared.inputs(args.all, defaultInputs = () => Some(default)).orExit(logger)

@@ -1,20 +1,20 @@
 package scala.build.preprocessing
 
 import java.nio.charset.StandardCharsets
-
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
+import scala.build.internal.markdown.MarkdownCodeWrapper
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
 import scala.build.{Inputs, Logger}
 
-import scala.build.preprocessing.mdsandbox.SnippetPackager
-
 case object MarkdownPreprocessor extends Preprocessor {
   def preprocess(
     input: Inputs.SingleElement,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException],
+    withRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case markdown: Inputs.MarkdownFile =>
@@ -26,7 +26,9 @@ case object MarkdownPreprocessor extends Preprocessor {
               content,
               markdown.subPath,
               ScopePath.fromPath(markdown.path),
-              logger
+              logger,
+              maybeRecoverOnError,
+              withRestrictedFeatures
             )
           }
           preprocessed
@@ -36,89 +38,56 @@ case object MarkdownPreprocessor extends Preprocessor {
       case _ =>
         None
     }
-  
+
   private def preprocess(
     reportingPath: Either[String, os.Path],
     content: String,
     subPath: os.SubPath,
     scopePath: ScopePath,
-    logger: Logger
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException],
+    withRestrictedFeatures: Boolean
   ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
+    def preprocessSnippets(
+      maybeCode: Option[String],
+      generatedSourceNameSuffix: String
+    ): Either[BuildException, Option[PreprocessedSource.InMemory]] =
+      either {
+        maybeCode
+          .map { code =>
+            val processingOutput =
+              value {
+                ScalaPreprocessor.process(
+                  content = code,
+                  path = reportingPath,
+                  scopeRoot = scopePath / os.up,
+                  logger = logger,
+                  maybeRecoverOnError = maybeRecoverOnError,
+                  withRestrictedFeatures = withRestrictedFeatures
+                )
+              }.getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
+            val processedCode = processingOutput.updatedContent.getOrElse(code)
+            PreprocessedSource.InMemory(
+              originalPath = reportingPath.map(subPath -> _),
+              relPath = os.rel / (subPath / os.up) / s"${subPath.last}$generatedSourceNameSuffix",
+              processedCode,
+              ignoreLen = 0,
+              options = Some(processingOutput.opts),
+              requirements = Some(processingOutput.globalReqs),
+              processingOutput.scopedReqs,
+              mainClassOpt = None,
+              scopePath = scopePath
+            )
+          }
+      }
 
-    val packager: SnippetPackager = new SnippetPackager(subPath.toString, content)
-    val topWrapperLen = 0
+    val (mainScalaCode, rawScalaCode, testScalaCode) = MarkdownCodeWrapper(subPath, content)
 
-    val parsedMain: String = packager.buildScalaMain()
-    val mainProcessingOutput =
-      value(ScalaPreprocessor.process(
-        parsedMain,
-        reportingPath,
-        scopePath / os.up,
-        logger
-      ))
-        .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
-    val mainCode = mainProcessingOutput.updatedContent.getOrElse(parsedMain)
-    val mainClassName = s"Markdown_${subPath.last}"
-    val mainRelPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".md")}_mainmd.scala"
-    val mainFile = PreprocessedSource.InMemory(
-      reportingPath.map((subPath, _)),
-      mainRelPath,
-      mainCode,
-      topWrapperLen,
-      Some(mainProcessingOutput.opts),
-      Some(mainProcessingOutput.globalReqs),
-      mainProcessingOutput.scopedReqs,
-      Some(CustomCodeWrapper.mainClassObject(Name(mainClassName)).backticked),
-      scopePath
-    )
+    val maybeMainFile = value(preprocessSnippets(mainScalaCode, ".scala"))
+    val maybeRawFile  = value(preprocessSnippets(rawScalaCode, ".raw.scala"))
+    val maybeTestFile = value(preprocessSnippets(testScalaCode, ".test.scala"))
 
-    val parsedTest: String = packager.buildScalaTest()
-    val testProcessingOutput =
-      value(ScalaPreprocessor.process(
-        parsedTest,
-        reportingPath,
-        scopePath / os.up,
-        logger
-      ))
-        .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
-    val testCode = testProcessingOutput.updatedContent.getOrElse(parsedTest)
-    val testRelPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".md")}_testmd.scala"
-    val testFile = PreprocessedSource.InMemory(
-      reportingPath.map((subPath, _)),
-      testRelPath,
-      testCode,
-      topWrapperLen,
-      Some(testProcessingOutput.opts),
-      Some(testProcessingOutput.globalReqs),
-      testProcessingOutput.scopedReqs,
-      None,
-      scopePath
-    )
-
-    val parsedRaw: String = packager.buildScalaRaw()
-    val rawProcessingOutput =
-      value(ScalaPreprocessor.process(
-        parsedRaw,
-        reportingPath,
-        scopePath / os.up,
-        logger
-      ))
-        .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
-    val rawCode = rawProcessingOutput.updatedContent.getOrElse(parsedRaw)
-    val rawRelPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".md")}_rawmd.scala"
-    val rawFile = PreprocessedSource.InMemory(
-      reportingPath.map((subPath, _)),
-      rawRelPath,
-      rawCode,
-      topWrapperLen,
-      Some(rawProcessingOutput.opts),
-      Some(rawProcessingOutput.globalReqs),
-      rawProcessingOutput.scopedReqs,
-      None,
-      scopePath
-    )
-
-    List(mainFile, testFile, rawFile)
+    maybeMainFile.toList ++ maybeTestFile ++ maybeRawFile
   }
 
 }

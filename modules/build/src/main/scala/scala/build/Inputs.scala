@@ -22,6 +22,7 @@ final case class Inputs(
   baseProjectName: String,
   mayAppendHash: Boolean,
   workspaceOrigin: Option[WorkspaceOrigin],
+  enableMarkdown: Boolean,
   withRestrictedFeatures: Boolean
 ) {
 
@@ -31,7 +32,7 @@ final case class Inputs(
   def singleFiles(): Seq[Inputs.SingleFile] =
     elements.flatMap {
       case f: Inputs.SingleFile        => Seq(f)
-      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d)
+      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
       case _: Inputs.ResourceDirectory => Nil
       case _: Inputs.Virtual           => Nil
     }
@@ -52,7 +53,7 @@ final case class Inputs(
   def flattened(): Seq[Inputs.SingleElement] =
     elements.flatMap {
       case f: Inputs.SingleFile        => Seq(f)
-      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d)
+      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
       case _: Inputs.ResourceDirectory => Nil
       case v: Inputs.Virtual           => Seq(v)
     }
@@ -110,7 +111,7 @@ final case class Inputs(
       case elem: Inputs.OnDisk =>
         val content = elem match {
           case dirInput: Inputs.Directory =>
-            Seq("dir:") ++ Inputs.singleFilesFromDirectory(dirInput)
+            Seq("dir:") ++ Inputs.singleFilesFromDirectory(dirInput, enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
           case resDirInput: Inputs.ResourceDirectory =>
             // Resource changes for SN require relinking, so they should also be hashed
@@ -222,7 +223,10 @@ object Inputs {
   final case class VirtualData(content: Array[Byte], source: String)
       extends Virtual
 
-  def singleFilesFromDirectory(d: Inputs.Directory): Seq[Inputs.SingleFile] = {
+  def singleFilesFromDirectory(
+    d: Inputs.Directory,
+    enableMarkdown: Boolean
+  ): Seq[Inputs.SingleFile] = {
     import Ordering.Implicits.seqOrdering
     os.walk.stream(d.path, skip = _.last.startsWith("."))
       .filter(os.isFile(_))
@@ -233,7 +237,7 @@ object Inputs {
           Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".sc") =>
           Inputs.Script(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".md") =>
+        case p if p.last.endsWith(".md") && enableMarkdown =>
           Inputs.MarkdownFile(d.path, p.subRelativeTo(d.path))
       }
       .toVector
@@ -275,6 +279,7 @@ object Inputs {
     baseProjectName: String,
     directories: Directories,
     forcedWorkspace: Option[os.Path],
+    enableMarkdown: Boolean,
     withRestrictedFeatures: Boolean
   ): Inputs = {
 
@@ -320,7 +325,8 @@ object Inputs {
       baseProjectName,
       mayAppendHash = needsHash,
       workspaceOrigin = Some(workspaceOrigin0),
-      withRestrictedFeatures
+      enableMarkdown = enableMarkdown,
+      withRestrictedFeatures = withRestrictedFeatures
     )
   }
 
@@ -444,6 +450,7 @@ object Inputs {
     javaSnippetList: List[String],
     acceptFds: Boolean,
     forcedWorkspace: Option[os.Path],
+    enableMarkdown: Boolean,
     withRestrictedFeatures: Boolean
   ): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
@@ -465,6 +472,7 @@ object Inputs {
         baseProjectName,
         directories,
         forcedWorkspace,
+        enableMarkdown,
         withRestrictedFeatures
       ))
     }
@@ -485,13 +493,14 @@ object Inputs {
     javaSnippetList: List[String] = List.empty,
     acceptFds: Boolean = false,
     forcedWorkspace: Option[os.Path] = None,
+    enableMarkdown: Boolean = false,
     withRestrictedFeatures: Boolean
   ): Either[BuildException, Inputs] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty
     )
       defaultInputs().toRight(new InputsException(
-        "No inputs provided (expected files with .scala or .sc extensions, and / or directories)."
+        "No inputs provided (expected files with .scala, .sc, .java or .md extensions, and / or directories)."
       ))
     else
       forNonEmptyArgs(
@@ -506,13 +515,14 @@ object Inputs {
         javaSnippetList,
         acceptFds,
         forcedWorkspace,
+        enableMarkdown,
         withRestrictedFeatures
       )
 
   def default(): Option[Inputs] =
     None
 
-  def empty(workspace: os.Path): Inputs =
+  def empty(workspace: os.Path, enableMarkdown: Boolean): Inputs =
     Inputs(
       elements = Nil,
       defaultMainClassElement = None,
@@ -520,8 +530,10 @@ object Inputs {
       baseProjectName = "project",
       mayAppendHash = true,
       workspaceOrigin = None,
+      enableMarkdown = enableMarkdown,
       withRestrictedFeatures = false
     )
 
-  def empty(projectName: String) = Inputs(Nil, None, os.pwd, projectName, false, None, false)
+  def empty(projectName: String): Inputs =
+    Inputs(Nil, None, os.pwd, projectName, false, None, true, false)
 }

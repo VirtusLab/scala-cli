@@ -228,20 +228,10 @@ object Run extends ScalaCommand[RunOptions] {
       finally watcher.dispose()
     }
     else {
-      val inputsMd: Inputs = inputs.copy(
-        elements = inputs.elements :+ scala.build.preprocessing.mdsandbox.MdRunner.generateRunnerFile(inputs)
-      )
-
-      val MDMODE = true
-      val initialBuildOptionsMd: BuildOptions =
-        if (MDMODE) initialBuildOptions.copy(
-          mainClass = Some("Markdown$Runner")
-        ) else initialBuildOptions
-
       val builds =
         Build.build(
-          inputsMd,
-          initialBuildOptionsMd,
+          inputs,
+          initialBuildOptions,
           compilerMaker,
           None,
           logger,

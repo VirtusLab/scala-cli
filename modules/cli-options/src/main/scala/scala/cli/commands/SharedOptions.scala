@@ -49,6 +49,9 @@ final case class SharedOptions(
 
   @Recurse
     snippet: SnippetOptions = SnippetOptions(),
+  
+  @Recurse
+    markdown: MarkdownOptions = MarkdownOptions(),
 
   @Group("Java")
   @HelpMessage("Add extra JARs in the class path")

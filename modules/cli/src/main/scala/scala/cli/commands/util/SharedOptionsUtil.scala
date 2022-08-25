@@ -57,7 +57,8 @@ object SharedOptionsUtil extends CommandHelpers {
     forbid: List[String],
     scriptSnippetList: List[String],
     scalaSnippetList: List[String],
-    javaSnippetList: List[String]
+    javaSnippetList: List[String],
+    enableMarkdown: Boolean = false
   ): Either[BuildException, Inputs] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
@@ -79,6 +80,7 @@ object SharedOptionsUtil extends CommandHelpers {
       javaSnippetList = javaSnippetList,
       acceptFds = !Properties.isWin,
       forcedWorkspace = forcedWorkspaceOpt,
+      enableMarkdown = enableMarkdown,
       withRestrictedFeatures = ScalaCli.withRestrictedFeatures
     )
     maybeInputs.map { inputs =>
@@ -342,7 +344,8 @@ object SharedOptionsUtil extends CommandHelpers {
         input.forbid,
         scriptSnippetList = v.snippet.scriptSnippet,
         scalaSnippetList = v.snippet.scalaSnippet,
-        javaSnippetList = v.snippet.javaSnippet
+        javaSnippetList = v.snippet.javaSnippet,
+        enableMarkdown = v.markdown.enableMarkdown
       )
 
     def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Inputs.Element]]] =
