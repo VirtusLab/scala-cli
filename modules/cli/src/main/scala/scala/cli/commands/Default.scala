@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp.core.help.RuntimeCommandsHelp
 import caseapp.core.{Error, RemainingArgs}
+import scala.cli.commands.util.DefaultOptionsUtil.*
 
 import scala.build.internal.Constants
 import scala.cli.{CurrentParams, ScalaCliHelp}
@@ -30,14 +31,8 @@ class Default(
   }
   def run(options: DefaultOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.runOptions.shared.logging.verbosity
-    if (options.version)
-      println(Version.versionInfo(isSipScala))
-    else if (anyArgs)
-      Run.run(
-        options.runOptions,
-        args
-      )
-    else
-      helpAsked(finalHelp.progName, Right(options))
+    if options.version then println(Version.versionInfo(isSipScala))
+    else if args.remaining.nonEmpty then Run.run(options.runOptions, args)
+    else Repl.run(options.replOptions, args)
   }
 }

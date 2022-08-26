@@ -25,6 +25,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
   def buildOptions(ops: ReplOptions): BuildOptions = {
     import ops._
+    import ops.sharedRepl._
     def ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
 
     val baseOptions = shared.buildOptions()
@@ -90,7 +91,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         directories,
         logger,
         allowExit = allowExit,
-        options.replDryRun
+        options.sharedRepl.replDryRun
       )
       res match {
         case Left(ex) =>
@@ -100,7 +101,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       }
     }
 
-    val cross = options.compileCross.cross.getOrElse(false)
+    val cross = options.sharedRepl.compileCross.cross.getOrElse(false)
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
     val actionableDiagnostics =
@@ -110,14 +111,19 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     if (inputs.isEmpty) {
       val artifacts = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
-      doRunRepl(initialBuildOptions, artifacts, None, allowExit = !options.watch.watchMode)
-      if (options.watch.watchMode) {
+      doRunRepl(
+        initialBuildOptions,
+        artifacts,
+        None,
+        allowExit = !options.sharedRepl.watch.watchMode
+      )
+      if (options.sharedRepl.watch.watchMode) {
         // nothing to watch, just wait for Ctrl+C
         WatchUtil.printWatchMessage()
         WatchUtil.waitForCtrlC()
       }
     }
-    else if (options.watch.watchMode) {
+    else if (options.sharedRepl.watch.watchMode) {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,

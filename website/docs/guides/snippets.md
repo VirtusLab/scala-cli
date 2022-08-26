@@ -12,7 +12,7 @@ Instead of passing paths to your sources, you can also pass the code itself with
 <ChainedSnippets>
 
 ```bash
-scala-cli --scala-snippet '@main def hello() = println("Hello")'
+scala-cli run --scala-snippet '@main def hello() = println("Hello")'
 ```
 
 ```text
@@ -27,7 +27,7 @@ separate input by Scala CLI.
 <ChainedSnippets>
 
 ```bash
-scala-cli --scala-snippet '@main def main() = println(Messages.hello)' --scala-snippet 'object Messages { def hello = "Hello" }'
+scala-cli run --scala-snippet '@main def main() = println(Messages.hello)' --scala-snippet 'object Messages { def hello = "Hello" }'
 ```
 
 ```text
@@ -43,7 +43,7 @@ Hello
 <ChainedSnippets>
 
 ```bash
-scala-cli -e 'println("Hello")'
+scala-cli run -e 'println("Hello")'
 ```
 
 ```text
@@ -57,7 +57,7 @@ Hello
 <ChainedSnippets>
 
 ```bash
-scala-cli --scala-snippet '@main def hello() = println("Hello")'
+scala-cli run --scala-snippet '@main def hello() = println("Hello")'
 ```
 
 ```text
@@ -71,7 +71,7 @@ Hello
 <ChainedSnippets>
 
 ```bash
-scala-cli --java-snippet 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }'
+scala-cli run --java-snippet 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }'
 ```
 
 ```text
@@ -85,7 +85,7 @@ Hello
 <ChainedSnippets>
 
 ```bash
-scala-cli --scala-snippet '@main def hello() = println(s"${JavaSnippet.hello} ${snippet.world}")' --java-snippet 'public class JavaSnippet { public static String hello = "Hello"; }' --script-snippet 'def world = "world"'
+scala-cli run --scala-snippet '@main def hello() = println(s"${JavaSnippet.hello} ${snippet.world}")' --java-snippet 'public class JavaSnippet { public static String hello = "Hello"; }' --script-snippet 'def world = "world"'
 ```
 
 ```text
@@ -180,7 +180,7 @@ name: `snippet`
 <ChainedSnippets>
 
 ```bash
-scala-cli --scala-snippet '@main def main() = println(snippet.hello)' --script-snippet 'def hello: String = "Hello"'
+scala-cli run --scala-snippet '@main def main() = println(snippet.hello)' --script-snippet 'def hello: String = "Hello"'
 ```
 
 ```text
@@ -197,7 +197,7 @@ then `snippet2` and so on, as in the example:
 <ChainedSnippets>
 
 ```bash
-scala-cli --scala-snippet '@main def main() = println(s"${snippet.hello} ${snippet1.world}${snippet2.exclamation}")' --script-snippet 'def hello: String = "Hello"' --script-snippet 'def world: String = "world"' --script-snippet 'def exclamation: String = "!"'
+scala-cli run --scala-snippet '@main def main() = println(s"${snippet.hello} ${snippet1.world}${snippet2.exclamation}")' --script-snippet 'def hello: String = "Hello"' --script-snippet 'def world: String = "world"' --script-snippet 'def exclamation: String = "!"'
 ```
 
 ```text
