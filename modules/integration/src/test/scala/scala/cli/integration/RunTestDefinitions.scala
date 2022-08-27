@@ -2096,6 +2096,42 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("deleting resources after building") {
+    val projectDir      = "projectDir"
+    val fileName        = "main.scala"
+    val resourceContent = "hello world"
+    val resourcePath    = os.rel / projectDir / "resources" / "test.txt"
+    val inputs = TestInputs(
+      os.rel / projectDir / fileName ->
+        s"""
+           |//> using resourceDir "resources"
+           |
+           |object Main {
+           |  def main(args: Array[String]) = {
+           |    val inputStream = getClass().getResourceAsStream("/test.txt")
+           |    if (inputStream == null) println("null")
+           |    else println("non null")
+           |  }
+           |}
+           |""".stripMargin,
+      resourcePath -> resourceContent
+    )
+
+    inputs.fromRoot { root =>
+      def runCli() =
+        os.proc(TestUtil.cli, extraOptions, projectDir)
+          .call(cwd = root)
+          .out.trim()
+
+      val output1 = runCli()
+      expect(output1 == "non null")
+
+      os.remove(root / resourcePath)
+      val output2 = runCli()
+      expect(output2 == "null")
+    }
+  }
+
   private def maybeScalapyPrefix =
     if (actualScalaVersion.startsWith("2.13.")) ""
     else "import me.shadaj.scalapy.py" + System.lineSeparator()
