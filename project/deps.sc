@@ -110,7 +110,7 @@ object Deps {
   def scalaJsEnvJsdomNodejs =
     ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"
   // Force using of 2.13 - is there a better way?
-  def scalaJsEnvNodeJs = ivy"org.scala-js:scalajs-env-nodejs_2.13:1.3.0"
+  def scalaJsEnvNodeJs = ivy"org.scala-js:scalajs-env-nodejs_2.13:1.4.0"
   def scalaJsLogging   = ivy"org.scala-js:scalajs-logging_2.13:1.1.1"
   // Force using of 2.13 - is there a better way?
   def scalaJsTestAdapter = ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
