@@ -18,7 +18,7 @@ class DefaultTests extends ScalaCliSuite {
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.trim == s"Unrecognized argument: $runSpecificOption")
+      expect(res.out.trim == unrecognizedArgMessage(runSpecificOption))
     }
   }
   test("running scala-cli with args should not accept repl-only options") {
@@ -30,7 +30,17 @@ class DefaultTests extends ScalaCliSuite {
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.trim == s"Unrecognized argument: $replSpecificOption")
+      expect(res.out.trim == unrecognizedArgMessage(replSpecificOption))
     }
+  }
+
+  private def unrecognizedArgMessage(argName: String) = {
+    val scalaCli = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
+    s"""
+       |Unrecognized argument: $argName
+       |
+       |To list all available options, run
+       |  ${Console.BOLD}$scalaCli --help${Console.RESET}
+       |""".stripMargin.trim
   }
 }

@@ -112,6 +112,7 @@ class ScalaCliCommands(
       case c: NeedsArgvCommand => c.setArgv(progName +: args)
       case _                   =>
     }
+    actualDefaultCommand.setArgv(progName +: args)
 
     val processedArgs =
       if (args.lengthCompare(1) > 0 && isShebangFile(args(0)))
