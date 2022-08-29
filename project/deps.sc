@@ -58,7 +58,7 @@ object Deps {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier      = "2.1.0-M6-53-gb4f448130"
     def coursierCli   = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.15.0"
+    def jsoniterScala = "2.16.0"
     def scalaMeta     = "4.5.13"
     def scalaNative   = "0.4.5"
     def scalaPackager = "0.1.27"
