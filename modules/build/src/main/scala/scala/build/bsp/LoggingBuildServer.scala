@@ -41,6 +41,9 @@ trait LoggingBuildServer extends b.BuildServer {
     underlying.buildTargetSources(pprint.err.log(params)).logF
   override def buildTargetTest(params: b.TestParams): CompletableFuture[b.TestResult] =
     underlying.buildTargetTest(pprint.err.log(params)).logF
+  override def debugSessionStart(params: b.DebugSessionParams)
+    : CompletableFuture[b.DebugSessionAddress] =
+    underlying.debugSessionStart(pprint.err.log(params)).logF
   override def workspaceBuildTargets(): CompletableFuture[b.WorkspaceBuildTargetsResult] =
     underlying.workspaceBuildTargets().logF
   override def workspaceReload(): CompletableFuture[Object] =

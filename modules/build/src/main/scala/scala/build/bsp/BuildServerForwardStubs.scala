@@ -70,6 +70,11 @@ trait BuildServerForwardStubs extends b.BuildServer {
     forwardTo.buildTargetTest(params)
       .handle(fatalExceptionHandler("buildTargetTest", params))
 
+  override def debugSessionStart(params: b.DebugSessionParams)
+    : CompletableFuture[b.DebugSessionAddress] =
+    forwardTo.debugSessionStart(params)
+      .handle(fatalExceptionHandler("debugSessionStart", params))
+
   override def workspaceBuildTargets(): CompletableFuture[b.WorkspaceBuildTargetsResult] =
     forwardTo.workspaceBuildTargets()
       .handle(fatalExceptionHandler("workspaceBuildTargets"))

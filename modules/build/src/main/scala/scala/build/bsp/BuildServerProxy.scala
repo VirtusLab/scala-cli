@@ -4,7 +4,6 @@ import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
 
-import scala.build.bloop.ScalaDebugServer
 import scala.build.options.Scope
 import scala.build.{GeneratedSource, Inputs}
 
@@ -12,7 +11,7 @@ class BuildServerProxy(
   bspServer: () => BspServer,
   onReload: () => CompletableFuture[Object]
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
-    with ScalaDebugServer with ScalaScriptBuildServer with HasGeneratedSources {
+    with ScalaScriptBuildServer with HasGeneratedSources {
   override def buildInitialize(params: b.InitializeBuildParams)
     : CompletableFuture[b.InitializeBuildResult] = bspServer().buildInitialize(params)
 
@@ -67,9 +66,9 @@ class BuildServerProxy(
 
   override def buildTargetJavacOptions(params: b.JavacOptionsParams)
     : CompletableFuture[b.JavacOptionsResult] = bspServer().buildTargetJavacOptions(params)
-
-  override def buildTargetDebugSession(params: b.DebugSessionParams)
-    : CompletableFuture[b.DebugSessionAddress] = bspServer().buildTargetDebugSession(params)
+  override def debugSessionStart(params: b.DebugSessionParams)
+    : CompletableFuture[b.DebugSessionAddress] =
+    bspServer().debugSessionStart(params)
 
   override def buildTargetWrappedSources(params: WrappedSourcesParams)
     : CompletableFuture[WrappedSourcesResult] = bspServer().buildTargetWrappedSources(params)

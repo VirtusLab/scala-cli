@@ -15,6 +15,7 @@ import scala.build.internal.CustomProgressBarRefreshDisplay
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
 import scala.collection.mutable
 import scala.scalanative.{build => sn}
+import scala.jdk.CollectionConverters._
 
 class CliLogger(
   val verbosity: Int,
@@ -88,7 +89,7 @@ class CliLogger(
         } {
           val location = new Location(filePath.toNIO.toUri.toASCIIString, range)
           val related  = new b.DiagnosticRelatedInformation(location, info.message)
-          diag.setRelatedInformation(related)
+          diag.setRelatedInformation(List(related).asJava)
         }
 
         for (file <- f.path) {

@@ -10,7 +10,7 @@ import java.io.{InputStream, OutputStream}
 import java.util.concurrent.{CompletableFuture, Executor}
 import scala.build.*
 import scala.build.EitherCps.{either, value}
-import scala.build.bloop.{BloopServer, ScalaDebugServer}
+import scala.build.bloop.BloopServer
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{BuildException, Diagnostic, ParsingInputsException}
 import scala.build.internal.{Constants, CustomCodeWrapper}
@@ -423,7 +423,7 @@ final class BspImpl(
     bloopSession.update(null, currentBloopSession, "BSP server already initialized")
 
     val actualLocalServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
-      with ScalaDebugServer with ScalaScriptBuildServer with HasGeneratedSources =
+      with ScalaScriptBuildServer with HasGeneratedSources =
       new BuildServerProxy(
         () => bloopSession.get().bspServer,
         () => onReload()
