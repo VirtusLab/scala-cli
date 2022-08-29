@@ -17,10 +17,9 @@ class Default(
 
   override protected def commandLength = 0
 
-  override def group = "Main"
-  override def sharedOptions(options: DefaultOptions) =
-    Some[scala.cli.commands.SharedOptions](options.shared)
-  private[cli] var rawArgs = Array.empty[String]
+  override def group                                                         = "Main"
+  override def sharedOptions(options: DefaultOptions): Option[SharedOptions] = Some(options.shared)
+  private[cli] var rawArgs                                                   = Array.empty[String]
   override def helpAsked(progName: String, maybeOptions: Either[Error, DefaultOptions]): Nothing = {
     println(defaultHelp)
     sys.exit(0)

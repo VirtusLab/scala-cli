@@ -17,11 +17,11 @@ import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Repl extends ScalaCommand[ReplOptions] {
   override def group = "Main"
-  override def names = List(
+  override def names: List[List[String]] = List(
     List("console"),
     List("repl")
   )
-  override def sharedOptions(options: ReplOptions) = Some(options.shared)
+  override def sharedOptions(options: ReplOptions): Option[SharedOptions] = Some(options.shared)
 
   def buildOptions(ops: ReplOptions): BuildOptions = {
     import ops._
@@ -33,7 +33,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine _)
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
       ),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         replOptions = baseOptions.notForBloopOptions.replOptions.copy(
@@ -225,7 +225,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       .map(_.last.stripSuffix(".class"))
       .sorted
     val warnRootClasses = rootClasses.nonEmpty &&
-      options.notForBloopOptions.replOptions.useAmmoniteOpt.exists(_ == true)
+      options.notForBloopOptions.replOptions.useAmmoniteOpt.contains(true)
     if (warnRootClasses)
       logger.message(
         s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")})." +
