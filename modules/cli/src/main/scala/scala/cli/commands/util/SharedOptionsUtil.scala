@@ -342,11 +342,15 @@ object SharedOptionsUtil extends CommandHelpers {
         workspace.forcedWorkspaceOpt,
         input.defaultForbiddenDirectories,
         input.forbid,
-        scriptSnippetList = v.snippet.scriptSnippet,
-        scalaSnippetList = v.snippet.scalaSnippet,
-        javaSnippetList = v.snippet.javaSnippet,
+        scriptSnippetList = allScriptSnippets,
+        scalaSnippetList = allScalaSnippets,
+        javaSnippetList = allJavaSnippets,
         enableMarkdown = v.markdown.enableMarkdown
       )
+
+    def allScriptSnippets: List[String] = v.snippet.scriptSnippet ++ v.snippet.executeScript
+    def allScalaSnippets: List[String]  = v.snippet.scalaSnippet ++ v.snippet.executeScala
+    def allJavaSnippets: List[String]   = v.snippet.javaSnippet ++ v.snippet.executeJava
 
     def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Inputs.Element]]] =
       Inputs.validateArgs(

@@ -1968,7 +1968,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res =
-        os.proc(TestUtil.cli, "run", "-e", s"println($quotation$msg$quotation)", extraOptions)
+        os.proc(
+          TestUtil.cli,
+          "run",
+          "--script-snippet",
+          s"println($quotation$msg$quotation)",
+          extraOptions
+        )
           .call(cwd = root)
       expect(res.out.text().trim == msg)
     }
