@@ -10,7 +10,7 @@ class PreprocessingTests extends munit.FunSuite {
 
   test("Report error if scala file not exists") {
     val logger    = TestLogger()
-    val scalaFile = Inputs.ScalaFile(os.temp.dir(), os.SubPath("NotExists.scala"))
+    val scalaFile = Inputs.SourceScalaFile(os.temp.dir(), os.SubPath("NotExists.scala"))
 
     val res = ScalaPreprocessor.preprocess(scalaFile, logger, withRestrictedFeatures = false)
     val expectedMessage = s"File not found: ${scalaFile.path}"
