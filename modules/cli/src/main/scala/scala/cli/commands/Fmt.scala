@@ -32,8 +32,8 @@ object Fmt extends ScalaCommand[FmtOptions] {
       else {
         val i = options.shared.inputs(args.all).orExit(logger)
         val s = i.sourceFiles().collect {
-          case sc: Inputs.Script    => sc.path
-          case sc: Inputs.ScalaFile => sc.path
+          case sc: Inputs.Script          => sc.path
+          case sc: Inputs.SourceScalaFile => sc.path
         }
         (s, i.workspace, Some(i))
       }

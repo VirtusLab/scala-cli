@@ -554,6 +554,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("setting root dir with no inputs") {
+    val url = "https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec"
+    emptyInputs.fromRoot { root =>
+      os.proc(TestUtil.cli, extraOptions, escapedUrls(url)).call(cwd = root)
+      expect(os.exists(root / ".scala-build"))
+    }
+  }
+
   private lazy val ansiRegex = "\u001B\\[[;\\d]*m".r
   private def stripAnsi(s: String): String =
     ansiRegex.replaceAllIn(s, "")

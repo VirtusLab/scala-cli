@@ -14,6 +14,7 @@ import scala.build.options.Scope
 import scala.build.preprocessing.ScopePath
 import scala.util.Properties
 import scala.util.matching.Regex
+import scala.build.Inputs.Element
 
 final case class Inputs(
   elements: Seq[Inputs.Element],
@@ -187,15 +188,20 @@ object Inputs {
   }
   sealed trait Compiled     extends Element
   sealed trait AnyScalaFile extends Compiled
+  sealed trait ScalaFile extends AnyScalaFile {
+    def base: os.Path
+    def subPath: os.SubPath
+    def path: os.Path = base / subPath
+  }
 
   final case class Script(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile with AnyScalaFile with AnyScript {
     lazy val path: os.Path = base / subPath
   }
-  final case class ScalaFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with AnyScalaFile {
-    lazy val path: os.Path = base / subPath
-  }
+  final case class SourceScalaFile(base: os.Path, subPath: os.SubPath)
+      extends OnDisk with SourceFile with ScalaFile
+  final case class SettingsScalaFile(base: os.Path, subPath: os.SubPath)
+      extends OnDisk with SourceFile with ScalaFile
   final case class JavaFile(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile with Compiled {
     lazy val path: os.Path = base / subPath
@@ -233,8 +239,10 @@ object Inputs {
       .collect {
         case p if p.last.endsWith(".java") =>
           Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
+        case p if p.last == "project.settings.scala" =>
+          Inputs.SettingsScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".scala") =>
-          Inputs.ScalaFile(d.path, p.subRelativeTo(d.path))
+          Inputs.SourceScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".sc") =>
           Inputs.Script(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".md") && enableMarkdown =>
@@ -244,6 +252,18 @@ object Inputs {
       .sortBy(_.subPath.segments)
   }
 
+  def projectSettingsFiles(elements: Seq[Inputs.Element]): Seq[Inputs.SettingsScalaFile] =
+    elements.flatMap {
+      case f: SettingsScalaFile => Seq(f)
+      case d: Directory         => Inputs.configFileFromDirectory(d)
+      case _                    => Nil
+    }.distinct
+
+  def configFileFromDirectory(d: Inputs.Directory): Seq[Inputs.SettingsScalaFile] =
+    if (os.exists(d.path / "project.settings.scala"))
+      Seq(Inputs.SettingsScalaFile(d.path, os.sub / "project.settings.scala"))
+    else Nil
+
   private def inputsHash(elements: Seq[Element]): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
     val it = elements.iterator.flatMap {
@@ -252,7 +272,8 @@ object Inputs {
           case _: Inputs.Directory         => "dir:"
           case _: Inputs.ResourceDirectory => "resource-dir:"
           case _: Inputs.JavaFile          => "java:"
-          case _: Inputs.ScalaFile         => "scala:"
+          case _: Inputs.SettingsScalaFile => "config:"
+          case _: Inputs.SourceScalaFile   => "scala:"
           case _: Inputs.Script            => "sc:"
           case _: Inputs.MarkdownFile      => "md:"
         }
@@ -285,22 +306,37 @@ object Inputs {
 
     assert(validElems.nonEmpty)
 
-    val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = validElems
-      .collectFirst {
-        case d: Directory => (d.path, true, WorkspaceOrigin.SourcePaths)
+    val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
+      val settingsFiles = projectSettingsFiles(validElems)
+      val dirsAndFiles = validElems.collect {
+        case d: Directory  => d
+        case f: SourceFile => f
       }
-      .getOrElse {
-        validElems.head match {
-          case elem: SourceFile => (elem.path / os.up, true, WorkspaceOrigin.SourcePaths)
-          case _: Virtual =>
-            val dir = homeWorkspace(validElems, directories)
-            (dir, false, WorkspaceOrigin.HomeDir)
-          case r: ResourceDirectory =>
-            // Makes us put .scala-build in a resource directory :/
-            (r.path, true, WorkspaceOrigin.ResourcePaths)
-          case _: Directory => sys.error("Can't happen")
+
+      settingsFiles.headOption.map { s =>
+        if (settingsFiles.length > 1)
+          System.err.println(
+            s"Warning: more than one project.settings.scala file has been found. Setting ${s.base} as the project root directory for this run."
+          )
+        (s.base, true, WorkspaceOrigin.SourcePaths)
+      }.orElse {
+        dirsAndFiles.collectFirst {
+          case d: Directory =>
+            if (dirsAndFiles.length > 1)
+              System.err.println(
+                s"Warning: setting ${d.path} as the project root directory for this run."
+              )
+            (d.path, true, WorkspaceOrigin.SourcePaths)
+          case f: SourceFile =>
+            if (dirsAndFiles.length > 1)
+              System.err.println(
+                s"Warning: setting ${f.path / os.up} as the project root directory for this run."
+              )
+            (f.path / os.up, true, WorkspaceOrigin.SourcePaths)
         }
-      }
+      }.getOrElse((os.pwd, true, WorkspaceOrigin.Forced))
+    }
+
     val (workspace, needsHash, workspaceOrigin0) = forcedWorkspace match {
       case None => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
       case Some(forcedWorkspace0) =>
@@ -420,8 +456,9 @@ object Inputs {
             List(resolve(url, content))
         }
       }
+      else if (path.last == "project.settings.scala") Right(Seq(SettingsScalaFile(dir, subPath)))
       else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
-      else if (arg.endsWith(".scala")) Right(Seq(ScalaFile(dir, subPath)))
+      else if (arg.endsWith(".scala")) Right(Seq(SourceScalaFile(dir, subPath)))
       else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
       else if (arg.endsWith(".md")) Right(Seq(MarkdownFile(dir, subPath)))
       else if (os.isDir(path)) Right(Seq(Directory(path)))
