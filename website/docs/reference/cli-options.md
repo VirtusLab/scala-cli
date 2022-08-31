@@ -1793,6 +1793,8 @@ Set the Scala binary version
 
 #### `--scalac-help`
 
+Aliases: `--help-scalac`
+
 Show help for scalac. This is an alias for --scalac-option -help
 
 #### `--extra-jars`

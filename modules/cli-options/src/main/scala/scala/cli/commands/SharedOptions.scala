@@ -42,14 +42,15 @@ final case class SharedOptions(
   @Name("scalaBin")
   @Name("B")
     scalaBinaryVersion: Option[String] = None,
-  
+
   @Group("Scala")
   @HelpMessage("Show help for scalac. This is an alias for --scalac-option -help")
+  @Name("helpScalac")
     scalacHelp: Boolean = false,
 
   @Recurse
     snippet: SnippetOptions = SnippetOptions(),
-  
+
   @Recurse
     markdown: MarkdownOptions = MarkdownOptions(),
 
