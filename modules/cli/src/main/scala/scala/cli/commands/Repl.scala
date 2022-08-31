@@ -9,6 +9,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.build.options.{BuildOptions, JavaOpt, Scope}
 import scala.cli.CurrentParams
+import scala.cli.commands.Run.maybePrintSimpleScalacOutput
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.Properties
@@ -60,7 +61,9 @@ object Repl extends ScalaCommand[ReplOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = buildOptions(options)
-    val threads             = BuildThreads.create()
+    maybePrintSimpleScalacOutput(options, initialBuildOptions)
+
+    val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads)
 
