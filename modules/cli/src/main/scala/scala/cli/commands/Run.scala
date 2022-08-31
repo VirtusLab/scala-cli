@@ -25,17 +25,20 @@ object Run extends ScalaCommand[RunOptions] {
   override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
 
   private def runMode(options: RunOptions): RunMode =
-    if (options.standaloneSpark.getOrElse(false) && !options.sparkSubmit.contains(false))
+    if (
+      options.sharedRun.standaloneSpark.getOrElse(false) &&
+      !options.sharedRun.sparkSubmit.contains(false)
+    )
       RunMode.StandaloneSparkSubmit
-    else if (options.sparkSubmit.getOrElse(false))
+    else if (options.sharedRun.sparkSubmit.getOrElse(false))
       RunMode.SparkSubmit
-    else if (options.hadoopJar)
+    else if (options.sharedRun.hadoopJar)
       RunMode.HadoopJar
     else
       RunMode.Default
 
   private def scratchDirOpt(options: RunOptions): Option[os.Path] =
-    options.scratchDir
+    options.sharedRun.scratchDir
       .filter(_.trim.nonEmpty)
       .map(os.Path(_, os.pwd))
 
@@ -51,6 +54,7 @@ object Run extends ScalaCommand[RunOptions] {
 
   def buildOptions(options: RunOptions): BuildOptions = {
     import options._
+    import options.sharedRun._
     val baseOptions = shared.buildOptions(
       enableJmh = benchmarking.jmh.contains(true),
       jmhVersion = benchmarking.jmhVersion
@@ -87,7 +91,7 @@ object Run extends ScalaCommand[RunOptions] {
         }
       ),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
-        runWithManifest = options.useManifest
+        runWithManifest = options.sharedRun.useManifest
       )
     )
   }
@@ -117,9 +121,9 @@ object Run extends ScalaCommand[RunOptions] {
       scratchDirOpt: Option[os.Path]
     ): Either[BuildException, Option[(Process, CompletableFuture[_])]] = either {
       val potentialMainClasses = build.foundMainClasses()
-      if (options.mainClass.mainClassLs.contains(true))
+      if (options.sharedRun.mainClass.mainClassLs.contains(true))
         value {
-          options.mainClass
+          options.sharedRun.mainClass
             .maybePrintMainClasses(potentialMainClasses, shouldExit = allowTerminate)
             .map(_ => None)
         }
@@ -166,7 +170,7 @@ object Run extends ScalaCommand[RunOptions] {
       }
     }
 
-    val cross = options.compileCross.cross.getOrElse(false)
+    val cross = options.sharedRun.compileCross.cross.getOrElse(false)
     SetupIde.runSafe(
       options.shared,
       inputs,
@@ -184,7 +188,7 @@ object Run extends ScalaCommand[RunOptions] {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
-    if (options.watch.watchMode) {
+    if (options.sharedRun.watch.watchMode) {
       var processOpt = Option.empty[(Process, CompletableFuture[_])]
       val watcher = Build.watch(
         inputs,
@@ -210,12 +214,12 @@ object Run extends ScalaCommand[RunOptions] {
               s,
               allowTerminate = false,
               runMode = runMode(options),
-              showCommand = options.command,
+              showCommand = options.sharedRun.command,
               scratchDirOpt = scratchDirOpt(options)
             )
               .orReport(logger)
               .flatten
-            if (options.watch.restart)
+            if (options.sharedRun.watch.restart)
               processOpt = maybeProcess
             else
               for ((proc, onExit) <- maybeProcess)
@@ -247,7 +251,7 @@ object Run extends ScalaCommand[RunOptions] {
             s,
             allowTerminate = true,
             runMode = runMode(options),
-            showCommand = options.command,
+            showCommand = options.sharedRun.command,
             scratchDirOpt = scratchDirOpt(options)
           )
             .orExit(logger)

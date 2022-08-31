@@ -29,7 +29,7 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
   }
 
   // TODO Manage to have case-app give use the exact command name that was used instead
-  protected def commandLength = names.headOption.fold(1)(_.length)
+  protected def commandLength: Int = names.headOption.fold(1)(_.length)
 
   override def error(message: Error): Nothing = {
     System.err.println(message.message)
@@ -48,19 +48,17 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
   // FIXME Report this in case-app default NameFormatter
   override lazy val nameFormatter: Formatter[Name] = {
     val parent = super.nameFormatter
-    new Formatter[Name] {
-      def format(t: Name): String =
-        if (t.name.startsWith("-")) t.name
-        else parent.format(t)
-    }
+    (t: Name) =>
+      if (t.name.startsWith("-")) t.name
+      else parent.format(t)
   }
 
   override def completer: Completer[T] = {
     val parent = super.completer
     new Completer[T] {
-      def optionName(prefix: String, state: Option[T]) =
+      def optionName(prefix: String, state: Option[T]): List[CompletionItem] =
         parent.optionName(prefix, state)
-      def optionValue(arg: Arg, prefix: String, state: Option[T]) = {
+      def optionValue(arg: Arg, prefix: String, state: Option[T]): List[CompletionItem] = {
         val candidates = arg.name.name match {
           case "dependency" =>
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
@@ -92,7 +90,7 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
         }
         candidates ++ parent.optionValue(arg, prefix, state)
       }
-      def argument(prefix: String, state: Option[T]) =
+      def argument(prefix: String, state: Option[T]): List[CompletionItem] =
         parent.argument(prefix, state)
     }
   }
@@ -137,7 +135,7 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
       sys.exit(exitCode)
     }
 
-  override def helpFormat =
+  override def helpFormat: HelpFormat =
     HelpFormat.default()
       .withSortedGroups(Some(Seq(
         "Help",

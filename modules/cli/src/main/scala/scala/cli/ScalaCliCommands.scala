@@ -106,12 +106,13 @@ class ScalaCliCommands(
   override def main(args: Array[String]): Unit = {
 
     // quick hack, until the raw args are kept in caseapp.RemainingArgs by case-app
-    actualDefaultCommand.anyArgs = args.nonEmpty
+    actualDefaultCommand.rawArgs = args
 
     commands.foreach {
       case c: NeedsArgvCommand => c.setArgv(progName +: args)
       case _                   =>
     }
+    actualDefaultCommand.setArgv(progName +: args)
 
     val processedArgs =
       if (args.lengthCompare(1) > 0 && isShebangFile(args(0)))

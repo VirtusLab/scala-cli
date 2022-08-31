@@ -160,7 +160,7 @@ scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
 ## Scala compiler help
 
 You can also view the Scala compiler help for a particular Scala version with `--scalac-help`, which is an alias for `-O -help`.
-```bash
+```bash ignore
 scala-cli -S 2.13.8 --scalac-help
 # Usage: scalac <options> <source files>
 #

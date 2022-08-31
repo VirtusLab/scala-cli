@@ -400,14 +400,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("No default input when no explicit command is passed") {
+  test("No default inputs when the `run` sub-command is launched with no args") {
     val inputs = TestInputs(
       os.rel / "dir" / "print.sc" ->
         s"""println("Foo")
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, extraOptions, "--main-class", "print")
+      val res = os.proc(TestUtil.cli, "run", extraOptions, "--main-class", "print")
         .call(cwd = root / "dir", check = false, mergeErrIntoOut = true)
       val output = res.out.text().trim
       expect(res.exitCode != 0)
@@ -1565,8 +1565,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("help js and native") {
     val helpJsOption     = "--help-js"
     val helpNativeOption = "--help-native"
-    val helpJs           = os.proc(TestUtil.cli, helpJsOption).call(check = false)
-    val helpNative       = os.proc(TestUtil.cli, helpNativeOption).call(check = false)
+    val helpJs           = os.proc(TestUtil.cli, "run", helpJsOption).call(check = false)
+    val helpNative       = os.proc(TestUtil.cli, "run", helpNativeOption).call(check = false)
 
     expect(helpJs.out.text().contains("Scala.js options"))
     expect(!helpJs.out.text().contains("Scala Native options"))
@@ -1835,6 +1835,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     emptyInputs.fromRoot { root =>
       val res1 = os.proc(
         TestUtil.cli,
+        "run",
         extraOptions,
         "--scalac-help"
       )
@@ -1843,6 +1844,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
       val res2 = os.proc(
         TestUtil.cli,
+        "run",
         extraOptions,
         "--scalac-option",
         "-help"
@@ -1966,7 +1968,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
       val res =
-        os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", extraOptions)
+        os.proc(TestUtil.cli, "run", "-e", s"println($quotation$msg$quotation)", extraOptions)
           .call(cwd = root)
       expect(res.out.text().trim == msg)
     }
@@ -1979,6 +1981,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val res =
         os.proc(
           TestUtil.cli,
+          "run",
           "--scala-snippet",
           s"object Hello extends App { println($quotation$msg$quotation) }",
           extraOptions
@@ -1994,6 +1997,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val msg       = "Hello world"
       val res = os.proc(
         TestUtil.cli,
+        "run",
         "--java-snippet",
         s"public class Main { public static void main(String[] args) { System.out.println($quotation$msg$quotation); } }",
         extraOptions
@@ -2044,6 +2048,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
       val res = os.proc(
         TestUtil.cli,
+        "run",
         scriptSnippetOption,
         script0,
         scriptSnippetOption,
