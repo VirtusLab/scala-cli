@@ -34,7 +34,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
       jvm = opts.jvm,
       coursier = opts.coursier
     )
-    val options = sharedOptions.buildOptions(false, None)
+    val options = sharedOptions.buildOptions(false, None).orExit(opts.logging.logger)
     lazy val defaultJvmCmd =
       sharedOptions.downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
     val javaCmd = opts.compilationServer.bloopJvm

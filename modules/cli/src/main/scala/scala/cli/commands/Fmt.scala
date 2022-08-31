@@ -39,8 +39,8 @@ object Fmt extends ScalaCommand[FmtOptions] {
       }
     CurrentParams.workspaceOpt = Some(workspace)
     val (versionMaybe, dialectMaybe, pathMaybe) = readVersionAndDialect(workspace, options, logger)
-    val cache                                   = options.shared.buildOptions().archiveCache
-    val buildOptions                            = options.buildOptions
+    val cache        = options.shared.buildOptions().orExit(logger).archiveCache
+    val buildOptions = options.buildOptions
 
     if (sourceFiles.isEmpty)
       logger.debug("No source files, not formatting anything")
@@ -48,7 +48,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       val version =
         options.scalafmtVersion.getOrElse(versionMaybe.getOrElse(Constants.defaultScalafmtVersion))
       val dialectString = options.scalafmtDialect.orElse(dialectMaybe).getOrElse {
-        options.buildOptions.scalaParams.orExit(logger).map(_.scalaVersion)
+        options.buildOptions.orExit(logger).scalaParams.orExit(logger).map(_.scalaVersion)
           .getOrElse(Constants.defaultScalaVersion) match
           case v if v.startsWith("2.11.") => "scala211"
           case v if v.startsWith("2.12.") => "scala212"
@@ -87,7 +87,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
             params,
             cache,
             logger,
-            () => buildOptions.javaHome().value.javaCommand
+            () => buildOptions.orExit(logger).javaHome().value.javaCommand
           )
             .orExit(logger)
             .command

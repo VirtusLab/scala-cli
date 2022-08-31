@@ -9,10 +9,11 @@ import dependency.parser.DependencyParser
 
 import java.io.{File, InputStream}
 
+import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
-import scala.build.errors.BuildException
+import scala.build.errors.{AmbiguousPlatformError, BuildException}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.CsLoggerUtil.*
@@ -155,11 +156,25 @@ object SharedOptionsUtil extends CommandHelpers {
       enableJmh: Boolean = false,
       jmhVersion: Option[String] = None,
       ignoreErrors: Boolean = false
-    ): bo.BuildOptions = {
-      val platformOpt =
-        if (js.js) Some(Platform.JS)
-        else if (native.native) Some(Platform.Native)
-        else None
+    ): Either[BuildException, bo.BuildOptions] = either {
+      val parsedPlatform = platform.map(Platform.normalize).flatMap(Platform.parse)
+      val platformOpt = value {
+        (parsedPlatform, js.js, native.native) match {
+          case (Some(p: Platform.JS.type), _, false)      => Right(Some(p))
+          case (Some(p: Platform.Native.type), false, _)  => Right(Some(p))
+          case (Some(p: Platform.JVM.type), false, false) => Right(Some(p))
+          case (Some(p), _, _) =>
+            val jsSeq        = if (js.js) Seq(Platform.JS) else Seq.empty
+            val nativeSeq    = if (native.native) Seq(Platform.Native) else Seq.empty
+            val platformsSeq = Seq(p) ++ jsSeq ++ nativeSeq
+            Left(new AmbiguousPlatformError(platformsSeq.distinct.map(_.toString)))
+          case (_, true, true) =>
+            Left(new AmbiguousPlatformError(Seq(Platform.JS.toString, Platform.Native.toString)))
+          case (_, true, _) => Right(Some(Platform.JS))
+          case (_, _, true) => Right(Some(Platform.Native))
+          case _            => Right(None)
+        }
+      }
       bo.BuildOptions(
         scalaOptions = bo.ScalaOptions(
           scalaVersion = scalaVersion
@@ -292,9 +307,8 @@ object SharedOptionsUtil extends CommandHelpers {
       javaCmd
     }
 
-    def bloopRifleConfig(): BloopRifleConfig = {
-
-      val options = buildOptions(false, None)
+    def bloopRifleConfig(): Either[BuildException, BloopRifleConfig] = either {
+      val options = value(buildOptions(false, None))
       lazy val defaultJvmCmd =
         downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
       val javaCmd = compilationServer.bloopJvm.map(downloadJvm(_, options)).orElse {
@@ -315,17 +329,21 @@ object SharedOptionsUtil extends CommandHelpers {
       )
     }
 
-    def compilerMaker(threads: BuildThreads, scaladoc: Boolean = false): ScalaCompilerMaker =
+    def compilerMaker(
+      threads: BuildThreads,
+      scaladoc: Boolean = false
+    ): Either[BuildException, ScalaCompilerMaker] = either {
       if (scaladoc)
         SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
       else if (compilationServer.server.getOrElse(true))
         new BloopCompilerMaker(
-          bloopRifleConfig(),
+          value(bloopRifleConfig()),
           threads.bloop,
           strictBloopJsonCheckOrDefault
         )
       else
         SimpleScalaCompilerMaker("java", Nil)
+    }
 
     def coursierCache = cached(v)(coursier.coursierCache(logging.logger.coursierLogger("")))
 

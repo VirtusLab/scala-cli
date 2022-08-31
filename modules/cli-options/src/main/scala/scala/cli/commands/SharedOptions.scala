@@ -84,6 +84,10 @@ final case class SharedOptions(
   @Name("resourceDir")
     resourceDirs: List[String] = Nil,
 
+  @HelpMessage("Specify platform")
+  @ValueDescription("scala-js|scala-native|jvm")
+    platform: Option[String] = None,
+
   @Group("Scala")
   @Hidden
     scalaLibrary: Option[Boolean] = None,

@@ -206,6 +206,24 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("simple script JS via platform option") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      os.rel / "simple.sc" ->
+        s"""//> using platform "scala-native"
+           |import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |val msg = "$message"
+           |console.log(msg)
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output =
+        os.proc(TestUtil.cli, extraOptions, ".", "--platform", "js").call(cwd = root).out.trim()
+      expect(output == message)
+    }
+  }
+
   def platformNl: String = if (Properties.isWin) "\\r\\n" else "\\n"
 
   def simpleNativeTests(): Unit = {

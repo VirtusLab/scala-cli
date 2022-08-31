@@ -46,7 +46,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
-    val baseOptions = options.shared.buildOptions()
+    val baseOptions = options.shared.buildOptions().orExit(logger)
     val initialBuildOptions = baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = Some(true)
@@ -57,7 +57,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     )
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
+    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
     val actionableDiagnostics =

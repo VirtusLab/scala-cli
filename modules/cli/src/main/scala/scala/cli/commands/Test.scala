@@ -25,7 +25,7 @@ object Test extends ScalaCommand[TestOptions] {
 
   def buildOptions(opts: TestOptions): BuildOptions = {
     import opts._
-    val baseOptions = shared.buildOptions()
+    val baseOptions = shared.buildOptions().orExit(opts.shared.logger)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
@@ -63,7 +63,7 @@ object Test extends ScalaCommand[TestOptions] {
 
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
+    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
 
     val cross = options.compileCross.cross.getOrElse(false)
     val configDb = ConfigDb.open(options.shared.directories.directories)

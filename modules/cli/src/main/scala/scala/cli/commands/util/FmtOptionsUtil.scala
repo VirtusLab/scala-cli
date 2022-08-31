@@ -1,6 +1,8 @@
 package scala.cli.commands.util
 import coursier.core.Version
 
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.FetchExternalBinary
 import scala.build.options.BuildOptions
 import scala.cli.commands.FmtOptions
@@ -26,7 +28,7 @@ object FmtOptionsUtil {
       (url, !tag0.startsWith("v"))
     }
 
-    def buildOptions: BuildOptions = shared.buildOptions()
+    def buildOptions: Either[BuildException, BuildOptions] = shared.buildOptions()
 
     def scalafmtCliOptions: List[String] =
       scalafmtArg :::
