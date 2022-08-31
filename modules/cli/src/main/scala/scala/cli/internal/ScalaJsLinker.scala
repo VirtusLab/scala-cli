@@ -155,5 +155,11 @@ object ScalaJsLinker {
       value(Left(new ScalaJsLinkingError))
     }
   }
+  def updateSourceMappingURL(mainJsPath: os.Path) =
+    val content = os.read(mainJsPath)
+    content.replace(
+      "//# sourceMappingURL=main.js.map",
+      s"//# sourceMappingURL=${mainJsPath.last}.map"
+    )
 
 }

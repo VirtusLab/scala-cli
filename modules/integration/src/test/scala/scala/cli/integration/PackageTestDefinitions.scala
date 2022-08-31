@@ -200,14 +200,17 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   def sourceMapJsTest(): Unit = {
-    val fileName = "simple.sc"
+    val fileName = "Hello.scala"
     val inputs = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
-           |println("Hello World")
+           |
+           |object Hello extends App {
+           |  println("Hello World")
+           |}
            |""".stripMargin
     )
-    val destName = fileName.stripSuffix(".sc") + ".js"
+    val destName = fileName.stripSuffix(".scala") + ".js"
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
@@ -223,7 +226,14 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       )
 
       val expectedSourceMapsPath = root / s"$destName.map"
+      val expectedHelloJsPath    = root / destName
+      expect(os.isFile(expectedHelloJsPath))
       expect(os.isFile(expectedSourceMapsPath))
+
+      val jsContent        = os.read(expectedHelloJsPath)
+      val sourceMappingURL = jsContent.split(System.lineSeparator()).toList.lastOption
+      expect(sourceMappingURL.nonEmpty)
+      expect(sourceMappingURL.get == s"//# sourceMappingURL=$destName.map")
     }
   }
 
