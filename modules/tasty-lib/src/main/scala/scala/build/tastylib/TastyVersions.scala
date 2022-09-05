@@ -1,15 +1,13 @@
 package scala.build.tastylib
 
+import scala.build.tastylib.internal.Constants
+
 object TastyVersions {
 
   // Every time tasty version is updated, please update LatestSupportedScala as well!
-  final val MajorVersion: Int        = 28
-  final val MinorVersion: Int        = 1
-  final val ExperimentalVersion: Int = 0
-
   object LatestSupportedScala {
     final val MajorVersion: Int = 3
-    final val MinorVersion: Int = 1
+    final val MinorVersion: Int = Constants.latestSupportedScala.split('.')(1).toInt
   }
 
   def shouldRunPreprocessor(
