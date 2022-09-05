@@ -33,10 +33,12 @@ class Default(
     CurrentParams.verbosity = options.shared.logging.verbosity
     if options.version then println(Version.versionInfo(isSipScala))
     else
-      (
-        if args.remaining.nonEmpty then RunOptions.parser
-        else ReplOptions.parser
-      ).parse(rawArgs) match
+      {
+        val shouldDefaultToRun =
+          args.remaining.nonEmpty || options.shared.snippet.executeScript.nonEmpty ||
+          options.shared.snippet.executeScala.nonEmpty || options.shared.snippet.executeJava.nonEmpty
+        if shouldDefaultToRun then RunOptions.parser else ReplOptions.parser
+      }.parse(rawArgs) match
         case Left(e)                              => error(e)
         case Right((replOptions: ReplOptions, _)) => Repl.run(replOptions, args)
         case Right((runOptions: RunOptions, _))   => Run.run(runOptions, args)

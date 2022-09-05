@@ -1793,6 +1793,8 @@ Set the Scala binary version
 
 #### `--scalac-help`
 
+Aliases: `--help-scalac`
+
 Show help for scalac. This is an alias for --scalac-option -help
 
 #### `--extra-jars`
@@ -1857,21 +1859,29 @@ Available in commands:
 
 #### `--script-snippet`
 
-Aliases: `-e`, `--execute-script`, `--execute-scala-script`, `--execute-sc`
-
 Allows to execute a passed string as a Scala script
+
+#### `--execute-script`
+
+Aliases: `--execute-scala-script`, `--execute-sc`, `-e`
+
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 #### `--scala-snippet`
 
-Aliases: `--execute-scala`
-
 Allows to execute a passed string as Scala code
+
+#### `--execute-scala`
+
+A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 #### `--java-snippet`
 
-Aliases: `--execute-java`
-
 Allows to execute a passed string as Java code
+
+#### `--execute-java`
+
+A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 ## Test options
 

@@ -6,21 +6,32 @@ import caseapp._
 final case class SnippetOptions(
   @Group("Scala")
   @HelpMessage("Allows to execute a passed string as a Scala script")
-  @Name("e")
-  @Name("executeScript")
-  @Name("executeScalaScript")
-  @Name("executeSc")
     scriptSnippet: List[String] = List.empty,
 
   @Group("Scala")
+  @HelpMessage("A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
+  @Hidden
+  @Name("executeScalaScript")
+  @Name("executeSc")
+  @Name("e")
+    executeScript: List[String] = List.empty,
+
+  @Group("Scala")
   @HelpMessage("Allows to execute a passed string as Scala code")
-  @Name("executeScala")
     scalaSnippet: List[String] = List.empty,
+
+  @Group("Scala")
+  @HelpMessage("A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
+  @Hidden
+    executeScala: List[String] = List.empty,
 
   @Group("Java")
   @HelpMessage("Allows to execute a passed string as Java code")
-  @Name("executeJava")
     javaSnippet: List[String] = List.empty,
+
+   @Group("Java")
+  @HelpMessage("A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
+    executeJava: List[String] = List.empty,
 )
 // format: on
 
