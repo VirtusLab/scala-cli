@@ -595,11 +595,8 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompi
     Deps.jsoniterMacros
   )
   private def scalaVer = Scala.scala213
-  def compileModuleDeps = Seq(
-    options
-  )
-  def scalaVersion = scalaVer
-  def repositories = super.repositories ++ customRepositories
+  def scalaVersion     = scalaVer
+  def repositories     = super.repositories ++ customRepositories
 }
 
 trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers

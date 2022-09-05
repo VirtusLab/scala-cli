@@ -3,7 +3,8 @@ package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.{BuildException, MalformedInputError, UnexpectedDirectiveError}
-import scala.build.options.publish.{ComputeVersion, MaybeConfigPasswordOption}
+import scala.build.options.publish.ComputeVersion
+import scala.build.options.publish.ConfigPasswordOption
 import scala.build.options.{
   BuildOptions,
   PostBuildOptions,
@@ -101,13 +102,13 @@ case object UsingPublishContextualDirectiveHandler extends UsingDirectiveHandler
       case "secretKey" =>
         PublishContextualOptions(secretKey =
           Some(
-            MaybeConfigPasswordOption.ActualOption(value(parsePasswordOption(singleValue.value)))
+            ConfigPasswordOption.ActualOption(value(parsePasswordOption(singleValue.value)))
           )
         )
       case "secretKeyPassword" =>
         PublishContextualOptions(
           secretKeyPassword = Some(
-            MaybeConfigPasswordOption.ActualOption(value(parsePasswordOption(singleValue.value)))
+            ConfigPasswordOption.ActualOption(value(parsePasswordOption(singleValue.value)))
           )
         )
       case "user" =>

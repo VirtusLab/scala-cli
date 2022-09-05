@@ -38,6 +38,7 @@ import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.PublishUtils._
 import scala.cli.commands.{
   MainClassOptions,
   Package => PackageCmd,
@@ -54,7 +55,7 @@ import scala.cli.errors.{
 }
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
-import scala.cli.util.MaybeConfigPasswordOptionHelpers._
+import scala.cli.util.ConfigPasswordOptionHelpers._
 
 object Publish extends ScalaCommand[PublishOptions] {
 
@@ -79,8 +80,8 @@ object Publish extends ScalaCommand[PublishOptions] {
       docJar = sharedPublish.doc,
       gpgSignatureId = sharedPublish.gpgKey.map(_.trim).filter(_.nonEmpty),
       gpgOptions = sharedPublish.gpgOption,
-      secretKey = publishParams.secretKey,
-      secretKeyPassword = publishParams.secretKeyPassword,
+      secretKey = publishParams.secretKey.map(_.configPasswordOptions()),
+      secretKeyPassword = publishParams.secretKeyPassword.map(_.configPasswordOptions()),
       repoUser = publishRepo.user,
       repoPassword = publishRepo.password,
       repoRealm = publishRepo.realm,
