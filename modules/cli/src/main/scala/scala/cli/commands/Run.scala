@@ -3,7 +3,6 @@ package scala.cli.commands
 import caseapp._
 
 import java.util.concurrent.CompletableFuture
-
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
@@ -17,9 +16,9 @@ import scala.cli.internal.ProcUtil
 import scala.util.Properties
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.{RunHadoop, RunSpark}
+import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
 
-object Run extends ScalaCommand[RunOptions] {
+object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   override def group = "Main"
 
   override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
@@ -283,7 +282,7 @@ object Run extends ScalaCommand[RunOptions] {
       }
     val mainClass = mainClassOpt match {
       case Some(cls) => cls
-      case None      => value(build.retainedMainClass(potentialMainClasses, logger))
+      case None      => value(build.retainedMainClass(logger, mainClasses = potentialMainClasses))
     }
     val verbosity = build.options.internal.verbosity.getOrElse(0).toString
 

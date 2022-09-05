@@ -59,6 +59,7 @@ object Build {
     def foundMainClasses(): Seq[String]   = MainClass.find(output)
     def retainedMainClass(
       mainClasses: Seq[String],
+      commandString: String,
       logger: Logger
     ): Either[MainClassError, String] = {
       val defaultMainClassOpt = sources.defaultMainClass
@@ -75,8 +76,9 @@ object Build {
                   mainClasses.toList
                 )
                 .toRight {
-                  new SeveralMainClassesFoundError(
+                  SeveralMainClassesFoundError(
                     ::(mainClasses.head, mainClasses.tail.toList),
+                    commandString,
                     Nil
                   )
                 }

@@ -94,13 +94,11 @@ class DefaultTests extends ScalaCliSuite {
     }
   }
 
-  private def unrecognizedArgMessage(argName: String) = {
-    val scalaCli = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
+  private def unrecognizedArgMessage(argName: String) =
     s"""
        |Unrecognized argument: $argName
        |
        |To list all available options, run
-       |  ${Console.BOLD}$scalaCli --help${Console.RESET}
+       |  ${Console.BOLD}${TestUtil.detectCliPath} --help${Console.RESET}
        |""".stripMargin.trim
-  }
 }

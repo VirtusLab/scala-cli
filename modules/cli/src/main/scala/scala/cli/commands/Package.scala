@@ -14,7 +14,6 @@ import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build._
@@ -26,12 +25,13 @@ import scala.build.errors.{
   ScalaNativeBuildError
 }
 import scala.build.interactive.InteractiveFileOps
-import scala.build.internal.Util._
+import scala.build.internal.Util.*
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper._
 import scala.cli.commands.packaging.Spark
+import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.MainClassOptionsUtil._
 import scala.cli.commands.util.PackageOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -42,7 +42,7 @@ import scala.util.Properties
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
-object Package extends ScalaCommand[PackageOptions] {
+object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def name                                                          = "package"
   override def group                                                         = "Main"
   override def inSipScala                                                    = false
@@ -259,7 +259,7 @@ object Package extends ScalaCommand[PackageOptions] {
             .map(_.stripSuffix("_sc"))
             .map(_ + extension)
         }
-        .orElse(build.retainedMainClass(build.foundMainClasses(), logger).map(
+        .orElse(build.retainedMainClass(logger).map(
           _.stripSuffix("_sc") + extension
         ).toOption)
         .orElse(build.sources.paths.collectFirst(_._1.baseName + extension))
@@ -286,7 +286,7 @@ object Package extends ScalaCommand[PackageOptions] {
       def mainClass: Either[BuildException, String] =
         build.options.mainClass match {
           case Some(cls) => Right(cls)
-          case None      => build.retainedMainClass(build.foundMainClasses(), logger)
+          case None      => build.retainedMainClass(logger)
         }
 
       def mainClassOpt: Option[String] =

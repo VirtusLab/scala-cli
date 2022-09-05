@@ -21,7 +21,6 @@ import java.nio.file.Paths
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import java.util.function.Supplier
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops._
 import scala.build._
@@ -36,7 +35,7 @@ import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.MainClassOptionsUtil._
-import scala.cli.commands.util.ScalaCliSttpBackend
+import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.commands.util.PublishUtils._
 import scala.cli.commands.{
@@ -57,7 +56,7 @@ import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigPasswordOptionHelpers._
 
-object Publish extends ScalaCommand[PublishOptions] {
+object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
   override def group: String       = "Main"
   override def inSipScala: Boolean = false
@@ -472,8 +471,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val mainJar = {
       val mainClassOpt = build.options.mainClass.orElse {
-        val potentialMainClasses = build.foundMainClasses()
-        build.retainedMainClass(potentialMainClasses, logger) match {
+        build.retainedMainClass(logger) match {
           case Left(_: NoMainClassFoundError) => None
           case Left(err) =>
             logger.debug(s"Error while looking for main class: $err")
