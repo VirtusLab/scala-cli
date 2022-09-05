@@ -17,6 +17,7 @@ object ActionablePreprocessor {
       .map(handler => handler.createActionableDiagnostics(options))
       .sequence
       .left.map(CompositeBuildException(_))
-      .map(_.flatten)
+      .map((v: Seq[Seq[Any]]) => v.flatten)
+      .asInstanceOf[Either[BuildException, Seq[ActionableDiagnostic]]]
 
 }
