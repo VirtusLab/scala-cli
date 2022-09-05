@@ -1,22 +1,22 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import java.util.concurrent.CompletableFuture
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform}
-import scala.build.{Build, BuildThreads, Inputs, Logger, Positioned}
+import scala.build.*
 import scala.cli.CurrentParams
 import scala.cli.commands.run.RunMode
-import scala.cli.commands.util.MainClassOptionsUtil._
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
+import scala.cli.commands.util.MainClassOptionsUtil.*
+import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
+import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
 import scala.util.Properties
-import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
 
 object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   override def group = "Main"
@@ -52,8 +52,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   }
 
   def buildOptions(options: RunOptions): BuildOptions = {
-    import options._
-    import options.sharedRun._
+    import options.*
+    import options.sharedRun.*
     val baseOptions = shared.buildOptions(
       enableJmh = benchmarking.jmh.contains(true),
       jmhVersion = benchmarking.jmhVersion

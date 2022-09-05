@@ -1,8 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
-import coursier.launcher._
-import packager.config._
+import caseapp.*
+import coursier.launcher.*
+import packager.config.*
 import packager.deb.DebianPackage
 import packager.docker.DockerPackage
 import packager.mac.dmg.DmgPackage
@@ -14,33 +14,27 @@ import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
+import scala.build.*
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
-import scala.build._
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  MalformedCliInputError,
-  NoMainClassFoundError,
-  ScalaNativeBuildError
-}
+import scala.build.Ops.*
+import scala.build.errors.*
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
-import scala.cli.commands.OptionsHelper._
+import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.packaging.Spark
 import scala.cli.commands.util.BuildCommandHelpers
-import scala.cli.commands.util.MainClassOptionsUtil._
-import scala.cli.commands.util.PackageOptionsUtil._
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
+import scala.cli.commands.util.MainClassOptionsUtil.*
+import scala.cli.commands.util.PackageOptionsUtil.*
+import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
-import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def name                                                          = "package"
