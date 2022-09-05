@@ -64,7 +64,7 @@ object Deps {
     def scalaPackager = "0.1.27"
     def signingCli    = "0.1.9"
   }
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4-19-cd76521f"
+  def ammonite = ivy"com.lihaoyi:ammonite_3.1.3:2.5.4-19-cd76521f"
   def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.3-sc-1"
