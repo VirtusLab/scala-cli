@@ -6,7 +6,7 @@ import scala.util.Properties
 object Scala {
   def scala212     = "2.12.16"
   def scala213     = "2.13.8"
-  def scala3       = "3.1.3"
+  def scala3       = "3.2.0"
   val allScala2    = Seq(scala213, scala212)
   val all          = allScala2 ++ Seq(scala3)
   val mainVersions = Seq(scala3, scala213)
