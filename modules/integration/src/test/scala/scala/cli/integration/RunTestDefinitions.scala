@@ -1900,7 +1900,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("return relevant error if multiple .scala main classes are present") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
-    val scriptsDir                           = "scritps"
+    val scriptsDir                           = "scripts"
     val inputs = TestInputs(
       os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
       os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
@@ -1910,15 +1910,27 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val res = os.proc(
         TestUtil.cli,
         "run",
-        extraOptions,
-        "."
+        ".",
+        extraOptions
       )
         .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 1)
-      val output          = res.out.text().trim
-      val Some(errorLine) = output.linesIterator.find(_.contains("Found several main classes"))
-      val mainClasses     = errorLine.split(":").last.trim.split(", ").toSet
-      expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
+      val output = res.out.text().trim
+      val errorMessage =
+        output.linesWithSeparators.toSeq.takeRight(6).mkString // dropping compilation logs
+      val extraOptionsString = extraOptions.mkString(" ")
+      val expectedMainClassNames =
+        Seq(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc").sorted
+      val expectedErrorMessage =
+        s"""[${Console.RED}error${Console.RESET}]  Found several main classes: ${expectedMainClassNames.mkString(
+            ", "
+          )}
+           |You can run one of them by passing it with the --main-class option, e.g.
+           |  ${Console.BOLD}${TestUtil.detectCliPath} run . $extraOptionsString --main-class ${expectedMainClassNames.head}${Console.RESET}
+           |
+           |You can pick the main class interactively by passing the --interactive option.
+           |  ${Console.BOLD}${TestUtil.detectCliPath} run . $extraOptionsString --interactive${Console.RESET}""".stripMargin
+      expect(errorMessage == expectedErrorMessage)
     }
   }
 

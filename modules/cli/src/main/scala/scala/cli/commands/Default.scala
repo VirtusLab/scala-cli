@@ -15,8 +15,6 @@ class Default(
   private def defaultHelp: String     = actualHelp.help(ScalaCliHelp.helpFormat)
   private def defaultFullHelp: String = actualHelp.help(ScalaCliHelp.helpFormat, showHidden = true)
 
-  override protected def commandLength = 0
-
   override def group                                                         = "Main"
   override def sharedOptions(options: DefaultOptions): Option[SharedOptions] = Some(options.shared)
   private[cli] var rawArgs                                                   = Array.empty[String]
