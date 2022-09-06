@@ -1,4 +1,4 @@
-package scala.build.options.publish
+package scala.cli.commands.publish
 
 import scala.cli.signing.shared.PasswordOption
 
@@ -7,11 +7,7 @@ sealed abstract class MaybeConfigPasswordOption extends Product with Serializabl
 
 object MaybeConfigPasswordOption {
   final case class ActualOption(option: PasswordOption) extends MaybeConfigPasswordOption
-  final case class ConfigOption(fullName: String) extends MaybeConfigPasswordOption {
-    private lazy val split  = fullName.split('.')
-    def prefix: Seq[String] = split.dropRight(1).toSeq
-    def name: String        = split.last
-  }
+  final case class ConfigOption(fullName: String)       extends MaybeConfigPasswordOption
 
   def parse(input: String): Either[String, MaybeConfigPasswordOption] =
     if (input.startsWith("config:"))

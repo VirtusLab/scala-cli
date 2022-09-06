@@ -2,8 +2,7 @@ package scala.cli.util
 
 import caseapp.core.argparser.ArgParser
 import caseapp.core.argparser.SimpleArgParser
-
-import scala.build.options.publish.MaybeConfigPasswordOption
+import scala.cli.commands.publish.MaybeConfigPasswordOption
 import scala.cli.signing.shared.PasswordOption
 
 abstract class LowPriorityArgParsers {

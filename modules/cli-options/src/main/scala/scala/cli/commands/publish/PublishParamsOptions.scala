@@ -1,8 +1,6 @@
 package scala.cli.commands.publish
 
 import caseapp._
-
-import scala.build.options.publish.MaybeConfigPasswordOption
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers._
 import scala.cli.util.ArgParsers._

@@ -1,6 +1,6 @@
 package scala.build.options
 
-import scala.build.options.publish.{ComputeVersion, MaybeConfigPasswordOption, Signer}
+import scala.build.options.publish.{ComputeVersion, Signer, ConfigPasswordOption}
 import scala.cli.signing.shared.PasswordOption
 
 /** Publishing-related options, that can have different values locally and on CIs */
@@ -12,8 +12,8 @@ final case class PublishContextualOptions(
   gpgSignatureId: Option[String] = None,
   gpgOptions: List[String] = Nil,
   signer: Option[Signer] = None,
-  secretKey: Option[MaybeConfigPasswordOption] = None,
-  secretKeyPassword: Option[MaybeConfigPasswordOption] = None,
+  secretKey: Option[ConfigPasswordOption] = None,
+  secretKeyPassword: Option[ConfigPasswordOption] = None,
   repoUser: Option[PasswordOption] = None,
   repoPassword: Option[PasswordOption] = None,
   repoRealm: Option[String] = None,

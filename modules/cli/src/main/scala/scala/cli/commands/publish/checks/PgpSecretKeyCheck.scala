@@ -19,7 +19,8 @@ import scala.cli.commands.util.JvmUtils
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.util.MaybeConfigPasswordOptionHelpers._
+import scala.cli.util.ConfigPasswordOptionHelpers._
+import scala.cli.commands.util.PublishUtils._
 
 final case class PgpSecretKeyCheck(
   options: PublishSetupOptions,
@@ -64,7 +65,10 @@ final case class PgpSecretKeyCheck(
           case Some(secretKey) =>
             val pubKeyOpt = options.publicKey.map(_.get())
             val passwordOpt =
-              value(options.publishParams.secretKeyPassword.map(_.get(configDb())).sequence)
+              value(options.publishParams.secretKeyPassword
+                .map(_.configPasswordOptions())
+                .map(_.get(configDb()))
+                .sequence)
             (pubKeyOpt, Left(secretKey), passwordOpt)
           case None =>
             value(configDb().get(Keys.pgpSecretKey)) match {
@@ -83,6 +87,7 @@ final case class PgpSecretKeyCheck(
                     val res = value {
                       options.publishParams
                         .secretKeyPassword
+                        .map(_.configPasswordOptions())
                         .map(_.get(configDb()))
                         .sequence
                     }
@@ -221,7 +226,8 @@ final case class PgpSecretKeyCheck(
           Seq(SetSecret(
             "PUBLISH_SECRET_KEY",
             secretKey match {
-              case Left(p)  => value(p.get(configDb())).getBytes().map(maybeEncodeBase64)
+              case Left(p) =>
+                value(p.configPasswordOptions().get(configDb())).getBytes().map(maybeEncodeBase64)
               case Right(p) => p.getBytes().map(maybeEncodeBase64)
             },
             force = true
