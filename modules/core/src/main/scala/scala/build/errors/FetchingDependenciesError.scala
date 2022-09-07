@@ -5,10 +5,15 @@ import coursier.error.CoursierError
 import scala.build.Position
 
 final class FetchingDependenciesError(
-  underlying: CoursierError,
-  positions: Seq[Position]
+  val underlying: CoursierError,
+  override val positions: Seq[Position]
 ) extends BuildException(
       underlying.getMessage,
       positions,
       underlying
     )
+
+object FetchingDependenciesError {
+  def unapply(e: FetchingDependenciesError): Option[(CoursierError, Seq[Position])] =
+    Some(e.underlying -> e.positions)
+}
