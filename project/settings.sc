@@ -187,7 +187,7 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         "lib"
       ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
+      val libPath = os.Path(libRes.out.trim(), os.pwd)
       os.copy.over(libPath, destDir / "csjniutils.lib")
     }
     private def copyLibsodiumjniTo(cs: String, destDir: os.Path): Unit = {
@@ -214,7 +214,7 @@ trait CliLaunchers extends SbtModule { self =>
         "-A",
         ext
       ).call()
-      val libPath = os.Path(libRes.out.text().trim, os.pwd)
+      val libPath = os.Path(libRes.out.trim(), os.pwd)
       val prefix =
         if (Properties.isWin) ""
         else "lib"
@@ -227,7 +227,7 @@ trait CliLaunchers extends SbtModule { self =>
         "--archive",
         "https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-stable-msvc.zip"
       ).call()
-      val dir = os.Path(dirRes.out.text().trim, os.pwd)
+      val dir = os.Path(dirRes.out.trim(), os.pwd)
       os.copy.over(
         dir / "libsodium" / "x64" / "Release" / "v143" / "static" / "libsodium.lib",
         destDir / "sodium.lib"
@@ -238,7 +238,7 @@ trait CliLaunchers extends SbtModule { self =>
         cs,
         "get",
         s"https://dl-cdn.alpinelinux.org/alpine/v$alpineVersion/main/x86_64/libsodium-static-$libsodiumVersion-r0.apk"
-      ).call().out.text().trim
+      ).call().out.trim()
       val tmpDir = os.temp.dir(prefix = "libsodium-static")
       try {
         os.proc("tar", "-zxf", os.Path(arcPath, os.pwd))

@@ -35,7 +35,7 @@ class TestNativeImageOnScala3 extends ScalaCliSuite {
       // FIXME Check that dest is indeed a binary?
 
       val res         = os.proc(root / dest, args).call(cwd = root)
-      val outputLines = res.out.text().trim.linesIterator.to(Seq)
+      val outputLines = res.out.trim().linesIterator.to(Seq)
       expect(expectedLines == outputLines)
     }
   }

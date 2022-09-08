@@ -67,7 +67,7 @@ class JavaParserProxyBinary(
       try {
         logger.debug(s"Running $command $source")
         val res = os.proc(command, source).call()
-        res.out.text().trim
+        res.out.trim()
       }
       finally os.remove(source)
     if (output.isEmpty) None

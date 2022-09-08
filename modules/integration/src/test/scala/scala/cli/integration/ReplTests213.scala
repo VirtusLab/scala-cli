@@ -40,7 +40,7 @@ class ReplTests213 extends ReplTestDefinitions(
       )
       // format: on
       val res    = os.proc(cmd).call(cwd = root)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       expect(output == "Here's an HList: 2 :: true :: a :: HNil")
     }
   }

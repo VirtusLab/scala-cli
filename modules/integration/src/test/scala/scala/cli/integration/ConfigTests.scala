@@ -12,15 +12,15 @@ class ConfigTests extends ScalaCliSuite {
     val name       = "Alex"
     TestInputs.empty.fromRoot { root =>
       val before = os.proc(TestUtil.cli, "config", dirOptions, "user.name").call(cwd = root)
-      expect(before.out.text().trim.isEmpty)
+      expect(before.out.trim().isEmpty)
 
       os.proc(TestUtil.cli, "config", dirOptions, "user.name", name).call(cwd = root)
       val res = os.proc(TestUtil.cli, "config", dirOptions, "user.name").call(cwd = root)
-      expect(res.out.text().trim == name)
+      expect(res.out.trim() == name)
 
       os.proc(TestUtil.cli, "config", dirOptions, "user.name", "--unset").call(cwd = root)
       val after = os.proc(TestUtil.cli, "config", dirOptions, "user.name").call(cwd = root)
-      expect(after.out.text().trim.isEmpty)
+      expect(after.out.trim().isEmpty)
     }
   }
 
@@ -33,7 +33,7 @@ class ConfigTests extends ScalaCliSuite {
       def emptyCheck(): Unit = {
         val value = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password")
           .call(cwd = root)
-        expect(value.out.text().trim.isEmpty)
+        expect(value.out.trim().isEmpty)
       }
 
       def unset(): Unit =
@@ -43,12 +43,12 @@ class ConfigTests extends ScalaCliSuite {
       def read(): String = {
         val res = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password")
           .call(cwd = root)
-        res.out.text().trim
+        res.out.trim()
       }
       def readDecoded(env: Map[String, String] = null): String = {
         val res = os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password", "--password")
           .call(cwd = root, env = env)
-        res.out.text().trim
+        res.out.trim()
       }
 
       emptyCheck()

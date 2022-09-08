@@ -96,7 +96,7 @@ class InstallHomeTests extends ScalaCliSuite {
       val v1Install = os.proc(binDirPath / dummyScalaCliBinName).call(
         cwd = root,
         stdin = os.Inherit
-      ).out.text().trim
+      ).out.trim()
       expect(v1Install == firstVersion)
 
       // update to 2 version
@@ -105,7 +105,7 @@ class InstallHomeTests extends ScalaCliSuite {
       val v2Update = os.proc(binDirPath / dummyScalaCliBinName).call(
         cwd = root,
         stdin = os.Inherit
-      ).out.text().trim
+      ).out.trim()
       expect(v2Update == secondVersion)
 
       // downgrade to 1 version with force
@@ -114,7 +114,7 @@ class InstallHomeTests extends ScalaCliSuite {
       val v1Downgrade = os.proc(binDirPath / dummyScalaCliBinName).call(
         cwd = root,
         stdin = os.Inherit
-      ).out.text().trim
+      ).out.trim()
       expect(v1Downgrade == firstVersion)
 
       uninstallScalaCli(root, binDirPath, force = true, skipCache = true)

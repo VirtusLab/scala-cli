@@ -25,12 +25,12 @@ class DependencyUpdateTests extends ScalaCliSuite {
           stdin = os.Inherit,
           mergeErrIntoOut = true
         )
-      expect(p.out.text().trim.contains("Updated dependency to"))
+      expect(p.out.trim().contains("Updated dependency to"))
       expect( // check if dependency update command modify file
         os.read(root / fileName) != fileContent)
 
       // after updating dependencies app should run
-      val out = os.proc(TestUtil.cli, fileName).call(cwd = root).out.text().trim
+      val out = os.proc(TestUtil.cli, fileName).call(cwd = root).out.trim()
       expect(out == message)
     }
   }
