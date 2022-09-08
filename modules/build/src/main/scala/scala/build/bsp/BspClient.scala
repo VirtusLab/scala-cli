@@ -1,6 +1,5 @@
 package scala.build.bsp
 
-import ch.epfl.scala.bsp4j.Location
 import ch.epfl.scala.{bsp4j => b}
 
 import java.lang.{Boolean => JBoolean}
@@ -196,7 +195,7 @@ class BspClient(
           new b.Diagnostic(range, diag.message)
 
         diag.relatedInformation.foreach { relatedInformation =>
-          val location = new Location(path.toNIO.toUri.toASCIIString, range)
+          val location = new b.Location(path.toNIO.toUri.toASCIIString, range)
           val related  = new b.DiagnosticRelatedInformation(location, relatedInformation.message)
           bDiag.setRelatedInformation(List(related).asJava)
         }
