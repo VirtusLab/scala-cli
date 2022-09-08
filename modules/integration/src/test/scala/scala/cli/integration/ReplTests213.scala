@@ -12,6 +12,20 @@ class ReplTests213 extends ReplTestDefinitions(
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
+  test("repl custom repositories work") {
+    TestInputs.empty.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "repl",
+        "--repl-dry-run",
+        "--scala",
+        Constants.scalaSnapshot213,
+        "--repository",
+        "https://scala-ci.typesafe.com/artifactory/scala-integration"
+      ).call(cwd = root)
+    }
+  }
+
   test("ammonite with extra JAR") {
     TestInputs.empty.fromRoot { root =>
       val ammArgs = Seq(
