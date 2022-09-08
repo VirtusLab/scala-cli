@@ -105,7 +105,7 @@ Print the resulting class path
 
 ### `--output`
 
-Aliases: `--output-directory`
+Aliases: `--output-directory`, `-d`, `--destination`
 
 Copy compilation results to output directory using either relative or absolute path
 
@@ -123,7 +123,7 @@ Available in commands:
 
 ### `--dependency`
 
-Aliases: `--dep`, `-d`
+Aliases: `--dep`
 
 Add dependencies
 

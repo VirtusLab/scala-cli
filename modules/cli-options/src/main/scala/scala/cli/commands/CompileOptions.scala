@@ -19,6 +19,8 @@ final case class CompileOptions(
     printClassPath: Boolean = false,
 
   @Name("output-directory")
+  @Name("d")
+  @Name("destination")
   @HelpMessage("Copy compilation results to output directory using either relative or absolute path")
   @ValueDescription("/example/path")
     output: Option[String] = None,
