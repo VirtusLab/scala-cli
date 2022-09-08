@@ -1,5 +1,6 @@
 package scala.cli.commands
 
+import ai.kien.python.Python
 import caseapp.*
 import coursier.launcher.*
 import packager.config.*
@@ -24,6 +25,7 @@ import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
+import scala.cli.commands.Run.orPythonDetectionError
 import scala.cli.commands.packaging.Spark
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
@@ -365,7 +367,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           value(buildJs(build, destPath, value(mainClass), logger))
 
         case PackageType.Native =>
-          buildNative(build, value(mainClass), destPath, logger)
+          value(buildNative(build, value(mainClass), destPath, logger))
           destPath
 
         case PackageType.GraalVMNativeImage =>
@@ -455,7 +457,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           }
           destPath
         case PackageType.Docker =>
-          docker(build, value(mainClass), logger)
+          value(docker(build, value(mainClass), logger))
           destPath
       }
 
@@ -575,7 +577,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     build: Build.Successful,
     mainClass: String,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
     val packageOptions = build.options.notForBloopOptions.packageOptions
 
     if (build.options.platform.value == Platform.Native && (Properties.isMac || Properties.isWin)) {
@@ -616,7 +618,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     build.options.platform.value match {
       case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
       case Platform.JS     => buildJs(build, appPath, mainClass, logger)
-      case Platform.Native => buildNative(build, mainClass, appPath, logger)
+      case Platform.Native => value(buildNative(build, mainClass, appPath, logger))
     }
 
     logger.message(
@@ -908,9 +910,24 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     mainClass: String,
     dest: os.Path,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
 
     val cliOptions = build.options.scalaNativeOptions.configCliOptions()
+
+    val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
+    val pythonLdFlags =
+      if (setupPython)
+        value {
+          val python       = Python()
+          val flagsOrError = python.ldflags
+          logger.debug(s"Python ldflags: $flagsOrError")
+          flagsOrError.orPythonDetectionError
+        }
+      else
+        Nil
+    val pythonCliOptions = pythonLdFlags.flatMap(f => Seq("--linking-option", f)).toList
+
+    val allCliOptions = pythonCliOptions ++ cliOptions
 
     val nativeWorkDir = build.inputs.nativeWorkDir
     os.makeDir.all(nativeWorkDir)
@@ -918,7 +935,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val cacheData =
       CachedBinary.getCacheData(
         build,
-        cliOptions,
+        allCliOptions,
         dest,
         nativeWorkDir
       )
@@ -928,7 +945,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
         val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString
         val args =
-          cliOptions ++
+          allCliOptions ++
             logger.scalaNativeCliInternalLoggerOptions ++
             List[String](
               "--outpath",

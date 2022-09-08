@@ -377,6 +377,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |
          |  def libsodiumVersion = "${deps.libsodiumVersion}"
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.version}"
+         |
+         |  def scalaPyVersion = "${Deps.scalaPy.dep.version}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -680,6 +682,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.jsoniterCore,
     Deps.libsodiumjni,
     Deps.metaconfigTypesafe,
+    Deps.pythonNativeLibs,
     Deps.scalaPackager,
     Deps.signingCli,
     Deps.slf4jNop, // to silence jgit

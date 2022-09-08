@@ -102,6 +102,7 @@ object Deps {
   def organizeImports            = ivy"com.github.liancheng::organize-imports:0.5.0"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.8.1"
   def pprint                     = ivy"com.lihaoyi::pprint:0.7.3"
+  def pythonNativeLibs           = ivy"ai.kien::python-native-libs:0.2.3"
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
@@ -120,6 +121,7 @@ object Deps {
   def scalaPackagerCli = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
   // Force using of 2.13 - is there a better way?
   def scalaparse               = ivy"com.lihaoyi:scalaparse_2.13:2.3.3"
+  def scalaPy                  = ivy"me.shadaj::scalapy-core::0.5.2+5-83f1eb68"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"

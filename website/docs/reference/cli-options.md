@@ -1461,6 +1461,25 @@ Whether to check if a GitHub workflow already exists (one for publishing is writ
 
 Dummy mode - don't upload any secret to GitHub
 
+## Python options
+
+Available in commands:
+- [`run`](./commands.md#run)
+- [`shebang`](./commands.md#shebang)
+
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+#### `--python-setup`
+
+Set Java options so that Python can be loaded
+
+#### `--python`
+
+Aliases: `--py`
+
+Enable Python support via ScalaPy
+
 ## Repl options
 
 Available in commands:

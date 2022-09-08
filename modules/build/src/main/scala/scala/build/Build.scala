@@ -814,13 +814,22 @@ object Build {
           .map(v => List("-release", v).map(ScalacOpt(_)))
           .getOrElse(Nil)
 
+        val scalapyOptions =
+          if (
+            params.scalaVersion.startsWith("2.13.") &&
+            options.notForBloopOptions.python.getOrElse(false)
+          )
+            Seq(ScalacOpt("-Yimports:java.lang,scala,scala.Predef,me.shadaj.scalapy"))
+          else Nil
+
         val scalacOptions =
           options.scalaOptions.scalacOptions.map(_.value) ++
             pluginScalacOptions ++
             semanticDbScalacOptions ++
             sourceRootScalacOptions ++
             scalaJsScalacOptions ++
-            scalacReleaseV
+            scalacReleaseV ++
+            scalapyOptions
 
         val compilerParams = ScalaCompilerParams(
           scalaVersion = params.scalaVersion,

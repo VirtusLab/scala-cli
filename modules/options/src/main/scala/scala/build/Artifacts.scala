@@ -71,7 +71,8 @@ object Artifacts {
     addJsTestBridge: Option[String],
     addNativeTestInterface: Option[String],
     scalaJsCliVersion: Option[String],
-    scalaNativeCliVersion: Option[String]
+    scalaNativeCliVersion: Option[String],
+    addScalapy: Boolean
   )
 
   def apply(
@@ -243,7 +244,16 @@ object Artifacts {
             dep"org.scala-native::test-interface::$scalaNativeVersion"
           }
 
-        val internalDependencies = jsTestBridgeDependencies ++ nativeTestInterfaceDependencies
+        val scalapyDependencies =
+          if (scalaArtifactsParams.addScalapy)
+            Seq(dep"me.shadaj::scalapy-core::$scalaPyVersion")
+          else
+            Nil
+
+        val internalDependencies =
+          jsTestBridgeDependencies ++
+            nativeTestInterfaceDependencies ++
+            scalapyDependencies
 
         val scala = ScalaArtifacts(
           compilerDependencies,
