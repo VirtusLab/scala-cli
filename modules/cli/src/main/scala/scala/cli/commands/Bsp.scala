@@ -12,10 +12,9 @@ import scala.build.{Build, CrossSources, Inputs, PersistentDiagnosticLogger, Sou
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.config.{ConfigDb, Keys}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Bsp extends ScalaCommand[BspOptions] {
   override def hidden = true

@@ -6,16 +6,15 @@ import coursier.error.{FetchError, ResolutionError}
 
 import scala.build.EitherCps.{either, value}
 import scala.build._
-import scala.build.errors.{BuildException, FetchingDependenciesError, CantDownloadAmmoniteError}
+import scala.build.errors.{BuildException, CantDownloadAmmoniteError, FetchingDependenciesError}
 import scala.build.internal.Runner
 import scala.build.options.{BuildOptions, JavaOpt, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.Run.maybePrintSimpleScalacOutput
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
-import scala.util.Properties
 import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
+import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
   override def group = "Main"

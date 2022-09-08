@@ -1,11 +1,11 @@
 package scala.cli.commands.util
+import coursier.core.Version
+
 import scala.build.internal.FetchExternalBinary
 import scala.build.options.BuildOptions
 import scala.cli.commands.FmtOptions
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.Properties
-
-import coursier.core.Version
 
 object FmtOptionsUtil {
   implicit class FmtOptionsOps(v: FmtOptions) {

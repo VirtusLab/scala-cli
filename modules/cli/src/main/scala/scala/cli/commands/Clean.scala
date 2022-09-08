@@ -4,9 +4,8 @@ import caseapp._
 
 import scala.build.internal.Constants
 import scala.build.{Inputs, Os}
-import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
-import scala.cli.ScalaCli
+import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"

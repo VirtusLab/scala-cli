@@ -15,9 +15,10 @@ import java.io.{ByteArrayOutputStream, OutputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
-import scala.build.*
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.*
 import scala.build.errors.*
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*

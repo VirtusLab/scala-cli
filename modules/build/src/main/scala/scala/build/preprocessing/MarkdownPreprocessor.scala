@@ -1,6 +1,7 @@
 package scala.build.preprocessing
 
 import java.nio.charset.StandardCharsets
+
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.markdown.MarkdownCodeWrapper

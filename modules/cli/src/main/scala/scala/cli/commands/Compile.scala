@@ -7,9 +7,9 @@ import java.io.File
 import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Compile extends ScalaCommand[CompileOptions] {
   override def group                                                         = "Main"

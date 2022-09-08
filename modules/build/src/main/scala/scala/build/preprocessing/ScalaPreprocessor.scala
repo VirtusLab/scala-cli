@@ -5,6 +5,7 @@ import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import java.nio.charset.StandardCharsets
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.*

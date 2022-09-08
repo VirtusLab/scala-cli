@@ -21,30 +21,30 @@ import java.nio.file.Paths
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import java.util.function.Supplier
-import scala.build.*
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.*
 import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.publish.{ComputeVersion, Developer, License, Vcs, Signer as PSigner}
+import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
 import scala.build.options.{BuildOptions, ConfigMonoid, PublishContextualOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.MainClassOptionsUtil.*
+import scala.cli.commands.util.PublishUtils.*
 import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
-import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.util.PublishUtils.*
 import scala.cli.commands.{
   MainClassOptions,
+  Package => PackageCmd,
   ScalaCommand,
   SharedOptions,
-  WatchUtil,
-  Package as PackageCmd
+  WatchUtil
 }
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.{

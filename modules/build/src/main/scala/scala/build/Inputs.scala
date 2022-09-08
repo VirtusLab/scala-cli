@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.annotation.tailrec
-import scala.build.Inputs.WorkspaceOrigin
+import scala.build.Inputs.{Element, WorkspaceOrigin}
 import scala.build.errors.{BuildException, InputsException}
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
@@ -14,7 +14,6 @@ import scala.build.options.Scope
 import scala.build.preprocessing.ScopePath
 import scala.util.Properties
 import scala.util.matching.Regex
-import scala.build.Inputs.Element
 
 final case class Inputs(
   elements: Seq[Inputs.Element],

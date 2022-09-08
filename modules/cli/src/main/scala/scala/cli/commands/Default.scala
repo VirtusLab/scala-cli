@@ -2,9 +2,9 @@ package scala.cli.commands
 
 import caseapp.core.help.RuntimeCommandsHelp
 import caseapp.core.{Error, RemainingArgs}
-import scala.cli.commands.util.SharedOptionsUtil.*
 
 import scala.build.internal.Constants
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.{CurrentParams, ScalaCliHelp}
 
 class Default(

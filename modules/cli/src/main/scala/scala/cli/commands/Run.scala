@@ -5,11 +5,12 @@ import caseapp.*
 
 import java.io.File
 import java.util.concurrent.CompletableFuture
+
 import scala.build.EitherCps.{either, value}
+import scala.build.*
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
-import scala.build.*
 import scala.cli.CurrentParams
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps

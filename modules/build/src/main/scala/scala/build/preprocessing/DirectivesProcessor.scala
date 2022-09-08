@@ -1,16 +1,15 @@
 package scala.build.preprocessing
 import scala.build.Logger
 import scala.build.Ops._
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErrors}
 import scala.build.options.ConfigMonoid
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
+  DirectiveUtil,
   ProcessedDirective,
   ScopedDirective,
   StrictDirective
 }
-import scala.build.errors.DirectiveErrors
-import scala.build.preprocessing.directives.DirectiveUtil
 
 object DirectivesProcessor {
 

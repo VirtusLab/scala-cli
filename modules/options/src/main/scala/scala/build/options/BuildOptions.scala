@@ -10,6 +10,7 @@ import java.io.File
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+
 import scala.build.EitherCps.{either, value}
 import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
 import scala.build.errors.*

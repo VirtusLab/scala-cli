@@ -13,6 +13,7 @@ import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.Inputs.VirtualScript.VirtualScriptNameRegex
 import scala.build.Ops.*
+import scala.build.actionable.ActionablePreprocessor
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
@@ -23,7 +24,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.build.actionable.ActionablePreprocessor
 
 trait Build {
   def inputs: Inputs

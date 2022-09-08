@@ -1,7 +1,7 @@
 package scala.cli.internal
 
-import ch.epfl.scala.{bsp4j => b}
 import ch.epfl.scala.bsp4j.Location
+import ch.epfl.scala.{bsp4j => b}
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
 import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, ScalaConsoleLogger}
@@ -9,13 +9,13 @@ import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, Scal
 import java.io.PrintStream
 
 import scala.build.blooprifle.BloopRifleLogger
-import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.errors.Diagnostic.RelatedInformation
+import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.internal.CustomProgressBarRefreshDisplay
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
 import scala.collection.mutable
-import scala.scalanative.{build => sn}
 import scala.jdk.CollectionConverters._
+import scala.scalanative.{build => sn}
 
 class CliLogger(
   val verbosity: Int,

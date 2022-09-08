@@ -1,13 +1,12 @@
 package scala.build.bsp
 
+import ch.epfl.scala.bsp4j.Location
 import ch.epfl.scala.{bsp4j => b}
 
 import java.lang.{Boolean => JBoolean}
 import java.net.URI
 import java.nio.file.Paths
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
-
-import ch.epfl.scala.bsp4j.Location
 
 import scala.build.Position.File
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}

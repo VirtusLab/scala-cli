@@ -4,11 +4,12 @@ import coursier.cache.FileCache
 import coursier.core.{Classifier, Module}
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Fetch, Resolution, Dependency as CsDependency, core as csCore, util as csUtil}
+import coursier.{Dependency => CsDependency, Fetch, Resolution, core => csCore, util => csUtil}
 import dependency.*
 import os.Path
 
 import java.net.URL
+
 import scala.build.CoursierUtils.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
