@@ -135,7 +135,8 @@ object dummy extends Module {
   // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
   // versions are used in the fmt and repl commands, and ensure Ammonite is available
   // for all Scala versions we support.
-  object amm extends Cross[Amm](Scala.listAll: _*)
+  // Temporarily filtering out 3.2.0, until com-lihaoyi/Ammonite#1286 is merged.
+  object amm extends Cross[Amm](Scala.listAll.filter(_ != "3.2.0"): _*)
   class Amm(val crossScalaVersion: String) extends CrossScalaModule with Bloop.Module {
     def skipBloop = true
     def ivyDeps = Agg(
