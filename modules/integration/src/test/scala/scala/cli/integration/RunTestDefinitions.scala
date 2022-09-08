@@ -2219,6 +2219,41 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("-classpath allows to run with scala-cli compile -d option pre-compiled classes") {
+    val preCompileDir    = "PreCompileDir"
+    val preCompiledInput = "Message.scala"
+    val runDir           = "RunDir"
+    val mainInput        = "Main.scala"
+    val expectedOutput   = "Hello"
+    TestInputs(
+      os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
+      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
+    ).fromRoot { (root: os.Path) =>
+      val preCompileOutputDir = "out"
+
+      // first, precompile to an explicitly specified output directory with -d
+      os.proc(
+        TestUtil.cli,
+        "compile",
+        preCompiledInput,
+        "-d",
+        preCompileOutputDir,
+        extraOptions
+      ).call(cwd = root / preCompileDir)
+
+      // next, run while relying on the pre-compiled class, specifying the path with -classpath
+      val runRes = os.proc(
+        TestUtil.cli,
+        "run",
+        mainInput,
+        "-classpath",
+        (os.rel / os.up / preCompileDir / preCompileOutputDir).toString,
+        extraOptions
+      ).call(cwd = root / runDir)
+      expect(runRes.out.trim == expectedOutput)
+    }
+  }
+
   if (actualScalaVersion.startsWith("3"))
     test("should throw exception for code compiled by scala 3.1.3") {
       val exceptionMsg = "Throw exception in Scala"

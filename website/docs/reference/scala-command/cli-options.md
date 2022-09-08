@@ -648,9 +648,9 @@ Show help for scalac. This is an alias for --scalac-option -help
 
 ### `--extra-jars`
 
-Aliases: `--jar`, `--jars`, `--extra-jar`
+Aliases: `--jar`, `--jars`, `--extra-jar`, `--class`, `--extra-class`, `--classes`, `--extra-classes`, `-classpath`, `--classpath`, `--class-path`, `--extra-class-path`
 
-Add extra JARs in the class path
+Add extra JARs and compiled classes to the class path
 
 ### `--extra-compile-only-jars`
 

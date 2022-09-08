@@ -55,11 +55,19 @@ final case class SharedOptions(
     markdown: MarkdownOptions = MarkdownOptions(),
 
   @Group("Java")
-  @HelpMessage("Add extra JARs in the class path")
+  @HelpMessage("Add extra JARs and compiled classes to the class path")
   @ValueDescription("paths")
   @Name("jar")
   @Name("jars")
   @Name("extraJar")
+  @Name("class")
+  @Name("extraClass")
+  @Name("classes")
+  @Name("extraClasses")
+  @Name("-classpath")
+  @Name("classpath")
+  @Name("classPath")
+  @Name("extraClassPath")
     extraJars: List[String] = Nil,
 
   @Group("Java")
