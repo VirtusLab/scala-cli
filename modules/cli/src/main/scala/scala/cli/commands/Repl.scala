@@ -2,10 +2,11 @@ package scala.cli.commands
 
 import caseapp._
 import coursier.cache.FileCache
+import coursier.error.{FetchError, ResolutionError}
 
 import scala.build.EitherCps.{either, value}
 import scala.build._
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, FetchingDependenciesError, CantDownloadAmmoniteError}
 import scala.build.internal.Runner
 import scala.build.options.{BuildOptions, JavaOpt, Scope}
 import scala.cli.CurrentParams
@@ -184,33 +185,41 @@ object Repl extends ScalaCommand[ReplOptions] {
     dryRun: Boolean
   ): Either[BuildException, Unit] = either {
 
-    val cache = options.internal.cache.getOrElse(FileCache())
+    val cache             = options.internal.cache.getOrElse(FileCache())
+    val shouldUseAmmonite = options.notForBloopOptions.replOptions.useAmmonite
     val replArtifacts = value {
       val scalaParams = artifacts.scalaOpt
         .getOrElse {
           sys.error("Expected Scala artifacts to be fetched")
         }
         .params
-      if (options.notForBloopOptions.replOptions.useAmmonite)
-        ReplArtifacts.ammonite(
-          scalaParams,
-          options.notForBloopOptions.replOptions.ammoniteVersion,
-          artifacts.userDependencies,
-          artifacts.extraClassPath,
-          artifacts.extraSourceJars,
-          logger,
-          cache,
-          directories
-        )
-      else
-        ReplArtifacts.default(
-          scalaParams,
-          artifacts.userDependencies,
-          artifacts.extraClassPath,
-          logger,
-          cache,
-          options.finalRepositories
-        )
+      val maybeReplArtifacts =
+        if (shouldUseAmmonite)
+          ReplArtifacts.ammonite(
+            scalaParams,
+            options.notForBloopOptions.replOptions.ammoniteVersion,
+            artifacts.userDependencies,
+            artifacts.extraClassPath,
+            artifacts.extraSourceJars,
+            logger,
+            cache,
+            directories
+          )
+        else
+          ReplArtifacts.default(
+            scalaParams,
+            artifacts.userDependencies,
+            artifacts.extraClassPath,
+            logger,
+            cache,
+            options.finalRepositories
+          )
+      maybeReplArtifacts match {
+        case Left(FetchingDependenciesError(e: ResolutionError.CantDownloadModule, positions))
+            if shouldUseAmmonite && e.module.name.value == s"ammonite_${scalaParams.scalaVersion}" =>
+          Left(CantDownloadAmmoniteError(e.version, scalaParams.scalaVersion, e, positions))
+        case either @ _ => either
+      }
     }
 
     // TODO Warn if some entries of artifacts.classPath were evicted in replArtifacts.replClassPath
@@ -236,7 +245,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       )
 
     val additionalArgs =
-      if (options.notForBloopOptions.replOptions.useAmmonite)
+      if (shouldUseAmmonite)
         options.notForBloopOptions.replOptions.ammoniteArgs
       else
         options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
