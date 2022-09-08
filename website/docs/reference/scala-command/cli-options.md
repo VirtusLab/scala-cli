@@ -97,9 +97,9 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-### `--class-path`
+### `--print-class-path`
 
-Aliases: `-p`, `--classpath`
+Aliases: `-p`, `--print-classpath`
 
 Print the resulting class path
 

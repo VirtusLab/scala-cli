@@ -254,16 +254,16 @@ scala-cli compile Hello.scala --compiler-plugin org.typelevel:::kind-projector:0
 
 ## Printing a class path
 
-`--class-path` makes `scala-cli compile` print a class path:
+`--print-class-path` makes `scala-cli compile` print a class path:
 ```bash
-scala-cli compile --class-path Hello.scala
+scala-cli compile --print-class-path Hello.scala
 # /work/.scala/project-cef76d561e/classes:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/runner_2.12/0.0.1-SNAPSHOT/jars/runner_2.12.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/stubs/0.0.1-SNAPSHOT/jars/stubs.jar
 ```
 
 This is handy when working with other tools.
 For example, you can pass this class path to `java -cp`:
 ```bash
-java -cp "$(scala-cli compile --class-path Hello.scala)" Hello
+java -cp "$(scala-cli compile --print-class-path Hello.scala)" Hello
 # Hello
 ```
 

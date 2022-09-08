@@ -36,8 +36,8 @@ object Compile extends ScalaCommand[CompileOptions] {
       Update.checkUpdateSafe(logger)
 
     val cross = options.cross.cross.getOrElse(false)
-    if (options.classPath && cross) {
-      System.err.println(s"Error: cannot specify both --class-path and --cross")
+    if (options.printClassPath && cross) {
+      System.err.println(s"Error: cannot specify both --print-class-path and --cross")
       sys.exit(1)
     }
 
@@ -66,7 +66,7 @@ object Compile extends ScalaCommand[CompileOptions] {
             build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
             s     <- build.successfulOpt
           } yield s
-        if (options.classPath)
+        if (options.printClassPath)
           for (s <- successulBuildOpt) {
             val cp = s.fullClassPath.map(_.toString).mkString(File.pathSeparator)
             println(cp)

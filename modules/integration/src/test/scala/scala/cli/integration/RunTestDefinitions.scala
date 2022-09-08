@@ -1267,7 +1267,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         // format: off
         val cmd = Seq[os.Shellable](
           TestUtil.cli, "compile", extraOptions,
-          "--class-path", ".",
+          "--print-class-path", ".",
           if (inlineDelambdafy) Seq("-Ydelambdafy:inline") else Nil
         )
         // format: on

@@ -109,7 +109,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           "--test",
           "--output",
           tempOutput,
-          "--class-path",
+          "--print-class-path",
           extraOptions,
           "."
         ).call(cwd =
@@ -416,7 +416,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         os.proc(
           TestUtil.cli,
           "compile",
-          "--class-path",
+          "--print-class-path",
           extraOptions,
           "."
         ).call(cwd = root)
