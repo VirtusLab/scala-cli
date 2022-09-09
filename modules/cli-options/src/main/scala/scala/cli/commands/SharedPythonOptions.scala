@@ -4,9 +4,9 @@ import caseapp._
 
 // format: off
 final case class SharedPythonOptions(
-  @HelpMessage("Set Java options so that Python can be loaded")
+  @HelpMessage("[experimental] Set Java options so that Python can be loaded")
     pythonSetup: Option[Boolean] = None,
-  @HelpMessage("Enable Python support via ScalaPy")
+  @HelpMessage("[experimental] Enable Python support via ScalaPy")
   @ExtraName("py")
     python: Option[Boolean] = None
 )
