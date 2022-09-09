@@ -58,6 +58,32 @@ class SipScalaTests extends ScalaCliSuite {
     expect(output.contains(s"directive is not supported"))
   }
 
+  def noMarkdownOptions(): Unit = TestInputs.empty.fromRoot { root =>
+    val code =
+      """
+        | println("ala")
+        |""".stripMargin
+
+    val source = root / "A.sc"
+    os.write(source, code)
+
+    val cliPath = os.Path(TestUtil.cliPath, os.pwd)
+
+    os.proc(cliPath, "--markdown", source).call(cwd = root)
+
+    os.copy(cliPath, root / "scala")
+    os.perms.set(root / "scala", "rwxr-xr-x")
+
+    val res = os.proc(root / "scala", "--markdown", source).call(
+      cwd = root,
+      check = false,
+      mergeErrIntoOut = true
+    )
+    expect(res.exitCode == 1)
+    val output = res.out.text()
+    expect(output.contains(s"option is not supported"))
+  }
+
   if (TestUtil.isNativeCli && !Properties.isWin) {
     test("no directories command when run as scala") {
       noDirectoriesCommandTest("scala")
@@ -68,6 +94,10 @@ class SipScalaTests extends ScalaCliSuite {
 
     test("no publish directives when run as scala") {
       noPublishDirectives()
+    }
+
+    test("no markdown option when run as scala") {
+      noMarkdownOptions()
     }
   }
 

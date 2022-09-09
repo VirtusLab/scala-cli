@@ -17,11 +17,15 @@ import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.util.{Properties, Try}
 
-abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
-    extends Command()(parser, help) with NeedsArgvCommand with CommandHelpers {
+abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
+    extends Command()(myParser, help) with NeedsArgvCommand with CommandHelpers {
+
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
   override def hasFullHelp = true
+
+  override def parser: Parser[T] =
+    RestrictedCommandsParser(myParser)
 
   def isRestricted: Boolean = false
 
