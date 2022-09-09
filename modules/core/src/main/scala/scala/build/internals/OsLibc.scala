@@ -88,7 +88,7 @@ object OsLibc {
       stdout = os.Pipe,
       stderr = os.Pipe,
       mergeErrIntoOut = true
-    ).out.text().trim()
+    ).out.trim()
     parseJavaVersion(javaVersionOutput).getOrElse {
       throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
     }
@@ -103,7 +103,7 @@ object OsLibc {
       stdout = os.Pipe,
       stderr = os.Pipe,
       mergeErrIntoOut = true
-    ).out.text().trim()
+    ).out.trim()
     val javaVersion = parseJavaVersion(javaVersionOutput).getOrElse {
       throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
     }

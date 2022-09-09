@@ -58,7 +58,7 @@ class NativePackagerTests extends ScalaCliSuite {
           val home = sys.props("user.home")
           val output = os.proc(s"$home/Applications/$appName.app/Contents/MacOS/$appName")
             .call(cwd = os.root)
-            .out.text().trim
+            .out.trim()
           expect(output == message)
         }
       }
@@ -97,7 +97,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
           val output = os.proc(s"/Volumes/$appName/$appName.app/Contents/MacOS/$appName")
             .call(cwd = os.root)
-            .out.text().trim
+            .out.trim()
           expect(output == message)
 
           os.proc("hdiutil", "detach", s"/Volumes/$appName").call(
@@ -168,7 +168,7 @@ class NativePackagerTests extends ScalaCliSuite {
             mergeErrIntoOut = true
           )
           expect(res.exitCode == 0)
-          val output = res.out.text().trim
+          val output = res.out.trim()
           expect(output.endsWith(message))
         }
       }
@@ -260,7 +260,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
       try {
         val output =
-          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
+          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.trim()
         expect(output == message)
       }
       // clear
@@ -297,7 +297,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
       try {
         val output =
-          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
+          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.trim()
         expect(output == message)
 
       }
@@ -336,7 +336,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
       try {
         val output =
-          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.text().trim
+          os.proc("docker", "run", ciOpt, expectedImage).call(cwd = os.root).out.trim()
         expect(output == message)
 
       }

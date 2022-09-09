@@ -92,7 +92,7 @@ class FmtTests extends ScalaCliSuite {
 
   test("filter correctly with --check") {
     simpleInputsWithFilter.fromRoot { root =>
-      val out      = os.proc(TestUtil.cli, "fmt", ".", "--check").call(cwd = root).out.text().trim
+      val out      = os.proc(TestUtil.cli, "fmt", ".", "--check").call(cwd = root).out.trim()
       val outLines = out.linesIterator.toSeq
       expect(outLines.length == 2)
       expect(outLines.head == "Looking for unformatted files...")
@@ -102,8 +102,8 @@ class FmtTests extends ScalaCliSuite {
 
   test("--scalafmt-help") {
     emptyInputs.fromRoot { root =>
-      val out1 = os.proc(TestUtil.cli, "fmt", "--scalafmt-help").call(cwd = root).out.text().trim
-      val out2 = os.proc(TestUtil.cli, "fmt", "-F", "--help").call(cwd = root).out.text().trim
+      val out1 = os.proc(TestUtil.cli, "fmt", "--scalafmt-help").call(cwd = root).out.trim()
+      val out2 = os.proc(TestUtil.cli, "fmt", "-F", "--help").call(cwd = root).out.trim()
       expect(out1.nonEmpty)
       expect(out1 == out2)
       val outLines       = out1.linesIterator.toSeq

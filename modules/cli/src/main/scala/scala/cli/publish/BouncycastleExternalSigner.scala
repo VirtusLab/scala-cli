@@ -42,7 +42,7 @@ final case class BouncycastleExternalSigner(
         )
       logger.debug(s"Running command ${proc.command.flatMap(_.value)}")
       val res    = proc.call(stdin = os.Inherit, check = false)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       if (res.exitCode == 0) Right(output)
       else Left(output)
     }

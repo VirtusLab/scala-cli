@@ -28,7 +28,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, extraArgs, fileName).call(cwd = root).out.text().trim
+        os.proc(TestUtil.cli, extraOptions, extraArgs, fileName).call(cwd = root).out.trim()
       if (!ignoreErrors)
         expect(output == message)
     }
@@ -66,9 +66,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--command").call(cwd = root).out.text().trim
+        os.proc(TestUtil.cli, extraOptions, fileName, "--command").call(cwd = root).out.trim()
       val command      = output.linesIterator.toVector
-      val actualOutput = os.proc(command).call(cwd = root).out.text().trim
+      val actualOutput = os.proc(command).call(cwd = root).out.trim()
       expect(actualOutput == message)
     }
   }
@@ -104,7 +104,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "--use-manifest", ".")
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -123,7 +123,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
         root
-      ).out.text().trim
+      ).out.trim()
       expect(output.linesIterator.toSeq.last == message)
     }
   }
@@ -156,9 +156,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "--scratch-dir",
         root / "stuff"
       )
-        .call(cwd = root).out.text().trim
+        .call(cwd = root).out.trim()
       val command      = output.linesIterator.toVector
-      val actualOutput = os.proc(command).call(cwd = root).out.text().trim
+      val actualOutput = os.proc(command).call(cwd = root).out.trim()
       expect(actualOutput.linesIterator.toSeq.last == message)
     }
   }
@@ -184,7 +184,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js")
-        .call(cwd = root).out.text().trim()
+        .call(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -201,7 +201,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.text().trim
+      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -225,7 +225,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val output =
         os.proc(TestUtil.cli, extraOptions, fileName, "--native", "-q")
           .call(cwd = root)
-          .out.text().trim
+          .out.trim()
       expect(output == message)
     }
   }
@@ -251,9 +251,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val output =
         os.proc(TestUtil.cli, extraOptions, fileName, "--native", "--command")
           .call(cwd = root)
-          .out.text().trim
+          .out.trim()
       val command      = output.linesIterator.toVector.filter(!_.startsWith("["))
-      val actualOutput = os.proc(command).call(cwd = root).out.text().trim
+      val actualOutput = os.proc(command).call(cwd = root).out.trim()
       expect(actualOutput == message)
     }
   }
@@ -278,7 +278,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         val output =
           os.proc(TestUtil.cli, extraOptions, fileName, "--native", "-q")
             .call(cwd = root)
-            .out.text().trim
+            .out.trim()
         expect(output == message)
       }
     }
@@ -296,7 +296,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc").call(cwd =
         root
-      ).out.text().trim
+      ).out.trim()
       expect(output == message)
     }
   }
@@ -311,7 +311,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
         root
-      ).out.text().trim
+      ).out.trim()
       expect(output == message)
     }
   }
@@ -329,7 +329,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc").call(cwd =
         root
-      ).out.text().trim
+      ).out.trim()
       expect(output == message)
     }
   }
@@ -349,7 +349,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--js").call(cwd =
         root
-      ).out.text().trim
+      ).out.trim()
       expect(output == message)
     }
   }
@@ -373,7 +373,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val output =
         os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--native", "-q")
           .call(cwd = root)
-          .out.text().trim
+          .out.trim()
       expect(output == message)
     }
   }
@@ -395,7 +395,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", "print_sc").call(cwd =
         root
-      ).out.text().trim
+      ).out.trim()
       expect(output == message)
     }
   }
@@ -409,7 +409,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "run", extraOptions, "--main-class", "print")
         .call(cwd = root / "dir", check = false, mergeErrIntoOut = true)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       expect(res.exitCode != 0)
       expect(output.contains("No inputs provided"))
     }
@@ -429,7 +429,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "run", extraOptions, ".", "--", message)
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -447,7 +447,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "run", extraOptions, ".", "--", message)
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -472,7 +472,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "dir", "--js", "--main-class", "print_sc")
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -496,7 +496,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val output =
         os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print_sc", "-q")
           .call(cwd = root)
-          .out.text().trim
+          .out.trim()
       expect(output == message)
     }
   }
@@ -772,7 +772,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       emptyInputs.fromRoot { root =>
         val output = os.proc(TestUtil.cli, "-", extraOptions)
           .call(cwd = root, stdin = input)
-          .out.text().trim
+          .out.trim()
         expect(output == message)
       }
     }
@@ -782,7 +782,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       emptyInputs.fromRoot { root =>
         val output = os.proc(TestUtil.cli, "_.scala", extraOptions)
           .call(cwd = root, stdin = pipedInput)
-          .out.text().trim
+          .out.trim()
         expect(output == expectedOutput)
       }
     }
@@ -797,7 +797,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         val output = os.proc(TestUtil.cli, ".", "_.scala", extraOptions)
           .call(cwd = root, stdin = pipedInput)
-          .out.text().trim
+          .out.trim()
         expect(output == expectedOutput)
       }
     }
@@ -813,7 +813,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       emptyInputs.fromRoot { root =>
         val output = os.proc(TestUtil.cli, "_.java", extraOptions)
           .call(cwd = root, stdin = pipedInput)
-          .out.text().trim
+          .out.trim()
         expect(output == expectedOutput)
       }
     }
@@ -837,7 +837,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       emptyInputs.fromRoot { root =>
         val output = os.proc(TestUtil.cli, "_.java", extraOptions)
           .call(cwd = root, stdin = pipedInput)
-          .out.text().trim
+          .out.trim()
         expect(output == expectedOutput)
       }
     }
@@ -879,7 +879,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             extraOptions
           )
             .call(cwd = root, stdin = pipedInput)
-            .out.text().trim
+            .out.trim()
         expect(output == expectedOutput)
       }
     }
@@ -902,7 +902,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           "_.sc"
         )
           .call(cwd = root, stdin = pipedInput)
-        expect(res.out.text().trim == "Hello world")
+        expect(res.out.trim() == "Hello world")
       }
     }
     test("pick piped .scala main class over in-context scripts") {
@@ -928,7 +928,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           "_.scala"
         )
           .call(cwd = root, stdin = pipedInput)
-        expect(res.out.text().trim == "Hello world")
+        expect(res.out.trim() == "Hello world")
       }
     }
   }
@@ -959,7 +959,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     emptyInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -971,7 +971,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     emptyInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -983,7 +983,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     emptyInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -995,7 +995,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     emptyInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -1017,7 +1017,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val message = "Hello"
       val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -1043,7 +1043,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
       val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -1067,7 +1067,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
       val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == message)
     }
   }
@@ -1080,7 +1080,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       "--scala", actualScalaVersion
     )
     // format: on
-    val shapelessJar = os.proc(cmd).call().out.text().trim
+    val shapelessJar = os.proc(cmd).call().out.trim()
     expect(os.isFile(os.Path(shapelessJar, os.pwd)))
 
     val inputs = TestInputs(
@@ -1100,11 +1100,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val baseOutput = os.proc(TestUtil.cli, extraOptions, ".", "--extra-jar", shapelessJar)
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(baseOutput == "Hello with shapeless")
       val output = os.proc(TestUtil.cli, extraOptions, ".", "--compile-only-jar", shapelessJar)
         .call(cwd = root)
-        .out.text().trim
+        .out.trim()
       expect(output == "Hello from test")
     }
   }
@@ -1145,13 +1145,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "a type was inferred to be `Any`; this may indicate a programming error."
 
       val baseRes       = run(warnAny = false)
-      val baseOutput    = baseRes.out.text().trim
+      val baseOutput    = baseRes.out.trim()
       val baseErrOutput = baseRes.err.text()
       expect(baseOutput == "Hello")
       expect(!baseErrOutput.contains(expectedWarning))
 
       val res       = run(warnAny = true)
-      val output    = res.out.text().trim
+      val output    = res.out.trim()
       val errOutput = res.err.text()
       expect(output == "Hello")
       expect(errOutput.contains(expectedWarning))
@@ -1185,7 +1185,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         )
         // format: on
         val res = os.proc(cmd).call(cwd = root)
-        val cp  = res.out.text().trim.split(File.pathSeparator).toVector.map(os.Path(_, os.pwd))
+        val cp  = res.out.trim().split(File.pathSeparator).toVector.map(os.Path(_, os.pwd))
         cp
           .filter(os.isDir(_))
           .flatMap(os.list(_))
@@ -1262,7 +1262,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.text().trim
+      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -1276,7 +1276,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.text().trim
+      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
       expect(output == "hello")
     }
   }
@@ -1345,7 +1345,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     simpleDirInputs.fromRoot { root =>
       def run(): String = {
         val res = os.proc(TestUtil.cli, "dir").call(cwd = root)
-        res.out.text().trim
+        res.out.trim()
       }
 
       val classDirBefore = os.Path(run(), os.pwd)
@@ -1368,7 +1368,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     simpleDirInputs.fromRoot { root =>
       def run(options: String*): String = {
         val res = os.proc(TestUtil.cli, "dir", options).call(cwd = root)
-        res.out.text().trim
+        res.out.trim()
       }
 
       val classDirBefore = os.Path(run(), os.pwd)
@@ -1436,7 +1436,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         binDir.toString + File.pathSeparator + Option(System.getenv("PATH")).getOrElse("")
       val res = os.proc("/bin/bash", "-c", "./MyScript.scala from tests")
         .call(cwd = root, env = Map("PATH" -> updatedPath))
-      expect(res.out.text().trim == "Hello from tests")
+      expect(res.out.trim() == "Hello from tests")
     }
   }
   if (TestUtil.isNativeCli && !Properties.isWin)
@@ -1487,7 +1487,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val p =
         os.proc(TestUtil.cli, "main0.sc", "f.sc", "--", "20").call(cwd = root)
-      val res = p.out.text().trim
+      val res = p.out.trim()
       expect(res == "202020")
     }
   }
@@ -1495,7 +1495,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(os.rel / "f.sc" -> "println(args(0))")
     inputs.fromRoot { root =>
       val p = os.proc(TestUtil.cli, "f.sc", "--", "16").call(cwd = root)
-      expect(p.out.text().trim == "16")
+      expect(p.out.trim() == "16")
     }
   }
 
@@ -1509,7 +1509,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         os.perms.set(root / "f.sc", os.PermSet.fromString("rwx------"))
         val p = os.proc("./f.sc", "1", "2", "3", "-v").call(cwd = root)
-        expect(p.out.text().trim == "List(1, 2, 3, -v)")
+        expect(p.out.trim() == "List(1, 2, 3, -v)")
       }
     }
     test("CLI args passed to shebang in Scala file") {
@@ -1525,7 +1525,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         os.perms.set(root / "f.scala", os.PermSet.fromString("rwx------"))
         val p = os.proc("./f.scala", "1", "2", "3", "-v").call(cwd = root)
-        expect(p.out.text().trim == "List(1, 2, 3, -v)")
+        expect(p.out.trim() == "List(1, 2, 3, -v)")
       }
     }
   }
@@ -1535,7 +1535,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       TestInputs(os.rel / "run.scala" -> """object Main extends App { println("hello")}""")
     inputs.fromRoot { root =>
       val p = os.proc(TestUtil.cli, "run.scala", "--jvm", "8").call(cwd = root)
-      expect(p.out.text().trim == "hello")
+      expect(p.out.trim() == "hello")
     }
   }
 
@@ -1550,7 +1550,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
     inputs.fromRoot { root =>
       val p = os.proc(TestUtil.cli, "Hello.scala").call(cwd = root)
-      expect(p.out.text().trim == root.toString)
+      expect(p.out.trim() == root.toString)
     }
   }
 
@@ -1599,7 +1599,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Dfoo=bar").call(
         cwd = root
       )
-      expect(res.out.text().trim() == "bar")
+      expect(res.out.trim() == "bar")
     }
   }
 
@@ -1626,7 +1626,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "Hello.scala")
         .call(cwd = root)
-      expect(res.out.text().trim() == s"$hello$world")
+      expect(res.out.trim() == s"$hello$world")
     }
   }
 
@@ -1739,7 +1739,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             os.rel / "tmp-cache-ok"
           )
             .call(cwd = root / okDir)
-          val okOutput = okRes.out.text().trim
+          val okOutput = okRes.out.trim()
           expect(okOutput == "Hello proxy")
 
           val wrongRes = os.proc(
@@ -1752,7 +1752,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             os.rel / "tmp-cache-wrong"
           )
             .call(cwd = root / wrongDir, mergeErrIntoOut = true, check = false)
-          val wrongOutput = wrongRes.out.text().trim
+          val wrongOutput = wrongRes.out.trim()
           expect(wrongRes.exitCode == 1)
           expect(wrongOutput.contains(
             """Unable to tunnel through proxy. Proxy returns "HTTP/1.1 407 Proxy Authentication Required""""
@@ -1894,7 +1894,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "."
       )
         .call(cwd = root)
-      expect(res.out.text().trim == "Hello world")
+      expect(res.out.trim() == "Hello world")
     }
   }
 
@@ -1915,7 +1915,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
         .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 1)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       val errorMessage =
         output.linesWithSeparators.toSeq.takeRight(6).mkString // dropping compilation logs
       val extraOptionsString = extraOptions.mkString(" ")
@@ -1948,7 +1948,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
         .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 1)
-      expect(res.out.text().trim.contains("No main class found"))
+      expect(res.out.trim().contains("No main class found"))
     }
   }
 
@@ -1969,7 +1969,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "--list-main-classes"
       )
         .call(cwd = root)
-      val output      = res.out.text().trim
+      val output      = res.out.trim()
       val mainClasses = output.split(" ").toSet
       expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
     }
@@ -1988,7 +1988,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           extraOptions
         )
           .call(cwd = root)
-      expect(res.out.text().trim == msg)
+      expect(res.out.trim() == msg)
     }
   }
 
@@ -2005,7 +2005,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           extraOptions
         )
           .call(cwd = root)
-      expect(res.out.text().trim == msg)
+      expect(res.out.trim() == msg)
     }
   }
 
@@ -2021,7 +2021,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions
       )
         .call(cwd = root)
-      expect(res.out.text().trim == msg)
+      expect(res.out.trim() == msg)
     }
   }
 
@@ -2092,7 +2092,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions
       )
         .call(cwd = root)
-      expect(res.out.text().trim == expectedOutput)
+      expect(res.out.trim() == expectedOutput)
     }
   }
 

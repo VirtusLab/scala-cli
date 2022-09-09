@@ -39,7 +39,7 @@ class TestsLs extends munit.FunSuite {
     // check
     val scalaCLILauncher = if(Properties.isWin) "scala-cli.bat" else "scala-cli"
     val foundFiles =
-      os.proc(scalaCLILauncher, "Ls.scala", "--", tempDir).call().out.text().trim
+      os.proc(scalaCLILauncher, "Ls.scala", "--", tempDir).call().out.trim()
 
     expectedFiles.map(_.toString).foreach { file =>
       assert(foundFiles.contains(file))

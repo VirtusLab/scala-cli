@@ -21,7 +21,7 @@ class CleanTests extends ScalaCliSuite {
       val bspEntry = root / ".bsp" / "scala-cli.json"
 
       val res = os.proc(TestUtil.cli, "run", ".").call(cwd = root)
-      expect(res.out.text().trim == "Hello")
+      expect(res.out.trim() == "Hello")
       expect(os.exists(dir))
       expect(os.exists(bspEntry))
 

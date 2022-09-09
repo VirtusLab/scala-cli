@@ -704,7 +704,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
       mainArgs = Seq(cache.toNIO.toString, classpath),
       workingDir = os.pwd
     )
-    val cp = res.out.text().trim
+    val cp = res.out.trim()
     cp.split(File.pathSeparator).toSeq.map(p => mill.PathRef(os.Path(p)))
   }
 
@@ -1237,7 +1237,7 @@ private def commitChanges(
   repoDir: os.Path,
   force: Boolean = false
 ): Unit = {
-  if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit"))
+  if (os.proc("git", "status").call(cwd = repoDir).out.trim().contains("nothing to commit"))
     println("Nothing Changes")
   else {
     os.proc("git", "add", "-A").call(cwd = repoDir)
@@ -1356,7 +1356,7 @@ object ci extends Module {
       .call(
         cwd = targetDir,
         stdin = binarySha256
-      ).out.text().trim
+      ).out.trim()
 
     val templateFormulaPath = os.pwd / ".github" / "scripts" / "scala-cli.rb.template"
     val template            = os.read(templateFormulaPath)

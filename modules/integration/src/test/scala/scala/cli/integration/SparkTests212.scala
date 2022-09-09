@@ -24,7 +24,7 @@ object SparkTests212 {
           s"https://archive.apache.org/dist/spark/spark-$sparkVersion/spark-$sparkVersion-bin-hadoop2.7.tgz"
       }
       val baseDir =
-        os.Path(os.proc(TestUtil.cs, "get", "--archive", url).call().out.text().trim, os.pwd)
+        os.Path(os.proc(TestUtil.cs, "get", "--archive", url).call().out.trim(), os.pwd)
       val home = os.list(baseDir) match {
         case Seq(dir) if os.isDir(dir) => dir
         case _                         => baseDir

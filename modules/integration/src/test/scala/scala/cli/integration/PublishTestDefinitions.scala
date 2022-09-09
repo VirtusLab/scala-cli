@@ -119,13 +119,13 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
       val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
       val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       expect(output == "Hello")
 
       val sourceJarViaCsStr =
         os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
           .call(cwd = root)
-          .out.text().trim
+          .out.trim()
       val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
       val zf             = new ZipFile(sourceJarViaCs.toIO)
       val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
@@ -206,7 +206,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         "--list-main-classes"
       )
         .call(cwd = root)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       val resLocal = os.proc(
         TestUtil.cli,
         "publish",
@@ -216,7 +216,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         "--list-main-classes"
       )
         .call(cwd = root)
-      val outputLocal = resLocal.out.text().trim
+      val outputLocal = resLocal.out.trim()
       expect(output == outputLocal)
       val mainClasses = output.linesIterator.toSeq.last.split(" ").toSet
       expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))

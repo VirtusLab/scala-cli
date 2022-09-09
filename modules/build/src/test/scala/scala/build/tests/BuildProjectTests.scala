@@ -103,7 +103,7 @@ class BuildProjectTests extends munit.FunSuite {
     (scalaCompilerOptions, res.fold(throw _, identity).javacOptions, logger.diagnostics)
   }
 
-  def jvm(v: Int) = os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$v").call().out.text().trim()
+  def jvm(v: Int) = os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$v").call().out.trim()
 
   test("Compiler options contain target JVM release") {
     val javaHome        = jvm(8)

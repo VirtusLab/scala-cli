@@ -114,7 +114,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           "."
         ).call(cwd =
           root
-        ).out.text().trim
+        ).out.trim()
       val classPath = output.split(File.pathSeparator).map(_.trim).filter(_.nonEmpty)
       val isDefinedTestPathInClassPath = // expected test class path - root / Constants.workspaceDirName / project_(hash) / classes / test
         classPath.exists(p =>
@@ -389,7 +389,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       inputs.fromRoot { root =>
         os.proc(TestUtil.cli, "compile", extraOptions, fileName)
           .call(cwd = root)
-          .out.text().trim
+          .out.trim()
 
         val expectedCoverageFilePath = root / "scoverage.coverage"
         expect(os.exists(expectedCoverageFilePath))
@@ -420,7 +420,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           extraOptions,
           "."
         ).call(cwd = root)
-      val classPath          = res.out.text().trim.split(File.pathSeparator)
+      val classPath          = res.out.trim().split(File.pathSeparator)
       val classPathFileNames = classPath.map(_.split(Pattern.quote(File.separator)).last)
       expect(classPathFileNames.exists(_.startsWith("spark-core_")))
       // usually a duplicate is there if we don't call .distrinct when necessary here or there

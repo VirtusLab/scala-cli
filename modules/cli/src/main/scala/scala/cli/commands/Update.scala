@@ -87,7 +87,7 @@ object Update extends ScalaCommand[UpdateOptions] {
       mergeErrIntoOut = true
     )
     // format: on
-    val output = res.out.text().trim
+    val output = res.out.trim()
     if (res.exitCode != 0) {
       System.err.println(s"Error during updating scala-cli: $output")
       sys.exit(1)
@@ -97,7 +97,7 @@ object Update extends ScalaCommand[UpdateOptions] {
   private def getCurrentVersion(scalaCliBinPath: os.Path): String = {
     val res = os.proc(scalaCliBinPath, "version", "--cli-version").call(cwd = os.pwd, check = false)
     if (res.exitCode == 0)
-      res.out.text().trim
+      res.out.trim()
     else
       "0.0.0"
   }

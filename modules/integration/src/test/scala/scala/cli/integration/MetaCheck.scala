@@ -49,7 +49,7 @@ class MetaCheck extends ScalaCliSuite {
     testInputs.fromRoot { root =>
       // --ttl 0s so that we are sure we use the latest supported Scala versions listing
       val res          = os.proc(TestUtil.cli, ".", "--ttl", "0s").call(cwd = root)
-      val scalaVersion = res.out.text().trim
+      val scalaVersion = res.out.trim()
       expect(scalaVersion == Constants.scala3)
     }
   }

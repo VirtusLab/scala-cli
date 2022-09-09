@@ -70,7 +70,7 @@ class UpdateTests extends ScalaCliSuite {
       val v1Install = os.proc(dummyScalaCliCommand).call(
         cwd = root,
         stdin = os.Inherit
-      ).out.text().trim
+      ).out.trim()
       expect(v1Install == firstVersion)
 
       val tokenOptions =
@@ -96,7 +96,7 @@ class UpdateTests extends ScalaCliSuite {
       val nextVersion = os.proc(binDirPath / dummyScalaCliBinName, "version").call(
         cwd = root,
         stdin = os.Inherit
-      ).out.text().trim
+      ).out.trim()
 
       expect(firstVersion != nextVersion)
     }

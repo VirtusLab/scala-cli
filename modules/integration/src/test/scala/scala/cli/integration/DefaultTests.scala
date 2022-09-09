@@ -41,7 +41,7 @@ class DefaultTests extends ScalaCliSuite {
       val res =
         os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", TestUtil.extraOptions)
           .call(cwd = root)
-      expect(res.out.text().trim == msg)
+      expect(res.out.trim() == msg)
     }
   }
 
@@ -57,7 +57,7 @@ class DefaultTests extends ScalaCliSuite {
           TestUtil.extraOptions
         )
           .call(cwd = root)
-      expect(res.out.text().trim == msg)
+      expect(res.out.trim() == msg)
     }
   }
 
@@ -73,7 +73,7 @@ class DefaultTests extends ScalaCliSuite {
           TestUtil.extraOptions
         )
           .call(cwd = root)
-      expect(res.out.text().trim == msg)
+      expect(res.out.trim() == msg)
     }
   }
 

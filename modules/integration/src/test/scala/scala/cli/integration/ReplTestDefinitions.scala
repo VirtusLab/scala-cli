@@ -45,7 +45,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
         }
         .flatMap(arg => Seq("--ammonite-arg", arg))
       val res = os.proc(TestUtil.cli, "repl", extraOptions, "--ammonite", ammArgs).call(cwd = root)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       expect(output == s"Hello from Scala $versionNumberString")
     }
   }

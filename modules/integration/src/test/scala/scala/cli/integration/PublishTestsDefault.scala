@@ -119,7 +119,7 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
         repoRoot.toNIO.toUri.toASCIIString
       )
         .call(stdin = os.Inherit, cwd = root)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       expect(output == "Hello from foo")
     }
   }
