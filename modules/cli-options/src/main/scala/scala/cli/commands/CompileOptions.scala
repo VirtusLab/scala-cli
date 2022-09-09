@@ -18,13 +18,6 @@ final case class CompileOptions(
   @HelpMessage("Print the resulting class path")
     printClassPath: Boolean = false,
 
-  @Name("output-directory")
-  @Name("d")
-  @Name("destination")
-  @HelpMessage("Copy compilation results to output directory using either relative or absolute path")
-  @ValueDescription("/example/path")
-    output: Option[String] = None,
-
   @HelpMessage("Compile test scope")
     test: Boolean = false
 )

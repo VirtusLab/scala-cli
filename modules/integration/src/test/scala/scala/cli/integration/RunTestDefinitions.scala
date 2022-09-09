@@ -2229,7 +2229,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
       os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
     ).fromRoot { (root: os.Path) =>
-      val preCompileOutputDir = "out"
+      val preCompileOutputDir = os.rel / "outParentDir" / "out"
 
       // first, precompile to an explicitly specified output directory with -d
       os.proc(
@@ -2237,7 +2237,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "compile",
         preCompiledInput,
         "-d",
-        preCompileOutputDir,
+        preCompileOutputDir.toString,
         extraOptions
       ).call(cwd = root / preCompileDir)
 
@@ -2251,9 +2251,36 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions
       ).call(cwd = root / runDir)
       expect(runRes.out.trim == expectedOutput)
+    }
+  }
 
-      // ensure the same behaviour can be expected when passing -classpath with -O
-      val runRes2 = os.proc(
+  test("-O -classpath allows to run with scala-cli compile -O -d option pre-compiled classes") {
+    val preCompileDir    = "PreCompileDir"
+    val preCompiledInput = "Message.scala"
+    val runDir           = "RunDir"
+    val mainInput        = "Main.scala"
+    val expectedOutput   = "Hello"
+    TestInputs(
+      os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
+      os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
+    ).fromRoot { (root: os.Path) =>
+      val preCompileOutputDir = os.rel / "outParentDir" / "out"
+
+      // first, precompile to an explicitly specified output directory with -O -d
+      val compileRes = os.proc(
+        TestUtil.cli,
+        "compile",
+        preCompiledInput,
+        "-O",
+        "-d",
+        "-O",
+        preCompileOutputDir.toString,
+        extraOptions
+      ).call(cwd = root / preCompileDir, stderr = os.Pipe)
+      expect(!compileRes.err.trim.contains("Warning: Flag -d set repeatedly"))
+
+      // next, run while relying on the pre-compiled class, specifying the path with -O -classpath
+      val runRes = os.proc(
         TestUtil.cli,
         "run",
         mainInput,
@@ -2262,8 +2289,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         "-O",
         (os.rel / os.up / preCompileDir / preCompileOutputDir).toString,
         extraOptions
-      ).call(cwd = root / runDir)
-      expect(runRes2.out.trim == expectedOutput)
+      ).call(cwd = root / runDir, stderr = os.Pipe)
+      expect(!runRes.err.trim.contains("Warning: Flag -classpath set repeatedly"))
+      expect(runRes.out.trim == expectedOutput)
     }
   }
 

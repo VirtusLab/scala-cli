@@ -119,12 +119,6 @@ Aliases: `-p`, `--print-classpath`
 
 Print the resulting class path
 
-### `--output`
-
-Aliases: `--output-directory`, `-d`, `--destination`
-
-Copy compilation results to output directory using either relative or absolute path
-
 ### `--test`
 
 Compile test scope
@@ -1286,6 +1280,12 @@ Add dependency for stubs needed to make $ivy and $dep imports to work.
 ### `--strict-bloop-json-check`
 
 [Internal]
+### `--compilation-output`
+
+Aliases: `--output-directory`, `-d`, `--destination`, `--compile-output`, `--compile-out`
+
+Copy compilation results to output directory using either relative or absolute path
+
 ## Snippet options
 
 Available in commands:

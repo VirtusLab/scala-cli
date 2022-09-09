@@ -173,8 +173,7 @@ object SharedOptionsUtil extends CommandHelpers {
           scalacOptions = scalac
             .scalacOption
             .toScalacOptShadowingSeq
-            // -O -classpath should be redirected as --extra-jars instead
-            .filterScalacOptionKeys(key => key != "-classpath")
+            .filterNonRedirected
             .map(Positioned.commandLine),
           compilerPlugins =
             SharedOptionsUtil.parseDependencies(

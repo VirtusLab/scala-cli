@@ -7,16 +7,14 @@ import java.io.File
 import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
 
-object Compile extends ScalaCommand[CompileOptions] {
+object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def group                                                         = "Main"
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
-
-  def outputPath(options: CompileOptions): Option[os.Path] =
-    options.output.filter(_.nonEmpty).map(p => os.Path(p, Os.pwd))
 
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
@@ -71,8 +69,7 @@ object Compile extends ScalaCommand[CompileOptions] {
             val cp = s.fullClassPath.map(_.toString).mkString(File.pathSeparator)
             println(cp)
           }
-        for (output <- outputPath(options); s <- successulBuildOpt)
-          os.copy.over(s.output, output)
+        successulBuildOpt.foreach(_.copyOutput(options.shared))
       }
     }
 

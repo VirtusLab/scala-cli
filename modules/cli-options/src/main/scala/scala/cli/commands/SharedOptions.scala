@@ -117,6 +117,15 @@ final case class SharedOptions(
 
   @Hidden
     strictBloopJsonCheck: Option[Boolean] = None,
+
+  @Name("output-directory")
+  @Name("d")
+  @Name("destination")
+  @Name("compileOutput")
+  @Name("compileOut")
+  @HelpMessage("Copy compilation results to output directory using either relative or absolute path")
+  @ValueDescription("/example/path")
+    compilationOutput: Option[String] = None,
 )
   // format: on
 

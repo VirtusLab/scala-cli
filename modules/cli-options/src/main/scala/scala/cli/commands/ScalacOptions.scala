@@ -41,6 +41,12 @@ object ScalacOptions {
   val ScalacPrintOptions: Set[String] =
     scalacOptionsPurePrefixes ++ Set("-help", "-Xshow-phases", "-Vphases")
 
+  /** This includes all the scalac options which are redirected to native Scala CLI options. */
+  val ScalaCliRedirectedOptions = Set(
+    "-classpath", // redirected to --extra-jars
+    "-d"          // redirected to --compilation-output
+  )
+
   private val scalacOptionsArgument: Argument[List[String]] =
     new Argument[List[String]] {
 
