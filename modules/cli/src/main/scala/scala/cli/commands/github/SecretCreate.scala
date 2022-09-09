@@ -18,8 +18,8 @@ import scala.cli.signing.shared.{PasswordOption, Secret}
 
 object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
-  override def hidden     = false
-  override def inSipScala = false
+  override def hidden       = false
+  override def isRestricted = true
   override def names = List(
     List("github", "secret", "create"),
     List("gh", "secret", "create")

@@ -14,7 +14,7 @@ import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.exportCmd._
 
 object Export extends ScalaCommand[ExportOptions] {
-  override def inSipScala = false
+  override def isRestricted = true
 
   private def prepareBuild(
     inputs: Inputs,

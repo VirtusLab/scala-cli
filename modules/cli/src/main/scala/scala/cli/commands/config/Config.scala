@@ -12,8 +12,8 @@ import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.signing.shared.PasswordOption
 
 object Config extends ScalaCommand[ConfigOptions] {
-  override def hidden     = true
-  override def inSipScala = false
+  override def hidden       = true
+  override def isRestricted = true
 
   def run(options: ConfigOptions, args: RemainingArgs): Unit = {
 

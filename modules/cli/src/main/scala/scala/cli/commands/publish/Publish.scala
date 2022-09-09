@@ -59,8 +59,8 @@ import scala.cli.util.ConfigPasswordOptionHelpers.*
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
-  override def group: String       = "Main"
-  override def inSipScala: Boolean = false
+  override def group: String         = "Main"
+  override def isRestricted: Boolean = true
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 

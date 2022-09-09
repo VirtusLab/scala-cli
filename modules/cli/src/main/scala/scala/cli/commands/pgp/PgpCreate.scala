@@ -7,9 +7,9 @@ import scala.cli.signing.commands.{PgpCreate => OriginalPgpCreate, PgpCreateOpti
 
 object PgpCreate extends ScalaCommand[PgpCreateOptions] {
 
-  override def inSipScala = false
-  override def hidden     = true
-  override def names      = PgpCommandNames.pgpCreate
+  override def isRestricted = true
+  override def hidden       = true
+  override def names        = PgpCommandNames.pgpCreate
 
   def run(options: PgpCreateOptions, args: RemainingArgs): Unit =
     OriginalPgpCreate.run(options, args)

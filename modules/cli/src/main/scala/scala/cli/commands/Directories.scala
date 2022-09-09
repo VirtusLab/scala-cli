@@ -7,7 +7,7 @@ import scala.cli.commands.util.CommonOps._
 
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true
-  override def inSipScala      = false
+  override def isRestricted    = true
 
   def run(options: DirectoriesOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.verbosity.verbosity

@@ -23,7 +23,7 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
     None
   override def hasFullHelp = true
 
-  def inSipScala: Boolean = true
+  def isRestricted: Boolean = false
 
   protected var argvOpt = Option.empty[Array[String]]
   override def setArgv(argv: Array[String]): Unit = {

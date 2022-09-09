@@ -9,7 +9,7 @@ import scala.util.Properties
 
 object InstallHome extends ScalaCommand[InstallHomeOptions] {
   override def hidden: Boolean = true
-  override def inSipScala      = false
+  override def isRestricted    = true
 
   private def logEqual(version: String) = {
     System.err.println(
