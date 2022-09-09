@@ -86,7 +86,7 @@ object Deps {
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.15.4+22-9c7fb771-SNAPSHOT"
   def guava         = ivy"com.google.guava:guava:31.1-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
-  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.2.0.202206071550-r"
+  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
