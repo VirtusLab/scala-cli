@@ -3,7 +3,7 @@ title: Commands
 sidebar_position: 3
 ---
 
-
+**This document describes as scala-cli behaves if run as `scala` command. See more information in [SIP-46](https://github.com/scala/improvement-proposals/pull/46)**
 
 
 ## about
@@ -42,12 +42,6 @@ Print details about this application
 
 Accepts option groups: [doctor](./cli-options.md#doctor-options), [verbosity](./cli-options.md#verbosity-options)
 
-## export
-
-Export current project to sbt or Mill
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [dependency](./cli-options.md#dependency-options), [directories](./cli-options.md#directories-options), [export](./cli-options.md#export-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
-
 ## fmt
 
 Aliases: `format`, `scalafmt`
@@ -76,24 +70,6 @@ Fire-up a Scala REPL
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [dependency](./cli-options.md#dependency-options), [directories](./cli-options.md#directories-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [repl](./cli-options.md#repl-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
-## package
-
-Compile and package Scala code
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [dependency](./cli-options.md#dependency-options), [directories](./cli-options.md#directories-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [package](./cli-options.md#package-options), [packager](./cli-options.md#packager-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
-
-## publish
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [dependency](./cli-options.md#dependency-options), [directories](./cli-options.md#directories-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [publish](./cli-options.md#publish-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
-
-## publish local
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [dependency](./cli-options.md#dependency-options), [directories](./cli-options.md#directories-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [publish](./cli-options.md#publish-options), [publish params](./cli-options.md#publish-params-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
-
-## publish setup
-
-Accepts option groups: [coursier](./cli-options.md#coursier-options), [directories](./cli-options.md#directories-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [publish setup](./cli-options.md#publish-setup-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
-
 ## run
 
 Compile and run Scala code.
@@ -105,18 +81,6 @@ scala-cli MyApp.scala -- first-arg second-arg
 ```
 
 Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [dependency](./cli-options.md#dependency-options), [directories](./cli-options.md#directories-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [run](./cli-options.md#run-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
-
-## github secret create
-
-Aliases: `gh secret create`
-
-Accepts option groups: [coursier](./cli-options.md#coursier-options), [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [secret create](./cli-options.md#secret-create-options), [verbosity](./cli-options.md#verbosity-options)
-
-## github secret list
-
-Aliases: `gh secret list`
-
-Accepts option groups: [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## setup-ide
 
@@ -188,87 +152,9 @@ Accepts option groups: [verbosity](./cli-options.md#verbosity-options), [version
 
 ## Hidden commands
 
-### add-path
-
-Accepts option groups: [add path](./cli-options.md#add-path-options), [verbosity](./cli-options.md#verbosity-options)
-
-### bloop
-
-Accepts option groups: [bloop](./cli-options.md#bloop-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [directories](./cli-options.md#directories-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
-### bloop exit
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [directories](./cli-options.md#directories-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
-### bloop output
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [directories](./cli-options.md#directories-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
-### bloop start
-
-Accepts option groups: [bloop start](./cli-options.md#bloop-start-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [directories](./cli-options.md#directories-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
 ### bsp
 
 Start BSP server
 
 Accepts option groups: [bsp](./cli-options.md#bsp-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [dependency](./cli-options.md#dependency-options), [directories](./cli-options.md#directories-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
-
-### config
-
-Accepts option groups: [config](./cli-options.md#config-options), [coursier](./cli-options.md#coursier-options), [directories](./cli-options.md#directories-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
-### default-file
-
-Accepts option groups: [default file](./cli-options.md#default-file-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
-### directories
-
-Prints directories used by `scala-cli`
-
-Accepts option groups: [directories](./cli-options.md#directories-options), [verbosity](./cli-options.md#verbosity-options)
-
-### install-home
-
-Install `scala-cli` in a sub-directory of the home directory
-
-Accepts option groups: [install home](./cli-options.md#install-home-options), [verbosity](./cli-options.md#verbosity-options)
-
-### browse
-
-Aliases: `metabrowse`
-
-Browse Scala code and its dependencies in the browser
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [dependency](./cli-options.md#dependency-options), [directories](./cli-options.md#directories-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [metabrowse](./cli-options.md#metabrowse-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
-
-### pgp pull
-
-Accepts option groups: [logging](./cli-options.md#logging-options), [pgp pull](./cli-options.md#pgp-pull-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [verbosity](./cli-options.md#verbosity-options)
-
-### pgp push
-
-Accepts option groups: [coursier](./cli-options.md#coursier-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push](./cli-options.md#pgp-push-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [verbosity](./cli-options.md#verbosity-options)
-
-### pgp create
-
-Create PGP key pair
-
-Accepts option groups: [pgp create](./cli-options.md#pgp-create-options)
-
-### pgp key-id
-
-Accepts option groups: [pgp key id](./cli-options.md#pgp-key-id-options)
-
-### pgp sign
-
-Sign files with PGP
-
-Accepts option groups: [pgp sign](./cli-options.md#pgp-sign-options)
-
-### pgp verify
-
-Verify PGP signatures
-
-Accepts option groups: [pgp verify](./cli-options.md#pgp-verify-options)
 
