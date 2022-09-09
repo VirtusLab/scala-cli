@@ -17,21 +17,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("repl custom repositories work") {
-    TestInputs.empty.fromRoot { root =>
-      os.proc(
-        TestUtil.cli,
-        "repl",
-        "--repl-dry-run",
-        "--scala",
-        Constants.scalaSnapshot213,
-        "--repository",
-        "https://scala-ci.typesafe.com/artifactory/scala-integration"
-      ).call(cwd = root)
-    }
-  }
-
-  test("ammonite") {
+  def ammoniteTest(): Unit = {
     TestInputs.empty.fromRoot { root =>
       val ammArgs = Seq(
         "-c",
@@ -49,5 +35,11 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == s"Hello from Scala $versionNumberString")
     }
   }
+
+  // Temporarily filtering out 3.2.0, until com-lihaoyi/Ammonite#1286 is merged.
+  if (actualScalaVersion != "3.2.0")
+    test("ammonite") {
+      ammoniteTest()
+    }
 
 }
