@@ -61,6 +61,7 @@ final case class SharedCompilationServerOptions(
   @Hidden
     bloopDefaultJavaOpts: Boolean = true,
   @Group("Compilation server")
+  @HelpMessage("Pass java options to use by Bloop server")
   @Hidden
     bloopJavaOpt: List[String] = Nil,
   @Group("Compilation server")
@@ -79,8 +80,7 @@ final case class SharedCompilationServerOptions(
     bloopWorkingDir: Option[String] = None,
 
   @Group("Compilation server")
-  @HelpMessage("Enable / disable compilation server")
-  @Hidden
+  @HelpMessage("Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server:false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.")
     server: Option[Boolean] = None
 )
 // format: on

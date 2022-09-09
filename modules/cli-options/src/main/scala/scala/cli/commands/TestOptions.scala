@@ -13,7 +13,7 @@ final case class TestOptions(
   @Recurse
     watch: SharedWatchOptions = SharedWatchOptions(),
   @Recurse
-    compileCross: CompileCrossOptions = CompileCrossOptions(),
+    compileCross: CrossOptions = CrossOptions(),
 
   @Group("Test")
   @HelpMessage("Name of the test framework's runner class to use while running tests")

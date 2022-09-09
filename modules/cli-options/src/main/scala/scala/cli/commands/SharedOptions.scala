@@ -63,7 +63,7 @@ final case class SharedOptions(
     extraJars: List[String] = Nil,
 
   @Group("Java")
-  @HelpMessage("Add extra JARs in the class path, during compilation only")
+  @HelpMessage("Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.")
   @ValueDescription("paths")
   @Name("compileOnlyJar")
   @Name("compileOnlyJars")
@@ -88,8 +88,10 @@ final case class SharedOptions(
   @Hidden
     scalaLibrary: Option[Boolean] = None,
   @Group("Java")
+  @HelpMessage("Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.")
   @Hidden
     java: Option[Boolean] = None,
+  @HelpMessage("Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.")
   @Hidden
     runner: Option[Boolean] = None,
 
@@ -97,6 +99,7 @@ final case class SharedOptions(
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
   @Hidden
+  @HelpMessage("Add dependency for stubs needed to make $ivy and $dep imports to work.")
     addStubs: Option[Boolean] = None,
 
   @Recurse
