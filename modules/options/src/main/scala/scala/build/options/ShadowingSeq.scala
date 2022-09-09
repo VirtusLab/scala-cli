@@ -9,6 +9,17 @@ final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
   lazy val toSeq: Seq[T] = values.flatten
   def map[U](f: T => U)(implicit key: ShadowingSeq.KeyOf[U]): ShadowingSeq[U] =
     ShadowingSeq.empty[U] ++ toSeq.map(f)
+  def mapSubSeq[U](f: Seq[T] => Seq[U]): ShadowingSeq[U] =
+    ShadowingSeq[U](values.map(f))
+  def filter(f: T => Boolean)(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =
+    ShadowingSeq.empty ++ toSeq.filter(f)
+  def filterSubSeq(f: Seq[T] => Boolean): ShadowingSeq[T] =
+    ShadowingSeq(values.filter(f))
+  def filterKeys(f: T => Boolean): ShadowingSeq[T] =
+    filterSubSeq {
+      case Seq(head, _*) => f(head)
+      case _             => true
+    }
   def ++(other: Seq[T])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =
     addGroups(ShadowingSeq.groups(other, key.groups(other)))
   private def addGroups(other: Seq[Seq[T]])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =
@@ -29,6 +40,18 @@ final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
 
       ShadowingSeq(l.toList)
     }
+  def keyValueMap: Map[T, Seq[T]] =
+    values
+      .flatMap {
+        case Seq(head, tail*) => Some(head -> tail)
+        case _                => None
+      }
+      .toMap
+
+  def get(key: T): Seq[T] =
+    keyValueMap
+      .get(key)
+      .toSeq.flatten
 }
 
 object ShadowingSeq {

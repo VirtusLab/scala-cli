@@ -2251,6 +2251,19 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions
       ).call(cwd = root / runDir)
       expect(runRes.out.trim == expectedOutput)
+
+      // ensure the same behaviour can be expected when passing -classpath with -O
+      val runRes2 = os.proc(
+        TestUtil.cli,
+        "run",
+        mainInput,
+        "-O",
+        "-classpath",
+        "-O",
+        (os.rel / os.up / preCompileDir / preCompileOutputDir).toString,
+        extraOptions
+      ).call(cwd = root / runDir)
+      expect(runRes2.out.trim == expectedOutput)
     }
   }
 

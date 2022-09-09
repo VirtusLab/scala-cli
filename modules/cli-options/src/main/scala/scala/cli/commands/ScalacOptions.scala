@@ -13,6 +13,7 @@ final case class ScalacOptions(
   @HelpMessage("Add a scalac option")
   @ValueDescription("option")
   @Name("scala-opt")
+  @Name("scala-option")
   @Name("O")
     scalacOption: List[String] = Nil
 )
@@ -21,7 +22,7 @@ final case class ScalacOptions(
 object ScalacOptions {
 
   private val scalacOptionsArg = Arg("scalacOption")
-    .withExtraNames(Seq(Name("scala-opt"), Name("O")))
+    .withExtraNames(Seq(Name("scala-opt"), Name("O"), Name("scala-option")))
     .withValueDescription(Some(ValueDescription("option")))
     .withHelpMessage(Some(HelpMessage(
       "Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`."

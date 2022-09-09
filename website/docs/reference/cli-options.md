@@ -1172,7 +1172,7 @@ Available in commands:
 
 ### `--scalac-option`
 
-Aliases: `--scala-opt`, `-O`
+Aliases: `--scala-opt`, `-O`, `--scala-option`
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
 
