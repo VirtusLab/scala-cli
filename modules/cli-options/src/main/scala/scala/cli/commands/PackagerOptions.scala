@@ -32,6 +32,16 @@ final case class PackagerOptions(
     "Architectures that are supported by the repository (default: all)"
   )
     debArchitecture: String = "all",
+  @Group("Debian")
+  @HelpMessage(
+    "This field represents how important it is that the user have the package installed"
+  )
+  priority: Option[String] = None,
+  @Group("Debian")
+  @HelpMessage(
+    "This field specifies an application area into which the package has been classified"
+  )
+  section: Option[String] = None,
   @Group("MacOS")
   @HelpMessage(
   "CF Bundle Identifier"

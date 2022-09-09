@@ -65,7 +65,9 @@ object PackageOptionsUtil {
             debianOptions = DebianOptions(
               conflicts = packager.debianConflicts,
               dependencies = packager.debianDependencies,
-              architecture = Some(packager.debArchitecture)
+              architecture = Some(packager.debArchitecture),
+              priority = packager.priority,
+              section = packager.section
             ),
             redHatOptions = RedHatOptions(
               license = packager.license,
