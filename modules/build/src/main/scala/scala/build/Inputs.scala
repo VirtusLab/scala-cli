@@ -24,7 +24,7 @@ final case class Inputs(
   mayAppendHash: Boolean,
   workspaceOrigin: Option[WorkspaceOrigin],
   enableMarkdown: Boolean,
-  withRestrictedFeatures: Boolean
+  allowRestrictedFeatures: Boolean
 ) {
 
   def isEmpty: Boolean =
@@ -303,7 +303,7 @@ object Inputs {
     directories: Directories,
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Inputs = {
 
     assert(validElems.nonEmpty)
@@ -364,7 +364,7 @@ object Inputs {
       mayAppendHash = needsHash,
       workspaceOrigin = Some(workspaceOrigin0),
       enableMarkdown = enableMarkdown,
-      withRestrictedFeatures = withRestrictedFeatures
+      allowRestrictedFeatures = allowRestrictedFeatures
     )
   }
 
@@ -491,7 +491,7 @@ object Inputs {
     acceptFds: Boolean,
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(args, cwd, download, stdinOpt, acceptFds)
@@ -513,7 +513,7 @@ object Inputs {
         directories,
         forcedWorkspace,
         enableMarkdown,
-        withRestrictedFeatures
+        allowRestrictedFeatures
       ))
     }
     else
@@ -534,7 +534,7 @@ object Inputs {
     acceptFds: Boolean = false,
     forcedWorkspace: Option[os.Path] = None,
     enableMarkdown: Boolean = false,
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Either[BuildException, Inputs] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty
@@ -556,7 +556,7 @@ object Inputs {
         acceptFds,
         forcedWorkspace,
         enableMarkdown,
-        withRestrictedFeatures
+        allowRestrictedFeatures
       )
 
   def default(): Option[Inputs] =
@@ -571,7 +571,7 @@ object Inputs {
       mayAppendHash = true,
       workspaceOrigin = None,
       enableMarkdown = enableMarkdown,
-      withRestrictedFeatures = false
+      allowRestrictedFeatures = false
     )
 
   def empty(projectName: String): Inputs =

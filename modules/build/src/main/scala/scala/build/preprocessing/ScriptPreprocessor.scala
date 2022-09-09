@@ -14,7 +14,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
     input: Inputs.SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case script: Inputs.Script =>
@@ -29,7 +29,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               ScopePath.fromPath(script.path),
               logger,
               maybeRecoverOnError,
-              withRestrictedFeatures
+              allowRestrictedFeatures
             )
           }
           preprocessed
@@ -49,7 +49,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               script.scopePath,
               logger,
               maybeRecoverOnError,
-              withRestrictedFeatures
+              allowRestrictedFeatures
             )
           }
           preprocessed
@@ -71,7 +71,7 @@ object ScriptPreprocessor {
     scopePath: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
 
     val (contentIgnoredSheBangLines, _) = SheBang.ignoreSheBangLines(content)
@@ -85,7 +85,7 @@ object ScriptPreprocessor {
         scopePath / os.up,
         logger,
         maybeRecoverOnError,
-        withRestrictedFeatures
+        allowRestrictedFeatures
       ))
         .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
 

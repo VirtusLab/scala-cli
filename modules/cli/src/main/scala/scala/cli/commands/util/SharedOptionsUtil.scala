@@ -81,7 +81,7 @@ object SharedOptionsUtil extends CommandHelpers {
       acceptFds = !Properties.isWin,
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
-      withRestrictedFeatures = ScalaCli.withRestrictedFeatures
+      allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures
     )
     maybeInputs.map { inputs =>
       val forbiddenDirs =
