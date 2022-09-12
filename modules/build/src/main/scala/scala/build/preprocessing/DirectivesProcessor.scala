@@ -26,7 +26,7 @@ object DirectivesProcessor {
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger,
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Either[BuildException, DirectivesProcessorOutput[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
 
@@ -34,7 +34,7 @@ object DirectivesProcessor {
       scopedDirective: ScopedDirective,
       logger: Logger
     ) =
-      if (withRestrictedFeatures && handler.isRestricted)
+      if (!allowRestrictedFeatures && handler.isRestricted)
         val msg =
           "This directive is not supported with 'scala' command. Please run it with `scala-cli` command or with `--power` flag."
         Left(DirectiveErrors(

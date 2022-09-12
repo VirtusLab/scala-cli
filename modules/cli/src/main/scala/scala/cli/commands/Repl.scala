@@ -20,8 +20,8 @@ import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 object Repl extends ScalaCommand[ReplOptions] {
   override def group = "Main"
   override def names: List[List[String]] = List(
-    List("console"),
-    List("repl")
+    List("repl"),
+    List("console")
   )
   override def sharedOptions(options: ReplOptions): Option[SharedOptions] = Some(options.shared)
 

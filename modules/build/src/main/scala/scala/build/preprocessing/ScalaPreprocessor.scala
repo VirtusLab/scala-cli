@@ -72,7 +72,7 @@ case object ScalaPreprocessor extends Preprocessor {
     input: Inputs.SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: Inputs.ScalaFile =>
@@ -87,7 +87,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 scopePath / os.up,
                 logger,
                 maybeRecoverOnError,
-                withRestrictedFeatures
+                allowRestrictedFeatures
               )
             ) match {
               case None =>
@@ -137,7 +137,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 v.scopePath / os.up,
                 logger,
                 maybeRecoverOnError,
-                withRestrictedFeatures
+                allowRestrictedFeatures
               )
             ).map {
               case ProcessingOutput(reqs, scopedReqs, opts, updatedContent) =>
@@ -168,7 +168,7 @@ case object ScalaPreprocessor extends Preprocessor {
     scopeRoot: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val afterStrictUsing: StrictDirectivesProcessingOutput =
@@ -178,7 +178,7 @@ case object ScalaPreprocessor extends Preprocessor {
         scopeRoot,
         logger,
         maybeRecoverOnError,
-        withRestrictedFeatures
+        allowRestrictedFeatures
       ))
 
     val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
@@ -297,7 +297,7 @@ case object ScalaPreprocessor extends Preprocessor {
     cwd: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
     val contentChars = content.toCharArray
     val ExtractedDirectives(codeOffset, directives0) =
@@ -317,7 +317,7 @@ case object ScalaPreprocessor extends Preprocessor {
         path,
         cwd,
         logger,
-        withRestrictedFeatures
+        allowRestrictedFeatures
       )
     }
 
@@ -330,7 +330,7 @@ case object ScalaPreprocessor extends Preprocessor {
         path,
         cwd,
         logger,
-        withRestrictedFeatures
+        allowRestrictedFeatures
       )
     }
 

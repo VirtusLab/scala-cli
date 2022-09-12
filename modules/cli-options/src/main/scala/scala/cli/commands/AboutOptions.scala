@@ -11,6 +11,7 @@ final case class AboutOptions(
   @Recurse
     verbosity: VerbosityOptions = VerbosityOptions(),
   @Hidden
+  @HelpMessage(HelpMessages.passwordOption)
     ghToken: Option[PasswordOption] = None
 )
 // format: on

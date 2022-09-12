@@ -24,6 +24,7 @@ final case class UpdateOptions(
   @Hidden
     isInternalRun: Boolean = false,
   @Hidden
+  @HelpMessage(HelpMessages.passwordOption)
     ghToken: Option[PasswordOption] = None
 )
 // format: on

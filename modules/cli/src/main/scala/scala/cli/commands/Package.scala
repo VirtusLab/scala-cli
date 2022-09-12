@@ -42,7 +42,7 @@ import scala.util.Properties
 object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def name                                                          = "package"
   override def group                                                         = "Main"
-  override def inSipScala                                                    = false
+  override def isRestricted                                                  = true
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)

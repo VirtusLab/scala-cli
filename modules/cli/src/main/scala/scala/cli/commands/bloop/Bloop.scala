@@ -17,7 +17,7 @@ import scala.concurrent.duration.Duration
 
 object Bloop extends ScalaCommand[BloopOptions] {
   override def hidden     = true
-  override def inSipScala = false
+  override def isRestricted = true
   override def stopAtFirstUnrecognized = true
 
   private def bloopRifleConfig0(opts: BloopOptions): BloopRifleConfig = {

@@ -20,8 +20,8 @@ import scala.cli.internal.Constants
 
 object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
-  override def group      = "Main"
-  override def inSipScala = false
+  override def group        = "Main"
+  override def isRestricted = true
 
   override def names = List(
     List("publish", "setup")

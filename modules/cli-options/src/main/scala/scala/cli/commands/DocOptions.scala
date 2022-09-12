@@ -4,7 +4,7 @@ import caseapp._
 import caseapp.core.help.Help
 
 // format: off
-@HelpMessage("Generate Scaladoc documentation")
+@HelpMessage("Generate Scaladoc documentation", "By default, Scala CLI sets common scaladoc options and this mechanism can be disabled by using `--default-scaladoc-opts:false`.")
 final case class DocOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
@@ -17,7 +17,7 @@ final case class DocOptions(
   @Name("f")
     force: Boolean = false,
   @Group("Doc")
-  @HelpMessage("Use default scaladoc options")
+  @HelpMessage("Control if scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.")
   @ExtraName("defaultScaladocOpts")
     defaultScaladocOptions: Option[Boolean] = None,
 )

@@ -14,8 +14,8 @@ import scala.cli.signing.shared.Secret
 
 object SecretList extends ScalaCommand[ListSecretsOptions] {
 
-  override def hidden     = false
-  override def inSipScala = false
+  override def hidden       = false
+  override def isRestricted = true
   override def names = List(
     List("github", "secret", "list"),
     List("gh", "secret", "list")

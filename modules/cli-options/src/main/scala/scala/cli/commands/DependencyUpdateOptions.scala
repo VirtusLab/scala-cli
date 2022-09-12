@@ -9,7 +9,7 @@ final case class DependencyUpdateOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
   @Group("DependencyUpdate")
-  @HelpMessage("Update all dependency")
+  @HelpMessage("Update all dependencies if newer version was released")
     all: Boolean = false,
 )
   // format: on

@@ -10,8 +10,8 @@ import scala.cli.config.ConfigDb
 
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {
 
-  override def group: String       = "Main"
-  override def inSipScala: Boolean = false
+  override def group: String         = "Main"
+  override def isRestricted: Boolean = true
   override def sharedOptions(options: PublishLocalOptions): Option[SharedOptions] =
     Some(options.shared)
 

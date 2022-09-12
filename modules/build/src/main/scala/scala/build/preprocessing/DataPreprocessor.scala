@@ -10,7 +10,7 @@ case object DataPreprocessor extends Preprocessor {
     input: Inputs.SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case file: Inputs.VirtualData =>

@@ -3,374 +3,165 @@ title: Command-line options
 sidebar_position: 1
 ---
 
+
+
 This is a summary of options that are available for each subcommand of the `scala-cli` command.
-
-## About options
-
-Available in commands:
-- [`about`](./commands.md#about)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--gh-token`
-
-## Add path options
-
-Available in commands:
-- [`add-path`](./commands.md#add-path)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--quiet`
-
-Aliases: `-q`
-
-#### `--title`
 
 ## Benchmarking options
 
 Available in commands:
-- [`run`](./commands.md#run)
-- [`shebang`](./commands.md#shebang)
 
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--jmh`
-
-Run JMH benchmarks
-
-#### `--jmh-version`
-
-Set JMH version
-
-## Bloop options
-
-Available in commands:
-- [`bloop`](./commands.md#bloop)
-
+[`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--working-directory`
+### `--jmh`
 
-Aliases: `--working-dir`, `--dir`
+[experimental] Run JMH benchmarks
 
-## Bloop start options
+### `--jmh-version`
 
-Available in commands:
-- [`bloop start`](./commands.md#bloop-start)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--force`
-
-Aliases: `-f`
-
-## Bsp options
-
-Available in commands:
-- [`bsp`](./commands.md#bsp)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--json-options`
-
-Command-line options JSON file
-
-## Bsp file options
-
-Available in commands:
-- [`clean`](./commands.md#clean)
-- [`setup-ide`](./commands.md#setup-ide)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--bsp-directory`
-
-Aliases: `--bsp-dir`
-
-Custom BSP configuration location
-
-#### `--bsp-name`
-
-Aliases: `--name`
-
-Name of BSP
+[experimental] Set JMH version
 
 ## Compilation server options
 
 Available in commands:
-- [`bloop`](./commands.md#bloop)
-- [`bloop exit`](./commands.md#bloop-exit)
-- [`bloop output`](./commands.md#bloop-output)
-- [`bloop start`](./commands.md#bloop-start)
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
-- [`uninstall`](./commands.md#uninstall)
 
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--bloop-bsp-protocol`
+### `--bloop-bsp-protocol`
 
+[Internal]
 Protocol to use to open a BSP connection with Bloop
 
-#### `--bloop-bsp-socket`
+### `--bloop-bsp-socket`
 
+[Internal]
 Socket file to use to open a BSP connection with Bloop
 
-#### `--bloop-host`
+### `--bloop-host`
 
+[Internal]
 Host the compilation server should bind to
 
-#### `--bloop-port`
+### `--bloop-port`
 
+[Internal]
 Port the compilation server should bind to (pass `-1` to pick a random port)
 
-#### `--bloop-daemon-dir`
+### `--bloop-daemon-dir`
 
+[Internal]
 Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
 
-#### `--bloop-version`
+### `--bloop-version`
 
+[Internal]
 If Bloop isn't already running, the version we should start
 
-#### `--bloop-bsp-timeout`
+### `--bloop-bsp-timeout`
 
+[Internal]
 Maximum duration to wait for the BSP connection to be opened
 
-#### `--bloop-bsp-check-period`
+### `--bloop-bsp-check-period`
 
+[Internal]
 Duration between checks of the BSP connection state
 
-#### `--bloop-startup-timeout`
+### `--bloop-startup-timeout`
 
+[Internal]
 Maximum duration to wait for the compilation server to start up
 
-#### `--bloop-default-java-opts`
+### `--bloop-default-java-opts`
 
+[Internal]
 Include default JVM options for Bloop
 
-#### `--bloop-java-opt`
+### `--bloop-java-opt`
 
-#### `--bloop-global-options-file`
+[Internal]
+Pass java options to use by Bloop server
 
+### `--bloop-global-options-file`
+
+[Internal]
 Bloop global options file
 
-#### `--bloop-jvm`
+### `--bloop-jvm`
 
+[Internal]
 JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
 
-#### `--bloop-working-dir`
+### `--bloop-working-dir`
 
+[Internal]
 Working directory for Bloop, if it needs to be started
 
-#### `--server`
+### `--server`
 
-Enable / disable compilation server
+Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server:false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
 ## Compile options
 
 Available in commands:
-- [`compile`](./commands.md#compile)
 
+[`compile`](./commands.md#compile)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--class-path`
+### `--class-path`
 
 Aliases: `-p`, `--classpath`
 
 Print the resulting class path
 
-#### `--output`
+### `--output`
 
 Aliases: `--output-directory`
 
 Copy compilation results to output directory using either relative or absolute path
 
-#### `--test`
+### `--test`
 
 Compile test scope
-
-## Compile cross options
-
-Available in commands:
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--cross`
-
-Cross-compile sources
-
-## Config options
-
-Available in commands:
-- [`config`](./commands.md#config)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--dump`
-
-Dump config DB as JSON
-
-#### `--create-pgp-key`
-
-Create PGP key in config
-
-#### `--password`
-
-If the entry is a password, print the password value rather than how to get the password
-
-#### `--password-value`
-
-If the entry is a password, save the password value rather than how to get the password
-
-#### `--unset`
-
-Remove an entry from config
-
-## Coursier options
-
-Available in commands:
-- [`bloop`](./commands.md#bloop)
-- [`bloop exit`](./commands.md#bloop-exit)
-- [`bloop start`](./commands.md#bloop-start)
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`config`](./commands.md#config)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`pgp push`](./commands.md#pgp-push)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`publish setup`](./commands.md#publish-setup)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
-- [`uninstall`](./commands.md#uninstall)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--ttl`
-
-Specify a TTL for changing dependencies, such as snapshots
-
-#### `--cache`
-
-Set the coursier cache location
-
-#### `--coursier-validate-checksums`
-
-Enable checksum validation of artifacts downloaded by coursier
 
 ## Cross options
 
 Available in commands:
-- [`compile`](./commands.md#compile)
 
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--cross`
-
-## Default file options
-
-Available in commands:
-- [`default-file`](./commands.md#default-file)
-
+[`compile`](./commands.md#compile), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--write`
+### `--cross`
 
-Write result to files rather than to stdout
-
-#### `--list`
-
-List available default files
-
-#### `--list-ids`
-
-List available default file ids
-
-#### `--force`
-
-Aliases: `-f`
-
-Force overwriting destination files
+[experimental] Run given command against all provided Scala versions and/or platforms
 
 ## Dependency options
 
 Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--dependency`
+### `--dependency`
 
 Aliases: `--dep`, `-d`
 
 Add dependencies
 
-#### `--repository`
+### `--repository`
 
 Aliases: `--repo`, `-r`
 
 Add repositories
 
-#### `--compiler-plugin`
+### `--compiler-plugin`
 
 Aliases: `-P`, `--plugin`
 
@@ -379,168 +170,141 @@ Add compiler plugin dependencies
 ## Dependency update options
 
 Available in commands:
-- [`dependency-update`](./commands.md#dependency-update)
 
+[`dependency-update`](./commands.md#dependency-update)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--all`
+### `--all`
 
-Update all dependency
+Update all dependencies if newer version was released
 
 ## Directories options
 
 Available in commands:
-- [`bloop`](./commands.md#bloop)
-- [`bloop exit`](./commands.md#bloop-exit)
-- [`bloop output`](./commands.md#bloop-output)
-- [`bloop start`](./commands.md#bloop-start)
-- [`bsp`](./commands.md#bsp)
-- [`clean`](./commands.md#clean)
-- [`compile`](./commands.md#compile)
-- [`config`](./commands.md#config)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`directories`](./commands.md#directories)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`install completions` / `install-completions`](./commands.md#install-completions)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`publish setup`](./commands.md#publish-setup)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
-- [`uninstall`](./commands.md#uninstall)
 
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--home-directory`
+### `--home-directory`
 
 Aliases: `--home`
 
 ## Doc options
 
 Available in commands:
-- [`doc`](./commands.md#doc)
 
+[`doc`](./commands.md#doc)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--output`
+### `--output`
 
 Aliases: `-o`
 
 Set the destination path
 
-#### `--force`
+### `--force`
 
 Aliases: `-f`
 
 Overwrite the destination directory, if it exists
 
-#### `--default-scaladoc-options`
+### `--default-scaladoc-options`
 
 Aliases: `--default-scaladoc-opts`
 
-Use default scaladoc options
-
-## Doctor options
-
-Available in commands:
-- [`doctor`](./commands.md#doctor)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--gh-token`
+Control if scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
 
 ## Export options
 
 Available in commands:
-- [`export`](./commands.md#export)
 
+[`export`](./commands.md#export)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--sbt`
+### `--sbt`
 
-#### `--mill`
+### `--mill`
 
-#### `--sbt-setting`
+### `--sbt-setting`
 
 Aliases: `--setting`
 
-#### `--sbt-version`
+### `--sbt-version`
 
-#### `--output`
+### `--output`
 
 Aliases: `-o`
 
 ## Fmt options
 
 Available in commands:
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
 
+[`fmt` , `format` , `scalafmt`](./commands.md#fmt)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--check`
+### `--check`
 
 Check if sources are well formatted
 
-#### `--respect-project-filters`
+### `--respect-project-filters`
 
-Use project filters defined in the configuration (turned on by default)
+Use project filters defined in the configuration. Turned on by default, use `--respect-project-filters:false` to disable it.
 
-#### `--save-scalafmt-conf`
+### `--save-scalafmt-conf`
 
 Saves .scalafmt.conf file if it was created or overwritten
 
-#### `--scalafmt-help`
+### `--scalafmt-help`
 
 Aliases: `--fmt-help`
 
 Show help for scalafmt. This is an alias for --scalafmt-arg -help
 
-#### `--os-arch-suffix`
+### `--os-arch-suffix`
 
-#### `--scalafmt-tag`
+[Internal]
+### `--scalafmt-tag`
 
-#### `--scalafmt-github-org-name`
+[Internal]
+### `--scalafmt-github-org-name`
 
-#### `--scalafmt-extension`
+[Internal]
+### `--scalafmt-extension`
 
-#### `--scalafmt-launcher`
+[Internal]
+### `--scalafmt-launcher`
 
-#### `--scalafmt-arg`
+[Internal]
+### `--scalafmt-arg`
 
 Aliases: `-F`
 
-#### `--scalafmt-conf`
+Pass argument to scalafmt.
+
+### `--scalafmt-conf`
 
 Aliases: `--scalafmt-config`
 
 Custom path to the scalafmt configuration file.
 
-#### `--scalafmt-conf-str`
+### `--scalafmt-conf-str`
 
 Aliases: `--scalafmt-config-str`, `--scalafmt-conf-snippet`
 
 Pass configuration as a string.
 
-#### `--scalafmt-dialect`
+### `--scalafmt-dialect`
 
 Aliases: `--dialect`
 
-Pass a global dialect for scalafmt. This overrides whatever value is configured in the .scalafmt.conf file.
+Pass a global dialect for scalafmt. This overrides whatever value is configured in the .scalafmt.conf file or inferred based on Scala version used.
 
-#### `--scalafmt-version`
+### `--scalafmt-version`
 
 Aliases: `--fmt-version`
 
@@ -549,63 +313,22 @@ Pass scalafmt version before running it. This overrides whatever value is config
 ## Help options
 
 Available in commands:
-- [`about`](./commands.md#about)
-- [`add-path`](./commands.md#add-path)
-- [`bloop`](./commands.md#bloop)
-- [`bloop exit`](./commands.md#bloop-exit)
-- [`bloop output`](./commands.md#bloop-output)
-- [`bloop start`](./commands.md#bloop-start)
-- [`bsp`](./commands.md#bsp)
-- [`clean`](./commands.md#clean)
-- [`compile`](./commands.md#compile)
-- [`config`](./commands.md#config)
-- [`default-file`](./commands.md#default-file)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`directories`](./commands.md#directories)
-- [`doc`](./commands.md#doc)
-- [`doctor`](./commands.md#doctor)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`help`](./commands.md#help)
-- [`install completions` / `install-completions`](./commands.md#install-completions)
-- [`install-home`](./commands.md#install-home)
-- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`pgp create`](./commands.md#pgp-create)
-- [`pgp key-id`](./commands.md#pgp-key-id)
-- [`pgp pull`](./commands.md#pgp-pull)
-- [`pgp push`](./commands.md#pgp-push)
-- [`pgp sign`](./commands.md#pgp-sign)
-- [`pgp verify`](./commands.md#pgp-verify)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`publish setup`](./commands.md#publish-setup)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
-- [`uninstall`](./commands.md#uninstall)
-- [`uninstall completions` / `uninstall-completions`](./commands.md#uninstall-completions)
-- [`update`](./commands.md#update)
-- [`version`](./commands.md#version)
 
+[`about`](./commands.md#about), [`add-path`](./commands.md#add-path), [`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`doctor`](./commands.md#doctor), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp create`](./commands.md#pgp-create), [`pgp key-id`](./commands.md#pgp-key-id), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`pgp sign`](./commands.md#pgp-sign), [`pgp verify`](./commands.md#pgp-verify), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--usage`
+### `--usage`
 
 Print usage and exit
 
-#### `--help`
+### `--help`
 
 Aliases: `-h`, `-help`
 
 Print help message and exit
 
-#### `--help-full`
+### `--help-full`
 
 Aliases: `--full-help`
 
@@ -614,276 +337,158 @@ Print help message, including hidden options, and exit
 ## Help group options
 
 Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--help-js`
+### `--help-js`
 
 Show options for ScalaJS
 
-#### `--help-native`
+### `--help-native`
 
 Show options for ScalaNative
-
-## Input options
-
-Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`publish setup`](./commands.md#publish-setup)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--default-forbidden-directories`
-
-#### `--forbid`
 
 ## Install completions options
 
 Available in commands:
-- [`install completions` / `install-completions`](./commands.md#install-completions)
 
+[`install completions` , `install-completions`](./commands.md#install-completions)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--format`
+### `--format`
 
 Aliases: `--shell`
 
 Name of the shell, either zsh or bash
 
-#### `--rc-file`
+### `--rc-file`
 
 Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell
 
-#### `--output`
+### `--output`
 
 Aliases: `-o`
 
 Completions output directory
 
-#### `--banner`
+### `--banner`
 
+[Internal]
 Custom banner in comment placed in rc file
 
-#### `--name`
+### `--name`
 
+[Internal]
 Custom completions name
 
-#### `--env`
+### `--env`
 
 Print completions to stdout
-
-## Install home options
-
-Available in commands:
-- [`install-home`](./commands.md#install-home)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--scala-cli-binary-path`
-
-#### `--force`
-
-Aliases: `-f`
-
-Overwrite `scala-cli`, if it exists
-
-#### `--binary-name`
-
-Binary name
-
-#### `--env`
-
-Print the update to `env` variable
-
-#### `--bin-dir`
-
-Binary directory
 
 ## Java options
 
 Available in commands:
-- [`package`](./commands.md#package)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`package`](./commands.md#package), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--java-opt`
+### `--java-opt`
 
 Aliases: `-J`
 
 Set Java options, such as `-Xmx1g`
 
-#### `--java-prop`
+### `--java-prop`
 
 Set Java properties
 
 ## Jvm options
 
 Available in commands:
-- [`bloop`](./commands.md#bloop)
-- [`bloop start`](./commands.md#bloop-start)
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`config`](./commands.md#config)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`pgp push`](./commands.md#pgp-push)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`publish setup`](./commands.md#publish-setup)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`bloop`](./commands.md#bloop), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--java-home`
+### `--java-home`
 
 Set the Java home directory
 
-#### `--jvm`
+### `--jvm`
 
 Aliases: `-j`
 
 Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`
 
-#### `--jvm-index`
+### `--jvm-index`
 
+[Internal]
 JVM index URL
 
-#### `--jvm-index-os`
+### `--jvm-index-os`
 
+[Internal]
 Operating system to use when looking up in the JVM index
 
-#### `--jvm-index-arch`
+### `--jvm-index-arch`
 
+[Internal]
 CPU architecture to use when looking up in the JVM index
 
-#### `--javac-plugin`
+### `--javac-plugin`
 
+[Internal]
 Javac plugin dependencies or files
 
-#### `--javac-option`
+### `--javac-option`
 
 Aliases: `--javac-opt`
 
+[Internal]
 Javac options
 
-#### `--bsp-debug-port`
+### `--bsp-debug-port`
 
+[Internal]
 Port for BSP debugging
 
 ## Logging options
 
 Available in commands:
-- [`bloop`](./commands.md#bloop)
-- [`bloop exit`](./commands.md#bloop-exit)
-- [`bloop output`](./commands.md#bloop-output)
-- [`bloop start`](./commands.md#bloop-start)
-- [`bsp`](./commands.md#bsp)
-- [`clean`](./commands.md#clean)
-- [`compile`](./commands.md#compile)
-- [`config`](./commands.md#config)
-- [`default-file`](./commands.md#default-file)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`install completions` / `install-completions`](./commands.md#install-completions)
-- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`pgp pull`](./commands.md#pgp-pull)
-- [`pgp push`](./commands.md#pgp-push)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`publish setup`](./commands.md#publish-setup)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
-- [`uninstall`](./commands.md#uninstall)
-- [`uninstall completions` / `uninstall-completions`](./commands.md#uninstall-completions)
 
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--quiet`
+### `--quiet`
 
 Aliases: `-q`
 
 Decrease verbosity
 
-#### `--progress`
+### `--progress`
 
 Use progress bars
 
 ## Main class options
 
 Available in commands:
-- [`export`](./commands.md#export)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`run`](./commands.md#run)
-- [`shebang`](./commands.md#shebang)
 
+[`export`](./commands.md#export), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--main-class`
+### `--main-class`
 
 Aliases: `-M`
 
 Specify which main class to run
 
-#### `--main-class-ls`
+### `--main-class-ls`
 
 Aliases: `--main-class-list`, `--list-main-class`, `--list-main-classes`
 
@@ -892,156 +497,109 @@ List main classes available in the current context
 ## Markdown options
 
 Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--enable-markdown`
+### `--enable-markdown`
 
 Aliases: `--md`, `--markdown`
 
-Enable markdown support (experimental)
-
-## Metabrowse options
-
-Available in commands:
-- [`browse` / `metabrowse`](./commands.md#browse)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--add-rt-jar`
-
-Download and add `rt.jar` in the class path
-
-#### `--host`
-
-Aliases: `-H`
-
-Bind to host
-
-#### `--port`
-
-Aliases: `-p`
-
-Bind to port
-
-#### `--os-arch-suffix`
-
-#### `--metabrowse-tag`
-
-#### `--metabrowse-github-org-name`
-
-#### `--metabrowse-extension`
-
-#### `--metabrowse-launcher`
-
-#### `--metabrowse-dialect`
+[experimental] Enable markdown support.
 
 ## Package options
 
 Available in commands:
-- [`package`](./commands.md#package)
 
+[`package`](./commands.md#package)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--output`
+### `--output`
 
 Aliases: `-o`
 
 Set the destination path
 
-#### `--force`
+### `--force`
 
 Aliases: `-f`
 
 Overwrite the destination file, if it exists
 
-#### `--library`
+### `--library`
 
 Generate a library JAR rather than an executable JAR
 
-#### `--source`
+### `--source`
 
 Generate a source JAR rather than an executable JAR
 
-#### `--doc`
+### `--doc`
 
 Aliases: `--scaladoc`, `--javadoc`
 
 Generate a scaladoc JAR rather than an executable JAR
 
-#### `--assembly`
+### `--assembly`
 
 Generate an assembly JAR
 
-#### `--preamble`
+### `--preamble`
 
 For assembly JAR, whether to add a bash / bat preamble
 
-#### `--main-class-in-manifest`
+### `--main-class-in-manifest`
 
+[Internal]
 For assembly JAR, whether to specify a main class in the JAR manifest
 
-#### `--spark`
+### `--spark`
 
+[Internal]
 Generate an assembly JAR for Spark (assembly that doesn't contain Spark, nor any of its dependencies)
 
-#### `--standalone`
+### `--standalone`
 
 Package standalone JARs
 
-#### `--deb`
+### `--deb`
 
 Build Debian package, available only on Linux
 
-#### `--dmg`
+### `--dmg`
 
 Build dmg package, available only on macOS
 
-#### `--rpm`
+### `--rpm`
 
 Build rpm package, available only on Linux
 
-#### `--msi`
+### `--msi`
 
 Build msi package, available only on Windows
 
-#### `--pkg`
+### `--pkg`
 
 Build pkg package, available only on macOS
 
-#### `--docker`
+### `--docker`
 
 Build Docker image
 
-#### `--provided`
+### `--provided`
 
+[Internal]
 Exclude modules *and their transitive dependencies* from the JAR to be packaged
 
-#### `--default-scaladoc-options`
+### `--default-scaladoc-options`
 
 Aliases: `--default-scaladoc-opts`
 
 Use default scaladoc options
 
-#### `--native-image`
+### `--native-image`
 
 Aliases: `--graal`
 
@@ -1050,696 +608,569 @@ Build GraalVM native image
 ## Packager options
 
 Available in commands:
-- [`package`](./commands.md#package)
 
+[`package`](./commands.md#package)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--version`
+### `--version`
 
 Set the version of the generated package
 
-#### `--logo-path`
+### `--logo-path`
 
 Path to application logo in PNG format, it will be used to generate icon and banner/dialog in msi installer
 
-#### `--launcher-app`
+### `--launcher-app`
 
 Set launcher app name, which will be linked to the PATH
 
-#### `--description`
+### `--description`
 
-#### `--maintainer`
+### `--maintainer`
 
 Aliases: `-m`
 
 This should contain names and email addresses of co-maintainers of the package
 
-#### `--debian-conflicts`
+### `--debian-conflicts`
 
 The list of Debian package that this package is not compatible with
 
-#### `--debian-dependencies`
+### `--debian-dependencies`
 
 The list of Debian packages that this package depends on
 
-#### `--deb-architecture`
+### `--deb-architecture`
 
 Architectures that are supported by the repository (default: all)
 
-#### `--priority`
+### `--priority`
 
 This field represents how important it is that the user have the package installed
 
-#### `--section`
+### `--section`
 
 This field specifies an application area into which the package has been classified
 
-#### `--identifier`
+### `--identifier`
 
 CF Bundle Identifier
 
-#### `--license`
+### `--license`
 
 Licenses that are supported by the repository (list of licenses: https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing)
 
-#### `--release`
+### `--release`
 
 The number of times this version of the software was released (default: 1)
 
-#### `--rpm-architecture`
+### `--rpm-architecture`
 
 Architectures that are supported by the repository (default: noarch)
 
-#### `--license-path`
+### `--license-path`
 
 Path to the license file
 
-#### `--product-name`
+### `--product-name`
 
 Name of product (default: Scala packager)
 
-#### `--exit-dialog`
+### `--exit-dialog`
 
 Text that will be displayed on the exit dialog
 
-#### `--suppress-validation`
+### `--suppress-validation`
 
 Suppress Wix ICE validation (required for users that are neither interactive, not local administrators)
 
-#### `--extra-config`
+### `--extra-config`
 
 Path to extra WIX configuration content
 
-#### `--is64-bits`
+### `--is64-bits`
 
 Aliases: `--64`
 
 Whether a 64-bit executable is being packaged
 
-#### `--installer-version`
+### `--installer-version`
 
 WIX installer version
 
-#### `--docker-from`
+### `--docker-from`
 
 Building the container from base image
 
-#### `--docker-image-registry`
+### `--docker-image-registry`
 
 The image registry; if empty, it will use the default registry
 
-#### `--docker-image-repository`
+### `--docker-image-repository`
 
 The image repository
 
-#### `--docker-image-tag`
+### `--docker-image-tag`
 
 The image tag; the default tag is `latest`
 
-#### `--graalvm-java-version`
+### `--graalvm-java-version`
 
 GraalVM Java major version to use to build GraalVM native images (like 17)
 
-#### `--graalvm-version`
+### `--graalvm-version`
 
 GraalVM version to use to build GraalVM native images (like 22.0.0)
 
-#### `--graalvm-jvm-id`
+### `--graalvm-jvm-id`
 
 JVM id of GraalVM distribution to build GraalVM native images (like "graalvm-java17:22.0.0")
-
-## Pgp create options
-
-Available in commands:
-- [`pgp create`](./commands.md#pgp-create)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--email`
-
-#### `--password`
-
-#### `--dest`
-
-#### `--pub-dest`
-
-#### `--secret-dest`
-
-#### `--verbose`
-
-#### `--quiet`
-
-## Pgp key id options
-
-Available in commands:
-- [`pgp key-id`](./commands.md#pgp-key-id)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--fingerprint`
-
-#### `--verbose`
-
-Aliases: `-v`
-
-## Pgp pull options
-
-Available in commands:
-- [`pgp pull`](./commands.md#pgp-pull)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--allow-empty`
-
-Whether to exit with code 0 if no key is passed
-
-## Pgp push options
-
-Available in commands:
-- [`pgp push`](./commands.md#pgp-push)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--force`
-
-Aliases: `-f`
-
-Try to push the key even if Scala CLI thinks it's not a public key
-
-#### `--allow-empty`
-
-Whether to exit with code 0 if no key is passed
-
-#### `--force-signing-binary`
 
 ## Pgp push pull options
 
 Available in commands:
-- [`pgp pull`](./commands.md#pgp-pull)
-- [`pgp push`](./commands.md#pgp-push)
-- [`publish setup`](./commands.md#publish-setup)
 
+[`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`publish setup`](./commands.md#publish-setup)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--key-server`
+### `--key-server`
 
 Key server to push / pull keys from
-
-## Pgp sign options
-
-Available in commands:
-- [`pgp sign`](./commands.md#pgp-sign)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--password`
-
-#### `--secret-key`
-
-#### `--force`
-
-Aliases: `-f`
-
-#### `--stdout`
-
-## Pgp verify options
-
-Available in commands:
-- [`pgp verify`](./commands.md#pgp-verify)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--key`
 
 ## Publish options
 
 Available in commands:
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
 
+[`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--working-dir`
+### `--working-dir`
 
+[Internal]
 Directory where temporary files for publishing should be written
 
-#### `--scala-version-suffix`
+### `--scala-version-suffix`
 
+[Internal]
 Scala version suffix to append to the module name, like "_2.13" or "_3"
 
-#### `--scala-platform-suffix`
+### `--scala-platform-suffix`
 
+[Internal]
 Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
 
-#### `--sources`
+### `--sources`
 
 Whether to build and publish source JARs
 
-#### `--doc`
+### `--doc`
 
 Aliases: `--scaladoc`, `--javadoc`
 
 Whether to build and publish doc JARs
 
-#### `--gpg-key`
+### `--gpg-key`
 
 Aliases: `-K`
 
 ID of the GPG key to use to sign artifacts
 
-#### `--signer`
+### `--signer`
 
 Method to use to sign artifacts
 
-#### `--gpg-option`
+### `--gpg-option`
 
 Aliases: `-G`, `--gpg-opt`
 
 gpg command-line options
 
-#### `--ivy2-home`
+### `--ivy2-home`
 
 Set Ivy 2 home directory
 
-#### `--force-signing-binary`
+### `--force-signing-binary`
 
-#### `--checksum`
+[Internal]
+### `--checksum`
 
-#### `--ivy2-local-like`
+[Internal]
+### `--ivy2-local-like`
 
-#### `--parallel-upload`
+[Internal]
+### `--parallel-upload`
 
+[Internal]
 ## Publish params options
 
 Available in commands:
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`publish setup`](./commands.md#publish-setup)
 
+[`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--organization`
+### `--organization`
 
 Organization to publish artifacts under
 
-#### `--name`
+### `--name`
 
 Name to publish artifacts as
 
-#### `--module-name`
+### `--module-name`
 
 Final name to publish artifacts as, including Scala version and platform suffixes if any
 
-#### `--version`
+### `--version`
 
 Version to publish artifacts as
 
-#### `--compute-version`
+### `--compute-version`
 
 How to compute the version to publish artifacts as
 
-#### `--url`
+### `--url`
 
 URL to put in publishing metadata
 
-#### `--license`
+### `--license`
 
 License to put in publishing metadata
 
-#### `--vcs`
+### `--vcs`
 
 VCS information to put in publishing metadata
 
-#### `--description`
+### `--description`
 
 Description to put in publishing metadata
 
-#### `--developer`
+### `--developer`
 
 Developer(s) to add in publishing metadata, like "alex|Alex|https://alex.info" or "alex|Alex|https://alex.info|alex@alex.me"
 
-#### `--secret-key`
+### `--secret-key`
 
 Secret key to use to sign artifacts with Bouncy Castle
 
-#### `--secret-key-password`
+### `--secret-key-password`
 
 Aliases: `--secret-key-pass`
 
 Password of secret key to use to sign artifacts with Bouncy Castle
 
-#### `--ci`
+### `--ci`
 
 Use or setup publish parameters meant to be used on continuous integration
 
 ## Publish repository options
 
 Available in commands:
-- [`publish`](./commands.md#publish)
-- [`publish setup`](./commands.md#publish-setup)
 
+[`publish`](./commands.md#publish), [`publish setup`](./commands.md#publish-setup)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--publish-repository`
+### `--publish-repository`
 
 Aliases: `-R`, `--publish-repo`
 
 Repository to publish to
 
-#### `--user`
+### `--user`
 
 User to use with publishing repository
 
-#### `--password`
+### `--password`
 
 Password to use with publishing repository
 
-#### `--realm`
+### `--realm`
 
 Realm to use when passing credentials to publishing repository
 
 ## Publish setup options
 
 Available in commands:
-- [`publish setup`](./commands.md#publish-setup)
 
+[`publish setup`](./commands.md#publish-setup)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--public-key`
+### `--public-key`
 
 Public key to use to verify artifacts (to be uploaded to a key server)
 
-#### `--check`
+### `--check`
 
 Check if some options for publishing are missing, and exit with non-zero return code if that's the case
 
-#### `--token`
+### `--token`
 
 GitHub token to use to upload secrets to GitHub - password encoded
 
-#### `--random-secret-key`
+### `--random-secret-key`
 
 Generate a random key pair for publishing, with a secret key protected by a random password
 
-#### `--random-secret-key-mail`
+### `--random-secret-key-mail`
 
 When generating a random key pair, the mail to associate to it
 
-#### `--checks`
+### `--checks`
 
 The option groups to check - can be "all", or a comma-separated list of "core", "signing", "repo", "extra"
 
-#### `--check-workflow`
+### `--check-workflow`
 
 Whether to check if a GitHub workflow already exists (one for publishing is written if none is found)
 
-#### `--dummy`
+### `--dummy`
 
 Dummy mode - don't upload any secret to GitHub
 
 ## Python options
 
 Available in commands:
-- [`run`](./commands.md#run)
-- [`shebang`](./commands.md#shebang)
 
+[`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--python-setup`
+### `--python-setup`
 
-Set Java options so that Python can be loaded
+[experimental] Set Java options so that Python can be loaded
 
-#### `--python`
+### `--python`
 
 Aliases: `--py`
 
-Enable Python support via ScalaPy
+[experimental] Enable Python support via ScalaPy
 
 ## Repl options
 
 Available in commands:
-- [`console` / `repl`](./commands.md#console)
 
+[`repl` , `console`](./commands.md#repl)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--ammonite`
+### `--ammonite`
 
 Aliases: `-A`, `--amm`
 
-Use Ammonite (instead of the default Scala REPL)
+[restricted] Use Ammonite (instead of the default Scala REPL)
 
-#### `--ammonite-version`
+### `--ammonite-version`
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version
+[restricted] Set the Ammonite version
 
-#### `--ammonite-arg`
+### `--ammonite-arg`
 
 Aliases: `-a`
 
-#### `--repl-dry-run`
+[Internal]
+[restricted] Provide arguments for ammonite repl
 
+### `--repl-dry-run`
+
+[Internal]
 Don't actually run the REPL, just fetch it
 
 ## Run options
 
 Available in commands:
-- [`run`](./commands.md#run)
-- [`shebang`](./commands.md#shebang)
 
+[`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--spark-submit`
+### `--spark-submit`
 
 Aliases: `--spark`
 
-Run as a Spark job, using the spark-submit command
+[Internal]
+[experimental] Run as a Spark job, using the spark-submit command
 
-#### `--standalone-spark`
+### `--standalone-spark`
 
 Aliases: `--spark-standalone`
 
-Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI
+[experimental] Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI
 
-#### `--hadoop-jar`
+### `--hadoop-jar`
 
 Aliases: `--hadoop`
 
-Run as a Hadoop job, using the "hadoop jar" command
+[experimental] Run as a Hadoop job, using the "hadoop jar" command
 
-#### `--command`
+### `--command`
 
 Print the command that would have been run (one argument per line), rather than running it
 
-#### `--scratch-dir`
+### `--scratch-dir`
 
 Temporary / working directory where to write generated launchers
 
-#### `--use-manifest`
+### `--use-manifest`
 
+[Internal]
 Run Java commands using a manifest-based class path (shortens command length)
 
 ## Scala.js options
 
 Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--js`
+### `--js`
 
 Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
-#### `--js-version`
+### `--js-version`
 
 The Scala.js version
 
-#### `--js-mode`
+### `--js-mode`
 
 The Scala.js mode, either `dev` or `release`
 
-#### `--js-module-kind`
+### `--js-module-kind`
 
 The Scala.js module kind: commonjs/common, esmodule/es, nomodule/none
 
-#### `--js-check-ir`
+### `--js-check-ir`
 
-#### `--js-emit-source-maps`
+### `--js-emit-source-maps`
 
 Emit source maps
 
-#### `--js-source-maps-path`
+### `--js-source-maps-path`
 
 Set the destination path of source maps
 
-#### `--js-dom`
+### `--js-dom`
 
 Enable jsdom
 
-#### `--js-header`
+### `--js-header`
 
 A header that will be added at the top of generated .js files
 
-#### `--js-allow-big-ints-for-longs`
+### `--js-allow-big-ints-for-longs`
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
 
-#### `--js-avoid-classes`
+### `--js-avoid-classes`
 
 Avoid class'es when using functions and prototypes has the same observable semantics.
 
-#### `--js-avoid-lets-and-consts`
+### `--js-avoid-lets-and-consts`
 
 Avoid lets and consts when using vars has the same observable semantics.
 
-#### `--js-module-split-style`
+### `--js-module-split-style`
 
 The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
-#### `--js-small-module-for-package`
+### `--js-small-module-for-package`
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-#### `--js-es-version`
+### `--js-es-version`
 
 The Scala.js ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021
 
-#### `--js-linker-path`
+### `--js-linker-path`
 
+[Internal]
 Path to the Scala.js linker
 
-#### `--js-cli-version`
+### `--js-cli-version`
 
+[Internal]
 Scala.js CLI version to use for linking
 
-#### `--js-cli-java-arg`
+### `--js-cli-java-arg`
 
+[Internal]
 Scala.js CLI Java options
 
-#### `--js-cli-on-jvm`
+### `--js-cli-on-jvm`
 
+[Internal]
 Whether to run the Scala.js CLI on the JVM or using a native executable
 
 ## Scala Native options
 
 Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--native`
+### `--native`
 
 Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
-#### `--native-version`
+### `--native-version`
 
 Set the Scala Native version
 
-#### `--native-mode`
+### `--native-mode`
 
 Set Scala Native compilation mode
 
-#### `--native-gc`
+### `--native-gc`
 
 Set the Scala Native garbage collector
 
-#### `--native-clang`
+### `--native-clang`
 
 Path to the Clang command
 
-#### `--native-clangpp`
+### `--native-clangpp`
 
 Path to the Clang++ command
 
-#### `--native-linking`
+### `--native-linking`
 
 Extra options passed to `clang` verbatim during linking
 
-#### `--native-linking-defaults`
+### `--native-linking-defaults`
 
+[Internal]
 Use default linking settings
 
-#### `--native-compile`
+### `--native-compile`
 
 List of compile options
 
-#### `--native-compile-defaults`
+### `--native-compile-defaults`
 
+[Internal]
 Use default compile options
 
-#### `--embed-resources`
+### `--embed-resources`
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
 
 ## Scalac options
 
 Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--scalac-option`
+### `--scalac-option`
 
 Aliases: `--scala-opt`, `-O`
 
@@ -1748,336 +1179,287 @@ Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`
 ## Secret options
 
 Available in commands:
-- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
-- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 
+[`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`github secret create` , `gh secret create`](./commands.md#github-secret-create)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--token`
+### `--token`
 
-#### `--repository`
+### `--repository`
 
 Aliases: `--repo`
 
 ## Secret create options
 
 Available in commands:
-- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
 
+[`github secret create` , `gh secret create`](./commands.md#github-secret-create)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--public-key`
+### `--public-key`
 
 Aliases: `--pub-key`
 
-#### `--dummy`
+### `--dummy`
 
 Aliases: `-n`
 
-#### `--print-request`
+### `--print-request`
 
-## Setup IDE options
-
-Available in commands:
-- [`setup-ide`](./commands.md#setup-ide)
-
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-#### `--charset`
-
+[Internal]
 ## Shared options
 
 Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--scala-version`
+### `--scala-version`
 
 Aliases: `--scala`, `-S`
 
 Set the Scala version
 
-#### `--scala-binary-version`
+### `--scala-binary-version`
 
 Aliases: `--scala-binary`, `--scala-bin`, `-B`
 
+[Internal]
 Set the Scala binary version
 
-#### `--scalac-help`
+### `--scalac-help`
 
 Aliases: `--help-scalac`
 
 Show help for scalac. This is an alias for --scalac-option -help
 
-#### `--extra-jars`
+### `--extra-jars`
 
 Aliases: `--jar`, `--jars`, `--extra-jar`
 
 Add extra JARs in the class path
 
-#### `--extra-compile-only-jars`
+### `--extra-compile-only-jars`
 
 Aliases: `--compile-only-jar`, `--compile-only-jars`, `--extra-compile-only-jar`
 
-Add extra JARs in the class path, during compilation only
+Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-#### `--extra-source-jars`
+### `--extra-source-jars`
 
 Aliases: `--source-jar`, `--source-jars`, `--extra-source-jar`
 
 Add extra source JARs
 
-#### `--resource-dirs`
+### `--resource-dirs`
 
 Aliases: `--resource-dir`
 
 Add a resource directory
 
-#### `--scala-library`
+### `--scala-library`
 
-#### `--java`
+[Internal]
+### `--java`
 
-#### `--runner`
+[Internal]
+Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
 
-#### `--semantic-db`
+### `--runner`
 
+[Internal]
+Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
+
+### `--semantic-db`
+
+[Internal]
 Generate SemanticDBs
 
-#### `--add-stubs`
+### `--add-stubs`
 
-#### `--strict-bloop-json-check`
+[Internal]
+Add dependency for stubs needed to make $ivy and $dep imports to work.
 
+### `--strict-bloop-json-check`
+
+[Internal]
 ## Snippet options
 
 Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--script-snippet`
+### `--script-snippet`
 
 Allows to execute a passed string as a Scala script
 
-#### `--execute-script`
+### `--execute-script`
 
 Aliases: `--execute-scala-script`, `--execute-sc`, `-e`
 
+[Internal]
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-#### `--scala-snippet`
+### `--scala-snippet`
 
 Allows to execute a passed string as Scala code
 
-#### `--execute-scala`
+### `--execute-scala`
 
+[Internal]
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-#### `--java-snippet`
+### `--java-snippet`
 
 Allows to execute a passed string as Java code
 
-#### `--execute-java`
+### `--execute-java`
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 ## Test options
 
 Available in commands:
-- [`test`](./commands.md#test)
 
+[`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--test-framework`
+### `--test-framework`
 
 Name of the test framework's runner class to use while running tests
 
-#### `--require-tests`
+### `--require-tests`
 
 Fail if no test suites were run
 
 ## Uninstall options
 
 Available in commands:
-- [`uninstall`](./commands.md#uninstall)
 
+[`uninstall`](./commands.md#uninstall)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--force`
+### `--force`
 
 Aliases: `-f`
 
 Force scala-cli uninstall
 
-#### `--skip-cache`
+### `--skip-cache`
 
+[Internal]
 Don't clear scala-cli cache
 
-#### `--binary-name`
+### `--binary-name`
 
+[Internal]
 Binary name
 
-#### `--bin-dir`
+### `--bin-dir`
 
+[Internal]
 Binary directory
 
 ## Uninstall completions options
 
 Available in commands:
-- [`uninstall`](./commands.md#uninstall)
-- [`uninstall completions` / `uninstall-completions`](./commands.md#uninstall-completions)
 
+[`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--rc-file`
+### `--rc-file`
 
 Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell
 
-#### `--banner`
+### `--banner`
 
+[Internal]
 Custom banner in comment placed in rc file
 
-#### `--name`
+### `--name`
 
+[Internal]
 Custom completions name
 
 ## Update options
 
 Available in commands:
-- [`update`](./commands.md#update)
 
+[`update`](./commands.md#update)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--binary-name`
+### `--binary-name`
 
+[Internal]
 Binary name
 
-#### `--bin-dir`
+### `--bin-dir`
 
+[Internal]
 Binary directory
 
-#### `--force`
+### `--force`
 
 Aliases: `-f`
 
 Force update scala-cli if is outdated
 
-#### `--is-internal-run`
+### `--is-internal-run`
 
-#### `--gh-token`
+[Internal]
+### `--gh-token`
+
+[Internal]
+A github token used to access GitHub. Not needed in most cases.
 
 ## Verbosity options
 
 Available in commands:
-- [`about`](./commands.md#about)
-- [`add-path`](./commands.md#add-path)
-- [`bloop`](./commands.md#bloop)
-- [`bloop exit`](./commands.md#bloop-exit)
-- [`bloop output`](./commands.md#bloop-output)
-- [`bloop start`](./commands.md#bloop-start)
-- [`bsp`](./commands.md#bsp)
-- [`clean`](./commands.md#clean)
-- [`compile`](./commands.md#compile)
-- [`config`](./commands.md#config)
-- [`default-file`](./commands.md#default-file)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`directories`](./commands.md#directories)
-- [`doc`](./commands.md#doc)
-- [`doctor`](./commands.md#doctor)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`install completions` / `install-completions`](./commands.md#install-completions)
-- [`install-home`](./commands.md#install-home)
-- [`github secret list` / `gh secret list`](./commands.md#github-secret-list)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`pgp pull`](./commands.md#pgp-pull)
-- [`pgp push`](./commands.md#pgp-push)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`publish setup`](./commands.md#publish-setup)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`github secret create` / `gh secret create`](./commands.md#github-secret-create)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
-- [`uninstall`](./commands.md#uninstall)
-- [`uninstall completions` / `uninstall-completions`](./commands.md#uninstall-completions)
-- [`update`](./commands.md#update)
-- [`version`](./commands.md#version)
 
+[`about`](./commands.md#about), [`add-path`](./commands.md#add-path), [`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`doctor`](./commands.md#doctor), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--verbose`
+### `--verbose`
 
 Aliases: `-v`
 
 Increase verbosity (can be specified multiple times)
 
-#### `--interactive`
+### `--interactive`
 
 Aliases: `-i`
 
 Interactive mode
 
-#### `--actions`
+### `--actions`
 
 Enable actionable diagnostics
 
 ## Version options
 
 Available in commands:
-- [`version`](./commands.md#version)
 
+[`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--cli-version`
+### `--cli-version`
 
 Aliases: `--cli`
 
 Show only plain scala-cli version
 
-#### `--scala-version`
+### `--scala-version`
 
 Aliases: `--scala`
 
@@ -2086,55 +1468,440 @@ Show only plain scala version
 ## Watch options
 
 Available in commands:
-- [`compile`](./commands.md#compile)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`compile`](./commands.md#compile), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--watch`
+### `--watch`
 
 Aliases: `-w`
 
 Watch source files for changes
 
-#### `--restart`
+### `--restart`
 
 Aliases: `--revolver`
 
 Run your application in background and automatically restart if sources have been changed
 
-## Workspace options
+## Internal options 
+### About options
 
 Available in commands:
-- [`bsp`](./commands.md#bsp)
-- [`clean`](./commands.md#clean)
-- [`compile`](./commands.md#compile)
-- [`dependency-update`](./commands.md#dependency-update)
-- [`doc`](./commands.md#doc)
-- [`export`](./commands.md#export)
-- [`fmt` / `format` / `scalafmt`](./commands.md#fmt)
-- [`browse` / `metabrowse`](./commands.md#browse)
-- [`package`](./commands.md#package)
-- [`publish`](./commands.md#publish)
-- [`publish local`](./commands.md#publish-local)
-- [`publish setup`](./commands.md#publish-setup)
-- [`console` / `repl`](./commands.md#console)
-- [`run`](./commands.md#run)
-- [`setup-ide`](./commands.md#setup-ide)
-- [`shebang`](./commands.md#shebang)
-- [`test`](./commands.md#test)
 
+[`about`](./commands.md#about)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-#### `--workspace`
+### `--gh-token`
 
+[Internal]
+A github token used to access GitHub. Not needed in most cases.
+
+### Add path options
+
+Available in commands:
+
+[`add-path`](./commands.md#add-path)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--quiet`
+
+Aliases: `-q`
+
+[Internal]
+### `--title`
+
+[Internal]
+### Bloop options
+
+Available in commands:
+
+[`bloop`](./commands.md#bloop)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--working-directory`
+
+Aliases: `--working-dir`, `--dir`
+
+[Internal]
+### Bloop start options
+
+Available in commands:
+
+[`bloop start`](./commands.md#bloop-start)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--force`
+
+Aliases: `-f`
+
+[Internal]
+### Bsp options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--json-options`
+
+[Internal]
+Command-line options JSON file
+
+### Bsp file options
+
+Available in commands:
+
+[`clean`](./commands.md#clean), [`setup-ide`](./commands.md#setup-ide)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--bsp-directory`
+
+Aliases: `--bsp-dir`
+
+[Internal]
+Custom BSP configuration location
+
+### `--bsp-name`
+
+Aliases: `--name`
+
+[Internal]
+Name of BSP
+
+### Config options
+
+Available in commands:
+
+[`config`](./commands.md#config)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--dump`
+
+[Internal]
+Dump config DB as JSON
+
+### `--create-pgp-key`
+
+[Internal]
+Create PGP key in config
+
+### `--password`
+
+[Internal]
+If the entry is a password, print the password value rather than how to get the password
+
+### `--password-value`
+
+[Internal]
+If the entry is a password, save the password value rather than how to get the password
+
+### `--unset`
+
+[Internal]
+Remove an entry from config
+
+### Coursier options
+
+Available in commands:
+
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--ttl`
+
+[Internal]
+Specify a TTL for changing dependencies, such as snapshots
+
+### `--cache`
+
+[Internal]
+Set the coursier cache location
+
+### `--coursier-validate-checksums`
+
+[Internal]
+Enable checksum validation of artifacts downloaded by coursier
+
+### Default file options
+
+Available in commands:
+
+[`default-file`](./commands.md#default-file)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--write`
+
+[Internal]
+Write result to files rather than to stdout
+
+### `--list`
+
+[Internal]
+List available default files
+
+### `--list-ids`
+
+[Internal]
+List available default file ids
+
+### `--force`
+
+Aliases: `-f`
+
+[Internal]
+Force overwriting destination files
+
+### Doctor options
+
+Available in commands:
+
+[`doctor`](./commands.md#doctor)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--gh-token`
+
+[Internal]
+A github token used to access GitHub. Not needed in most cases.
+
+### Input options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--default-forbidden-directories`
+
+[Internal]
+### `--forbid`
+
+[Internal]
+### Install home options
+
+Available in commands:
+
+[`install-home`](./commands.md#install-home)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--scala-cli-binary-path`
+
+[Internal]
+### `--force`
+
+Aliases: `-f`
+
+[Internal]
+Overwrite `scala-cli`, if it exists
+
+### `--binary-name`
+
+[Internal]
+Binary name
+
+### `--env`
+
+[Internal]
+Print the update to `env` variable
+
+### `--bin-dir`
+
+[Internal]
+Binary directory
+
+### Metabrowse options
+
+Available in commands:
+
+[`browse` , `metabrowse`](./commands.md#browse)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--add-rt-jar`
+
+[Internal]
+Download and add `rt.jar` in the class path
+
+### `--host`
+
+Aliases: `-H`
+
+[Internal]
+Bind to host
+
+### `--port`
+
+Aliases: `-p`
+
+[Internal]
+Bind to port
+
+### `--os-arch-suffix`
+
+[Internal]
+### `--metabrowse-tag`
+
+[Internal]
+### `--metabrowse-github-org-name`
+
+[Internal]
+### `--metabrowse-extension`
+
+[Internal]
+### `--metabrowse-launcher`
+
+[Internal]
+### `--metabrowse-dialect`
+
+[Internal]
+### Pgp create options
+
+Available in commands:
+
+[`pgp create`](./commands.md#pgp-create)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--email`
+
+[Internal]
+### `--password`
+
+[Internal]
+### `--dest`
+
+[Internal]
+### `--pub-dest`
+
+[Internal]
+### `--secret-dest`
+
+[Internal]
+### `--verbose`
+
+[Internal]
+### `--quiet`
+
+[Internal]
+### Pgp key id options
+
+Available in commands:
+
+[`pgp key-id`](./commands.md#pgp-key-id)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--fingerprint`
+
+[Internal]
+### `--verbose`
+
+Aliases: `-v`
+
+[Internal]
+### Pgp pull options
+
+Available in commands:
+
+[`pgp pull`](./commands.md#pgp-pull)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--allow-empty`
+
+[Internal]
+Whether to exit with code 0 if no key is passed
+
+### Pgp push options
+
+Available in commands:
+
+[`pgp push`](./commands.md#pgp-push)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--force`
+
+Aliases: `-f`
+
+[Internal]
+Try to push the key even if Scala CLI thinks it's not a public key
+
+### `--allow-empty`
+
+[Internal]
+Whether to exit with code 0 if no key is passed
+
+### `--force-signing-binary`
+
+[Internal]
+### Pgp sign options
+
+Available in commands:
+
+[`pgp sign`](./commands.md#pgp-sign)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--password`
+
+[Internal]
+### `--secret-key`
+
+[Internal]
+### `--force`
+
+Aliases: `-f`
+
+[Internal]
+### `--stdout`
+
+[Internal]
+### Pgp verify options
+
+Available in commands:
+
+[`pgp verify`](./commands.md#pgp-verify)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--key`
+
+[Internal]
+### Setup IDE options
+
+Available in commands:
+
+[`setup-ide`](./commands.md#setup-ide)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--charset`
+
+[Internal]
+### Workspace options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--workspace`
+
+[Internal]
 Directory where .scala-build is written
 

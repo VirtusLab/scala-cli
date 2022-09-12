@@ -13,7 +13,7 @@ final case class PackageOptions(
   @Recurse
     java: SharedJavaOptions = SharedJavaOptions(),
   @Recurse
-    compileCross: CompileCrossOptions = CompileCrossOptions(),
+    compileCross: CrossOptions = CrossOptions(),
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),
 

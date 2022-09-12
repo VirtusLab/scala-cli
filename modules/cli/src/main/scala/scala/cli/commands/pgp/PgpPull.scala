@@ -9,8 +9,8 @@ import scala.cli.commands.util.ScalaCliSttpBackend
 
 object PgpPull extends ScalaCommand[PgpPullOptions] {
 
-  override def hidden     = true
-  override def inSipScala = false
+  override def hidden       = true
+  override def isRestricted = true
   override def names = List(
     List("pgp", "pull")
   )

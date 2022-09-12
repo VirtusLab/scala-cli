@@ -7,9 +7,9 @@ import scala.cli.signing.commands.{PgpVerify => OriginalPgpVerify, PgpVerifyOpti
 
 object PgpVerify extends ScalaCommand[PgpVerifyOptions] {
 
-  override def inSipScala = false
-  override def hidden     = true
-  override def names      = PgpCommandNames.pgpVerify
+  override def isRestricted = true
+  override def hidden       = true
+  override def names        = PgpCommandNames.pgpVerify
 
   def run(options: PgpVerifyOptions, args: RemainingArgs): Unit =
     OriginalPgpVerify.run(options, args)

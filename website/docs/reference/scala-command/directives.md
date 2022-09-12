@@ -3,7 +3,7 @@ title: Directives
 sidebar_position: 2
 ---
 
-
+**This document describes as scala-cli behaves if run as `scala` command. See more information in [SIP-46](https://github.com/scala/improvement-proposals/pull/46)**
 
 ## using directives
 
@@ -107,23 +107,6 @@ Specify default main class
 #### Examples
 `//> using main-class "helloWorld"`
 
-### Packaging
-
-Set parameters for packaging
-
-`//> using packaging.packageType `"package type"
-
-`//> using packaging.output `"destination path"
-
-
-
-#### Examples
-`//> using packaging.packageType "assembly"`
-
-`//> using packaging.output "foo"`
-
-`//> using packaging.provided "org.apache.spark::spark-sql"`
-
 ### Platform
 
 Set the default platform to Scala.js or Scala Native
@@ -134,38 +117,6 @@ Set the default platform to Scala.js or Scala Native
 `//> using platform "scala-js"`
 
 `//> using platform "jvm", "scala-native"`
-
-### Publish
-
-Set parameters for publishing
-
-`//> using publish.organization `"value"
-`//> using publish.name `"value"
-`//> using publish.version `"value"
-
-
-#### Examples
-`//> using publish.organization "io.github.myself"`
-
-`//> using publish.name "my-library"`
-
-`//> using publish.version "0.1.1"`
-
-### Publish (contextual)
-
-Set contextual parameters for publishing
-
-`//> using publish.computeVersion `"value"
-`//> using publish.ci.repository `"value"
-`//> using publish.secretKey `"value"
-
-
-#### Examples
-`//> using publish.computeVersion "git:tag"`
-
-`//> using publish.ci.repository "central-s01"`
-
-`//> using publish.secretKey "env:PUBLISH_SECRET_KEY"`
 
 ### Repository
 
@@ -264,50 +215,6 @@ Add Scala.js options
 #### Examples
 `//> using jsModuleKind "common"`
 
-### Test framework
-
-Set the test framework
-
-`//> using testFramework `_class_name_ | ``//> using `test-framework` ``_class_name_
-
-#### Examples
-`//> using testFramework "utest.runner.Framework"`
-
 
 ## target directives
-
-### Platform
-
-Require a Scala platform for the current file
-
-`//> using target.platform `_platform_
-
-#### Examples
-`//> using target.platform "scala-js"`
-
-`//> using target.platform "scala-js", "scala-native"`
-
-`//> using target.platform "jvm"`
-
-### Scala version
-
-Require a Scala version for the current file
-
-`//> using target.scala `_version_
-
-#### Examples
-`//> using target.scala "3"`
-
-`//> using target.scala.>= "2.13"`
-
-`//> using target.scala.< "3.0.2"`
-
-### Scope
-
-Require a scope for the current file
-
-`//> using target.scope `_scope_
-
-#### Examples
-`//> using target.scope "test"`
 
