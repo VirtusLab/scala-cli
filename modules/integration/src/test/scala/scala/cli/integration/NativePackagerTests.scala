@@ -116,7 +116,9 @@ class NativePackagerTests extends ScalaCliSuite {
 
       testInputs.fromRoot { root =>
 
-        val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
+        val appName  = helloWorldFileName.stripSuffix(".scala").toLowerCase()
+        val priority = "optional"
+        val section  = "devel"
 
         val destDir = os.rel / "package"
         os.makeDir.all(root / destDir)
@@ -127,7 +129,9 @@ class NativePackagerTests extends ScalaCliSuite {
           "--output", destDir / s"$appName.deb",
           "--maintainer", "scala-cli-test",
           "--description", "scala-cli-test",
-          "--launcher-app", appName
+          "--launcher-app", appName,
+          "--priority", priority,
+          "--section", section,
         )
         // format: on
         os.proc(cmd).call(
@@ -138,6 +142,11 @@ class NativePackagerTests extends ScalaCliSuite {
 
         val launcher = root / destDir / s"$appName.deb"
         expect(os.isFile(launcher))
+
+        // check flags
+        val debInfo = os.proc("dpkg", "--info", launcher).call().out.text().trim
+        expect(debInfo.contains(s"Priority: $priority"))
+        expect(debInfo.contains(s"Section: $section"))
 
         if (hasDocker) {
           val script =

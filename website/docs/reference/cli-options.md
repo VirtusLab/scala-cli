@@ -1087,6 +1087,14 @@ The list of Debian packages that this package depends on
 
 Architectures that are supported by the repository (default: all)
 
+#### `--priority`
+
+This field represents how important it is that the user have the package installed
+
+#### `--section`
+
+This field specifies an application area into which the package has been classified
+
 #### `--identifier`
 
 CF Bundle Identifier

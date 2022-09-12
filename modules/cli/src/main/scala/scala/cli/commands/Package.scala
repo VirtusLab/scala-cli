@@ -403,7 +403,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             architecture = packageOptions.debianOptions.architecture.mandatory(
               "--deb-architecture",
               "debian"
-            )
+            ),
+            priority = packageOptions.debianOptions.priority,
+            section = packageOptions.debianOptions.section
           )
 
           lazy val macOSSettings = MacOSSettings(
