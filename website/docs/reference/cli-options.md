@@ -27,7 +27,7 @@ Available in commands:
 
 Available in commands:
 
-[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -133,7 +133,7 @@ Compile test scope
 
 Available in commands:
 
-[`compile`](./commands.md#compile), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`compile`](./commands.md#compile), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -145,7 +145,7 @@ Available in commands:
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -183,7 +183,7 @@ Update all dependencies if newer version was released
 
 Available in commands:
 
-[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -314,7 +314,7 @@ Pass scalafmt version before running it. This overrides whatever value is config
 
 Available in commands:
 
-[`about`](./commands.md#about), [`add-path`](./commands.md#add-path), [`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`doctor`](./commands.md#doctor), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp create`](./commands.md#pgp-create), [`pgp key-id`](./commands.md#pgp-key-id), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`pgp sign`](./commands.md#pgp-sign), [`pgp verify`](./commands.md#pgp-verify), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+[`about`](./commands.md#about), [`add-path`](./commands.md#add-path), [`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`doctor`](./commands.md#doctor), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp create`](./commands.md#pgp-create), [`pgp key-id`](./commands.md#pgp-key-id), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`pgp sign`](./commands.md#pgp-sign), [`pgp verify`](./commands.md#pgp-verify), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -338,7 +338,7 @@ Print help message, including hidden options, and exit
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -392,7 +392,7 @@ Print completions to stdout
 
 Available in commands:
 
-[`package`](./commands.md#package), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`package`](./commands.md#package), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -410,7 +410,7 @@ Set Java properties
 
 Available in commands:
 
-[`bloop`](./commands.md#bloop), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bloop`](./commands.md#bloop), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -460,7 +460,7 @@ Port for BSP debugging
 
 Available in commands:
 
-[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions)
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -498,7 +498,7 @@ List main classes available in the current context
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -644,6 +644,14 @@ The list of Debian packages that this package depends on
 ### `--deb-architecture`
 
 Architectures that are supported by the repository (default: all)
+
+### `--priority`
+
+This field represents how important it is that the user have the package installed
+
+### `--section`
+
+This field specifies an application area into which the package has been classified
 
 ### `--identifier`
 
@@ -934,19 +942,19 @@ Available in commands:
 
 ### `--python-setup`
 
-Set Java options so that Python can be loaded
+[experimental] Set Java options so that Python can be loaded
 
 ### `--python`
 
 Aliases: `--py`
 
-Enable Python support via ScalaPy
+[experimental] Enable Python support via ScalaPy
 
 ## Repl options
 
 Available in commands:
 
-[`console` , `repl`](./commands.md#console)
+[`repl` , `console`](./commands.md#repl)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1018,7 +1026,7 @@ Run Java commands using a manifest-based class path (shortens command length)
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1104,7 +1112,7 @@ Whether to run the Scala.js CLI on the JVM or using a native executable
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1150,7 +1158,7 @@ List of compile options
 [Internal]
 Use default compile options
 
-#### `--embed-resources`
+### `--embed-resources`
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
 
@@ -1158,7 +1166,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1205,7 +1213,7 @@ Aliases: `-n`
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1282,7 +1290,7 @@ Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1417,7 +1425,7 @@ A github token used to access GitHub. Not needed in most cases.
 
 Available in commands:
 
-[`about`](./commands.md#about), [`add-path`](./commands.md#add-path), [`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`doctor`](./commands.md#doctor), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+[`about`](./commands.md#about), [`add-path`](./commands.md#add-path), [`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`doctor`](./commands.md#doctor), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1461,7 +1469,7 @@ Show only plain scala version
 
 Available in commands:
 
-[`compile`](./commands.md#compile), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`compile`](./commands.md#compile), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1605,7 +1613,7 @@ Remove an entry from config
 
 Available in commands:
 
-[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1671,7 +1679,7 @@ A github token used to access GitHub. Not needed in most cases.
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1888,7 +1896,7 @@ Available in commands:
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`console` , `repl`](./commands.md#console), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 

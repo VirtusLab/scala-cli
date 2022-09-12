@@ -62,9 +62,9 @@ Installs completions into your shell
 
 Accepts option groups: [directories](./cli-options.md#directories-options), [install completions](./cli-options.md#install-completions-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
-## console
+## repl
 
-Aliases: `repl`
+Aliases: `console`
 
 Fire-up a Scala REPL
 
