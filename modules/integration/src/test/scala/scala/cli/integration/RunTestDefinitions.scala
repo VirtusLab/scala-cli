@@ -258,6 +258,93 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("Resource embedding in Scala Native") {
+    val projectDir       = "nativeres"
+    val resourceContent  = "resource contents"
+    val resourceFileName = "embeddedfile.txt"
+    val inputs = TestInputs(
+      os.rel / projectDir / "main.scala" ->
+        s"""|//> using platform "scala-native"
+            |//> using resourceDir "resources"
+            |
+            |import java.nio.charset.StandardCharsets
+            |import java.io.{BufferedReader, InputStreamReader}
+            |
+            |object Main {
+            |  def main(args: Array[String]): Unit = {
+            |    val inputStream = getClass().getResourceAsStream("/$resourceFileName")
+            |    val nativeResourceText = new BufferedReader(
+            |      new InputStreamReader(inputStream, StandardCharsets.UTF_8)
+            |    ).readLine()
+            |    println(nativeResourceText)
+            |  }
+            |}
+            |""".stripMargin,
+      os.rel / projectDir / "resources" / resourceFileName -> resourceContent
+    )
+    inputs.fromRoot { root =>
+      val output =
+        os.proc(TestUtil.cli, extraOptions, projectDir, "-q")
+          .call(cwd = root)
+          .out.trim()
+      println(output)
+      expect(output == resourceContent)
+    }
+  }
+
+  test("Scala Native C Files are correctly handled as a regular Input") {
+    val projectDir      = "native-interop"
+    val interopFileName = "bindings.c"
+    val interopMsg      = "Hello C!"
+    val inputs = TestInputs(
+      os.rel / projectDir / "main.scala" ->
+        s"""|//> using platform "scala-native"
+            |
+            |import scala.scalanative.unsafe._
+            |
+            |@extern
+            |object Bindings {
+            |  @name("scalanative_print")
+            |  def print(): Unit = extern
+            |}
+            |
+            |object Main {
+            |  def main(args: Array[String]): Unit = {
+            |    Bindings.print()
+            |  }
+            |}
+            |""".stripMargin,
+      os.rel / projectDir / interopFileName ->
+        s"""|#include <stdio.h>
+            |
+            |void scalanative_print() {
+            |    printf("$interopMsg\\n");
+            |}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output =
+        os.proc(TestUtil.cli, extraOptions, projectDir, "-q")
+          .call(cwd = root)
+          .out.trim()
+      expect(output == interopMsg)
+
+      os.move(root / projectDir / interopFileName, root / projectDir / "bindings2.c")
+      val output2 =
+        os.proc(TestUtil.cli, extraOptions, projectDir, "-q")
+          .call(cwd = root)
+          .out.trim()
+
+      // LLVM throws linking errors if scalanative_print is internally repeated.
+      // This can happen if a file containing it will be removed/renamed in src,
+      // but somehow those changes will not be reflected in the output directory,
+      // causing symbols inside linked files to be doubled.
+      // Because of that, the removed file should not be passed to linker,
+      // otherwise this test will fail.
+      expect(output2 == interopMsg)
+    }
+  }
+
   if (actualScalaVersion.startsWith("3.1"))
     test("Scala 3 in Scala Native") {
       val message  = "using Scala 3 Native"
@@ -2093,6 +2180,42 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
         .call(cwd = root)
       expect(res.out.trim() == expectedOutput)
+    }
+  }
+
+  test("deleting resources after building") {
+    val projectDir      = "projectDir"
+    val fileName        = "main.scala"
+    val resourceContent = "hello world"
+    val resourcePath    = os.rel / projectDir / "resources" / "test.txt"
+    val inputs = TestInputs(
+      os.rel / projectDir / fileName ->
+        s"""
+           |//> using resourceDir "resources"
+           |
+           |object Main {
+           |  def main(args: Array[String]) = {
+           |    val inputStream = getClass().getResourceAsStream("/test.txt")
+           |    if (inputStream == null) println("null")
+           |    else println("non null")
+           |  }
+           |}
+           |""".stripMargin,
+      resourcePath -> resourceContent
+    )
+
+    inputs.fromRoot { root =>
+      def runCli() =
+        os.proc(TestUtil.cli, extraOptions, projectDir)
+          .call(cwd = root)
+          .out.trim()
+
+      val output1 = runCli()
+      expect(output1 == "non null")
+
+      os.remove(root / resourcePath)
+      val output2 = runCli()
+      expect(output2 == "null")
     }
   }
 

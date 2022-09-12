@@ -114,11 +114,6 @@ final case class Inputs(
           case dirInput: Inputs.Directory =>
             Seq("dir:") ++ Inputs.singleFilesFromDirectory(dirInput, enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
-          case resDirInput: Inputs.ResourceDirectory =>
-            // Resource changes for SN require relinking, so they should also be hashed
-            Seq("resource-dir:") ++ os.walk(resDirInput.path)
-              .filter(os.isFile(_))
-              .map(filePath => s"$filePath:" + os.read(filePath))
           case _ => Seq(os.read(elem.path))
         }
         (Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")).map(bytes)
@@ -206,6 +201,10 @@ object Inputs {
       extends OnDisk with SourceFile with Compiled {
     lazy val path: os.Path = base / subPath
   }
+  final case class CFile(base: os.Path, subPath: os.SubPath)
+      extends OnDisk with SourceFile with Compiled {
+    lazy val path = base / subPath
+  }
   final case class MarkdownFile(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile {
     lazy val path: os.Path = base / subPath
@@ -245,6 +244,8 @@ object Inputs {
           Inputs.SourceScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".sc") =>
           Inputs.Script(d.path, p.subRelativeTo(d.path))
+        case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
+          Inputs.CFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".md") && enableMarkdown =>
           Inputs.MarkdownFile(d.path, p.subRelativeTo(d.path))
       }
@@ -274,6 +275,7 @@ object Inputs {
           case _: Inputs.JavaFile          => "java:"
           case _: Inputs.SettingsScalaFile => "config:"
           case _: Inputs.SourceScalaFile   => "scala:"
+          case _: Inputs.CFile             => "c:"
           case _: Inputs.Script            => "sc:"
           case _: Inputs.MarkdownFile      => "md:"
         }
@@ -460,6 +462,7 @@ object Inputs {
       else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
       else if (arg.endsWith(".scala")) Right(Seq(SourceScalaFile(dir, subPath)))
       else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
+      else if (arg.endsWith(".c") || arg.endsWith(".h")) Right(Seq(CFile(dir, subPath)))
       else if (arg.endsWith(".md")) Right(Seq(MarkdownFile(dir, subPath)))
       else if (os.isDir(path)) Right(Seq(Directory(path)))
       else if (acceptFds && arg.startsWith("/dev/fd/")) {

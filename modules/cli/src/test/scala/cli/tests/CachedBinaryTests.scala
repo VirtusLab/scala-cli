@@ -48,7 +48,7 @@ class CachedBinaryTests extends munit.FunSuite {
         (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
-          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val config = build.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
           val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           // generate dummy output
@@ -65,7 +65,7 @@ class CachedBinaryTests extends munit.FunSuite {
         (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
-          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val config = build.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
           val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           // generate dummy output
@@ -91,7 +91,7 @@ class CachedBinaryTests extends munit.FunSuite {
         (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
-          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val config = build.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
           val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           // generate dummy output
@@ -118,7 +118,7 @@ class CachedBinaryTests extends munit.FunSuite {
         (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
-          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val config = build.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
           val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           // generate dummy output
@@ -145,7 +145,7 @@ class CachedBinaryTests extends munit.FunSuite {
         (root, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
-          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val config = build.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
           val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
@@ -171,7 +171,7 @@ class CachedBinaryTests extends munit.FunSuite {
         (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
 
-          val config        = build.options.scalaNativeOptions.configCliOptions()
+          val config = build.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
           val nativeWorkDir = build.inputs.nativeWorkDir
           val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
@@ -192,7 +192,8 @@ class CachedBinaryTests extends munit.FunSuite {
               )
             )
           )
-          val updatedConfig = updatedBuild.options.scalaNativeOptions.configCliOptions()
+          val updatedConfig =
+            updatedBuild.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
 
           val cacheAfterConfigUpdate =
             CachedBinary.getCacheData(

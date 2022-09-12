@@ -22,6 +22,7 @@ import scala.build.errors.*
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
+import scala.build.internal.resource.NativeResourceMapper
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
@@ -912,7 +913,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     logger: Logger
   ): Either[BuildException, Unit] = either {
 
-    val cliOptions = build.options.scalaNativeOptions.configCliOptions()
+    val cliOptions =
+      build.options.scalaNativeOptions.configCliOptions(!build.sources.resourceDirs.isEmpty)
 
     val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
     val pythonLdFlags =
@@ -940,10 +942,11 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         nativeWorkDir
       )
 
-    if (cacheData.changed)
+    if (cacheData.changed) {
+      NativeResourceMapper.copyCFilesToScalaNativeDir(build, nativeWorkDir)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
-        val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString
+        val classpath = mainJar.toString +: build.artifacts.classPath.map(_.toString)
         val args =
           allCliOptions ++
             logger.scalaNativeCliInternalLoggerOptions ++
@@ -976,5 +979,6 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         else
           throw new ScalaNativeBuildError
       }
+    }
   }
 }

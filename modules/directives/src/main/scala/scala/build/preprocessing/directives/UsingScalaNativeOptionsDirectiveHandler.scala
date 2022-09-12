@@ -25,7 +25,9 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
       |
       |`//> using nativeClang` _value_
       |
-      |`//> using nativeClangPP` _value_""".stripMargin
+      |`//> using nativeClangPP` _value_
+      |
+      |`//> using nativeEmbedResources` _true|false_""".stripMargin
 
   override def examples: Seq[String] = Seq(
     "//> using nativeVersion \"0.4.0\""
@@ -42,13 +44,15 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
       "native-linking",
       "native-clang",
       "native-clang-pp",
+      "native-no-embed",
       "nativeGc",
       "nativeMode",
       "nativeVersion",
       "nativeCompile",
       "nativeLinking",
       "nativeClang",
-      "nativeClangPP"
+      "nativeClangPP",
+      "nativeEmbedResources"
     )
 
   override def getValueNumberBounds(key: String): UsingDirectiveValueNumberBounds = key match {
@@ -61,9 +65,15 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
     case "native-compile" | "nativeCompile" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
   }
 
+  def getBooleanOption(groupedValues: GroupedScopedValuesContainer): Option[Boolean] =
+    groupedValues.scopedBooleanValues.map(_.positioned.value.toBoolean).headOption.orElse(Some(
+      true
+    ))
+
   override def getSupportedTypes(key: String): Set[UsingDirectiveValueKind] = Set(
     UsingDirectiveValueKind.STRING,
-    UsingDirectiveValueKind.NUMERIC
+    UsingDirectiveValueKind.NUMERIC,
+    UsingDirectiveValueKind.BOOLEAN
   )
 
   def handleValues(
@@ -100,6 +110,10 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
         case "native-clang-pp" | "nativeClangPP" =>
           ScalaNativeOptions(
             clangpp = Some(values.head.positioned.value)
+          )
+        case "native-embed-resources" | "nativeEmbedResources" =>
+          ScalaNativeOptions(
+            embedResources = getBooleanOption(groupedValuesContainer)
           )
       }
       val options = BuildOptions(scalaNativeOptions = scalaNativeOptions)
