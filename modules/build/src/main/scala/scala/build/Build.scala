@@ -16,8 +16,8 @@ import scala.build.Ops.*
 import scala.build.actionable.ActionablePreprocessor
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
-import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.internal.resource.ResourceMapper
+import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
 import scala.build.postprocessing.*

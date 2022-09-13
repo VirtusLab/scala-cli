@@ -22,8 +22,8 @@ import scala.build.*
 import scala.build.errors.*
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
-import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.internal.resource.NativeResourceMapper
+import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*

@@ -15,8 +15,7 @@ import scala.build.preprocessing.directives.{
   UsingDirectiveHandler
 }
 import scala.cli.ScalaCliCommands
-import scala.cli.commands.ScalaCommand
-import scala.cli.commands.RestrictedCommandsParser
+import scala.cli.commands.{RestrictedCommandsParser, ScalaCommand}
 
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
