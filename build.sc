@@ -47,8 +47,8 @@ object scalaparse     extends ScalaParse
 object directives     extends Directives
 object core           extends Core
 object `build-module` extends Build
-object runner         extends Cross[Runner](Scala.all: _*)
-object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
+object runner         extends Cross[Runner](Scala.runnerScalaVersions: _*)
+object `test-runner`  extends Cross[TestRunner](Scala.runnerScalaVersions: _*)
 object `bloop-rifle`  extends Cross[BloopRifle](Scala.all: _*)
 object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
@@ -298,16 +298,16 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
     val dest = dir / "Constants.scala"
-    val testRunnerMainClass = `test-runner`(Scala.defaultInternal)
+    val testRunnerMainClass = `test-runner`(Scala.runnerScala3)
       .mainClass()
       .getOrElse(sys.error("No main class defined for test-runner"))
-    val runnerMainClass = runner(Scala.defaultInternal)
+    val runnerMainClass = runner(Scala.runnerScala3)
       .mainClass()
       .getOrElse(sys.error("No main class defined for runner"))
     val detailedVersionValue =
       if (`local-repo`.developingOnStubModules) s"""Some("${vcsState()}")"""
       else "None"
-    val testRunnerOrganization = `test-runner`(Scala.defaultInternal)
+    val testRunnerOrganization = `test-runner`(Scala.runnerScala3)
       .pomSettings()
       .organization
     val code =
@@ -331,13 +331,13 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def stubsVersion = "${stubs.publishVersion()}"
          |
          |  def testRunnerOrganization = "$testRunnerOrganization"
-         |  def testRunnerModuleName = "${`test-runner`(Scala.defaultInternal).artifactName()}"
-         |  def testRunnerVersion = "${`test-runner`(Scala.defaultInternal).publishVersion()}"
+         |  def testRunnerModuleName = "${`test-runner`(Scala.runnerScala3).artifactName()}"
+         |  def testRunnerVersion = "${`test-runner`(Scala.runnerScala3).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"
          |
-         |  def runnerOrganization = "${runner(Scala.defaultInternal).pomSettings().organization}"
-         |  def runnerModuleName = "${runner(Scala.defaultInternal).artifactName()}"
-         |  def runnerVersion = "${runner(Scala.defaultInternal).publishVersion()}"
+         |  def runnerOrganization = "${runner(Scala.runnerScala3).pomSettings().organization}"
+         |  def runnerModuleName = "${runner(Scala.runnerScala3).artifactName()}"
+         |  def runnerVersion = "${runner(Scala.runnerScala3).publishVersion()}"
          |  def runnerMainClass = "$runnerMainClass"
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
@@ -527,7 +527,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     scalaparse,
     directives,
     `scala-cli-bsp`,
-    `test-runner`(scalaVer),
+    `test-runner`(Scala.scala213), // Depending on version compiled with Scala 3 pulls older stdlib
     `tasty-lib`(scalaVer)
   )
   def scalacOptions = T {
@@ -668,8 +668,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   def moduleDeps = Seq(
     `build-module`,
     `cli-options`,
-    `test-runner`(myScalaVersion),
-    `scala3-graal`(myScalaVersion)
+    `scala3-graal`(Scala.scala3)
   )
 
   def repositories = super.repositories ++ customRepositories
@@ -1071,12 +1070,12 @@ object `local-repo` extends LocalRepo {
       stubs
     )
     val crossModules = for {
-      sv   <- Scala.all
+      sv   <- Scala.runnerScalaVersions
       proj <- Seq(runner, `test-runner`)
     } yield proj(sv)
     javaModules ++ crossModules
   }
-  def version = runner(Scala.defaultInternal).publishVersion()
+  def version = runner(Scala.runnerScala3).publishVersion()
 }
 
 // Helper CI commands
