@@ -2219,6 +2219,23 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  if (actualScalaVersion.startsWith("3"))
+    test("should throw exception for code compiled by scala 3.1.3") {
+      val exceptionMsg = "Throw exception in Scala"
+      val inputs = TestInputs(
+        os.rel / "hello.sc" ->
+          s"""//> using scala "3.1.3"
+             |throw new Exception("$exceptionMsg")""".stripMargin
+      )
+
+      inputs.fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "hello.sc").call(cwd = root, mergeErrIntoOut = true, check = false)
+        val output = res.out.trim()
+        expect(output.contains(exceptionMsg))
+      }
+    }
+
   private def maybeScalapyPrefix =
     if (actualScalaVersion.startsWith("2.13.")) ""
     else "import me.shadaj.scalapy.py" + System.lineSeparator()
