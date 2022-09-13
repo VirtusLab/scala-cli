@@ -5,6 +5,41 @@ sidebar_position: 99
 
 # Release notes
 
+## [v0.1.14](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.14)
+
+## Hotfix printing stacktraces from Scala CLI runner for Scala 3.x < 3.2.0
+We fixed a nasty bug breaking any Scala CLI run using any Scala 3 version earlier than 3.2.0 on printing stacktraces.
+Only Scala CLI 0.1.13 was affected.
+```
+$ scala-cli about
+Scala CLI version: 0.1.13
+Scala version (default): 3.2.0
+$ scala-cli -S 3.1.3 -e 'throw Exception("Broken")'
+Compiling project (Scala 3.1.3, JVM)
+Compiled project (Scala 3.1.3, JVM)
+Exception in thread "main" java.lang.NoSuchMethodError: 'long scala.runtime.LazyVals$.getOffsetStatic(java.lang.reflect.Field)'
+        at scala.cli.runner.StackTracePrinter.<clinit>(StackTracePrinter.scala:101)
+        at scala.cli.runner.StackTracePrinter$.coloredStackTraces(StackTracePrinter.scala:104)
+        at scala.cli.runner.StackTracePrinter$.$lessinit$greater$default$4(StackTracePrinter.scala:11)
+        at scala.cli.runner.Runner$.main(Runner.scala:18)
+        at scala.cli.runner.Runner.main(Runner.scala)
+```
+Added in [#1358](https://github.com/VirtusLab/scala-cli/pull/1358) by [@romanowski](https://github.com/romanowski)
+
+### Build and internal changes
+* Disable mill-scala-cli for now by [@alexarchambault](https://github.com/alexarchambault) in [#1335](https://github.com/VirtusLab/scala-cli/pull/1335)
+* Update scala-cli.sh launcher for 0.1.13 by [@github-actions](https://github.com/features/actions) in [#1351](https://github.com/VirtusLab/scala-cli/pull/1351)
+* Remove backslash which skip execution of `mv` command by [@lwronski](https://github.com/lwronski) in [#1353](https://github.com/VirtusLab/scala-cli/pull/1353)
+* Fix import ordering by [@alexarchambault](https://github.com/alexarchambault) in [#1359](https://github.com/VirtusLab/scala-cli/pull/1359)
+
+### Updates
+* Update scalafix stuff… by [@alexarchambault](https://github.com/alexarchambault) in [#1333](https://github.com/VirtusLab/scala-cli/pull/1333)
+* Bump VirtusLab/scala-cli-setup from 0.1.12 to 0.1.13 by [@dependabot](https://docs.github.com/en/code-security/dependabot) in [#1354](https://github.com/VirtusLab/scala-cli/pull/1354)
+
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.13...v0.1.14
+
+
 ## [v0.1.13](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.13)
 
 ## Change the default sub-command to `repl` when no args are passed
