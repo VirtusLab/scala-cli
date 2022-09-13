@@ -3,8 +3,8 @@ import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
 import $ivy.`io.github.alexarchambault.mill::mill-scala-cli::0.1.0`
 
 import $file.deps, deps.{BuildDeps, Deps, Docker, alpineVersion, buildCsVersion, libsodiumVersion}
-import $file.scalafixthings, scalafixthings.ScalafixModule
 
+import com.goyeau.mill.scalafix.ScalafixModule
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.NativeImage
 import java.io.{ByteArrayOutputStream, File, InputStream}
