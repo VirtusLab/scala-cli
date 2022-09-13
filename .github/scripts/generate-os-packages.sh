@@ -48,7 +48,7 @@ generate_deb() {
     --maintainer "scala-cli@virtuslab.com" \
     --launcher-app "scala-cli" \
     --priority "optional" \
-    --section "devel" \
+    --section "devel"
   mv "$ARTIFACTS_DIR/scala-cli.deb" "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.deb"
 }
 
