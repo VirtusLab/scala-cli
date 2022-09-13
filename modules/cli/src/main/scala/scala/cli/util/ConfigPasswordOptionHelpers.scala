@@ -1,8 +1,8 @@
 package scala.cli.util
 
 import scala.build.errors.BuildException
-import scala.cli.commands.publish.MaybeConfigPasswordOption
 import scala.build.options.publish.ConfigPasswordOption
+import scala.cli.commands.publish.MaybeConfigPasswordOption
 import scala.cli.config.{ConfigDb, Key}
 import scala.cli.errors.MissingConfigEntryError
 import scala.cli.signing.shared.PasswordOption

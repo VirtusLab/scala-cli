@@ -12,11 +12,11 @@ import scala.build.errors.BuildException
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Runner
 import scala.cli.CurrentParams
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScaladocGenerationFailedError
 import scala.util.Properties
-import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Doc extends ScalaCommand[DocOptions] {
   override def group                              = "Main"

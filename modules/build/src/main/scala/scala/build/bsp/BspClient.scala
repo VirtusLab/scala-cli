@@ -7,8 +7,6 @@ import java.net.URI
 import java.nio.file.Paths
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
-import ch.epfl.scala.bsp4j.Location
-
 import scala.build.Position.File
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.postprocessing.LineConversion
@@ -197,7 +195,7 @@ class BspClient(
           new b.Diagnostic(range, diag.message)
 
         diag.relatedInformation.foreach { relatedInformation =>
-          val location = new Location(path.toNIO.toUri.toASCIIString, range)
+          val location = new b.Location(path.toNIO.toUri.toASCIIString, range)
           val related  = new b.DiagnosticRelatedInformation(location, relatedInformation.message)
           bDiag.setRelatedInformation(List(related).asJava)
         }

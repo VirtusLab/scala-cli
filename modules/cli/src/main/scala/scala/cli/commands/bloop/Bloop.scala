@@ -4,14 +4,14 @@ import caseapp.core.RemainingArgs
 
 import scala.build.Logger
 import scala.build.bloop.BloopThreads
-import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.build.blooprifle.internal.{Constants, Operations}
+import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.build.internal.OsLibc
 import scala.cli.CurrentParams
-import scala.cli.commands.{ScalaCommand, SharedOptions}
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.{ScalaCommand, SharedOptions}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 

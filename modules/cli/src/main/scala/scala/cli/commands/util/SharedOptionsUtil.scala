@@ -8,6 +8,7 @@ import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import java.io.{File, InputStream}
+
 import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
@@ -18,6 +19,7 @@ import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.options as bo
+import scala.cli.ScalaCli
 import scala.cli.commands.ScalaJsOptions
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
@@ -26,7 +28,6 @@ import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
 import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.cli.ScalaCli
 
 object SharedOptionsUtil extends CommandHelpers {
 

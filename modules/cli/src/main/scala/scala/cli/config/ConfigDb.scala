@@ -5,8 +5,9 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.parse.RawJson
 
 import java.nio.file.attribute.PosixFilePermission
-import scala.build.{Directories, Logger}
+
 import scala.build.errors.BuildException
+import scala.build.{Directories, Logger}
 import scala.cli.commands.SharedOptions
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.collection.immutable.ListMap

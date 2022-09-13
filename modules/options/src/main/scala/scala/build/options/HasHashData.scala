@@ -1,7 +1,7 @@
 package scala.build.options
 
-import scala.deriving.*
 import scala.compiletime.*
+import scala.deriving.*
 
 trait HasHashData[T]:
   def add(prefix: String, t: T, update: String => Unit): Unit

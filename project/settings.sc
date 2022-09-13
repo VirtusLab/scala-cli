@@ -866,7 +866,7 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
       else {
         val len = l.length
         val idx = l.indexWhere(_.startsWith("-sourceroot"))
-        if (idx < len - 1) l.take(idx) ++ l.drop(idx + 2)
+        if (idx >= 0 && idx < len - 1) l.take(idx) ++ l.drop(idx + 2)
         else l
       }
     }

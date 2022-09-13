@@ -1,13 +1,12 @@
 package scala.cli.commands.util
 
-import com.typesafe.config.ConfigParseOptions
-import com.typesafe.config.ConfigSyntax
-import com.typesafe.config.parser.ConfigDocument
-import com.typesafe.config.parser.ConfigDocumentFactory
+import com.typesafe.config.parser.{ConfigDocument, ConfigDocumentFactory}
+import com.typesafe.config.{ConfigParseOptions, ConfigSyntax}
+
 import scala.build.Logger
 import scala.build.internal.Constants
-import scala.util.control.NonFatal
 import scala.cli.commands.FmtOptions
+import scala.util.control.NonFatal
 
 object FmtUtil {
   private def getGitRoot(workspace: os.Path, logger: Logger): Option[String] =
