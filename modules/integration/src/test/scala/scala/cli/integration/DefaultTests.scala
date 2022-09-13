@@ -18,7 +18,7 @@ class DefaultTests extends ScalaCliSuite {
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.trim == unrecognizedArgMessage(runSpecificOption))
+      expect(res.out.trim() == unrecognizedArgMessage(runSpecificOption))
     }
   }
   test("running scala-cli with args should not accept repl-only options") {
@@ -30,7 +30,7 @@ class DefaultTests extends ScalaCliSuite {
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.trim == unrecognizedArgMessage(replSpecificOption))
+      expect(res.out.trim() == unrecognizedArgMessage(replSpecificOption))
     }
   }
 
@@ -90,7 +90,7 @@ class DefaultTests extends ScalaCliSuite {
         )
           .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 1)
-      expect(res.out.trim == unrecognizedArgMessage(replSpecificOption))
+      expect(res.out.trim() == unrecognizedArgMessage(replSpecificOption))
     }
   }
 
