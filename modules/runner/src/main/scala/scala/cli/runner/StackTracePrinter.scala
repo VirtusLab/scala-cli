@@ -98,7 +98,7 @@ final case class StackTracePrinter(
 
 object StackTracePrinter {
 
-  lazy val coloredStackTraces: Boolean =
+  def coloredStackTraces: Boolean =
     sys.props.get("scala.colored-stack-traces")
       .map(_.toLowerCase(Locale.ROOT))
       .forall(_ == "true")
