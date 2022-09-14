@@ -28,7 +28,8 @@ object ScalaCli {
     val baseProgName = if (Properties.isWin) progName.stripSuffix(".exe") else progName
     baseProgName == name ||
     baseProgName.endsWith(s"/$name") ||
-    baseProgName.endsWith(File.separator + name)
+    baseProgName.endsWith(File.separator + name) ||
+    baseProgName.endsWith(s"${File.separator}.$name.aux") // cs install binaries under .app-name.aux
   }
 
   private var isSipScala      = checkName("scala") || checkName("scala-cli-sip")
