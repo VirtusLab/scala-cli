@@ -370,19 +370,22 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         value(res)
       case Platform.Native =>
         val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
-        val pythonLibraryPaths =
+        val (pythonExecutable, pythonLibraryPaths) =
           if (setupPython)
             value {
-              val python       = Python()
-              val pathsOrError = python.nativeLibraryPaths
-              logger.debug(s"Python native library paths: $pathsOrError")
-              pathsOrError.orPythonDetectionError
+              val python = Python()
+              val pythonPropertiesOrError = for {
+                paths      <- python.nativeLibraryPaths
+                executable <- python.executable
+              } yield (Some(executable), paths)
+              logger.debug(s"Python executable and native library paths: $pythonPropertiesOrError")
+              pythonPropertiesOrError.orPythonDetectionError
             }
           else
-            Nil
+            (None, Nil)
         // seems conda doesn't add the lib directory to LD_LIBRARY_PATH (see conda/conda#308),
         // which prevents apps from finding libpython for example, so we update it manually here
-        val extraEnv =
+        val libraryPathsEnv =
           if (pythonLibraryPaths.isEmpty) Map.empty
           else {
             val prependTo =
@@ -402,6 +405,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               Map(prependTo -> newValue)
             }
           }
+        val programNameEnv =
+          pythonExecutable.fold(Map.empty)(py => Map("SCALAPY_PYTHON_PROGRAMNAME" -> py))
+        val extraEnv = libraryPathsEnv ++ programNameEnv
         val maybeResult = withNativeLauncher(
           build,
           mainClass,
