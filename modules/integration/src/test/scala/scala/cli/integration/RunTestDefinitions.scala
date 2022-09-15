@@ -2295,6 +2295,34 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("run main class from -classpath even when no explicit inputs are passed") {
+    val expectedOutput = "Hello"
+    TestInputs(
+      os.rel / "Main.scala" -> s"""object Main extends App { println("$expectedOutput") }"""
+    ).fromRoot { (root: os.Path) =>
+      val compilationOutputDir = os.rel / "compilationOutput"
+      // first, precompile to an explicitly specified output directory with -d
+      os.proc(
+        TestUtil.cli,
+        "compile",
+        ".",
+        "-d",
+        compilationOutputDir,
+        extraOptions
+      ).call(cwd = root)
+
+      // next, run while relying on the pre-compiled class instead of passing inputs
+      val runRes = os.proc(
+        TestUtil.cli,
+        "run",
+        "-classpath",
+        (os.rel / compilationOutputDir).toString,
+        extraOptions
+      ).call(cwd = root)
+      expect(runRes.out.trim == expectedOutput)
+    }
+  }
+
   if (actualScalaVersion.startsWith("3"))
     test("should throw exception for code compiled by scala 3.1.3") {
       val exceptionMsg = "Throw exception in Scala"

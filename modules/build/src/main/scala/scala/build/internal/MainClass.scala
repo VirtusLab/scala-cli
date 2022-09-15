@@ -1,6 +1,7 @@
 package scala.build.internal
 
 import org.objectweb.asm
+import org.objectweb.asm.ClassReader
 
 object MainClass {
 
@@ -36,20 +37,27 @@ object MainClass {
       if (foundMainClass) nameOpt else None
   }
 
+  def findInClass(path: os.Path): Iterator[String] = {
+    val is = os.read.inputStream(path)
+    try {
+      val reader  = new ClassReader(is)
+      val checker = new MainMethodChecker
+      reader.accept(checker, 0)
+      checker.mainClassOpt.iterator
+    }
+    finally is.close()
+  }
   def find(output: os.Path): Seq[String] =
-    os.walk(output)
-      .iterator
-      .filter(os.isFile(_))
-      .filter(_.last.endsWith(".class"))
-      .flatMap { path =>
-        val is = os.read.inputStream(path)
-        try {
-          val reader  = new asm.ClassReader(is)
-          val checker = new MainMethodChecker
-          reader.accept(checker, 0)
-          checker.mainClassOpt.iterator
-        }
-        finally is.close()
-      }
-      .toVector
+    output match {
+      case o if os.isFile(o) && o.last.endsWith(".class") =>
+        findInClass(o).toVector
+      case o if os.isDir(o) =>
+        os.walk(o)
+          .iterator
+          .filter(os.isFile(_))
+          .filter(_.last.endsWith(".class"))
+          .flatMap(findInClass)
+          .toVector
+      case _ => Vector.empty
+    }
 }

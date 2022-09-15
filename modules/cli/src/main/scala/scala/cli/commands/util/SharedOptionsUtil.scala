@@ -60,7 +60,8 @@ object SharedOptionsUtil extends CommandHelpers {
     scriptSnippetList: List[String],
     scalaSnippetList: List[String],
     javaSnippetList: List[String],
-    enableMarkdown: Boolean = false
+    enableMarkdown: Boolean = false,
+    extraClasspathWasPassed: Boolean = false
   ): Either[BuildException, Inputs] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
@@ -83,7 +84,8 @@ object SharedOptionsUtil extends CommandHelpers {
       acceptFds = !Properties.isWin,
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
-      allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures
+      allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
+      extraClasspathWasPassed = extraClasspathWasPassed
     )
     maybeInputs.map { inputs =>
       val forbiddenDirs =
@@ -349,7 +351,8 @@ object SharedOptionsUtil extends CommandHelpers {
         scriptSnippetList = allScriptSnippets,
         scalaSnippetList = allScalaSnippets,
         javaSnippetList = allJavaSnippets,
-        enableMarkdown = v.markdown.enableMarkdown
+        enableMarkdown = v.markdown.enableMarkdown,
+        extraClasspathWasPassed = v.extraJarsAndClasspath.nonEmpty
       )
 
     def allScriptSnippets: List[String] = v.snippet.scriptSnippet ++ v.snippet.executeScript
