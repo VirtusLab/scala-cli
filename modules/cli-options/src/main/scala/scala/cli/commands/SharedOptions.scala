@@ -55,11 +55,19 @@ final case class SharedOptions(
     markdown: MarkdownOptions = MarkdownOptions(),
 
   @Group("Java")
-  @HelpMessage("Add extra JARs in the class path")
+  @HelpMessage("Add extra JARs and compiled classes to the class path")
   @ValueDescription("paths")
   @Name("jar")
   @Name("jars")
   @Name("extraJar")
+  @Name("class")
+  @Name("extraClass")
+  @Name("classes")
+  @Name("extraClasses")
+  @Name("-classpath")
+  @Name("classpath")
+  @Name("classPath")
+  @Name("extraClassPath")
     extraJars: List[String] = Nil,
 
   @Group("Java")
@@ -109,6 +117,15 @@ final case class SharedOptions(
 
   @Hidden
     strictBloopJsonCheck: Option[Boolean] = None,
+
+  @Name("output-directory")
+  @Name("d")
+  @Name("destination")
+  @Name("compileOutput")
+  @Name("compileOut")
+  @HelpMessage("Copy compilation results to output directory using either relative or absolute path")
+  @ValueDescription("/example/path")
+    compilationOutput: Option[String] = None,
 )
   // format: on
 

@@ -85,6 +85,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
+            s.copyOutput(options.shared)
             val mtimeDestPath = doPackage(
               logger = logger,
               outputOpt = options.output.filter(_.nonEmpty),
@@ -124,6 +125,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
+          s.copyOutput(options.shared)
           val res0 = doPackage(
             logger = logger,
             outputOpt = options.output.filter(_.nonEmpty),

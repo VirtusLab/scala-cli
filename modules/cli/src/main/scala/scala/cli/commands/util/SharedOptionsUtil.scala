@@ -22,6 +22,7 @@ import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.ScalaJsOptions
 import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 import scala.concurrent.ExecutionContextExecutorService
@@ -169,12 +170,11 @@ object SharedOptionsUtil extends CommandHelpers {
           scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
           addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
           generateSemanticDbs = semanticDb,
-          scalacOptions = ShadowingSeq.from(
-            scalac.scalacOption
-              .filter(_.nonEmpty)
-              .map(ScalacOpt(_))
-              .map(Positioned.commandLine)
-          ),
+          scalacOptions = scalac
+            .scalacOption
+            .toScalacOptShadowingSeq
+            .filterNonRedirected
+            .map(Positioned.commandLine),
           compilerPlugins =
             SharedOptionsUtil.parseDependencies(
               dependencies.compilerPlugin.map(Positioned.none),
@@ -199,7 +199,7 @@ object SharedOptionsUtil extends CommandHelpers {
           runJmh = if (enableJmh) Some(true) else None
         ),
         classPathOptions = bo.ClassPathOptions(
-          extraClassPath = extraJars
+          extraClassPath = extraJarsAndClasspath
             .flatMap(_.split(File.pathSeparator).toSeq)
             .filter(_.nonEmpty)
             .map(os.Path(_, os.pwd)),
@@ -227,6 +227,9 @@ object SharedOptionsUtil extends CommandHelpers {
         )
       )
     }
+
+    def extraJarsAndClasspath: List[String] =
+      extraJars ++ scalac.scalacOption.toScalacOptShadowingSeq.getScalacOption("-classpath")
 
     def globalInteractiveWasSuggested: Option[Boolean] =
       configDb.getOrNone(Keys.globalInteractiveWasSuggested, logger)

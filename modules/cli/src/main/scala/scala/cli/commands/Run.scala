@@ -223,6 +223,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             )
               .orReport(logger)
               .flatten
+            s.copyOutput(options.shared)
             if (options.sharedRun.watch.restart)
               processOpt = maybeProcess
             else
@@ -251,6 +252,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
+          s.copyOutput(options.shared)
           val res = maybeRun(
             s,
             allowTerminate = true,

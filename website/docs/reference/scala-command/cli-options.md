@@ -97,17 +97,11 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-### `--class-path`
+### `--print-class-path`
 
-Aliases: `-p`, `--classpath`
+Aliases: `-p`, `--print-classpath`
 
 Print the resulting class path
-
-### `--output`
-
-Aliases: `--output-directory`
-
-Copy compilation results to output directory using either relative or absolute path
 
 ### `--test`
 
@@ -123,7 +117,7 @@ Available in commands:
 
 ### `--dependency`
 
-Aliases: `--dep`, `-d`
+Aliases: `--dep`
 
 Add dependencies
 
@@ -615,7 +609,7 @@ Available in commands:
 
 ### `--scalac-option`
 
-Aliases: `--scala-opt`, `-O`
+Aliases: `--scala-opt`, `-O`, `--scala-option`
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
 
@@ -648,9 +642,9 @@ Show help for scalac. This is an alias for --scalac-option -help
 
 ### `--extra-jars`
 
-Aliases: `--jar`, `--jars`, `--extra-jar`
+Aliases: `--jar`, `--jars`, `--extra-jar`, `--class`, `--extra-class`, `--classes`, `--extra-classes`, `-classpath`, `--classpath`, `--class-path`, `--extra-class-path`
 
-Add extra JARs in the class path
+Add extra JARs and compiled classes to the class path
 
 ### `--extra-compile-only-jars`
 
@@ -696,6 +690,12 @@ Add dependency for stubs needed to make $ivy and $dep imports to work.
 ### `--strict-bloop-json-check`
 
 [Internal]
+### `--compilation-output`
+
+Aliases: `--output-directory`, `-d`, `--destination`, `--compile-output`, `--compile-out`
+
+Copy compilation results to output directory using either relative or absolute path
+
 ## Snippet options
 
 Available in commands:

@@ -14,14 +14,9 @@ final case class CompileOptions(
     cross: CrossOptions = CrossOptions(),
 
   @Name("p")
-  @Name("classpath")
+  @Name("printClasspath")
   @HelpMessage("Print the resulting class path")
-    classPath: Boolean = false,
-
-  @Name("output-directory")
-  @HelpMessage("Copy compilation results to output directory using either relative or absolute path")
-  @ValueDescription("/example/path")
-    output: Option[String] = None,
+    printClassPath: Boolean = false,
 
   @HelpMessage("Compile test scope")
     test: Boolean = false

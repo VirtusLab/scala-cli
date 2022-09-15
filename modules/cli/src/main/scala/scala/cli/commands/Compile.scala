@@ -7,16 +7,14 @@ import java.io.File
 import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
 
-object Compile extends ScalaCommand[CompileOptions] {
+object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def group                                                         = "Main"
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
-
-  def outputPath(options: CompileOptions): Option[os.Path] =
-    options.output.filter(_.nonEmpty).map(p => os.Path(p, Os.pwd))
 
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
@@ -36,8 +34,8 @@ object Compile extends ScalaCommand[CompileOptions] {
       Update.checkUpdateSafe(logger)
 
     val cross = options.cross.cross.getOrElse(false)
-    if (options.classPath && cross) {
-      System.err.println(s"Error: cannot specify both --class-path and --cross")
+    if (options.printClassPath && cross) {
+      System.err.println(s"Error: cannot specify both --print-class-path and --cross")
       sys.exit(1)
     }
 
@@ -66,13 +64,12 @@ object Compile extends ScalaCommand[CompileOptions] {
             build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
             s     <- build.successfulOpt
           } yield s
-        if (options.classPath)
+        if (options.printClassPath)
           for (s <- successulBuildOpt) {
             val cp = s.fullClassPath.map(_.toString).mkString(File.pathSeparator)
             println(cp)
           }
-        for (output <- outputPath(options); s <- successulBuildOpt)
-          os.copy.over(s.output, output)
+        successulBuildOpt.foreach(_.copyOutput(options.shared))
       }
     }
 

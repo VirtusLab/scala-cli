@@ -94,7 +94,9 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   test("copy compile output") {
     mainAndTestInputs.fromRoot { root =>
       val tempOutput = root / "output"
-      os.proc(TestUtil.cli, "compile", "--output", tempOutput, extraOptions, ".").call(cwd = root)
+      os.proc(TestUtil.cli, "compile", "--compile-output", tempOutput, extraOptions, ".").call(cwd =
+        root
+      )
       checkIfCompileOutputIsCopied("Main", tempOutput)
     }
   }
@@ -107,9 +109,9 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           TestUtil.cli,
           "compile",
           "--test",
-          "--output",
+          "--compile-output",
           tempOutput,
-          "--class-path",
+          "--print-class-path",
           extraOptions,
           "."
         ).call(cwd =
@@ -416,7 +418,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         os.proc(
           TestUtil.cli,
           "compile",
-          "--class-path",
+          "--print-class-path",
           extraOptions,
           "."
         ).call(cwd = root)
