@@ -17,7 +17,8 @@ object Clean extends ScalaCommand[CleanOptions] {
       options.directories.directories,
       defaultInputs = () => Inputs.default(),
       forcedWorkspace = options.workspace.forcedWorkspaceOpt,
-      allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures
+      allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
+      extraClasspathWasPassed = false
     ) match {
       case Left(message) =>
         System.err.println(message)

@@ -302,10 +302,11 @@ object Inputs {
     directories: Directories,
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    extraClasspathWasPassed: Boolean
   ): Inputs = {
 
-    assert(validElems.nonEmpty)
+    assert(extraClasspathWasPassed || validElems.nonEmpty)
 
     val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
       val settingsFiles = projectSettingsFiles(validElems)
@@ -490,7 +491,8 @@ object Inputs {
     acceptFds: Boolean,
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    extraClasspathWasPassed: Boolean
   ): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(args, cwd, download, stdinOpt, acceptFds)
@@ -504,7 +506,7 @@ object Inputs {
       val validElems = validatedArgsAndSnippets.collect {
         case Right(elem) => elem
       }.flatten
-      assert(validElems.nonEmpty)
+      assert(extraClasspathWasPassed || validElems.nonEmpty)
 
       Right(forValidatedElems(
         validElems,
@@ -512,7 +514,8 @@ object Inputs {
         directories,
         forcedWorkspace,
         enableMarkdown,
-        allowRestrictedFeatures
+        allowRestrictedFeatures,
+        extraClasspathWasPassed
       ))
     }
     else
@@ -533,10 +536,11 @@ object Inputs {
     acceptFds: Boolean = false,
     forcedWorkspace: Option[os.Path] = None,
     enableMarkdown: Boolean = false,
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    extraClasspathWasPassed: Boolean
   ): Either[BuildException, Inputs] =
     if (
-      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty
+      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty && !extraClasspathWasPassed
     )
       defaultInputs().toRight(new InputsException(
         "No inputs provided (expected files with .scala, .sc, .java or .md extensions, and / or directories)."
@@ -555,7 +559,8 @@ object Inputs {
         acceptFds,
         forcedWorkspace,
         enableMarkdown,
-        allowRestrictedFeatures
+        allowRestrictedFeatures,
+        extraClasspathWasPassed
       )
 
   def default(): Option[Inputs] =
