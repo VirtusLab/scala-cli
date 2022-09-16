@@ -72,7 +72,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     mainClass: MainClassOptions,
     ivy2LocalLike: Option[Boolean]
   ): Either[BuildException, BuildOptions] = either {
-    val baseOptions = shared.buildOptions()
+    val baseOptions = shared.buildOptions().orExit(shared.logger)
     val contextualOptions = PublishContextualOptions(
       repository = publishRepo.publishRepository.filter(_.trim.nonEmpty),
       repositoryIsIvy2LocalLike = ivy2LocalLike,
@@ -189,8 +189,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     ).orExit(logger)
     val threads = BuildThreads.create()
 
-    val compilerMaker    = options.shared.compilerMaker(threads)
-    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true)
+    val compilerMaker    = options.shared.compilerMaker(threads).orExit(logger)
+    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true).orExit(logger)
 
     val cross = options.compileCross.cross.getOrElse(false)
 

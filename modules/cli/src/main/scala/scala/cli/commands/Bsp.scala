@@ -61,7 +61,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       val sharedOptions = getSharedOptions()
       BspReloadableOptions(
         buildOptions = buildOptions(sharedOptions),
-        bloopRifleConfig = sharedOptions.bloopRifleConfig(),
+        bloopRifleConfig = sharedOptions.bloopRifleConfig().orExit(sharedOptions.logger),
         logger = sharedOptions.logging.logger,
         verbosity = sharedOptions.logging.verbosity
       )
@@ -96,7 +96,8 @@ object Bsp extends ScalaCommand[BspOptions] {
   }
 
   private def buildOptions(sharedOptions: SharedOptions): BuildOptions = {
-    val baseOptions = sharedOptions.buildOptions()
+    val logger      = sharedOptions.logger
+    val baseOptions = sharedOptions.buildOptions().orExit(logger)
     baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = baseOptions.classPathOptions.fetchSources.orElse(Some(true))

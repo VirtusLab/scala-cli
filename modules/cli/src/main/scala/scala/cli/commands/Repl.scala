@@ -29,6 +29,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     import ops.sharedRepl._
     val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
 
+    val logger = ops.shared.logger
     val baseOptions = shared.copy(scalaVersion =
       if (
         ammonite.contains(true) &&
@@ -41,7 +42,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         Some("3.1.3")
       }
       else shared.scalaVersion
-    ).buildOptions()
+    ).buildOptions().orExit(logger)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
@@ -77,7 +78,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
+    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
 
     val directories = options.shared.directories.directories
 

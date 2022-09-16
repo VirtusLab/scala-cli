@@ -27,10 +27,11 @@ object Doc extends ScalaCommand[DocOptions] {
     val inputs = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
-    val initialBuildOptions = options.shared.buildOptions(enableJmh = false, jmhVersion = None)
-    val threads             = BuildThreads.create()
+    val initialBuildOptions =
+      options.shared.buildOptions(enableJmh = false, jmhVersion = None).orExit(logger)
+    val threads = BuildThreads.create()
 
-    val maker               = options.shared.compilerMaker(threads)
+    val maker               = options.shared.compilerMaker(threads).orExit(logger)
     val compilerMaker       = ScalaCompilerMaker.IgnoreScala2(maker)
     val docCompilerMakerOpt = Some(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
 

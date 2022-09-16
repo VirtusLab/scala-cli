@@ -102,7 +102,7 @@ object Export extends ScalaCommand[ExportOptions] {
     val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions =
-      options.shared.buildOptions()
+      options.shared.buildOptions().orExit(logger)
         .copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))
 
     val (sourcesMain, optionsMain0) =

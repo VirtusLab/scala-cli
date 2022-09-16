@@ -47,8 +47,8 @@ object PackageOptionsUtil {
         .sequence
         .left.map(CompositeBuildException(_))
 
-    def baseBuildOptions: BuildOptions = {
-      val baseOptions = shared.buildOptions()
+    def baseBuildOptions: Either[BuildException, BuildOptions] = either {
+      val baseOptions = value(shared.buildOptions())
       baseOptions.copy(
         mainClass = mainClass.mainClass.filter(_.nonEmpty),
         notForBloopOptions = baseOptions.notForBloopOptions.copy(
@@ -110,7 +110,7 @@ object PackageOptionsUtil {
     }
 
     def finalBuildOptions: Either[BuildException, BuildOptions] = either {
-      val baseOptions = baseBuildOptions
+      val baseOptions = value(baseBuildOptions)
       baseOptions.copy(
         notForBloopOptions = baseOptions.notForBloopOptions.copy(
           packageOptions = baseOptions.notForBloopOptions.packageOptions.copy(
@@ -120,8 +120,8 @@ object PackageOptionsUtil {
       )
     }
 
-    def compilerMaker(threads: BuildThreads): ScalaCompilerMaker = {
-      val maker = shared.compilerMaker(threads)
+    def compilerMaker(threads: BuildThreads): Either[BuildException, ScalaCompilerMaker] = either {
+      val maker = value(shared.compilerMaker(threads))
       if (forcedPackageTypeOpt.contains(PackageType.DocJar))
         ScalaCompilerMaker.IgnoreScala2(maker)
       else

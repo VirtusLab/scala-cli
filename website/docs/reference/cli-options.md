@@ -1254,6 +1254,10 @@ Aliases: `--resource-dir`
 
 Add a resource directory
 
+### `--platform`
+
+Specify platform
+
 ### `--scala-library`
 
 [Internal]

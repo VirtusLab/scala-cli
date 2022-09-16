@@ -57,10 +57,11 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   def buildOptions(options: RunOptions): BuildOptions = {
     import options.*
     import options.sharedRun.*
+    val logger = options.shared.logger
     val baseOptions = shared.buildOptions(
       enableJmh = benchmarking.jmh.contains(true),
       jmhVersion = benchmarking.jmhVersion
-    )
+    ).orExit(logger)
     baseOptions.copy(
       mainClass = mainClass.mainClass,
       javaOptions = baseOptions.javaOptions.copy(
@@ -115,7 +116,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
+    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
 
     def maybeRun(
       build: Build.Successful,

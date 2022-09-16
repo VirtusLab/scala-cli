@@ -18,8 +18,8 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
 
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintSimpleScalacOutput(options, options.shared.buildOptions())
     val logger = options.shared.logger
+    maybePrintSimpleScalacOutput(options, options.shared.buildOptions().orExit(logger))
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
@@ -73,10 +73,10 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
       }
     }
 
-    val buildOptions = options.shared.buildOptions()
+    val buildOptions = options.shared.buildOptions().orExit(logger)
     val threads      = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
+    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
     val configDb = ConfigDb.open(options.shared.directories.directories)
       .orExit(logger)
     val actionableDiagnostics =

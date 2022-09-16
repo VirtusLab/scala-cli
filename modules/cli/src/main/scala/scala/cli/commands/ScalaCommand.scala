@@ -87,8 +87,9 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
         val candidates = arg.name.name match {
           case "dependency" =>
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
-              val cache = sharedOptions.coursierCache
-              val sv = sharedOptions.buildOptions()
+              val logger = sharedOptions.logger
+              val cache  = sharedOptions.coursierCache
+              val sv = sharedOptions.buildOptions().orExit(logger)
                 .scalaParams
                 .toOption
                 .flatten
