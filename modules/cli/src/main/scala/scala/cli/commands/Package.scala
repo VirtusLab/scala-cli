@@ -304,20 +304,20 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           val content = Library.libraryJar(build)
           alreadyExistsCheck()
           if (force) os.write.over(destPath, content)
-          else os.write(destPath, content)
+          else os.write(destPath, content, createFolders = true)
           destPath
         case PackageType.SourceJar =>
           val now     = System.currentTimeMillis()
           val content = sourceJar(build, now)
           alreadyExistsCheck()
-          if (force) os.write.over(destPath, content)
-          else os.write(destPath, content)
+          if (force) os.write.over(destPath, content, createFolders = true)
+          else os.write(destPath, content, createFolders = true)
           destPath
         case PackageType.DocJar =>
           val docJarPath = value(docJar(build, logger, extraArgs))
           alreadyExistsCheck()
-          if (force) os.copy.over(docJarPath, destPath)
-          else os.copy(docJarPath, destPath)
+          if (force) os.copy.over(docJarPath, destPath, createFolders = true)
+          else os.copy(docJarPath, destPath, createFolders = true)
           destPath
         case a: PackageType.Assembly =>
           value {
