@@ -35,7 +35,7 @@ class Default(
         val shouldDefaultToRun =
           args.remaining.nonEmpty || options.shared.snippet.executeScript.nonEmpty ||
           options.shared.snippet.executeScala.nonEmpty || options.shared.snippet.executeJava.nonEmpty ||
-          (options.shared.extraJarsAndClasspath.nonEmpty && options.sharedRun.mainClass.mainClass.nonEmpty)
+          (options.shared.extraJarsAndClassPath.nonEmpty && options.sharedRun.mainClass.mainClass.nonEmpty)
         if shouldDefaultToRun then RunOptions.parser else ReplOptions.parser
       }.parse(rawArgs) match
         case Left(e)                              => error(e)
