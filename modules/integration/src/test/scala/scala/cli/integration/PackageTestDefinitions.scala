@@ -812,6 +812,24 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("ensure directories are created recursively when packaging a jar") {
+    TestInputs(
+      os.rel / "Simple.scala" -> s"""object Simple extends App { println() }"""
+    ).fromRoot { (root: os.Path) =>
+      val jarPath =
+        os.rel / "out" / "inner-out" / "Simple.jar" // the `out` directory doesn't exist and should be created
+      os.proc(
+        TestUtil.cli,
+        "package",
+        ".",
+        "--library",
+        "-o",
+        jarPath,
+        extraOptions
+      ).call(cwd = root)
+    }
+  }
+
   def javaOptionsDockerTest(): Unit = {
     val fileName           = "Hello.scala"
     val imageName          = "hello"

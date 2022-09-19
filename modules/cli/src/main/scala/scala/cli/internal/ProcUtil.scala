@@ -29,7 +29,7 @@ object ProcUtil {
             content.drop("#!/bin/sh".length)
         else
           sys.error("Can't happen")
-      os.write.over(file, updatedContent)
+      os.write.over(file, updatedContent, createFolders = true)
     }
 
     usesSh
