@@ -19,6 +19,7 @@ import scala.build.errors.{
 import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.internal.Util
 import scala.concurrent.duration.DurationInt
+import scala.util.Try
 import scala.util.control.NonFatal
 
 object ScalaVersionUtil {
@@ -291,4 +292,10 @@ object ScalaVersionUtil {
       .distinct
   }
 
+  extension (sv: String) {
+    def maybeScalaPatchVersion: Option[Int] = sv
+      .split('.').drop(2).headOption
+      .flatMap(_.split('-').headOption)
+      .flatMap(pv => Try(pv.toInt).toOption)
+  }
 }

@@ -2380,6 +2380,20 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  if (actualScalaVersion.startsWith("2.12."))
+    test("verify that Scala version 2.12.x < 2.12.4 is respected and compiles correctly") {
+      TestInputs(os.rel / "s.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
+        root =>
+          (1 until 4).foreach { scalaPatchVersion =>
+            val scala212VersionString = s"2.12.$scalaPatchVersion"
+            val res =
+              os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions)
+                .call(cwd = root)
+            expect(res.out.trim == scala212VersionString)
+          }
+      }
+    }
+
   def scalapyNativeTest(): Unit = {
     val inputs = TestInputs(
       os.rel / "helloscalapy.sc" ->

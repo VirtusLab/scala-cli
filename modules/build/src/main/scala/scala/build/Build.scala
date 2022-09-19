@@ -18,13 +18,14 @@ import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
 import scala.build.internal.resource.ResourceMapper
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
+import scala.build.options.ScalaVersionUtil.maybeScalaPatchVersion
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
 import scala.build.postprocessing.*
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
-import scala.util.Properties
 import scala.util.control.NonFatal
+import scala.util.{Properties, Try}
 
 trait Build {
   def inputs: Inputs
@@ -825,9 +826,15 @@ object Build {
             Seq(ScalacOpt("-scalajs"))
           else Nil
 
-        val scalacReleaseV = releaseFlagVersion
-          .map(v => List("-release", v).map(ScalacOpt(_)))
-          .getOrElse(Nil)
+        val scalacReleaseV =
+          // the -release flag is not supported for Scala 2.12.x < 2.12.5
+          if params.scalaVersion.startsWith("2.12") &&
+            params.scalaVersion.maybeScalaPatchVersion.exists(_ < 5)
+          then Nil
+          else
+            releaseFlagVersion
+              .map(v => List("-release", v).map(ScalacOpt(_)))
+              .getOrElse(Nil)
 
         val scalapyOptions =
           if (
