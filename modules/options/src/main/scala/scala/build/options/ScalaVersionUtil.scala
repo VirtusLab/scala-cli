@@ -221,13 +221,14 @@ object ScalaVersionUtil {
         if (filtered.isEmpty) matchingStableVersions
         else filtered
       }.filter(v => isSupportedVersion(v.repr))
-      if (validMatchingVersions.isEmpty)
-        Left(new UnsupportedScalaVersionError(
-          scalaVersionStringArg,
-          latestSupportedStableVersions
-        ))
-      else
-        Right(validMatchingVersions.max.repr)
+
+      validMatchingVersions.find(_.repr == scalaVersionStringArg) match {
+        case Some(v)                                => Right(v.repr)
+        case None if validMatchingVersions.nonEmpty => Right(validMatchingVersions.max.repr)
+        case _ => Left(
+            new UnsupportedScalaVersionError(scalaVersionStringArg, latestSupportedStableVersions)
+          )
+      }
     }
   }
 
