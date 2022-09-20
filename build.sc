@@ -142,10 +142,6 @@ object dummy extends Module {
     def ivyDeps = Agg(
       Deps.ammonite
     )
-    def compile = T {
-      resolvedRunIvyDeps()
-      null: mill.scalalib.api.CompilationResult
-    }
   }
   object scalafmt extends ScalaModule with Bloop.Module {
     def skipBloop    = true
@@ -153,10 +149,6 @@ object dummy extends Module {
     def ivyDeps = Agg(
       Deps.scalafmtCli
     )
-    def compile = T {
-      resolvedRunIvyDeps()
-      null: mill.scalalib.api.CompilationResult
-    }
   }
 }
 
