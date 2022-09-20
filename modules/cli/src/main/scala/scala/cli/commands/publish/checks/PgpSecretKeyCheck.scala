@@ -64,11 +64,12 @@ final case class PgpSecretKeyCheck(
         val (pubKeyOpt, secretKey, passwordOpt) = options.publishParams.secretKey match {
           case Some(secretKey) =>
             val pubKeyOpt = options.publicKey.map(_.get())
-            val passwordOpt =
-              value(options.publishParams.secretKeyPassword
+            val passwordOpt = value {
+              options.publishParams.secretKeyPassword
                 .map(_.configPasswordOptions())
                 .map(_.get(configDb()))
-                .sequence)
+                .sequence
+            }
             (pubKeyOpt, Left(secretKey), passwordOpt)
           case None =>
             value(configDb().get(Keys.pgpSecretKey)) match {
