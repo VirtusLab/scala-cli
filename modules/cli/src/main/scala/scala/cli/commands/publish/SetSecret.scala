@@ -1,6 +1,6 @@
 package scala.cli.commands.publish
 
-import scala.cli.signing.shared.Secret
+import scala.cli.config.Secret
 
 final case class SetSecret(
   name: String,

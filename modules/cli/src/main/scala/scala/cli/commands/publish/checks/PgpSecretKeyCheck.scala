@@ -64,7 +64,7 @@ final case class PgpSecretKeyCheck(
       if (options.publishParams.setupCi) {
         val (pubKeyOpt, secretKey, passwordOpt) = options.publishParams.secretKey match {
           case Some(secretKey) =>
-            val pubKeyOpt = options.publicKey.map(_.get())
+            val pubKeyOpt = options.publicKey.map(_.get().toConfig)
             val passwordOpt = value {
               options.publishParams.secretKeyPassword
                 .map(_.configPasswordOptions())
@@ -95,7 +95,7 @@ final case class PgpSecretKeyCheck(
                         .sequence
                     }
                     res
-                      .map(_.get())
+                      .map(_.get().toCliSigning)
                       .getOrElse(ThrowawayPgpSecret.pgpPassPhrase())
                   }
                   val mail = value {
@@ -119,9 +119,9 @@ final case class PgpSecretKeyCheck(
                   }
                   val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
                   (
-                    Some(pgpPublic),
-                    Right(PasswordOption.Value(pgpSecretBase64)),
-                    Some(PasswordOption.Value(password))
+                    Some(pgpPublic.toConfig),
+                    Right(scala.cli.config.PasswordOption.Value(pgpSecretBase64.toConfig)),
+                    Some(scala.cli.config.PasswordOption.Value(password.toConfig))
                   )
                 }
                 else

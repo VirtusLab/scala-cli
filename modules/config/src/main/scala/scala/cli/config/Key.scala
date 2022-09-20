@@ -3,8 +3,6 @@ package scala.cli.config
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.cli.signing.shared.PasswordOption
-
 /** A configuration key
   */
 sealed abstract class Key[T] {

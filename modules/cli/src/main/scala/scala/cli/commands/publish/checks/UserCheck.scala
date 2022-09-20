@@ -24,7 +24,7 @@ final case class UserCheck(
     either {
       if (options.publishParams.setupCi) {
         val user0 = options.publishRepo.user match {
-          case Some(value0) => value0
+          case Some(value0) => value0.toConfig
           case None =>
             val userOpt = value(configDb().get(Keys.sonatypeUser).wrapConfigException)
             userOpt match {

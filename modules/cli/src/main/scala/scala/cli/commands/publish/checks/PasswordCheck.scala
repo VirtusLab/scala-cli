@@ -26,7 +26,7 @@ final case class PasswordCheck(
     either {
       if (options.publishParams.setupCi) {
         val password = options.publishRepo.password match {
-          case Some(password0) => password0
+          case Some(password0) => password0.toConfig
           case None =>
             val passwordOpt = value(configDb().get(Keys.sonatypePassword).wrapConfigException)
             passwordOpt match {

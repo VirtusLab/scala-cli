@@ -4,9 +4,8 @@ import scala.build.errors.BuildException
 import scala.build.options.publish.ConfigPasswordOption
 import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.MaybeConfigPasswordOption
-import scala.cli.config.{ConfigDb, Key}
+import scala.cli.config.{ConfigDb, Key, PasswordOption}
 import scala.cli.errors.MissingConfigEntryError
-import scala.cli.signing.shared.PasswordOption
 
 object ConfigPasswordOptionHelpers {
 
@@ -15,7 +14,7 @@ object ConfigPasswordOptionHelpers {
     def get(configDb: => ConfigDb): Either[BuildException, PasswordOption] =
       opt match {
         case a: ConfigPasswordOption.ActualOption =>
-          Right(a.option)
+          Right(a.option.toConfig)
         case c: ConfigPasswordOption.ConfigOption =>
           val key = new Key.PasswordEntry(c.prefix, c.name)
           configDb.get(key).wrapConfigException.flatMap {

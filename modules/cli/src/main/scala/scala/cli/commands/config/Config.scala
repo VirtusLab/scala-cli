@@ -9,8 +9,7 @@ import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.JvmUtils
-import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.config.{ConfigDb, Keys, PasswordOption, Secret}
 
 object Config extends ScalaCommand[ConfigOptions] {
   override def hidden       = true
@@ -67,9 +66,9 @@ object Config extends ScalaCommand[ConfigOptions] {
               ).orExit(logger)
             val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
 
-            db.set(secKeyEntry, PasswordOption.Value(pgpSecretBase64))
-            db.set(secKeyPasswordEntry, PasswordOption.Value(password))
-            db.set(pubKeyEntry, PasswordOption.Value(pgpPublic))
+            db.set(secKeyEntry, PasswordOption.Value(pgpSecretBase64.toConfig))
+            db.set(secKeyPasswordEntry, PasswordOption.Value(password.toConfig))
+            db.set(pubKeyEntry, PasswordOption.Value(pgpPublic.toConfig))
             db.save(directories.dbPath)
           }
           else {

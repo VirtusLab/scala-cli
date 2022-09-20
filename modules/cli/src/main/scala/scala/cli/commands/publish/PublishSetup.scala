@@ -133,6 +133,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
       .orExit(logger)
 
     lazy val token = options.token
+      .map(_.toConfig)
       .orElse {
         configDb.get(Keys.ghToken)
           .wrapConfigException

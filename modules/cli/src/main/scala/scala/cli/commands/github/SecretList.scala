@@ -7,10 +7,11 @@ import sttp.client3._
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.ScalaCliSttpBackend
+import scala.cli.config.Secret
 import scala.cli.errors.GitHubApiError
-import scala.cli.signing.shared.Secret
 
 object SecretList extends ScalaCommand[ListSecretsOptions] {
 
@@ -63,7 +64,7 @@ object SecretList extends ScalaCommand[ListSecretsOptions] {
     val list0 = list(
       options.shared.repoOrg,
       options.shared.repoName,
-      options.shared.token.get(),
+      options.shared.token.get().toConfig,
       backend,
       logger
     ).orExit(logger)

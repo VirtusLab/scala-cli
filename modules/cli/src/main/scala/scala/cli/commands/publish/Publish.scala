@@ -686,7 +686,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
           case None if isSonatype =>
             value(configDb().get(Keys.sonatypePassword).wrapConfigException)
-          case other => other
+          case other => other.map(_.toConfig)
         }
         passwordOpt.map(_.get()) match {
           case None => None
@@ -694,7 +694,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             val userOpt = publishOptions.contextual(isCi).repoUser match {
               case None if isSonatype =>
                 value(configDb().get(Keys.sonatypeUser).wrapConfigException)
-              case other => other
+              case other => other.map(_.toConfig)
             }
             val realmOpt = publishOptions.contextual(isCi).repoRealm match {
               case None if isSonatype =>
@@ -884,8 +884,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
                   .secretKeyPassword
                   .orNull
                   .get(configDb())
-                  .orExit(logger),
-                secretKey,
+                  .orExit(logger)
+                  .toCliSigning,
+                secretKey.toCliSigning,
                 getLauncher,
                 logger
               )
@@ -896,8 +897,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
                   .secretKeyPassword
                   .orNull
                   .get(configDb())
-                  .orExit(logger),
-                secretKey,
+                  .orExit(logger)
+                  .toCliSigning,
+                secretKey.toCliSigning,
                 getLauncher,
                 logger
               )

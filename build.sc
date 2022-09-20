@@ -443,7 +443,7 @@ trait Config extends ScalaCliSbtModule
   def scalaVersion = Scala.defaultInternal
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.jsoniterCore,
-    Deps.signingCliShared
+    Deps.osLib
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros
