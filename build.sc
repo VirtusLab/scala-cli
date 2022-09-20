@@ -157,10 +157,6 @@ trait BuildMacros extends ScalaCliSbtModule
     with ScalaCliScalafixModule
     with HasTests {
   def scalaVersion = Scala.defaultInternal
-  def scalacOptions = T {
-    super.scalacOptions() ++
-      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
-  }
   def compileIvyDeps = T {
     if (scalaVersion().startsWith("3"))
       super.compileIvyDeps()
@@ -497,10 +493,6 @@ class Scala3Graal(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     )
     super.resources() ++ Seq(mill.PathRef(extraResourceDir))
   }
-  def scalacOptions = T {
-    super.scalacOptions() ++
-      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
-  }
 }
 
 trait Scala3GraalProcessor extends ScalaModule with ScalaCliPublishModule {
@@ -651,8 +643,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   def scalaVersion = T(myScalaVersion)
 
   def scalacOptions = T {
-    super.scalacOptions() ++ asyncScalacOptions(scalaVersion()) ++
-      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
   }
   def javacOptions = T {
     super.javacOptions() ++ Seq("--release", "16")
@@ -724,7 +715,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     PathRef(T.dest / "working-dir")
   }
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++ Seq("-Xasync", "-deprecation")
   }
 
   def modulesPath = T {
@@ -939,11 +930,7 @@ class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ {
-      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
-      else Nil
-    } ++ Seq("-release", "8")
-
+    super.scalacOptions() ++ Seq("-release", "8")
   }
   def mainClass = Some("scala.cli.runner.Runner")
   def sources = T.sources {
@@ -965,10 +952,7 @@ class TestRunner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ {
-      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused", "-deprecation")
-      else Nil
-    } ++ Seq("-release", "8")
+    super.scalacOptions() ++ Seq("-release", "8")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
@@ -983,9 +967,7 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with HasTests
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++
-      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil) ++
-      Seq("-deprecation")
+    super.scalacOptions() ++ Seq("-deprecation")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
@@ -1023,12 +1005,6 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
 class TastyLib(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  def scalacOptions = T(
-    super.scalacOptions() ++ {
-      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
-      else Nil
-    }
-  )
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
     val dest = dir / "Constants.scala"
