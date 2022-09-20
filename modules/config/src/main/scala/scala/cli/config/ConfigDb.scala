@@ -2,7 +2,6 @@ package scala.cli.config
 
 import com.github.plokhotnyuk.jsoniter_scala.core.{Key as _, *}
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import coursier.parse.RawJson
 
 import java.nio.file.attribute.PosixFilePermission
 
