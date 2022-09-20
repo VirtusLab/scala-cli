@@ -65,6 +65,7 @@ final case class SharedOptions(
   @Name("classes")
   @Name("extraClasses")
   @Name("-classpath")
+  @Name("-cp")
   @Name("classpath")
   @Name("classPath")
   @Name("extraClassPath")

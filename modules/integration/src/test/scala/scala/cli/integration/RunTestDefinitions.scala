@@ -2392,7 +2392,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val runRes = os.proc(
         TestUtil.cli,
         "run",
-        "-classpath",
+        "-cp",
         jarParentDirectory,
         extraOptions
       ).call(cwd = root)
