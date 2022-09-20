@@ -1,6 +1,0 @@
-# Java 17 required for domain socket stuff
---jvm
-temurin:17
-# addresses bug in cs, that makes it fail to pick a Scala version :|
---scala
-2.13.8
