@@ -71,7 +71,7 @@ object SharedOptionsUtil extends CommandHelpers {
           logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
         path
       }
-      .map(Inputs.ResourceDirectory)
+      .map(Inputs.ResourceDirectory.apply)
     val maybeInputs = Inputs(
       args,
       Os.pwd,

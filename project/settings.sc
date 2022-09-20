@@ -3,8 +3,8 @@ import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
 import $ivy.`io.github.alexarchambault.mill::mill-scala-cli::0.1.0`
 
 import $file.deps, deps.{BuildDeps, Deps, Docker, alpineVersion, buildCsVersion, libsodiumVersion}
-import $file.scalafixthings, scalafixthings.ScalafixModule
 
+import com.goyeau.mill.scalafix.ScalafixModule
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.github.alexarchambault.millnativeimage.NativeImage
 import java.io.{ByteArrayOutputStream, File, InputStream}
@@ -852,15 +852,12 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
   }
+  // Explicitly setting sourceroot, so that Scala CLI doesn't use a wrong one.
+  // Using os.pwd is more or less required, for scalafix stuff to work fine.
   def scalacOptions = T {
-    val sv       = scalaVersion()
-    val isScala2 = sv.startsWith("2.")
-    val sourceFiles = allSources()
-      .map(_.path)
-      .filter(os.exists(_))
-    val sourceRoot = sourceFiles.find(_.last == "scala")
-      .orElse(sourceFiles.headOption)
-      .getOrElse(millSourcePath)
+    val sv         = scalaVersion()
+    val isScala2   = sv.startsWith("2.")
+    val sourceRoot = os.pwd
     val parentOptions = {
       val l = super.scalacOptions()
       if (isScala2) l.filterNot(_.startsWith("-P:semanticdb:sourceroot:"))
