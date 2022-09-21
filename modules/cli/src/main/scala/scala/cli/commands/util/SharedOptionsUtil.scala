@@ -289,7 +289,7 @@ object SharedOptionsUtil extends CommandHelpers {
         case _ => InteractiveNop
       }
 
-    def configDb: ConfigDb = ConfigDb.open(v).orExit(logger)
+    def configDb: ConfigDb = ConfigDb.open(v.directories.directories).orExit(logger)
 
     def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
       implicit val ec: ExecutionContextExecutorService = options.finalCache.ec

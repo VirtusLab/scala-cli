@@ -8,8 +8,6 @@ import java.nio.file.attribute.PosixFilePermission
 
 import scala.build.errors.BuildException
 import scala.build.{Directories, Logger}
-import scala.cli.commands.SharedOptions
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.collection.immutable.ListMap
 import scala.util.Properties
 
@@ -239,16 +237,6 @@ object ConfigDb {
     */
   def open(directories: Directories): Either[BuildException, ConfigDb] =
     open(dbPath(directories))
-
-  /** Creates a ConfigDb from Scala CLI [[scala.cli.commands.SharedOptions]]
-    *
-    * @param sharedOptions:
-    *   a Scala CLI shared options instance
-    * @return
-    *   either an error on failure, or a ConfigDb instance on success
-    */
-  def open(sharedOptions: SharedOptions): Either[BuildException, ConfigDb] =
-    open(sharedOptions.directories.directories)
 
   def empty: ConfigDb =
     new ConfigDb(Map())

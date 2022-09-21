@@ -42,6 +42,7 @@ object cli extends Cli
 
 object `cli-options`  extends CliOptions
 object `build-macros` extends BuildMacros
+object config         extends Config
 object options        extends Options
 object scalaparse     extends ScalaParse
 object directives     extends Directives
@@ -396,7 +397,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def ivyDeps = super.ivyDeps() ++ Agg(
     // Deps.asm,
     Deps.bloopConfig,
-    Deps.jsoniterCore,
+    Deps.jsoniterCore213,
     Deps.pprint,
     Deps.scalametaTrees,
     Deps.scalaparse,
@@ -434,6 +435,23 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
     //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
     // }
   }
+}
+
+trait Config extends ScalaCliSbtModule
+    with ScalaCliPublishModule
+    with ScalaCliScalafixModule {
+  def scalaVersion = Scala.defaultInternal
+  def moduleDeps = Seq(
+    `build-module`
+  )
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.coursier,
+    Deps.jsoniterCore,
+    Deps.signingCliShared
+  )
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.jsoniterMacros
+  )
 }
 
 trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
@@ -526,7 +544,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     Deps.asm,
     Deps.collectionCompat,
     Deps.javaClassName,
-    Deps.jsoniterCore,
+    Deps.jsoniterCore213,
     Deps.nativeTestRunner,
     Deps.osLib,
     Deps.pprint,
@@ -574,7 +592,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
 trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
-    Deps.jsoniterCore,
+    Deps.jsoniterCore213,
     Deps.osLib,
     Deps.signingCliOptions
   )
@@ -651,6 +669,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   def moduleDeps = Seq(
     `build-module`,
     `cli-options`,
+    config,
     `scala3-graal`(Scala.scala3)
   )
 
@@ -662,7 +681,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.coursierPublish,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
-    Deps.jsoniterCore,
+    Deps.jsoniterCore213,
     Deps.libsodiumjni,
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
@@ -743,7 +762,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.coursier
         .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
       Deps.dockerClient,
-      Deps.jsoniterCore,
+      Deps.jsoniterCore213,
       Deps.libsodiumjni,
       Deps.pprint,
       Deps.scalaAsync,

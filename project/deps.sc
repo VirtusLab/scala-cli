@@ -91,8 +91,10 @@ object Deps {
   def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
-  def jsoniterCore =
+  def jsoniterCore213 =
     ivy"com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13:${Versions.jsoniterScala}"
+  def jsoniterCore =
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
   def jsoniterMacros =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
   def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
