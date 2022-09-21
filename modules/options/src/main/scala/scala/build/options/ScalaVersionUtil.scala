@@ -293,9 +293,6 @@ object ScalaVersionUtil {
   }
 
   extension (sv: String) {
-    def maybeScalaPatchVersion: Option[Int] = sv
-      .split('.').drop(2).headOption
-      .flatMap(_.split('-').headOption)
-      .flatMap(pv => Try(pv.toInt).toOption)
+    def asVersion: Version = Version(sv)
   }
 }
