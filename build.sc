@@ -441,9 +441,6 @@ trait Config extends ScalaCliSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalaVersion = Scala.defaultInternal
-  def moduleDeps = Seq(
-    `build-module`
-  )
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.coursier,
     Deps.jsoniterCore,

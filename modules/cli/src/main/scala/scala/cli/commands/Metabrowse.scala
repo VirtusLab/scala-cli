@@ -8,6 +8,7 @@ import java.io.File
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
@@ -58,8 +59,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val configDb      = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

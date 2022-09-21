@@ -4,6 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{PublishOptions => BPublishOptions}
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
@@ -27,7 +28,7 @@ final case class PasswordCheck(
         val password = options.publishRepo.password match {
           case Some(password0) => password0
           case None =>
-            val passwordOpt = value(configDb().get(Keys.sonatypePassword))
+            val passwordOpt = value(configDb().get(Keys.sonatypePassword).wrapConfigException)
             passwordOpt match {
               case Some(password0) =>
                 logger.message("publish.password:")
@@ -55,7 +56,7 @@ final case class PasswordCheck(
           Seq(SetSecret("PUBLISH_PASSWORD", password.get(), force = true))
         )
       }
-      else if (value(configDb().get(Keys.sonatypePassword)).isDefined) {
+      else if (value(configDb().get(Keys.sonatypePassword).wrapConfigException).isDefined) {
         logger.message("publish.password:")
         logger.message(s"  found ${Keys.sonatypePassword.fullName} in Scala CLI configuration")
         OptionCheck.DefaultValue.empty

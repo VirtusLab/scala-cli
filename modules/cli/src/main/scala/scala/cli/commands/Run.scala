@@ -12,6 +12,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
 import scala.cli.CurrentParams
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.MainClassOptionsUtil.*
@@ -186,8 +187,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
 
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val configDb = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

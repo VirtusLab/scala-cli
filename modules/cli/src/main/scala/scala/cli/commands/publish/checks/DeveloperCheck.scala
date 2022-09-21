@@ -4,6 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{PublishOptions => BPublishOptions}
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
@@ -25,9 +26,9 @@ final case class DeveloperCheck(
       // FIXME No headOption, add all of options.publishParams.developer values…
       val strValue = options.publishParams.developer.headOption match {
         case None =>
-          val nameOpt  = value(configDb().get(Keys.userName))
-          val emailOpt = value(configDb().get(Keys.userEmail))
-          val urlOpt   = value(configDb().get(Keys.userUrl))
+          val nameOpt  = value(configDb().get(Keys.userName).wrapConfigException)
+          val emailOpt = value(configDb().get(Keys.userEmail).wrapConfigException)
+          val urlOpt   = value(configDb().get(Keys.userUrl).wrapConfigException)
 
           (nameOpt, emailOpt, urlOpt) match {
             case (Some(name), Some(email), Some(url)) =>

@@ -33,6 +33,7 @@ import scala.build.options.publish.{ComputeVersion, Developer, License, Signer =
 import scala.build.options.{BuildOptions, ConfigMonoid, PublishContextualOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.MainClassOptionsUtil.*
@@ -194,8 +195,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val cross = options.compileCross.cross.getOrElse(false)
 
-    lazy val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    lazy val configDb = options.shared.configDb
 
     lazy val workingDir = options.sharedPublish.workingDir
       .filter(_.trim.nonEmpty)
@@ -685,7 +685,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
         val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
           case None if isSonatype =>
-            value(configDb().get(Keys.sonatypePassword))
+            value(configDb().get(Keys.sonatypePassword).wrapConfigException)
           case other => other
         }
         passwordOpt.map(_.get()) match {
@@ -693,7 +693,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           case Some(password) =>
             val userOpt = publishOptions.contextual(isCi).repoUser match {
               case None if isSonatype =>
-                value(configDb().get(Keys.sonatypeUser))
+                value(configDb().get(Keys.sonatypeUser).wrapConfigException)
               case other => other
             }
             val realmOpt = publishOptions.contextual(isCi).repoRealm match {

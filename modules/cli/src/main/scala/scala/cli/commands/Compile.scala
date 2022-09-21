@@ -7,6 +7,7 @@ import java.io.File
 import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -77,8 +78,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
     val threads      = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val configDb      = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

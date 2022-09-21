@@ -6,8 +6,6 @@ import coursier.parse.RawJson
 
 import java.nio.file.attribute.PosixFilePermission
 
-import scala.build.errors.BuildException
-import scala.build.{Directories, Logger}
 import scala.collection.immutable.ListMap
 import scala.util.Properties
 
@@ -41,19 +39,6 @@ final class ConfigDb private (
           }
           .map(Some(_))
     }
-
-  /** Gets an entry.
-    *
-    * If the value cannot be decoded or the key isn't in the DB, None is returned.
-    *
-    * Otherwise, the value is returned wrapped in Some.
-    */
-  def getOrNone[T](key: Key[T], logger: Logger): Option[T] = get[T](key) match {
-    case Right(maybeValue) => maybeValue
-    case Left(ex) =>
-      logger.debug(ex)
-      None
-  }
 
   /** Sets an entry in memory */
   def set[T](key: Key[T], value: T): this.type = {
@@ -146,26 +131,21 @@ final class ConfigDb private (
     }
   }
 
-  /** Saves this DB at the config directory of the passed Directories */
-  def save(directories: Directories): Either[BuildException, Unit] = {
+  /** Saves this DB at the passed path */
+  def save(path: os.Path): Either[Exception, Unit] =
     // no file locks…
-    val path = ConfigDb.dbPath(directories)
     saveUnsafe(path)
-  }
 }
 
 object ConfigDb {
 
-  def dbPath(directories: Directories): os.Path =
-    directories.secretsDir / defaultDbFileName
-
   final class ConfigDbFormatError(
     message: String,
     causeOpt: Option[Throwable] = None
-  ) extends BuildException(message, cause = causeOpt.orNull)
+  ) extends Exception(message, causeOpt.orNull)
 
   final class ConfigDbPermissionsError(path: os.Path, perms: os.PermSet)
-      extends BuildException(s"$path has wrong permissions $perms (expected rwx------)")
+      extends Exception(s"$path has wrong permissions $perms (expected rwx------)")
 
   private val codec: JsonValueCodec[Map[String, RawJson]] = JsonCodecMaker.make
 
@@ -212,9 +192,6 @@ object ConfigDb {
     maybeRawEntries.map(rawEntries => new ConfigDb(rawEntries))
   }
 
-  def defaultDbFileName: String =
-    "config.json"
-
   /** Creates a ConfigDb from a file
     *
     * @param path:
@@ -222,21 +199,11 @@ object ConfigDb {
     * @return
     *   either an error on failure, or a ConfigDb instance on success
     */
-  def open(path: os.Path): Either[BuildException, ConfigDb] =
+  def open(path: os.Path): Either[Exception, ConfigDb] =
     if (os.exists(path))
       apply(os.read.bytes(path), Some(path.toString))
     else
       Right(empty)
-
-  /** Creates a ConfigDb from Scala CLI directories
-    *
-    * @param directories:
-    *   a Scala CLI Directories instance
-    * @return
-    *   either an error on failure, or a ConfigDb instance on success
-    */
-  def open(directories: Directories): Either[BuildException, ConfigDb] =
-    open(dbPath(directories))
 
   def empty: ConfigDb =
     new ConfigDb(Map())

@@ -29,6 +29,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.Run.orPythonDetectionError
 import scala.cli.commands.packaging.Spark
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.MainClassOptionsUtil.*
@@ -61,9 +62,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val compilerMaker       = options.compilerMaker(threads).orExit(logger)
     val docCompilerMakerOpt = options.docCompilerMakerOpt
 
-    val cross = options.compileCross.cross.getOrElse(false)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val cross    = options.compileCross.cross.getOrElse(false)
+    val configDb = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
