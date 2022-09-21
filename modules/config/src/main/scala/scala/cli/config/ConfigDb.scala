@@ -3,9 +3,11 @@ package scala.cli.config
 import com.github.plokhotnyuk.jsoniter_scala.core.{Key as _, *}
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
-import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
+import java.nio.file.{Files, Path}
 
 import scala.collection.immutable.ListMap
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 /** In-memory representation of a configuration DB content.
@@ -103,17 +105,25 @@ final class ConfigDb private (
     serializeMap(rawEntries)
   }
 
-  def saveUnsafe(path: os.Path): Either[ConfigDb.ConfigDbPermissionsError, Unit] = {
-    val dir = path / os.up
+  def saveUnsafe(path: Path): Either[ConfigDb.ConfigDbPermissionsError, Unit] = {
+    val dir = path.getParent
 
     if (Properties.isWin) {
-      os.write.over(path, dump, createFolders = true)
+      Files.createDirectories(dir)
+      Files.write(path, dump)
       Right(())
     }
     else {
-      if (!os.exists(dir))
-        os.makeDir.all(dir, perms = "rwx------")
-      val dirPerms = os.perms(dir)
+      if (!Files.exists(dir))
+        Files.createDirectories(
+          dir,
+          PosixFilePermissions.asFileAttribute(Set(
+            PosixFilePermission.OWNER_READ,
+            PosixFilePermission.OWNER_WRITE,
+            PosixFilePermission.OWNER_EXECUTE
+          ).asJava)
+        )
+      val dirPerms = Files.getPosixFilePermissions(dir).asScala.toSet
       val permsOk =
         !dirPerms.contains(PosixFilePermission.GROUP_READ) &&
         !dirPerms.contains(PosixFilePermission.GROUP_WRITE) &&
@@ -122,7 +132,15 @@ final class ConfigDb private (
         !dirPerms.contains(PosixFilePermission.OTHERS_WRITE) &&
         !dirPerms.contains(PosixFilePermission.OTHERS_EXECUTE)
       if (permsOk) {
-        os.write.over(path, dump, perms = "rw-------", createFolders = false)
+        Files.write(path, Array.emptyByteArray)
+        Files.setPosixFilePermissions(
+          path,
+          Set(
+            PosixFilePermission.OWNER_READ,
+            PosixFilePermission.OWNER_WRITE
+          ).asJava
+        )
+        Files.write(path, dump)
         Right(())
       }
       else
@@ -131,7 +149,7 @@ final class ConfigDb private (
   }
 
   /** Saves this DB at the passed path */
-  def save(path: os.Path): Either[Exception, Unit] =
+  def save(path: Path): Either[Exception, Unit] =
     // no file locks…
     saveUnsafe(path)
 }
@@ -143,7 +161,7 @@ object ConfigDb {
     causeOpt: Option[Throwable] = None
   ) extends Exception(message, causeOpt.orNull)
 
-  final class ConfigDbPermissionsError(path: os.Path, perms: os.PermSet)
+  final class ConfigDbPermissionsError(path: Path, perms: Set[PosixFilePermission])
       extends Exception(s"$path has wrong permissions $perms (expected rwx------)")
 
   private val codec: JsonValueCodec[Map[String, RawJson]] = JsonCodecMaker.make
@@ -198,9 +216,9 @@ object ConfigDb {
     * @return
     *   either an error on failure, or a ConfigDb instance on success
     */
-  def open(path: os.Path): Either[Exception, ConfigDb] =
-    if (os.exists(path))
-      apply(os.read.bytes(path), Some(path.toString))
+  def open(path: Path): Either[Exception, ConfigDb] =
+    if (Files.exists(path))
+      apply(Files.readAllBytes(path), Some(path.toString))
     else
       Right(empty)
 

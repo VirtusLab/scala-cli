@@ -35,7 +35,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     val logger        = options.logging.logger
     val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
 
-    lazy val configDb = ConfigDb.open(options.directories.directories.dbPath)
+    lazy val configDb = ConfigDb.open(options.directories.directories.dbPath.toNIO)
       .wrapConfigException
       .orExit(logger)
 

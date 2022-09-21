@@ -25,7 +25,7 @@ object Config extends ScalaCommand[ConfigOptions] {
       System.out.write(content)
     }
     else {
-      val db = ConfigDb.open(directories.dbPath)
+      val db = ConfigDb.open(directories.dbPath.toNIO)
         .wrapConfigException
         .orExit(logger)
 
@@ -69,7 +69,7 @@ object Config extends ScalaCommand[ConfigOptions] {
             db.set(secKeyEntry, PasswordOption.Value(pgpSecretBase64.toConfig))
             db.set(secKeyPasswordEntry, PasswordOption.Value(password.toConfig))
             db.set(pubKeyEntry, PasswordOption.Value(pgpPublic.toConfig))
-            db.save(directories.dbPath)
+            db.save(directories.dbPath.toNIO)
           }
           else {
             System.err.println("No argument passed")
@@ -82,7 +82,7 @@ object Config extends ScalaCommand[ConfigOptions] {
               if (values.isEmpty)
                 if (options.unset) {
                   db.remove(entry)
-                  db.save(directories.dbPath)
+                  db.save(directories.dbPath.toNIO)
                 }
                 else {
                   val valueOpt = db.getAsString(entry)
@@ -124,7 +124,7 @@ object Config extends ScalaCommand[ConfigOptions] {
                 db.setFromString(entry, finalValues)
                   .wrapConfigException
                   .orExit(logger)
-                db.save(directories.dbPath)
+                db.save(directories.dbPath.toNIO)
               }
           }
       }

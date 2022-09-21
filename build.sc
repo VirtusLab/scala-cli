@@ -442,8 +442,7 @@ trait Config extends ScalaCliSbtModule
     with ScalaCliScalafixModule {
   def scalaVersion = Scala.defaultInternal
   def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.jsoniterCore,
-    Deps.osLib
+    Deps.jsoniterCore
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros
