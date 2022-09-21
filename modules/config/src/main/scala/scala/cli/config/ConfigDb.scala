@@ -1,7 +1,7 @@
 package scala.cli.config
 
-import com.github.plokhotnyuk.jsoniter_scala.core.{Key as _, *}
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core.{Key => _, _}
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
 import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
 import java.nio.file.{Files, Path}
@@ -87,7 +87,7 @@ final class ConfigDb private (
             }
             (k, serialize(v0))
         }
-      val sortedMap: Map[String, RawJson] = ListMap.from(keyValues)
+      val sortedMap: Map[String, RawJson] = ListMap.empty ++ keyValues
       writeToArray(sortedMap)(ConfigDb.codec)
     }
 

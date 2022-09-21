@@ -42,7 +42,7 @@ object cli extends Cli
 
 object `cli-options`  extends CliOptions
 object `build-macros` extends BuildMacros
-object config         extends Config
+object config         extends Cross[Config](Scala.all: _*)
 object options        extends Options
 object scalaparse     extends ScalaParse
 object directives     extends Directives
@@ -437,16 +437,27 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   }
 }
 
-trait Config extends ScalaCliSbtModule
+class Config(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  def scalaVersion = Scala.defaultInternal
-  def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.jsoniterCore
-  )
+  def ivyDeps = {
+    val maybeCollectionCompat =
+      if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)
+      else Nil
+    super.ivyDeps() ++ maybeCollectionCompat ++ Agg(
+      Deps.jsoniterCore
+    )
+  }
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros
   )
+
+  // Disabling Scalafix in 2.13 and 3, so that it doesn't remove
+  // some compatibility-related imports, that are actually only used
+  // in Scala 2.12.
+  def fix(args: String*) =
+    if (crossScalaVersion.startsWith("2.12.")) super.fix(args: _*)
+    else T.command(())
 }
 
 trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
@@ -664,7 +675,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   def moduleDeps = Seq(
     `build-module`,
     `cli-options`,
-    config,
+    config(Scala.scala3),
     `scala3-graal`(Scala.scala3)
   )
 
