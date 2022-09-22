@@ -7,6 +7,7 @@ import java.nio.charset.Charset
 
 import scala.cli.integration.util.DockerServer
 import scala.io.Codec
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
@@ -517,6 +518,39 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val output = res.out.trim()
       expect(res.exitCode != 0)
       expect(output.contains("No inputs provided"))
+    }
+  }
+
+  test("Debugging") {
+    val inputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        s"""object Foo {
+           |  def main(args: Array[String]): Unit = {
+           |    println("foo")
+           |  }
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val out1 = os.proc(TestUtil.cli, "run", extraOptions, ".", "--debug", "--command")
+        .call(cwd = root).out.trim().lines.toList.asScala
+      val out2 = os.proc(
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        ".",
+        "--debug-port",
+        "5006",
+        "--debug-mode",
+        "listen",
+        "--command"
+      ).call(cwd = root).out.trim().lines.toList.asScala
+
+      def debugString(server: String, port: String) =
+        s"-agentlib:jdwp=transport=dt_socket,server=$server,suspend=y,address=$port"
+
+      assert(out1.exists(_ == debugString("y", "5005")))
+      assert(out2.exists(_ == debugString("n", "5006")))
     }
   }
 

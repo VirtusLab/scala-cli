@@ -24,7 +24,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
   private def mkBloopRifleConfig(opts: BloopStartOptions): BloopRifleConfig = {
     import opts._
     val buildOptions = BuildOptions(
-      javaOptions = JvmUtils.javaOptions(jvm),
+      javaOptions = JvmUtils.javaOptions(jvm).orExit(logging.logger),
       internal = InternalOptions(
         cache = Some(coursier.coursierCache(logging.logger.coursierLogger("")))
       )

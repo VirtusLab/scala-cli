@@ -107,6 +107,26 @@ Print the resulting class path
 
 Compile test scope
 
+## Debug options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--debug`
+
+Turn debugging on
+
+### `--debug-port`
+
+Debug port (5005 by default)
+
+### `--debug-mode`
+
+Debug mode (attach by default)
+
 ## Dependency options
 
 Available in commands:

@@ -51,13 +51,14 @@ final case class PgpSecretKeyCheck(
     else
       Base64.getEncoder().encodeToString(input)
 
-  def javaCommand: () => String =
+  def javaCommand: Either[BuildException, () => String] = either {
     () =>
-      JvmUtils.javaOptions(options.sharedJvm).javaHome(
+      value(JvmUtils.javaOptions(options.sharedJvm)).javaHome(
         ArchiveCache().withCache(coursierCache),
         coursierCache,
         logger.verbosity
       ).value.javaCommand
+  }
 
   def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] =
     either {
@@ -114,7 +115,7 @@ final case class PgpSecretKeyCheck(
                       password,
                       logger,
                       coursierCache,
-                      javaCommand
+                      value(javaCommand)
                     )
                   }
                   val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
@@ -150,7 +151,7 @@ final case class PgpSecretKeyCheck(
                 "[generated key]",
                 coursierCache,
                 logger,
-                javaCommand
+                value(javaCommand)
               )
             }
             val keyServers = value {
