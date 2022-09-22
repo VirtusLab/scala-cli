@@ -7,7 +7,7 @@ import scala.cli.config.Util._
 
 /** A configuration key
   */
-sealed abstract class Key[T] {
+abstract class Key[T] {
 
   /** Key prefix, such as "foo.a" in "foo.a.b" */
   def prefix: Seq[String]
