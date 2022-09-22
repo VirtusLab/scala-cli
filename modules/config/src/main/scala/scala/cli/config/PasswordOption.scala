@@ -60,7 +60,7 @@ object PasswordOption extends LowPriorityPasswordOption {
   }
   final case class File(path: Path) extends PasswordOption {
     def get(): Secret[String] = {
-      val value = Files.readString(path) // trim that?
+      val value = new String(Files.readAllBytes(path), StandardCharsets.UTF_8) // trim that?
       Secret(value)
     }
     override def getBytes(): Secret[Array[Byte]] = {
