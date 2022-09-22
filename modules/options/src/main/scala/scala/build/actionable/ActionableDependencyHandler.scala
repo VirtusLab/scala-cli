@@ -10,6 +10,7 @@ import scala.build.actionable.errors.ActionableHandlerError
 import scala.build.errors.BuildException
 import scala.build.internal.Util._
 import scala.build.options.BuildOptions
+import scala.build.options.ScalaVersionUtil.versionsWithTtl0
 import scala.concurrent.duration.DurationInt
 
 case object ActionableDependencyHandler
@@ -43,15 +44,8 @@ case object ActionableDependencyHandler
     val cache       = buildOptions.finalCache
     val csModule    = value(dependency.toCs(scalaParams)).module
 
-    val res = cache.withTtl(0.seconds).logger.use {
-      Versions(cache)
-        .withModule(csModule)
-        .result()
-        .unsafeRun()(cache.ec)
-    }
-
     value {
-      res.versions.latest(coursier.core.Latest.Release).toRight {
+      cache.versionsWithTtl0(csModule).versions.latest(coursier.core.Latest.Release).toRight {
         new ActionableHandlerError(s"No latest version found for ${dependency.render}")
       }
     }

@@ -18,6 +18,7 @@ import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
+import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.options as bo
 import scala.cli.ScalaCli
@@ -37,14 +38,9 @@ object SharedOptionsUtil extends CommandHelpers {
   private def downloadInputs(cache: FileCache[Task]): String => Either[String, Array[Byte]] = {
     url =>
       val artifact = Artifact(url).withChanging(true)
-      val res = cache.logger.use {
-        try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)
-        catch {
-          case NonFatal(e) => throw new Exception(e)
-        }
-      }
-      res
-        .left.map(_.describe)
+      cache.fileWithTtl0(artifact)
+        .left
+        .map(_.describe)
         .map(f => os.read.bytes(os.Path(f, Os.pwd)))
   }
 
