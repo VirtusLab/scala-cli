@@ -6,7 +6,7 @@ private[config] object Util {
     def toBooleanOption: Option[Boolean] =
       try Some(s.toBoolean)
       catch {
-        case e: IllegalArgumentException =>
+        case _: IllegalArgumentException =>
           None
       }
   }

@@ -445,12 +445,15 @@ class Config(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
       if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)
       else Nil
     super.ivyDeps() ++ maybeCollectionCompat ++ Agg(
-      Deps.jsoniterCore
+      Deps.jsoniterCoreJava8
     )
   }
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
-    Deps.jsoniterMacros
+    Deps.jsoniterMacrosJava8
   )
+  def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-release", "8")
+  }
 
   // Disabling Scalafix in 2.13 and 3, so that it doesn't remove
   // some compatibility-related imports, that are actually only used

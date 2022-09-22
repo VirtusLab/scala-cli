@@ -58,13 +58,14 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier      = "2.1.0-M6-53-gb4f448130"
-    def coursierCli   = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.17.3"
-    def scalaMeta     = "4.5.13"
-    def scalaNative   = "0.4.7"
-    def scalaPackager = "0.1.28"
-    def signingCli    = "0.1.9"
+    def coursier           = "2.1.0-M6-53-gb4f448130"
+    def coursierCli        = "2.1.0-M5-18-gfebf9838c"
+    def jsoniterScala      = "2.17.3"
+    def jsoniterScalaJava8 = "2.13.5"
+    def scalaMeta          = "4.5.13"
+    def scalaNative        = "0.4.7"
+    def scalaPackager      = "0.1.28"
+    def signingCli         = "0.1.9"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
@@ -95,8 +96,12 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13:${Versions.jsoniterScala}"
   def jsoniterCore =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
+  def jsoniterCoreJava8 =
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterMacros =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
+  def jsoniterMacrosJava8 =
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
   def libsodiumjni  = ivy"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:0.0.3"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
