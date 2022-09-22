@@ -6,10 +6,10 @@ import coursier.cache.ArchiveCache
 import java.util.Base64
 
 import scala.cli.commands.ScalaCommand
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.JvmUtils
-import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.config.{ConfigDb, Keys, PasswordOption, Secret}
 
 object Config extends ScalaCommand[ConfigOptions] {
   override def hidden       = true
@@ -21,12 +21,12 @@ object Config extends ScalaCommand[ConfigOptions] {
     val directories = options.directories.directories
 
     if (options.dump) {
-      val path    = ConfigDb.dbPath(directories)
-      val content = os.read.bytes(path)
+      val content = os.read.bytes(directories.dbPath)
       System.out.write(content)
     }
     else {
-      val db = ConfigDb.open(directories)
+      val db = ConfigDb.open(directories.dbPath.toNIO)
+        .wrapConfigException
         .orExit(logger)
 
       def unrecognizedKey(key: String): Nothing = {
@@ -42,7 +42,9 @@ object Config extends ScalaCommand[ConfigOptions] {
             val secKeyPasswordEntry = Keys.pgpSecretKeyPassword
             val pubKeyEntry         = Keys.pgpPublicKey
 
-            val mail = db.get(Keys.userEmail).orExit(logger)
+            val mail = db.get(Keys.userEmail)
+              .wrapConfigException
+              .orExit(logger)
               .getOrElse {
                 System.err.println("Error: user.email not set (required to generate PGP key)")
                 sys.exit(1)
@@ -64,10 +66,10 @@ object Config extends ScalaCommand[ConfigOptions] {
               ).orExit(logger)
             val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
 
-            db.set(secKeyEntry, PasswordOption.Value(pgpSecretBase64))
-            db.set(secKeyPasswordEntry, PasswordOption.Value(password))
-            db.set(pubKeyEntry, PasswordOption.Value(pgpPublic))
-            db.save(directories)
+            db.set(secKeyEntry, PasswordOption.Value(pgpSecretBase64.toConfig))
+            db.set(secKeyPasswordEntry, PasswordOption.Value(password.toConfig))
+            db.set(pubKeyEntry, PasswordOption.Value(pgpPublic.toConfig))
+            db.save(directories.dbPath.toNIO)
           }
           else {
             System.err.println("No argument passed")
@@ -80,10 +82,12 @@ object Config extends ScalaCommand[ConfigOptions] {
               if (values.isEmpty)
                 if (options.unset) {
                   db.remove(entry)
-                  db.save(directories)
+                  db.save(directories.dbPath.toNIO)
                 }
                 else {
-                  val valueOpt = db.getAsString(entry).orExit(logger)
+                  val valueOpt = db.getAsString(entry)
+                    .wrapConfigException
+                    .orExit(logger)
                   valueOpt match {
                     case Some(value) =>
                       for (v <- value)
@@ -117,8 +121,10 @@ object Config extends ScalaCommand[ConfigOptions] {
                   else
                     values
 
-                db.setFromString(entry, finalValues).orExit(logger)
-                db.save(directories)
+                db.setFromString(entry, finalValues)
+                  .wrapConfigException
+                  .orExit(logger)
+                db.save(directories.dbPath.toNIO)
               }
           }
       }

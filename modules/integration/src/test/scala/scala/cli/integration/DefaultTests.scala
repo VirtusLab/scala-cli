@@ -117,7 +117,7 @@ class DefaultTests extends ScalaCliSuite {
         "-classpath",
         (os.rel / compilationOutputDir).toString
       ).call(cwd = root)
-      expect(runRes.out.trim == expectedOutput)
+      expect(runRes.out.trim() == expectedOutput)
     }
   }
 

@@ -22,10 +22,11 @@ import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.ScalaJsOptions
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.{ConfigDb, ConfigDbException, Keys}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
 import scala.util.Properties
@@ -249,12 +250,22 @@ object SharedOptionsUtil extends CommandHelpers {
       extraJars ++ scalac.scalacOption.toScalacOptShadowingSeq.getScalacOption("-classpath")
 
     def globalInteractiveWasSuggested: Option[Boolean] =
-      configDb.getOrNone(Keys.globalInteractiveWasSuggested, logger)
+      configDb.get(Keys.globalInteractiveWasSuggested) match {
+        case Right(opt) => opt
+        case Left(ex) =>
+          logger.debug(ConfigDbException(ex))
+          None
+      }
 
     def interactive: Interactive =
       (
         logging.verbosityOptions.interactive,
-        configDb.getOrNone(Keys.interactive, logger),
+        configDb.get(Keys.interactive) match {
+          case Right(opt) => opt
+          case Left(ex) =>
+            logger.debug(ConfigDbException(ex))
+            None
+        },
         globalInteractiveWasSuggested
       ) match {
         case (Some(true), _, Some(true)) => InteractiveAsk
@@ -270,7 +281,7 @@ object SharedOptionsUtil extends CommandHelpers {
               configDb
                 .set(Keys.interactive, true)
                 .set(Keys.globalInteractiveWasSuggested, true)
-                .save(v.directories.directories)
+                .save(v.directories.directories.dbPath.toNIO)
               logger.message(
                 "--interactive is now set permanently. All future scala-cli commands will run with the flag set to true."
               )
@@ -280,7 +291,7 @@ object SharedOptionsUtil extends CommandHelpers {
             case _ =>
               configDb
                 .set(Keys.globalInteractiveWasSuggested, true)
-                .save(v.directories.directories)
+                .save(v.directories.directories.dbPath.toNIO)
               logger.message(
                 "If you want to turn this setting permanently on at any point, just run `scala-cli config interactive true`."
               )
@@ -289,7 +300,10 @@ object SharedOptionsUtil extends CommandHelpers {
         case _ => InteractiveNop
       }
 
-    def configDb: ConfigDb = ConfigDb.open(v).orExit(logger)
+    def configDb: ConfigDb =
+      ConfigDb.open(v.directories.directories.dbPath.toNIO)
+        .wrapConfigException
+        .orExit(logger)
 
     def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
       implicit val ec: ExecutionContextExecutorService = options.finalCache.ec

@@ -12,6 +12,7 @@ import scala.build.errors.BuildException
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Runner
 import scala.cli.CurrentParams
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
@@ -35,8 +36,7 @@ object Doc extends ScalaCommand[DocOptions] {
     val compilerMaker       = ScalaCompilerMaker.IgnoreScala2(maker)
     val docCompilerMakerOpt = Some(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
 
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val configDb = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

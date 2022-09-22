@@ -871,7 +871,11 @@ trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
     val semDbOptions =
       if (isScala2) Seq(s"-P:semanticdb:sourceroot:$sourceRoot")
       else Seq(s"-sourceroot", sourceRoot.toString)
-    parentOptions ++ semDbOptions
+    val warnUnusedOptions =
+      if (!parentOptions.contains("-Ywarn-unused") && scalaVersion().startsWith("2."))
+        Seq("-Ywarn-unused")
+      else Nil
+    parentOptions ++ semDbOptions ++ warnUnusedOptions
   }
 }
 

@@ -10,6 +10,7 @@ import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
 import scala.build.{Build, CrossSources, Inputs, PersistentDiagnosticLogger, Sources}
 import scala.cli.CurrentParams
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
@@ -70,8 +71,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     val logger = getSharedOptions().logging.logger
     val inputs = argsToInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val configDb = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

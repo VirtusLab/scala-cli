@@ -11,6 +11,7 @@ import scala.build.internal.Runner
 import scala.build.options.{BuildOptions, JavaOpt, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.Run.maybePrintSimpleScalacOutput
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
@@ -117,9 +118,8 @@ object Repl extends ScalaCommand[ReplOptions] {
       }
     }
 
-    val cross = options.sharedRepl.compileCross.cross.getOrElse(false)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val cross    = options.sharedRepl.compileCross.cross.getOrElse(false)
+    val configDb = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

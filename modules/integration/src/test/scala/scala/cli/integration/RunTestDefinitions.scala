@@ -2268,7 +2268,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         (os.rel / os.up / preCompileDir / preCompileOutputDir).toString,
         extraOptions
       ).call(cwd = root / runDir)
-      expect(runRes.out.trim == expectedOutput)
+      expect(runRes.out.trim() == expectedOutput)
     }
   }
 
@@ -2309,7 +2309,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions
       ).call(cwd = root / runDir, stderr = os.Pipe)
       expect(!runRes.err.trim.contains("Warning: Flag -classpath set repeatedly"))
-      expect(runRes.out.trim == expectedOutput)
+      expect(runRes.out.trim() == expectedOutput)
     }
   }
 
@@ -2337,7 +2337,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         (os.rel / compilationOutputDir).toString,
         extraOptions
       ).call(cwd = root)
-      expect(runRes.out.trim == expectedOutput)
+      expect(runRes.out.trim() == expectedOutput)
     }
   }
 

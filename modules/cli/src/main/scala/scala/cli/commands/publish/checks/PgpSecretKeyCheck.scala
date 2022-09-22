@@ -14,6 +14,7 @@ import scala.build.errors.{BuildException, CompositeBuildException, MalformedCli
 import scala.build.options.{PublishOptions => BPublishOptions}
 import scala.cli.commands.config.ThrowawayPgpSecret
 import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.util.PublishUtils._
@@ -63,18 +64,20 @@ final case class PgpSecretKeyCheck(
       if (options.publishParams.setupCi) {
         val (pubKeyOpt, secretKey, passwordOpt) = options.publishParams.secretKey match {
           case Some(secretKey) =>
-            val pubKeyOpt = options.publicKey.map(_.get())
-            val passwordOpt =
-              value(options.publishParams.secretKeyPassword
+            val pubKeyOpt = options.publicKey.map(_.get().toConfig)
+            val passwordOpt = value {
+              options.publishParams.secretKeyPassword
                 .map(_.configPasswordOptions())
                 .map(_.get(configDb()))
-                .sequence)
+                .sequence
+            }
             (pubKeyOpt, Left(secretKey), passwordOpt)
           case None =>
-            value(configDb().get(Keys.pgpSecretKey)) match {
+            value(configDb().get(Keys.pgpSecretKey).wrapConfigException) match {
               case Some(secretKey) =>
-                val pubKeyOpt   = value(configDb().get(Keys.pgpPublicKey))
-                val passwordOpt = value(configDb().get(Keys.pgpSecretKeyPassword))
+                val pubKeyOpt = value(configDb().get(Keys.pgpPublicKey).wrapConfigException)
+                val passwordOpt =
+                  value(configDb().get(Keys.pgpSecretKeyPassword).wrapConfigException)
                 (
                   pubKeyOpt.map(_.get()),
                   Right(secretKey),
@@ -92,7 +95,7 @@ final case class PgpSecretKeyCheck(
                         .sequence
                     }
                     res
-                      .map(_.get())
+                      .map(_.get().toCliSigning)
                       .getOrElse(ThrowawayPgpSecret.pgpPassPhrase())
                   }
                   val mail = value {
@@ -116,9 +119,9 @@ final case class PgpSecretKeyCheck(
                   }
                   val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
                   (
-                    Some(pgpPublic),
-                    Right(PasswordOption.Value(pgpSecretBase64)),
-                    Some(PasswordOption.Value(password))
+                    Some(pgpPublic.toConfig),
+                    Right(scala.cli.config.PasswordOption.Value(pgpSecretBase64.toConfig)),
+                    Some(scala.cli.config.PasswordOption.Value(password.toConfig))
                   )
                 }
                 else
@@ -238,9 +241,10 @@ final case class PgpSecretKeyCheck(
           setSecrets
         )
       }
-      else if (value(configDb().get(Keys.pgpSecretKey)).isDefined) {
-        val hasPubKey   = value(configDb().get(Keys.pgpPublicKey)).isDefined
-        val hasPassword = value(configDb().get(Keys.pgpSecretKeyPassword)).isDefined
+      else if (value(configDb().get(Keys.pgpSecretKey).wrapConfigException).isDefined) {
+        val hasPubKey = value(configDb().get(Keys.pgpPublicKey).wrapConfigException).isDefined
+        val hasPassword =
+          value(configDb().get(Keys.pgpSecretKeyPassword).wrapConfigException).isDefined
         if (!hasPubKey)
           logger.message("Warning: no PGP public key found in config")
         if (!hasPassword)
