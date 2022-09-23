@@ -855,11 +855,24 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       def test(args: String*) = {
         val argsTask = T.task {
           val launcher = launcherTask().path
+          val debugReg = "^--debug$|^--debug:([0-9]+)$".r
+          val debugPortOpt = args.find(debugReg.matches).flatMap {
+            case debugReg(port) => Option(port).orElse(Some("5005"))
+            case _              => None
+          }
+          val debugArgs = debugPortOpt match {
+            case Some(port) =>
+              System.err.println(
+                s"--debug option has been passed. Listening for transport dt_socket at address: $port"
+              )
+              Seq(s"-Dtest.scala-cli.debug.port=$port")
+            case _ => Seq.empty
+          }
           val extraArgs = Seq(
             s"-Dtest.scala-cli.path=$launcher",
             s"-Dtest.scala-cli.kind=$cliKind"
           )
-          args ++ extraArgs
+          args ++ extraArgs ++ debugArgs
         }
         T.command {
           val res            = testTask(argsTask, T.task(Seq.empty[String]))()

@@ -12,18 +12,29 @@ import scala.util.Properties
 
 object TestUtil {
 
-  val cliKind: String      = sys.props("test.scala-cli.kind")
-  val isNativeCli: Boolean = cliKind.startsWith("native")
-  val isCI: Boolean        = System.getenv("CI") != null
-  val cliPath: String      = sys.props("test.scala-cli.path")
-  val detectCliPath        = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
-  val cli: Seq[String]     = cliCommand(cliPath)
+  val cliKind: String              = sys.props("test.scala-cli.kind")
+  val isNativeCli: Boolean         = cliKind.startsWith("native")
+  val isCI: Boolean                = System.getenv("CI") != null
+  val cliPath: String              = sys.props("test.scala-cli.path")
+  val debugPortOpt: Option[String] = sys.props.get("test.scala-cli.debug.port")
+  val detectCliPath                = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
+  val cli: Seq[String]             = cliCommand(cliPath)
 
   def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)
       Seq(cliPath)
     else
-      Seq("java", "-Xmx512m", "-Xms128m", "-jar", cliPath)
+      debugPortOpt match {
+        case Some(port) => Seq(
+            "java",
+            "-Xmx512m",
+            "-Xms128m",
+            s"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=$port,quiet=y",
+            "-jar",
+            cliPath
+          )
+        case _ => Seq("java", "-Xmx512m", "-Xms128m", "-jar", cliPath)
+      }
 
   // format: off
   val extraOptions: List[String] = List(

@@ -45,6 +45,16 @@ Filter test suites with
 ./mill integration.test.jvm 'scala.cli.integration.RunTestsDefault.Multiple scripts'
 ```
 
+Pass the `--debug` option to debug integration tests:
+```bash
+./mill integration.test.jvm 'scala.cli.integration.RunTestsDefault.*' --debug
+```
+
+The debug option uses 5005 port by default. It is possible to change it as follows:
+```bash
+./mill integration.test.jvm 'scala.cli.integration.RunTestsDefault.*' --debug:5006
+```
+
 #### Run integration tests with the native launcher
 
 (generating the launcher can take several minutes)
