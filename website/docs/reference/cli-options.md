@@ -1232,7 +1232,7 @@ Show help for scalac. This is an alias for --scalac-option -help
 
 ### `--extra-jars`
 
-Aliases: `--jar`, `--jars`, `--extra-jar`, `--class`, `--extra-class`, `--classes`, `--extra-classes`, `-classpath`, `--classpath`, `--class-path`, `--extra-class-path`
+Aliases: `--jar`, `--jars`, `--extra-jar`, `--class`, `--extra-class`, `--classes`, `--extra-classes`, `-classpath`, `-cp`, `--classpath`, `--class-path`, `--extra-class-path`
 
 Add extra JARs and compiled classes to the class path
 

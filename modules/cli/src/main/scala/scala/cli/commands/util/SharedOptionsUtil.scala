@@ -8,6 +8,7 @@ import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import java.io.{File, InputStream}
+import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
@@ -213,14 +214,8 @@ object SharedOptionsUtil extends CommandHelpers {
           runJmh = if (enableJmh) Some(true) else None
         ),
         classPathOptions = bo.ClassPathOptions(
-          extraClassPath = extraJarsAndClasspath
-            .flatMap(_.split(File.pathSeparator).toSeq)
-            .filter(_.nonEmpty)
-            .map(os.Path(_, os.pwd)),
-          extraCompileOnlyJars = extraCompileOnlyJars
-            .flatMap(_.split(File.pathSeparator).toSeq)
-            .filter(_.nonEmpty)
-            .map(os.Path(_, os.pwd)),
+          extraClassPath = extraJarsAndClassPath,
+          extraCompileOnlyJars = extraCompileOnlyClassPath,
           extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
           extraDependencies = ShadowingSeq.from(
             SharedOptionsUtil.parseDependencies(
@@ -242,8 +237,28 @@ object SharedOptionsUtil extends CommandHelpers {
       )
     }
 
-    def extraJarsAndClasspath: List[String] =
-      extraJars ++ scalac.scalacOption.toScalacOptShadowingSeq.getScalacOption("-classpath")
+    extension (rawClassPath: List[String]) {
+      def extractedClassPath: List[os.Path] =
+        rawClassPath
+          .flatMap(_.split(File.pathSeparator).toSeq)
+          .filter(_.nonEmpty)
+          .distinct
+          .map(os.Path(_, os.pwd))
+          .flatMap {
+            case cp if os.isDir(cp) =>
+              val jarsInTheDirectory =
+                os.walk(cp)
+                  .filter(p => os.isFile(p) && p.last.endsWith(".jar"))
+              List(cp) ++ jarsInTheDirectory // .jar paths have to be passed directly, unlike .class
+            case cp => List(cp)
+          }
+    }
+
+    def extraJarsAndClassPath: List[os.Path] =
+      (extraJars ++ scalac.scalacOption.toScalacOptShadowingSeq.getScalacOption("-classpath"))
+        .extractedClassPath
+
+    def extraCompileOnlyClassPath: List[os.Path] = extraCompileOnlyJars.extractedClassPath
 
     def globalInteractiveWasSuggested: Option[Boolean] =
       configDb.get(Keys.globalInteractiveWasSuggested) match {
@@ -380,7 +395,7 @@ object SharedOptionsUtil extends CommandHelpers {
         scalaSnippetList = allScalaSnippets,
         javaSnippetList = allJavaSnippets,
         enableMarkdown = v.markdown.enableMarkdown,
-        extraClasspathWasPassed = v.extraJarsAndClasspath.nonEmpty
+        extraClasspathWasPassed = v.extraJarsAndClassPath.nonEmpty
       )
 
     def allScriptSnippets: List[String] = v.snippet.scriptSnippet ++ v.snippet.executeScript

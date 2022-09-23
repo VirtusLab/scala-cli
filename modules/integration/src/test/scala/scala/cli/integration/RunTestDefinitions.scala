@@ -2341,6 +2341,65 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("run main class from a jar even when no explicit inputs are passed") {
+    val expectedOutput = "Hello"
+    TestInputs(
+      os.rel / "Main.scala" -> s"""object Main extends App { println("$expectedOutput") }"""
+    ).fromRoot { (root: os.Path) =>
+      // first, package the code to a jar with a main class
+      val jarPath = os.rel / "Main.jar"
+      os.proc(
+        TestUtil.cli,
+        "package",
+        ".",
+        "--library",
+        "-o",
+        jarPath,
+        extraOptions
+      ).call(cwd = root)
+
+      // next, run while relying on the jar instead of passing inputs
+      val runRes = os.proc(
+        TestUtil.cli,
+        "run",
+        "-classpath",
+        jarPath,
+        extraOptions
+      ).call(cwd = root)
+      expect(runRes.out.trim == expectedOutput)
+    }
+  }
+
+  test("run main class from a jar in a directory even when no explicit inputs are passed") {
+    val expectedOutput = "Hello"
+    TestInputs(
+      os.rel / "Main.scala" -> s"""object Main extends App { println("$expectedOutput") }"""
+    ).fromRoot { (root: os.Path) =>
+      // first, package the code to a jar with a main class
+      val jarParentDirectory = os.rel / "out"
+      val jarPath            = jarParentDirectory / "Main.jar"
+      os.proc(
+        TestUtil.cli,
+        "package",
+        ".",
+        "--library",
+        "-o",
+        jarPath,
+        extraOptions
+      ).call(cwd = root)
+
+      // next, run while relying on the jar instead of passing inputs
+      val runRes = os.proc(
+        TestUtil.cli,
+        "run",
+        "-cp",
+        jarParentDirectory,
+        extraOptions
+      ).call(cwd = root)
+      expect(runRes.out.trim == expectedOutput)
+    }
+  }
+
   if (actualScalaVersion.startsWith("3"))
     test("should throw exception for code compiled by scala 3.1.3") {
       val exceptionMsg = "Throw exception in Scala"
