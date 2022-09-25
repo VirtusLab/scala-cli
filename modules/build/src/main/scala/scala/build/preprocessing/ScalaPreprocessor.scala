@@ -29,9 +29,8 @@ case object ScalaPreprocessor extends Preprocessor {
   }
 
   private case class SpecialImportsProcessingOutput(
-    reqs: BuildRequirements,
     opts: BuildOptions,
-    content: String
+    content: Option[String]
   )
 
   case class ProcessingOutput(
@@ -191,18 +190,21 @@ case object ScalaPreprocessor extends Preprocessor {
 
     if (afterStrictUsing.isEmpty && afterProcessImports.isEmpty) None
     else {
-      val allRequirements    = afterProcessImports.map(_.reqs).toSeq :+ afterStrictUsing.globalReqs
-      val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
       val allOptions = afterStrictUsing.globalUsings +:
         afterProcessImports.map(_.opts).toSeq
       val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContentOpt = afterProcessImports
-        .map(_.content)
+        .flatMap(_.content)
         .orElse(afterStrictUsing.strippedContent)
         .orElse(if (isSheBang) Some(content0) else None)
 
       val scopedRequirements = afterStrictUsing.scopedReqs
-      Some(ProcessingOutput(summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
+      Some(ProcessingOutput(
+        afterStrictUsing.globalReqs,
+        scopedRequirements,
+        summedOptions,
+        lastContentOpt
+      ))
     }
   }
 
@@ -288,7 +290,7 @@ case object ScalaPreprocessor extends Preprocessor {
           extraDependencies = ShadowingSeq.from(deps)
         )
       )
-      Some(SpecialImportsProcessingOutput(BuildRequirements(), options, newCode))
+      Some(SpecialImportsProcessingOutput(options, Option(newCode)))
     }
   }
 
