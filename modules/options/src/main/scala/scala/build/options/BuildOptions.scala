@@ -396,8 +396,10 @@ final case class BuildOptions(
           compilerPlugins = value(compilerPlugins),
           addJsTestBridge = addJsTestBridge.filter(_ => isTests),
           addNativeTestInterface = addNativeTestInterface.filter(_ => isTests),
+          scalaJsVersion =
+            if (platform.value == Platform.JS) Some(scalaJsOptions.finalVersion) else None,
           scalaJsCliVersion =
-            if (platform.value == Platform.JS) Some(scalaJsCliVersion) else None,
+            if (platform.value == Platform.JS) Some(Constants.scalaJsCliVersion) else None,
           scalaNativeCliVersion =
             if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
           addScalapy = notForBloopOptions.doSetupPython.getOrElse(false)

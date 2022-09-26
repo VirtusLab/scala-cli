@@ -1,7 +1,7 @@
 package scala.build
 
 import coursier.cache.FileCache
-import coursier.core.{Classifier, Module}
+import coursier.core.{Classifier, Module, ModuleName, Organization}
 import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Dependency => CsDependency, Fetch, Resolution, core => csCore, util => csUtil}
@@ -20,6 +20,7 @@ import scala.build.errors.{
   NoScalaVersionProvidedError,
   RepositoryFormatError
 }
+import scala.build.internal.Constants
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Util.PositionedScalaDependencyOps
@@ -71,6 +72,7 @@ object Artifacts {
     compilerPlugins: Seq[Positioned[AnyDependency]],
     addJsTestBridge: Option[String],
     addNativeTestInterface: Option[String],
+    scalaJsVersion: Option[String],
     scalaJsCliVersion: Option[String],
     scalaNativeCliVersion: Option[String],
     addScalapy: Boolean
@@ -176,8 +178,15 @@ object Artifacts {
 
         val scalaJsCliDependency =
           scalaArtifactsParams.scalaJsCliVersion.map { version =>
+            val scalaJsVersion =
+              scalaArtifactsParams.scalaJsVersion.getOrElse(Constants.scalaJsVersion)
             val mod =
-              if (version.contains("-sc")) cmod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+              if (version.contains("-sc"))
+                Module(
+                  Organization("io.github.alexarchambault.tmp"),
+                  ModuleName(s"scalajscli-${scalaJsVersion}_2.13"),
+                  Map.empty
+                )
               else cmod"org.scala-js:scalajs-cli_2.13"
             Seq(coursier.Dependency(mod, version))
           }
