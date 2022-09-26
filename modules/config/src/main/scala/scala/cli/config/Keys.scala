@@ -23,6 +23,9 @@ object Keys {
   val proxyUser     = new Key.PasswordEntry(Seq("httpProxy"), "user")
   val proxyPassword = new Key.PasswordEntry(Seq("httpProxy"), "password")
 
+  val repositoriesMirrors = new Key.StringListEntry(Seq("repositories"), "mirrors")
+  val defaultRepositories = new Key.StringListEntry(Seq("repositories"), "default")
+
   // setting indicating if the global interactive mode was suggested
   val globalInteractiveWasSuggested = new Key.BooleanEntry(Seq.empty, "interactive-was-suggested")
 
