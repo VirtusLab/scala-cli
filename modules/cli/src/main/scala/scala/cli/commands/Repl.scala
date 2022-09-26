@@ -117,6 +117,16 @@ object Repl extends ScalaCommand[ReplOptions] {
         case Right(()) =>
       }
     }
+    def doRunReplFromBuild(
+      build: Build.Successful,
+      allowExit: Boolean
+    ): Unit =
+      doRunRepl(
+        build.options,
+        build.artifacts,
+        build.outputOpt,
+        allowExit
+      )
 
     val cross    = options.sharedRepl.compileCross.cross.getOrElse(false)
     val configDb = options.shared.configDb
@@ -154,10 +164,9 @@ object Repl extends ScalaCommand[ReplOptions] {
       ) { res =>
         for (builds <- res.orReport(logger))
           builds.main match {
-            case s: Build.Successful =>
-              doRunRepl(s.options, s.artifacts, s.outputOpt, allowExit = false)
-            case _: Build.Failed    => buildFailed(allowExit = false)
-            case _: Build.Cancelled => buildCancelled(allowExit = false)
+            case s: Build.Successful => doRunReplFromBuild(s, allowExit = false)
+            case _: Build.Failed     => buildFailed(allowExit = false)
+            case _: Build.Cancelled  => buildCancelled(allowExit = false)
           }
       }
       try WatchUtil.waitForCtrlC()
@@ -178,10 +187,9 @@ object Repl extends ScalaCommand[ReplOptions] {
         )
           .orExit(logger)
       builds.main match {
-        case s: Build.Successful =>
-          doRunRepl(s.options, s.artifacts, s.outputOpt, allowExit = true)
-        case _: Build.Failed    => buildFailed(allowExit = true)
-        case _: Build.Cancelled => buildCancelled(allowExit = true)
+        case s: Build.Successful => doRunReplFromBuild(s, allowExit = true)
+        case _: Build.Failed     => buildFailed(allowExit = true)
+        case _: Build.Cancelled  => buildCancelled(allowExit = true)
       }
     }
   }
