@@ -267,7 +267,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == message)
     }
   }
-  def smallModulesJsTest(): Unit = {
+  def smallModulesJsTest(jvm: Boolean): Unit = {
     val fileName = "Hello.scala"
     val message  = "Hello World from JS"
     val inputs = TestInputs(
@@ -287,6 +287,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     )
     val destDir = fileName.stripSuffix(".scala")
     inputs.fromRoot { root =>
+      val extraArgs = if (jvm) Seq("--js-cli-on-jvm") else Nil
       os.proc(
         TestUtil.cli,
         "package",
@@ -294,7 +295,8 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         fileName,
         "--js",
         "-o",
-        destDir
+        destDir,
+        extraArgs
       ).call(
         cwd = root,
         stdin = os.Inherit,
@@ -347,8 +349,11 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     test("multi modules js") {
       multiModulesJsTest()
     }
-    test("small modules js") {
-      smallModulesJsTest()
+    test("small modules js with native scalajs-cli") {
+      smallModulesJsTest(jvm = false)
+    }
+    test("small modules js with jvm scalajs-cli") {
+      smallModulesJsTest(jvm = true)
     }
     test("js header in release mode") {
       jsHeaderTest()
