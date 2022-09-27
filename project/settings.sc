@@ -2,7 +2,9 @@ import $ivy.`com.goyeau::mill-scalafix::0.2.8`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
 import $ivy.`io.github.alexarchambault.mill::mill-scala-cli::0.1.0`
 
-import $file.deps, deps.{BuildDeps, Deps, Docker, alpineVersion, buildCsVersion, libsodiumVersion}
+import $file.deps,
+deps.{BuildDeps, Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
+import $file.utils, utils.isArmArchitecture
 
 import com.goyeau.mill.scalafix.ScalafixModule
 import de.tobiasroeser.mill.vcs.version.VcsVersion
@@ -49,30 +51,35 @@ def fromPath(name: String): String =
 
 def cs: T[String] = T.persistent {
 
-  val ext  = if (Properties.isWin) ".exe" else ""
-  val dest = T.dest / s"cs-$buildCsVersion$ext"
+  val arch      = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT)
+  val ext       = if (Properties.isWin) ".exe" else ""
+  val csVersion = if (arch == "aarch64" && Properties.isMac) buildCsM1Version else buildCsVersion
+  val dest      = T.dest / s"cs-$csVersion$ext"
 
   def downloadOpt(): Option[String] = {
-    val arch = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT)
     val urlOpt = arch match {
       case "x86_64" | "amd64" =>
         if (Properties.isWin)
           Some(
-            s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-x86_64-pc-win32.zip"
+            s"https://github.com/coursier/coursier/releases/download/v$csVersion/cs-x86_64-pc-win32.zip"
           )
         else if (Properties.isMac)
           Some(
-            s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-x86_64-apple-darwin.gz"
+            s"https://github.com/coursier/coursier/releases/download/v$csVersion/cs-x86_64-apple-darwin.gz"
           )
         else if (Properties.isLinux)
           Some(
-            s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-x86_64-pc-linux.gz"
+            s"https://github.com/coursier/coursier/releases/download/v$csVersion/cs-x86_64-pc-linux.gz"
           )
         else None
       case "aarch64" =>
         if (Properties.isLinux)
           Some(
-            s"https://github.com/coursier/coursier/releases/download/v$buildCsVersion/cs-aarch64-pc-linux.gz"
+            s"https://github.com/coursier/coursier/releases/download/v$csVersion/cs-aarch64-pc-linux.gz"
+          )
+        else if (Properties.isMac)
+          Some(
+            s"https://github.com/VirtusLab/coursier-m1/releases/download/v$csVersion/cs-aarch64-apple-darwin.gz"
           )
         else None
       case _ =>
@@ -196,6 +203,7 @@ trait CliLaunchers extends SbtModule { self =>
         case Some("x86_64" | "amd64") =>
           if (Properties.isWin) ("x86_64-pc-win32", "lib")
           else if (Properties.isLinux) ("x86_64-pc-linux", "a")
+          else if (Properties.isMac && isArmArchitecture) ("aarch64-apple-darwin", "a")
           else if (Properties.isMac) ("x86_64-apple-darwin", "a")
           else sys.error(s"Unsupported OS for x86_64 platform: ${sys.props("os.name")}")
         case Some("aarch64") =>
@@ -210,7 +218,7 @@ trait CliLaunchers extends SbtModule { self =>
         cs,
         "fetch",
         "--intransitive",
-        s"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:$libsodiumjniVersion,classifier=$classifier,ext=$ext,type=$ext",
+        s"org.virtuslab.scala-cli:libsodiumjni:$libsodiumjniVersion,classifier=$classifier,ext=$ext,type=$ext",
         "-A",
         ext
       ).call()

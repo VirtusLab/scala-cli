@@ -285,6 +285,57 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
         SCALA_CLI_SODIUM_JNI_ALLOW: false
 
+  generate-macos-m1-launcher:
+    timeout-minutes: 120
+    runs-on: "macOS-m1"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/setup-action@f883d08305acbc28e5e5363bf5ec086397627021
+        with:
+          apps: ""
+          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+      - name: Generate native launcher
+        run: .github/scripts/generate-native-image.sh
+      #      - run: ./mill -i ci.setShouldPublish
+      #      - name: Build OS packages TODO generate os packages for M1
+      #        if: env.SHOULD_PUBLISH == 'true'
+      #        run: .github/scripts/generate-os-packages.sh
+      - name: Copy artifacts
+        run: ./mill -i copyDefaultLauncher artifacts/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: macos-m1-launchers
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 2
+
+  native-macos-m1-tests:
+    needs: generate-macos-m1-launcher
+    timeout-minutes: 120
+    runs-on: "macOS-m1"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/setup-action@f883d08305acbc28e5e5363bf5ec086397627021
+        with:
+          apps: ""
+          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+      - uses: actions/download-artifact@v3
+        with:
+          name: macos-m1-launchers
+          path: artifacts/
+      - name: Native integration tests
+        run: ./mill -i nativeIntegrationTests
+        env:
+          UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+          SCALA_CLI_SODIUM_JNI_ALLOW: false
+
   generate-windows-launcher:
     timeout-minutes: 120
     runs-on: "windows-latest"
@@ -809,6 +860,7 @@ jobs:
       - native-macos-tests-1
       - native-macos-tests-2
       - native-macos-tests-3
+      - native-macos-m1-tests
       - native-windows-tests-1
       - native-windows-tests-2
       - native-windows-tests-3
@@ -842,6 +894,11 @@ jobs:
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: macos-launchers
+        path: artifacts/
+    - uses: actions/download-artifact@v3
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: macos-m1-launchers
         path: artifacts/
     - uses: actions/download-artifact@v3
       if: env.SHOULD_PUBLISH == 'true'

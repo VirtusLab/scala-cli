@@ -2,6 +2,7 @@ import coursier.mavenRepositoryString
 import mill._, scalalib._
 
 import scala.util.Properties
+import $file.utils, utils.isArmArchitecture
 
 object Scala {
   def scala212     = "2.12.16"
@@ -60,6 +61,7 @@ object Deps {
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursier           = "2.1.0-M6-53-gb4f448130"
     def coursierCli        = "2.1.0-M5-18-gfebf9838c"
+    def coursierM1Cli      = "2.1.0-M6-53-gb4f448130"
     def jsoniterScala      = "2.17.3"
     def jsoniterScalaJava8 = "2.13.5"
     def scalaMeta          = "4.5.13"
@@ -103,7 +105,7 @@ object Deps {
   def jsoniterMacrosJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
-  def libsodiumjni  = ivy"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:0.0.3"
+  def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.3"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
     ivy"com.geirsson::metaconfig-typesafe-config:0.11.1"
@@ -170,7 +172,8 @@ def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
 def csDockerVersion = Deps.Versions.coursierCli
 
-def buildCsVersion = Deps.Versions.coursierCli
+def buildCsVersion   = Deps.Versions.coursierCli
+def buildCsM1Version = Deps.Versions.coursierM1Cli
 
 // Native library used to encrypt GitHub secrets
 def libsodiumVersion = "1.0.18"
