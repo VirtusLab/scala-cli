@@ -87,7 +87,7 @@ object LibSodiumJni {
       else sys.error(s"Unrecognized operating system: ${sys.props("os.name")}")
 
     val dep =
-      dep"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:$libsodiumjniVersion,intransitive,classifier=$classifier,ext=$ext,type=$ext"
+      dep"org.virtuslab.scala-cli:libsodiumjni:$libsodiumjniVersion,intransitive,classifier=$classifier,ext=$ext,type=$ext"
     val fetch = coursier.Fetch()
       .addDependencies(dep.toCs)
       .addArtifactTypes(Type(ext))

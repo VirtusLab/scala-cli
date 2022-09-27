@@ -105,7 +105,7 @@ class SparkTests212 extends SparkTestDefinitions {
         .call(cwd = root)
 
       val java8Home =
-        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "8").call().out.trim(), os.pwd)
+        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
 
       val ext = if (Properties.isWin) ".cmd" else ""
       val res =
