@@ -202,7 +202,7 @@ object SharedOptionsUtil extends CommandHelpers {
         ),
         scalaJsOptions = scalaJsOptions(js),
         scalaNativeOptions = scalaNativeOptions(native),
-        javaOptions = scala.cli.commands.util.JvmUtils.javaOptions(jvm),
+        javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm)),
         internalDependencies = bo.InternalDependenciesOptions(
           addStubsDependencyOpt = addStubs,
           addRunnerDependencyOpt = runner

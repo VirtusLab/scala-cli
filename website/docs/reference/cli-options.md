@@ -135,6 +135,26 @@ Available in commands:
 
 [experimental] Run given command against all provided Scala versions and/or platforms
 
+## Debug options
+
+Available in commands:
+
+[`bloop`](./commands.md#bloop), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--debug`
+
+Turn debugging on
+
+### `--debug-port`
+
+Debug port (5005 by default)
+
+### `--debug-mode`
+
+Debug mode (attach by default)
+
 ## Dependency options
 
 Available in commands:

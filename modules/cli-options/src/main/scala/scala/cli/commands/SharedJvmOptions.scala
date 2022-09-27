@@ -6,6 +6,8 @@ import com.github.plokhotnyuk.jsoniter_scala.macros._
 
 // format: off
 final case class SharedJvmOptions(
+  @Recurse
+    sharedDebug: SharedDebugOptions = SharedDebugOptions(),
 
   @Group("Java")
   @HelpMessage("Set the Java home directory")

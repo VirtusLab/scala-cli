@@ -44,7 +44,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
       val keyContent = os.read(path)
 
       val javaCommand = () =>
-        JvmUtils.javaOptions(options.jvm).javaHome(
+        JvmUtils.javaOptions(options.jvm).orExit(logger).javaHome(
           ArchiveCache().withCache(coursierCache),
           coursierCache,
           logger.verbosity

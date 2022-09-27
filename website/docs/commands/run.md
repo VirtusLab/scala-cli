@@ -204,3 +204,21 @@ object HelloWorld extends App {
 docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala
 # Hello world
 ```
+
+## Debugging
+
+It is possible to debug code by passing `--debug` flag.
+
+Additional debug options:
+* `--debug-mode` (attach by default)
+* `--debug-port` (5005 by default)
+
+Available debug modes:
+* Attach (`attach` | `att` | `a`)
+* Listen (`listen` | `lis` | `l`)
+
+Example debugging with scala-cli:
+
+```bash ignore
+scala-cli Foo.scala --debug --debug-mode l --debug-port 5006
+```

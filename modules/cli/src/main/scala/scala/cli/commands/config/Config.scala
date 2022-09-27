@@ -58,7 +58,7 @@ object Config extends ScalaCommand[ConfigOptions] {
                 logger,
                 coursierCache,
                 () =>
-                  JvmUtils.javaOptions(options.jvm).javaHome(
+                  JvmUtils.javaOptions(options.jvm).orExit(logger).javaHome(
                     ArchiveCache().withCache(coursierCache),
                     coursierCache,
                     logger.verbosity
