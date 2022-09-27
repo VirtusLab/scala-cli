@@ -135,7 +135,7 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
       shared <- sharedOptions(options)
       scalacOptions = shared.scalac.scalacOption.toSeq
       updatedScalacOptions =
-        if (shared.scalacHelp && !scalacOptions.contains("-help"))
+        if (shared.scalacExtra.scalacHelp && !scalacOptions.contains("-help"))
           scalacOptions.appended("-help")
         else scalacOptions
       if updatedScalacOptions.exists(ScalacOptions.ScalacPrintOptions)

@@ -1196,6 +1196,20 @@ Aliases: `--scala-opt`, `-O`, `--scala-option`
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
 
+## Scalac extra options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`browse` , `metabrowse`](./commands.md#browse), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--scalac-help`
+
+Aliases: `--help-scalac`
+
+Show help for scalac. This is an alias for --scalac-option -help
+
 ## Secret options
 
 Available in commands:
@@ -1249,12 +1263,6 @@ Aliases: `--scala-binary`, `--scala-bin`, `-B`
 
 [Internal]
 Set the Scala binary version
-
-### `--scalac-help`
-
-Aliases: `--help-scalac`
-
-Show help for scalac. This is an alias for --scalac-option -help
 
 ### `--extra-jars`
 
