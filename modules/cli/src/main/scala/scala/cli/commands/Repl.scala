@@ -59,7 +59,8 @@ object Repl extends ScalaCommand[ReplOptions] {
           ammoniteArgs = ammoniteArg
         ),
         python = sharedPython.python,
-        pythonSetup = sharedPython.pythonSetup
+        pythonSetup = sharedPython.pythonSetup,
+        scalaPyVersion = sharedPython.scalaPyVersion
       ),
       internalDependencies = baseOptions.internalDependencies.copy(
         addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt
@@ -350,7 +351,10 @@ object Repl extends ScalaCommand[ReplOptions] {
         logger,
         cache,
         options.finalRepositories,
-        addScalapy = if (setupPython) Some(Constants.scalaPyVersion) else None
+        addScalapy =
+          if (setupPython)
+            Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
+          else None
       )
     def ammoniteArtifacts(): Either[BuildException, ReplArtifacts] =
       ReplArtifacts.ammonite(
@@ -362,7 +366,10 @@ object Repl extends ScalaCommand[ReplOptions] {
         logger,
         cache,
         directories,
-        addScalapy = if (setupPython) Some(Constants.scalaPyVersion) else None
+        addScalapy =
+          if (setupPython)
+            Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
+          else None
       ).left.map {
         case FetchingDependenciesError(e: ResolutionError.CantDownloadModule, positions)
             if shouldUseAmmonite && e.module.name.value == s"ammonite_${scalaParams.scalaVersion}" =>

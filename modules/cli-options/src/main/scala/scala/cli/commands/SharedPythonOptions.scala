@@ -8,7 +8,10 @@ final case class SharedPythonOptions(
     pythonSetup: Option[Boolean] = None,
   @HelpMessage("[experimental] Enable Python support via ScalaPy")
   @ExtraName("py")
-    python: Option[Boolean] = None
+    python: Option[Boolean] = None,
+  @HelpMessage("[experimental] Set ScalaPy version")
+  @ExtraName("scalapyVersion")
+    scalaPyVersion: Option[String] = None
 )
 // format: on
 

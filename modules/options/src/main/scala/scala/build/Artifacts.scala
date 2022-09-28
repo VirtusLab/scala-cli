@@ -75,7 +75,7 @@ object Artifacts {
     scalaJsVersion: Option[String],
     scalaJsCliVersion: Option[String],
     scalaNativeCliVersion: Option[String],
-    addScalapy: Boolean
+    addScalapy: Option[String]
   )
 
   def apply(
@@ -254,11 +254,12 @@ object Artifacts {
             dep"org.scala-native::test-interface::$scalaNativeVersion"
           }
 
-        val scalapyDependencies =
-          if (scalaArtifactsParams.addScalapy)
-            Seq(dep"me.shadaj::scalapy-core::$scalaPyVersion")
-          else
+        val scalapyDependencies = scalaArtifactsParams.addScalapy match {
+          case Some(scalaPyVersion) =>
+            Seq(dep"${scalaPyOrganization(scalaPyVersion)}::scalapy-core::$scalaPyVersion")
+          case None =>
             Nil
+        }
 
         val internalDependencies =
           jsTestBridgeDependencies ++
@@ -370,6 +371,14 @@ object Artifacts {
       addJvmRunner0,
       if (keepResolution) Some(fetchRes.resolution) else None
     )
+  }
+
+  def scalaPyOrganization(version: String): String = {
+    def sortAfterPlus(v: String) = coursier.core.Version(v.replace("+", "-"))
+    if (sortAfterPlus(version).compareTo(sortAfterPlus("0.5.2+9-623f0807")) < 0)
+      "me.shadaj"
+    else
+      "dev.scalapy"
   }
 
   private[build] def artifacts(

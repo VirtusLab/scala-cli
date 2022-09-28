@@ -9,7 +9,8 @@ final case class PostBuildOptions(
   scalaJsLinkerOptions: ScalaJsLinkerOptions = ScalaJsLinkerOptions(),
   runWithManifest: Option[Boolean] = None,
   pythonSetup: Option[Boolean] = None,
-  python: Option[Boolean] = None
+  python: Option[Boolean] = None,
+  scalaPyVersion: Option[String] = None
 ) {
 
   def doSetupPython: Option[Boolean] =
