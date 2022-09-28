@@ -13,7 +13,12 @@ final case class ScalacExtraOptions(
   @HelpMessage("Show help for scalac. This is an alias for --scalac-option -help")
   @Name("helpScalac")
     scalacHelp: Boolean = false,
-) 
+
+  @Group("Scala")
+  @HelpMessage("Turn verbosity on for scalac. This is an alias for --scalac-option -verbose")
+  @Name("verboseScalac")
+    scalacVerbose: Boolean = false,
+)
 // format: on
 
 object ScalacExtraOptions {

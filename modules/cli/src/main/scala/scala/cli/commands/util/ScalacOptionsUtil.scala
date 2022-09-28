@@ -1,10 +1,21 @@
 package scala.cli.commands.util
 
 import scala.build.options.{ScalacOpt, ShadowingSeq}
-import scala.cli.commands.ScalacOptions
+import scala.cli.commands.{ScalacExtraOptions, ScalacOptions}
 
 object ScalacOptionsUtil {
   extension (opts: List[String]) {
+
+    def withScalacExtraOptions(scalacExtra: ScalacExtraOptions): List[String] = {
+      def maybeScalacExtraOption(
+        get: ScalacExtraOptions => Boolean,
+        scalacName: String
+      ): Option[String] =
+        if get(scalacExtra) && !opts.contains(scalacName) then Some(scalacName) else None
+      val scalacHelp    = maybeScalacExtraOption(_.scalacHelp, "-help")
+      val scalacVerbose = maybeScalacExtraOption(_.scalacVerbose, "-verbose")
+      opts ++ scalacHelp ++ scalacVerbose
+    }
     def toScalacOptShadowingSeq: ShadowingSeq[ScalacOpt] =
       ShadowingSeq.from(opts.filter(_.nonEmpty).map(ScalacOpt(_)))
 

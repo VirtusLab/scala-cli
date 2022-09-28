@@ -647,6 +647,12 @@ Aliases: `--help-scalac`
 
 Show help for scalac. This is an alias for --scalac-option -help
 
+### `--scalac-verbose`
+
+Aliases: `--verbose-scalac`
+
+Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
+
 ## Shared options
 
 Available in commands:

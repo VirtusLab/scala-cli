@@ -187,6 +187,7 @@ object SharedOptionsUtil extends CommandHelpers {
           generateSemanticDbs = semanticDb,
           scalacOptions = scalac
             .scalacOption
+            .withScalacExtraOptions(scalacExtra)
             .toScalacOptShadowingSeq
             .filterNonRedirected
             .map(Positioned.commandLine),
