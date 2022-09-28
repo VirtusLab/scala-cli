@@ -402,7 +402,11 @@ final case class BuildOptions(
             if (platform.value == Platform.JS) Some(Constants.scalaJsCliVersion) else None,
           scalaNativeCliVersion =
             if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
-          addScalapy = notForBloopOptions.doSetupPython.getOrElse(false)
+          addScalapy =
+            if (notForBloopOptions.doSetupPython.getOrElse(false))
+              Some(notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
+            else
+              None
         )
         Some(params)
       case None =>

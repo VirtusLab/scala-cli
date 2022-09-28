@@ -964,6 +964,12 @@ Aliases: `--py`
 
 [experimental] Enable Python support via ScalaPy
 
+### `--scala-py-version`
+
+Aliases: `--scalapy-version`
+
+[experimental] Set ScalaPy version
+
 ## Repl options
 
 Available in commands:

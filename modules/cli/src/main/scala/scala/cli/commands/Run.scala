@@ -97,7 +97,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         runWithManifest = options.sharedRun.useManifest,
         python = options.sharedRun.sharedPython.python,
-        pythonSetup = options.sharedRun.sharedPython.pythonSetup
+        pythonSetup = options.sharedRun.sharedPython.pythonSetup,
+        scalaPyVersion = options.sharedRun.sharedPython.scalaPyVersion
       )
     )
   }
