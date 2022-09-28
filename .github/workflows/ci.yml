@@ -288,6 +288,7 @@ jobs:
   generate-macos-m1-launcher:
     timeout-minutes: 120
     runs-on: "macOS-m1"
+    if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -316,6 +317,7 @@ jobs:
     needs: generate-macos-m1-launcher
     timeout-minutes: 120
     runs-on: "macOS-m1"
+    if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     steps:
       - uses: actions/checkout@v3
         with:
