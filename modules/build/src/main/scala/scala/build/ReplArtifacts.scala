@@ -48,7 +48,8 @@ object ReplArtifacts {
     addScalapy: Option[String]
   ): Either[BuildException, ReplArtifacts] = either {
     val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
-    val scalapyDeps  = addScalapy.map(ver => dep"me.shadaj::scalapy-core::$ver").toSeq
+    val scalapyDeps =
+      addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
     val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion") ++ scalapyDeps
     val replArtifacts = Artifacts.artifacts(
       Positioned.none(allDeps),
@@ -88,8 +89,9 @@ object ReplArtifacts {
     val replDep =
       if (isScala2) dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}"
       else dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}"
-    val scalapyDeps = addScalapy.map(ver => dep"me.shadaj::scalapy-core::$ver").toSeq
-    val allDeps     = dependencies ++ Seq(replDep) ++ scalapyDeps
+    val scalapyDeps =
+      addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
+    val allDeps = dependencies ++ Seq(replDep) ++ scalapyDeps
     val replArtifacts =
       Artifacts.artifacts(
         Positioned.none(allDeps),
